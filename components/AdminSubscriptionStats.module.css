@@ -1,0 +1,181 @@
+.container {
+  container: stats / inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+/* Summary stat cards. A card cannot go below about 14.75rem (padding, icon,
+   gap and the nowrap "Paid Subscriptions" label), so the column count follows
+   the room the stats have: two need 30.5rem, four need 62rem. */
+.summaryGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-4);
+}
+
+@container stats (min-width: 32rem) {
+  .summaryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container stats (min-width: 64rem) {
+  .summaryGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.statCard {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  background-color: var(--card);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-6);
+  box-shadow: var(--shadow-md);
+}
+
+.statCardIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.statCardContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  min-width: 0;
+}
+
+.statCardLabel {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+.statCardValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+  font-family: var(--font-family-heading);
+  line-height: 1.2;
+}
+
+/* Color variants */
+/* Coral as a block with ink on it - the raw token over its own 12% tint ran
+   about 1.5:1. */
+.colorDefault .statCardIcon {
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.colorSuccess .statCardIcon {
+  background-color: color-mix(in srgb, var(--success) 12%, transparent);
+  color: color-mix(in srgb, var(--success), black 30%);
+}
+
+.colorWarning .statCardIcon {
+  background-color: color-mix(in srgb, var(--warning) 12%, transparent);
+  color: var(--warning-foreground);
+}
+
+.colorDestructive .statCardIcon {
+  background-color: color-mix(in srgb, var(--error) 12%, transparent);
+  color: color-mix(in srgb, var(--error), black 25%);
+}
+
+/* Free plan note */
+.freeNote {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+/* Plan breakdown */
+.planSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.planSectionTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.planGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--spacing-4);
+}
+
+.planCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  background-color: var(--card);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-4) var(--spacing-6);
+  box-shadow: var(--shadow);
+}
+
+.planCardHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.planCardIcon {
+  color: var(--tk-brand-text);
+  flex-shrink: 0;
+}
+
+.planCardName {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.planCardStats {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+.planCardStat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.planCardStatValue {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--foreground);
+  font-family: var(--font-family-heading);
+}
+
+.planCardStatLabel {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.planCardDivider {
+  width: 1px;
+  height: 2rem;
+  background-color: var(--border);
+  flex-shrink: 0;
+}

@@ -1,0 +1,200 @@
+/* The console's panel. No margin of its own - the Earnings page stacks its
+   panels with a flex gap, so a margin here double-spaced this one. */
+.card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  padding: var(--spacing-6);
+  scroll-margin-top: var(--spacing-6);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-6);
+}
+
+.headerContent {
+  flex: 1;
+}
+
+/* Panel heading scale, matching the sibling panels on Earnings. */
+.title {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 var(--spacing-1) 0;
+  color: var(--foreground);
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.balanceSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-4);
+  background-color: var(--muted);
+  border-radius: var(--radius);
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
+}
+
+.balanceInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.balanceLabel {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+
+.balanceValue {
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.warningBox {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  background-color: color-mix(in srgb, var(--warning) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--warning) 25%, transparent);
+  color: var(--warning-foreground);
+  padding: var(--spacing-3);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.warningBox svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.historySection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.historyTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--foreground);
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  min-width: 600px;
+}
+
+.table th,
+.table td {
+  padding: var(--spacing-3);
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.table th {
+  background-color: var(--muted);
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.amount {
+  font-family: var(--font-family-monospace);
+  font-weight: 500;
+}
+
+.notes {
+  color: var(--muted-foreground);
+  max-width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.failureReason {
+  color: var(--error);
+  font-size: 0.75rem;
+}
+
+.emptyState {
+  text-align: center;
+  color: var(--muted-foreground);
+  padding: var(--spacing-6);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.badgePending {
+  background-color: color-mix(in srgb, var(--warning) 15%, transparent);
+  color: var(--warning-foreground);
+  border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent);
+}
+
+/* Darkened: raw --success is about 2.3:1 and --error about 3.5:1 as chip type
+   on this white panel. */
+.badgeCompleted {
+  background-color: color-mix(in srgb, var(--success) 15%, transparent);
+  color: color-mix(in srgb, var(--success), black 35%);
+  border: 1px solid color-mix(in srgb, var(--success) 30%, transparent);
+}
+
+.badgeFailed {
+  background-color: color-mix(in srgb, var(--error) 12%, transparent);
+  color: color-mix(in srgb, var(--error), black 25%);
+  border: 1px solid color-mix(in srgb, var(--error) 30%, transparent);
+}
+
+@media (max-width: 640px) {
+  .balanceSection {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .balanceSection button {
+    width: 100%;
+  }
+}

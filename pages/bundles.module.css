@@ -1,0 +1,168 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-8) var(--spacing-6);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: var(--spacing-8);
+}
+
+.headerIcon {
+  color: var(--primary);
+  margin-bottom: var(--spacing-4);
+}
+
+.title {
+  font-family: var(--font-family-heading);
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin: 0 0 var(--spacing-2) 0;
+}
+
+.subtitle {
+  font-size: 1.125rem;
+  color: var(--muted-foreground);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--spacing-8);
+}
+
+.searchWrapper {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: var(--spacing-4);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted-foreground);
+  pointer-events: none;
+}
+
+.searchInput {
+  padding-left: calc(var(--spacing-4) * 2 + 18px);
+  width: 100%;
+}
+
+.mainContent {
+  min-height: 400px;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--spacing-16) var(--spacing-6);
+  background-color: var(--surface);
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--border);
+  color: var(--muted-foreground);
+}
+
+.emptyState h2 {
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin: 0 0 var(--spacing-2) 0;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-4);
+  margin-top: var(--spacing-8);
+}
+
+/*
+ * Brand block, same clothes as the Book-a-demo card: flat coral, deep warm
+ * ink on it, one same-hue bloom for depth. Remapping the theme tokens on the
+ * block means every Button, border and focus ring inside it comes out ink
+ * without a per-button override - white sits at 2.1:1 on this coral, ink at
+ * 6.2:1. Fixed in both themes: the block is brand artwork, not a surface.
+ */
+.ctaSection {
+  --primary: var(--tk-brand-ink);
+  --primary-foreground: #fff;
+  --tk-brand-text: var(--tk-brand-ink);
+  --tk-brand-hover: var(--tk-brand-ink);
+  --tk-brand-hover-foreground: #fff;
+  --background: var(--tk-brand);
+  --border: color-mix(in srgb, var(--tk-brand-ink) 35%, transparent);
+
+  margin-top: var(--spacing-16);
+  padding: var(--spacing-12) var(--spacing-8);
+  background-color: var(--tk-brand);
+  background-image: radial-gradient(
+    100% 90% at 15% 0%,
+    hsl(0 0% 100% / 0.3),
+    transparent 65%
+  );
+  border-radius: var(--radius-lg);
+  text-align: center;
+  color: var(--tk-brand-ink);
+}
+
+.ctaContent h2 {
+  font-family: var(--font-family-heading);
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 var(--spacing-3) 0;
+}
+
+/* Full-strength ink, no alpha - the coral needs the whole 6.2:1. */
+.ctaContent p {
+  font-size: 1.125rem;
+  max-width: 600px;
+  margin: 0 auto var(--spacing-6) auto;
+}
+
+/* The darkest thing on the block, so the eye lands on it. A white fill would
+   separate from this coral at only 2.1:1, under the 3:1 floor for a control's
+   boundary; ink gives 6.2:1. */
+.ctaButton {
+  background-color: var(--tk-brand-ink);
+  border-color: var(--tk-brand-ink);
+  color: #fff;
+}
+
+.ctaButton:hover {
+  background-color: var(--tk-brand-ink-hover);
+  border-color: var(--tk-brand-ink-hover);
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: var(--spacing-6) var(--spacing-4);
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+  }
+
+  .ctaSection {
+    padding: var(--spacing-8) var(--spacing-6);
+  }
+
+  .ctaContent h2 {
+    font-size: 1.75rem;
+  }
+}

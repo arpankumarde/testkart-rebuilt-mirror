@@ -1,0 +1,421 @@
+.pageContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-6) var(--spacing-6) var(--spacing-16);
+  width: 100%;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-6);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.breadcrumbLink {
+  color: var(--muted-foreground);
+  text-decoration: none;
+  transition: color var(--animation-duration-fast) ease;
+}
+
+.breadcrumbLink:hover {
+  color: var(--foreground);
+}
+
+.breadcrumbSeparator {
+  opacity: 0.5;
+}
+
+.breadcrumbCurrent {
+  color: var(--foreground);
+  font-weight: 500;
+}
+
+.breadcrumbSkeleton {
+  margin-bottom: var(--spacing-6);
+}
+
+/* Hero */
+.hero {
+  background-color: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-8);
+  margin-bottom: var(--spacing-6);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background-color: var(--primary);
+}
+
+.heroTitle {
+  font-family: var(--font-family-heading);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--surface-foreground);
+  margin: 0 0 var(--spacing-2);
+  line-height: 1.2;
+}
+
+.heroDescription {
+  font-size: 1.0625rem;
+  color: var(--muted-foreground);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-4);
+}
+
+.heroSkeleton {
+  background-color: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-8);
+  margin-bottom: var(--spacing-6);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.subNav {
+  margin-bottom: var(--spacing-6);
+}
+
+.mainContent {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+/* Sort bar */
+.sortBar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+
+.sortLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+.sortTrigger {
+  min-width: 200px;
+}
+
+/* Grid */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-4);
+}
+
+@media (min-width: 480px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Skeleton cards */
+.skeletonCard {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-4);
+  width: 100%;
+  height: 100%;
+}
+
+.skeletonCardHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--spacing-4);
+}
+
+.skeletonCardHeaderText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  margin-left: var(--spacing-3);
+  flex: 1;
+}
+
+/* Pagination */
+.paginationContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-4);
+  margin-top: var(--spacing-4);
+  padding-top: var(--spacing-8);
+  border-top: 1px solid var(--border);
+}
+
+.paginationInfo {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.disabledLink {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* Empty / not-found state */
+.stateContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--spacing-16) var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--muted-foreground);
+  min-height: 240px;
+}
+
+.stateContainer h2 {
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: var(--spacing-4);
+}
+
+.stateContainer p {
+  margin: 0 0 var(--spacing-2) 0;
+  font-size: 1rem;
+  max-width: 480px;
+}
+
+.emptyStateLinks {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-3);
+  padding: 0;
+  list-style: none;
+}
+
+.emptyStateLinks a {
+  color: var(--tk-brand-text);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.emptyStateLinks a:hover {
+  color: var(--foreground);
+}
+
+/* Admin-authored content block, shown below the product grid and above the
+   footer — same typography as the exam hub's Overview section. */
+.additionalContent {
+  margin-top: var(--spacing-8);
+  padding-top: var(--spacing-8);
+  border-top: 1px solid var(--border);
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--foreground);
+}
+
+.additionalContent h2 {
+  font-size: 1.375rem;
+  font-weight: 700;
+  margin: var(--spacing-6) 0 var(--spacing-3);
+}
+
+.additionalContent h2:first-child {
+  margin-top: 0;
+}
+
+.additionalContent h3 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 1.25rem 0 var(--spacing-2);
+}
+
+.additionalContent p {
+  margin: 0 0 var(--spacing-3);
+}
+
+.additionalContent img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+  margin: var(--spacing-4) 0;
+  display: block;
+}
+
+.additionalContent ul {
+  list-style-type: disc;
+  margin: 0 0 var(--spacing-3);
+  padding-left: var(--spacing-6);
+}
+
+.additionalContent ol {
+  list-style-type: decimal;
+  margin: 0 0 var(--spacing-3);
+  padding-left: var(--spacing-6);
+}
+
+.additionalContent li {
+  margin-bottom: var(--spacing-1);
+}
+
+.additionalContent blockquote {
+  border-left: 4px solid var(--primary);
+  padding: var(--spacing-3) var(--spacing-4);
+  margin: var(--spacing-4) 0;
+  background-color: color-mix(in srgb, var(--primary) 5%, transparent);
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+
+.additionalContent strong {
+  font-weight: 700;
+}
+
+.additionalContent em {
+  font-style: italic;
+}
+
+.additionalContent pre {
+  background-color: var(--muted);
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow-x: auto;
+  margin: 0 0 var(--spacing-3);
+  font-family: var(--font-family-monospace, monospace);
+  font-size: 0.9em;
+}
+
+.additionalContent code {
+  background-color: var(--muted);
+  padding: 0.15em 0.4em;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family-monospace, monospace);
+  font-size: 0.9em;
+}
+
+.additionalContent pre code {
+  background: none;
+  padding: 0;
+}
+
+.additionalContent hr {
+  border: none;
+  border-top: 2px solid var(--border);
+  margin: var(--spacing-6) 0;
+}
+
+.additionalContent a {
+  color: var(--tk-brand-text);
+  text-decoration: underline;
+}
+
+/* FAQ section */
+.faqSection {
+  margin-top: var(--spacing-8);
+  padding-top: var(--spacing-8);
+  border-top: 1px solid var(--border);
+}
+
+.faqSectionTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1.375rem;
+  font-weight: 700;
+  margin: 0 0 var(--spacing-4);
+}
+
+.faqTrigger {
+  font-family: var(--font-family-base) !important;
+  font-weight: 600 !important;
+}
+
+@media (max-width: 768px) {
+  .pageContainer {
+    padding: var(--spacing-4) var(--spacing-4) var(--spacing-12);
+  }
+
+  .hero {
+    padding: var(--spacing-6) var(--spacing-4);
+  }
+
+  .heroTitle {
+    font-size: 1.5rem;
+  }
+
+  .sortBar {
+    padding: var(--spacing-3);
+    justify-content: space-between;
+  }
+
+  .sortTrigger {
+    min-width: unset;
+    flex: 1;
+    max-width: 200px;
+  }
+
+  .additionalContent,
+  .faqSection {
+    margin-top: var(--spacing-6);
+    padding-top: var(--spacing-6);
+  }
+
+  .additionalContent h2 {
+    font-size: 1.1875rem;
+  }
+
+  .additionalContent h3,
+  .faqSectionTitle {
+    font-size: 1.0625rem;
+  }
+}

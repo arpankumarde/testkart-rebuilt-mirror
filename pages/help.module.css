@@ -1,0 +1,216 @@
+.pageWrapper {
+  background-color: var(--background);
+  min-height: 100vh;
+  padding-bottom: var(--spacing-16);
+}
+
+.topBar {
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: var(--spacing-4) 0;
+}
+
+.topBarInner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.breadcrumb a {
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.breadcrumbSeparator {
+  font-size: 0.75rem;
+}
+
+.breadcrumbCurrent {
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.searchContainer {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted-foreground);
+  pointer-events: none;
+}
+
+.searchInput {
+  padding-left: 2.25rem;
+  height: 2.5rem;
+  border-radius: var(--radius-sm);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-12) var(--spacing-6);
+}
+
+/* Category Grid */
+.kbGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-8);
+}
+
+@media (min-width: 768px) {
+  .kbGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-12) var(--spacing-8);
+  }
+}
+
+.kbCategory {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: var(--spacing-6);
+  border-bottom: 1px solid var(--border);
+}
+
+.kbCategoryHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-4);
+  color: var(--foreground);
+}
+
+.kbCategoryHeader h2 {
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.kbArticleList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+}
+
+.kbArticleLink {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  color: var(--primary);
+  text-decoration: none;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+}
+
+.kbArticleLink:hover {
+  text-decoration: underline;
+}
+
+.kbArticleIcon {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.viewAllLink {
+  font-size: 0.875rem;
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+  margin-top: auto;
+}
+
+.viewAllLink:hover {
+  text-decoration: underline;
+}
+
+/* Search Results Grid */
+.resultsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-8);
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
+}
+
+.resultsHeader h2 {
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.postsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-6);
+}
+
+@media (min-width: 640px) {
+  .postsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .postsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.skeletonGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-6);
+}
+
+@media (min-width: 640px) {
+  .skeletonGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .skeletonGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.skeletonCard {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.emptyState {
+  text-align: center;
+  padding: var(--spacing-16);
+  background-color: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--muted-foreground);
+}

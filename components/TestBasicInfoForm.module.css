@@ -1,0 +1,152 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+/* Mobile: Better spacing */
+@media (max-width: 768px) {
+  .form {
+    gap: var(--spacing-6);
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-4);
+}
+
+/* Mobile: Single column layout */
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-6);
+  }
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--spacing-6);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--border);
+}
+
+/* Mobile: Full-width button */
+@media (max-width: 768px) {
+  .footer {
+    justify-content: stretch;
+  }
+  
+  .footer button {
+    width: 100%;
+    min-height: 3rem;
+  }
+}
+
+.capitalize {
+  text-transform: capitalize;
+}
+
+.subjectRow {
+  display: flex;
+  gap: var(--spacing-2);
+  align-items: flex-start;
+}
+
+/* Mobile: Better spacing */
+@media (max-width: 768px) {
+  .subjectRow {
+    gap: var(--spacing-3);
+  }
+}
+
+.subjectRow > :first-child {
+  flex: 1;
+}
+
+.addButton {
+  margin-top: var(--spacing-2);
+}
+
+/* Mobile: Full-width and larger */
+@media (max-width: 768px) {
+  .addButton {
+    width: 100%;
+    min-height: 2.75rem;
+  }
+}
+
+.checkboxWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-height: 2.75rem;
+}
+
+/* Mobile: Better touch target */
+@media (max-width: 768px) {
+  .checkboxWrapper {
+    min-height: 3rem;
+    gap: var(--spacing-3);
+  }
+}
+
+.checkboxLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+/* Mobile: Larger label */
+@media (max-width: 768px) {
+  .checkboxLabel {
+    font-size: 1rem;
+  }
+}
+
+.radioGroup {
+  display: flex;
+  gap: var(--spacing-4);
+  flex-wrap: wrap;
+}
+
+/* Mobile: Vertical stack for better touch targets */
+@media (max-width: 768px) {
+  .radioGroup {
+    flex-direction: column;
+    gap: var(--spacing-3);
+  }
+}
+
+.radioItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-height: 2.75rem;
+}
+
+/* Mobile: Larger touch targets */
+@media (max-width: 768px) {
+  .radioItem {
+    min-height: 3rem;
+    gap: var(--spacing-3);
+  }
+}
+
+.radioLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+  cursor: pointer;
+  text-transform: capitalize;
+}
+
+/* Mobile: Larger labels for easier tapping */
+@media (max-width: 768px) {
+  .radioLabel {
+    font-size: 1rem;
+  }
+}

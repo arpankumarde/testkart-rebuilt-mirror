@@ -1,0 +1,284 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  /* The gutter matches the sticky header's own side padding, as on every
+     other admin page. */
+  padding: var(--spacing-6) var(--spacing-6) var(--spacing-8);
+  box-sizing: border-box;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--spacing-2) var(--spacing-4);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  color: var(--foreground);
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.error {
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid color-mix(in srgb, var(--error) 30%, transparent);
+  border-radius: var(--radius);
+  background-color: color-mix(in srgb, var(--error) 10%, transparent);
+  color: color-mix(in srgb, var(--error), black 25%);
+  font-size: 0.875rem;
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--spacing-4);
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  min-width: 0;
+  padding: var(--spacing-4) var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.kpiHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+}
+
+.kpiLabel {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.kpiIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.kpiValue {
+  font-family: var(--font-family-heading);
+  font-size: 1.875rem;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.kpiNote {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.charts {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--spacing-6);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  min-width: 0;
+  padding: var(--spacing-4) var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-2) var(--spacing-4);
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.switch {
+  display: inline-flex;
+  padding: 2px;
+  background-color: var(--muted);
+  border-radius: var(--radius);
+}
+
+.switchButton {
+  height: 1.625rem;
+  padding: 0 var(--spacing-3);
+  border: none;
+  border-radius: calc(var(--radius) - 2px);
+  background: transparent;
+  color: var(--muted-foreground);
+  font-family: var(--font-family-base);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) ease, color var(--animation-duration-fast) ease;
+}
+
+.switchButton:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.switchActive {
+  background-color: var(--surface);
+  color: var(--foreground);
+  box-shadow: var(--shadow);
+}
+
+.chart {
+  width: 100%;
+  min-width: 0;
+}
+
+.chartSkeleton {
+  height: 260px;
+  border-radius: var(--radius);
+}
+
+.summary {
+  margin: 0;
+  padding-top: var(--spacing-3);
+  border-top: 1px solid var(--border);
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.summary strong {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.panels {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--spacing-6);
+}
+
+.metrics {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.metricRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: var(--spacing-2) 0;
+  border-top: 1px solid var(--border);
+  font-size: 0.875rem;
+}
+
+.metricRow:first-child {
+  border-top: none;
+}
+
+.metricLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  color: var(--muted-foreground);
+}
+
+.metricValue {
+  font-weight: 600;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+}
+
+.tone_success {
+  background-color: var(--success);
+}
+
+.tone_error {
+  background-color: var(--error);
+}
+
+.tone_warning {
+  background-color: var(--warning);
+}
+
+.quickLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+@media (max-width: 1200px) {
+  .charts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    gap: var(--spacing-4);
+    padding: var(--spacing-4);
+  }
+
+  .kpis,
+  .panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .card,
+  .kpi {
+    padding: var(--spacing-4);
+  }
+}

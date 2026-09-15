@@ -1,0 +1,1 @@
+// No SSR prefetch needed for admin pages (behind auth)

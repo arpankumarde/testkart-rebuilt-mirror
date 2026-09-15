@@ -1,0 +1,184 @@
+/* A left-aligned row: photo, then its label, guidance and buttons. The old
+   version centred a 9rem circle in a full-width panel, so most of the row was
+   empty and the control did not line up with any other field on the form. */
+.field {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  padding: var(--spacing-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+}
+
+.input {
+  display: none;
+}
+
+.avatar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 6.5rem;
+  height: 6.5rem;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background-color: var(--muted);
+  cursor: pointer;
+  transition: border-color var(--animation-duration-fast) ease;
+}
+
+.avatar:hover:not(:disabled) {
+  border-color: var(--tk-brand-text);
+}
+
+.avatar:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.avatar:disabled {
+  cursor: default;
+}
+
+/* A dashed ring only while a file is over the target, so the resting state
+   stays a clean circle rather than a permanent drop-zone. */
+.dragging {
+  border: 2px dashed var(--tk-brand-text);
+  background-color: var(--tk-brand-tint);
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+  font-family: var(--font-family-heading);
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+/* Reveals the camera on hover and focus, so the circle is visibly a control
+   without needing a caption under it. */
+.hover {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: color-mix(in srgb, black 55%, transparent);
+  color: #fff;
+  opacity: 0;
+  transition: opacity var(--animation-duration-fast) ease;
+}
+
+.avatar:hover:not(:disabled) .hover,
+.avatar:focus-visible .hover {
+  opacity: 1;
+}
+
+.uploading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-1);
+  background-color: color-mix(in srgb, var(--surface) 82%, transparent);
+  color: var(--foreground);
+}
+
+.progress {
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.label {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+  max-width: 32rem;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-1);
+}
+
+.remove {
+  color: var(--muted-foreground);
+}
+
+.remove:hover:not(:disabled) {
+  color: var(--error);
+  background-color: color-mix(in srgb, var(--error) 12%, transparent);
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: color-mix(in srgb, var(--error), black 20%);
+}
+
+@media (max-width: 560px) {
+  .field {
+    align-items: stretch;
+    flex-direction: column;
+    gap: var(--spacing-4);
+  }
+
+  .avatar {
+    width: 5.5rem;
+    height: 5.5rem;
+  }
+
+  .actions {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .avatar,
+  .hover {
+    transition: none;
+  }
+}

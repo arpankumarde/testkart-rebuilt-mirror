@@ -1,0 +1,204 @@
+.cardLink {
+  text-decoration: none;
+  flex: 0 0 auto;
+  width: 280px;
+  scroll-snap-align: start;
+}
+
+@media (min-width: 768px) {
+  .cardLink {
+    width: 300px;
+  }
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  min-height: 200px;
+  padding: var(--spacing-3);
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, hsl(25 95% 65%) 0%, hsl(355 85% 60%) 100%);
+  box-shadow: var(--shadow-md);
+  color: white;
+  overflow: hidden;
+  transition: transform var(--animation-duration-fast) ease, box-shadow var(--animation-duration-fast) ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+}
+
+.prizeBadge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-color: hsl(45 95% 55%);
+  color: hsl(30 100% 12%);
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.prizeIcon {
+  flex-shrink: 0;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-color: rgba(0, 0, 0, 0.25);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.badgeDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.liveDot {
+  background-color: #fff;
+  animation: pulseDot 1.5s infinite ease-in-out;
+}
+
+.upcomingDot {
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+@keyframes pulseDot {
+  0% { transform: scale(0.8); opacity: 0.5; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.8); opacity: 0.5; }
+}
+
+.badgeText {
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.teacherRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.avatarFallback {
+  color: var(--primary);
+  background-color: #fff;
+  font-size: 0.75rem;
+}
+
+.teacherInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  overflow: hidden;
+}
+
+.teacherName {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.testTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.seatsRow {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.seatsBarTrack {
+  width: 100%;
+  height: 4px;
+  border-radius: var(--radius-full);
+  background-color: rgba(255, 255, 255, 0.25);
+  overflow: hidden;
+}
+
+.seatsBarFill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background-color: #fff;
+}
+
+.seatsLabel {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+}
+
+.bottomRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+}
+
+.countdown {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.priceBadge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.free {
+  background-color: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+.paid {
+  background-color: #fff;
+  color: hsl(20 100% 45%);
+}

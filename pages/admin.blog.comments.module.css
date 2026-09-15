@@ -1,0 +1,140 @@
+/* Console page shell - see admin.transactions.module.css for the measure rule. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  width: 100%;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: var(--spacing-6) var(--spacing-6) var(--spacing-8);
+  box-sizing: border-box;
+}
+
+.commentsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.commentCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.commentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-4);
+}
+
+.commentAuthor {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  min-width: 0;
+}
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarFallback {
+  font-weight: 700;
+  color: var(--muted-foreground);
+  font-size: 1rem;
+}
+
+.commentMeta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.authorName {
+  font-weight: 600;
+  color: var(--foreground);
+  font-size: 0.9375rem;
+}
+
+.postTitle {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.dateText {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+/* The comment itself is quoted material, so it sits on the muted slab with a
+   left rule rather than in a second panel. */
+.commentContent {
+  color: var(--foreground);
+  line-height: 1.6;
+  font-size: 0.9375rem;
+  background-color: var(--muted);
+  padding: var(--spacing-3);
+  border-radius: var(--radius);
+  border-left: 3px solid var(--border);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.commentActions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+/* Semantic tokens run about 2.3:1 as type on white, so they are darkened for
+   the label and kept at strength only for the border. */
+.approveButton {
+  color: color-mix(in srgb, var(--success), black 25%);
+  border-color: color-mix(in srgb, var(--success) 45%, var(--border));
+}
+
+.rejectButton {
+  color: color-mix(in srgb, var(--error), black 20%);
+  border-color: color-mix(in srgb, var(--error) 45%, var(--border));
+}
+
+.skeletonStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: var(--spacing-4);
+  }
+
+  .commentHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-2);
+  }
+}

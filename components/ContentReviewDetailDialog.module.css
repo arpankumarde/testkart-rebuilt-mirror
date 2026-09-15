@@ -1,0 +1,346 @@
+.headerBadgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  padding-top: var(--spacing-1);
+}
+
+.metaSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.thumbnailWrapper {
+  width: min(100%, 28rem);
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.thumbnail {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.description {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--foreground);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.descriptionHtml {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+.descriptionHtml > :first-child {
+  margin-top: 0;
+}
+
+.descriptionHtml > :last-child {
+  margin-bottom: 0;
+}
+
+.descriptionHtml p,
+.descriptionHtml ul,
+.descriptionHtml ol,
+.descriptionHtml blockquote,
+.descriptionHtml pre {
+  margin: 0 0 var(--spacing-3);
+}
+
+.descriptionHtml h1,
+.descriptionHtml h2,
+.descriptionHtml h3,
+.descriptionHtml h4 {
+  margin: var(--spacing-4) 0 var(--spacing-2);
+  font-family: var(--font-family-heading);
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--foreground);
+}
+
+.descriptionHtml h1 {
+  font-size: 1.125rem;
+}
+
+.descriptionHtml h2 {
+  font-size: 1rem;
+}
+
+.descriptionHtml h3,
+.descriptionHtml h4 {
+  font-size: 0.9375rem;
+}
+
+.descriptionHtml ul,
+.descriptionHtml ol {
+  padding-left: 1.25rem;
+}
+
+.descriptionHtml ul {
+  list-style: disc;
+}
+
+.descriptionHtml ol {
+  list-style: decimal;
+}
+
+.descriptionHtml li + li {
+  margin-top: var(--spacing-1);
+}
+
+.descriptionHtml li > p {
+  margin: 0;
+}
+
+.descriptionHtml hr {
+  margin: var(--spacing-4) 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
+.descriptionHtml a {
+  color: var(--tk-brand-text);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.descriptionHtml blockquote {
+  padding-left: var(--spacing-3);
+  border-left: 3px solid var(--border);
+  color: var(--muted-foreground);
+}
+
+.descriptionHtml code,
+.descriptionHtml pre {
+  font-family: var(--font-family-monospace);
+  font-size: 0.8125rem;
+  background-color: var(--muted);
+  border-radius: var(--radius-sm);
+}
+
+.descriptionHtml code {
+  padding: 0 var(--spacing-1);
+}
+
+.descriptionHtml pre {
+  padding: var(--spacing-3);
+  overflow-x: auto;
+}
+
+.descriptionHtml pre code {
+  padding: 0;
+  background-color: transparent;
+}
+
+.descriptionHtml img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-3);
+}
+
+.gridItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  min-width: 0;
+  padding: var(--spacing-3);
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.gridLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.gridValue {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-width: 0;
+  font-size: 0.875rem;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.subValue {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.priceGroup,
+.ratingGroup {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.pricePrimary {
+  font-weight: 600;
+}
+
+.priceDiscount {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--success), black 30%);
+}
+
+.muted {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.adminNotes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.adminNotesRejected {
+  background-color: color-mix(in srgb, var(--error) 12%, transparent);
+  border-color: color-mix(in srgb, var(--error) 40%, transparent);
+}
+
+.adminNotesLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.adminNotesRejected .adminNotesLabel {
+  color: color-mix(in srgb, var(--error), black 20%);
+}
+
+.adminNotesText {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--foreground);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.breakdownSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.breakdownBar {
+  display: flex;
+  height: 0.5rem;
+  overflow: hidden;
+  background-color: var(--border);
+  border-radius: var(--radius-full);
+}
+
+.breakdownBarAi,
+.breakdownBarManual {
+  height: 100%;
+}
+
+.breakdownBarAi,
+.legendSwatchAi {
+  background-color: color-mix(in srgb, var(--info), black 30%);
+}
+
+.breakdownBarManual,
+.legendSwatchManual {
+  background-color: var(--tk-brand-text);
+}
+
+.breakdownLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
+  font-size: 0.8125rem;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.legendItem svg {
+  color: var(--muted-foreground);
+}
+
+.legendSwatch {
+  flex-shrink: 0;
+  width: 0.625rem;
+  height: 0.625rem;
+  margin-right: var(--spacing-1);
+  border-radius: var(--radius-sm);
+}
+
+.pdfButtonRow {
+  display: flex;
+}
+
+.pdfLoading {
+  padding: var(--spacing-8);
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.capitalize {
+  text-transform: capitalize;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

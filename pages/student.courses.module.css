@@ -1,0 +1,40 @@
+/*
+ * On the shared console language - see student.tests.module.css for the rules.
+ * No gutter of its own; StudentDashboardLayout's .mainContent owns it.
+ */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* EnrolledCourseCard is a tower built for a ~300px column. auto-fill (not
+   auto-fit) keeps the empty tracks, so a short row leaves a gap rather than
+   stretching two cards across the full width. */
+.coursesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-4);
+  align-items: stretch;
+}
+
+.cardSkeleton {
+  width: 100%;
+  height: 320px;
+  border-radius: var(--radius-md);
+}
+
+@media (max-width: 768px) {
+  .page {
+    gap: var(--spacing-4);
+  }
+
+  .coursesGrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--spacing-3);
+  }
+}

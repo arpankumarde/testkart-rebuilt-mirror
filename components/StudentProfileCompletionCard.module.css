@@ -1,0 +1,255 @@
+/*
+ * Console card: --surface on a hairline border, no drop shadow. Coral appears
+ * as the ring's solid stroke and the CTA block only - never as tinted text on
+ * white, which is the 2.1:1 case base.css warns about.
+ */
+.card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: 1.25rem var(--spacing-6);
+  border-bottom: 1px solid var(--border);
+}
+
+.ring {
+  position: relative;
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+}
+
+.ringSvg {
+  width: 72px;
+  height: 72px;
+  transform: rotate(-90deg);
+}
+
+.ringTrack {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 7;
+}
+
+/* --tk-brand-text, not --tk-brand-deep: a thin mark ON a surface has to flip
+   with the theme. The deep orange only holds against white. */
+.ringFill {
+  fill: none;
+  stroke: var(--tk-brand-text);
+  stroke-width: 7;
+  stroke-linecap: round;
+  transition: stroke-dashoffset var(--animation-duration-normal) ease;
+}
+
+.ringValue {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.headText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+}
+
+.cta {
+  flex-shrink: 0;
+}
+
+.tasks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.task {
+  min-width: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.task:nth-child(odd):not(:last-child) {
+  border-right: 1px solid var(--border);
+}
+
+/* An odd number of tasks would leave a dangling empty cell, so the final row
+   spans the full width instead. */
+.task:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+/* The last row owns the card's own bottom edge. */
+.task:last-child,
+.task:nth-last-child(2):nth-child(odd) {
+  border-bottom: none;
+}
+
+.taskRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--spacing-3) var(--spacing-6);
+  color: var(--foreground);
+  text-decoration: none;
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+a.taskRow:hover {
+  background-color: var(--muted);
+}
+
+a.taskRow:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.markTodo {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-full);
+  box-sizing: border-box;
+}
+
+a.taskRow:hover .markTodo {
+  border-color: var(--tk-brand-text);
+}
+
+.markDone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--success), black 20%);
+  color: #fff;
+}
+
+.taskText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.taskLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.taskHint {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--muted-foreground);
+}
+
+.taskChevron {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+
+.taskDone .taskLabel {
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.doneTag {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 900px) {
+  .tasks {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .task:nth-child(odd) {
+    border-right: none;
+  }
+
+  .task:nth-last-child(2):nth-child(odd) {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .task:last-child {
+    border-bottom: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .head {
+    flex-wrap: wrap;
+    padding: var(--spacing-4);
+  }
+
+  .ring,
+  .ringSvg {
+    width: 56px;
+    height: 56px;
+  }
+
+  .ringValue {
+    font-size: 0.875rem;
+  }
+
+  .cta {
+    width: 100%;
+  }
+
+  .taskRow {
+    padding: var(--spacing-3) var(--spacing-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ringFill,
+  .taskRow {
+    transition: none;
+  }
+}

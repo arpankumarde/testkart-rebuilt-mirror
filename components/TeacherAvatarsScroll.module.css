@@ -1,0 +1,152 @@
+.container {
+  position: relative;
+  width: 100%;
+  min-width: 320px;
+  background-color: #0a0a0a; /* Dark background to match sell page */
+  padding: var(--spacing-6) 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-4);
+  border-top: 1px solid #222;
+}
+
+.label {
+  color: #888;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  z-index: 2;
+}
+
+.scrollMask {
+  width: 100%;
+  min-height: 60px;
+  overflow: hidden;
+  position: relative;
+  /* Masking for smoother edges if gradients fail */
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+@media (min-width: 768px) {
+  .scrollMask {
+    min-height: 76px;
+  }
+}
+
+.scrollTrack {
+  display: flex;
+  gap: var(--spacing-4);
+  width: max-content;
+  animation: scroll 60s linear infinite;
+  padding: 0 var(--spacing-4);
+}
+
+/* Pause animation on hover for interaction */
+.scrollTrack:hover {
+  animation-play-state: paused;
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.avatarWrapper {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid #333;
+  background-color: #222;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.avatarWrapper:hover {
+  transform: scale(1.1);
+  border-color: var(--primary);
+  z-index: 10;
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarFallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #333;
+  color: #888;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: var(--font-family-monospace);
+}
+
+/* Gradient overlays */
+.fadeLeft,
+.fadeRight {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.fadeLeft {
+  left: 0;
+  background: linear-gradient(to right, #0a0a0a, transparent);
+}
+
+.fadeRight {
+  right: 0;
+  background: linear-gradient(to left, #0a0a0a, transparent);
+}
+
+/* Skeleton Loading State */
+.skeletonContainer {
+  display: flex;
+  gap: var(--spacing-4);
+  justify-content: center;
+  width: 100%;
+  overflow: hidden;
+  opacity: 0.5;
+}
+
+.avatarSkeleton {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background-color: #222;
+}
+
+/* Responsive Adjustments */
+@media (min-width: 768px) {
+  .avatarWrapper {
+    width: 72px;
+    height: 72px;
+  }
+  
+  .avatarSkeleton {
+    width: 72px;
+    height: 72px;
+  }
+
+  .scrollTrack {
+    gap: var(--spacing-6);
+  }
+}

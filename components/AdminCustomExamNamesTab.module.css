@@ -1,0 +1,251 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-6);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.cardSkeleton {
+  height: 4.5rem;
+  border-radius: var(--radius-md);
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  min-width: 0;
+}
+
+.name {
+  font-weight: 600;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+.stats {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: var(--spacing-1);
+}
+
+/* Darkened: the raw error token as an icon on white runs about 3.5:1. */
+.deleteBtn,
+.deleteBtn:hover {
+  color: color-mix(in srgb, var(--error), black 20%);
+}
+
+.deleteBtn:hover {
+  background-color: color-mix(in srgb, var(--error) 12%, transparent);
+}
+
+/* A plain surface panel. The 6% coral wash it replaces read as a rendering
+   artefact; the count pill carries the one brand mark instead. */
+.duplicatesSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.duplicatesHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  color: var(--muted-foreground);
+}
+
+.duplicatesHeader h3 {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.duplicatesCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.25rem;
+  padding: 0 0.375rem;
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.duplicatesHint {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.duplicatesList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.duplicateCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-3) var(--spacing-4);
+  padding: var(--spacing-3);
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.duplicateMembers {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.duplicateChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: 2px var(--spacing-2);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.duplicateChipCount {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Dialog rules beat the kit's layered form spacing because this file is
+   unlayered. */
+.formItem {
+  margin-bottom: 0;
+}
+
+.formLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.fieldSkeleton {
+  height: 2.5rem;
+}
+
+.mergeMemberList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.mergeMemberRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3);
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.mergeMemberRow:hover {
+  border-color: color-mix(in srgb, var(--tk-brand) 55%, var(--border));
+}
+
+.mergeMemberName {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+.mergeMemberStats {
+  flex-shrink: 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.mergeModeGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.mergeModeOption {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.875rem;
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.newExamFields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.mergeField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.mergeLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.selectEmpty {
+  padding: var(--spacing-3);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}

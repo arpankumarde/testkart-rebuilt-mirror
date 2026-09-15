@@ -1,0 +1,495 @@
+.cardLink {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.card {
+  background-color: var(--surface);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--shadow);
+  height: 100%;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.badgeContainer {
+  padding: var(--spacing-4) var(--spacing-4) 0 var(--spacing-4);
+  display: flex;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.thumbnail {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background-color: var(--muted);
+  position: relative;
+  border-radius: var(--radius-md);
+}
+
+.quickAddButton {
+  position: absolute;
+  bottom: var(--spacing-3);
+  right: var(--spacing-3);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity var(--animation-duration-normal) ease,
+              transform var(--animation-duration-normal) ease;
+  box-shadow: var(--shadow-md);
+  z-index: var(--z-content-low);
+}
+
+.card:hover .quickAddButton {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (hover: none) {
+  .quickAddButton {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.quickAddButton:hover:not(:disabled) {
+  box-shadow: var(--shadow-lg);
+}
+
+.quickAddButtonDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--primary-foreground);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.thumbnailImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cardContent {
+  padding: var(--spacing-6);
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.title {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--foreground);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.creator {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin: 0;
+  font-weight: 500;
+}
+
+.ratingContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.875rem;
+  margin-top: calc(-1 * var(--spacing-1));
+}
+
+.starIcon {
+  color: hsl(45 100% 51%);
+  flex-shrink: 0;
+}
+
+.ratingValue {
+  color: hsl(45 100% 40%);
+  font-weight: 700;
+  font-size: 0.9375rem;
+}
+
+.reviewsCount {
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+
+.infoGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-2);
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  font-size: 0.875rem;
+}
+
+.infoIcon {
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.infoText {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.infoLabel {
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+
+.infoValue {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.difficultyBadge {
+  font-size: 0.75rem;
+  padding: var(--spacing-1) var(--spacing-2);
+}
+
+.freeTests {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.cardFooter {
+  padding: var(--spacing-6);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+}
+
+.buyButton {
+  flex: 1;
+  max-width: 180px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  font-family: var(--font-family-base);
+  font-weight: 500;
+  border-radius: var(--radius);
+  height: 2.5rem;
+  padding: 0 var(--spacing-3);
+  font-size: 0.9375rem;
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border: 1px solid var(--primary);
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    border-color var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
+}
+
+.freeButton {
+  background-color: hsl(142 71% 45%);
+  border-color: hsl(142 71% 45%);
+  color: var(--success-foreground);
+}
+
+.card:hover .freeButton {
+  background-color: hsl(142 71% 38%);
+  border-color: hsl(142 71% 38%);
+}
+
+.enrolledButton {
+  background-color: hsl(142 71% 45%) !important;
+  border-color: hsl(142 71% 45%) !important;
+  color: var(--success-foreground) !important;
+  cursor: default !important;
+}
+
+.teacherText {
+  flex: 1;
+  text-align: center;
+  font-size: 0.9375rem;
+  color: var(--muted-foreground);
+  font-weight: 500;
+  padding: var(--spacing-2);
+}
+
+.card:hover .buyButton:not(.freeButton):not(.enrolledButton):not(.teacherButton) {
+  background-color: color-mix(in srgb, var(--primary), black 10%);
+  border-color: color-mix(in srgb, var(--primary), black 10%);
+}
+
+.priceContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--spacing-1);
+}
+
+.originalPriceRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.originalPrice {
+  text-decoration: line-through;
+  font-weight: 500;
+}
+
+.discountBadge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--success);
+  background-color: color-mix(in srgb, var(--success) 15%, transparent);
+  padding: 2px var(--spacing-1);
+  border-radius: var(--radius-sm);
+}
+
+.price {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  font-family: var(--font-family-heading);
+}
+
+.freePrice {
+  color: hsl(142 71% 45%);
+}
+
+.price svg {
+  flex-shrink: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .title {
+    font-size: 1rem;
+  }
+
+  .creator {
+    font-size: 0.8125rem;
+  }
+
+  .ratingContainer {
+    font-size: 0.8125rem;
+    gap: var(--spacing-1);
+  }
+
+  .ratingValue {
+    font-size: 0.875rem;
+  }
+
+  .placeholderLogo {
+    width: 120px;
+  }
+
+  .cardContent {
+    padding: var(--spacing-4);
+    gap: var(--spacing-2);
+  }
+
+  .infoGrid {
+    gap: var(--spacing-2);
+    margin-top: var(--spacing-1);
+  }
+
+  .infoRow {
+    gap: var(--spacing-2);
+    font-size: 0.8125rem;
+  }
+
+  .infoIcon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .infoIcon svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .infoText {
+    gap: var(--spacing-1);
+  }
+
+  .difficultyBadge {
+    font-size: 0.6875rem;
+    padding: 2px var(--spacing-2);
+  }
+
+  .cardFooter {
+    padding: var(--spacing-4);
+    padding-top: var(--spacing-3);
+    gap: var(--spacing-3);
+  }
+
+  .buyButton {
+    flex: 1;
+    max-width: none;
+    height: 2.5rem;
+    font-size: 0.875rem;
+    padding: 0 var(--spacing-3);
+  }
+
+  .originalPriceRow {
+    font-size: 0.8125rem;
+  }
+
+  .discountBadge {
+    font-size: 0.6875rem;
+  }
+
+  .price {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .badgeContainer {
+    padding: var(--spacing-3) var(--spacing-3) 0 var(--spacing-3);
+  }
+
+  
+
+  .title {
+    font-size: 0.9375rem;
+  }
+
+  .creator {
+    font-size: 0.75rem;
+  }
+
+  .ratingContainer {
+    font-size: 0.75rem;
+  }
+
+  .starIcon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .ratingValue {
+    font-size: 0.8125rem;
+  }
+
+  .placeholderLogo {
+    width: 100px;
+  }
+
+  .cardContent {
+    padding: var(--spacing-3);
+    gap: var(--spacing-2);
+  }
+
+  .infoGrid {
+    gap: var(--spacing-2);
+  }
+
+  .infoRow {
+    font-size: 0.75rem;
+    gap: var(--spacing-2);
+  }
+
+  .infoIcon {
+    width: 12px;
+    height: 12px;
+  }
+
+  .infoIcon svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .difficultyBadge {
+    font-size: 0.625rem;
+  }
+
+  .freeTests {
+    font-size: 0.6875rem;
+  }
+
+  .cardFooter {
+    padding: var(--spacing-3);
+    padding-top: var(--spacing-2);
+    gap: var(--spacing-2);
+  }
+
+  .buyButton {
+    height: 2.5rem;
+    font-size: 0.8125rem;
+    padding: 0 var(--spacing-2);
+  }
+
+  .buyButton svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .originalPriceRow {
+    font-size: 0.75rem;
+  }
+
+  .originalPriceRow svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .discountBadge {
+    font-size: 0.625rem;
+  }
+
+  .price {
+    font-size: 1.125rem;
+  }
+
+  .price svg {
+    width: 16px;
+    height: 16px;
+  }
+}

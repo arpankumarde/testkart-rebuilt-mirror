@@ -1,0 +1,186 @@
+.dialogContent {
+  max-width: 560px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  margin-top: var(--spacing-6);
+}
+
+.editContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.infoNote {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  background-color: var(--muted);
+  border-radius: var(--radius);
+  padding: var(--spacing-2) var(--spacing-3);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.helperText {
+  margin-top: var(--spacing-2);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  line-height: 1.4;
+}
+
+.sectionLabel {
+  font-family: var(--font-family-base);
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--foreground);
+  display: block;
+}
+
+.multiSubjectContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.examSubjectsSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.loadingText {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  padding: var(--spacing-2);
+}
+
+.checkboxList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  background-color: var(--muted);
+  border-radius: var(--radius);
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.checkboxItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-2);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background-color var(--animation-duration-fast);
+}
+
+.checkboxItem:hover:not(.disabled) {
+  background-color: var(--surface);
+}
+
+.checkboxItem.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.9375rem;
+  flex: 1;
+}
+
+.addedBadge {
+  font-size: 0.75rem;
+  padding: var(--spacing-1) var(--spacing-2);
+}
+
+.customSubjectsSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.customSubjectsInput {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.customSubjectsChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-2);
+}
+
+.customChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.removeChipButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.8;
+  transition: opacity var(--animation-duration-fast);
+}
+
+.removeChipButton:hover {
+  opacity: 1;
+}
+
+.removeChipButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.selectedPreview {
+  padding: var(--spacing-4);
+  background-color: var(--muted);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.selectedCount {
+  font-size: 0.9375rem;
+  margin-bottom: var(--spacing-2);
+  color: var(--foreground);
+}
+
+.selectedList {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  line-height: 1.5;
+}

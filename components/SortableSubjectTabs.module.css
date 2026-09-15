@@ -1,0 +1,115 @@
+.tabsRow {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--muted) transparent;
+  padding-bottom: var(--spacing-1);
+}
+
+.tabsRow::-webkit-scrollbar {
+  height: 4px;
+}
+
+.tabsRow::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tabsRow::-webkit-scrollbar-thumb {
+  background: var(--muted);
+  border-radius: var(--radius-full);
+}
+
+.tabsList {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  min-width: 100%;
+}
+
+.sortableTab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-4);
+  font-family: var(--font-family-base);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  position: relative;
+  white-space: nowrap;
+  transition: color var(--animation-duration-normal) cubic-bezier(0.22, 1, 0.36, 1);
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.sortableTab:hover {
+  color: var(--foreground);
+}
+
+.sortableTab::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: transparent;
+  transform-origin: center;
+  transition: background-color var(--animation-duration-normal) cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sortableTabActive {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.sortableTabActive::after {
+  background-color: var(--primary);
+}
+
+.sortableTab.dragging {
+  opacity: 0.5;
+  box-shadow: var(--shadow-md);
+  z-index: var(--z-content);
+  background-color: var(--surface);
+  border-radius: var(--radius);
+}
+
+.dragHandle {
+  display: inline-flex;
+  align-items: center;
+  color: var(--muted-foreground);
+  cursor: grab;
+  padding: 0 var(--spacing-1);
+  opacity: 0.5;
+  transition: opacity var(--animation-duration-fast);
+  flex-shrink: 0;
+}
+
+.dragHandle:hover {
+  opacity: 1;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.tabLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.questionCount {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  font-weight: 500;
+}

@@ -1,0 +1,38 @@
+@layer base {
+  .container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .inputRow {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    width: 100%;
+  }
+
+  .inputRow > *:first-child {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .clearButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted-foreground);
+    cursor: pointer;
+  }
+
+  .clearButton:hover {
+    background: var(--muted);
+    color: var(--foreground);
+  }
+}

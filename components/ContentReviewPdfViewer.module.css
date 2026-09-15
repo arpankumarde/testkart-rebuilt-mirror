@@ -1,0 +1,111 @@
+.pdfOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: color-mix(in srgb, black 75%, transparent);
+  z-index: var(--z-overlay);
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.pdfContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 900px;
+  background-color: var(--surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.pdfToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-3) var(--spacing-4);
+  border-bottom: 1px solid var(--border);
+  background-color: var(--surface);
+  flex-shrink: 0;
+  gap: var(--spacing-4);
+  flex-wrap: wrap;
+}
+
+.pdfTitle {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 300px;
+}
+
+.pdfControls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  flex-shrink: 0;
+}
+
+.pdfPageInfo {
+  font-size: 0.875rem;
+  color: var(--foreground);
+  min-width: 60px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.pdfZoom {
+  font-size: 0.875rem;
+  color: var(--foreground);
+  min-width: 40px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.pdfScrollArea {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background-color: color-mix(in srgb, var(--background) 80%, black 20%);
+  padding: var(--spacing-6);
+}
+
+.pdfPageWrapper {
+  box-shadow: var(--shadow-lg);
+}
+
+.pdfLoading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-8);
+}
+
+.pdfLoadingText {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.pdfError {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-12);
+  color: var(--muted-foreground);
+  text-align: center;
+}
+
+.pdfErrorIcon {
+  color: var(--error);
+}
+
+@media (max-width: 640px) {
+  .pdfTitle {
+    max-width: 160px;
+  }
+}

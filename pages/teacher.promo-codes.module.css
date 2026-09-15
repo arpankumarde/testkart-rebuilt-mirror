@@ -1,0 +1,3 @@
+/* Intentionally empty. The page renders PromoCodeManager, which owns the
+   console page shell; a wrapper with padding here would double the gutter
+   that TeacherDashboardLayout's .pageBody already provides. */

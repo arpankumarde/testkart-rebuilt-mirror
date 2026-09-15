@@ -1,0 +1,82 @@
+.stepIndicator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-6);
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  color: var(--muted-foreground);
+  font-family: var(--font-family-base);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.stepButton {
+  padding: var(--spacing-1) var(--spacing-2);
+  margin: 0 calc(var(--spacing-2) * -1);
+  border: none;
+  border-radius: var(--radius);
+  background: none;
+  cursor: pointer;
+}
+
+.stepButton:hover .stepLabel {
+  color: var(--foreground);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.stepButton:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.stepNumber {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background-color: var(--muted);
+  border: 2px solid var(--border);
+  color: var(--foreground);
+  transition: background-color var(--animation-duration-normal), border-color var(--animation-duration-normal);
+}
+
+.lockIcon {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+
+.step.active {
+  color: var(--tk-brand-text);
+  font-weight: 600;
+}
+
+.step.active .stepNumber {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
+
+.stepSeparator {
+  flex-grow: 1;
+  height: 2px;
+  background-color: var(--border);
+  margin: 0 var(--spacing-3);
+}
+
+@media (max-width: 640px) {
+  .stepLabel {
+    display: none;
+  }
+
+  .step.active .stepLabel {
+    display: inline;
+  }
+}

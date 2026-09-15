@@ -1,0 +1,19 @@
+/*
+ * On the shared console language - see student.tests.module.css for the rules.
+ * No gutter of its own; StudentDashboardLayout's .mainContent owns it.
+ */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .page {
+    gap: var(--spacing-4);
+  }
+}

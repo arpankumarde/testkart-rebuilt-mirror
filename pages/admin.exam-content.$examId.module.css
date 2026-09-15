@@ -1,0 +1,255 @@
+/* Console page shell - see admin.transactions.module.css for the measure rule.
+   60rem: a single column of form, not a card grid. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  width: 100%;
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: var(--spacing-6) var(--spacing-6) var(--spacing-8);
+  box-sizing: border-box;
+}
+
+.backLink {
+  align-self: flex-start;
+}
+
+.skeletonTitle {
+  width: 40%;
+  height: 2rem;
+}
+
+.skeletonTabs {
+  height: 2.75rem;
+}
+
+.skeletonStatus {
+  height: 3.5rem;
+  border-radius: var(--radius-md);
+}
+
+.skeletonEditor {
+  height: 24rem;
+  border-radius: var(--radius-md);
+}
+
+.tabs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  min-width: 0;
+}
+
+.tabsHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.tabsList {
+  max-width: 100%;
+}
+
+.publishedTick {
+  flex-shrink: 0;
+  margin-left: 0.375rem;
+  color: color-mix(in srgb, var(--success), black 30%);
+}
+
+.reviewMark {
+  flex-shrink: 0;
+  margin-left: 0.375rem;
+  color: var(--tk-brand-text);
+}
+
+.tabsNote {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.tabPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.statusBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.statusLeft {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.statusRight {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+/* Two classes, so the kit trigger's 2.5rem height and 180px minimum lose. */
+.statusBar .statusSelect {
+  height: 2rem;
+  min-width: 12rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.statusDot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-right: var(--spacing-2);
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.statusDotDraft {
+  background-color: var(--warning);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warning), black 35%);
+}
+
+.statusDotPublished {
+  background-color: var(--success);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--success), black 35%);
+}
+
+/* The ring matches the exam list's mark for a section ready for review. */
+.statusDotReview {
+  background-color: var(--tk-brand-text);
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 1px;
+}
+
+/* Darkened: amber as type on white runs about 2.2:1. */
+.dirtyNote {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--warning), black 45%);
+}
+
+.editorCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.sectionHint {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.fieldLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--foreground);
+}
+
+.fieldHint {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.fieldRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-4);
+}
+
+.faqList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.faqItem {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.faqFields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  min-width: 0;
+}
+
+.addQuestion {
+  align-self: flex-start;
+}
+
+.actionsBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-2);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--border);
+}
+
+.actionsGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: var(--spacing-4);
+  }
+
+  .editorCard {
+    padding: var(--spacing-4);
+  }
+
+  .fieldRow {
+    grid-template-columns: 1fr;
+  }
+
+  .faqItem {
+    padding: var(--spacing-3);
+  }
+}

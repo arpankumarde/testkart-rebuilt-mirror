@@ -1,0 +1,68 @@
+.subjectTabs {
+  display: flex;
+  gap: var(--spacing-2);
+  overflow-x: auto;
+  padding-bottom: var(--spacing-2);
+  margin-bottom: var(--spacing-4);
+  border-bottom: 1px solid var(--border);
+  scrollbar-width: thin;
+}
+
+.subjectTabs::-webkit-scrollbar {
+  height: 6px;
+}
+
+.subjectTabs::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: var(--radius-full);
+}
+
+.subjectTab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--muted);
+  border: 2px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--animation-duration-fast);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.subjectTab:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--muted) 80%, var(--foreground));
+}
+
+.subjectTab.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.subjectTab.active {
+  background-color: color-mix(in srgb, var(--primary) 15%, transparent);
+  border-color: var(--primary);
+}
+
+.subjectName {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.subjectTab.active .subjectName {
+  color: var(--primary);
+}
+
+.subjectCount {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.checkIcon {
+  color: var(--success);
+}

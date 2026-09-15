@@ -1,0 +1,120 @@
+.navContainer {
+  display: none; /* Hidden by default on desktop */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background-color: var(--surface);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -2px 10px hsla(0, 0%, 0%, 0.05);
+  z-index: var(--z-nav-sticky);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.navContent {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  height: 100%;
+  padding-top: var(--spacing-2);
+  gap: 0;
+}
+
+.navItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-1);
+  color: var(--muted-foreground);
+  text-decoration: none;
+  font-size: 0.65rem;
+  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+  transition: color var(--animation-duration-fast) ease, transform var(--animation-duration-fast) ease;
+  position: relative;
+  padding: 0 0.125rem;
+}
+
+.navItem:hover {
+  color: var(--foreground);
+}
+
+button.navItem {
+  background: none;
+  border: none;
+  padding: 0 0.125rem;
+  cursor: pointer;
+  width: 100%;
+}
+
+.navItem.active {
+  color: var(--tk-brand-text);
+  font-weight: 600;
+}
+
+.navItem.active .iconWrapper {
+  transform: translateY(-2px);
+}
+
+.iconWrapper {
+  position: relative;
+  transition: transform var(--animation-duration-normal) ease;
+}
+
+@keyframes livePulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+}
+
+.liveDot {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 6px;
+  height: 6px;
+  background-color: var(--error);
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--surface);
+  animation: livePulse 2s ease-in-out infinite;
+  box-shadow: 0 0 4px var(--error);
+}
+
+.label {
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.profileAvatar {
+  width: 20px;
+  height: 20px;
+  border: none;
+  transition: transform var(--animation-duration-normal) ease;
+}
+
+.profileAvatar:hover {
+  transform: scale(1);
+}
+
+.navItem.active .profileAvatar {
+  transform: scale(1.05);
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+/* Media query to show the nav on mobile screens */
+@media (max-width: 968px) {
+  .navContainer {
+    display: block;
+  }
+}

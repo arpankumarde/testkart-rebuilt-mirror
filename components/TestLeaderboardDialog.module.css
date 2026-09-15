@@ -1,0 +1,331 @@
+.dialogContent {
+  max-width: 1200px;
+  width: 95vw;
+  height: 90vh;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tabsContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.stickyHeader {
+  flex-shrink: 0;
+  background-color: var(--popup);
+  border-bottom: 1px solid var(--border);
+  z-index: var(--z-content-low);
+}
+
+.dialogHeader {
+  padding: var(--spacing-6);
+  padding-bottom: var(--spacing-4);
+  margin-bottom: 0;
+}
+
+.mainTabsList {
+  padding: 0 var(--spacing-4);
+}
+
+.scrollableContent {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.tabsContent {
+  padding: var(--spacing-6);
+}
+
+.innerTabsContainer {
+  width: 100%;
+}
+
+.testItemsTabsList {
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--spacing-4);
+}
+
+.innerTabsContent {
+  outline: none;
+}
+
+.leaderboardContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.searchContainer {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--spacing-4);
+}
+
+.searchInputWrapper {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: var(--spacing-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted-foreground);
+  pointer-events: none;
+}
+
+.searchInput {
+  padding-left: calc(var(--spacing-3) * 2 + 18px);
+}
+
+.table {
+  width: 100%;
+}
+
+.tableHeader {
+  display: grid;
+  grid-template-columns: 70px 1fr 100px 120px 120px;
+  gap: var(--spacing-3);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  padding: 0 var(--spacing-4);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: var(--spacing-2);
+  margin-bottom: var(--spacing-2);
+}
+
+.tableBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.tableRow {
+  display: grid;
+  grid-template-columns: 70px 1fr 100px 120px 120px;
+  gap: var(--spacing-3);
+  align-items: center;
+  padding: 0.625rem var(--spacing-4);
+  border-radius: var(--radius);
+  transition: background-color var(--animation-duration-fast);
+  font-size: 0.875rem;
+}
+
+.tableRow:nth-child(even) {
+  background-color: color-mix(in srgb, var(--muted) 30%, transparent);
+}
+
+.tableRow:hover {
+  background-color: var(--muted);
+}
+
+.currentUserRow {
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+  border-color: var(--primary);
+}
+
+.headerCellRank { text-align: center; }
+.headerCellName { text-align: left; }
+.headerCellScore { text-align: right; }
+.headerCellTime { text-align: right; }
+.headerCellDate { text-align: right; }
+
+.cellRank { 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  font-weight: 700; 
+}
+
+.rankNumber { 
+  font-size: 1.125rem; 
+}
+.goldTrophy { color: #FFD700; }
+.silverTrophy { color: #C0C0C0; }
+.bronzeTrophy { color: #CD7F32; }
+
+.cellName { 
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+.attemptBadge {
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-full);
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.cellScore, .cellTime { 
+  font-family: var(--font-family-monospace); 
+  text-align: right;
+  font-size: 0.875rem;
+}
+
+.cellDate { 
+  font-size: 0.8125rem;
+  color: var(--muted-foreground); 
+  text-align: right;
+}
+
+.paginationFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--spacing-4);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--border);
+}
+
+.paginationInfo {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+/* States */
+.skeletonContainer { 
+  display: flex; 
+  flex-direction: column; 
+  gap: var(--spacing-2); 
+}
+
+.skeletonRow { 
+  display: grid;
+  grid-template-columns: 70px 1fr 100px 120px 120px;
+  gap: var(--spacing-3);
+  align-items: center; 
+  padding: var(--spacing-3) var(--spacing-4); 
+}
+
+.skeletonRank { height: 24px; width: 100%; }
+.skeletonName { height: 20px; width: 100%; }
+.skeletonScore { height: 20px; width: 100%; }
+.skeletonTime { height: 20px; width: 100%; }
+
+.stateContainer {
+  text-align: center;
+  padding: var(--spacing-12) var(--spacing-6);
+  color: var(--muted-foreground);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-4);
+}
+.stateContainer svg { margin-bottom: var(--spacing-2); }
+.stateContainer h3 { font-size: 1.25rem; color: var(--foreground); margin: 0; }
+.stateContainer p { margin: 0; max-width: 400px; }
+
+/* About Tab */
+.aboutTabContent {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: var(--spacing-12);
+}
+.aboutCard {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-8);
+  max-width: 600px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+.aboutIcon {
+  color: var(--primary);
+}
+.aboutTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+.aboutDescription {
+  color: var(--muted-foreground);
+  line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dialogContent {
+    width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .leaderboardContent {
+    overflow-x: auto;
+  }
+
+  .table {
+    min-width: 600px;
+  }
+
+  .tableHeader {
+    grid-template-columns: 50px 1fr 80px 90px 90px;
+    gap: var(--spacing-2);
+    font-size: 0.65rem;
+    padding: 0 var(--spacing-2);
+    padding-bottom: var(--spacing-1);
+    margin-bottom: var(--spacing-1);
+  }
+
+  .tableRow {
+    grid-template-columns: 50px 1fr 80px 90px 90px;
+    gap: var(--spacing-2);
+    padding: var(--spacing-2);
+    font-size: 0.75rem;
+  }
+
+  .cellRank svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .rankNumber {
+    font-size: 0.875rem;
+  }
+
+  .attemptBadge {
+    font-size: 0.65rem;
+    padding: 2px var(--spacing-1);
+  }
+
+  .cellScore, .cellTime {
+    font-size: 0.8125rem;
+  }
+
+  .cellDate {
+    font-size: 0.75rem;
+  }
+
+  .skeletonRow {
+    grid-template-columns: 50px 1fr 80px 90px 90px;
+    gap: var(--spacing-2);
+    padding: var(--spacing-2);
+  }
+
+  .paginationFooter {
+    flex-direction: column;
+    gap: var(--spacing-4);
+  }
+}

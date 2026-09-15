@@ -1,0 +1,86 @@
+/* The console's form-page shell, matching Create bundle. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 46rem;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.content {
+  width: 100%;
+}
+
+.skeletonContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  padding: var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+/* Same panel as TeacherListEmpty, with the icon in a tinted circle rather
+   than a glyph faded to half opacity. */
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  text-align: center;
+  padding: var(--spacing-16) var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.errorIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--error) 12%, transparent);
+  color: color-mix(in srgb, var(--error), black 20%);
+}
+
+.errorTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.errorText {
+  margin: 0;
+  max-width: 34rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.errorActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-2);
+}
+
+@media (max-width: 640px) {
+  .page {
+    gap: var(--spacing-4);
+  }
+
+  .errorState {
+    padding: var(--spacing-12) var(--spacing-4);
+  }
+}

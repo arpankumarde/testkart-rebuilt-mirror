@@ -1,0 +1,72 @@
+/*
+ * The console's form-page shell, as on teacher.create-test: no padding of its
+ * own (TeacherDashboardLayout's .pageBody owns the gutter) and a form measure
+ * rather than the list pages' 1440, so labels and inputs keep a comfortable
+ * line length. Shared by Create live test and Edit live test.
+ */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 46rem;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.form {
+  width: 100%;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-16) var(--spacing-4);
+  text-align: center;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.errorIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--error) 12%, transparent);
+  color: color-mix(in srgb, var(--error), black 20%);
+}
+
+.errorTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.errorText {
+  margin: 0;
+  max-width: 34rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 640px) {
+  .page {
+    gap: var(--spacing-4);
+  }
+}

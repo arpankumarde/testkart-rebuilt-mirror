@@ -1,0 +1,62 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--background);
+}
+
+.mainContent {
+  flex-grow: 1;
+  padding: var(--spacing-8);
+  overflow-y: auto;
+}
+
+.mobileMenuButton {
+  display: none;
+  position: fixed;
+  bottom: 80px;
+  left: var(--spacing-4);
+  z-index: calc(var(--z-nav) - 1);
+  background-color: var(--surface);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
+}
+
+.mobileMenuButton:hover {
+  background-color: var(--muted);
+}
+
+.backdrop {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: calc(var(--z-nav) - 1);
+  animation: fadeIn var(--animation-duration-fast) ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .mainContent {
+    padding: var(--spacing-4);
+    padding-bottom: calc(var(--spacing-4) + 72px); /* Account for mobile bottom nav */
+  }
+
+  .mobileMenuButton {
+    display: flex;
+  }
+
+  .backdrop {
+    display: block;
+  }
+}

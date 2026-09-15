@@ -1,0 +1,63 @@
+.helperText {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.compactEditor :global(.ProseMirror) {
+  min-height: 80px;
+}
+
+.radioGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.radioLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-height: 2.25rem;
+  padding: 0 var(--spacing-3);
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+  cursor: pointer;
+  transition: border-color var(--animation-duration-fast) ease, background-color var(--animation-duration-fast) ease;
+}
+
+.radioLabel:hover {
+  border-color: color-mix(in srgb, var(--tk-brand) 55%, var(--border));
+}
+
+.radioLabel:has(input:checked) {
+  background-color: var(--tk-brand-tint);
+  border-color: color-mix(in srgb, var(--tk-brand) 55%, var(--border));
+  color: var(--tk-brand-text);
+}
+
+.radioLabel:has(input:focus-visible) {
+  box-shadow: var(--shadow-focus);
+}
+
+.radioLabel input {
+  margin: 0;
+  accent-color: var(--tk-brand-text);
+}
+
+.checkboxFormItem {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .radioLabel {
+    transition: none;
+  }
+}

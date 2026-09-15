@@ -1,0 +1,138 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  overflow-y: auto;
+  height: 100%;
+  padding-right: var(--spacing-2);
+}
+
+.threadCard {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-4);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--animation-duration-fast) ease,
+    background-color var(--animation-duration-fast) ease;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  width: 100%;
+}
+
+.threadCard:hover {
+  border-color: color-mix(in srgb, var(--foreground) 22%, var(--border));
+}
+
+.threadCard:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* Coral as a block, matching the sidebar's active row and the toolbar's
+   active tab. A 5% coral wash under a coral border read as neither. */
+.selected {
+  border-color: var(--tk-brand-text);
+  background-color: var(--tk-brand-tint);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+}
+
+.subject {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--foreground);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.unreadBadge {
+  background-color: var(--error);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0 var(--spacing-2);
+  border-radius: var(--radius-full);
+  line-height: 1.5;
+}
+
+.cardMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.time {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.skeletonCard {
+  padding: var(--spacing-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.skeletonTitle {
+  height: 1.25rem;
+  width: 80%;
+}
+
+.skeletonMeta {
+  height: 1.25rem;
+  width: 40%;
+}
+
+/* The console's empty panel: solid hairline at --radius-md, with the icon in a
+   brand-tinted circle rather than a faded glyph. */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-3);
+  text-align: center;
+  padding: var(--spacing-8) var(--spacing-4);
+  color: var(--muted-foreground);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.emptyIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.emptyTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.emptyState p {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin: 0;
+}

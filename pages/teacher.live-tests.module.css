@@ -1,0 +1,35 @@
+/* No padding of its own - TeacherDashboardLayout's .pageBody owns the gutter.
+   The old rule added --spacing-6 on top of it. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.content {
+  min-height: 20rem;
+}
+
+/* A wider track than the 17.5rem the other teacher grids use. These cards carry
+   a schedule, an enrolment bar, three figures and six actions - at 17.5rem the
+   footer buttons ran past the card edge. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(21rem, 1fr));
+  gap: var(--spacing-4);
+  align-items: stretch;
+}
+
+@media (max-width: 640px) {
+  .page {
+    gap: var(--spacing-4);
+  }
+
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

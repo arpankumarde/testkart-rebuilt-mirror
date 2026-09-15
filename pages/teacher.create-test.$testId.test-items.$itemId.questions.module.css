@@ -1,0 +1,171 @@
+/* The console workspace shell. .pageBody owns the gutter. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.backRow {
+  display: flex;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-4);
+  flex-wrap: wrap;
+}
+
+/* The console title scale. This was 1.75rem/700. */
+.header h1 {
+  margin: 0 0 var(--spacing-2);
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  color: var(--foreground);
+}
+
+.header p {
+  margin: 0;
+  max-width: 60ch;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.navButtons {
+  display: flex;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.contentWrapper {
+  width: 100%;
+}
+
+.mainContent {
+  width: 100%;
+  min-height: 25rem;
+  padding: var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.subjectMeta {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin: 0 0 var(--spacing-4) 0;
+}
+
+.subjectDescription {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  margin: 0 0 var(--spacing-4) 0;
+  line-height: 1.5;
+}
+
+/* The console's empty panel: a solid hairline, not a 2px dash. */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  text-align: center;
+  padding: var(--spacing-16) var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.emptyState h3 {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.emptyState p {
+  margin: 0;
+  max-width: 34rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.errorIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--error) 12%, transparent);
+  color: color-mix(in srgb, var(--error), black 20%);
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    gap: var(--spacing-4);
+  }
+
+  .header {
+    flex-direction: column;
+  }
+
+  .navButtons {
+    flex-direction: column;
+    width: 100%;
+    gap: var(--spacing-2);
+  }
+
+  .navButtons > * {
+    width: 100%;
+  }
+
+  .navButtons button,
+  .navButtons a {
+    height: 2.75rem;
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Stays a card at every width. It used to break out of the page gutter with
+     negative margins and a calc() width, which produced a full-bleed strip
+     that lined up with nothing else on the page. */
+  .mainContent {
+    padding: var(--spacing-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}

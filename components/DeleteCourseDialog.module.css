@@ -1,0 +1,15 @@
+.dialogContent {
+  max-width: 500px;
+}
+
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--error) 10%, transparent);
+  color: var(--error);
+  margin: 0 auto var(--spacing-4);
+}

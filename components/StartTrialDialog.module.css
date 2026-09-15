@@ -1,0 +1,288 @@
+@layer base {
+  .row {
+    display: flex;
+    gap: var(--spacing-4);
+    align-items: flex-start;
+  }
+
+  .flex1 {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Lifts the results list over the fields below it while staying under the
+     dialog's sticky header and footer (z-index 2). */
+  .relativeItem {
+    position: relative;
+    z-index: 1;
+  }
+
+  .searchContainer {
+    position: relative;
+  }
+
+  .searchIcon {
+    position: absolute;
+    left: var(--spacing-3);
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1rem;
+    height: 1rem;
+    color: var(--muted-foreground);
+    pointer-events: none;
+  }
+
+  .searchInput {
+    padding-left: calc(var(--spacing-3) * 2 + 1rem);
+  }
+
+  .dropdown {
+    position: absolute;
+    top: calc(100% + var(--spacing-1));
+    left: 0;
+    right: 0;
+    z-index: 50;
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: var(--popup);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .dropdownLoading,
+  .dropdownEmpty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-4);
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+  }
+
+  .spinner {
+    width: 1rem;
+    height: 1rem;
+    animation: spin 1s linear infinite;
+  }
+
+  .mr2 {
+    margin-right: var(--spacing-2);
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .dropdownList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .dropdownItem {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: var(--spacing-2) var(--spacing-3);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background-color var(--animation-duration-fast) ease;
+  }
+
+  .dropdownItem:last-child {
+    border-bottom: none;
+  }
+
+  .dropdownItem:hover {
+    background-color: var(--muted);
+  }
+
+  .teacherName {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--foreground);
+  }
+
+  .teacherEmail {
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+  }
+
+  .presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-2);
+    margin-top: var(--spacing-2);
+  }
+
+  .presetButton {
+    height: 1.75rem;
+    padding: 0 var(--spacing-2);
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .switchField {
+    display: flex;
+    flex-direction: column;
+    padding: var(--spacing-4);
+    background-color: var(--background);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .switchHeader {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-3);
+  }
+
+  .switchControl {
+    margin-top: 2px;
+  }
+
+  .switchLabels {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-1);
+  }
+
+  .switchLabel {
+    cursor: pointer;
+  }
+
+  .retroactiveContent {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
+    margin-top: var(--spacing-3);
+  }
+
+  .modeToggle {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-2);
+    margin-bottom: var(--spacing-2);
+  }
+
+  .modeToggle .modeActive,
+  .modeToggle .modeActive:hover {
+    background-color: var(--tk-brand-tint);
+    border-color: var(--tk-brand-text);
+    color: var(--tk-brand-text);
+  }
+
+  .orderListContainer {
+    max-height: 250px;
+    overflow-y: auto;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .orderItem {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-1);
+    padding: var(--spacing-3);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background-color var(--animation-duration-fast) ease;
+  }
+
+  .orderItem:last-child {
+    border-bottom: none;
+  }
+
+  .orderItem:hover:not(.orderItemSelected) {
+    background-color: var(--muted);
+  }
+
+  .orderItemSelected {
+    background-color: var(--tk-brand-tint);
+    box-shadow: inset 3px 0 0 var(--tk-brand-text);
+  }
+
+  .orderItemSelected .orderTitle {
+    color: var(--tk-brand-text);
+  }
+
+  .orderHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--spacing-2);
+  }
+
+  .orderTitle {
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--foreground);
+  }
+
+  .orderDate {
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .orderMeta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-2);
+    margin-top: var(--spacing-1);
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+  }
+
+  .orderMetaLeft,
+  .orderMetaRight {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+  }
+
+  .orderMetaRight {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .typeBadge {
+    padding: 1px var(--spacing-2);
+    font-size: 0.75rem;
+  }
+
+  .feeText {
+    font-weight: 600;
+    color: var(--foreground);
+  }
+
+  .emptyState,
+  .loadingState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-4);
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+  }
+
+  @media (max-width: 640px) {
+    .row {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+}

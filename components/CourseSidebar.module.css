@@ -1,0 +1,300 @@
+/* Sidebar */
+@media (min-width: 992px) {
+  .sidebar {
+    position: sticky;
+    top: calc(var(--header-height) + var(--spacing-4));
+    align-self: start;
+    z-index: calc(var(--z-nav-sticky) - 1);
+  }
+}
+
+@media (max-width: 991px) and (min-width: 768px) {
+  .sidebar {
+    position: sticky;
+    top: calc(64px + var(--spacing-3));
+    align-self: start;
+    z-index: calc(var(--z-nav-sticky) - 1);
+  }
+}
+
+.sidebarCard {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.enrolledBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-4);
+  background-color: color-mix(in srgb, var(--success) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--success) 20%, transparent);
+  border-radius: var(--radius);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--success);
+  margin-bottom: var(--spacing-4);
+}
+
+.enrolledBanner svg {
+  flex-shrink: 0;
+}
+
+.teacherInfo {
+  display: flex;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4);
+  background-color: color-mix(in srgb, var(--info) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--info) 20%, transparent);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-4);
+}
+
+.teacherInfoIcon {
+  flex-shrink: 0;
+  color: var(--info);
+}
+
+.teacherInfoContent {
+  flex: 1;
+}
+
+.teacherInfoTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--surface-foreground);
+  margin: 0 0 var(--spacing-2);
+}
+
+.teacherInfoText {
+  font-size: 0.9375rem;
+  color: var(--muted-foreground);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.enrolledCta {
+  width: 100%;
+  font-weight: 600;
+  min-height: 44px;
+  background-color: var(--success);
+  color: var(--success-foreground);
+  margin-bottom: var(--spacing-4);
+}
+
+.enrolledCta:hover {
+  background-color: color-mix(in srgb, var(--success), black 10%);
+}
+
+.pricingContent {
+  padding: var(--spacing-6);
+}
+
+.pricing {
+  margin-bottom: var(--spacing-4);
+}
+
+.priceRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-2);
+}
+
+.currentPrice {
+  font-family: var(--font-family-heading);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--surface-foreground);
+}
+
+.ctaButtons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+}
+
+.primaryCta {
+  width: 100%;
+  font-weight: 600;
+  min-height: 44px;
+}
+
+.guarantee {
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  padding: var(--spacing-3) 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--spacing-4);
+}
+
+.features {
+  margin-bottom: var(--spacing-4);
+}
+
+.featuresTitle {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  margin: 0 0 var(--spacing-3);
+  color: var(--surface-foreground);
+}
+
+.featuresList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.featuresList li {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  line-height: 1.5;
+}
+
+.featuresList li svg {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.shareButton {
+  width: 100%;
+  margin-top: var(--spacing-2);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 991px) {
+  .sidebar {
+    position: relative;
+    top: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .enrolledBanner {
+    font-size: 0.875rem;
+    padding: var(--spacing-3);
+  }
+
+  .pricingContent {
+    padding: var(--spacing-4);
+  }
+
+    .sidebarCard {
+    border-radius: var(--radius-md);
+  }
+
+  .ctaButtons {
+    gap: var(--spacing-2);
+  }
+
+  .guarantee {
+    font-size: 0.8125rem;
+    padding: var(--spacing-2) 0;
+  }
+}
+
+@media (max-width: 576px) {
+  .sidebarCard {
+    border-radius: var(--radius);
+  }
+
+  .enrolledBanner {
+    font-size: 0.8125rem;
+    padding: var(--spacing-2);
+    margin-bottom: var(--spacing-3);
+  }
+
+  .enrolledBanner svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .teacherInfo {
+    flex-direction: column;
+    gap: var(--spacing-3);
+    padding: var(--spacing-3);
+    margin-bottom: var(--spacing-3);
+  }
+
+  .teacherInfoTitle {
+    font-size: 1rem;
+  }
+
+  .teacherInfoText {
+    font-size: 0.875rem;
+  }
+
+  .enrolledCta {
+    margin-bottom: var(--spacing-3);
+  }
+
+  .pricingContent {
+    padding: var(--spacing-3);
+  }
+
+  .currentPrice {
+    font-size: 1.5rem;
+  }
+
+  .pricing {
+    margin-bottom: var(--spacing-3);
+  }
+
+  .priceRow {
+    gap: var(--spacing-2);
+  }
+
+  .ctaButtons {
+    margin-bottom: var(--spacing-3);
+  }
+
+  .guarantee {
+    padding: var(--spacing-2) 0;
+    margin-bottom: var(--spacing-3);
+  }
+
+  .features {
+    margin-bottom: var(--spacing-2);
+  }
+
+  .featuresTitle {
+    font-size: 0.875rem;
+    margin-bottom: var(--spacing-2);
+  }
+
+  .featuresList {
+    gap: var(--spacing-1);
+  }
+
+  .featuresList li {
+    font-size: 0.8125rem;
+  }
+
+  .featuresList li svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .shareButton {
+    margin-top: var(--spacing-1);
+  }
+}
+
+@media (max-width: 480px) {
+  .currentPrice {
+    font-size: 1.25rem;
+  }
+}

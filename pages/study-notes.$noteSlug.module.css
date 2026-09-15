@@ -1,0 +1,884 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-8) var(--spacing-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+.breadcrumb {
+display: flex;
+align-items: center;
+gap: var(--spacing-2);
+font-size: 0.8125rem;
+color: var(--muted-foreground);
+padding: var(--spacing-2) 0;
+min-width: 0;
+overflow: hidden;
+flex-wrap: nowrap;
+}
+
+.breadcrumb a {
+color: var(--muted-foreground);
+text-decoration: none;
+transition: color var(--animation-duration-fast);
+white-space: nowrap;
+flex-shrink: 0;
+}
+
+.breadcrumb a:hover {
+color: var(--primary);
+text-decoration: underline;
+}
+
+.breadcrumb span {
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+min-width: 0;
+color: var(--foreground);
+font-weight: 500;
+}
+
+.breadcrumb svg {
+flex-shrink: 0;
+opacity: 0.5;
+}
+
+/* minmax(0, 1fr), not 1fr: a bare 1fr track floors at its content's
+   min-content width, so one long unbreakable string in the main column
+   widens the grid past the container and pushes the sidebar off-screen. */
+.layoutGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: var(--spacing-12);
+  align-items: start;
+}
+
+.titleSection {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  align-items: flex-start;
+}
+
+.badgesRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+/* Hero-style meta row under the title — mirrors TestPackageHero's
+   heroMeta (rating that scrolls to reviews, page/file counts, author link
+   that scrolls to the author section) so the two detail pages read the
+   same way. */
+.heroMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-4);
+  margin-top: var(--spacing-1);
+}
+
+.heroRating {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.heroRatingNumber {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--warning);
+}
+
+.heroStars {
+  display: flex;
+  gap: 2px;
+}
+
+.heroScrollLink {
+  font-size: 0.875rem;
+  color: var(--primary);
+  text-decoration: underline;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity var(--animation-duration-fast);
+}
+
+.heroScrollLink:hover {
+  opacity: 0.8;
+}
+
+.heroScrollLink:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.heroMetaItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.heroMetaItem svg {
+  flex-shrink: 0;
+}
+
+.mainContent {
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+.sidebarColumn {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  position: sticky;
+  top: calc(var(--header-height, 72px) + var(--spacing-4));
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.sidebarCard {
+  background-color: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-6);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.categoryBadge {
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.title {
+  font-family: var(--font-family-heading);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.shortDesc {
+  font-size: 1.125rem;
+  color: var(--muted-foreground);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.teacherBlock {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3);
+  background-color: var(--muted);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid transparent;
+  transition: border-color var(--animation-duration-fast);
+}
+
+.teacherBlock:hover {
+  border-color: var(--primary);
+}
+
+.teacherBlockAvatar {
+  width: 44px;
+  height: 44px;
+}
+
+.teacherBlockInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.teacherBlockName {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground);
+  display: flex;
+  align-items: center;
+}
+
+.verifiedBadge {
+  margin-left: var(--spacing-1);
+}
+
+.statsRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  font-size: 0.9375rem;
+  color: var(--muted-foreground);
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  font-size: 0.9375rem;
+  color: var(--muted-foreground);
+}
+
+.metaDivider {
+  color: var(--muted-foreground);
+  opacity: 0.5;
+}
+
+.teacherInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  text-decoration: none;
+  color: var(--foreground);
+  font-weight: 500;
+}
+
+.teacherInfo:hover .teacherName {
+  color: var(--primary);
+}
+
+.avatar {
+  width: 24px;
+  height: 24px;
+}
+
+.teacherName {
+  transition: color var(--animation-duration-fast);
+}
+
+.rating {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.starIcon {
+  color: hsl(45 100% 50%);
+}
+
+.reviewCount {
+  color: var(--muted-foreground);
+  font-weight: 400;
+}
+
+.purchaseCount {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.priceSection {
+  display: flex;
+  align-items: center;
+}
+
+.price {
+  font-family: var(--font-family-heading);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.freePrice {
+  color: var(--success);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.actionButton {
+  width: 100%;
+  height: 3.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.teacherInfo {
+  display: flex;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4);
+  background-color: color-mix(in srgb, var(--info) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--info) 20%, transparent);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-2);
+}
+
+.teacherInfoIcon {
+  flex-shrink: 0;
+  color: var(--info);
+}
+
+.teacherInfoContent {
+  flex: 1;
+}
+
+.teacherInfoTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--surface-foreground);
+  margin: 0 0 var(--spacing-2);
+}
+
+.teacherInfoText {
+  font-size: 0.9375rem;
+  color: var(--muted-foreground);
+  line-height: 1.5;
+  margin: 0;
+}
+
+@media (max-width: 576px) {
+  .teacherInfo {
+    flex-direction: column;
+    gap: var(--spacing-3);
+    padding: var(--spacing-3);
+  }
+
+  .teacherInfoTitle {
+    font-size: 1rem;
+  }
+
+  .teacherInfoText {
+    font-size: 0.875rem;
+  }
+}
+
+.previewButton,
+.shareButton {
+  width: 100%;
+  height: 2.75rem;
+}
+
+.features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.featurePill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: var(--muted);
+  border-radius: var(--radius-full);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.featurePill svg {
+  color: var(--muted-foreground);
+}
+
+.previewNote {
+  padding: var(--spacing-3);
+  background-color: color-mix(in srgb, var(--success) 10%, transparent);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.875rem;
+  color: var(--success);
+  font-weight: 500;
+}
+
+.contentSections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+/* Direct child only, and h2 because that is what this page's section headings
+   actually are. As `.section h3` this styled nothing the page renders and
+   instead leaked into any child component's h3 - a descendant selector
+   outranks a plain class, so it was overriding StudyNotesFileList's file
+   title and ProductCard's card title with heading sizing. */
+.section > h2 {
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--foreground);
+}
+
+.description {
+  line-height: 1.7;
+  color: var(--foreground);
+  font-size: 1.0625rem;
+}
+
+/* Descriptions are teacher-authored HTML, so they can contain any heading
+   level. Left unstyled these fall back to browser defaults - an h1 rendered
+   at 34px, larger than the page's own product title. Cap them so a pasted
+   heading reads as a subheading inside the description. */
+.description :global(h1),
+.description :global(h2),
+.description :global(h3),
+.description :global(h4),
+.description :global(h5),
+.description :global(h6) {
+  font-family: var(--font-family-heading);
+  color: var(--foreground);
+  line-height: 1.35;
+  margin: 1.5em 0 0.5em;
+}
+
+.description :global(h1:first-child),
+.description :global(h2:first-child),
+.description :global(h3:first-child),
+.description :global(h4:first-child) {
+  margin-top: 0;
+}
+
+.description :global(h1) {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.description :global(h2) {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.description :global(h3),
+.description :global(h4),
+.description :global(h5),
+.description :global(h6) {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.description :global(p) {
+  margin-bottom: 1.5em;
+}
+
+.description :global(p:last-child) {
+  margin-bottom: 0;
+}
+
+.description :global(ul) {
+  list-style-type: disc;
+  margin-bottom: 1.5em;
+  padding-left: 1.5rem;
+}
+
+.description :global(ol) {
+  list-style-type: decimal;
+  margin-bottom: 1.5em;
+  padding-left: 1.5rem;
+}
+
+.description :global(li) {
+  margin-bottom: 0.5em;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+/* Badge is nowrap by design for short status pills, but a seller can save a
+   whole keyword string as one tag - that would be a single unbreakable pill
+   wider than the page. Only the tag row relaxes it. */
+.tags > * {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+  text-align: left;
+  height: auto;
+}
+
+/* Reviews */
+.reviewsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+.ratingSummary {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--spacing-8);
+  align-items: center;
+  background-color: var(--surface);
+  padding: var(--spacing-6);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+
+.averageRating {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.bigRating {
+  font-size: 3.5rem;
+  font-weight: 700;
+  font-family: var(--font-family-heading);
+  line-height: 1;
+}
+
+.averageStars {
+  display: flex;
+  gap: 2px;
+}
+
+.totalReviews {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.writeReviewButton {
+  margin-top: var(--spacing-2);
+}
+
+.ratingBars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.ratingBarRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  font-size: 0.875rem;
+}
+
+.starLabel {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 30px;
+  justify-content: flex-end;
+  color: var(--foreground);
+  font-weight: 500;
+}
+
+.barContainer {
+  flex: 1;
+  height: 8px;
+  background-color: var(--muted);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  background-color: hsl(45 100% 50%);
+  border-radius: var(--radius-full);
+}
+
+.barCount {
+  width: 24px;
+  color: var(--muted-foreground);
+  text-align: right;
+}
+
+.reviewsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.reviewCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding-bottom: var(--spacing-6);
+  border-bottom: 1px solid var(--border);
+}
+
+.reviewCard:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.reviewHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.reviewerAvatar {
+  width: 40px;
+  height: 40px;
+}
+
+.reviewerInfo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.reviewerName {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--foreground);
+}
+
+.reviewDate {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.reviewRating {
+  display: flex;
+  gap: 2px;
+}
+
+.starEmpty {
+  color: var(--muted);
+}
+
+.reviewText {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--foreground);
+}
+
+.noReviews {
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+
+/* Author Card in Main Content */
+.authorCard {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-6);
+  background-color: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+
+.authorAvatar {
+  width: 4.5rem;
+  height: 4.5rem;
+  flex-shrink: 0;
+}
+
+.authorInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.authorName {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+.authorName:hover {
+  text-decoration: underline;
+  color: var(--primary);
+}
+
+.authorBio {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.authorProfileButton {
+  flex-shrink: 0;
+}
+
+/* Related Products */
+.relatedSection {
+  margin-top: var(--spacing-8);
+  padding-top: var(--spacing-8);
+  border-top: 1px solid var(--border);
+}
+
+.relatedSection h2 {
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 var(--spacing-6) 0;
+}
+
+.relatedGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: var(--spacing-6);
+}
+
+/* Closes the page, below the bundle suggestions. Same gap the related-products
+   section opens with, so the run of trailing sections stays evenly spaced. */
+.teacherCta {
+  margin-top: var(--spacing-8);
+}
+
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  text-align: center;
+  padding: var(--spacing-4);
+}
+
+.errorIcon {
+  color: var(--muted-foreground);
+  margin-bottom: var(--spacing-4);
+}
+
+.errorContainer h1 {
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  margin: 0 0 var(--spacing-2) 0;
+}
+
+.errorContainer p {
+  color: var(--muted-foreground);
+  margin: 0 0 var(--spacing-6) 0;
+}
+
+.disclaimerSection {
+  margin-top: var(--spacing-8);
+  padding: var(--spacing-6);
+  background-color: var(--muted);
+  border-radius: var(--radius-lg);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  white-space: pre-line;
+  line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+  .layoutGrid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-8);
+  }
+  
+    .titleSection {
+    order: 1;
+    grid-column: 1;
+    grid-row: auto;
+  }
+  
+  .sidebarColumn {
+    position: static;
+    order: 2;
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .mainContent {
+    order: 3;
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .ratingSummary {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .title {
+    font-size: 1.5rem;
+  }
+  .shortDesc {
+    font-size: 0.9375rem;
+  }
+  .breadcrumb {
+    font-size: 0.75rem;
+  }
+  .categoryBadge {
+    font-size: 0.625rem;
+  }
+  .teacherBlockAvatar {
+    width: 36px;
+    height: 36px;
+  }
+  .teacherBlockName {
+    font-size: 0.9375rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .authorCard {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+  .authorProfileButton {
+    width: 100%;
+    margin-top: var(--spacing-2);
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: var(--spacing-4);
+  }
+  .title {
+    font-size: 1.25rem;
+  }
+  .shortDesc {
+    font-size: 0.875rem;
+  }
+  .breadcrumb {
+    font-size: 0.6875rem;
+  }
+}
+
+.relatedGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--spacing-4);
+}

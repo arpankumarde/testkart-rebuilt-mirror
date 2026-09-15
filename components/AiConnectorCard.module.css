@@ -1,0 +1,426 @@
+/*
+ * Connector setup card on the admin and teacher dashboards. Both dashboards already spend their one
+ * coral block on the attention band, so this is a console surface: coral appears only as tint (the
+ * URL socket, step numbers, the Connected chip) and the one solid action is set in ink.
+ */
+.card {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-4) var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  color: var(--foreground);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-3) var(--spacing-4);
+}
+
+.marks {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+  height: 2.25rem;
+  padding: 0 var(--spacing-3);
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.marks svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.headText {
+  flex: 1 1 18rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.pitch {
+  margin: 0;
+  max-width: 72ch;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+  text-wrap: pretty;
+}
+
+.status {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-1) var(--spacing-2);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.statusApps {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.statusMeta {
+  color: var(--muted-foreground);
+}
+
+/* Status signal, the one place the tracked chip is allowed on a console card. */
+.chip {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.toggle {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-weight: 700;
+}
+
+.toggle .toggleIcon {
+  width: 1rem;
+  height: 1rem;
+  transition: transform var(--animation-duration-fast) ease;
+}
+
+.toggle .toggleIconOpen {
+  transform: rotate(180deg);
+}
+
+/* The solid action, in ink rather than coral: white on coral is 2.1:1, white on ink clears 12:1.
+   Button's styles live in @layer base, so these unlayered rules win without extra specificity. */
+.cta {
+  background-color: var(--tk-brand-ink);
+  border-color: var(--tk-brand-ink);
+  color: #fff;
+  font-weight: 700;
+}
+
+.cta:hover,
+.cta:active {
+  background-color: var(--tk-brand-ink-hover);
+  border-color: var(--tk-brand-ink-hover);
+  color: #fff;
+}
+
+/* Ink would sink into the dark surface, so dark mode flips to coral with ink type. */
+:global(.dark) .cta {
+  background-color: var(--tk-brand);
+  border-color: var(--tk-brand);
+  color: var(--tk-brand-ink);
+}
+
+:global(.dark) .cta:hover,
+:global(.dark) .cta:active {
+  background-color: var(--tk-brand-hover);
+  border-color: var(--tk-brand-hover);
+  color: var(--tk-brand-hover-foreground);
+}
+
+.cta svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Collapses by animating the grid track, so the height needs no measuring. */
+.body {
+  display: grid;
+  grid-template-rows: 1fr;
+  margin-top: var(--spacing-3);
+  transition:
+    grid-template-rows var(--animation-duration-normal) ease,
+    margin-top var(--animation-duration-normal) ease;
+}
+
+.bodyCollapsed {
+  grid-template-rows: 0fr;
+  margin-top: 0;
+}
+
+/* The negative inline margin and the padding on .setup give focus rings 4px of room inside the
+   clip the collapse needs. */
+.bodyInner {
+  min-height: 0;
+  overflow: hidden;
+  margin-inline: -4px;
+}
+
+.setup {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "tabs"
+    "connect"
+    "steps";
+  gap: var(--spacing-4);
+  padding: 4px;
+}
+
+.setup .clients {
+  grid-area: tabs;
+  justify-self: start;
+}
+
+.connect {
+  grid-area: connect;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  min-width: 0;
+}
+
+.steps {
+  grid-area: steps;
+  min-width: 0;
+}
+
+.socket {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  width: 100%;
+}
+
+.socketLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+/* Positioned so the screen-reader-only spans inside anchor here, where the collapsed body clips
+   them. Anchored to <body> instead, they hung below the fold and gave the admin dashboard a second,
+   document-level scrollbar. */
+.socketRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  width: 100%;
+  min-height: 2.75rem;
+  padding: var(--spacing-1) var(--spacing-1) var(--spacing-1) var(--spacing-3);
+  box-sizing: border-box;
+  border: 1px solid color-mix(in srgb, var(--tk-brand-text) 40%, var(--border));
+  border-radius: var(--radius-md);
+  background-color: var(--tk-brand-tint);
+}
+
+.url {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+.url {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  background: none;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.copy {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  flex-shrink: 0;
+  height: 2.25rem;
+  padding: 0 var(--spacing-3);
+  border: 1px solid var(--tk-brand-text);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  color: var(--tk-brand-text);
+  font-family: var(--font-family-base);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.copy:hover {
+  background-color: color-mix(in srgb, var(--tk-brand-text) 12%, var(--surface));
+}
+
+.copy:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 4px var(--tk-brand-text);
+}
+
+.extraLine {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+/* Inline inside its paragraph, so the underline follows the words when the label wraps. */
+.extra {
+  font-weight: 600;
+  color: var(--foreground);
+  text-decoration: underline;
+  text-decoration-color: var(--muted-foreground);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: text-decoration-color var(--animation-duration-fast) ease;
+}
+
+.extra:hover {
+  text-decoration-color: var(--foreground);
+}
+
+.extra:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: 2px;
+}
+
+.consent {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+}
+
+.stepList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-width: 60ch;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr);
+  column-gap: var(--spacing-3);
+  align-items: start;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--foreground);
+}
+
+.step strong {
+  font-weight: 700;
+}
+
+.stepNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+  font-size: 0.75rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.note {
+  margin: var(--spacing-3) 0 0;
+  max-width: 60ch;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Side by side once the card, not the window, has the room: app picker and steps on the left, the
+   URL and the action in a rail on the right. */
+@container (min-width: 48rem) {
+  .setup {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 24rem);
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "tabs connect"
+      "steps connect";
+    column-gap: var(--spacing-8);
+  }
+
+  .connect {
+    padding-left: var(--spacing-8);
+    border-left: 1px solid var(--border);
+  }
+}
+
+/* Four segments do not fit one row on a phone, so the picker becomes a two-by-two grid. The marks
+   pill would sit alone on a line here, and the picker already shows the same logos. */
+@container (max-width: 29.99rem) {
+  .setup .clients {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-self: stretch;
+  }
+
+  .marks {
+    display: none;
+  }
+
+  .toggle {
+    margin-left: 0;
+  }
+
+  .toggle:not(.toggleHide) {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .card {
+    padding: var(--spacing-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .body,
+  .toggle .toggleIcon,
+  .copy,
+  .extra {
+    transition: none;
+  }
+}

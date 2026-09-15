@@ -1,0 +1,217 @@
+/* Console page shell - see admin.transactions.module.css for the measure rule.
+   72rem: a single column of rows, not a card grid. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: var(--spacing-6) var(--spacing-6) var(--spacing-8);
+  box-sizing: border-box;
+}
+
+.updated {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.refresh {
+  flex-shrink: 0;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Only shown when a refetch fails over rows already on screen; a first-load
+   failure takes the ConsoleListEmpty error state instead. */
+.error {
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid color-mix(in srgb, var(--error) 35%, transparent);
+  border-radius: var(--radius);
+  background-color: color-mix(in srgb, var(--error) 12%, transparent);
+  color: color-mix(in srgb, var(--error), black 25%);
+  font-size: 0.875rem;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.skeletonList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.thumb {
+  display: block;
+  width: 104px;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.rowBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.rowTitleLine {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+}
+
+.rowTitle {
+  font-weight: 600;
+  color: var(--foreground);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+
+.rowTitle:hover {
+  text-decoration: underline;
+}
+
+.rowTitle:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.rowMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2) var(--spacing-4);
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.slugPath {
+  font-variant-numeric: tabular-nums;
+}
+
+/* --primary as type on white runs about 2.1:1; --tk-brand-text is the
+   surface-relative orange meant for text. */
+.sourceLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  color: var(--tk-brand-text);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.sourceLink:hover {
+  text-decoration: underline;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.deleteAction {
+  color: color-mix(in srgb, var(--error), black 20%);
+}
+
+.totals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4) var(--spacing-8);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--border);
+}
+
+.total {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 5.5rem;
+}
+
+.totalValue {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.totalLabel {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 768px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+
+  .thumb {
+    width: 100%;
+  }
+
+  .actions {
+    justify-content: flex-end;
+  }
+
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: var(--spacing-4);
+  }
+
+  .content {
+    gap: var(--spacing-4);
+  }
+
+  .totals {
+    gap: var(--spacing-3) var(--spacing-6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+}

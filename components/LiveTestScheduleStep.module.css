@@ -1,0 +1,185 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.lockedNotice {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  border-radius: var(--radius);
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  font-family: var(--font-family-base);
+  margin-bottom: var(--spacing-3);
+}
+
+.timeline {
+  display: flex;
+  gap: var(--spacing-3);
+}
+
+.timelinePoint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 20px;
+  width: 12px;
+  flex-shrink: 0;
+}
+
+.timelineDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: var(--border);
+  flex-shrink: 0;
+  transition: background-color 0.15s ease;
+}
+
+.timelineDotActive {
+  background-color: var(--primary);
+}
+
+.timelineDotFinal {
+  background-color: var(--error);
+}
+
+.timelineConnector {
+  flex: 1;
+  width: 2px;
+  background-color: var(--border);
+  margin: var(--spacing-1) 0;
+  min-height: 24px;
+}
+
+.timelineContent {
+  flex: 1;
+  min-width: 0;
+  padding-bottom: var(--spacing-4);
+}
+
+.timezoneHint {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  font-family: var(--font-family-base);
+  margin: 0 0 var(--spacing-2);
+}
+
+.toggleCard {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+  background-color: var(--surface);
+}
+
+.toggleCard:hover {
+  border-color: var(--primary);
+}
+
+.toggleCardActive {
+  border-color: var(--primary);
+  background-color: var(--accent);
+}
+
+.toggleCardDisabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.toggleCardDisabled:hover {
+  border-color: var(--border);
+}
+
+.toggleContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toggleTitle {
+  font-family: var(--font-family-base);
+  font-weight: 500;
+  font-size: 0.9375rem;
+  color: var(--foreground);
+}
+
+.toggleDescription {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+  font-family: var(--font-family-base);
+}
+
+.fieldWrap {
+  padding-left: var(--spacing-4);
+  border-left: 2px solid var(--border);
+  margin-left: var(--spacing-2);
+}
+
+.quickPicks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-2);
+}
+
+.quickPickButton {
+  font-family: var(--font-family-base);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--primary);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full, 999px);
+  padding: var(--spacing-1) var(--spacing-3);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.quickPickButton:hover {
+  border-color: var(--primary);
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+.quickPickButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.quickPickButton:disabled:hover {
+  border-color: transparent;
+}
+
+.summaryCard {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  background-color: var(--muted);
+  border-radius: var(--radius);
+  font-size: 0.8125rem;
+  font-family: var(--font-family-base);
+  color: var(--foreground);
+}
+
+.summaryCardWarning {
+  background-color: color-mix(in srgb, var(--error) 12%, transparent);
+  color: var(--error);
+}
+
+.required {
+  color: var(--error);
+  font-weight: 600;
+}

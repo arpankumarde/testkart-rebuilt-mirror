@@ -1,0 +1,190 @@
+@layer base {
+  .container {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-6);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .title {
+    font-family: var(--font-family-heading);
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0 0 var(--spacing-4) 0;
+    padding-bottom: var(--spacing-4);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+  }
+
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9375rem;
+  }
+
+  .label {
+    color: var(--muted-foreground);
+  }
+
+  .value {
+    font-weight: 500;
+    color: var(--foreground);
+  }
+
+  .discountRow .label {
+    color: var(--success);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+  }
+
+  .percentageBadge {
+    background-color: color-mix(in srgb, var(--success) 10%, transparent);
+    color: var(--success);
+    font-size: 0.7rem;
+    padding: 1px 6px;
+    border-radius: 999px;
+    font-weight: 700;
+  }
+
+  .discountValue {
+    color: var(--success);
+    font-weight: 600;
+  }
+
+  .promoRow .label {
+    color: var(--secondary);
+  }
+
+  .promoValue {
+    color: var(--secondary);
+    font-weight: 600;
+  }
+
+  .separator {
+    height: 1px;
+    background-color: var(--border);
+    margin: var(--spacing-2) 0;
+  }
+
+  .totalRow {
+    margin-top: var(--spacing-1);
+  }
+
+  .totalLabel {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--foreground);
+  }
+
+  .totalValue {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--foreground);
+  }
+
+  .taxNote {
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+    margin: 0;
+    text-align: right;
+  }
+
+  .promoSection {
+    margin: var(--spacing-6) 0;
+  }
+
+  .promoToggle {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-family: var(--font-family-base);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--primary);
+    transition: color var(--animation-duration-fast);
+  }
+  
+  .promoToggle:hover {
+    color: color-mix(in srgb, var(--primary) 80%, black);
+  }
+
+  .promoToggleLeft {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+  }
+
+  .promoInputWrapper {
+    margin-top: var(--spacing-3);
+  }
+  
+  /* Override PromoCodeInput styles to fit better */
+  .promoInput :global(input) {
+    height: 2.25rem;
+    font-size: 0.875rem;
+  }
+  
+  .promoInput :global(button) {
+    height: 2.25rem;
+    padding: 0 var(--spacing-3);
+  }
+
+  .walletSection {
+    margin-top: var(--spacing-4);
+    margin-bottom: var(--spacing-4);
+    padding: var(--spacing-4);
+    background-color: var(--muted);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+  }
+
+  .walletHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    font-weight: 600;
+    color: var(--foreground);
+    margin-bottom: var(--spacing-3);
+  }
+
+  .walletButton {
+    width: 100%;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .insufficientBalance {
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+    text-align: center;
+  }
+
+  .checkoutButton {
+    width: 100%;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .securityNote {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-2);
+    margin-top: var(--spacing-4);
+    color: var(--muted-foreground);
+    font-size: 0.75rem;
+  }
+}

@@ -1,0 +1,145 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.addSubjectBtn {
+  margin-left: auto;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.subjectCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  background-color: var(--surface);
+  padding: var(--spacing-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.subjectContent {
+  flex: 1 1 160px;
+  min-width: 140px;
+}
+
+.subjectTitle {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin: 0 0 var(--spacing-1) 0;
+  text-decoration: none;
+}
+
+.subjectTitle:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+.subjectMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.subjectMeta span {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.subjectActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.deleteButton {
+  color: var(--error);
+}
+
+.deleteButton:hover {
+  background-color: color-mix(in srgb, var(--error) 10%, transparent);
+  color: var(--error);
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 640px) {
+  .panel {
+    padding: var(--spacing-3);
+  }
+
+  .panelHeader {
+    justify-content: stretch;
+  }
+
+  .addSubjectBtn {
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .subjectCard {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .subjectActions {
+    width: 100%;
+  }
+
+  .subjectActions > a {
+    flex: 1 1 100%;
+    justify-content: center;
+    min-height: 2.75rem;
+  }
+
+  .subjectActions > button {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
+}
+
+/* Tablet: keep the row from feeling cramped before the full mobile stack */
+@media (min-width: 641px) and (max-width: 900px) {
+  .subjectActions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}

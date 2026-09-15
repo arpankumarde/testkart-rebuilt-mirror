@@ -1,0 +1,175 @@
+.pageContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: var(--background);
+  padding: var(--spacing-4) var(--spacing-6);
+}
+
+.formCard {
+  width: 100%;
+  max-width: 450px;
+  background-color: var(--surface);
+  padding: var(--spacing-8);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: var(--spacing-6);
+}
+
+.title {
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--surface-foreground);
+  margin: 0 0 var(--spacing-2);
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.separator {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  margin: var(--spacing-6) 0;
+}
+
+.separatorLine {
+  flex: 1;
+  height: 1px;
+  background-color: var(--border);
+}
+
+.separatorText {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.footerLinks {
+  margin-top: var(--spacing-6);
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.footerLinks p {
+  margin: 0;
+}
+
+.teacherSection {
+  margin-top: var(--spacing-6);
+  padding-top: var(--spacing-6);
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+.teacherText {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin: 0 0 var(--spacing-3);
+}
+
+.teacherButton {
+  width: 100%;
+}
+
+.link {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.otpToggle {
+  display: flex;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-4);
+}
+
+.otpToggleButton {
+  flex: 1;
+  padding: var(--spacing-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all var(--animation-duration-fast) ease;
+  font-family: inherit;
+}
+
+.otpToggleButtonActive {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
+
+@media (max-width: 768px) {
+  .pageContainer {
+    padding: var(--spacing-3);
+  }
+
+  .formCard {
+    padding: var(--spacing-6);
+  }
+
+  .logo h1 {
+    font-size: 1.5rem;
+  }
+
+  .title {
+    font-size: 1.375rem;
+  }
+
+  .subtitle {
+    font-size: 0.9375rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .pageContainer {
+    padding: var(--spacing-2);
+  }
+
+  .formCard {
+    padding: var(--spacing-4);
+    max-width: 100%;
+  }
+
+  .logo {
+    margin-bottom: var(--spacing-3);
+  }
+
+  .logo h1 {
+    font-size: 1.25rem;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .subtitle {
+    font-size: 0.875rem;
+  }
+
+  .footerLinks {
+    font-size: 0.8125rem;
+  }
+}

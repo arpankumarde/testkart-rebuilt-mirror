@@ -1,0 +1,353 @@
+/*
+ * On the shared console language - see student.tests.module.css for the rules.
+ *
+ * 46rem is the form measure the teacher console settled on for a single-column
+ * form stack. Three treatments are gone: the hero's coral linear-gradient (the
+ * last of the decorative gradients base.css records as removed site-wide), the
+ * tinted --muted card headers, and the page-load fadeIn entrance.
+ */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 46rem;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* Identity block. Left-aligned like every other console panel - it used to be
+   a centred tower on a gradient. */
+.identityCard {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.identityAvatar {
+  width: 4.5rem;
+  height: 4.5rem;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.identityText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-1);
+  flex: 1;
+  min-width: 0;
+}
+
+.identityName {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+.identityEmail {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  overflow-wrap: anywhere;
+}
+
+.photoUploadWrapper {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+}
+
+.invisibleFormItem {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  opacity: 0.001;
+  z-index: 10;
+}
+
+.invisibleUploader {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  aspect-ratio: auto !important;
+  cursor: pointer !important;
+}
+
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4) var(--spacing-6);
+  border-bottom: 1px solid var(--border);
+}
+
+.cardIconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  border-radius: var(--radius);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.cardDescription {
+  margin: 2px 0 0;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.cardContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  padding: var(--spacing-6);
+}
+
+.verificationSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.verificationSectionLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.verificationItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.verificationLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.verificationStatus {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.iconDefault {
+  color: var(--muted-foreground);
+}
+
+/* Darkened against the panel: the raw tokens land near 2.8:1 as an icon. */
+.iconSuccess {
+  color: color-mix(in srgb, var(--success), black 25%);
+}
+
+.iconWarning {
+  color: color-mix(in srgb, var(--warning), black 30%);
+}
+
+.inlineForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.inlineFormTitle {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.inlineFormDesc {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.inlineFormRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.inlineFormActions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-1);
+}
+
+/* Was a sticky blurred bar on --shadow-md. A plain action row, like the
+   teacher form pages. */
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* The console marks a destructive panel with a solid border and a 3px left
+   accent rather than an all-over error tint. */
+.dangerCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--error);
+  border-radius: var(--radius-md);
+}
+
+.dangerCardContent {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+}
+
+.dangerIconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  border-radius: var(--radius);
+  background-color: color-mix(in srgb, var(--error) 12%, transparent);
+  color: color-mix(in srgb, var(--error), black 20%);
+}
+
+.dangerTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.dangerDescription {
+  margin: 2px 0 0;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.dangerButton {
+  flex-shrink: 0;
+  border-color: color-mix(in srgb, var(--error) 45%, transparent);
+  color: color-mix(in srgb, var(--error), black 20%);
+}
+
+.dangerButton:hover {
+  background-color: color-mix(in srgb, var(--error) 10%, transparent);
+  border-color: var(--error);
+  color: color-mix(in srgb, var(--error), black 20%);
+}
+
+.skeletonBlock {
+  width: 100%;
+  border-radius: var(--radius-md);
+}
+
+@media (max-width: 768px) {
+  .page {
+    gap: var(--spacing-4);
+  }
+
+  .identityCard {
+    flex-wrap: wrap;
+    padding: var(--spacing-4);
+  }
+
+  .photoUploadWrapper {
+    flex-basis: 100%;
+  }
+
+  .photoUploadWrapper > * {
+    flex: 1;
+  }
+
+  .cardHeader {
+    padding: var(--spacing-4);
+  }
+
+  .cardContent {
+    padding: var(--spacing-4);
+    gap: var(--spacing-4);
+  }
+
+  .verificationItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-3);
+  }
+
+  .verificationStatus {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .dangerCard {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: var(--spacing-4);
+  }
+
+  .dangerButton {
+    width: 100%;
+  }
+}

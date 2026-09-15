@@ -1,0 +1,94 @@
+.progressContainer {
+  width: 100%;
+  padding: var(--spacing-4) 0;
+}
+
+.steps {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-2);
+  text-decoration: none;
+  color: var(--muted-foreground);
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: color var(--animation-duration-fast) ease;
+  z-index: var(--z-content-low);
+  background-color: var(--background);
+  padding: 0 var(--spacing-2);
+}
+
+.step:not(.disabled):hover .stepIndicator {
+  transform: scale(1.1);
+  border-color: var(--primary);
+}
+
+.step:not(.disabled):hover .stepTitle {
+  color: var(--foreground);
+}
+
+.step.disabled {
+  cursor: not-allowed;
+}
+
+.stepIndicator {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  border: 2px solid var(--border);
+  background-color: var(--surface);
+  transition: all var(--animation-duration-normal) ease;
+}
+
+.stepTitle {
+  transition: color var(--animation-duration-fast) ease;
+}
+
+.stepIndicator.current {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 20%, transparent);
+}
+
+.step .current ~ .stepTitle {
+  color: var(--foreground);
+}
+
+.stepIndicator.completed {
+  background-color: var(--secondary);
+  color: var(--secondary-foreground);
+  border-color: var(--secondary);
+}
+
+.step .completed ~ .stepTitle {
+  color: var(--foreground);
+}
+
+.connector {
+  flex-grow: 1;
+  height: 2px;
+  background-color: var(--border);
+  margin: 0 calc(var(--spacing-2) * -1);
+  transform: translateY(-0.875rem);
+}
+
+@media (max-width: 768px) {
+  .stepTitle {
+    display: none;
+  }
+  .connector {
+    transform: translateY(0);
+  }
+}

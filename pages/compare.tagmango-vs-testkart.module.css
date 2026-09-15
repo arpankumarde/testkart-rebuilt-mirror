@@ -1,0 +1,372 @@
+.pageWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+  padding-bottom: var(--spacing-16);
+  width: 100%;
+}
+
+.sectionHeader {
+  text-align: center;
+  margin-bottom: var(--spacing-12);
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 var(--spacing-4);
+}
+
+.sectionHeader h2 {
+  font-family: var(--font-family-heading);
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-3);
+  color: var(--foreground);
+  line-height: 1.2;
+}
+
+.sectionHeader p {
+  font-size: 1.125rem;
+  color: var(--muted-foreground);
+  line-height: 1.6;
+}
+
+/* Hero Section */
+.heroSection {
+  text-align: center;
+  padding: var(--spacing-16) var(--spacing-6);
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.heroContent {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.heroTitle {
+  font-family: var(--font-family-heading);
+  font-size: 3.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: var(--spacing-4);
+  color: var(--foreground);
+}
+
+.heroSubtitle {
+  font-size: 1.25rem;
+  color: var(--muted-foreground);
+  max-width: 700px;
+  margin: 0 auto var(--spacing-8);
+  line-height: 1.6;
+}
+
+.heroActions {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-8);
+}
+
+/* Content Sections */
+.contentSection {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 var(--spacing-4);
+}
+
+/* TL;DR Summary */
+.tldrBox {
+  background-color: color-mix(in srgb, var(--primary) 5%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--primary) 20%, var(--border));
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-8);
+  text-align: center;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.tldrBox h3 {
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: var(--spacing-4);
+}
+
+.tldrBox p {
+  font-size: 1.125rem;
+  color: var(--muted-foreground);
+  line-height: 1.7;
+}
+
+.tldrBox strong {
+  color: var(--foreground);
+}
+
+/* Comparison Table */
+.comparisonTableWrapper {
+  overflow-x: auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  box-shadow: var(--shadow-md);
+}
+
+.comparisonTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+
+.comparisonTable th,
+.comparisonTable td {
+  padding: var(--spacing-4) var(--spacing-6);
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.comparisonTable th {
+  font-family: var(--font-family-heading);
+  font-weight: 600;
+  font-size: 1.125rem;
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.comparisonTable td {
+  font-size: 1rem;
+  color: var(--muted-foreground);
+  vertical-align: top;
+}
+
+.comparisonTable td strong {
+  color: var(--foreground);
+  font-weight: 500;
+}
+
+.comparisonTable tr:last-child td {
+  border-bottom: none;
+}
+
+.comparisonTable th:nth-child(2),
+.comparisonTable td:nth-child(2) {
+  width: 35%;
+  background-color: color-mix(in srgb, var(--muted) 30%, transparent);
+}
+
+.comparisonTable th:nth-child(3),
+.comparisonTable td:nth-child(3) {
+  width: 35%;
+  background-color: color-mix(in srgb, var(--primary) 3%, transparent);
+}
+
+.iconText {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+}
+
+.iconText svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* 4-Card Grid */
+.grid4Col {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-6);
+}
+
+.featureCard {
+  background-color: var(--card);
+  padding: var(--spacing-6);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+}
+
+.featureIcon {
+  color: var(--primary);
+  margin-bottom: var(--spacing-4);
+  display: flex;
+  align-items: center;
+}
+
+.featureCard h3 {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: var(--spacing-2);
+  color: var(--foreground);
+}
+
+.featureCard p {
+  color: var(--muted-foreground);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+/* Who Should Choose Section */
+.audienceSection {
+  background-color: var(--surface);
+  padding: var(--spacing-16) var(--spacing-4);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.audienceList {
+  list-style: none;
+  padding: 0;
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.audienceList li {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  font-size: 1.125rem;
+  color: var(--foreground);
+  background-color: var(--background);
+  padding: var(--spacing-4) var(--spacing-6);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+
+.audienceList li svg {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+/* FAQ Section */
+.faqSection {
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 var(--spacing-4);
+}
+
+/* Final CTA Section */
+.finalCtaSection {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 var(--spacing-6);
+}
+
+/*
+ * Brand block, same clothes as the Book-a-demo card: flat coral, deep warm
+ * ink on it, one same-hue bloom for depth. Remapping the theme tokens on the
+ * block means every Button, border and focus ring inside it comes out ink
+ * without a per-button override - white sits at 2.1:1 on this coral, ink at
+ * 6.2:1. Fixed in both themes: the block is brand artwork, not a surface.
+ */
+.finalCtaContent {
+  --primary: var(--tk-brand-ink);
+  --primary-foreground: #fff;
+  --tk-brand-text: var(--tk-brand-ink);
+  --tk-brand-hover: var(--tk-brand-ink);
+  --tk-brand-hover-foreground: #fff;
+  --background: var(--tk-brand);
+  --border: color-mix(in srgb, var(--tk-brand-ink) 35%, transparent);
+
+  padding: var(--spacing-16) var(--spacing-6);
+  background-color: var(--tk-brand);
+  background-image: radial-gradient(
+    100% 90% at 15% 0%,
+    hsl(0 0% 100% / 0.3),
+    transparent 65%
+  );
+  border-radius: var(--radius-lg);
+  text-align: center;
+  color: var(--tk-brand-ink);
+  border: none;
+}
+
+.finalCtaContent h2 {
+  font-family: var(--font-family-heading);
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-6);
+  color: var(--tk-brand-ink);
+}
+
+/* The darkest thing on the block, so the eye lands on it. A white fill would
+   separate from this coral at only 2.1:1, under the 3:1 floor for a control's
+   boundary; ink gives 6.2:1. */
+.ctaButton {
+  font-size: 1.1rem;
+  padding: 0 var(--spacing-8);
+  height: 3.5rem;
+  background-color: var(--tk-brand-ink);
+  border-color: var(--tk-brand-ink);
+  color: #fff;
+}
+
+.ctaButton:hover {
+  background-color: var(--tk-brand-ink-hover);
+  border-color: var(--tk-brand-ink-hover);
+  color: #fff;
+}
+
+.finalCtaHighlights {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
+  margin-top: var(--spacing-8);
+  font-weight: 500;
+  color: var(--tk-brand-ink);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .pageWrapper {
+    gap: var(--spacing-12);
+  }
+
+  .sectionHeader h2,
+  .finalCtaContent h2 {
+    font-size: 2rem;
+  }
+
+  .heroTitle {
+    font-size: 2.5rem;
+  }
+
+  .heroSubtitle {
+    font-size: 1.125rem;
+  }
+
+  .heroActions {
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+
+  .heroActions button,
+  .heroActions a {
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .heroTitle {
+    font-size: 2rem;
+  }
+  
+  .tldrBox {
+    padding: var(--spacing-6) var(--spacing-4);
+  }
+
+  .audienceList li {
+    padding: var(--spacing-4);
+    font-size: 1rem;
+  }
+}

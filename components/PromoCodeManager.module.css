@@ -1,0 +1,210 @@
+/* The console page shell. teacher.promo-codes.tsx is a thin wrapper with no
+   chrome of its own, the same split Products and Bundles use - the shell lives
+   where the content lives. No padding here: TeacherDashboardLayout's .pageBody
+   owns the gutter. */
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.panel {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.tableContainer {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+}
+
+.tableHeader {
+  display: table-header-group;
+}
+
+/* Sentence case, not tracked-out caps - the sidebar dropped those and the
+   console's other tables follow it. */
+.headerCell {
+  display: table-cell;
+  padding: var(--spacing-3) var(--spacing-4);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.tableBody {
+  display: table-row-group;
+}
+
+.tableRow {
+  display: table-row;
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.tableRow:hover {
+  background-color: var(--muted);
+}
+
+.cell {
+  display: table-cell;
+  padding: var(--spacing-4);
+  vertical-align: middle;
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.tableBody .tableRow:last-child .cell {
+  border-bottom: none;
+}
+
+/*
+ * --tk-brand-text, not the coral --primary, which sits at about 2.1:1 as type
+ * on a white panel. Same call TeacherTestCard's price made.
+ */
+.codeText {
+  font-family: var(--font-family-monospace);
+  font-weight: 600;
+  color: var(--tk-brand-text);
+}
+
+.actionsCell {
+  text-align: right;
+}
+
+.desktopActions {
+  display: flex;
+  gap: var(--spacing-2);
+  justify-content: flex-end;
+}
+
+.mobileActions {
+  display: none;
+}
+
+.deleteButton {
+  color: var(--error);
+}
+
+.deleteButton:hover {
+  background-color: color-mix(in srgb, var(--error) 10%, transparent);
+  color: var(--error);
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  cursor: pointer;
+}
+
+.destructive {
+  color: var(--error);
+}
+
+.skeletonContainer {
+  width: 100%;
+}
+
+.dialogTitleContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.warningIcon {
+  color: color-mix(in srgb, var(--warning), black 30%);
+}
+
+/* Below 968px the table becomes one card per code, each cell labelled by its
+   column name. Kept from the original - it is the right pattern for a
+   seven-column table on a phone. */
+@media (max-width: 968px) {
+  .table {
+    display: block;
+    min-width: 0;
+  }
+
+  .tableHeader {
+    display: none;
+  }
+
+  .tableBody,
+  .tableRow {
+    display: block;
+  }
+
+  .panel {
+    background: none;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+  }
+
+  .tableRow {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow);
+    margin-bottom: var(--spacing-4);
+    padding: var(--spacing-4);
+  }
+
+  .tableRow:last-child {
+    margin-bottom: 0;
+  }
+
+  .cell {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-4);
+    padding: var(--spacing-2) 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cell:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .cell::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--muted-foreground);
+  }
+
+  .desktopActions {
+    display: none;
+  }
+
+  .mobileActions {
+    display: block;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    gap: var(--spacing-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tableRow {
+    transition: none;
+  }
+}

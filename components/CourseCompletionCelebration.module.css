@@ -1,0 +1,215 @@
+@layer base {
+  .overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--success) 10%, var(--background));
+    z-index: var(--z-overlay);
+    animation: fadeIn var(--animation-duration-normal) ease-out;
+    overflow: hidden;
+  }
+
+  .contentCard {
+    position: relative;
+    background-color: var(--popup);
+    color: var(--popup-foreground);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-12) var(--spacing-8);
+    text-align: center;
+    max-width: 90vw;
+    width: 600px;
+    box-shadow: var(--shadow-lg);
+    animation: scaleUp var(--animation-duration-normal) cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 2;
+    border: 1px solid var(--border);
+  }
+
+  .closeButton {
+    position: absolute;
+    top: var(--spacing-4);
+    right: var(--spacing-4);
+    background: transparent;
+    border: none;
+    color: var(--muted-foreground);
+    cursor: pointer;
+    padding: var(--spacing-1);
+    border-radius: var(--radius-sm);
+    transition: all var(--animation-duration-fast) ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .closeButton:hover {
+    background-color: var(--muted);
+    color: var(--foreground);
+  }
+
+  .iconContainer {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto var(--spacing-6);
+    border-radius: var(--radius-full);
+    background-color: color-mix(in srgb, var(--success) 14%, var(--surface));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 4px solid var(--surface);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Flat tint and a darkened glyph: the tile was a two-stop gradient carrying
+     raw --success, about 2.8:1 against it. */
+  .trophyIcon {
+    color: color-mix(in srgb, var(--success), black 25%);
+  }
+
+  .title {
+    font-family: var(--font-family-heading);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--surface-foreground);
+    margin-bottom: var(--spacing-2);
+  }
+
+  .description {
+    font-size: 1.125rem;
+    color: var(--muted-foreground);
+    margin-bottom: var(--spacing-4);
+    line-height: 1.6;
+  }
+
+  .description strong {
+    color: var(--surface-foreground);
+    font-weight: 600;
+  }
+
+  .stats {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-2);
+    background-color: var(--muted);
+    padding: var(--spacing-2) var(--spacing-4);
+    border-radius: var(--radius);
+    margin: 0 auto var(--spacing-8);
+    width: fit-content;
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+  }
+
+    .statItem {
+    font-weight: 500;
+  }
+
+  .separator {
+    color: var(--border);
+  }
+
+  .actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+    align-items: center;
+  }
+
+  /* Confetti Animation */
+  .confettiContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 1;
+  }
+
+  .confetti {
+    position: absolute;
+    width: 10px;
+    height: 20px;
+    background-color: var(--primary);
+    opacity: 0;
+    animation: confetti-fall 5s ease-out infinite;
+  }
+
+  .confetti:nth-child(2n) {
+    background-color: var(--secondary);
+  }
+  .confetti:nth-child(3n) {
+    background-color: var(--success);
+  }
+  .confetti:nth-child(4n) {
+    background-color: var(--info);
+  }
+  .confetti:nth-child(5n) {
+    background-color: var(--warning);
+  }
+
+  /* Stagger animations and positions */
+  .confetti:nth-child(1) { left: 10%; animation-delay: 0s; }
+  .confetti:nth-child(2) { left: 20%; animation-delay: -1.5s; }
+  .confetti:nth-child(3) { left: 30%; animation-delay: -3s; }
+  .confetti:nth-child(4) { left: 40%; animation-delay: -0.5s; }
+  .confetti:nth-child(5) { left: 50%; animation-delay: -2.5s; }
+  .confetti:nth-child(6) { left: 60%; animation-delay: -4s; }
+  .confetti:nth-child(7) { left: 70%; animation-delay: -1s; }
+  .confetti:nth-child(8) { left: 80%; animation-delay: -3.5s; }
+  .confetti:nth-child(9) { left: 90%; animation-delay: -2s; }
+  .confetti:nth-child(10) { left: 15%; animation-delay: -4.5s; }
+  .confetti:nth-child(11) { left: 25%; animation-delay: -0.8s; }
+  .confetti:nth-child(12) { left: 35%; animation-delay: -2.2s; }
+  .confetti:nth-child(13) { left: 45%; animation-delay: -3.8s; }
+  .confetti:nth-child(14) { left: 55%; animation-delay: -1.2s; }
+  .confetti:nth-child(15) { left: 65%; animation-delay: -2.8s; }
+
+  @keyframes confetti-fall {
+    0% {
+      transform: translateY(-100px) rotateZ(0deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(100vh) rotateZ(720deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes scaleUp {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Responsive Design */
+  @media (min-width: 640px) {
+    .actions {
+      flex-direction: row;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .title {
+      font-size: 2rem;
+    }
+    .description {
+      font-size: 1rem;
+    }
+    .contentCard {
+      padding: var(--spacing-8) var(--spacing-4);
+    }
+  }
+}

@@ -1,0 +1,191 @@
+.cardLink {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+/* --card-accent is set inline per-card based on completion status
+   (Completed/In Progress/Not Started) — same pattern as EnrolledTestCard —
+   so cards are distinguishable at a glance in a grid. */
+.card {
+  background-color: var(--surface);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: border-color var(--animation-duration-fast) ease;
+  box-shadow: var(--shadow);
+  height: 100%;
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--card-accent, var(--border));
+}
+
+/* The border moves on hover rather than the card lifting - the console
+   dropped every hover lift. */
+.card:hover {
+  border-color: color-mix(in srgb, var(--border), var(--foreground) 25%);
+}
+
+.thumbnailWrapper {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--muted);
+}
+
+/*
+ * The 16:9 ratio grows with the column, so in a wide one the thumbnail turned
+ * into a billboard: on the dashboard's two-column grid it rendered 318px tall
+ * and took two thirds of a 483px card, against the 276px EnrolledTestCard
+ * beside it. The cap bounds it; object-fit: cover crops rather than distorts.
+ * On /student/courses the columns are 300-360px, where 16:9 already lands under
+ * this cap, so that page is unchanged.
+ */
+.thumbnail {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 190px;
+}
+
+.thumbnail img,
+.thumbnail video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* !important guarantees this wins over Badge.module.css's base sizing
+   regardless of stylesheet load order (same pattern as EnrolledTestCard's
+   .headerBadge) — the default Badge size looked oversized as a small
+   corner overlay on a 16:9 thumbnail. */
+.statusBadge {
+  position: absolute;
+  top: var(--spacing-2);
+  left: var(--spacing-2);
+  font-size: 0.6875rem !important;
+  padding: 1px var(--spacing-2) !important;
+  height: 1.125rem !important;
+  line-height: 1 !important;
+  font-weight: 700 !important;
+  box-shadow: var(--shadow);
+}
+
+.cardContent {
+  padding: var(--spacing-3);
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+}
+
+.title {
+  font-family: var(--font-family-heading);
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--foreground);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Compact icon-only review action, replacing the old full "Write Review"
+   button — it competed visually with "Continue Learning" for primary
+   attention. Review is a secondary, occasional action so it's demoted to
+   a small icon here; filled/tinted once a review has been left. */
+.reviewIconButton {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--radius-full);
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: all var(--animation-duration-fast) ease;
+}
+
+.reviewIconButton svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* Darkened: raw --warning as a glyph runs about 2.1:1 on a light card. */
+.reviewIconButton:hover {
+  border-color: color-mix(in srgb, var(--warning), black 20%);
+  color: color-mix(in srgb, var(--warning), black 30%);
+}
+
+.reviewIconButtonActive {
+  border-color: color-mix(in srgb, var(--warning), black 20%);
+  color: color-mix(in srgb, var(--warning), black 30%);
+  background-color: color-mix(in srgb, var(--warning) 15%, transparent);
+}
+
+.creator {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  margin: 0;
+  font-weight: 500;
+}
+
+.progressContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.progressBar {
+  height: 5px;
+}
+
+.progressText {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  text-align: right;
+}
+
+.cardFooter {
+  padding: var(--spacing-3);
+  border-top: 1px solid var(--border);
+  margin-top: auto;
+}
+
+.continueButton {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  height: 2.25rem;
+  border-radius: var(--radius);
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  text-decoration: none;
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.continueButton:hover {
+  background-color: var(--tk-brand-hover);
+  color: var(--tk-brand-hover-foreground);
+}
+
+.continueButton:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}

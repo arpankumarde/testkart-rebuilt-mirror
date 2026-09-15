@@ -1,0 +1,142 @@
+.pageContainer {
+  width: 100%;
+}
+
+.hero {
+  background-color: var(--surface);
+  padding: var(--spacing-12) var(--spacing-6);
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.heroContent {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.hero h1 {
+  font-family: var(--font-family-heading);
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 0 var(--spacing-2);
+}
+
+.hero p {
+  font-size: 1.125rem;
+  color: var(--muted-foreground);
+  line-height: 1.6;
+}
+
+
+
+.mainContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-8) var(--spacing-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--spacing-6);
+}
+
+.grid > * {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.cardSkeleton {
+  height: 420px; /* Approximate height of LiveTestCard */
+  border-radius: var(--radius-lg);
+}
+
+.stateContainer {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--spacing-16) var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--muted-foreground);
+  min-height: 300px;
+}
+
+.stateContainer svg {
+  margin-bottom: var(--spacing-4);
+}
+
+.stateContainer h3 {
+  font-size: 1.5rem;
+  color: var(--foreground);
+  margin: 0 0 var(--spacing-2);
+}
+
+.stateContainer p {
+  margin: 0;
+  max-width: 450px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-4);
+  margin-top: var(--spacing-8);
+}
+
+.pagination span {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hero {
+    padding: var(--spacing-6) var(--spacing-4);
+  }
+  .hero h1 {
+    font-size: 1.75rem;
+    line-height: 1.2;
+  }
+  .hero p {
+    font-size: 0.9375rem;
+    line-height: 1.5;
+  }
+  .mainContent {
+    padding: var(--spacing-4) var(--spacing-4);
+  }
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .stateContainer {
+    padding: var(--spacing-8) var(--spacing-4);
+    min-height: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    padding: var(--spacing-4) var(--spacing-3);
+  }
+  .hero h1 {
+    font-size: 1.5rem;
+    line-height: 1.2;
+    margin-bottom: var(--spacing-2);
+  }
+  .hero p {
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  .mainContent {
+    padding: var(--spacing-3) var(--spacing-3);
+  }
+}

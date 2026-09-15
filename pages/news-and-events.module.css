@@ -1,0 +1,287 @@
+/*
+ * Same brand block as the careers hero: flat coral with deep warm ink on it.
+ * The theme tokens are remapped on the block so anything rendered inside it
+ * inherits ink rather than needing per-element overrides. Fixed in both
+ * themes - the block is brand artwork, not a surface.
+ */
+.heroSection {
+  --primary: var(--tk-brand-ink);
+  --primary-foreground: #fff;
+  --tk-brand-text: var(--tk-brand-ink);
+  --background: var(--tk-brand);
+  --border: color-mix(in srgb, var(--tk-brand-ink) 35%, transparent);
+
+  background-color: var(--tk-brand);
+  background-image: radial-gradient(
+    100% 90% at 15% 0%,
+    hsl(0 0% 100% / 0.3),
+    transparent 65%
+  );
+  padding: var(--spacing-16) var(--spacing-6);
+  text-align: center;
+  color: var(--tk-brand-ink);
+}
+
+.heroContent {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.heroTitle {
+  font-family: var(--font-family-heading);
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: var(--spacing-4);
+  line-height: 1.2;
+}
+
+.heroSubtitle {
+  font-size: 1.25rem;
+  line-height: 1.6;
+}
+
+.mainContainer {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: var(--spacing-12) var(--spacing-6);
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin-bottom: var(--spacing-8);
+}
+
+.breadcrumb a {
+  color: var(--muted-foreground);
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+.current {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+/*
+ * The image column is a percentage, not a fixed 320px, so a 16:9 creative comes
+ * out roughly as tall as the text beside it. At a fixed 320px the image was only
+ * 180px tall against a ~266px text column, and the stretched cell showed ~43px
+ * of matte above and below it on every card.
+ */
+.banner {
+  display: grid;
+  grid-template-columns: 45% 1fr;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: var(--shadow);
+  transition: transform var(--animation-duration-normal) ease,
+    box-shadow var(--animation-duration-normal) ease,
+    border-color var(--animation-duration-normal) ease;
+}
+
+.banner:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary);
+}
+
+.banner:hover .readMore {
+  color: var(--primary);
+}
+
+.banner:hover .arrowIcon {
+  transform: translateX(4px);
+}
+
+/*
+ * Creatives are always 16:9 and must never be cropped, so the image is
+ * contained rather than covered. The wrap is left to stretch to the card's
+ * full height (the text column is the taller of the two), which keeps it flush
+ * against the card's top, bottom and left edges instead of leaving a bare strip
+ * under a fixed-ratio box; the 16:9 image is then centred inside it.
+ */
+.bannerImageWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--muted);
+  overflow: hidden;
+}
+
+/*
+ * Creatives are meant to be 16:9, and a 16:9 one covers the frame edge to edge
+ * so this layer is never visible. It only shows for an off-ratio upload, where
+ * it fills what would otherwise be flat grey with a blurred, over-scaled copy
+ * of the image itself - the letterboxing then reads as deliberate instead of
+ * looking like a broken image box. Opaque and heavily blurred on purpose, so it
+ * stays a solid ground rather than a wispy overlay.
+ */
+.bannerImageFill {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(32px);
+  transform: scale(1.2);
+}
+
+.bannerImage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  display: block;
+}
+
+.bannerBody {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-6);
+}
+
+.bannerMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-3);
+  font-size: 0.8125rem;
+}
+
+.publication {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--primary);
+}
+
+.date {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  color: var(--muted-foreground);
+}
+
+/* Title and excerpt are both clamped to two lines so the text column has a
+   fixed height. That is what lets the 16:9 image column match it, leaving
+   almost no matte regardless of how long a headline runs. */
+.bannerTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--foreground);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.excerpt {
+  margin: 0;
+  color: var(--muted-foreground);
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.readMore {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-top: auto;
+  padding-top: var(--spacing-2);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--muted-foreground);
+  transition: color var(--animation-duration-normal) ease;
+}
+
+.arrowIcon {
+  transition: transform var(--animation-duration-normal) ease;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-16) var(--spacing-6);
+  text-align: center;
+  background-color: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--muted-foreground);
+}
+
+.emptyIcon {
+  color: var(--muted-foreground);
+  margin-bottom: var(--spacing-4);
+}
+
+.emptyState h2 {
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  color: var(--foreground);
+  margin-bottom: var(--spacing-2);
+}
+
+.skeletonCard {
+  display: grid;
+  grid-template-columns: 42% 1fr;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.skeletonImage {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+}
+
+.skeletonBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: var(--spacing-6);
+}
+
+@media (max-width: 768px) {
+  .heroTitle {
+    font-size: 2.25rem;
+  }
+
+  .heroSubtitle {
+    font-size: 1.125rem;
+  }
+
+  .banner,
+  .skeletonCard {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,64 @@
+.pillNav {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--spacing-2);
+  overflow-x: auto;
+  padding: var(--spacing-1) 0;
+  scrollbar-width: thin;
+}
+
+.pill {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 var(--spacing-2);
+  border-radius: var(--radius-full, 999px);
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color var(--animation-duration-fast) ease, background-color var(--animation-duration-fast) ease, color var(--animation-duration-fast) ease;
+}
+
+.pill:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.pillActive {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.pillActive:hover {
+  color: var(--primary-foreground);
+}
+
+.pillAdd {
+  color: var(--primary);
+  border-style: dashed;
+}
+
+.pillAdd.pillActive {
+  border-style: solid;
+  color: var(--primary-foreground);
+}
+
+@media (max-width: 768px) {
+  .pillNav {
+    gap: var(--spacing-1);
+  }
+
+  .pill {
+    min-width: 1.75rem;
+    height: 1.75rem;
+    font-size: 0.75rem;
+  }
+}

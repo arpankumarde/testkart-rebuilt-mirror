@@ -1,0 +1,115 @@
+.stepContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.section + .section {
+  padding-top: var(--spacing-6);
+  border-top: 1px solid var(--border);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.sectionIcon {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.sectionTitle {
+  font-family: var(--font-family-base);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.sectionBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.checkboxContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-6);
+}
+
+.storefrontSection {
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--muted);
+}
+
+.storefrontTrigger {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.storefrontHint {
+  font-weight: 400;
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+}
+
+.storefrontChevron {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+  transition: transform var(--animation-duration-fast) ease;
+}
+
+.storefrontTrigger[data-state="open"] .storefrontChevron {
+  transform: rotate(180deg);
+}
+
+.storefrontContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  padding: 0 var(--spacing-4) var(--spacing-4);
+}
+
+.dynamicList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.dynamicListRow {
+  display: flex;
+  gap: var(--spacing-2);
+  align-items: center;
+}
+
+.dynamicListAdd {
+  align-self: flex-start;
+  margin-top: var(--spacing-1);
+}

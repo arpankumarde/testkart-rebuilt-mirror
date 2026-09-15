@@ -1,0 +1,207 @@
+/*
+ * Matches the console's card language, as on TeacherTestCard: a --surface panel
+ * on a hairline border with --radius-md and the flat --shadow. Hover moves the
+ * border rather than lifting the card - a translate on every card jitters the
+ * grid.
+ */
+.card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: border-color var(--animation-duration-fast) ease;
+}
+
+.card:hover {
+  border-color: color-mix(in srgb, var(--foreground) 22%, var(--border));
+}
+
+.card:focus-within {
+  border-color: var(--tk-brand-text);
+}
+
+.thumbnailWrapper {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--muted);
+}
+
+.thumbnail {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+}
+
+/* Overlaid on the thumbnail, as on TeacherTestCard. It used to sit in its own
+   strip above the image, which added a row of empty space to every card. */
+.status {
+  position: absolute;
+  top: var(--spacing-2);
+  left: var(--spacing-2);
+  z-index: var(--z-content);
+  padding: 0.1875rem 0.4375rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.published {
+  background-color: var(--success);
+  color: var(--success-foreground);
+}
+
+.draft {
+  background-color: var(--foreground);
+  color: var(--background);
+}
+
+.archived {
+  background-color: var(--warning);
+  color: var(--warning-foreground);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  flex-grow: 1;
+  min-width: 0;
+  padding: var(--spacing-4);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.titleLink {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+.titleLink:hover {
+  color: var(--tk-brand-text);
+}
+
+.titleLink:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--radius-sm);
+}
+
+.description {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.categoryBadge {
+  align-self: flex-start;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2) var(--spacing-4);
+  margin: auto 0 0;
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  border-top: 1px solid var(--border);
+}
+
+/*
+ * The deep brand orange, not --primary. The coral --primary was being used as
+ * text on this white card at about 2.1:1; --tk-brand-text is the themed token
+ * meant for orange type on a surface.
+ */
+.price {
+  margin: 0;
+  min-width: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--tk-brand-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  flex-shrink: 0;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Unpublishing is reversible, so it stays neutral - only the destructive item
+   is coloured, as on TeacherTestCard. --warning-foreground is a near-black
+   meant to sit ON amber and disappears against a dark popup. */
+.unpublishItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  cursor: pointer;
+  color: inherit;
+}
+
+.deleteItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  cursor: pointer;
+  color: var(--error);
+}
+
+.deleteItem:hover {
+  background-color: color-mix(in srgb, var(--error) 12%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+}

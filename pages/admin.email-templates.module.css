@@ -1,0 +1,605 @@
+/* Console page shell - see admin.transactions.module.css for the measure rule.
+   This one keeps a card grid, so the wider measure buys another card per row. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  width: 100%;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: var(--spacing-6) var(--spacing-6) var(--spacing-8);
+  box-sizing: border-box;
+}
+
+.noticeCard,
+.callout {
+  display: flex;
+  gap: var(--spacing-3);
+  align-items: flex-start;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-4);
+  background-color: var(--surface);
+}
+
+.noticeCard strong,
+.callout strong {
+  display: block;
+  font-size: 0.9375rem;
+  color: var(--foreground);
+  margin-bottom: var(--spacing-1);
+}
+
+.noticeCard p,
+.callout p {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* --primary as an icon on white runs about 2.1:1; --tk-brand-text is the
+   surface-relative orange meant for ink. */
+.noticeIcon {
+  color: var(--tk-brand-text);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.noticeList {
+  list-style: none;
+  padding: 0;
+  margin: var(--spacing-2) 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2) var(--spacing-4);
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.noticeList code,
+.calloutSource code {
+  font-family: var(--font-family-monospace);
+  font-size: 0.75rem;
+  background-color: var(--muted);
+  border-radius: var(--radius-sm);
+  padding: 1px 5px;
+  color: var(--foreground);
+}
+
+.calloutWarning {
+  border-color: color-mix(in srgb, var(--warning) 40%, transparent);
+  background-color: color-mix(in srgb, var(--warning) 12%, transparent);
+}
+
+.calloutNeutral {
+  background-color: var(--muted);
+}
+
+.calloutIcon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: color-mix(in srgb, var(--warning), black 45%);
+}
+
+/* The shared warning Badge uses a near-black foreground that washes out on a
+   dark surface, so the wiring badge sets its own readable text color. */
+.wiringBadge {
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.wiringBadgeHardcoded {
+  color: color-mix(in srgb, var(--warning), black 45%);
+}
+
+.calloutNeutral .calloutIcon {
+  color: var(--muted-foreground);
+}
+
+.calloutSource {
+  margin-top: var(--spacing-2) !important;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-3);
+}
+
+/* Hover moves the border rather than raising the card - the console does not
+   lift things on hover. */
+.card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  padding: var(--spacing-4);
+  cursor: pointer;
+  transition: border-color var(--animation-duration-fast) ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.card:hover {
+  border-color: color-mix(in srgb, var(--tk-brand) 55%, var(--border));
+}
+
+.card:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-3);
+  gap: var(--spacing-2);
+}
+
+.cardTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.cardBadges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--spacing-1);
+  flex-shrink: 0;
+}
+
+.statusBadge {
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  height: auto;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.cardDescription {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin-bottom: var(--spacing-4);
+  flex-grow: 1;
+  line-height: 1.5;
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--border);
+  margin-top: auto;
+}
+
+.placeholderCount {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+/* The whole card is the control, so this only labels the action. */
+.editLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  height: 2rem;
+  padding: 0 var(--spacing-2);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--tk-brand-text);
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.card:hover .editLink {
+  background-color: color-mix(in srgb, var(--tk-brand-text) 12%, transparent);
+}
+
+/* Edit view */
+.backButton {
+  align-self: flex-start;
+  margin: 0 0 calc(var(--spacing-2) * -1) calc(var(--spacing-3) * -1);
+  color: var(--muted-foreground);
+}
+
+.backButton:hover {
+  color: var(--tk-brand-text);
+}
+
+.editContent {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: var(--spacing-4);
+  flex-grow: 1;
+}
+
+.mainColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  min-width: 0;
+}
+
+.sidebarColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.editTabs {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.tabContent {
+  flex-grow: 1;
+  margin-top: var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  padding: var(--spacing-4);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--spacing-4);
+  align-items: start;
+}
+
+.switchContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.switchWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  height: 2.5rem; /* Match input height */
+}
+
+.switchLabel {
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+
+/* Email bodies are complete HTML documents with inline styles, which a WYSIWYG
+   editor cannot round-trip, so the source is edited directly. */
+.htmlEditor {
+  min-height: 420px;
+  font-family: var(--font-family-monospace);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+  tab-size: 2;
+}
+
+.warningList {
+  margin: var(--spacing-1) 0 0;
+  padding-left: var(--spacing-4);
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  line-height: 1.55;
+}
+
+.warningList li + li {
+  margin-top: var(--spacing-1);
+}
+
+.formActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--spacing-4);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--border);
+}
+
+.lastUpdated {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.actionButtons {
+  display: flex;
+  gap: var(--spacing-3);
+}
+
+/* Preview Styles */
+.previewToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-3) 1.25rem;
+  margin-bottom: var(--spacing-4);
+}
+
+.previewToggleGroup {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.toolbarButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  background-color: transparent;
+  border: none;
+  padding: 6px var(--spacing-3);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) ease, color var(--animation-duration-fast) ease;
+}
+
+.toolbarButton + .toolbarButton {
+  border-left: 1px solid var(--border);
+}
+
+.toolbarButton:hover {
+  color: var(--foreground);
+  background-color: var(--muted);
+}
+
+/* Inset, because the group clips anything drawn outside a button. */
+.toolbarButton:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: -2px;
+}
+
+.toolbarButtonActive,
+.toolbarButtonActive:hover {
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.sampleToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  margin-left: auto;
+}
+
+.previewContainer {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--surface);
+}
+
+.previewHeader {
+  padding: var(--spacing-4);
+  border-bottom: 1px solid var(--border);
+  background-color: var(--muted);
+}
+
+.previewSubjectRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.previewFrom {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.previewSubject {
+  font-size: 0.9375rem;
+  color: var(--foreground);
+  word-break: break-word;
+}
+
+/* The email canvas: a neutral ground so the message card reads as a card.
+   The iframe sizes itself to its content, so this must not scroll as well. */
+.previewBody {
+  padding: var(--spacing-6);
+  background-color: var(--muted);
+  flex-grow: 1;
+}
+
+.textPreview {
+  margin: 0;
+  padding: var(--spacing-6);
+  font-family: var(--font-family-monospace);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--foreground);
+  white-space: pre-wrap;
+  word-break: break-word;
+  background-color: var(--surface);
+  min-height: 320px;
+}
+
+.emptyText {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  text-align: center;
+  padding: var(--spacing-8);
+}
+
+/* Sidebar Cards */
+.placeholdersCard,
+.infoCard {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  padding: var(--spacing-4);
+}
+
+.placeholdersCard h3,
+.infoCard h3 {
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: var(--spacing-1);
+}
+
+.placeholdersCard p {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  margin-bottom: var(--spacing-4);
+}
+
+.placeholderList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.placeholderBadge {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  color: var(--foreground);
+  cursor: pointer;
+  text-align: left;
+  transition: background-color var(--animation-duration-fast) ease, border-color var(--animation-duration-fast) ease, color var(--animation-duration-fast) ease;
+}
+
+.placeholderBadge:hover {
+  border-color: color-mix(in srgb, var(--tk-brand) 55%, var(--border));
+  background-color: var(--tk-brand-tint);
+}
+
+.placeholderBadge:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.placeholderName {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: 0.75rem;
+  font-family: var(--font-family-monospace);
+}
+
+.placeholderSample {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.placeholderNote {
+  margin-top: var(--spacing-3) !important;
+  font-size: 0.75rem !important;
+  color: var(--muted-foreground);
+  font-family: var(--font-family-monospace);
+  line-height: 1.5;
+}
+
+.noPlaceholders {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.infoRow {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--spacing-3);
+}
+
+/* Sentence case: the tracked-out caps chip is reserved for the sidebar's
+   audience marker and the dashboard's "Needs attention" band. */
+.infoLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  margin-bottom: 2px;
+}
+
+.infoValue {
+  font-size: 0.875rem;
+  color: var(--foreground);
+  word-break: break-all;
+}
+
+/* Loading */
+.skeletonGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-3);
+}
+
+.cardSkeleton {
+  height: 200px;
+  border-radius: var(--radius-md);
+}
+
+@media (max-width: 1024px) {
+  .editContent {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebarColumn {
+    order: -1; /* Show info on top on mobile/tablet */
+  }
+}
+
+@media (max-width: 768px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .formActions {
+    flex-direction: column;
+    gap: var(--spacing-4);
+    align-items: stretch;
+  }
+
+  .actionButtons {
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: var(--spacing-4);
+  }
+}

@@ -1,0 +1,15 @@
+.quickActions {
+  margin-bottom: var(--spacing-6);
+}
+
+.quickActionsFlex {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.quickActionButton {
+  border-radius: var(--radius-full);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}

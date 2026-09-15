@@ -1,0 +1,414 @@
+/*
+ * Student dashboard on the console language shared with the teacher and admin
+ * dashboards: --surface panels on a hairline border at --radius-md, no drop
+ * shadows, no hover lift, and coral only as a block or as --tk-brand-text.
+ *
+ * No gutter of its own - StudentDashboardLayout's .mainContent owns the page
+ * padding. The old .container added its own on top, so the page carried a
+ * doubled 64px top inset.
+ */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  color: var(--foreground);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+/* Six even cells on a wide screen, so the strip reads as one band rather than
+   as cards of drifting widths. */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--spacing-3);
+}
+
+.statCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "icon label"
+    "value value";
+  align-items: center;
+  gap: var(--spacing-2);
+  min-width: 0;
+  padding: var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.statIcon {
+  grid-area: icon;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.statLabel {
+  grid-area: label;
+  min-width: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--muted-foreground);
+}
+
+.statValue {
+  grid-area: value;
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.statValueSkeleton {
+  grid-area: value;
+  width: 3rem;
+  height: 1.65rem;
+  border-radius: var(--radius-sm);
+}
+
+.statCardSkeleton {
+  height: 96px;
+  border-radius: var(--radius-md);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4) var(--spacing-6) var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  min-height: 2.25rem;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.sectionCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.375rem;
+  height: 1.375rem;
+  padding: 0 0.375rem;
+  border-radius: var(--radius-full);
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+  font-family: var(--font-family-base);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.viewAllLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  padding: 0.25rem 0;
+  color: var(--tk-brand-text);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+
+.viewAllLink:hover {
+  border-bottom-color: var(--tk-brand-text);
+}
+
+.viewAllLink:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--radius-sm);
+}
+
+/* One block for every empty and error state, so a section is the same shape
+   whichever way it comes up short. */
+.stateBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-8) var(--spacing-4);
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.stateIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: var(--spacing-1);
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.stateTitle {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.stateHint {
+  max-width: 34rem;
+  margin: 0 0 var(--spacing-2);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+/*
+ * EnrolledTestCard is a compact vertical card - an 84px thumbnail over stacked
+ * content and a full-width CTA - not the row it was taken for. The two-up grid
+ * it used to sit in stretched it past 600px on a wide screen, so it now takes
+ * the same ~300px track the courses grid below it does, and the same one
+ * /student/tests uses.
+ */
+.testsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-4);
+  align-items: stretch;
+}
+
+/*
+ * The same ~300px track as the tests grid above and as /student/courses, so
+ * the same card is never two sizes in two places. auto-fill (not auto-fit)
+ * keeps the empty tracks, so a short row leaves a gap rather than stretching
+ * its cards back across the full width.
+ */
+.coursesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-4);
+  align-items: stretch;
+}
+
+.cardSkeleton {
+  width: 100%;
+  height: 220px;
+  border-radius: var(--radius-md);
+}
+
+/*
+ * Promo, so it sits last - below the student's own work rather than above it.
+ * A solid tinted block on a hairline border, not a translucent wash.
+ */
+.appBanner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4) var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.appBannerLogo {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius);
+  object-fit: contain;
+}
+
+.appBannerContent {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.appBannerTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.appBannerDescription {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+}
+
+.playBadgeLink {
+  display: inline-block;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+}
+
+.playBadgeLink:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.playBadgeImg {
+  display: block;
+  width: 148px;
+  height: auto;
+}
+
+.appBannerClose {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) ease, color var(--animation-duration-fast) ease;
+}
+
+.appBannerClose:hover {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.appBannerClose:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+@media (max-width: 1100px) {
+  .statsGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .page {
+    gap: var(--spacing-4);
+  }
+
+  .header {
+    align-items: flex-start;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--spacing-2);
+  }
+
+  .statCard {
+    padding: var(--spacing-3);
+  }
+
+  .statValue {
+    font-size: 1.25rem;
+  }
+
+  .panel {
+    gap: var(--spacing-3);
+    padding: var(--spacing-3) var(--spacing-4) var(--spacing-4);
+  }
+
+  .sectionTitle {
+    font-size: 1rem;
+  }
+
+  .stateBlock {
+    padding: var(--spacing-6) var(--spacing-3);
+  }
+
+  .appBanner {
+    flex-wrap: wrap;
+    padding: var(--spacing-4);
+    padding-right: var(--spacing-8);
+  }
+
+  .appBannerContent {
+    flex-basis: calc(100% - 44px - var(--spacing-4));
+  }
+
+  .appBannerClose {
+    position: absolute;
+    top: var(--spacing-2);
+    right: var(--spacing-2);
+  }
+}
+
+@media (max-width: 480px) {
+  .headerActions {
+    width: 100%;
+  }
+
+  .headerActions > * {
+    flex: 1;
+  }
+}

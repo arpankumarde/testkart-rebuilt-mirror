@@ -1,0 +1,262 @@
+/* Full-height writing shell with its own sticky action bar, the same call the
+   blog editor made. The editor toolbar sticks directly below the header. */
+.pageContainer {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background);
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-6);
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  min-width: 0;
+}
+
+.headingBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.heading {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.saveStatus {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.statusDotGreen {
+  background-color: color-mix(in srgb, var(--success), black 25%);
+}
+
+.statusDotYellow {
+  background-color: color-mix(in srgb, var(--warning), black 25%);
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+}
+
+.deleteAction {
+  color: color-mix(in srgb, var(--error), black 20%);
+}
+
+.spinIcon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.contentArea {
+  flex: 1;
+  width: 100%;
+  max-width: 76rem;
+  margin: 0 auto;
+  padding: var(--spacing-6);
+  box-sizing: border-box;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-6);
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 22rem;
+  }
+}
+
+.writingSurface {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  min-width: 0;
+  padding: var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.titleInput {
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: var(--font-family-heading);
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--foreground);
+}
+
+.titleInput::placeholder {
+  color: var(--muted-foreground);
+}
+
+.editor {
+  border: none;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
+
+.editor:focus-within {
+  border: none;
+  box-shadow: none;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  min-width: 0;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.sectionTitle {
+  margin: 0;
+  padding-bottom: var(--spacing-2);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  word-break: break-word;
+}
+
+.urlPreview {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  word-break: break-all;
+}
+
+.urlPreview strong {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+/* Amber on a light surface is too weak for body text, so the tint carries the
+   warning and the text stays full-strength foreground in both themes. */
+.warning {
+  margin: 0;
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid color-mix(in srgb, var(--warning) 45%, transparent);
+  border-radius: var(--radius-sm);
+  background-color: color-mix(in srgb, var(--warning) 12%, transparent);
+  color: var(--foreground);
+  font-size: 0.75rem;
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.switchRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.notFound {
+  width: 100%;
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: var(--spacing-8) var(--spacing-6);
+  box-sizing: border-box;
+}
+
+@media (max-width: 640px) {
+  .header {
+    padding: var(--spacing-3) var(--spacing-4);
+  }
+
+  .contentArea {
+    padding: var(--spacing-4);
+  }
+
+  .writingSurface {
+    padding: var(--spacing-4);
+  }
+
+  .titleInput {
+    font-size: 1.5rem;
+  }
+
+  .saveStatus {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinIcon {
+    animation: none;
+  }
+}

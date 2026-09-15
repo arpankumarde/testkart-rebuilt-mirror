@@ -1,0 +1,196 @@
+/* Carries its own panel: the wallet's tab wrapper stopped being one, so each
+   tab's content supplies the surface, as panels do on every other page. */
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  padding: var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: var(--spacing-4);
+  }
+}
+
+/* Same panel as the loaded state, so the tab does not gain a surface once the
+   skeletons resolve. */
+.loadingContainer {
+  padding: var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+/*
+ * The status used to be a grey --muted slab wrapping a red slab, inside the
+ * white panel - three nested surfaces to carry one word and one sentence. It
+ * is a plain row now, and the reason is a note marked the way the console
+ * marks a destructive block everywhere else: a hairline border with a 3px
+ * left accent, not an all-over red tint.
+ */
+.status {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.statusRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2) var(--spacing-3);
+}
+
+/* Replaces a "Verification Status:" label sitting to the left of the badge.
+   The badge says the state; this says what it means for the student. */
+.statusHint {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.badgeIcon {
+  margin-right: var(--spacing-1);
+}
+
+.reasonNote {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.reasonLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--error), black 20%);
+}
+
+/* Ordinary foreground: the reason is the content, not another warning, and it
+   used to be a third weight of red under a bold red heading. */
+.reasonText {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--foreground);
+}
+
+.lockedSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-8) var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.lockedIconContainer {
+  background-color: color-mix(in srgb, var(--success) 15%, transparent);
+  color: color-mix(in srgb, var(--success), black 25%);
+  padding: var(--spacing-4);
+  border-radius: var(--radius-full);
+}
+
+.lockedTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: var(--foreground);
+}
+
+.lockedText {
+  color: var(--muted-foreground);
+  font-size: 0.9375rem;
+  max-width: 500px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.editWarning {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  background-color: color-mix(in srgb, var(--warning) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent);
+  color: var(--warning-foreground);
+  padding: var(--spacing-3);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+}
+
+.ineligibleAlert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  background-color: color-mix(in srgb, var(--warning) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent);
+  color: var(--warning-foreground);
+  padding: var(--spacing-4);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.ineligibleAlert svg {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-4);
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+/*
+ * R2FileUploader sets an aspect ratio and no width of its own, so it filled
+ * the whole form column - a 3:2 box across ~1000px is a 660px-tall PAN card.
+ * Bounded to a document-sized preview instead.
+ */
+.panUploadSection {
+  max-width: 24rem;
+  transition: filter var(--animation-duration-normal) ease;
+}
+
+.uploaderDisabled {
+  pointer-events: none;
+  filter: grayscale(1);
+}
+
+ .formActions {
+   display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-3);
+  padding-top: var(--spacing-6);
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 768px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+}

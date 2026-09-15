@@ -1,0 +1,195 @@
+/* One section per panel on /teacher/edit-profile - the panel owns the padding
+   and the border, so the section itself adds neither. */
+.section {
+  padding: 0;
+}
+
+.header {
+  margin-bottom: var(--spacing-6);
+}
+
+.sectionTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 var(--spacing-2) 0;
+  color: var(--foreground);
+}
+
+.sectionDescription {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.card {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.displayItem {
+  padding: var(--spacing-4);
+  display: flex;
+  gap: var(--spacing-4);
+}
+
+.iconWrapper {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius);
+  background-color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted-foreground);
+  flex-shrink: 0;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.itemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-2);
+}
+
+.position {
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin: 0 0 var(--spacing-1) 0;
+}
+
+.companyLine {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  font-size: 0.875rem;
+  color: var(--foreground);
+  margin-bottom: var(--spacing-1);
+}
+
+.company {
+  font-weight: 500;
+}
+
+.dot {
+  color: var(--muted-foreground);
+}
+
+.location {
+  color: var(--muted-foreground);
+}
+
+.dateRange {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.description {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  line-height: 1.5;
+  margin: var(--spacing-2) 0 0 0;
+  white-space: pre-wrap;
+}
+
+.actions {
+  display: flex;
+  gap: var(--spacing-1);
+}
+
+.deleteBtn {
+  color: var(--destructive);
+}
+
+.deleteBtn:hover {
+  color: var(--destructive);
+  background-color: color-mix(in srgb, var(--destructive) 10%, transparent);
+}
+
+.form {
+  padding: var(--spacing-4);
+  background-color: var(--muted);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-4);
+}
+
+.checkboxRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-4);
+}
+
+.checkboxLabel {
+  font-size: 0.875rem;
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-4);
+}
+
+.addButton {
+  width: 100%;
+  justify-content: center;
+  border-style: dashed;
+}
+
+.titleSkeleton {
+  width: 150px;
+  height: 1.5rem;
+  margin-bottom: var(--spacing-4);
+}
+
+.itemSkeleton {
+  height: 100px;
+  margin-bottom: var(--spacing-4);
+}
+
+.error {
+  color: var(--destructive);
+  padding: var(--spacing-4);
+  text-align: center;
+  background-color: color-mix(in srgb, var(--destructive) 10%, transparent);
+  border-radius: var(--radius);
+}
+
+@media (max-width: 640px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .displayItem {
+    flex-direction: column;
+    gap: var(--spacing-3);
+  }
+  
+  .iconWrapper {
+    display: none;
+  }
+}

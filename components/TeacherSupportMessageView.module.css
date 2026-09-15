@@ -1,0 +1,192 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4);
+  border-bottom: 1px solid var(--border);
+  background-color: var(--surface);
+}
+
+.backButton {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .backButton {
+    display: inline-flex;
+  }
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex: 1;
+  min-width: 0;
+}
+
+.subject {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.messagesArea {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-4);
+  background-color: var(--background);
+  display: flex;
+  flex-direction: column;
+}
+
+.messageList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.messageWrapper {
+  display: flex;
+  flex-direction: column;
+  max-width: 85%;
+}
+
+.wrapperYou {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.wrapperAdmin {
+  align-self: flex-start;
+  align-items: flex-start;
+}
+
+.senderName {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  margin-bottom: var(--spacing-1);
+  margin-left: var(--spacing-2);
+  margin-right: var(--spacing-2);
+}
+
+.messageBubble {
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--radius-lg);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  position: relative;
+}
+
+.bubbleYou {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border-bottom-right-radius: var(--radius-sm);
+}
+
+.bubbleYou a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.bubbleAdmin {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  border-bottom-left-radius: var(--radius-sm);
+}
+
+/* --tk-brand-text, not the coral --primary, which is about 2.1:1 as link text
+   on this white bubble. */
+.bubbleAdmin a {
+  color: var(--tk-brand-text);
+  text-decoration: underline;
+}
+
+.messageText {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.messageTime {
+  display: block;
+  font-size: 0.6875rem;
+  margin-top: var(--spacing-1);
+  text-align: right;
+}
+
+.bubbleYou .messageTime {
+  color: color-mix(in srgb, var(--primary-foreground) 70%, transparent);
+}
+
+.bubbleAdmin .messageTime {
+  color: var(--muted-foreground);
+}
+
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.skeletonMessage {
+  height: 4rem;
+  width: 60%;
+  border-radius: var(--radius-lg);
+}
+
+.replyArea {
+  padding: var(--spacing-4);
+  border-top: 1px solid var(--border);
+  background-color: var(--surface);
+}
+
+.closedNote {
+  text-align: center;
+  color: var(--muted-foreground);
+  font-style: italic;
+  margin: 0;
+  padding: var(--spacing-2) 0;
+}
+
+.replyInputWrapper {
+  display: flex;
+  gap: var(--spacing-3);
+  align-items: flex-end;
+}
+
+.replyTextarea {
+  flex: 1;
+  min-height: 2.75rem !important;
+  height: 2.75rem;
+  max-height: 8rem;
+  padding-top: var(--spacing-2);
+  padding-bottom: var(--spacing-2);
+}
+
+.sendButton {
+  flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+  .sendText {
+    display: none;
+  }
+}

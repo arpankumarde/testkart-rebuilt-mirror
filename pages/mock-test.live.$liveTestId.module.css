@@ -1,0 +1,444 @@
+.pageContainer {
+  background-color: var(--background);
+}
+
+.contentContainer {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--spacing-8) var(--spacing-6);
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--spacing-8);
+}
+
+.tabButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-4);
+  font-size: 1rem;
+  font-weight: 500;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  color: var(--muted-foreground);
+  position: relative;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.2s ease;
+}
+
+.tabButton:hover {
+  color: var(--foreground);
+}
+
+.tabButton.activeTab {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.tabContent {
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.aboutSection h2 {
+  font-family: var(--font-family-heading);
+  font-size: 1.75rem;
+  margin: 0 0 var(--spacing-4);
+  padding-bottom: var(--spacing-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.aboutSection p {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--muted-foreground);
+  margin-bottom: var(--spacing-6);
+}
+
+.descriptionText {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--muted-foreground);
+  margin-bottom: var(--spacing-8);
+}
+
+.descriptionText p {
+  margin: 0 0 var(--spacing-4);
+}
+
+.descriptionText p:last-child {
+  margin-bottom: 0;
+}
+
+.descriptionText h2,
+.descriptionText h3 {
+  color: var(--foreground);
+  font-weight: 600;
+  margin: var(--spacing-6) 0 var(--spacing-3);
+}
+
+.descriptionText h2:first-child,
+.descriptionText h3:first-child {
+  margin-top: 0;
+}
+
+.descriptionText h2 {
+  font-size: 1.25rem;
+}
+
+.descriptionText h3 {
+  font-size: 1.0625rem;
+}
+
+.descriptionText ul,
+.descriptionText ol {
+  margin: var(--spacing-4) 0;
+  padding-left: var(--spacing-6);
+}
+
+.descriptionText ul {
+  list-style-type: disc;
+}
+
+.descriptionText ol {
+  list-style-type: decimal;
+}
+
+.descriptionText li {
+  margin-bottom: var(--spacing-2);
+}
+
+.descriptionText strong {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.rulesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-8);
+}
+
+.ruleCard {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-4);
+  box-shadow: var(--shadow);
+}
+
+.ruleHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-3);
+  color: var(--foreground);
+}
+
+.ruleHeader h3 {
+  font-size: 1.125rem;
+  margin: 0;
+  font-weight: 600;
+}
+
+.ruleIcon {
+  color: var(--primary);
+}
+
+.ruleList {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+  margin: 0;
+  padding-left: 1.25rem;
+  list-style-type: disc;
+}
+
+.ruleList li {
+  margin-bottom: var(--spacing-1);
+}
+
+.ruleList li:last-child {
+  margin-bottom: 0;
+}
+
+.startTestButton {
+  margin-top: var(--spacing-8);
+}
+
+.teacherSection {
+  margin-top: var(--spacing-12);
+  padding-top: var(--spacing-8);
+  border-top: 2px solid var(--border);
+}
+
+.teacherSection h2 {
+  font-family: var(--font-family-heading);
+  font-size: 1.75rem;
+  margin: 0 0 var(--spacing-6);
+  padding-bottom: var(--spacing-2);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Error State */
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 60vh;
+  padding: var(--spacing-8);
+}
+
+.errorContainer svg {
+  color: var(--error);
+  margin-bottom: var(--spacing-4);
+}
+
+.errorContainer h1 {
+  font-size: 2rem;
+  margin: 0 0 var(--spacing-2);
+}
+
+.errorContainer p {
+  color: var(--muted-foreground);
+  margin-bottom: var(--spacing-6);
+}
+
+/* Skeleton State */
+.skeletonContainer {
+  width: 100%;
+}
+.skeletonHero {
+  width: 100%;
+  height: 500px;
+}
+.skeletonContent {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--spacing-8) var(--spacing-6);
+}
+.skeletonTabs {
+  width: 250px;
+  height: 40px;
+  margin-bottom: var(--spacing-8);
+}
+.skeletonText {
+  height: 20px;
+  margin-bottom: var(--spacing-4);
+  border-radius: var(--radius-sm);
+}
+
+.earnBanner {
+  margin-top: var(--spacing-8);
+}
+
+.disclaimerSection {
+  margin-top: var(--spacing-8);
+  padding: var(--spacing-6);
+  background-color: var(--muted);
+  border-radius: var(--radius-lg);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  white-space: pre-line;
+  line-height: 1.6;
+}
+
+/* Detailed Prize Section for About Tab */
+.prizeSection {
+  background: linear-gradient(135deg, hsl(45, 100%, 50%) 0%, hsl(30, 100%, 50%) 50%, hsl(20, 100%, 50%) 100%);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-8);
+  box-shadow: 0 20px 40px rgba(251, 191, 36, 0.3), 0 10px 20px rgba(251, 146, 60, 0.2);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: var(--spacing-12);
+}
+
+.prizeSection::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  animation: shimmer 3s infinite linear;
+}
+
+@keyframes shimmer {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.prizeHeader {
+  text-align: center;
+  margin-bottom: var(--spacing-6);
+  position: relative;
+  z-index: 1;
+}
+
+.prizeWinText {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: var(--spacing-2);
+}
+
+.prizeTopAmount {
+  font-size: 4rem;
+  font-weight: 900;
+  font-family: var(--font-family-heading);
+  color: #ffffff;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3),
+               0 0 20px rgba(255, 255, 255, 0.5);
+  line-height: 1;
+  margin-bottom: var(--spacing-4);
+  letter-spacing: -2px;
+}
+
+.prizeTotalPool {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  background-color: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--radius-full);
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.prizeBreakdown {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-4);
+  position: relative;
+  z-index: 1;
+}
+
+.prizeItem {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-4);
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.prizeItem:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+}
+
+.firstPrize {
+  border-color: hsl(45, 100%, 50%);
+  transform: scale(1.05);
+}
+
+.firstPrize:hover {
+  transform: scale(1.05) translateY(-4px);
+}
+
+.secondPrize {
+  border-color: hsl(0, 0%, 75%);
+}
+
+.thirdPrize {
+  border-color: hsl(30, 100%, 40%);
+}
+
+.prizeRank {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.prizeEmoji {
+  font-size: 3rem;
+  line-height: 1;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+}
+
+.prizePosition {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted-foreground);
+}
+
+.prizeAmount {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--foreground);
+  font-family: var(--font-family-heading);
+  line-height: 1;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.firstPrize .prizeAmount {
+  font-size: 2.5rem;
+  background: linear-gradient(135deg, hsl(45, 100%, 40%) 0%, hsl(30, 100%, 40%) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@media (max-width: 992px) {
+  .prizeTopAmount { font-size: 3rem; }
+}
+
+@media (max-width: 768px) {
+  .contentContainer {
+    padding: var(--spacing-6) var(--spacing-4);
+  }
+  .aboutSection h2 {
+    font-size: 1.5rem;
+  }
+  .prizeSection { padding: var(--spacing-6); }
+  .prizeTopAmount { font-size: 2.5rem; }
+  .prizeWinText { font-size: 1rem; }
+  .prizeBreakdown { 
+    grid-template-columns: 1fr;
+    gap: var(--spacing-3);
+  }
+  .firstPrize {
+    transform: scale(1);
+  }
+  .firstPrize:hover {
+    transform: translateY(-4px);
+  }
+  .prizeItem {
+    padding: var(--spacing-4);
+  }
+  .prizeEmoji { font-size: 2.5rem; }
+  .prizeAmount { font-size: 1.5rem; }
+  .firstPrize .prizeAmount { font-size: 1.75rem; }
+}
+
+@media (max-width: 480px) {
+  .prizeTopAmount { font-size: 2rem; }
+  .prizeTotalPool { font-size: 0.875rem; }
+}

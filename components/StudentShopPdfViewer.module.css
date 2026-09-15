@@ -1,0 +1,126 @@
+/* Overrides Dialog.module.css's default 32rem/85vh sizing — a PDF reader
+   needs most of the viewport, not a small centered card. !important is
+   needed since both are single-class selectors and load order between CSS
+   modules isn't guaranteed (same pattern used elsewhere in this app for
+   overriding shared component defaults). */
+.dialogContent {
+  width: 95vw !important;
+  max-width: 900px !important;
+  height: 90vh !important;
+  max-height: 90vh !important;
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden !important;
+}
+
+.header {
+  padding: var(--spacing-4) var(--spacing-12) var(--spacing-3) 1.25rem !important;
+  margin-bottom: 0 !important;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 1.0625rem !important;
+  margin-bottom: 2px !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+.pdfScrollArea {
+  flex: 1;
+  overflow-y: auto;
+  background-color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--spacing-4);
+  gap: var(--spacing-4);
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.pdfDocument {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-6);
+  width: 100%;
+}
+
+.pdfPageWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-2);
+  width: 100%;
+}
+
+.pdfPage {
+  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background-color: var(--surface);
+  max-width: 100%;
+}
+
+.pdfPage canvas {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+.pageIndicator {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  text-align: center;
+}
+
+.stateContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  color: var(--muted-foreground);
+  text-align: center;
+  padding: var(--spacing-8);
+}
+
+.loadingIcon {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  color: var(--tk-brand-text);
+}
+
+.errorIcon {
+  color: color-mix(in srgb, var(--error), black 20%);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@media (max-width: 768px) {
+  .dialogContent {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+  }
+
+  .header {
+    padding: var(--spacing-3) 2.5rem var(--spacing-2) var(--spacing-4) !important;
+  }
+
+  .pdfScrollArea {
+    padding: var(--spacing-2);
+  }
+}

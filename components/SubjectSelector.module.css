@@ -1,0 +1,60 @@
+.subjectSelector {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.disabled {
+  opacity: 0.6;
+}
+
+.subjectIndicator {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.selectTrigger {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.selectItemContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  width: 100%;
+}
+
+.nameContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.lockIcon {
+  color: var(--muted-foreground);
+}
+
+.selectItemName {
+  font-weight: 500;
+}
+
+.lockedItem {
+  opacity: 0.6;
+}
+
+.lockedItem .selectItemName {
+  color: var(--muted-foreground);
+}
+
+.selectItemCount {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}

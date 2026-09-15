@@ -1,0 +1,68 @@
+/* One section per panel on /teacher/edit-profile - the panel owns the padding
+   and the border, so the section itself adds neither. */
+.section {
+  padding: 0;
+}
+
+.sectionTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 var(--spacing-2) 0;
+  color: var(--foreground);
+}
+
+.sectionDescription {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin: 0 0 var(--spacing-6) 0;
+  line-height: 1.5;
+}
+
+.awardItem {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--spacing-4);
+  margin-bottom: var(--spacing-3);
+  background-color: var(--card);
+}
+
+.awardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-3);
+}
+
+.awardNumber {
+  font-family: var(--font-family-base);
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--foreground);
+}
+
+@media (max-width: 768px) {
+  .sectionTitle {
+    font-size: 1.125rem;
+  }
+
+  .sectionDescription {
+    font-size: 0.8125rem;
+    margin-bottom: var(--spacing-4);
+  }
+
+  .awardItem {
+    padding: var(--spacing-3);
+  }
+}
+
+@media (max-width: 480px) {
+  .sectionTitle {
+    font-size: 1rem;
+  }
+
+  .sectionDescription {
+    font-size: 0.75rem;
+  }
+}

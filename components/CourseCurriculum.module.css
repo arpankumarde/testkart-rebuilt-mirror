@@ -1,0 +1,306 @@
+.curriculum {
+  width: 100%;
+}
+
+.title {
+  font-family: var(--font-family-heading);
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-2);
+  color: var(--foreground);
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  color: var(--muted-foreground);
+  margin-bottom: var(--spacing-6);
+  font-size: 0.9375rem;
+}
+
+.dot {
+  opacity: 0.5;
+}
+
+.accordionRoot {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.accordionItem {
+  border-bottom: 1px solid var(--border);
+}
+
+.accordionItem:last-child {
+  border-bottom: none;
+}
+
+.accordionHeader {
+  margin: 0;
+}
+
+.accordionTrigger {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: var(--spacing-4) var(--spacing-4);
+  background-color: var(--surface);
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-family-base);
+  font-size: 1rem;
+  text-align: left;
+  transition: background-color var(--animation-duration-fast);
+}
+
+.accordionTrigger:hover {
+  background-color: var(--muted);
+}
+
+.accordionTrigger[data-state='open'] {
+  background-color: color-mix(in srgb, var(--primary) 5%, transparent);
+}
+
+.sectionTitle {
+  font-weight: 600;
+  color: var(--surface-foreground);
+}
+
+.sectionMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.accordionChevron {
+  transition: transform var(--animation-duration-normal) ease;
+}
+
+.accordionTrigger[data-state='open'] > .sectionMeta > .accordionChevron {
+  transform: rotate(180deg);
+}
+
+.accordionContent {
+  overflow: hidden;
+  background-color: var(--background);
+}
+
+.accordionContent[data-state='open'] {
+  animation: slideDown var(--animation-duration-normal) ease-out;
+}
+.accordionContent[data-state='closed'] {
+  animation: slideUp var(--animation-duration-normal) ease-out;
+}
+
+.lessonList {
+  list-style: none;
+  padding: var(--spacing-2) var(--spacing-4) var(--spacing-4);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.lessonItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-3) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.lessonItem:last-child {
+  border-bottom: none;
+}
+
+.lessonItemClickable {
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast);
+  margin: 0 calc(var(--spacing-4) * -1);
+  padding: var(--spacing-3) var(--spacing-4);
+}
+
+.lessonItemClickable:hover {
+  background-color: color-mix(in srgb, var(--primary) 5%, transparent);
+}
+
+.lessonInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  color: var(--foreground);
+}
+
+.lessonTitle {
+  font-size: 0.9375rem;
+}
+
+.lessonMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.previewBadge {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.lockIcon {
+  opacity: 0.7;
+}
+
+.duration {
+  min-width: 30px;
+  text-align: right;
+}
+
+.previewDialog {
+  max-width: 90vw;
+  width: 56rem;
+}
+
+.previewContent {
+  margin-top: var(--spacing-4);
+}
+
+.videoContainer {
+  width: 100%;
+  background-color: var(--muted);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.videoPlayer {
+  width: 100%;
+  height: auto;
+  max-height: 70vh;
+  display: block;
+}
+
+.youtubeContainer {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%; /* 16:9 aspect ratio */
+  background-color: #000;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.youtubeIframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.textContent {
+  padding: var(--spacing-4);
+  background-color: var(--surface);
+  border-radius: var(--radius);
+  max-height: 60vh;
+  overflow-y: auto;
+  line-height: 1.6;
+  color: var(--surface-foreground);
+}
+
+.textContent p {
+  margin-bottom: var(--spacing-4);
+}
+
+.textContent h1,
+.textContent h2,
+.textContent h3,
+.textContent h4,
+.textContent h5,
+.textContent h6 {
+  margin-top: var(--spacing-6);
+  margin-bottom: var(--spacing-3);
+  font-family: var(--font-family-heading);
+}
+
+.textContent ul,
+.textContent ol {
+  margin-left: var(--spacing-6);
+  margin-bottom: var(--spacing-4);
+}
+
+.imageContainer {
+  width: 100%;
+  max-height: 70vh;
+  overflow-y: auto;
+  border-radius: var(--radius);
+  background-color: var(--muted);
+  display: flex;
+  justify-content: center;
+  padding: var(--spacing-4);
+}
+
+.previewImage {
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.noPreview {
+  padding: var(--spacing-8);
+  text-align: center;
+  color: var(--muted-foreground);
+}
+
+@keyframes slideDown {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .previewDialog {
+    max-width: 95vw;
+  }
+
+  .videoPlayer {
+    max-height: 50vh;
+  }
+
+  .youtubeContainer {
+    padding-top: 56.25%; /* Maintain aspect ratio on mobile */
+  }
+
+  .textContent {
+    max-height: 50vh;
+  }
+
+  .imageContainer {
+    max-height: 50vh;
+  }
+}

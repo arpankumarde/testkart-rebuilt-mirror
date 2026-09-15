@@ -1,0 +1,85 @@
+.pageContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-6) var(--spacing-12);
+}
+
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--spacing-16) var(--spacing-6);
+  color: var(--muted-foreground);
+}
+
+.errorState h2 {
+  font-family: var(--font-family-heading);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin: 0 0 var(--spacing-2) 0;
+}
+
+/* Share */
+.shareContainer {
+  margin-top: var(--spacing-8);
+  padding: var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+.shareTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Related Bundles */
+.relatedSection {
+  margin-top: var(--spacing-12);
+}
+
+.relatedTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-6);
+  text-align: center;
+  padding-bottom: var(--spacing-3);
+  border-bottom: 1px solid var(--border);
+}
+
+@media (max-width: 768px) {
+  .pageContainer {
+    padding: 0 var(--spacing-4) var(--spacing-8);
+  }
+
+  .relatedTitle {
+    font-size: 1.5rem;
+  }
+}
+
+/* Closes the page, below the related bundles and any disclaimer. Same gap
+   those sections open with, so the trailing run stays evenly spaced. */
+.teacherCta {
+  margin-top: var(--spacing-12);
+}
+
+.disclaimerSection {
+  margin-top: var(--spacing-12);
+  padding: var(--spacing-6);
+  background-color: var(--muted);
+  border-radius: var(--radius-lg);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  white-space: pre-line;
+  line-height: 1.6;
+}

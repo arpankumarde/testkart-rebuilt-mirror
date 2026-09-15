@@ -1,0 +1,226 @@
+/* The console shell. No padding of its own - TeacherDashboardLayout's
+   .pageBody owns the gutter - and the same 1440px cap as every other page. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* Sits directly above the list, no panel of its own. The filter band used to
+   carry a tracked-out "FILTERS" header and a caps label over every control;
+   the placeholders name each filter well enough. */
+.resultCount {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+/* The console's card language: --radius-md on a hairline border with the flat
+   --shadow, and a hover that moves the border rather than lifting the card. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  transition: border-color var(--animation-duration-fast) ease;
+}
+
+.card:hover {
+  border-color: color-mix(in srgb, var(--foreground) 22%, var(--border));
+}
+
+.card:focus-within {
+  border-color: var(--tk-brand-text);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-3) var(--spacing-4);
+  flex-wrap: wrap;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2) var(--spacing-4);
+  min-width: 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  min-width: 0;
+}
+
+/* Raw --success and --error are about 2.3:1 and 3.5:1 as small type on this
+   white card; darkened they carry the same meaning and can be read. */
+.marks {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.positive {
+  font-weight: 600;
+  color: color-mix(in srgb, var(--success), black 30%);
+}
+
+.negative {
+  font-weight: 600;
+  color: color-mix(in srgb, var(--error), black 25%);
+}
+
+.question {
+  padding: var(--spacing-4);
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--foreground);
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  font-size: 0.9375rem;
+}
+
+.correct {
+  border-color: color-mix(in srgb, var(--success) 55%, var(--border));
+  background-color: color-mix(in srgb, var(--success) 10%, var(--surface));
+}
+
+.optionLabel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.correct .optionLabel {
+  background-color: color-mix(in srgb, var(--success) 22%, transparent);
+  color: color-mix(in srgb, var(--success), black 35%);
+}
+
+.numericalAnswer {
+  padding: var(--spacing-3);
+  font-size: 0.9375rem;
+}
+
+.answerLabel {
+  color: var(--muted-foreground);
+}
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3) var(--spacing-4);
+  flex-wrap: wrap;
+  padding-top: var(--spacing-3);
+  border-top: 1px solid var(--border);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.noTags {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  flex-shrink: 0;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  cursor: pointer;
+}
+
+.destructive {
+  color: var(--error);
+}
+
+@media (max-width: 640px) {
+  .page {
+    gap: var(--spacing-4);
+  }
+
+  .cardFooter {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .actions {
+    justify-content: flex-end;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+}

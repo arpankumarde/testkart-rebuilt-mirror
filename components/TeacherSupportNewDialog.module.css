@@ -1,0 +1,19 @@
+.dialogContent {
+  max-width: 500px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  margin-top: var(--spacing-4);
+}
+
+@media (max-width: 768px) {
+  .dialogContent {
+    max-width: calc(100vw - 2rem);
+    width: 100%;
+    margin: 0 auto;
+    padding: var(--spacing-4);
+  }
+}

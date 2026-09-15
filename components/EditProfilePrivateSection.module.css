@@ -1,0 +1,164 @@
+.section {
+  padding: var(--spacing-6) 0;
+}
+
+/* The panel wrapping these sections owns the outer gutter, so the first and
+   last section do not add their own on top of it. */
+.section:first-child {
+  padding-top: 0;
+}
+
+.section:last-child {
+  padding-bottom: 0;
+}
+
+.section:not(:last-child) {
+  border-bottom: 1px solid var(--border);
+}
+
+/* Panel heading scale, matching the sibling sections on Settings. */
+.sectionTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 var(--spacing-2) 0;
+  color: var(--foreground);
+}
+
+.sectionDescription {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin: 0 0 var(--spacing-6) 0;
+  line-height: 1.5;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-6);
+}
+
+.fieldLabel {
+  font-family: var(--font-family-base);
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--foreground);
+  display: flex;
+  align-items: center;
+}
+
+.fieldDescription {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+  margin: var(--spacing-1) 0 0 0;
+  font-family: var(--font-family-base);
+}
+
+.inputRow {
+  display: flex;
+  gap: var(--spacing-2);
+  align-items: center;
+  width: 100%;
+}
+
+.flex1 {
+  flex: 1;
+  min-width: 0;
+}
+
+.verifyBox {
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--spacing-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.verifyMessage {
+  font-size: 0.875rem;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.timerRow {
+  display: flex;
+  align-items: center;
+  min-height: 1.5rem;
+}
+
+.timerText {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.resendBtn {
+  padding: 0;
+  height: auto;
+  min-height: auto;
+  font-size: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: var(--spacing-4) 0;
+  }
+
+  .sectionTitle {
+    font-size: 1.125rem;
+  }
+
+  .sectionDescription {
+    font-size: 0.8125rem;
+    margin-bottom: var(--spacing-4);
+  }
+
+  .fieldGroup {
+    gap: var(--spacing-3);
+    margin-bottom: var(--spacing-6);
+  }
+
+  .fieldLabel {
+    font-size: 1rem;
+  }
+
+  .fieldDescription {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .section {
+    padding: var(--spacing-3) 0;
+  }
+
+  .sectionTitle {
+    font-size: 1rem;
+  }
+
+  .sectionDescription {
+    font-size: 0.75rem;
+  }
+
+  .fieldLabel {
+    font-size: 0.875rem;
+  }
+
+  .fieldDescription {
+    font-size: 0.75rem;
+  }
+
+  .inputRow {
+    flex-wrap: wrap;
+  }
+
+  .inputRow > .flex1 {
+    min-width: 100%;
+    margin-bottom: var(--spacing-2);
+  }
+}

@@ -1,0 +1,127 @@
+.hero {
+  padding: var(--spacing-12) var(--spacing-4);
+  background-color: var(--background);
+  background-image: radial-gradient(
+    circle at center,
+    color-mix(in srgb, var(--primary) 5%, transparent) 0%,
+    transparent 100%
+  );
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.content {
+  max-width: 800px;
+  width: 100%;
+}
+
+.title {
+  font-family: var(--font-family-heading);
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--foreground);
+  margin: 0 0 var(--spacing-4) 0;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+@media (min-width: 768px) {
+  .title {
+    font-size: 3.5rem;
+    margin-bottom: var(--spacing-4);
+  }
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: var(--muted-foreground);
+  margin: 0 0 var(--spacing-6) 0;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+@media (min-width: 768px) {
+  .subtitle {
+    font-size: 1.125rem;
+    margin-bottom: var(--spacing-8);
+  }
+}
+
+.searchForm {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.searchInput {
+  width: 100%;
+  height: 56px;
+  padding: 0 4rem 0 1.25rem;
+  font-size: 1rem;
+  font-family: var(--font-family-base);
+  color: var(--foreground);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-md);
+  transition: border-color var(--animation-duration-normal) ease, box-shadow var(--animation-duration-normal) ease;
+  outline: none;
+}
+
+.searchInput:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 20%, transparent);
+}
+
+.searchInput::placeholder {
+  color: var(--muted-foreground);
+  opacity: 0.7;
+}
+
+.searchIconBtn {
+  position: absolute;
+  right: var(--spacing-2);
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+  border-radius: var(--radius-full);
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.searchIconBtn:hover {
+  background-color: color-mix(in srgb, var(--primary), black 10%);
+}
+
+@media (min-width: 768px) {
+  .hero {
+    padding: var(--spacing-16) var(--spacing-4);
+  }
+
+  .searchInput {
+    height: 64px;
+    padding: 0 4.5rem 0 1.5rem;
+    font-size: 1.125rem;
+  }
+
+  .searchIconBtn {
+    width: 48px;
+    height: 48px;
+  }
+}

@@ -1,0 +1,427 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.skeletonWrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.errorContainer {
+  padding: var(--spacing-6);
+  text-align: center;
+  color: var(--error);
+}
+
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--spacing-3);
+}
+
+.statCard {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  padding: var(--spacing-3) var(--spacing-4);
+  text-align: left;
+  cursor: default;
+  font-family: inherit;
+}
+
+.statCardButton {
+  cursor: pointer;
+}
+
+.statCardButton:hover {
+  border-color: var(--muted-foreground);
+}
+
+.statCardButton:focus-visible,
+.toggleChip:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.statLabel {
+  margin: 0 0 var(--spacing-1);
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.statValue {
+  margin: 0;
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.statDanger {
+  color: var(--error);
+}
+
+.statWarning {
+  color: var(--warning-foreground);
+}
+
+.healthPanel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--spacing-4);
+  background-color: var(--background);
+}
+
+.healthPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-3);
+}
+
+.healthPanelTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.healthEmpty {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.healthList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.healthRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.healthRowName {
+  margin: 0;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.healthRowCategory {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.healthFlags {
+  display: flex;
+  gap: var(--spacing-1);
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.healthMore {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  margin: var(--spacing-1) 0 0;
+}
+
+.filterBar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.searchContainer {
+  position: relative;
+  flex: 1 1 240px;
+  min-width: 200px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: var(--spacing-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted-foreground);
+}
+
+.searchInput {
+  padding-left: calc(var(--spacing-3) * 2 + 18px);
+  width: 100%;
+}
+
+.filterSelect {
+  width: 10rem;
+  flex-shrink: 0;
+}
+
+.toggleChip {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background-color: var(--surface);
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  padding: var(--spacing-1) var(--spacing-3);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.toggleChip:hover {
+  background-color: var(--muted);
+}
+
+.toggleChipActive {
+  background-color: var(--tk-brand-tint);
+  border-color: var(--tk-brand);
+  color: var(--tk-brand-text);
+}
+
+.addExamButton {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.bulkBar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3);
+  background-color: var(--tk-brand-tint);
+  border: 1px solid var(--tk-brand);
+  border-radius: var(--radius);
+  flex-wrap: wrap;
+}
+
+.bulkCount {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--tk-brand-text);
+}
+
+.bulkActionSelect {
+  width: 12rem;
+}
+
+.bulkValueSelect {
+  width: 12rem;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.table th {
+  text-align: left;
+  padding: var(--spacing-3);
+  color: var(--muted-foreground);
+  font-weight: 500;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: var(--spacing-3);
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background-color: color-mix(in srgb, var(--muted) 50%, var(--surface));
+}
+
+.checkboxCell {
+  width: 2.5rem;
+}
+
+.examName {
+  margin: 0;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.examFullName {
+  margin: 2px 0 0;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.healthDot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--warning);
+  margin-top: var(--spacing-1);
+}
+
+.categoryCell {
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+.dots {
+  display: flex;
+  gap: 7px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--border);
+  display: inline-block;
+}
+
+.dot_published {
+  background-color: var(--success);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--success), black 35%);
+}
+
+.dot_draft {
+  background-color: var(--warning);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warning), black 35%);
+}
+
+.dot_none {
+  background-color: transparent;
+  box-shadow: inset 0 0 0 1px var(--muted-foreground);
+}
+
+/* A ring rather than a fill, so the dot still shows published or draft. 2px,
+   because Chrome rounds outlines down to whole device pixels; the 7px gap
+   keeps neighbouring rings apart. */
+.dotReview {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 1px;
+}
+
+.dotsCaption {
+  margin: var(--spacing-1) 0 0;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.reviewCaption {
+  margin: 2px 0 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--tk-brand-text);
+  white-space: nowrap;
+}
+
+.issueCaption {
+  max-width: 18rem;
+  margin: var(--spacing-1) 0 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--foreground);
+}
+
+.issueLabel {
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.productsCell {
+  white-space: nowrap;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.ownerCell {
+  white-space: nowrap;
+}
+
+.unassigned {
+  color: var(--muted-foreground);
+}
+
+.updatedCell {
+  white-space: nowrap;
+}
+
+.staleBadge {
+  margin-right: var(--spacing-2);
+}
+
+.dueCell {
+  white-space: nowrap;
+}
+
+.dueDate {
+  color: var(--muted-foreground);
+}
+
+.actionsCell {
+  white-space: nowrap;
+  text-align: right;
+}
+
+.deleteButton:hover {
+  color: var(--error);
+}
+
+.emptyRow {
+  text-align: center;
+  padding: var(--spacing-8);
+  color: var(--muted-foreground);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.paginationInfo {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.paginationControls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.paginationPage {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .statGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

@@ -1,0 +1,510 @@
+/* Same page shell as /teacher/dashboard and /teacher/test-series: no padding
+   of its own (TeacherDashboardLayout's .pageBody owns the gutter), one column
+   with a --spacing-6 rhythm, capped at 1440px. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-3) var(--spacing-4);
+}
+
+.headerText {
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  color: var(--foreground);
+}
+
+.subtitle {
+  margin: var(--spacing-1) 0 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.urlChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: 1px var(--spacing-2);
+  border-radius: var(--radius-sm);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+  font-weight: 600;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.urlChip:hover {
+  background-color: color-mix(in srgb, var(--tk-brand) 28%, transparent);
+  text-decoration: underline;
+}
+
+.urlChip:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.urlChip svg {
+  flex-shrink: 0;
+}
+
+/*
+ * A segmented control, not two loose buttons. Edit/Preview switches what the
+ * page IS, while Copy link and Open live page are ordinary actions sitting
+ * beside it - as four similar outline buttons in a row, that difference was
+ * invisible. ToggleGroup's own rules live in @layer base, so these unlayered
+ * ones win without !important.
+ */
+.modeToggle {
+  display: inline-flex;
+  gap: 0;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--muted);
+}
+
+.modeToggle button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  height: 2rem;
+  padding: 0 var(--spacing-4);
+  border: none;
+  border-radius: calc(var(--radius) - 2px);
+  background-color: transparent;
+  color: var(--muted-foreground);
+  font-family: var(--font-family-base);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
+}
+
+.modeToggle button:hover {
+  background-color: transparent;
+  color: var(--foreground);
+}
+
+.modeToggle button[data-state="on"] {
+  background-color: var(--surface);
+  color: var(--tk-brand-text);
+  box-shadow: var(--shadow);
+}
+
+.modeToggle button:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+/* ---------------------------------------------------------- onboarding --- */
+
+.onboardingBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--info);
+  border-left: 4px solid var(--info);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.onboardingBannerIcon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--info);
+}
+
+.onboardingBannerText {
+  flex: 1;
+  min-width: 0;
+}
+
+.onboardingBannerTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.onboardingBannerDescription {
+  margin: var(--spacing-1) 0 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--muted-foreground);
+}
+
+.onboardingBannerClose {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+
+/* --------------------------------------------------------------- edit ---- */
+
+.editLayout {
+  display: grid;
+  grid-template-columns: 17rem minmax(0, 1fr);
+  gap: var(--spacing-6);
+  align-items: start;
+}
+
+.sideColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  position: sticky;
+  top: var(--spacing-6);
+}
+
+.sectionNav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--spacing-2);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.sectionButton {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  width: 100%;
+  padding: var(--spacing-3);
+  border: none;
+  border-radius: var(--radius);
+  background: none;
+  text-align: left;
+  color: var(--muted-foreground);
+  font-family: var(--font-family-base);
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
+}
+
+.sectionButton:hover {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.sectionButton:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* Coral as a block, matching the sidebar's active row and the test-series
+   tabs. */
+.sectionButtonActive {
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.sectionIcon {
+  flex-shrink: 0;
+}
+
+.sectionMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.sectionLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.sectionHint {
+  font-size: 0.75rem;
+  line-height: 1.3;
+  color: var(--muted-foreground);
+}
+
+.sectionButtonActive .sectionHint {
+  color: color-mix(in srgb, var(--tk-brand-text) 75%, var(--foreground));
+}
+
+.strengthCard {
+  padding: var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.strengthHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+}
+
+.strengthTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.strengthValue {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--tk-brand-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.strengthTrack {
+  height: 0.5rem;
+  margin: var(--spacing-3) 0;
+  border-radius: var(--radius-full);
+  background-color: var(--muted);
+  overflow: hidden;
+}
+
+.strengthBar {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand-deep);
+  transition: width var(--animation-duration-normal) ease;
+}
+
+.strengthText {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.strengthAction {
+  margin-top: var(--spacing-2);
+  margin-left: calc(var(--spacing-3) * -1);
+  color: var(--tk-brand-text);
+}
+
+.panelColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  min-width: 0;
+}
+
+.panel {
+  padding: var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.form {
+  display: block;
+}
+
+.saveBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  position: sticky;
+  bottom: var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.saveHint {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+/* ------------------------------------------------------------ preview ---- */
+
+.previewWrap {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.previewBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-2) var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-4);
+  border-bottom: 1px solid var(--border);
+  background-color: var(--muted);
+}
+
+.previewUrl {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+.previewUrl svg {
+  flex-shrink: 0;
+  color: var(--tk-brand-text);
+}
+
+.previewNote {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+/* The landing page renders at full fidelity inside its own scroll box, so the
+   teacher sees exactly what a student sees without leaving the dashboard. */
+.previewViewport {
+  max-height: 78vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background-color: var(--background);
+}
+
+.previewLoading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4);
+}
+
+.previewEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-16) var(--spacing-4);
+  text-align: center;
+  background-color: var(--surface);
+  border-radius: var(--radius-md);
+}
+
+.previewEmptyTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.previewEmptyText {
+  margin: 0;
+  max-width: 34rem;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--muted-foreground);
+}
+
+/* --------------------------------------------------------- responsive ---- */
+
+@media (max-width: 1024px) {
+  .editLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sideColumn {
+    position: static;
+  }
+
+  .sectionNav {
+    flex-direction: row;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .sectionNav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .sectionButton {
+    width: auto;
+    flex-shrink: 0;
+  }
+
+  .sectionHint {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    gap: var(--spacing-4);
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .panel {
+    padding: var(--spacing-4);
+  }
+
+  .saveBar {
+    bottom: var(--spacing-2);
+  }
+
+  .saveBar button {
+    width: 100%;
+    justify-content: center;
+    min-height: 2.75rem;
+  }
+
+  .previewViewport {
+    max-height: 70vh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sectionButton,
+  .strengthBar {
+    transition: none;
+  }
+}

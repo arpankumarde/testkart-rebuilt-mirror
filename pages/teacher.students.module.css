@@ -1,0 +1,161 @@
+/* The console shell. No padding of its own - TeacherDashboardLayout's
+   .pageBody owns the gutter, and the old --spacing-8 here doubled it. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2) var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid color-mix(in srgb, var(--info) 30%, transparent);
+  border-radius: var(--radius-md);
+  background-color: color-mix(in srgb, var(--info) 8%, transparent);
+  color: var(--foreground);
+  font-size: 0.875rem;
+}
+
+.noticeIcon {
+  flex-shrink: 0;
+  color: color-mix(in srgb, var(--info), black 20%);
+}
+
+.noticeLink {
+  margin-left: auto;
+  height: auto;
+  min-height: 0;
+  padding: 0;
+}
+
+/* Raw --error as a solid block was the loudest thing on the page. Same shape
+   as the error strip on Overview. */
+.error {
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid color-mix(in srgb, var(--error) 30%, transparent);
+  border-radius: var(--radius-md);
+  background-color: color-mix(in srgb, var(--error) 10%, transparent);
+  color: color-mix(in srgb, var(--error), black 25%);
+  font-size: 0.875rem;
+}
+
+.masked {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+}
+
+.panel {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.table th,
+.table td {
+  padding: var(--spacing-3) var(--spacing-4);
+  vertical-align: middle;
+}
+
+/* Sentence case, not tracked-out caps. */
+.table th {
+  font-family: var(--font-family-base);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.table td {
+  font-size: 0.875rem;
+  color: var(--foreground);
+  border-bottom: 1px solid var(--border);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background-color: var(--muted);
+}
+
+.itemCell {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.itemIcon {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+
+.typeCell {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.amount {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .noticeLink {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .page {
+    gap: var(--spacing-4);
+  }
+
+  .table {
+    min-width: 44rem;
+  }
+
+  .table th,
+  .table td {
+    padding: var(--spacing-3);
+  }
+
+  .table th:not(:nth-child(4)),
+  .table td:not(:nth-child(4)) {
+    white-space: nowrap;
+  }
+
+  .itemCell {
+    white-space: normal;
+  }
+
+  .table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: var(--surface);
+  }
+}

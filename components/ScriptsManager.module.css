@@ -1,0 +1,135 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  padding: var(--spacing-6);
+  background-color: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
+}
+
+.infoBox,
+.warningBox {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.infoBox {
+  background-color: color-mix(in srgb, var(--info) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--info) 20%, transparent);
+  color: color-mix(in srgb, var(--info) 90%, black);
+}
+
+.infoIcon {
+  color: var(--info);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.warningBox {
+  background-color: color-mix(in srgb, var(--warning) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--warning) 25%, transparent);
+  color: var(--warning-foreground);
+}
+
+.warningIcon {
+  color: var(--warning);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.formGroup label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--surface-foreground);
+}
+
+.labelDescription {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.labelDescription code {
+  font-family: var(--font-family-monospace);
+  background-color: var(--muted);
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+}
+
+.textarea {
+  min-height: 150px;
+  font-family: var(--font-family-monospace);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--spacing-4);
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--spacing-12) var(--spacing-6);
+  color: var(--muted-foreground);
+  gap: var(--spacing-2);
+}
+
+.errorState h3 {
+  color: var(--foreground);
+  font-size: 1.2rem;
+  margin-top: var(--spacing-4);
+}
+
+.errorState p {
+  max-width: 400px;
+}
+
+/* Skeleton Styles */
+.infoBoxSkeleton {
+  height: 60px;
+  width: 100%;
+}
+
+.textareaSkeleton {
+  min-height: 150px;
+  width: 100%;
+}

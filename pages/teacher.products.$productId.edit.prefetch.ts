@@ -1,0 +1,1 @@
+// No prefetch needed for authenticated teacher pages

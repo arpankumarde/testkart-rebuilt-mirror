@@ -1,0 +1,108 @@
+/* The console shell. TeacherDashboardLayout's .pageBody owns the gutter. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/*
+ * The one page in the console with inner scroll panes, so it needs a bounded
+ * height rather than growing with its content. The budget covers .pageBody's
+ * 4rem of padding, the support bar, the page header and the gap below it;
+ * capped so it does not stretch on a tall monitor.
+ */
+.workspace {
+  display: grid;
+  grid-template-columns: 21rem minmax(0, 1fr);
+  gap: var(--spacing-6);
+  height: min(calc(100vh - 13rem), 48rem);
+  min-height: 26rem;
+}
+
+.listPane,
+.detailPane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Same panel as TeacherListEmpty, sized to fill the pane beside it. */
+.emptyDetail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  height: 100%;
+  padding: var(--spacing-8) var(--spacing-4);
+  text-align: center;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.emptyIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.emptyTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.emptyText {
+  margin: 0;
+  max-width: 34rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 900px) {
+  .workspace {
+    grid-template-columns: 18rem minmax(0, 1fr);
+  }
+}
+
+/* One pane at a time on a phone: the list, or the thread you opened. */
+@media (max-width: 768px) {
+  .page {
+    gap: var(--spacing-4);
+  }
+
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+    height: calc(100vh - 11rem);
+  }
+
+  .hiddenOnMobile {
+    display: none !important;
+  }
+}
+
+/* The unread filter notice and its gap come out of the same height budget, so the page still does not scroll. */
+.workspaceWithNotice {
+  height: min(calc(100vh - 17.75rem), 48rem);
+}
+
+@media (max-width: 768px) {
+  .workspaceWithNotice {
+    height: calc(100vh - 17rem);
+  }
+}

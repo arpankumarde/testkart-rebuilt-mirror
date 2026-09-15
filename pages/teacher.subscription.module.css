@@ -1,0 +1,85 @@
+/*
+ * The console shell. This page opened on a centred 2.5rem "Choose Your Plan"
+ * hero with a lede under it - a marketing header inside a dashboard, at a
+ * different width and alignment from every other page. The sidebar already
+ * says which section you are in, so the title row is now the standard one.
+ */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.paymentBreakdown {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-2);
+}
+
+.breakdownRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-4);
+  font-size: 0.9375rem;
+}
+
+.breakdownRow strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.walletToggleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-3);
+  background-color: var(--muted);
+  border-radius: var(--radius);
+  font-size: 0.9375rem;
+}
+
+.successText {
+  color: color-mix(in srgb, var(--success), black 35%);
+}
+
+.warningNote {
+  margin: 0;
+  padding: var(--spacing-3);
+  border-radius: var(--radius);
+  background-color: color-mix(in srgb, var(--warning) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent);
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    gap: var(--spacing-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}

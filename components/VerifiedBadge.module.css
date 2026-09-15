@@ -1,0 +1,72 @@
+@layer base {
+  .badgeWrapper {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: var(--spacing-1);
+    vertical-align: text-bottom;
+  }
+
+  .sm {
+    width: 16px;
+    height: 16px;
+  }
+
+  .md {
+    width: 20px;
+    height: 20px;
+  }
+
+  .lg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .svgDefs {
+    position: absolute;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+  }
+
+  .iconContainer {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    filter: drop-shadow(0 2px 4px rgba(255, 120, 60, 0.25));
+    transition: filter var(--animation-duration-normal) ease,
+      transform var(--animation-duration-normal) ease;
+    cursor: default;
+  }
+
+  .iconContainer:hover {
+    filter: drop-shadow(0 4px 8px rgba(255, 120, 60, 0.4));
+    transform: scale(1.1);
+    animation: pulseGlow 1.5s infinite;
+  }
+
+  .icon {
+    width: 100%;
+    height: 100%;
+  }
+
+  @keyframes pulseGlow {
+    0% {
+      filter: drop-shadow(0 2px 4px rgba(255, 120, 60, 0.4));
+    }
+    50% {
+      filter: drop-shadow(0 4px 12px rgba(255, 120, 60, 0.6));
+    }
+    100% {
+      filter: drop-shadow(0 2px 4px rgba(255, 120, 60, 0.4));
+    }
+  }
+
+  /* Dark mode specific subtle adjustments */
+  :global(.dark) .iconContainer {
+    filter: drop-shadow(0 2px 4px rgba(255, 120, 60, 0.15));
+  }
+}

@@ -1,0 +1,189 @@
+@layer base {
+  /* The console's panel, same as the sibling sections on Settings. */
+  .container {
+    background-color: var(--surface);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    padding: var(--spacing-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-6);
+  }
+
+  .header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
+  }
+
+  /* Panel heading scale. At 1.5rem this competed with the page's own h1. */
+  .title {
+    font-family: var(--font-family-heading);
+    font-size: 1.125rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--foreground);
+    margin: 0;
+  }
+
+  .description {
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  .sectionTitle {
+    font-family: var(--font-family-heading);
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--foreground);
+    margin: 0 0 var(--spacing-4) 0;
+  }
+
+  .formRow {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-4);
+  }
+
+  .flexItem {
+    flex: 1;
+    margin-bottom: 0; /* Remove default FormItem margin */
+  }
+
+  .buttonWrapper {
+    padding-top: 1.75rem; /* Align button accurately with input controls below labels */
+  }
+
+  @media (max-width: 768px) {
+    .formRow {
+      flex-direction: column;
+    }
+    .flexItem {
+      width: 100%;
+    }
+    .buttonWrapper {
+      padding-top: 0;
+      width: 100%;
+    }
+    .buttonWrapper button {
+      width: 100%;
+    }
+  }
+
+  .listSection {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .memberList {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+  }
+
+  .memberCard {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-4);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background-color: var(--background);
+    transition: box-shadow var(--animation-duration-fast) ease;
+  }
+
+  .memberCard:hover {
+    box-shadow: var(--shadow);
+  }
+
+  .memberInfo {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-4);
+  }
+
+  .memberDetails {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-1);
+  }
+
+  .memberName {
+    font-family: var(--font-family-heading);
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--foreground);
+    margin: 0;
+  }
+
+  .memberPhone {
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+    margin: 0;
+    font-family: var(--font-family-monospace);
+  }
+
+  .memberActions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-4);
+  }
+
+  .removeButton {
+    color: var(--error);
+  }
+
+  .removeButton:hover {
+    background-color: color-mix(in srgb, var(--error) 10%, transparent);
+    color: var(--error);
+  }
+
+  .loadingList {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+  }
+
+  /* Solid hairline, not dashed - the console's empty states are panels, not
+     drop targets. */
+  .emptyState {
+    padding: var(--spacing-8);
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+    background-color: var(--background);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+  }
+
+  .errorState {
+    padding: var(--spacing-4);
+    color: color-mix(in srgb, var(--error), black 25%);
+    background-color: color-mix(in srgb, var(--error) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--error) 30%, transparent);
+    border-radius: var(--radius);
+    text-align: center;
+    font-size: 0.875rem;
+  }
+
+  .unauthorized {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-8);
+    text-align: center;
+    gap: var(--spacing-4);
+  }
+
+  /* Raw --warning is about 2:1 on a white panel, under the 3:1 an icon this
+     size needs to read. */
+  .unauthorizedIcon {
+    width: 3rem;
+    height: 3rem;
+    color: color-mix(in srgb, var(--warning), black 30%);
+  }
+}

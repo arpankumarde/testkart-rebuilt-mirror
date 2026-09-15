@@ -1,0 +1,44 @@
+/*
+ * On the shared console language - see student.tests.module.css for the rules.
+ * The page-load fadeIn entrance is gone, along with its own gutter.
+ */
+/*
+ * 64rem, not the 1440 workspace measure. Wallet is a form page with a compact
+ * table, not a workspace: at 1440 the bank-details form ran two columns of
+ * ~700px, so single-value fields like "IFSC code" were half a screen wide.
+ * 64rem gives the form two ~480px columns and still clears the transaction
+ * table's 600px min-width, so nothing gains a horizontal scrollbar.
+ */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 64rem;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.tabsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+/*
+ * A plain wrapper, not a panel. It used to be a --surface panel with its own
+ * 24px padding, so the page stacked three levels of inset before any content
+ * (32 layout + 24 panel + 24 card) and put white cards on a white panel. Every
+ * other student page sits its panels straight on the page background; the tabs
+ * do the same now, and each tab's own content carries the surface.
+ */
+.tabContent {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 768px) {
+  .page {
+    gap: var(--spacing-4);
+  }
+}

@@ -1,0 +1,138 @@
+.pageWrapper {
+  background-color: var(--background);
+  color: var(--foreground);
+  padding: var(--spacing-12) var(--spacing-6);
+  min-height: calc(100vh - var(--header-height));
+  display: flex;
+  justify-content: center;
+}
+
+.container {
+  max-width: 600px;
+  width: 100%;
+  background-color: var(--surface);
+  padding: var(--spacing-8);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.title {
+  font-family: var(--font-family-heading);
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-4);
+  color: var(--surface-foreground);
+}
+
+.description {
+  font-family: var(--font-family-base);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+  margin-bottom: var(--spacing-6);
+}
+
+.warningBox {
+  background-color: color-mix(in srgb, var(--error) 10%, var(--surface));
+  border-left: 4px solid var(--error);
+  padding: var(--spacing-4);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  margin-bottom: var(--spacing-6);
+}
+
+.warningBox p {
+  margin: 0 0 var(--spacing-2) 0;
+  color: var(--surface-foreground);
+  font-weight: 600;
+}
+
+.warningBox ul {
+  margin: 0;
+  padding-left: var(--spacing-6);
+  color: var(--foreground);
+  font-size: 0.9375rem;
+}
+
+.warningBox li {
+  margin-bottom: var(--spacing-1);
+}
+
+.userInfoCard {
+  background-color: var(--muted);
+  padding: var(--spacing-4);
+  border-radius: var(--radius);
+  margin-bottom: var(--spacing-6);
+}
+
+.userInfoCard h3 {
+  margin: 0 0 var(--spacing-3) 0;
+  font-size: 1rem;
+  color: var(--foreground);
+}
+
+.userInfoRow {
+  display: flex;
+  margin-bottom: var(--spacing-2);
+  font-size: 0.875rem;
+}
+
+.userInfoRow:last-child {
+  margin-bottom: 0;
+}
+
+.userInfoLabel {
+  font-weight: 600;
+  width: 80px;
+  color: var(--muted-foreground);
+}
+
+.userInfoValue {
+  color: var(--foreground);
+  font-weight: 500;
+}
+
+.formGroup {
+  margin-bottom: var(--spacing-6);
+}
+
+.label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: var(--spacing-2);
+  color: var(--foreground);
+}
+
+.textarea {
+  width: 100%;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-4);
+}
+
+.unauthenticatedState {
+  text-align: center;
+  padding: var(--spacing-8) 0;
+}
+
+.unauthenticatedState p {
+  margin-bottom: var(--spacing-6);
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 768px) {
+  .pageWrapper {
+    padding: var(--spacing-8) var(--spacing-4);
+  }
+
+  .container {
+    padding: var(--spacing-6);
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+}

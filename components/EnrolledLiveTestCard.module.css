@@ -1,0 +1,140 @@
+.card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: border-color var(--animation-duration-fast) ease;
+}
+
+/* The border moves on hover rather than the card lifting - the console
+   dropped every hover lift. */
+.card:hover {
+  border-color: color-mix(in srgb, var(--border), var(--foreground) 25%);
+}
+
+.cardHeader {
+  display: flex;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+}
+
+.thumbnail {
+  width: 84px;
+  aspect-ratio: 16 / 9;
+  flex-shrink: 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background-color: var(--muted);
+}
+
+.thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.headerContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.badges {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.badgeIcon {
+  margin-right: var(--spacing-1);
+}
+
+.title {
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--surface-foreground);
+  margin: 0;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.teacher {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: 0 var(--spacing-4) var(--spacing-3);
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.actions {
+  padding: var(--spacing-3) var(--spacing-4);
+  border-top: 1px solid var(--border);
+}
+
+.actionButton {
+  width: 100%;
+  height: 2.25rem;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .cardHeader {
+    gap: var(--spacing-3);
+    padding: var(--spacing-3);
+  }
+
+  .thumbnail {
+    width: 72px;
+  }
+
+  .teacher {
+    font-size: 0.6875rem;
+  }
+
+  .metaRow {
+    padding: 0 var(--spacing-3) var(--spacing-2);
+    font-size: 0.75rem;
+  }
+
+  .actions {
+    padding: var(--spacing-3);
+  }
+}
+
+@media (max-width: 480px) {
+  .cardHeader {
+    padding: var(--spacing-3);
+    gap: var(--spacing-2);
+  }
+
+  .thumbnail {
+    width: 64px;
+  }
+
+  .title {
+    font-size: 0.9375rem;
+  }
+
+  .metaRow {
+    padding: 0 var(--spacing-3) var(--spacing-2);
+    font-size: 0.6875rem;
+  }
+}

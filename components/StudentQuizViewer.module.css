@@ -1,0 +1,309 @@
+.container {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-6) var(--spacing-6) 0 var(--spacing-6);
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  box-shadow: var(--shadow);
+  font-family: var(--font-family-base);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.scrollableContent {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--spacing-2) 0 var(--spacing-6) 0;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: var(--spacing-6);
+  padding-bottom: var(--spacing-4);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.header h2 {
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  color: var(--surface-foreground);
+  margin: 0;
+}
+
+/* Darkened against the panel: raw --error as type runs about 3.4:1. */
+.errorState {
+  text-align: center;
+  padding: var(--spacing-8);
+  color: color-mix(in srgb, var(--error), black 20%);
+}
+
+.errorState h3 {
+  margin-bottom: var(--spacing-2);
+}
+
+/* Taking View */
+.progressContainer {
+  margin-bottom: var(--spacing-4);
+  flex-shrink: 0;
+}
+
+.progressText {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin-bottom: var(--spacing-2);
+  text-align: center;
+}
+
+.questionContent {
+  margin-bottom: var(--spacing-6);
+}
+
+.questionText {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: var(--spacing-6);
+  line-height: 1.5;
+  text-align: center;
+}
+
+.optionsContainer {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-3);
+}
+
+.optionButton {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--background);
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--animation-duration-fast);
+  font-size: 1rem;
+}
+
+/* --tk-brand-text, not --primary: a 2px border has to clear 3:1 against the
+   panel and the coral runs about 2.1:1. */
+.optionButton:hover {
+  border-color: var(--tk-brand-text);
+  background-color: color-mix(in srgb, var(--tk-brand) 5%, transparent);
+}
+
+.optionButton.selected {
+  border-color: var(--tk-brand-text);
+  background-color: var(--tk-brand-tint);
+  box-shadow: var(--shadow-focus);
+}
+
+.optionLabel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  margin-right: var(--spacing-4);
+  flex-shrink: 0;
+  transition: all var(--animation-duration-fast);
+}
+
+.optionButton.selected .optionLabel {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
+
+.optionText {
+  flex-grow: 1;
+  color: var(--foreground);
+}
+
+.navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-4) 0;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  background-color: var(--surface);
+}
+
+.retakeButton {
+  margin: 0 auto;
+}
+
+/* Submitted View */
+.resultsSummary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: 0 0 var(--spacing-6) 0;
+  margin-bottom: var(--spacing-6);
+  border-bottom: 1px solid var(--border);
+}
+
+.resultsTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1.75rem;
+  margin: 0;
+}
+
+/* The score was --primary on its own 15% tint - about 1.5:1, so the number a
+   student most wants to read was the least readable thing on the panel. */
+.scoreCircle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background-color: var(--tk-brand-tint);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 4px solid var(--tk-brand-text);
+}
+
+.score {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--tk-brand-text);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.scoreTotal {
+  font-size: 1rem;
+  color: var(--muted-foreground);
+}
+
+.scorePercentage {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.reviewSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.reviewTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  text-align: center;
+  margin: 0;
+}
+
+.reviewCard {
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-4);
+}
+
+.reviewQuestionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-4);
+}
+
+.reviewQuestionText {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin: 0;
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+}
+
+.reviewOptions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.reviewOption {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+}
+
+/* Darkened against their own tints, where the raw tokens run about 2.5:1. */
+.reviewOption.correct {
+  background-color: color-mix(in srgb, var(--success) 12%, transparent);
+  border-color: color-mix(in srgb, var(--success) 35%, transparent);
+  color: color-mix(in srgb, var(--success), black 25%);
+}
+
+.reviewOption.incorrect {
+  background-color: color-mix(in srgb, var(--error) 12%, transparent);
+  border-color: color-mix(in srgb, var(--error) 35%, transparent);
+  color: color-mix(in srgb, var(--error), black 20%);
+  text-decoration: line-through;
+}
+
+.reviewOption.correct .optionText,
+.reviewOption.incorrect .optionText {
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+.reviewOption.correct .optionLabel {
+  color: color-mix(in srgb, var(--success), black 25%);
+}
+
+.reviewOption.incorrect .optionLabel {
+  color: color-mix(in srgb, var(--error), black 20%);
+}
+
+.optionIcon {
+  margin-right: var(--spacing-2);
+  flex-shrink: 0;
+}
+
+.explanation {
+  margin-top: var(--spacing-4);
+  padding: var(--spacing-3);
+  background-color: var(--muted);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+  border-left: 3px solid var(--tk-brand-text);
+}
+
+.explanation strong {
+  color: var(--foreground);
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: var(--spacing-4) var(--spacing-4) 0 var(--spacing-4);
+  }
+
+  .header h2 {
+    font-size: 1.25rem;
+  }
+
+  .questionText {
+    font-size: 1.1rem;
+  }
+}

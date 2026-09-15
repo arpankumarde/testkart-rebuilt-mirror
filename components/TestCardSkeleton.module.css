@@ -1,0 +1,82 @@
+/* The same shell as the cards it stands in for - --surface on a hairline
+   border with --radius-md - so the list does not resize when it loads. */
+.card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow);
+  height: 100%;
+}
+
+.badgeContainer {
+  padding: var(--spacing-4) var(--spacing-4) 0 var(--spacing-4);
+}
+
+.thumbnail {
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  overflow: hidden;
+  background-color: var(--muted);
+}
+
+.cardContent {
+  padding: var(--spacing-6);
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.titleContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.infoGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  margin-top: auto;
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.cardFooter {
+  padding: var(--spacing-6);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .cardContent {
+    padding: var(--spacing-4);
+  }
+
+  .cardFooter {
+    padding: var(--spacing-4);
+    padding-top: var(--spacing-3);
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cardFooter > :first-child {
+    width: 100%;
+  }
+
+  .cardFooter > :last-child {
+    align-self: center;
+  }
+}

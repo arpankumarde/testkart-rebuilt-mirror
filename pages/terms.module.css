@@ -1,0 +1,122 @@
+.pageWrapper {
+  background-color: var(--background);
+  color: var(--foreground);
+  padding: var(--spacing-12) var(--spacing-6);
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: var(--surface);
+  padding: var(--spacing-8);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.title {
+  font-family: var(--font-family-heading);
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-8);
+  color: var(--surface-foreground);
+}
+
+.content {
+  font-family: var(--font-family-base);
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--muted-foreground);
+}
+
+.content h2 {
+  font-family: var(--font-family-heading);
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin-top: var(--spacing-8);
+  margin-bottom: var(--spacing-4);
+  color: var(--surface-foreground);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: var(--spacing-2);
+}
+
+.content h3 {
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: var(--spacing-6);
+  margin-bottom: var(--spacing-3);
+  color: var(--surface-foreground);
+}
+
+.content p {
+  margin-bottom: var(--spacing-4);
+}
+
+.content ul {
+  list-style-type: disc;
+  margin-bottom: var(--spacing-4);
+  padding-left: var(--spacing-6);
+}
+
+.content ol {
+  list-style-type: decimal;
+  margin-bottom: var(--spacing-4);
+  padding-left: var(--spacing-6);
+}
+
+.content ul ul {
+  list-style-type: circle;
+}
+
+.content li {
+  margin-bottom: var(--spacing-2);
+}
+
+.content a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.content a:hover {
+  text-decoration: underline;
+}
+
+.lastUpdated {
+  margin-top: var(--spacing-8);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  font-style: italic;
+  text-align: right;
+}
+
+.errorMessage {
+  color: var(--error);
+  background-color: color-mix(in srgb, var(--error) 10%, transparent);
+  padding: var(--spacing-3);
+  border-radius: var(--radius);
+  font-family: var(--font-family-monospace);
+  font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+  .pageWrapper {
+    padding: var(--spacing-8) var(--spacing-4);
+  }
+
+  .container {
+    padding: var(--spacing-6);
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .content h2 {
+    font-size: 1.5rem;
+  }
+
+  .content h3 {
+    font-size: 1.125rem;
+  }
+}

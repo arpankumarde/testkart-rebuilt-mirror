@@ -1,0 +1,85 @@
+@layer base {
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    padding: var(--spacing-1) var(--spacing-3);
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.25;
+    white-space: nowrap;
+    transition: background-color var(--animation-duration-fast) ease-in-out;
+    cursor: default;
+    user-select: none;
+  }
+
+  /*
+   * Every variant is a saturated token on a 15% tint OF ITSELF, which is the
+   * lowest-contrast shape a chip can take: coral on coral tint ran about
+   * 1.5:1, green about 2.2:1, red about 2.6:1, teal about 2.7:1. The label is
+   * now the darkened token over the same tint, which is what .warning already
+   * did with its near-black --warning-foreground - the one variant that read
+   * correctly. Tints and borders are unchanged, so the chips keep their
+   * colour coding.
+   */
+  .default {
+    background-color: var(--tk-brand-tint);
+    color: var(--tk-brand-text);
+    border: 1px solid color-mix(in srgb, var(--tk-brand) 30%, transparent);
+  }
+
+  .default:hover {
+    background-color: color-mix(in srgb, var(--tk-brand) 25%, transparent);
+  }
+
+  .destructive {
+    background-color: color-mix(in srgb, var(--error) 15%, transparent);
+    color: color-mix(in srgb, var(--error), black 25%);
+    border: 1px solid color-mix(in srgb, var(--error) 30%, transparent);
+  }
+
+  .destructive:hover {
+    background-color: color-mix(in srgb, var(--error) 25%, transparent);
+  }
+
+  .secondary {
+    background-color: color-mix(in srgb, var(--secondary) 15%, transparent);
+    color: color-mix(in srgb, var(--secondary), black 25%);
+    border: 1px solid color-mix(in srgb, var(--secondary) 30%, transparent);
+  }
+
+  .secondary:hover {
+    background-color: color-mix(in srgb, var(--secondary) 25%, transparent);
+  }
+
+  .outline {
+    background-color: transparent;
+    color: var(--foreground);
+    border: 1px solid var(--border);
+  }
+
+  .outline:hover {
+    background-color: color-mix(in srgb, var(--foreground) 5%, transparent);
+  }
+
+  .success {
+    background-color: color-mix(in srgb, var(--success) 15%, transparent);
+    color: color-mix(in srgb, var(--success), black 30%);
+    border: 1px solid color-mix(in srgb, var(--success) 30%, transparent);
+  }
+
+  .success:hover {
+    background-color: color-mix(in srgb, var(--success) 25%, transparent);
+  }
+
+  .warning {
+    background-color: color-mix(in srgb, var(--warning) 15%, transparent);
+    color: var(--warning-foreground);
+    border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent);
+  }
+
+  .warning:hover {
+    background-color: color-mix(in srgb, var(--warning) 25%, transparent);
+  }
+}

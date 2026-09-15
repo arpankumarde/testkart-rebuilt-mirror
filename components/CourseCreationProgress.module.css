@@ -1,0 +1,100 @@
+.progressContainer {
+  width: 100%;
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-sizing: border-box;
+}
+
+.steps {
+  display: flex;
+  align-items: center;
+  max-width: 40rem;
+  margin: 0 auto;
+}
+
+.step {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+  margin: 0;
+  padding: var(--spacing-1) var(--spacing-2);
+  border: none;
+  border-radius: var(--radius-md);
+  background-color: transparent;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: color var(--animation-duration-fast) ease, background-color var(--animation-duration-fast) ease;
+}
+
+.step:hover:not(:disabled) {
+  color: var(--foreground);
+  background-color: var(--muted);
+}
+
+.step:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.step:disabled {
+  cursor: default;
+}
+
+.currentStep {
+  color: var(--foreground);
+}
+
+.stepIndicator {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--foreground);
+}
+
+.stepIndicator.current {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
+
+/* Neutral rather than teal: white on the raw teal is under 3:1, and the dark
+   theme's teal foreground is near-black. The coral fill marks the current step. */
+.stepIndicator.completed {
+  background-color: var(--muted);
+  color: var(--foreground);
+  border-color: var(--border);
+}
+
+.connector {
+  flex-grow: 1;
+  height: 1px;
+  min-width: var(--spacing-4);
+  margin: 0 var(--spacing-2);
+  background-color: var(--border);
+}
+
+.connectorActive {
+  background-color: var(--muted-foreground);
+}
+
+@media (max-width: 640px) {
+  .stepTitle {
+    display: none;
+  }
+  .currentStep .stepTitle {
+    display: inline;
+  }
+}

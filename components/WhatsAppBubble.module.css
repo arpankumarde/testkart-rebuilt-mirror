@@ -1,0 +1,49 @@
+.container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  background-color: #25D366;
+  color: white;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  box-shadow: 0 4px 10px rgba(37, 211, 102, 0.4);
+  transition: transform var(--animation-duration-normal) ease, box-shadow var(--animation-duration-normal) ease;
+  animation: pulse-shadow 2s infinite;
+  text-decoration: none;
+}
+
+.container:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 14px rgba(37, 211, 102, 0.6);
+  animation-play-state: paused;
+}
+
+.icon {
+  width: 32px;
+  height: 32px;
+  color: white;
+}
+
+@keyframes pulse-shadow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 15px rgba(37, 211, 102, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    bottom: 80px;
+    right: 20px;
+  }
+}

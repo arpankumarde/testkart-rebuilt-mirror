@@ -1,0 +1,220 @@
+/* Console page shell - see admin.transactions.module.css for the measure rule.
+   This one keeps the wide measure: the lead list is a dense multi-column table
+   and the stat strip fits more cards per row. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: var(--spacing-6) var(--spacing-6) 5rem; /* room for the bulk bar */
+  box-sizing: border-box;
+}
+
+.headerActions {
+  display: flex;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filtersGroup {
+  display: flex;
+  align-items: center;
+}
+
+.toggleBtnLeft {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.toggleBtnRight {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left: none;
+}
+
+/* The secondary filters ride inside the toolbar band and wrap among
+   themselves, so the page still opens with one band rather than three. */
+.filterGroup {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  justify-content: flex-end;
+}
+
+.filterTrigger {
+  min-width: 9.5rem;
+  width: auto;
+  flex-shrink: 0;
+  background-color: var(--surface);
+}
+
+.dateFilterGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.dateFilterInput {
+  height: 2.25rem;
+  font-size: 0.8125rem;
+  width: 8.5rem;
+  background-color: var(--surface);
+}
+
+.dateFilterSeparator {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.syncBtn {
+  white-space: nowrap;
+}
+
+.spinIcon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.statsContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--spacing-3);
+}
+
+.statCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  padding: var(--spacing-3);
+}
+
+.statHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+/* The dot is a marker, not type - it is the one place a stage colour appears. */
+.statDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.statTotal { background-color: var(--foreground); }
+.statNew { background-color: var(--info); }
+.statFollowUp { background-color: var(--warning); }
+.statQualified { background-color: var(--secondary); }
+.statConverted { background-color: var(--success); }
+.statNotInterested { background-color: var(--error); }
+.statDemoRequests { background-color: var(--tk-brand); }
+
+.statLabel {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+
+.statValue {
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground);
+}
+
+.bulkActionBar {
+  position: fixed;
+  bottom: var(--spacing-6);
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  padding: var(--spacing-2) var(--spacing-4);
+  box-shadow: var(--shadow-lg);
+  z-index: var(--z-overlay);
+  animation: slideUp var(--animation-duration-fast) ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translate(-50%, 20px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.bulkActionContent {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.bulkCount {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--foreground);
+  white-space: nowrap;
+}
+
+.bulkAssignTrigger {
+  min-width: 10rem;
+}
+
+.unassignedItem {
+  color: var(--muted-foreground);
+}
+
+.closeBulkBtn {
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 1024px) {
+  .headerActions {
+    width: 100%;
+  }
+
+  .bulkActionBar {
+    width: 90%;
+    border-radius: var(--radius-md);
+  }
+
+  .bulkActionContent {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: var(--spacing-4) var(--spacing-4) 5rem;
+  }
+
+  .filterGroup {
+    justify-content: stretch;
+  }
+
+  .filterTrigger {
+    flex: 1;
+    min-width: 8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinIcon,
+  .bulkActionBar {
+    animation: none;
+  }
+}

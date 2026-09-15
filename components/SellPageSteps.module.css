@@ -1,0 +1,170 @@
+.stepsSection {
+  padding: var(--spacing-16) var(--spacing-4);
+  background: #0f0f0f;
+  color: #ffffff;
+}
+
+@media (max-width: 768px) {
+  .stepsSection {
+    padding: var(--spacing-8) var(--spacing-4);
+  }
+}
+
+.sectionContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.sectionTitle {
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-12);
+  color: white;
+  font-family: var(--font-family-heading);
+}
+
+@media (max-width: 768px) {
+  .sectionTitle {
+    font-size: 1.75rem;
+    margin-bottom: var(--spacing-8);
+    padding: 0 var(--spacing-2);
+  }
+}
+
+.timeline {
+  position: relative;
+  max-width: 800px;
+  margin: 0 auto var(--spacing-12);
+  padding: var(--spacing-8) 0;
+}
+
+@media (max-width: 768px) {
+  .timeline {
+    padding: var(--spacing-2) 0;
+    margin-bottom: var(--spacing-8);
+  }
+}
+
+.timelineLine {
+  position: absolute;
+  left: 24px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #333;
+}
+
+@media (max-width: 768px) {
+  .timelineLine {
+    left: 20px;
+  }
+}
+
+.timelineStep {
+  display: flex;
+  gap: var(--spacing-6);
+  margin-bottom: var(--spacing-12);
+  position: relative;
+  opacity: 0.3;
+  transition: opacity 0.5s;
+}
+
+@media (max-width: 768px) {
+  .timelineStep {
+    gap: var(--spacing-4);
+    margin-bottom: var(--spacing-8);
+  }
+}
+
+.stepActive {
+  opacity: 1;
+}
+
+.stepNumber {
+  width: 50px;
+  height: 50px;
+  background: #222;
+  border: 2px solid #444;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: white;
+  z-index: 1;
+  flex-shrink: 0;
+  font-family: var(--font-family-heading);
+}
+
+@media (max-width: 768px) {
+  .stepNumber {
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+    border-width: 1.5px;
+  }
+}
+
+.stepActive .stepNumber {
+  background: #ff6f40;
+  border-color: #ff6f40;
+  box-shadow: 0 0 20px rgba(255, 111, 64, 0.4);
+}
+
+.stepContent h3 {
+  font-size: 1.5rem;
+  margin-bottom: var(--spacing-2);
+  color: white;
+  font-family: var(--font-family-heading);
+}
+
+@media (max-width: 768px) {
+  .stepContent h3 {
+    font-size: 1.25rem;
+    margin-bottom: var(--spacing-1);
+  }
+}
+
+.stepContent p {
+  color: #aaa;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .stepContent p {
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+}
+
+.stepsCta {
+  text-align: center;
+}
+
+.glowButton {
+  background: white;
+  color: black;
+  font-weight: 800;
+  padding: 0 var(--spacing-12);
+  height: 3.5rem;
+  font-size: 1.1rem;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+@media (max-width: 768px) {
+  .glowButton {
+    width: 100%;
+    max-width: 320px;
+    padding: 0 var(--spacing-4);
+    height: 3.25rem;
+    font-size: 1rem;
+  }
+}
+
+.glowButton:hover {
+  background: #f0f0f0;
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.4);
+}

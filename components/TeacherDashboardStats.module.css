@@ -1,0 +1,113 @@
+.statsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-8);
+}
+
+@media (min-width: 640px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .statsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.statCardLink {
+  text-decoration: none;
+  color: inherit;
+}
+
+.statCard {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  transition: border-color 0.15s ease;
+}
+
+.statCardLink .statCard:hover {
+  border-color: var(--primary);
+  cursor: pointer;
+}
+
+.statCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.statCardIcon {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius);
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.statCardAction {
+  display: flex;
+  align-items: center;
+}
+
+.statCardBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.statCardTitle {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  margin: 0 0 var(--spacing-1) 0;
+}
+
+.statCardValue {
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin: 0 0 var(--spacing-1) 0;
+  line-height: 1.2;
+}
+
+.statCardCaption {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.refreshButton {
+  color: var(--muted-foreground);
+}
+
+.refreshButton:hover {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

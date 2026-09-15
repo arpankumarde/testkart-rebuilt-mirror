@@ -1,0 +1,35 @@
+.container {
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--spacing-8) var(--spacing-4);
+  background-color: var(--background);
+  color: var(--foreground);
+  /* Safety net: if any descendant (a long option badge, a wide table, etc.)
+     ever forces its own intrinsic width past the viewport again, this
+     keeps it from dragging the whole page into horizontal scroll. */
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 50vh;
+  gap: var(--spacing-4);
+}
+
+.errorContainer h2 {
+  font-family: var(--font-family-heading);
+  font-size: 1.75rem;
+}
+
+.errorContainer p {
+  font-size: 1.125rem;
+  color: var(--muted-foreground);
+  max-width: 400px;
+}
+

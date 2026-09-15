@@ -1,0 +1,104 @@
+.card {
+  background-color: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-6);
+  border: 1px solid var(--border);
+  margin-bottom: var(--spacing-6);
+}
+
+.card:last-child {
+  margin-bottom: 0;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-4);
+}
+
+.cardTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-2) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.item:last-of-type {
+  border-bottom: none;
+}
+
+.itemIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.itemContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.itemName {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.itemMeta {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.itemCost {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--error);
+}
+
+.emptyState {
+  padding: var(--spacing-4);
+  text-align: center;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.skeletonItem {
+  margin-bottom: var(--spacing-2);
+}
+
+.viewMoreLink {
+  margin-top: var(--spacing-2);
+  align-self: flex-start;
+  padding-left: 0;
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: var(--spacing-3);
+  }
+}

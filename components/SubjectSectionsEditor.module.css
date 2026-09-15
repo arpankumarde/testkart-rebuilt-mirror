@@ -1,0 +1,112 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+}
+
+.headerInfo {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.label {
+  font-family: var(--font-family-base);
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+
+.totalInfo {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.skeletonList,
+.sectionList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.columnHeaders,
+.sectionRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 6rem 4.5rem 4.5rem 2rem;
+  gap: var(--spacing-2);
+  align-items: center;
+}
+
+.columnHeaders {
+  padding: 0 var(--spacing-1);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.columnCenter {
+  text-align: center;
+}
+
+.numberInput {
+  text-align: center;
+}
+
+.deleteButton {
+  color: var(--muted-foreground);
+  transition: color var(--animation-duration-fast);
+}
+
+.deleteButton:hover {
+  color: color-mix(in srgb, var(--error), black 20%);
+}
+
+.applyAction {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-1);
+}
+
+.pendingNote {
+  margin-right: auto;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--tk-brand-text);
+}
+
+/* --warning is too light as small type; the foreground pair reads on the tint. */
+.unsectionedInfo {
+  margin: 0;
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: 0.8125rem;
+  color: var(--warning-foreground);
+  background-color: color-mix(in srgb, var(--warning) 14%, var(--surface));
+  border-radius: var(--radius);
+}
+
+.emptyText {
+  margin: 0;
+  padding: var(--spacing-3);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  background-color: var(--muted);
+  border-radius: var(--radius);
+}
+
+@media (max-width: 480px) {
+  .columnHeaders,
+  .sectionRow {
+    grid-template-columns: minmax(0, 1fr) 4.5rem 3.5rem 3.5rem 2rem;
+  }
+}

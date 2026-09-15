@@ -1,0 +1,102 @@
+/* The console's panel: --radius-md on a hairline border with the flat --shadow,
+   matching TeacherTestCard and the settings page's own panels. */
+.card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* No tint behind the header - the rule below it already separates the two. */
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-4);
+  padding: var(--spacing-6);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Coral as a block: the tint carries the fill, --tk-brand-text the icon.
+   Coral --primary on a coral wash was about 1.5:1 against its own tile. */
+.cardIconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+  flex-shrink: 0;
+}
+
+.cardTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  margin: 0 0 var(--spacing-1) 0;
+}
+
+.cardDescription {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.cardContent {
+  padding: var(--spacing-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-4);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.optionalTag {
+  color: var(--muted-foreground);
+  font-weight: 400;
+}
+
+.helpText {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.errorText {
+  font-size: 0.8125rem;
+  color: color-mix(in srgb, var(--error), black 20%);
+  margin: 0;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--spacing-4) var(--spacing-6);
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 640px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+}

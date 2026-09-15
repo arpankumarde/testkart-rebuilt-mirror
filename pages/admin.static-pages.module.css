@@ -1,0 +1,88 @@
+/* Console page shell - see admin.transactions.module.css for the measure rule.
+   64rem is the single-column form measure; a wider editor just stretches. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  width: 100%;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: var(--spacing-6) var(--spacing-6) var(--spacing-8);
+  box-sizing: border-box;
+}
+
+.tabs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.tabsList {
+  align-self: flex-start;
+  max-width: 100%;
+}
+
+/* Same pill as ConsoleFilterNotice's count, so a marked tab reads as part of that filter. */
+.staleChip {
+  display: inline-flex;
+  align-items: center;
+  height: 1.125rem;
+  margin-left: var(--spacing-2);
+  padding: 0 0.375rem;
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand-deep);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  padding: var(--spacing-6);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.formFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--border);
+}
+
+.lastUpdated {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.skeletonStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: var(--spacing-4);
+  }
+
+  .card {
+    padding: var(--spacing-4);
+  }
+
+  .formFooter {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

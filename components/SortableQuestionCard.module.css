@@ -1,0 +1,45 @@
+.sortableWrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+}
+
+.dragHandle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted-foreground);
+  cursor: grab;
+  padding: var(--spacing-4) var(--spacing-1);
+  opacity: 0.4;
+  transition: opacity var(--animation-duration-fast);
+  flex-shrink: 0;
+  margin-top: var(--spacing-1);
+  touch-action: none;
+}
+
+.dragHandle:hover {
+  opacity: 0.8;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.cardContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.sortableWrapper.dragging {
+  opacity: 0.5;
+  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-md);
+  z-index: var(--z-content);
+}
+
+@media (max-width: 640px) {
+  .dragHandle {
+    padding: var(--spacing-3) var(--spacing-1);
+  }
+}

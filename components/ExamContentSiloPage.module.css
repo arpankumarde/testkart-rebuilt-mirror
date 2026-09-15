@@ -1,0 +1,292 @@
+@layer base {
+  .pageContainer {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: var(--spacing-6) var(--spacing-4) var(--spacing-16);
+  }
+
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-1);
+    font-size: 0.8125rem;
+    color: var(--muted-foreground);
+    margin-bottom: 1.25rem;
+  }
+
+  .breadcrumbLink {
+    color: var(--muted-foreground);
+    text-decoration: none;
+  }
+
+  .breadcrumbLink:hover {
+    color: var(--foreground);
+    text-decoration: underline;
+  }
+
+  .breadcrumbCurrent {
+    color: var(--foreground);
+    font-weight: 500;
+  }
+
+  .breadcrumbSeparator {
+    color: var(--muted-foreground);
+    opacity: 0.6;
+  }
+
+  .titleRow {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--spacing-4);
+    margin-bottom: 1.25rem;
+  }
+
+  .pageTitle {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin: 0;
+    min-width: 0;
+  }
+
+  .pageActions {
+    display: flex;
+    flex-shrink: 0;
+    gap: var(--spacing-2);
+  }
+
+  .subNav {
+    margin-bottom: var(--spacing-6);
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .content {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--foreground);
+  }
+
+  .content :global(h2) {
+    font-size: 1.375rem;
+    font-weight: 700;
+    margin: 1.75rem 0 var(--spacing-3);
+  }
+
+  .content :global(h3) {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin: var(--spacing-6) 0 var(--spacing-2);
+  }
+
+  .content :global(h2:first-child),
+  .content :global(h3:first-child) {
+    margin-top: 0;
+  }
+
+  .content :global(p) {
+    margin: 0 0 var(--spacing-3);
+  }
+
+  .content :global(strong) {
+    font-weight: 700;
+  }
+
+  .content :global(em) {
+    font-style: italic;
+  }
+
+  .content :global(blockquote) {
+    border-left: 4px solid var(--primary);
+    padding: 0.75em 1.25em;
+    margin: 0 0 var(--spacing-3);
+    background-color: color-mix(in srgb, var(--primary) 5%, transparent);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    color: var(--muted-foreground);
+    font-style: italic;
+  }
+
+  .content :global(pre) {
+    background-color: var(--muted);
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow-x: auto;
+    margin: 0 0 var(--spacing-3);
+    font-family: var(--font-family-monospace, monospace);
+    font-size: 0.9em;
+  }
+
+  .content :global(code) {
+    background-color: var(--muted);
+    padding: 0.15em 0.4em;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-family-monospace, monospace);
+    font-size: 0.9em;
+  }
+
+  .content :global(pre code) {
+    background: none;
+    padding: 0;
+  }
+
+  .content :global(hr) {
+    border: none;
+    border-top: 2px solid var(--border);
+    margin: var(--spacing-6) 0;
+  }
+
+  .content :global(a) {
+    color: var(--tk-brand-text);
+    text-decoration: underline;
+  }
+
+  .content :global(img) {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+    margin: var(--spacing-4) 0;
+    display: block;
+  }
+
+  .content :global(figure) {
+    margin: var(--spacing-4) 0;
+    text-align: center;
+  }
+
+  .content :global(figure img) {
+    margin: 0;
+  }
+
+  .content :global(figcaption) {
+    font-size: 0.8125rem;
+    color: var(--muted-foreground);
+    margin-top: var(--spacing-1);
+    text-align: center;
+    font-style: italic;
+  }
+
+  .content :global(ul) {
+    list-style-type: disc;
+    margin: 0 0 var(--spacing-3);
+    padding-left: var(--spacing-6);
+  }
+
+  .content :global(ol) {
+    list-style-type: decimal;
+    margin: 0 0 var(--spacing-3);
+    padding-left: var(--spacing-6);
+  }
+
+  .content :global(ul ul) {
+    list-style-type: circle;
+  }
+
+  .content :global(li) {
+    margin-bottom: var(--spacing-1);
+  }
+
+  .content :global(.katex-display) {
+    margin: var(--spacing-4) 0;
+    padding: var(--spacing-1) 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .faqSection {
+    margin-top: var(--spacing-8);
+    padding-top: var(--spacing-6);
+    border-top: 1px solid var(--border);
+  }
+
+  .faqSectionTitle {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0 0 var(--spacing-4);
+  }
+
+  /* The shared Accordion trigger uses --font-family-heading (Plus Jakarta
+     Sans); right below the main content block (base font, Inter) that reads
+     as two mismatched typefaces. Match the FAQ questions to the content. */
+  .faqTrigger {
+    font-family: var(--font-family-base) !important;
+    font-weight: 600 !important;
+  }
+
+  .faqList {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+  }
+
+  .faqItem {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-4);
+  }
+
+  .faqQuestion {
+    font-weight: 600;
+    margin: 0 0 var(--spacing-2);
+  }
+
+  .faqAnswer {
+    color: var(--muted-foreground);
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .emptyState {
+    text-align: center;
+    padding: var(--spacing-12) var(--spacing-4);
+    color: var(--muted-foreground);
+  }
+
+  .ctaBox {
+    margin-top: var(--spacing-8);
+    padding: 1.25rem;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    text-align: center;
+  }
+
+  .ctaBox p {
+    margin: 0 0 var(--spacing-3);
+    color: var(--foreground);
+  }
+}
+
+@media (max-width: 640px) {
+  .pageContainer {
+    padding: var(--spacing-4) var(--spacing-4) var(--spacing-12);
+  }
+
+  .titleRow {
+    flex-direction: column;
+    gap: var(--spacing-3);
+  }
+
+  .pageTitle {
+    font-size: 1.375rem;
+  }
+
+  .subNav {
+    padding-bottom: var(--spacing-4);
+  }
+
+  .content :global(h3) {
+    font-size: 1rem;
+  }
+
+  .faqSection {
+    margin-top: var(--spacing-6);
+    padding-top: var(--spacing-4);
+  }
+
+  .faqSectionTitle {
+    font-size: 1.125rem;
+  }
+}

@@ -1,0 +1,147 @@
+.dialogContent {
+  max-width: 36rem; /* Slightly wider than standard dialog to fit cards */
+  width: 90vw;
+}
+
+@media (max-width: 640px) {
+  .dialogContent {
+    padding: var(--spacing-4);
+  }
+}
+
+.dialogTitle {
+  text-align: center;
+  font-size: 1.5rem;
+  margin-bottom: var(--spacing-2);
+}
+
+@media (max-width: 640px) {
+  .dialogTitle {
+    font-size: 1.25rem;
+  }
+}
+
+.dialogDescription {
+  text-align: center;
+  margin-bottom: var(--spacing-6);
+}
+
+.cardsContainer {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-4);
+}
+
+@media (min-width: 640px) {
+  .cardsContainer {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.roleCard {
+  display: flex;
+  flex-direction: row; /* Mobile first: horizontal */
+  align-items: center;
+  text-align: left; /* Mobile first: left align */
+  padding: var(--spacing-4);
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--animation-duration-fast) ease;
+  height: 100%;
+  width: 100%;
+  outline: none;
+  gap: var(--spacing-4);
+  position: relative;
+}
+
+@media (min-width: 640px) {
+  .roleCard {
+    flex-direction: column;
+    text-align: center;
+    padding: var(--spacing-6);
+  }
+}
+
+.roleCard:hover {
+  border-color: var(--primary);
+  background-color: color-mix(in srgb, var(--primary), transparent 96%);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.roleCard:focus-visible {
+  box-shadow: var(--shadow-focus);
+  border-color: var(--primary);
+}
+
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem; /* Mobile smaller icon */
+  height: 3rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  transition: transform var(--animation-duration-fast) ease;
+}
+
+@media (min-width: 640px) {
+  .iconWrapper {
+    width: 4rem;
+    height: 4rem;
+    margin-bottom: var(--spacing-4);
+  }
+}
+
+.roleCard:hover .iconWrapper {
+  transform: scale(1.1);
+}
+
+.studentIcon {
+  background-color: color-mix(in srgb, var(--info), transparent 90%);
+  color: var(--info);
+}
+
+.teacherIcon {
+  background-color: color-mix(in srgb, var(--secondary), transparent 90%);
+  color: var(--secondary);
+}
+
+.cardContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  flex: 1;
+}
+
+@media (min-width: 640px) {
+  .cardContent {
+    gap: var(--spacing-2);
+  }
+}
+
+.cardTitle {
+  font-family: var(--font-family-heading);
+  font-weight: 600;
+  font-size: 1.125rem;
+  color: var(--foreground);
+}
+
+.cardSubtitle {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  line-height: 1.4;
+}
+
+.chevron {
+  color: var(--muted-foreground);
+  opacity: 0.5;
+}
+
+@media (min-width: 640px) {
+  .chevron {
+    display: none;
+  }
+}

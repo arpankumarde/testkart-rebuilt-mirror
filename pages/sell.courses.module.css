@@ -1,0 +1,425 @@
+.pageWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+  padding-bottom: var(--spacing-16);
+  width: 100%;
+}
+
+.sectionHeader {
+  text-align: center;
+  margin-bottom: var(--spacing-12);
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 var(--spacing-4);
+}
+
+.sectionHeader h2 {
+  font-family: var(--font-family-heading);
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-3);
+  color: var(--foreground);
+  line-height: 1.2;
+}
+
+.sectionHeader p {
+  font-size: 1.125rem;
+  color: var(--muted-foreground);
+  line-height: 1.6;
+}
+
+/* 1. Hero Section */
+.heroSection {
+  text-align: center;
+  padding: var(--spacing-16) var(--spacing-6);
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.heroContent {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.heroTitle {
+  font-family: var(--font-family-heading);
+  font-size: 3.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: var(--spacing-4);
+  color: var(--foreground);
+}
+
+.heroSubtitle {
+  font-size: 1.25rem;
+  color: var(--muted-foreground);
+  max-width: 700px;
+  margin: 0 auto var(--spacing-8);
+  line-height: 1.6;
+}
+
+.heroActions {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-8);
+}
+
+.heroBadges {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
+  font-size: 0.95rem;
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+
+/* Base Section Styles */
+.contentSection {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 var(--spacing-4);
+}
+
+.alternateSection {
+  background-color: var(--surface);
+  padding: var(--spacing-16) var(--spacing-4);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Tabs Integration */
+.tabsRoot {
+  width: 100%;
+}
+
+.tabsListWrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--spacing-8);
+}
+
+/* Grids */
+.grid2Col {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: var(--spacing-8);
+}
+
+.grid3Col {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-8);
+}
+
+/* Feature Cards */
+.featureCard {
+  background-color: var(--card);
+  padding: var(--spacing-8);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+}
+
+.iconWrapper {
+  color: var(--primary);
+  margin-bottom: var(--spacing-4);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.iconWrapper svg {
+  width: 28px;
+  height: 28px;
+}
+
+.featureCard h3 {
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: var(--spacing-2);
+  color: var(--foreground);
+}
+
+.featureCard p {
+  color: var(--muted-foreground);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+/* How It Works Steps */
+.howItWorksSection {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 var(--spacing-4);
+}
+
+.stepsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-8);
+}
+
+.stepCard {
+  padding: var(--spacing-8);
+  text-align: center;
+  background-color: var(--surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+}
+
+.stepNumber {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin: 0 auto var(--spacing-6);
+}
+
+.stepCard h3 {
+  font-family: var(--font-family-heading);
+  font-size: 1.375rem;
+  font-weight: 600;
+  margin-bottom: var(--spacing-3);
+  color: var(--foreground);
+}
+
+.stepCard p {
+  color: var(--muted-foreground);
+  line-height: 1.6;
+}
+
+/* Analytics Cards */
+.analyticsCard {
+  background-color: var(--background);
+  padding: var(--spacing-6);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+}
+
+.analyticsCard h3 {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: var(--spacing-2);
+  color: var(--foreground);
+}
+
+.analyticsCard p {
+  color: var(--muted-foreground);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+/* Stats Section */
+.statsSection {
+  background-color: var(--surface);
+  padding: var(--spacing-12) var(--spacing-4);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.statsContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-8);
+}
+
+.statCard {
+  text-align: center;
+  padding: var(--spacing-6);
+}
+
+.statCard h4 {
+  font-family: var(--font-family-heading);
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--foreground);
+  margin-bottom: var(--spacing-2);
+}
+
+.statCard p {
+  font-size: 1rem;
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+
+/* FAQ Section */
+.faqSection {
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 var(--spacing-4);
+}
+
+.accordionRoot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.faqTriggerContent {
+  display: flex;
+  align-items: center;
+}
+
+/* Final CTA Section */
+/*
+ * Brand block, same clothes as the Book-a-demo card: flat coral, deep warm
+ * ink on it, one same-hue bloom for depth. Remapping the theme tokens on the
+ * block means every Button, border and focus ring inside it comes out ink
+ * without a per-button override - white sits at 2.1:1 on this coral, ink at
+ * 6.2:1. Fixed in both themes: the block is brand artwork, not a surface.
+ */
+.finalCtaSection {
+  --primary: var(--tk-brand-ink);
+  --primary-foreground: #fff;
+  --tk-brand-text: var(--tk-brand-ink);
+  --tk-brand-hover: var(--tk-brand-ink);
+  --tk-brand-hover-foreground: #fff;
+  --background: var(--tk-brand);
+  --border: color-mix(in srgb, var(--tk-brand-ink) 35%, transparent);
+
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  padding: var(--spacing-16) var(--spacing-6);
+  background-color: var(--tk-brand);
+  background-image: radial-gradient(
+    100% 90% at 15% 0%,
+    hsl(0 0% 100% / 0.3),
+    transparent 65%
+  );
+  border-radius: var(--radius-lg);
+  text-align: center;
+  color: var(--tk-brand-ink);
+  border: none;
+}
+
+.finalCtaContent {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.finalCtaContent h2 {
+  font-family: var(--font-family-heading);
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-3);
+  color: var(--tk-brand-ink);
+}
+
+/* Full-strength ink, no alpha - the coral needs the whole 6.2:1. */
+.finalCtaContent p {
+  font-size: 1.25rem;
+  margin-bottom: var(--spacing-8);
+  line-height: 1.6;
+  color: var(--tk-brand-ink);
+}
+
+/* The two buttons used to sit directly in .finalCtaContent, which is not a flex
+   row, so they rendered edge to edge. Same row treatment as the other sell
+   pages. */
+.finalCtaActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-4);
+}
+
+.ctaButton {
+  font-size: 1.1rem;
+  padding: 0 var(--spacing-8);
+  height: 3.5rem;
+}
+
+.finalCtaHighlights {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-8);
+  font-weight: 500;
+  color: var(--tk-brand-ink);
+}
+
+.finalCtaHighlights span {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .pageWrapper {
+    gap: var(--spacing-12);
+  }
+
+  .sectionHeader h2,
+  .finalCtaContent h2 {
+    font-size: 2rem;
+  }
+
+  .heroTitle {
+    font-size: 2.5rem;
+  }
+
+  .heroSubtitle {
+    font-size: 1.125rem;
+  }
+
+  .heroActions {
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+
+  .heroActions button,
+  .heroActions a {
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .grid2Col {
+    grid-template-columns: 1fr;
+  }
+
+  .statsContainer {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .heroTitle {
+    font-size: 2rem;
+  }
+
+  .statsContainer {
+    grid-template-columns: 1fr;
+  }
+
+  .statCard h4 {
+    font-size: 2rem;
+  }
+
+  .finalCtaHighlights {
+    flex-wrap: wrap;
+    gap: var(--spacing-2);
+  }
+}

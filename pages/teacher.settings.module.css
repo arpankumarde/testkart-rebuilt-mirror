@@ -1,0 +1,92 @@
+/* The console shell, as on Overview and Test series: no padding of its own,
+   because TeacherDashboardLayout's .pageBody owns the gutter. The old rule
+   added --spacing-8 on top of it and capped the page at 800px, so Settings
+   sat at a different width from every other page in the console. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* Forms get a measure, lists get the full width. The page shell stays the
+   same everywhere; only this column is narrowed. */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 48rem;
+}
+
+.panel {
+  padding: var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+/*
+ * Was a tinted --error panel with an --error heading on it. The weight belongs
+ * on the button, which already carries the destructive treatment - a whole
+ * panel washed in 5% red is decoration, and the heading sat at about 3.5:1.
+ */
+.danger {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  padding: var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.dangerTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.dangerText {
+  margin: 0;
+  max-width: 34rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.dangerButton {
+  margin-top: var(--spacing-2);
+  color: var(--error);
+  border-color: color-mix(in srgb, var(--error) 45%, var(--border));
+}
+
+.dangerButton:hover {
+  background-color: color-mix(in srgb, var(--error) 10%, transparent);
+  border-color: var(--error);
+  color: var(--error);
+}
+
+@media (max-width: 640px) {
+  .page {
+    gap: var(--spacing-4);
+  }
+
+  .stack {
+    gap: var(--spacing-4);
+  }
+
+  .panel,
+  .danger {
+    padding: var(--spacing-4);
+  }
+}

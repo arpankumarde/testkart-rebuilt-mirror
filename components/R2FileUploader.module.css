@@ -1,0 +1,211 @@
+.container {
+  position: relative;
+  width: 100%;
+  background-color: var(--surface);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color var(--animation-duration-fast) ease, box-shadow var(--animation-duration-fast) ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 16 / 9; /* Default aspect ratio */
+}
+
+.container:hover {
+  border-color: var(--primary);
+}
+
+.container:focus-within {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-focus);
+}
+
+.container.dragging {
+  border-color: var(--primary);
+  border-style: solid;
+  box-shadow: var(--shadow-focus);
+}
+
+.skeleton {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+}
+
+/* States */
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  color: var(--error);
+  border-color: var(--error);
+  padding: var(--spacing-4);
+  text-align: center;
+  cursor: default;
+}
+
+.errorState .errorMessage {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+/* Preview */
+.previewContainer {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.previewImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.pdfPreviewContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  background-color: var(--muted);
+  position: relative;
+}
+
+.pdfIcon {
+  color: var(--primary);
+}
+
+.pdfUploadedText {
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.pdfFileName {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  max-width: 80%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.removeButton {
+  position: absolute;
+  top: var(--spacing-2);
+  right: var(--spacing-2);
+  background-color: color-mix(in srgb, var(--background), black 50%);
+  color: white;
+  border: none;
+  border-radius: var(--radius-full);
+  width: 1.75rem;
+  height: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) ease;
+  z-index: var(--z-content-low);
+}
+
+.removeButton:hover {
+  background-color: var(--error);
+}
+
+/* Placeholder */
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  color: var(--muted-foreground);
+  text-align: center;
+  padding: var(--spacing-4);
+}
+
+.placeholderIcon {
+  color: var(--muted-foreground);
+}
+
+.placeholderText {
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.placeholderSubtext {
+  font-size: 0.875rem;
+}
+
+/* Overlays */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background-color: color-mix(in srgb, var(--surface), transparent 20%);
+  backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  z-index: var(--z-content);
+  transition: opacity var(--animation-duration-fast) ease;
+}
+
+.progressContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-2);
+  color: var(--foreground);
+  font-weight: 500;
+}
+
+.errorOverlay {
+  background-color: color-mix(in srgb, var(--error), white 80%);
+  color: var(--error);
+}
+
+.dark .errorOverlay {
+  background-color: color-mix(in srgb, var(--error), black 80%);
+}
+
+.errorIcon {
+  color: var(--error);
+}
+
+.errorMessage {
+  font-weight: 500;
+  text-align: center;
+  padding: 0 var(--spacing-2);
+  font-size: 0.9rem;
+}
+
+.initialOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+  color: white;
+  padding: var(--spacing-4) var(--spacing-3) var(--spacing-2);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.875rem;
+  font-weight: 500;
+  opacity: 0;
+  transition: opacity var(--animation-duration-fast) ease;
+  pointer-events: none;
+}
+
+.container:hover .initialOverlay {
+  opacity: 1;
+}

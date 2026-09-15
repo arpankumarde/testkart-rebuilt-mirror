@@ -1,0 +1,150 @@
+.reviewContainer {
+  background-color: var(--muted);
+  padding: var(--spacing-6);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.reviewContainer h4 {
+  font-family: var(--font-family-heading);
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.reviewHint {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  font-family: var(--font-family-base);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+}
+
+.sectionHeader h4 {
+  margin: 0;
+}
+
+.lockedLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.checklistBanner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  font-family: var(--font-family-base);
+}
+
+.checklistHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.warningIcon {
+  flex-shrink: 0;
+  color: color-mix(in srgb, var(--warning), black 35%);
+}
+
+.checklistList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.checklistList li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  font-size: 0.8125rem;
+  color: var(--foreground);
+  padding: 2px 0;
+}
+
+.checklistFix {
+  flex-shrink: 0;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 600;
+  color: var(--tk-brand-text);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.checklistList .checklistFix {
+  font-size: 0.75rem;
+}
+
+.checklistFix:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--radius-sm);
+}
+
+.optionalSummary {
+  font-family: var(--font-family-base);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--foreground);
+}
+
+.optionalSummaryLabel {
+  color: var(--muted-foreground);
+}
+
+.checklistBannerOk {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  color: color-mix(in srgb, var(--success), black 35%);
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: var(--font-family-base);
+}
+
+.descriptionBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.reviewContainer p {
+  margin: 0;
+}
+
+.reviewContainer hr {
+  width: 100%;
+  border: none;
+  border-top: 1px solid var(--border);
+}

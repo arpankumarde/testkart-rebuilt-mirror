@@ -1,0 +1,380 @@
+.resultsContainer {
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.resultsHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-8);
+}
+
+.resultsHeader h1 {
+  font-family: var(--font-family-heading);
+  font-size: 2rem;
+  margin: 0;
+}
+
+/* Compact back-navigation link, replacing a full outline Button — a boxed
+   button below the heading felt heavier than the action deserved. */
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  width: fit-content;
+  transition: color var(--animation-duration-fast) ease;
+}
+
+.backLink:hover {
+  color: var(--primary);
+}
+
+.scoreCard {
+  background-color: var(--surface);
+  padding: var(--spacing-8);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  margin-bottom: var(--spacing-8);
+  box-shadow: var(--shadow-md);
+}
+
+.scoreCard h2 {
+  font-size: 1.25rem;
+  color: var(--muted-foreground);
+  margin-bottom: var(--spacing-2);
+}
+
+.scorePercentage {
+  font-size: 4rem;
+  font-weight: 700;
+  color: var(--primary);
+  font-family: var(--font-family-heading);
+}
+
+.scoreNegative {
+  color: var(--error);
+}
+
+.scoreFraction {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: var(--spacing-2);
+}
+
+.scoreSubtext {
+  font-size: 1rem;
+  color: var(--muted-foreground);
+  margin-bottom: var(--spacing-6);
+}
+
+.scoreProgress {
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.performanceBreakdown {
+  display: grid;
+  /* minmax(0, 1fr), not plain 1fr: a bare 1fr track still refuses to shrink
+     below its content's min-content width, so nowrap number text below was
+     blowing the grid (and the whole page) wider than the viewport on
+     mobile. minmax(0, ...) lets tracks actually shrink to the column width
+     and forces the long numbers to ellipsize/wrap instead. */
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-12);
+}
+
+.breakdownItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  background-color: var(--surface);
+  padding: var(--spacing-4);
+  border-radius: var(--radius-md);
+  min-width: 0;
+}
+
+.breakdownItem svg {
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+}
+
+.breakdownText {
+  min-width: 0;
+}
+
+.breakdownItem p {
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-family: var(--font-family-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.breakdownItem span {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.correctIcon { color: var(--success); }
+.incorrectIcon { color: var(--error); }
+.notAttemptedIcon { color: var(--warning, var(--muted-foreground)); }
+.timeIcon { color: var(--info); }
+
+.marksIcon {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.reviewSection h3 {
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  margin-bottom: var(--spacing-6);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: var(--spacing-3);
+}
+
+/* Sticks to the top of the viewport while scrolling through the question
+   review list, so the filter chips and jump-to-question pills stay
+   reachable without scrolling back up. */
+.stickyNav {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-nav-low);
+  background-color: var(--background);
+  padding: var(--spacing-3) 0;
+  margin-bottom: var(--spacing-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.filterRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.filterChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  height: 2rem;
+  padding: 0 var(--spacing-3);
+  border-radius: var(--radius-full);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color var(--animation-duration-fast) ease, border-color var(--animation-duration-fast) ease, color var(--animation-duration-fast) ease;
+}
+
+.filterChip:hover:not(:disabled) {
+  background-color: var(--muted);
+}
+
+.filterChip:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.filterChipCount {
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+.filterChip_all.filterChipActive {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.filterChip_correct.filterChipActive {
+  background-color: var(--success);
+  border-color: var(--success);
+  color: var(--success-foreground, white);
+}
+
+.filterChip_incorrect.filterChipActive {
+  background-color: var(--error);
+  border-color: var(--error);
+  color: white;
+}
+
+.filterChip_unattempted.filterChipActive {
+  background-color: var(--warning);
+  border-color: var(--warning);
+  color: var(--warning-foreground, black);
+}
+
+.pillRow {
+  display: flex;
+  gap: var(--spacing-2);
+  overflow-x: auto;
+  padding-bottom: var(--spacing-1);
+  scrollbar-width: thin;
+}
+
+.pill {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--muted-foreground);
+  transition: transform var(--animation-duration-fast) ease;
+}
+
+.pill:hover {
+  transform: translateY(-2px);
+}
+
+.pill_correct {
+  background-color: color-mix(in srgb, var(--success) 15%, var(--surface));
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.pill_incorrect {
+  background-color: color-mix(in srgb, var(--error) 15%, var(--surface));
+  border-color: var(--error);
+  color: var(--error);
+}
+
+.pill_unattempted {
+  background-color: var(--muted);
+  border-color: var(--border);
+  color: var(--muted-foreground);
+}
+
+.noResultsText {
+  color: var(--muted-foreground);
+  padding: var(--spacing-6) 0;
+  text-align: center;
+}
+
+
+
+@media (max-width: 900px) {
+  .performanceBreakdown {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .performanceBreakdown {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .resultsContainer {
+    padding: 0 var(--spacing-1);
+  }
+
+  .resultsHeader {
+    margin-bottom: 1.25rem;
+  }
+
+  .resultsHeader h1 {
+    font-size: 1.375rem;
+  }
+
+  .scoreCard {
+    padding: 1.25rem var(--spacing-4);
+    margin-bottom: 1.25rem;
+  }
+
+  .scoreCard h2 {
+    font-size: 1rem;
+    margin-bottom: var(--spacing-1);
+  }
+
+  .scorePercentage {
+    font-size: 2.5rem;
+  }
+
+  .scoreFraction {
+    font-size: 1.0625rem;
+    margin-bottom: var(--spacing-1);
+  }
+
+  .scoreSubtext {
+    font-size: 0.8125rem;
+    margin-bottom: var(--spacing-4);
+  }
+
+  .performanceBreakdown {
+    gap: var(--spacing-2);
+    margin-bottom: var(--spacing-6);
+  }
+
+  .breakdownItem {
+    gap: var(--spacing-2);
+    padding: var(--spacing-3);
+  }
+
+  .breakdownItem svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .breakdownItem p {
+    font-size: 1.125rem;
+  }
+
+  .breakdownItem span {
+    font-size: 0.75rem;
+  }
+
+  .marksIcon {
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 0.9375rem;
+  }
+
+  .reviewSection h3 {
+    font-size: 1.25rem;
+    margin-bottom: var(--spacing-4);
+  }
+
+  .filterChip {
+    height: 1.75rem;
+    padding: 0 var(--spacing-2);
+    font-size: 0.75rem;
+  }
+
+  .pill {
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 0.75rem;
+  }
+}

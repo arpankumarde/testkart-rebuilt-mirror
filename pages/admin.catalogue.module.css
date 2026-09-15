@@ -1,0 +1,181 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  /* The gutter matches the sticky header's own side padding, as on every
+     other admin page. */
+  padding: var(--spacing-6) var(--spacing-6) var(--spacing-8);
+  box-sizing: border-box;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+}
+
+.titleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  color: var(--foreground);
+}
+
+.lede {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+}
+
+.updated {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.rangeGroup {
+  flex-shrink: 0;
+}
+
+.refresh {
+  flex-shrink: 0;
+}
+
+.refresh svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error {
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid color-mix(in srgb, var(--error) 30%, transparent);
+  border-radius: var(--radius);
+  background-color: color-mix(in srgb, var(--error) 10%, transparent);
+  color: color-mix(in srgb, var(--error), black 25%);
+  font-size: 0.875rem;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  transition: opacity var(--animation-duration-fast) ease;
+}
+
+.busy {
+  opacity: 0.65;
+}
+
+.chartRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: var(--spacing-6);
+}
+
+.tableRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--spacing-6);
+}
+
+.totals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4) var(--spacing-8);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--border);
+}
+
+.total {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 5.5rem;
+}
+
+.totalValue {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.totalLabel {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 1200px) {
+  .chartRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .tableRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    gap: var(--spacing-4);
+    padding: var(--spacing-4);
+  }
+
+  .content {
+    gap: var(--spacing-4);
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .totals {
+    gap: var(--spacing-3) var(--spacing-6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+
+  .content {
+    transition: none;
+  }
+}

@@ -1,0 +1,77 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  background-color: var(--muted);
+  border-radius: var(--radius-md);
+  margin-top: var(--spacing-2);
+}
+
+.totalInfo {
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+
+.noQuestionsNote {
+  color: var(--muted-foreground);
+}
+
+.assignmentList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.assignmentHeader {
+  display: grid;
+  grid-template-columns: 1fr 5rem 5rem;
+  gap: var(--spacing-2);
+  padding: 0 var(--spacing-1);
+}
+
+.headerSectionName {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.headerRange {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  text-align: center;
+}
+
+.assignmentRow {
+  display: grid;
+  grid-template-columns: 1fr 5rem 5rem;
+  gap: var(--spacing-2);
+  align-items: center;
+}
+
+.assignmentLabel {
+  font-size: 0.875rem;
+  color: var(--foreground);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rangeInput {
+  text-align: center;
+}
+
+.helpText {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.assignmentActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-2);
+}

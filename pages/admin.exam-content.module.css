@@ -1,0 +1,78 @@
+/* Console page shell - see admin.transactions.module.css for the measure rule.
+   The accordion, exam-card, inline-form and empty-state blocks that used to
+   live here were dead: the page renders AdminExamDashboardTable and
+   AdminCustomExamNamesTab, which carry their own styles. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  width: 100%;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: var(--spacing-6) var(--spacing-6) var(--spacing-8);
+  box-sizing: border-box;
+}
+
+.headerActions {
+  display: flex;
+  gap: var(--spacing-2);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.tabs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.tabsList {
+  align-self: flex-start;
+  max-width: 100%;
+}
+
+.categoryMenu {
+  width: 20rem;
+  max-height: 24rem;
+  overflow-y: auto;
+}
+
+.categoryMenuItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  cursor: default;
+}
+
+.categoryMenuName {
+  font-size: 0.875rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.categoryMenuActions {
+  display: flex;
+  gap: var(--spacing-1);
+  flex-shrink: 0;
+}
+
+/* The category delete warning sits inside the confirm dialog's description
+   paragraph, so it is a span laid out as a block. */
+.deleteWarning {
+  display: block;
+  margin-top: var(--spacing-3);
+  padding: var(--spacing-3);
+  background-color: color-mix(in srgb, var(--warning) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--warning) 40%, transparent);
+  border-radius: var(--radius);
+  color: color-mix(in srgb, var(--warning), black 45%);
+  font-size: 0.875rem;
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: var(--spacing-4);
+  }
+}

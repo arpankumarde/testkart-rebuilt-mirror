@@ -1,0 +1,21 @@
+/* The console's form-page shell, as on teacher.create-test: no padding of its
+   own (.pageBody owns the gutter) and a form measure rather than 1440. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 46rem;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.content {
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .page {
+    gap: var(--spacing-4);
+  }
+}

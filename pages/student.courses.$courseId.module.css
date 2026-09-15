@@ -1,0 +1,55 @@
+.pageWrapper {
+  /* Full-screen overlay so the player is unaffected by any parent layout padding/wrappers */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-nav);
+  overflow: hidden;
+  background-color: var(--background);
+}
+
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  text-align: center;
+  padding: var(--spacing-16) var(--spacing-8);
+  height: 100%;
+  background-color: var(--surface);
+  border-radius: var(--radius-md);
+}
+
+/* A tinted circle carrying a darkened glyph, as on every other console error
+   state. Raw --error runs about 3.4:1 on this panel. */
+.errorIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  margin-bottom: var(--spacing-1);
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--error) 12%, transparent);
+  color: color-mix(in srgb, var(--error), black 20%);
+}
+
+.errorContainer h2 {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.errorContainer p {
+  margin: 0 0 var(--spacing-2);
+  max-width: 34rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}

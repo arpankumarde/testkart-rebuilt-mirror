@@ -1,0 +1,120 @@
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-6);
+  margin-bottom: var(--spacing-8);
+}
+
+.statCard {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-6);
+  box-shadow: var(--shadow);
+}
+
+.statValue {
+  font-size: 2rem;
+  font-weight: 700;
+  font-family: var(--font-family-heading);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.statTitle {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  margin-top: var(--spacing-2);
+}
+
+.statSubtext {
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+  margin-top: var(--spacing-1);
+}
+
+.statValueSkeleton {
+  width: 60%;
+  height: 2rem;
+  margin-bottom: var(--spacing-2);
+}
+
+.statTitleSkeleton {
+  width: 80%;
+  height: 1rem;
+}
+
+.chartsRow {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--spacing-6);
+  margin-bottom: var(--spacing-8);
+}
+
+@media (max-width: 900px) {
+  .chartsRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chartContainer {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-6);
+}
+
+.chartContainer h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 var(--spacing-6) 0;
+}
+
+.featureBreakdown {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.featureRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.featureRowHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.featureName {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.featureCount {
+  color: var(--muted-foreground);
+}
+
+.featureBar {
+  height: 8px;
+  background-color: var(--secondary-surface, var(--muted));
+  border-radius: var(--radius-full, 999px);
+  overflow: hidden;
+}
+
+.featureBarFill {
+  height: 100%;
+  background-color: var(--primary);
+  border-radius: var(--radius-full, 999px);
+}
+
+.featureStats {
+  display: flex;
+  gap: var(--spacing-4);
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}

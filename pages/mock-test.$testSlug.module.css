@@ -1,0 +1,441 @@
+/* Hero Skeleton */
+.heroSkeleton {
+  background: var(--muted);
+  padding: var(--spacing-12) var(--spacing-6) var(--spacing-8);
+}
+
+.heroSkeleton .heroContent {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Stats Card */
+.statsCard {
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: var(--spacing-4) var(--spacing-6);
+}
+
+.statsContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  flex-wrap: wrap;
+}
+
+.statsLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.statsIcon {
+  color: var(--success);
+  flex-shrink: 0;
+}
+
+.statsTitle {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--surface-foreground);
+}
+
+.statsSubtitle {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin-top: var(--spacing-1);
+}
+
+.statsLink {
+  font-size: 0.9375rem;
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color var(--animation-duration-fast);
+}
+
+.statsLink:hover {
+  color: color-mix(in srgb, var(--primary), black 15%);
+  text-decoration: underline;
+}
+
+/* Content Wrapper */
+.contentWrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-8) var(--spacing-6);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-8);
+}
+
+@media (min-width: 992px) {
+  .contentWrapper {
+    grid-template-columns: 1fr 380px;
+    gap: var(--spacing-12);
+  }
+}
+
+/* Main Column */
+.mainColumn {
+  min-width: 0;
+}
+
+.section {
+  margin-bottom: var(--spacing-12);
+  padding-bottom: var(--spacing-12);
+  border-bottom: 1px solid var(--border);
+}
+
+.section:last-child {
+  border-bottom: none;
+}
+
+.sectionTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 var(--spacing-6);
+  color: var(--surface-foreground);
+}
+
+.benefitsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-4);
+}
+
+.benefitItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+}
+
+.checkIcon {
+  color: var(--success);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.benefitItem span {
+  font-size: 0.9375rem;
+  color: var(--surface-foreground);
+  line-height: 1.5;
+}
+
+.contentStats {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin-bottom: var(--spacing-4);
+}
+
+.requirementsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.requirementsList li {
+  padding-left: var(--spacing-6);
+  position: relative;
+  margin-bottom: var(--spacing-3);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--surface-foreground);
+}
+
+.requirementsList li::before {
+  content: "•";
+  position: absolute;
+  left: var(--spacing-3);
+  color: var(--muted-foreground);
+}
+
+.description {
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: var(--surface-foreground);
+}
+
+.description p {
+  margin: 0 0 var(--spacing-4);
+}
+
+.description ul {
+  list-style-type: disc;
+  margin: var(--spacing-4) 0;
+  padding-left: var(--spacing-6);
+}
+
+.description ol {
+  list-style-type: decimal;
+  margin: var(--spacing-4) 0;
+  padding-left: var(--spacing-6);
+}
+
+.description li {
+  margin-bottom: var(--spacing-2);
+}
+
+
+
+/* Sidebar Column */
+.sidebarColumn {
+  /* No position property - let children use sticky */
+}
+
+/* Error Container */
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--spacing-16) var(--spacing-6);
+  gap: var(--spacing-4);
+}
+
+.errorContainer h2 {
+  font-family: var(--font-family-heading);
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.errorContainer p {
+  color: var(--muted-foreground);
+  max-width: 400px;
+  margin: 0;
+}
+
+.disclaimerSection {
+  margin-top: var(--spacing-8);
+  margin-bottom: var(--spacing-8);
+  padding: var(--spacing-6);
+  background-color: var(--muted);
+  border-radius: var(--radius-lg);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  white-space: pre-line;
+  line-height: 1.6;
+}
+
+
+
+/* Mobile Responsiveness */
+@media (max-width: 991px) {
+  .sidebarColumn {
+    order: -1;
+  }
+
+  .benefitsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .contentWrapper {
+    padding: var(--spacing-6) var(--spacing-4);
+  }
+
+  .section {
+    margin-bottom: var(--spacing-8);
+    padding-bottom: var(--spacing-8);
+  }
+
+
+}
+
+@media (max-width: 768px) {
+  .heroSkeleton {
+    padding: var(--spacing-6) var(--spacing-4) var(--spacing-4);
+  }
+
+  .statsCard {
+    padding: var(--spacing-3) var(--spacing-4);
+  }
+
+  .statsTitle {
+    font-size: 0.875rem;
+  }
+
+  .statsSubtitle {
+    font-size: 0.8125rem;
+    line-height: 1.4;
+  }
+
+  .contentWrapper {
+    padding: var(--spacing-4);
+    gap: var(--spacing-4);
+  }
+
+  .sectionTitle {
+    font-size: 1.125rem;
+    margin-bottom: var(--spacing-3);
+  }
+
+  .benefitsGrid {
+    gap: var(--spacing-2);
+  }
+
+  .benefitItem {
+    gap: var(--spacing-2);
+  }
+
+  .benefitItem span {
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  .contentStats {
+    font-size: 0.8125rem;
+    gap: var(--spacing-2);
+    flex-wrap: wrap;
+  }
+
+  .requirementsList li {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    margin-bottom: var(--spacing-2);
+  }
+
+  .description {
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+
+  .description p {
+    margin-bottom: var(--spacing-3);
+  }
+
+
+
+  .section {
+    margin-bottom: var(--spacing-4);
+    padding-bottom: var(--spacing-4);
+  }
+}
+
+@media (max-width: 576px) {
+  .statsContent {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-3);
+  }
+
+  .statsLeft {
+    gap: var(--spacing-2);
+  }
+}
+
+@media (max-width: 480px) {
+  .heroSkeleton {
+    padding: var(--spacing-4) var(--spacing-3) var(--spacing-3);
+  }
+
+  .statsCard {
+    padding: var(--spacing-2) var(--spacing-3);
+  }
+
+  .statsLeft {
+    gap: var(--spacing-2);
+  }
+
+  .statsIcon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .statsTitle {
+    font-size: 0.8125rem;
+  }
+
+  .statsSubtitle {
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+
+  .contentWrapper {
+    padding: var(--spacing-3);
+    gap: var(--spacing-3);
+  }
+
+  .sectionTitle {
+    font-size: 1rem;
+    margin-bottom: var(--spacing-2);
+  }
+
+  .benefitsGrid {
+    gap: var(--spacing-2);
+  }
+
+  .benefitItem {
+    gap: var(--spacing-2);
+  }
+
+  .benefitItem span {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+  }
+
+  .checkIcon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .contentStats {
+    font-size: 0.75rem;
+  }
+
+  .requirementsList li {
+    font-size: 0.8125rem;
+    padding-left: var(--spacing-4);
+    margin-bottom: var(--spacing-2);
+  }
+
+  .requirementsList li::before {
+    left: var(--spacing-2);
+  }
+
+  .description {
+    font-size: 0.8125rem;
+    line-height: 1.6;
+  }
+
+  .description p {
+    margin-bottom: var(--spacing-2);
+  }
+
+  .description ul {
+    margin: var(--spacing-2) 0;
+    padding-left: var(--spacing-4);
+  }
+
+  .description li {
+    margin-bottom: var(--spacing-1);
+    font-size: 0.8125rem;
+  }
+
+
+
+  .section {
+    margin-bottom: var(--spacing-3);
+    padding-bottom: var(--spacing-3);
+  }
+
+  .errorContainer {
+    padding: var(--spacing-6) var(--spacing-3);
+  }
+
+  .errorContainer h2 {
+    font-size: 1.25rem;
+  }
+
+  .errorContainer p {
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+}

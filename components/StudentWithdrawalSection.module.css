@@ -1,0 +1,275 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.requestCard {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.requestHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+.headerIcon {
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+  border-radius: var(--radius-full);
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.headerContent {
+  flex: 1;
+}
+
+.title {
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 var(--spacing-1) 0;
+  color: var(--foreground);
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.balanceInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  padding: var(--spacing-4);
+  background-color: var(--muted);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+
+.balanceLabel {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  font-weight: 600;
+}
+
+.balanceValue {
+  font-family: var(--font-family-heading);
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.validationAlerts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.alertItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  background-color: color-mix(in srgb, var(--warning) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--warning) 25%, transparent);
+  color: var(--warning-foreground);
+  padding: var(--spacing-3);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.alertItem svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.formRow {
+  display: flex;
+  gap: var(--spacing-4);
+  align-items: flex-start;
+}
+
+.amountField {
+  flex: 1;
+}
+
+.notesField {
+  flex: 2;
+}
+
+.submitButton {
+  align-self: flex-start;
+}
+
+.historySection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.historyTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: var(--foreground);
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  min-width: 700px;
+}
+
+.table th,
+.table td {
+  padding: var(--spacing-3) var(--spacing-4);
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.table th {
+  background-color: var(--muted);
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.dateCell {
+  white-space: nowrap;
+  color: var(--muted-foreground);
+}
+
+.amountCell {
+  font-family: var(--font-family-monospace);
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.txIdCell {
+  font-family: var(--font-family-monospace);
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+}
+
+.notesCell {
+  color: var(--muted-foreground);
+  max-width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.emptyDash {
+  color: var(--muted-foreground);
+}
+
+.failureReason {
+  color: color-mix(in srgb, var(--error), black 20%);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badgeIcon {
+  margin-right: var(--spacing-1);
+}
+
+.emptyState {
+  text-align: center;
+  color: var(--muted-foreground);
+  padding: var(--spacing-8) !important;
+}
+
+/* Mobile card list: hidden by default, swapped in for the table below 640px
+   (see media query) so the 5-column table doesn't force horizontal scroll. */
+.mobileWList {
+  display: none;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.mobileWCard {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-3) var(--spacing-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.mobileWTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+}
+
+.mobileWAmount {
+  font-family: var(--font-family-monospace);
+  font-weight: 600;
+  font-size: 1.0625rem;
+  color: var(--foreground);
+}
+
+.notesCellMobile {
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+}
+
+@media (max-width: 640px) {
+  .formRow {
+    flex-direction: column;
+  }
+  
+  .submitButton {
+    width: 100%;
+  }
+  
+  .requestCard {
+    padding: var(--spacing-4);
+  }
+
+  .tableWrapper {
+    display: none;
+  }
+
+  .mobileWList {
+    display: flex;
+  }
+}

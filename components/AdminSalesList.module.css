@@ -1,0 +1,456 @@
+/* Compact list - see pages/admin.teachers.module.css. */
+.results {
+  container: results / inline-size;
+  min-width: 0;
+}
+
+.tableContainer {
+  display: none;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* Fixed layout: the Contact column takes whatever the others leave. */
+.table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.colSelect {
+  width: 2.25rem;
+}
+
+.colPhone {
+  width: 9rem;
+}
+
+.colStage {
+  width: 7rem;
+}
+
+.colFollowUp {
+  width: 11.25rem;
+}
+
+.colLastCalled {
+  width: 11rem;
+}
+
+.colActions {
+  width: 7.5rem;
+}
+
+.table th,
+.table td {
+  padding: var(--spacing-2) 0.625rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.table th:first-child,
+.table td:first-child {
+  padding-left: var(--spacing-4);
+}
+
+.table th:last-child,
+.table td:last-child {
+  padding-right: var(--spacing-2);
+}
+
+/* The 1.25rem checkbox only fits its 2.25rem column without the right padding. */
+.table th.checkboxCell,
+.table td.checkboxCell {
+  padding-left: var(--spacing-3);
+  padding-right: 0;
+  overflow: visible;
+}
+
+.table th {
+  height: 2.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  background-color: var(--muted);
+}
+
+.table td {
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: var(--foreground);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background-color: var(--muted);
+}
+
+/* A lead that needs attention carries a coloured left edge: overdue, due today,
+   or new and never called. */
+.urgency_overdue {
+  --urgency-color: var(--error);
+}
+
+.urgency_today {
+  --urgency-color: var(--warning);
+}
+
+.urgency_new {
+  --urgency-color: var(--info);
+}
+
+.urgency_normal {
+  --urgency-color: transparent;
+}
+
+.table td.checkboxCell {
+  box-shadow: inset 3px 0 0 0 var(--urgency-color, transparent);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.primaryLine {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  min-width: 0;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.truncate,
+.valueLine,
+.emptyLine,
+.secondaryLine {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.valueLine {
+  font-variant-numeric: tabular-nums;
+}
+
+.emptyLine {
+  color: var(--muted-foreground);
+}
+
+.secondaryLine {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.mutedItalic {
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+
+.noteAuthor {
+  font-weight: 600;
+  color: var(--surface-foreground);
+}
+
+.flag {
+  flex-shrink: 0;
+  padding: 0 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.125rem;
+}
+
+.phoneLine {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  min-width: 0;
+}
+
+.phoneLink {
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+
+.phoneLink:hover {
+  text-decoration: underline;
+}
+
+.iconLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius);
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.iconLink svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* WhatsApp green darkened to about 4.5:1 on white; the raw brand green is under 2:1. */
+.waLink {
+  color: color-mix(in srgb, #25D366, black 35%);
+}
+
+.waLink:hover {
+  background-color: color-mix(in srgb, #25D366 15%, transparent);
+}
+
+.phoneLink:focus-visible,
+.iconLink:focus-visible,
+.stageBadgeTrigger:focus-visible,
+.followUpBtn:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.stageBadgeTrigger {
+  display: inline-flex;
+  max-width: 100%;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: none;
+  cursor: pointer;
+}
+
+.stageBadgeTrigger .flag {
+  cursor: pointer;
+}
+
+.stagePopoverContent {
+  padding: var(--spacing-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.stageOption {
+  cursor: pointer;
+  padding: var(--spacing-1);
+  border-radius: var(--radius-sm);
+}
+
+.stageOption:hover {
+  background-color: var(--muted);
+}
+
+.fullWidthBadge {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.followUpBtn {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: var(--spacing-1);
+  max-width: 100%;
+  min-width: 0;
+  margin-left: -4px;
+  padding: 1px 4px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+/* Solid rather than --muted, which is also the hovered row. */
+.followUpBtn:hover {
+  background-color: color-mix(in srgb, var(--foreground) 8%, var(--surface));
+}
+
+.calendarIcon {
+  flex-shrink: 0;
+  color: inherit;
+}
+
+.followUp_overdue { color: color-mix(in srgb, var(--error), black 20%); font-weight: 600; }
+.followUp_today { color: var(--warning-foreground); font-weight: 600; }
+.followUp_future { color: var(--foreground); }
+.followUp_none { color: var(--muted-foreground); }
+
+.microBadge {
+  flex-shrink: 0;
+  font-size: 0.6rem;
+  padding: 0 4px;
+  height: 14px;
+  min-width: 14px;
+}
+
+.datePickerPopover {
+  min-width: 250px;
+}
+
+.clearDateBtn {
+  width: 100%;
+}
+
+.rowActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+}
+
+.iconButton svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.noteIcon {
+  position: relative;
+  display: flex;
+}
+
+.noteIndicator {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 6px;
+  height: 6px;
+  background-color: var(--error);
+  border-radius: 50%;
+  border: 1px solid var(--surface);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.cardsContainer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-3);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  min-width: 0;
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: inset 3px 0 0 0 var(--urgency-color, transparent), var(--shadow);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  min-width: 0;
+  font-size: 0.875rem;
+}
+
+.cardHeader .rowActions {
+  flex-shrink: 0;
+  margin: calc(-1 * var(--spacing-1)) calc(-1 * var(--spacing-2)) 0 0;
+}
+
+.cardIdentity {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.cardNote {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+  overflow-wrap: anywhere;
+}
+
+.cardStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  gap: var(--spacing-2) var(--spacing-3);
+  margin: 0;
+  padding-top: var(--spacing-3);
+  border-top: 1px solid var(--border);
+}
+
+.cardStat {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.cardStat dt {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.cardStat dd {
+  margin: 0;
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+@container results (min-width: 40rem) {
+  .cardsContainer {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* The six fixed columns take 48rem; 60rem leaves the Contact column at least
+   12rem. Narrower than that, the same data reads as cards. */
+@container results (min-width: 60rem) {
+  .tableContainer {
+    display: block;
+  }
+
+  .cardsContainer {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iconLink {
+    transition: none;
+  }
+}

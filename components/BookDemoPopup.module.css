@@ -1,0 +1,486 @@
+/*
+ * Book-a-demo lead capture.
+ *
+ * Colour: the card is Testkart's actual brand orange, hsl(20 100% 70%). That
+ * coral is too light to carry white text (2.1:1), so everything on it is set in
+ * a deep warm ink instead — which reads at 6.2:1 and comfortably clears AA at
+ * every text size.
+ *   --demo-orange      the brand coral. Card and modal band.
+ *   --demo-ink         text, icons and buttons sitting ON the coral.
+ *   --demo-orange-ink  orange text on white — the chip label.
+ *
+ * The orange block is shared: it is the whole corner card, and it is the modal's
+ * header band. That continuity is the point — the modal should feel like the
+ * card opening up, not a second unrelated component.
+ *
+ * Scoped on the two ROOTS (corner card + whole dialog) rather than on the band,
+ * so the modal body — which sits outside the band — can still resolve them.
+ */
+.teaser,
+.bubbleWrap,
+.dialogContent {
+  --demo-orange: hsl(20 100% 70%);
+  --demo-ink: hsl(20 85% 18%);
+  --demo-orange-ink: hsl(18 88% 30%);
+}
+
+/* ---------- Corner teaser ---------- */
+
+/* Bottom-LEFT, not right: every page this now appears on is a /sell page, and
+   those all park a WhatsAppBubble at bottom-right — a 300px card anchored there
+   would land straight on top of it. The mobile pill takes the same corner, so
+   the ask keeps one address at every width. */
+.teaser {
+  position: fixed;
+  bottom: var(--spacing-6);
+  left: var(--spacing-6);
+  z-index: var(--z-overlay);
+
+  width: 300px;
+  max-width: calc(100vw - var(--spacing-8));
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+
+  /* Generous vertical padding — horizontal stays at spacing-4 so the headline
+     keeps enough measure to stay on one line at 300px. */
+  padding: var(--spacing-6) var(--spacing-4);
+  background-color: var(--demo-orange);
+  color: var(--demo-ink);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12px 28px -8px hsl(20 60% 35% / 0.4);
+
+  animation: slideUpFromBottom var(--animation-duration-normal) ease-out;
+}
+
+@keyframes slideUpFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(calc(100% + var(--spacing-6)));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.teaserTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+}
+
+/* Wide-tracked administrative micro-label — the audience signal. */
+.chip {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  background-color: #fff;
+  color: var(--demo-orange-ink);
+  border-radius: var(--radius-sm);
+
+  font-family: var(--font-family-base);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.teaserClose {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: hsl(20 85% 18% / 0.12);
+  color: var(--demo-ink);
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.teaserClose:hover {
+  background: hsl(20 85% 18% / 0.22);
+}
+
+.teaserClose:focus-visible {
+  outline: 2px solid var(--demo-ink);
+  outline-offset: 2px;
+}
+
+/* Tight and heavy, against the wide-tracked chip above it. */
+.teaserTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--demo-ink);
+  text-wrap: balance;
+}
+
+/* Intrinsic width/height on the <img> plus height:auto lets the browser reserve
+   the right box before the file lands, so the card doesn't jump. No forced
+   aspect-ratio: if the asset is ever swapped for a different shape it should
+   reflow honestly rather than crop. */
+/* No background or radius: the PNG is transparent, so any fill behind it would
+   show as a visible box around the artwork. */
+.teaserImage {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* The CTA is the darkest thing on the card, so the eye lands on it. A white
+   button would only separate from this coral at 2.1:1 — under the 3:1 floor for
+   a control's boundary — whereas ink gives 6.2:1. Compound selector so it beats
+   Button's own variant class regardless of stylesheet order. */
+.teaser .teaserCta {
+  width: 100%;
+  /* Roomier than the sm Button default — this is the card's single action. */
+  height: auto;
+  min-height: 2.75rem;
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--demo-ink);
+  border-color: var(--demo-ink);
+  color: #fff;
+  font-weight: 700;
+}
+
+.teaser .teaserCta:hover:not(:disabled) {
+  background-color: hsl(20 85% 24%);
+  border-color: hsl(20 85% 24%);
+  color: #fff;
+}
+
+.teaser .teaserCta:focus-visible {
+  outline: 2px solid var(--demo-ink);
+  outline-offset: 2px;
+}
+
+/* ---------- Mobile bubble ---------- */
+
+/*
+ * Below the bottom-nav breakpoint the corner card spanned the full width and
+ * covered roughly half a phone screen — on the /sell pages it is meant to be
+ * advertising. Same ask, same colours, collapsed to a floating pill.
+ *
+ * It sits bottom-LEFT on purpose: every /sell page already parks a
+ * WhatsAppBubble bottom-right, and two floating things in one corner is one too
+ * many. Hidden by default and revealed in the media query below, so the desktop
+ * card and this are never both on screen.
+ */
+.bubbleWrap {
+  display: none;
+}
+
+.bubble {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+
+  /* Matches the WhatsApp bubble's 56px diameter closely enough to read as the
+     same class of object across the bottom of the screen. */
+  height: 2.75rem;
+  padding: 0 var(--spacing-4);
+
+  border: none;
+  border-radius: var(--radius-full);
+  background-color: var(--demo-orange);
+  /* Ink, not white: white on this coral is 2.1:1 and fails outright. */
+  color: var(--demo-ink);
+  box-shadow: 0 8px 20px -6px hsl(20 60% 35% / 0.5);
+  cursor: pointer;
+
+  font-family: var(--font-family-base);
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.bubble:focus-visible {
+  outline: 2px solid var(--demo-ink);
+  outline-offset: 2px;
+}
+
+/* A corner badge rather than a second row on the pill — staying small is the
+   whole point. Sized past the 24px minimum only because it is a dismissal, not
+   the action; the pill itself is the 44px target. */
+.bubbleClose {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+
+  padding: 0;
+  border: 2px solid var(--surface, #fff);
+  border-radius: var(--radius-full);
+  background: var(--demo-ink);
+  color: #fff;
+  cursor: pointer;
+}
+
+.bubbleClose:focus-visible {
+  outline: 2px solid var(--demo-ink);
+  outline-offset: 2px;
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.7) translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ---------- Centered modal ---------- */
+
+.dialogContent {
+  width: min(30rem, calc(100vw - var(--spacing-8)));
+  /* Padding moves to the band and body so the orange can bleed edge to edge. */
+  padding: 0;
+  /* A little more than the dialog default. Since the call day and time joined
+     the form it runs about 710px, so it still fits a normal laptop whole and
+     only scrolls internally on genuinely short viewports. */
+  max-height: 92vh;
+}
+
+.band {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+
+  padding: var(--spacing-4) var(--spacing-6) var(--spacing-4);
+  background-color: var(--demo-orange);
+  color: var(--demo-ink);
+  /* Matches the dialog's own corner radius; avoids overflow:hidden, which would
+     kill the dialog's scrolling on short viewports. */
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.modalTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--demo-ink);
+}
+
+/* Full-strength ink, no alpha — this is the one piece of small text sitting on
+   the coral, so it needs the whole 6.2:1. */
+.modalDescription {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--demo-ink);
+}
+
+.modalBody {
+  padding: var(--spacing-4) var(--spacing-6) var(--spacing-6);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+/* Name and phone are both short identity fields — pairing them saves a full
+   row of height, which is what keeps the form off a scrollbar. */
+.fieldRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-3);
+}
+
+.optional {
+  font-weight: 400;
+  color: var(--muted-foreground);
+}
+
+/* ---------- Preferred call slot ---------- */
+
+/* A span rather than a FormLabel: the control it names is a group of buttons,
+   and a <label> cannot point at one. Copies .formLabel so the field still reads
+   as the same kind of thing as the two above it. */
+.groupLabel {
+  font-family: var(--font-family-base);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--foreground);
+}
+
+/* Scrolls rather than wraps — five chips on a narrow phone would break to a
+   second row and push the submit button under the fold. */
+.dayRow {
+  display: flex;
+  gap: var(--spacing-2);
+  overflow-x: auto;
+  padding-bottom: var(--spacing-1);
+  scrollbar-width: thin;
+}
+
+.dayChip {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+  min-width: 4.25rem;
+
+  padding: var(--spacing-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface, #fff);
+  color: var(--foreground);
+  cursor: pointer;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    border-color var(--animation-duration-fast) ease;
+}
+
+.dayChip:hover:not(.dayChipSelected) {
+  border-color: var(--demo-ink);
+}
+
+.dayChip:focus-visible {
+  outline: 2px solid var(--demo-ink);
+  outline-offset: 2px;
+}
+
+/* Filled ink, the same language as the submit button. Selection has to be
+   unmistakable at a glance, and a coral fill would sit at 2.1:1 on this white
+   body — the same reason the button is not coral either. */
+.dayChipSelected {
+  background-color: var(--demo-ink);
+  border-color: var(--demo-ink);
+  color: #fff;
+}
+
+.dayChipLabel {
+  font-family: var(--font-family-base);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.dayChipDate {
+  font-size: 0.75rem;
+  line-height: 1.2;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+.dayChipSelected .dayChipDate {
+  color: #fff;
+}
+
+/* Matches the teaser's CTA, so the two surfaces keep one button language. Ink
+   rather than coral: a coral fill would sit at only 2.1:1 against this white
+   body, and its label would fail outright. */
+.modalBody .submitButton {
+  background-color: var(--demo-ink);
+  border-color: var(--demo-ink);
+  color: #fff;
+  font-weight: 700;
+}
+
+.modalBody .submitButton:hover:not(:disabled) {
+  background-color: hsl(20 85% 24%);
+  border-color: hsl(20 85% 24%);
+}
+
+.errorText {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--error);
+}
+
+.successState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-4);
+  text-align: center;
+}
+
+.successIcon {
+  color: var(--success);
+}
+
+.successBody {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+/* Same breakpoint at which MobileBottomNav appears: the card hands over to the
+   pill, which clears the 60px nav (plus the iOS home indicator, which the nav
+   pads for with the same inset). */
+@media (max-width: 968px) {
+  .teaser {
+    display: none;
+  }
+
+  /* Mirrors the WhatsAppBubble across the screen: that one sits at bottom:80px
+     right:20px with a 56px diameter, so a 44px pill centred on the same band
+     starts at 86px. Which also clears everything else parked down there — the
+     60px MobileBottomNav, /sell's own ~70px sticky CTA bar, and the iOS home
+     indicator. */
+  .bubbleWrap {
+    position: fixed;
+    bottom: calc(86px + env(safe-area-inset-bottom, 0px));
+    left: 20px;
+    z-index: var(--z-overlay);
+
+    /* Shrink-wraps the pill, which is what the close badge anchors to. */
+    display: inline-block;
+    animation: popIn var(--animation-duration-normal) ease-out;
+  }
+}
+
+@media (max-width: 480px) {
+  .band {
+    padding: var(--spacing-3) var(--spacing-4) var(--spacing-4);
+  }
+
+  .modalTitle {
+    font-size: 1.25rem;
+  }
+
+  .modalBody {
+    padding: var(--spacing-4);
+  }
+
+  .fieldRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .teaser,
+  .bubbleWrap {
+    animation: none;
+  }
+}

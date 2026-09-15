@@ -1,0 +1,129 @@
+.dialogContent {
+  max-width: 26rem;
+}
+
+.container {
+  width: 100%;
+  margin-top: var(--spacing-4);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  width: 100%;
+}
+
+.errorMessage {
+  background-color: color-mix(in srgb, var(--error) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--error) 40%, transparent);
+  color: color-mix(in srgb, var(--error), black 20%);
+  padding: var(--spacing-3);
+  border-radius: var(--radius);
+  margin-bottom: var(--spacing-4);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.submitButton {
+  width: 100%;
+  min-height: 2.75rem;
+}
+
+.loadingText {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+}
+
+/* Inherit the button's own foreground. Hardcoded white sat on the coral primary
+   at about 2.1:1, the case the base.css brand comment warns against. */
+.spinner {
+  color: currentColor;
+}
+
+.otpInfo {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  text-align: center;
+  margin-bottom: var(--spacing-2);
+}
+
+.changeLink {
+  margin-left: var(--spacing-1);
+  padding: 0;
+  height: auto;
+  vertical-align: baseline;
+  font-size: 0.875rem;
+}
+
+.otpInput {
+  text-align: center;
+  font-size: 1.5rem;
+  letter-spacing: 0.5rem;
+  font-family: var(--font-family-monospace);
+}
+
+.resendContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  margin-top: calc(var(--spacing-2) * -1);
+}
+
+.resendButton {
+  padding: 0;
+  height: auto;
+  font-size: 0.875rem;
+}
+
+.timer {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+/* Sentence case, not tracked-out ALL-CAPS - the console removed that label
+   treatment everywhere else. */
+.stepIndicator {
+  display: block;
+  margin-bottom: var(--spacing-1);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--tk-brand-text);
+}
+
+.skipContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-4);
+  text-align: center;
+}
+
+.skipButton {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.skipButton:hover {
+  color: var(--foreground);
+}
+
+@media (max-width: 480px) {
+  .container {
+    margin-top: var(--spacing-3);
+  }
+
+  .form {
+    gap: var(--spacing-3);
+  }
+
+  .otpInput {
+    font-size: 1.25rem;
+    letter-spacing: 0.3rem;
+  }
+}

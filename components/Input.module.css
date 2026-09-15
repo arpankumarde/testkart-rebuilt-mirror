@@ -1,0 +1,106 @@
+@layer base {
+  .input {
+    font-family: var(--font-family-base);
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--foreground);
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: var(--spacing-2) var(--spacing-3);
+    width: 100%;
+    transition:
+      border-color var(--animation-duration-normal) ease,
+      background-color var(--animation-duration-normal) ease,
+      box-shadow var(--animation-duration-normal) ease,
+      transform var(--animation-duration-fast) ease;
+    outline: none;
+    height: 2.5rem;
+    box-shadow:
+      inset 0 1px 2px rgba(0, 0, 0, 0.02),
+      0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+
+  /* Mobile: Prevent iOS zoom and increase touch target */
+  @media (max-width: 768px) {
+    .input {
+      font-size: 16px; /* Prevent iOS zoom */
+      min-height: 2.75rem; /* 44px touch target */
+      padding: var(--spacing-3) var(--spacing-4);
+    }
+  }
+
+  /* No opacity: --muted-foreground is already the muted pair at about 4.6:1,
+     and fading it to 0.7 dropped every placeholder in the app to roughly
+     2.9:1. Placeholders carry field hints, so they have to stay readable. */
+  .input::placeholder {
+    color: var(--muted-foreground);
+  }
+
+  .input:hover {
+    border-color: color-mix(in srgb, var(--primary) 80%, transparent);
+    background-color: color-mix(in srgb, var(--card) 98%, var(--primary) 2%);
+    box-shadow:
+      inset 0 1px 2px rgba(0, 0, 0, 0.02),
+      0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  /* --tk-brand-text for the border and a stronger ring: the focused field was
+     marked by a coral border at about 2.1:1 over a 15% coral halo, which is
+     under the 3:1 a focus indicator needs to be seen. */
+  .input:focus {
+    border-color: var(--tk-brand-text);
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--tk-brand) 35%, transparent),
+      0 2px 4px rgba(0, 0, 0, 0.05);
+    background-color: var(--card);
+  }
+
+  .input:disabled {
+    background-color: var(--muted);
+    color: var(--muted-foreground);
+    cursor: not-allowed;
+    opacity: 0.75;
+    box-shadow: none;
+    transform: none;
+  }
+
+  /* Hide the native up/down spinner on number inputs across the whole app
+     — every <Input type="number"> goes through this one component, so this
+     single rule covers price fields, question counts, durations, etc.
+     Firefox uses appearance: textfield; Chrome/Safari/Edge need the
+     ::-webkit-*-spin-button selectors specifically. */
+  .input[type="number"] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+  }
+
+  .input[type="number"]::-webkit-inner-spin-button,
+  .input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* Dark mode adjustments */
+  :global(.dark) .input {
+    background-color: color-mix(in srgb, var(--background) 80%, black);
+    box-shadow:
+      inset 0 1px 2px rgba(0, 0, 0, 0.1),
+      0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  :global(.dark) .input:hover {
+    background-color: color-mix(in srgb, var(--background) 75%, black);
+    border-color: color-mix(in srgb, var(--primary) 90%, white);
+    box-shadow:
+      inset 0 1px 2px rgba(0, 0, 0, 0.1),
+      0 2px 4px rgba(0, 0, 0, 0.15);
+  }
+
+  :global(.dark) .input:focus {
+    background-color: color-mix(in srgb, var(--background) 80%, black);
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--primary) 25%, transparent),
+      0 2px 4px rgba(0, 0, 0, 0.15);
+  }
+}

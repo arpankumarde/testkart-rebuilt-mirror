@@ -1,0 +1,380 @@
+.pageContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--spacing-4);
+}
+
+.statCard {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-4);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  box-shadow: var(--shadow-sm);
+}
+
+.statIconWrapper {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.blue {
+  background-color: color-mix(in srgb, var(--info) 10%, transparent);
+  color: var(--info);
+}
+
+.orange {
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary);
+}
+
+.statContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.statTitle {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--card-foreground);
+  margin: 0;
+  line-height: 1.2;
+}
+
+/* Container */
+.container {
+  background-color: var(--card);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  padding: var(--spacing-4);
+  border-bottom: 1px solid var(--border);
+}
+
+.title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--card-foreground);
+  margin: 0;
+}
+
+/* Toolbar & Filters */
+.toolbar {
+  padding: var(--spacing-4);
+  border-bottom: 1px solid var(--border);
+  background-color: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.topToolbarRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-4);
+  flex-wrap: wrap;
+}
+
+.searchWrapper {
+  position: relative;
+  flex: 1;
+  max-width: 400px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: var(--spacing-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted-foreground);
+  pointer-events: none;
+}
+
+.searchInput {
+  padding-left: calc(var(--spacing-3) * 2 + 16px);
+}
+
+.filtersRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
+}
+
+.filterGroup,
+.sortGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.filterIcon {
+  color: var(--muted-foreground);
+  margin-right: var(--spacing-1);
+}
+
+.selectTrigger {
+  min-width: 140px;
+  background-color: var(--background);
+}
+
+/* Loading/Error/Empty States */
+.loadingState,
+.errorState,
+.emptyState {
+  padding: var(--spacing-12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--muted-foreground);
+  gap: var(--spacing-2);
+}
+
+.emptyIconWrapper {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background-color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--spacing-2);
+  color: var(--muted-foreground);
+}
+
+/* Table */
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.table th {
+  text-align: left;
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: var(--spacing-3) var(--spacing-4);
+  border-bottom: 1px solid var(--border);
+  color: var(--card-foreground);
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.cellContent {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  white-space: nowrap;
+}
+
+.cellIcon {
+  color: var(--muted-foreground);
+}
+
+.studentInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.studentName {
+  font-weight: 500;
+}
+
+.studentPhone {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  font-family: var(--font-family-monospace);
+}
+
+.newBadge {
+  display: inline-flex;
+  width: fit-content;
+  font-size: 0.65rem;
+  padding: 0 var(--spacing-1);
+  height: 1.25rem;
+}
+
+.testInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.testTitle {
+  font-weight: 500;
+}
+
+.costInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.amount {
+  font-weight: 600;
+}
+
+.paymentMethod {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  margin-left: var(--spacing-1);
+  white-space: nowrap;
+}
+
+.statusBadge {
+  text-transform: capitalize;
+}
+
+.statusCell {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.retryButton {
+  font-size: 0.75rem;
+  padding: 0.125rem var(--spacing-2);
+  height: auto;
+  white-space: nowrap;
+}
+
+.cardStatusGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+/* Mobile View */
+.mobileList {
+  display: none;
+  padding: var(--spacing-4);
+  gap: var(--spacing-4);
+}
+
+.mobileCard {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--spacing-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: var(--spacing-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.cardDate {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.cardRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  font-size: 0.875rem;
+}
+
+.cardLabel {
+  color: var(--muted-foreground);
+  min-width: 80px;
+}
+
+.cardValue {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.newBadgeMobile {
+  font-size: 0.65rem;
+  padding: 0 var(--spacing-1);
+  height: 1.25rem;
+  margin-top: 2px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .tableWrapper {
+    display: none;
+  }
+
+  .mobileList {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .filtersRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filterGroup,
+  .sortGroup {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .selectTrigger {
+    width: 100%;
+    min-width: 0;
+  }
+}

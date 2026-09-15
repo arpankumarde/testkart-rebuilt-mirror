@@ -1,0 +1,113 @@
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.solutionSection {
+  padding: var(--spacing-16) var(--spacing-4);
+  background: radial-gradient(circle at center, #1a1a1a 0%, #0a0a0a 100%);
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .solutionSection {
+    padding: var(--spacing-12) var(--spacing-4);
+  }
+}
+
+.sectionContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.solutionHeader {
+  text-align: center;
+  margin-bottom: var(--spacing-12);
+}
+
+.sectionTitle {
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .sectionTitle {
+    font-size: 1.75rem;
+    line-height: 1.2;
+  }
+}
+
+.badge {
+  background: #23a6d5;
+  color: white;
+  padding: var(--spacing-1) var(--spacing-3);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: var(--spacing-4);
+  display: inline-block;
+}
+
+.featureGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-6);
+}
+
+@media (max-width: 768px) {
+  .featureGrid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--spacing-4);
+  }
+}
+
+@media (max-width: 480px) {
+  .featureGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.glassCard {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: var(--spacing-8);
+  border-radius: var(--radius-lg);
+  transition: transform 0.3s, background 0.3s;
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+@media (max-width: 768px) {
+  .glassCard {
+    padding: var(--spacing-6);
+  }
+}
+
+.animateUp {
+  animation: fadeUp 0.6s ease-out forwards;
+}
+
+.glassCard:hover {
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-5px);
+}
+
+.featureIconWrapper {
+  color: #23a6d5;
+  margin-bottom: var(--spacing-4);
+}
+
+.glassCard h3 {
+  font-size: 1.25rem;
+  margin-bottom: var(--spacing-2);
+  color: white;
+}
+
+.glassCard p {
+  color: #aaa;
+  line-height: 1.5;
+}

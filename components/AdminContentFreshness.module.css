@@ -1,0 +1,146 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  min-width: 0;
+  padding: var(--spacing-4) var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.subtitle {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+  gap: var(--spacing-1) var(--spacing-4);
+}
+
+.row {
+  min-width: 0;
+}
+
+.rowLink {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  min-width: 0;
+  padding: var(--spacing-2);
+  color: var(--foreground);
+  text-decoration: none;
+  border-radius: var(--radius);
+  outline: none;
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.rowLink:hover {
+  background-color: var(--muted);
+}
+
+.rowLink:focus-visible {
+  box-shadow: var(--shadow-focus);
+}
+
+.stripe {
+  flex-shrink: 0;
+  width: 3px;
+  align-self: stretch;
+  min-height: 1.75rem;
+  border-radius: var(--radius-full);
+}
+
+.body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.rowTitle {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rowMeta {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.side {
+  flex-shrink: 0;
+}
+
+.age {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ageWarn {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--error), black 18%);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+:global(.dark) .ageWarn {
+  color: var(--error);
+}
+
+.skeletonRows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.empty {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 640px) {
+  .card {
+    padding: var(--spacing-4);
+  }
+
+  .rows {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rowLink {
+    transition: none;
+  }
+}

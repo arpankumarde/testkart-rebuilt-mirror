@@ -1,0 +1,244 @@
+/* Panel heading scale, matching the sibling sections on Subscription. The
+   rule under it is gone - the panel's own border already separates them. */
+.sectionHeading {
+  margin: 0 0 var(--spacing-3);
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.statusCard {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-4);
+  box-shadow: var(--shadow);
+}
+
+/* 1px like every other panel - a 2px border on the active state shifted the
+   card's contents by a pixel against its siblings. */
+.statusCard.active {
+  border-color: color-mix(in srgb, var(--success), black 15%);
+}
+
+.statusHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-3);
+  padding-bottom: var(--spacing-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.planName {
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: var(--spacing-1);
+}
+
+/* --foreground, not the coral --primary, which sits at about 2.1:1 as type on
+   this white panel. */
+.planPrice {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.pricePeriod {
+  font-family: var(--font-family-base);
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--muted-foreground);
+}
+
+.freeBadge {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.statusDetails {
+  display: grid;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-3);
+}
+
+.platformFeeBox {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius);
+  font-weight: 600;
+}
+
+.feeLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.feeValue {
+  margin-left: auto;
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Darkened: the raw tokens ran at about 3.5:1 (--error) and 2.3:1 (--success)
+   as type on their own 10% tint. */
+.feeHigh {
+  background-color: color-mix(in srgb, var(--error) 10%, transparent);
+  color: color-mix(in srgb, var(--error), black 25%);
+  border: 1px solid color-mix(in srgb, var(--error) 25%, transparent);
+}
+
+.feeMedium {
+  background-color: color-mix(in srgb, var(--warning) 15%, transparent);
+  color: var(--warning-foreground);
+  border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent);
+}
+
+.feeLow {
+  background-color: color-mix(in srgb, var(--success) 12%, transparent);
+  color: color-mix(in srgb, var(--success), black 35%);
+  border: 1px solid color-mix(in srgb, var(--success) 30%, transparent);
+}
+
+.feeDefault {
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+  border: 1px solid var(--border);
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-2) 0;
+}
+
+.detailLabel {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.detailValue {
+  font-weight: 500;
+  font-size: 0.875rem;
+  text-align: right;
+}
+
+/* Both of these used to hardcode color: #000000, which stayed black on a dark
+   tint in dark mode. */
+.autoRenewBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  border-radius: var(--radius);
+  background-color: color-mix(in srgb, var(--secondary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--secondary) 30%, transparent);
+  color: var(--foreground);
+  font-size: 0.875rem;
+}
+
+.freeNote {
+  padding: var(--spacing-3);
+  border-radius: var(--radius);
+  background-color: color-mix(in srgb, var(--info) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--info) 25%, transparent);
+  color: var(--foreground);
+}
+
+.freeNote p {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.statusActions {
+  display: flex;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+}
+
+.cancelledNote {
+  padding: var(--spacing-3);
+  border-radius: var(--radius);
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+/* A brand-tinted circle, not a warning glyph at half opacity. */
+.noSubIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  margin: 0 auto var(--spacing-4);
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.noSubIcon svg {
+  width: 26px;
+  height: 26px;
+}
+
+.statusCard h3 {
+  margin-bottom: var(--spacing-2);
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-align: center;
+}
+
+.statusCard > p {
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.errorText {
+  padding: var(--spacing-4);
+  text-align: center;
+  font-size: 0.875rem;
+  color: color-mix(in srgb, var(--error), black 25%);
+}
+
+@media (max-width: 768px) {
+  .statusHeader {
+    flex-direction: column;
+    gap: var(--spacing-3);
+  }
+
+  .planPrice {
+    text-align: left;
+  }
+
+  .statusActions {
+    flex-direction: column;
+  }
+
+  .statusActions button {
+    width: 100%;
+  }
+}

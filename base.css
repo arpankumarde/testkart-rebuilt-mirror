@@ -1,0 +1,385 @@
+
+@import url(https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap);
+@import url(https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap);
+@import url(https://fonts.googleapis.com/css2?family=Fira+Code:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap);
+@import url(https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap);
+@import url(https://fonts.googleapis.com/css2?family=Caveat:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap);
+
+
+
+
+
+
+
+
+
+
+:root {
+  /* Content layers */
+  --z-content-low: 10; /* Minor elevated content */
+  --z-content: 20; /* Standard elevated content */
+  --z-content-high: 30; /* Important content that needs prominence */
+
+  /* Navigation layers */
+  --z-nav-low: 100; /* Secondary navigation components */
+  --z-nav: 200; /* Primary navigation bars */
+  --z-nav-sticky: 300; /* Sticky navigation elements */
+
+  /* Overlay layers */
+  --z-overlay: 400;
+
+  --z-spotlight: 1000; /* Tutorial spotlights/guided help */
+
+  /* System layers */
+  --z-critical: 2000; /* Critical system notifications */
+
+  /* spacing */
+  --spacing-1: 0.25rem;
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
+  --spacing-4: 1rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
+  --spacing-12: 3rem;
+  --spacing-16: 4rem;
+
+  /* layout */
+  --header-height: 72px;
+}
+
+:root {
+  /* Light Mode */
+  --background: hsl(220 20% 98%);
+  --foreground: hsl(220 10% 20%);
+
+  --surface: hsl(0 0% 100%);
+  --surface-foreground: hsl(220 10% 15%);
+  --sidebar: hsl(220 20% 96%);
+  --sidebar-foreground: hsl(220 10% 25%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(220 10% 15%);
+  --popup: hsl(0 0% 100%);
+  --popup-foreground: hsl(220 10% 15%);
+
+  --primary: hsl(20 100% 70%);
+  /* Ink, not white: white on this coral is 2.1:1. Every use of this token in
+     the app pairs it with a --primary background, so one value fixes buttons,
+     active tabs, avatars, calendar days, pagination and the rest at once.
+     The dark theme already set a dark foreground here and is unchanged. */
+  --primary-foreground: hsl(20 85% 18%);
+  --secondary: hsl(173 80% 40%);
+  --secondary-foreground: hsl(0 0% 100%);
+  --accent: hsl(20 100% 70%);
+  --accent-foreground: hsl(0 0% 100%);
+
+  --muted: hsl(220 20% 94%);
+  --muted-foreground: hsl(220 10% 45%);
+
+  --success: hsl(142 71% 45%);
+  --success-foreground: hsl(0 0% 100%);
+  --error: hsl(0 84% 60%);
+  --error-foreground: hsl(0 0% 100%);
+  --warning: hsl(38 92% 50%);
+  --warning-foreground: hsl(38 100% 10%);
+  --info: hsl(204 92% 50%);
+  --info-foreground: hsl(0 0% 100%);
+
+  --border: hsl(220 15% 90%);
+
+  /*
+   * Brand block - one coral, three roles. Replaced the coral-to-teal gradients
+   * that used to run across cards, CTAs and rules: a 153 degree hue jump made
+   * the brand ambiguous and left white text at 2.1:1 on the coral end.
+   *
+   * The first four are fixed in both themes on purpose. A brand block is
+   * artwork, not a themed surface, so it looks the same in light and dark -
+   * the same call BookDemoPopup and TeacherCtaBanner already made.
+   *
+   *   --tk-brand        the coral surface. Blocks: heroes, closing CTAs.
+   *   --tk-brand-ink    everything sitting ON coral - type, borders, the solid
+   *                     button. 6.2:1, where white would be 2.1:1.
+   *   --tk-brand-deep   the deep orange that holds up against WHITE in either
+   *                     direction - as text on a white pill, or as a fill under
+   *                     white text. 8:1 both ways. Fixed, so it is the one to
+   *                     reach for on a surface that does not follow the theme.
+   *   --tk-brand-text   orange as TEXT on a page surface. Themed, because the
+   *                     surface under it is - which is exactly why it must not
+   *                     be used on fixed artwork like the demo card's chip.
+   *   --tk-brand-tint   coral wash for icon tiles and soft panels.
+   */
+  --tk-brand: hsl(20 100% 70%);
+  --tk-brand-ink: hsl(20 85% 18%);
+  --tk-brand-ink-hover: hsl(20 85% 24%);
+  --tk-brand-deep: hsl(18 88% 30%);
+  --tk-brand-text: hsl(18 88% 30%);
+  --tk-brand-tint: color-mix(in srgb, var(--tk-brand) 14%, transparent);
+
+  /* Hover destination for coral controls: the fill drops to the deep orange and
+     the label inverts to white, so the resting state carries the brand and the
+     hover carries the weight. Themed, because in dark mode the control already
+     rests on a light coral and darkening it would sink it into the page. */
+  --tk-brand-hover: hsl(18 88% 30%);
+  --tk-brand-hover-foreground: hsl(0 0% 100%);
+
+  /* Font Families */
+  --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  --font-family-heading: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  --font-family-monospace: 'Fira Code', 'JetBrains Mono', monospace;
+  --font-family-cursive: 'Caveat', cursive;
+
+  /* Border Radius and box shadows */
+  --shadow: 0 1px 2px 0 hsl(220 10% 15% / 0.05);
+  --shadow-md: 0 4px 6px -1px hsl(220 10% 15% / 0.1), 0 2px 4px -2px hsl(220 10% 15% / 0.1);
+  --shadow-lg: 0 10px 15px -3px hsl(220 10% 15% / 0.1), 0 4px 6px -4px hsl(220 10% 15% / 0.1);
+  --shadow-focus: 0 0 0 3px hsl(20 100% 70% / 0.2);
+
+  --radius-sm: 0.25rem; /* 4px */
+  --radius: 0.5rem; /* 8px */
+  --radius-md: 0.75rem; /* 12px */
+  --radius-lg: 1rem; /* 16px */
+  --radius-full: 9999px; 
+
+  /* Animation */
+  --animation-duration-fast: 150ms;
+  --animation-duration-normal: 300ms;
+  --animation-duration-slow: 500ms;
+
+  /* Chart colors */
+  --chart-color-1: hsl(20 90% 60%);
+  --chart-color-2: hsl(173 70% 45%);
+  --chart-color-3: hsl(38 90% 55%);
+  --chart-color-4: hsl(340 80% 60%);
+  --chart-color-5: hsl(260 75% 65%);
+}
+
+.dark {
+  --background: hsl(220 20% 11%);
+  --foreground: hsl(220 10% 85%);
+
+  --surface: hsl(220 20% 13%);
+  --surface-foreground: hsl(220 10% 95%);
+  --sidebar: hsl(220 20% 10%);
+  --sidebar-foreground: hsl(220 10% 80%);
+  --card: hsl(220 20% 13%);
+  --card-foreground: hsl(220 10% 95%);
+  --popup: hsl(220 20% 13%);
+  --popup-foreground: hsl(220 10% 95%);
+
+  --primary: hsl(20 95% 65%);
+  --primary-foreground: hsl(20 100% 10%);
+  --secondary: hsl(173 80% 45%);
+  --secondary-foreground: hsl(173 100% 10%);
+  --accent: hsl(20 95% 65%);
+  --accent-foreground: hsl(20 100% 10%);
+
+  --muted: hsl(220 20% 18%);
+  --muted-foreground: hsl(220 10% 60%);
+
+  --success: hsl(142 60% 50%);
+  --success-foreground: hsl(142 100% 10%);
+  --error: hsl(0 80% 65%);
+  --error-foreground: hsl(0 100% 10%);
+  --warning: hsl(38 90% 55%);
+  --warning-foreground: hsl(38 100% 10%);
+  --info: hsl(204 90% 60%);
+  --info-foreground: hsl(204 100% 10%);
+
+  --border: hsl(220 15% 25%);
+
+  /* Only the two surface-relative brand values flip. --tk-brand, its ink and
+     --tk-brand-deep stay put: a brand block looks the same in both themes. */
+  --tk-brand-text: hsl(20 95% 72%);
+  --tk-brand-tint: color-mix(in srgb, var(--tk-brand) 20%, transparent);
+
+  /* Hover brightens here rather than darkening - the deep orange would recede
+     into this background instead of standing out from it. */
+  --tk-brand-hover: hsl(20 100% 78%);
+  --tk-brand-hover-foreground: hsl(20 100% 10%);
+
+  /* Shadows for dark mode */
+  --shadow: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
+  --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.1), 0 2px 4px -2px hsl(0 0% 0% / 0.1);
+  --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.1), 0 4px 6px -4px hsl(0 0% 0% / 0.1);
+  --shadow-focus: 0 0 0 3px hsl(20 95% 65% / 0.2);
+
+  /* Chart colors for dark mode */
+  --chart-color-1: hsl(20 85% 65%);
+  --chart-color-2: hsl(173 70% 50%);
+  --chart-color-3: hsl(38 90% 60%);
+  --chart-color-4: hsl(340 80% 65%);
+  --chart-color-5: hsl(260 75% 70%);
+}
+
+/*
+ * Tables in rendered rich text (articles, exam content, product and lesson
+ * descriptions, static pages), wrapped by helpers/contentTables. Coral is the
+ * header band only, set in brand ink. The first column holds row labels and
+ * stays in view while a wide table scrolls sideways.
+ */
+.tk-content-table,
+.tk-content-table-plain {
+  margin-block: 1.5rem;
+  overflow-x: auto;
+}
+
+.tk-content-table {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.tk-content-table:focus-visible,
+.tk-content-table-plain:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+/* !important overrides the px width and min-width the editor writes inline on resized tables. */
+:is(.tk-content-table, .tk-content-table-plain) > table {
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0;
+  border: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground);
+}
+
+:is(.tk-content-table, .tk-content-table-plain) > table > * > tr > :is(td, th) {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  vertical-align: top;
+  font-weight: 400;
+}
+
+:is(.tk-content-table, .tk-content-table-plain) > table > * > tr > :is(td, th) > :is(p, ul, ol) {
+  margin: 0;
+}
+
+:is(.tk-content-table, .tk-content-table-plain) > table > * > tr > :is(td, th) > * + :is(p, ul, ol) {
+  margin-top: 0.5em;
+}
+
+.tk-content-table-plain > table > * > tr > th {
+  font-weight: 600;
+}
+
+.tk-content-table > table > * > tr > :is(td, th) {
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.tk-content-table > table > * > tr:last-child > :is(td, th) {
+  border-bottom: 0;
+}
+
+.tk-content-table > table > * > tr > td:first-child:not(:only-child),
+.tk-content-table > table > tbody > tr:not(:first-child) > th:first-child:not(:only-child) {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  font-weight: 600;
+  border-right: 1px solid var(--border);
+}
+
+.tk-content-table > table > tbody > tr:not(:first-child) > th {
+  font-weight: 600;
+}
+
+.tk-content-table > table > thead > tr > th,
+.tk-content-table > table > tbody > tr:first-child > th {
+  background-color: var(--tk-brand);
+  color: var(--tk-brand-ink);
+  font-family: var(--font-family-heading);
+  font-weight: 700;
+  border-bottom: 0;
+}
+
+.tk-content-table > table > thead > tr > th:first-child:not(:only-child),
+.tk-content-table > table > tbody > tr:first-child > th:first-child:not(:only-child) {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+
+.tk-content-table > table > thead > tr > th a,
+.tk-content-table > table > tbody > tr:first-child > th a {
+  color: inherit;
+}
+
+/* Many editor tables bold the first row instead of marking it as a header; read that row as one. */
+.tk-content-table > table:not(:has(th)) > tbody > tr:first-child:has(> td + td):has(> td:first-child strong):has(> td:last-child strong) > td {
+  background-color: var(--tk-brand);
+  color: var(--tk-brand-ink);
+  font-family: var(--font-family-heading);
+  font-weight: 700;
+  border-bottom: 0;
+  border-right-color: var(--tk-brand);
+}
+
+@media (max-width: 640px) {
+  :is(.tk-content-table, .tk-content-table-plain) > table {
+    font-size: 0.875rem;
+  }
+
+  :is(.tk-content-table, .tk-content-table-plain) > table > * > tr > :is(td, th) {
+    padding: 0.625rem 0.75rem;
+  }
+}
+@layer base {
+  /* Safe-area insets that resolve on every platform. iOS and the web populate
+     env(); Capacitor on Android 15+ cannot, so its SystemBars plugin sets these
+     SAME variables as inline styles on <html>, which beat this layered rule.
+     App code pads by var(--safe-area-inset-*) and never touches env() itself.
+     All 0px unless the native shell is in edge-to-edge mode (or the PWA runs
+     under a notch). */
+  :root {
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --safe-area-inset-right: env(safe-area-inset-right, 0px);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-inset-left: env(safe-area-inset-left, 0px);
+  }
+
+  ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-family-base);
+  }
+
+  * {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+  }
+
+
+  button {
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  th, td {
+    display: table-cell!important;
+  }
+}
+.rbc-month-view {
+  overflow: visible !important;
+}

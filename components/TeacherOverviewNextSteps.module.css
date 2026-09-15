@@ -1,0 +1,157 @@
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--spacing-6);
+}
+
+/* Profile done: the catalogue card takes the full width on its own. */
+.rowSingle {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  min-width: 0;
+  padding: var(--spacing-4) var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.cardHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  width: 100%;
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.percent {
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--tk-brand-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.meter {
+  width: 100%;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background-color: var(--muted);
+  overflow: hidden;
+}
+
+.meterFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background-color: var(--tk-brand);
+  transition: width var(--animation-duration-normal) ease;
+}
+
+.cardText {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+}
+
+.missing {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+/* The one solid brand control on the page, so the profile nudge reads as the
+   action to take rather than another card. */
+.primaryAction {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-top: auto;
+  height: 2rem;
+  padding: 0 var(--spacing-4);
+  border-radius: var(--radius);
+  background-color: var(--tk-brand);
+  color: var(--tk-brand-ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color var(--animation-duration-fast) ease, color var(--animation-duration-fast) ease;
+}
+
+.primaryAction:hover {
+  background-color: var(--tk-brand-hover);
+  color: var(--tk-brand-hover-foreground);
+}
+
+.primaryAction:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  margin-top: auto;
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  height: 2rem;
+  padding: 0 var(--spacing-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background-color: var(--surface);
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color var(--animation-duration-fast) ease, color var(--animation-duration-fast) ease;
+}
+
+.action:hover {
+  border-color: var(--tk-brand-text);
+  color: var(--tk-brand-text);
+}
+
+.action:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+@media (max-width: 1024px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .card {
+    padding: var(--spacing-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meterFill,
+  .action,
+  .primaryAction {
+    transition: none;
+  }
+}

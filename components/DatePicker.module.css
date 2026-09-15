@@ -1,0 +1,77 @@
+.datePickerTrigger {
+  width: 100%;
+  justify-content: space-between;
+  font-weight: 400;
+  color: var(--foreground);
+}
+
+.placeholder {
+  color: var(--muted-foreground);
+}
+
+.datePickerContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.timeSection {
+  padding: var(--spacing-4);
+  border-top: 1px solid var(--border);
+  background-color: var(--card);
+  border-radius: 0 0 var(--radius) var(--radius);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.timeLabel {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--card-foreground);
+  white-space: nowrap;
+}
+
+.timeInputs {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex: 1;
+}
+
+.timeInput {
+  width: 4rem;
+  text-align: center;
+  padding: var(--spacing-2);
+  font-family: var(--font-family-monospace);
+  font-size: 0.9rem;
+}
+
+/* Remove spinner buttons for number inputs */
+.timeInput::-webkit-outer-spin-button,
+.timeInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.timeInput[type='number'] {
+  -moz-appearance: textfield;
+}
+
+.timeSeparator {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 768px) {
+  .timeSection {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-2);
+  }
+
+  .timeInputs {
+    width: 100%;
+  }
+}

@@ -1,0 +1,247 @@
+/* Compact list - follows pages/admin.teachers.module.css. */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  min-width: 0;
+  margin-bottom: var(--spacing-4);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3) var(--spacing-4);
+}
+
+.toolbar h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.searchInput {
+  max-width: 280px;
+}
+
+.results {
+  container: results / inline-size;
+  min-width: 0;
+}
+
+.tableContainer {
+  display: none;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.colCount {
+  width: 3.75rem;
+}
+
+.colCountWide {
+  width: 4.25rem;
+}
+
+.colDate {
+  width: 6.75rem;
+}
+
+.table th,
+.table td {
+  padding: var(--spacing-2) 0.625rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.table th:first-child,
+.table td:first-child {
+  padding-left: var(--spacing-4);
+}
+
+.table th:last-child,
+.table td:last-child {
+  padding-right: var(--spacing-2);
+}
+
+.table th {
+  height: 2.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  background-color: var(--muted);
+}
+
+.table td {
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: var(--foreground);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background-color: var(--muted);
+}
+
+.table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.table .zero,
+.cardStat .zero {
+  color: var(--muted-foreground);
+}
+
+.table .failed,
+.cardStat .failed {
+  color: color-mix(in srgb, var(--error), black 20%);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.primaryLine {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  min-width: 0;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.truncate,
+.valueLine,
+.secondaryLine {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.valueLine {
+  font-variant-numeric: tabular-nums;
+}
+
+.secondaryLine {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.verified {
+  flex-shrink: 0;
+}
+
+.emptyState {
+  padding: var(--spacing-8);
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.cardsContainer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-3);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  min-width: 0;
+  padding: var(--spacing-3) var(--spacing-4);
+  font-size: 0.875rem;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.cardStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5.75rem, 1fr));
+  gap: var(--spacing-2) var(--spacing-3);
+  margin: 0;
+  padding-top: var(--spacing-3);
+  border-top: 1px solid var(--border);
+}
+
+.cardStat {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.cardStat dt {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.cardStat dd {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2) var(--spacing-4);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.pagination > div {
+  display: flex;
+  gap: var(--spacing-2);
+}
+
+@container results (min-width: 40rem) {
+  .cardsContainer {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* The five fixed columns take 22.25rem; 48rem leaves the Teacher column at
+   least 12rem. Narrower than that, the same data reads as cards. */
+@container results (min-width: 48rem) {
+  .tableContainer {
+    display: block;
+  }
+
+  .cardsContainer {
+    display: none;
+  }
+}

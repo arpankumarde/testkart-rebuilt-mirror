@@ -1,0 +1,33 @@
+.faqSection {
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+  padding: var(--spacing-16) var(--spacing-4);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: var(--spacing-12);
+}
+
+.header h2 {
+  font-family: var(--font-family-heading);
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: var(--spacing-3);
+}
+
+.header p {
+  font-size: 1.125rem;
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 768px) {
+  .faqSection {
+    padding: var(--spacing-12) var(--spacing-4);
+  }
+  .header h2 {
+    font-size: 1.75rem;
+  }
+}

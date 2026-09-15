@@ -1,0 +1,380 @@
+.pageContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-8) var(--spacing-6) var(--spacing-16);
+}
+
+.backLinkWrapper {
+  margin-bottom: var(--spacing-8);
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  color: var(--muted-foreground);
+  font-weight: 500;
+  text-decoration: none;
+  transition: color var(--animation-duration-fast) ease;
+}
+
+.backLink:hover {
+  color: var(--foreground);
+}
+
+.layoutGrid {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: var(--spacing-12);
+  align-items: start;
+}
+
+/* Left Column */
+.detailsColumn {
+  display: flex;
+  flex-direction: column;
+}
+
+.jobHeader {
+  margin-bottom: var(--spacing-8);
+  padding-bottom: var(--spacing-8);
+  border-bottom: 1px solid var(--border);
+}
+
+.jobTitle {
+  font-family: var(--font-family-heading);
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--foreground);
+  margin-bottom: var(--spacing-4);
+  line-height: 1.2;
+}
+
+.jobMetaList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-6);
+  margin-bottom: var(--spacing-4);
+  color: var(--muted-foreground);
+  font-size: 1rem;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.jobTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.tag {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-1) var(--spacing-3);
+  font-size: 0.875rem;
+}
+
+.tagIcon {
+  opacity: 0.7;
+}
+
+.richTextSection {
+  margin-bottom: var(--spacing-8);
+}
+
+.sectionHeading {
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: var(--spacing-4);
+}
+
+.richContent {
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  color: var(--foreground);
+  opacity: 0.9;
+}
+
+.richContent :global(p) {
+  margin-bottom: var(--spacing-4);
+}
+
+.richContent :global(ul) {
+  list-style-type: disc;
+  margin-bottom: var(--spacing-4);
+  padding-left: var(--spacing-6);
+}
+
+.richContent :global(ol) {
+  list-style-type: decimal;
+  margin-bottom: var(--spacing-4);
+  padding-left: var(--spacing-6);
+}
+
+.richContent :global(ul ul) {
+  list-style-type: circle;
+}
+
+.richContent :global(li) {
+  margin-bottom: var(--spacing-2);
+}
+
+.richContent :global(h3),
+.richContent :global(h4) {
+  margin-top: var(--spacing-6);
+  margin-bottom: var(--spacing-3);
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+/* Right Column - Form */
+.formCard {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-8);
+  box-shadow: var(--shadow-md);
+  position: sticky;
+  top: calc(var(--header-height, 72px) + var(--spacing-8));
+}
+
+.formTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-6);
+  color: var(--surface-foreground);
+}
+
+.applicationForm {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Upload UI */
+.formItemLike {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-4);
+}
+
+.formLabelText {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.hiddenFileInput {
+  display: none;
+}
+
+.uploadZone {
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: var(--spacing-6);
+  background-color: var(--surface);
+  cursor: pointer;
+  transition: all var(--animation-duration-fast) ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
+}
+
+.uploadZone:hover:not(.uploadZoneDisabled) {
+  border-color: var(--primary);
+  background-color: color-mix(in srgb, var(--primary) 5%, transparent);
+}
+
+.uploadZoneDisabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.uploadPrompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-2);
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.uploadIcon {
+  color: var(--muted-foreground);
+  opacity: 0.7;
+}
+
+.uploadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-3);
+  width: 100%;
+  max-width: 200px;
+}
+
+.uploadProgressContainer {
+  width: 100%;
+  height: 6px;
+  background-color: var(--muted);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.uploadProgressBar {
+  height: 100%;
+  background-color: var(--primary);
+  transition: width var(--animation-duration-normal) ease;
+}
+
+.uploadProgressText {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.uploadedFileCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+}
+
+.uploadedFileInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  overflow: hidden;
+}
+
+.fileIcon {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.fileName {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.removeFileButton {
+  color: var(--muted-foreground);
+}
+
+.removeFileButton:hover {
+  color: var(--error);
+  background-color: color-mix(in srgb, var(--error) 10%, transparent);
+}
+
+.submitButton {
+  margin-top: var(--spacing-4);
+  width: 100%;
+}
+
+/* Success State */
+.successState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--spacing-4) 0;
+}
+
+.successIcon {
+  color: var(--success);
+  margin-bottom: var(--spacing-4);
+}
+
+.successTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-2);
+  color: var(--foreground);
+}
+
+.successText {
+  color: var(--muted-foreground);
+  line-height: 1.6;
+  margin-bottom: var(--spacing-8);
+}
+
+.backButton {
+  width: 100%;
+}
+
+/* Not Found State */
+.notFoundState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--spacing-16) var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  margin-top: var(--spacing-8);
+}
+
+.notFoundIcon {
+  color: var(--muted-foreground);
+  opacity: 0.5;
+  margin-bottom: var(--spacing-4);
+}
+
+.notFoundTitle {
+  font-family: var(--font-family-heading);
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-2);
+  color: var(--foreground);
+}
+
+.notFoundText {
+  color: var(--muted-foreground);
+  font-size: 1.125rem;
+  margin-bottom: var(--spacing-8);
+  max-width: 500px;
+}
+
+@media (max-width: 1024px) {
+  .layoutGrid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-8);
+  }
+  
+  .formCard {
+    position: relative;
+    top: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .pageContainer {
+    padding-top: var(--spacing-6);
+  }
+
+  .jobTitle {
+    font-size: 2rem;
+  }
+  
+  .formCard {
+    padding: var(--spacing-6);
+  }
+}

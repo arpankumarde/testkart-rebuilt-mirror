@@ -1,0 +1,147 @@
+.searchRow {
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  left: var(--spacing-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted-foreground);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding-left: var(--spacing-8);
+}
+
+/* Scrolls on its own so the search field and type tabs stay in view. The
+   negative margin keeps the rows aligned while leaving room for focus rings. */
+.resultsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  max-height: min(22rem, 45vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin: calc(var(--spacing-1) * -1);
+  padding: var(--spacing-1);
+}
+
+.skeletonList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.skeletonRow {
+  height: 3.5rem;
+  border-radius: var(--radius);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-8) var(--spacing-4);
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.emptyIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+}
+
+.emptyState p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.resultRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color var(--animation-duration-fast) ease, background-color var(--animation-duration-fast) ease;
+}
+
+.resultRow:hover {
+  border-color: color-mix(in srgb, var(--tk-brand) 55%, var(--border));
+}
+
+.resultRowChecked {
+  background-color: var(--tk-brand-tint);
+  border-color: color-mix(in srgb, var(--tk-brand) 55%, var(--border));
+}
+
+.resultThumb {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.resultThumbPlaceholder {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--muted);
+  flex-shrink: 0;
+}
+
+.resultInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.resultTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.resultMeta {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.resultPrice {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .resultRow {
+    transition: none;
+  }
+}

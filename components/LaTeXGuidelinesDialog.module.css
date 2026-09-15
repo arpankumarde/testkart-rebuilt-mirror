@@ -1,0 +1,163 @@
+.dialogContent {
+  width: 60rem;
+  max-width: 95vw;
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.searchContainer {
+  position: relative;
+  margin-bottom: var(--spacing-4);
+}
+
+.searchIcon {
+  position: absolute;
+  left: var(--spacing-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted-foreground);
+  pointer-events: none;
+}
+
+.searchInput {
+  padding-left: 2.5rem;
+}
+
+.tabs {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tabsList {
+  margin-bottom: var(--spacing-4);
+}
+
+.scrollArea {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: var(--spacing-2);
+  /* Custom scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.scrollArea::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollArea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollArea::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 20px;
+}
+
+.tabContent {
+  outline: none;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-6);
+}
+
+.subsection {
+  margin-bottom: var(--spacing-6);
+}
+
+.subsectionTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: var(--spacing-3);
+  padding-bottom: var(--spacing-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.formulaCard {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--spacing-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  transition: border-color 0.2s ease;
+}
+
+.formulaCard:hover {
+  border-color: var(--primary);
+}
+
+.formulaHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.formulaLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.copyButton {
+  color: var(--muted-foreground);
+}
+
+.copyButton:hover {
+  color: var(--foreground);
+}
+
+.formulaPreviewContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: var(--spacing-2);
+  background-color: var(--muted);
+  border-radius: var(--radius-sm);
+}
+
+.latexPreview {
+  font-size: 1.1rem;
+}
+
+.formulaCode {
+  background-color: var(--surface);
+  padding: var(--spacing-2);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family-monospace);
+  font-size: 0.75rem;
+  color: var(--foreground);
+  overflow-x: auto;
+  white-space: nowrap;
+  border: 1px solid var(--border);
+}
+
+.emptyState {
+  text-align: center;
+  padding: var(--spacing-8);
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .dialogContent {
+    height: 90vh;
+    padding: var(--spacing-4);
+  }
+}

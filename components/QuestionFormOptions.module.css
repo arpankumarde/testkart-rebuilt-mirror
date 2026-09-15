@@ -1,0 +1,114 @@
+.sectionHint {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  margin-bottom: var(--spacing-2);
+}
+
+.sectionHintRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+}
+
+.sectionHintRow .sectionHint {
+  margin-bottom: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.distractorsButton {
+  flex-shrink: 0;
+  color: var(--secondary);
+  gap: var(--spacing-1);
+}
+
+.optionsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.optionCard {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--spacing-2) var(--spacing-3) var(--spacing-3);
+  background-color: var(--surface);
+  transition: border-color var(--animation-duration-fast) ease, background-color var(--animation-duration-fast) ease;
+}
+
+/* The card already pads its field, so the form item's own bottom margin only adds height. */
+.optionCard > div {
+  margin-bottom: 0;
+}
+
+.optionCard :global(.ProseMirror) {
+  padding: var(--spacing-2) var(--spacing-3);
+}
+
+.optionCardCorrect {
+  border-color: color-mix(in srgb, var(--success), black 20%);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--success), black 20%);
+}
+
+.optionHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-bottom: 0;
+}
+
+.optionLabel {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.correctBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--success), black 35%);
+}
+
+.optionRemoveBtn {
+  margin-left: auto;
+  color: var(--muted-foreground);
+}
+
+.addOptionBtn {
+  width: 100%;
+  border: 1px solid var(--border);
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius);
+  color: var(--foreground);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-2);
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color var(--animation-duration-fast) ease;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-top: var(--spacing-2);
+}
+
+.addOptionBtn:hover {
+  border-color: var(--muted-foreground);
+}
+
+.addOptionBtn:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.removeOptionWrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: calc(var(--spacing-2) * -1);
+  margin-bottom: var(--spacing-2);
+}

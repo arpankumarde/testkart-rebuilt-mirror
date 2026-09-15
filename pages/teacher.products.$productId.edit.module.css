@@ -1,0 +1,25 @@
+/* The console's page shell, matching Create note or PDF. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.error {
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid color-mix(in srgb, var(--error) 30%, transparent);
+  border-radius: var(--radius-md);
+  background-color: color-mix(in srgb, var(--error) 10%, transparent);
+  color: color-mix(in srgb, var(--error), black 25%);
+  font-size: 0.875rem;
+}
+
+@media (max-width: 640px) {
+  .page {
+    gap: var(--spacing-4);
+  }
+}

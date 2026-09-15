@@ -1,0 +1,209 @@
+/*
+ * Matches the console's card language, as on TeacherTestCard: a --surface panel
+ * on a hairline border with --radius-md and the flat --shadow. Hover moves the
+ * border rather than lifting the card - a translate on every card jitters the
+ * grid.
+ */
+.card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: border-color var(--animation-duration-fast) ease;
+}
+
+.card:hover {
+  border-color: color-mix(in srgb, var(--foreground) 22%, var(--border));
+}
+
+.card:focus-within {
+  border-color: var(--tk-brand-text);
+}
+
+/* Flat --muted, not a diagonal coral gradient - the thumbnail well matches the
+   other teacher cards. */
+.thumbnailWrapper {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bundleIcon {
+  color: var(--muted-foreground);
+}
+
+.status {
+  position: absolute;
+  top: var(--spacing-2);
+  left: var(--spacing-2);
+  z-index: var(--z-content);
+  padding: 0.1875rem 0.4375rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.published {
+  background-color: var(--success);
+  color: var(--success-foreground);
+}
+
+.draft {
+  background-color: var(--foreground);
+  color: var(--background);
+}
+
+.thumbnailImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.discountBadge {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border: 1px solid var(--primary);
+  font-weight: 700;
+}
+
+.content {
+  padding: var(--spacing-4);
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.badgeGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  align-items: center;
+}
+
+.menuButton {
+  color: var(--muted-foreground);
+}
+
+.menuButton:hover {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.title {
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  margin: 0;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.courseCount {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  font-weight: 500;
+  margin-top: auto;
+  padding-top: var(--spacing-2);
+}
+
+.staleNote {
+  margin: 0;
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid color-mix(in srgb, var(--warning) 45%, var(--surface));
+  border-radius: var(--radius-sm);
+  background-color: color-mix(in srgb, var(--warning) 12%, var(--surface));
+  color: color-mix(in srgb, var(--warning), black 55%);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.footer {
+  padding: var(--spacing-3) var(--spacing-4);
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.priceContainer {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+/*
+ * The deep brand orange, not --primary. The coral --primary was being used as
+ * text on this white card at about 2.1:1; --tk-brand-text is the themed token
+ * meant for orange type on a surface.
+ */
+.price {
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--tk-brand-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.originalPrice {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  text-decoration: line-through;
+}
+
+.deleteItem {
+  color: var(--error);
+}
+
+.deleteItem:hover {
+  background-color: color-mix(in srgb, var(--error) 12%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.copyButton {
+  color: var(--muted-foreground);
+}
+
+.copyButton:hover {
+  color: var(--foreground);
+}

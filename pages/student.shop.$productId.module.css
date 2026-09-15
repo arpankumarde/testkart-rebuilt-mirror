@@ -1,0 +1,345 @@
+/*
+ * On the shared console language - see student.tests.module.css for the rules.
+ * The category label lost its tracked-out ALL-CAPS treatment, and the two
+ * coral-on-muted icon tiles became the --tk-brand-tint / --tk-brand-text pair.
+ */
+/*
+ * 64rem, not the 1440 workspace measure: a header card over a single column of
+ * file rows. 1440 left each row's title stranded from its Read button.
+ */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  width: 100%;
+  max-width: 64rem;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  width: fit-content;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color var(--animation-duration-fast) ease;
+}
+
+.backLink:hover {
+  color: var(--foreground);
+}
+
+.backLink:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--radius-sm);
+}
+
+.headerCard {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.cardHeader {
+  display: flex;
+  gap: var(--spacing-4);
+  padding: var(--spacing-6);
+  border-bottom: 1px solid var(--border);
+}
+
+.iconContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  border-radius: var(--radius);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.headerContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.category {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--tk-brand-text);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  color: var(--foreground);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-1);
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.metaDivider {
+  color: var(--border);
+}
+
+.headerFooter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4) var(--spacing-6);
+}
+
+.reviewButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-1);
+  height: 2.5rem;
+  padding: 0 var(--spacing-4);
+  border-radius: var(--radius);
+  background-color: transparent;
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  font-family: var(--font-family-base);
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) ease, border-color var(--animation-duration-fast) ease;
+}
+
+.reviewButton:hover {
+  background-color: var(--muted);
+  border-color: color-mix(in srgb, var(--border), black 10%);
+}
+
+.reviewButton:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.fileList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.fileItem {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.fileItemIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.fileItemInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.fileItemTitle {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.fileItemMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+/* Ink on coral, 6.2:1 - the pairing base.css defines. Hover drops to the deep
+   orange with a white label. */
+.fileViewButton {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  height: 2.25rem;
+  padding: 0 var(--spacing-3);
+  border: none;
+  border-radius: var(--radius);
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  font-family: var(--font-family-base);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) ease, color var(--animation-duration-fast) ease;
+}
+
+.fileViewButton:hover {
+  background-color: var(--tk-brand-hover);
+  color: var(--tk-brand-hover-foreground);
+}
+
+.fileViewButton:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.stateBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-8) var(--spacing-4);
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.stateIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: var(--spacing-1);
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.stateTitle {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.stateHint {
+  max-width: 34rem;
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.headerSkeleton {
+  height: 200px;
+  border-radius: var(--radius-md);
+}
+
+.itemSkeleton {
+  height: 64px;
+  border-radius: var(--radius);
+}
+
+@media (max-width: 768px) {
+  .cardHeader {
+    padding: var(--spacing-4);
+    gap: var(--spacing-3);
+  }
+
+  .iconContainer {
+    width: 44px;
+    height: 44px;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .headerFooter {
+    padding: var(--spacing-4);
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .reviewButton {
+    width: 100%;
+    height: 2.75rem;
+    font-size: 1rem;
+  }
+
+  .fileList {
+    padding: var(--spacing-3);
+  }
+
+  .fileItem {
+    padding: var(--spacing-3);
+    flex-wrap: wrap;
+  }
+
+  .fileViewButton {
+    width: 100%;
+    justify-content: center;
+    height: 2.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .iconContainer {
+    width: 40px;
+    height: 40px;
+  }
+
+  .title {
+    font-size: 1.125rem;
+  }
+
+  .meta {
+    font-size: 0.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backLink,
+  .reviewButton,
+  .fileViewButton {
+    transition: none;
+  }
+}

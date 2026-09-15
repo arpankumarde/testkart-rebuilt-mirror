@@ -1,0 +1,28 @@
+.optionsGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.optionLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color var(--animation-duration-fast), box-shadow var(--animation-duration-fast);
+  overflow: hidden; /* Prevent overflow */
+  max-width: 100%;
+}
+
+.optionLabel:hover {
+  border-color: var(--primary);
+}
+
+.optionLabel > span {
+  font-size: 1rem;
+  overflow-x: auto; /* Allow scrolling for wide content inside options */
+  max-width: 100%;
+}

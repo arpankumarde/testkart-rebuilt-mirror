@@ -1,0 +1,148 @@
+.card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.head {
+  padding: var(--spacing-3) var(--spacing-6);
+  border-bottom: 1px solid var(--border);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+/*
+ * The 1px gap over a border-coloured ground draws every divider, including the
+ * ones between wrapped rows - which a per-column border cannot do once the
+ * five columns reflow to two or three per row.
+ */
+.columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap: 1px;
+  background-color: var(--border);
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  min-width: 0;
+  padding: var(--spacing-4) var(--spacing-6);
+  background-color: var(--surface);
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.icon {
+  flex-shrink: 0;
+  color: var(--tk-brand-text);
+}
+
+/*
+ * Two targets per column: the headline opens the rows it counts and the note
+ * opens the drafts. The negative inline margin lets the hover fill reach past
+ * the text without shifting it off the label's edge.
+ */
+.valueLink,
+.noteLink {
+  align-self: flex-start;
+  max-width: calc(100% + 2 * var(--spacing-2));
+  margin-inline: calc(-1 * var(--spacing-2));
+  padding-inline: var(--spacing-2);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
+}
+
+.valueLink:hover,
+.noteLink:hover {
+  background-color: var(--muted);
+}
+
+.valueLink:focus-visible,
+.noteLink:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 1px;
+}
+
+/* The headline counts what is LIVE, so it says so inline - otherwise the
+   draft count beneath it reads as a description of this number. */
+.valueLink {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-2);
+  margin-block: -0.125rem;
+  padding-block: 0.125rem;
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.suffix {
+  font-family: var(--font-family-base);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--muted-foreground);
+}
+
+.valueLink:hover .suffix,
+.noteLink:hover {
+  color: var(--foreground);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.note,
+.noteLink {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.noteLink {
+  margin-block: -0.125rem;
+  padding-block: 0.25rem;
+}
+
+@media (max-width: 640px) {
+  .head {
+    padding: var(--spacing-3) var(--spacing-4);
+  }
+
+  .column {
+    padding: var(--spacing-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .valueLink,
+  .noteLink {
+    transition: none;
+  }
+}

@@ -1,0 +1,162 @@
+/* The console shell. No padding of its own - TeacherDashboardLayout's
+   .pageBody owns the gutter, and the old --spacing-8 here doubled it. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-4) var(--spacing-8);
+  padding: var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.summaryScope {
+  min-width: 0;
+  margin-right: auto;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 5.5rem;
+}
+
+.statValue {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.statIcon {
+  color: var(--tk-brand-text);
+  flex-shrink: 0;
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+/*
+ * The console's card: --radius-md on a hairline border with the flat --shadow.
+ * Hover moves the border rather than lifting the card.
+ */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-2) var(--spacing-4);
+}
+
+.reviewerLine {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2) var(--spacing-3);
+  min-width: 0;
+}
+
+.reviewerName {
+  font-family: var(--font-family-heading);
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.reviewDate {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.stars {
+  display: flex;
+  gap: 2px;
+}
+
+/*
+ * Deep brand orange rather than raw --warning, which sits at about 2:1 on a
+ * white card - under the 3:1 a rating glyph needs to read. The star count is
+ * also announced as text, so the unfilled state is not load-bearing.
+ */
+.filledStar {
+  color: var(--tk-brand-text);
+  fill: currentColor;
+}
+
+.emptyStar {
+  color: color-mix(in srgb, var(--muted-foreground) 40%, transparent);
+}
+
+.reviewText {
+  margin: 0;
+  max-width: 70ch;
+  color: var(--foreground);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.noText {
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+
+@media (max-width: 640px) {
+  .page {
+    gap: var(--spacing-4);
+  }
+
+  .summary {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--spacing-3);
+  }
+
+  .summaryScope {
+    margin-right: 0;
+  }
+}

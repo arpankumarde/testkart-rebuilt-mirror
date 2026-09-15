@@ -1,0 +1,118 @@
+.card {
+  background-color: var(--surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  transition: border-color var(--animation-duration-fast) ease;
+  overflow: hidden;
+}
+
+/* The border moves on hover rather than the card lifting - the console
+   dropped every hover lift. */
+.card:hover {
+  border-color: color-mix(in srgb, var(--border), var(--foreground) 25%);
+}
+
+/* The tinted header wash is gone, as it is on every other console panel. */
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-4);
+  border-bottom: 1px solid var(--border);
+}
+
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.cardContent {
+  padding: var(--spacing-4);
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.itemName {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.meta {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.score {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.score span {
+  font-weight: 600;
+  color: color-mix(in srgb, var(--success), black 25%);
+}
+
+.cardFooter {
+  padding: var(--spacing-4);
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--background);
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.buttonGroup {
+  display: flex;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.certNumber {
+  font-family: var(--font-family-monospace);
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin: 0;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* A certificate that is ready to claim rather than earned. Marked with a
+   neutral tile instead of a second brand colour, so coral stays the one
+   accent on the page. */
+.eligibleCard .iconWrapper {
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+}

@@ -1,0 +1,454 @@
+/* The editor keeps its own full-height shell: it is a writing surface with a
+   sticky action bar, the same call the teacher test-authoring pages made. */
+.pageContainer {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background);
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  /* Above the editor toolbar, which sticks directly below this header. */
+  z-index: 20;
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: var(--spacing-3) var(--spacing-6);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-4);
+  box-shadow: var(--shadow);
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-6);
+  min-width: 0;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex-shrink: 0;
+}
+
+/* Step indicator. State is carried by colour and weight rather than opacity -
+   the console does not fade things to say "inactive". */
+.stepIndicator {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding: var(--spacing-1);
+  border: none;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--muted-foreground);
+  font-family: var(--font-family-base);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--animation-duration-fast) ease;
+}
+
+.step:disabled {
+  cursor: default;
+}
+
+.step:not(:disabled):not(.stepCurrent):hover {
+  color: var(--foreground);
+}
+
+.step:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.stepCurrent {
+  color: var(--tk-brand-text);
+  font-weight: 600;
+}
+
+.stepCompleted {
+  color: var(--foreground);
+}
+
+.stepCircle {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted-foreground);
+  flex-shrink: 0;
+  transition: background-color var(--animation-duration-fast) ease, color var(--animation-duration-fast) ease;
+}
+
+/* Coral as a block with ink on it - the documented pairing, 6.2:1. */
+.stepCurrent .stepCircle,
+.stepCompleted .stepCircle {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+/* Visually hidden on narrow screens, so the step button keeps its name. */
+.stepLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.stepLine {
+  width: 1.5rem;
+  height: 2px;
+  background-color: var(--border);
+  margin: 0 var(--spacing-1);
+  flex-shrink: 0;
+}
+
+.stepCompleted + .stepLine {
+  background-color: var(--primary);
+}
+
+@media (min-width: 768px) {
+  .stepLabel {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+  }
+
+  .stepLine {
+    width: 2rem;
+  }
+}
+
+.saveStatus {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.statusDotGreen {
+  background-color: color-mix(in srgb, var(--success), black 25%);
+}
+
+.statusDotYellow {
+  background-color: color-mix(in srgb, var(--warning), black 25%);
+}
+
+.spinIcon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.contentArea {
+  flex: 1;
+  width: 100%;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: var(--spacing-6);
+  box-sizing: border-box;
+}
+
+/* Step 1: what kind of article */
+.step1Container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: var(--spacing-8);
+  gap: var(--spacing-8);
+}
+
+.stepHeading {
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.typeCards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  width: 100%;
+  max-width: 800px;
+}
+
+@media (min-width: 768px) {
+  .typeCards {
+    flex-direction: row;
+  }
+}
+
+/* Hover moves the border rather than raising the card - the console does not
+   lift things on hover. */
+.typeCard {
+  flex: 1;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  padding: var(--spacing-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--spacing-4);
+  margin: 0;
+  font-family: var(--font-family-base);
+  color: var(--foreground);
+  cursor: pointer;
+  transition: border-color var(--animation-duration-fast) ease;
+}
+
+.typeCard:hover {
+  border-color: color-mix(in srgb, var(--tk-brand) 55%, var(--border));
+}
+
+.typeCard:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.typeIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.typeTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.typeText {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Step 2: the writing surface */
+.workspace {
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.titleFormItem {
+  margin-bottom: var(--spacing-6);
+}
+
+.workspaceTitle {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-family: var(--font-family-heading);
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+  padding: 0;
+  outline: none;
+  line-height: 1.2;
+}
+
+.workspaceTitle::placeholder {
+  color: var(--muted-foreground);
+}
+
+.workspaceEditor {
+  border: none;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
+
+.workspaceEditor:focus-within {
+  border: none;
+  box-shadow: none;
+}
+
+/* Step 3: settings and publish */
+.settingsLayout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+@media (min-width: 1024px) {
+  .settingsLayout {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .settingsColumnLeft {
+    width: 60%;
+    flex-shrink: 0;
+  }
+
+  .settingsColumnRight {
+    width: 40%;
+    flex-shrink: 0;
+  }
+}
+
+.settingsCard {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-4);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.sectionTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  margin: 0;
+  padding-bottom: var(--spacing-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.urlPreview {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  margin-top: var(--spacing-1);
+  word-break: break-all;
+}
+
+.urlPreview strong {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.tagsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-3);
+}
+
+.tagBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.removeTag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: -2px 0;
+  padding: 2px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--muted-foreground);
+  cursor: pointer;
+}
+
+.removeTag:hover {
+  color: var(--foreground);
+}
+
+.removeTag:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.switchRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-2) 0;
+}
+
+.publishActions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-2);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--border);
+}
+
+.fullWidthBtn {
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .header {
+    padding: var(--spacing-3) var(--spacing-4);
+  }
+
+  .contentArea {
+    padding: var(--spacing-4);
+  }
+
+  .workspaceTitle {
+    font-size: 1.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step,
+  .stepCircle,
+  .typeCard {
+    transition: none;
+  }
+
+  .spinIcon {
+    animation: none;
+  }
+}

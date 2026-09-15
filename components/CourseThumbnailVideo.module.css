@@ -1,0 +1,16 @@
+.container {
+  width: 100%;
+  position: relative;
+}
+
+/* 
+  The CourseThumbnailVideo component is a lightweight wrapper around the VideoUploader.
+  All core styling for the uploader, preview, and states (loading, error) is handled
+  by the VideoUploader.module.css file to maintain a single source of truth and consistency.
+  
+  This approach ensures that any future design updates to the VideoUploader will
+  automatically be reflected in this component.
+  
+  No additional styles are needed here as the requirements are fully met by the
+  underlying VideoUploader's existing design.
+*/

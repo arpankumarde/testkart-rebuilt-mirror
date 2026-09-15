@@ -1,0 +1,245 @@
+.reviewItem {
+  background-color: var(--surface);
+  padding: var(--spacing-6);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-4);
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-touch-callout: none;
+  cursor: default;
+  /* Offsets the scroll target so the sticky question-pill nav (see
+     TestResultsDisplay.module.css .stickyNav) doesn't cover the top of the
+     card when a pill link scrolls it into view. */
+  scroll-margin-top: 8.5rem;
+}
+
+.paragraphText {
+  background-color: var(--muted);
+  padding: var(--spacing-4);
+  border-radius: var(--radius);
+  margin-bottom: var(--spacing-4);
+  border-left: 3px solid var(--info);
+}
+
+.reviewQuestionText {
+  font-size: 1.125rem;
+  font-weight: 500;
+  margin-bottom: var(--spacing-4);
+  line-height: 1.6;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+}
+
+.questionNumber {
+  font-weight: 600;
+  margin-right: var(--spacing-2);
+  color: var(--primary);
+}
+
+.marksPositive {
+  color: var(--success);
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-left: auto;
+}
+
+.marksNegative {
+  color: var(--error);
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-left: auto;
+}
+
+.marksZero {
+  color: var(--muted-foreground);
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-left: auto;
+}
+
+.reviewOptions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-4);
+}
+
+.reviewOptionBadge {
+  justify-content: flex-start;
+  width: fit-content;
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: 1rem;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  /* Badge.module.css sets white-space: nowrap as a sane default for short
+     pill labels, but here a badge can wrap a full MCQ option sentence.
+     Without overriding it, one long option silently forces the entire
+     page wider than the viewport (a single nowrap pill inside a flex
+     column isn't constrained by its parent's width), which is what caused
+     the whole results page to scroll/cut off horizontally on mobile.
+     !important because CSS-module class order between this file and
+     Badge.module.css isn't guaranteed, and this override must always win. */
+  white-space: normal !important;
+  max-width: 100%;
+  word-break: break-word;
+}
+
+.checkIcon {
+  color: inherit;
+  flex-shrink: 0;
+}
+
+.unattemptedNotice {
+  background-color: color-mix(in srgb, var(--warning) 15%, transparent);
+  color: var(--warning-foreground);
+  padding: var(--spacing-3);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  border-left: 3px solid var(--warning);
+  margin-bottom: var(--spacing-3);
+}
+
+.correctAnswer {
+  background-color: color-mix(in srgb, var(--success) 15%, transparent);
+  color: black;
+  padding: var(--spacing-3);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  border-left: 3px solid var(--success);
+  margin-bottom: var(--spacing-3);
+}
+
+.numericalAnswer {
+  margin-bottom: var(--spacing-3);
+}
+
+.answerRow {
+  background-color: var(--muted);
+  padding: var(--spacing-3);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  border-left: 3px solid var(--info);
+  margin-bottom: var(--spacing-3);
+}
+
+.matchTable {
+  margin-bottom: var(--spacing-3);
+  overflow-x: auto;
+}
+
+.matchTable table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--surface);
+  border-radius: var(--radius);
+}
+
+.matchTable th,
+.matchTable td {
+  padding: var(--spacing-3);
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.matchTable th {
+  background-color: var(--muted);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.matchTable tr:last-child td {
+  border-bottom: none;
+}
+
+.matchKey {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.matchCorrect {
+  color: color-mix(in srgb, var(--success), black 35%);
+  font-weight: 500;
+}
+
+.matchWrong {
+  color: color-mix(in srgb, var(--error), black 35%);
+  font-weight: 500;
+}
+
+.matchCorrectAnswer {
+  color: color-mix(in srgb, var(--success), black 35%);
+  font-weight: 500;
+}
+
+.correctIcon {
+  color: var(--success);
+}
+
+.incorrectIcon {
+  color: var(--error);
+}
+
+.explanationToggle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  background: none;
+  border: none;
+  padding: var(--spacing-1) 0;
+  color: var(--primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.explanationToggle:hover {
+  text-decoration: underline;
+}
+
+.explanationChevron {
+  transition: transform var(--animation-duration-fast, 0.15s) ease-in-out;
+}
+
+.explanationChevronOpen {
+  transform: rotate(180deg);
+}
+
+.explanation {
+  margin-top: var(--spacing-3);
+  background-color: var(--muted);
+  padding: var(--spacing-3);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  border-left: 3px solid var(--secondary);
+}
+
+@media (max-width: 768px) {
+  .reviewQuestionText {
+    flex-direction: column;
+  }
+
+  .marksPositive,
+  .marksNegative,
+  .marksZero {
+    margin-left: 0;
+    margin-top: var(--spacing-2);
+  }
+
+  .matchTable {
+    font-size: 0.85rem;
+  }
+
+  .matchTable th,
+  .matchTable td {
+    padding: var(--spacing-2);
+  }
+}

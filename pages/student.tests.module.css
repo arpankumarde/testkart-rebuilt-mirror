@@ -1,0 +1,54 @@
+/*
+ * On the console language shared with the admin, teacher and student
+ * dashboards: --surface panels on a hairline border at --radius-md, the flat
+ * --shadow, no hover lift, and coral only as a block or as --tk-brand-text.
+ *
+ * No gutter of its own - StudentDashboardLayout's .mainContent owns the page
+ * padding, and this page used to add its own on top.
+ */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/*
+ * EnrolledTestCard is a compact vertical card - an 84px thumbnail over stacked
+ * content and a full-width CTA - so it is built for a ~300px column, the same
+ * measure /student/courses and /student/shop use. A two-up grid stretched it
+ * to ~590-710px on a wide screen and the footer button ran the whole way.
+ *
+ * auto-fill (not auto-fit) keeps the empty tracks, so a short row leaves a gap
+ * rather than stretching two cards back across the full width.
+ */
+.testsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-4);
+  align-items: stretch;
+}
+
+.cardSkeleton {
+  width: 100%;
+  height: 280px;
+  border-radius: var(--radius-md);
+}
+
+@media (max-width: 768px) {
+  .page {
+    gap: var(--spacing-4);
+  }
+
+  .testsGrid {
+    gap: var(--spacing-3);
+  }
+
+  .cardSkeleton {
+    height: auto;
+    aspect-ratio: 1 / 1.1;
+  }
+}

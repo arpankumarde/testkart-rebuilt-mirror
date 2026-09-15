@@ -1,0 +1,118 @@
+/* The page itself only owns the loading and error states now - the profile
+   layout lives in components/ExpertProfileView, shared with the preview
+   inside the teacher dashboard. */
+
+.page {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-8) var(--spacing-6) var(--spacing-16);
+  box-sizing: border-box;
+}
+
+.heroSkeleton {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+}
+
+.avatarSkeleton {
+  flex-shrink: 0;
+  width: 11.5rem;
+  height: 11.5rem;
+  border-radius: var(--radius-full);
+}
+
+.heroTextSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  flex: 1;
+  min-width: 0;
+}
+
+.heroActionsSkeleton {
+  display: flex;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-3);
+}
+
+.statsSkeleton {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: var(--spacing-6);
+  margin-top: var(--spacing-8);
+  padding: var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.gridSkeleton {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17.5rem, 1fr));
+  gap: var(--spacing-4);
+  margin-top: var(--spacing-12);
+}
+
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-16) var(--spacing-4);
+  text-align: center;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.errorIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--error) 14%, var(--surface));
+  color: var(--error);
+}
+
+.errorTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--foreground);
+}
+
+.errorText {
+  margin: 0;
+  max-width: 34rem;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 860px) {
+  .page {
+    padding: var(--spacing-6) var(--spacing-4) var(--spacing-12);
+  }
+
+  .heroSkeleton {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-4);
+  }
+
+  .avatarSkeleton {
+    width: 8rem;
+    height: 8rem;
+  }
+
+  .gridSkeleton {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

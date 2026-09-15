@@ -1,0 +1,119 @@
+.comparisonSection {
+  padding: var(--spacing-16) var(--spacing-4);
+  background: #0a0a0a;
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .comparisonSection {
+    padding: var(--spacing-12) var(--spacing-4);
+  }
+}
+
+.sectionContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.sectionTitle {
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-12);
+  color: white;
+  font-family: var(--font-family-heading);
+}
+
+@media (max-width: 768px) {
+  .sectionTitle {
+    font-size: 1.75rem;
+    margin-bottom: var(--spacing-8);
+    line-height: 1.2;
+  }
+}
+
+.comparisonTableWrapper {
+  overflow-x: auto;
+  background: #111;
+  border-radius: var(--radius-lg);
+  border: 1px solid #222;
+  padding: var(--spacing-4);
+  position: relative;
+  /* Visual cue for horizontal scrolling on mobile */
+  mask-image: linear-gradient(to right, black 85%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+}
+
+@media (min-width: 769px) {
+  .comparisonTableWrapper {
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+}
+
+.comparisonTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+@media (max-width: 768px) {
+  .comparisonTable {
+    min-width: 450px;
+  }
+}
+
+.comparisonTable th,
+.comparisonTable td {
+  padding: var(--spacing-4);
+  text-align: left;
+  border-bottom: 1px solid #222;
+}
+
+@media (max-width: 768px) {
+  .comparisonTable th,
+  .comparisonTable td {
+    padding: var(--spacing-3) var(--spacing-2);
+    font-size: 0.875rem;
+  }
+
+  .comparisonTable th {
+    font-size: 0.9rem;
+  }
+}
+
+.comparisonTable th {
+  font-size: 1.1rem;
+  color: #888;
+}
+
+.comparisonTable td {
+  font-size: 1rem;
+  color: white;
+}
+
+.traditionalCol {
+  color: #ff3b30 !important;
+}
+
+.testkartCol {
+  color: #34c759 !important;
+  font-weight: 700;
+  background: rgba(52, 199, 89, 0.05);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.comparisonTable td.positive {
+  color: #34c759;
+  background: rgba(52, 199, 89, 0.05);
+}
+
+.comparisonTable td.negative {
+  color: #ff3b30;
+  opacity: 0.7;
+}
+
+.comparisonTable td svg {
+  vertical-align: middle;
+  margin-left: var(--spacing-2);
+}

@@ -1,0 +1,362 @@
+/*
+ * Teacher testimonials for the /sell pages, sitting directly under each hero.
+ *
+ * The band is brand artwork, not a themed surface - solid --tk-brand with
+ * --tk-brand-ink on it at 6.2:1, fixed in both themes, the same call
+ * TeacherCtaBanner and BookDemoPopup make. That is what lets one component sit
+ * under the deep-dark /sell hero and under the light heroes on the four
+ * sub-pages without re-pointing a single token.
+ *
+ * There is no avatar - the portrait is already the teacher's face at full size,
+ * and a second small copy of it beside the name was the one accessory worth
+ * removing.
+ *
+ * Sizing: every size here is one monotonic clamp across the whole viewport
+ * range, so nothing ever shrinks as the screen grows. Media queries change
+ * LAYOUT only - two columns above 900px, stacked below, and which navigation
+ * control is shown. Re-declaring a font-size or a width inside a breakpoint is
+ * what produced the earlier regressions (the quote dropped 22px to 18px at
+ * 561px, the portrait 300px to 240px at 901px), so sizes stay out of them.
+ */
+
+/* One source of truth for the portrait's width - the grid track and the frame
+   have to agree, or the column and the thing in it drift apart. */
+.section {
+  --tst-portrait: clamp(240px, 14rem + 8vw, 320px);
+
+  padding: clamp(3rem, 7vw, 5.5rem) clamp(1.25rem, 5vw, 2.5rem);
+  background-color: var(--tk-brand);
+  color: var(--tk-brand-ink);
+}
+
+.container {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spacing-8);
+  margin-bottom: clamp(1.75rem, 4vw, 3rem);
+}
+
+.title {
+  margin: 0;
+  max-width: 18ch;
+  font-family: var(--font-family-heading);
+  font-size: clamp(1.5rem, 1.05rem + 2.2vw, 2.5rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+}
+
+.nav {
+  display: flex;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+}
+
+.navButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border: 2px solid var(--tk-brand-ink);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--tk-brand-ink);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.navButton:hover:not(:disabled) {
+  background: var(--tk-brand-ink);
+  color: var(--tk-brand);
+}
+
+.navButton:focus-visible {
+  outline: 2px solid var(--tk-brand-ink);
+  outline-offset: 3px;
+}
+
+.navButton:disabled {
+  border-color: hsl(20 85% 18% / 0.35);
+  color: hsl(20 85% 18% / 0.35);
+  cursor: not-allowed;
+}
+
+/*
+ * Must stay hidden. This unlayered rule is what beats the @layer base rule in
+ * Carousel.module.css, and that clip is the only thing holding the track in:
+ * two slides make it 200% wide, so overflow:visible here pushes the whole page
+ * sideways on any sell page whose wrapper does not set overflow-x.
+ */
+.carousel {
+  overflow: hidden;
+}
+
+.slide {
+  width: 100%;
+  flex: 0 0 100%;
+}
+
+/* Text flush left, portrait flush right, the slack between them. Sizing column
+   one to the quote's own measure rather than 1fr keeps that slack in the gap
+   instead of leaving it stranded inside the words column. */
+.card {
+  display: grid;
+  grid-template-columns: minmax(0, 38rem) var(--tst-portrait);
+  justify-content: space-between;
+  gap: clamp(2rem, 5vw, 4.5rem);
+  align-items: center;
+}
+
+.words {
+  min-width: 0;
+}
+
+.quote {
+  margin: 0 0 clamp(1.5rem, 3vw, 2rem);
+  max-width: 38rem;
+  font-family: var(--font-family-heading);
+  font-size: clamp(1.125rem, 0.8rem + 1.6vw, 2.25rem);
+  font-weight: 600;
+  line-height: 1.36;
+  letter-spacing: -0.015em;
+  text-wrap: pretty;
+}
+
+/* Marks where the teacher's quoted speech stops and our description of them
+   begins, which is the one piece of structure this block actually needs. */
+.rule {
+  width: 44px;
+  height: 2px;
+  margin: 0 0 var(--spacing-4);
+  border: 0;
+  background: var(--tk-brand-ink);
+}
+
+.who {
+  display: grid;
+  gap: 0.2rem;
+  justify-items: start;
+  color: inherit;
+  text-decoration: none;
+}
+
+.whoName {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-family-heading);
+  font-size: clamp(1.125rem, 1.8vw, 1.375rem);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 4px;
+  transition: text-decoration-thickness 0.15s ease;
+}
+
+.who:hover .whoName {
+  text-decoration-thickness: 3px;
+}
+
+.who:focus-visible {
+  outline: 2px solid var(--tk-brand-ink);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+.verifiedIcon {
+  width: clamp(15px, 1.4vw, 18px);
+  height: clamp(15px, 1.4vw, 18px);
+  flex-shrink: 0;
+}
+
+.whoMeta {
+  /* Wide enough to hold the longer of the two taglines on one line; at 34ch it
+     broke after "world of", which reads as a mistake rather than a wrap. */
+  max-width: 48ch;
+  font-size: clamp(0.875rem, 1.2vw, 1rem);
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.film {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+/* Ink surround, not a white mount: both posters are shot against pale cream
+   walls, so a white frame would dissolve into the photograph. */
+.frame {
+  position: relative;
+  width: 100%;
+  max-width: var(--tst-portrait);
+  padding: clamp(8px, 0.85vw, 12px);
+  border-radius: 14px;
+  background: var(--tk-brand-ink);
+}
+
+.shot {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  overflow: hidden;
+  background: #000000;
+  cursor: pointer;
+}
+
+.posterImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.playButton {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(48px, 5vw, 64px);
+  height: clamp(48px, 5vw, 64px);
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand-deep);
+  color: #ffffff;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.shot:hover .playButton {
+  background-color: var(--tk-brand);
+  color: var(--tk-brand-ink);
+  transform: translate(-50%, -50%) scale(1.07);
+}
+
+.shot:focus-visible {
+  outline: 2px solid var(--tk-brand-ink);
+  outline-offset: 4px;
+}
+
+/* Same box as .shot, so swapping the poster button for the embed leaves the
+   frame exactly where it was. height:100% had no definite parent height to
+   resolve against - .frame is sized by its child - so the iframe fell back to
+   its 150px default and the video collapsed on play. */
+.videoEmbed {
+  display: block;
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  height: auto;
+  border: 0;
+  border-radius: 7px;
+  background: #000000;
+}
+
+/* Arrows carry navigation on the desktop layout, dots carry it on touch where
+   the arrows are gone and the swipe needs a position readout. */
+.dots {
+  display: none;
+  gap: var(--spacing-2);
+  margin-top: clamp(1.75rem, 4vw, 2rem);
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  border: 1.5px solid var(--tk-brand-ink);
+  border-radius: var(--radius-full);
+  background: transparent;
+  cursor: pointer;
+  transition: width 0.18s ease, background-color 0.18s ease;
+}
+
+.dotActive {
+  width: 30px;
+  background: var(--tk-brand-ink);
+}
+
+.dot:focus-visible {
+  outline: 2px solid var(--tk-brand-ink);
+  outline-offset: 2px;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Layout only below here. Sizes are fluid and defined once, above. */
+
+/* Stacked: the portrait moves under the words and takes the left edge, so it
+   reads as part of the same block rather than a centred afterthought. */
+@media (max-width: 900px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-4);
+  }
+
+  .nav {
+    display: none;
+  }
+
+  .dots {
+    display: flex;
+  }
+
+  .card {
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(1.75rem, 4vw, 2.5rem);
+    justify-items: start;
+  }
+
+  .film {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 560px) {
+  .title {
+    max-width: 100%;
+  }
+}
+
+/* Below this the name can no longer share a line with its badge, and the meta
+   needs the full width to avoid one-word lines. */
+@media (max-width: 380px) {
+  .whoName {
+    flex-wrap: wrap;
+  }
+
+  .whoMeta {
+    max-width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shot:hover .playButton {
+    transform: translate(-50%, -50%);
+  }
+}

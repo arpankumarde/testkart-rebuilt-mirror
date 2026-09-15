@@ -1,0 +1,459 @@
+.hero {
+  background: var(--background);
+  padding: var(--spacing-12) var(--spacing-6);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at center, color-mix(in srgb, var(--primary) 5%, transparent) 0%, transparent 60%);
+  animation: pulseBg 10s ease-in-out infinite alternate;
+  z-index: 0;
+  pointer-events: none;
+}
+
+@keyframes pulseBg {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(1.1); opacity: 1; }
+}
+
+/* Status variants */
+.statusLive { border-top: 4px solid var(--success); }
+.statusLive::before { background: radial-gradient(circle at center, color-mix(in srgb, var(--success) 10%, transparent) 0%, transparent 60%); }
+
+.statusUpcoming, .statusRegistrationClosed, .statusSeatsFull { border-top: 4px solid var(--warning); }
+.statusUpcoming::before, .statusRegistrationClosed::before, .statusSeatsFull::before { background: radial-gradient(circle at center, color-mix(in srgb, var(--warning) 10%, transparent) 0%, transparent 60%); }
+
+.statusEnded { border-top: 4px solid var(--muted-foreground); }
+.statusEnded::before { background: radial-gradient(circle at center, color-mix(in srgb, var(--muted-foreground) 10%, transparent) 0%, transparent 60%); }
+
+.heroInner {
+  display: flex;
+  gap: var(--spacing-12);
+  max-width: 1100px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+  align-items: flex-start;
+}
+
+.leftColumn {
+  flex: 1 1 55%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.rightColumn {
+  flex: 1 1 40%;
+  position: sticky;
+  top: calc(var(--header-height, 72px) + var(--spacing-4));
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.breadcrumb a {
+  color: var(--foreground);
+  text-decoration: none;
+  transition: color var(--animation-duration-fast);
+}
+
+.breadcrumb a:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+.badgesRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.liveBadge {
+  align-self: flex-start;
+  font-size: 1rem;
+  padding: var(--spacing-2) var(--spacing-3);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--error) 40%, transparent); }
+  70% { box-shadow: 0 0 0 10px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+.title {
+  font-family: var(--font-family-heading);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.creatorViewsContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  flex-wrap: wrap;
+  margin: 0;
+}
+
+.creator {
+  font-size: 1rem;
+  color: var(--muted-foreground);
+  margin: 0;
+  font-weight: 500;
+}
+
+.creatorLink {
+  color: var(--foreground);
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  transition: color var(--animation-duration-fast);
+}
+
+.creatorLink:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+.creatorLink:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.viewCount {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+
+.countdown {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-4);
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.countdownLabel {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin-bottom: var(--spacing-3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.countdownTimer {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: var(--spacing-3);
+}
+
+.timerBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius);
+  min-width: 60px;
+}
+
+.timerBlock span {
+  font-family: var(--font-family-monospace);
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.timerBlock small {
+  font-size: 0.75rem;
+  color: var(--primary);
+  margin-top: 2px;
+}
+
+.timerSeparator {
+  font-size: 2rem;
+  color: var(--border);
+  padding-bottom: var(--spacing-4);
+}
+
+.metaPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+}
+
+.metaPill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--radius-full);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.metaPill strong {
+  color: var(--foreground);
+}
+
+.enrollmentSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.seats {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.progressBar {
+  height: 8px;
+}
+
+.ctaContainer {
+  margin-top: var(--spacing-2);
+}
+
+.shareButton {
+  width: 100%;
+  max-width: 300px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.ctaButton {
+  width: 100%;
+  max-width: 300px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.ctaText {
+  flex: 0 0 auto;
+}
+
+.ctaPriceBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.teacherInfoBox {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  background-color: color-mix(in srgb, var(--info) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--info) 25%, transparent);
+  border-radius: var(--radius-lg);
+  color: var(--info);
+  max-width: 500px;
+}
+
+.teacherInfoBox svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.teacherInfoBoxContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.teacherInfoBoxContent strong {
+  color: var(--surface-foreground);
+  font-weight: 600;
+}
+
+.teacherInfoBoxContent span {
+  color: var(--muted-foreground);
+}
+
+/* Right Column Elements */
+.thumbnailContainer {
+  width: 100%;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  background-color: var(--surface);
+}
+
+.thumbnailImage {
+  width: 100%;
+  max-height: 300px;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  display: block;
+}
+
+.thumbnailMedia {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.quickStatsCard {
+  display: flex;
+  justify-content: space-around;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-4);
+  box-shadow: var(--shadow);
+}
+
+.quickStat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--spacing-2);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.quickStat strong {
+  color: var(--foreground);
+  font-size: 1rem;
+}
+
+.quickStat svg {
+  color: var(--primary);
+}
+
+.compactPrizeCard {
+  background: linear-gradient(135deg, color-mix(in srgb, hsl(45, 100%, 50%) 15%, var(--surface)), var(--surface));
+  border: 1px solid color-mix(in srgb, hsl(45, 100%, 50%) 30%, var(--border));
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-4);
+  box-shadow: var(--shadow);
+}
+
+.compactPrizeHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 1rem;
+  margin-bottom: var(--spacing-3);
+  color: var(--foreground);
+}
+
+.trophyIcon {
+  color: hsl(45, 100%, 50%);
+}
+
+.compactPrizeList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.compactPrizeItem {
+  font-size: 0.875rem;
+  font-weight: 600;
+  background-color: var(--background);
+  color: var(--foreground);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .heroInner {
+    gap: var(--spacing-6);
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding: var(--spacing-6) var(--spacing-4);
+  }
+  .heroInner {
+    flex-direction: column;
+    gap: var(--spacing-8);
+  }
+  .leftColumn {
+    width: 100%;
+  }
+  .rightColumn {
+    width: 100%;
+    position: static;
+    order: -1;
+  }
+  .title {
+    font-size: 1.75rem;
+  }
+  .ctaButton {
+    max-width: 100%;
+  }
+  .shareButton {
+    max-width: 100%;
+  }
+  .teacherInfoBox {
+    max-width: 100%;
+    padding: var(--spacing-3);
+    font-size: 0.875rem;
+  }
+  .quickStatsCard {
+    padding: var(--spacing-3);
+  }
+  .compactPrizeList {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .breadcrumb { font-size: 0.75rem; gap: var(--spacing-1); }
+  .timerBlock span { font-size: 1.5rem; }
+  .timerSeparator { padding-bottom: var(--spacing-2); }
+  .quickStat { font-size: 0.75rem; }
+  .quickStat strong { font-size: 0.875rem; }
+}

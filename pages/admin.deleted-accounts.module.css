@@ -1,0 +1,229 @@
+/* Console page shell - see admin.transactions.module.css for the measure rule.
+   The compact table and cards follow admin.teachers.module.css. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  width: 100%;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: var(--spacing-6) var(--spacing-6) var(--spacing-8);
+  box-sizing: border-box;
+}
+
+.results {
+  container: results / inline-size;
+  min-width: 0;
+}
+
+.tableContainer {
+  display: none;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.colPhone {
+  width: 6.75rem;
+}
+
+.colRole {
+  width: 5.25rem;
+}
+
+.colReason {
+  width: 14rem;
+}
+
+.colDate {
+  width: 6.75rem;
+}
+
+.table th,
+.table td {
+  padding: var(--spacing-2) 0.625rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.table th:first-child,
+.table td:first-child {
+  padding-left: var(--spacing-4);
+}
+
+.table th:last-child,
+.table td:last-child {
+  padding-right: var(--spacing-2);
+}
+
+.table th {
+  height: 2.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  background-color: var(--muted);
+}
+
+.table td {
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: var(--foreground);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background-color: var(--muted);
+}
+
+.date {
+  font-variant-numeric: tabular-nums;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.primaryLine,
+.valueLine,
+.emptyLine,
+.secondaryLine,
+.truncate {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.primaryLine {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.valueLine {
+  font-variant-numeric: tabular-nums;
+}
+
+.emptyLine {
+  color: var(--muted-foreground);
+}
+
+.secondaryLine {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.flag {
+  align-self: flex-start;
+  flex-shrink: 0;
+  padding: 0 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.125rem;
+}
+
+.cardsContainer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-3);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  min-width: 0;
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  min-width: 0;
+  font-size: 0.875rem;
+}
+
+.cardReason {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+  overflow-wrap: anywhere;
+}
+
+.cardStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+  gap: var(--spacing-2) var(--spacing-3);
+  margin: 0;
+  padding-top: var(--spacing-3);
+  border-top: 1px solid var(--border);
+}
+
+.cardStat {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.cardStat dt {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.cardStat dd {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: var(--spacing-4);
+  }
+}
+
+@container results (min-width: 40rem) {
+  .cardsContainer {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* The five fixed columns take 39.5rem; 56rem leaves the Account column at least 16.5rem. */
+@container results (min-width: 56rem) {
+  .tableContainer {
+    display: block;
+  }
+
+  .cardsContainer {
+    display: none;
+  }
+}

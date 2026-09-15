@@ -1,0 +1,37 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.formRow {
+  display: flex;
+  gap: var(--spacing-4);
+  width: 100%;
+}
+
+.formErrorSummary {
+  padding: var(--spacing-3);
+  border: 1px solid var(--error);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  color: color-mix(in srgb, var(--error), black 35%);
+  font-size: 0.875rem;
+}
+
+.formErrorSummary p {
+  font-weight: 600;
+  margin-bottom: var(--spacing-2);
+}
+
+.formErrorSummary ul {
+  margin: 0;
+  padding-left: var(--spacing-4);
+}
+
+@media (max-width: 640px) {
+  .formRow {
+    flex-direction: column;
+    gap: var(--spacing-3);
+  }
+}

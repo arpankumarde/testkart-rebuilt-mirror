@@ -1,0 +1,132 @@
+.container {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-4);
+  background-color: var(--surface);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-4);
+  padding-bottom: var(--spacing-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.emptyState {
+  text-align: center;
+  padding: var(--spacing-6);
+  background-color: var(--muted);
+  border-radius: var(--radius);
+  color: var(--muted-foreground);
+}
+
+.questionsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.questionCard {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--background);
+  overflow: hidden;
+}
+
+.questionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-3);
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast);
+}
+
+.questionHeader:hover {
+  background-color: var(--muted);
+}
+
+.questionHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex: 1;
+  min-width: 0;
+}
+
+.questionNumber {
+  font-weight: 600;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.questionPreview {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--foreground);
+}
+
+.incompleteBadge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--warning);
+  background-color: color-mix(in srgb, var(--warning) 15%, transparent);
+  padding: 2px var(--spacing-2);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.questionHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+}
+
+.questionBody {
+  padding: var(--spacing-4);
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.optionsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-4);
+}
+
+@media (max-width: 768px) {
+  .optionsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .questionHeaderLeft {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-2);
+  }
+}

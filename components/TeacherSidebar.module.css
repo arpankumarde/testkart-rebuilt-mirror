@@ -1,0 +1,490 @@
+/*
+ * Teacher shell navigation, built on the admin console's sidebar language so
+ * the two consoles read as one product: a --surface panel on a hairline
+ * border, and brand coral used only as a BLOCK — the active item's 3px bar and
+ * its tint — never as a solid fill behind a label. The tracked "Teacher" chip
+ * mirrors the admin chip and the teacher CTA's.
+ */
+.sidebar {
+  --tk-nav-coral: var(--tk-brand);
+  --tk-nav-ink: var(--tk-brand-ink);
+  --tk-nav-coral-ink: var(--tk-brand-text);
+  --tk-nav-coral-tint: var(--tk-brand-tint);
+  --tk-nav-active-text: var(--tk-nav-ink);
+  --tk-nav-width: 256px;
+
+  position: sticky;
+  top: 0;
+  z-index: var(--z-nav-low);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  width: var(--tk-nav-width);
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--surface);
+  border-right: 1px solid var(--border);
+  transition: width var(--animation-duration-fast) ease, transform var(--animation-duration-normal) ease-in-out;
+}
+
+.rail {
+  --tk-nav-width: 68px;
+}
+
+/* On the dark theme the deep ink loses contrast against the tint, so the
+   active label switches to the themed coral text instead. */
+:global(.dark) .sidebar {
+  --tk-nav-active-text: var(--tk-brand-text);
+}
+
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+  min-height: var(--header-height);
+  box-sizing: border-box;
+  padding: 0 var(--spacing-4);
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-width: 0;
+  color: var(--foreground);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+
+.brand:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.logoImage {
+  display: block;
+  height: 28px;
+  width: auto;
+  max-width: 120px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.brandMark {
+  display: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+}
+
+.chip {
+  display: inline-block;
+  flex-shrink: 0;
+  padding: 0.25rem 0.5rem;
+  background-color: var(--tk-nav-coral-tint);
+  color: var(--tk-nav-coral-ink);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family-base);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.rail .sidebarHeader {
+  justify-content: center;
+  padding: 0;
+}
+
+.rail .logoImage,
+.rail .chip {
+  display: none;
+}
+
+.rail .brandMark {
+  display: block;
+}
+
+.sidebarHeader .closeButton {
+  display: none;
+  flex-shrink: 0;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--spacing-3);
+}
+
+.navGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.groupHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  width: 100%;
+  padding: var(--spacing-2);
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--muted-foreground);
+  font-family: var(--font-family-base);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: color var(--animation-duration-fast) ease, background-color var(--animation-duration-fast) ease;
+}
+
+.groupHeader:hover {
+  color: var(--foreground);
+  background-color: var(--muted);
+}
+
+.groupHeader:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.groupLabel {
+  flex: 1;
+  min-width: 0;
+}
+
+.groupChevron {
+  flex-shrink: 0;
+  transition: transform var(--animation-duration-fast) ease;
+}
+
+.groupChevronOpen {
+  transform: rotate(90deg);
+}
+
+.groupItems {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.navLink {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  min-width: 0;
+  padding: 0.4375rem var(--spacing-3);
+  border-radius: var(--radius);
+  color: var(--sidebar-foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color var(--animation-duration-fast) ease, color var(--animation-duration-fast) ease;
+}
+
+.navLink:hover {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.navLink:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.navLink.active {
+  background-color: var(--tk-nav-coral-tint);
+  color: var(--tk-nav-active-text);
+  font-weight: 600;
+}
+
+.navLink.active::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: calc(-1 * var(--spacing-3));
+  width: 3px;
+  border-radius: 2px;
+  background-color: var(--tk-nav-coral);
+}
+
+.navIcon {
+  flex-shrink: 0;
+}
+
+.navLabel {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Solid deep orange, so it holds against white in either theme and still
+   reads on the coral tint of the active row. */
+.navBadge {
+  flex-shrink: 0;
+  padding: 3px 6px;
+  border-radius: var(--radius-sm);
+  background-color: var(--tk-brand-deep);
+  color: #fff;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.rail .nav {
+  padding: var(--spacing-3) var(--spacing-2);
+}
+
+.rail .navLink {
+  justify-content: center;
+  padding: var(--spacing-2) 0;
+}
+
+.rail .navLabel,
+.rail .navBadge {
+  display: none;
+}
+
+.rail .navLink.active::before {
+  left: calc(-1 * var(--spacing-2));
+}
+
+/* The badge cannot fit in the rail, so it becomes a dot on the icon. */
+.rail .navLink[data-badge="true"]::after {
+  content: "";
+  position: absolute;
+  top: 5px;
+  right: 9px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--tk-nav-coral);
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+.railDivider {
+  height: 1px;
+  margin: var(--spacing-1) var(--spacing-2) var(--spacing-2);
+  background-color: var(--border);
+}
+
+.railTooltip {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-weight: 500;
+}
+
+.railTooltipBadge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tk-brand-text);
+}
+
+.sidebarFooter {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  flex-shrink: 0;
+  padding: var(--spacing-2) var(--spacing-3);
+  border-top: 1px solid var(--border);
+}
+
+.sidebarUser {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex: 1;
+  min-width: 0;
+  padding: var(--spacing-2);
+  border-radius: var(--radius);
+  color: var(--foreground);
+  text-decoration: none;
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.sidebarUser:hover {
+  background-color: var(--muted);
+}
+
+.sidebarUser:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.sidebarUserAvatar {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.sidebarUserIcon {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+
+.sidebarUserMeta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sidebarUserName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebarUserRole {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebarFooter .sidebarLogout {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+
+.sidebarFooter .sidebarLogout:hover {
+  color: var(--foreground);
+  background-color: var(--muted);
+}
+
+.sidebarFooter .railToggle {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+
+.sidebarFooter .railToggle:hover {
+  color: var(--foreground);
+  background-color: var(--muted);
+}
+
+/* In the rail only the collapse control remains; identity and sign-out return
+   with the labels. */
+.rail .sidebarFooter {
+  justify-content: center;
+  padding: var(--spacing-2);
+}
+
+.rail .sidebarUser,
+.rail .sidebarFooter .sidebarLogout {
+  display: none;
+}
+
+/*
+ * Below 768px the sidebar becomes a drawer. That breakpoint matches the
+ * hamburger and backdrop already living in TeacherDashboardLayout — moving it
+ * to the admin's 1024px would leave a band with no way to open the drawer.
+ */
+@media (max-width: 768px) {
+  .sidebar,
+  .sidebar.rail {
+    --tk-nav-width: 272px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: var(--z-nav);
+    transform: translateX(-100%);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* A drawer is never a rail, so every collapsed rule is undone here. */
+  .rail .sidebarHeader {
+    justify-content: space-between;
+    padding: 0 var(--spacing-4);
+  }
+
+  .rail .logoImage,
+  .rail .chip {
+    display: inline-block;
+  }
+
+  .rail .brandMark {
+    display: none;
+  }
+
+  .rail .nav {
+    padding: var(--spacing-3);
+  }
+
+  .rail .navLink {
+    justify-content: flex-start;
+    padding: 0.4375rem var(--spacing-3);
+  }
+
+  .rail .navLabel {
+    display: inline;
+  }
+
+  .rail .navBadge {
+    display: inline-block;
+  }
+
+  .rail .navLink.active::before {
+    left: calc(-1 * var(--spacing-3));
+  }
+
+  .rail .navLink[data-badge="true"]::after {
+    display: none;
+  }
+
+  .sidebarHeader .closeButton {
+    display: inline-flex;
+  }
+
+  .rail .sidebarUser,
+  .rail .sidebarFooter .sidebarLogout {
+    display: flex;
+  }
+
+  .sidebarFooter .railToggle {
+    display: none;
+  }
+
+  .rail .sidebarFooter {
+    justify-content: flex-start;
+    padding: var(--spacing-2) var(--spacing-3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .navLink,
+  .groupHeader,
+  .groupChevron,
+  .sidebarUser {
+    transition: none;
+  }
+}

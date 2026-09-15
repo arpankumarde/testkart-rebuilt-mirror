@@ -1,0 +1,840 @@
+/* The console workspace shell. .pageBody owns the gutter. */
+.page {
+  --review-fail: color-mix(in srgb, var(--error), black 25%);
+  --review-pass: color-mix(in srgb, var(--success), black 35%);
+  --review-advisory: color-mix(in srgb, var(--warning), black 45%);
+
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* The light-theme mixes drop to about 3:1 on the dark surface. */
+:global(.dark) .page {
+  --review-fail: color-mix(in srgb, var(--error), white 15%);
+  --review-pass: var(--success);
+  --review-advisory: var(--warning);
+}
+
+/* TeacherDashboardLayout's main is overflow:auto but never scrolls, which leaves
+   the sticky rail inert. Same page-scoped fix as the series edit page. */
+:global(main):has(.page) {
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+}
+
+/* The console title scale. */
+.header h1 {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  color: var(--foreground);
+}
+
+.header p {
+  margin: 0;
+  max-width: 60ch;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+/* The verdict comes first in the source, so it leads on narrow screens and for
+   screen readers. Wide screens move it into a sticky right-hand column. */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-6);
+  align-items: start;
+}
+
+.rail {
+  min-width: 0;
+}
+
+.content {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  min-width: 0;
+}
+
+.railCard {
+  overflow: hidden;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+
+.verdict {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+}
+
+/*
+ * The brand block from TeacherCtaBanner: flat coral and ink type, fixed in both
+ * themes. Re-declaring the button tokens turns every Button inside into the ink
+ * solid or the ink outline with no per-button rules.
+ */
+.verdictBrand {
+  --primary: var(--tk-brand-ink);
+  --primary-foreground: hsl(0 0% 100%);
+  --tk-brand-text: var(--tk-brand-ink);
+  --tk-brand-hover: var(--tk-brand-ink-hover);
+  --tk-brand-hover-foreground: hsl(0 0% 100%);
+  --background: var(--tk-brand);
+
+  background-color: var(--tk-brand);
+  color: var(--tk-brand-ink);
+}
+
+/* A series that cannot be submitted gets a solid red rule, not a wash. */
+.verdictBlocked {
+  border-top: 4px solid var(--review-fail);
+  color: var(--foreground);
+}
+
+.verdictTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: inherit;
+  text-wrap: balance;
+}
+
+.verdictBody {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: inherit;
+}
+
+.verdictBlocked .verdictBody {
+  color: var(--muted-foreground);
+}
+
+.verdictActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-2);
+}
+
+/* 2px on both so the solid and the outline sit at the same height. */
+.verdictActions > * {
+  flex: 1 1 auto;
+  font-weight: 700;
+  border-width: 2px;
+}
+
+.verdictActions svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.checks {
+  border-top: 1px solid var(--border);
+}
+
+.verdictBrand + .checks {
+  border-top: none;
+}
+
+.checksHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4) var(--spacing-4) var(--spacing-2);
+}
+
+.checksHeader h3 {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.checksHeader span {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.checkList {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 var(--spacing-2);
+}
+
+.check {
+  display: grid;
+  grid-template-columns: 1.125rem minmax(0, 1fr);
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+}
+
+.check + .check {
+  border-top: 1px solid var(--border);
+}
+
+.checkIcon {
+  display: flex;
+  padding-top: 0.0625rem;
+}
+
+.checkPass .checkIcon {
+  color: var(--review-pass);
+}
+
+.checkFail .checkIcon {
+  color: var(--review-fail);
+}
+
+.checkAdvisory .checkIcon {
+  color: var(--review-advisory);
+}
+
+.checkBody {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-1);
+  min-width: 0;
+}
+
+.checkLabel {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--foreground);
+}
+
+.checkPass .checkLabel {
+  font-weight: 500;
+}
+
+.checkNote {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+}
+
+.checkItems {
+  list-style: none;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  margin: var(--spacing-1) 0 0;
+  padding: 0;
+}
+
+.checkItems li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--spacing-3);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--foreground);
+}
+
+.checkItems li > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.fixLink {
+  flex-shrink: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--tk-brand-text);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  border-radius: var(--radius-sm);
+}
+
+.fixLink:hover {
+  text-decoration-thickness: 2px;
+}
+
+.fixLink:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.sheet {
+  --block-pad: var(--spacing-4);
+
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--block-pad);
+}
+
+.block + .block {
+  border-top: 1px solid var(--border);
+}
+
+.blockHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
+}
+
+/* Panel heading scale. */
+.blockHeader h2 {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.muted {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(12rem, 100%), 1fr));
+  gap: var(--spacing-4) var(--spacing-6);
+  margin: 0;
+}
+
+.facts div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  min-width: 0;
+}
+
+.facts dt {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.facts dd {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.listing {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-4) var(--spacing-6);
+  align-items: start;
+}
+
+.thumb {
+  max-width: 24rem;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumbEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  height: 100%;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+/* Muted type on --muted is 4.4:1, so only the glyph stays muted. */
+.thumbEmpty svg {
+  color: var(--muted-foreground);
+}
+
+.listingMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.listingTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--spacing-2);
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.priceWas {
+  font-family: var(--font-family-base);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.priceOff {
+  font-family: var(--font-family-base);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--review-pass);
+}
+
+.listingDescription {
+  margin: 0;
+  max-width: 65ch;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--foreground);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.listColumns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+  gap: var(--spacing-4) var(--spacing-6);
+}
+
+.subheading {
+  margin: 0 0 var(--spacing-2);
+  font-family: var(--font-family-heading);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.bullets {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  margin: 0;
+  padding-left: 1.125rem;
+  list-style: disc;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--foreground);
+}
+
+.bullets li::marker {
+  color: var(--tk-brand-text);
+}
+
+.longDescription {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.longDescription summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  list-style: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+  border-radius: var(--radius);
+}
+
+.longDescription summary::-webkit-details-marker {
+  display: none;
+}
+
+.longDescription summary:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.longDescription[open] summary {
+  border-bottom: 1px solid var(--border);
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.summaryIcon {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+  transition: transform var(--animation-duration-fast) ease;
+}
+
+.longDescription[open] .summaryIcon {
+  transform: rotate(180deg);
+}
+
+.prose {
+  max-width: 72ch;
+  padding: var(--spacing-4);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+.prose > :first-child {
+  margin-top: 0;
+}
+
+.prose > :last-child {
+  margin-bottom: 0;
+}
+
+.prose img {
+  max-width: 100%;
+  height: auto;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+  margin: 1.25em 0 0.5em;
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--foreground);
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.25rem;
+  list-style: revert;
+}
+
+.testList {
+  list-style: none;
+  margin: 0 calc(-1 * var(--block-pad));
+  padding: 0;
+  border-top: 1px solid var(--border);
+}
+
+/* The number is the item's position in the series, the order students get. */
+.testRow,
+.testTotals {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--spacing-1) var(--spacing-3);
+}
+
+.testRow {
+  padding: var(--spacing-3) var(--block-pad);
+  border-bottom: 1px solid var(--border);
+}
+
+.testRowBlocked {
+  box-shadow: inset 3px 0 0 var(--review-fail);
+}
+
+.testNumber {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 800;
+  line-height: 1.3;
+  color: var(--tk-brand-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.testMain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  min-width: 0;
+}
+
+.testTitle {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+.testNotes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-1) var(--spacing-3);
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.freeTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--spacing-2);
+  border: 1px solid var(--review-pass);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  color: var(--review-pass);
+}
+
+.testIssue {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--review-fail);
+}
+
+.testIssue svg {
+  flex-shrink: 0;
+}
+
+.testStats {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-1) var(--spacing-4);
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.testTotals {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.testTotalsLabel {
+  grid-column: 2;
+}
+
+.testTotals .testStats {
+  color: var(--foreground);
+}
+
+.navigation {
+  display: flex;
+}
+
+.navigation > * {
+  width: 100%;
+  justify-content: center;
+}
+
+.loadError {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-16) var(--spacing-4);
+  text-align: center;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.loadError h2 {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.loadError p {
+  margin: 0;
+  max-width: 34rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.loadErrorIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border: 2px solid var(--review-fail);
+  border-radius: var(--radius-full);
+  color: var(--review-fail);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Page-width steps; the nearest container here is .page. */
+@container (min-width: 30rem) {
+  .verdict {
+    padding: var(--spacing-6);
+  }
+
+  .verdictTitle {
+    font-size: 1.5rem;
+  }
+
+  .checksHeader,
+  .check {
+    padding-inline: var(--spacing-6);
+  }
+}
+
+@container (min-width: 60rem) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 22rem;
+  }
+
+  .rail {
+    grid-column: 2;
+    grid-row: 1;
+    position: sticky;
+    top: var(--spacing-6);
+  }
+
+  .content {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  /* Scrolls inside itself when a long list of failures outgrows the window. */
+  .railCard {
+    max-height: calc(100dvh - var(--spacing-12));
+    overflow-y: auto;
+  }
+}
+
+/* Content-column steps; the nearest container for these is .content. */
+@container (min-width: 36rem) {
+  .sheet {
+    --block-pad: var(--spacing-6);
+  }
+
+  .testRow,
+  .testTotals {
+    grid-template-columns: 1.75rem minmax(0, 1fr) auto;
+  }
+
+  .testStats {
+    grid-column: 3;
+    grid-row: 1;
+    justify-content: flex-end;
+  }
+
+  .testStats span:first-child {
+    min-width: 7rem;
+    text-align: right;
+  }
+
+  .testStats span:last-child {
+    min-width: 5.5rem;
+    text-align: right;
+  }
+
+  .navigation > * {
+    width: auto;
+  }
+}
+
+@container (min-width: 40rem) {
+  .listing {
+    grid-template-columns: 15rem minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .summaryIcon {
+    transition: none;
+  }
+}

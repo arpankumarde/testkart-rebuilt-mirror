@@ -1,0 +1,532 @@
+.container {
+  width: 100%;
+  padding-bottom: var(--spacing-8);
+}
+
+.card {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-6) var(--spacing-8);
+  box-shadow: var(--shadow);
+}
+
+.pageLayout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: var(--spacing-6);
+  align-items: start;
+}
+
+.mainColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  min-width: 0;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  padding: var(--spacing-6);
+}
+
+.checkboxRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.stepTabs {
+  display: flex;
+  gap: var(--spacing-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.stepTab {
+  appearance: none;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: var(--spacing-3) var(--spacing-2);
+  font-family: var(--font-family-base);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: color var(--animation-duration-fast) ease, border-color var(--animation-duration-fast) ease;
+}
+
+.stepTab:hover {
+  color: var(--foreground);
+}
+
+.stepTabActive {
+  color: var(--tk-brand-text);
+  border-bottom-color: var(--tk-brand-text);
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-4);
+}
+
+.fileList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.fileListHeader {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.fileListHeaderActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.fileListLabel {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+/* Many files flow into a grid on wide screens instead of a tall column. */
+.fileGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--spacing-3);
+  align-items: start;
+}
+
+.fileEntry {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+  transition: border-color var(--animation-duration-fast) ease;
+}
+
+.fileEntry.dragging {
+  border-color: var(--tk-brand-text);
+  background-color: var(--muted);
+}
+
+.fileEntryCompact {
+  padding: 0;
+}
+
+.fileRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+}
+
+.dragHandle {
+  color: var(--muted-foreground);
+  cursor: grab;
+  flex-shrink: 0;
+  margin-top: 0.375rem;
+}
+
+.fileRowIcon {
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-sm);
+  background-color: color-mix(in srgb, var(--primary) 12%, var(--surface));
+  color: var(--tk-brand-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fileRowInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+/* Sits flush with the row but shows a border on hover and focus, so it reads as editable. */
+.fileRowNameInput {
+  appearance: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  padding: 0.0625rem var(--spacing-1);
+  margin: 0 calc(var(--spacing-1) * -1);
+  font-family: var(--font-family-base);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: var(--foreground);
+  width: 100%;
+  min-width: 0;
+}
+
+.fileRowNameInput:hover {
+  border-color: var(--border);
+}
+
+.fileRowNameInput:focus {
+  outline: none;
+  border-color: var(--tk-brand-text);
+  background-color: var(--surface);
+}
+
+.fileRowNameInput[aria-invalid="true"] {
+  border-color: color-mix(in srgb, var(--error), black 20%);
+}
+
+.fileRowMeta {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.fileRowActions {
+  display: flex;
+  gap: 0;
+  flex-shrink: 0;
+}
+
+.fileEntryEmpty {
+  padding: var(--spacing-3);
+}
+
+.fileEntryEmptyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-2);
+}
+
+.fileTitleInput {
+  flex: 1;
+  min-width: 0;
+  appearance: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  padding: var(--spacing-1) var(--spacing-2);
+  font-family: var(--font-family-base);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: var(--foreground);
+}
+
+.fileTitleInput:focus {
+  outline: none;
+  border-color: var(--tk-brand-text);
+}
+
+.fileTitleInput::placeholder {
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+
+.filesEmptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  text-align: center;
+  padding: var(--spacing-8) var(--spacing-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+}
+
+.filesEmptyStateIcon {
+  color: var(--muted-foreground);
+}
+
+.filesEmptyState p {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.filesEmptyState span {
+  font-size: 0.8125rem;
+}
+
+/* The empty-row uploader only needs to be as tall as its prompt. */
+.compactUploader {
+  min-height: 76px !important;
+}
+
+/* FileUploader's inner blocks are direct children of this element; their own
+   class names are hashed, so they are reached structurally. */
+.compactUploader > div {
+  padding: var(--spacing-2) var(--spacing-3) !important;
+  gap: var(--spacing-2) !important;
+}
+
+.errorMessage {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: color-mix(in srgb, var(--error), black 25%);
+  margin-top: var(--spacing-2);
+}
+
+.pageCountDisplay {
+  font-family: var(--font-family-base);
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--spacing-2) var(--spacing-3);
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.skeletonBar {
+  height: 2.5rem;
+  width: 100%;
+  margin-bottom: var(--spacing-4);
+  border-radius: var(--radius);
+}
+
+.skeletonBlock {
+  height: 200px;
+  width: 100%;
+  margin-bottom: var(--spacing-4);
+  border-radius: var(--radius);
+}
+
+.loadError {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-3);
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: var(--spacing-12) var(--spacing-4);
+  text-align: center;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.loadErrorIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--error) 12%, var(--surface));
+  color: color-mix(in srgb, var(--error), black 20%);
+}
+
+.loadErrorTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.loadErrorText {
+  margin: 0;
+  max-width: 34rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.loadErrorActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-2);
+}
+
+/* Readiness and actions stay beside the form on desktop, so the teacher can
+   see what is left and save from anywhere on the page. */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  position: sticky;
+  top: var(--spacing-6);
+}
+
+.readinessCard,
+.actionsCard {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  padding: var(--spacing-4);
+}
+
+.readinessCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.readinessTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.successIcon {
+  color: color-mix(in srgb, var(--success), black 25%);
+  flex-shrink: 0;
+}
+
+.warningIcon {
+  color: color-mix(in srgb, var(--warning), black 35%);
+  flex-shrink: 0;
+}
+
+.issueBox {
+  padding: var(--spacing-3);
+  border-radius: var(--radius-md);
+  border: 1px solid;
+}
+
+.issueBox h4 {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  margin: 0 0 var(--spacing-2) 0;
+}
+
+.issueBox ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.issueBox li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.issueBox li svg {
+  flex-shrink: 0;
+  margin-top: 0.15em;
+}
+
+.requiredBox {
+  background-color: color-mix(in srgb, var(--error) 8%, var(--surface));
+  border-color: color-mix(in srgb, var(--error) 35%, var(--surface));
+}
+
+.requiredBox h4,
+.requiredBox li {
+  color: color-mix(in srgb, var(--error), black 35%);
+}
+
+.recommendedBox {
+  background-color: color-mix(in srgb, var(--warning) 10%, var(--surface));
+  border-color: color-mix(in srgb, var(--warning) 40%, var(--surface));
+}
+
+.recommendedBox h4,
+.recommendedBox li {
+  color: color-mix(in srgb, var(--warning), black 55%);
+}
+
+.actionsCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.actionsCard button {
+  width: 100%;
+  justify-content: center;
+}
+
+.liveNote {
+  margin: 0 0 var(--spacing-1);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 900px) {
+  .pageLayout {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* The sidebar's cards join the page grid so the actions can stick to the
+     bottom of the screen: a price-only edit should not need a long scroll. */
+  .sidebar {
+    display: contents;
+  }
+
+  .actionsCard {
+    position: sticky;
+    bottom: 0;
+    z-index: var(--z-content-high);
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: var(--spacing-3);
+  }
+
+  .actionsCard button {
+    width: auto;
+    flex: 1 1 auto;
+  }
+
+  .liveNote {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .section {
+    padding: var(--spacing-4);
+  }
+
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+}

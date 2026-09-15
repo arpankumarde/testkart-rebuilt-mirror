@@ -1,0 +1,21 @@
+/*
+ * The console's page shell. The header used to be centred at 1.75rem, which is
+ * the only alignment in the console that was not left. ProductStepForm is a
+ * multi-step workspace rather than a single form column, so this page keeps the
+ * full 1440 measure instead of the 46rem one the short forms use.
+ */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+@media (max-width: 640px) {
+  .page {
+    gap: var(--spacing-4);
+  }
+}

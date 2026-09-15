@@ -1,0 +1,166 @@
+/* Overrides the kit's .content, which sits in @layer base, so these unlayered
+   rules win without !important. */
+.content {
+  display: block;
+  padding: 0;
+  max-width: calc(100vw - 2rem);
+  max-height: min(88vh, 60rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background-color: var(--popup);
+  color: var(--popup-foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+}
+
+.sm {
+  width: 28rem;
+}
+
+.md {
+  width: 36rem;
+}
+
+.lg {
+  width: 46rem;
+}
+
+.xl {
+  width: 64rem;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4) var(--spacing-4) var(--spacing-4) var(--spacing-6);
+  background-color: var(--popup);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Both inks are darkened against their own tint - the raw token over a wash of
+   itself runs about 2.4:1. */
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.iconDestructive {
+  background-color: color-mix(in srgb, var(--error) 15%, transparent);
+  color: color-mix(in srgb, var(--error), black 20%);
+}
+
+.headings {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+.description {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+/* A 2rem target, pulled up so its centre sits on the title's first line. */
+.close {
+  flex-shrink: 0;
+  margin: -0.25rem -0.25rem 0 0;
+  color: var(--muted-foreground);
+}
+
+.close svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.close:hover {
+  color: var(--foreground);
+}
+
+/* With a 2.5rem icon tile, the title line and the close button centre on the
+   tile instead. */
+.withIcon .headings {
+  padding-top: 0.5rem;
+}
+
+.withIcon .close {
+  margin-top: 0.25rem;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-6);
+}
+
+.footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  padding: var(--spacing-4) var(--spacing-6);
+  background-color: var(--popup);
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 640px) {
+  .content {
+    width: calc(100vw - 1.5rem);
+    max-width: calc(100vw - 1.5rem);
+    max-height: 92vh;
+  }
+
+  .header {
+    padding: var(--spacing-3) var(--spacing-3) var(--spacing-3) var(--spacing-4);
+  }
+
+  .body {
+    padding: var(--spacing-4);
+  }
+
+  .footer {
+    padding: var(--spacing-3) var(--spacing-4);
+  }
+
+  .footer > button,
+  .footer > a {
+    flex: 1 1 auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content {
+    animation: none;
+  }
+}

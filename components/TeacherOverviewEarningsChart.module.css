@@ -1,0 +1,116 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  min-width: 0;
+  padding: var(--spacing-4) var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-2) var(--spacing-4);
+}
+
+.titleGroup {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.subtitle {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.swatchBar {
+  display: inline-block;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 2px;
+  background-color: var(--chart-color-1);
+}
+
+.swatchLine {
+  display: inline-block;
+  width: 0.875rem;
+  height: 2px;
+  border-radius: 1px;
+  background-color: var(--foreground);
+}
+
+/* Grows into whatever height the row's taller card sets, with 240px as the
+   floor for when this card is the taller one (or the row has collapsed to a
+   single column). */
+.chart {
+  width: 100%;
+  min-width: 0;
+  flex: 1;
+  min-height: 240px;
+}
+
+.skeleton {
+  flex: 1;
+  min-height: 240px;
+  border-radius: var(--radius);
+}
+
+.tip {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: var(--popup);
+  color: var(--popup-foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.tipDay {
+  font-weight: 600;
+}
+
+.tipRow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+@media (max-width: 640px) {
+  .card {
+    padding: var(--spacing-4);
+  }
+}

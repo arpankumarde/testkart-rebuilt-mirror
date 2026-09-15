@@ -1,0 +1,93 @@
+/*
+ * One grey track, one raised selected segment. The selected segment is a
+ * solid surface tile with a border and shadow, its label in the deep brand
+ * orange, so the active option lifts off the track instead of being a grey
+ * box with a thin outline. The track is 2.5rem tall, the same as an icon-lg
+ * Button beside it.
+ */
+.track {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  max-width: 100%;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--muted);
+  box-sizing: border-box;
+}
+
+.segment {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  height: 2rem;
+  padding: 0 var(--spacing-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background-color: transparent;
+  color: var(--foreground);
+  font-family: var(--font-family-base);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    border-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease;
+}
+
+.segment:hover {
+  background-color: color-mix(in srgb, var(--muted), var(--foreground) 7%);
+}
+
+.segment[data-state="on"],
+.segment[data-state="on"]:hover {
+  background-color: var(--surface);
+  border-color: var(--border);
+  color: var(--tk-brand-text);
+  box-shadow: 0 1px 3px hsl(220 10% 15% / 0.14);
+  cursor: default;
+}
+
+/* The dark surface token is darker than the dark track, so a surface tile
+   would look sunken there. Lift it above the track instead. */
+:global(.dark) .segment[data-state="on"],
+:global(.dark) .segment[data-state="on"]:hover {
+  background-color: color-mix(in srgb, var(--muted), var(--foreground) 14%);
+  box-shadow: 0 1px 3px hsl(0 0% 0% / 0.4);
+}
+
+/* Same ring as Button: a gap in the track colour, then the deep orange. */
+.segment:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--muted),
+    0 0 0 4px var(--tk-brand-text);
+}
+
+.segment svg {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+}
+
+@media (max-width: 400px) {
+  .segment {
+    padding: 0 var(--spacing-3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .segment {
+    transition: none;
+  }
+}

@@ -1,0 +1,46 @@
+.content {
+  max-width: min(28rem, calc(100vw - 2rem));
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+/* The same tone tile and heading scale as ConsoleConfirmDialog, so logging out
+   reads like every other confirmation in the consoles. */
+.iconTile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.description {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+/* Darkened: the raw error token as body text on white runs about 3.5:1. */
+.error {
+  margin: 0 0 var(--spacing-2) 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: color-mix(in srgb, var(--error), black 20%);
+}

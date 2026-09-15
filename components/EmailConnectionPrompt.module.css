@@ -1,0 +1,102 @@
+.container {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-4);
+  padding: var(--spacing-6);
+  /* A flat tint, not a 10%-to-5% gradient - the two stops were five percent
+     apart, so it read as a smudge rather than a decision. The fadeIn entrance
+     is gone with the rest of the console's page-load animations. */
+  background-color: color-mix(in srgb, var(--info) 10%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--info) 40%, transparent);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.iconWrapper {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--info) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--info) 30%, transparent);
+}
+
+.icon {
+  color: color-mix(in srgb, var(--info), black 25%);
+}
+
+.content {
+  flex: 1;
+}
+
+.title {
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  margin: 0 0 var(--spacing-2) 0;
+}
+
+.description {
+  font-size: 0.9375rem;
+  color: var(--muted-foreground);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.actions {
+  flex-shrink: 0;
+  align-self: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--spacing-3);
+    padding: var(--spacing-4);
+  }
+
+  .iconWrapper {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .icon {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .title {
+    font-size: 1rem;
+  }
+
+  .description {
+    font-size: 0.875rem;
+  }
+
+  .actions {
+    width: 100%;
+    margin-top: var(--spacing-2);
+  }
+
+  .actions > button {
+    width: 100%;
+  }
+}
+
+:global(.dark) .container {
+  background-color: color-mix(in srgb, var(--info) 15%, var(--surface));
+  border-color: color-mix(in srgb, var(--info) 40%, transparent);
+}
+
+:global(.dark) .iconWrapper {
+  background-color: color-mix(in srgb, var(--info) 25%, transparent);
+  border-color: color-mix(in srgb, var(--info) 35%, transparent);
+}

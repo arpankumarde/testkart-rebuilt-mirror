@@ -1,0 +1,106 @@
+.pageWrapper {
+  width: 100%;
+  overflow-x: hidden;
+  background-color: #0a0a0a; /* Dark theme base */
+  color: #ffffff;
+  font-family: var(--font-family-base);
+}
+
+.sectionContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.sectionTitle {
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-12);
+  color: white;
+  line-height: 1.2;
+}
+
+/* 10. FAQ */
+.faqSection {
+  padding: var(--spacing-16) var(--spacing-4);
+  background: #0f0f0f;
+}
+
+.faqWrapper {
+  max-width: 800px;
+  margin: 0 auto;
+  
+  /* Theme overrides for Accordion to ensure visibility in dark mode */
+  --card: #151515;
+  --card-foreground: #ffffff;
+  --muted-foreground: #a3a3a3;
+  --primary: #ff6f40;
+  --radius: 0.75rem;
+  --shadow: none; /* Prefer flat/bordered look in deep dark mode */
+}
+
+/* Specific styling for FAQ items to add borders */
+.faqItem {
+  border: 1px solid #333;
+  margin-bottom: var(--spacing-4);
+}
+
+/* 12. Mobile Sticky Bar */
+.mobileStickyBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(15, 15, 15, 0.95);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid #333;
+  padding: var(--spacing-3) var(--spacing-4);
+  z-index: 1000;
+  display: none;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .sectionTitle {
+    font-size: 1.75rem;
+    margin-bottom: var(--spacing-8);
+  }
+
+  .faqSection {
+    padding: var(--spacing-12) var(--spacing-4);
+  }
+  
+  .mobileStickyBar {
+    display: block;
+  }
+  
+  .pageWrapper {
+    padding-bottom: 80px; /* Space for sticky bar */
+  }
+}
+
+.mobileBarContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mobileBarText {
+  display: flex;
+  flex-direction: column;
+}
+
+.mobileBarText span {
+  color: white;
+  font-weight: 700;
+}
+
+.mobileBarText small {
+  color: #34c759;
+  font-size: 0.8rem;
+}
+
+.mobileBarBtn {
+  background: #ff6f40;
+  font-weight: 700;
+}

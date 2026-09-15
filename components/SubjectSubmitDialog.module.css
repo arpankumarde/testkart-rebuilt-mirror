@@ -1,0 +1,39 @@
+.summary {
+  margin: var(--spacing-4) 0;
+  font-size: 0.9375rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--muted);
+  border-radius: var(--radius);
+}
+
+.label {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.value {
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.warningRow {
+  padding: var(--spacing-2) var(--spacing-4);
+  background-color: color-mix(in srgb, var(--warning) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--warning) 40%, transparent);
+  border-radius: var(--radius);
+}
+
+.warningText {
+  font-size: 0.875rem;
+  color: var(--warning);
+  font-weight: 500;
+}

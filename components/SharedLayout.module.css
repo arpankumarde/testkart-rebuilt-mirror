@@ -1,0 +1,451 @@
+.layoutContainer {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  z-index: var(--z-nav-sticky);
+  transition: transform var(--animation-duration-normal) ease-in-out;
+}
+
+.headerHidden {
+  transform: translateY(-100%);
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-4) var(--spacing-6);
+  height: var(--header-height);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  font-family: var(--font-family-heading);
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--foreground);
+  text-decoration: none;
+  transition: transform var(--animation-duration-normal) ease;
+}
+
+.logo:hover {
+  transform: translateY(-1px);
+}
+
+.logoImage {
+  height: 44px;
+  width: auto;
+  object-fit: contain;
+  transition: transform var(--animation-duration-normal) ease,
+              filter var(--animation-duration-normal) ease;
+}
+
+.logo:hover .logoImage {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+
+.nav {
+  display: flex;
+  gap: var(--spacing-8);
+  align-items: center;
+}
+
+.navLink {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  text-decoration: none;
+  transition: color var(--animation-duration-fast) ease,
+              transform var(--animation-duration-fast) ease;
+  padding: var(--spacing-2) var(--spacing-1);
+  position: relative;
+}
+
+.navLink::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-color: var(--primary);
+  border-radius: var(--radius-full);
+  transform: scaleX(0);
+  transform-origin: bottom right;
+  transition: transform var(--animation-duration-normal) ease-out;
+}
+
+.navLink:hover {
+  color: var(--foreground);
+  transform: translateY(-1px);
+}
+
+.navLink:hover::after {
+  transform: scaleX(1);
+  transform-origin: bottom left;
+}
+
+.navLink.active {
+  color: var(--tk-brand-text);
+  font-weight: 700;
+}
+
+.navLink.active::after {
+  transform: scaleX(1);
+}
+
+.liveTestsLink {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.liveIndicatorWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.liveIcon {
+  color: var(--muted-foreground);
+  transition: color var(--animation-duration-fast) ease,
+              transform var(--animation-duration-fast) ease;
+}
+
+.liveTestsLink:hover .liveIcon {
+  color: var(--foreground);
+  transform: scale(1.1);
+}
+
+.liveTestsLink.active .liveIcon {
+  color: var(--tk-brand-text);
+}
+
+.liveDot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  background: var(--error);
+  border-radius: var(--radius-full);
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 0 var(--error);
+  animation: livePulse 2s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--error);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 0 6px transparent;
+    opacity: 0.8;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+    opacity: 1;
+  }
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.loginButton {
+  font-weight: 600;
+  color: var(--foreground);
+  transition: color var(--animation-duration-fast) ease;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.loginButton:hover {
+  color: var(--tk-brand-text);
+}
+
+.signupButton {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(255, 111, 64, 0.3);
+  transition: transform var(--animation-duration-normal) ease,
+              box-shadow var(--animation-duration-normal) ease,
+              background-color var(--animation-duration-fast) ease;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* Same hover destination as every other coral control: deep orange fill, white
+   label. Set here because this button overrides Button's own background. */
+.signupButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 111, 64, 0.4);
+  background-color: var(--tk-brand-hover);
+  color: var(--tk-brand-hover-foreground);
+}
+
+.signupButton:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(255, 111, 64, 0.3);
+}
+
+.searchButton,
+.cartButton {
+  padding: var(--spacing-2);
+  min-width: 44px;
+  min-height: 44px;
+  width: 44px;
+  height: 44px;
+  position: relative;
+  transition: transform var(--animation-duration-normal) ease;
+}
+
+.searchButton:hover,
+.cartButton:hover {
+  transform: scale(1.05);
+}
+
+.shopButton {
+  display: none;
+}
+
+.themeSwitchDesktop {
+  display: flex;
+  align-items: center;
+}
+
+@media (max-width: 968px) {
+  .themeSwitchDesktop {
+    display: none;
+  }
+}
+
+
+
+.cartIconWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cartBadge {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  /* The count has to carry white text, and the brand coral only reaches 2.1:1
+     against white - so the badge uses the deep orange, which reads as the same
+     colour family at 8:1. */
+  background-color: var(--tk-brand-deep);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0.3rem 0.45rem;
+  border-radius: var(--radius-full);
+  min-width: 1.35rem;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border: 2px solid var(--surface);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.authLoading {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+/* Two classes so it outranks AccountMenu's own display rule whichever
+   stylesheet loads last. */
+@media (max-width: 968px) {
+  .headerActions .accountTrigger {
+    display: none;
+  }
+}
+
+.main {
+  flex-grow: 1;
+  width: 100%;
+}
+
+.mainWithMobileNav {
+  /* Add padding on mobile only to prevent content overlap with bottom nav */
+}
+
+@media (max-width: 968px) {
+  .mainWithMobileNav {
+    padding-bottom: 72px;
+    padding-top: 64px; /* Add top padding to prevent content from hiding under fixed header */
+  }
+}
+
+@media (max-width: 968px) {
+  .header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+  }
+
+  .nav {
+    display: none;
+  }
+
+  .signupButton {
+    display: none;
+  }
+
+  .headerContent {
+    padding: var(--spacing-3) var(--spacing-4);
+    height: 64px;
+    gap: var(--spacing-3);
+  }
+
+  .logo {
+    font-size: 1.5rem;
+  }
+
+  .logoImage {
+    height: 40px;
+  }
+
+  .headerActions {
+    gap: var(--spacing-2);
+  }
+
+  .signupButton {
+    padding: 0 var(--spacing-4);
+    font-size: 0.9375rem;
+    min-width: 80px;
+  }
+
+  .loginButton {
+    font-size: 0.9375rem;
+    padding: 0 var(--spacing-3);
+  }
+
+  .searchButton,
+  .searchButton,
+  .cartButton {
+    min-width: 44px;
+    min-height: 44px;
+    width: 44px;
+    height: 44px;
+  }
+
+}
+
+@media (max-width: 480px) {
+  .mainWithMobileNav {
+    padding-top: 56px; /* Match smaller header height on very small screens */
+  }
+
+  .headerContent {
+    padding: var(--spacing-2) var(--spacing-3);
+    height: 56px;
+    gap: var(--spacing-2);
+  }
+
+  .logo {
+    font-size: 1.25rem;
+  }
+
+  .logoImage {
+    height: 36px;
+  }
+
+  .headerActions {
+    gap: var(--spacing-1);
+  }
+
+  .cartButton {
+    min-width: 44px;
+    min-height: 44px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .signupButton {
+    padding: 0 var(--spacing-3);
+    font-size: 0.875rem;
+    min-width: 72px;
+    min-height: 44px;
+  }
+
+  .loginButton {
+    font-size: 0.875rem;
+    padding: 0 var(--spacing-2);
+    min-width: 60px;
+    min-height: 44px;
+  }
+
+  .cartBadge {
+    font-size: 0.6875rem;
+    padding: 0.25rem 0.4rem;
+    min-width: 1.25rem;
+    top: -8px;
+    right: -8px;
+  }
+}
+
+@media (max-width: 380px) {
+  .headerContent {
+    padding: var(--spacing-2);
+    gap: var(--spacing-1);
+  }
+
+  .logoImage {
+    height: 32px;
+  }
+
+  .signupButton {
+    padding: 0 var(--spacing-2);
+    font-size: 0.8125rem;
+    min-width: 68px;
+  }
+
+  .loginButton {
+    font-size: 0.8125rem;
+    padding: 0 var(--spacing-1);
+    min-width: 56px;
+  }
+
+  .searchButton,
+  .cartButton {
+    min-width: 44px;
+    min-height: 44px;
+    width: 44px;
+    height: 44px;
+  }
+}

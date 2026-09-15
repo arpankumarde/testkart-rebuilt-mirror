@@ -1,0 +1,342 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.labelWithAI {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.formRow {
+  display: flex;
+  gap: var(--spacing-4);
+  width: 100%;
+}
+
+/* "page" variant: the full-page editor. Question content and explanation on
+   the left, the answer on the right, below one compact settings row. */
+.pageForm {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.pageStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.pageSplitGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: var(--spacing-6);
+  align-items: start;
+}
+
+.pageLeftColumn,
+.pageRightColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  min-width: 0;
+}
+
+@media (max-width: 960px) {
+  .pageSplitGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Section, type, duration and marks share one wrapping row. */
+.setupRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--spacing-3) var(--spacing-4);
+  padding-bottom: var(--spacing-4);
+  border-bottom: 1px solid var(--border);
+}
+
+.setupField {
+  flex: 1 1 11rem;
+  min-width: 10rem;
+  max-width: 16rem;
+}
+
+.setupFieldWide {
+  flex: 1 1 13rem;
+  min-width: 12rem;
+  max-width: 18rem;
+}
+
+.setupFieldNarrow {
+  flex: 0 1 8.5rem;
+  min-width: 7rem;
+}
+
+.setupFieldMarks {
+  flex: 0 1 14rem;
+  min-width: 8rem;
+}
+
+.setupSelect {
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .setupField,
+  .setupFieldWide {
+    flex-basis: 100%;
+    max-width: none;
+  }
+
+  .setupFieldNarrow {
+    flex: 1 1 7rem;
+  }
+}
+
+.formSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.formSectionLabel {
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.optionsFormContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.radioGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
+}
+
+.radioItemWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.radioItem {
+  flex-shrink: 0;
+  background-color: var(--surface);
+  width: 1.25rem;
+  height: 1.25rem;
+  padding: 0;
+  border-radius: 100%;
+  border: 2px solid var(--muted-foreground);
+  cursor: pointer;
+}
+
+.radioItem:hover,
+.radioItem[data-state="checked"] {
+  border-color: var(--primary);
+}
+
+.radioItem:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.radioIndicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.radioIndicator::after {
+  content: "";
+  display: block;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
+  background-color: var(--primary);
+}
+
+.radioLabel {
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.switchWrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+}
+
+.switchDescription {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  margin: 0;
+  margin-top: var(--spacing-1);
+}
+
+.infoText {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.assertionOptions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.assertionOption {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.assertionOptionSelected {
+  border-color: color-mix(in srgb, var(--success), black 20%);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--success), black 20%);
+}
+
+.assertionOptionLetter {
+  font-weight: 700;
+}
+
+/* Match the following: each column A row carries its own match picker. */
+.matchEditor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-4);
+}
+
+.matchColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+}
+
+.matchColumnHead {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.matchColumnHint {
+  font-weight: 600;
+  color: var(--muted-foreground);
+  padding-right: 2.25rem;
+}
+
+.matchRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+}
+
+.matchItemLabel {
+  flex-shrink: 0;
+  min-width: 1.5rem;
+  padding-top: 0.6rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.matchItemField {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.matchSelectField {
+  flex: 0 0 10rem;
+  min-width: 0;
+}
+
+.matchSelectTrigger {
+  width: 100%;
+  min-width: 0;
+}
+
+.matchSelectTrigger > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.addButton {
+  align-self: flex-start;
+  margin-top: var(--spacing-1);
+}
+
+.formErrorSummary {
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid color-mix(in srgb, var(--error), black 25%);
+  border-left-width: 4px;
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  color: color-mix(in srgb, var(--error), black 35%);
+  font-size: 0.875rem;
+}
+
+.formErrorSummary p {
+  font-weight: 700;
+  margin: 0 0 var(--spacing-1);
+}
+
+.formErrorSummary ul {
+  margin: 0;
+  padding-left: var(--spacing-4);
+}
+
+.dialogSubmit {
+  width: 100%;
+  margin-top: var(--spacing-2);
+}
+
+@media (max-width: 640px) {
+  .form {
+    gap: var(--spacing-3);
+  }
+
+  .formRow {
+    flex-direction: column;
+    gap: var(--spacing-3);
+  }
+
+  .matchRow {
+    flex-wrap: wrap;
+  }
+
+  .matchSelectField {
+    flex: 1 1 100%;
+    padding-left: calc(1.5rem + var(--spacing-2));
+  }
+}

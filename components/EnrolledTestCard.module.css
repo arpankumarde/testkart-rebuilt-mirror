@@ -1,0 +1,561 @@
+/* --card-accent is set inline per-card based on completion status
+   (Completed/In Progress/Not Started) so cards are distinguishable at a
+   glance in a list, without needing to read the text. */
+.card {
+  background-color: var(--surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--card-accent, var(--border));
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: border-color var(--animation-duration-fast) ease;
+}
+
+/* The border moves on hover rather than the card lifting - the console
+   dropped every hover lift. */
+.card:hover {
+  border-color: color-mix(in srgb, var(--border), var(--foreground) 25%);
+}
+
+.cardHeader {
+  display: flex;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  border-bottom: 1px solid var(--border);
+}
+
+.thumbnailLink {
+  display: block;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.thumbnail {
+  width: 84px;
+  aspect-ratio: 16 / 9;
+  flex-shrink: 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background-color: var(--muted);
+  transition: transform var(--animation-duration-fast) ease, box-shadow var(--animation-duration-fast) ease;
+}
+
+.thumbnailLink:hover .thumbnail {
+  transform: scale(1.05);
+}
+
+.thumbnailImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.placeholderOverride :global(h3) {
+  font-size: 0.8rem;
+  line-height: 1.2;
+  -webkit-line-clamp: 2;
+}
+
+.placeholderOverride :global(span) {
+  display: none;
+}
+
+.placeholderOverride :global(.avatar) {
+  display: none;
+}
+
+.placeholderOverride :global(div:has(.avatar)) {
+  display: none;
+}
+
+.headerContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.headerBadges {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.statusBadgeHeader {
+  font-weight: 700;
+}
+
+/* The default Badge component is sized for standalone use (0.875rem text,
+   spacing-3 padding) — next to an 84px/72px/64px thumbnail that made a row
+   of 2-3 badges visually heavier than the thumbnail and title combined.
+   !important guarantees this wins regardless of CSS module load order
+   relative to Badge.module.css (same pattern used for the mobile menu
+   button override in StudentDashboardLayout.module.css). */
+.headerBadge {
+  font-size: 0.6875rem !important;
+  padding: 1px var(--spacing-2) !important;
+  height: 1.125rem !important;
+  line-height: 1 !important;
+  font-weight: 600 !important;
+}
+
+.unpublishedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  background-color: color-mix(in srgb, var(--warning) 10%, transparent);
+  color: var(--warning-foreground);
+  border-color: color-mix(in srgb, var(--warning) 30%, transparent);
+}
+
+.titleLink {
+  text-decoration: none;
+  color: inherit;
+  transition: color var(--animation-duration-fast) ease;
+}
+
+.titleLink:hover {
+  color: var(--tk-brand-text);
+}
+
+.title {
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--surface-foreground);
+  margin: 0;
+  line-height: 1.3;
+  transition: color var(--animation-duration-fast) ease;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.titleLink:hover .title {
+  color: var(--tk-brand-text);
+}
+
+.enrolledDate {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.progressSection {
+  padding: var(--spacing-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.progressTopRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.progressLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.progressPercent {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--surface-foreground);
+}
+
+/* Compact single-line stat strip, replacing three separate boxed stat
+   cards — same information (total/completed/avg score), a fraction of
+   the vertical space, and it wraps gracefully on narrow screens instead
+   of stacking into 3 full-width rows. */
+.statStrip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-1);
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.statChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.statChip strong {
+  color: var(--surface-foreground);
+  font-weight: 700;
+}
+
+.statChipIcon {
+  color: var(--tk-brand-text);
+  flex-shrink: 0;
+}
+
+.statDivider {
+  color: var(--border);
+}
+
+/* Darkened against the white panel: the raw tokens land near 2.8:1 as type. */
+.success { color: color-mix(in srgb, var(--success), black 25%); }
+.warning { color: color-mix(in srgb, var(--warning), black 30%); }
+.destructive { color: color-mix(in srgb, var(--error), black 20%); }
+.default { color: var(--muted-foreground); }
+
+.testItem {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4);
+  border-radius: var(--radius);
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.testItem:hover {
+  background-color: var(--muted);
+}
+
+.itemMain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.itemTitleWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.itemTitle {
+  font-weight: 600;
+  color: var(--surface-foreground);
+}
+
+.itemMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.itemMetaChip {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+/* Coral as a block: --primary as type on its own 10% tint was about 1.5:1. */
+.scheduledInfo {
+  font-size: 0.75rem;
+  color: var(--tk-brand-text);
+  background-color: var(--tk-brand-tint);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.itemStatus {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-1);
+  min-width: 120px;
+}
+
+.statusBadge {
+  font-size: 0.75rem;
+}
+
+.bestScore {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.bestScore span {
+  font-weight: 600;
+  margin-left: var(--spacing-1);
+}
+
+.itemActions {
+  justify-self: end;
+  display: flex;
+  gap: var(--spacing-2);
+  align-items: center;
+}
+
+.actionButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  height: 2.25rem;
+  padding: 0 var(--spacing-3);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  font-weight: 500;
+  font-size: 0.875rem;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color var(--animation-duration-fast) ease, border-color var(--animation-duration-fast) ease;
+}
+
+.actionButton:hover {
+  background-color: var(--muted);
+  border-color: color-mix(in srgb, var(--border), black 10%);
+}
+
+/* A dark neutral fill, not the teal --secondary: white on that teal runs about
+   3.4:1, and the console keeps coral as its only accent. This still reads as
+   distinct from the coral "Continue learning" on the detail page header, which
+   was the point of colouring it differently in the first place. */
+.actionButton.primaryAction {
+  background-color: var(--foreground);
+  color: var(--surface);
+  border-color: var(--foreground);
+}
+
+.actionButton.primaryAction:hover {
+  background-color: color-mix(in srgb, var(--foreground), black 25%);
+  border-color: color-mix(in srgb, var(--foreground), black 25%);
+}
+
+.actionButton.secondaryAction {
+  background-color: var(--surface);
+  color: var(--foreground);
+  border-color: var(--border);
+}
+
+/* No opacity: the muted pair already reads as unavailable, and fading it on
+   top dropped the label under the contrast floor. */
+.actionButton.disabledAction {
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+  border-color: var(--border);
+  cursor: not-allowed;
+}
+
+.actionButton.disabledAction:hover {
+  background-color: var(--muted);
+  border-color: var(--border);
+}
+
+.cardFooter {
+  padding: var(--spacing-3) var(--spacing-4);
+  border-top: 1px solid var(--border);
+  margin-top: auto;
+}
+
+/* Single, unambiguous CTA on the summary card — previously this row also
+   had a separate "Continue Learning" button and a "Leave Review" button,
+   which made it unclear which action to take first. Continue Learning and
+   Leave Review now live on the /student/tests/:id detail page instead. */
+.viewAllButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-1);
+  width: 100%;
+  height: 2.5rem;
+  border-radius: var(--radius);
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.viewAllButton:hover {
+  background-color: var(--tk-brand-hover);
+  color: var(--tk-brand-hover-foreground);
+}
+
+.viewAllButton:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .cardHeader {
+    gap: var(--spacing-3);
+    padding: var(--spacing-3);
+  }
+
+  .thumbnail {
+    width: 72px;
+  }
+
+  .enrolledDate {
+    font-size: 0.6875rem;
+  }
+
+  .progressSection {
+    padding: var(--spacing-3);
+    gap: var(--spacing-2);
+  }
+
+  .statStrip {
+    font-size: 0.75rem;
+    gap: var(--spacing-2);
+  }
+
+  .testItem {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-3);
+    padding: var(--spacing-3);
+  }
+
+  .itemTitle {
+    font-size: 0.9375rem;
+  }
+
+  .itemMeta {
+    font-size: 0.8125rem;
+    gap: var(--spacing-3);
+  }
+
+  .itemStatus {
+    justify-self: start;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-3);
+    min-width: auto;
+  }
+
+  .bestScore {
+    font-size: 0.8125rem;
+  }
+
+  .itemActions {
+    justify-self: start;
+    flex-direction: column;
+    width: 100%;
+    gap: var(--spacing-2);
+  }
+
+  .actionButton {
+    width: 100%;
+    height: 2.75rem;
+    font-size: 1rem;
+    padding: 0 var(--spacing-4);
+  }
+
+  .cardFooter {
+    padding: var(--spacing-4);
+  }
+
+  .viewAllButton {
+    height: 2.75rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .cardHeader {
+    padding: var(--spacing-3);
+    gap: var(--spacing-2);
+  }
+
+  .thumbnail {
+    width: 64px;
+  }
+
+  .title {
+    font-size: 0.9375rem;
+  }
+
+  .enrolledDate {
+    font-size: 0.6875rem;
+  }
+
+  .progressSection {
+    padding: var(--spacing-3);
+    gap: var(--spacing-2);
+  }
+
+  .progressLabel {
+    font-size: 0.75rem;
+  }
+
+  .progressPercent {
+    font-size: 0.8125rem;
+  }
+
+  .statStrip {
+    font-size: 0.6875rem;
+    gap: var(--spacing-1) var(--spacing-2);
+  }
+
+  .testItem {
+    padding: var(--spacing-3);
+    gap: var(--spacing-2);
+  }
+
+  .itemTitle {
+    font-size: 0.875rem;
+  }
+
+  .itemMeta {
+    font-size: 0.75rem;
+    gap: var(--spacing-2);
+  }
+
+  .itemMetaChip svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .itemStatus {
+    gap: var(--spacing-2);
+  }
+
+  .statusBadge {
+    font-size: 0.6875rem;
+  }
+
+  .bestScore {
+    font-size: 0.75rem;
+  }
+
+  .itemActions {
+    gap: var(--spacing-2);
+  }
+
+  .actionButton {
+    height: 2.75rem;
+    font-size: 0.9375rem;
+    padding: 0 var(--spacing-3);
+  }
+
+  .actionButton svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .cardFooter {
+    padding: var(--spacing-3);
+  }
+
+  .viewAllButton {
+    height: 2.75rem;
+    font-size: 0.9375rem;
+  }
+}

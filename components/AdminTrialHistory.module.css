@@ -1,0 +1,261 @@
+/* The compact table and cards follow pages/admin.teachers.module.css.
+   Unlayered so .flag outranks the Badge padding. */
+.section {
+  margin-bottom: var(--spacing-8);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-6);
+  background-color: var(--surface);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+
+.headerIcon {
+  color: var(--muted-foreground);
+  flex-shrink: 0;
+}
+
+.title {
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--foreground);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.results {
+  container: results / inline-size;
+  min-width: 0;
+  margin-top: var(--spacing-4);
+}
+
+.tableContainer {
+  display: none;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* Fixed layout: the Teacher column takes whatever the others leave. */
+.table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.colFee {
+  width: 4rem;
+}
+
+.colStatus {
+  width: 5rem;
+}
+
+.colPeriod {
+  width: 8.25rem;
+}
+
+.colNote {
+  width: 10rem;
+}
+
+.table th,
+.table td {
+  padding: var(--spacing-2) 0.625rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.table th:first-child,
+.table td:first-child {
+  padding-left: var(--spacing-4);
+}
+
+.table th:last-child,
+.table td:last-child {
+  padding-right: var(--spacing-2);
+}
+
+.table th {
+  height: 2.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  background-color: var(--muted);
+}
+
+.table td {
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: var(--foreground);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background-color: var(--muted);
+}
+
+.table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.table .zero {
+  color: var(--muted-foreground);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.primaryLine,
+.truncate,
+.valueLine,
+.secondaryLine {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.primaryLine {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.valueLine {
+  font-variant-numeric: tabular-nums;
+}
+
+.secondaryLine {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.flag {
+  flex-shrink: 0;
+  padding: 0 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.125rem;
+}
+
+.cardsContainer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-3);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  min-width: 0;
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  min-width: 0;
+  font-size: 0.875rem;
+}
+
+.cardTitleLine {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-width: 0;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.cardNote {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+  overflow-wrap: anywhere;
+}
+
+.cardStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+  gap: var(--spacing-2) var(--spacing-3);
+  margin: 0;
+  padding-top: var(--spacing-3);
+  border-top: 1px solid var(--border);
+}
+
+.cardStat {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.cardStat dt {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.cardStat dd {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+@container results (min-width: 40rem) {
+  .cardsContainer {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* The four fixed columns take 27.25rem; 48rem leaves the Teacher column at
+   least 20.75rem. Narrower than that, the same data reads as cards. */
+@container results (min-width: 48rem) {
+  .tableContainer {
+    display: block;
+  }
+
+  .cardsContainer {
+    display: none;
+  }
+}

@@ -1,0 +1,451 @@
+.plansSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+/*
+ * Billing period as a segmented control in the console's toolbar band, with
+ * the same active treatment as the status tabs on every list page: coral as a
+ * block, --tk-brand-tint under --tk-brand-text.
+ */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-3) var(--spacing-4);
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.billingToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.toggleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  height: 2rem;
+  padding: 0 var(--spacing-3);
+  border: none;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--muted-foreground);
+  font-family: var(--font-family-base);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
+}
+
+.toggleBtn:hover {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.toggleBtn:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.toggleBtn.active {
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.saveBadge {
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--success) 18%, transparent);
+  color: color-mix(in srgb, var(--success), black 35%);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.toggleBtn.active .saveBadge {
+  background-color: var(--tk-brand-deep);
+  color: #fff;
+}
+
+/* Wallet ---------------------------------------------------------------- */
+
+.walletCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-3) var(--spacing-6);
+  padding: var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.walletInfo {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-2);
+  font-size: 0.9375rem;
+}
+
+.walletLabel {
+  color: var(--muted-foreground);
+}
+
+.walletAmount {
+  font-family: var(--font-family-heading);
+  font-weight: 700;
+  font-size: 1.125rem;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.walletToggle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.walletCalculation {
+  margin-top: var(--spacing-3);
+  padding: var(--spacing-2);
+  border-radius: var(--radius-sm);
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.walletCovers {
+  font-weight: 600;
+  color: color-mix(in srgb, var(--success), black 35%);
+}
+
+/* Plans ----------------------------------------------------------------- */
+
+.plansGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-4);
+  align-items: stretch;
+}
+
+/*
+ * A pricing card, but in the console's card language: --radius-md on a
+ * hairline border with the flat --shadow, and a hover that moves the border
+ * rather than lifting the card by 4px.
+ */
+.planCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: var(--spacing-6) var(--spacing-4) var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  transition: border-color var(--animation-duration-fast) ease;
+}
+
+.planCard:hover {
+  border-color: color-mix(in srgb, var(--foreground) 22%, var(--border));
+}
+
+/*
+ * The recommended plan stands taller than the two beside it, which is what a
+ * pricing table is for. The lift comes from negative block margins rather than
+ * a transform, so the type stays crisp, and from a deeper shadow plus the
+ * coral border and top bar.
+ */
+.mostPopular {
+  position: relative;
+  z-index: 1;
+  margin-block: calc(var(--spacing-4) * -1);
+  padding-block: var(--spacing-8);
+  border-color: var(--tk-brand-text);
+  box-shadow: var(--shadow-lg);
+}
+
+.mostPopular:hover {
+  border-color: var(--tk-brand-text);
+}
+
+.mostPopular .planName {
+  font-size: 1.25rem;
+}
+
+.mostPopular .planPrice {
+  font-size: 2.25rem;
+}
+
+/* In the flow beside the plan name rather than pinned over it - an absolute
+   badge collided with the heading at every card width. */
+.planHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-1);
+}
+
+.popularBadge,
+.bestValueBadge {
+  flex-shrink: 0;
+  padding: 0.1875rem 0.4375rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* --tk-brand-ink on coral is 6.2:1, where white would be 2.1:1. */
+.popularBadge {
+  background-color: var(--tk-brand);
+  color: var(--tk-brand-ink);
+}
+
+.bestValueBadge {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+/* "You are on this one" - a definite darker hairline rather than the coral,
+   which is reserved for the recommended plan. Two coral borders in one row
+   left neither of them meaning anything. */
+.currentPlanCard {
+  border-color: color-mix(in srgb, var(--foreground) 35%, var(--border));
+}
+
+.planName {
+  margin: 0;
+  min-width: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.planDescription {
+  margin: 0;
+  min-height: 2.8rem;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.planPriceContainer {
+  margin: var(--spacing-4) 0;
+}
+
+.planPrice {
+  font-family: var(--font-family-heading);
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.pricePeriod {
+  font-family: var(--font-family-base);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.effectiveMonthlyPrice {
+  margin-top: var(--spacing-2);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--success), black 35%);
+}
+
+.effectiveMonthlyPricePlaceholder {
+  height: 1.125rem;
+  margin-top: var(--spacing-2);
+}
+
+.platformFeeBox {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  border-radius: var(--radius);
+  margin-bottom: var(--spacing-4);
+}
+
+/* Sentence case, not tracked-out caps at 90% opacity. */
+.feeLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.feeValue {
+  margin-left: auto;
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* All three ran the raw token as type on its own tint - coral on coral was
+   about 1.5:1 and green on green about 2.3:1. */
+.feeHigh {
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.feeMedium {
+  background-color: color-mix(in srgb, var(--warning) 18%, transparent);
+  color: var(--warning-foreground);
+}
+
+.feeLow {
+  background-color: color-mix(in srgb, var(--success) 15%, transparent);
+  color: color-mix(in srgb, var(--success), black 35%);
+}
+
+.planDivider {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 0 0 var(--spacing-4) 0;
+}
+
+.planFeatures {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--spacing-4) 0;
+  flex-grow: 1;
+}
+
+.planFeatures li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-3);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.planFeatures li svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: color-mix(in srgb, var(--success), black 30%);
+}
+
+.aiFeature {
+  font-weight: 600;
+}
+
+.planAction {
+  margin-top: auto;
+}
+
+.subscribeButton {
+  width: 100%;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--radius);
+  background-color: color-mix(in srgb, var(--info) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--info) 25%, transparent);
+  /* Was a hardcoded #000000, which stayed black on a dark tint in dark mode. */
+  color: var(--foreground);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.note svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: color-mix(in srgb, var(--info), black 20%);
+}
+
+.note p {
+  margin: 0;
+}
+
+.note p + p {
+  margin-top: var(--spacing-2);
+}
+
+.errorText {
+  padding: var(--spacing-8);
+  text-align: center;
+  color: color-mix(in srgb, var(--error), black 25%);
+}
+
+@media (max-width: 1024px) {
+  .plansGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .plansGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .walletCard {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .planCard,
+  .toggleBtn {
+    transition: none;
+  }
+
+  .spinner {
+    animation: none;
+  }
+}

@@ -1,0 +1,123 @@
+.footer {
+  background-color: var(--surface);
+  border-top: 1px solid var(--border);
+  color: var(--muted-foreground);
+  padding: var(--spacing-12) var(--spacing-6);
+}
+
+.footerContent {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: var(--spacing-8);
+  margin-bottom: var(--spacing-12);
+}
+
+.brandColumn {
+  grid-column: span 1;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+  text-decoration: none;
+  color: var(--foreground);
+}
+
+.logoImage {
+  height: 40px;
+  width: auto;
+}
+
+.tagline {
+  font-size: 0.8rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.linksColumn {
+  grid-column: span 1;
+}
+
+.columnTitle {
+  font-family: var(--font-family-heading);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: var(--spacing-4);
+}
+
+.linkList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.footerLink {
+  color: var(--muted-foreground);
+  text-decoration: none;
+  font-size: 0.8rem;
+  transition: color var(--animation-duration-fast) ease;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.footerLink:hover {
+  color: var(--primary);
+}
+
+.footerBottom {
+  border-top: 1px solid var(--border);
+  padding-top: var(--spacing-6);
+  text-align: center;
+}
+
+.copyright {
+  font-size: 0.8125rem;
+  margin: 0;
+}
+
+@media (max-width: 992px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-6);
+  }
+
+  .brandColumn {
+    grid-column: 1 / -1; /* Span full width */
+    margin-bottom: var(--spacing-6);
+  }
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-6);
+  }
+}
+
+@media (max-width: 576px) {
+  .footer {
+    padding: var(--spacing-8) var(--spacing-4);
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-6);
+    margin-bottom: var(--spacing-8);
+  }
+
+  .brandColumn {
+    margin-bottom: 0;
+  }
+}

@@ -1,0 +1,63 @@
+import { z } from "zod";
+
+// This schema validates the form data POSTed by PayU after a mandate creation attempt.
+// For SI (Standing Instruction) transactions, mihpayid serves as the mandate ID (authPayuId).
+// PayU does NOT send separate mandate_id or mandate_status fields in the SI callback.
+export const schema = z.object({
+  mihpayid: z.string().optional().default(""),
+  mode: z.string().optional().default(""),
+  status: z.string(),
+  unmappedstatus: z.string().optional().default(""),
+  key: z.string(),
+  txnid: z.string(),
+  amount: z.string(),
+  cardCategory: z.string().optional(),
+  discount: z.string().optional().default(""),
+  net_amount_debit: z.string().optional().default(""),
+  addedon: z.string().optional().default(""),
+  productinfo: z.string(),
+  firstname: z.string(),
+  lastname: z.string().optional().default(""),
+  address1: z.string().optional().default(""),
+  address2: z.string().optional().default(""),
+  city: z.string().optional().default(""),
+  state: z.string().optional().default(""),
+  country: z.string().optional().default(""),
+  zipcode: z.string().optional().default(""),
+  email: z.string().default(""),
+  phone: z.string().optional().default(""),
+  // UDF fields - used in hash verification but no longer for mandate details
+  udf1: z.string().optional().default(""),
+  udf2: z.string().optional().default(""),
+  udf3: z.string().optional().default(""),
+  udf4: z.string().optional().default(""),
+  udf5: z.string().optional().default(""),
+  udf6: z.string().optional().default(""),
+  udf7: z.string().optional().default(""),
+  udf8: z.string().optional().default(""),
+  udf9: z.string().optional().default(""),
+  udf10: z.string().optional().default(""),
+  hash: z.string(),
+  field1: z.string().optional(),
+  field2: z.string().optional(),
+  field3: z.string().optional(),
+  field4: z.string().optional(),
+  field5: z.string().optional(),
+  field6: z.string().optional(),
+  field7: z.string().optional(),
+  field8: z.string().optional(),
+  field9: z.string().optional(),
+  payment_source: z.string().optional(),
+  PG_TYPE: z.string().optional(),
+  bank_ref_num: z.string().optional(),
+  bankcode: z.string().optional(),
+  error: z.string().optional(),
+  error_Message: z.string().optional(),
+  cardnum: z.string().optional(),
+  card_type: z.string().optional(),
+}).passthrough();
+
+export type InputType = z.infer<typeof schema>;
+
+// This endpoint does not have a traditional JSON output as it redirects the user.
+// No client-side fetch helper is needed as this is only called by the PayU server.

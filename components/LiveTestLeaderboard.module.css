@@ -1,0 +1,283 @@
+.container {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-6);
+  box-shadow: var(--shadow);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+  padding-bottom: var(--spacing-4);
+  border-bottom: 1px solid var(--border);
+}
+
+.title {
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin: var(--spacing-1) 0 0;
+}
+
+.spinning {
+  animation: leaderboard-refresh-spin 0.8s linear infinite;
+}
+
+@keyframes leaderboard-refresh-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.statusBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--radius);
+  margin-bottom: var(--spacing-4);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.statusOngoing {
+  background-color: color-mix(in srgb, var(--warning) 15%, transparent);
+  color: var(--warning-foreground);
+  border: 1px solid color-mix(in srgb, var(--warning) 25%, transparent);
+}
+
+.statusCompleted {
+  background-color: color-mix(in srgb, var(--success) 15%, transparent);
+  color: var(--success);
+  border: 1px solid color-mix(in srgb, var(--success) 25%, transparent);
+}
+
+.prizeDisclaimer {
+  background-color: color-mix(in srgb, var(--info) 15%, transparent);
+  color: var(--info);
+  border: 1px solid color-mix(in srgb, var(--info) 25%, transparent);
+}
+
+.table {
+  width: 100%;
+}
+
+.tableHeader {
+  display: flex;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  padding: 0 var(--spacing-4);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: var(--spacing-2);
+  margin-bottom: var(--spacing-2);
+}
+
+.tableBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.tableRow {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--radius);
+  transition: background-color var(--animation-duration-fast);
+}
+
+.tableRow:hover {
+  background-color: var(--muted);
+}
+
+.currentUserRow {
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+  border: 1px solid var(--primary);
+}
+
+.headerCellRank, .cellRank { flex: 0 0 70px; text-align: center; }
+.headerCellName, .cellName { flex: 1 1 auto; }
+.headerCellScore, .cellScore { flex: 0 0 100px; text-align: right; }
+.headerCellTime, .cellTime { flex: 0 0 120px; text-align: right; }
+
+.cellRank { display: flex; align-items: center; justify-content: center; font-weight: 700; }
+.rankNumber { font-size: 1.125rem; }
+.goldTrophy { color: #FFD700; }
+.silverTrophy { color: #C0C0C0; }
+.bronzeTrophy { color: #CD7F32; }
+
+.rankWithPrize {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.prizeAmount {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--success);
+  font-family: var(--font-family-base);
+  white-space: nowrap;
+}
+
+.cellName { font-weight: 500; }
+.cellScore, .cellTime { font-family: var(--font-family-monospace); }
+
+.currentUserSummary {
+  margin-top: var(--spacing-6);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--border);
+}
+
+.currentUserSummary h4 {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  margin: 0 0 var(--spacing-3);
+}
+
+.notAttemptedMessage {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+}
+
+/* States */
+.skeletonContainer { display: flex; flex-direction: column; gap: var(--spacing-2); }
+.skeletonRow { display: flex; gap: var(--spacing-4); align-items: center; padding: var(--spacing-3) var(--spacing-4); }
+.skeletonRank { height: 24px; flex: 0 0 70px; }
+.skeletonName { height: 20px; flex: 1 1 auto; }
+.skeletonScore { height: 20px; flex: 0 0 100px; }
+.skeletonTime { height: 20px; flex: 0 0 120px; }
+
+.errorState, .emptyState {
+  text-align: center;
+  padding: var(--spacing-8);
+  color: var(--muted-foreground);
+}
+.emptyState svg { margin-bottom: var(--spacing-4); }
+.emptyState h3 { font-size: 1.25rem; color: var(--foreground); margin: 0 0 var(--spacing-2); }
+.emptyState p { margin: 0; }
+
+/* Login Prompt */
+.loginPrompt {
+  text-align: center;
+  padding: var(--spacing-12);
+  color: var(--foreground);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.loginPromptIcon {
+  color: var(--primary);
+  margin-bottom: var(--spacing-2);
+}
+
+.loginPromptHeadline {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin: 0;
+  font-family: var(--font-family-heading);
+}
+
+.loginPromptSubtitle {
+  font-size: 1rem;
+  color: var(--muted-foreground);
+  margin: 0 0 var(--spacing-4);
+  max-width: 400px;
+}
+
+.loginPromptButtons {
+  display: flex;
+  gap: var(--spacing-3);
+  justify-content: center;
+  align-items: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: var(--spacing-4);
+  }
+
+  .statusBanner {
+    align-items: flex-start;
+  }
+
+  .statusBanner svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .loginPrompt {
+    padding: var(--spacing-8) var(--spacing-4);
+  }
+
+  .loginPromptHeadline {
+    font-size: 1.25rem;
+  }
+
+  .loginPromptSubtitle {
+    font-size: 0.9375rem;
+  }
+
+  .loginPromptButtons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .loginPromptButtons > * {
+    width: 100%;
+  }
+
+  .tableHeader { display: none; }
+  .tableRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-2);
+    border: 1px solid var(--border);
+  }
+  .cellRank, .cellName, .cellScore, .cellTime {
+    display: flex;
+    width: 100%;
+    text-align: left;
+    padding: var(--spacing-1) 0;
+    flex: 0 0 auto;
+    justify-content: flex-start;
+  }
+  .rankWithPrize {
+    flex-direction: row;
+    gap: var(--spacing-2);
+  }
+  .cellRank::before, .cellName::before, .cellScore::before, .cellTime::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--muted-foreground);
+    width: 100px;
+    flex-shrink: 0;
+  }
+}

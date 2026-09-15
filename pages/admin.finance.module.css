@@ -1,0 +1,208 @@
+/* Console page shell - see admin.transactions.module.css for the measure rule.
+   This one keeps the wide measure: it is a card grid, where extra width buys
+   another card per row rather than stretching a column. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: var(--spacing-6) var(--spacing-6) var(--spacing-8);
+  box-sizing: border-box;
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+}
+
+.periodSelect {
+  width: 200px;
+}
+
+.selectTrigger {
+  background-color: var(--surface);
+}
+
+.selectIcon {
+  margin-right: var(--spacing-2);
+  color: var(--muted-foreground);
+}
+
+.dateRange {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.dateSeparator {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.sectionTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  margin: 0;
+  padding-bottom: var(--spacing-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--spacing-3);
+}
+
+.grid4 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--spacing-3);
+}
+
+.statCard {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-4);
+  box-shadow: var(--shadow);
+}
+
+.statHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-2);
+}
+
+.titleWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  align-items: flex-start;
+}
+
+.badge {
+  font-size: 0.6875rem;
+  padding: 0 var(--spacing-2);
+  height: 1.125rem;
+}
+
+.statTitle {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+/* Coral as a block with ink on it - the raw token as an icon over its own 10%
+   tint ran about 1.5:1. */
+.statIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  color: var(--tk-brand-text);
+  background-color: var(--tk-brand-tint);
+  border-radius: var(--radius-full);
+}
+
+.statValue {
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground);
+  margin: 0 0 var(--spacing-1) 0;
+  line-height: 1.2;
+}
+
+.statSub {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.statSubValue {
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+/* The headline cards are marked by a coral hairline, not a 3% wash - a tint
+   that faint reads as a rendering artefact rather than a decision. */
+.highlight {
+  border-color: color-mix(in srgb, var(--tk-brand) 55%, var(--border));
+}
+
+.warning .statIcon {
+  color: color-mix(in srgb, var(--warning), black 45%);
+  background-color: color-mix(in srgb, var(--warning) 18%, transparent);
+}
+
+/* The console's error block: a hairline and a wash, not a solid red slab. */
+.errorNotice {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid color-mix(in srgb, var(--error) 30%, transparent);
+  border-radius: var(--radius);
+  background-color: color-mix(in srgb, var(--error) 10%, transparent);
+  color: color-mix(in srgb, var(--error), black 25%);
+}
+
+.errorNotice p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.note {
+  background-color: var(--muted);
+  padding: var(--spacing-3);
+  border-radius: var(--radius);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.note p {
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: var(--spacing-4);
+  }
+
+  .filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .periodSelect {
+    width: 100%;
+  }
+
+  .dateRange {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

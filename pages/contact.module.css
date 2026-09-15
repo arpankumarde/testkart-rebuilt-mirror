@@ -1,0 +1,128 @@
+.pageWrapper {
+  padding: var(--spacing-12) var(--spacing-6);
+  background-color: var(--background);
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: var(--spacing-12);
+  background-color: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.infoPanel {
+  padding: var(--spacing-12);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background-color: color-mix(in srgb, var(--primary) 5%, var(--surface));
+}
+
+.title {
+  font-family: var(--font-family-heading);
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--surface-foreground);
+  margin-bottom: var(--spacing-4);
+}
+
+.subtitle {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+  margin-bottom: var(--spacing-8);
+}
+
+.contactDetails {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.contactItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  font-size: 0.9375rem;
+  color: var(--surface-foreground);
+  text-decoration: none;
+  width: fit-content;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s ease;
+}
+
+.contactItem:hover {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.contactItem:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+
+.contactItem svg {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.addressItem {
+  align-items: flex-start;
+}
+
+.addressItem svg {
+  margin-top: 2px;
+}
+
+.formPanel {
+  padding: var(--spacing-12);
+}
+
+.form {
+  width: 100%;
+}
+
+.submitButton {
+  width: 100%;
+  margin-top: var(--spacing-4);
+}
+
+@media (max-width: 992px) {
+  .container {
+    grid-template-columns: 1fr;
+  }
+
+  .infoPanel {
+    padding: var(--spacing-8);
+    text-align: center;
+  }
+
+  .contactDetails {
+    align-items: center;
+  }
+
+  .formPanel {
+    padding: var(--spacing-8);
+  }
+}
+
+@media (max-width: 576px) {
+  .pageWrapper {
+    padding: var(--spacing-8) var(--spacing-4);
+  }
+
+  .infoPanel,
+  .formPanel {
+    padding: var(--spacing-6);
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+}

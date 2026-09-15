@@ -1,0 +1,1136 @@
+.root {
+  --expert-max: 1200px;
+
+  /* A wash, not a slab. Full-strength --tk-brand across a band this size was
+     glaring, and it swallowed the verified badge whole - that badge is filled
+     with the same coral, so on a coral ground it had nothing to read against.
+     Brand now carries in the small, high-contrast pieces: the eyebrow chip,
+     the primary button and the rule under the band. */
+  --expert-band: color-mix(in srgb, var(--tk-brand) 16%, var(--surface));
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* ---------------------------------------------------------------- hero --- */
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--expert-band);
+  color: var(--foreground);
+}
+
+/* One brand rule along the bottom edge, nothing else. An earlier version tiled
+   a masked dot field across the right half of the block; at wide viewports it
+   read as a stray texture patch rather than as artwork. */
+.heroPattern {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 4px;
+  background-color: var(--tk-brand);
+  pointer-events: none;
+}
+
+.heroInner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  width: 100%;
+  max-width: var(--expert-max);
+  margin: 0 auto;
+  padding: var(--spacing-16) var(--spacing-6);
+  box-sizing: border-box;
+}
+
+/* Top right of the band, but aligned to the content column rather than the
+   full-bleed edge, so it lines up with the stats card below it. */
+.shareButton {
+  position: absolute;
+  top: var(--spacing-6);
+  right: var(--spacing-6);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  height: 2.25rem;
+  padding: 0 var(--spacing-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  color: var(--foreground);
+  font-family: var(--font-family-base);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
+}
+
+.shareButton:hover {
+  border-color: var(--tk-brand-deep);
+  color: var(--tk-brand-text);
+}
+
+.shareButton:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* Positioning context for the phone-only tick. The avatar itself clips to a
+   circle, so the badge cannot live inside it. */
+.heroAvatarBlock {
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* Hidden by default - the name carries the tick at tablet width and above.
+   This rule is unlayered, so it beats the badge's own @layer base display. */
+.avatarBadge {
+  display: none;
+}
+
+.heroAvatarWrap {
+  flex-shrink: 0;
+  width: 11.5rem;
+  height: 11.5rem;
+  border-radius: var(--radius-full);
+  border: 4px solid var(--surface);
+  background-color: var(--surface);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.heroAvatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.heroAvatarFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+}
+
+.heroText {
+  min-width: 0;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  height: 1.75rem;
+  padding: 0 var(--spacing-3);
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand-deep);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* A block, not a flex row. As a flex container the name text and the badge were
+   two items, so a name long enough to need the full width bumped the tick onto
+   a line of its own - centred under the name on a phone, which read as a stray
+   icon rather than as a mark on the name. Inline, the tick follows the last
+   word wherever that word lands. */
+.name {
+  margin: var(--spacing-4) 0 0;
+  font-family: var(--font-family-heading);
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--foreground);
+}
+
+/* Overrides the badge's own text-bottom, which hangs it low against a heading
+   this size. Both live outside @layer base, so no !important is needed. */
+.nameBadge {
+  margin-left: var(--spacing-2);
+  vertical-align: middle;
+}
+
+.tagline {
+  margin: var(--spacing-3) 0 0;
+  max-width: 46ch;
+  font-size: 1.125rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--foreground);
+}
+
+.heroMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2) var(--spacing-4);
+  margin: var(--spacing-6) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.heroMetaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.heroMetaItem svg {
+  color: var(--tk-brand-text);
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-6);
+}
+
+.heroPrimary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.75rem;
+  padding: 0 var(--spacing-6);
+  border: 1px solid var(--tk-brand-deep);
+  border-radius: var(--radius);
+  background-color: var(--tk-brand-deep);
+  color: #fff;
+  font-family: var(--font-family-base);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
+}
+
+.heroPrimary:hover {
+  background-color: var(--surface);
+  color: var(--tk-brand-text);
+}
+
+.heroPrimary:focus-visible,
+.heroSecondary:focus-visible,
+.socialLink:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.heroSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.75rem;
+  padding: 0 var(--spacing-6);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  color: var(--foreground);
+  font-family: var(--font-family-base);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
+}
+
+.heroSecondary:hover {
+  border-color: var(--tk-brand-deep);
+  color: var(--tk-brand-text);
+}
+
+.socialRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-6);
+}
+
+.socialLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background-color: var(--surface);
+  color: var(--foreground);
+  transition: background-color var(--animation-duration-fast) ease,
+    border-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
+}
+
+.socialLink:hover {
+  background-color: var(--tk-brand-deep);
+  border-color: var(--tk-brand-deep);
+  color: #fff;
+}
+
+/* --------------------------------------------------------------- stats --- */
+
+/* Sits below the hero with a clear gap - not pulled up over it. The card
+   overlapping the coral block cut the hero's bottom edge in half and read as
+   a rendering fault. */
+.statsBand {
+  width: 100%;
+  max-width: var(--expert-max);
+  margin: var(--spacing-8) auto 0;
+  padding: 0 var(--spacing-6);
+  box-sizing: border-box;
+}
+
+.statsCard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: var(--spacing-6);
+  margin: 0;
+  padding: var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+/* Top-aligned, so a label that needs two lines lengthens its own cell instead
+   of pushing that stat's number out of line with the rest of the row. */
+.stat {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  min-width: 0;
+}
+
+.statIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-md);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.statBody {
+  min-width: 0;
+}
+
+.statValue {
+  font-family: var(--font-family-heading);
+  font-size: 1.625rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.statLabel {
+  margin: 2px 0 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--muted-foreground);
+}
+
+/* ------------------------------------------------------------ sections --- */
+
+.section {
+  width: 100%;
+  max-width: var(--expert-max);
+  margin: 0 auto;
+  padding: var(--spacing-16) var(--spacing-6) 0;
+  box-sizing: border-box;
+}
+
+.sectionHead {
+  margin-bottom: var(--spacing-6);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--foreground);
+}
+
+.sectionText {
+  margin: var(--spacing-2) 0 0;
+  max-width: 60ch;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--muted-foreground);
+}
+
+.chipCloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  height: 2rem;
+  padding: 0 var(--spacing-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background-color: var(--surface);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.chipSolid {
+  display: inline-flex;
+  align-items: center;
+  height: 2rem;
+  padding: 0 var(--spacing-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+/* Same band, tabs and count pills as /teacher/test-series, so a teacher sees
+   one filter pattern on both sides of the product. */
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: var(--spacing-6);
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.filters::-webkit-scrollbar {
+  display: none;
+}
+
+.filter {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+  height: 2rem;
+  padding: 0 var(--spacing-3);
+  border: none;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--muted-foreground);
+  font-family: var(--font-family-base);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
+}
+
+.filter:hover {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.filter:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.filterActive {
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.filterCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.125rem;
+  padding: 0 0.375rem;
+  border-radius: var(--radius-full);
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.filterActive .filterCount {
+  background-color: var(--tk-brand-deep);
+  color: #fff;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17.5rem, 1fr));
+  gap: var(--spacing-4);
+}
+
+.loadMoreRow {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--spacing-6);
+}
+
+.loadMore {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  height: 2.5rem;
+  padding: 0 var(--spacing-6);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  color: var(--foreground);
+  font-family: var(--font-family-base);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
+}
+
+.loadMore:hover {
+  border-color: var(--tk-brand-deep);
+  color: var(--tk-brand-text);
+}
+
+.loadMore:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.loadMoreCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.125rem;
+  padding: 0 0.375rem;
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.emptyPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-16) var(--spacing-4);
+  text-align: center;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.emptyIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.emptyTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.emptyText {
+  margin: 0;
+  max-width: 34rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+/* --------------------------------------------------------------- steps --- */
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--spacing-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.step {
+  position: relative;
+  padding: var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.stepNumber {
+  position: absolute;
+  top: var(--spacing-6);
+  right: var(--spacing-6);
+  font-family: var(--font-family-heading);
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--border);
+}
+
+.stepIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-md);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.stepTitle {
+  margin: var(--spacing-4) 0 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.stepText {
+  margin: var(--spacing-2) 0 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--muted-foreground);
+}
+
+/* --------------------------------------------------------------- about --- */
+
+.aboutGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--spacing-6);
+  align-items: start;
+}
+
+.aboutMain,
+.aboutSide {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  min-width: 0;
+}
+
+.card {
+  padding: var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.cardTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin: 0 0 var(--spacing-4);
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.bio {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: var(--foreground);
+  white-space: pre-wrap;
+}
+
+.mutedText {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  margin: 0;
+  padding: 0 0 0 var(--spacing-6);
+  list-style: none;
+  border-left: 2px solid var(--border);
+}
+
+.timelineItem {
+  position: relative;
+}
+
+.timelineDot {
+  position: absolute;
+  left: calc(var(--spacing-6) * -1 - 6px);
+  top: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand);
+  border: 2px solid var(--surface);
+}
+
+.timelineRole {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.timelineMeta {
+  margin: 2px 0 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--tk-brand-text);
+}
+
+.timelineDate {
+  margin: 2px 0 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.timelineDesc {
+  margin: var(--spacing-2) 0 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+  white-space: pre-wrap;
+}
+
+.awards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.award {
+  display: flex;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--background);
+}
+
+.awardIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.awardTitle {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.awardDesc {
+  margin: 2px 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.detail {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  font-size: 0.875rem;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+.detail svg {
+  flex-shrink: 0;
+  color: var(--tk-brand-text);
+}
+
+.detailLink {
+  color: var(--tk-brand-text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.detailLink:hover {
+  text-decoration: underline;
+}
+
+/* --------------------------------------------------- teacher CTA banner --- */
+
+/* Same column as .section, so the banner lines up with every heading above it.
+   It closes the page - below the "Start preparing" band - so it carries a
+   gutter on both sides rather than a top one only. */
+.teacherCta {
+  width: 100%;
+  max-width: var(--expert-max);
+  margin: 0 auto;
+  padding: var(--spacing-16) var(--spacing-6);
+  box-sizing: border-box;
+}
+
+/* ------------------------------------------------------------- closing --- */
+
+.closing {
+  position: relative;
+  overflow: hidden;
+  margin-top: var(--spacing-16);
+  background-color: var(--expert-band);
+  color: var(--foreground);
+}
+
+.closingInner {
+  position: relative;
+  width: 100%;
+  max-width: var(--expert-max);
+  margin: 0 auto;
+  padding: var(--spacing-16) var(--spacing-6);
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.closingTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+
+.closingText {
+  margin: var(--spacing-3) auto var(--spacing-6);
+  max-width: 52ch;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+
+/* ------------------------------------------------------------- preview --- */
+
+/* Inside the dashboard the page renders at roughly two-thirds scale so a
+   full landing page fits the panel without a horizontal scrollbar. */
+.preview {
+  --expert-max: 900px;
+}
+
+.preview .heroInner {
+  gap: var(--spacing-6);
+  padding: var(--spacing-12) var(--spacing-6);
+}
+
+.preview .heroAvatarWrap {
+  width: 8rem;
+  height: 8rem;
+}
+
+.preview .name {
+  font-size: 2.125rem;
+}
+
+.preview .tagline {
+  font-size: 1rem;
+}
+
+.preview .section,
+.preview .teacherCta {
+  padding-top: var(--spacing-12);
+}
+
+.preview .teacherCta {
+  padding-bottom: var(--spacing-12);
+}
+
+.preview .sectionTitle {
+  font-size: 1.375rem;
+}
+
+.preview .statsCard {
+  gap: var(--spacing-4);
+  padding: var(--spacing-4);
+}
+
+.preview .statValue {
+  font-size: 1.375rem;
+}
+
+.preview .closing {
+  margin-top: var(--spacing-12);
+}
+
+.preview .closingInner {
+  padding: var(--spacing-12) var(--spacing-6);
+}
+
+/* The dashboard panel is never wide enough for the two-column about block. */
+.preview .aboutGrid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* ---------------------------------------------------------- responsive --- */
+
+@media (max-width: 1024px) {
+  .aboutGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 860px) {
+  .heroInner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-6);
+    /* Extra top padding so the absolutely positioned share button clears the
+       avatar once the hero stacks. */
+    padding: calc(var(--spacing-12) + var(--spacing-8)) var(--spacing-4) var(--spacing-12);
+  }
+
+  .shareButton {
+    top: var(--spacing-4);
+    right: var(--spacing-4);
+  }
+
+  .heroAvatarWrap {
+    width: 8rem;
+    height: 8rem;
+  }
+
+  .name {
+    font-size: 2.25rem;
+  }
+
+  .tagline {
+    font-size: 1rem;
+  }
+
+  .statsBand,
+  .section,
+  .teacherCta {
+    padding-left: var(--spacing-4);
+    padding-right: var(--spacing-4);
+  }
+
+  .section,
+  .teacherCta {
+    padding-top: var(--spacing-12);
+  }
+
+  .teacherCta {
+    padding-bottom: var(--spacing-12);
+  }
+
+  .sectionTitle {
+    font-size: 1.5rem;
+  }
+
+  .statsCard {
+    gap: var(--spacing-4);
+    padding: var(--spacing-4);
+  }
+
+  /* One swipeable line instead of a wrapped cloud. A teacher covering eight
+     exams was stacking four rows of pills on a phone and pushing the catalogue
+     below the fold. The negative gutter lets the row bleed to the screen edge,
+     so a half-visible pill reads as "there is more" rather than as clipping. */
+  .chipCloud {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin: 0 calc(var(--spacing-4) * -1);
+    padding: 0 var(--spacing-4);
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .chipCloud::-webkit-scrollbar {
+    display: none;
+  }
+
+  .chip,
+  .chipSolid {
+    flex-shrink: 0;
+  }
+
+  .closingInner {
+    padding: var(--spacing-12) var(--spacing-4);
+  }
+
+  .closingTitle {
+    font-size: 1.625rem;
+  }
+
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  /* On a phone the hero is one narrow column - avatar, name, tagline, meta,
+     buttons, socials - and left-aligning it left a ragged edge down the whole
+     block with the avatar floating alone at the top. Centred, it reads as one
+     card. Tablets keep the left edge: there the column is wide enough that
+     centred body text starts to drift. The share button stays pinned to the
+     top right corner. */
+  .heroInner {
+    align-items: center;
+    text-align: center;
+  }
+
+  .heroText {
+    width: 100%;
+  }
+
+  /* Sat at 45 degrees on the avatar's rim - 6% in from the bounding box puts
+     the tick's centre on the circle's edge rather than out in the corner gap.
+     The surface ring separates it from whatever the photo is doing underneath. */
+  .avatarBadge {
+    display: inline-flex;
+    position: absolute;
+    right: 6%;
+    bottom: 6%;
+    width: 1.75rem;
+    height: 1.75rem;
+    margin-left: 0;
+    border-radius: var(--radius-full);
+    background-color: var(--surface);
+    box-shadow: 0 0 0 2px var(--surface);
+  }
+
+  .nameBadge {
+    display: none;
+  }
+
+  .heroMeta,
+  .heroActions,
+  .socialRow {
+    justify-content: center;
+  }
+
+  .tagline {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .heroActions {
+    width: 100%;
+  }
+
+  .heroPrimary,
+  .heroSecondary {
+    flex: 1;
+    min-width: 12rem;
+  }
+
+  /* Two compact columns, never one per row. Five stacked stats ran to roughly
+     a third of a phone screen on their own and pushed everything the page is
+     actually for below the fold, so the cell shrinks instead of the count. */
+  .statsCard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--spacing-4) var(--spacing-3);
+    padding: var(--spacing-4) var(--spacing-3);
+  }
+
+  .stat {
+    align-items: center;
+    gap: var(--spacing-2);
+  }
+
+  .statIcon {
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--radius);
+  }
+
+  .statIcon svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .statValue {
+    font-size: 1.25rem;
+  }
+
+  .statLabel {
+    font-size: 0.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroPrimary,
+  .heroSecondary,
+  .socialLink,
+  .filter {
+    transition: none;
+  }
+}

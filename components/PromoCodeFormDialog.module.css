@@ -1,0 +1,137 @@
+.dialogContent {
+  max-width: 48rem;
+  width: 90vw;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  margin-top: var(--spacing-6);
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: var(--spacing-2);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-6);
+}
+
+.discountFields {
+  display: flex;
+  gap: var(--spacing-4);
+  align-items: flex-end;
+}
+
+.flexItem {
+  flex: 1;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-4);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--border);
+}
+
+/* MultiSelect Popover */
+.popoverTrigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: var(--radius);
+  padding: 0 var(--spacing-3);
+  font-size: 0.875rem;
+  height: 2.5rem;
+  width: 100%;
+  gap: var(--spacing-2);
+  background-color: var(--surface);
+  color: var(--surface-foreground);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  transition: border-color var(--animation-duration-fast) ease, box-shadow var(--animation-duration-fast) ease;
+  cursor: pointer;
+}
+
+.popoverTrigger:hover {
+  border-color: var(--muted-foreground);
+}
+
+.popoverTrigger:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: var(--shadow-focus);
+}
+
+.popoverContent {
+  width: 300px;
+  background-color: var(--popup);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  padding: var(--spacing-2);
+  z-index: var(--z-overlay);
+  display: flex;
+  flex-direction: column;
+}
+
+.searchContainer {
+  position: relative;
+  padding: var(--spacing-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.searchIcon {
+  position: absolute;
+  left: var(--spacing-4);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted-foreground);
+}
+
+.searchInput {
+  padding-left: calc(var(--spacing-4) + 1rem);
+  height: 2.25rem;
+}
+
+.optionsList {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: var(--spacing-2);
+}
+
+.optionItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.875rem;
+  background: none;
+  border: none;
+  text-align: left;
+  color: var(--popup-foreground);
+  width: 100%;
+}
+
+.optionItem:hover {
+  background-color: var(--muted);
+}
+
+.optionLabel {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.loadingText {
+  padding: var(--spacing-4);
+  text-align: center;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}

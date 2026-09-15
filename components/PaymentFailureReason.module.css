@@ -1,0 +1,79 @@
+.reason {
+  display: block;
+  max-width: 100%;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  font: inherit;
+  font-size: 0.75rem;
+  /* A table raises this on its row hover background, where --muted-foreground drops under 4.5:1 on --muted. */
+  color: var(--payment-failure-reason-color, var(--muted-foreground));
+  text-align: left;
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.reason:hover {
+  color: var(--foreground);
+}
+
+.reason:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.card {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+  white-space: normal;
+}
+
+.alert,
+.alert:hover {
+  font-weight: 600;
+  color: color-mix(in srgb, var(--error), black 25%);
+}
+
+.popover {
+  width: 22rem;
+  max-width: calc(100vw - 2rem);
+}
+
+.note {
+  margin: 0 0 var(--spacing-3);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--error), black 25%);
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  margin: 0;
+  font-size: 0.8125rem;
+}
+
+.details div {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.details dt {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.details dd {
+  margin: 0;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}

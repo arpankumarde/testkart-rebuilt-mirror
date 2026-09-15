@@ -1,0 +1,33 @@
+/*
+ * Console page shell. The gutter matches the sticky header's own side padding
+ * so the page content lines up with the search field above it, and the measure
+ * is the list width - 1440 is for the dashboards, where extra width buys
+ * another card per row rather than just stretching a table.
+ */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  width: 100%;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: var(--spacing-6) var(--spacing-6) var(--spacing-8);
+  box-sizing: border-box;
+}
+
+.tabs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.tabsList {
+  align-self: flex-start;
+  max-width: 100%;
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: var(--spacing-4);
+  }
+}

@@ -1,0 +1,50 @@
+/* A form panel on the console contract: surface, hairline border, flat shadow. */
+.formContainer {
+  width: 100%;
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: var(--spacing-6);
+  background-color: var(--surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  box-sizing: border-box;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-4);
+  align-items: start;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 768px) {
+  .formContainer {
+    padding: var(--spacing-4);
+  }
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .formActions button {
+    width: 100%;
+  }
+}

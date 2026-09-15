@@ -1,0 +1,183 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - var(--header-height));
+  background-color: var(--background);
+  padding: var(--spacing-8);
+}
+
+.certificateWrapper {
+  width: 100%;
+  max-width: 800px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--spacing-12);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+.certificateWrapper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background-color: var(--primary);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand {
+  font-family: var(--font-family-heading);
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.awardIcon {
+  color: var(--primary);
+}
+
+.content {
+  flex-grow: 1;
+}
+
+.certifyText {
+  font-size: 1.25rem;
+  color: var(--muted-foreground);
+  margin: 0 0 var(--spacing-4) 0;
+}
+
+.studentName {
+  font-family: var(--font-family-cursive);
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 0 0 var(--spacing-4) 0;
+  line-height: 1.1;
+}
+
+.completionText {
+  font-size: 1.125rem;
+  color: var(--muted-foreground);
+  margin: 0 0 var(--spacing-2) 0;
+}
+
+.itemName {
+  font-family: var(--font-family-heading);
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.badgeWrapper {
+  margin-top: var(--spacing-4);
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-3);
+}
+
+.dateText {
+  font-size: 1.125rem;
+  color: var(--muted-foreground);
+  margin-top: var(--spacing-8);
+}
+
+.footer {
+  border-top: 1px solid var(--border);
+  padding-top: var(--spacing-4);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.issuedBy, .certNumber {
+  margin: 0;
+}
+
+.certNumber {
+  font-family: var(--font-family-monospace);
+}
+
+.actions {
+  margin-top: var(--spacing-8);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-3);
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.centeredMessage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--spacing-12);
+  min-height: 400px;
+}
+
+.icon {
+  color: var(--muted-foreground);
+  margin-bottom: var(--spacing-4);
+}
+
+.messageTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 var(--spacing-2) 0;
+}
+
+.messageText {
+  color: var(--muted-foreground);
+  max-width: 400px;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: var(--spacing-4);
+  }
+  .certificateWrapper {
+    padding: var(--spacing-6);
+  }
+  .brand {
+    font-size: 1.5rem;
+  }
+  .studentName {
+    font-size: 2.5rem;
+  }
+  .itemName {
+    font-size: 1.5rem;
+  }
+  .footer {
+    flex-direction: column;
+    gap: var(--spacing-2);
+  }
+}

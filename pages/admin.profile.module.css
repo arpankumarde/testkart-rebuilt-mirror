@@ -1,0 +1,260 @@
+/* Console page shell - see admin.transactions.module.css for the measure rule.
+   65rem: two columns of form, not a card grid. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  width: 100%;
+  max-width: 65rem;
+  margin: 0 auto;
+  padding: var(--spacing-6) var(--spacing-6) var(--spacing-8);
+  box-sizing: border-box;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: var(--spacing-4);
+  align-items: start;
+}
+
+.identityCard,
+.formCard {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.identityCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-6);
+  text-align: center;
+}
+
+/* The uploader fills its parent, so it needs an explicit box or it stretches
+   across the whole card. */
+.uploaderWrap {
+  width: 168px;
+  max-width: 100%;
+}
+
+.uploadHint {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.identityBody {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-3);
+  width: 100%;
+  min-width: 0;
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--border);
+}
+
+.identityMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.identityName {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+.formCard {
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-6);
+  gap: var(--spacing-6);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.sectionHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.sectionTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.sectionSubtitle {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.divider {
+  height: 1px;
+  background-color: var(--border);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-4);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.fieldFull {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.helpText {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.counter {
+  align-self: flex-end;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted-foreground);
+}
+
+/* Darkened: the raw error token as type on white runs about 2.4:1. */
+.counterError {
+  color: color-mix(in srgb, var(--error), black 20%);
+  font-weight: 700;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  flex-wrap: wrap;
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--border);
+}
+
+.footerStatus {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-left: auto;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .identityCard {
+    flex-direction: row;
+    align-items: center;
+    text-align: left;
+    gap: var(--spacing-6);
+  }
+
+  .uploaderWrap {
+    width: 120px;
+    flex-shrink: 0;
+  }
+
+  .identityBody {
+    align-items: flex-start;
+    width: auto;
+    padding-top: 0;
+    border-top: none;
+  }
+
+  .identityMeta {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: var(--spacing-4);
+  }
+
+  .formCard {
+    padding: var(--spacing-4);
+  }
+
+  .formGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .identityCard {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .uploaderWrap {
+    width: 144px;
+  }
+
+  .identityBody {
+    align-items: center;
+    width: 100%;
+    padding-top: var(--spacing-4);
+    border-top: 1px solid var(--border);
+  }
+
+  .identityMeta {
+    align-items: center;
+  }
+
+  .footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .footerActions {
+    margin-left: 0;
+    justify-content: flex-end;
+  }
+}

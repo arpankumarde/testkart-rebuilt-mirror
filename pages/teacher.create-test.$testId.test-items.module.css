@@ -1,0 +1,309 @@
+/* The console workspace shell. .pageBody owns the gutter. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+/*
+ * The console's card: --radius-md on a hairline with the flat --shadow, and a
+ * hover that moves the border rather than raising the card on a --shadow-md.
+ */
+.itemCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  transition: border-color var(--animation-duration-fast) ease;
+}
+
+.itemCard:hover {
+  border-color: color-mix(in srgb, var(--foreground) 22%, var(--border));
+}
+
+.itemRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.itemCard.dragging {
+  opacity: 0.4;
+}
+
+/* The one place a lift belongs: the card following the cursor. */
+.itemCard.dragOverlay {
+  box-shadow: var(--shadow-lg);
+  cursor: grabbing;
+}
+
+/* Solid, not dashed - a dashed card reads as a drop target. The left accent
+   marks the problem without washing the whole card in red. */
+.itemCardBlocking {
+  border-color: color-mix(in srgb, var(--error) 45%, var(--border));
+  border-left: 3px solid color-mix(in srgb, var(--error), black 15%);
+}
+
+.itemIssueBlocking,
+.itemIssueAdvisory {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  margin: var(--spacing-2) 0 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+/* Raw --error is about 3.5:1 and --warning about 2:1 as small type on white. */
+.itemIssueBlocking {
+  color: color-mix(in srgb, var(--error), black 25%);
+}
+
+.itemIssueAdvisory {
+  color: var(--warning-foreground);
+}
+
+.dragHandle {
+  display: flex;
+  align-items: center;
+  cursor: grab;
+  color: var(--muted-foreground);
+  padding: var(--spacing-2);
+  margin-left: calc(var(--spacing-2) * -1);
+  transition: color var(--animation-duration-fast) ease;
+}
+
+.dragHandle:hover {
+  color: var(--foreground);
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.itemContent {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.itemTitle {
+  margin: 0 0 var(--spacing-2);
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.itemMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2) var(--spacing-4);
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.itemMeta span {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+/* One chip shape, four tones. Each ran the raw token as type on its own tint
+   before - green at about 2.3:1, amber at 2:1, blue at 3:1. */
+.freeBadge,
+.subjectTimingBadge,
+.questionTimingBadge,
+.scheduledBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: 0.125rem var(--spacing-2);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.freeBadge {
+  background-color: color-mix(in srgb, var(--success) 15%, transparent);
+  color: color-mix(in srgb, var(--success), black 35%);
+}
+
+.subjectTimingBadge {
+  background-color: color-mix(in srgb, var(--info) 15%, transparent);
+  color: color-mix(in srgb, var(--info), black 25%);
+}
+
+.questionTimingBadge,
+.scheduledBadge {
+  background-color: color-mix(in srgb, var(--warning) 18%, transparent);
+  color: var(--warning-foreground);
+}
+
+.itemActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  flex-shrink: 0;
+}
+
+.deleteButton {
+  color: var(--error);
+}
+
+.deleteButton:hover {
+  background-color: color-mix(in srgb, var(--error) 10%, transparent);
+  color: var(--error);
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  cursor: pointer;
+}
+
+/* The console's empty panel: a solid hairline, not a 2px dash. */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  text-align: center;
+  padding: var(--spacing-16) var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.emptyState h3 {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.emptyState p {
+  margin: 0;
+  max-width: 34rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.emptyIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.errorIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--error) 12%, transparent);
+  color: color-mix(in srgb, var(--error), black 20%);
+}
+
+.navigation {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--border);
+}
+
+.dialogForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  margin-top: var(--spacing-4);
+}
+
+.checkboxFormItem {
+  margin-top: var(--spacing-2);
+}
+
+.checkboxWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+@media (max-width: 640px) {
+  .page {
+    gap: var(--spacing-4);
+  }
+
+  .itemCard {
+    padding: var(--spacing-3);
+  }
+
+  .itemRow {
+    flex-wrap: wrap;
+  }
+
+  .itemContent {
+    flex-basis: calc(100% - 2.5rem);
+    min-width: 0;
+  }
+
+  .itemActions {
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    margin-top: var(--spacing-2);
+  }
+
+  .itemActions > button:first-child {
+    flex: 1 1 auto;
+    justify-content: center;
+    min-height: 2.75rem;
+  }
+
+  .navigation {
+    flex-direction: column-reverse;
+    gap: var(--spacing-3);
+    align-items: stretch;
+  }
+
+  .navigation > * {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .itemCard,
+  .dragHandle {
+    transition: none;
+  }
+}

@@ -1,0 +1,168 @@
+.pageContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: var(--background);
+  padding: var(--spacing-8) var(--spacing-6);
+}
+
+/*
+ * --radius-md on the system's scale rather than --radius-lg, and a moderate
+ * elevation: this is a card floating on an empty page, so it earns a shadow,
+ * but --shadow-lg on a --radius-lg card is the stock SaaS panel.
+ */
+.formCard {
+  width: 100%;
+  max-width: 28rem;
+  padding: var(--spacing-8);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: var(--spacing-6);
+}
+
+/* The console's title scale - this is the front door to it. */
+.title {
+  margin: 0 0 var(--spacing-2);
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  color: var(--foreground);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.separator {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  margin: var(--spacing-4) 0;
+}
+
+.separatorLine {
+  flex: 1;
+  height: 1px;
+  background-color: var(--border);
+}
+
+/* Sentence case. It was uppercased with 0.05em tracking. */
+.separatorText {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.otpToggle {
+  display: flex;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-4);
+}
+
+.otpToggleButton {
+  flex: 1;
+  padding: var(--spacing-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease,
+    border-color var(--animation-duration-fast) ease;
+}
+
+.otpToggleButton:hover {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.otpToggleButton:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* Coral as a block, the same active treatment as the console's status tabs and
+   sidebar rows, rather than a solid --primary fill. */
+.otpToggleButtonActive {
+  background-color: var(--tk-brand-tint);
+  border-color: var(--tk-brand-text);
+  color: var(--tk-brand-text);
+}
+
+.otpToggleButtonActive:hover {
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.footerLinks {
+  margin-top: var(--spacing-6);
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.footerLinks p {
+  margin: var(--spacing-2) 0 0;
+}
+
+/* --tk-brand-text, not the coral --primary, which base.css records at about
+   2.1:1 against white. */
+.link {
+  color: var(--tk-brand-text);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.link:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--radius-sm);
+}
+
+@media (max-width: 768px) {
+  .pageContainer {
+    align-items: flex-start;
+    padding: var(--spacing-8) var(--spacing-4);
+  }
+
+  .formCard {
+    padding: var(--spacing-6);
+  }
+}
+
+@media (max-width: 480px) {
+  .formCard {
+    padding: var(--spacing-4);
+    max-width: 100%;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .otpToggleButton {
+    transition: none;
+  }
+}

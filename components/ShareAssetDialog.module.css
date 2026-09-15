@@ -1,0 +1,194 @@
+/* Dialog's own .content is a plain block, so its children would stack flush.
+   This class is unlayered and Dialog's sits in @layer base, so it wins. */
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  max-width: 30rem;
+}
+
+/* Dialog's .content caps its height and scrolls. Without this the flex items
+   shrink to fit instead, which clipped the title panel on a short viewport. */
+.content > * {
+  flex-shrink: 0;
+}
+
+/* The flex gap above already spaces the header off the title panel; Dialog's
+   own margin-bottom on .header stacked on top of it and doubled the gap. */
+.header {
+  margin-bottom: 0;
+}
+
+.assetTitle {
+  margin: 0;
+  padding: var(--spacing-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--muted);
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--foreground);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.platforms {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.platform {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  height: 100%;
+  padding: var(--spacing-3) var(--spacing-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  color: var(--foreground);
+  text-decoration: none;
+  transition: border-color var(--animation-duration-fast) ease,
+    background-color var(--animation-duration-fast) ease;
+}
+
+.platform:hover {
+  border-color: color-mix(in srgb, var(--foreground) 22%, var(--border));
+  background-color: var(--muted);
+}
+
+.platform:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* Full-strength brand colour behind a white glyph. A tinted-wash version of
+   each of these lands well under 4.5:1 for the glyph. */
+.platformIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-full);
+  color: #fff;
+}
+
+.whatsapp {
+  background-color: #1da851;
+}
+
+.facebook {
+  background-color: #1877f2;
+}
+
+.x {
+  background-color: #000;
+}
+
+.telegram {
+  background-color: #2aabee;
+}
+
+.linkedin {
+  background-color: #0a66c2;
+}
+
+.email {
+  background-color: var(--tk-brand-deep);
+}
+
+.platformLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.copyBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.copyLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.copyRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.copyInput {
+  flex: 1;
+  min-width: 0;
+  height: 2.5rem;
+  padding: 0 var(--spacing-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--muted);
+  color: var(--foreground);
+  font-family: var(--font-family-base);
+  font-size: 0.8125rem;
+  text-overflow: ellipsis;
+}
+
+.copyInput:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.copyButton {
+  flex-shrink: 0;
+}
+
+.previewLink {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: var(--spacing-2);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--tk-brand-text);
+  text-decoration: none;
+}
+
+.previewLink:hover {
+  text-decoration: underline;
+}
+
+.previewLink:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--radius-sm);
+}
+
+@media (max-width: 480px) {
+  .copyRow {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .copyButton {
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .platform {
+    transition: none;
+  }
+}

@@ -1,0 +1,308 @@
+/*
+ * Teacher-acquisition CTA for the asset detail pages.
+ *
+ * It deliberately wears the Book-a-demo card's clothes — same brand coral, same
+ * deep warm ink, same "FOR TEACHERS" chip, same illustration. A visitor who
+ * meets the corner demo card and then scrolls into this banner should read one
+ * campaign, not two components.
+ *
+ * Colour, carried over from BookDemoPopup: the brand coral hsl(20 100% 70%) is
+ * too light to hold white text (2.1:1), so everything on it is set in a deep
+ * warm ink instead, which reads at 6.2:1 and clears AA at every size.
+ *   --tk-cta-orange      the brand coral. The card.
+ *   --tk-cta-ink         text, borders and the solid button sitting ON it.
+ *   --tk-cta-orange-ink  orange text on white — the chip label.
+ *
+ * These are fixed in both themes, exactly as the demo card's are: the block is
+ * a piece of brand artwork, not a themed surface.
+ */
+
+/*
+ * Wrapper exists purely to be the query container. An element cannot query
+ * itself, so the coral card has to be a child of the thing measuring it.
+ *
+ * Measuring the container rather than the viewport matters here: this banner
+ * sits in a ~700px article column beside a sidebar on the course and mock-test
+ * pages, and full-bleed on the others. A viewport media query would go
+ * two-column in the article at 1024px, where there is nowhere near the room.
+ * Where container queries are unsupported the stacked layout stands, which is
+ * the mobile one and is correct at any width.
+ */
+.banner {
+  container-type: inline-size;
+  display: block;
+}
+
+.card {
+  --tk-cta-orange: var(--tk-brand);
+  --tk-cta-ink: var(--tk-brand-ink);
+  /* --tk-brand-deep, not --tk-brand-text: the chip's white pill is fixed in
+     both themes, so its label needs the fixed orange. The themed one would go
+     light coral in dark mode and land at 2:1 on that white. */
+  --tk-cta-orange-ink: var(--tk-brand-deep);
+
+  position: relative;
+  /* Clips the two blooms below, which are deliberately oversized and hang off
+     the corners. */
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  padding: var(--spacing-6);
+
+  background-color: var(--tk-cta-orange);
+  color: var(--tk-cta-ink);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12px 28px -8px hsl(20 60% 35% / 0.4);
+}
+
+/* Two soft blooms behind the content — a light one top-right, an ink one
+   bottom-left — so the flat coral gets some depth without a second hue. */
+.card::before,
+.card::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.card::before {
+  width: 20rem;
+  height: 20rem;
+  top: -10rem;
+  right: -5rem;
+  background: radial-gradient(
+    circle,
+    hsl(0 0% 100% / 0.38) 0%,
+    hsl(0 0% 100% / 0) 70%
+  );
+}
+
+.card::after {
+  width: 16rem;
+  height: 16rem;
+  bottom: -9rem;
+  left: -6rem;
+  background: radial-gradient(
+    circle,
+    hsl(20 85% 18% / 0.14) 0%,
+    hsl(20 85% 18% / 0) 70%
+  );
+}
+
+.content {
+  /* Lifts the copy off the blooms, which are painted on the card itself. */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  min-width: 0;
+}
+
+/* Wide-tracked administrative micro-label — the audience signal, same as the
+   demo card's. */
+.chip {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  background-color: #fff;
+  color: var(--tk-cta-orange-ink);
+  border-radius: var(--radius-sm);
+
+  font-family: var(--font-family-base);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+/* Tight and heavy, against the wide-tracked chip above it. */
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--tk-cta-ink);
+  text-wrap: balance;
+}
+
+/* Full-strength ink, no alpha — small text on coral needs the whole 6.2:1. */
+.description {
+  margin: 0;
+  max-width: 46ch;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--tk-cta-ink);
+}
+
+/* Capped: the buttons below grow to fill this row, and on the full-bleed pages
+   (bundles, study notes) the column is ~1100px — unchecked they would stretch
+   to 400px each and read as two banners rather than two buttons. */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  width: 100%;
+  max-width: 30rem;
+  margin-top: var(--spacing-2);
+}
+
+/* Basis `auto` = each button's own label width, so the pair sits on one line
+   wherever both labels fit and each drops to full width when they don't.
+   A fixed basis can't do this: Button sets white-space:nowrap, so anything
+   narrower than the label overflows instead of wrapping. Growing from there
+   squares the two off against the copy above them. */
+.card .primaryCta,
+.card .secondaryCta {
+  flex: 1 1 auto;
+  font-weight: 700;
+  /* Both borders 2px so the two sit at exactly the same height — Button's own
+     1px would leave the solid one a pixel taller inside a border-box height. */
+  border-width: 2px;
+}
+
+/* lg buttons scale their icons to 1.5rem, which overwhelms a 1rem label at
+   this size. */
+.card .primaryCta svg,
+.card .secondaryCta svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+/* The solid action is the darkest thing on the card, so the eye lands on it.
+   A white fill would separate from this coral at only 2.1:1 — under the 3:1
+   floor for a control's boundary — where ink gives 6.2:1. */
+.card .primaryCta {
+  background-color: var(--tk-cta-ink);
+  border-color: var(--tk-cta-ink);
+  color: #fff;
+}
+
+.card .primaryCta:hover:not(:disabled) {
+  background-color: hsl(20 85% 24%);
+  border-color: hsl(20 85% 24%);
+  color: #fff;
+}
+
+/* Outline in the same ink, at 2px so the boundary survives against a mid-tone
+   fill. Button's own outline variant is keyed to --primary, which IS this
+   coral — it would vanish. */
+.card .secondaryCta {
+  background-color: transparent;
+  border: 2px solid var(--tk-cta-ink);
+  color: var(--tk-cta-ink);
+}
+
+.card .secondaryCta:hover:not(:disabled) {
+  background-color: hsl(20 85% 18% / 0.12);
+  border-color: var(--tk-cta-ink);
+  color: var(--tk-cta-ink);
+}
+
+/* Button's default focus ring is --background then --primary; on this card the
+   second ring is the coral itself and disappears. Ink outside a coral gap
+   instead. */
+.card .primaryCta:focus-visible,
+.card .secondaryCta:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--tk-cta-orange),
+    0 0 0 4px var(--tk-cta-ink);
+  outline: none;
+}
+
+/* Intrinsic width/height on the <img> plus height:auto lets the browser reserve
+   the right box before the file lands, so the banner doesn't jump. No forced
+   aspect-ratio: if the asset is ever swapped for a different shape it should
+   reflow honestly rather than crop. No background or radius either — the PNG is
+   transparent, and any fill behind it would show as a box around the artwork. */
+/* 16rem keeps the stacked card off ~570px tall on a phone, where the art is
+   the tallest thing on it and the buttons are what matter. */
+.art {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 16rem;
+  height: auto;
+  align-self: center;
+}
+
+/* Side by side once the card itself — not the window — has the room. */
+@container (min-width: 34rem) {
+  .card {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-8);
+    padding: var(--spacing-8);
+  }
+
+  .content {
+    flex: 1 1 auto;
+  }
+
+  .title {
+    font-size: 1.75rem;
+  }
+
+  /* Shrinks with the card but never dominates it: the copy keeps the weight,
+     and the column it leaves behind stays wide enough for both buttons to
+     share a line. */
+  .art {
+    flex: 0 1 13rem;
+    align-self: center;
+    /* Without this the flex basis is ignored: a replaced element's automatic
+       minimum size is its specified width, and `width:100%` capped by
+       max-width resolves that to 20rem — the image would hold 20rem and eat
+       the column the buttons need. */
+    min-width: 0;
+  }
+}
+
+/* Full-bleed pages (bundles, study notes) give the card ~1150px, where the
+   two-column split above leaves a trough of dead coral between the copy and
+   the art. Everything grows a step to close it rather than letting the block
+   float in the middle of its own banner. */
+@container (min-width: 56rem) {
+  .card {
+    gap: var(--spacing-12);
+    padding: var(--spacing-8) var(--spacing-12);
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .description {
+    max-width: 54ch;
+    font-size: 1rem;
+  }
+
+  .actions {
+    max-width: 34rem;
+  }
+
+  .art {
+    flex: 0 1 18rem;
+  }
+}
+
+/* Padding closes up on genuinely small screens, where the card is the full
+   width of the viewport minus the page gutter. */
+@media (max-width: 480px) {
+  .card {
+    padding: var(--spacing-4);
+    gap: var(--spacing-4);
+    border-radius: var(--radius-md);
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .description {
+    font-size: 0.875rem;
+  }
+}

@@ -1,0 +1,242 @@
+.builderContainer {
+  width: 100%;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  padding: var(--spacing-4) var(--spacing-6) var(--spacing-6);
+  box-sizing: border-box;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-4);
+  padding-bottom: var(--spacing-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.heading {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.headerMeta {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.emptyState {
+  text-align: center;
+  padding: var(--spacing-8) var(--spacing-4);
+  background-color: var(--muted);
+  border-radius: var(--radius-md);
+  color: var(--muted-foreground);
+}
+
+.emptyState p {
+  margin: 0;
+}
+
+.errorState {
+  text-align: center;
+  padding: var(--spacing-8);
+  background-color: var(--surface);
+  border: 1px solid var(--error);
+  border-radius: var(--radius-md);
+  color: color-mix(in srgb, var(--error), black 35%);
+}
+
+.sectionsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.section {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--background);
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+  border-top-left-radius: var(--radius-md);
+  border-top-right-radius: var(--radius-md);
+}
+
+.sectionTitleContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex: 1;
+  min-width: 0;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sectionMeta {
+  flex-shrink: 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.moveButtons {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.sectionActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  flex-shrink: 0;
+}
+
+.deleteButton {
+  color: color-mix(in srgb, var(--error), black 35%);
+}
+
+.deleteButton:hover {
+  background-color: color-mix(in srgb, var(--error), white 90%);
+  color: color-mix(in srgb, var(--error), black 35%);
+}
+
+.lessonsList {
+  padding: var(--spacing-2) var(--spacing-3) var(--spacing-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.lessonItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-1) var(--spacing-2);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.lessonTitleContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex: 1;
+  min-width: 0;
+}
+
+.lessonIcon {
+  display: inline-flex;
+  color: var(--tk-brand-text);
+  flex-shrink: 0;
+}
+
+.lessonTitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.previewBadge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--secondary), black 35%);
+  background-color: color-mix(in srgb, var(--secondary) 15%, var(--surface));
+  padding: 2px var(--spacing-2);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.contentBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px var(--spacing-2);
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.contentBadgeHasContent {
+  background-color: color-mix(in srgb, var(--success) 15%, var(--surface));
+  color: color-mix(in srgb, var(--success), black 35%);
+}
+
+.contentBadgeNoContent {
+  background-color: color-mix(in srgb, var(--warning) 18%, var(--surface));
+  color: var(--warning-foreground);
+}
+
+.lessonActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  flex-shrink: 0;
+}
+
+.addLessonContainer {
+  padding-top: var(--spacing-1);
+}
+
+.continueContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--spacing-6);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 768px) {
+  .builderContainer {
+    padding: var(--spacing-4);
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .lessonItem {
+    flex-wrap: wrap;
+  }
+
+  .lessonTitleContainer {
+    flex-wrap: wrap;
+  }
+}

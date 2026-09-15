@@ -1,0 +1,352 @@
+/* Console page shell - see admin.transactions.module.css for the measure rule. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  width: 100%;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: var(--spacing-6) var(--spacing-6) var(--spacing-8);
+  box-sizing: border-box;
+}
+
+.infoBox {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-4);
+  box-shadow: var(--shadow);
+}
+
+.infoBox h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin: 0 0 var(--spacing-3);
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.infoBox ul {
+  margin: 0;
+  padding-left: var(--spacing-6);
+  color: var(--muted-foreground);
+  line-height: 1.6;
+  font-size: 0.875rem;
+}
+
+.infoBox code {
+  background-color: var(--muted);
+  padding: 0.1rem 0.3rem;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family-monospace);
+  font-size: 0.8125rem;
+  color: var(--foreground);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: var(--spacing-4);
+  align-items: start;
+}
+
+.sidebar {
+  position: sticky;
+  top: calc(var(--header-height) + var(--spacing-4));
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  padding: var(--spacing-2);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.categoryBtn {
+  background: none;
+  border: none;
+  text-align: left;
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius);
+  cursor: pointer;
+  color: var(--muted-foreground);
+  font-family: var(--font-family-base);
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: background-color var(--animation-duration-fast) ease, color var(--animation-duration-fast) ease;
+}
+
+.categoryBtn:hover {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.categoryBtn:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* Coral as a block with ink on it, matching the sidebar's active row. */
+.categoryBtn.active {
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+  font-weight: 600;
+}
+
+.mainContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0 var(--spacing-3);
+  box-shadow: var(--shadow);
+}
+
+.searchIcon {
+  color: var(--muted-foreground);
+  flex-shrink: 0;
+}
+
+.searchInput {
+  border: none;
+  background: transparent;
+  padding: var(--spacing-3);
+  width: 100%;
+  font-family: var(--font-family-base);
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+
+.searchInput:focus {
+  outline: none;
+}
+
+.endpointCard {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.endpointHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: var(--spacing-4);
+  border-bottom: 1px solid var(--border);
+  gap: var(--spacing-4);
+}
+
+.routeInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  flex: 1;
+  min-width: 0;
+}
+
+.routeTopLine {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+}
+
+/* Each label is darkened against its own tint - the raw token over a 15% wash
+   of itself runs about 1.9:1. */
+.methodBadge {
+  font-family: var(--font-family-monospace);
+  font-weight: 700;
+  font-size: 0.75rem;
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-sm);
+}
+
+.methodBadge.GET {
+  background-color: color-mix(in srgb, var(--success) 15%, transparent);
+  color: color-mix(in srgb, var(--success), black 35%);
+}
+
+.methodBadge.POST {
+  background-color: color-mix(in srgb, var(--info) 15%, transparent);
+  color: color-mix(in srgb, var(--info), black 35%);
+}
+
+.routePath {
+  font-family: var(--font-family-monospace);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+.copyBtn {
+  background: transparent;
+  border: none;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--animation-duration-fast) ease, color var(--animation-duration-fast) ease;
+}
+
+.copyBtn:hover {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.copyBtn:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.description {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.authBadge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.authBadge.none {
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+}
+
+.authBadge.student {
+  background-color: color-mix(in srgb, var(--warning) 15%, transparent);
+  color: color-mix(in srgb, var(--warning), black 45%);
+}
+
+.authBadge.any {
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.endpointDetails {
+  padding: var(--spacing-4);
+}
+
+/* Sentence case: the tracked-out caps chip is reserved for the sidebar's
+   audience marker and the dashboard's "Needs attention" band. */
+.sectionTitle {
+  font-family: var(--font-family-heading);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  margin-bottom: var(--spacing-3);
+}
+
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--spacing-6);
+  font-size: 0.875rem;
+}
+
+.dataTable th {
+  text-align: left;
+  padding: var(--spacing-2) var(--spacing-3);
+  border-bottom: 1px solid var(--border);
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.dataTable td {
+  padding: var(--spacing-2) var(--spacing-3);
+  border-bottom: 1px solid var(--border);
+  color: var(--foreground);
+}
+
+.dataTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* A neutral code chip: coral is a block in this console, not type. */
+.typeLabel {
+  font-family: var(--font-family-monospace);
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  background-color: var(--muted);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.requiredBadge {
+  font-size: 0.75rem;
+  color: color-mix(in srgb, var(--error), black 20%);
+  font-weight: 600;
+  margin-left: var(--spacing-2);
+}
+
+.notesList {
+  margin: 0;
+  padding-left: var(--spacing-4);
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.notesList li {
+  margin-bottom: var(--spacing-1);
+}
+
+/* Overrides the kit accordion trigger so it reads as a section band. */
+.customAccordionTrigger {
+  padding: var(--spacing-3) var(--spacing-4) !important;
+  background-color: var(--muted) !important;
+  border-radius: 0 !important;
+  border-bottom: 1px solid var(--border);
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sidebar {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+  }
+
+  .categoryBtn {
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: var(--spacing-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .categoryBtn,
+  .copyBtn {
+    transition: none;
+  }
+}

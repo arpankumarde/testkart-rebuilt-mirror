@@ -1,0 +1,59 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.paragraphBox {
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-6);
+  max-width: 100%;
+  overflow-x: auto; /* Handle wide content in paragraph */
+}
+
+.paragraphHeading {
+  font-family: var(--font-family-heading);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--spacing-3);
+}
+
+.paragraphContent {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--foreground);
+}
+
+.optionsGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.optionLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color var(--animation-duration-fast), box-shadow var(--animation-duration-fast);
+  overflow: hidden; /* Prevent overflow */
+  max-width: 100%;
+}
+
+.optionLabel:hover {
+  border-color: var(--primary);
+}
+
+.optionLabel > span {
+  font-size: 1rem;
+  overflow-x: auto; /* Allow scrolling for wide content inside options */
+  max-width: 100%;
+}

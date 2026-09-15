@@ -1,0 +1,80 @@
+.checkboxRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+}
+
+.checkboxRowText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.emptyState {
+  padding: var(--spacing-4);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  font-family: var(--font-family-base);
+  text-align: center;
+}
+
+.tierList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.tierHeaderRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.4fr auto;
+  gap: var(--spacing-2);
+  padding: 0 var(--spacing-1);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  font-family: var(--font-family-base);
+}
+
+.tierRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.4fr auto;
+  gap: var(--spacing-2);
+  align-items: center;
+}
+
+.addButton {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  margin-top: var(--spacing-2);
+}
+
+.totalRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  background-color: var(--muted);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-family: var(--font-family-base);
+}
+
+.iconFirst {
+  color: #d4a017;
+}
+
+.warningBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  border-radius: var(--radius);
+  background-color: color-mix(in srgb, var(--error) 12%, transparent);
+  color: var(--error);
+  font-size: 0.8125rem;
+  font-family: var(--font-family-base);
+}

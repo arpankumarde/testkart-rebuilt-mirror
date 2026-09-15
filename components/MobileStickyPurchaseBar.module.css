@@ -1,0 +1,140 @@
+.stickyBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--surface);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+  z-index: var(--z-nav-sticky);
+  transform: translateY(100%);
+  transition: transform var(--animation-duration-normal) ease-in-out;
+  display: none;
+}
+
+.stickyBar.visible {
+  transform: translateY(0);
+}
+
+.stickyBar.enrolled {
+  background-color: color-mix(in srgb, var(--success) 5%, var(--surface));
+  border-top-color: color-mix(in srgb, var(--success) 20%, transparent);
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  padding-bottom: calc(var(--spacing-3) + env(safe-area-inset-bottom));
+  max-width: 100%;
+}
+
+.priceSection {
+  flex: 1;
+  min-width: 0;
+}
+
+.priceRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.currentPrice {
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--surface-foreground);
+  white-space: nowrap;
+}
+
+.originalPrice {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  text-decoration: line-through;
+  white-space: nowrap;
+}
+
+.discount {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--success);
+  padding: 2px var(--spacing-1);
+  background-color: color-mix(in srgb, var(--success) 15%, transparent);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.buyButton {
+  flex-shrink: 0;
+  min-width: 120px;
+  font-weight: 600;
+  min-height: 44px;
+}
+
+.enrolledButton {
+  width: 100%;
+  font-weight: 600;
+  min-height: 44px;
+  background-color: var(--success);
+  color: var(--success-foreground);
+}
+
+.enrolledButton:hover {
+  background-color: color-mix(in srgb, var(--success), black 10%);
+}
+
+/* Show only on mobile */
+@media (max-width: 768px) {
+  .stickyBar {
+    display: block;
+    bottom: 60px; /* Position above mobile bottom nav */
+  }
+}
+
+@media (max-width: 576px) {
+  .content {
+    padding: var(--spacing-2) var(--spacing-3);
+    padding-bottom: calc(var(--spacing-2) + env(safe-area-inset-bottom));
+    gap: var(--spacing-2);
+  }
+
+  .currentPrice {
+    font-size: 1.125rem;
+  }
+
+  .originalPrice {
+    font-size: 0.8125rem;
+  }
+
+  .discount {
+    font-size: 0.6875rem;
+  }
+
+  .buyButton {
+    min-width: 100px;
+  }
+}
+
+@media (max-width: 400px) {
+  .priceRow {
+    gap: var(--spacing-1);
+  }
+
+  .currentPrice {
+    font-size: 1rem;
+  }
+
+  .originalPrice {
+    font-size: 0.75rem;
+  }
+
+  .buyButton {
+    min-width: 90px;
+    font-size: 0.875rem;
+    padding: 0 var(--spacing-2);
+  }
+}

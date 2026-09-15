@@ -1,0 +1,396 @@
+/* Console page shell - see admin.transactions.module.css for the measure rule.
+   The compact table and cards follow admin.teachers.module.css. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  width: 100%;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: var(--spacing-6) var(--spacing-6) var(--spacing-8);
+  box-sizing: border-box;
+}
+
+.results {
+  container: results / inline-size;
+  min-width: 0;
+}
+
+.tableContainer {
+  display: none;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* Fixed layout: the Teacher column takes whatever the others leave. */
+.table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.colEarned {
+  width: 7.25rem;
+}
+
+.colMoney {
+  width: 6.75rem;
+}
+
+.colSubscription {
+  width: 7.25rem;
+}
+
+.colAvailable {
+  width: 7rem;
+}
+
+.colActions {
+  width: 3.25rem;
+}
+
+.table th,
+.table td {
+  padding: var(--spacing-2) 0.625rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.table th:first-child,
+.table td:first-child {
+  padding-left: var(--spacing-4);
+}
+
+.table th:last-child,
+.table td:last-child {
+  padding-right: var(--spacing-2);
+}
+
+.table th {
+  height: 2.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  background-color: var(--muted);
+}
+
+.table td {
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: var(--foreground);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background-color: var(--muted);
+}
+
+.table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A zero reads as absence, so it steps back and the balances that exist stand out. */
+.table .zero,
+.cardStat .zero {
+  color: var(--muted-foreground);
+}
+
+/* Darkened: the raw success token as type on white runs about 2.3:1. */
+.table .positiveBalance,
+.cardStat .positiveBalance {
+  font-weight: 600;
+  color: color-mix(in srgb, var(--success), black 30%);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.primaryLine,
+.valueLine,
+.secondaryLine {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.primaryLine {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.valueLine {
+  font-variant-numeric: tabular-nums;
+}
+
+.secondaryLine {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.sortButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  max-width: 100%;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: color var(--animation-duration-fast) ease;
+}
+
+.sortButton:hover {
+  color: var(--foreground);
+}
+
+.sortButton:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* The resting icon is a muted colour rather than a faded one - the console
+   does not use opacity to say "inactive". */
+.sortIcon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+
+.sortIconActive {
+  color: var(--tk-brand-text);
+}
+
+.rowActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+}
+
+.iconButton svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Neutral at rest so the direction toggle sits with the other toolbar fields. */
+.sortDirection {
+  flex-shrink: 0;
+  border-color: var(--border);
+  color: var(--foreground);
+}
+
+.sortDirection:hover {
+  border-color: var(--tk-brand-hover);
+  color: var(--tk-brand-hover-foreground);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.cardsContainer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-3);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  min-width: 0;
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  min-width: 0;
+  font-size: 0.875rem;
+}
+
+.cardHeader .rowActions {
+  flex-shrink: 0;
+  margin: calc(-1 * var(--spacing-1)) calc(-1 * var(--spacing-2)) 0 0;
+}
+
+.cardStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(6.75rem, 1fr));
+  gap: var(--spacing-2) var(--spacing-3);
+  margin: 0;
+  padding-top: var(--spacing-3);
+  border-top: 1px solid var(--border);
+}
+
+.cardStat {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.cardStat dt {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.cardStat dd {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+/* Record payout dialog */
+.balanceSummary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.summaryLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.summaryFigure {
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.formGroup label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.amountInputContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.rupeeIcon {
+  position: absolute;
+  left: var(--spacing-3);
+  color: var(--muted-foreground);
+  pointer-events: none;
+}
+
+.amountInput {
+  padding-left: calc(var(--spacing-3) * 2 + 16px);
+  font-variant-numeric: tabular-nums;
+}
+
+.textarea {
+  font-family: var(--font-family-base);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--foreground);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--spacing-2) var(--spacing-3);
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color var(--animation-duration-fast) ease, box-shadow var(--animation-duration-fast) ease;
+  outline: none;
+  resize: vertical;
+}
+
+/* Off the coral border the Input primitive also moved away from - it sits at
+   about 2.1:1 against white. */
+.textarea:focus {
+  border-color: color-mix(in srgb, var(--foreground) 35%, var(--border));
+  box-shadow: var(--shadow-focus);
+}
+
+.errorMessage {
+  font-size: 0.8125rem;
+  color: color-mix(in srgb, var(--error), black 20%);
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: var(--spacing-4);
+  }
+}
+
+@container results (min-width: 40rem) {
+  .cardsContainer {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* The seven fixed columns take 45rem; 60rem leaves the Teacher column at
+   least 15rem. Narrower than that, the same data reads as cards. */
+@container results (min-width: 60rem) {
+  .tableContainer {
+    display: block;
+  }
+
+  .cardsContainer {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .textarea,
+  .sortButton {
+    transition: none;
+  }
+}

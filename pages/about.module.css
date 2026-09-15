@@ -1,0 +1,405 @@
+/*
+ * About reads as the quiet page in a loud set. Every other marketing surface
+ * opens on a coral slab; this one opens on paper and spends its coral twice -
+ * the rule under the masthead and the closing panel - so the credibility
+ * material in between is carried by type and rules rather than colour.
+ *
+ * One grid runs the whole page: a narrow fact column against a wide column
+ * that elaborates it. Section headings are deliberately smaller than the
+ * milestone years beneath them, so the dates lead and the labels get out of
+ * the way.
+ */
+
+.page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-6);
+}
+
+.intro {
+  padding: 5rem 0 3rem;
+}
+
+.statement {
+  font-family: var(--font-family-heading);
+  font-size: clamp(2.125rem, 4.6vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.06;
+  letter-spacing: -0.03em;
+  color: var(--foreground);
+  max-width: 900px;
+}
+
+.lede {
+  margin-top: var(--spacing-6);
+  font-size: 1.125rem;
+  line-height: 1.7;
+  color: var(--foreground);
+  max-width: 60ch;
+}
+
+/*
+ * The registration facts, banded between a hairline and the coral rule. In
+ * Indian edtech the boring paperwork is what reads as a real company, so it
+ * gets the full width rather than being squeezed into a side column.
+ */
+.identity {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--spacing-8);
+  margin: 0;
+  padding: var(--spacing-6) 0;
+  border-top: 1px solid var(--border);
+}
+
+.identityItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.identityLabel {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.identityValue {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--foreground);
+}
+
+.brandRule {
+  height: 3px;
+  background-color: var(--tk-brand);
+  margin-bottom: 3.5rem;
+}
+
+.photo {
+  margin: 0;
+}
+
+.photoImage {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+}
+
+.photoCaption {
+  margin-top: var(--spacing-3);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.figures {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-8);
+  padding: 3.5rem 0;
+  border-top: 1px solid var(--border);
+  margin-top: 4.5rem;
+}
+
+.figure {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.figureValue {
+  font-family: var(--font-family-heading);
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground);
+}
+
+.figureLabel {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.section {
+  padding: 4.5rem 0;
+  border-top: 1px solid var(--border);
+}
+
+/* Sits straight under the coral rule, which is already the separator. */
+.sectionLead {
+  border-top: none;
+  padding-top: 0;
+}
+
+.sectionHeading {
+  font-family: var(--font-family-base);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  margin-bottom: var(--spacing-12);
+}
+
+.milestones {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.milestone {
+  display: grid;
+  grid-template-columns: minmax(0, 180px) minmax(0, 1fr);
+  gap: var(--spacing-8);
+  padding: var(--spacing-8) 0;
+  border-top: 1px solid var(--border);
+}
+
+.milestone:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+.milestone:last-child {
+  padding-bottom: 0;
+}
+
+.milestoneWhen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.milestoneYear {
+  font-family: var(--font-family-heading);
+  font-size: clamp(2rem, 4vw, 2.875rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground);
+}
+
+.milestoneDate {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.milestoneTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: var(--spacing-2);
+}
+
+.milestoneBody {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--muted-foreground);
+  max-width: 56ch;
+}
+
+/* Space, not rules - the milestones already own the ruled rhythm. */
+.principles {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+}
+
+.principle {
+  max-width: 62ch;
+}
+
+.principleStatement {
+  font-family: var(--font-family-heading);
+  font-size: clamp(1.25rem, 2.4vw, 1.625rem);
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+
+.principleBody {
+  margin-top: var(--spacing-3);
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--muted-foreground);
+}
+
+/* 260px settles to three across at container width, so six people read as two
+   even rows rather than a full row and a remainder. */
+.people {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--spacing-8) var(--spacing-8);
+}
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+/* Biased above centre - portrait sources put the face in the upper third, and
+   a straight centre crop lands on the collar. */
+.personPhoto {
+  display: block;
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  object-position: 50% 25%;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+/* Initials rather than an empty square, so a portrait-less card sits level
+   with one that has a photograph instead of reading as missing. */
+.personPhotoSlot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-md);
+  background-color: var(--muted);
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--muted-foreground);
+  flex-shrink: 0;
+}
+
+.personName {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.personRole {
+  font-size: 0.9375rem;
+  color: var(--muted-foreground);
+}
+
+/*
+ * The page's one warm moment. Token remap so buttons, borders and focus rings
+ * come out ink without per-button overrides - ink sits at 6.2:1 on this coral
+ * where white would be 2.1:1. Fixed in both themes: it is brand artwork, not a
+ * themed surface.
+ */
+.invitation {
+  --primary: var(--tk-brand-ink);
+  --primary-foreground: #fff;
+  --tk-brand-text: var(--tk-brand-ink);
+  --tk-brand-hover: var(--tk-brand-ink);
+  --tk-brand-hover-foreground: #fff;
+  --background: var(--tk-brand);
+  --foreground: var(--tk-brand-ink);
+  --border: color-mix(in srgb, var(--tk-brand-ink) 35%, transparent);
+
+  background-color: var(--tk-brand);
+  color: var(--tk-brand-ink);
+  border-radius: var(--radius-lg);
+  padding: 3.5rem;
+  margin: 5rem 0 6rem;
+}
+
+.invitationHeading {
+  font-family: var(--font-family-heading);
+  font-size: clamp(1.75rem, 3.2vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.invitationBody {
+  margin-top: var(--spacing-3);
+  font-size: 1.125rem;
+  line-height: 1.6;
+  max-width: 48ch;
+}
+
+.invitationActions {
+  margin-top: var(--spacing-8);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
+}
+
+@media (max-width: 900px) {
+  .identity {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--spacing-6);
+  }
+
+  .figures {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-8) var(--spacing-6);
+  }
+
+  .milestone {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-4);
+  }
+
+  .milestoneWhen {
+    flex-direction: row;
+    align-items: baseline;
+    gap: var(--spacing-3);
+  }
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding: 0 var(--spacing-4);
+  }
+
+  .intro {
+    padding: 3rem 0 2.5rem;
+  }
+
+  .brandRule {
+    margin-bottom: 2.5rem;
+  }
+
+  .photoImage {
+    aspect-ratio: 4 / 3;
+  }
+
+  .photoSlot {
+    aspect-ratio: 16 / 9;
+    padding: var(--spacing-6);
+  }
+
+  .figures {
+    padding: 2.5rem 0;
+    margin-top: 3rem;
+  }
+
+  .section {
+    padding: 3rem 0;
+  }
+
+  .sectionHeading {
+    margin-bottom: var(--spacing-8);
+  }
+
+  .principles {
+    gap: var(--spacing-8);
+  }
+
+  .invitation {
+    padding: var(--spacing-8) var(--spacing-6);
+    margin: 3rem 0 4rem;
+  }
+
+  .invitationActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

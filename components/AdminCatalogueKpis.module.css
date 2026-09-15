@@ -1,0 +1,149 @@
+.ledger {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  min-width: 0;
+  padding: var(--spacing-4) var(--spacing-6);
+  border-left: 1px solid var(--border);
+}
+
+.column:first-child {
+  border-left: none;
+}
+
+.label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.value {
+  font-family: var(--font-family-heading);
+  font-size: 1.875rem;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.delta {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.up {
+  color: color-mix(in srgb, var(--success), black 28%);
+}
+
+.down {
+  color: color-mix(in srgb, var(--error), black 18%);
+}
+
+.flat {
+  color: var(--muted-foreground);
+}
+
+.new {
+  color: var(--secondary);
+}
+
+:global(.dark) .up {
+  color: var(--success);
+}
+
+:global(.dark) .down {
+  color: var(--error);
+}
+
+.spark {
+  display: block;
+  width: 100%;
+  height: 2rem;
+  margin-top: var(--spacing-2);
+  overflow: visible;
+  color: var(--muted-foreground);
+}
+
+.sparkLine {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.sparkDot {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 6;
+  stroke-linecap: round;
+}
+
+.note {
+  margin-top: var(--spacing-1);
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.caption {
+  margin: 0;
+  padding: var(--spacing-2) var(--spacing-6);
+  border-top: 1px solid var(--border);
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  text-align: right;
+}
+
+@media (max-width: 1024px) {
+  .columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .column:nth-child(3) {
+    border-left: none;
+  }
+
+  .column:nth-child(n + 3) {
+    border-top: 1px solid var(--border);
+  }
+}
+
+@media (max-width: 560px) {
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .column {
+    border-left: none;
+    border-top: 1px solid var(--border);
+    padding: var(--spacing-4);
+  }
+
+  .column:first-child {
+    border-top: none;
+  }
+
+  .caption {
+    text-align: left;
+    padding: var(--spacing-2) var(--spacing-4);
+  }
+}

@@ -1,0 +1,47 @@
+.sectionWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--card-foreground);
+  margin: 0;
+}
+
+.viewAllLink {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--primary);
+  text-decoration: none;
+  transition: color var(--animation-duration-fast) ease;
+}
+
+.viewAllLink:hover {
+  text-decoration: underline;
+  color: color-mix(in srgb, var(--primary), black 10%);
+}
+
+.cardsContainer {
+  display: flex;
+  gap: var(--spacing-4);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: var(--spacing-2);
+  margin-bottom: calc(-1 * var(--spacing-2));
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.cardsContainer::-webkit-scrollbar {
+  display: none;
+}
