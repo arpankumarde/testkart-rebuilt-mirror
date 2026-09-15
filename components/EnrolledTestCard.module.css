@@ -108,7 +108,7 @@
   align-items: center;
   gap: var(--spacing-1);
   background-color: color-mix(in srgb, var(--warning) 10%, transparent);
-  color: var(--warning-foreground);
+  color: var(--warning-text);
   border-color: color-mix(in srgb, var(--warning) 30%, transparent);
 }
 
@@ -205,11 +205,16 @@
   color: var(--border);
 }
 
-/* Darkened against the white panel: the raw tokens land near 2.8:1 as type. */
-.success { color: color-mix(in srgb, var(--success), black 25%); }
-.warning { color: color-mix(in srgb, var(--warning), black 30%); }
-.destructive { color: color-mix(in srgb, var(--error), black 20%); }
-.default { color: var(--muted-foreground); }
+/* Themed status text: the raw tokens land near 2.8:1 as type on the panel. The
+   strip's .statChip strong sets its own colour, so the bands repeat under it. */
+.success,
+.statChip strong.success { color: var(--success-text); }
+.warning,
+.statChip strong.warning { color: var(--warning-text); }
+.destructive,
+.statChip strong.destructive { color: var(--error-text); }
+.default,
+.statChip strong.default { color: var(--muted-foreground); }
 
 .testItem {
   display: grid;

@@ -92,6 +92,20 @@ export const EditProfileIdentitySection: React.FC<EditProfileIdentitySectionProp
         <FormMessage />
       </FormItem>
 
+      <FormItem name="academyName">
+        <FormLabel>Academy Name</FormLabel>
+        <FormControl>
+          <Input
+            value={formValues.academyName || ''}
+            onChange={(e) => onValuesChange({ academyName: e.target.value })}
+            placeholder="e.g. Testkart Academy"
+            maxLength={100}
+          />
+        </FormControl>
+        <FormDescription>The coaching institute, school or academy you teach under. Students see it on your public profile and on your tests and courses. Leave it blank if you teach on your own.</FormDescription>
+        <FormMessage />
+      </FormItem>
+
       <FormItem name="slug">
         <FormLabel>Profile URL Slug</FormLabel>
         <FormControl>

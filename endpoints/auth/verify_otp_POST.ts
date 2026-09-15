@@ -3,9 +3,12 @@ import superjson from 'superjson';
 import { db } from "../../helpers/db";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { NotAuthenticatedError } from "../../helpers/getSetServerSession";
-import { sql } from "kysely";
-
-const MAX_ATTEMPTS = 5;
+import { getClientIp } from "../../helpers/getClientIp";
+import {
+  checkOtpVerifyLimit,
+  claimOtpAttempt,
+  recordOtpVerifyFailure,
+} from "../../helpers/otpVerifyGuard";
 
 function normalizeMobileNumber(mobile: string): string {
   const digitsOnly = mobile.replace(/\D/g, '');
@@ -22,6 +25,12 @@ export async function handle(request: Request): Promise<Response> {
     const { mobileNumber, otpCode } = schema.parse(json);
 
     const normalizedMobile = normalizeMobileNumber(mobileNumber);
+    const ipAddress = getClientIp(request);
+
+    const limitMessage = await checkOtpVerifyLimit(normalizedMobile, ipAddress);
+    if (limitMessage) {
+      return new Response(superjson.stringify({ error: limitMessage }), { status: 429 });
+    }
 
     const latestOtp = await db.selectFrom('mobileOtps')
       .selectAll()
@@ -36,19 +45,18 @@ export async function handle(request: Request): Promise<Response> {
       return new Response(superjson.stringify({ error: "No pending OTP found for this number. Please request a new one." }), { status: 404 });
     }
 
-    if (latestOtp.attempts >= MAX_ATTEMPTS) {
-      return new Response(superjson.stringify({ error: "Maximum verification attempts reached. Please request a new OTP." }), { status: 429 });
-    }
-
     if (new Date() > new Date(latestOtp.expiresAt)) {
       return new Response(superjson.stringify({ error: "OTP has expired. Please request a new one." }), { status: 410 });
     }
 
-        if (latestOtp.otpCode !== otpCode) {
-      await db.updateTable('mobileOtps')
-        .set({ attempts: sql`${sql.ref('attempts')} + 1` })
-        .where('id', '=', latestOtp.id)
-        .execute();
+    // Use up an attempt before comparing, so parallel guesses share the limit
+    const storedCode = await claimOtpAttempt("mobile", latestOtp.id);
+    if (storedCode === null) {
+      return new Response(superjson.stringify({ error: "Maximum verification attempts reached. Please request a new OTP." }), { status: 429 });
+    }
+
+    if (storedCode !== otpCode) {
+      await recordOtpVerifyFailure(normalizedMobile, ipAddress);
       return new Response(superjson.stringify({ error: "Invalid OTP code." }), { status: 400 });
     }
 

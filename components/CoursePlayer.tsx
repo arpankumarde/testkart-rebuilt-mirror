@@ -9,6 +9,7 @@ import { CourseCompletionCelebration } from './CourseCompletionCelebration';
 import { useSignedVideoUrl } from '../helpers/useSignedVideoUrl';
 import { useSignedPdfUrl } from '../helpers/useSignedPdfUrl';
 import { wrapContentTables } from '../helpers/contentTables';
+import { sanitizeHtml } from '../helpers/sanitizeHtml';
 import type { OutputType as LessonsOutputType } from '../endpoints/student/course/lessons_GET.schema';
 import type { OutputType as ProgressOutputType } from '../endpoints/student/course/progress_GET.schema';
 
@@ -115,7 +116,7 @@ const LessonContent: React.FC<{
       );
     case 'text':
       return (
-        <div className={styles.textContent} dangerouslySetInnerHTML={{ __html: wrapContentTables(lesson.textContent || '') }} />
+        <div className={styles.textContent} dangerouslySetInnerHTML={{ __html: wrapContentTables(sanitizeHtml(lesson.textContent)) }} />
       );
     case 'quiz':
       if (!lesson.textContent) {

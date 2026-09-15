@@ -3,6 +3,7 @@ import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { schema, OutputType } from "./add-withdrawal_POST.schema";
 import superjson from "superjson";
 import { getTeacherAvailableBalance } from "../../../helpers/getTeacherAvailableBalance";
+import { lockWallet } from "../../../helpers/walletLock";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -11,10 +12,32 @@ export async function handle(request: Request): Promise<Response> {
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);
 
-    const balanceBreakdown = await getTeacherAvailableBalance(input.teacherId);
-    const { availableBalance } = balanceBreakdown;
+    const result = await db.transaction().execute(async (trx) => {
+      await lockWallet(trx, input.teacherId);
+      const { availableBalance } = await getTeacherAvailableBalance(input.teacherId, trx);
 
-    if (input.amount > availableBalance) {
+      if (input.amount > availableBalance) {
+        return { availableBalance, newWithdrawal: null };
+      }
+
+      const newWithdrawal = await trx
+        .insertInto("teacherWithdrawals")
+        .values({
+          teacherId: input.teacherId,
+          amount: input.amount.toString(),
+          status: "completed",
+          processedDate: new Date(),
+          transactionId: input.transactionId,
+          notes: input.notes,
+        })
+        .returningAll()
+        .executeTakeFirstOrThrow();
+
+      return { availableBalance, newWithdrawal };
+    });
+
+    const { availableBalance, newWithdrawal } = result;
+    if (!newWithdrawal) {
       return new Response(
         superjson.stringify({
           error: `Withdrawal amount of ${input.amount} exceeds available balance of ${availableBalance.toFixed(2)}.`,
@@ -22,19 +45,6 @@ export async function handle(request: Request): Promise<Response> {
         { status: 400 }
       );
     }
-
-    const newWithdrawal = await db
-      .insertInto("teacherWithdrawals")
-      .values({
-        teacherId: input.teacherId,
-        amount: input.amount.toString(),
-        status: "completed",
-        processedDate: new Date(),
-        transactionId: input.transactionId,
-        notes: input.notes,
-      })
-      .returningAll()
-      .executeTakeFirstOrThrow();
 
     console.log(`Admin recorded withdrawal of ${input.amount} for teacher ${input.teacherId}. Previous available balance: ${availableBalance.toFixed(2)}`);
 

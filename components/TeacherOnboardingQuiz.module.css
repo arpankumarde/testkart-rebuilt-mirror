@@ -370,7 +370,7 @@
 }
 
 .charCount.warn {
-  color: var(--warning);
+  color: var(--warning-text);
 }
 
 .otherInputContainer {

@@ -4,6 +4,7 @@ import { slugify } from "../../../helpers/slugify";
 import { resolveExamByName } from "../../../helpers/resolveExam";
 import { schema, OutputType } from "./create_POST.schema";
 import superjson from "superjson";
+import { sanitizeHtml } from "../../../helpers/sanitizeHtml";
 import { customAlphabet } from "nanoid";
  
 async function generateUniqueSlug(baseTitle: string): Promise<string> {
@@ -73,7 +74,7 @@ export async function handle(request: Request): Promise<Response> {
         language: input.language,
         whatYouLearn: input.whatYouLearn ? JSON.stringify(input.whatYouLearn) : null,
         requirements: input.requirements ? JSON.stringify(input.requirements) : null,
-        longDescription: input.longDescription || null,
+        longDescription: input.longDescription ? sanitizeHtml(input.longDescription) : null,
         isPublished: false, // Always created as unpublished
       })
       .returningAll()

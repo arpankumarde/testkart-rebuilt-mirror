@@ -152,7 +152,7 @@
 }
 
 .errorLine {
-  color: color-mix(in srgb, var(--error), black 20%);
+  color: var(--error-text);
 }
 
 .flag {
@@ -210,7 +210,7 @@
   margin: 0;
   font-size: 0.8125rem;
   line-height: 1.45;
-  color: color-mix(in srgb, var(--error), black 20%);
+  color: var(--error-text);
   overflow-wrap: anywhere;
 }
 

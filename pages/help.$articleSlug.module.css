@@ -149,8 +149,8 @@
 
 .tocSticky {
   position: sticky;
-  top: 100px;
-  max-height: calc(100vh - 120px);
+  top: calc(100px + var(--site-notice-offset));
+  max-height: calc(100vh - 120px - var(--site-notice-offset));
   overflow-y: auto;
   background: color-mix(in srgb, var(--primary) 3%, var(--surface));
   border-left: 3px solid var(--primary);
@@ -413,7 +413,7 @@
   flex-direction: column;
   align-items: center;
   gap: var(--spacing-2);
-  color: var(--success);
+  color: var(--success-text);
   font-weight: 500;
   animation: slideIn var(--animation-duration-normal) ease;
 }

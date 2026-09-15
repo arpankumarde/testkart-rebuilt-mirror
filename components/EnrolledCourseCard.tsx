@@ -44,9 +44,11 @@ export const EnrolledCourseCard: React.FC<EnrolledCourseCardProps> = ({ course, 
             title={course.title}
             className={styles.thumbnail}
           />
-          <Badge variant={courseStatus.variant} className={styles.statusBadge}>
-            {courseStatus.label}
-          </Badge>
+          <div className={styles.statusBadgeBacking}>
+            <Badge variant={courseStatus.variant} className={styles.statusBadge}>
+              {courseStatus.label}
+            </Badge>
+          </div>
         </div>
       </Link>
 

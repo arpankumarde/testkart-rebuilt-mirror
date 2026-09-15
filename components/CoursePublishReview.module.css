@@ -41,7 +41,7 @@
   align-items: center;
   justify-content: center;
   gap: var(--spacing-3);
-  color: color-mix(in srgb, var(--error), black 35%);
+  color: var(--error-text);
   text-align: center;
   min-height: 160px;
 }
@@ -97,11 +97,11 @@
 }
 
 .validationList li.valid {
-  color: color-mix(in srgb, var(--success), black 35%);
+  color: var(--success-text);
 }
 
 .validationList li.invalid {
-  color: color-mix(in srgb, var(--error), black 35%);
+  color: var(--error-text);
 }
 
 .validationCount {
@@ -113,7 +113,7 @@
 .validationErrorText {
   margin: var(--spacing-3) 0 0;
   font-size: 0.875rem;
-  color: color-mix(in srgb, var(--error), black 35%);
+  color: var(--error-text);
   background-color: color-mix(in srgb, var(--error) 10%, var(--surface));
   padding: var(--spacing-2) var(--spacing-3);
   border-radius: var(--radius-md);
@@ -129,7 +129,7 @@
   gap: var(--spacing-2);
   font-size: 0.9375rem;
   font-weight: 700;
-  color: color-mix(in srgb, var(--success), black 35%);
+  color: var(--success-text);
   margin-bottom: var(--spacing-2);
 }
 
@@ -148,7 +148,7 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
-  color: color-mix(in srgb, var(--warning), black 45%);
+  color: var(--warning-text);
   margin-bottom: var(--spacing-2);
 }
 

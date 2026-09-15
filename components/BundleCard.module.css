@@ -137,7 +137,7 @@
   border: 1px solid color-mix(in srgb, var(--warning) 45%, var(--surface));
   border-radius: var(--radius-sm);
   background-color: color-mix(in srgb, var(--warning) 12%, var(--surface));
-  color: color-mix(in srgb, var(--warning), black 55%);
+  color: var(--warning-text);
   font-size: 0.8125rem;
   font-weight: 500;
   line-height: 1.4;
@@ -181,7 +181,7 @@
 }
 
 .deleteItem {
-  color: var(--error);
+  color: var(--error-text);
 }
 
 .deleteItem:hover {

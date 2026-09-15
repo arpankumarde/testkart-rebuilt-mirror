@@ -139,7 +139,7 @@ export async function handle(request: Request) {
             subject: item.subject,
             durationMinutes: item.durationMinutes,
             totalQuestions: item.totalQuestions,
-            isFree: item.isFree,
+            isFree: false,
             scheduledDate: item.scheduledDate,
             calculatorEnabled: item.calculatorEnabled,
             subjectWiseTiming: item.subjectWiseTiming,

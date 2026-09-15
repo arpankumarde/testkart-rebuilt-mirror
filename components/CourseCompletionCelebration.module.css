@@ -60,10 +60,10 @@
     box-shadow: var(--shadow-md);
   }
 
-  /* Flat tint and a darkened glyph: the tile was a two-stop gradient carrying
+  /* Flat tint and a themed glyph: the tile was a two-stop gradient carrying
      raw --success, about 2.8:1 against it. */
   .trophyIcon {
-    color: color-mix(in srgb, var(--success), black 25%);
+    color: var(--success-text);
   }
 
   .title {

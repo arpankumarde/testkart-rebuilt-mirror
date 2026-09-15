@@ -1,6 +1,6 @@
 .banner {
   position: sticky;
-  top: 0;
+  top: var(--site-notice-offset);
   left: 0;
   right: 0;
   display: flex;

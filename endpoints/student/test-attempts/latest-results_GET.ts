@@ -2,6 +2,11 @@ import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { OutputType } from "./latest-results_GET.schema";
 import superjson from "superjson";
+import {
+  getLiveTestForTestItem,
+  isEnrolledInLiveTest,
+  liveTestResultsReleased,
+} from "../../../helpers/liveTestAttemptWindow";
 
 
 export async function handle(request: Request): Promise<Response> {
@@ -49,8 +54,18 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
-    // 2. If not free, verify student enrollment via mockTestEnrollments
-    if (!testItemInfo.isFree) {
+    const liveTestPaper = await getLiveTestForTestItem(testItemId);
+
+    // 2. A live test paper needs a live test enrollment; any other item that
+    // isn't free needs an enrollment in its mock test
+    if (liveTestPaper) {
+      if (!(await isEnrolledInLiveTest(user.id, liveTestPaper.liveTestId))) {
+        return new Response(
+          superjson.stringify({ error: "You are not enrolled in this test." }),
+          { status: 403 }
+        );
+      }
+    } else if (!testItemInfo.isFree) {
       const enrollmentRecord = await db
         .selectFrom("mockTestEnrollments")
         .select("id")
@@ -186,6 +201,23 @@ export async function handle(request: Request): Promise<Response> {
       return sum + marks;
     }, 0);
 
+    // Until a live test's submissions close, hide everything that would reveal
+    // the answer key, per-question correctness included.
+    const hideAnswers = liveTestPaper !== null && !liveTestResultsReleased(liveTestPaper);
+    const visibleResults = hideAnswers
+      ? resultsData.map((result) => ({
+          ...result,
+          correctOption: null,
+          correctOptions: null,
+          correctNumericalAnswer: null,
+          numericalTolerance: null,
+          matchData: null,
+          explanation: null,
+          isCorrect: null,
+          marksObtained: 0,
+        }))
+      : resultsData;
+
     const response: OutputType = {
       attemptId: latestAttempt.id,
       score: parseFloat(latestAttempt.score ?? "0"),
@@ -205,7 +237,7 @@ export async function handle(request: Request): Promise<Response> {
       completedAt: latestAttempt.completedAt,
       mockTestId: enrollmentCheck.mockTestId,
       testPackageTitle: enrollmentCheck.testPackageTitle,
-      results: resultsData,
+      results: visibleResults,
     };
 
     return new Response(superjson.stringify(response));

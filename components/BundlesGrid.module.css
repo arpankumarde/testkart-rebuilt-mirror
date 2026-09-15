@@ -121,7 +121,7 @@
 }
 
 .freePrice {
-  color: var(--success);
+  color: var(--success-text);
   font-size: 1.25rem;
 }
 
@@ -138,12 +138,12 @@
   justify-content: center;
   gap: var(--spacing-2);
   font-weight: 600;
-  color: var(--primary);
+  color: var(--tk-brand-text);
   transition: color var(--animation-duration-fast) ease;
 }
 
 .card:hover .viewButton {
-  color: color-mix(in srgb, var(--primary), black 10%);
+  color: var(--tk-brand-hover);
 }
 
 /* Skeleton Styles */

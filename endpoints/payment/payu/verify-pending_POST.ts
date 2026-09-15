@@ -2,7 +2,7 @@ import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { verifyPayUPayment } from "../../../helpers/verifyPayUPayment";
 import { ensureOrderCompletionSideEffects } from "../../../helpers/ensureOrderCompletionSideEffects";
-import { activateTeacherSubscription } from "../../../helpers/activateTeacherSubscription";
+import { activateTeacherSubscription, extendRenewedSubscription } from "../../../helpers/activateTeacherSubscription";
 import { refundOrphanedWalletSubscriptionPayment } from "../../../helpers/refundOrphanedWalletSubscriptionPayment";
 import { OutputType } from "./verify-pending_POST.schema";
 import superjson from "superjson";
@@ -171,7 +171,7 @@ export async function handle(request: Request) {
     // 2026-08-06/07). Scoping to the owner keeps the blast radius to one user.
     const pendingSubscriptionTransactions = await db
       .selectFrom("subscriptionTransactions")
-      .select(["id", "transactionId", "planId", "teacherId", "subscriptionId", "createdAt"])
+      .select(["id", "transactionId", "planId", "teacherId", "subscriptionId", "paymentMethod", "createdAt"])
       .where("status", "=", "pending")
       .where("createdAt", "<", fiveMinutesAgo)
       .where("teacherId", "=", user.id)
@@ -251,8 +251,13 @@ export async function handle(request: Request) {
                 .where("id", "=", transaction.id)
                 .execute();
 
-              // Create subscription and verify teacher if not already done
-              await activateTeacherSubscription(transaction.teacherId, transaction.planId, trx);
+              if (transaction.paymentMethod === "payu_recurring" && transaction.subscriptionId) {
+                // Renewal charge on an existing subscription
+                await extendRenewedSubscription(transaction.subscriptionId, transaction.teacherId, trx);
+              } else {
+                // Create subscription and verify teacher if not already done
+                await activateTeacherSubscription(transaction.teacherId, transaction.planId, trx);
+              }
               
               updatedSubscriptionTransactions.push({
                 transactionId: transaction.id,

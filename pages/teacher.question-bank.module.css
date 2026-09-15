@@ -74,7 +74,7 @@
 }
 
 /* Raw --success and --error are about 2.3:1 and 3.5:1 as small type on this
-   white card; darkened they carry the same meaning and can be read. */
+   white card; the themed text tokens carry the same meaning and can be read. */
 .marks {
   display: inline-flex;
   align-items: center;
@@ -85,12 +85,12 @@
 
 .positive {
   font-weight: 600;
-  color: color-mix(in srgb, var(--success), black 30%);
+  color: var(--success-text);
 }
 
 .negative {
   font-weight: 600;
-  color: color-mix(in srgb, var(--error), black 25%);
+  color: var(--error-text);
 }
 
 .question {
@@ -145,7 +145,7 @@
 
 .correct .optionLabel {
   background-color: color-mix(in srgb, var(--success) 22%, transparent);
-  color: color-mix(in srgb, var(--success), black 35%);
+  color: var(--success-text);
 }
 
 .numericalAnswer {
@@ -201,7 +201,7 @@
 }
 
 .destructive {
-  color: var(--error);
+  color: var(--error-text);
 }
 
 @media (max-width: 640px) {

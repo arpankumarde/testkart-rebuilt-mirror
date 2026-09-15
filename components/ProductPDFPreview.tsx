@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { Document, Page, pdfjs } from "react-pdf";
+import React, { useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -10,16 +10,9 @@ import {
   DialogDescription,
 } from "./Dialog";
 import { Button } from "./Button";
-import { Skeleton } from "./Skeleton";
 import { ChevronLeft, ChevronRight, AlertCircle, Loader2 } from "lucide-react";
-import { usePreviewUrlQuery } from "../helpers/useShopQuery";
+import { previewPageQueryOptions, usePreviewPageQuery } from "../helpers/useShopQuery";
 import styles from "./ProductPDFPreview.module.css";
-import "react-pdf/dist/Page/AnnotationLayer.css";
-import "react-pdf/dist/Page/TextLayer.css";
-import { toProxiedPdfUrl } from "../helpers/pdfProxyUrl";
-import { setPdfjsWorkerSrc } from "../helpers/pdfjsWorker";
-
-setPdfjsWorkerSrc(pdfjs);
 
 interface ProductPDFPreviewProps {
   product: {
@@ -37,6 +30,7 @@ interface ProductPDFPreviewProps {
   previewTitle?: string;
 }
 
+// Preview pages arrive as images rendered on the server, so the PDF itself never reaches the browser.
 export const ProductPDFPreview: React.FC<ProductPDFPreviewProps> = ({
   product,
   isOpen,
@@ -44,83 +38,62 @@ export const ProductPDFPreview: React.FC<ProductPDFPreviewProps> = ({
   fileId,
   previewTitle,
 }) => {
-  const [numPages, setNumPages] = useState<number>(0);
+  const queryClient = useQueryClient();
   const [pageNumber, setPageNumber] = useState<number>(1);
-  const [containerWidth, setContainerWidth] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [stablePreviewUrl, setStablePreviewUrl] = useState<string | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [totalPages, setTotalPages] = useState<number | null>(null);
+  const [loadedImageUrl, setLoadedImageUrl] = useState<string | null>(null);
+  const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
+  const [imageAttempt, setImageAttempt] = useState<number>(0);
 
-  const shouldFetchPreview = isOpen && (product.previewPages ?? 0) > 0;
-  const { data: previewData, isFetching: isFetchingPreviewUrl } = usePreviewUrlQuery(
-    product.id,
-    shouldFetchPreview,
-    fileId
-  );
-
-  // Update stable preview URL when data arrives
-  useEffect(() => {
-    if (isOpen) {
-      setStablePreviewUrl(previewData?.previewUrl ?? null);
-    } else {
-      setStablePreviewUrl(null);
-    }
-  }, [isOpen, previewData?.previewUrl]);
+  const maxPreviewPages = product.previewPages ?? 0;
+  const hasPreview = maxPreviewPages > 0;
 
   // Reset state when opening a new product (or a different file within it)
   useEffect(() => {
     if (isOpen) {
       setPageNumber(1);
-      setError(null);
-      setIsLoading(true);
+      setTotalPages(null);
+      setFailedImageUrl(null);
     }
   }, [isOpen, product.id, fileId]);
 
-  // Handle responsive width for the PDF page
+  const {
+    data: previewPage,
+    isFetching,
+    isError,
+    refetch,
+  } = usePreviewPageQuery(product.id, pageNumber, isOpen && hasPreview, fileId);
+
   useEffect(() => {
-    if (!isOpen) return;
+    if (previewPage) {
+      setTotalPages(previewPage.totalPages);
+    }
+  }, [previewPage]);
 
-    const updateWidth = () => {
-      if (containerRef.current) {
-        // Subtract padding to prevent overflow
-        setContainerWidth(containerRef.current.clientWidth - 32);
+  // Prepare the next page in the background so Next does not wait on the server.
+  useEffect(() => {
+    if (!isOpen || !previewPage || previewPage.page >= previewPage.totalPages) return;
+    const nextPageQuery = previewPageQueryOptions(product.id, previewPage.page + 1, fileId);
+    void queryClient.prefetchQuery(nextPageQuery).then(() => {
+      const nextPage = queryClient.getQueryData(nextPageQuery.queryKey);
+      if (nextPage) {
+        new Image().src = nextPage.imageUrl;
       }
-    };
+    });
+  }, [isOpen, previewPage, product.id, fileId, queryClient]);
 
-    // Initial update
-    // Small delay to ensure dialog is rendered and has dimensions
-    const timer = setTimeout(updateWidth, 100);
+  const pageCount = totalPages ?? maxPreviewPages;
+  const imageFailed = !!previewPage && failedImageUrl === previewPage.imageUrl;
+  const isLoading =
+    isFetching || (!!previewPage && !imageFailed && loadedImageUrl !== previewPage.imageUrl);
 
-    window.addEventListener("resize", updateWidth);
-    return () => {
-      window.removeEventListener("resize", updateWidth);
-      clearTimeout(timer);
-    };
-  }, [isOpen]);
-
-  function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
-    setNumPages(numPages);
-    setIsLoading(false);
-  }
-
-  function onDocumentLoadError(err: Error) {
-    console.error("Error loading PDF:", err);
-    setError("Failed to load the document preview.");
-    setIsLoading(false);
-  }
-
-  const maxPreviewPages = product.previewPages || 0;
-  const totalPagesToShow = Math.min(numPages, maxPreviewPages);
-  const canGoPrev = pageNumber > 1;
-  const canGoNext = pageNumber < totalPagesToShow;
-
-  const changePage = (offset: number) => {
-    setPageNumber((prevPageNumber) => prevPageNumber + offset);
+  const retry = () => {
+    setFailedImageUrl(null);
+    setImageAttempt((attempt) => attempt + 1);
+    if (isError) {
+      void refetch();
+    }
   };
-
-  const previousPage = () => changePage(-1);
-  const nextPage = () => changePage(1);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -130,100 +103,77 @@ export const ProductPDFPreview: React.FC<ProductPDFPreviewProps> = ({
             Preview: {previewTitle || product.title}
           </DialogTitle>
           <DialogDescription>
-            Showing {totalPagesToShow > 0 ? totalPagesToShow : 0} preview pages
+            Showing {pageCount} preview {pageCount === 1 ? "page" : "pages"}
           </DialogDescription>
         </DialogHeader>
 
-        <div className={styles.previewContainer} ref={containerRef}>
-          {isFetchingPreviewUrl ? (
-            <div className={styles.loadingOverlay}>
-              <Loader2 className={styles.spinner} />
-              <p>Loading preview...</p>
-            </div>
-          ) : !stablePreviewUrl ? (
-            <div className={styles.messageContainer}>
-              <AlertCircle className={styles.icon} />
-              <p>Preview not available for this product.</p>
-            </div>
-          ) : maxPreviewPages === 0 ? (
+        <div className={styles.previewContainer}>
+          {!hasPreview ? (
             <div className={styles.messageContainer}>
               <AlertCircle className={styles.icon} />
               <p>No preview pages are available for this document.</p>
             </div>
+          ) : isError || imageFailed ? (
+            <div className={styles.messageContainer}>
+              <AlertCircle className={styles.errorIcon} />
+              <p>This preview page could not be loaded.</p>
+              <Button variant="outline" size="sm" onClick={retry} className={styles.retryButton}>
+                Retry
+              </Button>
+            </div>
           ) : (
-            <>
-              {error ? (
-                <div className={styles.messageContainer}>
-                  <AlertCircle className={styles.errorIcon} />
-                  <p>{error}</p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setError(null);
-                      setIsLoading(true);
-                    }}
-                    className="mt-4"
-                  >
-                    Retry
-                  </Button>
-                </div>
-              ) : (
-                <div className={styles.documentWrapper}>
-                  {isLoading && (
-                    <div className={styles.loadingOverlay}>
-                      <Loader2 className={styles.spinner} />
-                      <p>Loading preview...</p>
-                    </div>
-                  )}
-                  
-                  <Document
-                    file={toProxiedPdfUrl(stablePreviewUrl)}
-                    onLoadSuccess={onDocumentLoadSuccess}
-                    onLoadError={onDocumentLoadError}
-                    loading={
-                      <div className={styles.skeletonWrapper}>
-                        <Skeleton className={styles.pageSkeleton} />
-                      </div>
-                    }
-                    className={styles.document}
-                  >
-                    <Page
-                      pageNumber={pageNumber}
-                      width={containerWidth || undefined}
-                      className={styles.page}
-                      renderTextLayer={true}
-                      renderAnnotationLayer={false}
-                      loading={<Skeleton className={styles.pageSkeleton} />}
-                    />
-                  </Document>
+            <div
+              className={styles.pageFrame}
+              style={
+                previewPage
+                  ? { aspectRatio: `${previewPage.width} / ${previewPage.height}` }
+                  : undefined
+              }
+            >
+              {previewPage && (
+                <img
+                  key={`${previewPage.imageUrl}-${imageAttempt}`}
+                  src={previewPage.imageUrl}
+                  width={previewPage.width}
+                  height={previewPage.height}
+                  alt={`Preview page ${previewPage.page} of ${previewPage.totalPages}`}
+                  className={styles.pageImage}
+                  draggable={false}
+                  onLoad={() => setLoadedImageUrl(previewPage.imageUrl)}
+                  onError={() => setFailedImageUrl(previewPage.imageUrl)}
+                />
+              )}
+              {isLoading && (
+                <div className={styles.loadingOverlay}>
+                  <Loader2 className={styles.spinner} />
+                  <p>Loading preview...</p>
                 </div>
               )}
-            </>
+            </div>
           )}
         </div>
 
-        {stablePreviewUrl && maxPreviewPages > 0 && !error && (
+        {hasPreview && (
           <div className={styles.controls}>
             <Button
               variant="outline"
               size="sm"
-              onClick={previousPage}
-              disabled={!canGoPrev || isLoading}
+              onClick={() => setPageNumber((page) => page - 1)}
+              disabled={pageNumber <= 1}
             >
               <ChevronLeft size={16} />
               Previous
             </Button>
 
             <span className={styles.pageIndicator}>
-              Page {pageNumber} of {totalPagesToShow || "?"}
+              Page {pageNumber} of {pageCount}
             </span>
 
             <Button
               variant="outline"
               size="sm"
-              onClick={nextPage}
-              disabled={!canGoNext || isLoading}
+              onClick={() => setPageNumber((page) => page + 1)}
+              disabled={pageNumber >= pageCount}
             >
               Next
               <ChevronRight size={16} />

@@ -4,6 +4,7 @@ import { schema, OutputType } from "./publish_POST.schema";
 import superjson from "superjson";
 import { Transaction } from "kysely";
 import { DB } from "../../../helpers/schema";
+import { assertTeacherCanFundPrizePool } from "../../../helpers/liveTestPrizeFunding";
 
 async function validateTestContent(testId: number, trx: Transaction<DB>) {
   // Check for at least one test item
@@ -88,7 +89,10 @@ export async function handle(request: Request) {
       // 5. Content validation
       await validateTestContent(testId, trx);
 
-            // 6. Publish the live test directly
+      // 6. A free test's prize pool is paid from the teacher's wallet
+      await assertTeacherCanFundPrizePool(trx, liveTest);
+
+      // 7. Publish the live test directly
       await trx
         .updateTable("liveTests")
         .set({

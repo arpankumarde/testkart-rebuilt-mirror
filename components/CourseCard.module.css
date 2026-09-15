@@ -177,7 +177,7 @@
 }
 
 .freePrice {
-  color: var(--success);
+  color: var(--success-text);
   font-size: 1.25rem;
 }
 

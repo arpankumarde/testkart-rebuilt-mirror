@@ -56,19 +56,19 @@
 
 .statusOngoing {
   background-color: color-mix(in srgb, var(--warning) 15%, transparent);
-  color: var(--warning-foreground);
+  color: var(--warning-text);
   border: 1px solid color-mix(in srgb, var(--warning) 25%, transparent);
 }
 
 .statusCompleted {
   background-color: color-mix(in srgb, var(--success) 15%, transparent);
-  color: var(--success);
+  color: var(--success-text);
   border: 1px solid color-mix(in srgb, var(--success) 25%, transparent);
 }
 
 .prizeDisclaimer {
   background-color: color-mix(in srgb, var(--info) 15%, transparent);
-  color: var(--info);
+  color: var(--info-text);
   border: 1px solid color-mix(in srgb, var(--info) 25%, transparent);
 }
 
@@ -132,7 +132,7 @@
 .prizeAmount {
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--success);
+  color: var(--success-text);
   font-family: var(--font-family-base);
   white-space: nowrap;
 }

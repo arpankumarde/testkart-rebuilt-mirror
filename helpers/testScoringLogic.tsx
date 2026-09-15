@@ -27,6 +27,14 @@ function readMarks(question: QuestionData) {
 
 const penalty = (negativeMarks: number) => (negativeMarks > 0 ? -negativeMarks : 0);
 
+// No answer can earn more than the question's positive marks or lose more than
+// its negative marks, whatever the submitted payload looks like.
+function clampMarks(question: QuestionData, result: ScoringResult): ScoringResult {
+  const { positiveMarks, negativeMarks } = readMarks(question);
+  const marks = Number.isFinite(result.marksObtained) ? result.marksObtained : 0;
+  return { ...result, marksObtained: Math.min(positiveMarks, Math.max(-negativeMarks, marks)) };
+}
+
 /**
  * Score a single correct MCQ question
  */
@@ -59,7 +67,7 @@ function scoreMultipleCorrectMCQ(
   }
 
   const correctOptions = question.correctOptions ?? [];
-  const selectedOptions = answer.selectedOptions;
+  const selectedOptions = Array.from(new Set(answer.selectedOptions));
   
   const { positiveMarks, negativeMarks } = readMarks(question);
   const partialMarking = question.partialMarking ?? false;
@@ -312,16 +320,16 @@ export function scoreQuestion(
     case 'single_correct_mcq':
     case 'assertion_reason':
     case 'comprehension':
-      return scoreSingleCorrectMCQ(question, answer);
+      return clampMarks(question, scoreSingleCorrectMCQ(question, answer));
     
     case 'multiple_correct_mcq':
-      return scoreMultipleCorrectMCQ(question, answer);
+      return clampMarks(question, scoreMultipleCorrectMCQ(question, answer));
     
     case 'numerical':
-      return scoreNumerical(question, answer);
+      return clampMarks(question, scoreNumerical(question, answer));
     
     case 'match_the_following':
-      return scoreMatchTheFollowing(question, answer);
+      return clampMarks(question, scoreMatchTheFollowing(question, answer));
     
     default:
       return { isCorrect: false, marksObtained: 0 };

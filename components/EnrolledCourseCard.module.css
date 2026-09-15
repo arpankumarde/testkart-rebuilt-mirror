@@ -53,20 +53,29 @@
   object-fit: cover;
 }
 
-/* !important guarantees this wins over Badge.module.css's base sizing
-   regardless of stylesheet load order (same pattern as EnrolledTestCard's
-   .headerBadge) — the default Badge size looked oversized as a small
-   corner overlay on a 16:9 thumbnail. */
-.statusBadge {
+/* Badge tints are see-through, so over a thumbnail the label sat on the photo
+   and the "Not started" outline chip had no fill at all. A --surface pill
+   behind it gives the chip the same ground it has on a card, in both themes. */
+.statusBadgeBacking {
   position: absolute;
   top: var(--spacing-2);
   left: var(--spacing-2);
+  display: flex;
+  border-radius: var(--radius-full);
+  background-color: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+/* !important guarantees this wins over Badge.module.css's base sizing
+   regardless of stylesheet load order (same pattern as EnrolledTestCard's
+   .headerBadge) - the default Badge size looked oversized as a small
+   corner overlay on a 16:9 thumbnail. */
+.statusBadge {
   font-size: 0.6875rem !important;
   padding: 1px var(--spacing-2) !important;
   height: 1.125rem !important;
   line-height: 1 !important;
   font-weight: 700 !important;
-  box-shadow: var(--shadow);
 }
 
 .cardContent {
@@ -122,15 +131,15 @@
   height: 13px;
 }
 
-/* Darkened: raw --warning as a glyph runs about 2.1:1 on a light card. */
+/* Themed warning text: raw --warning as a glyph runs about 2.1:1 on a light card. */
 .reviewIconButton:hover {
   border-color: color-mix(in srgb, var(--warning), black 20%);
-  color: color-mix(in srgb, var(--warning), black 30%);
+  color: var(--warning-text);
 }
 
 .reviewIconButtonActive {
   border-color: color-mix(in srgb, var(--warning), black 20%);
-  color: color-mix(in srgb, var(--warning), black 30%);
+  color: var(--warning-text);
   background-color: color-mix(in srgb, var(--warning) 15%, transparent);
 }
 

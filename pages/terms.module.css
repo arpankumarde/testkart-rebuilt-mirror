@@ -91,7 +91,7 @@
 }
 
 .errorMessage {
-  color: var(--error);
+  color: var(--error-text);
   background-color: color-mix(in srgb, var(--error) 10%, transparent);
   padding: var(--spacing-3);
   border-radius: var(--radius);

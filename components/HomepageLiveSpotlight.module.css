@@ -21,14 +21,14 @@
 .viewAllLink {
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--primary);
+  color: var(--tk-brand-text);
   text-decoration: none;
   transition: color var(--animation-duration-fast) ease;
 }
 
 .viewAllLink:hover {
   text-decoration: underline;
-  color: color-mix(in srgb, var(--primary), black 10%);
+  color: var(--tk-brand-hover);
 }
 
 .cardsContainer {

@@ -1,8 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
 import { useLiveTestLeaderboardQuery } from '../helpers/useLiveTestLeaderboardQuery';
-import { postDistributePrizes } from '../endpoints/live-tests/distribute-prizes_POST.schema';
 import { useAuth } from '../helpers/useAuth';
 import { Skeleton } from './Skeleton';
 import { Button } from './Button';
@@ -45,26 +43,6 @@ export const LiveTestLeaderboard: React.FC<LiveTestLeaderboardProps> = ({
   const { authState } = useAuth();
   const location = useLocation();
   const { data, isFetching, error, refetch } = useLiveTestLeaderboardQuery(liveTestId, autoRefresh);
-  const hasAttemptedDistribution = useRef(false);
-
-  const distributePrizesMutation = useMutation({
-    mutationFn: postDistributePrizes,
-    onError: (err) => {
-      console.error('Failed to distribute prizes in background:', err);
-    },
-  });
-
-  useEffect(() => {
-    if (data?.testStatus === 'completed' && !!data.dynamicPrizes && !hasAttemptedDistribution.current) {
-      hasAttemptedDistribution.current = true;
-      distributePrizesMutation.mutate({ liveTestId });
-    }
-    // distributePrizesMutation gets a new identity every render (useMutation's
-    // result object isn't stable) — depending on it would re-fire this effect
-    // after every request completes. Only .mutate is stable and it doesn't
-    // need to be listed; depend on the actual inputs instead.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.testStatus, data?.dynamicPrizes, liveTestId]);
 
   // Check authentication first
   if (authState.type !== 'authenticated') {

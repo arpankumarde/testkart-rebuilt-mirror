@@ -11,6 +11,7 @@ import {
   DialogFooter,
 } from "./Dialog";
 import { useTeacherAIRewrite } from "../helpers/useTeacherAIRewrite";
+import { sanitizeHtml } from "../helpers/sanitizeHtml";
 import styles from "./AIRewriteButton.module.css";
 
 export interface AIRewriteButtonProps {
@@ -152,7 +153,7 @@ export const AIRewriteButton: React.FC<AIRewriteButtonProps> = ({
             {isHtmlField ? (
               <div
                 className={styles.htmlPreview}
-                dangerouslySetInnerHTML={{ __html: suggestion || "" }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(suggestion) }}
               />
             ) : (
               <p className={styles.textPreview}>{suggestion}</p>

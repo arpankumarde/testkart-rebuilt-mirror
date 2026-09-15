@@ -6,10 +6,7 @@ import { schema } from "./oauth_authorize_GET.schema";
 import { validateRedirectPath } from "../../helpers/validateRedirectPath";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { setServerSession } from "../../helpers/getSetServerSession";
-
-function isDeepLink(url: string): boolean {
-  return url.includes("://") && !url.startsWith("http://") && !url.startsWith("https://");
-}
+import { isAppDeepLink } from "../../helpers/isAppDeepLink";
 
 export async function handle(request: Request) {
   try {
@@ -59,7 +56,7 @@ export async function handle(request: Request) {
     let safeRedirectPath: string | null = null;
     let isMobileFlow = false;
     if (validatedRedirectTo) {
-      if (isDeepLink(validatedRedirectTo)) {
+      if (isAppDeepLink(validatedRedirectTo)) {
         safeRedirectPath = validatedRedirectTo;
         isMobileFlow = true;
       } else {

@@ -100,15 +100,15 @@
   height: 13px;
 }
 
-/* Darkened: raw --warning as a glyph runs about 2.1:1 on a light card. */
+/* Themed warning text: raw --warning as a glyph runs about 2.1:1 on a light card. */
 .reviewIconButton:hover {
   border-color: color-mix(in srgb, var(--warning), black 20%);
-  color: color-mix(in srgb, var(--warning), black 30%);
+  color: var(--warning-text);
 }
 
 .reviewIconButtonActive {
   border-color: color-mix(in srgb, var(--warning), black 20%);
-  color: color-mix(in srgb, var(--warning), black 30%);
+  color: var(--warning-text);
   background-color: color-mix(in srgb, var(--warning) 15%, transparent);
 }
 

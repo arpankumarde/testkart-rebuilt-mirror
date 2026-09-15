@@ -165,7 +165,7 @@
 .errorState {
   text-align: center;
   padding: var(--spacing-16);
-  color: var(--error);
+  color: var(--error-text);
 }
 
 

@@ -200,7 +200,7 @@ export const apiDocsAuth: ApiEndpoint[] = [
   {
     method: "POST",
     route: "/_api/auth/api-token",
-    description: "Generate a long-lived Bearer token for the authenticated user (useful for mobile/API access)",
+    description: "Generate a long-lived Bearer token for the authenticated user (useful for API access). Refused for requests sent from a browser page and for impersonation sessions",
     auth: "any",
     category: "Authentication",
     responseFields: [

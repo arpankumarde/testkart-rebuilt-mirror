@@ -153,7 +153,7 @@
 }
 
 .warning .statIcon {
-  color: color-mix(in srgb, var(--warning), black 45%);
+  color: var(--warning-text);
   background-color: color-mix(in srgb, var(--warning) 18%, transparent);
 }
 
@@ -166,7 +166,7 @@
   border: 1px solid color-mix(in srgb, var(--error) 30%, transparent);
   border-radius: var(--radius);
   background-color: color-mix(in srgb, var(--error) 10%, transparent);
-  color: color-mix(in srgb, var(--error), black 25%);
+  color: var(--error-text);
 }
 
 .errorNotice p {

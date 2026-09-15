@@ -7,11 +7,11 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
-  color: var(--success);
+  color: var(--success-text);
 }
 
 .successIcon {
-  color: var(--success);
+  color: var(--success-text);
 }
 
 .successContent {
@@ -72,7 +72,7 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
-  color: var(--success);
+  color: var(--success-text);
   font-size: 0.875rem;
   font-weight: 500;
   margin: 0;

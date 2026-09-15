@@ -125,11 +125,7 @@
 .published {
   border-color: color-mix(in srgb, var(--success) 45%, transparent);
   background-color: color-mix(in srgb, var(--success) 16%, var(--surface));
-  color: color-mix(in srgb, var(--success), black 30%);
-}
-
-:global(.dark) .published {
-  color: var(--success);
+  color: var(--success-text);
 }
 
 .draft {
@@ -141,11 +137,7 @@
 .archived {
   border-color: color-mix(in srgb, var(--error) 40%, transparent);
   background-color: color-mix(in srgb, var(--error) 12%, var(--surface));
-  color: color-mix(in srgb, var(--error), black 20%);
-}
-
-:global(.dark) .archived {
-  color: var(--error);
+  color: var(--error-text);
 }
 
 .time {

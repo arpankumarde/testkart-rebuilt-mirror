@@ -32,7 +32,7 @@
 }
 
 .statsIcon {
-  color: var(--success);
+  color: var(--success-text);
   flex-shrink: 0;
 }
 
@@ -101,7 +101,7 @@
 }
 
 .checkIcon {
-  color: var(--success);
+  color: var(--success-text);
   flex-shrink: 0;
   margin-top: 2px;
 }

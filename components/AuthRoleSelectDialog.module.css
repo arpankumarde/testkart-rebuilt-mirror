@@ -101,12 +101,12 @@
 
 .studentIcon {
   background-color: color-mix(in srgb, var(--info), transparent 90%);
-  color: var(--info);
+  color: var(--info-text);
 }
 
 .teacherIcon {
   background-color: color-mix(in srgb, var(--secondary), transparent 90%);
-  color: var(--secondary);
+  color: var(--secondary-text);
 }
 
 .cardContent {

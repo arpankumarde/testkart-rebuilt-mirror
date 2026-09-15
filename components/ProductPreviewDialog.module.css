@@ -79,7 +79,7 @@
   }
 
   .freeTag {
-    color: var(--success);
+    color: var(--success-text);
   }
 
   .detailSection h4 {

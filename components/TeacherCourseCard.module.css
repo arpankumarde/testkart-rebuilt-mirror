@@ -193,7 +193,7 @@
   align-items: center;
   gap: var(--spacing-2);
   cursor: pointer;
-  color: var(--error);
+  color: var(--error-text);
 }
 
 .deleteItem:hover {

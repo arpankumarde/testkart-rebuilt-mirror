@@ -3,6 +3,7 @@ import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { schema, OutputType } from "./validate_POST.schema";
 import superjson from "superjson";
 import { ZodError } from "zod";
+import { promoCodeCoversTeacher } from "../../helpers/promoCodeEligibility";
 
 type ItemWithType = {
   id: number;
@@ -157,7 +158,7 @@ export async function handle(request: Request): Promise<Response> {
       let isEligible = true;
 
       // 1. Check teacher ownership
-      if (promoCode.createdByTeacherId !== null && teacherId !== promoCode.createdByTeacherId) {
+      if (!promoCodeCoversTeacher(promoCode.createdByTeacherId, teacherId)) {
         isEligible = false;
       }
 

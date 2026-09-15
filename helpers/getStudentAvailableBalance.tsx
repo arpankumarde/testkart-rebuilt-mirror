@@ -16,7 +16,7 @@ import { sql } from "kysely";
 export async function getStudentAvailableBalance(
   studentId: number,
   trx?: Transaction<DB> | Kysely<DB>
-): Promise<{ availableBalance: number }> {
+): Promise<{ availableBalance: number; rawBalance: number }> {
   const queryBuilder = trx ?? db;
 
   const creditsResult = await queryBuilder
@@ -46,9 +46,12 @@ export async function getStudentAvailableBalance(
 
   const totalPurchased = Number(purchasesResult?.totalAmount || 0);
 
-  const availableBalance = Math.max(0, Math.round((totalCredits - totalWithdrawn - totalPurchased) * 100) / 100);
+  // rawBalance is not clamped: a negative value means pending withdrawals and
+  // purchases already exceed the credits.
+  const rawBalance = Math.round((totalCredits - totalWithdrawn - totalPurchased) * 100) / 100;
+  const availableBalance = Math.max(0, rawBalance);
 
-  return { availableBalance };
+  return { availableBalance, rawBalance };
 }
 
 /**

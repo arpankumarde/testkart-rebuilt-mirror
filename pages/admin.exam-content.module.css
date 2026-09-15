@@ -67,7 +67,7 @@
   background-color: color-mix(in srgb, var(--warning) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--warning) 40%, transparent);
   border-radius: var(--radius);
-  color: color-mix(in srgb, var(--warning), black 45%);
+  color: var(--warning-text);
   font-size: 0.875rem;
 }
 

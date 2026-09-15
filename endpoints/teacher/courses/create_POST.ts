@@ -4,6 +4,7 @@ import { slugify } from "../../../helpers/slugify";
 import { resolveExamByName } from "../../../helpers/resolveExam";
 import { schema, OutputType } from "./create_POST.schema";
 import superjson from "superjson";
+import { sanitizeHtml } from "../../../helpers/sanitizeHtml";
 
 async function generateUniqueSlug(baseTitle: string): Promise<string> {
   const baseSlug = slugify(baseTitle);
@@ -60,7 +61,7 @@ export async function handle(request: Request): Promise<Response> {
         teacherId: effectiveTeacherId,
         title: input.title,
         slug: slug,
-        description: input.description,
+        description: sanitizeHtml(input.description),
         category: input.category,
         level: input.level,
         price: input.price.toString(),

@@ -80,7 +80,7 @@
 }
 
 .certificateBadge {
-  color: var(--success);
+  color: var(--success-text);
   font-weight: 600;
 }
 
@@ -168,7 +168,7 @@
   font-size: 0.75rem;
   padding: var(--spacing-1) var(--spacing-2);
   background-color: var(--success-foreground);
-  color: var(--success);
+  color: var(--success-text);
   border-radius: var(--radius-full);
   font-weight: 600;
   flex-shrink: 0;

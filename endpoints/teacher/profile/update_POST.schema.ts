@@ -5,6 +5,13 @@ import { User } from "../../../helpers/User";
 export const schema = z
   .object({
     displayName: z.string().min(1, "Display name cannot be empty.").optional(),
+    academyName: z
+      .string()
+      .trim()
+      .max(100, "Academy name must be 100 characters or less.")
+      .optional()
+      .nullable()
+      .transform((val) => (val === "" ? null : val)),
     slug: z.string()
       .min(1, "Profile URL slug cannot be empty.")
       .min(3, "Slug must be at least 3 characters.")

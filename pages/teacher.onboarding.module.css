@@ -21,7 +21,7 @@
    panel over artwork that no longer exists. */
 .topBar {
   position: fixed;
-  top: 0;
+  top: var(--site-notice-offset);
   left: 0;
   right: 0;
   height: var(--header-height);

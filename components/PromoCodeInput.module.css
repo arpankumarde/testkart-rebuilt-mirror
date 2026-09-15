@@ -31,7 +31,7 @@
 
 .errorMessage {
   font-size: 0.75rem;
-  color: var(--error);
+  color: var(--error-text);
   margin-top: var(--spacing-2);
   margin-bottom: 0;
 }
@@ -54,7 +54,7 @@
 }
 
 .successIcon {
-  color: var(--success);
+  color: var(--success-text);
   flex-shrink: 0;
 }
 
@@ -66,5 +66,5 @@
 
 .appliedDiscount {
   font-weight: 500;
-  color: var(--success);
+  color: var(--success-text);
 }

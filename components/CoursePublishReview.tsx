@@ -6,6 +6,7 @@ import { Skeleton } from './Skeleton';
 import { ConsoleConfirmDialog } from './ConsoleConfirmDialog';
 import { AlertCircle, CheckCircle, BookOpen, List, FileText, Eye, AlertTriangle, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
+import { sanitizeHtml } from '../helpers/sanitizeHtml';
 import styles from './CoursePublishReview.module.css';
 
 interface CoursePublishReviewProps {
@@ -109,7 +110,7 @@ export const CoursePublishReview: React.FC<CoursePublishReviewProps> = ({ course
           <div className={styles.summaryValue}>{course.category}</div>
 
           <div className={styles.summaryLabel}><FileText size={16} /> Description</div>
-          <div className={styles.summaryValue} dangerouslySetInnerHTML={{ __html: course.description || '' }} />
+          <div className={styles.summaryValue} dangerouslySetInnerHTML={{ __html: sanitizeHtml(course.description) }} />
         </div>
       </div>
 

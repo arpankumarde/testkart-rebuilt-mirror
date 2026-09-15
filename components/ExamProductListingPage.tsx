@@ -38,6 +38,7 @@ import { useBundlesQuery } from "../helpers/useBundlesQuery";
 import { Placeholder } from "../helpers/placeholderImages";
 import { formatItemPrice } from "../helpers/homepageItemUtils";
 import { wrapContentTables } from "../helpers/contentTables";
+import { sanitizeHtml } from "../helpers/sanitizeHtml";
 import { getPublicExamContent } from "../endpoints/exam-content/get_GET.schema";
 import { PUBLIC_PAGE_SHARE_CAMPAIGN } from "../helpers/shareLinks";
 import type { AdminExamSectionType } from "../helpers/examContentTypes";
@@ -619,7 +620,7 @@ export const ExamProductListingPage: React.FC<ExamProductListingPageProps> = ({ 
       {pageContent?.content && pageContent.content.trim().length > 0 && (
         <section
           className={styles.additionalContent}
-          dangerouslySetInnerHTML={{ __html: wrapContentTables(pageContent.content) }}
+          dangerouslySetInnerHTML={{ __html: wrapContentTables(sanitizeHtml(pageContent.content)) }}
         />
       )}
 

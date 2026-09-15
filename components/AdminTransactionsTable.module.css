@@ -290,12 +290,12 @@
 }
 
 .iconButtonDanger {
-  color: color-mix(in srgb, var(--error), black 20%);
+  color: var(--error-text);
 }
 
 .iconButtonDanger:hover {
   background-color: color-mix(in srgb, var(--error) 12%, transparent);
-  color: color-mix(in srgb, var(--error), black 25%);
+  color: var(--error-text);
 }
 
 .srOnly {

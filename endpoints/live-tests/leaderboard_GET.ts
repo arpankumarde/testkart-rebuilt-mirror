@@ -2,9 +2,9 @@ import { db } from "../../helpers/db";
 import { CurrentUserStatus, OutputType } from "./leaderboard_GET.schema";
 import superjson from "superjson";
 import { z } from "zod";
-import { sql } from "kysely";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { calcLiveTestPrizeAmounts } from "../../helpers/calcLiveTestPrizeAmounts";
+import { getRankedLiveTestAttempts } from "../../helpers/liveTestRanking";
 
 const inputSchema = z.object({
   liveTestId: z.coerce.number().int().positive(),
@@ -91,37 +91,19 @@ export async function handle(request: Request) {
       );
     }
 
-    const leaderboardData = await db
-      .selectFrom("testAttempts")
-      .innerJoin("users", "users.id", "testAttempts.studentId")
-      .select([
-        "users.displayName as studentName",
-        "users.id as studentId",
-        "testAttempts.score",
-        "testAttempts.startedAt",
-        "testAttempts.completedAt",
-        sql<number>`EXTRACT(EPOCH FROM (completed_at - started_at)) / 60`.as("timeTakenMinutes"),
-      ])
-      .where("testAttempts.testId", "in", (qb) =>
-        qb
-          .selectFrom("mockTestItems")
-          .select("mockTestItems.id")
-          .where("mockTestItems.packageId", "=", liveTest.mockTestId)
-      )
-            .where("testAttempts.completedAt", "is not", null)
-      .$if(liveTest.startTime != null, (qb) =>
-        qb.where("testAttempts.completedAt", ">=", liveTest.startTime!)
-      )
-      .where("testAttempts.completedAt", "<=", liveTest.endTime)
-      .orderBy("testAttempts.score", "desc")
-      .orderBy("timeTakenMinutes", "asc")
-      .execute();
+    // Same ranking the prize payout uses: one in-window attempt per enrolled student
+    const rankedAttempts = await getRankedLiveTestAttempts(db, {
+      id: validatedLiveTestId,
+      mockTestId: liveTest.mockTestId,
+      startTime: liveTest.startTime,
+      endTime: liveTest.endTime,
+    });
 
-    const rankedLeaderboard = leaderboardData.map((entry, index) => ({
-      rank: index + 1,
+    const rankedLeaderboard = rankedAttempts.map((entry) => ({
+      rank: entry.rank,
       studentName: entry.studentName,
-      score: parseFloat(entry.score as string),
-      timeTaken: parseFloat(parseFloat(String(entry.timeTakenMinutes)).toFixed(2)),
+      score: entry.score,
+      timeTaken: parseFloat(entry.timeTakenMinutes.toFixed(2)),
       studentId: entry.studentId,
     }));
 

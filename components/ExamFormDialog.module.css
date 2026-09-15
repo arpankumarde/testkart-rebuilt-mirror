@@ -27,7 +27,7 @@
 .errorText {
   margin: 0;
   font-size: 0.8125rem;
-  color: color-mix(in srgb, var(--error), black 20%);
+  color: var(--error-text);
 }
 
 .infoMessage {
@@ -38,7 +38,7 @@
   background-color: color-mix(in srgb, var(--info) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--info) 40%, transparent);
   border-radius: var(--radius);
-  color: color-mix(in srgb, var(--info), black 30%);
+  color: var(--info-text);
 }
 
 .infoIcon {
@@ -90,7 +90,7 @@
 
 .contentPagesCheckIcon {
   flex-shrink: 0;
-  color: color-mix(in srgb, var(--success), black 30%);
+  color: var(--success-text);
 }
 
 .contentPagesHint {

@@ -5,6 +5,8 @@ import superjson from "superjson";
 import { getStudentAvailableBalance } from "../../../helpers/getStudentAvailableBalance";
 import { getTeacherPlatformFee } from "../../../helpers/getTeacherPlatformFee";
 import { ensureOrderCompletionSideEffects } from "../../../helpers/ensureOrderCompletionSideEffects";
+import { promoCodeCoversTeacher } from "../../../helpers/promoCodeEligibility";
+import { lockWallet } from "../../../helpers/walletLock";
 import { sql } from "kysely";
 
 export async function handle(request: Request) {
@@ -20,6 +22,9 @@ export async function handle(request: Request) {
     const { promoCodeId } = schema.parse(json);
 
     const result = await db.transaction().execute(async (trx) => {
+      // Held until commit, so a parallel purchase or withdrawal request sees this debit
+      await lockWallet(trx, user.id);
+
       // 1. Cancel pending orders for this user
       await trx
         .updateTable("orders")
@@ -150,6 +155,15 @@ export async function handle(request: Request) {
             } else {
               isEligible = false;
             }
+          }
+
+          const itemTeacherId = item.mockTestId
+            ? item.testTeacherId
+            : item.courseId
+              ? item.courseTeacherId
+              : item.digitalProductTeacherId;
+          if (isEligible && !promoCodeCoversTeacher(promoCode.createdByTeacherId, itemTeacherId)) {
+            isEligible = false;
           }
 
           if (isEligible) {

@@ -41,7 +41,7 @@
   align-items: center;
   justify-content: center;
   gap: var(--spacing-2);
-  color: var(--error);
+  color: var(--error-text);
   border-color: var(--error);
   padding: var(--spacing-4);
   text-align: center;
@@ -169,8 +169,8 @@
 }
 
 .errorOverlay {
-  background-color: color-mix(in srgb, var(--error), white 80%);
-  color: var(--error);
+  background-color: color-mix(in srgb, var(--error) 20%, var(--surface));
+  color: var(--error-text);
 }
 
 .dark .errorOverlay {
@@ -178,7 +178,7 @@
 }
 
 .errorIcon {
-  color: var(--error);
+  color: var(--error-text);
 }
 
 .errorMessage {

@@ -88,22 +88,22 @@
 
 .paletteItem.notAnswered, .paletteItemMobile.notAnswered, .legendDot.notAnswered {
   background-color: color-mix(in srgb, var(--error) 20%, transparent);
-  color: var(--error);
+  color: var(--error-text);
 }
 
 .paletteItem.answered, .paletteItemMobile.answered, .legendDot.answered {
   background-color: color-mix(in srgb, var(--success) 20%, transparent);
-  color: var(--success);
+  color: var(--success-text);
 }
 
 .paletteItem.markedForReview, .paletteItemMobile.markedForReview, .legendDot.markedForReview {
   background-color: color-mix(in srgb, #8B5CF6 25%, transparent);
-  color: #7C3AED;
+  color: color-mix(in srgb, #8B5CF6, var(--foreground) 60%);
 }
 
 .paletteItem.answeredAndMarked, .paletteItemMobile.answeredAndMarked, .legendDot.answeredAndMarked {
   background-color: color-mix(in srgb, #8B5CF6 25%, transparent);
-  color: #7C3AED;
+  color: color-mix(in srgb, #8B5CF6, var(--foreground) 60%);
   border: 2px solid var(--success);
 }
 
@@ -195,7 +195,7 @@
 }
 
 .subjectTabTimerWarning {
-  color: var(--error);
+  color: var(--error-text);
 }
 
 .subjectTabCount {

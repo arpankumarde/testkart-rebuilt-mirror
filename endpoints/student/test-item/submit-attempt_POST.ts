@@ -10,6 +10,13 @@ import {
 import { QuestionData } from "../../../helpers/questionTypes";
 import { emailTemplatesExtra } from "../../../helpers/emailTemplatesExtra";
 import { sendEmail } from "../../../helpers/sendEmail";
+import {
+  attemptStartedInLiveWindow,
+  getLiveTestForTestItem,
+  isEnrolledInLiveTest,
+  liveTestResultsReleased,
+  liveTestWindowError,
+} from "../../../helpers/liveTestAttemptWindow";
 import superjson from "superjson";
 
 export async function handle(request: Request): Promise<Response> {
@@ -51,6 +58,30 @@ export async function handle(request: Request): Promise<Response> {
         superjson.stringify({ error: "This test has already been submitted." }),
         { status: 400 }
       );
+    }
+
+    // A live test paper only takes submissions from enrolled students, for an
+    // attempt started during the live test, until submissions close.
+    const liveTestPaper = await getLiveTestForTestItem(attempt.testId);
+    if (liveTestPaper) {
+      if (!(await isEnrolledInLiveTest(user.id, liveTestPaper.liveTestId))) {
+        return new Response(
+          superjson.stringify({ error: "You are not enrolled in this live test." }),
+          { status: 403 }
+        );
+      }
+
+      const windowError = liveTestWindowError(liveTestPaper, "continue");
+      if (windowError) {
+        return new Response(superjson.stringify({ error: windowError }), { status: 403 });
+      }
+
+      if (!attemptStartedInLiveWindow(attempt.startedAt, liveTestPaper)) {
+        return new Response(
+          superjson.stringify({ error: "This attempt was not started during the live test." }),
+          { status: 403 }
+        );
+      }
     }
 
     // Fetch questions with subject and section data for limit enforcement and scoring
@@ -209,7 +240,7 @@ export async function handle(request: Request): Promise<Response> {
           case "multiple":
             studentAnswer = {
               answerType: "multiple",
-              selectedOptions: a.selectedOptions,
+              selectedOptions: Array.from(new Set(a.selectedOptions)),
             };
             break;
           case "numerical":
@@ -338,6 +369,22 @@ export async function handle(request: Request): Promise<Response> {
       : 0;
 
     await db.transaction().execute(async (trx) => {
+      // Close the attempt first; a second submit racing this one updates no
+      // row and fails here instead of recording its answers too.
+      const closed = await trx
+        .updateTable("testAttempts")
+        .set({
+          completedAt,
+          score: percentageScore.toFixed(2),
+        })
+        .where("id", "=", input.attemptId)
+        .where("completedAt", "is", null)
+        .executeTakeFirst();
+
+      if (Number(closed.numUpdatedRows) === 0) {
+        throw new Error("This test has already been submitted.");
+      }
+
       // Insert only answered questions into testAttemptAnswers
       if (answeredQuestions.length > 0) {
         await trx
@@ -345,16 +392,6 @@ export async function handle(request: Request): Promise<Response> {
           .values(answeredQuestions)
           .execute();
       }
-
-      // Update the test attempt with completion time and score
-      await trx
-        .updateTable("testAttempts")
-        .set({
-          completedAt,
-          score: percentageScore.toFixed(2),
-        })
-        .where("id", "=", input.attemptId)
-        .execute();
     });
 
     // Send test completion email notification
@@ -389,6 +426,23 @@ export async function handle(request: Request): Promise<Response> {
       console.error("Failed to send testCompleted email:", err);
     }
 
+    // Until a live test's submissions close, hide everything that would reveal
+    // the answer key, per-question correctness included. Totals stay.
+    const hideAnswers = liveTestPaper !== null && !liveTestResultsReleased(liveTestPaper);
+    const visibleResults = hideAnswers
+      ? results.map((result) => ({
+          ...result,
+          isCorrect: null,
+          marksObtained: 0,
+          correctOption: null,
+          correctOptions: null,
+          correctNumericalAnswer: null,
+          numericalTolerance: null,
+          matchData: null,
+          explanation: null,
+        }))
+      : results;
+
     return new Response(
       superjson.stringify({
         score: parseFloat(percentageScore.toFixed(2)),
@@ -397,7 +451,7 @@ export async function handle(request: Request): Promise<Response> {
         totalQuestions: questions.length,
         correctAnswers: correctAnswersCount,
         timeTakenSeconds,
-        results,
+        results: visibleResults,
       } satisfies OutputType)
     );
   } catch (error) {

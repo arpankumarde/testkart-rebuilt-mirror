@@ -6,6 +6,7 @@ import { nanoid } from "nanoid";
 import { sql } from "kysely";
 import { getTeacherPlatformFee } from "../../../helpers/getTeacherPlatformFee";
 import { ensureOrderCompletionSideEffects } from "../../../helpers/ensureOrderCompletionSideEffects";
+import { promoCodeCoversTeacher } from "../../../helpers/promoCodeEligibility";
 
 const generateErrorHtml = (errorMessage: string, backUrl: string) => `
 <!DOCTYPE html>
@@ -272,6 +273,15 @@ export async function handle(request: Request) {
             } else {
               isEligible = false;
             }
+          }
+
+          const itemTeacherId = item.mockTestId
+            ? item.testTeacherId
+            : item.courseId
+              ? item.courseTeacherId
+              : item.digitalProductTeacherId;
+          if (isEligible && !promoCodeCoversTeacher(promoCode.createdByTeacherId, itemTeacherId)) {
+            isEligible = false;
           }
 
           if (isEligible) {

@@ -37,7 +37,7 @@
   border: 1px solid color-mix(in srgb, var(--error) 35%, transparent);
   border-radius: var(--radius);
   background-color: color-mix(in srgb, var(--error) 12%, transparent);
-  color: color-mix(in srgb, var(--error), black 25%);
+  color: var(--error-text);
   font-size: 0.875rem;
 }
 
@@ -146,7 +146,7 @@
 }
 
 .deleteAction {
-  color: color-mix(in srgb, var(--error), black 20%);
+  color: var(--error-text);
 }
 
 .totals {

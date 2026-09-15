@@ -13,6 +13,7 @@ import { sponsoredEnrollment, newStudentEnrolled } from "../../../helpers/emailT
 import { createHash } from "crypto";
 import { PAYU_MODE } from "../../../helpers/_publicConfigs";
 import { getTeacherAvailableBalance } from "../../../helpers/getTeacherAvailableBalance";
+import { lockWallet } from "../../../helpers/walletLock";
 import { getTeacherPlatformFee } from "../../../helpers/getTeacherPlatformFee";
 
 function isEmailIdentifier(identifier: string): boolean {
@@ -391,7 +392,7 @@ export async function handle(request: Request): Promise<Response> {
       }
 
       // Calculate costs. Uses the same shared lookup as every other purchase
-      // path (orders/create_POST, live-tests/purchase_POST) instead of its
+      // path (payment/payu/initiate_POST, live-tests/purchase_POST) instead of its
       // own query — the old inline query here only read
       // subscriptionPlans.platformFeePercentage, silently ignoring a
       // teacher's platformFeeOverride (e.g. an admin-granted custom trial
@@ -540,6 +541,7 @@ export async function handle(request: Request): Promise<Response> {
         if (prepResult.isFreeEnrollment) {
           availableBalance = 0;
         } else {
+          await lockWallet(trx, effectiveTeacherId);
           const balanceBreakdown = await getTeacherAvailableBalance(effectiveTeacherId, trx);
           availableBalance = balanceBreakdown.availableBalance;
 

@@ -188,7 +188,7 @@ export default function AdminApiDocs() {
               <strong>Authentication:</strong> two ways in.
               <ul>
                 <li><strong>Cookie:</strong> the HTTP-only JWT in <code>floot_built_app_session</code>, sent by browsers automatically.</li>
-                <li><strong>Bearer token:</strong> send <code>Authorization: Bearer &lt;token&gt;</code>. Best for the mobile app and external clients. Get a token from <code>POST /_api/auth/api-token</code> while signed in.</li>
+                <li><strong>Bearer token:</strong> send <code>Authorization: Bearer &lt;token&gt;</code>. Best for the mobile app and external clients. Get a token from <code>POST /_api/auth/api-token</code> while signed in, from a server or script rather than a browser page. The endpoint refuses browser requests and impersonation sessions.</li>
               </ul>
             </li>
             <li><strong>Session length:</strong> sessions and API tokens last 30 days.</li>

@@ -93,7 +93,7 @@ opacity: 0.5;
 .heroRatingNumber {
   font-weight: 700;
   font-size: 1rem;
-  color: var(--warning);
+  color: var(--warning-text);
 }
 
 .heroStars {
@@ -149,7 +149,7 @@ opacity: 0.5;
   grid-column: 2;
   grid-row: 1 / 3;
   position: sticky;
-  top: calc(var(--header-height, 72px) + var(--spacing-4));
+  top: calc(var(--header-height, 72px) + var(--spacing-4) + var(--site-notice-offset));
   display: flex;
   flex-direction: column;
   gap: var(--spacing-6);
@@ -307,7 +307,7 @@ opacity: 0.5;
 }
 
 .freePrice {
-  color: var(--success);
+  color: var(--success-text);
 }
 
 .actions {
@@ -335,7 +335,7 @@ opacity: 0.5;
 
 .teacherInfoIcon {
   flex-shrink: 0;
-  color: var(--info);
+  color: var(--info-text);
 }
 
 .teacherInfoContent {
@@ -408,7 +408,7 @@ opacity: 0.5;
   align-items: center;
   gap: var(--spacing-2);
   font-size: 0.875rem;
-  color: var(--success);
+  color: var(--success-text);
   font-weight: 500;
 }
 

@@ -186,13 +186,13 @@
   color: var(--muted-foreground);
 }
 
-/* Darkened against the panel: the raw tokens land near 2.8:1 as an icon. */
+/* Themed status text: the raw tokens land near 2.8:1 as an icon on the panel. */
 .iconSuccess {
-  color: color-mix(in srgb, var(--success), black 25%);
+  color: var(--success-text);
 }
 
 .iconWarning {
-  color: color-mix(in srgb, var(--warning), black 30%);
+  color: var(--warning-text);
 }
 
 .inlineForm {
@@ -268,7 +268,7 @@
   flex-shrink: 0;
   border-radius: var(--radius);
   background-color: color-mix(in srgb, var(--error) 12%, transparent);
-  color: color-mix(in srgb, var(--error), black 20%);
+  color: var(--error-text);
 }
 
 .dangerTitle {
@@ -289,13 +289,13 @@
 .dangerButton {
   flex-shrink: 0;
   border-color: color-mix(in srgb, var(--error) 45%, transparent);
-  color: color-mix(in srgb, var(--error), black 20%);
+  color: var(--error-text);
 }
 
 .dangerButton:hover {
   background-color: color-mix(in srgb, var(--error) 10%, transparent);
   border-color: var(--error);
-  color: color-mix(in srgb, var(--error), black 20%);
+  color: var(--error-text);
 }
 
 .skeletonBlock {

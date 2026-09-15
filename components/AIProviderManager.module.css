@@ -100,11 +100,11 @@
   line-height: 1.5;
   background-color: color-mix(in srgb, var(--warning) 10%, transparent);
   border: 1px solid color-mix(in srgb, var(--warning) 25%, transparent);
-  color: var(--warning-foreground);
+  color: var(--warning-text);
 }
 
 .warningIcon {
-  color: var(--warning);
+  color: var(--warning-text);
   flex-shrink: 0;
   margin-top: 2px;
 }

@@ -5,6 +5,8 @@
  * gutter.
  */
 .page {
+  --rte-toolbar-top: var(--site-notice-offset);
+
   display: flex;
   flex-direction: column;
   gap: var(--spacing-6);
@@ -126,7 +128,7 @@
 
 .counterOver {
   font-weight: 600;
-  color: color-mix(in srgb, var(--error), black 25%);
+  color: var(--error-text);
 }
 
 /* Two native radios drawn as a segmented control, so arrow keys move the
@@ -406,8 +408,8 @@
   .rail {
     grid-template-columns: minmax(0, 1fr);
     position: sticky;
-    top: var(--spacing-4);
-    max-height: calc(100vh - var(--spacing-8));
+    top: calc(var(--spacing-4) + var(--site-notice-offset));
+    max-height: calc(100vh - var(--spacing-8) - var(--site-notice-offset));
     overflow-y: auto;
     overscroll-behavior: contain;
   }

@@ -321,7 +321,7 @@
 }
 
 .successIcon {
-  color: var(--success);
+  color: var(--success-text);
 }
 
 /* Dialog Styles */

@@ -18,13 +18,13 @@
   --tk-nav-width: 256px;
 
   position: sticky;
-  top: 0;
+  top: var(--site-notice-offset);
   z-index: var(--z-nav-low);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
   width: var(--tk-nav-width);
-  height: 100vh;
+  height: calc(100vh - var(--site-notice-offset));
   overflow: hidden;
   background-color: var(--surface);
   border-right: 1px solid var(--border);
@@ -503,7 +503,7 @@
   .sidebar.rail {
     --tk-nav-width: 272px;
     position: fixed;
-    top: 0;
+    top: var(--site-notice-offset);
     left: 0;
     bottom: 0;
     z-index: var(--z-nav);

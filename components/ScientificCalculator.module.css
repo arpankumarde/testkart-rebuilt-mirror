@@ -158,13 +158,13 @@
 }
 
 .opBtn {
-  background-color: color-mix(in srgb, var(--primary), white 90%);
-  color: var(--primary);
+  background-color: color-mix(in srgb, var(--primary) 10%, var(--surface));
+  color: var(--tk-brand-text);
   font-weight: 600;
 }
 
 .opBtn:hover {
-  background-color: color-mix(in srgb, var(--primary), white 80%);
+  background-color: color-mix(in srgb, var(--primary) 20%, var(--surface));
 }
 
 .equalsBtn {
@@ -183,10 +183,6 @@
 
 :global(.dark) .sciBtn {
   background-color: var(--muted);
-}
-
-:global(.dark) .opBtn {
-  background-color: color-mix(in srgb, var(--primary), black 70%);
 }
 
 :global(.dark) .equalsBtn {

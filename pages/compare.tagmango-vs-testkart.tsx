@@ -147,7 +147,7 @@ const CompareTagMangoPage: React.FC = () => {
                 <tr>
                   <td><strong>Upfront Cost</strong></td>
                   <td>₹0–₹3,60,000/year (tiered plans)</td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> <strong>₹0 (Free to start)</strong></span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> <strong>₹0 (Free to start)</strong></span></td>
                 </tr>
                 <tr>
                   <td><strong>Commission on Sales</strong></td>
@@ -157,72 +157,72 @@ const CompareTagMangoPage: React.FC = () => {
                 <tr>
                   <td><strong>Free Plan Commission</strong></td>
                   <td><span className={styles.iconText}><XCircle size={18} color="var(--error)" /> 10% of all revenue</span></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> No tiered commission traps</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> No tiered commission traps</span></td>
                 </tr>
                 <tr>
                   <td><strong>Built-in Student Audience</strong></td>
                   <td><span className={styles.iconText}><XCircle size={18} color="var(--error)" /> Bring your own audience</span></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Access millions of students</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Access millions of students</span></td>
                 </tr>
                 <tr>
                   <td><strong>Community Features</strong></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Social feed, groups, badges</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Social feed, groups, badges</span></td>
                   <td>Student dashboard & reviews</td>
                 </tr>
                 <tr>
                   <td><strong>AI Question Generation</strong></td>
                   <td><span className={styles.iconText}><XCircle size={18} color="var(--error)" /> Not available</span></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> AI-powered question & content creation</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> AI-powered question & content creation</span></td>
                 </tr>
                 <tr>
                   <td><strong>Mock Test Question Types</strong></td>
                   <td>Basic quiz format</td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> 6 types: MCQ, Multi-correct, Numerical, Assertion-Reason, Comprehension, Match</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> 6 types: MCQ, Multi-correct, Numerical, Assertion-Reason, Comprehension, Match</span></td>
                 </tr>
                 <tr>
                   <td><strong>Live Competitive Tests</strong></td>
                   <td>Basic webinars</td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Real-time live tests with prizes & leaderboards</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Real-time live tests with prizes & leaderboards</span></td>
                 </tr>
                 <tr>
                   <td><strong>Digital Products (PDFs)</strong></td>
                   <td>Supported</td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Full PDF store with preview pages</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Full PDF store with preview pages</span></td>
                 </tr>
                 <tr>
                   <td><strong>Video Courses</strong></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> DRM-protected courses</span></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Unlimited hosting, structured builder</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> DRM-protected courses</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Unlimited hosting, structured builder</span></td>
                 </tr>
                 <tr>
                   <td><strong>1:1 Consultations</strong></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Built-in</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Built-in</span></td>
                   <td>Not available</td>
                 </tr>
                 <tr>
                   <td><strong>Promo Codes & Discounts</strong></td>
                   <td>Available</td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Full promo code system</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Full promo code system</span></td>
                 </tr>
                 <tr>
                   <td><strong>Student Analytics</strong></td>
                   <td>Basic analytics</td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Per-question analytics, time tracking, leaderboards</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Per-question analytics, time tracking, leaderboards</span></td>
                 </tr>
                 <tr>
                   <td><strong>Payment Options</strong></td>
                   <td>UPI, NetBanking</td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> PayU gateway (UPI, Cards, NetBanking)</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> PayU gateway (UPI, Cards, NetBanking)</span></td>
                 </tr>
                 <tr>
                   <td><strong>Payouts</strong></td>
                   <td>Varies by plan</td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Weekly bank transfers</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Weekly bank transfers</span></td>
                 </tr>
                 <tr>
                   <td><strong>Student Sponsorship</strong></td>
                   <td><span className={styles.iconText}><XCircle size={18} color="var(--error)" /> Not available</span></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Sponsor students feature</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Sponsor students feature</span></td>
                 </tr>
               </tbody>
             </table>

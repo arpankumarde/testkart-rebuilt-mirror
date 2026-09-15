@@ -9,13 +9,23 @@ import {
 } from "../../../helpers/getSetServerSession";
 import { addTeacherToSalesContacts } from "../../../helpers/addTeacherToSalesContacts";
 import { randomUUID } from "crypto";
-
-const MAX_ATTEMPTS = 5;
+import { getClientIp } from "../../../helpers/getClientIp";
+import {
+  checkOtpVerifyLimit,
+  claimOtpAttempt,
+  recordOtpVerifyFailure,
+} from "../../../helpers/otpVerifyGuard";
 
 export async function handle(request: Request) {
   try {
     const json = superjson.parse(await request.text());
     const { email, otpCode, role } = schema.parse(json);
+    const ipAddress = getClientIp(request);
+
+    const limitMessage = await checkOtpVerifyLimit(email, ipAddress);
+    if (limitMessage) {
+      return new Response(superjson.stringify({ error: limitMessage }), { status: 429 });
+    }
 
     // 1. Find the most recent, unverified OTP for this email
     const otpRecord = await db
@@ -33,7 +43,7 @@ export async function handle(request: Request) {
       );
     }
 
-    // 2. Check for expiration and max attempts
+    // 2. Check for expiration
     if (new Date() > new Date(otpRecord.expiresAt)) {
       return new Response(
         superjson.stringify({ error: "OTP has expired. Please request a new one." }),
@@ -41,20 +51,17 @@ export async function handle(request: Request) {
       );
     }
 
-    if (otpRecord.attempts >= MAX_ATTEMPTS) {
+    // 3. Use up an attempt before comparing, so parallel guesses share the limit
+    const storedCode = await claimOtpAttempt("email", otpRecord.id);
+    if (storedCode === null) {
       return new Response(
         superjson.stringify({ error: "Too many incorrect attempts. Please request a new OTP." }),
         { status: 400 }
       );
     }
 
-    // 3. Verify OTP code
-    if (otpRecord.otpCode !== otpCode) {
-      await db
-        .updateTable("emailOtps")
-        .set({ attempts: otpRecord.attempts + 1 })
-        .where("id", "=", otpRecord.id)
-        .execute();
+    if (storedCode !== otpCode) {
+      await recordOtpVerifyFailure(email, ipAddress);
       return new Response(superjson.stringify({ error: "Invalid OTP code." }), {
         status: 400,
       });

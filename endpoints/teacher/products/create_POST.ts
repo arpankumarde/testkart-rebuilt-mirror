@@ -3,6 +3,7 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { slugify } from "../../../helpers/slugify";
 import { schema, OutputType } from "./create_POST.schema";
 import superjson from "superjson";
+import { sanitizeOptionalHtml } from "../../../helpers/sanitizeHtml";
 import { DigitalProductFileItem } from "../../../helpers/digitalProductFileTypes";
 import { isRealFileUrl, PLACEHOLDER_PDF_URL } from "../../../helpers/digitalProductRules";
 
@@ -108,7 +109,7 @@ export async function handle(request: Request): Promise<Response> {
           teacherId: effectiveTeacherId,
           title: input.title,
           slug: slug,
-          description: input.description,
+          description: sanitizeOptionalHtml(input.description),
           shortDescription: input.shortDescription ?? null,
           price: input.price.toString(),
           thumbnailUrl: input.thumbnailUrl ?? null,

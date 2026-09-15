@@ -160,7 +160,7 @@
 }
 
 .errorText {
-  color: var(--error);
+  color: var(--error-text);
   font-weight: 500;
 }
 

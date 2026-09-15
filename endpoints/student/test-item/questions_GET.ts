@@ -3,6 +3,7 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./questions_GET.schema";
 import superjson from "superjson";
 import { hasStudentAccessToTestItem } from "../../../helpers/hasStudentPurchasedTestItem";
+import { getLiveTestForTestItem, liveTestWindowError } from "../../../helpers/liveTestAttemptWindow";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -36,6 +37,12 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     // Fetch test item details including calculatorEnabled
+    const liveTestPaper = await getLiveTestForTestItem(input.testItemId);
+    const windowError = liveTestPaper ? liveTestWindowError(liveTestPaper, "continue") : null;
+    if (windowError) {
+      return new Response(superjson.stringify({ error: windowError }), { status: 403 });
+    }
+
     const testItem = await db
       .selectFrom("mockTestItems")
       .select(["calculatorEnabled", "subjectWiseTiming", "questionWiseTiming"])

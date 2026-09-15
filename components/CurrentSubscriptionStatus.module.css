@@ -97,23 +97,23 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Darkened: the raw tokens ran at about 3.5:1 (--error) and 2.3:1 (--success)
-   as type on their own 10% tint. */
+/* Themed status text: the raw tokens ran at about 3.5:1 (--error) and 2.3:1
+   (--success) as type on their own 10% tint. */
 .feeHigh {
   background-color: color-mix(in srgb, var(--error) 10%, transparent);
-  color: color-mix(in srgb, var(--error), black 25%);
+  color: var(--error-text);
   border: 1px solid color-mix(in srgb, var(--error) 25%, transparent);
 }
 
 .feeMedium {
   background-color: color-mix(in srgb, var(--warning) 15%, transparent);
-  color: var(--warning-foreground);
+  color: var(--warning-text);
   border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent);
 }
 
 .feeLow {
   background-color: color-mix(in srgb, var(--success) 12%, transparent);
-  color: color-mix(in srgb, var(--success), black 35%);
+  color: var(--success-text);
   border: 1px solid color-mix(in srgb, var(--success) 30%, transparent);
 }
 
@@ -221,7 +221,7 @@
   padding: var(--spacing-4);
   text-align: center;
   font-size: 0.875rem;
-  color: color-mix(in srgb, var(--error), black 25%);
+  color: var(--error-text);
 }
 
 @media (max-width: 768px) {

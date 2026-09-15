@@ -93,11 +93,11 @@
     border-radius: var(--radius-sm);
 
     font-size: 0.875rem;
-    color: var(--error);
+    color: var(--error-text);
   }
 
   .error button {
     margin-left: var(--spacing-4);
-    color: var(--error);
+    color: var(--error-text);
   }
 }

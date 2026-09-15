@@ -33,7 +33,7 @@
 
 .errorText {
   font-size: 0.75rem;
-  color: var(--error);
+  color: var(--error-text);
 }
 
 .balanceHint {

@@ -3,10 +3,6 @@ import {
   postTeacherProfileUpdate,
   InputType as ProfileInput,
 } from "../endpoints/teacher/profile/update_POST.schema";
-import {
-  postTeacherAcademyUpdate,
-  InputType as AcademyInput,
-} from "../endpoints/teacher/academy/update_POST.schema";
 import { AUTH_QUERY_KEY } from "./useAuth";
 import { User } from "./User";
 
@@ -31,15 +27,5 @@ export const useTeacherProfileMutations = () => {
     });
   };
 
-  const useUpdateAcademyMutation = () => {
-    return useMutation({
-      mutationFn: (data: AcademyInput) => postTeacherAcademyUpdate(data),
-      onSuccess: (data, variables) => {
-        // Invalidate session data to refetch the updated displayName
-        queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEY });
-      },
-    });
-  };
-
-  return { useUpdateProfileMutation, useUpdateAcademyMutation };
+  return { useUpdateProfileMutation };
 };

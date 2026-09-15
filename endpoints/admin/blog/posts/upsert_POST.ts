@@ -39,17 +39,36 @@ export async function handle(request: Request) {
     await db.transaction().execute(async (trx) => {
       let publishedAt: Date | null = null;
 
+      // A changed author must be an active admin; an unchanged one stays even if since deactivated
+      const requireActiveAdmin = async (adminId: number) => {
+        const author = await trx
+          .selectFrom("admins")
+          .select("id")
+          .where("id", "=", adminId)
+          .where("isActive", "=", true)
+          .executeTakeFirst();
+        if (!author) {
+          throw new Error("The author must be an active admin.");
+        }
+      };
+
       if (input.id) {
-        const currentPost = await trx.selectFrom("blogPosts").select(["status", "publishedAt"]).where("id", "=", input.id).executeTakeFirstOrThrow();
+        const currentPost = await trx.selectFrom("blogPosts").select(["status", "publishedAt", "authorId"]).where("id", "=", input.id).executeTakeFirstOrThrow();
         if (input.status === "published" && currentPost.status !== "published" && !currentPost.publishedAt) {
           publishedAt = new Date();
         } else {
           publishedAt = currentPost.publishedAt;
         }
 
+        const authorId = input.authorId ?? currentPost.authorId;
+        if (authorId !== currentPost.authorId) {
+          await requireActiveAdmin(authorId);
+        }
+
         post = await trx
           .updateTable("blogPosts")
           .set({
+            authorId,
             title: input.title,
             slug: targetSlug,
             content: input.content,
@@ -73,10 +92,14 @@ export async function handle(request: Request) {
         if (input.status === "published") {
           publishedAt = new Date();
         }
+        const authorId = input.authorId ?? admin.id;
+        if (authorId !== admin.id) {
+          await requireActiveAdmin(authorId);
+        }
         post = await trx
           .insertInto("blogPosts")
           .values({
-            authorId: admin.id,
+            authorId,
             title: input.title,
             slug: targetSlug,
             content: input.content,

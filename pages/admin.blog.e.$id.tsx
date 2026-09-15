@@ -20,6 +20,8 @@ import { ImageUploader } from "../components/ImageUploader";
 import { Form, FormItem, FormLabel, FormControl, FormMessage, useForm } from "../components/Form";
 import { ArrowLeft, Newspaper, BookOpen, Check, Loader2, X } from "lucide-react";
 import { useAdminLayout } from "../helpers/useAdminLayout";
+import { useAdminAuth } from "../helpers/useAdminAuth";
+import { useAdminOptionsQuery } from "../helpers/useAdminOptions";
 import { slugify } from "../helpers/slugify";
 import styles from "./admin.blog.e.$id.module.css";
 
@@ -37,6 +39,8 @@ const AdminBlogEditorPage = () => {
 
   const { data: postData, isFetching: isFetchingPost } = useAdminBlogPostQuery(postId);
   const { data: categoriesData } = useAdminBlogCategoriesQuery();
+  const { data: adminOptionsData } = useAdminOptionsQuery();
+  const { authState } = useAdminAuth();
   const upsertMutation = useUpsertBlogPostMutation();
   const autoSaveMutation = useAutoSaveBlogPostMutation();
 
@@ -106,7 +110,8 @@ const AdminBlogEditorPage = () => {
         seoDescription: postData.post.seoDescription || "",
         ogImage: postData.post.ogImage || "",
         isFeatured: postData.post.isFeatured,
-        tags: postData.post.tags || []
+        tags: postData.post.tags || [],
+        authorId: postData.post.authorId
       });
       setSlugAuto(
         postData.post.status === "draft" &&
@@ -225,6 +230,13 @@ const AdminBlogEditorPage = () => {
   };
 
   const filteredCategories = categoriesData?.categories.filter(c => c.type === form.values.type) || [];
+
+  // A new post is authored by the signed-in admin until another admin is picked
+  const authorId = form.values.authorId ?? (authState.type === "authenticated" ? authState.admin.id : undefined);
+  const adminOptions = adminOptionsData?.admins ?? [];
+  const activeAdmins = adminOptions.filter((admin) => admin.isActive);
+  const currentAuthor = adminOptions.find((admin) => admin.id === authorId);
+  const showCurrentAuthorOption = adminOptionsData !== undefined && authorId !== undefined && !currentAuthor?.isActive;
 
   if (isFetchingPost && !postData && postId) {
     return (
@@ -459,6 +471,31 @@ const AdminBlogEditorPage = () => {
                 <div className={styles.settingsColumnRight}>
                   <div className={styles.settingsCard}>
                     <h3 className={styles.sectionTitle}>Publishing</h3>
+
+                    <FormItem name="authorId">
+                      <FormLabel>Author</FormLabel>
+                      <Select
+                        value={adminOptionsData && authorId !== undefined ? String(authorId) : ""}
+                        onValueChange={(val) => form.setValues((prev) => ({ ...prev, authorId: Number(val) }))}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={adminOptionsData ? "Choose an author" : "Loading admins..."} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {showCurrentAuthorOption && (
+                            <SelectItem value={String(authorId)}>
+                              {currentAuthor ? `${currentAuthor.fullName} (inactive)` : "Unknown admin"}
+                            </SelectItem>
+                          )}
+                          {activeAdmins.map((admin) => (
+                            <SelectItem key={admin.id} value={String(admin.id)}>{admin.fullName}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
 
                                         <FormItem name="categoryId">
                       <FormLabel>Category</FormLabel>

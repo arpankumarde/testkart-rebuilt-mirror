@@ -37,10 +37,10 @@
   color: var(--muted-foreground);
 }
 
-/* Darkened: the raw error token as body text on white runs about 3.5:1. */
+/* Themed error text: the raw error token as body text on white runs about 3.5:1. */
 .error {
   margin: 0 0 var(--spacing-2) 0;
   font-size: 0.875rem;
   font-weight: 500;
-  color: color-mix(in srgb, var(--error), black 20%);
+  color: var(--error-text);
 }

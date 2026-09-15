@@ -108,7 +108,7 @@
 }
 
 .verifiedIcon {
-  color: var(--success);
+  color: var(--success-text);
 }
 
 .courseCount {

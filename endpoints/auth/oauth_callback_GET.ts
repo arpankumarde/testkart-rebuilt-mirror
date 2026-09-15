@@ -18,10 +18,8 @@ import { sendOAuthWelcomeEmail } from "../../helpers/sendOAuthWelcomeEmail";
 import { addTeacherToSalesContacts } from "../../helpers/addTeacherToSalesContacts";
 import { SignJWT } from "jose";
 import { SessionExpirationSeconds } from "../../helpers/getSetServerSession";
-
-function isDeepLink(url: string): boolean {
-  return url.includes("://") && !url.startsWith("http://") && !url.startsWith("https://");
-}
+import { validateRedirectPath } from "../../helpers/validateRedirectPath";
+import { isAppDeepLink } from "../../helpers/isAppDeepLink";
 
 export async function handle(request: Request) {
   try {
@@ -93,7 +91,11 @@ export async function handle(request: Request) {
 
     // Get userId directly from the database
     const linkUserId: number | null = oauthState.userId;
-    const actualRedirectPath: string | null = oauthState.redirectToPath;
+    const storedRedirectPath: string | null = oauthState.redirectToPath;
+    const actualRedirectPath: string | null =
+      storedRedirectPath !== null && isAppDeepLink(storedRedirectPath)
+        ? storedRedirectPath
+        : validateRedirectPath(storedRedirectPath);
 
     // Validate that the provider from the database is a supported provider
     if (!oauthProviders.includes(oauthState.provider as OAuthProviderType)) {
@@ -412,7 +414,7 @@ export async function handle(request: Request) {
 
     // Determine if this is a mobile deep link redirect flow
     const isMobileDeepLink =
-      actualRedirectPath !== null && isDeepLink(actualRedirectPath);
+      actualRedirectPath !== null && isAppDeepLink(actualRedirectPath);
 
     if (isMobileDeepLink) {
       console.log(

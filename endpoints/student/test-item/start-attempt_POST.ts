@@ -3,6 +3,7 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./start-attempt_POST.schema";
 import superjson from "superjson";
 import { hasStudentAccessToTestItem } from "../../../helpers/hasStudentPurchasedTestItem";
+import { getLiveTestForTestItem, liveTestWindowError } from "../../../helpers/liveTestAttemptWindow";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -68,15 +69,15 @@ export async function handle(request: Request): Promise<Response> {
       }
     }
 
-    // Check if this test item is part of a live test
-    const liveTest = await db
-      .selectFrom("liveTests")
-      .select("id")
-      .where("mockTestId", "=", testItem.packageId)
-      .executeTakeFirst();
+    // A live test paper only opens while the live test runs, one attempt each
+    const liveTestPaper = await getLiveTestForTestItem(input.testItemId);
 
-    // If it's a live test, enforce the 1 attempt limit
-    if (liveTest) {
+    if (liveTestPaper) {
+      const windowError = liveTestWindowError(liveTestPaper, "start");
+      if (windowError) {
+        return new Response(superjson.stringify({ error: windowError }), { status: 403 });
+      }
+
       const existingAttempt = await db
         .selectFrom("testAttempts")
         .select("id")

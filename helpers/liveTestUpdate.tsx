@@ -10,6 +10,7 @@ import {
 } from "./liveTestPrizeTiers";
 import { LIVE_TEST_FIELD_LABELS, LIVE_TEST_PUBLISHED_LOCKED_FIELDS } from "./liveTestLocks";
 import { jsonbParam } from "./jsonbParam";
+import { sanitizeHtml } from "./sanitizeHtml";
 
 export class LiveTestUpdateError extends Error {
   constructor(message: string, readonly status: number) {
@@ -128,7 +129,9 @@ export async function applyLiveTestUpdate(
 
   const liveTestSet: UpdateObject<DB, "liveTests"> = {};
   if (input.title !== undefined) liveTestSet.title = input.title;
-  if (input.description !== undefined) liveTestSet.description = input.description;
+  const description =
+    input.description === undefined ? undefined : input.description ? sanitizeHtml(input.description) : input.description;
+  if (description !== undefined) liveTestSet.description = description;
   if (input.price !== undefined) liveTestSet.price = input.price.toString();
   if (input.discountPrice !== undefined) {
     liveTestSet.discountPrice = input.discountPrice === null ? null : input.discountPrice.toString();
@@ -186,7 +189,7 @@ export async function applyLiveTestUpdate(
   // that were sent in step.
   const mockTestSet: UpdateObject<DB, "mockTests"> = {};
   if (input.title !== undefined) mockTestSet.title = input.title;
-  if (input.description !== undefined) mockTestSet.description = input.description;
+  if (description !== undefined) mockTestSet.description = description;
   if (input.thumbnailUrl !== undefined) mockTestSet.thumbnailUrl = input.thumbnailUrl;
   if (input.introVideoUrl !== undefined) mockTestSet.introVideoUrl = input.introVideoUrl;
   if (input.introVideoFileId !== undefined) mockTestSet.introVideoFileId = input.introVideoFileId;

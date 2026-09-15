@@ -40,14 +40,14 @@
 }
 
 .marksPositive {
-  color: var(--success);
+  color: var(--success-text);
   font-weight: 600;
   font-size: 0.9rem;
   margin-left: auto;
 }
 
 .marksNegative {
-  color: var(--error);
+  color: var(--error-text);
   font-weight: 600;
   font-size: 0.9rem;
   margin-left: auto;
@@ -96,7 +96,7 @@
 
 .unattemptedNotice {
   background-color: color-mix(in srgb, var(--warning) 15%, transparent);
-  color: var(--warning-foreground);
+  color: var(--warning-text);
   padding: var(--spacing-3);
   border-radius: var(--radius);
   font-size: 0.9rem;
@@ -165,22 +165,22 @@
 }
 
 .matchCorrect {
-  color: color-mix(in srgb, var(--success), black 35%);
+  color: var(--success-text);
   font-weight: 500;
 }
 
 .matchWrong {
-  color: color-mix(in srgb, var(--error), black 35%);
+  color: var(--error-text);
   font-weight: 500;
 }
 
 .matchCorrectAnswer {
-  color: color-mix(in srgb, var(--success), black 35%);
+  color: var(--success-text);
   font-weight: 500;
 }
 
 .correctIcon {
-  color: var(--success);
+  color: var(--success-text);
 }
 
 .incorrectIcon {

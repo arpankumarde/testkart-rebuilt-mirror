@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const teacherProfileFormSchema = z.object({
   displayName: z.string().min(2, 'Display name must be at least 2 characters.'),
+  academyName: z.string().max(100, 'Academy name must be 100 characters or less.').optional(),
   slug: z.string()
     .min(1, 'Profile URL slug cannot be empty.')
     .min(3, 'Slug must be at least 3 characters.')

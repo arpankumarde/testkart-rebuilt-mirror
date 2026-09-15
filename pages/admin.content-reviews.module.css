@@ -168,19 +168,19 @@
 }
 
 .iconButtonDanger {
-  color: color-mix(in srgb, var(--error), black 20%);
+  color: var(--error-text);
 }
 
 .iconButtonDanger:hover {
   background-color: color-mix(in srgb, var(--error) 12%, transparent);
-  color: color-mix(in srgb, var(--error), black 25%);
+  color: var(--error-text);
 }
 
-/* Darkened labels: the success token as type on its own 10% tint runs about
+/* Themed labels: the success token as type on its own 10% tint runs about
    2.1:1. The !important flags were removed along with the tinted fill. */
 .approveBtn,
 .approveAllBtn {
-  color: color-mix(in srgb, var(--success), black 25%);
+  color: var(--success-text);
   border-color: color-mix(in srgb, var(--success) 45%, var(--border));
   background-color: transparent;
 }

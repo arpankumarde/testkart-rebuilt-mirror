@@ -3,7 +3,7 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./delete_POST.schema";
 import superjson from "superjson";
 import { countLiveTestEnrollments } from "../../../helpers/enrollmentCounters";
-import { deleteFromR2 } from "../../../helpers/r2Client";
+import { deleteOwnedR2Files } from "../../../helpers/r2FileOwnership";
 
 export async function handle(request: Request) {
   try {
@@ -70,23 +70,14 @@ export async function handle(request: Request) {
       }
     }
 
-    // Delete ImageKit thumbnail if it exists (gracefully handle failures)
-    if (liveTest.thumbnailFileId) {
-      console.log(`[Live Test Delete] Attempting to delete ImageKit thumbnail for live test ${id}: ${liveTest.thumbnailFileId}`);
-      try {
-        await deleteFromR2(liveTest.thumbnailFileId);
-        console.log(`[Live Test Delete] Successfully deleted ImageKit file: ${liveTest.thumbnailFileId}`);
-      } catch (error) {
-        console.error(`[Live Test Delete] Failed to delete R2 file ${liveTest.thumbnailFileId}:`, error);
-        // Continue with database deletion - don't block on ImageKit failure
-      }
-    }
-
     // Hard delete from database
     await db
       .deleteFrom("liveTests")
       .where("id", "=", id)
       .execute();
+
+    // Then remove the thumbnail if the teacher uploaded it and nothing else uses it
+    await deleteOwnedR2Files(liveTest.teacherId, [liveTest.thumbnailFileId]);
 
     console.log(`[Live Test Delete] Successfully deleted live test ${id} from database`);
 

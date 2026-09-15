@@ -34,7 +34,7 @@ import styles from './teacher.edit-profile.module.css';
 type SectionKey = 'basics' | 'details' | 'experience' | 'credentials';
 
 const SECTIONS: { key: SectionKey; label: string; hint: string; icon: LucideIcon }[] = [
-  { key: 'basics', label: 'Basic information', hint: 'Photo, name, URL, about', icon: UserCircle },
+  { key: 'basics', label: 'Basic information', hint: 'Photo, name, academy, URL, about', icon: UserCircle },
   { key: 'details', label: 'Details & links', hint: 'Location, languages, socials', icon: Globe },
   { key: 'experience', label: 'Work experience', hint: 'Where you have taught', icon: Briefcase },
   { key: 'credentials', label: 'Awards & certificates', hint: 'Proof of your record', icon: Award },
@@ -47,6 +47,7 @@ const FORM_SECTIONS: SectionKey[] = ['basics', 'details', 'credentials'];
 // section holding it instead of silently rejecting the save.
 const FIELD_SECTION: Record<string, SectionKey> = {
   displayName: 'basics',
+  academyName: 'basics',
   slug: 'basics',
   avatarUrl: 'basics',
   avatarFileId: 'basics',
@@ -80,6 +81,7 @@ const EditProfilePage: React.FC = () => {
     schema: teacherProfileFormSchema,
     defaultValues: {
       displayName: '',
+      academyName: '',
       slug: '',
       avatarUrl: '',
       avatarFileId: null,
@@ -119,6 +121,7 @@ const EditProfilePage: React.FC = () => {
 
       form.setValues({
         displayName: authState.user.displayName || '',
+        academyName: authState.user.academyName || '',
         slug: authState.user.slug || '',
         avatarUrl: authState.user.avatarUrl || '',
         avatarFileId: authState.user.avatarFileId || null,

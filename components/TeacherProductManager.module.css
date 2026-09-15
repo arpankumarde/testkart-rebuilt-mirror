@@ -177,7 +177,7 @@
 }
 
 .freeTag {
-  color: var(--success);
+  color: var(--success-text);
   font-weight: 700;
 }
 
@@ -205,7 +205,7 @@
 }
 
 .deleteBtn:hover {
-  color: var(--error);
+  color: var(--error-text);
   background-color: color-mix(in srgb, var(--error) 12%, transparent);
 }
 

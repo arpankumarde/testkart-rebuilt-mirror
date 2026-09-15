@@ -21,43 +21,35 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     const json = superjson.parse(await request.text());
-    const { planId, paymentMethod } = schema.parse(json);
+    const { planId } = schema.parse(json);
+
+    const plan = await db
+      .selectFrom("subscriptionPlans")
+      .selectAll()
+      .where("id", "=", planId)
+      .where("isActive", "=", true)
+      .executeTakeFirst();
+
+    if (!plan) {
+      throw new Error("Invalid or inactive subscription plan.");
+    }
+
+    // This route takes no payment, so it only switches to free plans. Paid
+    // plans are bought through PayU or the wallet (subscription/wallet-subscribe).
+    if (Number(plan.price) > 0) {
+      return new Response(
+        superjson.stringify({ error: "Paid plans can only be bought through checkout." }),
+        { status: 400 }
+      );
+    }
 
     const output = await db.transaction().execute(async (trx) => {
-      const existingSubscription = await trx
-        .selectFrom("teacherSubscriptions")
+      await trx
+        .updateTable("teacherSubscriptions")
+        .set({ status: "cancelled", updatedAt: new Date() })
         .where("teacherId", "=", effectiveTeacherId)
         .where("status", "=", "active")
-        .select("id")
-        .executeTakeFirst();
-
-      // If teacher has an active subscription, cancel it to allow plan switching
-      if (existingSubscription) {
-        await trx
-          .updateTable("teacherSubscriptions")
-          .set({ status: "cancelled", updatedAt: new Date() })
-          .where("id", "=", existingSubscription.id)
-          .execute();
-      }
-
-      const plan = await trx
-        .selectFrom("subscriptionPlans")
-        .selectAll()
-        .where("id", "=", planId)
-        .where("isActive", "=", true)
-        .executeTakeFirst();
-
-      if (!plan) {
-        throw new Error("Invalid or inactive subscription plan.");
-      }
-
-      // Check if plan is free
-      const isFree = Number(plan.price) === 0;
-
-      // Validate payment method for paid plans
-      if (!isFree && !paymentMethod) {
-        throw new Error("Payment method is required for paid plans.");
-      }
+        .execute();
 
       const startDate = new Date();
       const endDate = new Date();
@@ -71,34 +63,11 @@ export async function handle(request: Request): Promise<Response> {
           status: "active",
           startDate,
           endDate,
-          paymentMethod: isFree ? null : paymentMethod,
+          paymentMethod: null,
           autoRenew: true,
         })
         .returningAll()
         .execute();
-
-      // Only create transaction for paid plans
-      if (!isFree) {
-        await trx
-          .insertInto("subscriptionTransactions")
-          .values({
-            teacherId: effectiveTeacherId,
-            planId: plan.id,
-            subscriptionId: newSubscription.id,
-            amount: plan.price,
-            status: "completed",
-            paymentMethod: paymentMethod!,
-            transactionId: `SIM_${Date.now()}`, // Simulated transaction ID
-          })
-          .execute();
-
-        // Auto-verify teacher on paid subscription
-        await trx
-          .updateTable("users")
-          .set({ isVerified: true })
-          .where("id", "=", effectiveTeacherId)
-          .execute();
-      }
 
       return newSubscription;
     });

@@ -128,21 +128,6 @@ export const apiDocsCommerce: ApiEndpoint[] = [
     ],
   },
   {
-    method: "POST",
-    route: "/_api/orders/create",
-    description: "Create an order from the current cart contents",
-    auth: "any",
-    category: "Cart & Orders",
-    bodyParams: [
-      { name: "promoCode", type: "string", required: false, description: "Optional promo code to apply to the order" },
-    ],
-    responseFields: [
-      { name: "orderId", type: "number", description: "ID of the created order" },
-      { name: "totalAmount", type: "number", description: "Total amount due for the order" },
-      { name: "paymentUrl", type: "string", description: "URL to redirect to for payment (for paid orders)" },
-    ],
-  },
-  {
     method: "GET",
     route: "/_api/orders/list",
     description: "Get the order history for the authenticated user",

@@ -780,7 +780,7 @@
     grid-column: 2;
     grid-row: 1;
     position: sticky;
-    top: var(--spacing-6);
+    top: calc(var(--spacing-6) + var(--site-notice-offset));
   }
 
   .content {

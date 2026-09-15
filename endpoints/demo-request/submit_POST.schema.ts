@@ -116,6 +116,10 @@ export const shiftDateKey = (key: string, days: number): string => {
   return shifted.toISOString().slice(0, 10);
 };
 
+/** The sales desk calls Monday to Saturday, so a Sunday is never offered or accepted. */
+export const isDemoCallDay = (key: string): boolean =>
+  dateKeyToDate(key).getUTCDay() !== 0;
+
 /** "Fri, 12 Sep" - the day half of a booked slot. */
 export const formatDemoCallDate = (key: string): string =>
   dateKeyToDate(key).toLocaleDateString("en-IN", {
@@ -166,6 +170,7 @@ export const schema = z.object({
     })
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Please pick a day for the call")
     .refine((value) => value >= istDateKey(), "Please pick a day that has not passed")
+    .refine((value) => isDemoCallDay(value), "Please pick a day from Monday to Saturday")
     .refine(
       (value) => value <= shiftDateKey(istDateKey(), DEMO_BOOKING_WINDOW_DAYS),
       `Please pick a day within the next ${DEMO_BOOKING_WINDOW_DAYS} days`

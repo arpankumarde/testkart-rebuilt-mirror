@@ -70,11 +70,11 @@
 
 /* Raw --error is about 3.5:1 and --warning about 2:1 as small type on white. */
 .itemIssueBlocking {
-  color: color-mix(in srgb, var(--error), black 25%);
+  color: var(--error-text);
 }
 
 .itemIssueAdvisory {
-  color: var(--warning-foreground);
+  color: var(--warning-text);
 }
 
 .dragHandle {
@@ -142,18 +142,18 @@
 
 .freeBadge {
   background-color: color-mix(in srgb, var(--success) 15%, transparent);
-  color: color-mix(in srgb, var(--success), black 35%);
+  color: var(--success-text);
 }
 
 .subjectTimingBadge {
   background-color: color-mix(in srgb, var(--info) 15%, transparent);
-  color: color-mix(in srgb, var(--info), black 25%);
+  color: var(--info-text);
 }
 
 .questionTimingBadge,
 .scheduledBadge {
   background-color: color-mix(in srgb, var(--warning) 18%, transparent);
-  color: var(--warning-foreground);
+  color: var(--warning-text);
 }
 
 .itemActions {
@@ -164,12 +164,12 @@
 }
 
 .deleteButton {
-  color: var(--error);
+  color: var(--error-text);
 }
 
 .deleteButton:hover {
   background-color: color-mix(in srgb, var(--error) 10%, transparent);
-  color: var(--error);
+  color: var(--error-text);
 }
 
 .menuItem {
@@ -230,7 +230,7 @@
   height: 3.25rem;
   border-radius: var(--radius-full);
   background-color: color-mix(in srgb, var(--error) 12%, transparent);
-  color: color-mix(in srgb, var(--error), black 20%);
+  color: var(--error-text);
 }
 
 .navigation {

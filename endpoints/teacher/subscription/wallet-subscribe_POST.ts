@@ -4,6 +4,7 @@ import { schema, OutputType } from "./wallet-subscribe_POST.schema";
 import superjson from "superjson";
 import { getTeacherAvailableBalance } from "../../../helpers/getTeacherAvailableBalance";
 import { refundOrphanedWalletSubscriptionPayment } from "../../../helpers/refundOrphanedWalletSubscriptionPayment";
+import { lockWallet } from "../../../helpers/walletLock";
 import { createHash, randomUUID } from "crypto";
 import { PAYU_MODE } from "../../../helpers/_publicConfigs";
 import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
@@ -81,16 +82,22 @@ export async function handle(request: Request) {
       return new Response(superjson.stringify({ status: "completed" } satisfies OutputType));
     }
 
-    // Calculate Wallet Balance
-    let walletAmount = 0;
-    if (useWallet) {
-      const balanceInfo = await getTeacherAvailableBalance(effectiveTeacherId);
-      walletAmount = Math.floor(balanceInfo.availableBalance * 100) / 100;
-    }
+    const PAYU_MERCHANT_KEY = process.env.PAYU_MERCHANT_KEY;
+    const PAYU_MERCHANT_SALT = process.env.PAYU_MERCHANT_SALT;
+    const payuTxnId = `testkart-sub-${randomUUID()}`;
 
-    // d. Full wallet payment
-    if (useWallet && walletAmount >= planPrice) {
-      await db.transaction().execute(async (trx) => {
+    // The wallet balance is read and spent in one transaction under the wallet
+    // lock, so a parallel withdrawal, sponsorship or renewal can't spend it too.
+    const outcome = await db.transaction().execute(async (trx) => {
+      let walletAmount = 0;
+      if (useWallet) {
+        await lockWallet(trx, effectiveTeacherId);
+        const balanceInfo = await getTeacherAvailableBalance(effectiveTeacherId, trx);
+        walletAmount = Math.floor(balanceInfo.availableBalance * 100) / 100;
+      }
+
+      // d. Full wallet payment
+      if (useWallet && walletAmount >= planPrice) {
         await trx
           .updateTable("teacherSubscriptions")
           .set({ status: "cancelled", updatedAt: new Date() })
@@ -136,26 +143,19 @@ export async function handle(request: Request) {
           .set({ isVerified: true })
           .where("id", "=", effectiveTeacherId)
           .execute();
-      });
 
-      return new Response(superjson.stringify({ status: "completed" } satisfies OutputType));
-    }
+        return { kind: "completed" as const };
+      }
 
-    // e. Partial wallet or full PayU payment
-    const PAYU_MERCHANT_KEY = process.env.PAYU_MERCHANT_KEY;
-    const PAYU_MERCHANT_SALT = process.env.PAYU_MERCHANT_SALT;
+      // e. Partial wallet or full PayU payment
+      if (!PAYU_MERCHANT_KEY || !PAYU_MERCHANT_SALT) {
+        throw new Error("Payment gateway is not configured.");
+      }
 
-    if (!PAYU_MERCHANT_KEY || !PAYU_MERCHANT_SALT) {
-      throw new Error("Payment gateway is not configured.");
-    }
+      let actualWalletDeducted = 0;
+      let payuAmount = planPrice;
+      let walletTxnId: string | undefined = undefined;
 
-    let actualWalletDeducted = 0;
-    let payuAmount = planPrice;
-    let walletTxnId: string | undefined = undefined;
-
-    const payuTxnId = `testkart-sub-${randomUUID()}`;
-
-    await db.transaction().execute(async (trx) => {
       await trx
         .updateTable("teacherSubscriptions")
         .set({ status: "cancelled", updatedAt: new Date() })
@@ -218,7 +218,22 @@ export async function handle(request: Request) {
           transactionId: payuTxnId,
         })
         .execute();
+
+      return {
+        kind: "payment_required" as const,
+        merchantKey: PAYU_MERCHANT_KEY,
+        merchantSalt: PAYU_MERCHANT_SALT,
+        actualWalletDeducted,
+        payuAmount,
+        walletTxnId,
+      };
     });
+
+    if (outcome.kind === "completed") {
+      return new Response(superjson.stringify({ status: "completed" } satisfies OutputType));
+    }
+
+    const { merchantKey, merchantSalt, actualWalletDeducted, payuAmount, walletTxnId } = outcome;
 
     const productInfo = `Subscription for ${plan.name}`.substring(0, 100).replace(/\|/g, " ");
     const firstname = (user.displayName || "Teacher").replace(/\|/g, " ");
@@ -230,7 +245,7 @@ export async function handle(request: Request) {
     const udf5 = "";
     const amountStr = payuAmount.toFixed(2);
 
-    const hashString = `${PAYU_MERCHANT_KEY}|${payuTxnId}|${amountStr}|${productInfo}|${firstname}|${email}|${udf1}|${udf2}|${udf3}|${udf4}|${udf5}||||||${PAYU_MERCHANT_SALT}`;
+    const hashString = `${merchantKey}|${payuTxnId}|${amountStr}|${productInfo}|${firstname}|${email}|${udf1}|${udf2}|${udf3}|${udf4}|${udf5}||||||${merchantSalt}`;
     const hash = createHash("sha512").update(hashString).digest("hex");
 
     const payuUrl = PAYU_MODE !== "production"
@@ -243,7 +258,7 @@ export async function handle(request: Request) {
       status: "payment_required",
       walletDeducted: actualWalletDeducted,
       payuData: {
-        key: PAYU_MERCHANT_KEY,
+        key: merchantKey,
         txnid: payuTxnId,
         amount: amountStr,
         productinfo: productInfo,

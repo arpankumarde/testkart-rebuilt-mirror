@@ -153,8 +153,8 @@
 
 .tocSticky {
   position: sticky;
-  top: 100px;
-  max-height: calc(100vh - 120px);
+  top: calc(100px + var(--site-notice-offset));
+  max-height: calc(100vh - 120px - var(--site-notice-offset));
   overflow-y: auto;
   background: var(--surface);
   border: 1px solid var(--border);

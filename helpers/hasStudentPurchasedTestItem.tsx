@@ -2,10 +2,12 @@ import { db } from "./db";
 
 /**
  * Checks if a student has access to a specific test item.
- * Access is granted if either:
- * 1. The student has purchased the mock test package containing the test item, OR
- * 2. The test item is marked as free
- * 
+ * - A live test paper is open only to students enrolled in that live test,
+ *   whatever its isFree flag says. When the paper can be used is checked
+ *   separately, in helpers/liveTestAttemptWindow.
+ * - Any other item is open if it is marked free or the student is enrolled in
+ *   the mock test package containing it.
+ *
  * @param studentId The ID of the student.
  * @param testItemId The ID of the test item.
  * @returns A boolean indicating if the student has access to the test.
@@ -14,23 +16,32 @@ export async function hasStudentAccessToTestItem(
   studentId: number,
   testItemId: number
 ): Promise<boolean> {
-  // First check if the test item is free
   const testItem = await db
     .selectFrom("mockTestItems")
-    .select("isFree")
-    .where("id", "=", testItemId)
+    .leftJoin("liveTests", "liveTests.mockTestId", "mockTestItems.packageId")
+    .select(["mockTestItems.isFree", "liveTests.id as liveTestId"])
+    .where("mockTestItems.id", "=", testItemId)
     .executeTakeFirst();
 
   if (!testItem) {
     return false;
   }
 
-  // If the test is free, grant access immediately
+  if (testItem.liveTestId !== null) {
+    const liveTestEnrollment = await db
+      .selectFrom("liveTestEnrollments")
+      .select("id")
+      .where("liveTestId", "=", testItem.liveTestId)
+      .where("studentId", "=", studentId)
+      .executeTakeFirst();
+
+    return !!liveTestEnrollment;
+  }
+
   if (testItem.isFree) {
     return true;
   }
 
-  // Otherwise, check if the student has an enrollment for the parent mock test package
   const enrollmentRecord = await db
     .selectFrom("mockTestItems")
     .innerJoin("mockTestEnrollments", "mockTestItems.packageId", "mockTestEnrollments.mockTestId")

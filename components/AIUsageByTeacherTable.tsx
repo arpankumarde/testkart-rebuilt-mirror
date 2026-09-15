@@ -106,7 +106,7 @@ export const AIUsageByTeacherTable: React.FC<AIUsageByTeacherTableProps> = ({
         <span className={styles.primaryLine}>
           <span className={styles.truncate} title={t.teacherName}>{t.teacherName}</span>
           {t.isVerified && (
-            <ShieldCheck size={14} color="var(--secondary)" className={styles.verified} aria-label="Verified" />
+            <ShieldCheck size={14} color="var(--secondary-text)" className={styles.verified} aria-label="Verified" />
           )}
         </span>
         <span className={styles.secondaryLine} title={meta}>{meta}</span>

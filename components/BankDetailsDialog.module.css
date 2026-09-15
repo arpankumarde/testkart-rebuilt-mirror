@@ -29,26 +29,26 @@
 
 .statusPending {
   background-color: color-mix(in srgb, var(--warning) 15%, transparent);
-  color: var(--warning-foreground);
+  color: var(--warning-text);
   border-color: var(--warning);
 }
 
 .statusVerified {
   background-color: color-mix(in srgb, var(--success) 15%, transparent);
-  color: var(--success);
+  color: var(--success-text);
   border-color: var(--success);
 }
 
 .statusRejected {
   background-color: color-mix(in srgb, var(--error) 15%, transparent);
-  color: var(--error);
+  color: var(--error-text);
   border-color: var(--error);
 }
 
 .rejectionReason {
   margin-top: var(--spacing-2);
   font-size: 0.875rem;
-  color: var(--error);
+  color: var(--error-text);
 }
 
 .form {

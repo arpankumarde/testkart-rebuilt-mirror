@@ -79,12 +79,12 @@
 }
 
 .deleteButton {
-  color: var(--error);
+  color: var(--error-text);
 }
 
 .deleteButton:hover {
   background-color: color-mix(in srgb, var(--error) 10%, transparent);
-  color: var(--error);
+  color: var(--error-text);
 }
 
 .spinner {

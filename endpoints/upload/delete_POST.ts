@@ -1,7 +1,9 @@
 import { schema, OutputType } from "./delete_POST.schema";
 import superjson from "superjson";
+import { db } from "../../helpers/db";
 import { getUploaderSession } from "../../helpers/getUploaderSession";
 import { deleteFromR2 } from "../../helpers/r2Client";
+import { deleteOwnedR2File } from "../../helpers/r2FileOwnership";
 import { NotAuthenticatedError } from "../../helpers/getSetServerSession";
 
 export async function handle(request: Request) {
@@ -21,8 +23,31 @@ export async function handle(request: Request) {
 
     const json = superjson.parse(await request.text());
     const validatedInput = schema.parse(json);
+    const { key } = validatedInput;
 
-    await deleteFromR2(validatedInput.key);
+    const isAdmin = session.kind === "admin" || session.user.role === "admin";
+
+    if (isAdmin) {
+      await deleteFromR2(key);
+      await db.deleteFrom("uploadedFiles").where("key", "=", key).execute();
+    } else {
+      // A teacher may only delete a file they uploaded that no content still uses
+      const outcome = await deleteOwnedR2File(session.ownerUserId, key);
+
+      if (outcome === "not_owned") {
+        return new Response(
+          superjson.stringify({ error: "You can only delete files you uploaded." }),
+          { status: 403 }
+        );
+      }
+
+      if (outcome === "in_use") {
+        return new Response(
+          superjson.stringify({ success: false, message: "File kept because it is still in use" } satisfies OutputType),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        );
+      }
+    }
 
     return new Response(superjson.stringify({ success: true, message: "File deleted successfully" } satisfies OutputType), {
       status: 200,

@@ -149,13 +149,13 @@
   gap: var(--spacing-1);
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--primary);
+  color: var(--tk-brand-text);
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
 .viewAllLink:hover {
-  color: color-mix(in srgb, var(--primary), black 10%);
+  color: var(--tk-brand-hover);
   text-decoration: underline;
 }
 

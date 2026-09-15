@@ -84,7 +84,7 @@
 .ratingNumber {
   font-weight: 700;
   font-size: 1rem;
-  color: var(--warning);
+  color: var(--warning-text);
 }
 
 .stars {
@@ -93,7 +93,7 @@
 }
 
 .starIcon {
-  color: var(--warning);
+  color: var(--warning-text);
 }
 
 .reviewsCount {

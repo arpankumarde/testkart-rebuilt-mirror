@@ -13,9 +13,12 @@ import {
 export type TeacherBalanceBreakdown = {
   totalEarned: number;
   totalWithdrawn: number;
+  totalPendingWithdrawals: number;
   totalSponsored: number;
   totalPrizeDeductions: number;
   totalSubscriptionWalletPayments: number;
+  /** Unclamped; negative when commitments already exceed earnings. */
+  rawBalance: number;
   availableBalance: number;
   breakdown: {
     sales: { count: number; amount: number };
@@ -28,7 +31,12 @@ export type TeacherBalanceBreakdown = {
 
 /**
  * Calculates the full balance breakdown for a teacher.
- * Formula: availableBalance = totalEarned - totalWithdrawn - totalSponsored - totalPrizeDeductions - totalSubscriptionWalletPayments
+ * Formula: availableBalance = totalEarned - totalWithdrawn - totalPendingWithdrawals
+ *   - totalSponsored - totalPrizeDeductions - totalSubscriptionWalletPayments
+ *
+ * Pending withdrawal requests are subtracted so money already requested can't
+ * also be spent on sponsorships, plans or prize pools. Callers that debit the
+ * balance should take lockWallet first and pass the same trx here.
  *
  * All the underlying math lives in helpers/teacherEarningsSql.tsx — the same
  * builders back the teacher-facing earnings page and every admin dashboard
@@ -46,6 +54,7 @@ export async function getTeacherAvailableBalance(
     earningsResult,
     salesCountResult,
     withdrawalsResult,
+    pendingWithdrawalsResult,
     sponsoredResult,
     prizeDeductionsResult,
     subWalletResult,
@@ -53,6 +62,7 @@ export async function getTeacherAvailableBalance(
     buildTeacherNetEarningsSql(teacherId).execute(queryBuilder),
     buildTeacherSalesCountSql(teacherId).execute(queryBuilder),
     buildTeacherWithdrawalsSql(teacherId, "completed").execute(queryBuilder),
+    buildTeacherWithdrawalsSql(teacherId, "pending").execute(queryBuilder),
     buildTeacherSponsoredDeductionsSql(teacherId).execute(queryBuilder),
     buildTeacherPrizeDeductionsSql(teacherId).execute(queryBuilder),
     buildTeacherSubscriptionWalletPaymentsSql(teacherId).execute(queryBuilder),
@@ -101,6 +111,7 @@ export async function getTeacherAvailableBalance(
   const totalEarned = Number(earningsResult.rows[0]?.total ?? 0);
   const salesCount = Number(salesCountResult.rows[0]?.total ?? 0);
   const totalWithdrawn = Number(withdrawalsResult.rows[0]?.total ?? 0);
+  const totalPendingWithdrawals = Number(pendingWithdrawalsResult.rows[0]?.total ?? 0);
   const totalSponsored = Number(sponsoredResult.rows[0]?.total ?? 0);
   const totalPrizeDeductions = Number(prizeDeductionsResult.rows[0]?.total ?? 0);
   const totalSubscriptionWalletPayments = Number(subWalletResult.rows[0]?.total ?? 0);
@@ -110,20 +121,27 @@ export async function getTeacherAvailableBalance(
   const prizesCount = Number(prizesCountResult?.count ?? 0);
   const subWalletCount = Number(subWalletCountResult?.count ?? 0);
 
-  // Round to 2 decimal places to avoid floating-point drift, clamp to 0 minimum
-  const availableBalance = Math.max(
-    0,
+  // Round to 2 decimal places to avoid floating-point drift
+  const rawBalance =
     Math.round(
-      (totalEarned - totalWithdrawn - totalSponsored - totalPrizeDeductions - totalSubscriptionWalletPayments) * 100
-    ) / 100
-  );
+      (totalEarned -
+        totalWithdrawn -
+        totalPendingWithdrawals -
+        totalSponsored -
+        totalPrizeDeductions -
+        totalSubscriptionWalletPayments) *
+        100
+    ) / 100;
+  const availableBalance = Math.max(0, rawBalance);
 
   return {
     totalEarned,
     totalWithdrawn,
+    totalPendingWithdrawals,
     totalSponsored,
     totalPrizeDeductions,
     totalSubscriptionWalletPayments,
+    rawBalance,
     availableBalance,
     breakdown: {
       sales: { count: salesCount, amount: totalEarned },

@@ -1,5 +1,5 @@
 import React, { useState, Suspense } from "react";
-import DOMPurify from "dompurify";
+import { sanitizeHtml } from "../helpers/sanitizeHtml";
 import { Dialog } from "./Dialog";
 import {
   ConsoleDialogContent,
@@ -139,7 +139,7 @@ const DescriptionSection = ({ text }: { text: string }) => {
   return (
     <div
       className={styles.descriptionHtml}
-      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(text) }}
+      dangerouslySetInnerHTML={{ __html: sanitizeHtml(text) }}
     />
   );
 };

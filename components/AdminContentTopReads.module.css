@@ -136,19 +136,11 @@
   align-items: center;
   gap: 2px;
   font-variant-numeric: tabular-nums;
-  color: color-mix(in srgb, var(--success), black 25%);
-}
-
-:global(.dark) .reaction {
-  color: var(--success);
+  color: var(--success-text);
 }
 
 .reactionDown {
-  color: color-mix(in srgb, var(--error), black 18%);
-}
-
-:global(.dark) .reactionDown {
-  color: var(--error);
+  color: var(--error-text);
 }
 
 .bar {

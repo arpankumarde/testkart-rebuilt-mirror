@@ -20,7 +20,7 @@
 
 .errorMessage {
   font-size: 0.75rem;
-  color: var(--error);
+  color: var(--error-text);
   margin-top: var(--spacing-1);
 }
 

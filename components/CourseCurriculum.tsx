@@ -3,6 +3,7 @@ import * as Accordion from '@radix-ui/react-accordion';
 import { ChevronDown, PlayCircle, FileText, Lock, X, AlertCircle, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './Dialog';
 import { wrapContentTables } from '../helpers/contentTables';
+import { sanitizeHtml } from '../helpers/sanitizeHtml';
 import styles from './CourseCurriculum.module.css';
 
 const CoursePDFPreview = React.lazy(() => import('./CoursePDFPreview').then(m => ({ default: m.CoursePDFPreview })));
@@ -199,7 +200,7 @@ export const CourseCurriculum: React.FC<CourseCurriculumProps> = ({ sections, cl
             )}
             {previewLesson?.contentType === 'text' && previewLesson.textContent && (
               <div className={styles.textContent}>
-                <div dangerouslySetInnerHTML={{ __html: wrapContentTables(previewLesson.textContent) }} />
+                <div dangerouslySetInnerHTML={{ __html: wrapContentTables(sanitizeHtml(previewLesson.textContent)) }} />
               </div>
             )}
             {previewLesson?.contentType === 'pdf' && previewLesson.contentUrl && (

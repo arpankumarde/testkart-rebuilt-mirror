@@ -58,7 +58,7 @@
 }
 
 .scoreNegative {
-  color: var(--error);
+  color: var(--error-text);
 }
 
 .scoreFraction {
@@ -125,10 +125,10 @@
   color: var(--muted-foreground);
 }
 
-.correctIcon { color: var(--success); }
+.correctIcon { color: var(--success-text); }
 .incorrectIcon { color: var(--error); }
-.notAttemptedIcon { color: var(--warning, var(--muted-foreground)); }
-.timeIcon { color: var(--info); }
+.notAttemptedIcon { color: var(--warning-text); }
+.timeIcon { color: var(--info-text); }
 
 .marksIcon {
   width: 2rem;
@@ -260,13 +260,13 @@
 .pill_correct {
   background-color: color-mix(in srgb, var(--success) 15%, var(--surface));
   border-color: var(--success);
-  color: var(--success);
+  color: var(--success-text);
 }
 
 .pill_incorrect {
   background-color: color-mix(in srgb, var(--error) 15%, var(--surface));
   border-color: var(--error);
-  color: var(--error);
+  color: var(--error-text);
 }
 
 .pill_unattempted {

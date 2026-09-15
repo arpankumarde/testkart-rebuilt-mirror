@@ -12,7 +12,7 @@ export type InputType = z.infer<typeof schema>;
 // A single file within a (possibly multi-file) study notes product, as
 // shown in the public "Files" list on the detail page — deliberately
 // excludes fileUrl/fileId, which are never sent to the client directly;
-// previewing a specific file goes through preview-url_GET with a fileId
+// previewing a specific file goes through preview-page_GET with a fileId
 // instead.
 export type StudyNoteFileSummary = {
   id: number;

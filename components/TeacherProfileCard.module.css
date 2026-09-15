@@ -175,7 +175,7 @@
   display: inline;
   background: none;
   border: none;
-  color: var(--primary);
+  color: var(--tk-brand-text);
   font-family: var(--font-family-base);
   font-size: 1rem;
   font-weight: 600;
@@ -186,12 +186,12 @@
 }
 
 .bioToggle:hover {
-  color: color-mix(in srgb, var(--primary), black 15%);
+  color: var(--tk-brand-hover);
   text-decoration: underline;
 }
 
 .bioToggle:active {
-  color: color-mix(in srgb, var(--primary), black 25%);
+  color: color-mix(in srgb, var(--tk-brand-hover), black 12%);
 }
 
 .bioToggle:focus-visible {
@@ -384,7 +384,7 @@
 }
 
 .awardCardIcon {
-  color: var(--secondary);
+  color: var(--secondary-text);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -473,14 +473,14 @@
   gap: 2px;
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--primary);
+  color: var(--tk-brand-text);
   text-decoration: none;
   flex-shrink: 0;
   transition: color var(--animation-duration-fast) ease;
 }
 
 .inlineLink:hover {
-  color: color-mix(in srgb, var(--primary), black 15%);
+  color: var(--tk-brand-hover);
 }
 
 .inlineLinkIcon {

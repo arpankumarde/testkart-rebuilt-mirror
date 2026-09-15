@@ -1,0 +1,143 @@
+.block {
+  margin: var(--spacing-4) 0;
+  padding: var(--spacing-3);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+}
+
+.selected {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-3);
+}
+
+.title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.header .removeBlock,
+.actions .removeLanguage {
+  color: var(--error-text);
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-3);
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  min-height: 2rem;
+  margin: 0;
+  padding: 0.25rem 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background-color: var(--surface);
+  color: var(--foreground);
+  font-family: var(--font-family-base);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.tab:hover {
+  border-color: var(--tk-brand-text);
+  color: var(--tk-brand-text);
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.tab.tabActive,
+.tab.tabActive:hover {
+  background-color: var(--tk-brand);
+  border-color: var(--tk-brand);
+  color: var(--tk-brand-ink);
+}
+
+.tabNote {
+  font-weight: 500;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.panel .media {
+  display: block;
+  width: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background-color: hsl(0 0% 0%);
+}
+
+.panel video.media {
+  max-height: 420px;
+}
+
+.panel iframe.media {
+  aspect-ratio: 16 / 9;
+  height: auto;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-6) var(--spacing-4);
+  border-radius: var(--radius-sm);
+  background-color: var(--muted);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.actions .removeLanguage {
+  margin-left: auto;
+}
+
+.fileInput {
+  display: none;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

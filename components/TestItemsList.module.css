@@ -93,7 +93,7 @@
 }
 
 .metadataItem.scheduledBadge {
-  color: var(--warning-foreground);
+  color: var(--warning-text);
   background-color: color-mix(in srgb, var(--warning) 15%, transparent);
   padding: 2px var(--spacing-2);
   border-radius: var(--radius-sm);
@@ -102,7 +102,7 @@
 }
 
 .metadataItem.availableBadge {
-  color: var(--success);
+  color: var(--success-text);
   background-color: color-mix(in srgb, var(--success) 15%, transparent);
   padding: 2px var(--spacing-2);
   border-radius: var(--radius-sm);

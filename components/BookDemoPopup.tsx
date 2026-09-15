@@ -14,6 +14,7 @@ import {
   dateKeyToDate,
   demoCallSlotStartMinutes,
   formatDemoCallSlot,
+  isDemoCallDay,
   istDateKey,
   istMinutesOfDay,
   shiftDateKey,
@@ -126,8 +127,11 @@ const writeHiddenFor = (days: number) => {
   }
 };
 
-/** How many days the visitor can choose between. Kept short: a chip row, not a calendar. */
-const DAY_CHOICE_COUNT = 5;
+/**
+ * How many days the visitor can choose between: one of each, Monday to Saturday.
+ * Kept short: a chip row, not a calendar.
+ */
+const DAY_CHOICE_COUNT = 6;
 
 const LAST_SLOT_START_MINUTES = demoCallSlotStartMinutes(
   DEMO_CALL_SLOT_VALUES[DEMO_CALL_SLOT_VALUES.length - 1]
@@ -139,32 +143,36 @@ const formatDayPart = (key: string, options: Intl.DateTimeFormatOptions) =>
   dateKeyToDate(key).toLocaleDateString("en-IN", { timeZone: "UTC", ...options });
 
 /**
- * The days on offer, in IST. Today drops off once its last slot has started, so
- * the first chip is always one the sales desk can actually honour.
+ * The days on offer, in IST. Sundays are skipped, and today drops off once its
+ * last slot has started, so every chip is one the sales desk can actually honour.
  */
 const buildDemoCallDays = (): DemoCallDay[] => {
   const todayKey = istDateKey();
-  const firstKey =
+  let key =
     istMinutesOfDay() < LAST_SLOT_START_MINUTES
       ? todayKey
       : shiftDateKey(todayKey, 1);
 
-  return Array.from({ length: DAY_CHOICE_COUNT }, (_, index) => {
-    const key = shiftDateKey(firstKey, index);
-    const dayOffset = Math.round(
-      (dateKeyToDate(key).getTime() - dateKeyToDate(todayKey).getTime()) / DAY_MS
-    );
-    return {
-      key,
-      label:
-        dayOffset === 0
-          ? "Today"
-          : dayOffset === 1
-            ? "Tomorrow"
-            : formatDayPart(key, { weekday: "short" }),
-      subLabel: formatDayPart(key, { day: "numeric", month: "short" }),
-    };
-  });
+  const days: DemoCallDay[] = [];
+  while (days.length < DAY_CHOICE_COUNT) {
+    if (isDemoCallDay(key)) {
+      const dayOffset = Math.round(
+        (dateKeyToDate(key).getTime() - dateKeyToDate(todayKey).getTime()) / DAY_MS
+      );
+      days.push({
+        key,
+        label:
+          dayOffset === 0
+            ? "Today"
+            : dayOffset === 1
+              ? "Tomorrow"
+              : formatDayPart(key, { weekday: "short" }),
+        subLabel: formatDayPart(key, { day: "numeric", month: "short" }),
+      });
+    }
+    key = shiftDateKey(key, 1);
+  }
+  return days;
 };
 
 /** A slot on today is only offered while it still lies ahead. */
@@ -317,10 +325,10 @@ const DemoRequestForm = ({
           <FormMessage />
         </FormItem>
 
-        {/* A chip row rather than a date picker: five taps' worth of choice is
-            all a callback needs, and it keeps the modal off a popover-inside-a-
-            dialog. Labelled with a span, not FormLabel — a <label> cannot point
-            at a group of buttons. */}
+        {/* A chip row rather than a date picker: six taps' worth of choice,
+            Monday to Saturday, is all a callback needs, and it keeps the modal
+            off a popover-inside-a-dialog. Labelled with a span, not FormLabel -
+            a <label> cannot point at a group of buttons. */}
         <FormItem name="preferredDate">
           <span id={dayGroupLabelId} className={styles.groupLabel}>
             When should we call?

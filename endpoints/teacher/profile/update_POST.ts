@@ -48,6 +48,7 @@ export async function handle(request: Request): Promise<Response> {
     // Build the update object - only include slug if it was provided
     const updateData: Record<string, unknown> = {
       displayName: validatedInput.displayName,
+      academyName: validatedInput.academyName,
       avatarUrl: validatedInput.avatarUrl,
       avatarFileId: validatedInput.avatarFileId,
       bio: validatedInput.bio,
@@ -86,6 +87,7 @@ export async function handle(request: Request): Promise<Response> {
     const output: OutputType = {
       id: updatedUser.id,
       displayName: updatedUser.displayName,
+      academyName: updatedUser.academyName,
       email: updatedUser.email,
       avatarUrl: updatedUser.avatarUrl,
       role: updatedUser.role,

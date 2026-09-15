@@ -145,7 +145,7 @@
 }
 
 .remove:hover:not(:disabled) {
-  color: var(--error);
+  color: var(--error-text);
   background-color: color-mix(in srgb, var(--error) 12%, transparent);
 }
 
@@ -156,7 +156,7 @@
   margin: 0;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: color-mix(in srgb, var(--error), black 20%);
+  color: var(--error-text);
 }
 
 @media (max-width: 560px) {

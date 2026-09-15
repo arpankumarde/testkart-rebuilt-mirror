@@ -147,7 +147,7 @@ const CompareLearnystPage: React.FC = () => {
                 <tr>
                   <td><strong>Upfront Cost</strong></td>
                   <td>₹49/user/month (scales with students)</td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> <strong>₹0 (Free to start)</strong></span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> <strong>₹0 (Free to start)</strong></span></td>
                 </tr>
                 <tr>
                   <td><strong>Commission on Sales</strong></td>
@@ -157,72 +157,72 @@ const CompareLearnystPage: React.FC = () => {
                 <tr>
                   <td><strong>Built-in Student Audience</strong></td>
                   <td><span className={styles.iconText}><XCircle size={18} color="var(--error)" /> Bring your own students</span></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Access millions of students</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Access millions of students</span></td>
                 </tr>
                 <tr>
                   <td><strong>Branded Mobile App</strong></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> iOS & Android apps</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> iOS & Android apps</span></td>
                   <td>Marketplace model (shared platform)</td>
                 </tr>
                 <tr>
                   <td><strong>AI Question Generation</strong></td>
                   <td><span className={styles.iconText}><XCircle size={18} color="var(--error)" /> Not available</span></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> AI-powered question & content creation</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> AI-powered question & content creation</span></td>
                 </tr>
                 <tr>
                   <td><strong>Mock Test Question Types</strong></td>
                   <td>Basic MCQ format</td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> 6 types: MCQ, Multi-correct, Numerical, Assertion-Reason, Comprehension, Match</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> 6 types: MCQ, Multi-correct, Numerical, Assertion-Reason, Comprehension, Match</span></td>
                 </tr>
                 <tr>
                   <td><strong>Live Competitive Tests</strong></td>
                   <td>Limited live test features</td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Real-time live tests with prizes</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Real-time live tests with prizes</span></td>
                 </tr>
                 <tr>
                   <td><strong>Digital Products (PDFs)</strong></td>
                   <td>Limited</td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Full PDF store with preview pages</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Full PDF store with preview pages</span></td>
                 </tr>
                 <tr>
                   <td><strong>Video Courses</strong></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Supported (extra bandwidth costs)</span></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Unlimited hosting, no extra charges</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Supported (extra bandwidth costs)</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Unlimited hosting, no extra charges</span></td>
                 </tr>
                 <tr>
                   <td><strong>Course Bundles</strong></td>
                   <td>Available</td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Bundle courses, tests & products</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Bundle courses, tests & products</span></td>
                 </tr>
                 <tr>
                   <td><strong>Content Security</strong></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> DRM protection (extra cost)</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> DRM protection (extra cost)</span></td>
                   <td>Standard security included</td>
                 </tr>
                 <tr>
                   <td><strong>Student Analytics</strong></td>
                   <td>Basic reporting</td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Per-question analytics, time tracking, leaderboards</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Per-question analytics, time tracking, leaderboards</span></td>
                 </tr>
                 <tr>
                   <td><strong>Hidden Costs</strong></td>
                   <td>Bandwidth, OTP, watermarking charged extra</td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> No hidden fees</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> No hidden fees</span></td>
                 </tr>
                 <tr>
                   <td><strong>Customer Support</strong></td>
                   <td>Mixed reviews, ticket-focused</td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Responsive support</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Responsive support</span></td>
                 </tr>
                 <tr>
                   <td><strong>Scalability Cost</strong></td>
                   <td><span className={styles.iconText}><XCircle size={18} color="var(--error)" /> Cost grows per student</span></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Cost stays flat regardless of students</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Cost stays flat regardless of students</span></td>
                 </tr>
                 <tr>
                   <td><strong>Student Sponsorship</strong></td>
                   <td><span className={styles.iconText}><XCircle size={18} color="var(--error)" /> Not available</span></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Sponsor students feature</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Sponsor students feature</span></td>
                 </tr>
               </tbody>
             </table>

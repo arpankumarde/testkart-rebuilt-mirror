@@ -203,8 +203,8 @@
 }
 
 .filledStar {
-  color: var(--warning);
-  fill: var(--warning);
+  color: var(--warning-text);
+  fill: var(--warning-text);
 }
 
 .emptyStar {

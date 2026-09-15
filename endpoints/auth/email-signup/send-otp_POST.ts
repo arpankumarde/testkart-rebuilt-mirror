@@ -6,6 +6,7 @@ import { sendEmail } from "../../../helpers/sendEmail";
 import { getBrandedEmailHtml } from "../../../helpers/emailBaseTemplate";
 import { getClientIp } from "../../../helpers/getClientIp";
 import { verifyTurnstileToken } from "../../../helpers/verifyTurnstileToken";
+import { generateOtpCode } from "../../../helpers/otpVerifyGuard";
 
 const OTP_EXPIRATION_MINUTES = 10;
 const MAX_SEND_ATTEMPTS_PER_HOUR = 5;
@@ -63,7 +64,7 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     // 3. Generate and store OTP
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpCode = generateOtpCode(6);
     const expiresAt = new Date(
       Date.now() + OTP_EXPIRATION_MINUTES * 60 * 1000
     );

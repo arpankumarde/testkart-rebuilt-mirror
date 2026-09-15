@@ -2,6 +2,7 @@ import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./create_POST.schema";
 import superjson from "superjson";
+import { sanitizeOptionalHtml } from "../../../helpers/sanitizeHtml";
 
 async function checkSectionOwnership(sectionId: number, teacherId: number, userRole: string): Promise<boolean> {
     if (userRole === 'admin') return true;
@@ -41,6 +42,7 @@ export async function handle(request: Request): Promise<Response> {
     const newLesson = await db.insertInto("courseLessons")
         .values({
             ...input,
+            textContent: sanitizeOptionalHtml(input.textContent),
             orderIndex: newOrderIndex,
         })
         .returningAll()

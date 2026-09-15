@@ -77,7 +77,7 @@
 .itemCost {
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--error);
+  color: var(--error-text);
 }
 
 .emptyState {

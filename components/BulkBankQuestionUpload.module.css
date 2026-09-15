@@ -140,7 +140,7 @@
   }
 
   .errorDetails {
-    color: var(--error);
+    color: var(--error-text);
   }
 
   .errorDetails ul {

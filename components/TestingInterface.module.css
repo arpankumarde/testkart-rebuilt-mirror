@@ -91,7 +91,7 @@
 }
 
 .timerWarning {
-  color: var(--error);
+  color: var(--error-text);
   background-color: color-mix(in srgb, var(--error) 15%, transparent);
 }
 
@@ -189,11 +189,11 @@
 }
 
 .positiveMarks {
-  color: var(--success);
+  color: var(--success-text);
 }
 
 .negativeMarks {
-  color: var(--error);
+  color: var(--error-text);
 }
 
 .questionNumber {
@@ -228,7 +228,7 @@
   background-color: color-mix(in srgb, var(--warning) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--warning) 40%, transparent);
   border-radius: var(--radius);
-  color: var(--warning);
+  color: var(--warning-text);
   font-size: 0.875rem;
   font-weight: 500;
   margin-bottom: var(--spacing-4);
@@ -261,7 +261,7 @@
 
 .markedReviewBtn {
   background-color: color-mix(in srgb, #8B5CF6 15%, transparent);
-  color: #7C3AED;
+  color: color-mix(in srgb, #8B5CF6, var(--foreground) 60%);
   border-color: color-mix(in srgb, #8B5CF6 30%, transparent);
 }
 .markedReviewBtn:hover {

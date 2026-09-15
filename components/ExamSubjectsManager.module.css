@@ -95,7 +95,7 @@
 }
 
 .deleteButton {
-  color: var(--error);
+  color: var(--error-text);
 }
 
 .deleteButton:hover {

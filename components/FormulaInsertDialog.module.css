@@ -71,7 +71,7 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
-  color: var(--error);
+  color: var(--error-text);
   font-size: 0.875rem;
   background-color: color-mix(in srgb, var(--error) 10%, var(--surface));
   padding: var(--spacing-1) var(--spacing-2);

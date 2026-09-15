@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import DOMPurify from "dompurify";
+import { sanitizeHtml } from "../helpers/sanitizeHtml";
 import { stripHtmlClient } from "../helpers/stripHtmlClient";
 import { wrapContentTables } from "../helpers/contentTables";
 import { BookOpen, BarChart2, AlertTriangle, PlayCircle, FileText, Target, Trophy, Clock, AlertCircle, ShieldAlert, CreditCard, Award } from "lucide-react";
@@ -109,7 +109,7 @@ const LiveTestDetailsPage: React.FC = () => {
                 {data.description ? (
                   <div
                     className={styles.descriptionText}
-                    dangerouslySetInnerHTML={{ __html: wrapContentTables(DOMPurify.sanitize(data.description)) }}
+                    dangerouslySetInnerHTML={{ __html: wrapContentTables(sanitizeHtml(data.description)) }}
                   />
                 ) : (
                   <div className={styles.descriptionText}>No description provided.</div>

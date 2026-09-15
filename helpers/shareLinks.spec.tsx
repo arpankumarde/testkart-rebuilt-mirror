@@ -40,6 +40,9 @@ describe("buildPublicAssetUrl", () => {
     expect(buildPublicAssetUrl("news", "holistic-assessment")).toBe(
       `${SITE_ORIGIN}/news-and-events/holistic-assessment`
     );
+    expect(buildPublicAssetUrl("career", "content-writer")).toBe(
+      `${SITE_ORIGIN}/careers/content-writer`
+    );
   });
 
   it("keeps the exam page path separator but escapes each segment", () => {
@@ -65,6 +68,7 @@ describe("buildPublicAssetUrl", () => {
       "certificate",
       "exam-page",
       "news",
+      "career",
     ];
     for (const kind of kinds) {
       expect(SHARE_ASSET_LABELS[kind]).toBeTruthy();

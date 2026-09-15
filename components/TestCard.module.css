@@ -190,7 +190,7 @@
 }
 
 .freeTests {
-  color: var(--success);
+  color: var(--success-text);
   font-weight: 600;
 }
 
@@ -281,7 +281,7 @@
 .discountBadge {
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--success);
+  color: var(--success-text);
   background-color: color-mix(in srgb, var(--success) 15%, transparent);
   padding: 2px var(--spacing-1);
   border-radius: var(--radius-sm);

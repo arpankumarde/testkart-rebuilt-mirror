@@ -55,7 +55,7 @@
 }
 
 .limitBadge {
-  color: var(--warning);
+  color: var(--warning-text);
   font-size: 0.75rem;
 }
 

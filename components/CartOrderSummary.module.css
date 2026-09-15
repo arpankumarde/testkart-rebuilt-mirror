@@ -39,7 +39,7 @@
   }
 
   .discountRow .label {
-    color: var(--success);
+    color: var(--success-text);
     display: flex;
     align-items: center;
     gap: var(--spacing-2);
@@ -47,7 +47,7 @@
 
   .percentageBadge {
     background-color: color-mix(in srgb, var(--success) 10%, transparent);
-    color: var(--success);
+    color: var(--success-text);
     font-size: 0.7rem;
     padding: 1px 6px;
     border-radius: 999px;
@@ -55,16 +55,16 @@
   }
 
   .discountValue {
-    color: var(--success);
+    color: var(--success-text);
     font-weight: 600;
   }
 
   .promoRow .label {
-    color: var(--secondary);
+    color: var(--secondary-text);
   }
 
   .promoValue {
-    color: var(--secondary);
+    color: var(--secondary-text);
     font-weight: 600;
   }
 
@@ -113,12 +113,12 @@
     font-family: var(--font-family-base);
     font-size: 0.875rem;
     font-weight: 500;
-    color: var(--primary);
+    color: var(--tk-brand-text);
     transition: color var(--animation-duration-fast);
   }
   
   .promoToggle:hover {
-    color: color-mix(in srgb, var(--primary) 80%, black);
+    color: var(--tk-brand-hover);
   }
 
   .promoToggleLeft {

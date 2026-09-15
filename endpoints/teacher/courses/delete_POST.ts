@@ -2,7 +2,7 @@ import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./delete_POST.schema";
 import superjson from "superjson";
-import { deleteFromR2 } from "../../../helpers/r2Client";
+import { deleteOwnedR2Files } from "../../../helpers/r2FileOwnership";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -54,7 +54,7 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
-    // Collect all ImageKit fileIds to delete
+    // Collect the R2 keys of the course's files
     const fileIdsToDelete: string[] = [];
 
     // Get course thumbnail fileIds
@@ -89,18 +89,6 @@ export async function handle(request: Request): Promise<Response> {
       });
     }
 
-    // Delete ImageKit files (gracefully handle failures)
-    console.log(`[Course Delete] Attempting to delete ${fileIdsToDelete.length} ImageKit files for course ${courseId}`);
-    for (const fileId of fileIdsToDelete) {
-      try {
-        await deleteFromR2(fileId);
-        console.log(`[Course Delete] Successfully deleted ImageKit file: ${fileId}`);
-      } catch (error) {
-        console.error(`[Course Delete] Failed to delete R2 file ${fileId}:`, error);
-        // Continue with other deletions - don't block database deletion
-      }
-    }
-
     // Use a transaction to delete the course and all its related content
     await db.transaction().execute(async (trx) => {
       if (sectionIdList.length > 0) {
@@ -115,7 +103,10 @@ export async function handle(request: Request): Promise<Response> {
       await trx.deleteFrom("courses").where("id", "=", courseId).execute();
     });
 
-    console.log(`[Course Delete] Successfully deleted course ${courseId} and ${fileIdsToDelete.length} associated files from database`);
+    // With the rows gone, remove the files the course's teacher uploaded that nothing else uses
+    const { deleted } = await deleteOwnedR2Files(course.teacherId, fileIdsToDelete);
+
+    console.log(`[Course Delete] Deleted course ${courseId} and ${deleted.length}/${fileIdsToDelete.length} associated R2 files`);
 
     return new Response(superjson.stringify({ success: true } satisfies OutputType));
   } catch (error) {

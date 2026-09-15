@@ -26,6 +26,7 @@ import { postShopEnrollFree } from "../endpoints/shop/enroll-free_POST.schema";
 import { useAuth } from "../helpers/useAuth";
 import { Placeholder } from "../helpers/placeholderImages";
 import { wrapContentTables } from "../helpers/contentTables";
+import { sanitizeHtml } from "../helpers/sanitizeHtml";
 import { Button } from "../components/Button";
 import { Badge } from "../components/Badge";
 import { Skeleton } from "../components/Skeleton";
@@ -401,7 +402,7 @@ const ProductDetailsPage: React.FC = () => {
 
               <div className={styles.section}>
                 <h2>Description</h2>
-                <div className={styles.description} dangerouslySetInnerHTML={{ __html: wrapContentTables(product.description || "") }} />
+                <div className={styles.description} dangerouslySetInnerHTML={{ __html: wrapContentTables(sanitizeHtml(product.description)) }} />
               </div>
 
           {product.tags && product.tags.length > 0 && (

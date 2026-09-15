@@ -329,7 +329,7 @@
   color: var(--foreground);
 }
 
-/* Scrolls rather than wraps — five chips on a narrow phone would break to a
+/* Scrolls rather than wraps - six chips on a narrow phone would break to a
    second row and push the submit button under the fold. */
 .dayRow {
   display: flex;
@@ -339,15 +339,17 @@
   scrollbar-width: thin;
 }
 
+/* Sized so all six fit the desktop dialog in one row, including when a short
+   viewport gives the dialog a scrollbar and the row drops to 417px. */
 .dayChip {
   display: flex;
   flex: 1 0 auto;
   flex-direction: column;
   align-items: center;
   gap: 0.125rem;
-  min-width: 4.25rem;
+  min-width: 3.5rem;
 
-  padding: var(--spacing-2);
+  padding: var(--spacing-2) 0.375rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background-color: var(--surface, #fff);
@@ -413,7 +415,7 @@
 .errorText {
   margin: 0;
   font-size: 0.8125rem;
-  color: var(--error);
+  color: var(--error-text);
 }
 
 .successState {
@@ -425,7 +427,7 @@
 }
 
 .successIcon {
-  color: var(--success);
+  color: var(--success-text);
 }
 
 .successBody {

@@ -10,7 +10,7 @@ const singleAnswerSchema = z.object({
 const multipleAnswerSchema = z.object({
   questionId: z.number().int().positive(),
   answerType: z.literal('multiple'),
-  selectedOptions: z.array(z.enum(["A", "B", "C", "D", "E"])),
+  selectedOptions: z.array(z.enum(["A", "B", "C", "D", "E"])).max(5),
 });
 
 const numericalAnswerSchema = z.object({

@@ -89,7 +89,7 @@
   gap: var(--spacing-2);
   background-color: color-mix(in srgb, var(--warning) 10%, transparent);
   border: 1px solid color-mix(in srgb, var(--warning) 25%, transparent);
-  color: var(--warning-foreground);
+  color: var(--warning-text);
   padding: var(--spacing-3);
   border-radius: var(--radius);
   font-size: 0.875rem;
@@ -200,7 +200,7 @@
 }
 
 .failureReason {
-  color: color-mix(in srgb, var(--error), black 20%);
+  color: var(--error-text);
   font-size: 0.75rem;
   font-weight: 600;
 }

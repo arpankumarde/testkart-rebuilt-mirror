@@ -3,9 +3,12 @@ import superjson from 'superjson';
 import { db } from "../../helpers/db";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { NotAuthenticatedError } from "../../helpers/getSetServerSession";
-import { sql } from "kysely";
-
-const MAX_ATTEMPTS = 5;
+import { getClientIp } from "../../helpers/getClientIp";
+import {
+  checkOtpVerifyLimit,
+  claimOtpAttempt,
+  recordOtpVerifyFailure,
+} from "../../helpers/otpVerifyGuard";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -14,6 +17,12 @@ export async function handle(request: Request): Promise<Response> {
     const { email, otpCode } = schema.parse(json);
 
     const normalizedEmail = email.toLowerCase().trim();
+    const ipAddress = getClientIp(request);
+
+    const limitMessage = await checkOtpVerifyLimit(normalizedEmail, ipAddress);
+    if (limitMessage) {
+      return new Response(superjson.stringify({ error: limitMessage }), { status: 429 });
+    }
 
     const latestOtp = await db.selectFrom('emailOtps')
       .selectAll()
@@ -28,19 +37,18 @@ export async function handle(request: Request): Promise<Response> {
       return new Response(superjson.stringify({ error: "No pending OTP found for this email. Please request a new one." }), { status: 404 });
     }
 
-    if (latestOtp.attempts >= MAX_ATTEMPTS) {
-      return new Response(superjson.stringify({ error: "Maximum verification attempts reached. Please request a new OTP." }), { status: 429 });
-    }
-
     if (new Date() > new Date(latestOtp.expiresAt)) {
       return new Response(superjson.stringify({ error: "OTP has expired. Please request a new one." }), { status: 410 });
     }
 
-    if (latestOtp.otpCode !== otpCode) {
-      await db.updateTable('emailOtps')
-        .set({ attempts: sql`${sql.ref('attempts')} + 1` })
-        .where('id', '=', latestOtp.id)
-        .execute();
+    // Use up an attempt before comparing, so parallel guesses share the limit
+    const storedCode = await claimOtpAttempt("email", latestOtp.id);
+    if (storedCode === null) {
+      return new Response(superjson.stringify({ error: "Maximum verification attempts reached. Please request a new OTP." }), { status: 429 });
+    }
+
+    if (storedCode !== otpCode) {
+      await recordOtpVerifyFailure(normalizedEmail, ipAddress);
       return new Response(superjson.stringify({ error: "Invalid OTP code." }), { status: 400 });
     }
 

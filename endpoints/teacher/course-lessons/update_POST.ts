@@ -2,6 +2,7 @@ import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./update_POST.schema";
 import superjson from "superjson";
+import { sanitizeOptionalHtml } from "../../../helpers/sanitizeHtml";
 
 async function checkLessonOwnership(lessonId: number, teacherId: number, userRole: string): Promise<boolean> {
     if (userRole === 'admin') return true;
@@ -34,6 +35,7 @@ export async function handle(request: Request): Promise<Response> {
     const updatedLesson = await db.updateTable("courseLessons")
         .set({
             ...updateData,
+            textContent: sanitizeOptionalHtml(updateData.textContent),
             updatedAt: new Date(),
         })
         .where("id", "=", lessonId)

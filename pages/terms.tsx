@@ -2,6 +2,7 @@ import React from 'react';
 import { Helmet } from 'react-helmet';
 import { useStaticPageQuery } from '../helpers/useStaticPages';
 import { wrapContentTables } from '../helpers/contentTables';
+import { sanitizeHtml } from '../helpers/sanitizeHtml';
 import { Skeleton } from '../components/Skeleton';
 import styles from './terms.module.css';
 
@@ -40,7 +41,7 @@ const TermsPage: React.FC = () => {
             <h1 className={styles.title}>{page.title}</h1>
             <div
               className={styles.content}
-              dangerouslySetInnerHTML={{ __html: wrapContentTables(page.content) }}
+              dangerouslySetInnerHTML={{ __html: wrapContentTables(sanitizeHtml(page.content)) }}
             />
             {page.updatedAt && (
               <p className={styles.lastUpdated}>

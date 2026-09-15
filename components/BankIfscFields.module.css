@@ -45,7 +45,7 @@
 }
 
 .hintConfirmed {
-  color: color-mix(in srgb, var(--success), black 30%);
+  color: var(--success-text);
 }
 
 /* The failure path: says what went wrong, then offers the way past it. */
@@ -68,7 +68,7 @@
   margin: 0;
   font-size: 0.8125rem;
   line-height: 1.45;
-  color: var(--warning-foreground);
+  color: var(--warning-text);
 }
 
 .warningText svg {

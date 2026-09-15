@@ -7,6 +7,7 @@ import { getBrandedEmailHtml } from "./emailBaseTemplate";
 import { nanoid } from "nanoid";
 import { addDays, format } from "date-fns";
 import { getTeacherAvailableBalance } from "./getTeacherAvailableBalance";
+import { lockWallet } from "./walletLock";
 
 export async function subscriptionRenew(): Promise<void> {
   console.log("[subscriptionRenew] Starting scheduled job...");
@@ -57,6 +58,18 @@ export async function subscriptionRenew(): Promise<void> {
         .where("teacherSubscriptions.nextChargeDate", "is not", null)
         .where("teacherSubscriptions.nextChargeDate", "<=", next48Hours)
         .where("teacherSubscriptions.preDebitSentAt", "is", null)
+        .where((eb) =>
+          eb.not(
+            eb.exists(
+              eb
+                .selectFrom("subscriptionTransactions")
+                .select("subscriptionTransactions.id")
+                .whereRef("subscriptionTransactions.subscriptionId", "=", "teacherSubscriptions.id")
+                .where("subscriptionTransactions.status", "=", "pending")
+                .where("subscriptionTransactions.paymentMethod", "=", "payu_recurring")
+            )
+          )
+        )
         .execute();
 
       console.log(
@@ -125,6 +138,20 @@ export async function subscriptionRenew(): Promise<void> {
         .where("teacherSubscriptions.nextChargeDate", "is not", null)
         .where("teacherSubscriptions.nextChargeDate", "<=", now)
         .where("teacherSubscriptions.preDebitSentAt", "is not", null)
+        // A charge still pending at PayU may yet capture; charging again would
+        // bill the teacher twice. verify-pending settles it.
+        .where((eb) =>
+          eb.not(
+            eb.exists(
+              eb
+                .selectFrom("subscriptionTransactions")
+                .select("subscriptionTransactions.id")
+                .whereRef("subscriptionTransactions.subscriptionId", "=", "teacherSubscriptions.id")
+                .where("subscriptionTransactions.status", "=", "pending")
+                .where("subscriptionTransactions.paymentMethod", "=", "payu_recurring")
+            )
+          )
+        )
         .execute();
 
       console.log(
@@ -218,6 +245,12 @@ export async function subscriptionRenew(): Promise<void> {
           } else if (result.status === "pending") {
             chargesPending++;
             console.log(`[subscriptionRenew] Transaction pending for sub ${sub.id}`);
+            // Any retry after this charge resolves needs a fresh pre-debit notice.
+            await db
+              .updateTable("teacherSubscriptions")
+              .set({ preDebitSentAt: null })
+              .where("id", "=", sub.id)
+              .execute();
           } else {
             // Handing payment failure scenarios
             chargesFailed++;
@@ -372,6 +405,14 @@ export async function subscriptionRenew(): Promise<void> {
             const txnid = `testkart-wallet-${nanoid(10)}`;
             
             await db.transaction().execute(async (trx) => {
+              await lockWallet(trx, sub.teacherId);
+              const lockedBalance = await getTeacherAvailableBalance(sub.teacherId, trx);
+              if (lockedBalance.availableBalance < price) {
+                throw new Error(
+                  `Wallet balance (${lockedBalance.availableBalance}) no longer covers renewal price ${price}`
+                );
+              }
+
               await trx
                 .insertInto("subscriptionTransactions")
                 .values({

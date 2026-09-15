@@ -2,7 +2,7 @@ import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./delete_POST.schema";
 import superjson from "superjson";
-import { deleteFromR2 } from "../../../helpers/r2Client";
+import { deleteOwnedR2Files } from "../../../helpers/r2FileOwnership";
 import { syncMockTestAggregates } from "../../../helpers/syncMockTestAggregates";
 
 export async function handle(request: Request): Promise<Response> {
@@ -48,15 +48,6 @@ export async function handle(request: Request): Promise<Response> {
           }),
           { status: 400 }
         );
-      }
-
-      if (existingTest.thumbnailFileId) {
-        console.log(`[Trash Permanent Delete] Attempting to delete R2 thumbnail: ${existingTest.thumbnailFileId}`);
-        try {
-          await deleteFromR2(existingTest.thumbnailFileId);
-        } catch (error) {
-          console.error(`[Trash Permanent Delete] Failed to delete R2 file ${existingTest.thumbnailFileId}:`, error);
-        }
       }
 
       await db.transaction().execute(async (trx) => {
@@ -112,6 +103,9 @@ export async function handle(request: Request): Promise<Response> {
 
         await trx.deleteFrom("mockTests").where("id", "=", testId).execute();
       });
+
+      // With the test gone, remove its thumbnail if the teacher uploaded it and nothing else uses it
+      await deleteOwnedR2Files(existingTest.teacherId, [existingTest.thumbnailFileId]);
 
       console.log(`[Trash Permanent Delete] Successfully permanently deleted test ${testId}`);
 

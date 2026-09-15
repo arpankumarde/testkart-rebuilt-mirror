@@ -247,7 +247,7 @@
 }
 
 .menuItemDanger {
-  color: color-mix(in srgb, var(--error), black 20%);
+  color: var(--error-text);
 }
 
 .menuItemDanger[data-highlighted] {

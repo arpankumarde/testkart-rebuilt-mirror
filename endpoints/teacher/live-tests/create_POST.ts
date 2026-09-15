@@ -8,6 +8,7 @@ import { Transaction } from "kysely";
 import { DB, PrizeDistributionStatus, PrizeFundSource } from "../../../helpers/schema";
 import { getTotalPrizePool, sortPrizeTiers, tiersToLegacyPrizes } from "../../../helpers/liveTestPrizeTiers";
 import { jsonbParam } from "../../../helpers/jsonbParam";
+import { sanitizeHtml } from "../../../helpers/sanitizeHtml";
 
 async function generateUniqueSlug(baseTitle: string, trx: Transaction<DB>): Promise<string> {
   const baseSlug = slugify(baseTitle);
@@ -50,6 +51,7 @@ export async function handle(request: Request) {
 
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);
+    const description = input.description ? sanitizeHtml(input.description) : null;
 
     // Prize configuration:
     // - has_prizes = false: not_applicable / null
@@ -81,7 +83,7 @@ export async function handle(request: Request) {
           creatorName: user.displayName,
           title: input.title,
           slug: slug,
-          description: input.description || null,
+          description,
           examId: resolvedExam.examId,
           examName: resolvedExam.examName,
           language: input.language || null,
@@ -110,7 +112,8 @@ export async function handle(request: Request) {
           title: input.title,
           durationMinutes: input.subjectWiseTiming || input.questionWiseTiming ? 0 : input.durationMinutes,
           totalQuestions: 0,
-          isFree: true,
+          // Access to a live test paper comes from the live test enrollment
+          isFree: false,
           calculatorEnabled: input.calculatorEnabled ?? false,
           subjectWiseTiming: input.subjectWiseTiming ?? false,
           questionWiseTiming: input.questionWiseTiming ?? false,
@@ -122,7 +125,7 @@ export async function handle(request: Request) {
         .values({
           mockTestId: newMockTest.id,
           title: input.title,
-          description: input.description || null,
+          description,
           teacherId: effectiveTeacherId,
           price: input.price.toString(),
           discountPrice: input.discountPrice != null ? input.discountPrice.toString() : null,

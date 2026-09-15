@@ -1,8 +1,8 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, queryOptions } from "@tanstack/react-query";
 import { getShopProductsList, InputType as ShopListInput } from "../endpoints/shop/list_GET.schema";
 import { getShopProductDetails } from "../endpoints/shop/details_GET.schema";
 import { getRelatedShopProducts } from "../endpoints/shop/related_GET.schema";
-import { getShopPreviewUrl } from "../endpoints/shop/preview-url_GET.schema";
+import { getShopPreviewPage } from "../endpoints/shop/preview-page_GET.schema";
 import { getStudentPurchases, InputType as StudentPurchasesInput } from "../endpoints/student/shop/purchases_GET.schema";
 import { postStudentShopDownload } from "../endpoints/student/shop/download_POST.schema";
 import { toast } from "sonner";
@@ -12,8 +12,6 @@ export const SHOP_PRODUCTS_QUERY_KEY = ["shop", "products"];
 export const SHOP_PRODUCT_DETAILS_QUERY_KEY = (slug: string) => ["shop", "product", slug];
 export const SHOP_RELATED_PRODUCTS_QUERY_KEY = (productId: number) => ["shop", "related", productId];
 export const STUDENT_PURCHASES_QUERY_KEY = ["student", "purchases"];
-export const PREVIEW_URL_QUERY_KEY = (productId: number, fileId?: number | null) =>
-  fileId ? ["shop", "previewUrl", productId, fileId] : ["shop", "previewUrl", productId];
 
 // Public Shop Queries
 export const useShopProductsQuery = (filters: ShopListInput) => {
@@ -53,14 +51,17 @@ export const useStudentPurchasesQuery = (params: StudentPurchasesInput = { page:
   });
 };
 
-export const usePreviewUrlQuery = (productId: number | null, enabled: boolean, fileId?: number | null) => {
-  return useQuery({
-    queryKey: PREVIEW_URL_QUERY_KEY(productId!, fileId),
-    queryFn: () => getShopPreviewUrl({ productId: productId!, fileId: fileId || undefined }),
-    enabled: enabled && !!productId,
-    staleTime: 4 * 60 * 1000, // 4 minutes (URL expires in 5)
-    gcTime: 5 * 60 * 1000,
+// A rendered preview page never changes for a given file, so it is fetched once per session.
+export const previewPageQueryOptions = (productId: number, page: number, fileId?: number | null) =>
+  queryOptions({
+    queryKey: ["shop", "previewPage", productId, fileId ?? null, page],
+    queryFn: () => getShopPreviewPage({ productId, page, fileId: fileId || undefined }),
+    staleTime: Infinity,
+    retry: false,
   });
+
+export const usePreviewPageQuery = (productId: number, page: number, enabled: boolean, fileId?: number | null) => {
+  return useQuery({ ...previewPageQueryOptions(productId, page, fileId), enabled });
 };
 
 // Student Mutations

@@ -5,7 +5,7 @@ import { getServerUserSession } from "./getServerUserSession";
 import { NotAuthenticatedError } from "./getSetServerSession";
 
 export type UploaderSession =
-  | { kind: "user"; user: User }
+  | { kind: "user"; user: User; ownerUserId: number }
   | { kind: "admin"; admin: AdminProfile };
 
 /**
@@ -25,13 +25,16 @@ export type UploaderSession =
  * students; the admin cookie is only consulted as a fallback. Both failing
  * throws the shared NotAuthenticatedError, which every upload endpoint already
  * maps to a 401.
+ *
+ * ownerUserId is the account uploads are recorded against: the team owner for
+ * a teacher's manager, the user themselves otherwise.
  */
 export async function getUploaderSession(
   request: Request
 ): Promise<UploaderSession> {
   try {
-    const { user } = await getServerUserSession(request);
-    return { kind: "user", user };
+    const { user, effectiveTeacherId } = await getServerUserSession(request);
+    return { kind: "user", user, ownerUserId: effectiveTeacherId };
   } catch (error) {
     if (!(error instanceof NotAuthenticatedError)) {
       throw error;

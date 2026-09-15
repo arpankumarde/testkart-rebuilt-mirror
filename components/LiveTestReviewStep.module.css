@@ -62,7 +62,7 @@
 
 .warningIcon {
   flex-shrink: 0;
-  color: color-mix(in srgb, var(--warning), black 35%);
+  color: var(--warning-text);
 }
 
 .checklistList {
@@ -127,7 +127,7 @@
   border-radius: var(--radius);
   background-color: var(--surface);
   border: 1px solid var(--border);
-  color: color-mix(in srgb, var(--success), black 35%);
+  color: var(--success-text);
   font-size: 0.875rem;
   font-weight: 500;
   font-family: var(--font-family-base);

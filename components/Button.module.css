@@ -117,20 +117,21 @@
     color: var(--tk-brand-hover-foreground);
   }
 
-  /* Secondary - Secondary color text on very light secondary tint background */
+  /* Secondary - themed teal text on a teal wash mixed over the surface. A mix
+     toward white stayed a pale block in dark mode with the label at 1.9:1. */
   .secondary {
-    background-color: color-mix(in srgb, var(--secondary), white 92%);
-    color: var(--secondary);
+    background-color: color-mix(in srgb, var(--secondary) 8%, var(--surface));
+    color: var(--secondary-text);
     border-color: transparent;
-    --spinner-color: var(--secondary);
+    --spinner-color: var(--secondary-text);
   }
 
   .secondary:hover {
-    background-color: color-mix(in srgb, var(--secondary), white 85%);
+    background-color: color-mix(in srgb, var(--secondary) 15%, var(--surface));
   }
 
   .secondary:active {
-    background-color: color-mix(in srgb, var(--secondary), white 80%);
+    background-color: color-mix(in srgb, var(--secondary) 20%, var(--surface));
   }
 
   /* Destructive - White text on solid red (high contrast) */

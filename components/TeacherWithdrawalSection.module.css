@@ -78,7 +78,7 @@
   gap: var(--spacing-3);
   background-color: color-mix(in srgb, var(--warning) 10%, transparent);
   border: 1px solid color-mix(in srgb, var(--warning) 25%, transparent);
-  color: var(--warning-foreground);
+  color: var(--warning-text);
   padding: var(--spacing-3);
   border-radius: var(--radius);
   font-size: 0.875rem;
@@ -147,7 +147,7 @@
 }
 
 .failureReason {
-  color: var(--error);
+  color: var(--error-text);
   font-size: 0.75rem;
 }
 
@@ -170,21 +170,21 @@
 
 .badgePending {
   background-color: color-mix(in srgb, var(--warning) 15%, transparent);
-  color: var(--warning-foreground);
+  color: var(--warning-text);
   border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent);
 }
 
-/* Darkened: raw --success is about 2.3:1 and --error about 3.5:1 as chip type
-   on this white panel. */
+/* Themed status text: raw --success is about 2.3:1 and --error about 3.5:1 as
+   chip type on this white panel. */
 .badgeCompleted {
   background-color: color-mix(in srgb, var(--success) 15%, transparent);
-  color: color-mix(in srgb, var(--success), black 35%);
+  color: var(--success-text);
   border: 1px solid color-mix(in srgb, var(--success) 30%, transparent);
 }
 
 .badgeFailed {
   background-color: color-mix(in srgb, var(--error) 12%, transparent);
-  color: color-mix(in srgb, var(--error), black 25%);
+  color: var(--error-text);
   border: 1px solid color-mix(in srgb, var(--error) 30%, transparent);
 }
 

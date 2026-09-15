@@ -4,11 +4,12 @@ import { getUploaderSession } from "../../helpers/getUploaderSession";
 import { getPresignedUploadUrl, getPublicUrl } from "../../helpers/r2Client";
 import { NotAuthenticatedError } from "../../helpers/getSetServerSession";
 import { validateUploadSize, validateUploadType } from "../../helpers/uploadSizeValidation";
+import { recordUploadedFile } from "../../helpers/r2FileOwnership";
 
 export async function handle(request: Request) {
   try {
     // Requires a logged-in user (teacher/student) or a logged-in admin
-    await getUploaderSession(request);
+    const session = await getUploaderSession(request);
 
     const json = superjson.parse(await request.text());
     const validatedInput = schema.parse(json);
@@ -40,6 +41,9 @@ export async function handle(request: Request) {
     // Get the presigned PUT URL and the public CDN URL
     const presignedUrl = await getPresignedUploadUrl(key, validatedInput.contentType);
     const publicUrl = getPublicUrl(key);
+
+    // Recorded so only this uploader can later delete the key
+    await recordUploadedFile(key, session.kind === "user" ? session.ownerUserId : null);
 
     return new Response(superjson.stringify({ presignedUrl, key, publicUrl } satisfies OutputType), {
       status: 200,

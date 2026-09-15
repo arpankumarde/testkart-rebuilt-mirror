@@ -42,8 +42,8 @@
   border-bottom: 1px solid var(--border);
 }
 
-/* Both inks are darkened against their own tint - the raw token over a wash of
-   itself runs about 2.4:1. */
+/* Both inks are themed text tokens over their own tint - the raw token over a
+   wash of itself runs about 2.4:1. */
 .icon {
   display: flex;
   align-items: center;
@@ -58,7 +58,7 @@
 
 .iconDestructive {
   background-color: color-mix(in srgb, var(--error) 15%, transparent);
-  color: color-mix(in srgb, var(--error), black 20%);
+  color: var(--error-text);
 }
 
 .headings {

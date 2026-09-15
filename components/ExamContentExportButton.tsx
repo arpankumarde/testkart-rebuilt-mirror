@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import DOMPurify from "dompurify";
+import { sanitizeHtml } from "../helpers/sanitizeHtml";
 import { Printer } from "lucide-react";
 import { Button } from "./Button";
 import { renderMathInHtml } from "../helpers/renderMathInHtml";
@@ -96,7 +96,7 @@ const PrintSheet: React.FC<ExamContentExport & { onDone: () => void }> = ({
       {content.trim() && (
         <div
           className={styles.content}
-          dangerouslySetInnerHTML={{ __html: renderMathInHtml(DOMPurify.sanitize(content)) }}
+          dangerouslySetInnerHTML={{ __html: renderMathInHtml(sanitizeHtml(content)) }}
         />
       )}
       {faqs.length > 0 && (

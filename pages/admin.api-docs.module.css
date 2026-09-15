@@ -165,8 +165,8 @@
   flex-wrap: wrap;
 }
 
-/* Each label is darkened against its own tint - the raw token over a 15% wash
-   of itself runs about 1.9:1. */
+/* Each label is set against its own tint - the raw token over a 15% wash of
+   itself runs about 1.9:1. GET and POST use the themed success and info text. */
 .methodBadge {
   font-family: var(--font-family-monospace);
   font-weight: 700;
@@ -177,12 +177,12 @@
 
 .methodBadge.GET {
   background-color: color-mix(in srgb, var(--success) 15%, transparent);
-  color: color-mix(in srgb, var(--success), black 35%);
+  color: var(--success-text);
 }
 
 .methodBadge.POST {
   background-color: color-mix(in srgb, var(--info) 15%, transparent);
-  color: color-mix(in srgb, var(--info), black 35%);
+  color: var(--info-text);
 }
 
 .routePath {
@@ -237,7 +237,7 @@
 
 .authBadge.student {
   background-color: color-mix(in srgb, var(--warning) 15%, transparent);
-  color: color-mix(in srgb, var(--warning), black 45%);
+  color: var(--warning-text);
 }
 
 .authBadge.any {
@@ -298,7 +298,7 @@
 
 .requiredBadge {
   font-size: 0.75rem;
-  color: color-mix(in srgb, var(--error), black 20%);
+  color: var(--error-text);
   font-weight: 600;
   margin-left: var(--spacing-2);
 }

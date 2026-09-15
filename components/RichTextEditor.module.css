@@ -68,7 +68,7 @@
   padding: var(--spacing-1) var(--spacing-2);
 }
 .destructiveItem {
-  color: var(--error);
+  color: var(--error-text);
 }
 
 .toolbarGroup {
@@ -253,13 +253,13 @@
 }
 
 .editorContent :global( a) {
-  color: var(--primary);
+  color: var(--tk-brand-text);
   text-decoration: underline;
   cursor: pointer;
 }
 
 .editorContent :global( a:hover) {
-  color: color-mix(in srgb, var(--primary) 80%, black);
+  color: var(--tk-brand-hover);
 }
 
 /* Image with caption styling */
@@ -579,7 +579,7 @@
 .editorContent :global(.product-embed-remove-btn) {
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--error);
+  color: var(--error-text);
   background: none;
   border: 1px solid var(--error);
   border-radius: var(--radius-sm);
@@ -615,13 +615,32 @@
 .editorContent :global(.editor-video-toolbar) {
   display: flex;
   justify-content: flex-end;
+  gap: var(--spacing-2);
   margin-top: var(--spacing-2);
+}
+
+.editorContent :global(iframe.editor-video) {
+  aspect-ratio: 16 / 9;
+  height: auto;
+  max-height: none;
+  border: 0;
+}
+
+.editorContent :global(.editor-video-languages-btn) {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--tk-brand-text);
+  background: none;
+  border: 1px solid var(--tk-brand-text);
+  border-radius: var(--radius-sm);
+  padding: 2px 10px;
+  cursor: pointer;
 }
 
 .editorContent :global(.editor-video-remove-btn) {
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--error);
+  color: var(--error-text);
   background: none;
   border: 1px solid var(--error);
   border-radius: var(--radius-sm);

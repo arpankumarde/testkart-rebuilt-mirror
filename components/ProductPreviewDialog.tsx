@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Badge } from './Badge';
 import { FileText, Globe, GraduationCap, BookOpen } from 'lucide-react';
 import { wrapContentTables } from '../helpers/contentTables';
+import { sanitizeHtml } from '../helpers/sanitizeHtml';
 import styles from './ProductPreviewDialog.module.css';
 
 interface ProductPreviewDialogProps {
@@ -80,7 +81,7 @@ export const ProductPreviewDialog: React.FC<ProductPreviewDialogProps> = ({
           <div className={styles.detailSection}>
             <h4>Full description</h4>
             {description && description.trim().length > 0 ? (
-              <div className={styles.descriptionHtml} dangerouslySetInnerHTML={{ __html: wrapContentTables(description) }} />
+              <div className={styles.descriptionHtml} dangerouslySetInnerHTML={{ __html: wrapContentTables(sanitizeHtml(description)) }} />
             ) : (
               <p className={styles.emptyHint}>No description added yet.</p>
             )}

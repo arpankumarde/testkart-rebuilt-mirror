@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import katex from 'katex';
-import DOMPurify from 'dompurify';
+import { sanitizeHtml } from '../helpers/sanitizeHtml';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './Tooltip';
 import 'katex/dist/katex.min.css';
 import styles from './MathMLContent.module.css';
@@ -29,7 +29,7 @@ export interface MathMLContentProps {
 
 /**
  * A robust component that safely renders HTML content and processes embedded
- * mathematical formulas using KaTeX. It includes XSS protection via DOMPurify
+ * mathematical formulas using KaTeX. It includes XSS protection via sanitizeHtml
  * and optional text truncation with tooltips.
  */
 export const MathMLContent = ({ 
@@ -49,15 +49,8 @@ export const MathMLContent = ({
       return;
     }
 
-    // Configure DOMPurify to allow specific tags and attributes needed for math and basic formatting
-    const cleanHtml = DOMPurify.sanitize(html, {
-      ALLOWED_TAGS: [
-        'span', 'p', 'div', 'strong', 'em', 'b', 'i', 'u', 's', 
-        'ul', 'ol', 'li', 'br', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-        'blockquote', 'code', 'pre', 'img'
-      ],
-      ALLOWED_ATTR: ['data-type', 'data-math', 'data-latex', 'data-katex-content', 'class', 'style', 'src', 'alt', 'width', 'height'],
-    });
+    // Sanitize before KaTeX renders, since KaTeX output is not on the allow list
+    const cleanHtml = sanitizeHtml(html);
 
     // Create a temporary element to process the HTML
     const tempDiv = document.createElement('div');

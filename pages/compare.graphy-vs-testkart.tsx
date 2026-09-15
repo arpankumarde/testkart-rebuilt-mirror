@@ -147,7 +147,7 @@ const CompareGraphyPage: React.FC = () => {
                 <tr>
                   <td><strong>Upfront/Onboarding Cost</strong></td>
                   <td>₹19,999 one-time + ongoing fees</td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> <strong>₹0 (Free to start)</strong></span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> <strong>₹0 (Free to start)</strong></span></td>
                 </tr>
                 <tr>
                   <td><strong>Transaction/Revenue Share</strong></td>
@@ -157,72 +157,72 @@ const CompareGraphyPage: React.FC = () => {
                 <tr>
                   <td><strong>International Plans</strong></td>
                   <td>$49–$249/month + 5-10% per sale</td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Free for all</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Free for all</span></td>
                 </tr>
                 <tr>
                   <td><strong>Built-in Student Audience</strong></td>
                   <td><span className={styles.iconText}><XCircle size={18} color="var(--error)" /> Bring your own students</span></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Access millions of students</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Access millions of students</span></td>
                 </tr>
                 <tr>
                   <td><strong>Branded Mobile App</strong></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> iOS & Android apps</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> iOS & Android apps</span></td>
                   <td>Marketplace model (shared platform)</td>
                 </tr>
                 <tr>
                   <td><strong>AI Question Generation</strong></td>
                   <td><span className={styles.iconText}><XCircle size={18} color="var(--error)" /> Not available</span></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> AI-powered question & content creation</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> AI-powered question & content creation</span></td>
                 </tr>
                 <tr>
                   <td><strong>Mock Test Question Types</strong></td>
                   <td>Basic quiz/assessment</td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> 6 types: MCQ, Multi-correct, Numerical, Assertion-Reason, Comprehension, Match</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> 6 types: MCQ, Multi-correct, Numerical, Assertion-Reason, Comprehension, Match</span></td>
                 </tr>
                 <tr>
                   <td><strong>Live Competitive Tests</strong></td>
                   <td><span className={styles.iconText}><XCircle size={18} color="var(--error)" /> Not available</span></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Real-time live tests with prizes</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Real-time live tests with prizes</span></td>
                 </tr>
                 <tr>
                   <td><strong>Digital Products (PDFs)</strong></td>
                   <td>Supported</td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Full PDF store with preview pages</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Full PDF store with preview pages</span></td>
                 </tr>
                 <tr>
                   <td><strong>Video Hosting</strong></td>
                   <td><span className={styles.iconText}><XCircle size={18} color="var(--error)" /> No built-in hosting (use YouTube/Vimeo)</span></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Unlimited built-in video hosting</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Unlimited built-in video hosting</span></td>
                 </tr>
                 <tr>
                   <td><strong>Video Courses</strong></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Course builder with drip content</span></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Structured builder, unlimited hosting</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Course builder with drip content</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Structured builder, unlimited hosting</span></td>
                 </tr>
                 <tr>
                   <td><strong>Content Security</strong></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> DRM + dynamic watermarking</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> DRM + dynamic watermarking</span></td>
                   <td>Standard security included</td>
                 </tr>
                 <tr>
                   <td><strong>Community Features</strong></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Discussion forums</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Discussion forums</span></td>
                   <td>Student reviews & ratings</td>
                 </tr>
                 <tr>
                   <td><strong>Marketing Tools</strong></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Affiliate marketing, email tools</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Affiliate marketing, email tools</span></td>
                   <td>Promo codes, built-in marketplace exposure</td>
                 </tr>
                 <tr>
                   <td><strong>Payouts</strong></td>
                   <td>Standard processing</td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Weekly bank transfers</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Weekly bank transfers</span></td>
                 </tr>
                 <tr>
                   <td><strong>Student Sponsorship</strong></td>
                   <td><span className={styles.iconText}><XCircle size={18} color="var(--error)" /> Not available</span></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success)" /> Sponsor students feature</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Sponsor students feature</span></td>
                 </tr>
               </tbody>
             </table>

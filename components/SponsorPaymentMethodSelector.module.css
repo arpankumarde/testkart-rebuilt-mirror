@@ -121,6 +121,6 @@
 .insufficientText {
   margin-top: var(--spacing-1);
   font-size: 0.75rem;
-  color: var(--error);
+  color: var(--error-text);
   font-weight: 500;
 }

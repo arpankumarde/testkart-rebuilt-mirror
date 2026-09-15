@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { useEditor, EditorContent } from '@tiptap/react';
-import { Node as TiptapNode, mergeAttributes } from '@tiptap/core';
+import { useEditor, EditorContent, ReactNodeViewRenderer } from '@tiptap/react';
+import { Node as TiptapNode, mergeAttributes, nodePasteRule } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Mathematics from '@tiptap/extension-mathematics';
 import Image from '@tiptap/extension-image';
@@ -34,6 +34,19 @@ import { uploadFileToR2 } from '../helpers/useR2Upload';
 import { useUploadLimits } from '../helpers/useUploadLimits';
 import { EmbeddedProductItem, toEmbeddedProductItem, formatEmbedPrice } from '../helpers/blogProductEmbed';
 import { ProductSearchItem } from '../endpoints/admin/blog/product-search_GET.schema';
+import { LanguageVideoNodeView } from './LanguageVideoNodeView';
+import {
+  DEFAULT_VIDEO_LANGUAGE,
+  YOUTUBE_EMBED_ALLOW,
+  YOUTUBE_LINK_TEXT,
+  decodeLanguageVideos,
+  encodeLanguageVideos,
+  languageVideoBlockId,
+  normalizeLanguageVideos,
+  parseVideoLink,
+  type LanguageVideo,
+  type LanguageVideoKind,
+} from '../helpers/languageVideo';
 import styles from './RichTextEditor.module.css';
 
 // A DOMOutputSpec-shaped tree, the same array format Tiptap's renderHTML
@@ -265,7 +278,7 @@ const CustomTable = Table.extend({
  * `items` attribute at insert time and serialized straight into the saved
  * HTML as plain div/a/img/span tags, the same way CustomImage bakes a real
  * `src` in. That means the public blog page needs zero extra plumbing: its
- * existing DOMPurify.sanitize() + dangerouslySetInnerHTML already renders it.
+ * existing sanitizeHtml() + dangerouslySetInnerHTML already renders it.
  */
 const ProductEmbed = TiptapNode.create({
   name: 'productEmbed',
@@ -357,15 +370,46 @@ const ProductEmbed = TiptapNode.create({
   },
 });
 
+// Single videos saved before language video blocks get this button, which swaps the video
+// for a language video block holding it under Hindi.
+function createAddLanguagesButton(editor: any, getPos: (() => number) | boolean, currentNode: () => any, currentSrc: () => string | null) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'editor-video-languages-btn';
+  button.textContent = 'Add languages';
+  button.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (typeof getPos !== 'function') return;
+    const src = currentSrc();
+    const link = src ? parseVideoLink(src) : null;
+    if (!link?.ok) {
+      toast.error('This video link cannot be moved into language tabs. Remove it and add the video again.');
+      return;
+    }
+    const pos = getPos();
+    editor
+      .chain()
+      .focus()
+      .insertContentAt(
+        { from: pos, to: pos + currentNode().nodeSize },
+        { type: 'languageVideo', attrs: { videos: [{ language: DEFAULT_VIDEO_LANGUAGE, kind: link.kind, src: link.src }] } },
+      )
+      .run();
+  });
+  return button;
+}
+
 /**
- * A video - uploaded, or linked by URL from the toolbar - stored as a real schema node. It has to be a node: the
+ * A single video without language tabs, from before LanguageVideoBlock. It stays in the schema so
+ * that content still loads and re-saves, and its "Add languages" button converts it. It has to be a node: the
  * toolbar's video button used to insertContent() a raw "<video ...></video>"
  * HTML string, and with nothing in the schema matching the tag, Tiptap fell
  * back to inserting the markup as plain text - which getHTML() then escaped
  * to &lt;video&gt; and saved, so the article showed the tag as literal text
  * instead of a player. Serializes to a plain <video controls> tag so the
  * public blog and knowledge base pages render it through their existing
- * DOMPurify + dangerouslySetInnerHTML path, the same as CustomImage and
+ * sanitizeHtml + dangerouslySetInnerHTML path, the same as CustomImage and
  * ProductEmbed.
  */
 const Video = TiptapNode.create({
@@ -399,6 +443,7 @@ const Video = TiptapNode.create({
 
   addNodeView() {
     return (({ node, editor, getPos }: { node: any, editor: any, getPos: (() => number) | boolean }) => {
+      let current = node;
       const wrapper = document.createElement('div');
       wrapper.className = 'editor-video-block';
       wrapper.contentEditable = 'false';
@@ -414,6 +459,7 @@ const Video = TiptapNode.create({
 
       const toolbar = document.createElement('div');
       toolbar.className = 'editor-video-toolbar';
+      toolbar.appendChild(createAddLanguagesButton(editor, getPos, () => current, () => video.getAttribute('src')));
       const removeBtn = document.createElement('button');
       removeBtn.type = 'button';
       removeBtn.className = 'editor-video-remove-btn';
@@ -423,7 +469,7 @@ const Video = TiptapNode.create({
         e.stopPropagation();
         if (typeof getPos === 'function') {
           const pos = getPos();
-          editor.chain().focus().deleteRange({ from: pos, to: pos + node.nodeSize }).run();
+          editor.chain().focus().deleteRange({ from: pos, to: pos + current.nodeSize }).run();
         }
       });
       toolbar.appendChild(removeBtn);
@@ -433,6 +479,7 @@ const Video = TiptapNode.create({
         dom: wrapper,
         update: (updatedNode: any) => {
           if (updatedNode.type.name !== 'video') return false;
+          current = updatedNode;
           if (video.getAttribute('src') !== updatedNode.attrs.src) {
             video.setAttribute('src', updatedNode.attrs.src || '');
           }
@@ -442,6 +489,164 @@ const Video = TiptapNode.create({
         deselectNode: () => wrapper.classList.remove('selected'),
       };
     }) as any;
+  },
+});
+
+/**
+ * A single YouTube embed without language tabs. Toolbar and pasted YouTube links now make a
+ * LanguageVideoBlock, so this view only shows embeds saved before that, with the same
+ * "Add languages" and Remove buttons as the plain video. The saved HTML is unchanged.
+ */
+const CustomYoutube = Youtube.extend({
+  addNodeView() {
+    return (({ node, editor, getPos }: { node: any, editor: any, getPos: (() => number) | boolean }) => {
+      let current = node;
+      const wrapper = document.createElement('div');
+      wrapper.className = 'editor-video-block';
+      wrapper.contentEditable = 'false';
+
+      const frame = document.createElement('iframe');
+      frame.className = 'editor-video';
+      frame.setAttribute('allow', YOUTUBE_EMBED_ALLOW);
+      frame.setAttribute('allowfullscreen', 'true');
+      const setFrameSrc = (src: string | null) => {
+        const link = src ? parseVideoLink(src) : null;
+        frame.setAttribute('src', link?.ok && link.kind === 'youtube' ? link.src : src || '');
+      };
+      setFrameSrc(node.attrs.src);
+      wrapper.appendChild(frame);
+
+      const toolbar = document.createElement('div');
+      toolbar.className = 'editor-video-toolbar';
+      toolbar.appendChild(createAddLanguagesButton(editor, getPos, () => current, () => current.attrs.src));
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'editor-video-remove-btn';
+      removeBtn.textContent = 'Remove';
+      removeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof getPos === 'function') {
+          const pos = getPos();
+          editor.chain().focus().deleteRange({ from: pos, to: pos + current.nodeSize }).run();
+        }
+      });
+      toolbar.appendChild(removeBtn);
+      wrapper.appendChild(toolbar);
+
+      return {
+        dom: wrapper,
+        update: (updatedNode: any) => {
+          if (updatedNode.type.name !== 'youtube') return false;
+          if (updatedNode.attrs.src !== current.attrs.src) setFrameSrc(updatedNode.attrs.src);
+          current = updatedNode;
+          return true;
+        },
+        selectNode: () => wrapper.classList.add('selected'),
+        deselectNode: () => wrapper.classList.remove('selected'),
+      };
+    }) as any;
+  },
+});
+
+function buildLanguageVideoSpec(videos: LanguageVideo[]): DomSpec {
+  const blockAttrs: Record<string, string> = {
+    class: 'language-video-block',
+    'data-language-video': 'true',
+    'data-videos': encodeLanguageVideos(videos),
+  };
+  const playable = videos.filter((video) => video.src);
+  if (playable.length === 0) return ['div', blockAttrs];
+
+  const blockId = languageVideoBlockId(videos);
+  const tabs = playable.map((video, i): DomSpec => [
+    'button',
+    {
+      type: 'button',
+      class: 'language-video-tab',
+      role: 'tab',
+      id: `${blockId}-tab-${i}`,
+      'aria-controls': `${blockId}-panel-${i}`,
+      'aria-selected': String(i === 0),
+      'aria-label': video.language,
+      'data-label': video.language,
+      'data-language-video-tab': String(i),
+    },
+  ]);
+  const panels = playable.map((video, i): DomSpec => [
+    'div',
+    {
+      class: 'language-video-panel',
+      role: 'tabpanel',
+      id: `${blockId}-panel-${i}`,
+      'aria-labelledby': `${blockId}-tab-${i}`,
+      'data-language-video-panel': String(i),
+      'data-active': String(i === 0),
+    },
+    video.kind === 'youtube'
+      ? ['iframe', { src: video.src, title: `${video.language} video`, allow: YOUTUBE_EMBED_ALLOW, allowfullscreen: 'true', loading: 'lazy', frameborder: '0' }]
+      : ['video', { src: video.src, controls: 'true', preload: i === 0 ? 'metadata' : 'none', playsinline: 'true' }],
+  ]);
+
+  return [
+    'div',
+    blockAttrs,
+    ['div', { class: 'language-video-tabs', role: 'tablist', 'aria-label': 'Video language' }, ...tabs],
+    ...panels,
+  ];
+}
+
+/**
+ * One video per language, shown as language tabs with Hindi first. Every video added from the
+ * toolbar starts as one of these. The saved HTML carries the tabs and panels as plain markup,
+ * with tab labels in data-label so plain-text copies of the content (excerpts, the mobile app's
+ * stripped descriptions) stay free of language names. base.css styles the markup and
+ * helpers/languageVideo switches the tabs on every page that renders editor content.
+ */
+const LanguageVideoBlock = TiptapNode.create({
+  name: 'languageVideo',
+  group: 'block',
+  atom: true,
+  selectable: true,
+  draggable: false,
+
+  addAttributes() {
+    return {
+      videos: {
+        default: [] as LanguageVideo[],
+        parseHTML: (element: HTMLElement) => decodeLanguageVideos(element.getAttribute('data-videos')),
+        renderHTML: () => ({}),
+      },
+    };
+  },
+
+  parseHTML() {
+    return [{ tag: 'div[data-language-video]' }];
+  },
+
+  renderHTML({ node }: { node: any }) {
+    return buildLanguageVideoSpec(normalizeLanguageVideos(node.attrs.videos)) as any;
+  },
+
+  // A YouTube link pasted on its own becomes a block with the video under Hindi. The YouTube
+  // extension's own paste handler is off, or it would make a plain embed first.
+  addPasteRules() {
+    return [
+      nodePasteRule({
+        find: YOUTUBE_LINK_TEXT,
+        type: this.type,
+        getAttributes: (match) => {
+          const link = parseVideoLink(match.input ?? '');
+          return link.ok && link.kind === 'youtube'
+            ? { videos: [{ language: DEFAULT_VIDEO_LANGUAGE, kind: link.kind, src: link.src }] }
+            : null;
+        },
+      }),
+    ];
+  },
+
+  addNodeView() {
+    return ReactNodeViewRenderer(LanguageVideoNodeView);
   },
 });
 
@@ -566,10 +771,12 @@ export const RichTextEditor = ({
       TableRow,
       TableHeader,
       TableCell,
-      Youtube.configure({
+      CustomYoutube.configure({
         inline: false,
+        addPasteHandler: false,
       }),
       Video,
+      LanguageVideoBlock,
       ProductEmbed,
     ],
     content: transformHtmlForEditor(value),
@@ -730,31 +937,41 @@ export const RichTextEditor = ({
   const handleImageUpload = () => uploadRef.current?.click();
   const handleVideoUpload = () => uploadVideoRef.current?.click();
 
-  // Links a video hosted elsewhere without uploading it. YouTube links go to the
-  // YouTube embed, since a watch page is not a playable file.
+  // Every video added from the toolbar starts a language video block, with the video under Hindi.
+  const insertLanguageVideo = (kind: LanguageVideoKind, src: string) => {
+    editor
+      .chain()
+      .focus()
+      .insertContent({ type: 'languageVideo', attrs: { videos: [{ language: DEFAULT_VIDEO_LANGUAGE, kind, src }] } })
+      .run();
+  };
+
+  const insertYoutubeVideo = () => {
+    const input = window.prompt('Enter YouTube Video URL');
+    if (input === null || !input.trim()) return;
+    const link = parseVideoLink(input);
+    if (!link.ok) {
+      toast.error(link.message);
+      return;
+    }
+    if (link.kind !== 'youtube') {
+      toast.error('That is not a YouTube link. Use "Embed video from URL" for other videos.');
+      return;
+    }
+    insertLanguageVideo(link.kind, link.src);
+  };
+
+  // Links a video hosted elsewhere without uploading it. YouTube links become a YouTube embed,
+  // since a watch page is not a playable file.
   const insertVideoFromUrl = () => {
     const input = window.prompt('Paste a direct link to a video file (MP4, WebM or Ogg). YouTube links work too.');
-    if (input === null) return;
-    const url = input.trim();
-    if (!url) return;
-
-    let parsed: URL;
-    try {
-      parsed = new URL(url);
-    } catch {
-      toast.error('That is not a valid link. Paste the full address, starting with https://');
+    if (input === null || !input.trim()) return;
+    const link = parseVideoLink(input);
+    if (!link.ok) {
+      toast.error(link.message);
       return;
     }
-    if (parsed.protocol !== 'https:') {
-      toast.error('The video link must start with https://');
-      return;
-    }
-
-    if (/(^|\.)(youtube\.com|youtu\.be|youtube-nocookie\.com)$/i.test(parsed.hostname)) {
-      editor.chain().focus().setYoutubeVideo({ src: parsed.href }).run();
-      return;
-    }
-    editor.chain().focus().insertContent({ type: 'video', attrs: { src: parsed.href } }).run();
+    insertLanguageVideo(link.kind, link.src);
   };
 
   const handleInsertProducts = (searchItems: ProductSearchItem[]) => {
@@ -860,10 +1077,7 @@ export const RichTextEditor = ({
           </Button>
           {!disableMediaUpload && !isMinimal && (
             <>
-              <Button type="button" size="icon-sm" variant="ghost" onClick={() => {
-                const url = window.prompt('Enter YouTube Video URL');
-                if (url) editor.chain().focus().setYoutubeVideo({ src: url }).run();
-              }} title="Embed YouTube Video">
+              <Button type="button" size="icon-sm" variant="ghost" onClick={insertYoutubeVideo} title="Embed YouTube Video">
                 <YoutubeIcon />
               </Button>
               <Button type="button" size="icon-sm" variant="ghost" onClick={handleVideoUpload} disabled={isUploadingVideo} title="Upload Video">
@@ -991,7 +1205,7 @@ export const RichTextEditor = ({
           setIsUploadingVideo(true);
           try {
             const result = await uploadFileToR2(file, 'editor-videos');
-            editor?.chain().focus().insertContent({ type: 'video', attrs: { src: result.url } }).run();
+            insertLanguageVideo('file', result.url);
             toast.success('Video uploaded successfully');
           } catch (err) {
             console.error('Video upload error:', err);

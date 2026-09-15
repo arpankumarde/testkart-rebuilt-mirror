@@ -8,14 +8,22 @@ import { ScrollToTop } from "./ScrollToTop";
 import { AuthProvider } from "../helpers/useAuth";
 import { reportAuthFailure } from "../helpers/sessionSync";
 import { ImpersonationBanner } from "./ImpersonationBanner";
+// Site-wide notice strip, off for now. To bring it back, uncomment this import
+// and the render below, then set the message and the cut-off date in
+// components/SiteNoticeStrip.tsx.
+// import { SiteNoticeStrip } from "./SiteNoticeStrip";
 import { AutoRenewalChecker } from "./AutoRenewalChecker";
 import { ScriptInjector } from "./ScriptInjector";
 import { BookDemoPopup } from "./BookDemoPopup";
 import { BookDemoDialogProvider } from "../helpers/useBookDemoDialog";
 import { restoreThemeMode } from "../helpers/themeMode";
+import { installLanguageVideoTabs } from "../helpers/languageVideo";
 
 // Module scope so the saved theme lands before the first client render on every route.
 restoreThemeMode();
+
+// Language tabs on videos in editor content work on every route, including server-rendered pages.
+installLanguageVideoTabs();
 
 // A "not authenticated" failure on any query or mutation makes AuthProvider recheck the session.
 const queryClient = new QueryClient({
@@ -38,6 +46,7 @@ export const GlobalContextProviders = ({
   return (
     <QueryClientProvider client={queryClient}>
       <ScrollToTop />
+      {/* <SiteNoticeStrip /> */}
       <AuthProvider>
         <ImpersonationBanner />
         <AutoRenewalChecker />

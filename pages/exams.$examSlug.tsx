@@ -18,6 +18,7 @@ import { type ExamContentPageType } from "../helpers/examContentTypes";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "../components/Accordion";
 import { useExamDetailQuery } from "../helpers/useExamDetail";
 import { wrapContentTables } from "../helpers/contentTables";
+import { sanitizeHtml } from "../helpers/sanitizeHtml";
 
 import styles from "./exams.$examSlug.module.css";
 
@@ -231,7 +232,7 @@ export default function ExamDetailPage() {
         {overviewContent && overviewContent.trim().length > 0 && (
           <section
             className={styles.additionalContent}
-            dangerouslySetInnerHTML={{ __html: wrapContentTables(overviewContent) }}
+            dangerouslySetInnerHTML={{ __html: wrapContentTables(sanitizeHtml(overviewContent)) }}
           />
         )}
 

@@ -87,7 +87,7 @@
   align-items: center;
   gap: var(--spacing-1);
   background-color: color-mix(in srgb, var(--secondary) 15%, transparent);
-  color: var(--secondary);
+  color: var(--secondary-text);
   padding: var(--spacing-1) var(--spacing-2);
   border-radius: var(--radius-sm);
   font-size: 0.75rem;
@@ -100,7 +100,7 @@
   align-items: center;
   gap: var(--spacing-1);
   background-color: color-mix(in srgb, var(--error) 12%, transparent);
-  color: var(--error);
+  color: var(--error-text);
   padding: var(--spacing-1) var(--spacing-2);
   border-radius: var(--radius-sm);
   font-size: 0.75rem;
@@ -136,7 +136,7 @@
 }
 
 .correct {
-  color: var(--success);
+  color: var(--success-text);
   font-weight: 600;
 }
 

@@ -16,7 +16,7 @@
   justify-content: center;
   flex-grow: 1;
   font-size: 1.25rem;
-  color: var(--error);
+  color: var(--error-text);
 }
 
 @media (max-width: 768px) {

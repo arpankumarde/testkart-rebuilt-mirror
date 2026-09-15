@@ -14,6 +14,7 @@ import { AlertCircle, BookOpen, CheckCircle, Star } from "lucide-react";
 import { ReviewDialog } from '../components/ReviewDialog';
 import { useAuth } from '../helpers/useAuth';
 import { wrapContentTables } from '../helpers/contentTables';
+import { sanitizeHtml } from '../helpers/sanitizeHtml';
 import { Avatar, AvatarImage, AvatarFallback } from '../components/Avatar';
 import styles from "./course.$courseSlug.module.css";
 
@@ -255,7 +256,7 @@ export default function CourseDetailsPage() {
             <h2 className={styles.sectionTitle}>Description</h2>
             <div 
               className={styles.description}
-              dangerouslySetInnerHTML={{ __html: wrapContentTables(course.description || "") }}
+              dangerouslySetInnerHTML={{ __html: wrapContentTables(sanitizeHtml(course.description)) }}
             />
           </section>
 

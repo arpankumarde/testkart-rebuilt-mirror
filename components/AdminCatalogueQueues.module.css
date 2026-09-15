@@ -166,7 +166,7 @@
 
 .allClearIcon {
   flex-shrink: 0;
-  color: var(--success);
+  color: var(--success-text);
 }
 
 .allClearText {

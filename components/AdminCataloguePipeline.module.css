@@ -233,11 +233,7 @@
 .numValueWarn {
   font-size: 0.9375rem;
   font-weight: 700;
-  color: color-mix(in srgb, var(--error), black 18%);
-}
-
-:global(.dark) .numValueWarn {
-  color: var(--error);
+  color: var(--error-text);
 }
 
 .numLabel {

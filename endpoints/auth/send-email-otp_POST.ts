@@ -6,9 +6,10 @@ import { sendEmail } from "../../helpers/sendEmail";
 import { NotAuthenticatedError } from "../../helpers/getSetServerSession";
 import { getBrandedEmailHtml } from "../../helpers/emailBaseTemplate";
 import { checkEmailOtpRateLimit } from "../../helpers/otpRateLimit";
+import { generateOtpCode } from "../../helpers/otpVerifyGuard";
 
 function generateOtp(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return generateOtpCode(6);
 }
 
 function getEmailHtml(otpCode: string): string {

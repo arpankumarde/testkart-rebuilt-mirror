@@ -96,7 +96,7 @@
   height: 3.25rem;
   border-radius: var(--radius-full);
   background-color: color-mix(in srgb, var(--warning) 15%, transparent);
-  color: color-mix(in srgb, var(--warning), black 30%);
+  color: var(--warning-text);
 }
 
 .questionCard {

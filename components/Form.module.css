@@ -31,7 +31,7 @@
   }
 
   .formLabel.error {
-    color: var(--error);
+    color: var(--error-text);
   }
 
   .formControl {
@@ -62,7 +62,7 @@
     font-size: 0.75rem;
     line-height: 1.5;
     font-weight: 500;
-    color: var(--error);
+    color: var(--error-text);
     animation: slideIn var(--animation-duration-normal) ease;
     margin-top: var(--spacing-1);
     font-family: var(--font-family-base);

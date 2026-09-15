@@ -4,7 +4,7 @@ import { useTestDetailsQuery } from "../helpers/useTestDetailsQuery";
 import { SEOHead } from "../components/SEOHead";
 import { slugify } from "../helpers/slugify";
 import { wrapContentTables } from "../helpers/contentTables";
-import DOMPurify from "dompurify";
+import { sanitizeHtml } from "../helpers/sanitizeHtml";
 import { CheckCircle, Star, Users, BookOpen } from "lucide-react";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
@@ -344,7 +344,7 @@ const TestDetailsPage: React.FC = () => {
           {testPackage.longDescription && (
             <section className={styles.section}>
               <h2 className={styles.sectionTitle}>Description</h2>
-                            <div className={styles.description} dangerouslySetInnerHTML={{ __html: wrapContentTables(DOMPurify.sanitize(testPackage.longDescription)) }} />
+                            <div className={styles.description} dangerouslySetInnerHTML={{ __html: wrapContentTables(sanitizeHtml(testPackage.longDescription)) }} />
             </section>
           )}
 

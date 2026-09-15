@@ -1,5 +1,6 @@
 import type { Updateable } from "kysely";
 import type { MockTests } from "./schema";
+import { sanitizeHtml } from "./sanitizeHtml";
 
 /*
  * Pure pieces of the teacher test series editor, shared by the pages and the
@@ -61,7 +62,7 @@ export function buildMockTestUpdateSet(
   if (input.requirements !== undefined) {
     set.requirements = input.requirements ? JSON.stringify(input.requirements) : null;
   }
-  if (input.longDescription !== undefined) set.longDescription = input.longDescription || null;
+  if (input.longDescription !== undefined) set.longDescription = input.longDescription ? sanitizeHtml(input.longDescription) : null;
   return set;
 }
 

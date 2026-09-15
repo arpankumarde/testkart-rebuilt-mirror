@@ -159,7 +159,7 @@
 
 .urgent {
   background-color: color-mix(in srgb, var(--error) 12%, transparent);
-  color: color-mix(in srgb, var(--error), black 25%);
+  color: var(--error-text);
 }
 
 .actions {
@@ -177,7 +177,7 @@
 }
 
 .destructive {
-  color: var(--error);
+  color: var(--error-text);
 }
 
 .dialogWarning {
@@ -194,7 +194,7 @@
 .dialogWarningIcon {
   flex-shrink: 0;
   margin-top: 2px;
-  color: color-mix(in srgb, var(--error), black 25%);
+  color: var(--error-text);
 }
 
 .dialogWarning p {

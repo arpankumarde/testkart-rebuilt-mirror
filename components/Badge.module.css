@@ -15,13 +15,10 @@
   }
 
   /*
-   * Every variant is a saturated token on a 15% tint OF ITSELF, which is the
-   * lowest-contrast shape a chip can take: coral on coral tint ran about
-   * 1.5:1, green about 2.2:1, red about 2.6:1, teal about 2.7:1. The label is
-   * now the darkened token over the same tint, which is what .warning already
-   * did with its near-black --warning-foreground - the one variant that read
-   * correctly. Tints and borders are unchanged, so the chips keep their
-   * colour coding.
+   * Labels use the themed status text tokens from base.css. A saturated token
+   * on a 15% tint of itself ran 1.5-2.7:1 on white, and a label darkened for
+   * white sank to 1.3-3.6:1 once the tint sat on the dark surface. Tints and
+   * borders are unchanged, so the chips keep their colour coding.
    */
   .default {
     background-color: var(--tk-brand-tint);
@@ -35,7 +32,7 @@
 
   .destructive {
     background-color: color-mix(in srgb, var(--error) 15%, transparent);
-    color: color-mix(in srgb, var(--error), black 25%);
+    color: var(--error-text);
     border: 1px solid color-mix(in srgb, var(--error) 30%, transparent);
   }
 
@@ -45,7 +42,7 @@
 
   .secondary {
     background-color: color-mix(in srgb, var(--secondary) 15%, transparent);
-    color: color-mix(in srgb, var(--secondary), black 25%);
+    color: var(--secondary-text);
     border: 1px solid color-mix(in srgb, var(--secondary) 30%, transparent);
   }
 
@@ -65,7 +62,7 @@
 
   .success {
     background-color: color-mix(in srgb, var(--success) 15%, transparent);
-    color: color-mix(in srgb, var(--success), black 30%);
+    color: var(--success-text);
     border: 1px solid color-mix(in srgb, var(--success) 30%, transparent);
   }
 
@@ -75,7 +72,7 @@
 
   .warning {
     background-color: color-mix(in srgb, var(--warning) 15%, transparent);
-    color: var(--warning-foreground);
+    color: var(--warning-text);
     border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent);
   }
 

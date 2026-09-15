@@ -33,6 +33,31 @@ const matchQuestion = (overrides: Partial<QuestionData> = {}) =>
 
 const match = (matchAnswers: Record<string, string>) => ({ answerType: "match" as const, matchAnswers });
 
+describe("scoreQuestion - submitted payload limits", () => {
+  const multiple = (overrides: Partial<QuestionData> = {}) =>
+    baseQuestion({ questionType: "multiple_correct_mcq", correctOptions: ["A", "C"], partialMarking: true, ...overrides });
+
+  it("counts a repeated correct option once under partial marking", () => {
+    const result = scoreQuestion(multiple(), { answerType: "multiple", selectedOptions: Array(300).fill("A") });
+    expect(result.marksObtained).toBe(2);
+  });
+
+  it("never awards more than the question's positive marks", () => {
+    const result = scoreQuestion(multiple(), { answerType: "multiple", selectedOptions: ["A", "C", "A", "C", "A"] });
+    expect(result).toEqual({ isCorrect: true, marksObtained: 4 });
+  });
+
+  it("scores a question with no stored correct options as 0 instead of NaN", () => {
+    const result = scoreQuestion(multiple({ correctOptions: [] }), { answerType: "multiple", selectedOptions: ["A"] });
+    expect(result.marksObtained).toBe(0);
+  });
+
+  it("never deducts more than the question's negative marks", () => {
+    const result = scoreQuestion(baseQuestion({ correctOption: "A", negativeMarks: "-1.00" }), { answerType: "single", selectedOption: "B" });
+    expect(result.marksObtained).toBe(-1);
+  });
+});
+
 describe("scoreQuestion - match the following", () => {
   it("scores a fully correct text-keyed answer (what the student player submits) as correct", () => {
     const result = scoreQuestion(matchQuestion(), match({ Celia: "Oliver", Phebe: "Silvius", Audrey: "Touchstone ", "Rosalind ": "Orlando " }));

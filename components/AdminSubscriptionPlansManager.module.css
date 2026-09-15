@@ -135,7 +135,7 @@
   gap: var(--spacing-2);
   padding: var(--spacing-3);
   font-size: 0.875rem;
-  color: color-mix(in srgb, var(--warning), black 45%);
+  color: var(--warning-text);
   background-color: color-mix(in srgb, var(--warning) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--warning) 40%, transparent);
   border-radius: var(--radius);

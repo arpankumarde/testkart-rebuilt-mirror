@@ -4,6 +4,8 @@ import { schema, OutputType } from "./process_POST.schema";
 import superjson from "superjson";
 import { sendEmail } from "../../../helpers/sendEmail";
 import { withdrawalProcessed } from "../../../helpers/emailTemplates";
+import { getStudentAvailableBalance } from "../../../helpers/getStudentAvailableBalance";
+import { lockWallet } from "../../../helpers/walletLock";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -12,44 +14,51 @@ export async function handle(request: Request): Promise<Response> {
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);
 
-    // Fetch the withdrawal to ensure it exists and is pending
-    const withdrawal = await db
-      .selectFrom("studentWithdrawals")
-      .where("id", "=", input.withdrawalId)
-      .selectAll()
-      .executeTakeFirst();
-
-    if (!withdrawal) {
-      return new Response(
-        superjson.stringify({ error: "Withdrawal request not found" }),
-        { status: 404 }
-      );
-    }
-
-    if (withdrawal.status !== "pending") {
-      return new Response(
-        superjson.stringify({ error: `Cannot process withdrawal with status '${withdrawal.status}'` }),
-        { status: 400 }
-      );
-    }
-
-    let updatedWithdrawal;
-
-    if (input.action === "approve") {
-      updatedWithdrawal = await db
-        .updateTable("studentWithdrawals")
-        .set({
-          status: "completed",
-          processedDate: new Date(),
-          transactionId: input.transactionId,
-          notes: input.notes ? input.notes : withdrawal.notes,
-        })
+    const result = await db.transaction().execute(async (trx) => {
+      // Row lock so two admins can't process the same request at once
+      const withdrawal = await trx
+        .selectFrom("studentWithdrawals")
         .where("id", "=", input.withdrawalId)
-        .returningAll()
-        .executeTakeFirstOrThrow();
-    } else {
+        .selectAll()
+        .forUpdate()
+        .executeTakeFirst();
+
+      if (!withdrawal) {
+        return { status: 404, error: "Withdrawal request not found" } as const;
+      }
+
+      if (withdrawal.status !== "pending") {
+        return { status: 400, error: `Cannot process withdrawal with status '${withdrawal.status}'` } as const;
+      }
+
+      if (input.action === "approve") {
+        await lockWallet(trx, withdrawal.studentId);
+        // Pending requests are already deducted from the balance, so a
+        // negative raw balance means this one is no longer covered.
+        const { rawBalance } = await getStudentAvailableBalance(withdrawal.studentId, trx);
+        if (rawBalance < 0) {
+          return {
+            status: 400,
+            error: `The student's wallet no longer covers this withdrawal. It is short by ₹${(-rawBalance).toFixed(2)}.`,
+          } as const;
+        }
+
+        const updated = await trx
+          .updateTable("studentWithdrawals")
+          .set({
+            status: "completed",
+            processedDate: new Date(),
+            transactionId: input.transactionId,
+            notes: input.notes ? input.notes : withdrawal.notes,
+          })
+          .where("id", "=", input.withdrawalId)
+          .returningAll()
+          .executeTakeFirstOrThrow();
+        return { updated };
+      }
+
       // Reject
-      updatedWithdrawal = await db
+      const updated = await trx
         .updateTable("studentWithdrawals")
         .set({
           status: "failed", // Using 'failed' for rejected requests as per schema enum
@@ -59,7 +68,14 @@ export async function handle(request: Request): Promise<Response> {
         .where("id", "=", input.withdrawalId)
         .returningAll()
         .executeTakeFirstOrThrow();
+      return { updated };
+    });
+
+    if ("error" in result) {
+      return new Response(superjson.stringify({ error: result.error }), { status: result.status });
     }
+
+    const updatedWithdrawal = result.updated;
 
     const output: OutputType = {
       ...updatedWithdrawal,
@@ -80,16 +96,16 @@ export async function handle(request: Request): Promise<Response> {
           Number(updatedWithdrawal.amount),
           updatedWithdrawal.status
         );
-        const result = await sendEmail({
+        const emailResult = await sendEmail({
           to: student.email,
           subject: emailTemplate.subject,
           html: emailTemplate.html,
           text: emailTemplate.text,
         });
-        if (result.success) {
+        if (emailResult.success) {
           console.log(`Withdrawal processed email sent to student ${student.email}`);
         } else {
-          console.error(`Failed to send withdrawal processed email:`, result.error);
+          console.error(`Failed to send withdrawal processed email:`, emailResult.error);
         }
       } catch (emailError) {
         console.error(`Error sending withdrawal processed email:`, emailError);

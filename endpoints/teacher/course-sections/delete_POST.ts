@@ -2,7 +2,7 @@ import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./delete_POST.schema";
 import superjson from "superjson";
-import { deleteFromR2 } from "../../../helpers/r2Client";
+import { deleteOwnedR2Files } from "../../../helpers/r2FileOwnership";
 
 async function checkSectionOwnership(sectionId: number, teacherId: number, userRole: string): Promise<boolean> {
     if (userRole === 'admin') return true;
@@ -42,19 +42,6 @@ export async function handle(request: Request): Promise<Response> {
       .map((l) => l.contentFileId)
       .filter((id): id is string => id !== null);
 
-    // Clean up R2 files before transaction
-    let deletedCount = 0;
-    for (const fileId of contentFileIds) {
-      try {
-        await deleteFromR2(fileId);
-        deletedCount++;
-      } catch (error) {
-        console.error(`[Section Delete] Failed to delete R2 file ${fileId}:`, error);
-        // Continue with other deletions
-      }
-    }
-    console.log(`[Section Delete] Cleaned up ${deletedCount}/${contentFileIds.length} R2 files for section ${sectionId}`);
-
     // Use a transaction to delete the section and its lessons
     await db.transaction().execute(async (trx) => {
         // Delete all lessons within this section
@@ -62,6 +49,10 @@ export async function handle(request: Request): Promise<Response> {
         // Delete the section itself
         await trx.deleteFrom("courseSections").where("id", "=", sectionId).execute();
     });
+
+    // With the rows gone, remove the files this teacher uploaded that nothing else uses
+    const { deleted } = await deleteOwnedR2Files(effectiveTeacherId, contentFileIds);
+    console.log(`[Section Delete] Cleaned up ${deleted.length}/${contentFileIds.length} R2 files for section ${sectionId}`);
 
     return new Response(superjson.stringify({ success: true } satisfies OutputType));
 

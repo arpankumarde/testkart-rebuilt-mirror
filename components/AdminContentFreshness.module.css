@@ -108,13 +108,9 @@
 .ageWarn {
   font-size: 0.75rem;
   font-weight: 600;
-  color: color-mix(in srgb, var(--error), black 18%);
+  color: var(--error-text);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-}
-
-:global(.dark) .ageWarn {
-  color: var(--error);
 }
 
 .skeletonRows {

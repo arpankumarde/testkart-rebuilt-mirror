@@ -6,6 +6,7 @@ import { sendSMS } from "../../../helpers/sendSMS";
 import { getClientIp } from "../../../helpers/getClientIp";
 import { checkOtpRateLimit } from "../../../helpers/otpRateLimit";
 import { verifyTurnstileToken } from "../../../helpers/verifyTurnstileToken";
+import { generateOtpCode } from "../../../helpers/otpVerifyGuard";
 
 const OTP_EXPIRATION_MINUTES = 10;
 
@@ -47,7 +48,7 @@ export async function handle(request: Request) {
     }
 
     // 3. Generate and store new OTP
-    const otpCode = Math.floor(1000 + Math.random() * 9000).toString();
+    const otpCode = generateOtpCode(4);
     const expiresAt = new Date(Date.now() + OTP_EXPIRATION_MINUTES * 60 * 1000);
 
     await db

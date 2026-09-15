@@ -2,7 +2,7 @@ import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./publish_POST.schema";
 import superjson from "superjson";
-import { getTeacherAvailableBalance } from "../../../helpers/getTeacherAvailableBalance";
+import { assertTeacherCanFundPrizePool } from "../../../helpers/liveTestPrizeFunding";
 
 export async function handle(request: Request) {
   try {
@@ -65,36 +65,19 @@ export async function handle(request: Request) {
       );
     }
 
-    // Check teacher balance if this is a free test with prizes funded by teacher wallet
-    if (liveTest.hasPrizes && liveTest.prizeFundSource === "teacher_wallet") {
-      const totalPrizePool = parseFloat(liveTest.totalPrizePool);
-      const teacherId = liveTest.teacherId;
+    // A free test's prize pool comes out of the teacher's wallet, so check the
+    // balance covers it and publish in one transaction under the wallet lock.
+    await db.transaction().execute(async (trx) => {
+      await assertTeacherCanFundPrizePool(trx, liveTest);
 
-      const balance = await getTeacherAvailableBalance(teacherId);
-
-      if (balance.availableBalance < 0) {
-        const balanceBeforeLock = balance.availableBalance + totalPrizePool;
-        return new Response(
-          superjson.stringify({
-            error: `Insufficient balance to fund prize pool. Your available balance is ₹${balanceBeforeLock.toFixed(2)} but prize pool requires ₹${totalPrizePool.toFixed(2)}. Please add funds through test sales first.`,
-          }),
-          { status: 400 }
-        );
-      }
-
-      console.log(
-        `Live test ${liveTest.id} has sufficient teacher wallet balance for prize pool of ₹${totalPrizePool}. Available balance: ₹${balance.availableBalance}`
-      );
-    }
-
-    // Publish the live test directly
-    await db
-      .updateTable("liveTests")
-      .set({
-        isActive: true,
-      })
-      .where("id", "=", liveTest.id)
-      .execute();
+      await trx
+        .updateTable("liveTests")
+        .set({
+          isActive: true,
+        })
+        .where("id", "=", liveTest.id)
+        .execute();
+    });
 
     console.log(`Live test ${liveTest.id} published by teacher ${liveTest.teacherId}`);
 

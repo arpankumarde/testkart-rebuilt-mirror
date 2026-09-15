@@ -157,9 +157,9 @@
   color: var(--muted-foreground);
 }
 
-/* Darkened: the raw error token as type on white runs about 2.4:1. */
+/* Themed error text: the raw error token as type on white runs about 2.4:1. */
 .counterError {
-  color: color-mix(in srgb, var(--error), black 20%);
+  color: var(--error-text);
   font-weight: 700;
 }
 

@@ -1,6 +1,6 @@
 .layout {
   display: flex;
-  min-height: 100vh;
+  min-height: calc(100vh - var(--site-notice-offset));
   background-color: var(--background);
 }
 

@@ -109,15 +109,15 @@
   gap: var(--spacing-2);
 }
 
-/* Semantic tokens run about 2.3:1 as type on white, so they are darkened for
-   the label and kept at strength only for the border. */
+/* Semantic tokens run about 2.3:1 as type on white, so the label uses the
+   themed text token and the raw token is kept only for the border. */
 .approveButton {
-  color: color-mix(in srgb, var(--success), black 25%);
+  color: var(--success-text);
   border-color: color-mix(in srgb, var(--success) 45%, var(--border));
 }
 
 .rejectButton {
-  color: color-mix(in srgb, var(--error), black 20%);
+  color: var(--error-text);
   border-color: color-mix(in srgb, var(--error) 45%, var(--border));
 }
 

@@ -80,11 +80,11 @@
 .liveTestWarning p {
   margin: 0;
   line-height: 1.5;
-  color: var(--warning-foreground);
+  color: var(--warning-text);
 }
 
 .warningIcon {
-  color: var(--warning);
+  color: var(--warning-text);
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -184,7 +184,7 @@
 }
 
 .timerWarning {
-  color: var(--error);
+  color: var(--error-text);
   background-color: color-mix(in srgb, var(--error) 15%, transparent);
 }
 
@@ -268,7 +268,7 @@
   background-color: color-mix(in srgb, var(--warning) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--warning) 40%, transparent);
   border-radius: var(--radius);
-  color: var(--warning);
+  color: var(--warning-text);
   font-size: 0.875rem;
   font-weight: 500;
   margin-bottom: var(--spacing-4);
@@ -329,7 +329,7 @@
 
 .paletteItem.answered {
   background-color: color-mix(in srgb, var(--success) 20%, transparent);
-  color: var(--success);
+  color: var(--success-text);
 }
 
 .paletteItem.current {
@@ -410,7 +410,7 @@
 
 .paletteItemMobile.answered {
   background-color: color-mix(in srgb, var(--success) 20%, transparent);
-  color: var(--success);
+  color: var(--success-text);
 }
 
 .paletteItemMobile.current {
@@ -513,9 +513,9 @@
   color: var(--muted-foreground);
 }
 
-.correctIcon { color: var(--success); }
+.correctIcon { color: var(--success-text); }
 .incorrectIcon { color: var(--error); }
-.timeIcon { color: var(--info); }
+.timeIcon { color: var(--info-text); }
 
 .reviewSection h3 {
   font-family: var(--font-family-heading);
@@ -565,7 +565,7 @@
   justify-content: center;
   flex-grow: 1;
   font-size: 1.25rem;
-  color: var(--error);
+  color: var(--error-text);
 }
 
 .errorContainer {

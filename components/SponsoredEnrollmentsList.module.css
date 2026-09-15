@@ -33,7 +33,7 @@
 
 .blue {
   background-color: color-mix(in srgb, var(--info) 10%, transparent);
-  color: var(--info);
+  color: var(--info-text);
 }
 
 .orange {

@@ -45,7 +45,7 @@
 }
 
 .successText {
-  color: color-mix(in srgb, var(--success), black 35%);
+  color: var(--success-text);
 }
 
 .warningNote {

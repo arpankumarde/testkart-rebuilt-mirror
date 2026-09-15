@@ -193,12 +193,12 @@
 }
 
 .iconButtonDanger {
-  color: color-mix(in srgb, var(--error), black 20%);
+  color: var(--error-text);
 }
 
 .iconButtonDanger:hover {
   background-color: color-mix(in srgb, var(--error) 12%, transparent);
-  color: color-mix(in srgb, var(--error), black 25%);
+  color: var(--error-text);
 }
 
 .srOnly {
@@ -310,13 +310,13 @@
   padding-top: var(--spacing-1);
 }
 
-/* Error ink darkened on its own light tint - the raw token as type fails contrast. */
+/* Themed error text on its own tint - the raw token as type fails contrast. */
 .rejectionCallout {
   margin: 0;
   padding: var(--spacing-3) var(--spacing-4);
   font-size: 0.875rem;
   line-height: 1.5;
-  color: color-mix(in srgb, var(--error), black 20%);
+  color: var(--error-text);
   background-color: color-mix(in srgb, var(--error) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--error) 40%, transparent);
   border-radius: var(--radius);
@@ -428,7 +428,7 @@
 
 .errorMessage {
   font-size: 0.8125rem;
-  color: color-mix(in srgb, var(--error), black 20%);
+  color: var(--error-text);
   margin: 0;
 }
 

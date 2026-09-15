@@ -7,6 +7,7 @@ import { schema, OutputType } from "./update_POST.schema";
 import superjson from "superjson";
 import type { Updateable } from "kysely";
 import { ZodError } from "zod";
+import { sanitizeHtml } from "../../../helpers/sanitizeHtml";
 
 async function generateUniqueSlug(baseTitle: string, excludeCourseId: number): Promise<string> {
   const baseSlug = slugify(baseTitle);
@@ -96,6 +97,7 @@ export async function handle(request: Request): Promise<Response> {
       }
     }
     if (price !== undefined) changes.price = price.toString();
+    if (typeof changes.description === "string") changes.description = sanitizeHtml(changes.description);
     if (slug) changes.slug = slug;
     if (resolvedExam) {
       changes.examId = resolvedExam.examId;

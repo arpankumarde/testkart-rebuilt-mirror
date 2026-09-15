@@ -54,10 +54,10 @@
   gap: var(--spacing-1);
 }
 
-/* Darkened: the raw error token as an icon on white runs about 3.5:1. */
+/* Themed error text: the raw error token as an icon on white runs about 3.5:1. */
 .deleteBtn,
 .deleteBtn:hover {
-  color: color-mix(in srgb, var(--error), black 20%);
+  color: var(--error-text);
 }
 
 .deleteBtn:hover {

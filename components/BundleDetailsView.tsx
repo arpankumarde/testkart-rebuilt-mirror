@@ -29,7 +29,7 @@ import { Badge } from './Badge';
 import { PromoCodeInput } from './PromoCodeInput';
 import { Placeholder } from '../helpers/placeholderImages';
 import { wrapContentTables } from '../helpers/contentTables';
-import DOMPurify from 'dompurify';
+import { sanitizeHtml } from '../helpers/sanitizeHtml';
 import { getBundleRedirectUrl } from '../endpoints/payment/payu/bundle-redirect_GET.schema';
 import { MobileStickyPurchaseBar } from './MobileStickyPurchaseBar';
 import styles from './BundleDetailsView.module.css';
@@ -417,7 +417,7 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
         </div>
         <div 
           className={styles.description} 
-          dangerouslySetInnerHTML={{ __html: wrapContentTables(DOMPurify.sanitize(renderMarkdown(bundle.description || ''))) }} 
+          dangerouslySetInnerHTML={{ __html: wrapContentTables(sanitizeHtml(renderMarkdown(bundle.description || ''))) }} 
         />
         {bundle.disclaimer && (
           <div className={styles.disclaimerSection} style={{ whiteSpace: 'pre-wrap' }}>

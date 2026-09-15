@@ -12,7 +12,7 @@
 .errorMessage {
   background-color: color-mix(in srgb, var(--error) 15%, transparent);
   border: 1px solid var(--error);
-  color: var(--error);
+  color: var(--error-text);
   padding: var(--spacing-3);
   border-radius: var(--radius);
   margin-bottom: var(--spacing-4);

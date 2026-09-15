@@ -71,6 +71,14 @@
   gap: var(--spacing-2);
 }
 
+.tagsRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+}
+
 .tag {
   display: flex;
   align-items: center;
@@ -142,7 +150,7 @@
   padding: var(--spacing-8);
   box-shadow: var(--shadow-md);
   position: sticky;
-  top: calc(var(--header-height, 72px) + var(--spacing-8));
+  top: calc(var(--header-height, 72px) + var(--spacing-8) + var(--site-notice-offset));
 }
 
 .formTitle {
@@ -277,7 +285,7 @@
 }
 
 .removeFileButton:hover {
-  color: var(--error);
+  color: var(--error-text);
   background-color: color-mix(in srgb, var(--error) 10%, transparent);
 }
 
@@ -296,7 +304,7 @@
 }
 
 .successIcon {
-  color: var(--success);
+  color: var(--success-text);
   margin-bottom: var(--spacing-4);
 }
 

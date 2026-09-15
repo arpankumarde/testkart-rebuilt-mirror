@@ -14,7 +14,7 @@
   border: 1px solid color-mix(in srgb, var(--error) 30%, transparent);
   border-radius: var(--radius-md);
   background-color: color-mix(in srgb, var(--error) 10%, transparent);
-  color: color-mix(in srgb, var(--error), black 25%);
+  color: var(--error-text);
   font-size: 0.875rem;
 }
 

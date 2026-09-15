@@ -7,6 +7,7 @@ import { createHash } from "crypto";
 import { PAYU_MODE } from "../../../helpers/_publicConfigs";
 import { sql } from "kysely";
 import { getTeacherPlatformFee } from "../../../helpers/getTeacherPlatformFee";
+import { promoCodeCoversTeacher } from "../../../helpers/promoCodeEligibility";
 
 export async function handle(request: Request) {
   try {
@@ -168,6 +169,15 @@ export async function handle(request: Request) {
             } else {
               isEligible = false;
             }
+          }
+
+          const itemTeacherId = item.mockTestId
+            ? item.testTeacherId
+            : item.courseId
+              ? item.courseTeacherId
+              : item.digitalProductTeacherId;
+          if (isEligible && !promoCodeCoversTeacher(promoCode.createdByTeacherId, itemTeacherId)) {
+            isEligible = false;
           }
 
           if (isEligible) {

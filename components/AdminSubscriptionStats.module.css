@@ -78,17 +78,17 @@
 
 .colorSuccess .statCardIcon {
   background-color: color-mix(in srgb, var(--success) 12%, transparent);
-  color: color-mix(in srgb, var(--success), black 30%);
+  color: var(--success-text);
 }
 
 .colorWarning .statCardIcon {
   background-color: color-mix(in srgb, var(--warning) 12%, transparent);
-  color: var(--warning-foreground);
+  color: var(--warning-text);
 }
 
 .colorDestructive .statCardIcon {
   background-color: color-mix(in srgb, var(--error) 12%, transparent);
-  color: color-mix(in srgb, var(--error), black 25%);
+  color: var(--error-text);
 }
 
 /* Free plan note */

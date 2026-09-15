@@ -36,30 +36,23 @@
   min-height: 200px;
 }
 
-.documentWrapper {
-  width: 100%;
-  display: flex;
-  justify-content: center;
+.pageFrame {
   position: relative;
-}
-
-.document {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  box-shadow: var(--shadow-lg);
-}
-
-.page {
-  background-color: white;
-  margin-bottom: var(--spacing-4);
-}
-
-/* React-PDF canvas wrapper styling */
-.page canvas {
-  max-width: 100%;
-  height: auto !important;
+  width: 100%;
+  max-width: 820px;
+  flex-shrink: 0;
+  aspect-ratio: 1 / 1.414;
+  background-color: var(--surface);
   border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.pageImage {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
 }
 
 .controls {
@@ -94,7 +87,7 @@
   width: 3rem;
   height: 3rem;
   margin-bottom: var(--spacing-4);
-  opacity: 0.5;
+  color: var(--muted-foreground);
 }
 
 .errorIcon {
@@ -104,6 +97,10 @@
   color: var(--error);
 }
 
+.retryButton {
+  margin-top: var(--spacing-4);
+}
+
 .loadingOverlay {
   position: absolute;
   inset: 0;
@@ -111,10 +108,10 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: rgba(255, 255, 255, 0.8);
-  z-index: 10;
   gap: var(--spacing-2);
+  background-color: var(--surface);
   color: var(--muted-foreground);
+  z-index: 1;
 }
 
 .spinner {
@@ -122,18 +119,6 @@
   width: 2rem;
   height: 2rem;
   color: var(--primary);
-}
-
-.skeletonWrapper {
-  width: 100%;
-  max-width: 600px;
-  aspect-ratio: 1 / 1.414; /* A4 ratio approx */
-}
-
-.pageSkeleton {
-  width: 100%;
-  height: 100%;
-  min-height: 400px;
 }
 
 @keyframes spin {
@@ -145,11 +130,6 @@
   }
 }
 
-/* Dark mode adjustments */
-:global(.dark) .page {
+:global(.dark) .pageImage {
   filter: brightness(0.9);
-}
-
-:global(.dark) .loadingOverlay {
-  background-color: rgba(0, 0, 0, 0.7);
 }

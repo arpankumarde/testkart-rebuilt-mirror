@@ -300,7 +300,7 @@
 
 .itemPriceFree {
   font-size: 0.875rem;
-  color: var(--success);
+  color: var(--success-text);
   font-weight: 600;
 }
 
@@ -415,7 +415,7 @@
   gap: var(--spacing-2);
   font-size: 1rem;
   font-weight: 600;
-  color: var(--success);
+  color: var(--success-text);
 }
 
 @media (max-width: 768px) {
@@ -446,7 +446,7 @@
 
 .teacherInfoIcon {
   flex-shrink: 0;
-  color: var(--info);
+  color: var(--info-text);
 }
 
 .teacherInfoContent {

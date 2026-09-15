@@ -50,11 +50,11 @@
 }
 
 .up {
-  color: color-mix(in srgb, var(--success), black 28%);
+  color: var(--success-text);
 }
 
 .down {
-  color: color-mix(in srgb, var(--error), black 18%);
+  color: var(--error-text);
 }
 
 .flat {
@@ -62,15 +62,7 @@
 }
 
 .new {
-  color: var(--secondary);
-}
-
-:global(.dark) .up {
-  color: var(--success);
-}
-
-:global(.dark) .down {
-  color: var(--error);
+  color: var(--secondary-text);
 }
 
 .spark {

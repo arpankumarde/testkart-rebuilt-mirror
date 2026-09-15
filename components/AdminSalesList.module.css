@@ -292,8 +292,8 @@
   color: inherit;
 }
 
-.followUp_overdue { color: color-mix(in srgb, var(--error), black 20%); font-weight: 600; }
-.followUp_today { color: var(--warning-foreground); font-weight: 600; }
+.followUp_overdue { color: var(--error-text); font-weight: 600; }
+.followUp_today { color: var(--warning-text); font-weight: 600; }
 .followUp_future { color: var(--foreground); }
 .followUp_none { color: var(--muted-foreground); }
 

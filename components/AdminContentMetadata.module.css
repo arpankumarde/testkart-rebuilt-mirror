@@ -129,14 +129,10 @@
 .missing {
   font-size: 0.75rem;
   font-weight: 600;
-  color: color-mix(in srgb, var(--error), black 18%);
+  color: var(--error-text);
   font-variant-numeric: tabular-nums;
   text-align: right;
   white-space: nowrap;
-}
-
-:global(.dark) .missing {
-  color: var(--error);
 }
 
 .missingNone {

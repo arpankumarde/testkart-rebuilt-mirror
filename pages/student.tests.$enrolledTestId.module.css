@@ -1,7 +1,7 @@
 /*
  * On the shared console language - see student.tests.module.css for the rules.
  * Panels at --radius-md on a hairline, coral only as a block, and the semantic
- * score colours darkened with color-mix so they hold as type on white.
+ * score colours on the themed --*-text tokens so they hold as type in both themes.
  */
 /*
  * 64rem, not the 1440 workspace measure: this is a header card over a single
@@ -91,7 +91,7 @@
   align-items: center;
   gap: var(--spacing-1);
   background-color: color-mix(in srgb, var(--warning) 15%, transparent);
-  color: var(--warning-foreground);
+  color: var(--warning-text);
   border-color: color-mix(in srgb, var(--warning) 40%, transparent);
 }
 
@@ -168,10 +168,10 @@
   color: var(--border);
 }
 
-/* Darkened against the white panel: the raw tokens land near 2.8:1 as type. */
-.success { color: color-mix(in srgb, var(--success), black 25%); }
-.warning { color: color-mix(in srgb, var(--warning), black 30%); }
-.destructive { color: color-mix(in srgb, var(--error), black 20%); }
+/* Themed status text: the raw tokens land near 2.8:1 as type on the panel. */
+.success { color: var(--success-text); }
+.warning { color: var(--warning-text); }
+.destructive { color: var(--error-text); }
 .default { color: var(--muted-foreground); }
 
 .headerFooter {

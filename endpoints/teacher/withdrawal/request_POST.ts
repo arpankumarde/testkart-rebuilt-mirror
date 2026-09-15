@@ -2,11 +2,11 @@ import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./request_POST.schema";
 import superjson from "superjson";
-import { sql } from "kysely";
 import { sendEmail } from "../../../helpers/sendEmail";
 import { withdrawalRequested } from "../../../helpers/emailTemplates";
 import { sendAdminNotification } from "../../../helpers/sendAdminNotification";
 import { getTeacherAvailableBalance } from "../../../helpers/getTeacherAvailableBalance";
+import { lockWallet } from "../../../helpers/walletLock";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -34,49 +34,46 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
-    // 1. Get full balance breakdown using the shared helper (counts only completed withdrawals)
-    const balanceBreakdown = await getTeacherAvailableBalance(effectiveTeacherId);
+    // Check and insert under the wallet lock shared with every other teacher
+    // debit, so parallel requests can't all pass against the same balance.
+    const result = await db.transaction().execute(async (trx) => {
+      await lockWallet(trx, effectiveTeacherId);
 
-    // 2. Additionally subtract pending withdrawals (locked funds not yet processed)
-    const pendingWithdrawalsResult = await db
-      .selectFrom("teacherWithdrawals")
-      .where("teacherId", "=", effectiveTeacherId)
-      .where("status", "=", "pending")
-      .select([
-        sql<string>`sum(amount)`.as("totalAmount"),
-      ])
-      .executeTakeFirst();
+      // availableBalance already subtracts pending withdrawal requests
+      const { availableBalance } = await getTeacherAvailableBalance(effectiveTeacherId, trx);
 
-    const totalPending = Number(pendingWithdrawalsResult?.totalAmount || 0);
+      console.log(
+        `Teacher ${user.id} withdrawal check: withdrawable=${availableBalance}, requested=${input.amount}`
+      );
 
-    // 3. Actual withdrawable amount = helper's availableBalance minus any pending (locked) withdrawals
-    const withdrawableAmount = Math.max(0, Math.round((balanceBreakdown.availableBalance - totalPending) * 100) / 100);
+      if (input.amount > availableBalance) {
+        return { withdrawableAmount: availableBalance, newWithdrawal: null };
+      }
 
-    console.log(
-      `Teacher ${user.id} withdrawal check: availableBalance=${balanceBreakdown.availableBalance}, pendingLocked=${totalPending}, withdrawable=${withdrawableAmount}, requested=${input.amount}`
-    );
+      const newWithdrawal = await trx
+        .insertInto("teacherWithdrawals")
+        .values({
+          teacherId: effectiveTeacherId,
+          amount: input.amount.toString(),
+          status: "pending",
+          requestedDate: new Date(),
+          notes: input.notes,
+        })
+        .returningAll()
+        .executeTakeFirstOrThrow();
 
-    if (input.amount > withdrawableAmount) {
+      return { withdrawableAmount: availableBalance, newWithdrawal };
+    });
+
+    const { newWithdrawal } = result;
+    if (!newWithdrawal) {
       return new Response(
         superjson.stringify({
-          error: `Insufficient balance. Available to withdraw: ₹${withdrawableAmount.toFixed(2)}`,
+          error: `Insufficient balance. Available to withdraw: ₹${result.withdrawableAmount.toFixed(2)}`,
         }),
         { status: 400 }
       );
     }
-
-    // 4. Create Withdrawal Request
-    const newWithdrawal = await db
-      .insertInto("teacherWithdrawals")
-      .values({
-        teacherId: effectiveTeacherId,
-        amount: input.amount.toString(),
-        status: "pending",
-        requestedDate: new Date(),
-        notes: input.notes,
-      })
-      .returningAll()
-      .executeTakeFirstOrThrow();
 
     sendAdminNotification("teacher_withdrawal", {
       userName: user.displayName,
@@ -94,16 +91,16 @@ export async function handle(request: Request): Promise<Response> {
     if (user.email) {
       try {
         const emailTemplate = withdrawalRequested(user.displayName, input.amount);
-        const result = await sendEmail({
+        const emailResult = await sendEmail({
           to: user.email,
           subject: emailTemplate.subject,
           html: emailTemplate.html,
           text: emailTemplate.text,
         });
-        if (result.success) {
+        if (emailResult.success) {
           console.log(`Withdrawal request email sent to ${user.email}`);
         } else {
-          console.error(`Failed to send withdrawal request email:`, result.error);
+          console.error(`Failed to send withdrawal request email:`, emailResult.error);
         }
       } catch (emailError) {
         console.error(`Error sending withdrawal request email:`, emailError);

@@ -50,7 +50,7 @@
   /* Sticky behavior for sidebar */
   .stickySummary {
     position: sticky;
-    top: calc(var(--header-height, 0px) + var(--spacing-6));
+    top: calc(var(--header-height, 0px) + var(--spacing-6) + var(--site-notice-offset));
   }
 
   /* Empty State Styles */

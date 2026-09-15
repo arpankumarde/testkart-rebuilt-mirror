@@ -3,6 +3,7 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { slugify } from "../../../helpers/slugify";
 import { schema, OutputType } from "./update_POST.schema";
 import superjson from "superjson";
+import { sanitizeOptionalHtml } from "../../../helpers/sanitizeHtml";
 import { DigitalProductFileItem } from "../../../helpers/digitalProductFileTypes";
 import {
   isRealFileUrl,
@@ -79,7 +80,7 @@ export async function handle(request: Request): Promise<Response> {
     const updateSet: Record<string, unknown> = {
       title: input.title,
       slug: newSlug,
-      description: input.description,
+      description: sanitizeOptionalHtml(input.description),
       shortDescription: input.shortDescription,
       price: input.price?.toString(),
       previewPages: input.previewPages,

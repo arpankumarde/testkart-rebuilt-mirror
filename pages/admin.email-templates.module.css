@@ -79,18 +79,17 @@
 .calloutIcon {
   flex-shrink: 0;
   margin-top: 2px;
-  color: color-mix(in srgb, var(--warning), black 45%);
+  color: var(--warning-text);
 }
 
-/* The shared warning Badge uses a near-black foreground that washes out on a
-   dark surface, so the wiring badge sets its own readable text color. */
+/* The hardcoded wiring badge sets the themed warning text itself. */
 .wiringBadge {
   gap: 4px;
   white-space: nowrap;
 }
 
 .wiringBadgeHardcoded {
-  color: color-mix(in srgb, var(--warning), black 45%);
+  color: var(--warning-text);
 }
 
 .calloutNeutral .calloutIcon {

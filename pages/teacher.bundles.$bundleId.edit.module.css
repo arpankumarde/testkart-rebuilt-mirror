@@ -48,7 +48,7 @@
   height: 3.25rem;
   border-radius: var(--radius-full);
   background-color: color-mix(in srgb, var(--error) 12%, transparent);
-  color: color-mix(in srgb, var(--error), black 20%);
+  color: var(--error-text);
 }
 
 .errorTitle {

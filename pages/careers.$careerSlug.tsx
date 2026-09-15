@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet";
-import DOMPurify from "dompurify";
+import { sanitizeHtml } from "../helpers/sanitizeHtml";
 import { z } from "zod";
 import { useCareerDetailsQuery, useApplyMutation } from "../helpers/useCareersQuery";
 import { wrapContentTables } from "../helpers/contentTables";
 import { schema as applySchema } from "../endpoints/careers/apply_POST.schema";
 import { Badge } from "../components/Badge";
 import { Button } from "../components/Button";
+import { ShareButton } from "../components/ShareButton";
+import { PUBLIC_PAGE_SHARE_CAMPAIGN } from "../helpers/shareLinks";
 import { Skeleton } from "../components/Skeleton";
 import { Input } from "../components/Input";
 import { Textarea } from "../components/Textarea";
@@ -222,23 +224,31 @@ const CareerDetailPage: React.FC = () => {
                 )}
               </div>
 
-              <div className={styles.jobTags}>
-                <Badge variant="secondary" className={styles.tag}>
-                  <Clock size={14} className={styles.tagIcon} />
-                  {formatEmploymentType(career.employmentType)}
-                </Badge>
-                {career.experienceLevel && (
-                  <Badge variant="outline" className={styles.tag}>
-                    <Briefcase size={14} className={styles.tagIcon} />
-                    {career.experienceLevel}
+              <div className={styles.tagsRow}>
+                <div className={styles.jobTags}>
+                  <Badge variant="secondary" className={styles.tag}>
+                    <Clock size={14} className={styles.tagIcon} />
+                    {formatEmploymentType(career.employmentType)}
                   </Badge>
-                )}
-                {career.salaryRange && (
-                  <Badge variant="success" className={styles.tag}>
-                    <Banknote size={14} className={styles.tagIcon} />
-                    {career.salaryRange}
-                  </Badge>
-                )}
+                  {career.experienceLevel && (
+                    <Badge variant="outline" className={styles.tag}>
+                      <Briefcase size={14} className={styles.tagIcon} />
+                      {career.experienceLevel}
+                    </Badge>
+                  )}
+                  {career.salaryRange && (
+                    <Badge variant="success" className={styles.tag}>
+                      <Banknote size={14} className={styles.tagIcon} />
+                      {career.salaryRange}
+                    </Badge>
+                  )}
+                </div>
+                <ShareButton
+                  kind="career"
+                  handle={career.slug}
+                  title={career.title}
+                  campaign={PUBLIC_PAGE_SHARE_CAMPAIGN}
+                />
               </div>
             </div>
 
@@ -246,7 +256,7 @@ const CareerDetailPage: React.FC = () => {
               <h2 className={styles.sectionHeading}>About the Role</h2>
               <div
                 className={styles.richContent}
-                dangerouslySetInnerHTML={{ __html: wrapContentTables(DOMPurify.sanitize(career.description)) }}
+                dangerouslySetInnerHTML={{ __html: wrapContentTables(sanitizeHtml(career.description)) }}
               />
             </div>
 
@@ -255,7 +265,7 @@ const CareerDetailPage: React.FC = () => {
                 <h2 className={styles.sectionHeading}>Requirements</h2>
                 <div
                   className={styles.richContent}
-                  dangerouslySetInnerHTML={{ __html: wrapContentTables(DOMPurify.sanitize(career.requirements)) }}
+                  dangerouslySetInnerHTML={{ __html: wrapContentTables(sanitizeHtml(career.requirements)) }}
                 />
               </div>
             )}

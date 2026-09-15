@@ -193,7 +193,7 @@
 }
 
 .destructive {
-  color: var(--error);
+  color: var(--error-text);
 }
 
 @media (prefers-reduced-motion: reduce) {

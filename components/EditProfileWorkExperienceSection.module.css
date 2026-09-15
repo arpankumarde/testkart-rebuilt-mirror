@@ -115,12 +115,12 @@
 }
 
 .deleteBtn {
-  color: var(--destructive);
+  color: var(--error-text);
 }
 
 .deleteBtn:hover {
-  color: var(--destructive);
-  background-color: color-mix(in srgb, var(--destructive) 10%, transparent);
+  color: var(--error-text);
+  background-color: color-mix(in srgb, var(--error) 10%, transparent);
 }
 
 .form {
@@ -172,10 +172,10 @@
 }
 
 .error {
-  color: var(--destructive);
+  color: var(--error-text);
   padding: var(--spacing-4);
   text-align: center;
-  background-color: color-mix(in srgb, var(--destructive) 10%, transparent);
+  background-color: color-mix(in srgb, var(--error) 10%, transparent);
   border-radius: var(--radius);
 }
 

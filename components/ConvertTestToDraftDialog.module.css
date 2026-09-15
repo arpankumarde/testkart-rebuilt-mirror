@@ -1,5 +1,5 @@
 /* Same caution block as DeleteTestDialog: amber at low opacity with a solid
-   --warning-foreground body, not a tinted one. */
+   --warning-text body, not a tinted one. */
 .warning {
   display: flex;
   align-items: flex-start;
@@ -9,13 +9,13 @@
   margin-top: var(--spacing-4);
   background-color: color-mix(in srgb, var(--warning) 10%, transparent);
   border: 1px solid color-mix(in srgb, var(--warning) 20%, transparent);
-  color: var(--warning-foreground);
+  color: var(--warning-text);
 }
 
 .warningIcon {
   flex-shrink: 0;
   margin-top: 2px;
-  color: var(--warning);
+  color: var(--warning-text);
 }
 
 .warning p {

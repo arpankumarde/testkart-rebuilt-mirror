@@ -36,11 +36,11 @@
   margin: 0;
 }
 
-/* Darkened against the panel: raw --error as type runs about 3.4:1. */
+/* Themed error text: raw --error as type runs about 3.4:1 on the panel. */
 .errorState {
   text-align: center;
   padding: var(--spacing-8);
-  color: color-mix(in srgb, var(--error), black 20%);
+  color: var(--error-text);
 }
 
 .errorState h3 {
@@ -247,17 +247,17 @@
   border: 1px solid transparent;
 }
 
-/* Darkened against their own tints, where the raw tokens run about 2.5:1. */
+/* Themed status text over their own tints, where the raw tokens run about 2.5:1. */
 .reviewOption.correct {
   background-color: color-mix(in srgb, var(--success) 12%, transparent);
   border-color: color-mix(in srgb, var(--success) 35%, transparent);
-  color: color-mix(in srgb, var(--success), black 25%);
+  color: var(--success-text);
 }
 
 .reviewOption.incorrect {
   background-color: color-mix(in srgb, var(--error) 12%, transparent);
   border-color: color-mix(in srgb, var(--error) 35%, transparent);
-  color: color-mix(in srgb, var(--error), black 20%);
+  color: var(--error-text);
   text-decoration: line-through;
 }
 
@@ -268,11 +268,11 @@
 }
 
 .reviewOption.correct .optionLabel {
-  color: color-mix(in srgb, var(--success), black 25%);
+  color: var(--success-text);
 }
 
 .reviewOption.incorrect .optionLabel {
-  color: color-mix(in srgb, var(--error), black 20%);
+  color: var(--error-text);
 }
 
 .optionIcon {

@@ -144,7 +144,7 @@
 .validationMessage {
   padding: var(--spacing-4);
   background-color: color-mix(in srgb, var(--warning) 12%, var(--surface));
-  color: color-mix(in srgb, var(--warning), black 55%);
+  color: var(--warning-text);
   border: 1px solid color-mix(in srgb, var(--warning) 45%, var(--surface));
   border-radius: var(--radius);
   font-size: 0.875rem;
@@ -184,7 +184,7 @@
 }
 
 .discountValue {
-  color: color-mix(in srgb, var(--success), black 35%);
+  color: var(--success-text);
 }
 
 .priceInputItem {
@@ -195,7 +195,7 @@
   margin: 0;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: color-mix(in srgb, var(--error), black 25%);
+  color: var(--error-text);
 }
 
 .formActions {

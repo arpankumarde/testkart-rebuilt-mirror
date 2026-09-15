@@ -76,7 +76,7 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
-  color: var(--warning-foreground);
+  color: var(--warning-text);
   background-color: color-mix(in srgb, var(--warning) 10%, transparent);
   padding: var(--spacing-2);
   border-radius: var(--radius);

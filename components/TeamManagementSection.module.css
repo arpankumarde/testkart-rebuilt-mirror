@@ -133,12 +133,12 @@
   }
 
   .removeButton {
-    color: var(--error);
+    color: var(--error-text);
   }
 
   .removeButton:hover {
     background-color: color-mix(in srgb, var(--error) 10%, transparent);
-    color: var(--error);
+    color: var(--error-text);
   }
 
   .loadingList {
@@ -161,7 +161,7 @@
 
   .errorState {
     padding: var(--spacing-4);
-    color: color-mix(in srgb, var(--error), black 25%);
+    color: var(--error-text);
     background-color: color-mix(in srgb, var(--error) 10%, transparent);
     border: 1px solid color-mix(in srgb, var(--error) 30%, transparent);
     border-radius: var(--radius);
@@ -184,6 +184,6 @@
   .unauthorizedIcon {
     width: 3rem;
     height: 3rem;
-    color: color-mix(in srgb, var(--warning), black 30%);
+    color: var(--warning-text);
   }
 }

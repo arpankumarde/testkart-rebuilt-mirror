@@ -234,9 +234,14 @@ export function buildTeacherSponsoredDeductionsSql(teacherIdExpr?: TeacherIdExpr
 }
 
 /**
- * Total prize-pool deductions: already-distributed prize payouts, plus prize
- * pools locked (pending distribution) for free live tests funded from the
- * teacher's own wallet.
+ * Total prize-pool deductions:
+ *   - prize payouts already distributed,
+ *   - pools locked (pending distribution) for free live tests funded from the
+ *     teacher's own wallet,
+ *   - for paid live tests that have ended but not paid out yet, the part of
+ *     the enrollment revenue the prizes will consume: LEAST(pool, net revenue).
+ *     That revenue joins earnings once the test ends, so without this hold it
+ *     would be withdrawable before the winners are paid.
  */
 export function buildTeacherPrizeDeductionsSql(teacherIdExpr?: TeacherIdExpr) {
   return sql<{ total: string }>`(
@@ -255,6 +260,24 @@ export function buildTeacherPrizeDeductionsSql(teacherIdExpr?: TeacherIdExpr) {
           AND lt.prize_distribution_status = 'pending'
           ${teacherFilter("lt.teacher_id", teacherIdExpr)}
       ), 0)
+      +
+      COALESCE((
+        SELECT SUM(LEAST(lt.total_prize_pool, COALESCE((
+          SELECT SUM((oi.price_at_purchase - oi.discount_amount) * (1 - oi.platform_fee_percentage / 100))
+          FROM live_test_enrollments lte
+          JOIN orders o ON o.id = lte.payment_order_id
+          JOIN order_items oi ON oi.order_id = o.id
+          WHERE lte.live_test_id = lt.id
+            AND o.status = 'completed'
+            AND oi.mock_test_id IS NOT NULL
+            AND (o.payment_method IS NULL OR o.payment_method != 'teacher_sponsored')
+        ), 0)))
+        FROM live_tests lt
+        WHERE lt.prize_fund_source = 'enrollment'
+          AND lt.prize_distribution_status = 'pending'
+          AND lt.end_time <= NOW()
+          ${teacherFilter("lt.teacher_id", teacherIdExpr)}
+      ), 0)
     ) AS total
   )`;
 }
@@ -271,12 +294,14 @@ export function buildTeacherSubscriptionWalletPaymentsSql(teacherIdExpr?: Teache
 
 /**
  * The full available-balance formula, composed from the builders above:
- * netEarnings - withdrawals - sponsoredDeductions - prizeDeductions - subscriptionWalletPayments
+ * netEarnings - completed withdrawals - pending withdrawals - sponsoredDeductions
+ *   - prizeDeductions - subscriptionWalletPayments
  */
 export function buildTeacherAvailableBalanceSql(teacherIdExpr?: TeacherIdExpr) {
   return sql<{ total: string }>`(
     ${buildTeacherNetEarningsSql(teacherIdExpr)}
     - ${buildTeacherWithdrawalsSql(teacherIdExpr, "completed")}
+    - ${buildTeacherWithdrawalsSql(teacherIdExpr, "pending")}
     - ${buildTeacherSponsoredDeductionsSql(teacherIdExpr)}
     - ${buildTeacherPrizeDeductionsSql(teacherIdExpr)}
     - ${buildTeacherSubscriptionWalletPaymentsSql(teacherIdExpr)}

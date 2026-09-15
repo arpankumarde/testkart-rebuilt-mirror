@@ -1,8 +1,8 @@
 /**
  * Canonical public URLs for everything the site lets people share, and the
  * UTM-tagged links built for them. Every share surface in the app - the teacher
- * console cards, the public asset pages, the blog, knowledge base and news
- * pages, the certificate pages - routes through here and through
+ * console cards, the public asset pages, the blog, knowledge base, news and
+ * careers pages, the certificate pages - routes through here and through
  * ShareAssetDialog, so a shared Testkart link always carries the same three tags.
  *
  * UTM scheme - the standard reading of each field, so the numbers land in the
@@ -29,7 +29,8 @@ export type ShareAssetKind =
   | "help-article"
   | "certificate"
   | "exam-page"
-  | "news";
+  | "news"
+  | "career";
 
 export const SHARE_ASSET_LABELS: Record<ShareAssetKind, string> = {
   "test-series": "test series",
@@ -43,6 +44,7 @@ export const SHARE_ASSET_LABELS: Record<ShareAssetKind, string> = {
   certificate: "certificate",
   "exam-page": "page",
   news: "story",
+  career: "job",
 };
 
 /** `handle` is the slug for everything except live tests, which are routed by
@@ -73,6 +75,8 @@ export const buildPublicAssetUrl = (kind: ShareAssetKind, handle: string | numbe
       return `${SITE_ORIGIN}/certificates/${segment}`;
     case "news":
       return `${SITE_ORIGIN}/news-and-events/${segment}`;
+    case "career":
+      return `${SITE_ORIGIN}/careers/${segment}`;
   }
 };
 

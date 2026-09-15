@@ -19,7 +19,7 @@ import {
   ImageOff,
   XCircle,
 } from "lucide-react";
-import DOMPurify from "dompurify";
+import { sanitizeHtml } from "../helpers/sanitizeHtml";
 import styles from "./teacher.create-test.$testId.review.module.css";
 
 const parseJsonArray = (val: unknown): string[] => {
@@ -520,7 +520,7 @@ const Page = () => {
                     </summary>
                     <div
                       className={styles.prose}
-                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(longDescription) }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(longDescription) }}
                     />
                   </details>
                 )}

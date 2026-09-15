@@ -3,6 +3,6 @@
   background-color: color-mix(in srgb, var(--error) 10%, transparent);
   border: 1px solid var(--error);
   border-radius: var(--radius);
-  color: var(--error);
+  color: var(--error-text);
   font-weight: 500;
 }

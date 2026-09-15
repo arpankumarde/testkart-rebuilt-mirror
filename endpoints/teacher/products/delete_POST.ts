@@ -2,7 +2,7 @@ import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./delete_POST.schema";
 import superjson from "superjson";
-import { deleteFromR2 } from "../../../helpers/r2Client";
+import { deleteOwnedR2Files } from "../../../helpers/r2FileOwnership";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -79,19 +79,12 @@ export async function handle(request: Request): Promise<Response> {
       await trx.deleteFrom("digitalProducts").where("id", "=", input.id).execute();
     });
 
-    // Best-effort R2 cleanup, outside the transaction — a failed storage
-    // delete shouldn't roll back the (already-successful) DB delete.
-    const fileIdsToDelete = [
-      ...files.map((f) => f.fileId).filter((id): id is string => !!id),
-      ...(product.pdfFileId ? [product.pdfFileId] : []),
-    ];
-    for (const fileId of fileIdsToDelete) {
-      try {
-        await deleteFromR2(fileId);
-      } catch (error) {
-        console.error(`Failed to delete R2 file ${fileId} for product ${input.id}:`, error);
-      }
-    }
+    // Best-effort R2 cleanup after the DB delete: only files this teacher
+    // uploaded that no other content still uses.
+    await deleteOwnedR2Files(effectiveTeacherId, [
+      ...files.map((f) => f.fileId),
+      product.pdfFileId,
+    ]);
 
     console.log(`Digital product ${input.id} permanently deleted by teacher ${effectiveTeacherId}`);
 

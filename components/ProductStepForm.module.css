@@ -292,7 +292,7 @@
 .errorMessage {
   font-size: 0.875rem;
   font-weight: 500;
-  color: color-mix(in srgb, var(--error), black 25%);
+  color: var(--error-text);
   margin-top: var(--spacing-2);
 }
 
@@ -347,7 +347,7 @@
   height: 3.25rem;
   border-radius: var(--radius-full);
   background-color: color-mix(in srgb, var(--error) 12%, var(--surface));
-  color: color-mix(in srgb, var(--error), black 20%);
+  color: var(--error-text);
 }
 
 .loadErrorTitle {
@@ -408,12 +408,12 @@
 }
 
 .successIcon {
-  color: color-mix(in srgb, var(--success), black 25%);
+  color: var(--success-text);
   flex-shrink: 0;
 }
 
 .warningIcon {
-  color: color-mix(in srgb, var(--warning), black 35%);
+  color: var(--warning-text);
   flex-shrink: 0;
 }
 
@@ -458,7 +458,7 @@
 
 .requiredBox h4,
 .requiredBox li {
-  color: color-mix(in srgb, var(--error), black 35%);
+  color: var(--error-text);
 }
 
 .recommendedBox {
@@ -468,7 +468,7 @@
 
 .recommendedBox h4,
 .recommendedBox li {
-  color: color-mix(in srgb, var(--warning), black 55%);
+  color: var(--warning-text);
 }
 
 .actionsCard {

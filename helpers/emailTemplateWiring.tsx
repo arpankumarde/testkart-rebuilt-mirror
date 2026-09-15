@@ -30,7 +30,7 @@ export const EMAIL_TEMPLATE_WIRING: Record<string, EmailTemplateWiring> = {
   content_review_approved: { status: "live", source: "endpoints/admin/content-reviews/review_POST, approve-all_POST" },
   content_review_rejected: { status: "live", source: "endpoints/admin/content-reviews/review_POST, approve-all_POST" },
   live_test_reminder: { status: "live", source: "helpers/sendLiveTestReminder (queued task, 1h before start)" },
-  live_test_results: { status: "live", source: "endpoints/live-tests/distribute-prizes_POST" },
+  live_test_results: { status: "live", source: "helpers/liveTestPrizePayout" },
   promo_code_used: { status: "live", source: "helpers/sendOrderConfirmationEmails" },
   review_reminder: { status: "live", source: "helpers/sendReviewReminder (queued task, 24h after purchase)" },
   student_bank_details_rejected: { status: "live", source: "endpoints/admin/student-bank-details/verify_POST" },
@@ -40,7 +40,7 @@ export const EMAIL_TEMPLATE_WIRING: Record<string, EmailTemplateWiring> = {
   support_reply_to_teacher: { status: "live", source: "endpoints/admin/support/thread/reply_POST" },
   support_ticket_admin_notification: { status: "live", source: "endpoints/teacher/support/thread/create_POST" },
   verified_badge_granted: { status: "live", source: "endpoints/admin/user/toggle-verified_POST" },
-  wallet_credit_received: { status: "live", source: "endpoints/live-tests/distribute-prizes_POST" },
+  wallet_credit_received: { status: "live", source: "helpers/liveTestPrizePayout" },
   welcome_student: { status: "live", source: "endpoints/auth/register_student_POST, register_with_password_POST, helpers/sendOAuthWelcomeEmail" },
   welcome_teacher: { status: "live", source: "endpoints/auth/register_teacher_POST, helpers/sendOAuthWelcomeEmail" },
 

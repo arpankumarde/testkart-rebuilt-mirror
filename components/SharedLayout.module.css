@@ -1,14 +1,14 @@
 .layoutContainer {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  min-height: calc(100vh - var(--site-notice-offset));
   background-color: var(--background);
   color: var(--foreground);
 }
 
 .header {
   position: sticky;
-  top: 0;
+  top: var(--site-notice-offset);
   width: 100%;
   background-color: var(--surface);
   border-bottom: 1px solid var(--border);
@@ -18,7 +18,7 @@
 }
 
 .headerHidden {
-  transform: translateY(-100%);
+  transform: translateY(calc(-100% - var(--site-notice-offset)));
 }
 
 .headerContent {
@@ -313,7 +313,7 @@
 @media (max-width: 968px) {
   .header {
     position: fixed;
-    top: 0;
+    top: var(--site-notice-offset);
     left: 0;
     right: 0;
   }

@@ -2,7 +2,7 @@ import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./delete_POST.schema";
 import superjson from "superjson";
-import { deleteFromR2 } from "../../../helpers/r2Client";
+import { deleteOwnedR2Files } from "../../../helpers/r2FileOwnership";
 
 async function checkLessonOwnership(lessonId: number, teacherId: number, userRole: string): Promise<boolean> {
     if (userRole === 'admin') return true;
@@ -43,25 +43,13 @@ export async function handle(request: Request): Promise<Response> {
       return new Response(superjson.stringify({ error: "Lesson not found" }), { status: 404 });
     }
 
-    // If contentFileId exists, try to delete it from ImageKit
-    if (lesson.contentFileId) {
-      console.log(`Attempting to delete ImageKit file: ${lesson.contentFileId}`);
-      try {
-        await deleteFromR2(lesson.contentFileId);
-        console.log(`Successfully deleted ImageKit file: ${lesson.contentFileId}`);
-      } catch (error) {
-        // Log the error but don't block the database deletion
-        console.error(`Failed to delete R2 file ${lesson.contentFileId}:`, error);
-        console.log("Continuing with database deletion despite ImageKit deletion failure");
-      }
-    } else {
-      console.log(`No contentFileId found for lesson ${lessonId}, skipping ImageKit deletion`);
-    }
-
     // Delete the lesson from the database
     console.log(`Deleting lesson ${lessonId} from database`);
     await db.deleteFrom("courseLessons").where("id", "=", lessonId).execute();
     console.log(`Successfully deleted lesson ${lessonId}`);
+
+    // Then remove its file if this teacher uploaded it and nothing else uses it
+    await deleteOwnedR2Files(effectiveTeacherId, [lesson.contentFileId]);
 
     return new Response(superjson.stringify({ success: true } satisfies OutputType));
 

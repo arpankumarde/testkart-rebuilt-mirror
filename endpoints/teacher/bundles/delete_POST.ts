@@ -2,7 +2,7 @@ import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, type OutputType } from "./delete_POST.schema";
 import superjson from "superjson";
-import { deleteFromR2 } from "../../../helpers/r2Client";
+import { deleteOwnedR2Files } from "../../../helpers/r2FileOwnership";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -56,27 +56,9 @@ export async function handle(request: Request): Promise<Response> {
       }
     });
 
-    // Clean up R2 thumbnail file after successful transaction
-    if (thumbnailFileId) {
-      try {
-        await deleteFromR2(thumbnailFileId);
-        console.log(`[Bundle Delete] Successfully deleted R2 thumbnail file: ${thumbnailFileId}`);
-      } catch (error) {
-        console.error(`[Bundle Delete] Failed to delete R2 file ${thumbnailFileId}:`, error);
-        // Don't block - database deletion already succeeded
-      }
-    }
-
-    // Clean up R2 intro video file after successful transaction
-    if (introVideoFileId) {
-      try {
-        await deleteFromR2(introVideoFileId);
-        console.log(`[Bundle Delete] Successfully deleted R2 intro video file: ${introVideoFileId}`);
-      } catch (error) {
-        console.error(`[Bundle Delete] Failed to delete R2 file ${introVideoFileId}:`, error);
-        // Don't block - database deletion already succeeded
-      }
-    }
+    // After the transaction, remove the thumbnail and intro video if this
+    // teacher uploaded them and nothing else uses them
+    await deleteOwnedR2Files(effectiveTeacherId, [thumbnailFileId, introVideoFileId]);
 
     const output: OutputType = {
       success: true,

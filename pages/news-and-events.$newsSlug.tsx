@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { Helmet } from "react-helmet";
 import { Link, Navigate, useParams } from "react-router-dom";
-import DOMPurify from "dompurify";
+import { sanitizeHtml } from "../helpers/sanitizeHtml";
 import { useNewsDetailsQuery } from "../helpers/useNewsQuery";
 import { writeupToHtml, writeupToPlainText } from "../helpers/newsWriteup";
 import { renderMathInHtml } from "../helpers/renderMathInHtml";
@@ -23,12 +23,6 @@ import {
 import styles from "./news-and-events.$newsSlug.module.css";
 
 const SITE_ORIGIN = "https://testkart.in";
-
-// Same allowance as the blog article body: YouTube iframes and uploaded video.
-const SANITIZE_CONFIG = {
-  ADD_TAGS: ["iframe"],
-  ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "controls", "playsinline", "preload", "poster"],
-};
 
 const formatDate = (value: Date) =>
   new Intl.DateTimeFormat("en-IN", {
@@ -53,7 +47,7 @@ const NewsDetailPage: React.FC = () => {
   const writeupHtml = useMemo(
     () =>
       writeup
-        ? renderMathInHtml(DOMPurify.sanitize(writeupToHtml(writeup), SANITIZE_CONFIG))
+        ? renderMathInHtml(sanitizeHtml(writeupToHtml(writeup)))
         : "",
     [writeup]
   );

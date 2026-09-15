@@ -15,6 +15,7 @@ import { ExamContentExportButton } from "./ExamContentExportButton";
 import { PUBLIC_PAGE_SHARE_CAMPAIGN } from "../helpers/shareLinks";
 import { renderMathInHtml } from "../helpers/renderMathInHtml";
 import { wrapContentTables } from "../helpers/contentTables";
+import { sanitizeHtml } from "../helpers/sanitizeHtml";
 import "katex/dist/katex.min.css";
 import styles from "./ExamContentSiloPage.module.css";
 
@@ -160,7 +161,7 @@ export const ExamContentSiloPage: React.FC<ExamContentSiloPageProps> = ({ pageTy
         className={styles.subNav}
       />
 
-      <div className={styles.content} dangerouslySetInnerHTML={{ __html: wrapContentTables(renderMathInHtml(data.page.content || "")) }} />
+      <div className={styles.content} dangerouslySetInnerHTML={{ __html: wrapContentTables(renderMathInHtml(sanitizeHtml(data.page.content))) }} />
 
       {faqItems.length > 0 && (
         <div className={styles.faqSection}>

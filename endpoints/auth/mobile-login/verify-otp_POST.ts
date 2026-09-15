@@ -9,13 +9,23 @@ import {
 import { addTeacherToSalesContacts } from "../../../helpers/addTeacherToSalesContacts";
 import { assignUserSlug } from "../../../helpers/assignUserSlug";
 import { randomUUID } from "crypto";
-
-const MAX_ATTEMPTS = 5;
+import { getClientIp } from "../../../helpers/getClientIp";
+import {
+  checkOtpVerifyLimit,
+  claimOtpAttempt,
+  recordOtpVerifyFailure,
+} from "../../../helpers/otpVerifyGuard";
 
 export async function handle(request: Request) {
   try {
     const json = superjson.parse(await request.text());
     const { mobileNumber, otpCode, role } = schema.parse(json);
+    const ipAddress = getClientIp(request);
+
+    const limitMessage = await checkOtpVerifyLimit(mobileNumber, ipAddress);
+    if (limitMessage) {
+      return new Response(superjson.stringify({ error: limitMessage }), { status: 429 });
+    }
 
     // 1. Find the most recent, unverified OTP for this number
     const otpRecord = await db
@@ -33,7 +43,7 @@ export async function handle(request: Request) {
       );
     }
 
-    // 2. Check for expiration and max attempts
+    // 2. Check for expiration
     if (new Date() > new Date(otpRecord.expiresAt)) {
       return new Response(
         superjson.stringify({ error: "OTP has expired. Please request a new one." }),
@@ -41,20 +51,17 @@ export async function handle(request: Request) {
       );
     }
 
-    if (otpRecord.attempts >= MAX_ATTEMPTS) {
+    // 3. Use up an attempt before comparing, so parallel guesses share the limit
+    const storedCode = await claimOtpAttempt("mobile", otpRecord.id);
+    if (storedCode === null) {
       return new Response(
         superjson.stringify({ error: "Too many incorrect attempts. Please request a new OTP." }),
         { status: 400 }
       );
     }
 
-    // 3. Verify OTP code
-    if (otpRecord.otpCode !== otpCode) {
-      await db
-        .updateTable("mobileOtps")
-        .set({ attempts: otpRecord.attempts + 1 })
-        .where("id", "=", otpRecord.id)
-        .execute();
+    if (storedCode !== otpCode) {
+      await recordOtpVerifyFailure(mobileNumber, ipAddress);
       return new Response(superjson.stringify({ error: "Invalid OTP code." }), {
         status: 400,
       });

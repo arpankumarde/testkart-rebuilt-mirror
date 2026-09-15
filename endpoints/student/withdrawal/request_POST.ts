@@ -5,6 +5,7 @@ import superjson from "superjson";
 import { sendAdminNotification } from "../../../helpers/sendAdminNotification";
 import { sendTemplateEmail } from "../../../helpers/sendTemplateEmail";
 import { getStudentAvailableBalance } from "../../../helpers/getStudentAvailableBalance";
+import { lockWallet } from "../../../helpers/walletLock";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -42,45 +43,41 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
-    // Calculate Available Balance (shared formula — see getStudentAvailableBalance.tsx)
-    const { availableBalance } = await getStudentAvailableBalance(user.id);
+    // The balance check and the insert share the wallet lock with wallet
+    // purchases, so parallel requests cannot all pass against one balance.
+    const newWithdrawal = await db.transaction().execute(async (trx) => {
+      await lockWallet(trx, user.id);
 
-    if (input.amount > availableBalance) {
-      return new Response(
-        superjson.stringify({
-          error: `Insufficient balance. Available to withdraw: ₹${availableBalance.toFixed(2)}`,
-        }),
-        { status: 400 }
-      );
-    }
+      const pendingWithdrawal = await trx
+        .selectFrom("studentWithdrawals")
+        .where("studentId", "=", user.id)
+        .where("status", "=", "pending")
+        .select("id")
+        .executeTakeFirst();
 
-    // Check if there's already a pending withdrawal
-    const pendingWithdrawal = await db
-      .selectFrom("studentWithdrawals")
-      .where("studentId", "=", user.id)
-      .where("status", "=", "pending")
-      .select("id")
-      .executeTakeFirst();
+      if (pendingWithdrawal) {
+        throw new Error("You already have a pending withdrawal request.");
+      }
 
-    if (pendingWithdrawal) {
-      return new Response(
-        superjson.stringify({ error: "You already have a pending withdrawal request." }),
-        { status: 400 }
-      );
-    }
+      // Shared formula - see getStudentAvailableBalance.tsx
+      const { availableBalance } = await getStudentAvailableBalance(user.id, trx);
 
-    // Create Request
-    const newWithdrawal = await db
-      .insertInto("studentWithdrawals")
-      .values({
-        studentId: user.id,
-        amount: input.amount.toString(),
-        status: "pending",
-        requestedDate: new Date(),
-        notes: input.notes,
-      })
-      .returningAll()
-      .executeTakeFirstOrThrow();
+      if (input.amount > availableBalance) {
+        throw new Error(`Insufficient balance. Available to withdraw: ₹${availableBalance.toFixed(2)}`);
+      }
+
+      return trx
+        .insertInto("studentWithdrawals")
+        .values({
+          studentId: user.id,
+          amount: input.amount.toString(),
+          status: "pending",
+          requestedDate: new Date(),
+          notes: input.notes,
+        })
+        .returningAll()
+        .executeTakeFirstOrThrow();
+    });
 
     sendAdminNotification("student_withdrawal", {
       userName: user.displayName,

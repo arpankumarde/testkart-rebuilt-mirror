@@ -13,6 +13,7 @@
 import superjson from "superjson";
 import type { ZodTypeAny } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
+import { db } from "./db";
 import { createServerSessionToken } from "./getSetServerSession";
 import { getServerUserSession } from "./getServerUserSession";
 import type { McpAccess } from "./mcpOauth";
@@ -98,8 +99,6 @@ import * as withdrawalListSchema from "../endpoints/teacher/withdrawal/list_GET.
 import { handle as workExperiencesList } from "../endpoints/teacher/work-experiences/list_GET";
 import * as workExperiencesListSchema from "../endpoints/teacher/work-experiences/list_GET.schema";
 
-import { handle as academyUpdate } from "../endpoints/teacher/academy/update_POST";
-import * as academyUpdateSchema from "../endpoints/teacher/academy/update_POST.schema";
 import { handle as aiGenerateAll } from "../endpoints/teacher/ai/generate-all_POST";
 import * as aiGenerateAllSchema from "../endpoints/teacher/ai/generate-all_POST.schema";
 import { handle as aiGenerateDistractors } from "../endpoints/teacher/ai/generate-distractors_POST";
@@ -374,7 +373,6 @@ const ACTIONS: Record<string, TeacherAction> = {
   "withdrawal/list": read(withdrawalList, withdrawalListSchema, "Your withdrawal requests."),
   "work-experiences/list": read(workExperiencesList, workExperiencesListSchema, "Work experience entries on your public profile."),
 
-  "academy/update": write(academyUpdate, academyUpdateSchema, "Update your academy details."),
   "ai/generate-all": write(aiGenerateAll, aiGenerateAllSchema, "AI: draft a title, descriptions, tags and price for new content from a prompt. Saves nothing."),
   "ai/generate-distractors": write(aiGenerateDistractors, aiGenerateDistractorsSchema, "AI: suggest wrong answer options for a question. Saves nothing."),
   "ai/generate-list": write(aiGenerateList, aiGenerateListSchema, "AI: suggest list items for a content field. Saves nothing."),
@@ -416,7 +414,7 @@ const ACTIONS: Record<string, TeacherAction> = {
   "products/publish": write(productsPublish, productsPublishSchema, "Publish study notes. They go live immediately."),
   "products/unpublish": write(productsUnpublish, productsUnpublishSchema, "Take study notes off sale.", CONFIRM),
   "products/update": write(productsUpdate, productsUpdateSchema, "Update study notes."),
-  "profile/update": write(profileUpdate, profileUpdateSchema, "Update your public teacher profile."),
+  "profile/update": write(profileUpdate, profileUpdateSchema, "Update your public teacher profile, including display name and academy name. Fields left out stay unchanged. Changing slug changes your public profile URL, and old links stop working."),
   "promo-codes/delete": write(promoCodesDelete, promoCodesDeleteSchema, "Delete a promo code.", CONFIRM),
   "question-bank/bulk-upload": write(questionBankBulkUpload, questionBankBulkUploadSchema, "Add many questions to your question bank at once."),
   "question-bank/create": write(questionBankCreate, questionBankCreateSchema, "Add a question to your question bank."),
@@ -440,7 +438,7 @@ const ACTIONS: Record<string, TeacherAction> = {
   "subject-sections/delete": write(subjectSectionsDelete, subjectSectionsDeleteSchema, "Delete a test subject section.", CONFIRM),
   "subject-sections/reorder": write(subjectSectionsReorder, subjectSectionsReorderSchema, "Reorder sections in a test subject."),
   "subject-sections/update": write(subjectSectionsUpdate, subjectSectionsUpdateSchema, "Update a test subject section."),
-  "subscription/subscribe": write(subscriptionSubscribe, subscriptionSubscribeSchema, "Subscribe to a plan.", CONFIRM),
+  "subscription/subscribe": write(subscriptionSubscribe, subscriptionSubscribeSchema, "Switch to a free plan. Paid plans are bought with subscription/wallet-subscribe.", CONFIRM),
   "subscription/wallet-subscribe": write(subscriptionWalletSubscribe, subscriptionWalletSubscribeSchema, "Subscribe to a plan using your wallet balance, with any remainder paid online.", CONFIRM),
   "support/thread/create": write(supportThreadCreate, supportThreadCreateSchema, "Open a support thread with the Testkart team."),
   "support/thread/reply": write(supportThreadReply, supportThreadReplySchema, "Reply in a support thread."),
@@ -661,12 +659,21 @@ export async function describeTeacherAccount(access: TeacherAccess) {
   if (session.user.role !== "teacher") {
     throw new McpTeacherToolError("This account is no longer a teacher account. Remove the connector.");
   }
+  const profile = await db
+    .selectFrom("users")
+    .select(["displayName", "academyName"])
+    .where("id", "=", session.effectiveTeacherId)
+    .executeTakeFirst();
   return {
     teacher: {
       id: session.user.id,
       displayName: session.user.displayName,
       email: session.user.email,
       mobileNumber: session.user.mobileNumber ?? null,
+    },
+    publicProfile: {
+      displayName: profile?.displayName ?? null,
+      academyName: profile?.academyName ?? null,
     },
     teamRole: session.teacherRole ?? "owner",
     actingAsTeacherId: session.effectiveTeacherId,

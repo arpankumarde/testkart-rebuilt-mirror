@@ -116,7 +116,7 @@
 }
 
 .effectiveMonthlyPrice {
-  color: var(--success);
+  color: var(--success-text);
   font-size: 0.875rem;
   font-weight: 600;
   margin-top: var(--spacing-1);

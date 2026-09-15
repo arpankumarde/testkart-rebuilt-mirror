@@ -1,5 +1,5 @@
 import React from 'react';
-import DOMPurify from 'dompurify';
+import { sanitizeHtml } from '../helpers/sanitizeHtml';
 import { LiveTestFormValues } from '../helpers/liveTestCreationFormSchema';
 import { getTotalPrizePool, sortPrizeTiers } from '../helpers/liveTestPrizeTiers';
 import type { LiveTestEditableStep } from '../helpers/liveTestFormValues';
@@ -167,7 +167,7 @@ export const LiveTestReviewStep: React.FC<LiveTestReviewStepProps> = ({
       <div className={styles.descriptionBlock}>
         <strong>Description:</strong>
         {plainText(values.description) || /<img\b/i.test(values.description ?? '') ? (
-          <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(values.description ?? '') }} />
+          <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(values.description) }} />
         ) : (
           <span> Not set</span>
         )}

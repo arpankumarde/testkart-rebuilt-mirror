@@ -70,9 +70,9 @@
   flex-shrink: 0;
 }
 
-/* Darkened against the tile: the raw tokens land near 2.8:1. */
+/* Themed success text on the tile: raw --success lands near 2.8:1. */
 .statIconCredit {
-  color: color-mix(in srgb, var(--success), black 25%);
+  color: var(--success-text);
 }
 
 .statIconDebit {
@@ -176,7 +176,7 @@
 }
 
 .amountCredit {
-  color: color-mix(in srgb, var(--success), black 25%);
+  color: var(--success-text);
 }
 
 .amountDebit {

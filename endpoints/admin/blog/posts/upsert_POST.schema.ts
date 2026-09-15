@@ -18,6 +18,8 @@ export const schema = z.object({
   ogImage: z.string().nullable().optional(),
   isFeatured: z.boolean().default(false),
   tags: z.array(z.string()).default([]),
+  // Omit to keep the current author; a new post defaults to the signed-in admin
+  authorId: z.number().int().positive().optional(),
 });
 
 export type InputType = z.infer<typeof schema>;

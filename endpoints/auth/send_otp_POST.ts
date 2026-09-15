@@ -6,9 +6,10 @@ import { sendSMS } from "../../helpers/sendSMS";
 import { NotAuthenticatedError } from "../../helpers/getSetServerSession";
 import { getClientIp } from "../../helpers/getClientIp";
 import { checkOtpRateLimit } from "../../helpers/otpRateLimit";
+import { generateOtpCode } from "../../helpers/otpVerifyGuard";
 
 function generateOtp(): string {
-  return Math.floor(1000 + Math.random() * 9000).toString();
+  return generateOtpCode(4);
 }
 
 function normalizeMobileNumber(mobile: string): string {

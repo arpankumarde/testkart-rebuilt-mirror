@@ -4,13 +4,14 @@ import { getUploaderSession } from "../../../helpers/getUploaderSession";
 import { createMultipartUpload, getPresignedPartUrl, getPublicUrl } from "../../../helpers/r2Client";
 import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
 import { validateUploadSize, validateUploadType } from "../../../helpers/uploadSizeValidation";
+import { recordUploadedFile } from "../../../helpers/r2FileOwnership";
 
 const PART_SIZE = 50 * 1024 * 1024; // 50 MB
 
 export async function handle(request: Request) {
   try {
     // Requires a logged-in user (teacher/student) or a logged-in admin
-    await getUploaderSession(request);
+    const session = await getUploaderSession(request);
 
     const json = superjson.parse(await request.text());
     const validatedInput = schema.parse(json);
@@ -53,6 +54,9 @@ export async function handle(request: Request) {
     }
 
     const publicUrl = getPublicUrl(key);
+
+    // Recorded so only this uploader can later delete the key
+    await recordUploadedFile(key, session.kind === "user" ? session.ownerUserId : null);
 
     return new Response(superjson.stringify({ uploadId, key, publicUrl, parts } satisfies OutputType), {
       status: 200,

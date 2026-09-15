@@ -23,8 +23,8 @@
   border-radius: var(--radius-md);
 }
 
-/* A tinted circle carrying a darkened glyph, as on every other console error
-   state. Raw --error runs about 3.4:1 on this panel. */
+/* A tinted circle carrying a themed error glyph, as on every other console
+   error state. Raw --error runs about 3.4:1 on this panel. */
 .errorIcon {
   display: flex;
   align-items: center;
@@ -34,7 +34,7 @@
   margin-bottom: var(--spacing-1);
   border-radius: var(--radius-full);
   background-color: color-mix(in srgb, var(--error) 12%, transparent);
-  color: color-mix(in srgb, var(--error), black 20%);
+  color: var(--error-text);
 }
 
 .errorContainer h2 {

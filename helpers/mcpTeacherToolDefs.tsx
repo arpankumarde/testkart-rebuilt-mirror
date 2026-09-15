@@ -11,7 +11,7 @@ import type { ToolDefinition } from "./mcpServer";
 import { teacherActionNames } from "./mcpTeacherActions";
 
 export const TEACHER_SERVER_NAME = "testkart-teacher";
-export const TEACHER_SERVER_VERSION = "1.1.0";
+export const TEACHER_SERVER_VERSION = "1.2.0";
 
 export const TEACHER_SERVER_INSTRUCTIONS = `Operates a Testkart teacher account as the signed-in teacher.
 
@@ -74,8 +74,9 @@ export function buildTeacherToolDefinitions(): ToolDefinition[] {
     {
       name: "teacher_whoami",
       description:
-        "Show the Testkart teacher account this connection acts as, including whether it is a team " +
-        "manager working on an owner's account or an admin impersonating the teacher.",
+        "Show the Testkart teacher account this connection acts as, its public display name and " +
+        "academy name, and whether it is a team manager working on an owner's account or an admin " +
+        "impersonating the teacher.",
       inputSchema: { type: "object", properties: {}, additionalProperties: false },
       annotations: { readOnlyHint: true },
     },

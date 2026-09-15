@@ -40,7 +40,7 @@
 }
 
 .required {
-  color: var(--error);
+  color: var(--error-text);
   margin-left: 2px;
 }
 
@@ -97,25 +97,25 @@
 
 .success {
   background-color: color-mix(in srgb, var(--success) 10%, transparent);
-  color: var(--success);
+  color: var(--success-text);
   border: 1px solid color-mix(in srgb, var(--success) 20%, transparent);
 }
 
 .info {
   background-color: color-mix(in srgb, var(--info) 10%, transparent);
-  color: var(--info);
+  color: var(--info-text);
   border: 1px solid color-mix(in srgb, var(--info) 20%, transparent);
 }
 
 .warning {
   background-color: color-mix(in srgb, var(--warning) 10%, transparent);
-  color: var(--warning-foreground);
+  color: var(--warning-text);
   border: 1px solid color-mix(in srgb, var(--warning) 20%, transparent);
 }
 
 .error {
   background-color: color-mix(in srgb, var(--error) 10%, transparent);
-  color: var(--error);
+  color: var(--error-text);
   border: 1px solid color-mix(in srgb, var(--error) 20%, transparent);
 }
 

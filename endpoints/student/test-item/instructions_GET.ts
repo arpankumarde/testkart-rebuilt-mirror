@@ -4,6 +4,7 @@ import superjson from 'superjson';
 import { ZodError } from "zod";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { hasStudentAccessToTestItem } from "../../../helpers/hasStudentPurchasedTestItem";
+import { getLiveTestForTestItem } from "../../../helpers/liveTestAttemptWindow";
 
 export async function handle(request: Request): Promise<Response> {
   const url = new URL(request.url);
@@ -53,10 +54,11 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     let hasAccess = false;
-    if (itemResult.isFree) {
-      hasAccess = true;
-    } else if (studentId) {
+    if (studentId) {
       hasAccess = await hasStudentAccessToTestItem(studentId, validatedInput.testItemId);
+    } else if (itemResult.isFree) {
+      // A live test paper needs a live test enrollment, whatever its isFree flag says
+      hasAccess = !(await getLiveTestForTestItem(validatedInput.testItemId));
     }
 
     // If test is not published, forbid access unless they still hold actual enrollment/access.

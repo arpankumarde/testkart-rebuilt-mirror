@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
-import DOMPurify from 'dompurify';
+import { sanitizeHtml } from '../helpers/sanitizeHtml';
 import { z } from 'zod';
 import { ChevronRight, Clock, Calendar, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { toast } from 'sonner';
@@ -154,7 +154,7 @@ export default function BlogPostDetail() {
   // "mutate el.id in a useEffect" approach (those ids never survived).
   const { html: articleHtml, headings } = useMemo(() => {
     if (!post?.content) return { html: '', headings: [] as { id: string, text: string, level: number }[] };
-    const sanitized = DOMPurify.sanitize(post.content, { ADD_TAGS: ["iframe"], ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "controls", "playsinline", "preload", "poster"] });
+    const sanitized = sanitizeHtml(post.content);
     return extractHeadingsWithIds(sanitized);
   }, [post?.content]);
 
