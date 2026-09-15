@@ -55,7 +55,8 @@ export const MobileOTPLoginForm: React.FC<MobileOTPLoginFormProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [mobileNumber, setMobileNumber] = useState("");
   const [resendTimer, setResendTimer] = useState(0);
-  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileReady, setTurnstileReady] = useState(false);
+  const [awaitingToken, setAwaitingToken] = useState(false);
 
   const { onLogin } = useAuth();
   const navigate = useNavigate();
@@ -97,6 +98,10 @@ export const MobileOTPLoginForm: React.FC<MobileOTPLoginFormProps> = ({
 
   const handleSendOtp = async (data: MobileFormData) => {
     setError(null);
+    setAwaitingToken(true);
+    // Single-use: the first send spends the token minted on load, and only a
+    // later send (a retry or resend) runs a new check.
+    const turnstileToken = await turnstileRef.current?.getToken();
     sendOtpMutation.mutate(
       { ...data, turnstileToken: turnstileToken ?? undefined },
       {
@@ -108,12 +113,7 @@ export const MobileOTPLoginForm: React.FC<MobileOTPLoginFormProps> = ({
         onError: (err) => {
           setError(err.message);
         },
-        onSettled: () => {
-          // Turnstile tokens are single-use — always get a fresh one for
-          // the next attempt (including resends).
-          setTurnstileToken(null);
-          turnstileRef.current?.reset();
-        },
+        onSettled: () => setAwaitingToken(false),
       }
     );
   };
@@ -140,19 +140,17 @@ export const MobileOTPLoginForm: React.FC<MobileOTPLoginFormProps> = ({
     handleSendOtp({ mobileNumber });
   };
 
-  const isLoading = sendOtpMutation.isPending || verifyOtpMutation.isPending;
+  const isLoading =
+    awaitingToken || sendOtpMutation.isPending || verifyOtpMutation.isPending;
 
   return (
     <div className={`${styles.container} ${className || ""}`}>
       {error && <div className={styles.errorMessage}>{error}</div>}
 
-      {/* Always mounted (both steps) so a fresh token is ready for resends
-          too — tokens are single-use and reset after every send attempt. */}
-      <TurnstileWidget
-        ref={turnstileRef}
-        onVerify={setTurnstileToken}
-        onExpire={() => setTurnstileToken(null)}
-      />
+      {/* Mounted for both steps. It mints one token on load for the first
+          send; a retry or resend asks getToken() for another, so nobody is
+          challenged twice for the same send. */}
+      <TurnstileWidget ref={turnstileRef} onVerify={() => setTurnstileReady(true)} />
 
       {step === "mobile" && (
         <Form {...mobileForm}>
@@ -176,7 +174,7 @@ export const MobileOTPLoginForm: React.FC<MobileOTPLoginFormProps> = ({
               </FormControl>
               <FormMessage />
             </FormItem>
-            <Button type="submit" disabled={isLoading || !turnstileToken} className={styles.submitButton}>
+            <Button type="submit" disabled={isLoading || !turnstileReady} className={styles.submitButton}>
               {isLoading ? (
                 <span className={styles.loadingText}>
                   <Spinner className={styles.spinner} size="sm" />
@@ -234,7 +232,7 @@ export const MobileOTPLoginForm: React.FC<MobileOTPLoginFormProps> = ({
                 type="button"
                 variant="link"
                 onClick={handleResendOtp}
-                disabled={resendTimer > 0 || isLoading || !turnstileToken}
+                disabled={resendTimer > 0 || isLoading}
                 className={styles.resendButton}
               >
                 Resend OTP

@@ -61,7 +61,8 @@ export const MobileOTPSignupForm: React.FC<MobileOTPSignupFormProps> = ({
   const [mobileNumber, setMobileNumber] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [resendTimer, setResendTimer] = useState(0);
-  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileReady, setTurnstileReady] = useState(false);
+  const [awaitingToken, setAwaitingToken] = useState(false);
 
   const { onLogin } = useAuth();
   const navigate = useNavigate();
@@ -97,6 +98,10 @@ export const MobileOTPSignupForm: React.FC<MobileOTPSignupFormProps> = ({
 
   const handleSendOtp = async (data: MobileFormData) => {
     setError(null);
+    setAwaitingToken(true);
+    // Single-use: the first send spends the token minted on load, and only a
+    // later send (a retry or resend) runs a new check.
+    const turnstileToken = await turnstileRef.current?.getToken();
     sendOtpMutation.mutate(
       { mobileNumber: data.mobileNumber, role, turnstileToken: turnstileToken ?? undefined },
       {
@@ -107,12 +112,7 @@ export const MobileOTPSignupForm: React.FC<MobileOTPSignupFormProps> = ({
           startResendTimer();
         },
         onError: (err) => setError(err.message),
-        onSettled: () => {
-          // Turnstile tokens are single-use — always get a fresh one for
-          // the next attempt (including resends).
-          setTurnstileToken(null);
-          turnstileRef.current?.reset();
-        },
+        onSettled: () => setAwaitingToken(false),
       }
     );
   };
@@ -146,8 +146,10 @@ export const MobileOTPSignupForm: React.FC<MobileOTPSignupFormProps> = ({
     );
   };
 
-  const handleResendOtp = () => {
+  const handleResendOtp = async () => {
     if (resendTimer > 0) return;
+    setAwaitingToken(true);
+    const turnstileToken = await turnstileRef.current?.getToken();
     // Re-send using the stored mobile number and display name
     sendOtpMutation.mutate(
       { mobileNumber, role, turnstileToken: turnstileToken ?? undefined },
@@ -157,27 +159,22 @@ export const MobileOTPSignupForm: React.FC<MobileOTPSignupFormProps> = ({
           setError(null);
         },
         onError: (err) => setError(err.message),
-        onSettled: () => {
-          setTurnstileToken(null);
-          turnstileRef.current?.reset();
-        },
+        onSettled: () => setAwaitingToken(false),
       }
     );
   };
 
-  const isLoading = sendOtpMutation.isPending || verifyAndRegisterMutation.isPending;
+  const isLoading =
+    awaitingToken || sendOtpMutation.isPending || verifyAndRegisterMutation.isPending;
 
   return (
     <div className={`${styles.container} ${className || ""}`}>
       {error && <div className={styles.errorMessage}>{error}</div>}
 
-      {/* Always mounted (both steps) so a fresh token is ready for resends
-          too — tokens are single-use and reset after every send attempt. */}
-      <TurnstileWidget
-        ref={turnstileRef}
-        onVerify={setTurnstileToken}
-        onExpire={() => setTurnstileToken(null)}
-      />
+      {/* Mounted for both steps. It mints one token on load for the first
+          send; a retry or resend asks getToken() for another, so nobody is
+          challenged twice for the same send. */}
+      <TurnstileWidget ref={turnstileRef} onVerify={() => setTurnstileReady(true)} />
 
       {step === "mobile" && (
         <Form {...mobileForm}>
@@ -214,7 +211,7 @@ export const MobileOTPSignupForm: React.FC<MobileOTPSignupFormProps> = ({
               </FormControl>
               <FormMessage />
             </FormItem>
-            <Button type="submit" disabled={isLoading || !turnstileToken} className={styles.submitButton}>
+            <Button type="submit" disabled={isLoading || !turnstileReady} className={styles.submitButton}>
               {isLoading ? <Spinner size="sm" /> : "Send OTP"}
             </Button>
           </form>
@@ -257,7 +254,7 @@ export const MobileOTPSignupForm: React.FC<MobileOTPSignupFormProps> = ({
                 type="button"
                 variant="link"
                 onClick={handleResendOtp}
-                disabled={resendTimer > 0 || isLoading || !turnstileToken}
+                disabled={resendTimer > 0 || isLoading}
                 className={styles.resendButton}
               >
                 Resend OTP

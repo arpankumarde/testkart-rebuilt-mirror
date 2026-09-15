@@ -46,8 +46,9 @@ export default function AppTurnstilePage() {
   const theme = themeParam === "dark" || themeParam === "light" ? themeParam : "auto";
 
   useEffect(() => {
-    // The native side calls this through injectJavaScript to mint a fresh
-    // single-use token after every OTP send attempt.
+    // The native side calls this through injectJavaScript when a send needs a
+    // new single-use token: current app builds once the last token is spent,
+    // older builds after every send attempt.
     window.__tkTurnstileReset = () => widgetRef.current?.reset();
     post({ type: "ready" });
     return () => {
@@ -60,6 +61,8 @@ export default function AppTurnstilePage() {
       <TurnstileWidget
         ref={widgetRef}
         theme={theme}
+        // Released app builds wait for an expired token to refresh by itself.
+        refreshExpired="auto"
         onVerify={(token) => post({ type: "token", token })}
         onExpire={() => post({ type: "expired" })}
         onError={() => post({ type: "error" })}

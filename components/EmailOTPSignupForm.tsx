@@ -57,7 +57,8 @@ export const EmailOTPSignupForm: React.FC<EmailOTPSignupFormProps> = ({
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [resendTimer, setResendTimer] = useState(0);
-  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileReady, setTurnstileReady] = useState(false);
+  const [awaitingToken, setAwaitingToken] = useState(false);
 
   const { onLogin } = useAuth();
   const navigate = useNavigate();
@@ -91,15 +92,12 @@ export const EmailOTPSignupForm: React.FC<EmailOTPSignupFormProps> = ({
 
   const startResendTimer = () => setResendTimer(RESEND_COOLDOWN_SECONDS);
 
-  // Turnstile tokens are single-use, so every send attempt - first send or
-  // resend, success or failure - has to mint a fresh one for the next try.
-  const consumeTurnstileToken = () => {
-    setTurnstileToken(null);
-    turnstileRef.current?.reset();
-  };
-
   const handleSendOtp = async (data: EmailFormData) => {
     setError(null);
+    setAwaitingToken(true);
+    // Single-use: the first send spends the token minted on load, and only a
+    // later send (a retry or resend) runs a new check.
+    const turnstileToken = await turnstileRef.current?.getToken();
     sendOtpMutation.mutate(
       { email: data.email, role, turnstileToken: turnstileToken ?? undefined },
       {
@@ -110,7 +108,7 @@ export const EmailOTPSignupForm: React.FC<EmailOTPSignupFormProps> = ({
           startResendTimer();
         },
         onError: (err) => setError(err.message),
-        onSettled: consumeTurnstileToken,
+        onSettled: () => setAwaitingToken(false),
       }
     );
   };
@@ -144,8 +142,10 @@ export const EmailOTPSignupForm: React.FC<EmailOTPSignupFormProps> = ({
     );
   };
 
-  const handleResendOtp = () => {
+  const handleResendOtp = async () => {
     if (resendTimer > 0) return;
+    setAwaitingToken(true);
+    const turnstileToken = await turnstileRef.current?.getToken();
     // Re-send using the stored email address
     sendOtpMutation.mutate(
       { email, role, turnstileToken: turnstileToken ?? undefined },
@@ -155,24 +155,22 @@ export const EmailOTPSignupForm: React.FC<EmailOTPSignupFormProps> = ({
           setError(null);
         },
         onError: (err) => setError(err.message),
-        onSettled: consumeTurnstileToken,
+        onSettled: () => setAwaitingToken(false),
       }
     );
   };
 
-  const isLoading = sendOtpMutation.isPending || verifyAndRegisterMutation.isPending;
+  const isLoading =
+    awaitingToken || sendOtpMutation.isPending || verifyAndRegisterMutation.isPending;
 
   return (
     <div className={`${styles.container} ${className || ""}`}>
       {error && <div className={styles.errorMessage}>{error}</div>}
 
-      {/* Mounted for both steps, not just the email step: the resend button
-          needs a token too, and tokens are reset after every send attempt. */}
-      <TurnstileWidget
-        ref={turnstileRef}
-        onVerify={setTurnstileToken}
-        onExpire={() => setTurnstileToken(null)}
-      />
+      {/* Mounted for both steps. It mints one token on load for the first
+          send; a retry or resend asks getToken() for another, so nobody is
+          challenged twice for the same send. */}
+      <TurnstileWidget ref={turnstileRef} onVerify={() => setTurnstileReady(true)} />
 
       {step === "email" && (
         <Form {...emailForm}>
@@ -211,7 +209,7 @@ export const EmailOTPSignupForm: React.FC<EmailOTPSignupFormProps> = ({
             </FormItem>
             <Button
               type="submit"
-              disabled={isLoading || !turnstileToken}
+              disabled={isLoading || !turnstileReady}
               className={styles.submitButton}
             >
               {isLoading ? <Spinner size="sm" /> : "Send OTP"}
@@ -256,7 +254,7 @@ export const EmailOTPSignupForm: React.FC<EmailOTPSignupFormProps> = ({
                 type="button"
                 variant="link"
                 onClick={handleResendOtp}
-                disabled={resendTimer > 0 || isLoading || !turnstileToken}
+                disabled={resendTimer > 0 || isLoading}
                 className={styles.resendButton}
               >
                 Resend OTP
