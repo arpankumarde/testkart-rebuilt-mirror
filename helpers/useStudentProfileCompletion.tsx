@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useAuth } from "./useAuth";
+import { isPlaceholderDisplayName } from "./isPlaceholderDisplayName";
 
 /**
  * Profile completion for the student console.
@@ -41,11 +42,11 @@ export const useStudentProfileCompletion = (): StudentProfileCompletion => {
     const tasks: ProfileTask[] = user
       ? [
           {
-            key: "photo",
-            label: "Add a profile photo",
-            hint: "Upload a picture for your account.",
+            key: "name",
+            label: "Add your name",
+            hint: "Replace the generated name with your real one.",
             href: PROFILE_HREF,
-            done: Boolean(user.avatarUrl),
+            done: !isPlaceholderDisplayName(user.displayName),
           },
           {
             key: "email",
