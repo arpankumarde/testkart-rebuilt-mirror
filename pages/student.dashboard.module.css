@@ -311,8 +311,39 @@
 
 .playBadgeImg {
   display: block;
-  width: 148px;
-  height: auto;
+  width: auto;
+  height: 40px;
+}
+
+.playBadgeCrop {
+  display: block;
+  width: 135px;
+  height: 40px;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.playBadgeImgCropped {
+  display: block;
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: 156px;
+  height: 61px;
+  max-width: none;
+}
+
+.indusBadgeImgDark {
+  display: none;
+}
+
+:global(.dark) .indusBadgeImgLight {
+  display: none;
+}
+
+:global(.dark) .indusBadgeImgDark {
+  display: block;
 }
 
 .appBannerClose {

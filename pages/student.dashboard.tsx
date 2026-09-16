@@ -454,10 +454,29 @@ const StudentDashboardPage: React.FC = () => {
             rel="noopener noreferrer"
             className={styles.playBadgeLink}
           >
+            <span className={styles.playBadgeCrop}>
+              <img
+                src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png"
+                alt="Get it on Google Play"
+                className={styles.playBadgeImgCropped}
+              />
+            </span>
+          </a>
+          <a
+            href="https://indusapp.store/pbmrru87"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.playBadgeLink}
+          >
             <img
-              src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png"
-              alt="Get it on Google Play"
-              className={styles.playBadgeImg}
+              src="https://docstore.indusappstore.com/public/external/developerdashboard-static/badge-black-background-english.png"
+              alt="Get it on Indus Appstore"
+              className={`${styles.playBadgeImg} ${styles.indusBadgeImgLight}`}
+            />
+            <img
+              src="https://docstore.indusappstore.com/public/external/developerdashboard-static/badge-white-background-english.png"
+              alt="Get it on Indus Appstore"
+              className={`${styles.playBadgeImg} ${styles.indusBadgeImgDark}`}
             />
           </a>
           <button
