@@ -75,15 +75,21 @@ export const getSignedDownloadUrl = async (key: string, expiresIn: number = 3600
 };
 
 /**
- * Direct backend upload to R2
+ * Direct backend upload to R2. contentDisposition, when given, is stored with the object and served with it.
  */
-export const uploadToR2 = async (key: string, body: Buffer | Uint8Array | ReadableStream, contentType: string): Promise<void> => {
+export const uploadToR2 = async (
+  key: string,
+  body: Buffer | Uint8Array | ReadableStream,
+  contentType: string,
+  contentDisposition?: string
+): Promise<void> => {
   const client = getR2Client();
   const command = new PutObjectCommand({
     Bucket: R2_BUCKET_NAME,
     Key: key,
     Body: body,
     ContentType: contentType,
+    ...(contentDisposition ? { ContentDisposition: contentDisposition } : {}),
   });
 
   await client.send(command);

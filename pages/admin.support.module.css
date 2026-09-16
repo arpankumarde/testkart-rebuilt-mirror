@@ -1,477 +1,294 @@
-/* Console page shell - see admin.transactions.module.css for the measure rule.
-   The compact thread table and cards follow admin.teachers.module.css. */
+/*
+ * The inbox fills the height under the admin header and gives the conversation
+ * the full column: the title, refresh and filters sit on top of the thread list
+ * instead of in rows above both panes.
+ */
 .page {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: minmax(19rem, 23rem) minmax(0, 1fr);
   gap: var(--spacing-4);
   width: 100%;
-  max-width: 72rem;
+  max-width: 96rem;
+  height: calc(100vh - var(--site-notice-offset) - var(--header-height));
+  min-height: 30rem;
   margin: 0 auto;
-  padding: var(--spacing-6) var(--spacing-6) var(--spacing-8);
+  padding: var(--spacing-4) var(--spacing-6);
   box-sizing: border-box;
 }
 
-.results {
-  container: results / inline-size;
-  min-width: 0;
+@supports (height: 100dvh) {
+  .page {
+    height: calc(100dvh - var(--site-notice-offset) - var(--header-height));
+  }
 }
 
-.tableContainer {
-  display: none;
+.listPane,
+.detailPane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
   background-color: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow);
-  overflow: hidden;
 }
 
-.table {
-  width: 100%;
-  table-layout: fixed;
-  border-collapse: collapse;
-}
-
-.colTeacher {
-  width: 11rem;
-}
-
-.colStatus {
-  width: 5.5rem;
-}
-
-.colDate {
-  width: 6.75rem;
-}
-
-.table th,
-.table td {
-  padding: var(--spacing-2) 0.625rem;
-  border-bottom: 1px solid var(--border);
-  text-align: left;
-  vertical-align: middle;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.table th:first-child,
-.table td:first-child {
-  padding-left: var(--spacing-4);
-}
-
-.table th:last-child,
-.table td:last-child {
-  padding-right: var(--spacing-2);
-}
-
-.table th {
-  height: 2.25rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--muted-foreground);
-  background-color: var(--muted);
-}
-
-.table td {
-  font-size: 0.8125rem;
-  line-height: 1.35;
-  color: var(--foreground);
-}
-
-.table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.clickable {
-  cursor: pointer;
-  transition: background-color var(--animation-duration-fast) ease, border-color var(--animation-duration-fast) ease;
-}
-
-.table .clickable:hover {
-  background-color: var(--muted);
-}
-
-.stack {
+.listHeader {
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  min-width: 0;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+  padding: var(--spacing-3);
+  border-bottom: 1px solid var(--border);
 }
 
-.primaryLine {
+.titleRow {
   display: flex;
   align-items: center;
-  gap: var(--spacing-1);
-  min-width: 0;
-  font-weight: 600;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  padding-left: var(--spacing-1);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
   color: var(--foreground);
 }
 
-.truncate,
-.subjectLine,
-.valueLine,
-.secondaryLine {
-  display: block;
+.refreshButton {
+  height: 2.25rem;
+}
+
+.refreshButton svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tabs {
+  display: flex;
+  gap: 2px;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 
-.subjectLine {
-  font-weight: 600;
-  color: var(--foreground);
+.tabs::-webkit-scrollbar {
+  display: none;
 }
 
-.valueLine {
-  font-variant-numeric: tabular-nums;
-}
-
-.secondaryLine {
-  font-size: 0.75rem;
-  color: var(--muted-foreground);
-}
-
-.flag {
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
   flex-shrink: 0;
+  height: 2rem;
   padding: 0 0.375rem;
-  font-size: 0.6875rem;
+  border: none;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--muted-foreground);
+  font-family: var(--font-family-base);
+  font-size: 0.8125rem;
   font-weight: 600;
-  line-height: 1.125rem;
+  cursor: pointer;
 }
 
-/* Coral as a block with ink on it - the documented pairing, 6.2:1. */
-.unreadDot {
+.tab:hover {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.tab:focus-visible,
+.unreadToggle:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 1px;
+}
+
+/* Coral as a block, matching the sidebar's active row. */
+.tabActive,
+.tabActive:hover {
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.tabCount {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  box-sizing: border-box;
   min-width: 1.125rem;
   height: 1.125rem;
   padding: 0 0.3125rem;
   border-radius: var(--radius-full);
-  background-color: var(--primary);
-  color: var(--primary-foreground);
+  background-color: var(--muted);
+  /* --muted-foreground on --muted measured 4.39:1 in light. */
+  color: var(--foreground);
   font-size: 0.6875rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
 
-.cardsContainer {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--spacing-3);
+.tabActive .tabCount,
+.unreadToggleOn .tabCount {
+  background-color: var(--tk-brand-deep);
+  color: #fff;
 }
 
-.card {
+.filterRow {
   display: flex;
-  flex-direction: column;
-  gap: var(--spacing-3);
-  min-width: 0;
-  padding: var(--spacing-3) var(--spacing-4);
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
-}
-
-.card.clickable:hover {
-  border-color: color-mix(in srgb, var(--foreground) 30%, var(--border));
-}
-
-.cardHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  align-items: center;
   gap: var(--spacing-2);
-  min-width: 0;
-  font-size: 0.875rem;
 }
 
-.cardBody {
-  min-width: 0;
-  font-size: 0.875rem;
-}
-
-.cardStats {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(5.75rem, 1fr));
-  gap: var(--spacing-2) var(--spacing-3);
-  margin: 0;
-  padding-top: var(--spacing-3);
-  border-top: 1px solid var(--border);
-}
-
-.cardStat {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
+.search {
+  position: relative;
+  flex: 1;
   min-width: 0;
 }
 
-.cardStat dt {
-  font-size: 0.75rem;
+.searchIcon {
+  position: absolute;
+  top: 50%;
+  left: var(--spacing-3);
   color: var(--muted-foreground);
+  pointer-events: none;
+  transform: translateY(-50%);
 }
 
-.cardStat dd {
-  margin: 0;
+.searchInput {
+  height: 2.25rem;
+  padding-left: 2.25rem;
   font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--foreground);
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
 }
 
-/* Chat detail view. It fills the viewport below the sticky header, minus this
-   page's own gutter. */
-.detailContainer {
-  display: flex;
-  flex-direction: column;
-  height: calc(100vh - var(--header-height) - 3.5rem);
-  background-color: var(--surface);
+.unreadToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-shrink: 0;
+  height: 2.25rem;
+  padding: 0 var(--spacing-2);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-}
-
-.detailHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-4);
-  padding: var(--spacing-3) var(--spacing-4);
-  border-bottom: 1px solid var(--border);
+  border-radius: var(--radius);
   background-color: var(--surface);
+  color: var(--foreground);
+  font-family: var(--font-family-base);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-.detailHeaderLeft {
+.unreadToggle:hover {
+  border-color: var(--tk-brand-text);
+}
+
+.unreadToggleOn {
+  border-color: var(--tk-brand-text);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.emptyDetail {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-6);
+  text-align: center;
+}
+
+.emptyIcon {
   display: flex;
   align-items: center;
-  gap: var(--spacing-3);
-  min-width: 0;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
 }
 
-.detailHeaderInfo {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-1);
-  min-width: 0;
+.emptyIconError {
+  background-color: color-mix(in srgb, var(--error) 15%, var(--surface));
+  color: var(--error-text);
 }
 
-.detailSubject {
+.emptyTitle {
+  margin: 0;
   font-family: var(--font-family-heading);
   font-size: 1.125rem;
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--foreground);
+}
+
+.emptyText {
   margin: 0;
-}
-
-.detailTeacher {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
-  font-size: 0.875rem;
-  color: var(--muted-foreground);
-  margin: 0;
-}
-
-.detailTeacherName {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-1);
-}
-
-.teacherLinkButton {
-  display: inline-flex;
-  align-items: center;
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer;
-  color: var(--muted-foreground);
-  border-radius: var(--radius-sm);
-  transition: color var(--animation-duration-fast) ease;
-}
-
-.teacherLinkButton:hover {
-  color: var(--foreground);
-}
-
-.teacherLinkButton:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus);
-}
-
-.detailHeaderActions {
-  display: flex;
-  gap: var(--spacing-2);
-  flex-shrink: 0;
-}
-
-.chatArea {
-  flex: 1;
-  overflow-y: auto;
-  padding: var(--spacing-6);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-6);
-  background-color: var(--background);
-}
-
-.chatSkeleton {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4);
-}
-
-.messageWrapper {
-  display: flex;
-  flex-direction: column;
-  max-width: 75%;
-}
-
-.messageWrapper.admin {
-  align-self: flex-end;
-  align-items: flex-end;
-}
-
-.messageWrapper.teacher {
-  align-self: flex-start;
-  align-items: flex-start;
-}
-
-.messageMeta {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  margin-bottom: var(--spacing-1);
-  font-size: 0.75rem;
-  color: var(--muted-foreground);
-}
-
-.messageSender {
-  font-weight: 600;
-}
-
-.messageBubble {
-  padding: var(--spacing-3) var(--spacing-4);
-  border-radius: var(--radius-lg);
+  max-width: 24rem;
   font-size: 0.875rem;
   line-height: 1.5;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.messageWrapper.admin .messageBubble {
-  background-color: var(--primary);
-  color: var(--primary-foreground);
-  border-bottom-right-radius: var(--radius-sm);
-}
-
-.messageWrapper.admin .messageBubble a {
-  color: inherit;
-  text-decoration: underline;
-}
-
-.messageWrapper.teacher .messageBubble {
-  background-color: var(--surface);
-  color: var(--foreground);
-  border: 1px solid var(--border);
-  border-bottom-left-radius: var(--radius-sm);
-}
-
-/* --primary as a link on white runs about 2.1:1; --tk-brand-text is the
-   surface-relative orange meant for type. */
-.messageWrapper.teacher .messageBubble a {
-  color: var(--tk-brand-text);
-  text-decoration: underline;
-}
-
-.replyContainer {
-  padding: var(--spacing-3) var(--spacing-4);
-  border-top: 1px solid var(--border);
-  background-color: var(--surface);
-}
-
-.closedNote {
-  margin: 0;
-  text-align: center;
-  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
-.replyForm {
+.detailSkeleton {
   display: flex;
+  flex-direction: column;
   gap: var(--spacing-3);
-  align-items: flex-end;
+  padding: var(--spacing-4);
 }
 
-.replyInputWrapper {
-  flex: 1;
+/* One pane at a time: the list, or the thread you opened. */
+@media (max-width: 900px) {
+  .page {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .threadOpen .listPane,
+  .page:not(.threadOpen) .detailPane {
+    display: none;
+  }
 }
 
-.replyField {
-  margin-bottom: 0;
-}
-
-.replyTextarea {
-  min-height: 3rem;
-}
-
+/* Keeps the 16px text Input sets on phones, so iOS does not zoom into the field. */
 @media (max-width: 768px) {
-  .detailHeader {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .detailHeaderActions {
-    width: 100%;
-  }
-
-  .detailHeaderActions button {
-    flex: 1;
-  }
-
-  .messageWrapper {
-    max-width: 90%;
-  }
-
-  .replyForm {
-    flex-direction: column;
-    align-items: stretch;
+  .searchInput {
+    font-size: 16px;
   }
 }
 
 @media (max-width: 640px) {
   .page {
-    padding: var(--spacing-4);
-  }
-}
-
-@container results (min-width: 40rem) {
-  .cardsContainer {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-/* The three fixed columns take 23.25rem; 48rem leaves the Subject column at least 24.75rem. */
-@container results (min-width: 48rem) {
-  .tableContainer {
-    display: block;
+    padding: var(--spacing-2);
   }
 
-  .cardsContainer {
-    display: none;
+  /* Input raises itself to 44px on phones; keep the toggle level with it. */
+  .unreadToggle,
+  .searchInput {
+    height: 2.75rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .clickable,
-  .teacherLinkButton {
-    transition: none;
+  .spin {
+    animation: none;
   }
 }

@@ -2,13 +2,14 @@ import { z } from "zod";
 import superjson from 'superjson';
 import { Selectable } from "kysely";
 import { SupportMessages } from "../../../../helpers/schema";
+import type { SupportAttachment } from "../../../../helpers/supportAttachmentRules";
 
 export const schema = z.object({
   threadId: z.coerce.number().int().positive()
 });
 
 export type InputType = z.infer<typeof schema>;
-export type OutputType = Selectable<SupportMessages>[];
+export type OutputType = (Selectable<SupportMessages> & { attachments: SupportAttachment[] })[];
 
 export const getTeacherSupportThreadMessages = async (
   query: InputType,

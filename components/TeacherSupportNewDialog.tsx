@@ -12,7 +12,10 @@ import { Input } from "./Input";
 import { Textarea } from "./Textarea";
 import { Button } from "./Button";
 import { useCreateThreadMutation } from "../helpers/useTeacherSupport";
+import { useSupportAttachmentUploads } from "../helpers/useSupportAttachmentUploads";
 import { schema as createSchema, InputType } from "../endpoints/teacher/support/thread/create_POST.schema";
+import { postTeacherSupportAttachmentUpload } from "../endpoints/teacher/support/attachments/upload_POST.schema";
+import { SupportAttachButton, SupportPendingAttachments } from "./SupportAttachments";
 import styles from "./TeacherSupportNewDialog.module.css";
 
 interface Props {
@@ -27,6 +30,8 @@ export const TeacherSupportNewDialog: React.FC<Props> = ({
   onSuccess,
 }) => {
   const createMutation = useCreateThreadMutation();
+  const uploads = useSupportAttachmentUploads(postTeacherSupportAttachmentUpload);
+  const { clear: clearAttachments } = uploads;
 
   const form = useForm({
     schema: createSchema,
@@ -40,12 +45,14 @@ export const TeacherSupportNewDialog: React.FC<Props> = ({
   useEffect(() => {
     if (isOpen) {
       setValues({ subject: "", message: "" });
+      clearAttachments();
     }
-  }, [isOpen, setValues]);
+  }, [isOpen, setValues, clearAttachments]);
 
   const onSubmit = async (values: InputType) => {
+    if (uploads.isUploading || uploads.hasFailed) return;
     try {
-      const newThread = await createMutation.mutateAsync(values);
+      const newThread = await createMutation.mutateAsync({ ...values, attachments: uploads.attachments });
       onSuccess(newThread.id);
     } catch (error) {
       // Toast notification handles the error
@@ -94,11 +101,26 @@ export const TeacherSupportNewDialog: React.FC<Props> = ({
               <FormMessage />
             </FormItem>
 
+            <div className={styles.attachments}>
+              <SupportPendingAttachments items={uploads.items} onRemove={uploads.remove} />
+              <div className={styles.attachRow}>
+                <SupportAttachButton
+                  onFiles={uploads.addFiles}
+                  disabled={createMutation.isPending}
+                  label="Attach files"
+                />
+                <span className={styles.attachHint}>Up to 5 files, 4 MB each</span>
+              </div>
+            </div>
+
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={createMutation.isPending}>
+              <Button
+                type="submit"
+                disabled={createMutation.isPending || uploads.isUploading || uploads.hasFailed}
+              >
                 {createMutation.isPending ? "Sending..." : "Send Message"}
               </Button>
             </DialogFooter>

@@ -9,6 +9,23 @@
   margin-top: var(--spacing-4);
 }
 
+.attachments {
+  display: flex;
+  flex-direction: column;
+}
+
+.attachRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.attachHint {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
 @media (max-width: 768px) {
   .dialogContent {
     max-width: calc(100vw - 2rem);

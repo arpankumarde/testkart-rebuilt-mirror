@@ -5,6 +5,8 @@ import superjson from 'superjson';
 import { sendTemplateEmail, ADMIN_EMAIL } from "../../../../helpers/sendTemplateEmail";
 import { sendEmail } from "../../../../helpers/sendEmail";
 import { getBrandedEmailHtml } from "../../../../helpers/emailBaseTemplate";
+import { supportMessageEmailHtml } from "../../../../helpers/supportAttachmentRules";
+import { insertSupportAttachments, verifySupportAttachments } from "../../../../helpers/supportAttachmentStorage";
 
 const TEACHER_SUPPORT_TICKETS_EMAIL = "teacher-support-tickets@testkart.in";
  
@@ -18,6 +20,8 @@ export async function handle(request: Request) {
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);
 
+    const attachments = await verifySupportAttachments(input.attachments);
+
     const thread = await db.transaction().execute(async (trx) => {
       const newThread = await trx.insertInto("supportThreads")
         .values({
@@ -28,14 +32,17 @@ export async function handle(request: Request) {
         .returningAll()
         .executeTakeFirstOrThrow();
 
-      await trx.insertInto("supportMessages")
+      const firstMessage = await trx.insertInto("supportMessages")
         .values({
           threadId: newThread.id,
           senderType: "teacher",
           senderId: effectiveTeacherId,
           messageText: input.message,
         })
-        .execute();
+        .returning("id")
+        .executeTakeFirstOrThrow();
+
+      await insertSupportAttachments(trx, firstMessage.id, attachments);
 
        return newThread;
     });
@@ -71,7 +78,7 @@ export async function handle(request: Request) {
       ],
       bodyHtml: `
         <p style="margin:0 0 8px;font-weight:600;">Message</p>
-        <div style="background-color:#ffffff;border:1px solid #E5E7EB;padding:16px;border-radius:8px;">${input.message.replace(/\n/g, '<br>')}</div>
+        ${supportMessageEmailHtml(input.message, attachments)}
       `,
       footerNote: "This is an automated notification sent from Testkart.",
     });

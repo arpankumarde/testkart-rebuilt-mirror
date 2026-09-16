@@ -5,6 +5,8 @@ import superjson from 'superjson';
 import { sendTemplateEmail, ADMIN_EMAIL } from "../../../../helpers/sendTemplateEmail";
 import { sendEmail } from "../../../../helpers/sendEmail";
 import { getBrandedEmailHtml } from "../../../../helpers/emailBaseTemplate";
+import { supportMessageEmailHtml } from "../../../../helpers/supportAttachmentRules";
+import { insertSupportAttachments, verifySupportAttachments } from "../../../../helpers/supportAttachmentStorage";
 
 const TEACHER_SUPPORT_TICKETS_EMAIL = "teacher-support-tickets@testkart.in";
  
@@ -31,6 +33,8 @@ const TEACHER_SUPPORT_TICKETS_EMAIL = "teacher-support-tickets@testkart.in";
       return new Response(superjson.stringify({ error: "Cannot reply to a closed thread" }), { status: 400 });
     }
 
+    const attachments = await verifySupportAttachments(input.attachments);
+
     const message = await db.transaction().execute(async (trx) => {
       const newMessage = await trx.insertInto("supportMessages")
         .values({
@@ -41,6 +45,8 @@ const TEACHER_SUPPORT_TICKETS_EMAIL = "teacher-support-tickets@testkart.in";
         })
         .returningAll()
         .executeTakeFirstOrThrow();
+
+      await insertSupportAttachments(trx, newMessage.id, attachments);
 
       const updates: any = {
         lastMessageAt: new Date(),
@@ -87,7 +93,7 @@ const TEACHER_SUPPORT_TICKETS_EMAIL = "teacher-support-tickets@testkart.in";
       ],
       bodyHtml: `
         <p style="margin:0 0 8px;font-weight:600;">Reply Message</p>
-        <div style="background-color:#ffffff;border:1px solid #E5E7EB;padding:16px;border-radius:8px;">${input.message.replace(/\n/g, '<br>')}</div>
+        ${supportMessageEmailHtml(input.message, attachments)}
       `,
       footerNote: "This is an automated notification sent from Testkart.",
     });
@@ -98,7 +104,7 @@ const TEACHER_SUPPORT_TICKETS_EMAIL = "teacher-support-tickets@testkart.in";
       html: htmlContent,
     }).catch(err => console.error("Failed to send support reply notification email:", err));
 
-     return new Response(superjson.stringify(message satisfies OutputType));
+     return new Response(superjson.stringify({ ...message, attachments } satisfies OutputType));
    } catch (error) {
      return new Response(superjson.stringify({ error: error instanceof Error ? error.message : "Unknown error" }), { status: 400 });
   }

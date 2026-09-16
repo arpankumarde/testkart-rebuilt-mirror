@@ -8,9 +8,16 @@ import {
   useThreadMessagesQuery,
   useReplyToThreadMutation,
 } from "../helpers/useTeacherSupport";
+import { useSupportAttachmentUploads } from "../helpers/useSupportAttachmentUploads";
 import { SupportThreadWithUnread } from "../endpoints/teacher/support/threads_GET.schema";
+import { postTeacherSupportAttachmentUpload } from "../endpoints/teacher/support/attachments/upload_POST.schema";
 import { formatMessageTime } from "../helpers/formatTime";
 import { linkifyText } from "../helpers/linkifyText";
+import {
+  SupportAttachButton,
+  SupportAttachmentList,
+  SupportPendingAttachments,
+} from "./SupportAttachments";
 import styles from "./TeacherSupportMessageView.module.css";
 
 interface Props {
@@ -29,17 +36,34 @@ export const TeacherSupportMessageView: React.FC<Props> = ({
   const messagesQuery = useThreadMessagesQuery(threadId);
   const replyMutation = useReplyToThreadMutation();
   const [replyText, setReplyText] = useState("");
+  const uploads = useSupportAttachmentUploads(postTeacherSupportAttachmentUpload);
+  const { clear: clearAttachments } = uploads;
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const canSend =
+    (replyText.trim().length > 0 || uploads.attachments.length > 0) &&
+    !uploads.isUploading &&
+    !uploads.hasFailed &&
+    !replyMutation.isPending;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messagesQuery.data]);
 
+  useEffect(() => {
+    clearAttachments();
+  }, [threadId, clearAttachments]);
+
   const handleSend = async () => {
-    if (!replyText.trim()) return;
+    if (!canSend) return;
     try {
-      await replyMutation.mutateAsync({ threadId, message: replyText.trim() });
+      await replyMutation.mutateAsync({
+        threadId,
+        message: replyText.trim(),
+        attachments: uploads.attachments,
+      });
       setReplyText("");
+      clearAttachments();
     } catch (error) {
       // Handled natively by the mutation's onError wrapper
     }
@@ -92,6 +116,7 @@ export const TeacherSupportMessageView: React.FC<Props> = ({
           <div className={styles.messageList}>
             {messagesQuery.data?.map((msg) => {
               const isYou = msg.senderType === "teacher";
+              const hasText = msg.messageText.trim() !== "";
               return (
                 <div
                   key={msg.id}
@@ -102,16 +127,22 @@ export const TeacherSupportMessageView: React.FC<Props> = ({
                   <span className={styles.senderName}>
                     {isYou ? "You" : "Admin"}
                   </span>
-                  <div
-                    className={`${styles.messageBubble} ${
-                      isYou ? styles.bubbleYou : styles.bubbleAdmin
-                    }`}
-                  >
-                    <p className={styles.messageText}>{linkifyText(msg.messageText)}</p>
-                    <span className={styles.messageTime}>
-                      {formatMessageTime(msg.createdAt)}
-                    </span>
-                  </div>
+                  {hasText && (
+                    <div
+                      className={`${styles.messageBubble} ${
+                        isYou ? styles.bubbleYou : styles.bubbleAdmin
+                      }`}
+                    >
+                      <p className={styles.messageText}>{linkifyText(msg.messageText)}</p>
+                      <span className={styles.messageTime}>
+                        {formatMessageTime(msg.createdAt)}
+                      </span>
+                    </div>
+                  )}
+                  <SupportAttachmentList attachments={msg.attachments} align={isYou ? "end" : "start"} />
+                  {!hasText && (
+                    <span className={styles.looseTime}>{formatMessageTime(msg.createdAt)}</span>
+                  )}
                 </div>
               );
             })}
@@ -124,29 +155,33 @@ export const TeacherSupportMessageView: React.FC<Props> = ({
         {thread.status === "closed" ? (
           <p className={styles.closedNote}>This thread has been closed.</p>
         ) : (
-          <div className={styles.replyInputWrapper}>
-            <Textarea
-              value={replyText}
-              onChange={(e) => setReplyText(e.target.value)}
-              placeholder="Type your message here..."
-              className={styles.replyTextarea}
-              disableResize
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
-            />
-            <Button
-              onClick={handleSend}
-              disabled={!replyText.trim() || replyMutation.isPending}
-              className={styles.sendButton}
-            >
-              {replyMutation.isPending ? "..." : <Send size={16} />}
-              <span className={styles.sendText}>Send</span>
-            </Button>
-          </div>
+          <>
+            <SupportPendingAttachments items={uploads.items} onRemove={uploads.remove} />
+            <div className={styles.replyInputWrapper}>
+              <Textarea
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                placeholder="Type your message here..."
+                className={styles.replyTextarea}
+                disableResize
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+              />
+              <SupportAttachButton onFiles={uploads.addFiles} disabled={replyMutation.isPending} />
+              <Button
+                onClick={handleSend}
+                disabled={!canSend}
+                className={styles.sendButton}
+              >
+                {replyMutation.isPending ? "..." : <Send size={16} />}
+                <span className={styles.sendText}>Send</span>
+              </Button>
+            </div>
+          </>
         )}
       </div>
     </div>

@@ -2,6 +2,7 @@ import { schema, OutputType } from "./messages_GET.schema";
 import superjson from 'superjson';
 import { db } from "../../../../helpers/db";
 import { getServerUserSession } from "../../../../helpers/getServerUserSession";
+import { loadThreadAttachments } from "../../../../helpers/supportAttachmentStorage";
 
 export async function handle(request: Request) {
   try {
@@ -38,7 +39,10 @@ export async function handle(request: Request) {
       .orderBy("createdAt", "asc")
       .execute();
 
-    return new Response(superjson.stringify(messages satisfies OutputType));
+    const attachments = await loadThreadAttachments(thread.id);
+    const output = messages.map((m) => ({ ...m, attachments: attachments.get(m.id) ?? [] }));
+
+    return new Response(superjson.stringify(output satisfies OutputType));
   } catch (error) {
     return new Response(superjson.stringify({ error: error instanceof Error ? error.message : "Unknown error" }), { status: 400 });
   }

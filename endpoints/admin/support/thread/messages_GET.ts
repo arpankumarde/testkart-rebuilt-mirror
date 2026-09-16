@@ -2,6 +2,7 @@ import { schema, OutputType } from "./messages_GET.schema";
 import superjson from 'superjson';
 import { db } from "../../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../../helpers/getAdminSession";
+import { loadThreadAttachments } from "../../../../helpers/supportAttachmentStorage";
 
 export async function handle(request: Request) {
   try {
@@ -52,6 +53,8 @@ export async function handle(request: Request) {
       .orderBy("supportMessages.createdAt", "asc")
       .execute();
 
+    const attachments = await loadThreadAttachments(thread.id);
+
     const formattedMessages = messages.map(m => ({
       id: m.id,
       threadId: m.threadId,
@@ -60,7 +63,8 @@ export async function handle(request: Request) {
       messageText: m.messageText,
       isRead: m.isRead,
       createdAt: m.createdAt,
-      senderName: m.senderType === 'teacher' ? (m.teacherName || 'Deleted account') : (m.adminName || 'Unknown Admin')
+      senderName: m.senderType === 'teacher' ? (m.teacherName || 'Deleted account') : (m.adminName || 'Unknown Admin'),
+      attachments: attachments.get(m.id) ?? [],
     }));
 
     return new Response(superjson.stringify(formattedMessages satisfies OutputType));

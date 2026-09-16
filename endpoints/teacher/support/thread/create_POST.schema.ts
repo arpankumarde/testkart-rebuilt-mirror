@@ -2,10 +2,12 @@ import { z } from "zod";
 import superjson from 'superjson';
 import { Selectable } from "kysely";
 import { SupportThreads } from "../../../../helpers/schema";
+import { supportAttachmentsInputSchema } from "../../../../helpers/supportAttachmentRules";
 
 export const schema = z.object({
   subject: z.string().min(1, "Subject is required").max(255),
   message: z.string().min(1, "Message is required"),
+  attachments: supportAttachmentsInputSchema,
 });
 
 export type InputType = z.infer<typeof schema>;

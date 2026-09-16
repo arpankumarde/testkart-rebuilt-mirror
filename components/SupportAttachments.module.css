@@ -1,0 +1,185 @@
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  max-width: 100%;
+  margin: var(--spacing-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.alignEnd {
+  justify-content: flex-end;
+}
+
+.listItem {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.imageLink {
+  display: block;
+  overflow: hidden;
+  line-height: 0;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: border-color var(--animation-duration-fast) ease;
+}
+
+.image {
+  display: block;
+  max-width: min(14rem, 100%);
+  max-height: 10rem;
+  object-fit: cover;
+}
+
+.fileCard {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 18rem;
+  padding: var(--spacing-2) var(--spacing-3) var(--spacing-2) var(--spacing-2);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--foreground);
+  text-decoration: none;
+  transition: border-color var(--animation-duration-fast) ease;
+}
+
+.imageLink:hover,
+.fileCard:hover {
+  border-color: var(--tk-brand-text);
+}
+
+.imageLink:focus-visible,
+.fileCard:focus-visible,
+.chipRemove:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.fileIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--muted);
+  color: var(--tk-brand-text);
+}
+
+.fileText,
+.chipText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.fileName,
+.chipName {
+  overflow: hidden;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileMeta,
+.chipMeta {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.pendingList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  margin: 0 0 var(--spacing-3);
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: min(18rem, 100%);
+  padding: var(--spacing-1) var(--spacing-1) var(--spacing-1) var(--spacing-3);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--foreground);
+}
+
+.chipIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--tk-brand-text);
+}
+
+.chipFailed {
+  border-color: var(--error-text);
+}
+
+.chipFailed .chipIcon,
+.chipFailed .chipMeta {
+  color: var(--error-text);
+}
+
+.chipFailed .chipMeta {
+  overflow-wrap: anywhere;
+}
+
+.chipRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--muted-foreground);
+  cursor: pointer;
+}
+
+.chipRemove:hover {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+
+  .imageLink,
+  .fileCard {
+    transition: none;
+  }
+}

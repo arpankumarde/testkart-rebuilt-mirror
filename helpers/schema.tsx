@@ -1206,6 +1206,17 @@ export interface SubscriptionTransactions {
   transactionId: string | null;
 }
 
+export interface SupportMessageAttachments {
+  contentType: string;
+  createdAt: Generated<Timestamp>;
+  fileKey: string;
+  fileName: string;
+  fileUrl: string;
+  id: Generated<number>;
+  messageId: number;
+  sizeBytes: number;
+}
+
 export interface SupportMessages {
   createdAt: Generated<Timestamp>;
   id: Generated<number>;
@@ -1567,6 +1578,7 @@ export interface DB {
   subjectSections: SubjectSections;
   subscriptionPlans: SubscriptionPlans;
   subscriptionTransactions: SubscriptionTransactions;
+  supportMessageAttachments: SupportMessageAttachments;
   supportMessages: SupportMessages;
   supportThreads: SupportThreads;
   teacherBankDetails: TeacherBankDetails;

@@ -237,6 +237,8 @@ import { handle as supportThreadCreate } from "../endpoints/teacher/support/thre
 import * as supportThreadCreateSchema from "../endpoints/teacher/support/thread/create_POST.schema";
 import { handle as supportThreadReply } from "../endpoints/teacher/support/thread/reply_POST";
 import * as supportThreadReplySchema from "../endpoints/teacher/support/thread/reply_POST.schema";
+import { handle as supportAttachmentsUpload } from "../endpoints/teacher/support/attachments/upload_POST";
+import * as supportAttachmentsUploadSchema from "../endpoints/teacher/support/attachments/upload_POST.schema";
 import { handle as teamInvite } from "../endpoints/teacher/team/invite_POST";
 import * as teamInviteSchema from "../endpoints/teacher/team/invite_POST.schema";
 import { handle as teamRemove } from "../endpoints/teacher/team/remove_POST";
@@ -440,6 +442,7 @@ const ACTIONS: Record<string, TeacherAction> = {
   "subject-sections/update": write(subjectSectionsUpdate, subjectSectionsUpdateSchema, "Update a test subject section."),
   "subscription/subscribe": write(subscriptionSubscribe, subscriptionSubscribeSchema, "Switch to a free plan. Paid plans are bought with subscription/wallet-subscribe.", CONFIRM),
   "subscription/wallet-subscribe": write(subscriptionWalletSubscribe, subscriptionWalletSubscribeSchema, "Subscribe to a plan using your wallet balance, with any remainder paid online.", CONFIRM),
+  "support/attachments/upload": write(supportAttachmentsUpload, supportAttachmentsUploadSchema, "Upload one file (base64, 4 MB at most: images, PDF, Word, Excel, PowerPoint, CSV or text) to attach to a support message. Pass the returned objects, up to 5, as attachments on support/thread/create or support/thread/reply."),
   "support/thread/create": write(supportThreadCreate, supportThreadCreateSchema, "Open a support thread with the Testkart team."),
   "support/thread/reply": write(supportThreadReply, supportThreadReplySchema, "Reply in a support thread."),
   "team/invite": write(teamInvite, teamInviteSchema, "Invite a team manager by name and 10-digit phone number.", CONFIRM),

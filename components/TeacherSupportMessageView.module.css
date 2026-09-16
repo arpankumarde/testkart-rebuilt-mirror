@@ -140,6 +140,12 @@
   color: var(--muted-foreground);
 }
 
+.looseTime {
+  margin: var(--spacing-1) var(--spacing-2) 0;
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+}
+
 .loadingState {
   display: flex;
   flex-direction: column;

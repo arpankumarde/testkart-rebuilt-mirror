@@ -1,0 +1,420 @@
+.container {
+  container: conversation / inline-size;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background-color: var(--surface);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2) var(--spacing-3);
+  flex-shrink: 0;
+  padding: var(--spacing-2) var(--spacing-3) var(--spacing-2) var(--spacing-4);
+  border-bottom: 1px solid var(--border);
+  background-color: var(--surface);
+}
+
+.back {
+  display: none;
+  flex-shrink: 0;
+  margin-left: calc(-1 * var(--spacing-2));
+}
+
+.headerMain {
+  display: flex;
+  flex: 1 1 16rem;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.subject {
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status {
+  flex-shrink: 0;
+  padding: 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  min-width: 0;
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.teacherName {
+  flex-shrink: 0;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.teacherEmail {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-2);
+  margin-left: auto;
+}
+
+.actionButton {
+  height: 2.25rem;
+}
+
+.iconButton {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.iconButton svg,
+.actionButton svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.chatWrap {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  background-color: var(--background);
+}
+
+.chat {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 var(--spacing-4) var(--spacing-3);
+}
+
+.messages,
+.day {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.dayDivider {
+  display: flex;
+  justify-content: center;
+  padding: var(--spacing-2) 0 0;
+}
+
+.dayLabel {
+  padding: 0.125rem 0.625rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background-color: var(--surface);
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.message {
+  display: flex;
+  flex-direction: column;
+  max-width: min(44rem, 82%);
+}
+
+.startsRun {
+  margin-top: var(--spacing-2);
+}
+
+.fromTeam {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.fromTeacher {
+  align-self: flex-start;
+  align-items: flex-start;
+}
+
+.sender {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin: 0 var(--spacing-1) 0.125rem;
+  font-size: 0.75rem;
+}
+
+.senderName {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.senderRole {
+  padding: 0 0.375rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--muted-foreground);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.125rem;
+}
+
+.bubble {
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius-lg);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Coral as a block with ink on it - the documented pairing, 6.2:1. */
+.fromTeam .bubble {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border-bottom-right-radius: var(--radius-sm);
+}
+
+.fromTeam .bubble a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.fromTeacher .bubble {
+  background-color: var(--surface);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-bottom-left-radius: var(--radius-sm);
+}
+
+/* --primary as a link on white runs about 2.1:1; --tk-brand-text is the
+   surface-relative orange meant for type. */
+.fromTeacher .bubble a {
+  color: var(--tk-brand-text);
+  text-decoration: underline;
+}
+
+.time {
+  margin: 0.125rem var(--spacing-1) 0;
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding-top: var(--spacing-6);
+}
+
+.noMessages {
+  margin: 0;
+  padding: var(--spacing-8) 0;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  min-height: 100%;
+  padding: var(--spacing-8) 0;
+  text-align: center;
+}
+
+.stateIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--error) 15%, var(--surface));
+  color: var(--error-text);
+}
+
+.stateText {
+  margin: 0;
+  max-width: 24rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--foreground);
+}
+
+.refreshError {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+  padding: var(--spacing-2) var(--spacing-4);
+  border-bottom: 1px solid var(--border);
+  background-color: color-mix(in srgb, var(--error) 12%, var(--surface));
+  color: var(--error-text);
+  font-size: 0.8125rem;
+}
+
+.refreshErrorText {
+  flex: 1;
+  min-width: 0;
+}
+
+.jump {
+  position: absolute;
+  bottom: var(--spacing-4);
+  left: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  height: 2.25rem;
+  padding: 0 var(--spacing-4);
+  border: 1px solid var(--tk-brand-text);
+  border-radius: var(--radius-full);
+  background-color: var(--surface);
+  color: var(--tk-brand-text);
+  font-family: var(--font-family-base);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-lg);
+  cursor: pointer;
+  transform: translateX(-50%);
+  transition: background-color var(--animation-duration-fast) ease, color var(--animation-duration-fast) ease;
+}
+
+.jump:hover {
+  background-color: var(--tk-brand-hover);
+  border-color: var(--tk-brand-hover);
+  color: var(--tk-brand-hover-foreground);
+}
+
+.jump:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.composer {
+  flex-shrink: 0;
+  padding: var(--spacing-2) var(--spacing-3);
+  border-top: 1px solid var(--border);
+  background-color: var(--surface);
+}
+
+.composerRow {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-2);
+}
+
+.textarea {
+  flex: 1;
+  min-width: 0;
+  min-height: 2.75rem;
+  max-height: 13rem;
+  padding: 0.5625rem 0.75rem;
+  font-size: 0.9375rem;
+  overflow-y: auto;
+}
+
+.composerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+}
+
+.composerActions > button:first-of-type {
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+.sendButton {
+  height: 2.75rem;
+  min-width: 6rem;
+}
+
+.closedText {
+  margin: 0;
+  padding: var(--spacing-2) 0;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+@container conversation (max-width: 36rem) {
+  .chat {
+    padding: 0 var(--spacing-2) var(--spacing-3);
+  }
+
+  .message {
+    max-width: 88%;
+  }
+}
+
+@media (max-width: 900px) {
+  .back {
+    display: inline-flex;
+  }
+}
+
+/* Keeps the 16px text Textarea sets on phones, so iOS does not zoom into the field. */
+@media (max-width: 768px) {
+  .textarea {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+
+  .jump {
+    transition: none;
+  }
+}
