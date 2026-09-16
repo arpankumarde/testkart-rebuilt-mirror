@@ -1,0 +1,206 @@
+.tracks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-6);
+}
+
+.track {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding: var(--spacing-8);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 6px solid var(--tk-brand);
+  border-radius: var(--radius-lg);
+}
+
+.trackMeta {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--tk-brand-text);
+}
+
+.trackTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: clamp(1.375rem, 0.8vw + 1.1rem, 1.75rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+
+.trackText {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+
+.unitList {
+  width: 100%;
+  margin: var(--spacing-2) 0 0;
+  padding: 0 0 0 1.75rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--foreground);
+}
+
+.unitList li {
+  padding: var(--spacing-2) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.unitList li::marker {
+  font-weight: 700;
+  color: var(--tk-brand-text);
+}
+
+.trackLink {
+  margin-top: auto;
+  padding-top: var(--spacing-3);
+  font-weight: 700;
+  color: var(--tk-brand-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.trackLink:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.about {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: var(--spacing-12);
+  align-items: start;
+}
+
+.aboutText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  max-width: 66ch;
+}
+
+.aboutText p {
+  margin: 0;
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  color: var(--foreground);
+}
+
+.facts {
+  margin: 0;
+  border-top: 2px solid var(--foreground);
+}
+
+.fact {
+  display: grid;
+  grid-template-columns: 8.5rem minmax(0, 1fr);
+  gap: var(--spacing-4);
+  padding: var(--spacing-3) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.factLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.factValue {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.method {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--spacing-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.methodStep {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding-top: var(--spacing-4);
+  border-top: 2px solid var(--foreground);
+}
+
+.methodNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand);
+  color: var(--tk-brand-ink);
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+
+.methodTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.1875rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.methodText {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+
+.channels {
+  margin-top: var(--spacing-8);
+}
+
+@media (max-width: 960px) {
+  .method {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--spacing-8) var(--spacing-6);
+  }
+}
+
+@media (max-width: 860px) {
+  .tracks,
+  .about {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .about {
+    gap: var(--spacing-8);
+  }
+
+  .track {
+    padding: var(--spacing-6);
+  }
+}
+
+@media (max-width: 520px) {
+  .method {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .fact {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--spacing-1);
+  }
+}
