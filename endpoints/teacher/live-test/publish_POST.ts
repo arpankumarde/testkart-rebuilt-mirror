@@ -28,6 +28,14 @@ export async function handle(request: Request) {
       return new Response(superjson.stringify({ error: "You do not own this live test" }), { status: 403 });
     }
 
+    // Publishing commits the prize pool against the owner's earnings.
+    if (teacherRole === "manager" && liveTest.hasPrizes) {
+      return new Response(
+        superjson.stringify({ error: "Only the account owner can publish a live test with prize money." }),
+        { status: 403 }
+      );
+    }
+
     if (liveTest.isActive) {
       return new Response(superjson.stringify({ error: "This live test is already published." }), { status: 400 });
     }

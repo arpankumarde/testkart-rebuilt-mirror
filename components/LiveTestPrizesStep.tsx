@@ -5,6 +5,7 @@ import { Input } from './Input';
 import { Checkbox } from './Checkbox';
 import { Button } from './Button';
 import { Trophy, AlertTriangle, Plus, X } from 'lucide-react';
+import { useAuth } from '../helpers/useAuth';
 import {
   PrizeTier,
   getTotalPrizePool,
@@ -24,6 +25,10 @@ interface LiveTestPrizesStepProps {
 }
 
 export const LiveTestPrizesStep: React.FC<LiveTestPrizesStepProps> = ({ values, setValues, disabled = false }) => {
+  const { authState } = useAuth();
+  // Prize money comes out of the owner's earnings, so a team manager cannot set it.
+  const isManager = authState.type === 'authenticated' && authState.user.teacherRole === 'manager';
+  const locked = disabled || isManager;
   const tiers = values.prizeTiers || [];
   const totalPrizePool = getTotalPrizePool(tiers);
   const validationError = tiers.length > 0 ? validatePrizeTiers(tiers) : null;
@@ -58,13 +63,17 @@ export const LiveTestPrizesStep: React.FC<LiveTestPrizesStepProps> = ({ values, 
             <Checkbox
               id="hasPrizes-live"
               checked={values.hasPrizes || false}
-              disabled={disabled}
+              disabled={locked}
               onChange={(e) => setValues((p) => ({ ...p, hasPrizes: e.target.checked }))}
             />
           </FormControl>
           <div className={styles.checkboxRowText}>
             <FormLabel htmlFor="hasPrizes-live">Offer Prize Money</FormLabel>
-            <FormDescription>Enable this to offer cash prizes to top performers.</FormDescription>
+            <FormDescription>
+              {isManager
+                ? "Prize money comes out of the academy's earnings, so only the account owner can set it."
+                : "Enable this to offer cash prizes to top performers."}
+            </FormDescription>
           </div>
         </div>
         <FormMessage />
@@ -95,7 +104,7 @@ export const LiveTestPrizesStep: React.FC<LiveTestPrizesStepProps> = ({ values, 
                       type="number"
                       min={1}
                       value={tier.rankFrom || ''}
-                      disabled={disabled}
+                      disabled={locked}
                       onChange={(e) =>
                         patchTier(index, { rankFrom: e.target.value === '' ? 0 : Number(e.target.value) })
                       }
@@ -104,7 +113,7 @@ export const LiveTestPrizesStep: React.FC<LiveTestPrizesStepProps> = ({ values, 
                       type="number"
                       min={1}
                       value={tier.rankTo || ''}
-                      disabled={disabled}
+                      disabled={locked}
                       onChange={(e) =>
                         patchTier(index, { rankTo: e.target.value === '' ? 0 : Number(e.target.value) })
                       }
@@ -113,7 +122,7 @@ export const LiveTestPrizesStep: React.FC<LiveTestPrizesStepProps> = ({ values, 
                       type="number"
                       min={0}
                       value={tier.amountPerRank || ''}
-                      disabled={disabled}
+                      disabled={locked}
                       onChange={(e) =>
                         patchTier(index, { amountPerRank: e.target.value === '' ? 0 : Number(e.target.value) })
                       }
@@ -122,7 +131,7 @@ export const LiveTestPrizesStep: React.FC<LiveTestPrizesStepProps> = ({ values, 
                       type="button"
                       variant="ghost"
                       size="icon-sm"
-                      disabled={disabled}
+                      disabled={locked}
                       aria-label="Remove rank range"
                       onClick={() => removeTier(index)}
                     >
@@ -133,7 +142,7 @@ export const LiveTestPrizesStep: React.FC<LiveTestPrizesStepProps> = ({ values, 
               </div>
             )}
 
-            <Button type="button" variant="outline" size="sm" disabled={disabled} onClick={addTier} className={styles.addButton}>
+            <Button type="button" variant="outline" size="sm" disabled={locked} onClick={addTier} className={styles.addButton}>
               <Plus size={14} /> Add Rank Range
             </Button>
 

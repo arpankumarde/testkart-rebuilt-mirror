@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet";
 import { useAuth } from "../helpers/useAuth";
 import { Skeleton } from "../components/Skeleton";
 import { TeacherOnboardingQuiz } from "../components/TeacherOnboardingQuiz";
+import { TeamStatusBanner } from "../components/TeamStatusBanner";
 import { BRAND_LOGO_LIGHT } from "../helpers/brandAssets";
 import styles from "./teacher.onboarding.module.css";
 
@@ -11,11 +12,11 @@ export default function TeacherOnboardingPage() {
   const { authState } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect if already onboarded
+  // Redirect if already onboarded, or a team manager, who works in the owner's academy
   useEffect(() => {
     if (authState.type === "authenticated") {
-      const user = authState.user as unknown as { onboardingCompleted?: boolean };
-      if (user.onboardingCompleted) {
+      const { onboardingCompleted, teacherRole } = authState.user;
+      if (onboardingCompleted || teacherRole === "manager") {
         navigate("/teacher/dashboard", { replace: true });
       }
     }
@@ -54,6 +55,7 @@ export default function TeacherOnboardingPage() {
         </header>
 
         <div className={styles.content}>
+          <TeamStatusBanner className={styles.teamInvites} />
           <TeacherOnboardingQuiz />
         </div>
       </div>

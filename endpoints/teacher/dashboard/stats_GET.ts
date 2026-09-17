@@ -10,7 +10,8 @@ const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Se
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    const { user, effectiveTeacherId } = await getServerUserSession(request);
+    const { user, effectiveTeacherId, teacherRole } = await getServerUserSession(request);
+    const isManager = teacherRole === "manager";
 
     if (user.role !== "teacher" && user.role !== "admin") {
       return new Response(
@@ -182,7 +183,8 @@ export async function handle(request: Request): Promise<Response> {
         lessonsCount: Number(c.lessonsCount || 0),
         price: Number(c.price || 0)
       })),
-      monthlyEarnings: earningsResult.rows.map(row => ({
+      // Team managers do not see the owner's earnings or balance.
+      monthlyEarnings: isManager ? [] : earningsResult.rows.map(row => ({
         month: MONTH_NAMES[Number(row.month) - 1] || "Unknown",
         year: Number(row.year),
         earnings: Number(row.earnings || 0)
@@ -194,7 +196,7 @@ export async function handle(request: Request): Promise<Response> {
         enrolledAt: s.enrolledAt,
         commissionAmount: Number(s.commissionAmount || 0)
       })),
-      availableBalance: balanceResult.availableBalance
+      availableBalance: isManager ? 0 : balanceResult.availableBalance
     };
 
     return new Response(superjson.stringify(output));

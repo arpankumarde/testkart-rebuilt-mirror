@@ -21,8 +21,8 @@ import { Spinner } from "./Spinner";
 import {
   useSponsorCheck,
   useSponsorEnroll,
-  useEarningsBalance,
 } from "../helpers/useTeacherSponsoredEnrollments";
+import { useAuth } from "../helpers/useAuth";
 import { useTeacherTestsQuery } from "../helpers/useTeacherTestsQuery";
 import { useTeacherCoursesQuery } from "../helpers/useTeacherCoursesQuery";
 import { useTeacherProductsQuery } from "../helpers/useTeacherProductsQuery";
@@ -77,7 +77,9 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
   const { data: coursesData, isLoading: isLoadingCourses } = useTeacherCoursesQuery();
   const { data: productsData, isLoading: isLoadingProducts } = useTeacherProductsQuery({ page: 1, limit: 100 });
   const { data: bundlesData, isLoading: isLoadingBundles } = useTeacherBundlesQuery({ page: "1", limit: "100" });
-  const { data: _balanceData } = useEarningsBalance();
+  const { authState } = useAuth();
+  const isManager =
+    authState.type === "authenticated" && authState.user.teacherRole === "manager";
 
   // Filter content
   const paidPublishedTests = teacherTests?.filter(
@@ -568,6 +570,7 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
                       availableBalance={checkData.teacher.availableBalance}
                       commissionAmount={checkData.cost.commissionAmount}
                       disabled={isEnrolling || isRedirecting}
+                      showBalanceOption={!isManager}
                     />
                   )}
                 </>

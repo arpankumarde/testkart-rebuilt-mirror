@@ -7,11 +7,19 @@ import { ZodError } from "zod";
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    const { user, effectiveTeacherId } = await getServerUserSession(request);
+    const { user, effectiveTeacherId, teacherRole } = await getServerUserSession(request);
 
     if (user.role !== "teacher" && user.role !== "admin") {
       return new Response(
         superjson.stringify({ error: "Unauthorized" }),
+        { status: 403 }
+      );
+    }
+
+    // This writes the academy owner's public profile.
+    if (teacherRole === "manager") {
+      return new Response(
+        superjson.stringify({ error: "Only the account owner can edit the public profile." }),
         { status: 403 }
       );
     }

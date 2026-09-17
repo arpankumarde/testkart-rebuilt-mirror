@@ -322,7 +322,8 @@
   transition: background-color var(--animation-duration-fast) ease;
 }
 
-.sidebarUser:hover {
+/* Only the owner's card is a link; a manager's card is a plain label. */
+a.sidebarUser:hover {
   background-color: var(--muted);
 }
 

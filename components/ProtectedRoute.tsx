@@ -60,9 +60,11 @@ const MakeProtectedRoute: (
       }
     }
 
+    // Onboarding describes an academy of one's own; a team manager works in the owner's.
     if (
       options?.checkOnboarding &&
       authState.user.role === "teacher" &&
+      authState.user.teacherRole !== "manager" &&
       !authState.user.onboardingCompleted
     ) {
       return <Navigate to="/teacher/onboarding" replace />;

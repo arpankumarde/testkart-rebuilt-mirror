@@ -7,10 +7,14 @@ import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
 
 export async function handle(request: Request) {
   try {
-    const { user, effectiveTeacherId } = await getServerUserSession(request);
+    const { user, effectiveTeacherId, teacherRole } = await getServerUserSession(request);
 
     if (user.role !== "teacher" && user.role !== "admin") {
       return new Response(superjson.stringify({ error: "Unauthorized" }), { status: 403 });
+    }
+
+    if (teacherRole === "manager") {
+      return new Response(superjson.stringify({ error: "Only account owners can access this feature" }), { status: 403 });
     }
 
     const setting = await db

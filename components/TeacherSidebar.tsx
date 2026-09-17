@@ -59,7 +59,7 @@ type TeacherNavItem = {
   label: string;
   icon: LucideIcon;
   badge?: string;
-  /** Hidden from team managers, who do not own the academy's money or plan. */
+  /** Hidden from team managers, who do not own the academy's money, plan or public profile. */
   ownerOnly?: boolean;
   /** For items that stay active across a whole flow, not just one path. */
   isActiveFor?: (pathname: string) => boolean;
@@ -119,7 +119,7 @@ const NAV_GROUPS: TeacherNavGroup[] = [
     label: 'Management',
     items: [
       { href: '/teacher/promo-codes', label: 'Promo Codes', icon: Tag },
-      { href: '/teacher/edit-profile', label: 'Profile', icon: UserCog },
+      { href: '/teacher/edit-profile', label: 'Profile', icon: UserCog, ownerOnly: true },
       { href: '/teacher/settings', label: 'Settings', icon: Settings, ownerOnly: true },
       { href: '/teacher/subscription', label: 'Subscription', icon: CreditCard, ownerOnly: true },
     ],
@@ -317,7 +317,20 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
       </nav>
 
       <div className={styles.sidebarFooter}>
-        {user && (
+        {user && isManager && (
+          <div className={styles.sidebarUser}>
+            {user.avatarUrl ? (
+              <img src={user.avatarUrl} alt="" className={styles.sidebarUserAvatar} />
+            ) : (
+              <UserCircle size={30} className={styles.sidebarUserIcon} aria-hidden="true" />
+            )}
+            <span className={styles.sidebarUserMeta}>
+              <span className={styles.sidebarUserName}>{user.displayName}</span>
+              <span className={styles.sidebarUserRole}>Manager</span>
+            </span>
+          </div>
+        )}
+        {user && !isManager && (
           <Link to="/teacher/edit-profile" className={styles.sidebarUser} onClick={handleNavigate}>
             {user.avatarUrl ? (
               <img src={user.avatarUrl} alt="" className={styles.sidebarUserAvatar} />
@@ -326,7 +339,7 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
             )}
             <span className={styles.sidebarUserMeta}>
               <span className={styles.sidebarUserName}>{user.displayName}</span>
-              <span className={styles.sidebarUserRole}>{isManager ? 'Manager' : 'Academy owner'}</span>
+              <span className={styles.sidebarUserRole}>Academy owner</span>
             </span>
           </Link>
         )}

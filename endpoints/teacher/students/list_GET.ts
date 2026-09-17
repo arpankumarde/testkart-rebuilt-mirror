@@ -31,6 +31,8 @@ export async function handle(request: Request): Promise<Response> {
       .executeTakeFirst();
 
     const hasPaidSubscription = !!paidSub;
+    // Team managers see who enrolled and whether it was paid, not how much.
+    const showAmounts = teacherRole !== "manager";
 
     // Use raw SQL UNION ALL to aggregate enrollments across all enrollment tables
     // Each branch returns the same columns:
@@ -192,7 +194,7 @@ AND o.status IN ('completed', 'refunded')
         itemTitle: row.itemTitle,
         itemType: row.itemType as TeacherStudent["itemType"],
         enrolledAt: row.enrolledAt,
-        amountPaid,
+        amountPaid: showAmounts ? amountPaid : 0,
         enrollmentType: amountPaid > 0 ? "paid" : "free",
         orderStatus: row.orderStatus || null,
       };

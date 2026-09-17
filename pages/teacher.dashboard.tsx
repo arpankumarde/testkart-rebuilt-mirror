@@ -19,6 +19,7 @@ import { TeacherOverviewEarningsChart } from "../components/TeacherOverviewEarni
 import { TeacherOverviewTopSellers } from "../components/TeacherOverviewTopSellers";
 import { TeacherOverviewRecentSales } from "../components/TeacherOverviewRecentSales";
 import { TeacherOverviewGuides } from "../components/TeacherOverviewGuides";
+import { TeamStatusBanner } from "../components/TeamStatusBanner";
 import { AiConnectorCard } from "../components/AiConnectorCard";
 import styles from "./teacher.dashboard.module.css";
 
@@ -62,6 +63,8 @@ const TeacherDashboardPage: React.FC = () => {
   const publishedCount = totals
     ? totals.publishedTests + totals.publishedCourses + totals.publishedProducts + totals.publishedBundles
     : 0;
+  // Team managers run the catalogue; the owner's earnings, sale amounts and balance stay hidden.
+  const showMoney = authState.user.teacherRole !== "manager";
 
   return (
     <>
@@ -101,44 +104,59 @@ const TeacherDashboardPage: React.FC = () => {
         )}
 
         <div className={`${styles.content} ${isFetching && data ? styles.busy : ""}`} aria-busy={isFetching}>
+          <TeamStatusBanner />
+
           <TeacherOverviewAttention attention={data?.attention} />
 
           <TeacherOverviewNextSteps user={authState.user} publishedCount={publishedCount} />
 
           <AiConnectorCard audience="teacher" />
 
-          <TeacherOverviewKpis kpis={data?.kpis} daily={daily} isLoading={isFetching} />
+          <TeacherOverviewKpis kpis={data?.kpis} daily={daily} isLoading={isFetching} showEarnings={showMoney} />
 
           <TeacherOverviewCatalogue totals={totals} />
 
-          <div className={styles.splitRow}>
-            <TeacherOverviewEarningsChart daily={daily} days={days} isLoading={isFetching} />
+          {showMoney ? (
+            <div className={styles.splitRow}>
+              <TeacherOverviewEarningsChart daily={daily} days={days} isLoading={isFetching} />
+              <TeacherOverviewGuides />
+            </div>
+          ) : (
             <TeacherOverviewGuides />
-          </div>
+          )}
 
           <div className={styles.splitRow}>
             <TeacherOverviewTopSellers
               sellers={data?.topSellers ?? []}
               days={days}
               isLoading={isFetching}
+              showEarnings={showMoney}
             />
-            <TeacherOverviewRecentSales sales={data?.recentSales ?? []} isLoading={isFetching} />
+            <TeacherOverviewRecentSales
+              sales={data?.recentSales ?? []}
+              isLoading={isFetching}
+              showAmounts={showMoney}
+            />
           </div>
 
           {totals && (
             <footer className={styles.totals} aria-label="Your totals">
-              <div className={styles.total}>
-                <span className={styles.totalValue}>{adminFormat.inr(totals.availableBalance)}</span>
-                <span className={styles.totalLabel}>available to withdraw</span>
-              </div>
+              {showMoney && (
+                <div className={styles.total}>
+                  <span className={styles.totalValue}>{adminFormat.inr(totals.availableBalance)}</span>
+                  <span className={styles.totalLabel}>available to withdraw</span>
+                </div>
+              )}
               <div className={styles.total}>
                 <span className={styles.totalValue}>{adminFormat.count(totals.students)}</span>
                 <span className={styles.totalLabel}>students all time</span>
               </div>
-              <div className={styles.total}>
-                <span className={styles.totalValue}>{adminFormat.inr(totals.lifetimeEarnings)}</span>
-                <span className={styles.totalLabel}>earned all time</span>
-              </div>
+              {showMoney && (
+                <div className={styles.total}>
+                  <span className={styles.totalValue}>{adminFormat.inr(totals.lifetimeEarnings)}</span>
+                  <span className={styles.totalLabel}>earned all time</span>
+                </div>
+              )}
             </footer>
           )}
         </div>

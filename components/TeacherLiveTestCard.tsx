@@ -12,6 +12,7 @@ import { Badge } from './Badge';
 import { ShareAssetDialog } from './ShareAssetDialog';
 import { TEACHER_CONSOLE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
 import { Placeholder } from '../helpers/placeholderImages';
+import { useAuth } from '../helpers/useAuth';
 import styles from './TeacherLiveTestCard.module.css';
 
 interface TeacherLiveTestCardProps {
@@ -57,6 +58,9 @@ export const TeacherLiveTestCard: React.FC<TeacherLiveTestCardProps> = ({
   const [isShareDialogOpen, setShareDialogOpen] = useState(false);
   const status = liveTest.status;
   const { mutate: downloadPdf, isPending: isDownloading } = useDownloadTestPdf();
+  const { authState } = useAuth();
+  // Team managers do not see the owner's revenue.
+  const showRevenue = !(authState.type === 'authenticated' && authState.user.teacherRole === 'manager');
 
   const statusInfo = useMemo((): { text: string; variant: 'default' | 'destructive' | 'outline' | 'secondary' | 'success' | 'warning'; className: string } => {
     switch (status) {
@@ -173,37 +177,39 @@ export const TeacherLiveTestCard: React.FC<TeacherLiveTestCardProps> = ({
               </Progress.Root>
             </div>
           </div>
-          <div className={styles.statItem}>
-            <div className={styles.statHeader}>
-              <IndianRupee size={14} />
-              <span>Revenue</span>
-            </div>
-            {isFree && !hasEnded ? (
-              <span className={styles.freeLabel}>Free</span>
-            ) : hasEnded ? (
-              <span className={styles.revenue}>
-                {new Intl.NumberFormat('en-IN', {
-                  style: 'currency',
-                  currency: 'INR',
-                  minimumFractionDigits: 0,
-                }).format(totalRevenue)}
-              </span>
-            ) : (
-              <div className={styles.pendingRevenue}>
-                <div className={styles.pendingRevenueAmount}>
+          {showRevenue && (
+            <div className={styles.statItem}>
+              <div className={styles.statHeader}>
+                <IndianRupee size={14} />
+                <span>Revenue</span>
+              </div>
+              {isFree && !hasEnded ? (
+                <span className={styles.freeLabel}>Free</span>
+              ) : hasEnded ? (
+                <span className={styles.revenue}>
                   {new Intl.NumberFormat('en-IN', {
                     style: 'currency',
                     currency: 'INR',
                     minimumFractionDigits: 0,
                   }).format(totalRevenue)}
+                </span>
+              ) : (
+                <div className={styles.pendingRevenue}>
+                  <div className={styles.pendingRevenueAmount}>
+                    {new Intl.NumberFormat('en-IN', {
+                      style: 'currency',
+                      currency: 'INR',
+                      minimumFractionDigits: 0,
+                    }).format(totalRevenue)}
+                  </div>
+                  <div className={styles.pendingRevenueNote}>
+                    <CheckCircle size={11} />
+                    <span>Added to wallet after test ends</span>
+                  </div>
                 </div>
-                <div className={styles.pendingRevenueNote}>
-                  <CheckCircle size={11} />
-                  <span>Added to wallet after test ends</span>
-                </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
           {liveTest.hasPrizes && liveTest.totalPrizePool > 0 && (
             <div className={styles.statItem}>
               <div className={styles.statHeader}>

@@ -10,16 +10,17 @@ import type { User } from "./User";
  * cannot use.
  *
  * A teacher who has not finished onboarding is sent to onboarding instead of
- * the dashboard, which is where TeacherRoute would bounce them anyway.
+ * the dashboard, which is where TeacherRoute would bounce them anyway. Team
+ * managers skip onboarding, since they work in the owner's academy.
  */
 export const getRoleHomePath = (
-  user: Pick<User, "role" | "onboardingCompleted">,
+  user: Pick<User, "role" | "onboardingCompleted" | "teacherRole">,
 ): string => {
   switch (user.role) {
     case "admin":
       return "/admin/dashboard";
     case "teacher":
-      return user.onboardingCompleted
+      return user.onboardingCompleted || user.teacherRole === "manager"
         ? "/teacher/dashboard"
         : "/teacher/onboarding";
     case "student":

@@ -171,7 +171,7 @@ async function checkExistingEnrollment(
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    const { user, effectiveTeacherId } = await getServerUserSession(request);
+    const { user, effectiveTeacherId, teacherRole } = await getServerUserSession(request);
 
     if (user.role !== "teacher" && user.role !== "admin") {
       return new Response(
@@ -280,9 +280,12 @@ export async function handle(request: Request): Promise<Response> {
     const commissionAmount = rawCommission * 0.95;
     const isFreeEnrollment = commissionAmount < 1;
 
-    // 5. Get Teacher's Available Balance
-    const balanceBreakdown = await getTeacherAvailableBalance(effectiveTeacherId);
-    const availableBalance = balanceBreakdown.availableBalance;
+    // 5. Get Teacher's Available Balance. Managers cannot see or spend the
+    // owner's earnings, so for them the balance is 0 and only online payment is offered.
+    const isManager = teacherRole === "manager";
+    const availableBalance = isManager
+      ? 0
+      : (await getTeacherAvailableBalance(effectiveTeacherId)).availableBalance;
 
     const hasSufficientBalance = isFreeEnrollment || availableBalance >= commissionAmount;
 

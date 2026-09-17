@@ -1,4 +1,4 @@
 import { TeacherDashboardLayout } from '../components/TeacherDashboardLayout';
-import { TeacherRoute } from '../components/ProtectedRoute';
+import { TeacherOwnerRoute } from '../components/ProtectedRoute';
 
-export default [TeacherRoute, TeacherDashboardLayout];
+export default [TeacherOwnerRoute, TeacherDashboardLayout];

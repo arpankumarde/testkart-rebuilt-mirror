@@ -69,6 +69,11 @@ export async function handle(request: Request) {
         throw new Error("You are not authorized to publish this live test.");
       }
 
+      // Publishing commits the prize pool against the owner's earnings.
+      if (teacherRole === "manager" && liveTest.hasPrizes) {
+        throw new Error("You are not authorized to publish a live test with prize money. Ask the account owner to publish it.");
+      }
+
       // 3. Idempotency check
       if (liveTest.isPublished && liveTest.isActive) {
         throw new Error("Live test is already published.");

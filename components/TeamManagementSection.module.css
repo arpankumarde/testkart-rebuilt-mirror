@@ -42,6 +42,22 @@
     margin: 0 0 var(--spacing-4) 0;
   }
 
+  .sectionHead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--spacing-2) var(--spacing-4);
+  }
+
+  .seats {
+    margin-bottom: var(--spacing-4);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--muted-foreground);
+    font-variant-numeric: tabular-nums;
+  }
+
   .formRow {
     display: flex;
     align-items: flex-start;
@@ -55,6 +71,13 @@
 
   .buttonWrapper {
     padding-top: 1.75rem; /* Align button accurately with input controls below labels */
+  }
+
+  .hint {
+    margin: var(--spacing-3) 0 0;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--muted-foreground);
   }
 
   @media (max-width: 768px) {

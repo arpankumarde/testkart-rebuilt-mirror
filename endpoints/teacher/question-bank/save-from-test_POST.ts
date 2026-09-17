@@ -33,7 +33,8 @@ export async function handle(request: Request): Promise<Response> {
       .where("testQuestions.id", "in", input.questionIds)
       .execute();
 
-    const ownedQs = testQs.filter(q => q.teacherId === user.id);
+    // A team manager's questions belong to the academy they manage.
+    const ownedQs = testQs.filter(q => q.teacherId === effectiveTeacherId);
 
     if (ownedQs.length === 0) {
       return new Response(superjson.stringify({ success: true, savedCount: 0 }));

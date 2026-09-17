@@ -168,7 +168,8 @@ export async function handle(request: Request) {
         test.enrolledCount,
         test.isActive
       ),
-      actualRevenue: revenueByLiveTestId.get(test.id) ?? 0,
+      // Team managers do not see the owner's revenue.
+      actualRevenue: teacherRole === "manager" ? 0 : revenueByLiveTestId.get(test.id) ?? 0,
       durationMinutes: durationByMockTestId.get(test.mockTestId) ?? 0,
       firstTestItemId: firstItemIdByMockTestId.get(test.mockTestId) ?? null,
       calculatorEnabled: calculatorEnabledByMockTestId.get(test.mockTestId) ?? false,

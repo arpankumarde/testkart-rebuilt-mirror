@@ -9,6 +9,8 @@ type Props = {
   sellers: TeacherTopSeller[];
   days: number;
   isLoading: boolean;
+  /** False for team managers, who do not see the owner's money. */
+  showEarnings?: boolean;
   className?: string;
 };
 
@@ -33,7 +35,7 @@ const Thumbnail = ({ seller }: { seller: TeacherTopSeller }) => {
   );
 };
 
-export const TeacherOverviewTopSellers = ({ sellers, days, isLoading, className }: Props) => {
+export const TeacherOverviewTopSellers = ({ sellers, days, isLoading, showEarnings = true, className }: Props) => {
   const showSkeleton = isLoading && sellers.length === 0;
 
   return (
@@ -67,7 +69,7 @@ export const TeacherOverviewTopSellers = ({ sellers, days, isLoading, className 
                   {seller.units === 1 ? "sale" : "sales"}
                 </span>
               </span>
-              <span className={styles.earnings}>{adminFormat.inr(seller.earnings)}</span>
+              {showEarnings && <span className={styles.earnings}>{adminFormat.inr(seller.earnings)}</span>}
             </li>
           ))}
         </ol>

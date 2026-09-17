@@ -243,7 +243,7 @@ function contentTypeLabel(contentType: ContentType): string {
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    const { user, effectiveTeacherId } = await getServerUserSession(request);
+    const { user, effectiveTeacherId, teacherRole } = await getServerUserSession(request);
 
     if (user.role !== "teacher" && user.role !== "admin") {
       return new Response(
@@ -407,6 +407,11 @@ export async function handle(request: Request): Promise<Response> {
       const rawCommissionWithDiscount = rawCommission * 0.95;
       const isFreeEnrollment = rawCommissionWithDiscount < 1;
       const commissionAmount = isFreeEnrollment ? 0 : rawCommissionWithDiscount;
+
+      // Thrown inside the transaction so a student account created above is rolled back.
+      if (teacherRole === "manager" && input.paymentMethod !== "online" && !isFreeEnrollment) {
+        throw new Error("Only the account owner can pay from earnings. Choose Pay Online instead.");
+      }
 
       return {
         studentUser,

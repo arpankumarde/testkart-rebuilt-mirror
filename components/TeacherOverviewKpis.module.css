@@ -11,6 +11,11 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+/* Team managers get no Earnings column. The narrower breakpoints below still apply. */
+.columnsThree {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .column {
   display: flex;
   flex-direction: column;

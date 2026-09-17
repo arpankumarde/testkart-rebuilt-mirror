@@ -3,6 +3,7 @@ import type { DB, LiveTests } from "./schema";
 import type { InputType as LiveTestUpdateInput } from "../endpoints/teacher/live-tests/update_POST.schema";
 import {
   getTotalPrizePool,
+  PrizeTier,
   resolveLiveTestPrizeTiers,
   sortPrizeTiers,
   tiersToLegacyPrizes,
@@ -22,6 +23,8 @@ export class LiveTestUpdateError extends Error {
 export interface LiveTestUpdateDeps {
   resolveExam: (examName: string | null) => Promise<{ examId: number | null; examName: string | null }>;
   countEnrollments: (liveTestId: number) => Promise<number>;
+  /** False for team managers: prize money comes out of the owner's earnings. */
+  canChangePrizes?: boolean;
 }
 
 const toAmount = (value: string | number | null | undefined): number => {
@@ -32,6 +35,9 @@ const toAmount = (value: string | number | null | undefined): number => {
 const fail = (message: string, status = 400): never => {
   throw new LiveTestUpdateError(message, status);
 };
+
+const tiersKey = (tiers: PrizeTier[]) =>
+  JSON.stringify(tiers.map((tier) => [tier.rankFrom, tier.rankTo, tier.amountPerRank]));
 
 /**
  * Applies a teacher's partial live test update. Only fields present in the input
@@ -60,6 +66,24 @@ export async function applyLiveTestUpdate(
     if (locked.length > 0) {
       const labels = [...new Set(locked.map((field) => LIVE_TEST_FIELD_LABELS[field]))];
       return fail(`This live test is published, so these can no longer change: ${labels.join(", ")}.`);
+    }
+  }
+
+  // The edit form sends the prize fields on every save, so compare against the
+  // stored values and only refuse an actual change.
+  if (deps.canChangePrizes === false) {
+    const storedTiers = liveTest.hasPrizes
+      ? sortPrizeTiers(
+          resolveLiveTestPrizeTiers(liveTest.prizeTiers, liveTest.firstPrize, liveTest.secondPrize, liveTest.thirdPrize)
+        )
+      : [];
+    const nextHasPrizes = input.hasPrizes ?? liveTest.hasPrizes;
+    const nextTiers = nextHasPrizes ? (input.prizeTiers ? sortPrizeTiers(input.prizeTiers) : storedTiers) : [];
+    // A prize test switching between free and paid moves its pool onto or off the owner's wallet.
+    const fundSourceFlips =
+      liveTest.hasPrizes && input.price !== undefined && (input.price === 0) !== (toAmount(liveTest.price) === 0);
+    if (nextHasPrizes !== liveTest.hasPrizes || tiersKey(nextTiers) !== tiersKey(storedTiers) || fundSourceFlips) {
+      fail("Only the account owner can set or change prize money.", 403);
     }
   }
 

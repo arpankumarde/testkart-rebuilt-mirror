@@ -67,6 +67,14 @@ export async function handle(request: Request) {
       });
     }
 
+    // The copy keeps the prize pool, which only the owner can set.
+    if (teacherRole === "manager" && sourceLiveTest.hasPrizes) {
+      return new Response(
+        superjson.stringify({ error: "Only the account owner can duplicate a live test with prize money." }),
+        { status: 403 }
+      );
+    }
+
     if (new Date(sourceLiveTest.endTime) >= new Date()) {
       return new Response(
         superjson.stringify({ error: "Only ended live tests can be duplicated" }),

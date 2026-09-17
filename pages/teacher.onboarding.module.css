@@ -61,6 +61,10 @@
   padding-bottom: var(--spacing-8);
 }
 
+.teamInvites {
+  margin-bottom: var(--spacing-6);
+}
+
 @media (max-width: 640px) {
   .content {
     padding-top: var(--spacing-6);

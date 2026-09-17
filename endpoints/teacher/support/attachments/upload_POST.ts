@@ -12,9 +12,12 @@ function reply(body: unknown, status = 200): Response {
 /** Stores a file a teacher attaches to a support message and returns its link. */
 export async function handle(request: Request) {
   try {
-    const { user } = await getServerUserSession(request);
+    const { user, teacherRole } = await getServerUserSession(request);
     if (user.role !== "teacher" && user.role !== "admin") {
       return reply({ error: "Unauthorized" }, 403);
+    }
+    if (teacherRole === "manager") {
+      return reply({ error: "Only account owners can access this feature" }, 403);
     }
     const input = schema.parse(superjson.parse(await request.text()));
     const attachment = await storeSupportAttachment(input);

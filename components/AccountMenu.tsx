@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "./DropdownMenu";
 import { LogoutConfirmDialog } from "./LogoutConfirmDialog";
+import { useAuth } from "../helpers/useAuth";
 import styles from "./AccountMenu.module.css";
 
 export type AccountMenuRole = "student" | "teacher";
@@ -20,6 +21,8 @@ type AccountMenuLink = {
   href: string;
   label: string;
   icon: LucideIcon;
+  /** Hidden from team managers; the public profile belongs to the academy owner. */
+  ownerOnly?: boolean;
 };
 
 // Labels and icons match the student and teacher sidebars.
@@ -31,7 +34,7 @@ const LINKS: Record<AccountMenuRole, AccountMenuLink[]> = {
   ],
   teacher: [
     { href: "/teacher/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/teacher/edit-profile", label: "Profile", icon: UserCog },
+    { href: "/teacher/edit-profile", label: "Profile", icon: UserCog, ownerOnly: true },
   ],
 };
 
@@ -66,6 +69,9 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
   className,
 }) => {
   const { pathname } = useLocation();
+  const { authState } = useAuth();
+  const isManager = authState.type === "authenticated" && authState.user.teacherRole === "manager";
+  const links = LINKS[role].filter((link) => !(link.ownerOnly && isManager));
   const [isLogoutOpen, setLogoutOpen] = useState(false);
   const initials = getInitials(displayName);
   const name = displayName?.trim() || ROLE_LABELS[role];
@@ -96,7 +102,7 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
             </span>
           </DropdownMenuLabel>
           <DropdownMenuSeparator className={styles.separator} />
-          {LINKS[role].map((link) => {
+          {links.map((link) => {
             const Icon = link.icon;
             const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`);
             return (

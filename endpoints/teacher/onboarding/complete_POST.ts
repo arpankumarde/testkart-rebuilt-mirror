@@ -8,11 +8,19 @@ import { User } from "../../../helpers/User";
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    const { user, effectiveTeacherId } = await getServerUserSession(request);
+    const { user, effectiveTeacherId, teacherRole } = await getServerUserSession(request);
 
     if (user.role !== "teacher" && user.role !== "admin") {
       return new Response(
         superjson.stringify({ error: "Unauthorized: teacher role required" }),
+        { status: 403 }
+      );
+    }
+
+    // These answers are written to the academy owner's account.
+    if (teacherRole === "manager") {
+      return new Response(
+        superjson.stringify({ error: "Only the account owner can complete onboarding." }),
         { status: 403 }
       );
     }

@@ -1,9 +1,13 @@
-import { schema, OutputType } from "./invite_POST.schema";
+import { schema, OutputType, MAX_TEAM_MANAGERS, TEAM_SEAT_STATUSES } from "./invite_POST.schema";
 import superjson from "superjson";
 import { getServerUserSession } from '../../../helpers/getServerUserSession';
 import { requireOwnerRole } from '../../../helpers/getTeacherContext';
 import { db } from '../../../helpers/db';
 import { generateUniqueSlug } from '../../../helpers/generateUniqueSlug';
+
+const fail = (error: string) => new Response(superjson.stringify({ error }), { status: 400 });
+const ok = (status: OutputType["status"]) =>
+  new Response(superjson.stringify({ success: true, status } satisfies OutputType));
 
 export async function handle(request: Request) {
   try {
@@ -19,22 +23,100 @@ export async function handle(request: Request) {
     const json = superjson.parse(await request.text());
     const { displayName, phone } = schema.parse(json);
 
-    // Check if phone exists anywhere in the user database
+    const seats = await db.
+    selectFrom("teacherTeamMembers").
+    select((eb) => eb.fn.countAll<string>().as("count")).
+    where("teacherId", "=", effectiveTeacherId).
+    where("status", "in", [...TEAM_SEAT_STATUSES]).
+    executeTakeFirst();
+
+    if (Number(seats?.count ?? 0) >= MAX_TEAM_MANAGERS) {
+      return fail(`Your team is full. An academy can have ${MAX_TEAM_MANAGERS} managers besides you, so remove someone before inviting another.`);
+    }
+
+    // Mobile OTP login signs in the verified holder of a number, so that is the account a member uses.
     const existingUser = await db.
     selectFrom("users").
-    select("id").
+    select(["id", "role"]).
     where("mobileNumber", "=", phone).
+    where("mobileVerified", "=", true).
     executeTakeFirst();
 
     if (existingUser) {
-      return new Response(superjson.stringify({ error: "A user with this phone number already exists." }), { status: 400 });
+      if (existingUser.id === user.id) {
+        return fail("That is your own mobile number.");
+      }
+      if (existingUser.role === "student") {
+        return fail("This number belongs to a student account. Team members need a teacher account, and switching it would cut them off from what they bought, so ask them for a different number.");
+      }
+      if (existingUser.role !== "teacher") {
+        return fail("This number cannot be added to a team.");
+      }
+
+      const previous = await db.
+      selectFrom("teacherTeamMembers").
+      select(["id", "status"]).
+      where("teacherId", "=", effectiveTeacherId).
+      where("memberUserId", "=", existingUser.id).
+      executeTakeFirst();
+
+      if (previous?.status === "active") {
+        return fail("This person is already on your team.");
+      }
+      if (previous?.status === "pending") {
+        return fail("You have already invited this person. They need to accept it from their teacher dashboard.");
+      }
+
+      const elsewhere = await db.
+      selectFrom("teacherTeamMembers").
+      select("id").
+      where("memberUserId", "=", existingUser.id).
+      where("status", "=", "active").
+      executeTakeFirst();
+
+      if (elsewhere) {
+        return fail("This person is already on another academy's team.");
+      }
+
+      const ownTeam = await db.
+      selectFrom("teacherTeamMembers").
+      select("id").
+      where("teacherId", "=", existingUser.id).
+      where("status", "in", [...TEAM_SEAT_STATUSES]).
+      executeTakeFirst();
+
+      if (ownTeam) {
+        return fail("This person runs their own team on Testkart, so they cannot join another one.");
+      }
+
+      // An existing account belongs to its holder, so they accept the invite
+      // themselves before it changes what their dashboard shows.
+      if (previous) {
+        await db.updateTable("teacherTeamMembers").
+        set({ status: "pending", invitedPhone: phone }).
+        where("id", "=", previous.id).
+        execute();
+      } else {
+        await db.insertInto("teacherTeamMembers").values({
+          teacherId: effectiveTeacherId,
+          memberUserId: existingUser.id,
+          role: "manager",
+          invitedPhone: phone,
+          status: "pending"
+        }).execute();
+      }
+
+      return ok("pending");
     }
 
-    await db.transaction().execute(async (trx) => {
-      const slug = await generateUniqueSlug(displayName);
-      const avatarUrl = `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(displayName)}`;
+    // The pool has a single connection and the transaction holds it, so the slug
+    // lookup (which uses the global db) has to run before the transaction opens.
+    const slug = await generateUniqueSlug(displayName);
+    const avatarUrl = `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(displayName)}`;
 
-      // Create the new user
+    await db.transaction().execute(async (trx) => {
+      // Onboarding is skipped for managers in the app, and stays pending for
+      // this account in case it is ever used as its own academy.
       const newUser = await trx.insertInto("users").values({
         displayName,
         mobileNumber: phone,
@@ -47,7 +129,6 @@ export async function handle(request: Request) {
         onboardingCompleted: false
       }).returning("id").executeTakeFirstOrThrow();
 
-      // Create the team member record
       await trx.insertInto("teacherTeamMembers").values({
         teacherId: effectiveTeacherId,
         memberUserId: newUser.id,
@@ -79,9 +160,9 @@ export async function handle(request: Request) {
       }
     });
 
-    return new Response(superjson.stringify({ success: true } satisfies OutputType));
+    return ok("active");
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to invite team member.";
-    return new Response(superjson.stringify({ error: message }), { status: 400 });
+    return fail(message);
   }
 }

@@ -18,14 +18,26 @@ export async function handle(request: Request) {
     const json = superjson.parse(await request.text());
     const { memberUserId } = schema.parse(json);
 
-    const result = await db.updateTable("teacherTeamMembers").
-    set({ status: "revoked" }).
-    where("teacherId", "=", effectiveTeacherId).
-    where("memberUserId", "=", memberUserId).
-    where("status", "=", "active").
-    executeTakeFirst();
+    // Removes an active member or cancels a pending invite. A removed member is
+    // signed out so their next sign-in starts on their own account.
+    const removed = await db.transaction().execute(async (trx) => {
+      const row = await trx.selectFrom("teacherTeamMembers").
+      select(["id", "status"]).
+      where("teacherId", "=", effectiveTeacherId).
+      where("memberUserId", "=", memberUserId).
+      where("status", "in", ["active", "pending"]).
+      executeTakeFirst();
 
-    if (Number(result.numUpdatedRows) === 0) {
+      if (!row) return false;
+
+      await trx.updateTable("teacherTeamMembers").set({ status: "revoked" }).where("id", "=", row.id).execute();
+      if (row.status === "active") {
+        await trx.deleteFrom("sessions").where("userId", "=", memberUserId).execute();
+      }
+      return true;
+    });
+
+    if (!removed) {
       return new Response(superjson.stringify({ error: "Team member not found or already removed." }), { status: 400 });
     }
 

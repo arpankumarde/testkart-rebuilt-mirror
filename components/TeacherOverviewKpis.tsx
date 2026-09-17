@@ -11,6 +11,8 @@ type Props = {
   kpis: Kpis | undefined;
   daily: TeacherDailyPoint[];
   isLoading: boolean;
+  /** False for team managers, who do not see the owner's money. */
+  showEarnings?: boolean;
   className?: string;
 };
 
@@ -51,10 +53,10 @@ type Column = {
   values: number[];
 };
 
-export const TeacherOverviewKpis = ({ kpis, daily, isLoading, className }: Props) => {
+export const TeacherOverviewKpis = ({ kpis, daily, isLoading, showEarnings = true, className }: Props) => {
   const showSkeleton = isLoading && !kpis;
 
-  const columns: Column[] = kpis
+  const allColumns: Column[] = kpis
     ? [
         {
           label: "Earnings",
@@ -82,12 +84,14 @@ export const TeacherOverviewKpis = ({ kpis, daily, isLoading, className }: Props
         },
       ]
     : [];
+  const columns = showEarnings ? allColumns : allColumns.filter((column) => column.label !== "Earnings");
+  const skeletonCount = showEarnings ? 4 : 3;
 
   return (
     <section className={`${styles.ledger} ${className ?? ""}`.trim()} aria-label="Key figures">
-      <div className={styles.columns}>
+      <div className={`${styles.columns} ${showEarnings ? "" : styles.columnsThree}`.trim()}>
         {showSkeleton
-          ? [0, 1, 2, 3].map((i) => (
+          ? Array.from({ length: skeletonCount }, (_, i) => (
               <div key={i} className={styles.column} aria-hidden="true">
                 <Skeleton style={{ height: "0.875rem", width: "5rem" }} />
                 <Skeleton style={{ height: "2rem", width: "7rem", marginTop: "var(--spacing-2)" }} />

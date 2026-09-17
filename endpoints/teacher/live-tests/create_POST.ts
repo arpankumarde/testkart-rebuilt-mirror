@@ -41,7 +41,7 @@ async function generateUniqueSlug(baseTitle: string, trx: Transaction<DB>): Prom
 
 export async function handle(request: Request) {
   try {
-    const { user, effectiveTeacherId } = await getServerUserSession(request);
+    const { user, effectiveTeacherId, teacherRole } = await getServerUserSession(request);
     if (user.role !== "teacher" && user.role !== "admin") {
       return new Response(
         superjson.stringify({ error: "Unauthorized" }),
@@ -51,6 +51,14 @@ export async function handle(request: Request) {
 
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);
+
+    // Prize money comes out of the owner's earnings.
+    if (teacherRole === "manager" && input.hasPrizes) {
+      return new Response(
+        superjson.stringify({ error: "Only the account owner can add prize money. Create it without prizes, or ask the owner." }),
+        { status: 403 }
+      );
+    }
     const description = input.description ? sanitizeHtml(input.description) : null;
 
     // Prize configuration:

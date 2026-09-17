@@ -9,6 +9,8 @@ import styles from "./TeacherOverviewRecentSales.module.css";
 type Props = {
   sales: TeacherRecentSale[];
   isLoading: boolean;
+  /** False for team managers, who do not see the owner's money or the earnings page. */
+  showAmounts?: boolean;
   className?: string;
 };
 
@@ -33,7 +35,7 @@ const Thumbnail = ({ sale }: { sale: TeacherRecentSale }) => {
   );
 };
 
-export const TeacherOverviewRecentSales = ({ sales, isLoading, className }: Props) => {
+export const TeacherOverviewRecentSales = ({ sales, isLoading, showAmounts = true, className }: Props) => {
   const showSkeleton = isLoading && sales.length === 0;
   const now = Date.now();
 
@@ -41,9 +43,11 @@ export const TeacherOverviewRecentSales = ({ sales, isLoading, className }: Prop
     <section className={`${styles.card} ${className ?? ""}`.trim()} aria-label="Recent sales">
       <div className={styles.head}>
         <h2 className={styles.title}>Recent sales</h2>
-        <Link to="/teacher/reports" className={styles.link}>
-          All earnings
-        </Link>
+        {showAmounts && (
+          <Link to="/teacher/reports" className={styles.link}>
+            All earnings
+          </Link>
+        )}
       </div>
 
       {showSkeleton ? (
@@ -73,9 +77,11 @@ export const TeacherOverviewRecentSales = ({ sales, isLoading, className }: Prop
                   <span className={styles.student}>{sale.studentName}</span>
                 </span>
                 <span className={styles.figures}>
-                  <span className={styles.amount}>
-                    {sale.amount > 0 ? adminFormat.inr(sale.amount) : "Free"}
-                  </span>
+                  {showAmounts && (
+                    <span className={styles.amount}>
+                      {sale.amount > 0 ? adminFormat.inr(sale.amount) : "Free"}
+                    </span>
+                  )}
                   <span className={styles.time}>{adminFormat.relativeTime(sale.createdAt, now)}</span>
                 </span>
               </li>

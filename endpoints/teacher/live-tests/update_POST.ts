@@ -9,7 +9,7 @@ import superjson from "superjson";
 
 export async function handle(request: Request) {
   try {
-    const { user, effectiveTeacherId } = await getServerUserSession(request);
+    const { user, effectiveTeacherId, teacherRole } = await getServerUserSession(request);
     if (user.role !== "teacher" && user.role !== "admin") {
       return new Response(
         superjson.stringify({ error: "Unauthorized" }),
@@ -23,6 +23,7 @@ export async function handle(request: Request) {
     const updatedTest = await applyLiveTestUpdate(db, effectiveTeacherId, input, {
       resolveExam: resolveExamByName,
       countEnrollments: (liveTestId) => countLiveTestEnrollments(liveTestId),
+      canChangePrizes: teacherRole !== "manager",
     });
 
     const output: OutputType = {

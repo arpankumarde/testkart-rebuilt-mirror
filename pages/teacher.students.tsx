@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet';
 import { Link, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useTeacherStudentsQuery } from '../helpers/useTeacherStudentsQuery';
+import { useAuth } from '../helpers/useAuth';
 import { useSponsoredList } from '../helpers/useTeacherSponsoredEnrollments';
 import { Button } from '../components/Button';
 import { Skeleton } from '../components/Skeleton';
@@ -24,9 +25,9 @@ type TeacherStudent = Omit<BaseTeacherStudent, 'itemType' | 'orderDate'> & {
 };
 import styles from './teacher.students.module.css';
 
-const StudentRowSkeleton = () => (
+const StudentRowSkeleton = ({ columns }: { columns: number }) => (
   <tr>
-    {Array.from({ length: 7 }).map((_, i) => (
+    {Array.from({ length: columns }).map((_, i) => (
       <td key={i}><Skeleton style={{ height: '1.25rem', width: i === 3 ? '160px' : '100px' }} /></td>
     ))}
   </tr>
@@ -77,6 +78,9 @@ const ITEMS_PER_PAGE = 10;
 
 const TeacherStudentsPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { authState } = useAuth();
+  // Team managers do not see what each student paid; the server sends 0 for them.
+  const showAmounts = !(authState.type === 'authenticated' && authState.user.teacherRole === 'manager');
   const defaultTab = searchParams.get('tab') === 'sponsored' ? 'sponsored' : 'purchases';
   const [activeTab, setActiveTab] = useState(defaultTab);
 
@@ -155,7 +159,7 @@ const TeacherStudentsPage: React.FC = () => {
         'Item Title': student.itemTitle,
         'Item Type': student.itemType,
         'Enrolled Date': student.enrolledAt ? new Date(student.enrolledAt).toLocaleDateString('en-CA') : '',
-        'Amount Paid': student.amountPaid,
+        ...(showAmounts && { 'Amount Paid': student.amountPaid }),
         'Enrollment Type': student.enrollmentType === 'paid' ? 'Paid' : 'Free',
         'Order Status': student.orderStatus || 'N/A'
       }));
@@ -233,13 +237,13 @@ const TeacherStudentsPage: React.FC = () => {
                 <th>Mobile</th>
                 <th>Enrolled in</th>
                 <th>Date</th>
-                <th>Paid</th>
+                {showAmounts && <th>Paid</th>}
                 <th>Type</th>
               </tr>
             </thead>
             <tbody>
               {isFetching ? (
-                Array.from({ length: 5 }).map((_, i) => <StudentRowSkeleton key={i} />)
+                Array.from({ length: 5 }).map((_, i) => <StudentRowSkeleton key={i} columns={showAmounts ? 7 : 6} />)
               ) : (
                 paginatedStudents.map((student: TeacherStudent) => (
                   <tr key={`${student.studentId}-${student.itemId}-${student.enrolledAt}`}>
@@ -276,9 +280,11 @@ const TeacherStudentsPage: React.FC = () => {
                     <td className={styles.amount}>
                       {student.enrolledAt ? new Date(student.enrolledAt).toLocaleDateString() : 'N/A'}
                     </td>
-                    <td className={styles.amount}>
-                      {student.amountPaid === 0 ? 'Free' : `₹${student.amountPaid.toFixed(2)}`}
-                    </td>
+                    {showAmounts && (
+                      <td className={styles.amount}>
+                        {student.amountPaid === 0 ? 'Free' : `₹${student.amountPaid.toFixed(2)}`}
+                      </td>
+                    )}
                     <td>
                       <div className={styles.typeCell}>
                         <Badge variant={getTypeVariant(student.enrollmentType)}>

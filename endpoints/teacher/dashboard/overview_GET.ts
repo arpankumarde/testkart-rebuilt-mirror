@@ -78,9 +78,37 @@ const asMixKind = (value: unknown): TeacherMixKind => {
   return (MIX_KINDS.has(kind) ? kind : "mock_test") as TeacherMixKind;
 };
 
+/**
+ * Team managers run the catalogue but never see the owner's money: earnings,
+ * sale amounts, balance, withdrawals, bank status, plan or support queue.
+ */
+function withoutOwnerMoney(output: OutputType): OutputType {
+  return {
+    ...output,
+    attention: {
+      ...output.attention,
+      withdrawalsPending: 0,
+      withdrawalsPendingAmount: 0,
+      supportUnread: 0,
+      subscriptionExpiring: 0,
+      bankStatus: "verified",
+    },
+    kpis: {
+      ...output.kpis,
+      earnings: { current: 0, previous: 0 },
+      grossSales: { current: 0, previous: 0 },
+    },
+    daily: output.daily.map((point) => ({ ...point, earnings: 0 })),
+    topSellers: output.topSellers.map((seller) => ({ ...seller, earnings: 0 })),
+    recentSales: output.recentSales.map((sale) => ({ ...sale, amount: 0 })),
+    totals: { ...output.totals, lifetimeEarnings: 0, availableBalance: 0 },
+  };
+}
+
 export async function handle(request: Request): Promise<Response> {
   try {
-    const { user, effectiveTeacherId } = await getServerUserSession(request);
+    const { user, effectiveTeacherId, teacherRole } = await getServerUserSession(request);
+    const isManager = teacherRole === "manager";
 
     if (user.role !== "teacher" && user.role !== "admin") {
       return new Response(superjson.stringify({ error: "Unauthorized" }), { status: 403 });
@@ -361,7 +389,9 @@ export async function handle(request: Request): Promise<Response> {
       sellerByKey.set(key, seller);
     }
     const topSellers: TeacherTopSeller[] = [...sellerByKey.values()]
-      .sort((x, y) => y.earnings - x.earnings || y.units - x.units)
+      .sort((x, y) =>
+        isManager ? y.units - x.units : y.earnings - x.earnings || y.units - x.units
+      )
       .slice(0, 6);
 
     const recentSales: TeacherRecentSale[] = recentRows.rows.map((row) => {
@@ -414,7 +444,7 @@ export async function handle(request: Request): Promise<Response> {
       totals,
     };
 
-    return new Response(superjson.stringify(output), {
+    return new Response(superjson.stringify(isManager ? withoutOwnerMoney(output) : output), {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {

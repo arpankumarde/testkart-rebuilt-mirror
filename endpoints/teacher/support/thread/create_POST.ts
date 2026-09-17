@@ -12,9 +12,12 @@ const TEACHER_SUPPORT_TICKETS_EMAIL = "teacher-support-tickets@testkart.in";
  
 export async function handle(request: Request) {
    try {
-     const { effectiveTeacherId, user } = await getServerUserSession(request);
+     const { effectiveTeacherId, user, teacherRole } = await getServerUserSession(request);
     if (user.role !== "teacher" && user.role !== "admin") {
       return new Response(superjson.stringify({ error: "Unauthorized" }), { status: 403 });
+    }
+    if (teacherRole === "manager") {
+      return new Response(superjson.stringify({ error: "Only account owners can access this feature" }), { status: 403 });
     }
 
     const json = superjson.parse(await request.text());

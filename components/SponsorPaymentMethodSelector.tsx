@@ -11,6 +11,8 @@ interface SponsorPaymentMethodSelectorProps {
   availableBalance: number;
   commissionAmount: number;
   disabled: boolean;
+  /** Team managers cannot spend the owner's earnings, so they only get online payment. */
+  showBalanceOption?: boolean;
 }
 
 export const SponsorPaymentMethodSelector: React.FC<
@@ -22,6 +24,7 @@ export const SponsorPaymentMethodSelector: React.FC<
   availableBalance,
   commissionAmount,
   disabled,
+  showBalanceOption = true,
 }) => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-IN", {
@@ -35,48 +38,48 @@ export const SponsorPaymentMethodSelector: React.FC<
     <div className={styles.paymentSection}>
       <div className={styles.sectionHeader}>Payment Method</div>
 
-      {/* Balance Option */}
-      <label
-        className={`${styles.paymentOption} ${
-          paymentMethod === "balance" ? styles.selected : ""
-        } ${!isBalanceSufficient ? styles.disabledOption : ""}`}
-      >
-        <div className={styles.radioContainer}>
-          <input
-            type="radio"
-            name="paymentMethod"
-            value="balance"
-            checked={paymentMethod === "balance"}
-            onChange={() => setPaymentMethod("balance")}
-            disabled={!isBalanceSufficient || disabled}
-            className={styles.radioInput}
-          />
-        </div>
-        <div className={styles.optionContent}>
-          <div className={styles.optionHeader}>
-            <div className={styles.optionTitle}>
-              <Wallet size={18} className={styles.optionIcon} />
-              <span>Deduct from Earnings</span>
-            </div>
+      {showBalanceOption && (
+        <label
+          className={`${styles.paymentOption} ${
+            paymentMethod === "balance" ? styles.selected : ""
+          } ${!isBalanceSufficient ? styles.disabledOption : ""}`}
+        >
+          <div className={styles.radioContainer}>
+            <input
+              type="radio"
+              name="paymentMethod"
+              value="balance"
+              checked={paymentMethod === "balance"}
+              onChange={() => setPaymentMethod("balance")}
+              disabled={!isBalanceSufficient || disabled}
+              className={styles.radioInput}
+            />
           </div>
-          <div className={styles.balanceInfo}>
-            Available: {formatCurrency(availableBalance)}
-          </div>
-          {paymentMethod === "balance" && isBalanceSufficient && (
-            <div className={styles.balanceAfter}>
-              Balance after:{" "}
-              <strong>
-                {formatCurrency(availableBalance - commissionAmount)}
-              </strong>
+          <div className={styles.optionContent}>
+            <div className={styles.optionHeader}>
+              <div className={styles.optionTitle}>
+                <Wallet size={18} className={styles.optionIcon} />
+                <span>Deduct from Earnings</span>
+              </div>
             </div>
-          )}
-          {!isBalanceSufficient && (
-            <div className={styles.insufficientText}>Insufficient balance</div>
-          )}
-        </div>
-      </label>
+            <div className={styles.balanceInfo}>
+              Available: {formatCurrency(availableBalance)}
+            </div>
+            {paymentMethod === "balance" && isBalanceSufficient && (
+              <div className={styles.balanceAfter}>
+                Balance after:{" "}
+                <strong>
+                  {formatCurrency(availableBalance - commissionAmount)}
+                </strong>
+              </div>
+            )}
+            {!isBalanceSufficient && (
+              <div className={styles.insufficientText}>Insufficient balance</div>
+            )}
+          </div>
+        </label>
+      )}
 
-      {/* Online Option */}
       <label
         className={`${styles.paymentOption} ${
           paymentMethod === "online" ? styles.selected : ""

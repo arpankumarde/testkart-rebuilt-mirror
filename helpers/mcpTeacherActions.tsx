@@ -445,7 +445,7 @@ const ACTIONS: Record<string, TeacherAction> = {
   "support/attachments/upload": write(supportAttachmentsUpload, supportAttachmentsUploadSchema, "Upload one file (base64, 4 MB at most: images, PDF, Word, Excel, PowerPoint, CSV or text) to attach to a support message. Pass the returned objects, up to 5, as attachments on support/thread/create or support/thread/reply."),
   "support/thread/create": write(supportThreadCreate, supportThreadCreateSchema, "Open a support thread with the Testkart team."),
   "support/thread/reply": write(supportThreadReply, supportThreadReplySchema, "Reply in a support thread."),
-  "team/invite": write(teamInvite, teamInviteSchema, "Invite a team manager by name and 10-digit phone number.", CONFIRM),
+  "team/invite": write(teamInvite, teamInviteSchema, "Invite a team manager by name and 10-digit phone number (up to 2 managers besides the owner). A new number gets a manager account at once; a number that already has a teacher account gets an invite they accept from their dashboard; student accounts cannot be added.", CONFIRM),
   "team/remove": write(teamRemove, teamRemoveSchema, "Remove a team member.", CONFIRM),
   "test-item-subjects/bulk-create": write(testItemSubjectsBulkCreate, testItemSubjectsBulkCreateSchema, "Add several subjects to a test item."),
   "test-item-subjects/create": write(testItemSubjectsCreate, testItemSubjectsCreateSchema, "Add a subject to a test item."),
