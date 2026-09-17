@@ -13,7 +13,8 @@ import {
 } from "../../../helpers/digitalProductRules";
 
 async function generateUniqueSlug(baseTitle: string, currentId: number): Promise<string> {
-  const baseSlug = slugify(baseTitle);
+  // Leaves room for a -N suffix inside the 255-character slug column.
+  const baseSlug = slugify(baseTitle).slice(0, 240).replace(/-+$/, "");
   
   const existingProduct = await db
     .selectFrom("digitalProducts")

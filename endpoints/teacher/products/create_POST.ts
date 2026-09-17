@@ -8,7 +8,8 @@ import { DigitalProductFileItem } from "../../../helpers/digitalProductFileTypes
 import { isRealFileUrl, PLACEHOLDER_PDF_URL } from "../../../helpers/digitalProductRules";
 
 async function generateUniqueSlug(baseTitle: string): Promise<string> {
-  const baseSlug = slugify(baseTitle);
+  // Leaves room for a -N suffix inside the 255-character slug column.
+  const baseSlug = slugify(baseTitle).slice(0, 240).replace(/-+$/, "");
   
   const existingProduct = await db
     .selectFrom("digitalProducts")

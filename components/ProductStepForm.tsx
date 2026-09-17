@@ -48,7 +48,7 @@ const fileRowSchema = z.object({
   clientKey: z.string().optional(),
   // The saved file row id, sent back so the server updates that row in place.
   id: z.number().int().positive().optional().nullable(),
-  title: z.string(),
+  title: z.string().max(255, 'File title must be 255 characters or fewer.'),
   // Empty until the row's PDF is uploaded. Rows without a real file are not saved.
   fileUrl: z.string(),
   fileId: z.string().optional().nullable(),

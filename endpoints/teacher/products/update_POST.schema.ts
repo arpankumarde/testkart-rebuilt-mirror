@@ -13,7 +13,7 @@ const updateFileEntrySchema = fileEntrySchemaRef.extend({
 
 export const schema = z.object({
   id: z.number().int().positive(),
-  title: z.string().min(3).optional(),
+  title: z.string().min(3).max(255, "Title must be 255 characters or fewer.").optional(),
   description: z.string().min(10).optional(),
   shortDescription: z.string().max(255).optional().nullable(),
   price: z.number().min(0).optional(),

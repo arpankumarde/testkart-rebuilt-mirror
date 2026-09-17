@@ -110,7 +110,7 @@ export function pickFirstIssue<T extends Issue>(issues: readonly T[], fieldOrder
 
 /**
  * Titles for newly added test items: "Test N", counting on from `startAt` and
- * skipping any title a live item in the series already uses.
+ * skipping every title in `existingTitles`.
  */
 export function nextFreeTestTitles(existingTitles: Iterable<string>, count: number, startAt: number): string[] {
   const taken = new Set(existingTitles);
