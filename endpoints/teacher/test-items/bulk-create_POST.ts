@@ -39,9 +39,8 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
-    // Positions and names count every row, trashed ones included: a restored
-    // item never shares an orderIndex, and the unique (package, title)
-    // constraint covers trashed items too. Numbering starts after the live ones.
+    // Positions count every row, trashed ones included, so a restored item
+    // never shares an orderIndex. Names count only live items.
     const existingItems = await db
       .selectFrom("mockTestItems")
       .select(["title", "orderIndex", "deletedAt"])
@@ -49,8 +48,8 @@ export async function handle(request: Request): Promise<Response> {
       .execute();
 
     const maxOrderIndex = existingItems.reduce((max, item) => Math.max(max, item.orderIndex), -1);
-    const liveCount = existingItems.filter((item) => item.deletedAt === null).length;
-    const titles = nextFreeTestTitles(existingItems.map((item) => item.title), input.count, liveCount + 1);
+    const liveTitles = existingItems.filter((item) => item.deletedAt === null).map((item) => item.title);
+    const titles = nextFreeTestTitles(liveTitles, input.count, liveTitles.length + 1);
 
     const itemsToInsert = titles.map((title, index) => ({
       packageId: input.packageId,

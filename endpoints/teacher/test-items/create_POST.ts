@@ -50,19 +50,21 @@ export async function handle(request: Request): Promise<Response> {
       ? maxOrderIndexResult.maxOrderIndex + 1 
       : 0;
 
-    // The unique (package, title) constraint covers trashed items too.
+    // Only live items hold a title. Trash restore renames an item whose title
+    // has been reused in the meantime, so a trashed item never blocks a name.
     const conflictingItem = await db
       .selectFrom("mockTestItems")
-      .select(["id", "deletedAt"])
+      .select("id")
       .where("packageId", "=", input.packageId)
       .where("title", "=", input.title)
+      .where("deletedAt", "is", null)
       .executeTakeFirst();
 
     if (conflictingItem) {
-      const error = conflictingItem.deletedAt
-        ? `"${input.title}" is used by a test in Trash. Pick another name, or delete that test from Trash first.`
-        : `A test item named "${input.title}" already exists in this test series.`;
-      return new Response(superjson.stringify({ error }), { status: 400 });
+      return new Response(
+        superjson.stringify({ error: `A test item named "${input.title}" already exists in this test series.` }),
+        { status: 400 }
+      );
     }
 
     const newItem = await db
