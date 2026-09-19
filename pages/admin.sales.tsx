@@ -53,6 +53,7 @@ const mapContactToTeacherView = (contact: SalesContactView): TeacherAdminView =>
     createdAt: contact.signedUpAt,
     isActive: true,
     isVerified: false,
+    drmEnabled: false,
     testsCount: 0,
     bundlesCount: 0,
     coursesCount: 0,

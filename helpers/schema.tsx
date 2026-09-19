@@ -41,6 +41,8 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
 
+export type GumletPushStatus = "failed" | "ready" | "submitted";
+
 export type ImageRecoveryStatus = "completed" | "failed" | "running";
 
 export type InquiryStatus = "archived" | "contacted" | "pending" | "resolved";
@@ -349,6 +351,10 @@ export interface CourseLessons {
   createdAt: Generated<Timestamp>;
   description: string | null;
   durationMinutes: Generated<number | null>;
+  gumletAssetId: string | null;
+  gumletError: string | null;
+  gumletSourceUrl: string | null;
+  gumletStatus: GumletPushStatus | null;
   id: Generated<number>;
   isPreview: Generated<boolean>;
   orderIndex: number;
@@ -579,6 +585,12 @@ export interface ExamSubjects {
   subjectSlug: string;
   syllabusTopics: string | null;
   updatedAt: Generated<Timestamp | null>;
+}
+
+export interface GumletFolders {
+  createdAt: Generated<Timestamp>;
+  folderId: string;
+  path: string;
 }
 
 export interface ImageRecoveryJobs {
@@ -1454,6 +1466,7 @@ export interface Users {
   currentOccupation: string | null;
   discoverySource: string | null;
   displayName: string;
+  drmEnabled: Generated<boolean>;
   email: string | null;
   emailVerified: Generated<boolean>;
   expertiseAreas: Generated<Json | null>;
@@ -1533,6 +1546,7 @@ export interface DB {
   examContentPages: ExamContentPages;
   exams: Exams;
   examSubjects: ExamSubjects;
+  gumletFolders: GumletFolders;
   imageRecoveryJobs: ImageRecoveryJobs;
   invoiceCounters: InvoiceCounters;
   liveTestEnrollments: LiveTestEnrollments;
@@ -1640,6 +1654,7 @@ export const TransactionStatusArrayValues: [TransactionStatus, ...TransactionSta
 export const UserRoleArrayValues: [UserRole, ...UserRole[]] = ["admin","student","teacher"];
 export const WalletTransactionTypeArrayValues: [WalletTransactionType, ...WalletTransactionType[]] = ["prize_credit","prize_lock_refund","purchase_debit","withdrawal_debit"];
 export const WithdrawalStatusArrayValues: [WithdrawalStatus, ...WithdrawalStatus[]] = ["cancelled","completed","failed","pending"];
+export const GumletPushStatusArrayValues: [GumletPushStatus, ...GumletPushStatus[]] = ["failed","ready","submitted"];
 // Table/column names whose snake_case spelling kysely's default CamelCasePlugin
 // cannot recover from the camelCase name used in code (an underscore directly
 // before a digit, e.g. reminder_48h_sent ⇄ reminder48hSent). The db helper's

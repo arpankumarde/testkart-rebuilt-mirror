@@ -132,6 +132,7 @@ export async function handle(request: Request): Promise<Response> {
         createdAt: t.createdAt,
         isActive: t.isActive,
         isVerified: t.isVerified,
+        drmEnabled: t.drmEnabled,
         testsCount: parseInt(t.testsCount as any, 10),
         bundlesCount: parseInt(t.bundlesCount as any, 10),
         coursesCount: parseInt(t.coursesCount as any, 10),

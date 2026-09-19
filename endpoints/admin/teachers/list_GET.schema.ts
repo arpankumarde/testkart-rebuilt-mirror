@@ -20,6 +20,7 @@ export type TeacherAdminView = {
   createdAt: Date | null;
   isActive: boolean;
   isVerified: boolean;
+  drmEnabled: boolean;
   testsCount: number;
   bundlesCount: number;
   coursesCount: number;

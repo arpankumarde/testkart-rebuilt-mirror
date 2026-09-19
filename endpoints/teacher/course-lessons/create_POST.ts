@@ -3,6 +3,7 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./create_POST.schema";
 import superjson from "superjson";
 import { sanitizeOptionalHtml } from "../../../helpers/sanitizeHtml";
+import { syncLessonVideoToGumlet } from "../../../helpers/syncLessonVideoToGumlet";
 
 async function checkSectionOwnership(sectionId: number, teacherId: number, userRole: string): Promise<boolean> {
     if (userRole === 'admin') return true;
@@ -47,6 +48,8 @@ export async function handle(request: Request): Promise<Response> {
         })
         .returningAll()
         .executeTakeFirstOrThrow();
+
+    await syncLessonVideoToGumlet(newLesson.id);
 
     return new Response(superjson.stringify(newLesson satisfies OutputType), { status: 201 });
 

@@ -59,6 +59,10 @@
   width: 6.75rem;
 }
 
+.colDrm {
+  width: 3rem;
+}
+
 .colActions {
   width: 7.5rem;
 }
@@ -178,6 +182,29 @@
   font-size: 0.6875rem;
   font-weight: 600;
   line-height: 1.125rem;
+}
+
+.drmBadge {
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  vertical-align: middle;
+}
+
+.drmBadge svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+}
+
+.drmFlag {
+  gap: 0.1875rem;
+}
+
+.drmFlag svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  flex-shrink: 0;
 }
 
 .sortButton {

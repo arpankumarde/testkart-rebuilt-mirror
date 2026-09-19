@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from './Button';
 import { VideoPreview } from './VideoPreview';
+import { GumletEmbedPlayer } from './GumletEmbedPlayer';
 import { StudentQuizViewer } from './StudentQuizViewer';
 import { CourseCompletionCelebration } from './CourseCompletionCelebration';
 import { useSignedVideoUrl } from '../helpers/useSignedVideoUrl';
@@ -43,7 +44,7 @@ const LessonContent: React.FC<{
   const isYouTube = isVideoLesson && !!lesson.contentUrl && isYouTubeUrl(lesson.contentUrl);
 
   // Only fetch signed URL for non-YouTube R2 video lessons
-  const { signedUrl, isLoading: isLoadingSignedUrl, error: signedUrlError } = useSignedVideoUrl({
+  const { signedUrl, player, gumletState, isLoading: isLoadingSignedUrl, error: signedUrlError } = useSignedVideoUrl({
     courseId: isVideoLesson && !isYouTube ? courseId : null,
     lessonId: isVideoLesson && !isYouTube ? lesson.id : null,
     videoUrl: isVideoLesson && !isYouTube ? lesson.contentUrl : null,
@@ -79,7 +80,7 @@ const LessonContent: React.FC<{
         );
       }
 
-      // R2 videos: require signed URL
+      // R2 videos need a signed URL; DRM videos play only in the Gumlet embed
       if (isLoadingSignedUrl) {
         return (
           <div className={styles.videoContainer}>
@@ -91,12 +92,37 @@ const LessonContent: React.FC<{
         );
       }
 
+      if (player === 'gumlet' && gumletState === 'processing') {
+        return (
+          <div className={styles.videoContainer}>
+            <div className={styles.videoLoadingState}>
+              <Shield size={48} className={styles.loadingIcon} />
+              <p>This video is being prepared for secure playback. It will start here automatically once it is ready.</p>
+            </div>
+          </div>
+        );
+      }
+
       if (signedUrlError || !signedUrl) {
         return (
           <div className={styles.errorPlaceholder}>
             <AlertCircle size={48} />
             <h2>Video Not Available</h2>
             <p>Unable to load video. Please try refreshing the page or contact the course instructor.</p>
+          </div>
+        );
+      }
+
+      if (player === 'gumlet') {
+        return (
+          <div className={styles.videoContainer} onContextMenu={handleContextMenu}>
+            <GumletEmbedPlayer
+              key={signedUrl}
+              embedUrl={signedUrl}
+              title={lesson.title}
+              className={styles.videoPlayerWrapper}
+              onEnded={onVideoCompleted}
+            />
           </div>
         );
       }

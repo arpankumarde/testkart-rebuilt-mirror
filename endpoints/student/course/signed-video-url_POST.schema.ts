@@ -10,8 +10,11 @@ export const schema = z.object({
 export type InputType = z.infer<typeof schema>;
 
 export type OutputType = {
+  // For player "gumlet" this is the Gumlet embed page URL, empty while the video is processing
   signedUrl: string;
   expiresIn: number; // in seconds
+  player: "r2" | "youtube" | "gumlet";
+  gumletState?: "ready" | "processing";
 };
 
 export const postStudentCourseSignedVideoUrl = async (

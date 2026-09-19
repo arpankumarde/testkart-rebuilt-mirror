@@ -41,9 +41,13 @@ import {
   MoreHorizontal,
   Ban,
   UserCheck,
+  Lock,
+  LockOpen,
+  ShieldCheck,
 } from "lucide-react";
 import { VerifiedBadge } from "../components/VerifiedBadge";
 import { useAdminToggleVerifiedMutation } from "../helpers/useAdminToggleVerified";
+import { useAdminToggleTeacherDrmMutation } from "../helpers/useAdminToggleTeacherDrm";
 import { TeacherProfileDialog } from "../components/TeacherProfileDialog";
 import { TeacherAdminView } from "../endpoints/admin/teachers/list_GET.schema";
 import styles from "./admin.teachers.module.css";
@@ -98,6 +102,7 @@ const TableColumns = () => (
     <col className={styles.colCount} />
     <col className={styles.colMoney} />
     <col className={styles.colDate} />
+    <col className={styles.colDrm} />
     <col className={styles.colActions} />
   </colgroup>
 );
@@ -127,6 +132,7 @@ const TeacherRowSkeleton = () => (
     <td>
       <Skeleton style={{ height: "0.875rem", width: "5rem" }} />
     </td>
+    <td />
     <td>
       <Skeleton style={{ height: "1.5rem", width: "5.5rem", marginLeft: "auto" }} />
     </td>
@@ -156,6 +162,20 @@ interface SortIconProps {
   sortOrder: "asc" | "desc";
 }
 
+/* Icon-only in the table's DRM column; cards have no column header, so there it carries a label. */
+const DrmBadge = ({ withLabel = false }: { withLabel?: boolean }) => (
+  <Badge
+    variant="success"
+    className={withLabel ? `${styles.flag} ${styles.drmFlag}` : styles.drmBadge}
+    title="DRM is on for this teacher"
+    role={withLabel ? undefined : "img"}
+    aria-label={withLabel ? undefined : "DRM on"}
+  >
+    <ShieldCheck aria-hidden="true" />
+    {withLabel && "DRM"}
+  </Badge>
+);
+
 const SortIcon = ({ column, sortBy, sortOrder }: SortIconProps) => {
   if (sortBy !== column) {
     return <ArrowUpDown className={styles.sortIcon} aria-hidden="true" />;
@@ -175,6 +195,7 @@ const AdminTeachersPage: React.FC = () => {
   const [selectedTeacher, setSelectedTeacher] = useState<TeacherAdminView | null>(null);
   const [statusTarget, setStatusTarget] = useState<{ id: number; name: string; isActive: boolean } | null>(null);
   const [verifyTarget, setVerifyTarget] = useState<{ id: number; name: string; isVerified: boolean } | null>(null);
+  const [drmTarget, setDrmTarget] = useState<{ id: number; name: string; drmEnabled: boolean } | null>(null);
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const { data, isFetching, isError, error, refetch } = useAdminTeachersQuery({
@@ -186,6 +207,7 @@ const AdminTeachersPage: React.FC = () => {
 
   const toggleStatusMutation = useToggleUserStatusMutation();
   const toggleVerifiedMutation = useAdminToggleVerifiedMutation();
+  const toggleDrmMutation = useAdminToggleTeacherDrmMutation();
   const impersonateMutation = useImpersonateMutation();
 
   useEffect(() => {
@@ -227,6 +249,14 @@ const AdminTeachersPage: React.FC = () => {
     );
   };
 
+  const confirmToggleDrm = () => {
+    if (!drmTarget) return;
+    toggleDrmMutation.mutate(
+      { teacherId: drmTarget.id, drmEnabled: !drmTarget.drmEnabled },
+      { onSuccess: () => setDrmTarget(null) }
+    );
+  };
+
   const renderSortableHeader = (column: SortableColumn, label: string, numeric = false) => {
     const isActive = sortBy === column;
     return (
@@ -242,10 +272,11 @@ const AdminTeachersPage: React.FC = () => {
     );
   };
 
-  const renderIdentity = (teacher: TeacherAdminView) => (
+  const renderIdentity = (teacher: TeacherAdminView, withDrmFlag = false) => (
     <span className={styles.primaryLine}>
       <span className={styles.truncate} title={teacher.fullName}>{teacher.fullName}</span>
       <VerifiedBadge isVerified={teacher.isVerified} size="sm" className={styles.verified} />
+      {withDrmFlag && teacher.drmEnabled && <DrmBadge withLabel />}
       {!teacher.isActive && (
         <Badge variant="destructive" className={styles.flag}>Inactive</Badge>
       )}
@@ -305,6 +336,17 @@ const AdminTeachersPage: React.FC = () => {
               <><ShieldOff size={16} /> Remove verified mark</>
             ) : (
               <><BadgeCheck size={16} /> Mark verified</>
+            )}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className={styles.menuItem}
+            disabled={toggleDrmMutation.isPending}
+            onSelect={() => setDrmTarget({ id: teacher.id, name: teacher.fullName, drmEnabled: teacher.drmEnabled })}
+          >
+            {teacher.drmEnabled ? (
+              <><LockOpen size={16} /> Turn off DRM</>
+            ) : (
+              <><Lock size={16} /> Turn on DRM</>
             )}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -388,6 +430,7 @@ const AdminTeachersPage: React.FC = () => {
                 ))}
                 {renderSortableHeader("totalEarnings", "Earnings", true)}
                 {renderSortableHeader("createdAt", "Registered")}
+                <th>DRM</th>
                 <th><span className={styles.srOnly}>Actions</span></th>
               </tr>
             </thead>
@@ -419,6 +462,7 @@ const AdminTeachersPage: React.FC = () => {
                     {formatCurrency(teacher.totalEarnings)}
                   </td>
                   <td className={styles.date}>{formatDate(teacher.createdAt)}</td>
+                  <td>{teacher.drmEnabled && <DrmBadge />}</td>
                   <td>{renderActions(teacher)}</td>
                 </tr>
               ))}
@@ -432,7 +476,7 @@ const AdminTeachersPage: React.FC = () => {
               <article key={teacher.id} className={styles.card}>
                 <div className={styles.cardHeader}>
                   <div className={styles.stack}>
-                    {renderIdentity(teacher)}
+                    {renderIdentity(teacher, true)}
                     <span className={styles.secondaryLine} title={teacher.email}>{teacher.email}</span>
                     <span className={styles.secondaryLine}>{contact || "No phone or academy"}</span>
                   </div>
@@ -558,6 +602,22 @@ const AdminTeachersPage: React.FC = () => {
         pendingLabel="Saving..."
         isPending={toggleVerifiedMutation.isPending}
         onConfirm={confirmToggleVerified}
+      />
+
+      <ConsoleConfirmDialog
+        open={!!drmTarget}
+        onOpenChange={(open) => !open && setDrmTarget(null)}
+        icon={drmTarget?.drmEnabled ? <LockOpen size={20} /> : <Lock size={20} />}
+        title={drmTarget?.drmEnabled ? "Turn off DRM for this teacher?" : "Turn on DRM for this teacher?"}
+        description={
+          drmTarget?.drmEnabled
+            ? `${drmTarget.name}'s videos will no longer be marked for DRM protection.`
+            : `${drmTarget?.name}'s videos will be marked for DRM protection. Nothing changes for students yet: protection starts when DRM playback is released.`
+        }
+        confirmLabel={drmTarget?.drmEnabled ? "Turn off" : "Turn on"}
+        pendingLabel="Saving..."
+        isPending={toggleDrmMutation.isPending}
+        onConfirm={confirmToggleDrm}
       />
     </>
   );
