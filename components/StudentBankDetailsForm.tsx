@@ -24,7 +24,14 @@ const formatINR = (amount: number) => {
   }).format(amount);
 };
 
-export const StudentBankDetailsForm: React.FC = () => {
+interface StudentBankDetailsFormProps {
+  /* Inside a dialog: drop the form's own panel, the dialog is the surface. */
+  embedded?: boolean;
+  /* Called once the details are saved. */
+  onDone?: () => void;
+}
+
+export const StudentBankDetailsForm: React.FC<StudentBankDetailsFormProps> = ({ embedded = false, onDone }) => {
   const { data: existingDetails, isFetching } = useStudentBankDetailsQuery();
   const { mutateAsync: saveBankDetails, isPending: isSaving } = useAddStudentBankDetails();
   const { data: balanceData, isFetching: isLoadingBalance } = useStudentWalletBalance();
@@ -77,6 +84,7 @@ export const StudentBankDetailsForm: React.FC = () => {
       await saveBankDetails(values);
       toast.success("Bank details submitted for verification.");
       setIsEditing(false);
+      onDone?.();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not save your bank details. Try again.");
     }
@@ -84,7 +92,7 @@ export const StudentBankDetailsForm: React.FC = () => {
 
   if (isFetching && !existingDetails) {
     return (
-      <div className={styles.loadingContainer}>
+      <div className={embedded ? undefined : styles.loadingContainer}>
         <Skeleton style={{ height: "4rem", width: "100%", marginBottom: "1rem" }} />
         <Skeleton style={{ height: "10rem", width: "100%" }} />
       </div>
@@ -96,7 +104,7 @@ export const StudentBankDetailsForm: React.FC = () => {
   const isPending = existingDetails?.verificationStatus === "pending";
 
   return (
-    <div className={styles.container}>
+    <div className={`${styles.container} ${embedded ? styles.embedded : ""}`}>
       {existingDetails && (
         <div className={styles.status}>
           <div className={styles.statusRow}>
@@ -126,7 +134,7 @@ export const StudentBankDetailsForm: React.FC = () => {
           </div>
           <h3 className={styles.lockedTitle}>Your bank details are verified</h3>
           <p className={styles.lockedText}>
-            Withdrawals are paid to this account. If you change these details they go back for review, and you cannot request a withdrawal until that finishes.
+            If you change these details they go back for review, and you cannot request a withdrawal until that finishes.
           </p>
           <Button variant="outline" onClick={() => setIsEditing(true)}>
             Edit details

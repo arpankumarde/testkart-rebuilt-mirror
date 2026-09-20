@@ -1,26 +1,48 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
+import { Link } from 'react-router-dom';
+import {
+  AlertCircle,
+  Banknote,
+  Calendar as CalendarIcon,
+  CheckCircle,
+  Clock,
+  Download,
+  Landmark,
+  type LucideIcon,
+} from 'lucide-react';
+import { DateRange } from 'react-day-picker';
+import { addDays, format } from 'date-fns';
+import Papa from 'papaparse';
 import { useTeacherEarningsQuery } from '../helpers/useTeacherEarningsQuery';
 import { useTeacherBankDetailsQuery } from '../helpers/useTeacherBankDetails';
 import { useEarningsBalance } from '../helpers/useTeacherSponsoredEnrollments';
 import { Button } from '../components/Button';
 import { Skeleton } from '../components/Skeleton';
 import { BankDetailsDialog } from '../components/BankDetailsDialog';
+import { TeacherBankAccountDialog } from '../components/TeacherBankAccountDialog';
 import { TeacherWithdrawalSection } from '../components/TeacherWithdrawalSection';
+import { WithdrawalRequestDialog } from '../components/WithdrawalRequestDialog';
 import { TeacherPageHeader } from '../components/TeacherPageHeader';
-import { Calendar as CalendarIcon, Download, AlertCircle, Info, CreditCard, CheckCircle, Clock, XCircle, Edit } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { Popover, PopoverTrigger, PopoverContent } from '../components/Popover';
 import { Calendar } from '../components/Calendar';
-import { DateRange } from 'react-day-picker';
-import { addDays, format } from 'date-fns';
-import Papa from 'papaparse';
 import styles from './teacher.reports.module.css';
 
-const Stat = ({ label, value, isLoading }: { label: string; value: string; isLoading: boolean }) => (
-  <div className={styles.stat}>
-    <span className={styles.statLabel}>{label}</span>
-    {isLoading ? <Skeleton style={{ height: '1.5rem', width: '80px' }} /> : <span className={styles.statValue}>{value}</span>}
+const MIN_WITHDRAWAL = 100;
+
+const rupees = new Intl.NumberFormat('en-IN', {
+  style: 'currency',
+  currency: 'INR',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+type OpenDialog = 'account' | 'editBank' | 'withdraw' | null;
+
+const LedgerRow = ({ label, value, isLoading }: { label: string; value: string; isLoading: boolean }) => (
+  <div className={styles.ledgerRow}>
+    <dt>{label}</dt>
+    <dd>{isLoading ? <Skeleton style={{ height: '1.25rem', width: '96px' }} /> : value}</dd>
   </div>
 );
 
@@ -29,16 +51,16 @@ const TeacherReportsPage: React.FC = () => {
   const { data: bankDetails, isFetching: isFetchingBankDetails } = useTeacherBankDetailsQuery();
   const { data: balanceData, isFetching: isFetchingBalance, refetch: refetchBalance } = useEarningsBalance();
 
-  const [isBankDialogOpen, setIsBankDialogOpen] = useState(false);
+  const [openDialog, setOpenDialog] = useState<OpenDialog>(null);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: addDays(new Date(), -30),
     to: new Date(),
   });
 
-  // Refetch balance when date range changes
+  // The app never refetches a cached query on mount, so pull a fresh balance on arrival.
   useEffect(() => {
     refetchBalance();
-  }, [dateRange, refetchBalance]);
+  }, [refetchBalance]);
 
   const filteredTransactions = useMemo(() => {
     if (!transactions) return [];
@@ -52,25 +74,45 @@ const TeacherReportsPage: React.FC = () => {
     });
   }, [transactions, dateRange]);
 
-  const summaryStats = useMemo(() => {
+  // Balance and totals are lifetime figures, so the date range only narrows the table.
+  const summary = useMemo(() => {
     const now = new Date();
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const availableBalance = balanceData?.availableBalance ?? 0;
-    const totalEarnings = balanceData?.totalEarned ?? 0;
-    const totalWithdrawn = balanceData?.totalWithdrawn ?? 0;
-    const totalSales = balanceData?.breakdown.sales.count ?? 0;
-    const sponsoredCount = balanceData?.breakdown.sponsored.count ?? 0;
-
-    const thisMonthEarnings = filteredTransactions
-            .filter(t => t.transactionType === 'sale' && t.transactionDate && new Date(t.transactionDate) >= firstDayOfMonth && !(t.isLiveTest && !t.liveTestEnded))
+    const thisMonthEarnings = (transactions ?? [])
+      .filter(t => t.transactionType === 'sale' && t.transactionDate && new Date(t.transactionDate) >= firstDayOfMonth && !(t.isLiveTest && !t.liveTestEnded))
       .reduce((acc, t) => acc + t.amountEarned, 0);
 
-    return { totalEarnings, totalWithdrawn, availableBalance, thisMonthEarnings, totalSales, sponsoredCount };
-  }, [filteredTransactions, balanceData]);
+    return {
+      availableBalance: balanceData?.availableBalance ?? 0,
+      totalEarnings: balanceData?.totalEarned ?? 0,
+      totalWithdrawn: balanceData?.totalWithdrawn ?? 0,
+      totalSales: balanceData?.breakdown.sales.count ?? 0,
+      sponsoredCount: balanceData?.breakdown.sponsored.count ?? 0,
+      thisMonthEarnings,
+    };
+  }, [transactions, balanceData]);
 
-  const isStatsLoading = isFetching || isFetchingBalance;
-  const canManageBank = summaryStats.availableBalance >= 100;
+  const isBalanceLoading = isFetchingBalance && !balanceData;
+  const isTransactionsLoading = isFetching && !transactions;
+  const isBankLoading = isFetchingBankDetails && bankDetails === undefined;
+
+  const hasMinimum = summary.availableBalance >= MIN_WITHDRAWAL;
+  const bankStatusName = bankDetails?.verificationStatus ?? 'none';
+  const canWithdraw = hasMinimum && bankStatusName === 'verified' && !isBalanceLoading;
+
+  const bankStatus: { Icon: LucideIcon; text: string } =
+    bankStatusName === 'verified'
+      ? { Icon: CheckCircle, text: hasMinimum ? 'Bank account verified. Ready to withdraw.' : 'Bank account verified. Withdrawals open at ₹100.' }
+      : bankStatusName === 'pending'
+        ? { Icon: Clock, text: 'Your bank account is being verified. Withdrawals open once it is.' }
+        : bankStatusName === 'rejected'
+          ? { Icon: AlertCircle, text: 'Your bank account was rejected. Open Bank account to see why.' }
+          : { Icon: AlertCircle, text: hasMinimum ? 'Add a bank account to withdraw this balance.' : 'Withdrawals open at ₹100 and need a verified bank account.' };
+
+  const closeDialog = (open: boolean) => {
+    if (!open) setOpenDialog(null);
+  };
 
   const handleExportCSV = () => {
     if (!filteredTransactions || filteredTransactions.length === 0) return;
@@ -98,7 +140,7 @@ const TeacherReportsPage: React.FC = () => {
         'Item Title': itemTitle,
         'Student Name': studentName,
         'Gross Amount': tx.grossAmount.toFixed(2),
-        'Platform Fee %': type === 'withdrawal' || type === 'prize_deduction' || type === 'subscription' ? '—' : `${tx.platformFeePercentage.toFixed(0)}%`,
+        'Platform Fee %': type === 'withdrawal' || type === 'prize_deduction' || type === 'subscription' ? '-' : `${tx.platformFeePercentage.toFixed(0)}%`,
         'Net Earnings': tx.amountEarned.toFixed(2),
       };
     });
@@ -154,7 +196,7 @@ const TeacherReportsPage: React.FC = () => {
             </PopoverContent>
           </Popover>
           <Button
-            variant="secondary"
+            variant="outline"
             onClick={handleExportCSV}
             disabled={isFetching || filteredTransactions.length === 0}
           >
@@ -163,171 +205,74 @@ const TeacherReportsPage: React.FC = () => {
           </Button>
         </TeacherPageHeader>
 
-        {/* Balance */}
-        <section className={styles.panel}>
-          <div className={styles.balanceLabelRow}>
-            <span>Available balance</span>
-            <span className={styles.infoTooltip} title="After sales, withdrawals, and sponsored enrollments">
-              <Info size={14} />
-            </span>
-          </div>
-          {isStatsLoading ? (
-            <Skeleton style={{ height: '2.5rem', width: '220px' }} />
-          ) : (
-            <span className={styles.balanceValue}>₹{summaryStats.availableBalance.toFixed(2)}</span>
-          )}
-
-          <div className={styles.stats}>
-            <Stat label="Total net earnings" value={`₹${summaryStats.totalEarnings.toFixed(2)}`} isLoading={isStatsLoading} />
-            <Stat label="Total withdrawn" value={`₹${summaryStats.totalWithdrawn.toFixed(2)}`} isLoading={isStatsLoading} />
-            <Stat label="This month (net)" value={`₹${summaryStats.thisMonthEarnings.toFixed(2)}`} isLoading={isFetching} />
-            <Stat label="Total sales" value={summaryStats.totalSales.toString()} isLoading={isStatsLoading} />
-            <Stat label="Sponsored students" value={summaryStats.sponsoredCount.toString()} isLoading={isStatsLoading} />
-          </div>
-        </section>
-
-        {/* Bank details */}
-        <section className={styles.panel}>
-          <h2 className={styles.panelTitle}>Bank details</h2>
-          <p className={styles.panelSubtitle}>Where Testkart sends your withdrawals</p>
-
-          {isFetchingBankDetails ? (
-            <>
-              <Skeleton style={{ height: '1.5rem', width: '200px' }} />
-              <Skeleton style={{ height: '1rem', width: '150px' }} />
-            </>
-          ) : !bankDetails ? (
-            <>
-              <p className={styles.panelSubtitle}>
-                Add your account so withdrawals have somewhere to land.
-              </p>
-              <div className={styles.actionRow}>
-                <Button onClick={() => setIsBankDialogOpen(true)} disabled={!canManageBank}>
-                  <CreditCard size={16} />
-                  Add bank details
-                </Button>
-              </div>
-              {!canManageBank && (
-                <div className={`${styles.note} ${styles.noteInfo}`}>
-                  <Info size={16} />
-                  <span>You need at least ₹100 in earnings before you can add bank details.</span>
-                </div>
+        <div className={styles.summary}>
+          <section className={styles.balance} aria-labelledby="balance-label">
+            <div className={styles.balanceHead}>
+              <h2 id="balance-label" className={styles.balanceLabel}>Available balance</h2>
+              {isBalanceLoading ? (
+                <Skeleton className={styles.balanceSkeleton} />
+              ) : (
+                <p className={styles.balanceValue}>{rupees.format(summary.availableBalance)}</p>
               )}
-            </>
-          ) : (
-            <>
-              <div className={styles.bankGrid}>
-                <div className={styles.bankRow}>
-                  <span className={styles.bankLabel}>Account number</span>
-                  <span className={styles.bankValue}>
-                    ****{bankDetails.bankAccountNumber.slice(-4)}
-                  </span>
-                </div>
-                <div className={styles.bankRow}>
-                  <span className={styles.bankLabel}>Bank</span>
-                  <span className={styles.bankValue}>{bankDetails.bankName}</span>
-                </div>
-                <div className={styles.bankRow}>
-                  <span className={styles.bankLabel}>IFSC code</span>
-                  <span className={styles.bankValue}>{bankDetails.bankIfscCode}</span>
-                </div>
-                {bankDetails.upiId && (
-                  <div className={styles.bankRow}>
-                    <span className={styles.bankLabel}>UPI ID</span>
-                    <span className={styles.bankValue}>{bankDetails.upiId}</span>
-                  </div>
-                )}
-                <div className={styles.bankRow}>
-                  <span className={styles.bankLabel}>PAN number</span>
-                  <span className={styles.bankValue}>
-                    {bankDetails.panNumber.substring(0, 2)}******{bankDetails.panNumber.slice(-2)}
-                  </span>
-                </div>
-                <div className={styles.bankRow}>
-                  <span className={styles.bankLabel}>Status</span>
-                  <span>
-                    {bankDetails.verificationStatus === 'pending' && (
-                      <span className={`${styles.statusBadge} ${styles.statusPending}`}>
-                        <Clock size={14} />
-                        Pending verification
-                      </span>
-                    )}
-                    {bankDetails.verificationStatus === 'verified' && (
-                      <span className={`${styles.statusBadge} ${styles.statusVerified}`}>
-                        <CheckCircle size={14} />
-                        Verified
-                      </span>
-                    )}
-                    {bankDetails.verificationStatus === 'rejected' && (
-                      <span className={`${styles.statusBadge} ${styles.statusRejected}`}>
-                        <XCircle size={14} />
-                        Rejected
-                      </span>
-                    )}
-                  </span>
-                </div>
-              </div>
-
-              {bankDetails.verificationStatus === 'pending' && (
-                <div className={`${styles.note} ${styles.noteInfo}`}>
-                  <Info size={16} />
-                  <span>These details are under review. We will let you know once they are verified.</span>
-                </div>
-              )}
-
-              {bankDetails.verificationStatus === 'rejected' && bankDetails.rejectionReason && (
-                <div className={`${styles.note} ${styles.noteError}`}>
-                  <AlertCircle size={16} />
-                  <div className={styles.noteBody}>
-                    <p><strong>Rejected:</strong> {bankDetails.rejectionReason}</p>
-                    <p>Correct the details and submit them again.</p>
-                  </div>
-                </div>
-              )}
-
-              <div className={styles.actionRow}>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsBankDialogOpen(true)}
-                  disabled={!canManageBank && bankDetails.verificationStatus !== 'verified'}
-                >
-                  <Edit size={16} />
-                  Edit bank details
-                </Button>
-              </div>
-              {!canManageBank && bankDetails.verificationStatus !== 'verified' && (
-                <div className={`${styles.note} ${styles.noteInfo}`}>
-                  <Info size={16} />
-                  <span>You need at least ₹100 in earnings before you can change bank details.</span>
-                </div>
-              )}
-            </>
-          )}
-        </section>
-
-        <TeacherWithdrawalSection
-          availableBalance={summaryStats.availableBalance}
-          isBankDetailsVerified={bankDetails?.verificationStatus === 'verified'}
-          isLoadingBalance={isFetchingBalance}
-          isLayoutPending={isStatsLoading || isFetchingBankDetails}
-        />
-
-        <section className={styles.panel}>
-          <h2 className={styles.panelTitle}>Transaction history</h2>
-
-          <div className={`${styles.note} ${styles.noteInfo}`}>
-            <Info size={18} />
-            <div className={styles.noteBody}>
-              <p>
-                Every figure here is what you keep, after the platform fee. Your fee rate comes from
-                your plan - <Link to="/teacher/subscription" className={styles.noteLink}>see plans</Link> to
-                lower it.
-              </p>
-              <p>
-                Sponsorships paid from your wallet and subscription payments come out of this balance.
-                Sponsorships paid online are listed for reference only.
+              <p className={styles.balanceNote}>
+                What is left after sales, withdrawals, sponsorships and subscription payments.
               </p>
             </div>
+
+            <div className={styles.balanceFoot}>
+              {isBankLoading ? (
+                <Skeleton className={styles.statusSkeleton} />
+              ) : (
+                <p className={styles.bankStatus}>
+                  <bankStatus.Icon size={16} aria-hidden="true" />
+                  <span>{bankStatus.text}</span>
+                </p>
+              )}
+              <div className={styles.balanceActions}>
+                <Button
+                  size="lg"
+                  className={styles.withdrawButton}
+                  onClick={() => setOpenDialog('withdraw')}
+                  disabled={!canWithdraw}
+                >
+                  <Banknote aria-hidden="true" />
+                  Withdraw
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className={styles.bankButton}
+                  onClick={() => setOpenDialog('account')}
+                >
+                  <Landmark aria-hidden="true" />
+                  Bank account
+                </Button>
+              </div>
+            </div>
+          </section>
+
+          <section className={`${styles.panel} ${styles.totals}`} aria-label="Earnings totals">
+            <dl className={styles.ledger}>
+              <LedgerRow label="Earned this month" value={rupees.format(summary.thisMonthEarnings)} isLoading={isTransactionsLoading} />
+              <LedgerRow label="Earned in total" value={rupees.format(summary.totalEarnings)} isLoading={isBalanceLoading} />
+              <LedgerRow label="Withdrawn in total" value={rupees.format(summary.totalWithdrawn)} isLoading={isBalanceLoading} />
+              <LedgerRow label="Sales" value={summary.totalSales.toLocaleString('en-IN')} isLoading={isBalanceLoading} />
+              <LedgerRow label="Sponsored students" value={summary.sponsoredCount.toLocaleString('en-IN')} isLoading={isBalanceLoading} />
+            </dl>
+          </section>
+        </div>
+
+        <TeacherWithdrawalSection isLayoutPending={isBalanceLoading || isTransactionsLoading || isBankLoading} />
+
+        <section className={styles.panel} aria-labelledby="transactions-title">
+          <div className={styles.panelHead}>
+            <h2 id="transactions-title" className={styles.panelTitle}>Transactions</h2>
+            <p className={styles.intro}>
+              Every figure is what you keep after the platform fee. Your fee rate depends on your
+              plan - <Link to="/teacher/subscription" className={styles.introLink}>see plans</Link> to
+              lower it. Sponsorships paid from your balance and subscription payments come out of it;
+              sponsorships paid online are listed for reference only.
+            </p>
           </div>
 
           {error && (
@@ -336,8 +281,16 @@ const TeacherReportsPage: React.FC = () => {
             </div>
           )}
 
-          <div className={styles.tableWrapper}>
+          <div className={styles.results}>
             <table className={styles.table}>
+              <colgroup>
+                <col className={styles.colDate} />
+                <col className={styles.colType} />
+                <col />
+                <col className={styles.colMoney} />
+                <col className={styles.colFee} />
+                <col className={styles.colMoney} />
+              </colgroup>
               <thead>
                 <tr>
                   <th>Date</th>
@@ -349,31 +302,32 @@ const TeacherReportsPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {isFetching ? (
+                {isTransactionsLoading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <tr key={i}>
-                      <td><Skeleton style={{ height: '1.25rem', width: '100px' }} /></td>
-                      <td><Skeleton style={{ height: '1.25rem', width: '80px' }} /></td>
-                      <td><Skeleton style={{ height: '1.25rem', width: '220px' }} /></td>
-                      <td className={styles.numeric}><Skeleton style={{ height: '1.25rem', width: '80px' }} /></td>
-                      <td className={styles.numeric}><Skeleton style={{ height: '1.25rem', width: '50px' }} /></td>
-                      <td className={styles.numeric}><Skeleton style={{ height: '1.25rem', width: '80px' }} /></td>
+                      <td><Skeleton style={{ height: '1.25rem', width: '88px' }} /></td>
+                      <td><Skeleton style={{ height: '1.25rem', width: '72px' }} /></td>
+                      <td><Skeleton style={{ height: '1.25rem', width: '200px', maxWidth: '100%' }} /></td>
+                      <td className={styles.numeric}><Skeleton style={{ height: '1.25rem', width: '72px', marginLeft: 'auto' }} /></td>
+                      <td className={styles.numeric}><Skeleton style={{ height: '1.25rem', width: '40px', marginLeft: 'auto' }} /></td>
+                      <td className={styles.numeric}><Skeleton style={{ height: '1.25rem', width: '72px', marginLeft: 'auto' }} /></td>
                     </tr>
                   ))
                 ) : filteredTransactions.length > 0 ? (
                   filteredTransactions.map((tx, i) => {
                     const txType = tx.transactionType as string; // Cast for potentially new types like 'sponsored'
                     const isPendingLiveTest = !!tx.isLiveTest && !tx.liveTestEnded;
+                    const hasNoFee = txType === 'withdrawal' || txType === 'prize_deduction' || txType === 'subscription';
                     const netClass =
                       txType === 'sale' && !isPendingLiveTest ? styles.amountEarned :
                       txType === 'sale' && isPendingLiveTest ? styles.amountPending :
-                      txType === 'withdrawal' || txType === 'prize_deduction' || txType === 'subscription' ? styles.amountOut :
+                      hasNoFee ? styles.amountOut :
                       txType === 'sponsored' && tx.amountEarned !== 0 ? styles.amountOut :
                       styles.amountNeutral;
 
                     return (
                       <tr key={i}>
-                        <td>{tx.transactionDate ? format(new Date(tx.transactionDate), 'MMM dd, yyyy') : 'N/A'}</td>
+                        <td className={styles.date}>{tx.transactionDate ? format(new Date(tx.transactionDate), 'MMM dd, yyyy') : 'N/A'}</td>
                         <td>
                           <span className={`${styles.typeBadge} ${styles[txType]}`}>
                             {txType === 'sponsored' ? 'Sponsored' : txType === 'prize_deduction' ? 'Prize deduction' : txType === 'subscription' ? 'Subscription' : txType}
@@ -404,31 +358,28 @@ const TeacherReportsPage: React.FC = () => {
                             )}
                             {isPendingLiveTest && (
                               <span className={styles.pendingNote}>
-                                <Clock size={12} />
+                                <Clock size={12} aria-hidden="true" />
                                 Credited after the live test ends and prizes are paid
                               </span>
                             )}
                           </div>
                         </td>
-                        <td className={styles.numeric}>
-                          {txType === 'sponsored' ? `₹${tx.grossAmount.toFixed(2)} (commission)` : `₹${tx.grossAmount.toFixed(2)}`}
+                        <td className={styles.numeric} data-label="Gross">
+                          {rupees.format(tx.grossAmount)}
+                          {txType === 'sponsored' && <span className={styles.cellNote}>commission</span>}
                         </td>
-                        <td className={styles.numeric}>
-                          {txType === 'withdrawal' || txType === 'prize_deduction' || txType === 'subscription' ? '—' : `${tx.platformFeePercentage.toFixed(0)}%`}
+                        <td className={styles.numeric} data-label="Fee">
+                          {hasNoFee ? '-' : `${tx.platformFeePercentage.toFixed(0)}%`}
                         </td>
-                        <td className={`${styles.numeric} ${netClass}`}>
-                          {txType === 'sponsored' && tx.amountEarned === 0
-                            ? '—'
-                            : `₹${tx.amountEarned.toFixed(2)}`}
+                        <td className={`${styles.numeric} ${netClass}`} data-label="You keep">
+                          {txType === 'sponsored' && tx.amountEarned === 0 ? '-' : rupees.format(tx.amountEarned)}
                         </td>
                       </tr>
                     );
                   })
                 ) : (
-                  <tr>
-                    <td colSpan={6} className={styles.emptyCell}>
-                      Nothing in this date range. Widen the range to see more.
-                    </td>
+                  <tr className={styles.emptyRow}>
+                    <td colSpan={6}>Nothing in this date range. Widen the range to see more.</td>
                   </tr>
                 )}
               </tbody>
@@ -436,10 +387,22 @@ const TeacherReportsPage: React.FC = () => {
           </div>
         </section>
 
+        <TeacherBankAccountDialog
+          open={openDialog === 'account'}
+          onOpenChange={closeDialog}
+          bankDetails={bankDetails ?? null}
+          canManage={hasMinimum}
+          onEdit={() => setOpenDialog('editBank')}
+        />
         <BankDetailsDialog
-          open={isBankDialogOpen}
-          onOpenChange={setIsBankDialogOpen}
-          existingDetails={bankDetails || null}
+          open={openDialog === 'editBank'}
+          onOpenChange={closeDialog}
+          existingDetails={bankDetails ?? null}
+        />
+        <WithdrawalRequestDialog
+          open={openDialog === 'withdraw'}
+          onOpenChange={closeDialog}
+          availableBalance={summary.availableBalance}
         />
       </div>
     </>

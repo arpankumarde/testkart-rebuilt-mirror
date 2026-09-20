@@ -18,6 +18,8 @@ export type BundleListItem = Pick<Selectable<CourseBundles>, "id" | "title" | "s
     // The items' combined price right now.
     currentOriginalPrice: number;
     itemCount: number;
+    // Submitted for publishing and waiting on admin approval.
+    inReview: boolean;
 };
 
 export type OutputType = {

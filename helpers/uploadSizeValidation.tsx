@@ -1,5 +1,6 @@
 import { db } from "./db";
 import { STUDY_NOTES_PDF_MAX_MB } from "./digitalProductRules";
+import { assetKindForMime, isLibraryFolder, libraryMimeType } from "./teacherAssetFiles";
 
 export const DEFAULT_UPLOAD_LIMITS = {
   thumbnailMaxMb: 3,
@@ -29,6 +30,13 @@ function getCategoryLimit(
   limits: UploadLimitsRow
 ): number | null {
   const normalizedFolder = folder.replace(/^\/+/, "").replace(/\/+$/, "");
+
+  // Library files end up as lesson videos and PDFs, so they share those limits.
+  if (isLibraryFolder(normalizedFolder)) {
+    if (contentType.startsWith("video/")) return limits.lessonVideoMaxMb;
+    if (contentType === "application/pdf") return limits.coursePdfMaxMb;
+    return null;
+  }
 
   if (normalizedFolder.startsWith("editor-images")) {
     return limits.richTextImageMaxMb;
@@ -63,9 +71,18 @@ function getCategoryLimit(
   return null;
 }
 
-// Study notes files are uploaded under products/. Thumbnail folders are left out, as in getCategoryLimit.
+// Study notes files are uploaded under products/ (thumbnail folders are left out, as in
+// getCategoryLimit). The asset library under library/ takes only videos and PDFs.
 export function validateUploadType(folder: string, contentType: string, fileName: string): Response | null {
   const normalizedFolder = folder.replace(/^\/+/, "").replace(/\/+$/, "");
+  if (isLibraryFolder(normalizedFolder)) {
+    const type = contentType.toLowerCase();
+    if (libraryMimeType(fileName.trim(), type) === type && assetKindForMime(type)) return null;
+    return new Response(
+      superjson.stringify({ error: "Only MP4, WebM or MOV videos and PDF files can be uploaded to the library." }),
+      { status: 400 }
+    );
+  }
   if (!normalizedFolder.startsWith("products") || normalizedFolder.includes("thumbnail")) {
     return null;
   }

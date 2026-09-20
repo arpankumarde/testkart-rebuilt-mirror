@@ -132,8 +132,7 @@ const Page = () => {
       });
     } else {
       publishMutation.mutate({ testId: packageId }, {
-        // Land on the tab the series just moved into: the next question is "is it live?".
-        onSuccess: () => navigate("/teacher/test-series?status=published"),
+        onSuccess: () => navigate("/teacher/test-series"),
       });
     }
   };
@@ -259,11 +258,13 @@ const Page = () => {
 
   // A published series cannot be published again (the server refuses it), and a
   // live test is published once isActive is set, so both get a live panel
-  // instead of a publish button that does nothing useful.
+  // instead of a publish button that does nothing useful. The same goes for one
+  // already waiting on admin review.
   const isAlreadyLive = isLiveTest && liveTest ? !!liveTest.isActive : !!testPackage.isPublished;
+  const isInReview = isLiveTest && liveTest ? liveTest.inReview : testPackage.inReview;
   const kindLabel = isLiveTest ? "live test" : "test series";
   const isPublishing = publishMutation.isPending || publishLiveMutation.isPending;
-  const verdict = isAlreadyLive ? "live" : isReadyToPublish ? "ready" : "blocked";
+  const verdict = isAlreadyLive ? "live" : isInReview ? "inReview" : isReadyToPublish ? "ready" : "blocked";
 
   const totalQuestions = orderedItems.reduce((sum, item) => sum + item.questionsCount, 0);
   const durations = orderedItems.map(effectiveDuration);
@@ -278,25 +279,27 @@ const Page = () => {
   const requirements = parseJsonArray(testPackage.requirements);
   const longDescription = testPackage.longDescription?.trim() ? testPackage.longDescription : null;
 
-  const doneLink = isLiveTest ? "/teacher/live-tests" : "/teacher/test-series?status=published";
+  const doneLink = isLiveTest ? "/teacher/live-tests" : "/teacher/test-series";
   const listingLink = isLiveTest && liveTest ? `/mock-test/live/${liveTest.id}` : `/mock-test/${testPackage.slug}`;
 
   return (
     <>
       <Helmet>
-        <title>Review and publish | Testkart</title>
-        <meta name="description" content="Review your mock test package and publish it to the marketplace." />
+        <title>Review and submit | Testkart</title>
+        <meta name="description" content="Review your mock test package and submit it for publishing." />
       </Helmet>
       <div className={styles.page}>
         <header className={styles.header}>
           <div className={styles.headerTitle}>
-            <h1>{isAlreadyLive ? "Review" : "Review and publish"}</h1>
+            <h1>{isAlreadyLive || isInReview ? "Review" : "Review and submit"}</h1>
             {isLiveTest && <Badge variant="secondary">Live test</Badge>}
           </div>
           <p>
             {isAlreadyLive
               ? "Check what students see and fix anything flagged."
-              : `Check your ${kindLabel} the way students will see it, then publish it.`}
+              : isInReview
+              ? `Your ${kindLabel} is with our team for review.`
+              : `Check your ${kindLabel} the way students will see it, then submit it for review.`}
           </p>
         </header>
 
@@ -326,16 +329,30 @@ const Page = () => {
                     </div>
                   </>
                 )}
+                {verdict === "inReview" && (
+                  <>
+                    <h2 id="review-verdict" className={styles.verdictTitle}>In review</h2>
+                    <p className={styles.verdictBody}>
+                      Our team is reviewing this {kindLabel}. Students can find it once it is approved, and we will
+                      email you when it is approved or needs changes. You can keep editing it meanwhile.
+                    </p>
+                    <div className={styles.verdictActions}>
+                      <Button asChild size="lg">
+                        <Link to={doneLink}>Done</Link>
+                      </Button>
+                    </div>
+                  </>
+                )}
                 {verdict === "ready" && (
                   <>
-                    <h2 id="review-verdict" className={styles.verdictTitle}>Ready to publish</h2>
+                    <h2 id="review-verdict" className={styles.verdictTitle}>Ready to submit</h2>
                     <p className={styles.verdictBody}>
                       {plural(orderedItems.length, "test")} and {plural(totalQuestions, "question")} pass every
-                      required check. Students can find it as soon as you publish.
+                      required check. Our team reviews it before students can find it.
                     </p>
                     <div className={styles.verdictActions}>
                       <Button size="lg" onClick={handlePublish} disabled={isPublishing}>
-                        {isPublishing ? "Publishing..." : `Publish ${kindLabel}`}
+                        {isPublishing ? "Submitting..." : "Submit for review"}
                       </Button>
                     </div>
                   </>
@@ -346,7 +363,7 @@ const Page = () => {
                       {plural(failCount, "check")} to fix
                     </h2>
                     <p className={styles.verdictBody}>
-                      Publishing unlocks once every required check below passes.
+                      You can submit for review once every required check below passes.
                     </p>
                   </>
                 )}

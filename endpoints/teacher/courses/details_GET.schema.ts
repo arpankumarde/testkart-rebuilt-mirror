@@ -18,6 +18,8 @@ export type OutputType = Omit<Selectable<Courses>, "price"> & {
   sections: SectionWithLessons[];
   sectionsCount: number;
   lessonsCount: number;
+  /** Submitted for publishing and waiting on admin approval. */
+  inReview: boolean;
 };
 
 export const getTeacherCoursesDetails = async (

@@ -1,9 +1,13 @@
 /**
  * OAuth 2.1 authorization server behind the MCP connectors.
  *
- * Two connectors share it, each its own resource and issuer: the admin connector at
- * /_api/mcp/admin and the teacher connector at /_api/mcp/teacher. Codes and tokens record their
- * audience, so a token minted for one connector is refused by the other.
+ * Two connectors share it, each its own resource: the admin connector at /_api/mcp/admin and the
+ * teacher connector at /_api/mcp/teacher. One issuer, the site origin, serves both, so its metadata
+ * sits at the root /.well-known/oauth-authorization-server where ChatGPT looks for it; the
+ * request's `resource` parameter picks the connector. Each connector's own authorize, token and
+ * register endpoints under /_api/mcp/<audience>/ stay for connections made before the shared
+ * issuer. Codes and tokens record their audience, so a token minted for one connector is refused
+ * by the other.
  *
  * Only what MCP clients need: dynamic client registration (RFC 7591), the authorization-code flow
  * with mandatory PKCE S256, and refresh tokens. No implicit flow and no client secrets - MCP
@@ -32,6 +36,14 @@ export function mcpResourceUrl(audience: McpAudience): string {
 
 export function mcpResourceMetadataUrl(audience: McpAudience): string {
   return `${SITE_ORIGIN}/.well-known/oauth-protected-resource/_api/mcp/${audience}`;
+}
+
+/** The connector a `resource` parameter names, or null when it names neither. */
+export function mcpAudienceForResource(resource: string): McpAudience | null {
+  const normalised = resource.replace(/\/+$/, "");
+  if (normalised === mcpResourceUrl("admin")) return "admin";
+  if (normalised === mcpResourceUrl("teacher")) return "teacher";
+  return null;
 }
 
 /** Who approved an authorization request. */
@@ -208,7 +220,7 @@ export async function parseAuthorizeParams(
   }
 
   const resource = params.get("resource");
-  if (resource && resource.replace(/\/+$/, "") !== mcpResourceUrl(audience)) {
+  if (resource && mcpAudienceForResource(resource) !== audience) {
     throw new OAuthError(
       "invalid_target",
       `This authorization server only issues tokens for ${mcpResourceUrl(audience)}.`
@@ -315,7 +327,10 @@ async function issueTokenPair(input: {
   return { accessToken, refreshToken, expiresIn: ACCESS_TTL_SECONDS, scope: input.scope };
 }
 
-/** Exchange an authorization code for tokens, verifying the PKCE verifier. */
+/**
+ * Exchange an authorization code for tokens, verifying the PKCE verifier. A null audience (the
+ * shared token endpoint) accepts a code for either connector.
+ */
 export async function exchangeAuthorizationCode(
   input: {
     code: string;
@@ -323,7 +338,7 @@ export async function exchangeAuthorizationCode(
     redirectUri: string;
     codeVerifier: string;
   },
-  audience: McpAudience
+  audience: McpAudience | null
 ): Promise<IssuedTokens> {
   const codeHash = await sha256Base64Url(input.code);
 
@@ -339,7 +354,7 @@ export async function exchangeAuthorizationCode(
   if (!consumed) {
     throw new OAuthError("invalid_grant", "Authorization code is invalid or has already been used.");
   }
-  if (consumed.audience !== audience) {
+  if (audience !== null && consumed.audience !== audience) {
     throw new OAuthError("invalid_grant", "Authorization code was issued for a different connector.");
   }
   if (new Date(consumed.expiresAt).getTime() < Date.now()) {
@@ -375,14 +390,14 @@ export async function exchangeAuthorizationCode(
 
 /**
  * Rotate a refresh token. The old row is revoked first, so a replayed refresh token fails, and a
- * teacher's old session row is replaced by a fresh one.
+ * teacher's old session row is replaced by a fresh one. A null audience accepts either connector.
  */
 export async function refreshAccessToken(
   input: {
     refreshToken: string;
     clientId: string;
   },
-  audience: McpAudience
+  audience: McpAudience | null
 ): Promise<IssuedTokens> {
   const refreshHash = await sha256Base64Url(input.refreshToken);
   const row = await db
@@ -392,7 +407,7 @@ export async function refreshAccessToken(
     .executeTakeFirst();
 
   if (!row) throw new OAuthError("invalid_grant", "Refresh token is invalid.");
-  if (row.audience !== audience) {
+  if (audience !== null && row.audience !== audience) {
     throw new OAuthError("invalid_grant", "Refresh token was issued for a different connector.");
   }
   if (row.revokedAt) throw new OAuthError("invalid_grant", "Refresh token has been revoked.");

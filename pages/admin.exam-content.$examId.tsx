@@ -99,6 +99,7 @@ export default function AdminExamContentPage() {
   const [formByType, setFormByType] = useState<Record<string, FormState>>({});
   const [savedSnapshotByType, setSavedSnapshotByType] = useState<Record<string, FormState>>({});
   const signatureRef = useRef<Record<string, string>>({});
+  const [savingForPublish, setSavingForPublish] = useState(false);
 
   // Re-sync local editable form state from the server whenever a page's
   // underlying row actually changes (first load, after Save, after
@@ -213,17 +214,19 @@ export default function AdminExamContentPage() {
 
   const defaultTitleFor = (type: AdminExamSectionType) => `${examLabel} ${ADMIN_EXAM_SECTION_META[type].titleSuffix}`;
 
+  const upsertInput = () => ({
+    examId,
+    pageType: activeType,
+    title: currentForm.title || defaultTitleFor(activeType),
+    seoTitle: currentForm.seoTitle || null,
+    seoDescription: currentForm.seoDescription || null,
+    description: currentForm.description || null,
+    content: currentForm.content,
+    faqItems: currentForm.faqItems,
+  });
+
   const handleSave = () => {
-    upsertMutation.mutate({
-      examId,
-      pageType: activeType,
-      title: currentForm.title || defaultTitleFor(activeType),
-      seoTitle: currentForm.seoTitle || null,
-      seoDescription: currentForm.seoDescription || null,
-      description: currentForm.description || null,
-      content: currentForm.content,
-      faqItems: currentForm.faqItems,
-    });
+    upsertMutation.mutate(upsertInput());
   };
 
   const handleGenerateContent = () => {
@@ -234,9 +237,22 @@ export default function AdminExamContentPage() {
     generateMutation.mutate({ examId, pageType: activeType, target: "faqs" });
   };
 
-  const handlePublish = () => {
-    publishMutation.mutate({ examId, pageType: activeType });
+  // Publish copies the saved draft live, so unsaved edits are saved first.
+  const handlePublish = async () => {
+    const pageType = activeType;
+    if (isDirty) {
+      setSavingForPublish(true);
+      try {
+        await upsertMutation.mutateAsync(upsertInput());
+      } catch {
+        return;
+      } finally {
+        setSavingForPublish(false);
+      }
+    }
+    publishMutation.mutate({ examId, pageType });
   };
+  const isPublishing = publishMutation.isPending || savingForPublish;
 
   const handleUnpublish = () => {
     unpublishMutation.mutate({ examId, pageType: activeType });
@@ -336,7 +352,7 @@ export default function AdminExamContentPage() {
                     )}
                     {isDirty && (
                       <span className={styles.dirtyNote}>
-                        Unsaved local edits - Publish will use the last saved draft
+                        Unsaved edits - Publish saves them first
                       </span>
                     )}
                     {!isDirty && draftDiffersFromPublished && (
@@ -559,10 +575,14 @@ export default function AdminExamContentPage() {
                       <Button
                         type="button"
                         onClick={handlePublish}
-                        disabled={publishMutation.isPending || !hasPublishableContent || currentPage.id === null}
-                        title={isDirty ? "Publishes the last saved draft - save first to include your latest edits" : undefined}
+                        disabled={
+                          isPublishing ||
+                          upsertMutation.isPending ||
+                          !hasPublishableContent ||
+                          (currentPage.id === null && !isDirty)
+                        }
                       >
-                        {publishMutation.isPending
+                        {isPublishing
                           ? "Publishing..."
                           : currentPage.status === "published"
                             ? "Republish"

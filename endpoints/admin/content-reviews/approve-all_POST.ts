@@ -3,6 +3,7 @@ import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { schema, OutputType } from "./approve-all_POST.schema";
 import { sendEmail } from "../../../helpers/sendEmail";
+import { publishApprovedContent } from "../../../helpers/contentReviewQueue";
 
 async function getEmailTemplate(templateKey: string) {
   return db
@@ -144,104 +145,34 @@ export async function handle(request: Request): Promise<Response> {
       return new Response(superjson.stringify(output));
     }
 
-    // Process all updates in a single transaction
-    await db.transaction().execute(async (trx) => {
-      for (const review of pendingReviews) {
-        // 1. Update the review record
-        await trx
-          .updateTable("contentReviews")
-          .set({
-            status: "approved",
-            reviewedBy: admin.id,
-            reviewedAt: now,
-            updatedAt: now,
-          })
-          .where("id", "=", review.id)
-          .execute();
-
-        // 2. Publish the content based on type
-        switch (review.contentType) {
-          case "mock_test":
-            await trx
-              .updateTable("mockTests")
-              .set({
-                isPublished: true,
-                wasEverPublished: true,
-                updatedAt: now,
-              })
-              .where("id", "=", review.contentId)
-              .execute();
-            break;
-
-          case "course":
-            await trx
-              .updateTable("courses")
-              .set({ status: "published", publishedAt: now, updatedAt: now })
-              .where("id", "=", review.contentId)
-              .execute();
-            break;
-
-          case "digital_product":
-            await trx
-              .updateTable("digitalProducts")
-              .set({
-                status: "published",
-                isPublished: true,
-                publishedAt: now,
-                updatedAt: now,
-              })
-              .where("id", "=", review.contentId)
-              .execute();
-            break;
-
-          case "course_bundle":
-            await trx
-              .updateTable("courseBundles")
-              .set({ isPublished: true, publishedAt: now, updatedAt: now })
-              .where("id", "=", review.contentId)
-              .execute();
-            break;
-
-          case "live_test": {
-            // Activate the live test
-            await trx
-              .updateTable("liveTests")
-              .set({ isActive: true, updatedAt: now })
-              .where("id", "=", review.contentId)
-              .execute();
-
-            // Also publish the associated mock test
-            const liveTest = await trx
-              .selectFrom("liveTests")
-              .select("mockTestId")
-              .where("id", "=", review.contentId)
-              .executeTakeFirst();
-
-            if (liveTest) {
-              await trx
-                .updateTable("mockTests")
-                .set({
-                  isPublished: true,
-                  wasEverPublished: true,
-                  updatedAt: now,
-                })
-                .where("id", "=", liveTest.mockTestId)
-                .execute();
-            }
-            break;
-          }
-
-          default:
-            console.warn(
-              `Unknown content type for publishing: ${review.contentType}`
-            );
-        }
+    // One transaction per item, so an item that can no longer go live (a
+    // passed live test schedule, a trashed series) stays pending on its own.
+    const approved: typeof pendingReviews = [];
+    for (const review of pendingReviews) {
+      try {
+        await db.transaction().execute(async (trx) => {
+          await trx
+            .updateTable("contentReviews")
+            .set({
+              status: "approved",
+              reviewedBy: admin.id,
+              reviewedAt: now,
+              updatedAt: now,
+            })
+            .where("id", "=", review.id)
+            .where("status", "=", "pending")
+            .execute();
+          await publishApprovedContent(trx, review.contentType, review.contentId, now);
+        });
+        approved.push(review);
+      } catch (err) {
+        console.warn(`Review ${review.id} left pending:`, err);
       }
-    });
+    }
+    const skippedCount = pendingReviews.length - approved.length;
 
-    // Send emails after successful transaction commit
-    // Using a non-blocking execution via .catch on the promise chains
-    const emailPromises = pendingReviews.map(async (review) => {
+    // Emails go out after each item's commit, without holding up the response
+    const emailPromises = approved.map(async (review) => {
       try {
         const teacher = await db
           .selectFrom("users")
@@ -275,8 +206,11 @@ export async function handle(request: Request): Promise<Response> {
 
     const output: OutputType = {
       success: true,
-      approvedCount: pendingReviews.length,
-      message: `Successfully approved and published ${pendingReviews.length} item(s).`,
+      approvedCount: approved.length,
+      message:
+        skippedCount > 0
+          ? `Approved and published ${approved.length} item(s). ${skippedCount} could not go live and are still pending - open them to see why.`
+          : `Successfully approved and published ${approved.length} item(s).`,
     };
 
     return new Response(superjson.stringify(output));

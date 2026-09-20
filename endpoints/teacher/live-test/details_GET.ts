@@ -3,6 +3,7 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./details_GET.schema";
 import superjson from "superjson";
 import { sql } from "kysely";
+import { hasPendingReview } from "../../../helpers/contentReviewQueue";
 
 export async function handle(request: Request) {
   try {
@@ -69,6 +70,7 @@ export async function handle(request: Request) {
       mockTest: mockTest || null,
       mockTestItem: mockTestItem || null,
       subjects: subjects,
+      inReview: await hasPendingReview(db, "live_test", liveTest.id),
     };
 
     return new Response(superjson.stringify(output));

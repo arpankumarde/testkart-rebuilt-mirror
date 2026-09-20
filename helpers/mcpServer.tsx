@@ -48,7 +48,7 @@ function rpcError(
 }
 
 /** A 401 must advertise where to authenticate, or MCP clients cannot discover the OAuth server. */
-function unauthorized(config: McpServerConfig, message: string): Response {
+function unauthorized(config: Pick<McpServerConfig, "audience" | "name">, message: string): Response {
   return new Response(JSON.stringify({ error: "unauthorized", error_description: message }), {
     status: 401,
     headers: {
@@ -185,4 +185,25 @@ export async function handleMcpRequest(request: Request, config: McpServerConfig
     console.error(`MCP ${config.audience} endpoint error:`, error);
     return rpcError(id, -32603, "Internal server error.", 500);
   }
+}
+
+/**
+ * GET on a connector URL. This server opens no server-to-client SSE stream, so a signed-in GET gets
+ * the 405 the Streamable HTTP transport asks for, and a signed-out one gets the same 401 as a POST.
+ */
+export async function handleMcpGet(
+  request: Request,
+  config: Pick<McpServerConfig, "audience" | "name">
+): Promise<Response> {
+  const authHeader = request.headers.get("authorization") ?? "";
+  if (!authHeader.toLowerCase().startsWith("bearer ")) {
+    return unauthorized(config, "A Bearer access token is required.");
+  }
+  if (!(await resolveAccessToken(authHeader.slice(7).trim(), config.audience))) {
+    return unauthorized(config, "The access token is invalid, expired or revoked.");
+  }
+  return new Response(
+    JSON.stringify({ error: "method_not_allowed", error_description: "No SSE stream here. Send JSON-RPC with POST." }),
+    { status: 405, headers: { ...JSON_HEADERS, Allow: "POST" } }
+  );
 }

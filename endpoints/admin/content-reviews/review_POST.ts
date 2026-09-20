@@ -3,6 +3,7 @@ import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { schema, OutputType } from "./review_POST.schema";
 import { sendEmail } from "../../../helpers/sendEmail";
+import { publishApprovedContent } from "../../../helpers/contentReviewQueue";
 
 async function getEmailTemplate(templateKey: string) {
   return db
@@ -100,78 +101,27 @@ export async function handle(request: Request): Promise<Response> {
     const now = new Date();
 
     if (input.action === "approve") {
-      // Update the review record
-      await db
-        .updateTable("contentReviews")
-        .set({
-          status: "approved",
-          reviewedBy: admin.id,
-          reviewedAt: now,
-          adminNotes: input.adminNotes ?? null,
-          updatedAt: now,
-        })
-        .where("id", "=", input.reviewId)
-        .execute();
-
-      // Publish the content based on type
-      switch (review.contentType) {
-        case "mock_test":
-          await db
-            .updateTable("mockTests")
-            .set({ isPublished: true, wasEverPublished: true, updatedAt: now })
-            .where("id", "=", review.contentId)
+      try {
+        await db.transaction().execute(async (trx) => {
+          await trx
+            .updateTable("contentReviews")
+            .set({
+              status: "approved",
+              reviewedBy: admin.id,
+              reviewedAt: now,
+              adminNotes: input.adminNotes ?? null,
+              updatedAt: now,
+            })
+            .where("id", "=", input.reviewId)
             .execute();
-          break;
-
-        case "course":
-          await db
-            .updateTable("courses")
-            .set({ status: "published", publishedAt: now, updatedAt: now })
-            .where("id", "=", review.contentId)
-            .execute();
-          break;
-
-        case "digital_product":
-          await db
-            .updateTable("digitalProducts")
-            .set({ status: "published", isPublished: true, publishedAt: now, updatedAt: now })
-            .where("id", "=", review.contentId)
-            .execute();
-          break;
-
-        case "course_bundle":
-          await db
-            .updateTable("courseBundles")
-            .set({ isPublished: true, publishedAt: now, updatedAt: now })
-            .where("id", "=", review.contentId)
-            .execute();
-          break;
-
-        case "live_test": {
-          // Activate the live test
-          await db
-            .updateTable("liveTests")
-            .set({ isActive: true, updatedAt: now })
-            .where("id", "=", review.contentId)
-            .execute();
-          // Also publish the associated mock test
-          const liveTest = await db
-            .selectFrom("liveTests")
-            .select("mockTestId")
-            .where("id", "=", review.contentId)
-            .executeTakeFirst();
-          if (liveTest) {
-            await db
-              .updateTable("mockTests")
-              .set({ isPublished: true, wasEverPublished: true, updatedAt: now })
-              .where("id", "=", liveTest.mockTestId)
-              .execute();
-          }
-          break;
-        }
-
-        default:
-          console.warn(`Unknown content type for publishing: ${review.contentType}`);
+          await publishApprovedContent(trx, review.contentType, review.contentId, now);
+        });
+      } catch (publishError) {
+        const reason = publishError instanceof Error ? publishError.message : "It could not be published.";
+        return new Response(
+          superjson.stringify({ error: `Not approved: ${reason}` }),
+          { status: 400 }
+        );
       }
 
       // Send approval email (non-blocking)

@@ -1,5 +1,11 @@
 import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
+import {
+  REVIEW_QUEUED_NOTE,
+  alreadyInReviewMessage,
+  hasPendingReview,
+  queueContentReview,
+} from "../../../helpers/contentReviewQueue";
 import { schema, OutputType } from "./publish_POST.schema";
 import superjson from "superjson";
 
@@ -44,6 +50,14 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
+    const needsReview = user.role !== "admin";
+    if (needsReview && (await hasPendingReview(db, "course", courseId))) {
+      return new Response(
+        superjson.stringify({ error: alreadyInReviewMessage("course") }),
+        { status: 400 }
+      );
+    }
+
     if (!course.thumbnailImageUrl && !course.introVideoUrl) {
       return new Response(
         superjson.stringify({
@@ -70,7 +84,16 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
-    // Publish the course directly
+    if (needsReview) {
+      await queueContentReview(db, { contentType: "course", contentId: courseId, teacherId: course.teacherId });
+      console.log(`Course ${courseId} submitted for review by teacher ${course.teacherId}`);
+      const output: OutputType = {
+        success: true,
+        message: `Your course has been submitted for review. ${REVIEW_QUEUED_NOTE}`,
+      };
+      return new Response(superjson.stringify(output));
+    }
+
     await db
       .updateTable("courses")
       .set({
@@ -80,7 +103,7 @@ export async function handle(request: Request): Promise<Response> {
       .where("id", "=", courseId)
       .execute();
 
-    console.log(`Course ${courseId} published by teacher ${course.teacherId}`);
+    console.log(`Course ${courseId} published by admin ${user.id}`);
 
     const output: OutputType = {
       success: true,

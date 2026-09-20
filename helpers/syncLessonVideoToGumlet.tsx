@@ -14,6 +14,10 @@ import { gumletRequest, type GumletRequestError } from "./gumletRequest";
  *
  * Gumlet fetches the file from its public CDN URL. A presigned R2 URL is signed
  * for GET only, and Gumlet rejects it as an invalid input URL.
+ *
+ * One library video can back several lessons of the same teacher. The first
+ * lesson pushes it; later lessons with the same video reuse that Gumlet asset,
+ * and an asset is only deleted from Gumlet once no lesson points at it.
  */
 
 const GUMLET_WORKSPACE_NAME = "Primary R2";
@@ -176,10 +180,18 @@ export async function syncLessonVideoToGumlet(lessonId: number): Promise<void> {
       lesson.gumletAssetId &&
       (!isVideo || lesson.gumletSourceUrl !== lesson.contentUrl || lesson.gumletStatus === "failed")
     ) {
-      try {
-        await gumletRequest("DELETE", `/video/assets/${lesson.gumletAssetId}`);
-      } catch (error) {
-        console.error(`[syncLessonVideoToGumlet] Could not delete replaced asset ${lesson.gumletAssetId}:`, error);
+      const sharedWith = await db
+        .selectFrom("courseLessons")
+        .select("id")
+        .where("gumletAssetId", "=", lesson.gumletAssetId)
+        .where("id", "!=", lessonId)
+        .executeTakeFirst();
+      if (!sharedWith) {
+        try {
+          await gumletRequest("DELETE", `/video/assets/${lesson.gumletAssetId}`);
+        } catch (error) {
+          console.error(`[syncLessonVideoToGumlet] Could not delete replaced asset ${lesson.gumletAssetId}:`, error);
+        }
       }
       await db
         .updateTable("courseLessons")
@@ -194,6 +206,33 @@ export async function syncLessonVideoToGumlet(lessonId: number): Promise<void> {
     if (lesson.gumletAssetId && lesson.gumletStatus !== "failed") return;
 
     try {
+      const reusable = await db
+        .selectFrom("courseLessons")
+        .innerJoin("courseSections", "courseSections.id", "courseLessons.sectionId")
+        .innerJoin("courses", "courses.id", "courseSections.courseId")
+        .select(["courseLessons.gumletAssetId", "courseLessons.gumletStatus"])
+        .where("courses.teacherId", "=", lesson.teacherId)
+        .where("courseLessons.id", "!=", lessonId)
+        .where("courseLessons.gumletSourceUrl", "=", lesson.contentUrl)
+        .where("courseLessons.gumletAssetId", "is not", null)
+        .where("courseLessons.gumletStatus", "in", ["submitted", "ready"])
+        .executeTakeFirst();
+
+      if (reusable?.gumletAssetId) {
+        await db
+          .updateTable("courseLessons")
+          .set({
+            gumletAssetId: reusable.gumletAssetId,
+            gumletSourceUrl: lesson.contentUrl,
+            gumletStatus: reusable.gumletStatus,
+            gumletError: null,
+          })
+          .where("id", "=", lessonId)
+          .execute();
+        console.log(`[syncLessonVideoToGumlet] Lesson ${lessonId} reuses Gumlet asset ${reusable.gumletAssetId}`);
+        return;
+      }
+
       const workspaceId = await findWorkspaceId();
       const r2Key = extractR2Key(lesson.contentUrl);
 

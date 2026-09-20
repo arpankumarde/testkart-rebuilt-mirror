@@ -3,6 +3,12 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./publish_POST.schema";
 import superjson from "superjson";
 import { getProductPublishIssues, formatPublishIssues } from "../../../helpers/digitalProductRules";
+import {
+  REVIEW_QUEUED_NOTE,
+  alreadyInReviewMessage,
+  hasPendingReview,
+  queueContentReview,
+} from "../../../helpers/contentReviewQueue";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -39,6 +45,14 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
+    const needsReview = user.role !== "admin";
+    if (needsReview && (await hasPendingReview(db, "digital_product", input.id))) {
+      return new Response(
+        superjson.stringify({ error: alreadyInReviewMessage("study note") }),
+        { status: 400 }
+      );
+    }
+
     const files = await db
       .selectFrom("digitalProductFiles")
       .select("fileUrl")
@@ -53,7 +67,16 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
-    // Publish the product directly
+    if (needsReview) {
+      await queueContentReview(db, { contentType: "digital_product", contentId: input.id, teacherId: product.teacherId });
+      console.log(`Digital product ${input.id} submitted for review by teacher ${product.teacherId}`);
+      const output: OutputType = {
+        success: true,
+        message: `Your study note has been submitted for review. ${REVIEW_QUEUED_NOTE}`,
+      };
+      return new Response(superjson.stringify(output));
+    }
+
     await db
       .updateTable("digitalProducts")
       .set({
@@ -64,7 +87,7 @@ export async function handle(request: Request): Promise<Response> {
       .where("id", "=", input.id)
       .execute();
 
-    console.log(`Digital product ${input.id} published by teacher ${product.teacherId}`);
+    console.log(`Digital product ${input.id} published by admin ${user.id}`);
 
     const output: OutputType = {
       success: true,

@@ -17,6 +17,8 @@ export type OutputType = Selectable<LiveTests> & {
   mockTest: Selectable<MockTests> | null;
   mockTestItem: Selectable<MockTestItems> | null;
   subjects: SubjectWithQuestionCount[];
+  /** Submitted for publishing and waiting on admin approval. */
+  inReview: boolean;
 };
 
 export const getTeacherLiveTestDetails = async (

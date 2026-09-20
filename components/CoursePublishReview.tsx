@@ -46,6 +46,7 @@ export const CoursePublishReview: React.FC<CoursePublishReviewProps> = ({ course
   const [isUnpublishOpen, setUnpublishOpen] = useState(false);
 
   const isPublished = course?.status === 'published';
+  const isInReview = !isPublished && !!course?.inReview;
   const totalLessons = course?.sections.reduce((acc, section) => acc + section.lessons.length, 0) ?? 0;
   const hasSections = (course?.sections.length ?? 0) > 0;
   const hasLessons = totalLessons > 0;
@@ -91,12 +92,18 @@ export const CoursePublishReview: React.FC<CoursePublishReviewProps> = ({ course
     <div className={styles.container}>
       <div className={styles.intro}>
         <h2 className={styles.title}>
-          {isPublished ? 'Manage Your Published Course' : 'Review and publish your course'}
+          {isPublished
+            ? 'Manage Your Published Course'
+            : isInReview
+            ? 'Your course is in review'
+            : 'Review and submit your course'}
         </h2>
         <p className={styles.subtitle}>
           {isPublished
             ? 'Your course is currently live and available to students.'
-            : 'This is a preview of your course. Students can find and enroll in it as soon as you publish, so check every detail first.'}
+            : isInReview
+            ? 'Our team is reviewing your course. Students can find and enroll in it once it is approved, and we will email you when it is approved or needs changes.'
+            : 'This is a preview of your course. Check every detail, then submit it for review. Students can find it once our team approves it.'}
         </p>
       </div>
 
@@ -142,7 +149,7 @@ export const CoursePublishReview: React.FC<CoursePublishReviewProps> = ({ course
           </ul>
           {!isPublishable && (
             <p className={styles.validationErrorText}>
-              Please go back to the "Curriculum" step to add content before you can publish.
+              Please go back to the "Curriculum" step to add content before you can submit it for review.
             </p>
           )}
         </div>
@@ -192,11 +199,13 @@ export const CoursePublishReview: React.FC<CoursePublishReviewProps> = ({ course
             </Button>
             <Button
               onClick={handlePublish}
-              disabled={!isPublishable || publishCourseMutation.isPending}
+              disabled={!isPublishable || isInReview || publishCourseMutation.isPending}
             >
               {publishCourseMutation.isPending
-                ? 'Publishing...'
-                : 'Publish course'}
+                ? 'Submitting...'
+                : isInReview
+                ? 'In review'
+                : 'Submit for review'}
             </Button>
           </>
         )}

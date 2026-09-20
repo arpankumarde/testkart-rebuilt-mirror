@@ -3,6 +3,7 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { OutputType } from "./details_GET.schema";
 import superjson from "superjson";
 import { z } from "zod";
+import { hasPendingReview } from "../../../helpers/contentReviewQueue";
 
 const schema = z.object({
   courseId: z.coerce.number().int().positive(),
@@ -83,6 +84,7 @@ export async function handle(request: Request): Promise<Response> {
       sections: sectionsWithLessons,
       sectionsCount: sections.length,
       lessonsCount: lessons.length,
+      inReview: await hasPendingReview(db, "course", course.id),
     };
 
     return new Response(superjson.stringify(output));

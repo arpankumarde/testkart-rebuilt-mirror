@@ -69,6 +69,11 @@
   color: var(--warning-foreground);
 }
 
+.inReview {
+  background-color: var(--info);
+  color: var(--info-foreground);
+}
+
 .content {
   display: flex;
   flex-direction: column;

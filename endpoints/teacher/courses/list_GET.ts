@@ -3,6 +3,7 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { OutputType } from "./list_GET.schema";
 import superjson from "superjson";
 import { sql } from "kysely";
+import { pendingReviewIds } from "../../../helpers/contentReviewQueue";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -35,11 +36,14 @@ export async function handle(request: Request): Promise<Response> {
       .orderBy("courses.createdAt", "desc")
       .execute();
 
+    const inReview = await pendingReviewIds(db, "course", courses.map((course) => course.id));
+
     const output: OutputType = courses.map((course) => ({
       ...course,
       price: Number(course.price),
       sectionsCount: Number(course.sectionsCount),
       lessonsCount: Number(course.lessonsCount),
+      inReview: inReview.has(course.id),
     }));
 
     return new Response(superjson.stringify(output));

@@ -3,6 +3,12 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./publish_POST.schema";
 import superjson from "superjson";
 import { computeBundlePricing, loadBundleItemPrices } from "../../../helpers/bundlePricing";
+import {
+  REVIEW_QUEUED_NOTE,
+  alreadyInReviewMessage,
+  hasPendingReview,
+  queueContentReview,
+} from "../../../helpers/contentReviewQueue";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -50,6 +56,14 @@ export async function handle(request: Request): Promise<Response> {
       return new Response(superjson.stringify(output));
     }
 
+    const needsReview = user.role !== "admin";
+    if (needsReview && (await hasPendingReview(db, "course_bundle", input.bundleId))) {
+      return new Response(
+        superjson.stringify({ error: alreadyInReviewMessage("bundle") }),
+        { status: 400 }
+      );
+    }
+
     const items = await db
       .selectFrom("courseBundleItems")
       .select(["itemType", "courseId", "mockTestId", "digitalProductId"])
@@ -85,18 +99,29 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
+    const priceFields = {
+      originalPrice: pricing.originalPrice.toString(),
+      discountPercentage: pricing.discountPercentage.toFixed(2),
+    };
+
+    if (needsReview) {
+      await db.updateTable("courseBundles").set(priceFields).where("id", "=", input.bundleId).execute();
+      await queueContentReview(db, { contentType: "course_bundle", contentId: input.bundleId, teacherId: bundle.teacherId });
+      console.log(`Course bundle ${input.bundleId} submitted for review by teacher ${bundle.teacherId}`);
+      const output: OutputType = {
+        success: true,
+        message: `Your bundle has been submitted for review. ${REVIEW_QUEUED_NOTE}`,
+      };
+      return new Response(superjson.stringify(output));
+    }
+
     await db
       .updateTable("courseBundles")
-      .set({
-        isPublished: true,
-        publishedAt: new Date(),
-        originalPrice: pricing.originalPrice.toString(),
-        discountPercentage: pricing.discountPercentage.toFixed(2),
-      })
+      .set({ isPublished: true, publishedAt: new Date(), ...priceFields })
       .where("id", "=", input.bundleId)
       .execute();
 
-    console.log(`Course bundle ${input.bundleId} published by teacher ${bundle.teacherId}`);
+    console.log(`Course bundle ${input.bundleId} published by admin ${user.id}`);
 
     const output: OutputType = {
       success: true,

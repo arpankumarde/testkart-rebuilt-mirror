@@ -1,7 +1,8 @@
 /* The console shell. No padding of its own - TeacherDashboardLayout's
-   .pageBody owns the gutter - and the page gap replaces the margin-bottom that
-   each panel used to carry. */
+   .pageBody owns the gutter - and the page gap spaces the panels. It is also
+   the container the summary row sizes itself against. */
 .page {
+  container: earnings / inline-size;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-6);
@@ -22,6 +23,12 @@
   box-shadow: var(--shadow);
 }
 
+.panelHead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
 .panelTitle {
   margin: 0;
   font-family: var(--font-family-heading);
@@ -31,204 +38,255 @@
   color: var(--foreground);
 }
 
-.panelSubtitle {
-  margin: calc(var(--spacing-1) * -1) 0 0;
-  font-size: 0.875rem;
-  color: var(--muted-foreground);
+/* Summary --------------------------------------------------------------- */
+
+.summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-6);
 }
 
-/* Balance -------------------------------------------------------------- */
-
-.balanceLabelRow {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--muted-foreground);
-}
-
-.infoTooltip {
-  display: flex;
-  align-items: center;
-  color: var(--muted-foreground);
-  cursor: help;
+@container earnings (min-width: 52rem) {
+  .summary {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  }
 }
 
 /*
- * --foreground, not the coral --primary, which was carrying this 2.5rem figure
- * at about 2.1:1 on a white panel. Same call Overview's totals make.
+ * The page's one coral thing, in TeacherCtaBanner's clothes: flat --tk-brand
+ * with --tk-brand-ink for everything on it (6.2:1), fixed in both themes. It
+ * holds the balance and the two things a teacher does with it - withdraw, and
+ * open the bank account it goes to. The account itself stays off the page.
  */
-.balanceValue {
-  font-family: var(--font-family-heading);
-  font-size: 2.25rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-  color: var(--foreground);
-  font-variant-numeric: tabular-nums;
-}
-
-.stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-4) var(--spacing-8);
-  padding-top: var(--spacing-4);
-  border-top: 1px solid var(--border);
-}
-
-.stat {
+.balance {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  min-width: 7rem;
+  justify-content: space-between;
+  gap: var(--spacing-6);
+  padding: var(--spacing-6);
+  background-color: var(--tk-brand);
+  color: var(--tk-brand-ink);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
 }
 
-.statLabel {
-  font-size: 0.75rem;
-  color: var(--muted-foreground);
-}
-
-.statValue {
-  font-family: var(--font-family-heading);
-  font-size: 1.125rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--foreground);
-  font-variant-numeric: tabular-nums;
-}
-
-/* Bank details --------------------------------------------------------- */
-
-.bankGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-  gap: var(--spacing-4);
-  padding: var(--spacing-4);
-  background-color: var(--background);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-}
-
-.bankRow {
+.balanceHead {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-1);
   min-width: 0;
 }
 
-.bankLabel {
-  font-size: 0.75rem;
-  color: var(--muted-foreground);
-}
-
-/* Monospace because these are codes, not prose - an IFSC and a PAN read
-   character by character. */
-.bankValue {
-  font-family: var(--font-family-monospace);
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--foreground);
-  word-break: break-all;
-}
-
-.statusBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  padding: 0.1875rem var(--spacing-2);
-  border-radius: var(--radius-full);
+.balanceLabel {
+  margin: 0;
   font-family: var(--font-family-base);
-  font-size: 0.75rem;
+  font-size: 0.9375rem;
   font-weight: 600;
-  line-height: 1.4;
+  color: var(--tk-brand-ink);
 }
 
-.statusPending {
-  background-color: color-mix(in srgb, var(--warning) 18%, transparent);
-  color: var(--warning-text);
+/* Sized off the page's width, so it grows on a wide console and still fits a
+   seven-figure balance on a phone. The first size is the fallback where
+   container units are unsupported. */
+.balanceValue {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 2.5rem;
+  font-size: clamp(2.25rem, 5.5cqi, 3.5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--tk-brand-ink);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
 }
 
-.statusVerified {
-  background-color: color-mix(in srgb, var(--success) 15%, transparent);
-  color: var(--success-text);
+/* Full-strength ink - small type on coral needs the whole 6.2:1. */
+.balanceNote {
+  margin: var(--spacing-1) 0 0;
+  max-width: 46ch;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--tk-brand-ink);
 }
 
-.statusRejected {
-  background-color: color-mix(in srgb, var(--error) 12%, transparent);
-  color: var(--error-text);
+/* A deeper coral, not the grey kit skeleton, which reads as a hole in the block. */
+.balance .balanceSkeleton,
+.balance .statusSkeleton {
+  background-color: hsl(20 90% 62%);
 }
 
-/*
- * One note shape with three tones, replacing four near-identical classes that
- * each redefined the same layout.
- */
-.note {
+.balance .balanceSkeleton {
+  width: 15rem;
+  max-width: 100%;
+  height: 3rem;
+  margin: 0.25rem 0;
+}
+
+.balance .statusSkeleton {
+  flex: 1 1 16rem;
+  max-width: 22rem;
+  height: 1.25rem;
+}
+
+.balanceFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--tk-brand-ink);
+}
+
+.bankStatus {
   display: flex;
   align-items: flex-start;
-  gap: var(--spacing-3);
-  padding: var(--spacing-3) var(--spacing-4);
-  border-radius: var(--radius);
+  gap: var(--spacing-2);
+  flex: 1 1 16rem;
+  min-width: 0;
+  margin: 0;
   font-size: 0.875rem;
-  line-height: 1.5;
-  color: var(--foreground);
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--tk-brand-ink);
 }
 
-.note svg {
+.bankStatus svg {
   flex-shrink: 0;
   margin-top: 2px;
 }
 
-.noteInfo {
-  background-color: color-mix(in srgb, var(--info) 8%, transparent);
-  border: 1px solid color-mix(in srgb, var(--info) 25%, transparent);
+.balanceActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
 }
 
-.noteInfo svg {
-  color: var(--info-text);
+/* Both borders 2px so the pair sits at exactly the same height. */
+.balance .withdrawButton,
+.balance .bankButton {
+  flex: 1 1 auto;
+  border-width: 2px;
+  border-style: solid;
+  font-weight: 700;
 }
 
-.noteWarning {
-  background-color: color-mix(in srgb, var(--warning) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent);
+/* lg buttons scale icons to 1.5rem, which overwhelms a 1rem label. */
+.balance .withdrawButton svg,
+.balance .bankButton svg {
+  width: 1.125rem;
+  height: 1.125rem;
 }
 
-.noteWarning svg {
-  color: var(--warning-text);
+/* The darkest thing on the block, so the eye lands on it. A white fill would
+   separate from the coral at only 2.1:1. */
+.balance .withdrawButton {
+  background-color: var(--tk-brand-ink);
+  border-color: var(--tk-brand-ink);
+  color: #fff;
 }
 
-.noteError {
-  background-color: color-mix(in srgb, var(--error) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--error) 25%, transparent);
+.balance .withdrawButton:hover:not(:disabled) {
+  background-color: var(--tk-brand-ink-hover);
+  border-color: var(--tk-brand-ink-hover);
+  color: #fff;
 }
 
-.noteError svg {
-  color: var(--error-text);
+/* Unavailable reads as an empty dashed slot in full ink, not a faded button -
+   the status line beside it says why. */
+.balance .withdrawButton:disabled {
+  opacity: 1;
+  background-color: transparent;
+  border-style: dashed;
+  border-color: var(--tk-brand-ink);
+  color: var(--tk-brand-ink);
 }
 
-.noteBody {
-  min-width: 0;
+/* Button's outline variant is keyed to --primary, which is this coral - it
+   would vanish. Ink outline, and a white fill on hover. */
+.balance .bankButton {
+  background-color: transparent;
+  border-color: var(--tk-brand-ink);
+  color: var(--tk-brand-ink);
 }
 
-.noteBody p {
+.balance .bankButton:hover {
+  background-color: #fff;
+  border-color: var(--tk-brand-ink);
+  color: var(--tk-brand-ink);
+}
+
+/* Button's ring is --background then --primary; the second is the coral itself
+   and disappears here. Ink outside a coral gap instead. */
+.balance .withdrawButton:focus-visible,
+.balance .bankButton:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--tk-brand),
+    0 0 0 4px var(--tk-brand-ink);
+}
+
+/* Totals: a ruled ledger, label left and figure right. */
+.totals {
+  justify-content: center;
+}
+
+.ledger {
+  display: flex;
+  flex-direction: column;
   margin: 0;
 }
 
-.noteBody p + p {
-  margin-top: var(--spacing-2);
+.ledgerRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  padding: var(--spacing-3) 0;
+  border-bottom: 1px solid var(--border);
 }
 
-.noteLink {
-  color: var(--info-text);
+.ledgerRow:first-child {
+  padding-top: 0;
+}
+
+.ledgerRow:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.ledgerRow dt {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.ledgerRow dd {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-align: right;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Transactions ---------------------------------------------------------- */
+
+.intro {
+  margin: 0;
+  max-width: 72ch;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--muted-foreground);
+}
+
+.introLink {
+  color: var(--tk-brand-text);
   font-weight: 600;
   text-decoration: underline;
-}
-
-.actionRow {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--spacing-3);
+  text-underline-offset: 2px;
 }
 
 .error {
@@ -240,9 +298,13 @@
   font-size: 0.875rem;
 }
 
-/* Transactions --------------------------------------------------------- */
-
-.tableWrapper {
+/*
+ * A table from 53rem of its own width - five fixed columns plus 12rem for the
+ * details - and a ruled list below that, so it never scrolls sideways. Where
+ * container queries are unsupported the table stands and the wrapper scrolls.
+ */
+.results {
+  container: transactions / inline-size;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   border: 1px solid var(--border);
@@ -251,15 +313,32 @@
 
 .table {
   width: 100%;
+  min-width: 53rem;
   border-collapse: collapse;
   table-layout: fixed;
-  min-width: 56rem;
+}
+
+.colDate {
+  width: 8.5rem;
+}
+
+.colType {
+  width: 9.5rem;
+}
+
+.colMoney {
+  width: 9rem;
+}
+
+.colFee {
+  width: 5rem;
 }
 
 .table th,
 .table td {
   padding: var(--spacing-3) var(--spacing-4);
   text-align: left;
+  vertical-align: top;
   border-bottom: 1px solid var(--border);
 }
 
@@ -274,34 +353,10 @@
   border-bottom: none;
 }
 
-.table th:nth-child(1),
-.table td:nth-child(1) {
-  width: 8.5rem;
+.date {
+  font-size: 0.875rem;
   white-space: nowrap;
-}
-
-.table th:nth-child(2),
-.table td:nth-child(2) {
-  width: 8rem;
-}
-
-.table th:nth-child(3),
-.table td:nth-child(3) {
-  width: 18rem;
-}
-
-.table th:nth-child(4),
-.table td:nth-child(4),
-.table th:nth-child(6),
-.table td:nth-child(6) {
-  width: 9rem;
-  white-space: nowrap;
-}
-
-.table th:nth-child(5),
-.table td:nth-child(5) {
-  width: 6rem;
-  white-space: nowrap;
+  color: var(--foreground);
 }
 
 /*
@@ -356,11 +411,13 @@
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--foreground);
+  overflow-wrap: anywhere;
 }
 
 .counterparty {
   font-size: 0.8125rem;
   color: var(--muted-foreground);
+  overflow-wrap: anywhere;
 }
 
 /* Tabular figures on the body face rather than a monospace column - Inter's
@@ -369,7 +426,19 @@
   text-align: right;
   font-size: 0.875rem;
   font-weight: 500;
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
+}
+
+.table th.numeric {
+  text-align: right;
+}
+
+.cellNote {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--muted-foreground);
 }
 
 .amountEarned {
@@ -392,9 +461,9 @@
   color: var(--foreground);
 }
 
-.emptyCell {
-  text-align: center;
+.emptyRow td {
   padding: var(--spacing-12) var(--spacing-4);
+  text-align: center;
   font-size: 0.875rem;
   color: var(--muted-foreground);
 }
@@ -409,39 +478,124 @@
   color: var(--warning-text);
 }
 
+@container transactions (max-width: 52.99rem) {
+  .table {
+    min-width: 0;
+  }
+
+  .table colgroup,
+  .table thead {
+    display: none;
+  }
+
+  .table tbody {
+    display: block;
+  }
+
+  /* Gross and fee stack on the left with inline labels; what the teacher
+     keeps sits on the right across both lines, where a phone still has room
+     for a six-figure amount. */
+  .table tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "type date"
+      "details details"
+      "gross net"
+      "fee net";
+    align-items: start;
+    gap: var(--spacing-1) var(--spacing-4);
+    padding: var(--spacing-3) var(--spacing-4);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .table td {
+    display: block;
+    padding: 0;
+    border-bottom: none;
+  }
+
+  .table td:nth-child(1) {
+    grid-area: date;
+    text-align: right;
+    font-size: 0.8125rem;
+    color: var(--muted-foreground);
+  }
+
+  .table td:nth-child(2) {
+    grid-area: type;
+  }
+
+  .table td:nth-child(3) {
+    grid-area: details;
+    margin: var(--spacing-1) 0;
+  }
+
+  .table td:nth-child(4) {
+    grid-area: gross;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .table td:nth-child(5) {
+    grid-area: fee;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .table td:nth-child(6) {
+    grid-area: net;
+    align-self: end;
+    text-align: right;
+    font-size: 0.9375rem;
+  }
+
+  .table td[data-label]::before {
+    content: attr(data-label);
+    margin-right: 0.375rem;
+    font-size: 0.8125rem;
+    font-weight: 400;
+    color: var(--muted-foreground);
+  }
+
+  .table td[data-label]:nth-child(6)::before {
+    display: block;
+    margin: 0 0 2px;
+    font-size: 0.75rem;
+  }
+
+  .table tr.emptyRow {
+    display: block;
+  }
+
+  .table tr.emptyRow td {
+    padding: var(--spacing-8) 0;
+    text-align: center;
+    font-size: 0.875rem;
+  }
+}
+
 @media (max-width: 768px) {
   .page {
     gap: var(--spacing-4);
   }
 
-  .panel {
+  .summary {
+    gap: var(--spacing-4);
+  }
+
+  .panel,
+  .balance {
     padding: var(--spacing-4);
   }
+}
 
-  .balanceValue {
-    font-size: 1.875rem;
-  }
-
-  .stats {
-    gap: var(--spacing-3) var(--spacing-6);
-  }
-
-  .stat {
-    min-width: 45%;
-  }
-
-  .bankGrid {
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--spacing-3);
-    padding: var(--spacing-3);
-  }
-
-  .table th,
-  .table td {
-    padding: var(--spacing-2) var(--spacing-3);
-  }
-
-  .actionRow > * {
+@media (max-width: 480px) {
+  .balanceActions {
     width: 100%;
   }
 }

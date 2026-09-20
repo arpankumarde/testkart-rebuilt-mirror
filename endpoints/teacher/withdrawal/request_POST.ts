@@ -58,6 +58,7 @@ export async function handle(request: Request): Promise<Response> {
           status: "pending",
           requestedDate: new Date(),
           notes: input.notes,
+          balanceAtRequest: availableBalance.toString(),
         })
         .returningAll()
         .executeTakeFirstOrThrow();

@@ -1,0 +1,180 @@
+/* No padding of its own - TeacherDashboardLayout's .pageBody owns the gutter. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  /* The rows respond to the space beside the sidebar, not the window. */
+  container-type: inline-size;
+}
+
+.intro {
+  max-width: 48rem;
+  margin: calc(-1 * var(--spacing-3)) 0 0;
+  color: var(--muted-foreground);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.content {
+  min-height: 20rem;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+}
+
+.thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border: none;
+  border-radius: var(--radius-md);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+  cursor: pointer;
+}
+
+.thumbPdf {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.thumb:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.rowMain {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.rowName {
+  overflow: hidden;
+  color: var(--foreground);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowMeta {
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+}
+
+.usage {
+  padding: 0.25rem 0.625rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.usageActive {
+  border-color: transparent;
+  background-color: color-mix(in srgb, var(--tk-brand) 16%, var(--surface));
+  color: var(--tk-brand-text);
+}
+
+.rowActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.deleteButton {
+  color: var(--error-text);
+}
+
+.fieldLabel {
+  display: block;
+  margin-bottom: var(--spacing-2);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.fieldError {
+  display: block;
+  margin-top: var(--spacing-1);
+  color: var(--error-text);
+  font-size: 0.75rem;
+}
+
+@container (max-width: 760px) {
+  .row {
+    grid-template-columns: 3rem minmax(0, 1fr) auto;
+    row-gap: var(--spacing-2);
+  }
+
+  .usage {
+    grid-column: 2 / 3;
+    grid-row: 2;
+    justify-self: start;
+  }
+
+  .rowActions {
+    grid-column: 3;
+    grid-row: 1;
+  }
+}
+
+@container (max-width: 520px) {
+  .row {
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+    gap: var(--spacing-2) var(--spacing-3);
+    padding: var(--spacing-3);
+  }
+
+  .thumb {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .usage {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .rowActions {
+    grid-column: 2;
+    grid-row: 3;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    gap: var(--spacing-4);
+  }
+
+  .intro {
+    margin-top: calc(-1 * var(--spacing-2));
+  }
+}

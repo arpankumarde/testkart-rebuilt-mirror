@@ -1,6 +1,12 @@
 import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { syncMockTestAggregates } from "../../../helpers/syncMockTestAggregates";
+import {
+  REVIEW_QUEUED_NOTE,
+  alreadyInReviewMessage,
+  hasPendingReview,
+  queueContentReview,
+} from "../../../helpers/contentReviewQueue";
 import { schema, OutputType } from "./publish_POST.schema";
 import superjson from "superjson";
 
@@ -49,6 +55,14 @@ export async function handle(request: Request): Promise<Response> {
     if (test.isPublished) {
       return new Response(
         superjson.stringify({ error: "Test is already published" }),
+        { status: 400 }
+      );
+    }
+
+    const needsReview = user.role !== "admin";
+    if (needsReview && (await hasPendingReview(db, "mock_test", input.testId))) {
+      return new Response(
+        superjson.stringify({ error: alreadyInReviewMessage("test series") }),
         { status: 400 }
       );
     }
@@ -102,7 +116,20 @@ export async function handle(request: Request): Promise<Response> {
     // Ensure aggregate fields are fresh before publishing
     await syncMockTestAggregates(input.testId);
 
-    // Publish the test directly
+    if (needsReview) {
+      await queueContentReview(db, {
+        contentType: "mock_test",
+        contentId: input.testId,
+        teacherId: test.teacherId,
+      });
+      console.log(`Mock test ${input.testId} submitted for review by teacher ${test.teacherId}`);
+      const output: OutputType = {
+        success: true,
+        message: `Your test series has been submitted for review. ${REVIEW_QUEUED_NOTE}`,
+      };
+      return new Response(superjson.stringify(output));
+    }
+
     await db
       .updateTable("mockTests")
       .set({
@@ -112,7 +139,7 @@ export async function handle(request: Request): Promise<Response> {
       .where("id", "=", input.testId)
       .execute();
 
-    console.log(`Mock test ${input.testId} published by teacher ${test.teacherId}`);
+    console.log(`Mock test ${input.testId} published by admin ${user.id}`);
 
     const output: OutputType = {
       success: true,

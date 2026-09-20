@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet';
 import { useParams, Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { AlertCircle, Eye } from 'lucide-react';
+import { AlertCircle, Eye, FolderOpen } from 'lucide-react';
 import { useTeacherCourseDetailsQuery, useTeacherCourseMutations } from '../helpers/useTeacherCoursesQuery';
 import { schema as createSchema } from '../endpoints/teacher/course-lessons/create_POST.schema';
 import { LessonContentTypeArrayValues } from '../helpers/schema';
@@ -20,7 +20,9 @@ import { R2FileUploader } from '../components/R2FileUploader';
 import { RichTextEditor } from '../components/RichTextEditor';
 import { QuizBuilder, QuizData } from '../components/QuizBuilder';
 import { ConsoleConfirmDialog } from '../components/ConsoleConfirmDialog';
+import { TeacherAssetPicker } from '../components/TeacherAssetPicker';
 import { Spinner } from '../components/Spinner';
+import type { TeacherAsset } from '../helpers/teacherAssetFiles';
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -80,6 +82,7 @@ const LessonEditorForm: React.FC<{
   const [isUploading, setIsUploading] = useState(false);
   const [pendingContentType, setPendingContentType] = useState<LessonContentType | null>(null);
   const [isLeaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
+  const [libraryKind, setLibraryKind] = useState<'video' | 'pdf' | null>(null);
   const mutations = useTeacherCourseMutations();
 
   const [initialValues] = useState<LessonFormValues>(() =>
@@ -197,6 +200,30 @@ const LessonEditorForm: React.FC<{
 
   const clearFile = () => form.setValues((prev) => ({ ...prev, contentUrl: null, contentFileId: null }));
 
+  // A library file is already on storage, so picking it fills the lesson like a finished upload.
+  const applyLibraryAsset = (asset: TeacherAsset) => {
+    form.setValues((prev) => ({
+      ...prev,
+      title: prev.title.trim() ? prev.title : asset.name,
+      contentUrl: asset.url,
+      contentFileId: asset.key,
+      durationMinutes:
+        asset.kind === 'video' && asset.durationSeconds
+          ? Math.max(1, Math.round(asset.durationSeconds / 60))
+          : prev.durationMinutes,
+    }));
+    setLibraryKind(null);
+  };
+
+  const libraryButton = (kind: 'video' | 'pdf') => (
+    <div className={styles.libraryPick}>
+      <Button type="button" variant="outline" size="sm" onClick={() => setLibraryKind(kind)} disabled={isUploading}>
+        <FolderOpen size={16} /> Choose from library
+      </Button>
+      <span className={styles.libraryHint}>Use a {kind === 'video' ? 'video' : 'PDF'} you already uploaded.</span>
+    </div>
+  );
+
   let submitLabel = isEditMode ? 'Save Changes' : 'Create Lesson';
   if (isSubmitting) submitLabel = 'Saving...';
   if (isUploading) submitLabel = 'Uploading...';
@@ -269,6 +296,7 @@ const LessonEditorForm: React.FC<{
                   maxSizeInMB={limits.lessonVideoMaxMb}
                 />
               </FormControl>
+              {libraryButton('video')}
               <FormMessage />
             </FormItem>
             <FormItem name="durationMinutes" className={styles.durationField}>
@@ -322,6 +350,7 @@ const LessonEditorForm: React.FC<{
                 className={styles.pdfUploader}
               />
             </FormControl>
+            {libraryButton('pdf')}
             <div className={styles.pdfMeta}>
               <FormDescription>Upload a PDF document for this lesson (max {limits.coursePdfMaxMb}MB).</FormDescription>
               {form.values.contentUrl && !isUploading && (
@@ -394,6 +423,20 @@ const LessonEditorForm: React.FC<{
           <LazyPdfViewer pdfUrl={form.values.contentUrl} title={form.values.title || 'PDF Preview'} onClose={() => setShowPdfPreview(false)} />
         </React.Suspense>
       )}
+
+      <TeacherAssetPicker
+        open={libraryKind !== null}
+        onOpenChange={(open) => {
+          if (!open) setLibraryKind(null);
+        }}
+        kinds={libraryKind ? [libraryKind] : ['video']}
+        title={libraryKind === 'pdf' ? 'Choose a PDF from your library' : 'Choose a video from your library'}
+        description="The file is linked to this lesson when you save it."
+        confirmLabel={() => 'Use this file'}
+        onConfirm={(assets) => {
+          if (assets[0]) applyLibraryAsset(assets[0]);
+        }}
+      />
 
       <ConsoleConfirmDialog
         open={pendingContentType !== null}

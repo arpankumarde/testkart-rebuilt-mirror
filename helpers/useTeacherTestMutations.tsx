@@ -153,7 +153,7 @@ export const useTeacherTestMutations = () => {
         invalidateTestsList();
       },
       onError: (error: Error) => {
-        toast.error(parseErrorMessage(error) || "Failed to publish test series");
+        toast.error(parseErrorMessage(error) || "Failed to submit test series for review");
       },
     });
 
@@ -182,7 +182,7 @@ export const useTeacherTestMutations = () => {
         queryClient.invalidateQueries({ queryKey: TEACHER_LIVE_TESTS_QUERY_KEY });
       },
       onError: (error: Error) => {
-        toast.error(parseErrorMessage(error) || "Failed to publish live test");
+        toast.error(parseErrorMessage(error) || "Failed to submit live test for review");
       },
     });
 

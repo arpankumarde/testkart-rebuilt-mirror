@@ -3,6 +3,7 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./bulk_POST.schema";
 import superjson from "superjson";
 import { getProductPublishIssues, formatPublishIssues } from "../../../helpers/digitalProductRules";
+import { pendingReviewIds, queueContentReview } from "../../../helpers/contentReviewQueue";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -44,9 +45,17 @@ export async function handle(request: Request): Promise<Response> {
             .where("productId", "in", candidateIds)
             .execute()
         : [];
+      const needsReview = user.role !== "admin";
+      const alreadyInReview = needsReview
+        ? await pendingReviewIds(db, "digital_product", candidateIds)
+        : new Set<number>();
       for (const p of products) {
         if (p.status === "published") {
           failed.push({ id: p.id, title: p.title, reason: "Already published" });
+          continue;
+        }
+        if (alreadyInReview.has(p.id)) {
+          failed.push({ id: p.id, title: p.title, reason: "Already waiting for review" });
           continue;
         }
         const issues = getProductPublishIssues({
@@ -59,7 +68,11 @@ export async function handle(request: Request): Promise<Response> {
         }
         succeeded.push(p.id);
       }
-      if (succeeded.length > 0) {
+      if (succeeded.length > 0 && needsReview) {
+        for (const p of products.filter((row) => succeeded.includes(row.id))) {
+          await queueContentReview(db, { contentType: "digital_product", contentId: p.id, teacherId: p.teacherId });
+        }
+      } else if (succeeded.length > 0) {
         await db
           .updateTable("digitalProducts")
           .set({ status: "published", isPublished: true, publishedAt: new Date() })

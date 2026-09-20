@@ -5,6 +5,8 @@ import { Button } from './Button';
 import { Skeleton } from './Skeleton';
 import { CourseSectionForm } from './CourseSectionForm';
 import { ConsoleConfirmDialog } from './ConsoleConfirmDialog';
+import { CourseBulkVideoUpload } from './CourseBulkVideoUpload';
+import { CourseLibraryLessonAdd } from './CourseLibraryLessonAdd';
 import {
   Dialog,
   DialogContent,
@@ -245,6 +247,8 @@ const SectionCard: React.FC<{
               <Plus size={14} /> Add Lesson
             </Link>
           </Button>
+          <CourseBulkVideoUpload courseId={courseId} sectionId={section.id} sectionTitle={section.title} />
+          <CourseLibraryLessonAdd sectionId={section.id} sectionTitle={section.title} />
         </div>
       </div>
     </div>

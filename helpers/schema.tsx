@@ -95,6 +95,8 @@ export type SupportMessageSenderType = "admin" | "teacher";
 
 export type SupportThreadStatus = "closed" | "open" | "resolved";
 
+export type TeacherAssetKind = "pdf" | "video";
+
 export type TeacherTeamRole = "manager" | "owner";
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
@@ -1165,6 +1167,7 @@ export interface StudentWalletTransactions {
 
 export interface StudentWithdrawals {
   amount: Numeric;
+  balanceAtRequest: Numeric | null;
   createdAt: Generated<Timestamp | null>;
   id: Generated<number>;
   notes: string | null;
@@ -1247,6 +1250,20 @@ export interface SupportThreads {
   subject: string;
   teacherId: number | null;
   updatedAt: Generated<Timestamp>;
+}
+
+export interface TeacherAssets {
+  createdAt: Generated<Timestamp>;
+  durationSeconds: number | null;
+  id: Generated<number>;
+  key: string;
+  kind: TeacherAssetKind;
+  mimeType: string | null;
+  name: string;
+  sizeBytes: Int8 | null;
+  teacherId: number;
+  updatedAt: Generated<Timestamp>;
+  url: string;
 }
 
 export interface TeacherBankDetails {
@@ -1338,6 +1355,7 @@ export interface TeacherTeamMembers {
 
 export interface TeacherWithdrawals {
   amount: Numeric;
+  balanceAtRequest: Numeric | null;
   createdAt: Generated<Timestamp | null>;
   id: Generated<number>;
   notes: string | null;
@@ -1595,6 +1613,7 @@ export interface DB {
   supportMessageAttachments: SupportMessageAttachments;
   supportMessages: SupportMessages;
   supportThreads: SupportThreads;
+  teacherAssets: TeacherAssets;
   teacherBankDetails: TeacherBankDetails;
   teacherInquiries: TeacherInquiries;
   teacherSponsoredEnrollments: TeacherSponsoredEnrollments;
@@ -1655,6 +1674,7 @@ export const UserRoleArrayValues: [UserRole, ...UserRole[]] = ["admin","student"
 export const WalletTransactionTypeArrayValues: [WalletTransactionType, ...WalletTransactionType[]] = ["prize_credit","prize_lock_refund","purchase_debit","withdrawal_debit"];
 export const WithdrawalStatusArrayValues: [WithdrawalStatus, ...WithdrawalStatus[]] = ["cancelled","completed","failed","pending"];
 export const GumletPushStatusArrayValues: [GumletPushStatus, ...GumletPushStatus[]] = ["failed","ready","submitted"];
+export const TeacherAssetKindArrayValues: [TeacherAssetKind, ...TeacherAssetKind[]] = ["pdf","video"];
 // Table/column names whose snake_case spelling kysely's default CamelCasePlugin
 // cannot recover from the camelCase name used in code (an underscore directly
 // before a digit, e.g. reminder_48h_sent ⇄ reminder48hSent). The db helper's

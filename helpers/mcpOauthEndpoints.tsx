@@ -1,7 +1,8 @@
 /**
- * Request handlers behind the MCP OAuth endpoints. Each connector has its own endpoint files under
- * /_api/mcp/<audience>/ - authorize, token and register - and they delegate here with their
- * audience.
+ * Request handlers behind the MCP OAuth endpoints. The shared issuer's endpoints under
+ * /_api/mcp/oauth/ take the connector from the `resource` parameter; each connector's older
+ * endpoints under /_api/mcp/<audience>/ pass their audience in. Consent always happens on the
+ * connector's own authorize page.
  */
 
 import { getAdminServerSessionOrThrow } from "./getAdminSession";
@@ -17,8 +18,10 @@ import {
   exchangeAuthorizationCode,
   IssuedTokens,
   issueAuthorizationCode,
+  mcpAudienceForResource,
   McpAudience,
   McpGrantor,
+  mcpResourceUrl,
   OAuthError,
   parseAuthorizeParams,
   refreshAccessToken,
@@ -111,6 +114,26 @@ async function resolveSigner(
 function redirectTo(location: string): Response {
   // A body is required here; an empty one makes CloudFront hang.
   return new Response("Redirecting...", { status: 302, headers: { Location: location } });
+}
+
+/**
+ * Authorization endpoint of the shared issuer. The `resource` parameter names the connector, and
+ * the browser moves on to that connector's own authorize page, which validates the rest of the
+ * request and hosts the consent form.
+ */
+export function handleSharedAuthorizeGet(request: Request): Response {
+  const url = new URL(request.url);
+  const resource = url.searchParams.get("resource");
+  const audience = resource ? mcpAudienceForResource(resource) : null;
+  if (!audience) {
+    return renderOAuthError(
+      null,
+      resource
+        ? `This authorization server only issues tokens for ${mcpResourceUrl("admin")} and ${mcpResourceUrl("teacher")}.`
+        : `The request did not say which connector it is for. Add the connector by its full URL, ${mcpResourceUrl("teacher")} or ${mcpResourceUrl("admin")}.`
+    );
+  }
+  return redirectTo(`/_api/mcp/${audience}/authorize${url.search}`);
 }
 
 export async function handleAuthorizeGet(request: Request, audience: McpAudience): Promise<Response> {
@@ -211,13 +234,28 @@ function tokenFailure(code: string, description: string, status = 400): Response
   });
 }
 
-/** Public clients only - no client secret is accepted or required, PKCE carries the proof. */
-export async function handleToken(request: Request, audience: McpAudience): Promise<Response> {
+/**
+ * Public clients only - no client secret is accepted or required, PKCE carries the proof. A null
+ * audience is the shared token endpoint: the code or refresh token carries the connector, and a
+ * `resource` parameter, when sent, must name that same connector.
+ */
+export async function handleToken(request: Request, audience: McpAudience | null): Promise<Response> {
   try {
     const form = await request.formData();
     const raw: Record<string, string> = {};
     for (const [key, value] of form.entries()) {
       if (typeof value === "string") raw[key] = value;
+    }
+
+    let target = audience;
+    if (target === null && raw.resource) {
+      target = mcpAudienceForResource(raw.resource);
+      if (target === null) {
+        return tokenFailure(
+          "invalid_target",
+          `This authorization server only issues tokens for ${mcpResourceUrl("admin")} and ${mcpResourceUrl("teacher")}.`
+        );
+      }
     }
 
     const parsed = tokenRequestSchema.safeParse(raw);
@@ -235,17 +273,17 @@ export async function handleToken(request: Request, audience: McpAudience): Prom
             redirectUri: input.redirect_uri,
             codeVerifier: input.code_verifier,
           },
-          audience
+          target
         )
       );
     }
 
     return tokenResponse(
-      await refreshAccessToken({ refreshToken: input.refresh_token, clientId: input.client_id }, audience)
+      await refreshAccessToken({ refreshToken: input.refresh_token, clientId: input.client_id }, target)
     );
   } catch (error) {
     if (error instanceof OAuthError) return tokenFailure(error.code, error.message, error.status);
-    console.error(`MCP ${audience} token endpoint error:`, error);
+    console.error(`MCP ${audience ?? "shared"} token endpoint error:`, error);
     return tokenFailure("server_error", "Token request failed.", 500);
   }
 }

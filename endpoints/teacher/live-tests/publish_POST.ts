@@ -5,6 +5,12 @@ import superjson from "superjson";
 import { Transaction } from "kysely";
 import { DB } from "../../../helpers/schema";
 import { assertTeacherCanFundPrizePool } from "../../../helpers/liveTestPrizeFunding";
+import {
+  REVIEW_QUEUED_NOTE,
+  alreadyInReviewMessage,
+  hasPendingReview,
+  queueContentReview,
+} from "../../../helpers/contentReviewQueue";
 
 async function validateTestContent(testId: number, trx: Transaction<DB>) {
   // Check for at least one test item
@@ -47,8 +53,9 @@ export async function handle(request: Request) {
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);
     const { testId } = input;
+    const needsReview = user.role !== "admin";
 
-    // Run all validations and publish in a transaction
+    // Run all validations and publish (or queue for review) in a transaction
     await db.transaction().execute(async (trx) => {
       // 1. Find the live test and its associated mock test
       const liveTest = await trx
@@ -79,6 +86,10 @@ export async function handle(request: Request) {
         throw new Error("Live test is already published.");
       }
 
+      if (needsReview && (await hasPendingReview(trx, "live_test", liveTest.id))) {
+        throw new Error(alreadyInReviewMessage("live test"));
+      }
+
       // 4. Validate schedule
       const now = new Date();
       if (liveTest.registrationDeadline && liveTest.registrationDeadline <= now) {
@@ -97,7 +108,13 @@ export async function handle(request: Request) {
       // 6. A free test's prize pool is paid from the teacher's wallet
       await assertTeacherCanFundPrizePool(trx, liveTest);
 
-      // 7. Publish the live test directly
+      // 7. Queue for review, or publish directly for an admin
+      if (needsReview) {
+        await queueContentReview(trx, { contentType: "live_test", contentId: liveTest.id, teacherId: liveTest.teacherId });
+        console.log(`Live test (mockTestId: ${testId}) submitted for review by teacher ${liveTest.teacherId}`);
+        return;
+      }
+
       await trx
         .updateTable("liveTests")
         .set({
@@ -106,12 +123,14 @@ export async function handle(request: Request) {
         .where("mockTestId", "=", testId)
         .execute();
 
-      console.log(`Live test (mockTestId: ${testId}) published by teacher ${liveTest.teacherId}`);
+      console.log(`Live test (mockTestId: ${testId}) published by admin ${user.id}`);
     });
 
     const output: OutputType = {
       success: true,
-      message: "Your live test has been published successfully.",
+      message: needsReview
+        ? `Your live test has been submitted for review. ${REVIEW_QUEUED_NOTE}`
+        : "Your live test has been published successfully.",
     };
 
     return new Response(superjson.stringify(output));

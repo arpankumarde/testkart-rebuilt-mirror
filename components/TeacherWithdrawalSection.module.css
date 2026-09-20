@@ -1,109 +1,35 @@
 /* The console's panel. No margin of its own - the Earnings page stacks its
-   panels with a flex gap, so a margin here double-spaced this one. */
+   panels with a flex gap. */
 .card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-6);
   background-color: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow);
-  padding: var(--spacing-6);
   scroll-margin-top: var(--spacing-6);
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-4);
-  margin-bottom: var(--spacing-6);
-}
-
-.headerContent {
-  flex: 1;
 }
 
 /* Panel heading scale, matching the sibling panels on Earnings. */
 .title {
+  margin: 0;
   font-family: var(--font-family-heading);
   font-size: 1.125rem;
   font-weight: 700;
   letter-spacing: -0.01em;
-  margin: 0 0 var(--spacing-1) 0;
   color: var(--foreground);
 }
 
-.subtitle {
-  font-size: 0.875rem;
-  color: var(--muted-foreground);
-  margin: 0;
-}
-
-.content {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-6);
-}
-
-.balanceSection {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-4);
-  background-color: var(--muted);
-  border-radius: var(--radius);
-  flex-wrap: wrap;
-  gap: var(--spacing-4);
-}
-
-.balanceInfo {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-1);
-}
-
-.balanceLabel {
-  font-size: 0.875rem;
-  color: var(--muted-foreground);
-  font-weight: 500;
-}
-
-.balanceValue {
-  font-family: var(--font-family-heading);
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--foreground);
-}
-
-.warningBox {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--spacing-3);
-  background-color: color-mix(in srgb, var(--warning) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--warning) 25%, transparent);
-  color: var(--warning-text);
-  padding: var(--spacing-3);
-  border-radius: var(--radius);
-  font-size: 0.875rem;
-  line-height: 1.5;
-}
-
-.warningBox svg {
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.historySection {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4);
-}
-
-.historyTitle {
-  font-size: 1rem;
-  font-weight: 600;
-  margin: 0;
-  color: var(--foreground);
-}
-
-.tableWrapper {
+/*
+ * A table from 38rem of its own width - the three fixed columns plus 12rem for
+ * notes - and a ruled list of requests below that, so it never scrolls
+ * sideways. Where container queries are unsupported the table stands and the
+ * wrapper scrolls instead.
+ */
+.results {
+  container: withdrawals / inline-size;
   overflow-x: auto;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -111,90 +37,181 @@
 
 .table {
   width: 100%;
+  min-width: 38rem;
   border-collapse: collapse;
+  table-layout: fixed;
   font-size: 0.875rem;
-  min-width: 600px;
+}
+
+.colDate {
+  width: 8.5rem;
+}
+
+.colStatus {
+  width: 8.5rem;
+}
+
+.colAmount {
+  width: 9rem;
 }
 
 .table th,
 .table td {
-  padding: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
   text-align: left;
   border-bottom: 1px solid var(--border);
 }
 
 .table th {
-  background-color: var(--muted);
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--muted-foreground);
+  white-space: nowrap;
 }
 
-.table tr:last-child td {
+.table tbody tr:last-child td {
   border-bottom: none;
 }
 
+.date {
+  white-space: nowrap;
+  color: var(--foreground);
+}
+
+.numeric {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.table th.numeric {
+  text-align: right;
+}
+
 .amount {
-  font-family: var(--font-family-monospace);
-  font-weight: 500;
+  font-weight: 700;
+  color: var(--foreground);
 }
 
 .notes {
   color: var(--muted-foreground);
-  max-width: 250px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
 }
 
 .failureReason {
+  display: block;
   color: var(--error-text);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
 }
 
-.emptyState {
+.emptyRow td {
   text-align: center;
+  padding: var(--spacing-8) var(--spacing-4);
   color: var(--muted-foreground);
-  padding: var(--spacing-6);
 }
 
 .badge {
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-1);
-  padding: 0.25rem 0.5rem;
+  padding: 0.1875rem var(--spacing-2);
   border-radius: var(--radius-full);
   font-size: 0.75rem;
-  font-weight: 500;
-  text-transform: capitalize;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
+/* Themed status text on a wash of its own token: the raw tokens run about
+   2-3.5:1 as chip type on this white panel. */
 .badgePending {
-  background-color: color-mix(in srgb, var(--warning) 15%, transparent);
+  background-color: color-mix(in srgb, var(--warning) 18%, transparent);
   color: var(--warning-text);
-  border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent);
 }
 
-/* Themed status text: raw --success is about 2.3:1 and --error about 3.5:1 as
-   chip type on this white panel. */
 .badgeCompleted {
   background-color: color-mix(in srgb, var(--success) 15%, transparent);
   color: var(--success-text);
-  border: 1px solid color-mix(in srgb, var(--success) 30%, transparent);
 }
 
 .badgeFailed {
   background-color: color-mix(in srgb, var(--error) 12%, transparent);
   color: var(--error-text);
-  border: 1px solid color-mix(in srgb, var(--error) 30%, transparent);
 }
 
-@media (max-width: 640px) {
-  .balanceSection {
-    flex-direction: column;
-    align-items: flex-start;
+@container withdrawals (max-width: 37.99rem) {
+  .table {
+    min-width: 0;
   }
-  
-  .balanceSection button {
-    width: 100%;
+
+  .table colgroup,
+  .table thead {
+    display: none;
+  }
+
+  .table tbody {
+    display: block;
+  }
+
+  .table tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "status amount"
+      "date date"
+      "notes notes";
+    align-items: center;
+    gap: var(--spacing-1) var(--spacing-3);
+    padding: var(--spacing-3) var(--spacing-4);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .table td {
+    display: block;
+    padding: 0;
+    border-bottom: none;
+  }
+
+  .table td:nth-child(1) {
+    grid-area: date;
+    font-size: 0.8125rem;
+    color: var(--muted-foreground);
+  }
+
+  .table td:nth-child(2) {
+    grid-area: status;
+  }
+
+  .table td:nth-child(3) {
+    grid-area: notes;
+    font-size: 0.8125rem;
+  }
+
+  .table td:nth-child(4) {
+    grid-area: amount;
+    font-size: 0.9375rem;
+  }
+
+  .table td.notesEmpty {
+    display: none;
+  }
+
+  .table tr.emptyRow {
+    display: block;
+  }
+
+  .table tr.emptyRow td {
+    padding: var(--spacing-6) 0;
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .card {
+    padding: var(--spacing-4);
   }
 }

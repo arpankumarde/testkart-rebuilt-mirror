@@ -29,6 +29,7 @@ export async function handle(request: Request): Promise<Response> {
           processedDate: new Date(),
           transactionId: input.transactionId,
           notes: input.notes,
+          balanceAtRequest: availableBalance.toString(),
         })
         .returningAll()
         .executeTakeFirstOrThrow();

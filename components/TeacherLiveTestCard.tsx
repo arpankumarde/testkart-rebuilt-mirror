@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Clock, Users, BarChart2, Edit, Trash2, IndianRupee, Trophy, ListChecks, CheckCircle, XCircle, Share2, RefreshCw, Download, Loader2, EyeOff } from 'lucide-react';
+import { Clock, Users, BarChart2, Edit, Trash2, IndianRupee, Trophy, ListChecks, CheckCircle, XCircle, Share2, RefreshCw, Download, Loader2, EyeOff, Info } from 'lucide-react';
 import * as Progress from '@radix-ui/react-progress';
 import * as Dialog from '@radix-ui/react-dialog';
 import { TeacherLiveTestItem } from '../endpoints/teacher/live-tests/list_GET.schema';
@@ -65,7 +65,9 @@ export const TeacherLiveTestCard: React.FC<TeacherLiveTestCardProps> = ({
   const statusInfo = useMemo((): { text: string; variant: 'default' | 'destructive' | 'outline' | 'secondary' | 'success' | 'warning'; className: string } => {
     switch (status) {
       case 'draft':
-        return { text: 'Draft', variant: 'secondary', className: styles.draft };
+        return liveTest.inReview
+          ? { text: 'In review', variant: 'warning', className: styles.draft }
+          : { text: 'Draft', variant: 'secondary', className: styles.draft };
       case 'upcoming':
         return { text: 'Upcoming', variant: 'secondary', className: styles.upcoming };
       case 'live':
@@ -79,7 +81,7 @@ export const TeacherLiveTestCard: React.FC<TeacherLiveTestCardProps> = ({
       default:
         return { text: 'Unknown', variant: 'outline', className: styles.ended };
     }
-  }, [status]);
+  }, [status, liveTest.inReview]);
 
   const enrollmentPercentage = liveTest.maxSeats > 0 ? (liveTest.enrolledCount / liveTest.maxSeats) * 100 : 0;
   const totalRevenue = liveTest.actualRevenue;
@@ -133,8 +135,12 @@ export const TeacherLiveTestCard: React.FC<TeacherLiveTestCardProps> = ({
 
           {status === 'draft' && (
             <div className={styles.draftNotice}>
-              <span className={styles.draftNoticeIcon}>ℹ️</span>
-              <span>This test is not yet visible to students. Publish it to make it available.</span>
+              <Info size={14} className={styles.draftNoticeIcon} aria-hidden="true" />
+              <span>
+                {liveTest.inReview
+                  ? 'In review. Students can see it and register once our team approves it.'
+                  : 'This test is not yet visible to students. Submit it for review to make it available.'}
+              </span>
             </div>
           )}
 
@@ -254,15 +260,17 @@ export const TeacherLiveTestCard: React.FC<TeacherLiveTestCardProps> = ({
                     </Link>
                   </Button>
                 )}
-                <Button 
-                  variant="primary" 
-                  size="sm" 
-                  asChild
-                >
-                  <Link to={`/teacher/live-test/${liveTest.id}/questions`}>
-                    Review & Publish
-                  </Link>
-                </Button>
+                {!liveTest.inReview && (
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    asChild
+                  >
+                    <Link to={`/teacher/live-test/${liveTest.id}/questions`}>
+                      Review & submit
+                    </Link>
+                  </Button>
+                )}
               </div>
               <div className={styles.actions}>
                 <Button

@@ -28,9 +28,10 @@ their subjects and questions are managed the same way. Courses hold sections (co
 that hold lessons (course-lessons/*). Study notes are digital products (products/*). Bundles group
 tests, courses and study notes.
 
-Publishing is immediate. Teacher content goes live the moment it is published and is reviewed by
-admins afterwards, so publish only when the teacher asks, and say what will appear on the public
-site. Unpublishing takes content off sale.
+Publishing goes through review. A publish action submits the content to the Testkart team, and it
+goes live only once an admin approves it; the teacher is emailed when it is approved or needs
+changes. List actions return inReview: true while it waits, and publishing it again is refused.
+Submit only when the teacher asks. Unpublishing takes live content off sale.
 
 Updates differ by action: some change only the fields you send, others replace whole lists such as
 options, files or items. Read the record first and check the action's schema.

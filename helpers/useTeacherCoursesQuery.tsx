@@ -139,7 +139,7 @@ export const useTeacherCourseMutations = () => {
       invalidateLists();
     },
     onError: (error) => {
-      toast.error(parseErrorMessage(error) || "Could not publish the course");
+      toast.error(parseErrorMessage(error) || "Could not submit the course for review");
     },
   });
 

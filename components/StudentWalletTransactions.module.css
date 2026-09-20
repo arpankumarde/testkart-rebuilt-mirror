@@ -1,0 +1,235 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-2) var(--spacing-4);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.count {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.error {
+  margin: 0;
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid color-mix(in srgb, var(--error) 30%, transparent);
+  border-radius: var(--radius);
+  background-color: color-mix(in srgb, var(--error) 10%, transparent);
+  color: var(--error-text);
+  font-size: 0.875rem;
+}
+
+/* A table from 40rem of its own width, a ruled list below that. */
+.results {
+  container: student-transactions / inline-size;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.table {
+  width: 100%;
+  min-width: 40rem;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 0.875rem;
+}
+
+.colDate {
+  width: 11rem;
+}
+
+.colType {
+  width: 11rem;
+}
+
+.colAmount {
+  width: 8.5rem;
+}
+
+.table th,
+.table td {
+  padding: var(--spacing-3) var(--spacing-4);
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border);
+}
+
+.table th {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.date {
+  white-space: nowrap;
+  color: var(--muted-foreground);
+}
+
+.details {
+  font-weight: 500;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+.table th.numeric,
+.table td.numeric {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.amount {
+  font-weight: 700;
+}
+
+.amount_in {
+  color: var(--success-text);
+}
+
+.amount_out {
+  color: var(--foreground);
+}
+
+.amount_none {
+  color: var(--muted-foreground);
+  text-decoration: line-through;
+}
+
+.chip {
+  display: inline-block;
+  padding: 0.125rem var(--spacing-2);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.credit {
+  background-color: color-mix(in srgb, var(--success) 15%, transparent);
+  color: var(--success-text);
+}
+
+.brand {
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.pending {
+  background-color: color-mix(in srgb, var(--warning) 18%, transparent);
+  color: var(--warning-text);
+}
+
+.neutral {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.failed {
+  background-color: color-mix(in srgb, var(--error) 12%, transparent);
+  color: var(--error-text);
+}
+
+.emptyRow td {
+  text-align: center;
+  padding: 2.5rem var(--spacing-4);
+  color: var(--muted-foreground);
+}
+
+@container student-transactions (max-width: 39.99rem) {
+  .table {
+    min-width: 0;
+  }
+
+  .table colgroup,
+  .table thead {
+    display: none;
+  }
+
+  .table tbody {
+    display: block;
+  }
+
+  .table tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "details amount"
+      "type type"
+      "date date";
+    align-items: start;
+    gap: var(--spacing-1) var(--spacing-3);
+    padding: var(--spacing-3) var(--spacing-4);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .table td {
+    display: block;
+    padding: 0;
+    border-bottom: none;
+  }
+
+  .table td:nth-child(1) {
+    grid-area: date;
+    font-size: 0.8125rem;
+  }
+
+  .table td:nth-child(2) {
+    grid-area: details;
+  }
+
+  .table td:nth-child(3) {
+    grid-area: type;
+  }
+
+  .table td:nth-child(4) {
+    grid-area: amount;
+    font-size: 0.9375rem;
+  }
+
+  .table tr.emptyRow {
+    display: block;
+  }
+
+  .table tr.emptyRow td {
+    padding: var(--spacing-6) 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .card {
+    padding: var(--spacing-4);
+  }
+}

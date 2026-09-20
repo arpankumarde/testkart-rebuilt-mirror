@@ -59,8 +59,9 @@ export const TeacherTestCard: React.FC<TeacherTestCardProps> = ({
   const canConvertToDraft = isPublished && !hasEnrollments;
   const canUnpublish = isPublished && hasEnrollments;
 
-  const status = isPublished ? 'live' : test.wasEverPublished ? 'unpublished' : 'draft';
-  const statusLabel = isPublished ? 'Live' : test.wasEverPublished ? 'Unpublished' : 'Draft';
+  const isInReview = !isPublished && test.inReview;
+  const status = isPublished ? 'live' : isInReview ? 'inReview' : test.wasEverPublished ? 'unpublished' : 'draft';
+  const statusLabel = isPublished ? 'Live' : isInReview ? 'In review' : test.wasEverPublished ? 'Unpublished' : 'Draft';
   const discounted = !test.isFree && test.discountPrice != null && Number(test.discountPrice) < Number(test.price);
 
   return (

@@ -1,275 +1,238 @@
-.container {
+.card {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-6);
-}
-
-.requestCard {
+  gap: var(--spacing-4);
+  padding: var(--spacing-6);
   background-color: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: var(--spacing-6);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-6);
-}
-
-.requestHeader {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-4);
-}
-
-.headerIcon {
-  background-color: var(--tk-brand-tint);
-  color: var(--tk-brand-text);
-  border-radius: var(--radius-full);
-  width: 3rem;
-  height: 3rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.headerContent {
-  flex: 1;
+  box-shadow: var(--shadow);
 }
 
 .title {
+  margin: 0;
   font-family: var(--font-family-heading);
-  font-size: 1.0625rem;
+  font-size: 1.125rem;
   font-weight: 700;
   letter-spacing: -0.01em;
-  margin: 0 0 var(--spacing-1) 0;
   color: var(--foreground);
 }
 
-.subtitle {
-  font-size: 0.875rem;
-  color: var(--muted-foreground);
-  margin: 0;
-}
-
-.balanceInfo {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-1);
-  padding: var(--spacing-4);
-  background-color: var(--muted);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border);
-}
-
-.balanceLabel {
-  font-size: 0.875rem;
-  color: var(--muted-foreground);
-  font-weight: 600;
-}
-
-.balanceValue {
-  font-family: var(--font-family-heading);
-  font-size: 1.75rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-  color: var(--foreground);
-  font-variant-numeric: tabular-nums;
-}
-
-.validationAlerts {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-2);
-}
-
-.alertItem {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--spacing-2);
-  background-color: color-mix(in srgb, var(--warning) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--warning) 25%, transparent);
-  color: var(--warning-text);
-  padding: var(--spacing-3);
-  border-radius: var(--radius);
-  font-size: 0.875rem;
-  line-height: 1.5;
-}
-
-.alertItem svg {
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4);
-}
-
-.formRow {
-  display: flex;
-  gap: var(--spacing-4);
-  align-items: flex-start;
-}
-
-.amountField {
-  flex: 1;
-}
-
-.notesField {
-  flex: 2;
-}
-
-.submitButton {
-  align-self: flex-start;
-}
-
-.historySection {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4);
-}
-
-.historyTitle {
-  font-family: var(--font-family-heading);
-  font-size: 1.0625rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  margin: 0;
-  color: var(--foreground);
-}
-
-.tableWrapper {
+/*
+ * A table from 38rem of its own width and a ruled list below that, so it
+ * never scrolls sideways. Where container queries are unsupported the table
+ * stands and the wrapper scrolls instead.
+ */
+.results {
+  container: student-withdrawals / inline-size;
   overflow-x: auto;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius);
 }
 
 .table {
   width: 100%;
+  min-width: 38rem;
   border-collapse: collapse;
+  table-layout: fixed;
   font-size: 0.875rem;
-  min-width: 700px;
+}
+
+.colDate {
+  width: 8.5rem;
+}
+
+.colStatus {
+  width: 8.5rem;
+}
+
+.colAmount {
+  width: 9rem;
 }
 
 .table th,
 .table td {
   padding: var(--spacing-3) var(--spacing-4);
   text-align: left;
+  vertical-align: top;
   border-bottom: 1px solid var(--border);
 }
 
 .table th {
-  background-color: var(--muted);
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--muted-foreground);
+  white-space: nowrap;
 }
 
-.table tr:last-child td {
+.table tbody tr:last-child td {
   border-bottom: none;
 }
 
-.dateCell {
+.date {
   white-space: nowrap;
-  color: var(--muted-foreground);
-}
-
-.amountCell {
-  font-family: var(--font-family-monospace);
-  font-weight: 600;
   color: var(--foreground);
 }
 
-.txIdCell {
-  font-family: var(--font-family-monospace);
-  color: var(--muted-foreground);
-  font-size: 0.8rem;
-}
-
-.notesCell {
-  color: var(--muted-foreground);
-  max-width: 250px;
+.table th.numeric,
+.table td.numeric {
+  text-align: right;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
 }
 
-.emptyDash {
+.amount {
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.details {
   color: var(--muted-foreground);
+  overflow-wrap: anywhere;
+}
+
+/* base.css forces every th/td to display: table-cell !important, so an empty
+   cell cannot be hidden in the list layout. The dash comes from CSS instead,
+   and the list drops it and pulls the empty cell into the row gap. */
+.detailsEmpty::before {
+  content: "-";
+}
+
+.note,
+.reference,
+.failureReason {
+  display: block;
+}
+
+.note {
+  color: var(--foreground);
+}
+
+.reference {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.code {
+  font-family: var(--font-family-monospace);
+  color: var(--foreground);
 }
 
 .failureReason {
+  font-size: 0.8125rem;
+  font-weight: 500;
   color: var(--error-text);
+}
+
+.emptyRow td {
+  text-align: center;
+  padding: var(--spacing-8) var(--spacing-4);
+  color: var(--muted-foreground);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: 0.1875rem var(--spacing-2);
+  border-radius: var(--radius-full);
   font-size: 0.75rem;
   font-weight: 600;
+  white-space: nowrap;
 }
 
-.badgeIcon {
-  margin-right: var(--spacing-1);
+.badgePending {
+  background-color: color-mix(in srgb, var(--warning) 18%, transparent);
+  color: var(--warning-text);
 }
 
-.emptyState {
-  text-align: center;
-  color: var(--muted-foreground);
-  padding: var(--spacing-8) !important;
+.badgeCompleted {
+  background-color: color-mix(in srgb, var(--success) 15%, transparent);
+  color: var(--success-text);
 }
 
-/* Mobile card list: hidden by default, swapped in for the table below 640px
-   (see media query) so the 5-column table doesn't force horizontal scroll. */
-.mobileWList {
-  display: none;
-  flex-direction: column;
-  gap: var(--spacing-3);
+.badgeFailed {
+  background-color: color-mix(in srgb, var(--error) 12%, transparent);
+  color: var(--error-text);
 }
 
-.mobileWCard {
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-3) var(--spacing-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-2);
-}
-
-.mobileWTopRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-3);
-}
-
-.mobileWAmount {
-  font-family: var(--font-family-monospace);
-  font-weight: 600;
-  font-size: 1.0625rem;
-  color: var(--foreground);
-}
-
-.notesCellMobile {
-  color: var(--muted-foreground);
-  font-size: 0.8125rem;
-}
-
-@media (max-width: 640px) {
-  .formRow {
-    flex-direction: column;
-  }
-  
-  .submitButton {
-    width: 100%;
-  }
-  
-  .requestCard {
-    padding: var(--spacing-4);
+@container student-withdrawals (max-width: 37.99rem) {
+  .table {
+    min-width: 0;
   }
 
-  .tableWrapper {
+  .table colgroup,
+  .table thead {
     display: none;
   }
 
-  .mobileWList {
-    display: flex;
+  .table tbody {
+    display: block;
+  }
+
+  .table tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "status amount"
+      "date date"
+      "details details";
+    align-items: center;
+    gap: var(--spacing-1) var(--spacing-3);
+    padding: var(--spacing-3) var(--spacing-4);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .table td {
+    display: block;
+    padding: 0;
+    border-bottom: none;
+  }
+
+  .table td:nth-child(1) {
+    grid-area: date;
+    font-size: 0.8125rem;
+    color: var(--muted-foreground);
+  }
+
+  .table td:nth-child(2) {
+    grid-area: status;
+  }
+
+  .table td:nth-child(3) {
+    grid-area: details;
+    font-size: 0.8125rem;
+  }
+
+  .table td:nth-child(4) {
+    grid-area: amount;
+    font-size: 0.9375rem;
+  }
+
+  .table td.detailsEmpty {
+    margin-top: calc(-1 * var(--spacing-1));
+  }
+
+  .table td.detailsEmpty::before {
+    content: none;
+  }
+
+  .table tr.emptyRow {
+    display: block;
+  }
+
+  .table tr.emptyRow td {
+    padding: var(--spacing-6) 0;
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .card {
+    padding: var(--spacing-4);
   }
 }

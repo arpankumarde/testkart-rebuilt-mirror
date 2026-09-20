@@ -144,15 +144,15 @@ refetchSubjects();
     toast.promise(
       publishMutation.mutateAsync({ liveTestId: liveTestDetails.id }),
       {
-        loading: "Publishing live test...",
+        loading: "Submitting live test for review...",
         success: (data) => {
           navigate("/teacher/live-tests");
-          return data.message || "Your live test has been published successfully.";
+          return data.message || "Your live test has been submitted for review.";
         },
         error: (err) =>
           err instanceof Error
             ? err.message
-            : "Failed to publish live test",
+            : "Failed to submit live test for review",
       }
     );
     setIsPublishDialogOpen(false);
@@ -161,11 +161,12 @@ refetchSubjects();
   const totalQuestions =
     subjects?.reduce((acc, s) => acc + s.actualQuestionCount, 0) ?? 0;
 
-  // Publishable once it has questions and is not yet active
+  // Can be submitted once it has questions, is not active and is not already in review
   const isReadyToPublish =
     totalQuestions > 0 &&
     liveTestDetails &&
-    !liveTestDetails.isActive;
+    !liveTestDetails.isActive &&
+    !liveTestDetails.inReview;
 
   const renderHeader = () => {
     if (!liveTestDetails && isDetailsFetching) {
@@ -214,7 +215,7 @@ refetchSubjects();
                 ) : (
                   <CheckCircle size={16} />
                 )}
-                Publish live test
+                {liveTestDetails.inReview ? "In review" : "Submit for review"}
               </Button>
             )}
           </div>
@@ -226,14 +227,16 @@ refetchSubjects();
         >
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Publish this live test?</DialogTitle>
+              <DialogTitle>Submit this live test for review?</DialogTitle>
               <DialogDescription className={styles.publishConfirmWarning}>
                 <AlertTriangle size={20} className={styles.warningIcon} />
                 <span>
-                  <strong>Heads up:</strong> Your live test goes live as soon as
-                  you publish it, and students can see it and register straight
-                  away. Please ensure all details - including questions,
-                  schedule, prize pool, and settings - are correct.
+                  <strong>Heads up:</strong> Our team reviews your live test
+                  before students can see it and register, and we will email you
+                  once it is approved or needs changes. Leave time for the review
+                  before registration closes, and check that all details -
+                  including questions, schedule, prize pool, and settings - are
+                  correct.
                 </span>
               </DialogDescription>
             </DialogHeader>
@@ -246,8 +249,8 @@ refetchSubjects();
                 disabled={publishMutation.isPending}
               >
                 {publishMutation.isPending
-                  ? "Publishing..."
-                  : "Publish live test"}
+                  ? "Submitting..."
+                  : "Submit for review"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -286,20 +289,27 @@ refetchSubjects();
           )}
         </div>
 
-        {!liveTestDetails.isActive && (
+        {!liveTestDetails.isActive && liveTestDetails.inReview && (
+          <div className={styles.publishWarning}>
+            <HelpCircle size={16} />
+            <span>In review. Students can register once our team approves it. We will email you either way.</span>
+          </div>
+        )}
+
+        {!liveTestDetails.isActive && !liveTestDetails.inReview && (
           <>
             {totalQuestions === 0 && (
               <div className={styles.publishWarning}>
                 <XCircle size={16} />
                 <span>
-                  You must add at least one question before publishing.
+                  You must add at least one question before submitting for review.
                 </span>
               </div>
             )}
             {totalQuestions > 0 && (
               <div className={styles.publishWarning}>
                 <HelpCircle size={16} />
-                <span>Review all details before publishing. Students can register as soon as it is live.</span>
+                <span>Review all details before submitting. Students can register once our team approves it.</span>
               </div>
             )}
           </>

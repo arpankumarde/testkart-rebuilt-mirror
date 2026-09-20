@@ -1,0 +1,126 @@
+.status {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: var(--spacing-1);
+  margin-top: var(--spacing-1);
+  padding: 0.1875rem var(--spacing-2);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.statusPending {
+  background-color: color-mix(in srgb, var(--warning) 18%, transparent);
+  color: var(--warning-text);
+}
+
+.statusVerified {
+  background-color: color-mix(in srgb, var(--success) 15%, transparent);
+  color: var(--success-text);
+}
+
+.statusRejected {
+  background-color: color-mix(in srgb, var(--error) 12%, transparent);
+  color: var(--error-text);
+}
+
+/* Label left, value right, one ruled line per field - read like a passbook
+   page rather than a form. */
+.details {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-4);
+  border-bottom: 1px solid var(--border);
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.label {
+  flex-shrink: 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.value,
+.code {
+  margin: 0;
+  min-width: 0;
+  text-align: right;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+/* Codes read character by character - an IFSC, a PAN, the last four digits. */
+.code {
+  font-family: var(--font-family-monospace);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.empty {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--foreground);
+}
+
+.note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--foreground);
+}
+
+.note p {
+  margin: 0;
+}
+
+.note svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.noteInfo {
+  background-color: color-mix(in srgb, var(--info) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--info) 25%, transparent);
+}
+
+.noteInfo svg {
+  color: var(--info-text);
+}
+
+.noteError {
+  background-color: color-mix(in srgb, var(--error) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--error) 25%, transparent);
+}
+
+.noteError svg {
+  color: var(--error-text);
+}
+
+.noteBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-width: 0;
+}

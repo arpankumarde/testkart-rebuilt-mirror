@@ -3,6 +3,12 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./publish_POST.schema";
 import superjson from "superjson";
 import { assertTeacherCanFundPrizePool } from "../../../helpers/liveTestPrizeFunding";
+import {
+  REVIEW_QUEUED_NOTE,
+  alreadyInReviewMessage,
+  hasPendingReview,
+  queueContentReview,
+} from "../../../helpers/contentReviewQueue";
 
 export async function handle(request: Request) {
   try {
@@ -40,6 +46,11 @@ export async function handle(request: Request) {
       return new Response(superjson.stringify({ error: "This live test is already published." }), { status: 400 });
     }
 
+    const needsReview = user.role !== "admin";
+    if (needsReview && (await hasPendingReview(db, "live_test", liveTest.id))) {
+      return new Response(superjson.stringify({ error: alreadyInReviewMessage("live test") }), { status: 400 });
+    }
+
     const now = new Date();
     if (
       (liveTest.registrationDeadline && new Date(liveTest.registrationDeadline) < now) ||
@@ -74,9 +85,14 @@ export async function handle(request: Request) {
     }
 
     // A free test's prize pool comes out of the teacher's wallet, so check the
-    // balance covers it and publish in one transaction under the wallet lock.
+    // balance covers it under the wallet lock. Approval checks it again.
     await db.transaction().execute(async (trx) => {
       await assertTeacherCanFundPrizePool(trx, liveTest);
+
+      if (needsReview) {
+        await queueContentReview(trx, { contentType: "live_test", contentId: liveTest.id, teacherId: liveTest.teacherId });
+        return;
+      }
 
       await trx
         .updateTable("liveTests")
@@ -87,11 +103,15 @@ export async function handle(request: Request) {
         .execute();
     });
 
-    console.log(`Live test ${liveTest.id} published by teacher ${liveTest.teacherId}`);
+    console.log(
+      `Live test ${liveTest.id} ${needsReview ? `submitted for review by teacher ${liveTest.teacherId}` : `published by admin ${user.id}`}`
+    );
 
     const output: OutputType = {
       success: true,
-      message: "Your live test has been published successfully.",
+      message: needsReview
+        ? `Your live test has been submitted for review. ${REVIEW_QUEUED_NOTE}`
+        : "Your live test has been published successfully.",
     };
 
     return new Response(superjson.stringify(output));

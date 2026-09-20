@@ -51,6 +51,7 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
   };
 
   const status = course.status ?? 'draft';
+  const isInReview = status !== 'published' && course.inReview;
 
   const formattedPrice = new Intl.NumberFormat('en-IN', {
     style: 'currency',
@@ -72,7 +73,9 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
           title={course.title}
           className={styles.thumbnail}
         />
-        <span className={`${styles.status} ${STATUS_CLASS[status] ?? styles.draft}`}>{status}</span>
+        <span className={`${styles.status} ${isInReview ? styles.inReview : STATUS_CLASS[status] ?? styles.draft}`}>
+          {isInReview ? 'in review' : status}
+        </span>
       </div>
 
       <div className={styles.content}>

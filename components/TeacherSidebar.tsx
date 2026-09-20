@@ -19,6 +19,7 @@ import {
   Tag,
   FileText,
   Library,
+  FolderOpen,
   Trash2,
   UserCircle,
   PanelLeftClose,
@@ -102,6 +103,7 @@ const NAV_GROUPS: TeacherNavGroup[] = [
         icon: Library,
         isActiveFor: (p) => p.startsWith('/teacher/question-bank'),
       },
+      { href: '/teacher/assets', label: 'Asset Library', icon: FolderOpen },
       { href: '/teacher/trash', label: 'Trash', icon: Trash2 },
     ],
   },
@@ -110,7 +112,7 @@ const NAV_GROUPS: TeacherNavGroup[] = [
     label: 'Students',
     items: [
       { href: '/teacher/students', label: 'Enrollments', icon: Users },
-      { href: '/teacher/reports', label: 'Earnings', icon: BarChart3, ownerOnly: true },
+      { href: '/teacher/promo-codes', label: 'Promo Codes', icon: Tag },
       { href: '/teacher/reviews', label: 'Reviews', icon: Star },
     ],
   },
@@ -118,7 +120,7 @@ const NAV_GROUPS: TeacherNavGroup[] = [
     key: 'management',
     label: 'Management',
     items: [
-      { href: '/teacher/promo-codes', label: 'Promo Codes', icon: Tag },
+      { href: '/teacher/reports', label: 'Earnings', icon: BarChart3, ownerOnly: true },
       { href: '/teacher/edit-profile', label: 'Profile', icon: UserCog, ownerOnly: true },
       { href: '/teacher/settings', label: 'Settings', icon: Settings, ownerOnly: true },
       { href: '/teacher/subscription', label: 'Subscription', icon: CreditCard, ownerOnly: true },

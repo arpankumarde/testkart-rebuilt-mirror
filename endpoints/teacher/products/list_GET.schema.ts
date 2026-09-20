@@ -16,6 +16,8 @@ export type TeacherProductListItem = Omit<Selectable<DigitalProducts>, "price" |
   price: number;
   rating: number | null;
   fileSizeBytes: number | null;
+  /** Submitted for publishing and waiting on admin approval. */
+  inReview: boolean;
 };
 
 export type OutputType = {

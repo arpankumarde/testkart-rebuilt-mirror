@@ -3,6 +3,7 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { OutputType } from "./list_GET.schema";
 import superjson from "superjson";
 import { sql } from "kysely";
+import { pendingReviewIds } from "../../../helpers/contentReviewQueue";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -33,12 +34,15 @@ export async function handle(request: Request): Promise<Response> {
       .orderBy("mockTests.createdAt", "desc")
       .execute();
 
+    const inReview = await pendingReviewIds(db, "mock_test", tests.map((test) => test.id));
+
     const output: OutputType = tests.map((test) => ({
       ...test,
       price: Number(test.price),
       rating: test.rating ? Number(test.rating) : null,
       testItemsCount: Number(test.testItemsCount),
       examSlug: test.examSlug ?? null,
+      inReview: inReview.has(test.id),
     }));
 
     return new Response(superjson.stringify(output));

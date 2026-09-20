@@ -1,0 +1,75 @@
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.amountInput {
+  position: relative;
+}
+
+.currency {
+  position: absolute;
+  left: var(--spacing-3);
+  top: 50%;
+  transform: translateY(-50%);
+  font-weight: 600;
+  color: var(--muted-foreground);
+  pointer-events: none;
+}
+
+.amountInput input {
+  padding-left: calc(var(--spacing-3) + 1.125rem);
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.inputError,
+.inputError:focus {
+  border-color: var(--error);
+}
+
+.hint,
+.error {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.hint {
+  color: var(--muted-foreground);
+}
+
+.error {
+  font-weight: 500;
+  color: var(--error-text);
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}

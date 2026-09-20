@@ -259,14 +259,14 @@ export function renderSignInRequired(audience: McpAudience, returnTo: string): R
 }
 
 export function renderOAuthError(
-  audience: McpAudience,
+  audience: McpAudience | null,
   message: string,
   heading = "Authorization failed",
   status = 400
 ): Response {
-  const copy = CONNECTORS[audience];
+  const title = audience ? CONNECTORS[audience].title : "Testkart";
   return page(
-    `${heading} - ${copy.title}`,
+    `${heading} - ${title}`,
     `
     <h1>${escapeHtml(heading)}</h1>
     <div class="error">${escapeHtml(message)}</div>

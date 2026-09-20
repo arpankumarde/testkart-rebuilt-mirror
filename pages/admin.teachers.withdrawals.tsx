@@ -55,12 +55,18 @@ const processSchema = z.object({
 type ProcessFormValues = z.infer<typeof processSchema>;
 
 const STATUS_TABS = [
-  { value: "all", label: "All" },
   { value: "pending", label: "Pending" },
   { value: "completed", label: "Completed" },
   { value: "failed", label: "Rejected" },
   { value: "cancelled", label: "Cancelled" },
 ];
+
+const EMPTY_STATES: Record<WithdrawalStatus, { title: string; description: string }> = {
+  pending: { title: "No pending requests", description: "Payout requests from teachers arrive here for approval." },
+  completed: { title: "No completed payouts yet", description: "Approved payouts show up here." },
+  failed: { title: "No rejected requests", description: "Requests you reject show up here with the reason." },
+  cancelled: { title: "No cancelled requests", description: "Requests that were cancelled show up here." },
+};
 
 /* Shared by the loading and loaded tables so the columns do not jump. */
 const TableColumns = () => (
@@ -86,7 +92,7 @@ const WithdrawalRowSkeleton = () => (
   <tr>
     <td><StackSkeleton top="60%" bottom="80%" /></td>
     <td><StackSkeleton top="4.5rem" bottom="4rem" end /></td>
-    <td><StackSkeleton top="4.5rem" bottom="5rem" end /></td>
+    <td><Skeleton style={{ height: "0.875rem", width: "4.5rem", marginLeft: "auto" }} /></td>
     <td><StackSkeleton top="70%" bottom="85%" /></td>
     <td><Skeleton style={{ height: "1.125rem", width: "4.5rem" }} /></td>
     <td><StackSkeleton top="75%" bottom="60%" /></td>
@@ -195,8 +201,8 @@ const PayoutBankDetails = ({ withdrawal }: { withdrawal: AdminWithdrawalRecord }
 const AdminWithdrawalsPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const { read, write } = useListUrlParams();
-  const statusFilter = read<WithdrawalStatus | "all">("status", WithdrawalStatusArrayValues, "all");
+  const { searchParams, read, write } = useListUrlParams();
+  const statusFilter = read<WithdrawalStatus>("status", WithdrawalStatusArrayValues, "pending");
   
   // Dialog state
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<AdminWithdrawalRecord | null>(null);
@@ -208,9 +214,9 @@ const AdminWithdrawalsPage: React.FC = () => {
     page,
     limit: 20,
     search: debouncedSearchTerm,
-    status: statusFilter === "all" ? undefined : statusFilter,
+    status: statusFilter,
   });
-  useRefetchOnLinkArrival(statusFilter !== "all", isFetching, refetch);
+  useRefetchOnLinkArrival(searchParams.has("status"), isFetching, refetch);
 
   const processMutation = useProcessWithdrawalMutation();
 
@@ -229,7 +235,7 @@ const AdminWithdrawalsPage: React.FC = () => {
 
   const handleStatusChange = (value: string) => {
     setPage(1);
-    write({ status: value === "all" ? null : value });
+    write({ status: value === "pending" ? null : value });
   };
 
   // Reset form when dialog opens
@@ -284,6 +290,8 @@ const AdminWithdrawalsPage: React.FC = () => {
     return format(new Date(date), "MMM d, yyyy");
   };
 
+  const formatBalance = (balance: number | null) => (balance === null ? "Not recorded" : formatCurrency(balance));
+
   const renderIdentity = (withdrawal: AdminWithdrawalRecord, withStatus = false) => (
     <div className={styles.stack}>
       <span className={styles.primaryLine}>
@@ -296,19 +304,12 @@ const AdminWithdrawalsPage: React.FC = () => {
     </div>
   );
 
-  const renderWalletBalance = (withdrawal: AdminWithdrawalRecord) => {
-    if (withdrawal.status !== "pending") {
-      const current = formatCurrency(withdrawal.currentWalletBalance);
-      return <span className={styles.valueLine} title={`Current: ${current}`}>{current}</span>;
+  const renderBalanceAtRequest = (withdrawal: AdminWithdrawalRecord) => {
+    if (withdrawal.balanceAtRequest === null) {
+      return <span className={styles.emptyLine}>Not recorded</span>;
     }
-    const before = formatCurrency(withdrawal.currentWalletBalance);
-    const after = formatCurrency(withdrawal.currentWalletBalance - withdrawal.amount);
-    return (
-      <div className={styles.stack}>
-        <span className={styles.valueLine} title={`Before: ${before}`}>{before}</span>
-        <span className={styles.secondaryLine} title={`After: ${after}`}>After {after}</span>
-      </div>
-    );
+    const balance = formatCurrency(withdrawal.balanceAtRequest);
+    return <span className={styles.valueLine} title={`Balance at request: ${balance}`}>{balance}</span>;
   };
 
   const renderNotes = (withdrawal: AdminWithdrawalRecord) => {
@@ -398,27 +399,21 @@ const AdminWithdrawalsPage: React.FC = () => {
     }
 
     if (!data || data.withdrawals.length === 0) {
-      const isFiltered = debouncedSearchTerm !== "" || statusFilter !== "all";
-      return (
-        <ConsoleListEmpty
-          icon={<Wallet size={24} />}
-          title={isFiltered ? "No requests match these filters" : "No withdrawal requests yet"}
-          description={
-            isFiltered
-              ? "Nothing here for this status and search. Widen the filters to see the rest."
-              : "Payout requests from teachers arrive here for approval."
-          }
-        >
-          {isFiltered && (
-            <Button
-              variant="outline"
-              onClick={() => { setSearchTerm(""); write({ status: null }); }}
-            >
-              Show all requests
+      if (debouncedSearchTerm !== "") {
+        return (
+          <ConsoleListEmpty
+            icon={<Wallet size={24} />}
+            title="No requests match this search"
+            description="Nothing in this tab matches. Try another name or email, or check the other tabs."
+          >
+            <Button variant="outline" onClick={() => setSearchTerm("")}>
+              Clear search
             </Button>
-          )}
-        </ConsoleListEmpty>
-      );
+          </ConsoleListEmpty>
+        );
+      }
+      const empty = EMPTY_STATES[statusFilter];
+      return <ConsoleListEmpty icon={<Wallet size={24} />} title={empty.title} description={empty.description} />;
     }
 
     return (
@@ -430,7 +425,7 @@ const AdminWithdrawalsPage: React.FC = () => {
               <tr>
                 <th>Teacher</th>
                 <th className={styles.num}>Amount</th>
-                <th className={styles.num}>Wallet balance</th>
+                <th className={styles.num}>Balance at request</th>
                 <th>Bank account</th>
                 <th>Status</th>
                 <th>Notes</th>
@@ -451,7 +446,7 @@ const AdminWithdrawalsPage: React.FC = () => {
                       </span>
                     </div>
                   </td>
-                  <td className={styles.num}>{renderWalletBalance(withdrawal)}</td>
+                  <td className={styles.num}>{renderBalanceAtRequest(withdrawal)}</td>
                   <td>
                     <AdminBankDetails {...withdrawal} variant="table" />
                   </td>
@@ -485,23 +480,10 @@ const AdminWithdrawalsPage: React.FC = () => {
                   <dt>Amount</dt>
                   <dd>{formatCurrency(withdrawal.amount)}</dd>
                 </div>
-                {withdrawal.status === "pending" ? (
-                  <>
-                    <div className={styles.cardStat}>
-                      <dt>Balance before</dt>
-                      <dd>{formatCurrency(withdrawal.currentWalletBalance)}</dd>
-                    </div>
-                    <div className={styles.cardStat}>
-                      <dt>Balance after</dt>
-                      <dd>{formatCurrency(withdrawal.currentWalletBalance - withdrawal.amount)}</dd>
-                    </div>
-                  </>
-                ) : (
-                  <div className={styles.cardStat}>
-                    <dt>Current balance</dt>
-                    <dd>{formatCurrency(withdrawal.currentWalletBalance)}</dd>
-                  </div>
-                )}
+                <div className={styles.cardStat}>
+                  <dt>Balance at request</dt>
+                  <dd>{formatBalance(withdrawal.balanceAtRequest)}</dd>
+                </div>
                 <div className={styles.cardStat}>
                   <dt>Requested</dt>
                   <dd>{formatDate(withdrawal.requestedDate)}</dd>
@@ -607,16 +589,10 @@ const AdminWithdrawalsPage: React.FC = () => {
                         <dd className={styles.infoAmount}>{formatCurrency(selectedWithdrawal.amount)}</dd>
                       </div>
                       {actionType === "approve" && (
-                        <>
-                          <div className={styles.infoItem}>
-                            <dt>Wallet before</dt>
-                            <dd>{formatCurrency(selectedWithdrawal.currentWalletBalance)}</dd>
-                          </div>
-                          <div className={styles.infoItem}>
-                            <dt>Wallet after</dt>
-                            <dd>{formatCurrency(selectedWithdrawal.currentWalletBalance - selectedWithdrawal.amount)}</dd>
-                          </div>
-                        </>
+                        <div className={styles.infoItem}>
+                          <dt>Balance at request</dt>
+                          <dd>{formatBalance(selectedWithdrawal.balanceAtRequest)}</dd>
+                        </div>
                       )}
                     </dl>
                   </section>

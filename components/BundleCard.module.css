@@ -65,6 +65,11 @@
   color: var(--background);
 }
 
+.inReview {
+  background-color: var(--info);
+  color: var(--info-foreground);
+}
+
 .thumbnailImage {
   width: 100%;
   height: 100%;

@@ -29,8 +29,8 @@ export type AdminWithdrawalRecord = {
   bankAccountNumber: string | null;
   bankIfscCode: string | null;
   bankUpiId: string | null;
-  /** Teacher's current available wallet balance at time of this request */
-  currentWalletBalance: number;
+  /** Available balance when the teacher made this request, before its amount came off. Null if never recorded. */
+  balanceAtRequest: number | null;
 };
 
 export type OutputType = {

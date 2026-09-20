@@ -1,5 +1,5 @@
-/* Carries its own panel: the wallet's tab wrapper stopped being one, so each
-   tab's content supplies the surface, as panels do on every other page. */
+/* Carries its own panel when it stands on a page. The wallet opens it in a
+   dialog with `embedded`, where the dialog is the surface. */
 .container {
   display: flex;
   flex-direction: column;
@@ -15,6 +15,14 @@
   .container {
     padding: var(--spacing-4);
   }
+}
+
+.container.embedded {
+  padding: 0;
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 /* Same panel as the loaded state, so the tab does not gain a surface once the

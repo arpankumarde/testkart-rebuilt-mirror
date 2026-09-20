@@ -36,7 +36,8 @@ export const BundleCard: React.FC<BundleCardProps> = ({
     window.open(bundleUrl, '_blank');
   };
 
-  const statusText = bundle.isPublished ? 'Published' : 'Draft';
+  const isInReview = !bundle.isPublished && bundle.inReview;
+  const statusText = bundle.isPublished ? 'Published' : isInReview ? 'In review' : 'Draft';
 
   const formattedPrice = new Intl.NumberFormat('en-IN', {
     style: 'currency',
@@ -58,7 +59,7 @@ export const BundleCard: React.FC<BundleCardProps> = ({
   );
   const isPriceStale = Math.abs(bundle.currentOriginalPrice - bundle.originalPrice) >= 0.01;
 
-  const publishToggleLabel = bundle.isPublished ? 'Unpublish' : 'Publish bundle';
+  const publishToggleLabel = bundle.isPublished ? 'Unpublish' : 'Submit for review';
   const publishToggleIcon = bundle.isPublished ? <EyeOff size={16} /> : <Eye size={16} />;
 
   return (
@@ -71,7 +72,7 @@ export const BundleCard: React.FC<BundleCardProps> = ({
         )}
         {/* Overlaid on the thumbnail, as on every other teacher card. */}
         <span
-          className={`${styles.status} ${bundle.isPublished ? styles.published : styles.draft}`}
+          className={`${styles.status} ${bundle.isPublished ? styles.published : isInReview ? styles.inReview : styles.draft}`}
         >
           {statusText}
         </span>
@@ -95,10 +96,12 @@ export const BundleCard: React.FC<BundleCardProps> = ({
                 <Edit size={16} />
                 <span>Edit Bundle</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={onPublishToggle}>
-                {publishToggleIcon}
-                <span>{publishToggleLabel}</span>
-              </DropdownMenuItem>
+              {!isInReview && (
+                <DropdownMenuItem onClick={onPublishToggle}>
+                  {publishToggleIcon}
+                  <span>{publishToggleLabel}</span>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={onDelete} className={styles.deleteItem}>
                 <Trash2 size={16} />

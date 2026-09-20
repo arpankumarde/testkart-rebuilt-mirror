@@ -12,6 +12,8 @@ export type TeacherTest = Omit<Selectable<MockTests>, "price" | "rating"> & {
   rating: number | null;
   testItemsCount: number;
   examSlug: string | null;
+  /** Submitted for publishing and waiting on admin approval. */
+  inReview: boolean;
 };
 
 export type OutputType = TeacherTest[];

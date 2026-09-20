@@ -54,7 +54,7 @@ export const usePublishedTeacherProductsQuery = () => {
   });
 };
 
-const BULK_VERBS = { publish: "Published", unpublish: "Unpublished", archive: "Archived" } as const;
+const BULK_VERBS = { publish: "Submitted for review:", unpublish: "Unpublished", archive: "Archived" } as const;
 
 type MutationOptions = {
   // The product form reports each outcome in one toast of its own, so it
@@ -114,12 +114,12 @@ export const useTeacherProductMutations = ({ silent = false }: MutationOptions =
 
   const publishProductMutation = useMutation({
     mutationFn: postTeacherProductsPublish,
-    onSuccess: (_data, variables) => {
-      notifySuccess("Product published");
+    onSuccess: (data, variables) => {
+      notifySuccess(data.message);
       invalidateList();
       queryClient.invalidateQueries({ queryKey: [...TEACHER_PRODUCT_DETAILS_QUERY_KEY, variables.id] });
     },
-    onError: (error) => notifyError(error, "Failed to publish product"),
+    onError: (error) => notifyError(error, "Failed to submit product for review"),
   });
 
   const unpublishProductMutation = useMutation({
@@ -151,7 +151,7 @@ export const useTeacherProductMutations = ({ silent = false }: MutationOptions =
         )
       );
       const headline = done === 0
-        ? `Nothing was ${verb.toLowerCase()}. ${plural(data.failed.length)} skipped:`
+        ? `Nothing was ${variables.action === "publish" ? "submitted for review" : verb.toLowerCase()}. ${plural(data.failed.length)} skipped:`
         : `${verb} ${plural(done)}. ${plural(data.failed.length)} skipped:`;
       (done === 0 ? toast.error : toast.warning)(headline, { description, duration: 12000 });
     },

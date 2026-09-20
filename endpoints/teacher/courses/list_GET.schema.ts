@@ -11,6 +11,8 @@ export type TeacherCourseListItem = Omit<Selectable<Courses>, "price"> & {
   price: number;
   sectionsCount: number;
   lessonsCount: number;
+  /** Submitted for publishing and waiting on admin approval. */
+  inReview: boolean;
 };
 
 export type OutputType = TeacherCourseListItem[];

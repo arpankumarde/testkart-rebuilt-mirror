@@ -1,7 +1,6 @@
 import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { schema, OutputType } from "./list_GET.schema";
-import { getTeacherAvailableBalance } from "../../../helpers/getTeacherAvailableBalance";
 import superjson from "superjson";
 import { sql } from "kysely";
 
@@ -33,6 +32,7 @@ export async function handle(request: Request): Promise<Response> {
         "teacherWithdrawals.transactionId",
         "teacherWithdrawals.notes",
         "teacherWithdrawals.teacherId",
+        "teacherWithdrawals.balanceAtRequest",
         "users.displayName as teacherName",
         "users.email as teacherEmail",
         "teacherBankDetails.verificationStatus as bankVerificationStatus",
@@ -73,26 +73,11 @@ export async function handle(request: Request): Promise<Response> {
       .offset(offset)
       .execute();
 
-    // Batch-compute balances for unique teachers on this page
-    const uniqueTeacherIds = [...new Set(withdrawals.map((w) => w.teacherId))];
-    console.log(
-      `Computing wallet balances for ${uniqueTeacherIds.length} unique teacher(s) on this page`
-    );
-    const balanceResults = await Promise.all(
-      uniqueTeacherIds.map(async (teacherId) => {
-        const balance = await getTeacherAvailableBalance(teacherId);
-        return { teacherId, availableBalance: balance.availableBalance };
-      })
-    );
-    const teacherBalanceMap = new Map(
-      balanceResults.map((r) => [r.teacherId, r.availableBalance])
-    );
-
     const output: OutputType = {
       withdrawals: withdrawals.map((w) => ({
         ...w,
         amount: Number(w.amount),
-        currentWalletBalance: teacherBalanceMap.get(w.teacherId) ?? 0,
+        balanceAtRequest: w.balanceAtRequest === null ? null : Number(w.balanceAtRequest),
       })),
       totalCount,
       totalPages,

@@ -40,6 +40,7 @@ const REFERENCE_COLUMNS: Record<string, string[]> = {
   live_tests: ["intro_video_file_id", "intro_video_url", "thumbnail_file_id", "thumbnail_url"],
   mock_tests: ["intro_video_file_id", "intro_video_url", "thumbnail_file_id", "thumbnail_url"],
   news_coverage: ["image_file_id", "image_url"],
+  teacher_assets: ["key", "url"],
   users: ["avatar_file_id", "avatar_url"],
 };
 

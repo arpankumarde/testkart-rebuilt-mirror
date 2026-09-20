@@ -46,6 +46,8 @@ export type TeacherLiveTestItem = Omit<Selectable<LiveTests>, "price" | "totalPr
   subjectWiseTiming: boolean;
   questionWiseTiming: boolean;
   status: LiveTestStatus;
+  /** Submitted for publishing and waiting on admin approval. */
+  inReview: boolean;
 };
 
 export type OutputType = {
