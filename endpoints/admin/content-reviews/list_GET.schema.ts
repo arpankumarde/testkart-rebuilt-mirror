@@ -2,10 +2,15 @@ import { z } from "zod";
 import superjson from "superjson";
 import { ContentTypeArrayValues } from "../../../helpers/schema";
 
+export const ContentReviewSortValues = ["title", "teacher", "status", "createdAt"] as const;
+export type ContentReviewSortBy = (typeof ContentReviewSortValues)[number];
+
 export const schema = z.object({
   status: z.enum(["pending", "approved", "rejected"]).optional(),
   contentType: z.enum(ContentTypeArrayValues).optional(),
   search: z.string().optional(),
+  sortBy: z.enum(ContentReviewSortValues).optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
   page: z.number().int().positive().optional(),
   limit: z.number().int().positive().optional(),
 });
@@ -124,6 +129,8 @@ export const getAdminContentReviews = async (
   if (params.status) query.set("status", params.status);
   if (params.contentType) query.set("contentType", params.contentType);
   if (params.search) query.set("search", params.search);
+  if (params.sortBy) query.set("sortBy", params.sortBy);
+  if (params.sortOrder) query.set("sortOrder", params.sortOrder);
   if (params.page) query.set("page", params.page.toString());
   if (params.limit) query.set("limit", params.limit.toString());
 

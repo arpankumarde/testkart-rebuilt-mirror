@@ -3,7 +3,7 @@ import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { schema, OutputType } from "./list_GET.schema";
 import superjson from "superjson";
 import { ZodError } from "zod";
-import { Kysely } from "kysely";
+import { Kysely, sql } from "kysely";
 import { DB } from "../../../helpers/schema";
 
 export async function handle(request: Request) {
@@ -13,20 +13,28 @@ export async function handle(request: Request) {
     const url = new URL(request.url);
     const params = {
       status: url.searchParams.get("status"),
+      sortBy: url.searchParams.get("sortBy"),
+      sortOrder: url.searchParams.get("sortOrder"),
       limit: url.searchParams.get("limit"),
       offset: url.searchParams.get("offset"),
     };
 
-    const { status, limit, offset } = schema.parse(params);
+    const { status, sortBy, sortOrder, limit, offset } = schema.parse(params);
 
     let query = db.selectFrom("contactSubmissions");
     if (status) {
       query = query.where("status", "=", status);
     }
 
-    const submissions = await query
-      .selectAll()
+    let listQuery = query.selectAll();
+    if (sortBy) {
+      const direction = sortOrder === "desc" ? "desc" : "asc";
+      listQuery = listQuery.orderBy(sortBy, sql`${sql.raw(direction)} nulls last`);
+    }
+
+    const submissions = await listQuery
       .orderBy("createdAt", "desc")
+      .orderBy("id", "desc")
       .limit(limit)
       .offset(offset)
       .execute();

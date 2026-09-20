@@ -3,6 +3,7 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./delete_POST.schema";
 import superjson from "superjson";
 import { deleteOwnedR2Files } from "../../../helpers/r2FileOwnership";
+import { releaseGumletAssets } from "../../../helpers/syncLessonVideoToGumlet";
 
 async function checkLessonOwnership(lessonId: number, teacherId: number, userRole: string): Promise<boolean> {
     if (userRole === 'admin') return true;
@@ -34,7 +35,7 @@ export async function handle(request: Request): Promise<Response> {
     // Fetch the lesson to get contentFileId before deletion
     console.log(`Fetching lesson ${lessonId} for deletion`);
     const lesson = await db.selectFrom("courseLessons")
-      .select(["id", "contentFileId"])
+      .select(["id", "contentFileId", "gumletAssetId"])
       .where("id", "=", lessonId)
       .executeTakeFirst();
 
@@ -48,8 +49,9 @@ export async function handle(request: Request): Promise<Response> {
     await db.deleteFrom("courseLessons").where("id", "=", lessonId).execute();
     console.log(`Successfully deleted lesson ${lessonId}`);
 
-    // Then remove its file if this teacher uploaded it and nothing else uses it
+    // Then remove its file and DRM copy if nothing else uses them
     await deleteOwnedR2Files(effectiveTeacherId, [lesson.contentFileId]);
+    await releaseGumletAssets([lesson.gumletAssetId]);
 
     return new Response(superjson.stringify({ success: true } satisfies OutputType));
 

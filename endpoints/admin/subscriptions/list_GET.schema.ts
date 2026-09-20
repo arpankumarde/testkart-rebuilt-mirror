@@ -2,6 +2,9 @@ import { z } from "zod";
 import superjson from "superjson";
 import { SubscriptionStatus, SubscriptionStatusArrayValues } from "../../../helpers/schema";
 
+export const SUBSCRIPTION_SORT_COLUMNS = ["teacher", "plan", "status", "started", "renews", "daysLeft"] as const;
+export type SubscriptionSortColumn = (typeof SUBSCRIPTION_SORT_COLUMNS)[number];
+
 export const schema = z.object({
   search: z.string().optional(),
   page: z.number().int().positive().optional(),
@@ -11,6 +14,8 @@ export const schema = z.object({
   includeFree: z.boolean().optional(),
   /* Raw status active with end_date in the next 7 days, on every plan including the free one. */
   expiringWithin7Days: z.boolean().optional(),
+  sortBy: z.enum(SUBSCRIPTION_SORT_COLUMNS).optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
 });
 
 export type InputType = z.infer<typeof schema>;
@@ -70,6 +75,8 @@ export const getAdminSubscriptionsList = async (
   if (params.status) queryParams.set("status", params.status);
   if (params.includeFree !== undefined) queryParams.set("includeFree", params.includeFree.toString());
   if (params.expiringWithin7Days) queryParams.set("expiringWithin7Days", "true");
+  if (params.sortBy) queryParams.set("sortBy", params.sortBy);
+  if (params.sortOrder) queryParams.set("sortOrder", params.sortOrder);
 
   const result = await fetch(`/_api/admin/subscriptions/list?${queryParams.toString()}`, {
     method: "GET",

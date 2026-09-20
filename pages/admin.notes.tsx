@@ -3,6 +3,8 @@ import { Helmet } from "react-helmet";
 import { useAdminProductsQuery, useDeactivateProductMutation } from "../helpers/useAdminProducts";
 import { useListUrlParams } from "../helpers/useListUrlParams";
 import { useRefetchOnLinkArrival } from "../helpers/useRefetchOnLinkArrival";
+import { useTableSort, SortAccessors } from "../helpers/useTableSort";
+import { SortableTh } from "../components/SortableTh";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
 import { Badge } from "../components/Badge";
@@ -27,6 +29,7 @@ import { toast } from "sonner";
 import { DigitalProductStatus } from "../helpers/schema";
 import { AdminProductListItem } from "../endpoints/admin/products/list_GET.schema";
 import { AdminProductDetailPanel } from "../components/AdminProductDetailPanel";
+import { adminPreviewPath } from "../helpers/useAdminContentPreview";
 import styles from "./admin.notes.module.css";
 
 const ALL_TEACHERS = "__all__";
@@ -37,6 +40,18 @@ type StatusTab = (typeof STATUS_TABS)[number];
 /* Dashboard-only subsets: no control of their own, so a notice names them. */
 const LIST_FILTERS = ["no-file"] as const;
 type ListFilter = (typeof LIST_FILTERS)[number];
+
+const SORT_ACCESSORS: SortAccessors<
+  AdminProductListItem,
+  "title" | "status" | "category" | "price" | "sales" | "createdAt"
+> = {
+  title: (p) => p.title,
+  status: (p) => p.status,
+  category: (p) => p.category,
+  price: (p) => p.price,
+  sales: (p) => p.totalPurchases ?? 0,
+  createdAt: (p) => (p.createdAt ? new Date(p.createdAt) : null),
+};
 
 /* Shared by the loading and loaded tables so the columns do not jump. */
 const TableColumns = () => (
@@ -155,6 +170,8 @@ export default function AdminNotesPage() {
     });
   }, [products, searchQuery, statusFilter, teacherFilter, listFilter, focusId]);
 
+  const { sorted: sortedProducts, ...sort } = useTableSort(filteredProducts, SORT_ACCESSORS);
+
   const hasActiveFilters =
     searchQuery !== "" ||
     statusFilter !== "all" ||
@@ -232,7 +249,7 @@ export default function AdminNotesPage() {
 
   const renderTitle = (product: AdminProductListItem) => (
     <a
-      href={getProductUrl(product.slug)}
+      href={product.status === 'published' ? getProductUrl(product.slug) : adminPreviewPath("digital_product", product.id)}
       target="_blank"
       rel="noopener noreferrer"
       className={`${styles.titleLink} ${styles.truncate}`}
@@ -339,17 +356,17 @@ export default function AdminNotesPage() {
             <TableColumns />
             <thead>
               <tr>
-                <th>Notes</th>
-                <th>Status</th>
-                <th>Category</th>
-                <th className={styles.num}>Price</th>
-                <th className={styles.num}>Sales</th>
-                <th>Created</th>
+                <SortableTh column="title" sort={sort}>Notes</SortableTh>
+                <SortableTh column="status" sort={sort}>Status</SortableTh>
+                <SortableTh column="category" sort={sort}>Category</SortableTh>
+                <SortableTh column="price" sort={sort} className={styles.num}>Price</SortableTh>
+                <SortableTh column="sales" sort={sort} className={styles.num}>Sales</SortableTh>
+                <SortableTh column="createdAt" sort={sort}>Created</SortableTh>
                 <th><span className={styles.srOnly}>Actions</span></th>
               </tr>
             </thead>
             <tbody>
-              {filteredProducts.map((product) => {
+              {sortedProducts.map((product) => {
                 const sales = product.totalPurchases ?? 0;
                 return (
                   <tr key={product.id}>
@@ -381,7 +398,7 @@ export default function AdminNotesPage() {
           </table>
         </div>
         <div className={styles.cardsContainer}>
-          {filteredProducts.map((product) => {
+          {sortedProducts.map((product) => {
             const sales = product.totalPurchases ?? 0;
             return (
               <article key={product.id} className={styles.card}>
@@ -496,6 +513,7 @@ export default function AdminNotesPage() {
             statusBadge={getStatusBadge(panelProduct.status)}
             isLive={panelProduct.status === 'published'}
             publicUrl={panelProduct.status === 'published' ? getProductUrl(panelProduct.slug) : null}
+            previewUrl={adminPreviewPath("digital_product", panelProduct.id)}
             teacherName={panelProduct.teacherName}
             price={panelProduct.price}
             createdAt={panelProduct.createdAt}

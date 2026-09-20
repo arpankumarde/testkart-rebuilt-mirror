@@ -22,9 +22,20 @@ import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, Pagi
 import { toast } from "sonner";
 import { FilterSection, FilterState, useTransactionsListParams } from "./AdminTransactionsTableFilter";
 import { ConsoleConfirmDialog } from "./ConsoleConfirmDialog";
+import { SortableTh } from "./SortableTh";
+import { useTableSort, SortAccessors } from "../helpers/useTableSort";
 import styles from "./AdminTransactionsTable.module.css";
 
 const sentenceCase = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
+
+const SORT_ACCESSORS: SortAccessors<Order, "id" | "date" | "student" | "items" | "amount" | "status"> = {
+  id: (o) => o.id,
+  date: (o) => (o.createdAt ? new Date(o.createdAt) : null),
+  student: (o) => o.studentName,
+  items: (o) => o.purchasedItems,
+  amount: (o) => o.totalAmount,
+  status: (o) => o.status,
+};
 
 /* Matches the dashboard's stuck-orders count: pending and created more than an hour ago. */
 const STALE_PENDING_MS = 60 * 60 * 1000;
@@ -358,10 +369,19 @@ export const AdminTransactionsTable: React.FC = () => {
     });
   }, [orders, filters, listFilter, dataUpdatedAt]);
 
+  const { sorted: sortedOrders, toggleSort: toggleSortColumn, ...sortState } = useTableSort(filteredOrders, SORT_ACCESSORS);
+  const sort = {
+    ...sortState,
+    toggleSort: (column: keyof typeof SORT_ACCESSORS) => {
+      setCurrentPage(1);
+      toggleSortColumn(column);
+    },
+  };
+
   const paginatedOrders = useMemo(() => {
     const start = (currentPage - 1) * PAGE_SIZE;
-    return filteredOrders.slice(start, start + PAGE_SIZE);
-  }, [filteredOrders, currentPage]);
+    return sortedOrders.slice(start, start + PAGE_SIZE);
+  }, [sortedOrders, currentPage]);
 
   const totalPages = Math.ceil(filteredOrders.length / PAGE_SIZE);
 
@@ -677,12 +697,12 @@ export const AdminTransactionsTable: React.FC = () => {
             <TableColumns />
             <thead>
               <tr>
-                <th>Order</th>
-                <th>Date</th>
-                <th>Student</th>
-                <th>Item and teacher</th>
-                <th className={styles.num}>Amount</th>
-                <th>Status</th>
+                <SortableTh column="id" sort={sort}>Order</SortableTh>
+                <SortableTh column="date" sort={sort}>Date</SortableTh>
+                <SortableTh column="student" sort={sort}>Student</SortableTh>
+                <SortableTh column="items" sort={sort}>Item and teacher</SortableTh>
+                <SortableTh column="amount" sort={sort} className={styles.num}>Amount</SortableTh>
+                <SortableTh column="status" sort={sort}>Status</SortableTh>
                 <th><span className={styles.srOnly}>Actions</span></th>
               </tr>
             </thead>

@@ -1,6 +1,6 @@
 import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
-import { OutputType, ContactNote } from "./contacts_GET.schema";
+import { OutputType, ContactNote, SalesContactSort } from "./contacts_GET.schema";
 import superjson from "superjson";
 import { SalesStage, SalesContactSource } from "../../../helpers/schema";
 import { sql } from "kysely";
@@ -32,7 +32,9 @@ export async function handle(request: Request): Promise<Response> {
     const signupDateTo = url.searchParams.get("signupDateTo");
     const myLeads = url.searchParams.get("myLeads") === "true";
     const openOverdue = url.searchParams.get("openOverdue") === "true";
-    const sort = url.searchParams.get("sort") as "newest" | "follow_up_date" | "last_contacted" | null;
+    const sort = url.searchParams.get("sort") as SalesContactSort | null;
+    const sortOrderParam = url.searchParams.get("sortOrder");
+    const sortOrder = sortOrderParam === "asc" || sortOrderParam === "desc" ? sortOrderParam : null;
     const page = parseInt(url.searchParams.get("page") || "1", 10);
     const limit = parseInt(url.searchParams.get("limit") || "20", 10);
     const offset = (page - 1) * limit;
@@ -165,6 +167,22 @@ export async function handle(request: Request): Promise<Response> {
     const totalCount = parseInt(countResult.count, 10);
     const totalPages = Math.ceil(totalCount / limit);
 
+    /* Without an explicit order each sort keeps its original direction. Leads never called count as the least recently called. */
+    const asc = sortOrder
+      ? sortOrder === "asc"
+      : sort === "follow_up_date" || sort === "last_contacted" || sort === "name" || sort === "stage";
+    const dir = asc ? sql`ASC` : sql`DESC`;
+    const orderExpr =
+      sort === "follow_up_date"
+        ? sql`sales_contacts.follow_up_date ${dir} NULLS LAST`
+        : sort === "last_contacted"
+          ? sql`sales_contacts.last_contacted_at ${dir} ${asc ? sql`NULLS FIRST` : sql`NULLS LAST`}`
+          : sort === "name"
+            ? sql`lower(${displayNameExpr}) ${dir} NULLS LAST`
+            : sort === "stage"
+              ? sql`sales_contacts.stage ${dir}`
+              : sql`${createdAtExpr} ${dir}`;
+
     // Fetch paginated contacts
     const contactsRows = await baseQuery
       .select([
@@ -202,13 +220,8 @@ export async function handle(request: Request): Promise<Response> {
         "users.bio",
         "users.tagline",
       ])
-            .orderBy(
-        sort === "follow_up_date"
-          ? sql`sales_contacts.follow_up_date ASC NULLS LAST`
-          : sort === "last_contacted"
-            ? sql`sales_contacts.last_contacted_at ASC NULLS FIRST`
-            : sql`coalesce(users.created_at, sales_contacts.created_at) DESC`
-      )
+      .orderBy(orderExpr)
+      .orderBy("salesContacts.id", "desc")
       .limit(limit)
       .offset(offset)
       .execute();

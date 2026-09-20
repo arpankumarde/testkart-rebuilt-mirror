@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import {
   Sheet,
   SheetContent,
@@ -9,7 +10,7 @@ import {
 } from "./Sheet";
 import { Badge } from "./Badge";
 import { Button } from "./Button";
-import { ExternalLink, Ban } from "lucide-react";
+import { ExternalLink, Ban, ScanEye } from "lucide-react";
 import styles from "./AdminProductDetailPanel.module.css";
 
 export interface AdminProductDetailStat {
@@ -29,6 +30,8 @@ interface AdminProductDetailPanelProps {
   /** true only when the product is actually reachable on its public URL right now */
   isLive: boolean;
   publicUrl: string | null;
+  /** Admin-only preview of every lesson, test, question and file, in any status */
+  previewUrl?: string;
   teacherName: string;
   price: number;
   createdAt: Date | string | null;
@@ -57,6 +60,7 @@ export const AdminProductDetailPanel: React.FC<AdminProductDetailPanelProps> = (
   statusBadge,
   isLive,
   publicUrl,
+  previewUrl,
   teacherName,
   price,
   createdAt,
@@ -66,7 +70,7 @@ export const AdminProductDetailPanel: React.FC<AdminProductDetailPanelProps> = (
   unpublishLabel = "Unpublish",
   unpublishPendingLabel = "Unpublishing...",
 }) => {
-  const hasActions = !!publicUrl || !!onUnpublish;
+  const hasActions = !!previewUrl || !!publicUrl || !!onUnpublish;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -133,6 +137,14 @@ export const AdminProductDetailPanel: React.FC<AdminProductDetailPanelProps> = (
 
         {hasActions && (
           <SheetFooter className={styles.footer}>
+            {previewUrl && (
+              <Button variant="primary" asChild>
+                <Link to={previewUrl}>
+                  <ScanEye size={14} />
+                  Preview content
+                </Link>
+              </Button>
+            )}
             {publicUrl && (
               <Button variant="outline" asChild>
                 <a href={publicUrl} target="_blank" rel="noopener noreferrer">

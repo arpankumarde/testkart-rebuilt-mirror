@@ -8,11 +8,14 @@ import {
 import { useDebounce } from "../helpers/useDebounce";
 import { useListUrlParams } from "../helpers/useListUrlParams";
 import { useRefetchOnLinkArrival } from "../helpers/useRefetchOnLinkArrival";
+import { SortOrder } from "../helpers/useTableSort";
+import { SortableTh } from "./SortableTh";
 import { BlogContentType, BlogPostStatus } from "../helpers/schema";
 import {
   AdminPostListItem,
   AdminPostListFilter,
   AdminPostListFilterValues,
+  AdminPostSortBy,
 } from "../endpoints/admin/blog/posts/list_GET.schema";
 import { CONTENT_STALE_DAYS } from "../endpoints/admin/content/dashboard_GET.schema";
 import { Button } from "./Button";
@@ -135,8 +138,23 @@ export const AdminBlogContentTab: React.FC<AdminBlogContentTabProps> = ({ type }
   // A post with no category cannot be in one, so the uncategorised filter overrides the picker.
   const categoryId = filter === "uncategorised" ? "all" : pickedCategoryId;
 
+  const [sortBy, setSortBy] = useState<AdminPostSortBy | null>(null);
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+  const sort = {
+    sortBy,
+    sortOrder,
+    toggleSort: (column: AdminPostSortBy) => {
+      if (column === sortBy) {
+        setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+        return;
+      }
+      setSortBy(column);
+      setSortOrder(column === "title" || column === "author" || column === "status" ? "asc" : "desc");
+    },
+  };
+
   // A page number belongs to one set of list inputs, so changing any of them starts again at page 1.
-  const listKey = `${status}|${filter}|${categoryId}|${debouncedSearch}`;
+  const listKey = `${status}|${filter}|${categoryId}|${debouncedSearch}|${sortBy}|${sortOrder}`;
   const [pagination, setPagination] = useState({ key: listKey, page: 1 });
   const page = pagination.key === listKey ? pagination.page : 1;
 
@@ -155,6 +173,8 @@ export const AdminBlogContentTab: React.FC<AdminBlogContentTabProps> = ({ type }
     status: status === "all" ? undefined : status,
     categoryId: categoryId === "all" ? undefined : categoryId,
     filter: filter === "none" ? undefined : filter,
+    sortBy: sortBy ?? undefined,
+    sortOrder: sortBy ? sortOrder : undefined,
     page,
     limit: 20
   });
@@ -289,12 +309,12 @@ export const AdminBlogContentTab: React.FC<AdminBlogContentTabProps> = ({ type }
             <TableColumns />
             <thead>
               <tr>
-                <th>Title</th>
-                <th>Author</th>
-                <th>Status</th>
-                <th>Published</th>
-                <th className={styles.num}>Views</th>
-                <th className={styles.num}>Read time</th>
+                <SortableTh column="title" sort={sort}>Title</SortableTh>
+                <SortableTh column="author" sort={sort}>Author</SortableTh>
+                <SortableTh column="status" sort={sort}>Status</SortableTh>
+                <SortableTh column="publishedAt" sort={sort}>Published</SortableTh>
+                <SortableTh column="viewCount" sort={sort} className={styles.num}>Views</SortableTh>
+                <SortableTh column="readingTimeMinutes" sort={sort} className={styles.num}>Read time</SortableTh>
                 <th><span className={styles.srOnly}>Actions</span></th>
               </tr>
             </thead>

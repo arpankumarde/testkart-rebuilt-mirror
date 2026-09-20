@@ -8,6 +8,8 @@ import {
   useDeleteBlogCategoryMutation 
 } from "../helpers/useAdminBlog";
 import { CategoryWithCount } from "../endpoints/admin/blog/categories/list_GET.schema";
+import { useTableSort, SortAccessors } from "../helpers/useTableSort";
+import { SortableTh } from "../components/SortableTh";
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
 import { Textarea } from "../components/Textarea";
@@ -88,8 +90,16 @@ const renderTypeFlag = (category: CategoryWithCount) => (
   </Badge>
 );
 
+const SORT_ACCESSORS: SortAccessors<CategoryWithCount, "name" | "type" | "sortOrder" | "postCount"> = {
+  name: (c) => c.name,
+  type: (c) => c.type,
+  sortOrder: (c) => c.sortOrder,
+  postCount: (c) => c.postCount,
+};
+
 const AdminBlogCategoriesPage = () => {
   const { data, isFetching, error, refetch } = useAdminBlogCategoriesQuery();
+  const { sorted: sortedCategories, ...sort } = useTableSort(data?.categories, SORT_ACCESSORS);
   const upsertMutation = useUpsertBlogCategoryMutation();
   const deleteMutation = useDeleteBlogCategoryMutation();
 
@@ -237,15 +247,15 @@ const AdminBlogCategoriesPage = () => {
             <TableColumns />
             <thead>
               <tr>
-                <th>Category</th>
-                <th>Type</th>
-                <th className={styles.num}>Order</th>
-                <th className={styles.num}>Posts</th>
+                <SortableTh column="name" sort={sort}>Category</SortableTh>
+                <SortableTh column="type" sort={sort}>Type</SortableTh>
+                <SortableTh column="sortOrder" sort={sort} className={styles.num}>Order</SortableTh>
+                <SortableTh column="postCount" sort={sort} className={styles.num}>Posts</SortableTh>
                 <th><span className={styles.srOnly}>Actions</span></th>
               </tr>
             </thead>
             <tbody>
-              {data.categories.map(cat => (
+              {sortedCategories.map(cat => (
                 <tr key={cat.id}>
                   <td>
                     <div className={styles.stack}>
@@ -269,7 +279,7 @@ const AdminBlogCategoriesPage = () => {
         </div>
 
         <div className={styles.cardsContainer}>
-          {data.categories.map(cat => (
+          {sortedCategories.map(cat => (
             <article key={cat.id} className={styles.card}>
               <div className={styles.cardHeader}>
                 <div className={styles.stack}>

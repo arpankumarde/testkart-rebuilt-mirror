@@ -13,6 +13,7 @@ import {
 import { humanisePageType } from "../helpers/adminContentSurfaces";
 import { useListUrlParams } from "../helpers/useListUrlParams";
 import { useRefetchOnLinkArrival } from "../helpers/useRefetchOnLinkArrival";
+import { useTableSort, type SortAccessors } from "../helpers/useTableSort";
 import {
   type ExamDashboardRow,
   type DataHealthFlag,
@@ -33,6 +34,7 @@ import {
 } from "./Select";
 import { DatePicker } from "./DatePicker";
 import { AdminOwnerSelect } from "./AdminOwnerSelect";
+import { SortableTh } from "./SortableTh";
 import {
   Search,
   FileText,
@@ -118,6 +120,18 @@ const ISSUE_FILTERS: Record<
 const ISSUE_FILTER_VALUES = Object.keys(ISSUE_FILTERS) as IssueFilter[];
 
 const countOf = (n: number, noun: string) => `${n.toLocaleString("en-IN")} ${noun}${n === 1 ? "" : "s"}`;
+
+type ExamSortKey = "exam" | "category" | "content" | "products" | "owner" | "updated" | "due";
+
+const SORT_ACCESSORS: SortAccessors<ExamDashboardRow, ExamSortKey> = {
+  exam: (row) => row.examName,
+  category: (row) => row.categoryName,
+  content: (row) => row.publishedSectionCount,
+  products: (row) => row.totalProductCount,
+  owner: (row) => row.ownerTag,
+  updated: (row) => (row.lastContentUpdatedAt ? new Date(row.lastContentUpdatedAt) : null),
+  due: (row) => (row.contentDueDate ? new Date(row.contentDueDate) : null),
+};
 
 interface AdminExamDashboardTableProps {
   onEditExam: (exam: ExamDashboardRow) => void;
@@ -280,8 +294,17 @@ export const AdminExamDashboardTable: React.FC<AdminExamDashboardTableProps> = (
     };
   }, [data]);
 
+  const { sorted: sortedRows, ...tableSort } = useTableSort(filteredRows, SORT_ACCESSORS);
+  const sort = {
+    ...tableSort,
+    toggleSort: (column: ExamSortKey) => {
+      tableSort.toggleSort(column);
+      setPage(0);
+    },
+  };
+
   const totalPages = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
-  const pagedRows = filteredRows.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
+  const pagedRows = sortedRows.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
   const issuePageCount = issue
     ? filteredRows.reduce((sum, row) => sum + issue.typesOf(row).length, 0)
     : 0;
@@ -621,13 +644,13 @@ export const AdminExamDashboardTable: React.FC<AdminExamDashboardTableProps> = (
               <th className={styles.checkboxCell}>
                 <Checkbox checked={allPagedSelected} onChange={togglePageSelection} />
               </th>
-              <th>Exam</th>
-              <th>Category</th>
-              <th>Content ({ADMIN_EXAM_SECTION_TYPES.length} sections)</th>
-              <th>Products</th>
-              <th>Owner</th>
-              <th>Content updated</th>
-              <th>Due</th>
+              <SortableTh column="exam" sort={sort}>Exam</SortableTh>
+              <SortableTh column="category" sort={sort}>Category</SortableTh>
+              <SortableTh column="content" sort={sort}>Content ({ADMIN_EXAM_SECTION_TYPES.length} sections)</SortableTh>
+              <SortableTh column="products" sort={sort}>Products</SortableTh>
+              <SortableTh column="owner" sort={sort}>Owner</SortableTh>
+              <SortableTh column="updated" sort={sort}>Content updated</SortableTh>
+              <SortableTh column="due" sort={sort}>Due</SortableTh>
               <th></th>
             </tr>
           </thead>

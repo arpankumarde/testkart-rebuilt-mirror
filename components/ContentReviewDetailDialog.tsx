@@ -1,5 +1,8 @@
 import React, { useState, Suspense } from "react";
+import { Link } from "react-router-dom";
 import { sanitizeHtml } from "../helpers/sanitizeHtml";
+import { adminPreviewPath } from "../helpers/useAdminContentPreview";
+import { PREVIEW_CONTENT_TYPES, PreviewContentType } from "../endpoints/admin/content-preview/details_GET.schema";
 import { Dialog } from "./Dialog";
 import {
   ConsoleDialogContent,
@@ -36,10 +39,16 @@ import {
   Clock,
   Trophy,
   Layers,
+  ScanEye,
 } from "lucide-react";
 import styles from "./ContentReviewDetailDialog.module.css";
 
 const ContentReviewPdfViewer = React.lazy(() => import('./ContentReviewPdfViewer'));
+
+export const reviewPreviewPath = (review: { contentType: string; contentId: number }): string | null =>
+  (PREVIEW_CONTENT_TYPES as readonly string[]).includes(review.contentType)
+    ? adminPreviewPath(review.contentType as PreviewContentType, review.contentId)
+    : null;
 
 // ─── Formatters ─────────────────────────────────────────────────────────────
 
@@ -530,6 +539,7 @@ export const ContentReviewDetailDialog = ({
   className,
 }: Props) => {
   const isOpen = review !== null;
+  const previewPath = review ? reviewPreviewPath(review) : null;
 
   const renderMeta = () => {
     if (!review?.contentMeta) {
@@ -575,6 +585,14 @@ export const ContentReviewDetailDialog = ({
               <Badge variant={getStatusBadgeVariant(review.status)}>
                 {review.status.charAt(0).toUpperCase() + review.status.slice(1)}
               </Badge>
+              {previewPath && (
+                <Button variant="primary" size="sm" asChild>
+                  <Link to={previewPath}>
+                    <ScanEye size={14} />
+                    Preview all content
+                  </Link>
+                </Button>
+              )}
             </div>
           )}
         </ConsoleDialogHeader>

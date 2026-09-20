@@ -26,6 +26,8 @@ import { handle as careersList } from "../endpoints/admin/careers/list_GET";
 import { handle as careersApplications } from "../endpoints/admin/careers/applications_GET";
 import { handle as contentDashboard } from "../endpoints/admin/content/dashboard_GET";
 import { handle as contentReviewsList } from "../endpoints/admin/content-reviews/list_GET";
+import { handle as contentPreviewDetails } from "../endpoints/admin/content-preview/details_GET";
+import { handle as contentPreviewQuestions } from "../endpoints/admin/content-preview/questions_GET";
 import { handle as dashboardOverview } from "../endpoints/admin/dashboard/overview_GET";
 import { handle as dashboardTrends } from "../endpoints/admin/dashboard/trends_GET";
 import { handle as adminStats } from "../endpoints/admin/stats_GET";
@@ -80,6 +82,8 @@ const READ_ROUTES: Record<string, EndpointHandler> = {
   "admin/careers/applications": careersApplications,
   "admin/content/dashboard": contentDashboard,
   "admin/content-reviews/list": contentReviewsList,
+  "admin/content-preview/details": contentPreviewDetails,
+  "admin/content-preview/questions": contentPreviewQuestions,
   "admin/dashboard/overview": dashboardOverview,
   "admin/dashboard/trends": dashboardTrends,
   "admin/stats": adminStats,

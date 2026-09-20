@@ -2,6 +2,7 @@ import { schema, OutputType } from "./list_GET.schema";
 import superjson from "superjson";
 import { db } from '../../../helpers/db';
 import { getAdminServerSessionOrThrow } from '../../../helpers/getAdminSession';
+import { sql } from "kysely";
 
 export async function handle(request: Request) {
   try {
@@ -11,6 +12,8 @@ export async function handle(request: Request) {
     const searchParams = Object.fromEntries(url.searchParams.entries());
     const query = {
       search: searchParams.search,
+      sortBy: searchParams.sortBy || undefined,
+      sortOrder: searchParams.sortOrder || undefined,
       page: searchParams.page ? parseInt(searchParams.page, 10) : undefined,
       limit: searchParams.limit ? parseInt(searchParams.limit, 10) : undefined
     };
@@ -40,9 +43,15 @@ export async function handle(request: Request) {
     const totalCount = Number(count);
     const totalPages = Math.ceil(totalCount / limit);
 
-    const accounts = await baseQuery.
-    selectAll().
+    let listQuery = baseQuery.selectAll();
+    if (params.sortBy) {
+      const direction = params.sortOrder === "desc" ? "desc" : "asc";
+      listQuery = listQuery.orderBy(params.sortBy, sql`${sql.raw(direction)} nulls last`);
+    }
+
+    const accounts = await listQuery.
     orderBy("deletedAt", "desc").
+    orderBy("id", "desc").
     limit(limit).
     offset(offset).
     execute();

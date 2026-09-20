@@ -2,7 +2,7 @@ import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { OutputType, schema } from "./list_GET.schema";
 import superjson from "superjson";
-import { ExpressionBuilder } from "kysely";
+import { ExpressionBuilder, sql } from "kysely";
 import { DB } from "../../../helpers/schema";
 
 export async function handle(request: Request): Promise<Response> {
@@ -21,6 +21,8 @@ export async function handle(request: Request): Promise<Response> {
       page = 1,
       limit = 20,
       status = "all",
+      sortBy,
+      sortOrder,
     } = schema.parse(params);
 
     const offset = (page - 1) * limit;
@@ -32,7 +34,6 @@ export async function handle(request: Request): Promise<Response> {
     let detailsQuery = baseQuery
       .selectAll("studentBankDetails")
       .select(["users.displayName as studentName", "users.email as studentEmail"])
-      .orderBy("studentBankDetails.createdAt", "desc")
       .limit(limit)
       .offset(offset);
 
@@ -57,6 +58,20 @@ export async function handle(request: Request): Promise<Response> {
       detailsQuery = detailsQuery.where("studentBankDetails.verificationStatus", "=", status);
       countQuery = countQuery.where("studentBankDetails.verificationStatus", "=", status);
     }
+
+    const direction = sortOrder === "desc" ? sql`desc nulls last` : sql`asc nulls last`;
+    if (sortBy === "name") {
+      detailsQuery = detailsQuery.orderBy(sql`lower(${sql.ref("users.displayName")})`, direction);
+    } else if (sortBy === "bank") {
+      detailsQuery = detailsQuery.orderBy(sql`lower(${sql.ref("studentBankDetails.bankName")})`, direction);
+    } else if (sortBy === "status") {
+      detailsQuery = detailsQuery.orderBy(sql`${sql.ref("studentBankDetails.verificationStatus")}::text`, direction);
+    } else if (sortBy === "submitted") {
+      detailsQuery = detailsQuery.orderBy("studentBankDetails.updatedAt", direction);
+    }
+    detailsQuery = detailsQuery
+      .orderBy("studentBankDetails.createdAt", "desc")
+      .orderBy("studentBankDetails.id", "desc");
 
     const [details, totalResult] = await Promise.all([
       detailsQuery.execute(),

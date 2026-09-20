@@ -118,6 +118,21 @@
   color: var(--foreground);
 }
 
+.titleLink {
+  color: var(--foreground);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+
+.titleLink:hover {
+  text-decoration: underline;
+}
+
+.titleLink:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
 .secondaryLine {
   font-size: 0.75rem;
   color: var(--muted-foreground);

@@ -3,6 +3,8 @@ import { Helmet } from "react-helmet";
 import { useAdminCoursesQuery, useDeactivateCourseMutation } from "../helpers/useAdminCourses";
 import { useListUrlParams } from "../helpers/useListUrlParams";
 import { useRefetchOnLinkArrival } from "../helpers/useRefetchOnLinkArrival";
+import { useTableSort, SortAccessors } from "../helpers/useTableSort";
+import { SortableTh } from "../components/SortableTh";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
 import { Badge } from "../components/Badge";
@@ -26,6 +28,7 @@ import { toast } from "sonner";
 import { CourseStatus } from "../helpers/schema";
 import { AdminCourseListItem } from "../endpoints/admin/courses/list_GET.schema";
 import { AdminProductDetailPanel } from "../components/AdminProductDetailPanel";
+import { adminPreviewPath } from "../helpers/useAdminContentPreview";
 import styles from "./admin.courses.module.css";
 
 const ALL_TEACHERS = "__all__";
@@ -36,6 +39,14 @@ type StatusTab = (typeof STATUS_TABS)[number];
 /* Dashboard-only subsets: no control of their own, so a notice names them. */
 const LIST_FILTERS = ["no-lessons"] as const;
 type ListFilter = (typeof LIST_FILTERS)[number];
+
+const SORT_ACCESSORS: SortAccessors<AdminCourseListItem, "title" | "status" | "students" | "price" | "createdAt"> = {
+  title: (c) => c.title,
+  status: (c) => c.status,
+  students: (c) => c.studentsEnrolled,
+  price: (c) => c.price,
+  createdAt: (c) => (c.createdAt ? new Date(c.createdAt) : null),
+};
 
 /* Shared by the loading and loaded tables so the columns do not jump. */
 const TableColumns = () => (
@@ -150,6 +161,8 @@ const AdminCoursesPage: React.FC = () => {
     });
   }, [courses, searchQuery, statusFilter, teacherFilter, listFilter, focusId]);
 
+  const { sorted: sortedCourses, ...sort } = useTableSort(filteredCourses, SORT_ACCESSORS);
+
   const hasActiveFilters =
     searchQuery !== "" ||
     statusFilter !== "all" ||
@@ -227,7 +240,7 @@ const AdminCoursesPage: React.FC = () => {
 
   const renderTitle = (course: AdminCourseListItem) => (
     <a
-      href={getCourseUrl(course.slug)}
+      href={course.status === 'published' ? getCourseUrl(course.slug) : adminPreviewPath("course", course.id)}
       target="_blank"
       rel="noopener noreferrer"
       className={`${styles.titleLink} ${styles.truncate}`}
@@ -334,16 +347,16 @@ const AdminCoursesPage: React.FC = () => {
             <TableColumns />
             <thead>
               <tr>
-                <th>Course</th>
-                <th>Status</th>
-                <th className={styles.num}>Students</th>
-                <th className={styles.num}>Price</th>
-                <th>Created</th>
+                <SortableTh column="title" sort={sort}>Course</SortableTh>
+                <SortableTh column="status" sort={sort}>Status</SortableTh>
+                <SortableTh column="students" sort={sort} className={styles.num}>Students</SortableTh>
+                <SortableTh column="price" sort={sort} className={styles.num}>Price</SortableTh>
+                <SortableTh column="createdAt" sort={sort}>Created</SortableTh>
                 <th><span className={styles.srOnly}>Actions</span></th>
               </tr>
             </thead>
             <tbody>
-              {filteredCourses.map((course) => (
+              {sortedCourses.map((course) => (
                 <tr key={course.id}>
                   <td>
                     <div className={styles.stack}>
@@ -366,7 +379,7 @@ const AdminCoursesPage: React.FC = () => {
           </table>
         </div>
         <div className={styles.cardsContainer}>
-          {filteredCourses.map((course) => (
+          {sortedCourses.map((course) => (
             <article key={course.id} className={styles.card}>
               <div className={styles.cardHeader}>
                 <div className={styles.stack}>
@@ -476,6 +489,7 @@ const AdminCoursesPage: React.FC = () => {
             statusBadge={getStatusBadge(panelCourse.status)}
             isLive={panelCourse.status === 'published'}
             publicUrl={panelCourse.status === 'published' ? getCourseUrl(panelCourse.slug) : null}
+            previewUrl={adminPreviewPath("course", panelCourse.id)}
             teacherName={panelCourse.teacherName}
             price={panelCourse.price}
             createdAt={panelCourse.createdAt}

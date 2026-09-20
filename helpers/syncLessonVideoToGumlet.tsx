@@ -143,6 +143,38 @@ function errorMessage(error: unknown): string {
 }
 
 /**
+ * Call after lessons are deleted, with the Gumlet asset ids they held. Deletes
+ * each asset from Gumlet unless a remaining lesson still uses it. Never throws,
+ * so a Gumlet outage cannot fail a delete; a failure is only logged.
+ */
+export async function releaseGumletAssets(assetIds: Array<string | null | undefined>): Promise<void> {
+  const unique = [...new Set(assetIds.filter((id): id is string => !!id))];
+  if (unique.length === 0) return;
+
+  try {
+    const stillUsed = await db
+      .selectFrom("courseLessons")
+      .select("gumletAssetId")
+      .where("gumletAssetId", "in", unique)
+      .execute();
+    const usedIds = new Set(stillUsed.map((row) => row.gumletAssetId));
+
+    for (const assetId of unique) {
+      if (usedIds.has(assetId)) continue;
+      try {
+        await gumletRequest("DELETE", `/video/assets/${assetId}`);
+        console.log(`[releaseGumletAssets] Deleted Gumlet asset ${assetId}`);
+      } catch (error) {
+        if (isGumletError(error) && error.status === 404) continue;
+        console.error(`[releaseGumletAssets] Could not delete Gumlet asset ${assetId}:`, error);
+      }
+    }
+  } catch (error) {
+    console.error("[releaseGumletAssets] Cleanup failed:", error);
+  }
+}
+
+/**
  * Call after a lesson is created or updated. Reconciles the lesson with Gumlet:
  * drops an asset that failed or no longer matches the lesson's video, and pushes the video
  * when the course's teacher has DRM on. Safe to call repeatedly, and never

@@ -1,9 +1,28 @@
 import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
-import { OutputType, SubscriptionAdminView, SubscriptionStats, PlanBreakdownItem } from "./list_GET.schema";
+import {
+  OutputType,
+  SubscriptionAdminView,
+  SubscriptionStats,
+  PlanBreakdownItem,
+  SUBSCRIPTION_SORT_COLUMNS,
+  SubscriptionSortColumn,
+} from "./list_GET.schema";
 import superjson from "superjson";
-import { sql } from "kysely";
+import { sql, RawBuilder } from "kysely";
 import { SubscriptionStatus } from "../../../helpers/schema";
+
+const SORT_EXPRESSIONS: Record<SubscriptionSortColumn, RawBuilder<unknown>> = {
+  teacher: sql`lower(${sql.ref("u.displayName")})`,
+  plan: sql`lower(${sql.ref("sp.name")})`,
+  status: sql`CASE WHEN ts.status = 'active' AND ts.end_date IS NOT NULL AND ts.end_date < NOW() THEN 'expired' ELSE ts.status::text END`,
+  started: sql`${sql.ref("ts.startDate")}`,
+  renews: sql`${sql.ref("ts.nextChargeDate")}`,
+  daysLeft: sql`COALESCE(ts.next_charge_date, ts.end_date)`,
+};
+
+const isSortColumn = (value: string | null): value is SubscriptionSortColumn =>
+  value !== null && (SUBSCRIPTION_SORT_COLUMNS as readonly string[]).includes(value);
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -19,6 +38,9 @@ export async function handle(request: Request): Promise<Response> {
     const statusParam = url.searchParams.get("status") as SubscriptionStatus | null;
     const includeFree = url.searchParams.get("includeFree") === "true";
     const expiringWithin7Days = url.searchParams.get("expiringWithin7Days") === "true";
+    const sortByParam = url.searchParams.get("sortBy");
+    const sortBy = isSortColumn(sortByParam) ? sortByParam : undefined;
+    const sortOrder = url.searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
     // Effective status SQL fragment: if status is 'active' but end_date has passed, treat as 'expired'
     const effectiveStatusSql = sql<SubscriptionStatus>`
@@ -122,7 +144,7 @@ END
       COALESCE(ts.platform_fee_override, sp.platform_fee_percentage)
     `.as("platformFeePercentage");
 
-    let subscriptionsQuery = basePaidQuery
+    const unorderedQuery = basePaidQuery
       .select([
         "ts.id as subscriptionId",
         "u.id as teacherId",
@@ -141,8 +163,15 @@ END
         "ts.platformFeeOverride",
         "ts.paymentMethod",
         "ts.adminNote",
-      ])
-      .orderBy("ts.createdAt", "desc")
+      ]);
+
+    // Empty values sink to the bottom whichever way a column is sorted
+    const orderedQuery = sortBy
+      ? unorderedQuery.orderBy(SORT_EXPRESSIONS[sortBy], sql`${sql.raw(sortOrder)} nulls last`)
+      : unorderedQuery.orderBy("ts.createdAt", "desc");
+
+    let subscriptionsQuery = orderedQuery
+      .orderBy("ts.id", "desc")
       .limit(limit)
       .offset(offset);
 

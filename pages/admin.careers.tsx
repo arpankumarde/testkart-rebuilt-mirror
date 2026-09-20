@@ -11,6 +11,8 @@ import { CareerApplicationOutput } from "../endpoints/admin/careers/applications
 import { toast } from "sonner";
 import { Selectable } from "kysely";
 import { CareerPostings } from "../helpers/schema";
+import { useTableSort, SortAccessors } from "../helpers/useTableSort";
+import { SortableTh } from "../components/SortableTh";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/Tabs";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
@@ -64,6 +66,17 @@ type EmploymentType = 'full_time' | 'part_time' | 'contract' | 'internship';
 
 const formatEmploymentType = (type: EmploymentType) => {
   return type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+};
+
+const POSTING_SORT_ACCESSORS: SortAccessors<Selectable<CareerPostings>, "title" | "department" | "createdAt"> = {
+  title: (c) => c.title,
+  department: (c) => c.department,
+  createdAt: (c) => (c.createdAt ? new Date(c.createdAt) : null),
+};
+
+const APPLICATION_SORT_ACCESSORS: SortAccessors<CareerApplicationOutput, "name" | "createdAt"> = {
+  name: (a) => a.name,
+  createdAt: (a) => (a.createdAt ? new Date(a.createdAt) : null),
 };
 
 const formatListDate = (date: Date) =>
@@ -497,6 +510,11 @@ const AdminCareers = () => {
   const [applicationToDelete, setApplicationToDelete] = useState<CareerApplicationOutput | null>(null);
 
   const careers = data?.careers || [];
+  const { sorted: sortedCareers, ...postingSort } = useTableSort(careers, POSTING_SORT_ACCESSORS);
+  const { sorted: sortedApplications, ...applicationSort } = useTableSort(
+    applicationsQuery.data,
+    APPLICATION_SORT_ACCESSORS
+  );
 
   const handleToggleStatus = (career: Selectable<CareerPostings>) => {
     updateMutation.mutate({
@@ -640,14 +658,14 @@ const AdminCareers = () => {
             <PostingColumns />
             <thead>
               <tr>
-                <th>Job</th>
-                <th>Team and location</th>
-                <th>Posted</th>
+                <SortableTh column="title" sort={postingSort}>Job</SortableTh>
+                <SortableTh column="department" sort={postingSort}>Team and location</SortableTh>
+                <SortableTh column="createdAt" sort={postingSort}>Posted</SortableTh>
                 <th><span className={styles.srOnly}>Actions</span></th>
               </tr>
             </thead>
             <tbody>
-              {careers.map((career) => (
+              {sortedCareers.map((career) => (
                 <tr key={career.id}>
                   <td>{renderPostingIdentity(career)}</td>
                   <td>
@@ -672,7 +690,7 @@ const AdminCareers = () => {
         </div>
 
         <div className={styles.cardsContainer}>
-          {careers.map((career) => (
+          {sortedCareers.map((career) => (
             <article key={career.id} className={styles.card}>
               <div className={styles.cardHeader}>
                 {renderPostingIdentity(career)}
@@ -802,15 +820,15 @@ const AdminCareers = () => {
             <ApplicationColumns />
             <thead>
               <tr>
-                <th>Applicant</th>
+                <SortableTh column="name" sort={applicationSort}>Applicant</SortableTh>
                 <th>Contact</th>
                 <th>Resume</th>
-                <th>Applied</th>
+                <SortableTh column="createdAt" sort={applicationSort}>Applied</SortableTh>
                 <th><span className={styles.srOnly}>Actions</span></th>
               </tr>
             </thead>
             <tbody>
-              {applications.map((app) => (
+              {sortedApplications.map((app) => (
                 <tr key={app.id}>
                   <td>{renderApplicationIdentity(app)}</td>
                   <td>
@@ -831,7 +849,7 @@ const AdminCareers = () => {
         </div>
 
         <div className={styles.cardsContainer}>
-          {applications.map((app) => (
+          {sortedApplications.map((app) => (
             <article key={app.id} className={styles.card}>
               <div className={styles.cardHeader}>
                 {renderApplicationIdentity(app)}

@@ -45,6 +45,8 @@ import {
   DropdownMenuRadioItem,
 } from "./DropdownMenu";
 import { Skeleton } from "./Skeleton";
+import { SortableTh } from "./SortableTh";
+import { useTableSort, type SortAccessors } from "../helpers/useTableSort";
 import { toast } from "sonner";
 import * as z from "zod";
 import { AdminRole, AdminRoleArrayValues } from "../helpers/schema";
@@ -237,12 +239,21 @@ const formatLoginDate = (date: Date | null) =>
 const formatLoginTime = (date: Date | null) =>
   date ? new Date(date).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : null;
 
+type AdminSortKey = "admin" | "role" | "lastLogin";
+
+const SORT_ACCESSORS: SortAccessors<AdminListItem, AdminSortKey> = {
+  admin: (a) => a.fullName,
+  role: (a) => a.role,
+  lastLogin: (a) => (a.lastLoginAt ? new Date(a.lastLoginAt) : null),
+};
+
 export const AdminManagementSection = () => {
   const { authState } = useAdminAuth();
   const { data, isLoading } = useAdminsList();
   const updateRole = useUpdateAdminRole();
   const deactivateAdmin = useDeactivateAdmin();
   const [createOpen, setCreateOpen] = useState(false);
+  const { sorted: admins, ...sort } = useTableSort(data?.admins, SORT_ACCESSORS);
 
   const handleUpdateRole = (adminId: number, role: AdminRole) => {
     updateRole.mutate(
@@ -368,8 +379,6 @@ export const AdminManagementSection = () => {
       );
     }
 
-    const admins = data?.admins ?? [];
-
     return (
       <>
         <div className={styles.tableContainer}>
@@ -377,9 +386,9 @@ export const AdminManagementSection = () => {
             <TableColumns />
             <thead>
               <tr>
-                <th>Admin</th>
-                <th>Role</th>
-                <th>Last login</th>
+                <SortableTh column="admin" sort={sort}>Admin</SortableTh>
+                <SortableTh column="role" sort={sort}>Role</SortableTh>
+                <SortableTh column="lastLogin" sort={sort}>Last login</SortableTh>
                 <th><span className={styles.srOnly}>Actions</span></th>
               </tr>
             </thead>

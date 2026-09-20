@@ -8,6 +8,9 @@ import {
   SalesContactSource,
 } from "../../../helpers/schema";
 
+export const SalesContactSortValues = ["newest", "follow_up_date", "last_contacted", "name", "stage"] as const;
+export type SalesContactSort = (typeof SalesContactSortValues)[number];
+
 export const schema = z.object({
   search: z.string().optional(),
   stage: z.enum(SalesStageArrayValues).optional(),
@@ -15,7 +18,8 @@ export const schema = z.object({
   assignedTo: z.number().int().positive().optional(),
   followUpFilter: z.enum(["today", "overdue", "upcoming", "unscheduled"]).optional(),
   myLeads: z.enum(["true", "false"]).optional(),
-  sort: z.enum(["newest", "follow_up_date", "last_contacted"]).optional(),
+  sort: z.enum(SalesContactSortValues).optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
   page: z.number().int().positive().optional(),
   limit: z.number().int().positive().optional(),
   signupDateFrom: z.string().optional(),
@@ -103,6 +107,7 @@ export const getAdminSalesContacts = async (
   if (params.followUpFilter) queryParams.set("followUpFilter", params.followUpFilter);
   if (params.myLeads) queryParams.set("myLeads", params.myLeads);
   if (params.sort) queryParams.set("sort", params.sort);
+  if (params.sortOrder) queryParams.set("sortOrder", params.sortOrder);
   if (params.page) queryParams.set("page", params.page.toString());
   if (params.limit) queryParams.set("limit", params.limit.toString());
   if (params.signupDateFrom) queryParams.set("signupDateFrom", params.signupDateFrom);

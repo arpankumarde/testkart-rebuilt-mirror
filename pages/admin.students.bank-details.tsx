@@ -28,7 +28,9 @@ import { ConsoleConfirmDialog } from "../components/ConsoleConfirmDialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../components/Tooltip";
 import { Landmark, XCircle, BadgeCheck, AlertCircle, Eye } from "lucide-react";
 import { toast } from "sonner";
-import { StudentBankDetailsAdminView, BankDetailsVerificationStatusFilterArray } from "../endpoints/admin/student-bank-details/list_GET.schema";
+import { StudentBankDetailsAdminView, BankDetailsVerificationStatusFilterArray, StudentBankDetailsSortColumn } from "../endpoints/admin/student-bank-details/list_GET.schema";
+import { SortableTh } from "../components/SortableTh";
+import type { SortOrder } from "../helpers/useTableSort";
 import { BankVerificationStatus } from "../helpers/schema";
 import styles from "./admin.students.bank-details.module.css";
 
@@ -100,6 +102,8 @@ const AdminStudentBankDetailsPage: React.FC = () => {
   const statusFilter = read("status", BankDetailsVerificationStatusFilterArray, "all");
   const [selectedDetail, setSelectedDetail] = useState<StudentBankDetailsAdminView | null>(null);
   const [dialogState, setDialogState] = useState<'view' | 'verify' | 'reject' | null>(null);
+  const [sortBy, setSortBy] = useState<StudentBankDetailsSortColumn | null>(null);
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
@@ -107,8 +111,21 @@ const AdminStudentBankDetailsPage: React.FC = () => {
     page,
     search: debouncedSearchTerm,
     status: statusFilter,
+    ...(sortBy ? { sortBy, sortOrder } : {}),
   });
   useRefetchOnLinkArrival(statusFilter !== "all", isFetching, refetch);
+
+  /* Text starts A to Z; the submitted date starts with the newest. */
+  const toggleSort = (column: StudentBankDetailsSortColumn) => {
+    setPage(1);
+    if (column === sortBy) {
+      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+      return;
+    }
+    setSortBy(column);
+    setSortOrder(column === "submitted" ? "desc" : "asc");
+  };
+  const sort = { sortBy, sortOrder, toggleSort };
 
   const verifyMutation = useVerifyStudentBankDetails();
 
@@ -323,12 +340,12 @@ const AdminStudentBankDetailsPage: React.FC = () => {
             <TableColumns />
             <thead>
               <tr>
-                <th>Student</th>
-                <th>Bank account</th>
+                <SortableTh column="name" sort={sort}>Student</SortableTh>
+                <SortableTh column="bank" sort={sort}>Bank account</SortableTh>
                 <th>PAN and UPI</th>
                 <th>PAN card</th>
-                <th>Status</th>
-                <th>Submitted</th>
+                <SortableTh column="status" sort={sort}>Status</SortableTh>
+                <SortableTh column="submitted" sort={sort}>Submitted</SortableTh>
                 <th><span className={styles.srOnly}>Actions</span></th>
               </tr>
             </thead>

@@ -4,6 +4,8 @@ import { useSearchParams } from "react-router-dom";
 import { useAdminContactSubmissionsQuery, useUpdateContactSubmissionStatusMutation } from '../helpers/useAdminContactSubmissions';
 import { Selectable } from 'kysely';
 import { ContactSubmissionStatus, ContactSubmissions } from '../helpers/schema';
+import { SortOrder } from '../helpers/useTableSort';
+import { SortableTh } from '../components/SortableTh';
 import { Skeleton } from '../components/Skeleton';
 import { Button } from '../components/Button';
 import { Badge } from '../components/Badge';
@@ -25,6 +27,9 @@ const STATUS_MAP: Record<ContactSubmissionStatus, {label: string;variant: 'destr
 };
 
 const STATUS_OPTIONS: ContactSubmissionStatus[] = ["new", "read", "responded", "archived"];
+
+type SubmissionSortBy = "name" | "status" | "createdAt";
+const TEXT_SORTS: ReadonlyArray<SubmissionSortBy> = ["name", "status"];
 
 const STATUS_TABS = [
   { value: "all", label: "All" },
@@ -137,9 +142,13 @@ const AdminContactSubmissions = () => {
   const page = parseInt(searchParams.get("page") || "1", 10);
   const limit = 20;
   const offset = (page - 1) * limit;
+  const [sortBy, setSortBy] = useState<SubmissionSortBy | null>(null);
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
 
   const { data, isFetching, error, refetch } = useAdminContactSubmissionsQuery({
     status: status === "all" ? null : (status as ContactSubmissionStatus),
+    sortBy,
+    sortOrder: sortBy ? sortOrder : null,
     limit,
     offset
   });
@@ -162,6 +171,20 @@ const AdminContactSubmissions = () => {
       prev.set("page", newPage.toString());
       return prev;
     });
+  };
+
+  const sort = {
+    sortBy,
+    sortOrder,
+    toggleSort: (column: SubmissionSortBy) => {
+      if (column === sortBy) {
+        setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+      } else {
+        setSortBy(column);
+        setSortOrder(TEXT_SORTS.includes(column) ? "asc" : "desc");
+      }
+      handlePageChange(1);
+    },
   };
 
   const totalPages = data ? Math.ceil(data.total / limit) : 0;
@@ -271,10 +294,10 @@ const AdminContactSubmissions = () => {
             <TableColumns />
             <thead>
               <tr>
-                <th>Sender</th>
+                <SortableTh column="name" sort={sort}>Sender</SortableTh>
                 <th>Message</th>
-                <th>Status</th>
-                <th>Received</th>
+                <SortableTh column="status" sort={sort}>Status</SortableTh>
+                <SortableTh column="createdAt" sort={sort}>Received</SortableTh>
               </tr>
             </thead>
             <tbody>

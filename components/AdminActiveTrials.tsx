@@ -6,8 +6,19 @@ import { Button } from "./Button";
 import { Skeleton } from "./Skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./Tooltip";
 import { ConsoleConfirmDialog } from "./ConsoleConfirmDialog";
+import { SortableTh } from "./SortableTh";
+import { useTableSort, type SortAccessors } from "../helpers/useTableSort";
 import { TimerOff } from "lucide-react";
 import styles from "./AdminActiveTrials.module.css";
+
+type TrialSortKey = "teacher" | "fee" | "daysLeft" | "started";
+
+const SORT_ACCESSORS: SortAccessors<ActiveTrialView, TrialSortKey> = {
+  teacher: (t) => t.teacherName,
+  fee: (t) => t.platformFeePercentage,
+  daysLeft: (t) => t.daysRemaining,
+  started: (t) => (t.startDate ? new Date(t.startDate) : null),
+};
 
 /* Shared by the loading and loaded tables so the columns do not jump. */
 const TableColumns = () => (
@@ -61,6 +72,7 @@ export const AdminActiveTrials: React.FC = () => {
   const endTrial = useAdminEndTrial();
   /* Declared before the early returns below - hooks cannot sit behind them. */
   const [trialTarget, setTrialTarget] = useState<{ id: number; name: string } | null>(null);
+  const { sorted: sortedTrials, ...sort } = useTableSort(data?.trials, SORT_ACCESSORS);
 
   const confirmEndTrial = () => {
     if (!trialTarget) return;
@@ -161,16 +173,16 @@ export const AdminActiveTrials: React.FC = () => {
             <TableColumns />
             <thead>
               <tr>
-                <th>Teacher</th>
-                <th className={styles.num}>Fee</th>
-                <th>Days left</th>
-                <th>Started</th>
+                <SortableTh column="teacher" sort={sort}>Teacher</SortableTh>
+                <SortableTh column="fee" sort={sort} className={styles.num}>Fee</SortableTh>
+                <SortableTh column="daysLeft" sort={sort}>Days left</SortableTh>
+                <SortableTh column="started" sort={sort}>Started</SortableTh>
                 <th>Internal note</th>
                 <th><span className={styles.srOnly}>Actions</span></th>
               </tr>
             </thead>
             <tbody>
-              {data.trials.map((trial) => (
+              {sortedTrials.map((trial) => (
                 <tr key={trial.subscriptionId}>
                   <td>{renderIdentity(trial)}</td>
                   <td className={styles.num}>{trial.platformFeePercentage}%</td>
@@ -196,7 +208,7 @@ export const AdminActiveTrials: React.FC = () => {
         </div>
 
         <div className={styles.cardsContainer}>
-          {data.trials.map((trial) => (
+          {sortedTrials.map((trial) => (
             <article key={trial.subscriptionId} className={styles.card}>
               <div className={styles.cardHeader}>
                 {renderIdentity(trial, true)}

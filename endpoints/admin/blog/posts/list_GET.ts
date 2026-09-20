@@ -5,6 +5,15 @@ import { db } from "../../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../../helpers/getAdminSession";
 import { sql } from "kysely";
 
+const SORT_COLUMNS = {
+  title: "blogPosts.title",
+  author: "admins.fullName",
+  status: "blogPosts.status",
+  publishedAt: "blogPosts.publishedAt",
+  viewCount: "blogPosts.viewCount",
+  readingTimeMinutes: "blogPosts.readingTimeMinutes",
+} as const;
+
 export async function handle(request: Request) {
   try {
     await getAdminServerSessionOrThrow(request, ["super_admin", "admin", "manager"]);
@@ -74,7 +83,7 @@ export async function handle(request: Request) {
       
     const total = Number(countResult?.total || 0);
 
-    const posts = await query
+    let listQuery = query
       .select([
         "blogPosts.id",
         "blogPosts.authorId",
@@ -98,8 +107,16 @@ export async function handle(request: Request) {
         "blogCategories.name as categoryName",
         "admins.fullName as authorName",
         "admins.avatarUrl as authorAvatar",
-      ])
+      ]);
+
+    if (input.sortBy) {
+      const direction = input.sortOrder === "desc" ? "desc" : "asc";
+      listQuery = listQuery.orderBy(SORT_COLUMNS[input.sortBy], sql`${sql.raw(direction)} nulls last`);
+    }
+
+    const posts = await listQuery
       .orderBy("blogPosts.createdAt", "desc")
+      .orderBy("blogPosts.id", "desc")
       .limit(input.limit)
       .offset((input.page - 1) * input.limit)
       .execute();

@@ -15,6 +15,8 @@ export async function handle(request: Request): Promise<Response> {
       limit: Number(url.searchParams.get("limit") || "20"),
       status: url.searchParams.get("status") || undefined,
       search: url.searchParams.get("search") || undefined,
+      sortBy: url.searchParams.get("sortBy") || undefined,
+      sortOrder: url.searchParams.get("sortOrder") || undefined,
     };
 
     const input = schema.parse(queryParams);
@@ -68,9 +70,20 @@ export async function handle(request: Request): Promise<Response> {
     const totalCount = Number(countResult?.count || 0);
     const totalPages = Math.ceil(totalCount / input.limit);
 
-    // Get paginated results
-    const withdrawals = await query
+    // Get paginated results, newest first unless a column sort was asked for
+    const direction = input.sortOrder === "desc" ? sql`desc nulls last` : sql`asc nulls last`;
+    let ordered = query;
+    if (input.sortBy === "name") {
+      ordered = ordered.orderBy(sql`lower(${sql.ref("users.displayName")})`, direction);
+    } else if (input.sortBy === "amount") {
+      ordered = ordered.orderBy("studentWithdrawals.amount", direction);
+    } else if (input.sortBy === "status") {
+      ordered = ordered.orderBy(sql`${sql.ref("studentWithdrawals.status")}::text`, direction);
+    }
+
+    const withdrawals = await ordered
       .orderBy("studentWithdrawals.createdAt", "desc")
+      .orderBy("studentWithdrawals.id", "desc")
       .limit(input.limit)
       .offset(offset)
       .execute();

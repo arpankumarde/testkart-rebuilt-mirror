@@ -3,6 +3,8 @@ import { Helmet } from "react-helmet";
 import { useAdminBundlesQuery, useDeactivateBundleMutation } from "../helpers/useAdminBundles";
 import { useListUrlParams } from "../helpers/useListUrlParams";
 import { useRefetchOnLinkArrival } from "../helpers/useRefetchOnLinkArrival";
+import { useTableSort, SortAccessors } from "../helpers/useTableSort";
+import { SortableTh } from "../components/SortableTh";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
 import { Badge } from "../components/Badge";
@@ -25,12 +27,20 @@ import {
 import { toast } from "sonner";
 import { AdminBundleListItem } from "../endpoints/admin/bundles/list_GET.schema";
 import { AdminProductDetailPanel } from "../components/AdminProductDetailPanel";
+import { adminPreviewPath } from "../helpers/useAdminContentPreview";
 import styles from "./admin.bundles.module.css";
 
 const ALL_TEACHERS = "__all__";
 
 const STATUS_TABS = ["all", "published", "unpublished"] as const;
 type StatusTab = (typeof STATUS_TABS)[number];
+
+const SORT_ACCESSORS: SortAccessors<AdminBundleListItem, "title" | "price" | "discount" | "createdAt"> = {
+  title: (b) => b.title,
+  price: (b) => b.price,
+  discount: (b) => b.discountPercentage ?? null,
+  createdAt: (b) => (b.createdAt ? new Date(b.createdAt) : null),
+};
 
 /* Shared by the loading and loaded tables so the columns do not jump. */
 const TableColumns = () => (
@@ -141,6 +151,8 @@ export default function AdminBundlesPage() {
     });
   }, [bundles, searchQuery, statusFilter, teacherFilter, focusId]);
 
+  const { sorted: sortedBundles, ...sort } = useTableSort(filteredBundles, SORT_ACCESSORS);
+
   const hasActiveFilters =
     searchQuery !== "" || statusFilter !== "all" || teacherFilter !== ALL_TEACHERS || focusId !== null;
 
@@ -185,7 +197,7 @@ export default function AdminBundlesPage() {
   const renderIdentity = (bundle: AdminBundleListItem) => (
     <span className={styles.primaryLine}>
       <a
-        href={getBundleUrl(bundle.slug)}
+        href={bundle.isPublished ? getBundleUrl(bundle.slug) : adminPreviewPath("course_bundle", bundle.id)}
         target="_blank"
         rel="noopener noreferrer"
         className={`${styles.titleLink} ${styles.truncate}`}
@@ -294,15 +306,15 @@ export default function AdminBundlesPage() {
             <TableColumns />
             <thead>
               <tr>
-                <th>Bundle</th>
-                <th className={styles.num}>Price</th>
-                <th className={styles.num}>Discount</th>
-                <th>Created</th>
+                <SortableTh column="title" sort={sort}>Bundle</SortableTh>
+                <SortableTh column="price" sort={sort} className={styles.num}>Price</SortableTh>
+                <SortableTh column="discount" sort={sort} className={styles.num}>Discount</SortableTh>
+                <SortableTh column="createdAt" sort={sort}>Created</SortableTh>
                 <th><span className={styles.srOnly}>Actions</span></th>
               </tr>
             </thead>
             <tbody>
-              {filteredBundles.map((bundle) => (
+              {sortedBundles.map((bundle) => (
                 <tr key={bundle.id}>
                   <td>
                     <div className={styles.stack}>
@@ -324,7 +336,7 @@ export default function AdminBundlesPage() {
           </table>
         </div>
         <div className={styles.cardsContainer}>
-          {filteredBundles.map((bundle) => (
+          {sortedBundles.map((bundle) => (
             <article key={bundle.id} className={styles.card}>
               <div className={styles.cardHeader}>
                 <div className={styles.stack}>
@@ -435,6 +447,7 @@ export default function AdminBundlesPage() {
             }
             isLive={panelBundle.isPublished}
             publicUrl={panelBundle.isPublished ? getBundleUrl(panelBundle.slug) : null}
+            previewUrl={adminPreviewPath("course_bundle", panelBundle.id)}
             teacherName={panelBundle.teacherName}
             price={panelBundle.price}
             createdAt={panelBundle.createdAt}

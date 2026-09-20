@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { Helmet } from "react-helmet";
+import { Link } from "react-router-dom";
 import { useAdminLiveTestsQuery, useDeactivateLiveTestMutation } from "../helpers/useAdminLiveTests";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
@@ -13,13 +14,17 @@ import { ConsoleConfirmDialog } from "../components/ConsoleConfirmDialog";
 import { ConsoleFilterNotice } from "../components/ConsoleFilterNotice";
 import { useListUrlParams } from "../helpers/useListUrlParams";
 import { useRefetchOnLinkArrival } from "../helpers/useRefetchOnLinkArrival";
+import { useTableSort, SortAccessors } from "../helpers/useTableSort";
+import { SortableTh } from "../components/SortableTh";
 import {
   Ban,
   Zap,
   AlertTriangle,
+  ScanEye,
 } from "lucide-react";
 import { toast } from "sonner";
 import { AdminLiveTestListItem } from "../endpoints/admin/live-tests/list_GET.schema";
+import { adminPreviewPath } from "../helpers/useAdminContentPreview";
 import styles from "./admin.live-tests.module.css";
 
 const ALL_TEACHERS = "__all__";
@@ -39,6 +44,18 @@ const LIST_FILTER_LABELS: Record<ListFilter, string> = {
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 const timeOf = (date: Date | string | null): number | null => (date ? new Date(date).getTime() : null);
+
+const SORT_ACCESSORS: SortAccessors<
+  AdminLiveTestListItem,
+  "title" | "mockTest" | "schedule" | "seats" | "prizePool" | "createdAt"
+> = {
+  title: (t) => t.title,
+  mockTest: (t) => t.mockTestTitle,
+  schedule: (t) => (t.startTime ? new Date(t.startTime) : null),
+  seats: (t) => t.enrolledCount,
+  prizePool: (t) => (t.hasPrizes ? t.totalPrizePool : null),
+  createdAt: (t) => (t.createdAt ? new Date(t.createdAt) : null),
+};
 
 const matchesListFilter = (liveTest: AdminLiveTestListItem, filter: ListFilter | "none", now: number): boolean => {
   if (filter === "prizes-pending") {
@@ -170,6 +187,8 @@ const AdminLiveTestsPage: React.FC = () => {
     return rows;
   }, [liveTests, searchQuery, statusFilter, teacherFilter, focusId, listFilter, now]);
 
+  const { sorted: sortedLiveTests, ...sort } = useTableSort(filteredLiveTests, SORT_ACCESSORS);
+
   const focusedLiveTest = focusId === null ? undefined : liveTests?.find((t) => t.id === focusId);
 
   const hasUrlFilter = listFilter !== "none" || focusId !== null;
@@ -261,7 +280,7 @@ const AdminLiveTestsPage: React.FC = () => {
   const renderIdentity = (liveTest: AdminLiveTestListItem) => (
     <span className={styles.primaryLine}>
       <a
-        href={getLiveTestUrl(liveTest.id)}
+        href={liveTest.isActive ? getLiveTestUrl(liveTest.id) : adminPreviewPath("live_test", liveTest.id)}
         target="_blank"
         rel="noopener noreferrer"
         className={`${styles.titleLink} ${styles.truncate}`}
@@ -277,6 +296,16 @@ const AdminLiveTestsPage: React.FC = () => {
 
   const renderActions = (liveTest: AdminLiveTestListItem) => (
     <div className={styles.rowActions}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button variant="ghost" size="icon-md" className={styles.iconButton} asChild>
+            <Link to={adminPreviewPath("live_test", liveTest.id)} aria-label={`Preview content of ${liveTest.title}`}>
+              <ScanEye />
+            </Link>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Preview content</TooltipContent>
+      </Tooltip>
       {liveTest.isActive && (
         <Tooltip>
           <TooltipTrigger asChild>
@@ -351,17 +380,17 @@ const AdminLiveTestsPage: React.FC = () => {
             <TableColumns />
             <thead>
               <tr>
-                <th>Live test</th>
-                <th>Mock test</th>
-                <th>Schedule</th>
-                <th className={styles.num}>Seats</th>
-                <th className={styles.num}>Prize pool</th>
-                <th>Created</th>
+                <SortableTh column="title" sort={sort}>Live test</SortableTh>
+                <SortableTh column="mockTest" sort={sort}>Mock test</SortableTh>
+                <SortableTh column="schedule" sort={sort}>Schedule</SortableTh>
+                <SortableTh column="seats" sort={sort} className={styles.num}>Seats</SortableTh>
+                <SortableTh column="prizePool" sort={sort} className={styles.num}>Prize pool</SortableTh>
+                <SortableTh column="createdAt" sort={sort}>Created</SortableTh>
                 <th><span className={styles.srOnly}>Actions</span></th>
               </tr>
             </thead>
             <tbody>
-              {filteredLiveTests.map((liveTest) => (
+              {sortedLiveTests.map((liveTest) => (
                 <tr key={liveTest.id}>
                   <td>
                     <div className={styles.stack}>
@@ -395,7 +424,7 @@ const AdminLiveTestsPage: React.FC = () => {
           </table>
         </div>
         <div className={styles.cardsContainer}>
-          {filteredLiveTests.map((liveTest) => (
+          {sortedLiveTests.map((liveTest) => (
             <article key={liveTest.id} className={styles.card}>
               <div className={styles.cardHeader}>
                 <div className={styles.stack}>

@@ -9,8 +9,16 @@ import {
   LiveTestMeta,
   MockTestMeta,
   OutputType,
+  schema,
 } from "./list_GET.schema";
 import { sql } from "kysely";
+
+const SORT_COLUMNS = {
+  title: "contentTitle",
+  teacher: "u.displayName",
+  status: "cr.status",
+  createdAt: "cr.createdAt",
+} as const;
 
 async function fetchMockTestMeta(
   ids: number[]
@@ -309,6 +317,10 @@ export async function handle(request: Request): Promise<Response> {
     const status = url.searchParams.get("status") || undefined;
     const contentType = url.searchParams.get("contentType") || undefined;
     const search = url.searchParams.get("search") || undefined;
+    const { sortBy, sortOrder } = schema.pick({ sortBy: true, sortOrder: true }).parse({
+      sortBy: url.searchParams.get("sortBy") || undefined,
+      sortOrder: url.searchParams.get("sortOrder") || undefined,
+    });
     const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10));
     const limit = Math.max(
       1,
@@ -340,8 +352,7 @@ export async function handle(request: Request): Promise<Response> {
             ELSE 'Unknown'
           END
         `.as("contentTitle"),
-      ])
-      .orderBy("cr.createdAt", "desc");
+      ]);
 
     let countQuery = db
       .selectFrom("contentReviews as cr")
@@ -374,7 +385,16 @@ export async function handle(request: Request): Promise<Response> {
       countQuery = countQuery.where(searchCondition);
     }
 
-    query = query.limit(limit).offset(offset);
+    if (sortBy) {
+      const direction = sortOrder === "desc" ? "desc" : "asc";
+      query = query.orderBy(SORT_COLUMNS[sortBy], sql`${sql.raw(direction)} nulls last`);
+    }
+
+    query = query
+      .orderBy("cr.createdAt", "desc")
+      .orderBy("cr.id", "desc")
+      .limit(limit)
+      .offset(offset);
 
     const [rows, countResult] = await Promise.all([
       query.execute(),

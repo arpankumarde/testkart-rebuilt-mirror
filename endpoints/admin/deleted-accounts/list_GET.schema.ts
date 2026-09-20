@@ -1,8 +1,13 @@
 import { z } from "zod";
 import superjson from "superjson";
 
+export const DeletedAccountSortValues = ["displayName", "role", "registeredAt", "deletedAt"] as const;
+export type DeletedAccountSortBy = (typeof DeletedAccountSortValues)[number];
+
 export const schema = z.object({
   search: z.string().optional(),
+  sortBy: z.enum(DeletedAccountSortValues).optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
   page: z.number().int().positive().optional(),
   limit: z.number().int().positive().optional(),
 });
@@ -34,6 +39,8 @@ export const getAdminDeletedAccountsList = async (
 ): Promise<OutputType> => {
   const queryParams = new URLSearchParams();
   if (params.search) queryParams.set("search", params.search);
+  if (params.sortBy) queryParams.set("sortBy", params.sortBy);
+  if (params.sortOrder) queryParams.set("sortOrder", params.sortOrder);
   if (params.page) queryParams.set("page", params.page.toString());
   if (params.limit) queryParams.set("limit", params.limit.toString());
 

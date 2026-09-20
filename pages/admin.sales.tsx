@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
-import { SalesContactView } from "../endpoints/admin/sales/contacts_GET.schema";
+import { SalesContactView, SalesContactSort } from "../endpoints/admin/sales/contacts_GET.schema";
 import { 
   useAdminSalesContactsQuery, 
   useAdminSalesTeamQuery,
@@ -36,10 +36,15 @@ import { TeacherProfileDialog } from "../components/TeacherProfileDialog";
 import { TeacherAdminView } from "../endpoints/admin/teachers/list_GET.schema";
 import { AdminSalesList } from "../components/AdminSalesList";
 import { STAGE_OPTIONS } from "../helpers/adminSalesUtils";
+import type { SortOrder } from "../helpers/useTableSort";
 import styles from "./admin.sales.module.css";
 
 const LIST_FILTERS = ["overdue"] as const;
 type ListFilter = (typeof LIST_FILTERS)[number];
+
+type HeaderSort = Exclude<SalesContactSort, "newest">;
+
+const defaultSortOrder = (sort: SalesContactSort): SortOrder => (sort === "newest" ? "desc" : "asc");
 
 const mapContactToTeacherView = (contact: SalesContactView): TeacherAdminView => {
   return {
@@ -98,7 +103,8 @@ const AdminSalesPage: React.FC = () => {
   const listFilter = read<ListFilter | "none">("filter", LIST_FILTERS, "none");
   const openOverdueOnly = listFilter === "overdue";
   const [followUpFilter, setFollowUpFilter] = useState<"today" | "overdue" | "upcoming" | "unscheduled" | "__empty">("__empty");
-  const [sortFilter, setSortFilter] = useState<"newest" | "follow_up_date" | "last_contacted">("newest");
+  const [sortFilter, setSortFilter] = useState<SalesContactSort>("newest");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [myLeads, setMyLeads] = useState<boolean>(false);
   const [assignedToFilter, setAssignedToFilter] = useState<string>("__empty"); // __empty, __unassigned, or ID
   const [signupDateFrom, setSignupDateFrom] = useState<string>("");
@@ -126,6 +132,7 @@ const AdminSalesPage: React.FC = () => {
     source: sourceFilter === "__empty" ? undefined : sourceFilter,
     followUpFilter: followUpFilter === "__empty" ? undefined : followUpFilter,
     sort: sortFilter,
+    sortOrder,
     myLeads: myLeads ? "true" : "false",
     assignedTo: assignedToNum,
     signupDateFrom: signupDateFrom || undefined,
@@ -139,7 +146,21 @@ const AdminSalesPage: React.FC = () => {
   useEffect(() => {
     setPage(1);
     setSelectedContactIds(new Set());
-  }, [debouncedSearchTerm, stageFilter, sourceFilter, followUpFilter, sortFilter, myLeads, assignedToFilter, signupDateFrom, signupDateTo, openOverdueOnly]);
+  }, [debouncedSearchTerm, stageFilter, sourceFilter, followUpFilter, sortFilter, sortOrder, myLeads, assignedToFilter, signupDateFrom, signupDateTo, openOverdueOnly]);
+
+  const chooseSort = (sort: SalesContactSort) => {
+    setSortFilter(sort);
+    setSortOrder(defaultSortOrder(sort));
+  };
+
+  const headerSort = {
+    sortBy: sortFilter === "newest" ? null : sortFilter,
+    sortOrder,
+    toggleSort: (column: HeaderSort) => {
+      if (column === sortFilter) setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+      else chooseSort(column);
+    },
+  };
 
   const toggleContactSelection = (contactId: number) => {
     setSelectedContactIds(prev => {
@@ -306,14 +327,16 @@ const AdminSalesPage: React.FC = () => {
               </SelectContent>
             </Select>
 
-            <Select value={sortFilter} onValueChange={(val) => setSortFilter(val as any)}>
+            <Select value={sortFilter} onValueChange={(val) => chooseSort(val as SalesContactSort)}>
               <SelectTrigger className={styles.filterTrigger}>
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="newest">Newest first</SelectItem>
+                <SelectItem value="name">Name</SelectItem>
+                <SelectItem value="stage">Stage</SelectItem>
                 <SelectItem value="follow_up_date">Follow-up date</SelectItem>
-                <SelectItem value="last_contacted">Least recently contacted</SelectItem>
+                <SelectItem value="last_contacted">Last called</SelectItem>
               </SelectContent>
             </Select>
 
@@ -359,6 +382,7 @@ const AdminSalesPage: React.FC = () => {
           toggleAllSelection={toggleAllSelection}
           setSelectedContact={setSelectedContact}
           searchTerm={debouncedSearchTerm}
+          sort={headerSort}
         />
 
         {data && data.totalPages > 1 && (

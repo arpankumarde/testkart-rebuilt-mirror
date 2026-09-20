@@ -3,6 +3,7 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./delete_POST.schema";
 import superjson from "superjson";
 import { deleteOwnedR2Files } from "../../../helpers/r2FileOwnership";
+import { releaseGumletAssets } from "../../../helpers/syncLessonVideoToGumlet";
 
 async function checkSectionOwnership(sectionId: number, teacherId: number, userRole: string): Promise<boolean> {
     if (userRole === 'admin') return true;
@@ -30,12 +31,11 @@ export async function handle(request: Request): Promise<Response> {
         return new Response(superjson.stringify({ error: "You do not own this course section" }), { status: 403 });
     }
 
-    // Fetch all lessons with contentFileId before deletion for R2 cleanup
+    // Fetch the lessons' files and DRM copies before deletion for cleanup
     const lessons = await db
       .selectFrom("courseLessons")
-      .select("contentFileId")
+      .select(["contentFileId", "gumletAssetId"])
       .where("sectionId", "=", sectionId)
-      .where("contentFileId", "is not", null)
       .execute();
 
     const contentFileIds = lessons
@@ -53,6 +53,7 @@ export async function handle(request: Request): Promise<Response> {
     // With the rows gone, remove the files this teacher uploaded that nothing else uses
     const { deleted } = await deleteOwnedR2Files(effectiveTeacherId, contentFileIds);
     console.log(`[Section Delete] Cleaned up ${deleted.length}/${contentFileIds.length} R2 files for section ${sectionId}`);
+    await releaseGumletAssets(lessons.map((l) => l.gumletAssetId));
 
     return new Response(superjson.stringify({ success: true } satisfies OutputType));
 

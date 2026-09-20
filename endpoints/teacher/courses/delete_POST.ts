@@ -3,6 +3,7 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./delete_POST.schema";
 import superjson from "superjson";
 import { deleteOwnedR2Files } from "../../../helpers/r2FileOwnership";
+import { releaseGumletAssets } from "../../../helpers/syncLessonVideoToGumlet";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -65,7 +66,7 @@ export async function handle(request: Request): Promise<Response> {
       fileIdsToDelete.push(course.thumbnailImageFileId);
     }
 
-    // Get all lesson contentFileIds
+    // Get all lesson files and DRM copies
     const sectionIds = await db
       .selectFrom("courseSections")
       .select("id")
@@ -73,19 +74,20 @@ export async function handle(request: Request): Promise<Response> {
       .execute();
     
     const sectionIdList = sectionIds.map(s => s.id);
+    const gumletAssetIds: Array<string | null> = [];
 
     if (sectionIdList.length > 0) {
       const lessons = await db
         .selectFrom("courseLessons")
-        .select("contentFileId")
+        .select(["contentFileId", "gumletAssetId"])
         .where("sectionId", "in", sectionIdList)
-        .where("contentFileId", "is not", null)
         .execute();
       
       lessons.forEach(lesson => {
         if (lesson.contentFileId) {
           fileIdsToDelete.push(lesson.contentFileId);
         }
+        gumletAssetIds.push(lesson.gumletAssetId);
       });
     }
 
@@ -105,6 +107,7 @@ export async function handle(request: Request): Promise<Response> {
 
     // With the rows gone, remove the files the course's teacher uploaded that nothing else uses
     const { deleted } = await deleteOwnedR2Files(course.teacherId, fileIdsToDelete);
+    await releaseGumletAssets(gumletAssetIds);
 
     console.log(`[Course Delete] Deleted course ${courseId} and ${deleted.length}/${fileIdsToDelete.length} associated R2 files`);
 

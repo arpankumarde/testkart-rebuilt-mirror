@@ -8,6 +8,8 @@ import { OutputType as SalesTeamOutput } from "../endpoints/admin/sales/team_GET
 import { formatDemoCallSlot } from "../endpoints/demo-request/submit_POST.schema";
 import { useUpdateSalesContactMutation } from "../helpers/useAdminSalesContacts";
 import { SalesStage } from "../helpers/schema";
+import type { SortOrder } from "../helpers/useTableSort";
+import { SortableTh } from "./SortableTh";
 import { Button } from "./Button";
 import { Badge } from "./Badge";
 import { Skeleton } from "./Skeleton";
@@ -84,6 +86,8 @@ const ContactCardSkeleton = () => (
   </div>
 );
 
+type SalesListSort = "name" | "stage" | "follow_up_date" | "last_contacted";
+
 type AdminSalesListProps = {
   data: SalesContactsOutput | undefined;
   isFetching: boolean;
@@ -95,6 +99,7 @@ type AdminSalesListProps = {
   toggleAllSelection: () => void;
   setSelectedContact: (contact: SalesContactView) => void;
   searchTerm: string;
+  sort: { sortBy: SalesListSort | null; sortOrder: SortOrder; toggleSort: (column: SalesListSort) => void };
 };
 
 export const AdminSalesList: React.FC<AdminSalesListProps> = ({
@@ -108,6 +113,7 @@ export const AdminSalesList: React.FC<AdminSalesListProps> = ({
   toggleAllSelection,
   setSelectedContact,
   searchTerm,
+  sort,
 }) => {
   const [openPanelContactId, setOpenPanelContactId] = useState<number | null>(null);
   const [panelAction, setPanelAction] = useState<'log_call' | undefined>(undefined);
@@ -382,11 +388,11 @@ export const AdminSalesList: React.FC<AdminSalesListProps> = ({
                     }}
                   />
                 </th>
-                <th>Contact</th>
+                <SortableTh column="name" sort={sort}>Contact</SortableTh>
                 <th>Phone</th>
-                <th>Stage</th>
-                <th>Follow-up</th>
-                <th>Last called</th>
+                <SortableTh column="stage" sort={sort}>Stage</SortableTh>
+                <SortableTh column="follow_up_date" sort={sort}>Follow-up</SortableTh>
+                <SortableTh column="last_contacted" sort={sort}>Last called</SortableTh>
                 <th><span className={styles.srOnly}>Actions</span></th>
               </tr>
             </thead>

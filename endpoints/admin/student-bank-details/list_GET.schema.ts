@@ -4,12 +4,16 @@ import { type Selectable } from "kysely";
 import { type StudentBankDetails, BankVerificationStatusArrayValues } from "../../../helpers/schema";
 
 export const BankDetailsVerificationStatusFilterArray = ["all", ...BankVerificationStatusArrayValues] as const;
+export const StudentBankDetailsSortColumns = ["name", "bank", "status", "submitted"] as const;
+export type StudentBankDetailsSortColumn = (typeof StudentBankDetailsSortColumns)[number];
 
 export const schema = z.object({
   search: z.string().optional(),
   page: z.number().int().positive().optional(),
   limit: z.number().int().positive().optional(),
   status: z.enum(BankDetailsVerificationStatusFilterArray).optional(),
+  sortBy: z.enum(StudentBankDetailsSortColumns).optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
 });
 
 export type InputType = z.infer<typeof schema>;
@@ -35,6 +39,8 @@ export const getAdminStudentBankDetailsList = async (
   if (params.page) queryParams.set("page", params.page.toString());
   if (params.limit) queryParams.set("limit", params.limit.toString());
   if (params.status) queryParams.set("status", params.status);
+  if (params.sortBy) queryParams.set("sortBy", params.sortBy);
+  if (params.sortOrder) queryParams.set("sortOrder", params.sortOrder);
 
   const result = await fetch(`/_api/admin/student-bank-details/list?${queryParams.toString()}`, {
     method: "GET",

@@ -8,6 +8,8 @@ import {
 
 export const schema = z.object({
   status: z.enum(ContactSubmissionStatusArrayValues).optional().nullable(),
+  sortBy: z.enum(["name", "status", "createdAt"]).optional().nullable(),
+  sortOrder: z.enum(["asc", "desc"]).optional().nullable(),
   limit: z.coerce.number().int().min(1).max(100).default(20),
   offset: z.coerce.number().int().min(0).default(0),
 });
@@ -28,6 +30,8 @@ export const getAdminContactSubmissions = async (
   if (validatedParams.status) {
     queryParams.append("status", validatedParams.status);
   }
+  if (validatedParams.sortBy) queryParams.append("sortBy", validatedParams.sortBy);
+  if (validatedParams.sortOrder) queryParams.append("sortOrder", validatedParams.sortOrder);
   queryParams.append("limit", validatedParams.limit.toString());
   queryParams.append("offset", validatedParams.offset.toString());
 

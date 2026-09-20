@@ -6,6 +6,8 @@ import { postReconcileSubscriptionTransaction } from "../endpoints/admin/subscri
 import { postMarkSubscriptionTransactionFailed } from "../endpoints/admin/subscription-transactions/mark-failed_POST.schema";
 import { getAdminSubscriptionTransactionInvoice } from "../endpoints/admin/subscription-transactions/invoice_GET.schema";
 import { TransactionStatus } from "../helpers/schema";
+import { useTableSort, SortAccessors } from "../helpers/useTableSort";
+import { SortableTh } from "./SortableTh";
 import { Skeleton } from "./Skeleton";
 import { Badge } from "./Badge";
 import { Button } from "./Button";
@@ -28,6 +30,18 @@ import { postAdminSubscriptionInvoiceZip } from "../endpoints/admin/subscription
 import styles from "./AdminSubscriptionTransactionsTable.module.css";
 
 const sentenceCase = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
+
+const SORT_ACCESSORS: SortAccessors<
+  SubscriptionTransactionItem,
+  "id" | "date" | "teacher" | "plan" | "amount" | "status"
+> = {
+  id: (t) => t.id,
+  date: (t) => (t.transactionDate ? new Date(t.transactionDate) : null),
+  teacher: (t) => t.teacherName,
+  plan: (t) => t.planName,
+  amount: (t) => t.amount,
+  status: (t) => t.status,
+};
 
 const STATUS_VARIANTS: Record<TransactionStatus, "success" | "warning" | "destructive" | "outline"> = {
   completed: "success",
@@ -436,10 +450,19 @@ export const AdminSubscriptionTransactionsTable: React.FC<Props> = ({
     });
   }, [transactions, filters]);
 
+  const { sorted: sortedTransactions, ...sortState } = useTableSort(filteredTransactions, SORT_ACCESSORS);
+  const sort = {
+    ...sortState,
+    toggleSort: (column: Parameters<typeof sortState.toggleSort>[0]) => {
+      sortState.toggleSort(column);
+      setCurrentPage(1);
+    },
+  };
+
   const paginatedTransactions = useMemo(() => {
     const start = (currentPage - 1) * PAGE_SIZE;
-    return filteredTransactions.slice(start, start + PAGE_SIZE);
-  }, [filteredTransactions, currentPage]);
+    return sortedTransactions.slice(start, start + PAGE_SIZE);
+  }, [sortedTransactions, currentPage]);
 
   const totalPages = Math.ceil(filteredTransactions.length / PAGE_SIZE);
 
@@ -553,12 +576,12 @@ export const AdminSubscriptionTransactionsTable: React.FC<Props> = ({
             <TableColumns />
             <thead>
               <tr>
-                <th>Transaction</th>
-                <th>Date</th>
-                <th>Teacher</th>
-                <th>Plan</th>
-                <th className={styles.num}>Amount</th>
-                <th>Status</th>
+                <SortableTh column="id" sort={sort}>Transaction</SortableTh>
+                <SortableTh column="date" sort={sort}>Date</SortableTh>
+                <SortableTh column="teacher" sort={sort}>Teacher</SortableTh>
+                <SortableTh column="plan" sort={sort}>Plan</SortableTh>
+                <SortableTh column="amount" sort={sort} className={styles.num}>Amount</SortableTh>
+                <SortableTh column="status" sort={sort}>Status</SortableTh>
                 <th><span className={styles.srOnly}>Actions</span></th>
               </tr>
             </thead>

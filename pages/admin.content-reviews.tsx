@@ -6,6 +6,8 @@ import {
 } from "../helpers/useAdminContentReviews";
 import { useApproveAllReviews } from "../helpers/useApproveAllReviews";
 import { useDebounce } from "../helpers/useDebounce";
+import { SortOrder } from "../helpers/useTableSort";
+import { SortableTh } from "../components/SortableTh";
 import { Button } from "../components/Button";
 import { Badge } from "../components/Badge";
 import { Skeleton } from "../components/Skeleton";
@@ -19,7 +21,8 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "../components/Tooltip";
 import { ContentReviewRejectDialog } from "../components/ContentReviewRejectDialog";
 import { ContentReviewMetaDisplay } from "../components/ContentReviewMetaDisplay";
-import { ContentReviewDetailDialog } from "../components/ContentReviewDetailDialog";
+import { Link } from "react-router-dom";
+import { ContentReviewDetailDialog, reviewPreviewPath } from "../components/ContentReviewDetailDialog";
 import {
   FileText,
   CheckCircle,
@@ -35,8 +38,10 @@ import { ConsoleConfirmDialog } from "../components/ConsoleConfirmDialog";
 import { ContentType } from "../helpers/schema";
 import { useListUrlParams } from "../helpers/useListUrlParams";
 import { useRefetchOnLinkArrival } from "../helpers/useRefetchOnLinkArrival";
-import { ContentReviewAdminView } from "../endpoints/admin/content-reviews/list_GET.schema";
+import { ContentReviewAdminView, ContentReviewSortBy } from "../endpoints/admin/content-reviews/list_GET.schema";
 import styles from "./admin.content-reviews.module.css";
+
+const TEXT_SORTS: ReadonlyArray<ContentReviewSortBy> = ["title", "teacher", "status"];
 
 type StatusFilter = "all" | "pending" | "approved" | "rejected";
 type ContentTypeFilter = ContentType | "all";
@@ -97,6 +102,20 @@ const sentenceCase = (value: string) => value.charAt(0).toUpperCase() + value.sl
 const getTypeLabel = (review: ContentReviewAdminView) =>
   CONTENT_TYPE_LABELS[review.contentType as ContentType] ?? review.contentType;
 
+/* Title opens the full admin preview of the submitted item. */
+const ReviewTitle = ({ review, className }: { review: ContentReviewAdminView; className: string }) => {
+  const path = reviewPreviewPath(review);
+  return path ? (
+    <Link to={path} className={`${className} ${styles.titleLink}`} title={`Preview ${review.contentTitle}`}>
+      {review.contentTitle}
+    </Link>
+  ) : (
+    <span className={className} title={review.contentTitle}>
+      {review.contentTitle}
+    </span>
+  );
+};
+
 /* Shared by the loading and loaded tables so the columns do not jump. */
 const TableColumns = () => (
   <colgroup>
@@ -156,6 +175,8 @@ const AdminContentReviewsPage: React.FC = () => {
   const [approveTarget, setApproveTarget] =
     useState<ContentReviewAdminView | null>(null);
   const [isApproveAllOpen, setIsApproveAllOpen] = useState(false);
+  const [sortBy, setSortBy] = useState<ContentReviewSortBy | null>(null);
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
 
   const debouncedSearch = useDebounce(searchTerm, 500);
 
@@ -169,10 +190,26 @@ const AdminContentReviewsPage: React.FC = () => {
     write({ contentType: value === "all" ? null : value });
   };
 
+  const sort = {
+    sortBy,
+    sortOrder,
+    toggleSort: (column: ContentReviewSortBy) => {
+      if (column === sortBy) {
+        setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+      } else {
+        setSortBy(column);
+        setSortOrder(TEXT_SORTS.includes(column) ? "asc" : "desc");
+      }
+      setPage(1);
+    },
+  };
+
   const filters = {
     status: statusFilter === "all" ? undefined : statusFilter,
     contentType: contentTypeFilter === "all" ? undefined : contentTypeFilter,
     search: debouncedSearch || undefined,
+    sortBy: sortBy ?? undefined,
+    sortOrder: sortBy ? sortOrder : undefined,
     page,
     limit: 20,
   };
@@ -353,10 +390,10 @@ const AdminContentReviewsPage: React.FC = () => {
             <TableColumns />
             <thead>
               <tr>
-                <th>Content</th>
-                <th>Teacher</th>
-                <th>Status</th>
-                <th>Submitted</th>
+                <SortableTh column="title" sort={sort}>Content</SortableTh>
+                <SortableTh column="teacher" sort={sort}>Teacher</SortableTh>
+                <SortableTh column="status" sort={sort}>Status</SortableTh>
+                <SortableTh column="createdAt" sort={sort}>Submitted</SortableTh>
                 <th><span className={styles.srOnly}>Actions</span></th>
               </tr>
             </thead>
@@ -365,9 +402,7 @@ const AdminContentReviewsPage: React.FC = () => {
                 <tr key={review.id}>
                   <td>
                     <div className={styles.stack}>
-                      <span className={styles.primaryLine} title={review.contentTitle}>
-                        {review.contentTitle}
-                      </span>
+                      <ReviewTitle review={review} className={styles.primaryLine} />
                       <div className={styles.metaLine}>
                         <span className={styles.metaType}>{getTypeLabel(review)}</span>
                         <ContentReviewMetaDisplay meta={review.contentMeta} />
@@ -407,7 +442,7 @@ const AdminContentReviewsPage: React.FC = () => {
               <div className={styles.cardHeader}>
                 <div className={styles.stack}>
                   <span className={styles.cardTitleLine}>
-                    <span className={styles.truncate} title={review.contentTitle}>{review.contentTitle}</span>
+                    <ReviewTitle review={review} className={styles.truncate} />
                     {renderStatusFlag(review)}
                   </span>
                   <span className={styles.secondaryLine} title={review.teacherName}>{review.teacherName}</span>

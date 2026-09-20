@@ -35,7 +35,9 @@ import {
 } from "../components/ConsoleDialog";
 import { Badge } from "../components/Badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../components/Tooltip";
-import { AdminStudentWithdrawalRecord } from "../endpoints/admin/student-withdrawals/list_GET.schema";
+import { SortableTh } from "../components/SortableTh";
+import type { SortOrder } from "../helpers/useTableSort";
+import { AdminStudentWithdrawalRecord, StudentWithdrawalSortColumn } from "../endpoints/admin/student-withdrawals/list_GET.schema";
 import { BankVerificationStatus, WithdrawalStatus, WithdrawalStatusArrayValues } from "../helpers/schema";
 import { AdminBankDetails } from "../components/AdminBankDetails";
 
@@ -55,6 +57,13 @@ const STATUS_TABS = [
   { value: "failed", label: "Rejected" },
   { value: "cancelled", label: "Cancelled" },
 ];
+
+/* Text starts A to Z; money starts with the largest. */
+const FIRST_SORT_ORDER: Record<StudentWithdrawalSortColumn, SortOrder> = {
+  name: "asc",
+  amount: "desc",
+  status: "asc",
+};
 
 /* Shared by the loading and loaded tables so the columns do not jump. */
 const TableColumns = () => (
@@ -194,6 +203,8 @@ const AdminStudentWithdrawalsPage: React.FC = () => {
 
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<AdminStudentWithdrawalRecord | null>(null);
   const [actionType, setActionType] = useState<"approve" | "reject" | null>(null);
+  const [sortBy, setSortBy] = useState<StudentWithdrawalSortColumn | null>(null);
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
@@ -202,8 +213,20 @@ const AdminStudentWithdrawalsPage: React.FC = () => {
     limit: 20,
     search: debouncedSearchTerm,
     status: statusFilter === "all" ? undefined : statusFilter,
+    ...(sortBy ? { sortBy, sortOrder } : {}),
   });
   useRefetchOnLinkArrival(statusFilter !== "all", isFetching, refetch);
+
+  const toggleSort = (column: StudentWithdrawalSortColumn) => {
+    setPage(1);
+    if (column === sortBy) {
+      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+      return;
+    }
+    setSortBy(column);
+    setSortOrder(FIRST_SORT_ORDER[column]);
+  };
+  const sort = { sortBy, sortOrder, toggleSort };
 
   const processMutation = useProcessStudentWithdrawal();
 
@@ -421,11 +444,11 @@ const AdminStudentWithdrawalsPage: React.FC = () => {
             <TableColumns />
             <thead>
               <tr>
-                <th>Student</th>
-                <th className={styles.num}>Amount</th>
+                <SortableTh column="name" sort={sort}>Student</SortableTh>
+                <SortableTh column="amount" sort={sort} className={styles.num}>Amount</SortableTh>
                 <th className={styles.num}>Wallet balance</th>
                 <th>Bank account</th>
-                <th>Status</th>
+                <SortableTh column="status" sort={sort}>Status</SortableTh>
                 <th>Notes</th>
                 <th><span className={styles.srOnly}>Actions</span></th>
               </tr>

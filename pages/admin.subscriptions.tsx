@@ -7,6 +7,8 @@ import { useAdminCancelSubscription } from "../helpers/useAdminCancelSubscriptio
 import { useDebounce } from "../helpers/useDebounce";
 import { useListUrlParams } from "../helpers/useListUrlParams";
 import { useRefetchOnLinkArrival } from "../helpers/useRefetchOnLinkArrival";
+import type { SortOrder } from "../helpers/useTableSort";
+import { SortableTh } from "../components/SortableTh";
 import { Button } from "../components/Button";
 import { Badge } from "../components/Badge";
 import { Skeleton } from "../components/Skeleton";
@@ -33,8 +35,11 @@ import { useAdminEndTrial } from "../helpers/adminSubscriptionsHooks";
 import { StartTrialDialog } from "../components/StartTrialDialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/Tabs";
 import { AdminSubscriptionPlansManager } from "../components/AdminSubscriptionPlansManager";
-import { SubscriptionAdminView } from "../endpoints/admin/subscriptions/list_GET.schema";
+import { SubscriptionAdminView, SubscriptionSortColumn } from "../endpoints/admin/subscriptions/list_GET.schema";
 import styles from "./admin.subscriptions.module.css";
+
+/* Text columns start A to Z; dates and day counts start with the latest or largest. */
+const TEXT_SORT_COLUMNS: SubscriptionSortColumn[] = ["teacher", "plan", "status"];
 
 /* Shared by the loading and loaded tables so the columns do not jump. */
 const TableColumns = () => (
@@ -111,6 +116,17 @@ const AdminSubscriptionsPage: React.FC = () => {
   const { read, write } = useListUrlParams();
   const listFilter = read<ListFilter | "none">("filter", LIST_FILTERS, "none");
   const expiringSoonOnly = listFilter === "expiring-7d";
+  const [sortBy, setSortBy] = useState<SubscriptionSortColumn | null>(null);
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+  const toggleSort = (column: SubscriptionSortColumn) => {
+    if (column === sortBy) {
+      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+      return;
+    }
+    setSortBy(column);
+    setSortOrder(TEXT_SORT_COLUMNS.includes(column) ? "asc" : "desc");
+  };
+  const sort = { sortBy, sortOrder, toggleSort };
 
   const { data, isFetching, isError, error, refetch } = useAdminSubscriptionsQuery({
     page,
@@ -118,6 +134,8 @@ const AdminSubscriptionsPage: React.FC = () => {
     planId: selectedPlanId,
     status: selectedStatus,
     expiringWithin7Days: expiringSoonOnly || undefined,
+    sortBy: sortBy ?? undefined,
+    sortOrder: sortBy ? sortOrder : undefined,
   });
   useRefetchOnLinkArrival(expiringSoonOnly, isFetching, refetch);
 
@@ -153,7 +171,7 @@ const AdminSubscriptionsPage: React.FC = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearchTerm, selectedPlanId, selectedStatus, expiringSoonOnly]);
+  }, [debouncedSearchTerm, selectedPlanId, selectedStatus, expiringSoonOnly, sortBy, sortOrder]);
 
   const formatDate = (date: Date | null): string => {
     if (!date) return "-";
@@ -317,12 +335,12 @@ const AdminSubscriptionsPage: React.FC = () => {
             <TableColumns />
             <thead>
               <tr>
-                <th>Teacher</th>
-                <th>Plan</th>
-                <th>Status</th>
-                <th>Started</th>
-                <th>Renews</th>
-                <th className={styles.num}>Days left</th>
+                <SortableTh column="teacher" sort={sort}>Teacher</SortableTh>
+                <SortableTh column="plan" sort={sort}>Plan</SortableTh>
+                <SortableTh column="status" sort={sort}>Status</SortableTh>
+                <SortableTh column="started" sort={sort}>Started</SortableTh>
+                <SortableTh column="renews" sort={sort}>Renews</SortableTh>
+                <SortableTh column="daysLeft" sort={sort} className={styles.num}>Days left</SortableTh>
                 <th><span className={styles.srOnly}>Actions</span></th>
               </tr>
             </thead>

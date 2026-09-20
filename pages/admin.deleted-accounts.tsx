@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { useAdminDeletedAccountsQuery } from "../helpers/useAdminDeletedAccounts";
 import { useDebounce } from "../helpers/useDebounce";
+import { SortOrder } from "../helpers/useTableSort";
+import { SortableTh } from "../components/SortableTh";
 import { Button } from "../components/Button";
 import { Badge } from "../components/Badge";
 import { Skeleton } from "../components/Skeleton";
@@ -10,8 +12,10 @@ import { ConsoleListToolbar } from "../components/ConsoleListToolbar";
 import { ConsoleListEmpty } from "../components/ConsoleListEmpty";
 import { ConsoleListPagination } from "../components/ConsoleListPagination";
 import { UserX, AlertCircle } from "lucide-react";
-import { DeletedAccountView } from "../endpoints/admin/deleted-accounts/list_GET.schema";
+import { DeletedAccountView, DeletedAccountSortBy } from "../endpoints/admin/deleted-accounts/list_GET.schema";
 import styles from "./admin.deleted-accounts.module.css";
+
+const TEXT_SORTS: ReadonlyArray<DeletedAccountSortBy> = ["displayName", "role"];
 
 const formatDate = (date: Date | null | undefined): string => {
   if (!date) return "Not recorded";
@@ -92,10 +96,28 @@ const AdminDeletedAccountsPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const [sortBy, setSortBy] = useState<DeletedAccountSortBy | null>(null);
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+
+  const sort = {
+    sortBy,
+    sortOrder,
+    toggleSort: (column: DeletedAccountSortBy) => {
+      if (column === sortBy) {
+        setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+      } else {
+        setSortBy(column);
+        setSortOrder(TEXT_SORTS.includes(column) ? "asc" : "desc");
+      }
+      setPage(1);
+    },
+  };
 
   const { data, isFetching, isError, error, refetch } = useAdminDeletedAccountsQuery({
     page,
     search: debouncedSearchTerm,
+    sortBy: sortBy ?? undefined,
+    sortOrder: sortBy ? sortOrder : undefined,
   });
 
   useEffect(() => {
@@ -159,12 +181,12 @@ const AdminDeletedAccountsPage: React.FC = () => {
             <TableColumns />
             <thead>
               <tr>
-                <th>Account</th>
+                <SortableTh column="displayName" sort={sort}>Account</SortableTh>
                 <th>Phone</th>
-                <th>Role</th>
+                <SortableTh column="role" sort={sort}>Role</SortableTh>
                 <th>Reason</th>
-                <th>Registered</th>
-                <th>Deleted</th>
+                <SortableTh column="registeredAt" sort={sort}>Registered</SortableTh>
+                <SortableTh column="deletedAt" sort={sort}>Deleted</SortableTh>
               </tr>
             </thead>
             <tbody>

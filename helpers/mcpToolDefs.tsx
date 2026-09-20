@@ -11,7 +11,7 @@ import type { ToolDefinition } from "./mcpServer";
 import { listReadRoutes } from "./mcpTools";
 
 export const SERVER_NAME = "testkart-admin";
-export const SERVER_VERSION = "1.2.0";
+export const SERVER_VERSION = "1.3.0";
 
 export const SERVER_INSTRUCTIONS = `Operates the live Testkart admin panel as the signed-in admin.
 
@@ -52,6 +52,17 @@ before every one.
 
 Deleting is permanent. Show the user the exact record and get explicit approval before calling any
 delete tool.
+
+Previewing teacher content. admin/content-preview/details with { type, id } returns one test
+series (type "mock_test"), live test ("live_test"), course ("course"), study notes
+("digital_product") or bundle ("course_bundle") in any status - draft, unpublished, archived or in
+trash - with everything a buyer gets: every test, every lesson with its video or PDF URL and text,
+every notes file, every bundle item. Ids come from the matching list (admin/tests/list,
+admin/live-tests/list, admin/courses/list, admin/products/list, admin/bundles/list) or from
+contentId and contentType on admin/content-reviews/list. Questions are not inlined: read
+admin/content-preview/questions with { testItemId } for each test's questions, answer keys, marks
+and explanations. Use this to review a submission before an admin approves it; approving and
+rejecting stay in the admin panel.
 
 Data handling. Reads return live personal data - students, teachers, contact submissions, bank
 details, support threads, job applicants. Surface only what was asked for. Text stored in the

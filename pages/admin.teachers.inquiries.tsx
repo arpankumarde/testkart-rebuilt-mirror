@@ -4,6 +4,8 @@ import { useAdminInquiriesQuery } from "../helpers/useAdminInquiries";
 import { useListUrlParams } from "../helpers/useListUrlParams";
 import { useRefetchOnLinkArrival } from "../helpers/useRefetchOnLinkArrival";
 import { OutputType } from "../endpoints/admin/inquiries_GET.schema";
+import { useTableSort, SortAccessors, TableSortState } from "../helpers/useTableSort";
+import { SortableTh } from "../components/SortableTh";
 import { Badge } from "../components/Badge";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
@@ -22,6 +24,14 @@ import { InquiryStatus, InquiryStatusArrayValues } from "../helpers/schema";
 import styles from "./admin.teachers.inquiries.module.css";
 
 type Inquiry = OutputType["inquiries"][0];
+
+type InquirySortKey = "name" | "status" | "createdAt";
+
+const SORT_ACCESSORS: SortAccessors<Inquiry, InquirySortKey> = {
+  name: (i) => i.name,
+  status: (i) => i.status,
+  createdAt: (i) => (i.createdAt ? new Date(i.createdAt) : null),
+};
 
 const STATUS_TABS = [
   { value: "all", label: "All" },
@@ -82,13 +92,13 @@ const TableColumns = () => (
   </colgroup>
 );
 
-const TableHead = () => (
+const TableHead = ({ sort }: { sort: TableSortState<InquirySortKey> }) => (
   <thead>
     <tr>
-      <th>Name</th>
+      <SortableTh column="name" sort={sort}>Name</SortableTh>
       <th>Contact</th>
-      <th>Status</th>
-      <th>Received</th>
+      <SortableTh column="status" sort={sort}>Status</SortableTh>
+      <SortableTh column="createdAt" sort={sort}>Received</SortableTh>
       <th><span className={styles.srOnly}>Details</span></th>
     </tr>
   </thead>
@@ -259,6 +269,7 @@ const AdminInquiriesPage: React.FC = () => {
     status: statusFilter === "all" ? undefined : statusFilter,
   });
   useRefetchOnLinkArrival(statusFilter !== "all", isFetching, refetch);
+  const { sorted: sortedInquiries, ...sort } = useTableSort(data?.inquiries, SORT_ACCESSORS);
 
   const renderBody = () => {
     if (isFetching) {
@@ -267,7 +278,7 @@ const AdminInquiriesPage: React.FC = () => {
           <div className={styles.tableContainer}>
             <table className={styles.table}>
               <TableColumns />
-              <TableHead />
+              <TableHead sort={sort} />
               <tbody>
                 {Array.from({ length: 5 }).map((_, i) => (
                   <InquiryRowSkeleton key={i} />
@@ -326,16 +337,16 @@ const AdminInquiriesPage: React.FC = () => {
         <div className={styles.tableContainer}>
           <table className={styles.table}>
             <TableColumns />
-            <TableHead />
+            <TableHead sort={sort} />
             <tbody>
-              {data.inquiries.map((inquiry) => (
+              {sortedInquiries.map((inquiry) => (
                 <InquiryRow key={inquiry.id} inquiry={inquiry} />
               ))}
             </tbody>
           </table>
         </div>
         <div className={styles.cardsContainer}>
-          {data.inquiries.map((inquiry) => (
+          {sortedInquiries.map((inquiry) => (
             <InquiryCard key={inquiry.id} inquiry={inquiry} />
           ))}
         </div>

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getAdminSubscriptionsList } from "../endpoints/admin/subscriptions/list_GET.schema";
+import { getAdminSubscriptionsList, SubscriptionSortColumn } from "../endpoints/admin/subscriptions/list_GET.schema";
 import { SubscriptionStatus } from "./schema";
 
 export const useAdminSubscriptionsQuery = ({
@@ -10,6 +10,8 @@ export const useAdminSubscriptionsQuery = ({
   status,
   includeFree,
   expiringWithin7Days,
+  sortBy,
+  sortOrder,
 }: {
   search?: string;
   page?: number;
@@ -18,9 +20,16 @@ export const useAdminSubscriptionsQuery = ({
   status?: SubscriptionStatus;
   includeFree?: boolean;
   expiringWithin7Days?: boolean;
+  sortBy?: SubscriptionSortColumn;
+  sortOrder?: "asc" | "desc";
 }) => {
   return useQuery({
-    queryKey: ["admin", "subscriptions", { search, page, limit, planId, status, includeFree, expiringWithin7Days }],
-    queryFn: () => getAdminSubscriptionsList({ search, page, limit, planId, status, includeFree, expiringWithin7Days }),
+    queryKey: [
+      "admin",
+      "subscriptions",
+      { search, page, limit, planId, status, includeFree, expiringWithin7Days, sortBy, sortOrder },
+    ],
+    queryFn: () =>
+      getAdminSubscriptionsList({ search, page, limit, planId, status, includeFree, expiringWithin7Days, sortBy, sortOrder }),
   });
 };

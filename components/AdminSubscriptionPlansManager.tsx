@@ -9,6 +9,8 @@ import {
 } from "../helpers/useAdminSubscriptionPlans";
 import { Selectable } from "kysely";
 import { SubscriptionPlans } from "../helpers/schema";
+import { useTableSort, SortAccessors } from "../helpers/useTableSort";
+import { SortableTh } from "./SortableTh";
 import { Button } from "./Button";
 import { Badge } from "./Badge";
 import { Switch } from "./Switch";
@@ -150,6 +152,13 @@ const PaymentModeSection: React.FC = () => {
   );
 };
 
+const PLAN_SORT_ACCESSORS: SortAccessors<Selectable<SubscriptionPlans>, "name" | "price" | "billing" | "fee"> = {
+  name: (p) => p.name,
+  price: (p) => (p.price === null ? null : Number(p.price)),
+  billing: (p) => p.billingCycle,
+  fee: (p) => (p.platformFeePercentage === null ? null : Number(p.platformFeePercentage)),
+};
+
 /* Shared by the loading and loaded tables so the columns do not jump. */
 const PlanTableColumns = () => (
   <colgroup>
@@ -197,6 +206,7 @@ const PlanCardSkeleton = () => (
 
 const PlansListSection: React.FC = () => {
   const { data: plans, isFetching } = useAdminPlansQuery();
+  const { sorted: sortedPlans, ...sort } = useTableSort(plans, PLAN_SORT_ACCESSORS);
   const toggleMutation = useTogglePlanMutation();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<Selectable<SubscriptionPlans> | null>(null);
@@ -289,15 +299,15 @@ const PlansListSection: React.FC = () => {
             <PlanTableColumns />
             <thead>
               <tr>
-                <th>Plan</th>
-                <th className={styles.num}>Price</th>
-                <th>Billing</th>
-                <th className={styles.num}>Fee</th>
+                <SortableTh column="name" sort={sort}>Plan</SortableTh>
+                <SortableTh column="price" sort={sort} className={styles.num}>Price</SortableTh>
+                <SortableTh column="billing" sort={sort}>Billing</SortableTh>
+                <SortableTh column="fee" sort={sort} className={styles.num}>Fee</SortableTh>
                 <th><span className={styles.srOnly}>Actions</span></th>
               </tr>
             </thead>
             <tbody>
-              {plans.map((plan) => (
+              {sortedPlans.map((plan) => (
                 <tr key={plan.id}>
                   <td>{renderIdentity(plan)}</td>
                   <td className={styles.num}>₹{plan.price}</td>
@@ -315,7 +325,7 @@ const PlansListSection: React.FC = () => {
           </table>
         </div>
         <div className={styles.cardsContainer}>
-          {plans.map((plan) => (
+          {sortedPlans.map((plan) => (
             <article key={plan.id} className={styles.card}>
               <div className={styles.cardHeader}>
                 {renderIdentity(plan)}

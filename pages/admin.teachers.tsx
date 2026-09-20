@@ -261,6 +261,7 @@ const AdminTeachersPage: React.FC = () => {
     const isActive = sortBy === column;
     return (
       <th
+        key={column}
         className={numeric ? styles.num : undefined}
         aria-sort={isActive ? (sortOrder === "asc" ? "ascending" : "descending") : "none"}
       >
@@ -424,10 +425,8 @@ const AdminTeachersPage: React.FC = () => {
             <thead>
               <tr>
                 {renderSortableHeader("name", "Teacher")}
-                <th>Contact</th>
-                {COUNT_FIELDS.map((field) => (
-                  <th key={field.key} className={styles.num}>{field.label}</th>
-                ))}
+                {renderSortableHeader("email", "Contact")}
+                {COUNT_FIELDS.map((field) => renderSortableHeader(field.key, field.label, true))}
                 {renderSortableHeader("totalEarnings", "Earnings", true)}
                 {renderSortableHeader("createdAt", "Registered")}
                 <th>DRM</th>

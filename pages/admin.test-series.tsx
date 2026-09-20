@@ -14,6 +14,8 @@ import { ConsoleConfirmDialog } from "../components/ConsoleConfirmDialog";
 import { ConsoleFilterNotice } from "../components/ConsoleFilterNotice";
 import { useListUrlParams } from "../helpers/useListUrlParams";
 import { useRefetchOnLinkArrival } from "../helpers/useRefetchOnLinkArrival";
+import { useTableSort, SortAccessors } from "../helpers/useTableSort";
+import { SortableTh } from "../components/SortableTh";
 import {
   CheckCircle2,
   XCircle,
@@ -28,6 +30,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { AdminProductDetailPanel } from "../components/AdminProductDetailPanel";
+import { adminPreviewPath } from "../helpers/useAdminContentPreview";
 import styles from "./admin.test-series.module.css";
 
 const ALL_TEACHERS = "__all__";
@@ -43,6 +46,22 @@ const matchesListFilter = (test: AdminTestListItem, filter: ListFilter | "none")
   if (filter === "none") return true;
   if (!test.isPublished || test.deletedAt !== null) return false;
   return filter === "no-tests" ? test.liveItemCount === 0 : test.emptyTestCount > 0;
+};
+
+type SortColumn = "title" | "students" | "tests" | "price" | "createdAt";
+
+const SORT_ACCESSORS: SortAccessors<AdminTestListItem, SortColumn> = {
+  title: (t) => t.title,
+  students: (t) => t.studentsEnrolled,
+  tests: (t) => t.totalTests,
+  price: (t) => t.price,
+  createdAt: (t) => (t.createdAt ? new Date(t.createdAt) : null),
+};
+
+/* Dashboard subsets show the live item count in the Tests column, so they sort by it too. */
+const LIVE_ITEM_SORT_ACCESSORS: SortAccessors<AdminTestListItem, SortColumn> = {
+  ...SORT_ACCESSORS,
+  tests: (t) => t.liveItemCount,
 };
 
 const formatNumber = (num: number): string => num.toLocaleString("en-IN");
@@ -185,6 +204,11 @@ const AdminTestSeriesPage: React.FC = () => {
     });
   }, [tests, searchQuery, statusFilter, teacherFilter, focusId, listFilter]);
 
+  const { sorted: sortedTests, ...sort } = useTableSort(
+    filteredTests,
+    listFilter === "none" ? SORT_ACCESSORS : LIVE_ITEM_SORT_ACCESSORS
+  );
+
   const focusedTest = focusId === null ? undefined : tests?.find((t) => t.id === focusId);
 
   const hasUrlFilter = listFilter !== "none" || focusId !== null;
@@ -266,7 +290,7 @@ const AdminTestSeriesPage: React.FC = () => {
   const renderIdentity = (test: AdminTestListItem) => (
     <span className={styles.primaryLine}>
       <a
-        href={getTestUrl(test)}
+        href={test.isPublished ? getTestUrl(test) : adminPreviewPath("mock_test", test.id)}
         target="_blank"
         rel="noopener noreferrer"
         className={`${styles.titleLink} ${styles.truncate}`}
@@ -378,16 +402,16 @@ const AdminTestSeriesPage: React.FC = () => {
             <TableColumns />
             <thead>
               <tr>
-                <th>Test series</th>
-                <th className={styles.num}>Students</th>
-                <th className={styles.num}>Tests</th>
-                <th className={styles.num}>Price</th>
-                <th>Created</th>
+                <SortableTh column="title" sort={sort}>Test series</SortableTh>
+                <SortableTh column="students" sort={sort} className={styles.num}>Students</SortableTh>
+                <SortableTh column="tests" sort={sort} className={styles.num}>Tests</SortableTh>
+                <SortableTh column="price" sort={sort} className={styles.num}>Price</SortableTh>
+                <SortableTh column="createdAt" sort={sort}>Created</SortableTh>
                 <th><span className={styles.srOnly}>Actions</span></th>
               </tr>
             </thead>
             <tbody>
-              {filteredTests.map((test) => (
+              {sortedTests.map((test) => (
                 <tr key={test.id}>
                   <td>
                     <div className={styles.stack}>
@@ -412,7 +436,7 @@ const AdminTestSeriesPage: React.FC = () => {
           </table>
         </div>
         <div className={styles.cardsContainer}>
-          {filteredTests.map((test) => (
+          {sortedTests.map((test) => (
             <article key={test.id} className={styles.card}>
               <div className={styles.cardHeader}>
                 <div className={styles.stack}>
@@ -540,6 +564,7 @@ const AdminTestSeriesPage: React.FC = () => {
             }
             isLive={viewingTest.isPublished}
             publicUrl={viewingTest.isPublished ? getTestUrl(viewingTest) : null}
+            previewUrl={adminPreviewPath("mock_test", viewingTest.id)}
             teacherName={viewingTest.teacherName}
             price={viewingTest.isFree ? 0 : viewingTest.price}
             createdAt={viewingTest.createdAt}

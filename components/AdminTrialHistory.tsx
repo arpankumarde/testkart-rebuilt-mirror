@@ -3,8 +3,19 @@ import { useAdminTrialHistory } from "../helpers/adminSubscriptionsHooks";
 import { TrialHistoryView } from "../endpoints/admin/subscriptions/trial-history_GET.schema";
 import { Badge } from "./Badge";
 import { Skeleton } from "./Skeleton";
+import { SortableTh } from "./SortableTh";
+import { useTableSort, type SortAccessors } from "../helpers/useTableSort";
 import { ChevronDown, ChevronUp, History } from "lucide-react";
 import styles from "./AdminTrialHistory.module.css";
+
+type TrialSortKey = "teacher" | "fee" | "status" | "started";
+
+const SORT_ACCESSORS: SortAccessors<TrialHistoryView, TrialSortKey> = {
+  teacher: (t) => t.teacherName,
+  fee: (t) => t.platformFeePercentage,
+  status: (t) => (t.isActive ? "Active" : "Expired"),
+  started: (t) => (t.startDate ? new Date(t.startDate) : null),
+};
 
 /* Every custom-fee trial ever granted, running or not. Active custom trials
    lists only the ones still running, and nothing flips a trial's status when
@@ -12,6 +23,7 @@ import styles from "./AdminTrialHistory.module.css";
 export const AdminTrialHistory: React.FC = () => {
   const { data, isFetching, isError } = useAdminTrialHistory();
   const [isExpanded, setIsExpanded] = useState(false);
+  const { sorted: sortedTrials, ...sort } = useTableSort(data?.trials, SORT_ACCESSORS);
 
   const formatDate = (date: Date | null): string => {
     if (!date) return "N/A";
@@ -71,15 +83,15 @@ export const AdminTrialHistory: React.FC = () => {
               </colgroup>
               <thead>
                 <tr>
-                  <th>Teacher</th>
-                  <th className={styles.num}>Fee</th>
-                  <th>Status</th>
-                  <th>Started</th>
+                  <SortableTh column="teacher" sort={sort}>Teacher</SortableTh>
+                  <SortableTh column="fee" sort={sort} className={styles.num}>Fee</SortableTh>
+                  <SortableTh column="status" sort={sort}>Status</SortableTh>
+                  <SortableTh column="started" sort={sort}>Started</SortableTh>
                   <th>Admin note</th>
                 </tr>
               </thead>
               <tbody>
-                {data.trials.map((trial) => (
+                {sortedTrials.map((trial) => (
                   <tr key={trial.subscriptionId}>
                     <td>
                       <div className={styles.stack}>
@@ -107,7 +119,7 @@ export const AdminTrialHistory: React.FC = () => {
           </div>
 
           <div className={styles.cardsContainer}>
-            {data.trials.map((trial) => (
+            {sortedTrials.map((trial) => (
               <article key={trial.subscriptionId} className={styles.card}>
                 <div className={styles.cardHeader}>
                   <div className={styles.stack}>
