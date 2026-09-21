@@ -13,6 +13,7 @@ import { Button } from "../components/Button";
 import { TeacherProfileCard } from "../components/TeacherProfileCard";
 import { TeacherCtaBanner } from "../components/TeacherCtaBanner";
 import { getLiveTestStatus } from "../helpers/useLiveTestHelpers";
+import { useTrackStorefrontView } from "../helpers/trackStorefrontEvent";
 import styles from "./mock-test.live.$liveTestId.module.css";
 
 const LiveTestDetailsSkeleton: React.FC = () => (
@@ -34,6 +35,7 @@ const LiveTestDetailsPage: React.FC = () => {
   const { data, isFetching, error } = useLiveTestDetailsQuery(
     numericLiveTestId && !isNaN(numericLiveTestId) ? numericLiveTestId : null
   );
+  useTrackStorefrontView("live_test", data?.id);
 
   const [activeTab, setActiveTab] = useState<"about" | "leaderboard">("leaderboard");
 

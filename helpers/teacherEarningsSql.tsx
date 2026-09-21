@@ -68,7 +68,10 @@ function windowFilter(column: string, window?: TeacherEarningsWindow) {
  *
  * Alongside `earnings` each row carries what a dashboard needs to break the
  * same money down by day, by product kind and by title: `gross` (before the
- * platform fee), `sold_at`, `order_id`, `buyer_id`, `kind` and `title`.
+ * platform fee), `sold_at`, `order_id`, `buyer_id`, `kind`, `title`,
+ * `item_id` (the mock test, course, digital product or bundle id; a live-test
+ * sale carries its mock test's id), `promo_code_id` (the order's code, if any)
+ * and `discount` (the promo discount already taken off `gross`).
  * Mock-test sales attached to a live test surface as kind 'live_test' — the
  * live-test money arrives through the mock test its enrollment paid for, and
  * only once that test has ended, since unfinished live tests are excluded
@@ -85,7 +88,10 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
               SELECT 1 FROM live_test_enrollments lte_kind WHERE lte_kind.payment_order_id = o.id
             ) THEN 'live_test' ELSE 'mock_test' END)::text AS kind,
            mt.title::text AS title,
-           mt.thumbnail_url::text AS thumbnail
+           mt.thumbnail_url::text AS thumbnail,
+           mt.id AS item_id,
+           o.promo_code_id AS promo_code_id,
+           oi.discount_amount AS discount
     FROM order_items oi
     JOIN orders o ON oi.order_id = o.id
     JOIN mock_tests mt ON oi.mock_test_id = mt.id
@@ -110,7 +116,10 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
            o.user_id AS buyer_id,
            'course'::text AS kind,
            c.title::text AS title,
-           COALESCE(c.thumbnail_image_url, c.thumbnail_url)::text AS thumbnail
+           COALESCE(c.thumbnail_image_url, c.thumbnail_url)::text AS thumbnail,
+           c.id AS item_id,
+           o.promo_code_id AS promo_code_id,
+           oi.discount_amount AS discount
     FROM order_items oi
     JOIN orders o ON oi.order_id = o.id
     JOIN courses c ON oi.course_id = c.id
@@ -131,7 +140,10 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
            dp.title::text AS title,
            -- Study notes have no thumbnail anywhere on the site by design;
            -- see the NOTE comment in helpers/placeholderImages.
-           NULL::text AS thumbnail
+           NULL::text AS thumbnail,
+           dp.id AS item_id,
+           o.promo_code_id AS promo_code_id,
+           oi.discount_amount AS discount
     FROM order_items oi
     JOIN orders o ON oi.order_id = o.id
     JOIN digital_products dp ON oi.digital_product_id = dp.id
@@ -164,7 +176,10 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
       o.user_id AS buyer_id,
       'bundle'::text AS kind,
       cb.title::text AS title,
-      cb.thumbnail_url::text AS thumbnail
+      cb.thumbnail_url::text AS thumbnail,
+      cb.id AS item_id,
+      o.promo_code_id AS promo_code_id,
+      COALESCE(o.discount_amount, 0)::numeric AS discount
     FROM orders o
     JOIN course_bundles cb ON o.bundle_id = cb.id
     WHERE o.status = 'completed'

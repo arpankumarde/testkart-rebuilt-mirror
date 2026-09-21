@@ -1,0 +1,67 @@
+/* Two chart series for this page only, checked for colour-blind separation
+   and 3:1 against the surface in both themes. Slot 1 is the brand orange. */
+.page {
+  --an-series-1: #e0622c;
+  --an-series-2: #2a78d6;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+:global(.dark) .page {
+  --an-series-1: #e36a33;
+  --an-series-2: #3987e5;
+}
+
+.refresh {
+  flex-shrink: 0;
+}
+
+.refresh svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error {
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid var(--error);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  color: var(--error-text);
+  font-size: 0.875rem;
+}
+
+.busy {
+  opacity: 0.65;
+  transition: opacity var(--animation-duration-fast) ease;
+}
+
+@media (max-width: 640px) {
+  .page {
+    gap: var(--spacing-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+
+  .busy {
+    transition: none;
+  }
+}

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getCartItems, CartItem } from "../endpoints/cart/items_GET.schema";
 import { postCartAdd } from "../endpoints/cart/add_POST.schema";
 import { postCartRemove } from "../endpoints/cart/remove_POST.schema";
+import { trackStorefrontEvent } from "./trackStorefrontEvent";
 import { toast } from "sonner";
 import { parseErrorMessage } from "./parseErrorMessage";
 import { useAuth } from "./useAuth";
@@ -31,6 +32,12 @@ export const useAddToCartMutation = () => {
     onSuccess: (data, variables) => {
       toast.success(data.message || "Item added to cart!");
       queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
+      // Feeds the "added to cart" step of the teacher's Analytics funnel.
+      if (variables.mockTestId) trackStorefrontEvent("add_to_cart", { entity: "mock_test", id: variables.mockTestId });
+      else if (variables.courseId) trackStorefrontEvent("add_to_cart", { entity: "course", id: variables.courseId });
+      else if (variables.digitalProductId) {
+        trackStorefrontEvent("add_to_cart", { entity: "digital_product", id: variables.digitalProductId });
+      }
     },
     onError: (error) => {
       toast.error(parseErrorMessage(error) || "Failed to add item to cart.");

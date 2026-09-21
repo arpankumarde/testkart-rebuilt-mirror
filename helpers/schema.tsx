@@ -1140,6 +1140,25 @@ export interface StaticPages {
   updatedAt: Generated<Timestamp | null>;
 }
 
+export interface StorefrontEvents {
+  bucketHour: Timestamp;
+  createdAt: Generated<Timestamp>;
+  device: string | null;
+  entityId: number;
+  entityType: string;
+  eventType: string;
+  id: Generated<Int8>;
+  platform: Generated<string>;
+  referrerHost: string | null;
+  sessionId: string;
+  source: string;
+  teacherId: number;
+  userId: number | null;
+  utmCampaign: string | null;
+  utmMedium: string | null;
+  utmSource: string | null;
+}
+
 export interface StudentBankDetails {
   bankAccountHolderName: string;
   bankAccountNumber: string;
@@ -1605,6 +1624,7 @@ export interface DB {
   salesContacts: SalesContacts;
   sessions: Sessions;
   staticPages: StaticPages;
+  storefrontEvents: StorefrontEvents;
   studentBankDetails: StudentBankDetails;
   studentWalletTransactions: StudentWalletTransactions;
   studentWithdrawals: StudentWithdrawals;

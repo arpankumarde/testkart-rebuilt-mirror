@@ -43,6 +43,7 @@ import { MobileStickyPurchaseBar } from "../components/MobileStickyPurchaseBar";
 import { toast } from "sonner";
 import { ShareAssetDialog } from "../components/ShareAssetDialog";
 import { PUBLIC_PAGE_SHARE_CAMPAIGN } from "../helpers/shareLinks";
+import { useTrackStorefrontView } from "../helpers/trackStorefrontEvent";
 import styles from "./study-notes.$noteSlug.module.css";
 
 const ProductDetailsPage: React.FC = () => {
@@ -87,6 +88,7 @@ const ProductDetailsPage: React.FC = () => {
 
   const product = data?.product;
   const reviews = data?.reviews || [];
+  useTrackStorefrontView("digital_product", product?.id);
 
   // Intersection observer for mobile sticky bar
   useEffect(() => {

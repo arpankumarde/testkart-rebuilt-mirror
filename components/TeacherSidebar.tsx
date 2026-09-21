@@ -24,6 +24,7 @@ import {
   UserCircle,
   PanelLeftClose,
   PanelLeftOpen,
+  TrendingUp,
 } from 'lucide-react';
 import { useAuth } from '../helpers/useAuth';
 import { Button } from './Button';
@@ -81,6 +82,7 @@ const NAV_GROUPS: TeacherNavGroup[] = [
     alwaysOpen: true,
     items: [
       { href: '/teacher/dashboard', label: 'Dashboard', icon: LayoutDashboard, badge: 'New' },
+      { href: '/teacher/analytics', label: 'Analytics', icon: TrendingUp, ownerOnly: true, badge: 'New' },
       {
         href: '/teacher/test-series',
         label: 'Test Series',

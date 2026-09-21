@@ -149,6 +149,7 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
   const isDarkMode = useDarkModeObserver();
 
   useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return;
     const mobileMediaQuery = window.matchMedia('(max-width: 968px)');
     
     const handleScroll = () => {

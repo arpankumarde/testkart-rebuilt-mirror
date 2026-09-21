@@ -13,6 +13,7 @@ import {
   type ShareAssetKind,
   type SharePlatformId,
 } from "../helpers/shareLinks";
+import { trackShare } from "../helpers/trackStorefrontEvent";
 import styles from "./ShareAssetDialog.module.css";
 
 interface ShareAssetDialogProps {
@@ -88,6 +89,7 @@ export const ShareAssetDialog: React.FC<ShareAssetDialogProps> = ({
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(copyUrl);
+      trackShare(kind, handle, "copy", campaign);
       setCopied(true);
       toast.success("Link copied. It already carries your tracking tags.");
       setTimeout(() => setCopied(false), 2000);
@@ -121,6 +123,7 @@ export const ShareAssetDialog: React.FC<ShareAssetDialogProps> = ({
                   href={href}
                   target={isMail ? undefined : "_blank"}
                   rel={isMail ? undefined : "noopener noreferrer"}
+                  onClick={() => trackShare(kind, handle, id, campaign)}
                 >
                   <span className={`${styles.platformIcon} ${styles[className]}`} aria-hidden="true">
                     <Icon size={18} />

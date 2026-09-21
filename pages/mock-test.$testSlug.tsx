@@ -19,6 +19,7 @@ import { TestReviews } from "../components/TestReviews";
 import { TeacherProfileCard } from "../components/TeacherProfileCard";
 import { TeacherCtaBanner } from "../components/TeacherCtaBanner";
 import { BundleSuggestions } from "../components/BundleSuggestions";
+import { useTrackStorefrontView } from "../helpers/trackStorefrontEvent";
 import styles from "./mock-test.$testSlug.module.css";
 
 const TestDetailsSkeleton: React.FC = () => (
@@ -51,6 +52,7 @@ const TestDetailsPage: React.FC = () => {
   const navigate = useNavigate();
 
   const { data, isFetching, error } = useTestDetailsQuery(testSlug);
+  useTrackStorefrontView("mock_test", data?.package?.id);
 
   const [isStickyBarVisible, setIsStickyBarVisible] = useState(false);
   const [isLeaderboardDialogOpen, setIsLeaderboardDialogOpen] = useState(false);

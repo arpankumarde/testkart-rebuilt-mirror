@@ -9,6 +9,7 @@ import { useBundleDetailsQuery } from '../helpers/useBundlesQuery';
 import { TeacherCtaBanner } from '../components/TeacherCtaBanner';
 import { ShareButton } from '../components/ShareButton';
 import { PUBLIC_PAGE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
+import { useTrackStorefrontView } from '../helpers/trackStorefrontEvent';
 import styles from './bundles.$bundleSlug.module.css';
 
 const ShareBundle: React.FC<{ slug: string; title: string }> = ({ slug, title }) => (
@@ -47,6 +48,7 @@ const RelatedBundles: React.FC<{ teacherId: number; currentBundleId: number }> =
 const BundleDetailsPage: React.FC = () => {
   const { bundleSlug } = useParams<{ bundleSlug: string }>();
   const { data: bundle } = useBundleDetailsQuery(bundleSlug || '');
+  useTrackStorefrontView("bundle", bundle?.id);
 
   if (!bundleSlug) {
     return (

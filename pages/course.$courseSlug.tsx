@@ -16,6 +16,7 @@ import { useAuth } from '../helpers/useAuth';
 import { wrapContentTables } from '../helpers/contentTables';
 import { sanitizeHtml } from '../helpers/sanitizeHtml';
 import { Avatar, AvatarImage, AvatarFallback } from '../components/Avatar';
+import { useTrackStorefrontView } from '../helpers/trackStorefrontEvent';
 import styles from "./course.$courseSlug.module.css";
 
 const CourseDetailsSkeleton: React.FC = () => (
@@ -52,6 +53,7 @@ export default function CourseDetailsPage() {
   const sidebarRef = useRef<HTMLDivElement>(null);
 
   const { data: course, isFetching, error } = usePublicCourseDetailsQuery(courseSlug || null);
+  useTrackStorefrontView("course", course?.id);
 
   // Intersection observer for mobile sticky bar
   useEffect(() => {

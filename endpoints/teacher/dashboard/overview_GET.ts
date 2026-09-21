@@ -7,6 +7,7 @@ import {
   buildTeacherNetEarningsSql,
   buildTeacherAvailableBalanceSql,
 } from "../../../helpers/teacherEarningsSql";
+import { IST, Row, get, num, str, date, isoDay, windowBounds } from "../../../helpers/teacherAnalyticsTime";
 import {
   schema,
   OutputType,
@@ -21,56 +22,6 @@ import {
 } from "./overview_GET.schema";
 
 const RANGE_DAYS = { "7d": 7, "30d": 30, "90d": 90 } as const;
-
-// Teachers and the platform both work in India. IST has no daylight saving, so
-// a fixed offset is exact and calendar days can be cut in JS without a
-// timezone library. Same convention as the admin overview.
-const IST_OFFSET_MS = 330 * 60 * 1000;
-const DAY_MS = 24 * 60 * 60 * 1000;
-const IST = "Asia/Kolkata";
-
-type Row = Record<string, unknown>;
-
-const toCamel = (key: string) => key.replace(/_([a-z0-9])/g, (_, c: string) => c.toUpperCase());
-
-// The db instance runs CamelCasePlugin, which rewrites result keys of raw sql
-// queries too, so a column aliased draft_tests arrives as draftTests.
-const get = (row: Row, key: string): unknown => row[key] ?? row[toCamel(key)];
-
-const num = (value: unknown): number => {
-  const n = Number(value ?? 0);
-  return Number.isFinite(n) ? n : 0;
-};
-
-const str = (value: unknown, fallback = ""): string =>
-  value === null || value === undefined ? fallback : String(value);
-
-const date = (value: unknown): Date => {
-  const parsed = value instanceof Date ? value : new Date(str(value));
-  return Number.isNaN(parsed.getTime()) ? new Date(0) : parsed;
-};
-
-const isoDay = (utcMs: number): string => new Date(utcMs + IST_OFFSET_MS).toISOString().slice(0, 10);
-
-/**
- * Local-midnight boundaries for "the last N calendar days including today" and
- * the N days before that. Returned as UTC instants for timestamptz comparisons,
- * plus the ISO day strings the daily series is generated over.
- */
-function windowBounds(days: number) {
-  const nowLocal = new Date(Date.now() + IST_OFFSET_MS);
-  const todayLocalMidnightUtcMs =
-    Date.UTC(nowLocal.getUTCFullYear(), nowLocal.getUTCMonth(), nowLocal.getUTCDate()) - IST_OFFSET_MS;
-  const currentStartMs = todayLocalMidnightUtcMs - (days - 1) * DAY_MS;
-  const previousStartMs = currentStartMs - days * DAY_MS;
-  return {
-    currentStart: new Date(currentStartMs),
-    previousStart: new Date(previousStartMs),
-    currentStartDay: isoDay(currentStartMs),
-    previousStartDay: isoDay(previousStartMs),
-    todayDay: isoDay(todayLocalMidnightUtcMs),
-  };
-}
 
 const MIX_KINDS = new Set<string>(["mock_test", "live_test", "course", "digital_product", "bundle"]);
 const asMixKind = (value: unknown): TeacherMixKind => {

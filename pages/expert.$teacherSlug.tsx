@@ -5,6 +5,7 @@ import { SEOHead } from "../components/SEOHead";
 import { useTeacherPublicProfileQuery } from "../helpers/useTeacherPublicProfile";
 import { ExpertProfileView } from "../components/ExpertProfileView";
 import { Skeleton } from "../components/Skeleton";
+import { useTrackStorefrontView } from "../helpers/trackStorefrontEvent";
 import styles from "./expert.$teacherSlug.module.css";
 
 const SITE_URL = "https://testkart.in";
@@ -55,6 +56,7 @@ const ExpertProfilePage = () => {
   const { defaultTab } = (location.state as { defaultTab?: string }) || {};
 
   const { data, isLoading, isError, error } = useTeacherPublicProfileQuery(teacherSlug || "");
+  useTrackStorefrontView("teacher_profile", data ? teacherSlug : null);
 
   if (isLoading) {
     return (
