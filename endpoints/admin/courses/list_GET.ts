@@ -45,11 +45,25 @@ export async function handle(request: Request): Promise<Response> {
       .orderBy("courses.createdAt", "desc")
       .execute();
 
+    const typeCounts = await db
+      .selectFrom("courseLessons")
+      .innerJoin("courseSections", "courseSections.id", "courseLessons.sectionId")
+      .select(["courseSections.courseId", "courseLessons.contentType"])
+      .select((eb) => eb.fn.countAll<string>().as("cnt"))
+      .groupBy(["courseSections.courseId", "courseLessons.contentType"])
+      .execute();
+    const countOf = (courseId: number, type: string) =>
+      Number(typeCounts.find((row) => row.courseId === courseId && row.contentType === type)?.cnt ?? 0);
+
     const output: OutputType = courses.map((course) => ({
       ...course,
       price: Number(course.price),
       studentsEnrolled: Number(course.studentsEnrolled),
       lessonsCount: Number(course.lessonsCount ?? 0),
+      videoLessonsCount: countOf(course.id, "video"),
+      pdfLessonsCount: countOf(course.id, "pdf"),
+      quizLessonsCount: countOf(course.id, "quiz"),
+      textLessonsCount: countOf(course.id, "text"),
     }));
 
     return new Response(superjson.stringify(output));

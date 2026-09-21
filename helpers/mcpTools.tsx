@@ -53,6 +53,34 @@ import { handle as supportThreads } from "../endpoints/admin/support/threads_GET
 import { handle as contactSubmissionsList } from "../endpoints/admin/contact-submissions/list_GET";
 import { handle as inquiriesList } from "../endpoints/admin/inquiries_GET";
 import { handle as salesContacts } from "../endpoints/admin/sales/contacts_GET";
+import { handle as salesContactDetail } from "../endpoints/admin/sales/contacts/detail_GET";
+import { handle as salesTeam } from "../endpoints/admin/sales/team_GET";
+import { handle as adminsList } from "../endpoints/admin/admins/list_GET";
+import { handle as adminsOptions } from "../endpoints/admin/admins/options_GET";
+import { handle as aiConnections } from "../endpoints/admin/ai-connections_GET";
+import { handle as aiQuestionsList } from "../endpoints/admin/ai-questions/list_GET";
+import { handle as aiQuestionsStats } from "../endpoints/admin/ai-questions/stats_GET";
+import { handle as aiUsageByTeacher } from "../endpoints/admin/ai-usage/by-teacher_GET";
+import { handle as aiUsageLogs } from "../endpoints/admin/ai-usage/logs_GET";
+import { handle as aiUsageSummary } from "../endpoints/admin/ai-usage/summary_GET";
+import { handle as blogProductSearch } from "../endpoints/admin/blog/product-search_GET";
+import { handle as catalogueDashboard } from "../endpoints/admin/catalogue/dashboard_GET";
+import { handle as customExamNamesList } from "../endpoints/admin/custom-exam-names/list_GET";
+import { handle as customExamNamesDuplicates } from "../endpoints/admin/custom-exam-names/duplicates_GET";
+import { handle as emailTemplatesList } from "../endpoints/admin/email-templates/list_GET";
+import { handle as examDashboardList } from "../endpoints/admin/exam-dashboard/list_GET";
+import { handle as examSubjectsList } from "../endpoints/admin/exam-subjects/list_GET";
+import { handle as scriptsGet } from "../endpoints/admin/scripts/get_GET";
+import { handle as aiProviderSetting } from "../endpoints/admin/settings/ai-provider_GET";
+import { handle as subscriptionSetting } from "../endpoints/admin/settings/subscription_GET";
+import { handle as staticPagesList } from "../endpoints/admin/static-pages/list_GET";
+import { handle as subscriptionPlansList } from "../endpoints/admin/subscription-plans/list_GET";
+import { handle as subscriptionsActiveTrials } from "../endpoints/admin/subscriptions/active-trials_GET";
+import { handle as subscriptionsSearchTeachers } from "../endpoints/admin/subscriptions/search-teachers_GET";
+import { handle as subscriptionsTeacherOrders } from "../endpoints/admin/subscriptions/teacher-orders_GET";
+import { handle as subscriptionsTrialHistory } from "../endpoints/admin/subscriptions/trial-history_GET";
+import { handle as supportThreadMessages } from "../endpoints/admin/support/thread/messages_GET";
+import { handle as wellKnownList } from "../endpoints/admin/well-known/list_GET";
 
 import { handle as blogPostsUpsert } from "../endpoints/admin/blog/posts/upsert_POST";
 import { handle as blogPostsDelete } from "../endpoints/admin/blog/posts/delete_POST";
@@ -72,6 +100,8 @@ import { handle as examContentDelete } from "../endpoints/admin/exam-content/del
 
 type EndpointHandler = (request: Request) => Promise<Response>;
 
+// Every admin GET endpoint except the two invoice downloads (PDF bytes, not JSON),
+// admin/session (testkart_whoami covers it) and the teacher and student bank details / KYC lists.
 const READ_ROUTES: Record<string, EndpointHandler> = {
   "admin/blog/posts/list": blogPostsList,
   "admin/blog/posts/get": blogPostsGet,
@@ -109,6 +139,34 @@ const READ_ROUTES: Record<string, EndpointHandler> = {
   "admin/contact-submissions/list": contactSubmissionsList,
   "admin/inquiries": inquiriesList,
   "admin/sales/contacts": salesContacts,
+  "admin/sales/contacts/detail": salesContactDetail,
+  "admin/sales/team": salesTeam,
+  "admin/admins/list": adminsList,
+  "admin/admins/options": adminsOptions,
+  "admin/ai-connections": aiConnections,
+  "admin/ai-questions/list": aiQuestionsList,
+  "admin/ai-questions/stats": aiQuestionsStats,
+  "admin/ai-usage/by-teacher": aiUsageByTeacher,
+  "admin/ai-usage/logs": aiUsageLogs,
+  "admin/ai-usage/summary": aiUsageSummary,
+  "admin/blog/product-search": blogProductSearch,
+  "admin/catalogue/dashboard": catalogueDashboard,
+  "admin/custom-exam-names/list": customExamNamesList,
+  "admin/custom-exam-names/duplicates": customExamNamesDuplicates,
+  "admin/email-templates/list": emailTemplatesList,
+  "admin/exam-dashboard/list": examDashboardList,
+  "admin/exam-subjects/list": examSubjectsList,
+  "admin/scripts/get": scriptsGet,
+  "admin/settings/ai-provider": aiProviderSetting,
+  "admin/settings/subscription": subscriptionSetting,
+  "admin/static-pages/list": staticPagesList,
+  "admin/subscription-plans/list": subscriptionPlansList,
+  "admin/subscriptions/active-trials": subscriptionsActiveTrials,
+  "admin/subscriptions/search-teachers": subscriptionsSearchTeachers,
+  "admin/subscriptions/teacher-orders": subscriptionsTeacherOrders,
+  "admin/subscriptions/trial-history": subscriptionsTrialHistory,
+  "admin/support/thread/messages": supportThreadMessages,
+  "admin/well-known/list": wellKnownList,
 };
 
 const WRITE_ROUTES: Record<string, EndpointHandler> = {
@@ -130,6 +188,27 @@ const WRITE_ROUTES: Record<string, EndpointHandler> = {
 };
 
 export class McpToolError extends Error {}
+
+// Bank and KYC fields never leave through the connector, whichever read carries them
+// (the withdrawal lists join bank details in).
+const REDACTED_KEYS: ReadonlySet<string> = new Set([
+  "bankAccountNumber",
+  "bankIfscCode",
+  "bankUpiId",
+  "upiId",
+  "panNumber",
+  "panCardImageBase64",
+]);
+
+function redact(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(redact);
+  if (value === null || typeof value !== "object" || Object.getPrototypeOf(value) !== Object.prototype) {
+    return value;
+  }
+  return Object.fromEntries(
+    Object.entries(value).flatMap(([key, inner]) => (REDACTED_KEYS.has(key) ? [] : [[key, redact(inner)]]))
+  );
+}
 
 /** Session lifetime for the synthetic request. Long enough for one call, no more. */
 const SESSION_TTL = "5m";
@@ -215,7 +294,7 @@ export async function callRead(
   }
   const suffix = search.toString() ? `?${search.toString()}` : "";
   const request = await buildRequest(adminId, `${path}${suffix}`, { method: "GET" });
-  return run(handler, request, path);
+  return redact(await run(handler, request, path));
 }
 
 export async function callWrite(

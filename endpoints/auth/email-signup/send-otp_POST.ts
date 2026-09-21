@@ -7,6 +7,7 @@ import { getBrandedEmailHtml } from "../../../helpers/emailBaseTemplate";
 import { getClientIp } from "../../../helpers/getClientIp";
 import { verifyTurnstileToken } from "../../../helpers/verifyTurnstileToken";
 import { generateOtpCode } from "../../../helpers/otpVerifyGuard";
+import { checkTeacherSecondContact } from "../../../helpers/teacherSignupContact";
 
 const OTP_EXPIRATION_MINUTES = 10;
 const MAX_SEND_ATTEMPTS_PER_HOUR = 5;
@@ -14,7 +15,7 @@ const MAX_SEND_ATTEMPTS_PER_HOUR = 5;
 export async function handle(request: Request): Promise<Response> {
   try {
     const json = superjson.parse(await request.text());
-    const { email, turnstileToken } = schema.parse(json);
+    const { email, role, mobileNumber, turnstileToken } = schema.parse(json);
 
     // 0. Turnstile challenge - the same bot check the SMS OTP routes use.
     // No-ops if TURNSTILE_SECRET_KEY isn't configured.
@@ -43,6 +44,11 @@ export async function handle(request: Request): Promise<Response> {
         }),
         { status: 409 }
       );
+    }
+
+    const contactError = await checkTeacherSecondContact(role, "mobileNumber", mobileNumber);
+    if (contactError) {
+      return new Response(superjson.stringify({ error: contactError }), { status: 400 });
     }
 
     // 2. Rate limiting: Check how many OTPs were sent in the last hour

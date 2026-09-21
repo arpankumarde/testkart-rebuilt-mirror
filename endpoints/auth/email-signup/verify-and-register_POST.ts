@@ -19,11 +19,12 @@ import {
   claimOtpAttempt,
   recordOtpVerifyFailure,
 } from "../../../helpers/otpVerifyGuard";
+import { checkTeacherSecondContact } from "../../../helpers/teacherSignupContact";
 
 export async function handle(request: Request): Promise<Response> {
   try {
     const json = superjson.parse(await request.text());
-    const { email, otpCode, role, displayName } = schema.parse(json);
+    const { email, otpCode, role, displayName, mobileNumber } = schema.parse(json);
     const ipAddress = getClientIp(request);
 
     const limitMessage = await checkOtpVerifyLimit(email, ipAddress);
@@ -88,13 +89,18 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
+    const contactError = await checkTeacherSecondContact(role, "mobileNumber", mobileNumber);
+    if (contactError) {
+      return new Response(superjson.stringify({ error: contactError }), { status: 400 });
+    }
+
     // 5. Create the user with the provided displayName
     const newUser = await db
       .insertInto("users")
       .values({
         displayName,
         email,
-        mobileNumber: null,
+        mobileNumber: role === "teacher" && mobileNumber ? mobileNumber : null,
         role: role,
         emailVerified: true,
         mobileVerified: false,

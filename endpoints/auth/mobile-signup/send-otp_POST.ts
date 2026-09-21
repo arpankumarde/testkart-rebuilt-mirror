@@ -7,13 +7,14 @@ import { getClientIp } from "../../../helpers/getClientIp";
 import { checkOtpRateLimit } from "../../../helpers/otpRateLimit";
 import { verifyTurnstileToken } from "../../../helpers/verifyTurnstileToken";
 import { generateOtpCode } from "../../../helpers/otpVerifyGuard";
+import { checkTeacherSecondContact } from "../../../helpers/teacherSignupContact";
 
 const OTP_EXPIRATION_MINUTES = 10;
 
 export async function handle(request: Request): Promise<Response> {
   try {
     const json = superjson.parse(await request.text());
-    const { mobileNumber, turnstileToken } = schema.parse(json);
+    const { mobileNumber, role, email, turnstileToken } = schema.parse(json);
     const ipAddress = getClientIp(request);
 
     // 0. Turnstile challenge — the primary defense against the automated
@@ -42,6 +43,11 @@ export async function handle(request: Request): Promise<Response> {
         }),
         { status: 409 }
       );
+    }
+
+    const contactError = await checkTeacherSecondContact(role, "email", email);
+    if (contactError) {
+      return new Response(superjson.stringify({ error: contactError }), { status: 400 });
     }
 
     // 2. Rate limiting: per-number cooldown/caps and per-IP caps. Every send

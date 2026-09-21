@@ -1,6 +1,8 @@
 import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCompleteOnboardingMutation } from "../helpers/useTeacherOnboarding";
+import { useAuth } from "../helpers/useAuth";
+import { sanitizeMobileInput } from "../helpers/normalizePhoneNumber";
 import { toast } from "sonner";
 import { Button } from "./Button";
 import { Input } from "./Input";
@@ -19,6 +21,8 @@ const CONTENT_TYPES = ["Mock Tests", "Practice Questions", "Study Notes", "Cours
 const TEACHING_LANGUAGES = ["English", "Hindi", "Hinglish", "Bengali", "Marathi", "Tamil", "Telugu", "Kannada", "Malayalam", "Gujarati", "Punjabi", "Other"];
 const GOALS = ["Earn extra income", "Build my personal brand", "Reach more students", "Sell my existing content", "Conduct live tests", "Create AI-generated mock tests"];
 const DISCOVERY_SOURCES = ["YouTube", "Facebook", "Instagram", "Google", "Friend", "WhatsApp", "Workshop", "Referral", "Other"];
+const MOBILE_PATTERN = /^[6-9]\d{9}$/;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // --- Tags Input Component ---
 interface TagsInputProps {
@@ -146,12 +150,25 @@ function OtherInput({ value, onChange, onCommit }: OtherInputProps) {
 
 // --- Main Quiz Component ---
 export function TeacherOnboardingQuiz() {
+  const { authState } = useAuth();
+  const authUser = authState.type === "authenticated" ? authState.user : null;
+  // Fixed at mount so the step count cannot shift mid-quiz. Google signups
+  // arrive without a mobile number, so they get a contact step first.
+  const [contactNeeds] = useState(() => ({
+    mobile: !authUser?.mobileNumber,
+    email: !authUser?.email,
+  }));
+  const contactOffset = contactNeeds.mobile || contactNeeds.email ? 1 : 0;
+
   const [currentStep, setCurrentStep] = useState(0);
-  const totalSteps = 10;
+  const totalSteps = 10 + contactOffset;
+  const quizStep = currentStep - contactOffset;
   const navigate = useNavigate();
   const completeMutation = useCompleteOnboardingMutation();
 
   // State
+  const [mobileNumber, setMobileNumber] = useState("");
+  const [email, setEmail] = useState("");
   const [teachingCategories, setTeachingCategories] = useState<string[]>([]);
   const [subjects, setSubjects] = useState<string[]>([]);
   const [targetExams, setTargetExams] = useState<string[]>([]);
@@ -228,35 +245,45 @@ export function TeacherOnboardingQuiz() {
   };
 
   const handleNext = () => {
-    if (currentStep === 0 && teachingCategories.length === 0) {
+    if (contactOffset && currentStep === 0) {
+      if (contactNeeds.mobile && !MOBILE_PATTERN.test(mobileNumber)) {
+        toast.error("Please enter a valid 10-digit mobile number");
+        return;
+      }
+      if (contactNeeds.email && !EMAIL_PATTERN.test(email.trim())) {
+        toast.error("Please enter a valid email address");
+        return;
+      }
+    }
+    if (quizStep === 0 && teachingCategories.length === 0) {
       toast.error("Please select at least one option");
       return;
     }
-    if (currentStep === 1 && subjects.length === 0) {
+    if (quizStep === 1 && subjects.length === 0) {
       toast.error("Please select at least one option");
       return;
     }
-    if (currentStep === 2 && targetExams.length === 0) {
+    if (quizStep === 2 && targetExams.length === 0) {
       toast.error("Please select at least one option");
       return;
     }
-    if (currentStep === 3 && !teachingExperienceLevel) {
+    if (quizStep === 3 && !teachingExperienceLevel) {
       toast.error("Please select an option");
       return;
     }
-    if (currentStep === 4 && !currentOccupation) {
+    if (quizStep === 4 && !currentOccupation) {
       toast.error("Please select an option");
       return;
     }
-    if (currentStep === 5 && contentTypes.length === 0) {
+    if (quizStep === 5 && contentTypes.length === 0) {
       toast.error("Please select at least one option");
       return;
     }
-    if (currentStep === 6 && languages.length === 0) {
+    if (quizStep === 6 && languages.length === 0) {
       toast.error("Please select at least one option");
       return;
     }
-    if (currentStep === 7 && !goals) {
+    if (quizStep === 7 && !goals) {
       toast.error("Please select an option");
       return;
     }
@@ -302,6 +329,8 @@ export function TeacherOnboardingQuiz() {
         linkedin: linkedin || undefined,
       } : undefined,
       signupSource,
+      mobileNumber: contactNeeds.mobile ? mobileNumber : undefined,
+      email: contactNeeds.email ? email.trim().toLowerCase() : undefined,
     };
 
     try {
@@ -339,8 +368,47 @@ export function TeacherOnboardingQuiz() {
       <div className={styles.card}>
         <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
           
+          {contactOffset === 1 && currentStep === 0 && (
+            <div className={styles.questionContainer} key="contact">
+              <h2 className={styles.questionTitle}>
+                How can we reach you?
+                <span style={{ display: "block", fontSize: "0.875rem", fontWeight: 400, color: "var(--muted-foreground)", marginTop: "var(--spacing-2)" }}>
+                  Required to set up your teacher account
+                </span>
+              </h2>
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--spacing-4)" }}>
+                {contactNeeds.mobile && (
+                  <div>
+                    <label style={formLabelStyle} htmlFor="onboarding-mobile">Mobile Number</label>
+                    <Input
+                      id="onboarding-mobile"
+                      type="tel"
+                      autoComplete="tel"
+                      value={mobileNumber}
+                      onChange={(e) => setMobileNumber(sanitizeMobileInput(e.target.value))}
+                      placeholder="Enter your 10-digit mobile number"
+                    />
+                  </div>
+                )}
+                {contactNeeds.email && (
+                  <div>
+                    <label style={formLabelStyle} htmlFor="onboarding-email">Email Address</label>
+                    <Input
+                      id="onboarding-email"
+                      type="email"
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Enter your email address"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Step 1: What do you teach? */}
-          {currentStep === 0 && (
+          {quizStep === 0 && (
             <div className={styles.questionContainer} key="step1">
               <h2 className={styles.questionTitle}>What do you teach?</h2>
               <div className={styles.languageChips}>
@@ -366,7 +434,7 @@ export function TeacherOnboardingQuiz() {
           )}
 
           {/* Step 2: Select Subjects */}
-          {currentStep === 1 && (
+          {quizStep === 1 && (
             <div className={styles.questionContainer} key="step2">
               <h2 className={styles.questionTitle}>Select Subjects</h2>
               <div className={styles.languageChips} style={{ marginBottom: "var(--spacing-6)" }}>
@@ -390,7 +458,7 @@ export function TeacherOnboardingQuiz() {
           )}
 
           {/* Step 3: Target Exams */}
-          {currentStep === 2 && (
+          {quizStep === 2 && (
             <div className={styles.questionContainer} key="step3">
               <h2 className={styles.questionTitle}>Target Exams</h2>
               <div className={styles.languageChips}>
@@ -416,7 +484,7 @@ export function TeacherOnboardingQuiz() {
           )}
 
           {/* Step 4: Teaching Experience */}
-          {currentStep === 3 && (
+          {quizStep === 3 && (
             <div className={styles.questionContainer} key="step4">
               <h2 className={styles.questionTitle}>Teaching Experience</h2>
               <div className={styles.languageChips}>
@@ -435,7 +503,7 @@ export function TeacherOnboardingQuiz() {
           )}
 
           {/* Step 5: Current Occupation */}
-          {currentStep === 4 && (
+          {quizStep === 4 && (
             <div className={styles.questionContainer} key="step5">
               <h2 className={styles.questionTitle}>Current Occupation</h2>
               <div className={styles.languageChips}>
@@ -461,7 +529,7 @@ export function TeacherOnboardingQuiz() {
           )}
 
           {/* Step 6: What would you like to publish first? */}
-          {currentStep === 5 && (
+          {quizStep === 5 && (
             <div className={styles.questionContainer} key="step6">
               <h2 className={styles.questionTitle}>
                 What would you like to publish first?
@@ -485,7 +553,7 @@ export function TeacherOnboardingQuiz() {
           )}
 
           {/* Step 7: Which language do you teach in? */}
-          {currentStep === 6 && (
+          {quizStep === 6 && (
             <div className={styles.questionContainer} key="step7">
               <h2 className={styles.questionTitle}>Which language do you teach in?</h2>
               <div className={styles.languageChips}>
@@ -511,7 +579,7 @@ export function TeacherOnboardingQuiz() {
           )}
 
           {/* Step 8: What do you want to achieve with Testkart? */}
-          {currentStep === 7 && (
+          {quizStep === 7 && (
             <div className={styles.questionContainer} key="step8">
               <h2 className={styles.questionTitle}>What do you want to achieve with Testkart?</h2>
               <div className={styles.languageChips}>
@@ -530,7 +598,7 @@ export function TeacherOnboardingQuiz() {
           )}
 
           {/* Step 9: Social Proof (Optional) */}
-          {currentStep === 8 && (
+          {quizStep === 8 && (
             <div className={styles.questionContainer} key="step9">
               <h2 className={styles.questionTitle}>
                 Social Proof <span style={{ fontSize: "1rem", color: "var(--muted-foreground)", fontWeight: 400 }}>(Optional)</span>
@@ -576,7 +644,7 @@ export function TeacherOnboardingQuiz() {
           )}
 
           {/* Step 10: How did you hear about Testkart? */}
-          {currentStep === 9 && (
+          {quizStep === 9 && (
             <div className={styles.questionContainer} key="step10">
               <h2 className={styles.questionTitle}>How did you hear about Testkart?</h2>
               <div className={styles.languageChips}>

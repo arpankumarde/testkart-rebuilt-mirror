@@ -16,6 +16,10 @@ export type AdminCourseListItem = Pick<
   teacherId: Selectable<Users>["id"];
   studentsEnrolled: number;
   lessonsCount: number;
+  videoLessonsCount: number;
+  pdfLessonsCount: number;
+  quizLessonsCount: number;
+  textLessonsCount: number;
 };
 
 export type OutputType = AdminCourseListItem[];

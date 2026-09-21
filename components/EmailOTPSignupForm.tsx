@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
 import {
@@ -15,6 +15,7 @@ import { Spinner } from "./Spinner";
 import { TurnstileWidget, TurnstileWidgetHandle } from "./TurnstileWidget";
 import { useAuth } from "../helpers/useAuth";
 import { trackGTMEvent } from "../helpers/trackGTMEvent";
+import { sanitizeMobileInput } from "../helpers/normalizePhoneNumber";
 import {
   useSendEmailSignupOtpMutation,
   useVerifyEmailSignupAndRegisterMutation,
@@ -23,13 +24,21 @@ import styles from "./EmailOTPSignupForm.module.css";
 
 const RESEND_COOLDOWN_SECONDS = 30;
 
-const emailSchema = z.object({
-  displayName: z
-    .string()
-    .min(2, "Name must be at least 2 characters")
-    .max(100, "Name is too long"),
-  email: z.string().email("Please enter a valid email address"),
-});
+// Teachers must also give a mobile number; students only see name and email.
+const buildEmailSchema = (requireMobile: boolean) =>
+  z.object({
+    displayName: z
+      .string()
+      .min(2, "Name must be at least 2 characters")
+      .max(100, "Name is too long"),
+    email: z.string().email("Please enter a valid email address"),
+    mobileNumber: z
+      .string()
+      .refine(
+        (v) => !requireMobile || /^[6-9]\d{9}$/.test(v),
+        "Please enter a valid 10-digit Indian mobile number"
+      ),
+  });
 
 const otpSchema = z.object({
   otpCode: z
@@ -38,7 +47,7 @@ const otpSchema = z.object({
     .regex(/^\d{6}$/, "OTP must be 6 digits"),
 });
 
-type EmailFormData = z.infer<typeof emailSchema>;
+type EmailFormData = z.infer<ReturnType<typeof buildEmailSchema>>;
 type OtpFormData = z.infer<typeof otpSchema>;
 
 interface EmailOTPSignupFormProps {
@@ -56,6 +65,7 @@ export const EmailOTPSignupForm: React.FC<EmailOTPSignupFormProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [mobileNumber, setMobileNumber] = useState("");
   const [resendTimer, setResendTimer] = useState(0);
   const [turnstileReady, setTurnstileReady] = useState(false);
   const [awaitingToken, setAwaitingToken] = useState(false);
@@ -69,8 +79,10 @@ export const EmailOTPSignupForm: React.FC<EmailOTPSignupFormProps> = ({
   const sendOtpMutation = useSendEmailSignupOtpMutation();
   const verifyAndRegisterMutation = useVerifyEmailSignupAndRegisterMutation();
 
+  const isTeacher = role === "teacher";
+  const emailSchema = useMemo(() => buildEmailSchema(isTeacher), [isTeacher]);
   const emailForm = useForm({
-    defaultValues: { displayName: "", email: "" },
+    defaultValues: { displayName: "", email: "", mobileNumber: "" },
     schema: emailSchema,
   });
   const otpForm = useForm({
@@ -98,12 +110,19 @@ export const EmailOTPSignupForm: React.FC<EmailOTPSignupFormProps> = ({
     // Single-use: the first send spends the token minted on load, and only a
     // later send (a retry or resend) runs a new check.
     const turnstileToken = await turnstileRef.current?.getToken();
+    const teacherMobile = isTeacher ? data.mobileNumber : undefined;
     sendOtpMutation.mutate(
-      { email: data.email, role, turnstileToken: turnstileToken ?? undefined },
+      {
+        email: data.email,
+        role,
+        mobileNumber: teacherMobile,
+        turnstileToken: turnstileToken ?? undefined,
+      },
       {
         onSuccess: () => {
           setEmail(data.email);
           setDisplayName(data.displayName.trim());
+          setMobileNumber(teacherMobile ?? "");
           setStep("otp");
           startResendTimer();
         },
@@ -116,7 +135,7 @@ export const EmailOTPSignupForm: React.FC<EmailOTPSignupFormProps> = ({
   const handleVerifyAndRegister = async (data: OtpFormData) => {
     setError(null);
     verifyAndRegisterMutation.mutate(
-      { email, otpCode: data.otpCode, role, displayName },
+      { email, otpCode: data.otpCode, role, displayName, mobileNumber: mobileNumber || undefined },
       {
         onSuccess: (result) => {
           if ("user" in result) {
@@ -146,9 +165,9 @@ export const EmailOTPSignupForm: React.FC<EmailOTPSignupFormProps> = ({
     if (resendTimer > 0) return;
     setAwaitingToken(true);
     const turnstileToken = await turnstileRef.current?.getToken();
-    // Re-send using the stored email address
+    // Re-send using the stored email address and mobile number
     sendOtpMutation.mutate(
-      { email, role, turnstileToken: turnstileToken ?? undefined },
+      { email, role, mobileNumber: mobileNumber || undefined, turnstileToken: turnstileToken ?? undefined },
       {
         onSuccess: () => {
           startResendTimer();
@@ -207,6 +226,27 @@ export const EmailOTPSignupForm: React.FC<EmailOTPSignupFormProps> = ({
               </FormControl>
               <FormMessage />
             </FormItem>
+            {isTeacher && (
+              <FormItem name="mobileNumber">
+                <FormLabel>Mobile Number</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Enter your 10-digit mobile number"
+                    type="tel"
+                    autoComplete="tel"
+                    disabled={isLoading}
+                    value={emailForm.values.mobileNumber}
+                    onChange={(e) =>
+                      emailForm.setValues((prev) => ({
+                        ...prev,
+                        mobileNumber: sanitizeMobileInput(e.target.value),
+                      }))
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
             <Button
               type="submit"
               disabled={isLoading || !turnstileReady}

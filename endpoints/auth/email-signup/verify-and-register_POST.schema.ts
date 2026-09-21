@@ -18,6 +18,11 @@ export const schema = z.object({
     (val) => val === "student" || val === "teacher",
     { message: "Role must be either student or teacher" }
   ),
+  // Required for teachers by the handler; students never send it.
+  mobileNumber: z
+    .string()
+    .regex(/^[6-9]\d{9}$/, "Please enter a valid 10-digit Indian mobile number")
+    .optional(),
 });
 
 export type InputType = z.infer<typeof schema>;

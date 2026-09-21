@@ -21,6 +21,8 @@ export const schema = z.object({
     (val) => val === "student" || val === "teacher",
     { message: "Role must be either student or teacher" }
   ),
+  // Required for teachers by the handler; students never send it.
+  email: z.string().trim().toLowerCase().email("Please enter a valid email address").optional(),
 });
 
 export type InputType = z.infer<typeof schema>;

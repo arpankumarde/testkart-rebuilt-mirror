@@ -26,6 +26,12 @@ export const schema = z.object({
     })
     .optional(),
   signupSource: z.string().optional(),
+  // Sent only when the account is missing them; the handler requires them then.
+  mobileNumber: z
+    .string()
+    .regex(/^[6-9]\d{9}$/, "Please enter a valid 10-digit Indian mobile number")
+    .optional(),
+  email: z.string().trim().toLowerCase().email("Please enter a valid email address").optional(),
 });
 
 export type InputType = z.infer<typeof schema>;

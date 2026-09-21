@@ -11,6 +11,8 @@ export const schema = z.object({
     (val) => val === "student" || val === "teacher",
     { message: "Role must be either student or teacher" }
   ),
+  // Required for teachers by the handler; students never send it.
+  email: z.string().trim().toLowerCase().email("Please enter a valid email address").optional(),
   // Optional at the schema level so the endpoint can gracefully no-op the
   // check while TURNSTILE_SECRET_KEY isn't configured yet (see
   // helpers/verifyTurnstileToken.tsx) instead of hard-blocking every OTP

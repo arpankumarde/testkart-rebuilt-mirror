@@ -5,6 +5,7 @@ import superjson from "superjson";
 import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
 import { ZodError } from "zod";
 import { User } from "../../../helpers/User";
+import { checkTeacherSecondContact } from "../../../helpers/teacherSignupContact";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -28,17 +29,38 @@ export async function handle(request: Request): Promise<Response> {
     const json = superjson.parse(await request.text());
     const validatedInput = schema.parse(json);
 
+    const existingUser = await db
+      .selectFrom("users")
+      .select(["signupSource", "email", "mobileNumber"])
+      .where("id", "=", effectiveTeacherId)
+      .executeTakeFirst();
+
     // Only set signupSource if it's provided and the user doesn't already have one
     let signupSourceValue: string | undefined = undefined;
-    if (validatedInput.signupSource) {
-      const existingUser = await db
-        .selectFrom("users")
-        .select("signupSource")
-        .where("id", "=", effectiveTeacherId)
-        .executeTakeFirst();
-      
-      if (!existingUser?.signupSource) {
-        signupSourceValue = validatedInput.signupSource;
+    if (validatedInput.signupSource && !existingUser?.signupSource) {
+      signupSourceValue = validatedInput.signupSource;
+    }
+
+    // Teachers must end onboarding with both an email and a mobile number;
+    // whichever the account is missing (e.g. mobile after Google signup) is
+    // collected here and stored unverified.
+    const contactUpdates: { email?: string; emailVerified?: boolean; mobileNumber?: string; mobileVerified?: boolean } = {};
+    if (user.role === "teacher" && existingUser) {
+      if (!existingUser.mobileNumber) {
+        const mobileError = await checkTeacherSecondContact("teacher", "mobileNumber", validatedInput.mobileNumber);
+        if (mobileError) {
+          return new Response(superjson.stringify({ error: mobileError }), { status: 400 });
+        }
+        contactUpdates.mobileNumber = validatedInput.mobileNumber;
+        contactUpdates.mobileVerified = false;
+      }
+      if (!existingUser.email) {
+        const emailError = await checkTeacherSecondContact("teacher", "email", validatedInput.email);
+        if (emailError) {
+          return new Response(superjson.stringify({ error: emailError }), { status: 400 });
+        }
+        contactUpdates.email = validatedInput.email;
+        contactUpdates.emailVerified = false;
       }
     }
 
@@ -60,6 +82,7 @@ export async function handle(request: Request): Promise<Response> {
         websiteUrl: validatedInput.websiteUrl ?? null,
         socialLinks: validatedInput.socialLinks ?? null,
         ...(signupSourceValue !== undefined && { signupSource: signupSourceValue }),
+        ...contactUpdates,
         onboardingCompleted: true,
         updatedAt: new Date(),
       })
