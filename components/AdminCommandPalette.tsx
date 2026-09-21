@@ -21,7 +21,7 @@ import { getCurrentThemeMode, switchToDarkMode, switchToLightMode } from "../hel
 import { postReconcileAllOrders } from "../endpoints/admin/orders/reconcile-all_POST.schema";
 import type { AttentionCounts } from "../endpoints/admin/dashboard/overview_GET.schema";
 import { useInvalidateAdminOverview } from "../helpers/useAdminDashboardOverview";
-import type { AdminRole } from "../helpers/AdminTypes";
+import { hasAdminModule } from "../helpers/adminPermissions";
 import styles from "./AdminCommandPalette.module.css";
 
 type Props = {
@@ -30,10 +30,8 @@ type Props = {
   attention?: AttentionCounts;
 };
 
-const RECONCILE_ROLES: AdminRole[] = ["super_admin", "admin", "billing_manager"];
-
 /**
- * Ctrl+K / Cmd+K jump box for the admin panel: every page the role can open,
+ * Ctrl+K / Cmd+K jump box for the admin panel: every page the admin can open,
  * the queues that currently need attention, and a few one-shot actions.
  */
 export const AdminCommandPalette = ({ open, onOpenChange, attention }: Props) => {
@@ -41,10 +39,10 @@ export const AdminCommandPalette = ({ open, onOpenChange, attention }: Props) =>
   const navigate = useNavigate();
   const invalidate = useInvalidateAdminOverview();
   const [isLogoutOpen, setLogoutOpen] = useState(false);
-  const role = authState.type === "authenticated" ? authState.admin.role : null;
-  const groups = adminNavigation.visibleGroups(role);
-  const tiles = attention ? adminAttention.tiles(attention, role) : [];
-  const canReconcile = role !== null && RECONCILE_ROLES.includes(role);
+  const permissions = authState.type === "authenticated" ? authState.admin.permissions ?? [] : null;
+  const groups = adminNavigation.visibleGroups(permissions);
+  const tiles = attention ? adminAttention.tiles(attention, permissions) : [];
+  const canReconcile = hasAdminModule(permissions, ["transactions"]);
 
   const reconcile = useMutation({
     mutationFn: () => postReconcileAllOrders({}),

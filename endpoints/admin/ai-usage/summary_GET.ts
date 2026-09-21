@@ -6,7 +6,7 @@ import { sql } from "kysely";
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    await getAdminServerSessionOrThrow(request, ['super_admin', 'admin']);
+    await getAdminServerSessionOrThrow(request);
 
     const url = new URL(request.url);
     const params = url.searchParams;

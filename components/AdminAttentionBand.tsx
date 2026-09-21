@@ -6,7 +6,6 @@ import { ChevronRight, ChevronDown, RefreshCw, CheckCircle2 } from "lucide-react
 import { Skeleton } from "./Skeleton";
 import { postReconcileAllOrders } from "../endpoints/admin/orders/reconcile-all_POST.schema";
 import type { AttentionCounts } from "../endpoints/admin/dashboard/overview_GET.schema";
-import type { AdminRole } from "../helpers/AdminTypes";
 import { adminAttention, AttentionTile } from "../helpers/adminAttention";
 import { useInvalidateAdminOverview } from "../helpers/useAdminDashboardOverview";
 import { adminFormat } from "../helpers/adminFormat";
@@ -16,7 +15,7 @@ const COLLAPSED_KEY = "admin_attention_collapsed";
 
 type Props = {
   attention: AttentionCounts | undefined;
-  role: AdminRole;
+  permissions: readonly string[];
   isLoading: boolean;
   className?: string;
 };
@@ -67,7 +66,7 @@ const Tile = ({ tile }: { tile: AttentionTile }) => {
   );
 };
 
-export const AdminAttentionBand = ({ attention, role, isLoading, className }: Props) => {
+export const AdminAttentionBand = ({ attention, permissions, isLoading, className }: Props) => {
   const bodyId = useId();
   const [collapsed, setCollapsed] = useState(false);
 
@@ -91,7 +90,7 @@ export const AdminAttentionBand = ({ attention, role, isLoading, className }: Pr
     });
   };
 
-  const tiles = attention ? adminAttention.tiles(attention, role) : [];
+  const tiles = attention ? adminAttention.tiles(attention, permissions) : [];
   const total = tiles.reduce((sum, tile) => sum + tile.count, 0);
   const showSkeleton = isLoading && !attention;
   const summary =

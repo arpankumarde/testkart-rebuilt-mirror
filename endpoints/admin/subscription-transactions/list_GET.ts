@@ -7,7 +7,7 @@ import superjson from "superjson";
 export async function handle(request: Request) {
   try {
     // 1. Admin protection
-    await getAdminServerSessionOrThrow(request, ['super_admin', 'admin', 'billing_manager']);
+    await getAdminServerSessionOrThrow(request);
 
     // 2. Fetch all subscription transactions joined with users and subscription_plans
     const transactions = await db

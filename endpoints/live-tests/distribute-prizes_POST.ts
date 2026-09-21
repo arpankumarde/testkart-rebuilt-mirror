@@ -7,7 +7,7 @@ export async function handle(request: Request) {
   try {
     // Payouts run from the liveTestPrizePayout scheduled job. This route is
     // only a manual trigger for admins.
-    await getAdminServerSessionOrThrow(request, ["super_admin", "admin"]);
+    await getAdminServerSessionOrThrow(request);
 
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);

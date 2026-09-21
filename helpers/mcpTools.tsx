@@ -8,9 +8,14 @@
  * The synthetic Request carries a freshly minted, short-lived admin session cookie. The admin is
  * loaded from the database on every call, so a deactivated account stops working immediately
  * rather than when a stored token happens to expire.
+ *
+ * Each endpoint's session check also enforces the admin's module permissions
+ * (helpers/adminPermissions), so the connector reaches exactly what the admin panel lets that
+ * admin open. The checks here only fail earlier with a clearer message.
  */
 
 import { AdminProfile } from "./AdminTypes";
+import { canCallAdminApi, normalizeAdminPermissions } from "./adminPermissions";
 import { db } from "./db";
 import { createAdminSessionToken } from "./getAdminSession";
 import { assertMcpWritable } from "./mcpPolicy";
@@ -225,6 +230,7 @@ export async function loadAdmin(adminId: number): Promise<AdminProfile> {
       "avatarFileId",
       "bio",
       "isActive",
+      "permissions",
     ])
     .where("id", "=", adminId)
     .executeTakeFirst();
@@ -240,15 +246,24 @@ export async function loadAdmin(adminId: number): Promise<AdminProfile> {
     avatarUrl: row.avatarUrl,
     avatarFileId: row.avatarFileId,
     bio: row.bio,
+    permissions: normalizeAdminPermissions(row.permissions),
   } as AdminProfile;
 }
 
+function assertPermitted(admin: AdminProfile, path: string): void {
+  if (!canCallAdminApi(admin.permissions ?? [], path)) {
+    throw new McpToolError(
+      `Refused: your admin account does not have access to ${path}. An admin with "Admins and access" ` +
+        "can tick that section for you in the admin panel under Settings."
+    );
+  }
+}
+
 async function buildRequest(
-  adminId: number,
+  admin: AdminProfile,
   path: string,
   init: { method: "GET" | "POST"; body?: unknown }
 ): Promise<Request> {
-  const admin = await loadAdmin(adminId);
   const token = await createAdminSessionToken(admin, SESSION_TTL);
   const headers: Record<string, string> = {
     cookie: `admin_session=${token}`,
@@ -277,6 +292,11 @@ export function listReadRoutes(): string[] {
   return Object.keys(READ_ROUTES).sort();
 }
 
+/** Read paths this admin's permissions open. */
+export function listPermittedReadRoutes(permissions: readonly string[]): string[] {
+  return listReadRoutes().filter((path) => canCallAdminApi(permissions, path));
+}
+
 export async function callRead(
   adminId: number,
   path: string,
@@ -293,7 +313,9 @@ export async function callRead(
     if (value !== undefined && value !== null) search.append(key, String(value));
   }
   const suffix = search.toString() ? `?${search.toString()}` : "";
-  const request = await buildRequest(adminId, `${path}${suffix}`, { method: "GET" });
+  const admin = await loadAdmin(adminId);
+  assertPermitted(admin, path);
+  const request = await buildRequest(admin, `${path}${suffix}`, { method: "GET" });
   return redact(await run(handler, request, path));
 }
 
@@ -305,6 +327,8 @@ export async function callWrite(
   assertMcpWritable(routeKey);
   const handler = WRITE_ROUTES[routeKey];
   if (!handler) throw new McpToolError(`No handler registered for ${routeKey}.`);
-  const request = await buildRequest(adminId, routeKey, { method: "POST", body });
+  const admin = await loadAdmin(adminId);
+  assertPermitted(admin, routeKey);
+  const request = await buildRequest(admin, routeKey, { method: "POST", body });
   return run(handler, request, routeKey);
 }

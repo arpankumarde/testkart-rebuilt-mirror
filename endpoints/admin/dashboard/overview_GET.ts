@@ -2,6 +2,7 @@ import { sql } from "kysely";
 import superjson from "superjson";
 import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
+import { hasAdminModule, type AdminModule } from "../../../helpers/adminPermissions";
 import {
   schema,
   OutputType,
@@ -47,6 +48,75 @@ const date = (value: unknown): Date => {
 
 const isoDay = (utcMs: number): string => new Date(utcMs + IST_OFFSET_MS).toISOString().slice(0, 10);
 
+// Every admin loads this for the sidebar badges, so each count is kept only for admins who hold
+// the module it belongs to. The KPIs, charts, sellers and orders need the dashboard module.
+const ATTENTION_MODULE: Record<keyof AttentionCounts, AdminModule> = {
+  staleOrders: "transactions",
+  failedOrders7d: "transactions",
+  teacherWithdrawals: "teacher_withdrawals",
+  teacherWithdrawalsAmount: "teacher_withdrawals",
+  studentWithdrawals: "student_withdrawals",
+  studentWithdrawalsAmount: "student_withdrawals",
+  teacherBankPending: "teacher_bank_details",
+  studentBankPending: "student_bank_details",
+  supportOpen: "support",
+  supportUnread: "support",
+  inquiriesPending: "teacher_inquiries",
+  contactNew: "contact_submissions",
+  reviewsPending: "content_reviews",
+  demoRequestsNew: "sales",
+  followupsOverdue: "sales",
+  prizesUndistributed: "live_tests",
+  subscriptionsExpiring7d: "subscriptions",
+  aiFailed7d: "ai_usage",
+  blogCommentsPending: "blog_comments",
+};
+
+function restrictToPermissions(output: OutputType, permissions: readonly string[]): OutputType {
+  const attention = Object.fromEntries(
+    (Object.keys(output.attention) as (keyof AttentionCounts)[]).map((key) => [
+      key,
+      hasAdminModule(permissions, [ATTENTION_MODULE[key]]) ? output.attention[key] : 0,
+    ])
+  ) as AttentionCounts;
+
+  if (hasAdminModule(permissions, ["dashboard"])) return { ...output, attention };
+
+  const zero = { current: 0, previous: 0 };
+  return {
+    ...output,
+    attention,
+    kpis: {
+      revenue: zero,
+      subscriptionRevenue: zero,
+      orders: zero,
+      paidOrders: zero,
+      failedOrders: zero,
+      newTeachers: zero,
+      newStudents: zero,
+      attempts: zero,
+      testsPublished: zero,
+    },
+    daily: [],
+    mix: [],
+    topSellers: [],
+    topTeachers: [],
+    recentOrders: [],
+    totals: {
+      teachers: 0,
+      students: 0,
+      publishedTests: 0,
+      publishedCourses: 0,
+      publishedProducts: 0,
+      publishedBundles: 0,
+      activeLiveTests: 0,
+      activeSubscriptions: 0,
+      completedOrders: 0,
+      lifetimeRevenue: 0,
+    },
+  };
+}
+
 /**
  * Local-midnight boundaries for "the last N calendar days including today" and
  * the N days before that. Returned as UTC instants for timestamptz comparisons,
@@ -68,7 +138,7 @@ function windowBounds(days: number) {
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    await getAdminServerSessionOrThrow(request);
+    const admin = await getAdminServerSessionOrThrow(request);
 
     const url = new URL(request.url);
     const { range } = schema.parse({ range: url.searchParams.get("range") ?? undefined });
@@ -417,7 +487,7 @@ export async function handle(request: Request): Promise<Response> {
       totals,
     };
 
-    return new Response(superjson.stringify(output), {
+    return new Response(superjson.stringify(restrictToPermissions(output, admin.permissions ?? [])), {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {

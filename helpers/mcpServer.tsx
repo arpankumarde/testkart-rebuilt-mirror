@@ -25,7 +25,7 @@ export type McpServerConfig = {
   name: string;
   version: string;
   instructions: string;
-  listTools: () => ToolDefinition[];
+  listTools: (access: McpAccess) => ToolDefinition[] | Promise<ToolDefinition[]>;
   callTool: (access: McpAccess, name: string, args: Record<string, unknown>) => Promise<unknown>;
 };
 
@@ -159,7 +159,7 @@ export async function handleMcpRequest(request: Request, config: McpServerConfig
         return rpcResult(id, {});
 
       case "tools/list":
-        return rpcResult(id, { tools: config.listTools() });
+        return rpcResult(id, { tools: await config.listTools(access) });
 
       case "tools/call": {
         const callParams = (params ?? {}) as { name?: string; arguments?: Record<string, unknown> };

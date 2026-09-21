@@ -7,7 +7,7 @@ import { lockWallet } from "../../../helpers/walletLock";
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    await getAdminServerSessionOrThrow(request, ['super_admin', 'admin', 'billing_manager']);
+    await getAdminServerSessionOrThrow(request);
 
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);

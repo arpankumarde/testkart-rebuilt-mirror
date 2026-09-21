@@ -7,7 +7,7 @@ import { mapExamContentRow, EXAM_CONTENT_SELECT_COLUMNS } from "../../../helpers
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    await getAdminServerSessionOrThrow(request, ["super_admin", "admin", "manager"]);
+    await getAdminServerSessionOrThrow(request);
 
     const url = new URL(request.url);
     const validatedInput = schema.parse({

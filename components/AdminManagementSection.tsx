@@ -4,9 +4,10 @@ import {
   useCreateAdmin,
   useUpdateAdminRole,
   useDeactivateAdmin,
+  useUpdateAdminPermissions,
 } from "../helpers/useAdminManagement";
 import { useAdminAuth } from "../helpers/useAdminAuth";
-import { Shield, MoreHorizontal, UserPlus } from "lucide-react";
+import { Shield, MoreHorizontal, UserPlus, KeyRound } from "lucide-react";
 import { Badge } from "./Badge";
 import { Button } from "./Button";
 import { Dialog } from "./Dialog";
@@ -51,6 +52,12 @@ import { toast } from "sonner";
 import * as z from "zod";
 import { AdminRole, AdminRoleArrayValues } from "../helpers/schema";
 import { AdminListItem } from "../endpoints/admin/admins/list_GET.schema";
+import { AdminAccessChecklist } from "./AdminAccessChecklist";
+import {
+  ADMIN_MODULE_KEYS,
+  normalizeAdminPermissions,
+  type AdminModule,
+} from "../helpers/adminPermissions";
 import styles from "./AdminManagementSection.module.css";
 
 const createAdminSchema = z.object({
@@ -61,7 +68,16 @@ const createAdminSchema = z.object({
     .min(8, "Password must be at least 8 characters")
     .max(64, "Password must be 64 characters or fewer"),
   role: z.enum(AdminRoleArrayValues),
+  permissions: z.array(z.enum(ADMIN_MODULE_KEYS as [AdminModule, ...AdminModule[]])),
 });
+
+const EMPTY_ADMIN = {
+  email: "",
+  fullName: "",
+  password: "",
+  role: "admin" as AdminRole,
+  permissions: [] as AdminModule[],
+};
 
 const CreateAdminDialog = ({
   open,
@@ -72,12 +88,7 @@ const CreateAdminDialog = ({
 }) => {
   const form = useForm({
     schema: createAdminSchema,
-    defaultValues: {
-      email: "",
-      fullName: "",
-      password: "",
-      role: "admin",
-    },
+    defaultValues: EMPTY_ADMIN,
   });
 
   const createAdmin = useCreateAdmin();
@@ -87,12 +98,7 @@ const CreateAdminDialog = ({
       onSuccess: () => {
         toast.success("Admin created successfully");
         onOpenChange(false);
-        form.setValues({
-          email: "",
-          fullName: "",
-          password: "",
-          role: "admin",
-        });
+        form.setValues(EMPTY_ADMIN);
       },
       onError: (error) => {
         toast.error(
@@ -104,10 +110,10 @@ const CreateAdminDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <ConsoleDialogContent size="md">
+      <ConsoleDialogContent size="lg">
         <ConsoleDialogHeader
           title="Create admin"
-          description="Add a new administrator to the platform."
+          description="Add a new administrator and choose which sections they can open."
         />
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -173,6 +179,14 @@ const CreateAdminDialog = ({
                 </FormControl>
                 <FormMessage />
               </FormItem>
+              <FormItem name="permissions">
+                <FormLabel>Access</FormLabel>
+                <AdminAccessChecklist
+                  value={form.values.permissions}
+                  onChange={(permissions) => form.setValues((v) => ({ ...v, permissions }))}
+                />
+                <FormMessage />
+              </FormItem>
             </ConsoleDialogBody>
             <ConsoleDialogFooter>
               <Button
@@ -193,11 +207,80 @@ const CreateAdminDialog = ({
   );
 };
 
+const EditAccessDialog = ({
+  admin,
+  onOpenChange,
+}: {
+  admin: AdminListItem | null;
+  onOpenChange: (open: boolean) => void;
+}) => {
+  const updatePermissions = useUpdateAdminPermissions();
+  const [draft, setDraft] = useState<AdminModule[]>([]);
+  const [draftFor, setDraftFor] = useState<number | null>(null);
+
+  if (admin && draftFor !== admin.id) {
+    setDraftFor(admin.id);
+    setDraft(normalizeAdminPermissions(admin.permissions));
+  }
+
+  const save = () => {
+    if (!admin) return;
+    updatePermissions.mutate(
+      { adminId: admin.id, permissions: draft },
+      {
+        onSuccess: () => {
+          toast.success(`Access updated for ${admin.fullName}`);
+          onOpenChange(false);
+        },
+        onError: (error) =>
+          toast.error(error instanceof Error ? error.message : "Failed to update access"),
+      }
+    );
+  };
+
+  return (
+    <Dialog
+      open={admin !== null}
+      onOpenChange={(open) => {
+        if (!open) setDraftFor(null);
+        onOpenChange(open);
+      }}
+    >
+      <ConsoleDialogContent size="lg">
+        <ConsoleDialogHeader
+          title={admin ? `Access for ${admin.fullName}` : "Access"}
+          description="Ticked sections show in their sidebar and work through the AI connector. Changes apply on their next click."
+          icon={<KeyRound size={18} />}
+        />
+        <ConsoleDialogBody>
+          <AdminAccessChecklist value={draft} onChange={setDraft} disabled={updatePermissions.isPending} />
+        </ConsoleDialogBody>
+        <ConsoleDialogFooter>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button type="button" onClick={save} disabled={updatePermissions.isPending}>
+            Save access
+          </Button>
+        </ConsoleDialogFooter>
+      </ConsoleDialogContent>
+    </Dialog>
+  );
+};
+
+const accessSummary = (permissions: readonly string[]) => {
+  const count = normalizeAdminPermissions(permissions).length;
+  if (count === 0) return "No access";
+  if (count === ADMIN_MODULE_KEYS.length) return "All sections";
+  return `${count} of ${ADMIN_MODULE_KEYS.length} sections`;
+};
+
 /* Shared by the loading and loaded tables so the columns do not jump. */
 const TableColumns = () => (
   <colgroup>
     <col />
     <col className={styles.colRole} />
+    <col className={styles.colAccess} />
     <col className={styles.colDate} />
     <col className={styles.colActions} />
   </colgroup>
@@ -214,6 +297,7 @@ const AdminRowSkeleton = () => (
   <tr>
     <td><StackSkeleton top="45%" bottom="65%" /></td>
     <td><Skeleton style={{ height: "1.125rem", width: "4rem" }} /></td>
+    <td><Skeleton style={{ height: "0.875rem", width: "5.5rem" }} /></td>
     <td><StackSkeleton top="4.5rem" bottom="3rem" /></td>
     <td><Skeleton style={{ height: "1.5rem", width: "1.5rem", marginLeft: "auto" }} /></td>
   </tr>
@@ -226,7 +310,7 @@ const AdminCardSkeleton = () => (
       <Skeleton style={{ height: "2rem", width: "2rem", flexShrink: 0 }} />
     </div>
     <div className={styles.cardStats}>
-      {Array.from({ length: 2 }).map((_, i) => (
+      {Array.from({ length: 3 }).map((_, i) => (
         <Skeleton key={i} style={{ height: "2rem", width: "100%" }} />
       ))}
     </div>
@@ -239,11 +323,12 @@ const formatLoginDate = (date: Date | null) =>
 const formatLoginTime = (date: Date | null) =>
   date ? new Date(date).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : null;
 
-type AdminSortKey = "admin" | "role" | "lastLogin";
+type AdminSortKey = "admin" | "role" | "access" | "lastLogin";
 
 const SORT_ACCESSORS: SortAccessors<AdminListItem, AdminSortKey> = {
   admin: (a) => a.fullName,
   role: (a) => a.role,
+  access: (a) => normalizeAdminPermissions(a.permissions).length,
   lastLogin: (a) => (a.lastLoginAt ? new Date(a.lastLoginAt) : null),
 };
 
@@ -253,6 +338,7 @@ export const AdminManagementSection = () => {
   const updateRole = useUpdateAdminRole();
   const deactivateAdmin = useDeactivateAdmin();
   const [createOpen, setCreateOpen] = useState(false);
+  const [accessFor, setAccessFor] = useState<AdminListItem | null>(null);
   const { sorted: admins, ...sort } = useTableSort(data?.admins, SORT_ACCESSORS);
 
   const handleUpdateRole = (adminId: number, role: AdminRole) => {
@@ -305,6 +391,13 @@ export const AdminManagementSection = () => {
     </Badge>
   );
 
+  const renderAccess = (admin: AdminListItem) => {
+    const summary = accessSummary(admin.permissions);
+    return (
+      <span className={summary === "No access" ? styles.emptyLine : styles.valueLine}>{summary}</span>
+    );
+  };
+
   const renderActions = (admin: AdminListItem) => {
     const isSelf = currentUser?.id === admin.id;
     return (
@@ -323,6 +416,9 @@ export const AdminManagementSection = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem className={styles.menuItem} onClick={() => setAccessFor(admin)}>
+              Edit access
+            </DropdownMenuItem>
             <DropdownMenuSub>
               <DropdownMenuSubTrigger className={styles.menuItem}>
                 Change role
@@ -388,6 +484,7 @@ export const AdminManagementSection = () => {
               <tr>
                 <SortableTh column="admin" sort={sort}>Admin</SortableTh>
                 <SortableTh column="role" sort={sort}>Role</SortableTh>
+                <SortableTh column="access" sort={sort}>Access</SortableTh>
                 <SortableTh column="lastLogin" sort={sort}>Last login</SortableTh>
                 <th><span className={styles.srOnly}>Actions</span></th>
               </tr>
@@ -397,6 +494,7 @@ export const AdminManagementSection = () => {
                 <tr key={admin.id}>
                   <td>{renderIdentity(admin)}</td>
                   <td>{renderRole(admin)}</td>
+                  <td>{renderAccess(admin)}</td>
                   <td>
                     <div className={styles.stack}>
                       <span className={admin.lastLoginAt ? styles.valueLine : styles.emptyLine}>
@@ -424,6 +522,10 @@ export const AdminManagementSection = () => {
                 <div className={styles.cardStat}>
                   <dt>Role</dt>
                   <dd>{renderRole(admin)}</dd>
+                </div>
+                <div className={styles.cardStat}>
+                  <dt>Access</dt>
+                  <dd>{renderAccess(admin)}</dd>
                 </div>
                 <div className={styles.cardStat}>
                   <dt>Last login</dt>
@@ -456,6 +558,7 @@ export const AdminManagementSection = () => {
       </div>
       <div className={styles.results}>{renderContent()}</div>
       <CreateAdminDialog open={createOpen} onOpenChange={setCreateOpen} />
+      <EditAccessDialog admin={accessFor} onOpenChange={(open) => !open && setAccessFor(null)} />
     </section>
   );
 };

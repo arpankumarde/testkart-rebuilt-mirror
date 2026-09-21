@@ -11,7 +11,7 @@ import {
 export async function handle(request: Request) {
   try {
             // 1. Authenticate the admin user
-    await getAdminServerSessionOrThrow(request, ['super_admin', 'admin']);
+    await getAdminServerSessionOrThrow(request);
 
     // 2. Parse request parameters
     const json = superjson.parse(await request.text());

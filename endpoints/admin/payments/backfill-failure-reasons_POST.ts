@@ -90,7 +90,7 @@ const writeColumns = (source: BackfillSource, id: number, columns: PaymentFailur
  */
 export async function handle(request: Request) {
   try {
-    await getAdminServerSessionOrThrow(request, ["super_admin", "admin", "billing_manager"]);
+    await getAdminServerSessionOrThrow(request);
 
     const text = await request.text();
     const input = schema.parse(text ? superjson.parse(text) : {});

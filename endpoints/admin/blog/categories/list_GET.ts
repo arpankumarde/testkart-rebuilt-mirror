@@ -5,7 +5,7 @@ import { getAdminServerSessionOrThrow } from "../../../../helpers/getAdminSessio
 
 export async function handle(request: Request) {
   try {
-    await getAdminServerSessionOrThrow(request, ["super_admin", "admin", "manager"]);
+    await getAdminServerSessionOrThrow(request);
     
     const categories = await db
       .selectFrom("blogCategories")

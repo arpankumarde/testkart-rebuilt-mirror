@@ -6,11 +6,7 @@ import { sql } from "kysely";
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    await getAdminServerSessionOrThrow(request, [
-      "super_admin",
-      "admin",
-      "billing_manager",
-    ]);
+    await getAdminServerSessionOrThrow(request);
 
     const activeTrials = await db
       .selectFrom("teacherSubscriptions as ts")

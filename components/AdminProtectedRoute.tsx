@@ -1,14 +1,15 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAdminAuth } from "../helpers/useAdminAuth";
-import { AdminRole } from "../helpers/AdminTypes";
+import { adminNavigation } from "../helpers/adminNavigation";
 import { Skeleton } from "./Skeleton";
 import styles from "./AdminProtectedRoute.module.css";
 
-export const AdminProtectedRoute: React.FC<{
-  children: React.ReactNode;
-  allowedRoles?: AdminRole[];
-}> = ({ children, allowedRoles }) => {
+/**
+ * Signed-in admins only, and only on pages their modules open (helpers/adminPermissions, matched
+ * on the current path through helpers/adminNavigation). Anyone else goes to their first allowed page.
+ */
+export const AdminProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { authState } = useAdminAuth();
   const location = useLocation();
 
@@ -26,44 +27,11 @@ export const AdminProtectedRoute: React.FC<{
     return <Navigate to="/admin/login" state={{ from: location }} replace />;
   }
 
-  if (
-    allowedRoles &&
-    !allowedRoles.includes(authState.admin.role)
-  ) {
-    return <Navigate to="/admin/dashboard" replace />;
+  const permissions = authState.admin.permissions ?? [];
+  if (!adminNavigation.canOpen(location.pathname, permissions)) {
+    const home = adminNavigation.homeHref(permissions);
+    if (home !== location.pathname) return <Navigate to={home} replace />;
   }
 
   return <>{children}</>;
 };
-
-// Any authenticated admin, regardless of role — used for self-service pages
-// like the admin's own profile settings.
-export const AdminProtectedRouteAny: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <AdminProtectedRoute>
-    {children}
-  </AdminProtectedRoute>
-);
-
-export const AdminProtectedRouteFinance: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <AdminProtectedRoute allowedRoles={['super_admin', 'admin', 'billing_manager']}>
-    {children}
-  </AdminProtectedRoute>
-);
-
-export const AdminProtectedRouteContent: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <AdminProtectedRoute allowedRoles={['super_admin', 'admin', 'manager']}>
-    {children}
-  </AdminProtectedRoute>
-);
-
-export const AdminProtectedRouteSiteAdmin: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <AdminProtectedRoute allowedRoles={['super_admin', 'admin']}>
-    {children}
-  </AdminProtectedRoute>
-);
-
-export const AdminProtectedRouteSuperAdmin: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <AdminProtectedRoute allowedRoles={['super_admin']}>
-    {children}
-  </AdminProtectedRoute>
-);

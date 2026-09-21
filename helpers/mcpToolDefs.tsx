@@ -8,12 +8,19 @@
 
 import { ADMIN_EXAM_SECTION_TYPES } from "./examContentTypes";
 import type { ToolDefinition } from "./mcpServer";
-import { listReadRoutes } from "./mcpTools";
+import { listPermittedReadRoutes } from "./mcpTools";
+import { canCallAdminApi } from "./adminPermissions";
 
 export const SERVER_NAME = "testkart-admin";
-export const SERVER_VERSION = "1.4.0";
+export const SERVER_VERSION = "1.5.0";
 
 export const SERVER_INSTRUCTIONS = `Operates the live Testkart admin panel as the signed-in admin.
+
+Access. Each admin is given access to specific sections of the admin panel, and this connection
+has exactly the same access: the tool list and the testkart_read paths only include what this
+admin may open, and anything else is refused. testkart_whoami lists the sections. If a request
+needs a section that is missing, say so; another admin with "Admins and access" can grant it in
+the admin panel. Do not look for ways around a refusal.
 
 Scope. Reads cover every admin screen's data, listed by testkart_read, except invoice PDF
 downloads and bank details / KYC documents. Account numbers, IFSC codes, UPI ids and PAN details
@@ -173,8 +180,10 @@ const EXAM_CONTENT_SECTION_INPUT: JsonSchema = {
   additionalProperties: false,
 };
 
-export function buildToolDefinitions(): ToolDefinition[] {
-  return [
+/** The tools this admin's permissions open: testkart_read lists only permitted paths, writes need their section. */
+export function buildToolDefinitions(permissions: readonly string[]): ToolDefinition[] {
+  const readPaths = listPermittedReadRoutes(permissions);
+  const all: ToolDefinition[] = [
     {
       name: "testkart_whoami",
       description: "Show the Testkart admin account this connection is authenticated as, and the connector's scope.",
@@ -192,7 +201,7 @@ export function buildToolDefinitions(): ToolDefinition[] {
         properties: {
           path: {
             type: "string",
-            enum: listReadRoutes(),
+            enum: readPaths,
             description: "Which admin surface to read.",
           },
           query: {
@@ -430,6 +439,13 @@ export function buildToolDefinitions(): ToolDefinition[] {
       annotations: { destructiveHint: true, idempotentHint: false },
     },
   ];
+
+  return all.filter((tool) => {
+    if (tool.name === "testkart_whoami") return true;
+    if (tool.name === "testkart_read") return readPaths.length > 0;
+    const route = TOOL_WRITE_ROUTES[tool.name];
+    return route !== undefined && canCallAdminApi(permissions, route);
+  });
 }
 
 /** Tool name to the admin route it writes through. Reads are handled separately. */

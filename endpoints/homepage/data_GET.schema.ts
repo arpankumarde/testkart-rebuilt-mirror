@@ -44,6 +44,20 @@ export type HomepageCourseItem = {
   views: number;
 };
 
+export type HomepageFeaturedCourseItem = {
+  id: number;
+  title: string;
+  slug: string;
+  thumbnailUrl: string | null;
+  price: number;
+  examName: string | null;
+  level: "beginner" | "intermediate" | "advanced" | null;
+  totalLessons: number;
+  teacherName: string;
+  teacherAvatarUrl: string | null;
+  teacherIsVerified: boolean;
+};
+
 export type HomepageNoteItem = {
   id: number;
   title: string;
@@ -125,6 +139,7 @@ export type HomepageTeacher = {
 export type OutputType = {
   topMockTests: HomepageTestItem[];
   popularCourses: HomepageCourseItem[];
+  featuredCourses: HomepageFeaturedCourseItem[];
   popularNotes: HomepageNoteItem[];
   liveTestSpotlight: HomepageLiveTestSpotlight[];
   popularTeachers: HomepageTeacher[];

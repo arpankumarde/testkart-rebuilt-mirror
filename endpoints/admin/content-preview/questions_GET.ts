@@ -7,7 +7,7 @@ const toNumber = (value: unknown): number | null => (value === null || value ===
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    await getAdminServerSessionOrThrow(request, ["super_admin", "admin", "manager"]);
+    await getAdminServerSessionOrThrow(request);
   } catch {
     return new Response(superjson.stringify({ error: "Not authenticated" }), { status: 401 });
   }

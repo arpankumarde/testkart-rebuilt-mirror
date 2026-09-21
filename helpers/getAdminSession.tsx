@@ -1,5 +1,6 @@
 import { jwtVerify, SignJWT } from "jose";
 import { AdminProfile, AdminRole } from "./AdminTypes";
+import { adminApiRouteKey, canCallAdminApi, normalizeAdminPermissions } from "./adminPermissions";
 import { db } from "./db";
 
 const encoder = new TextEncoder();
@@ -30,6 +31,12 @@ export class ForbiddenError extends Error {
   }
 }
 
+/**
+ * Verifies the admin session and checks the admin's module permissions for the endpoint being
+ * called (helpers/adminPermissions API_RULES, matched on the request path). allowedRoles only
+ * applies to non-admin endpoints that also accept an admin session; admin endpoints are gated by
+ * permissions alone. Role and permissions are read fresh from the database on every call.
+ */
 export async function getAdminServerSessionOrThrow(
   request: Request,
   allowedRoles?: AdminRole[]
@@ -60,27 +67,40 @@ export async function getAdminServerSessionOrThrow(
       delete profileAny.isSuperAdmin;
     }
 
-    if (payload.iat) {
-      const adminRecord = await db
-        .selectFrom("admins")
-        .select("sessionInvalidatedAt")
-        .where("id", "=", adminProfile.id)
-        .executeTakeFirst();
+    const adminRecord = await db
+      .selectFrom("admins")
+      .select(["sessionInvalidatedAt", "isActive", "role", "permissions"])
+      .where("id", "=", adminProfile.id)
+      .executeTakeFirst();
 
-      if (
-        adminRecord?.sessionInvalidatedAt &&
-        payload.iat * 1000 < new Date(adminRecord.sessionInvalidatedAt).getTime()
-      ) {
-        throw new NotAuthenticatedError("Session has been invalidated");
-      }
+    if (!adminRecord || adminRecord.isActive === false) {
+      throw new NotAuthenticatedError();
     }
 
-    if (allowedRoles && !allowedRoles.includes(adminProfile.role)) {
+    if (
+      payload.iat &&
+      adminRecord.sessionInvalidatedAt &&
+      payload.iat * 1000 < new Date(adminRecord.sessionInvalidatedAt).getTime()
+    ) {
+      throw new NotAuthenticatedError("Session has been invalidated");
+    }
+
+    adminProfile.role = adminRecord.role;
+    adminProfile.permissions = normalizeAdminPermissions(adminRecord.permissions);
+
+    const routeKey = adminApiRouteKey(new URL(request.url).pathname);
+    const isAdminEndpoint = routeKey.startsWith("admin/") || routeKey === "live-tests/distribute-prizes";
+
+    if (isAdminEndpoint) {
+      if (!canCallAdminApi(adminProfile.permissions, routeKey)) {
+        throw new ForbiddenError("Access denied: your admin account does not have access to this section");
+      }
+    } else if (allowedRoles && !allowedRoles.includes(adminProfile.role)) {
       throw new ForbiddenError("Access denied: insufficient permissions");
     }
 
     return adminProfile;
-    } catch (error) {
+  } catch (error) {
     if (error instanceof NotAuthenticatedError) {
       throw error;
     }

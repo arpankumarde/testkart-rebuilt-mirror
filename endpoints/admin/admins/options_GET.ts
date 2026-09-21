@@ -3,12 +3,12 @@ import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import type { OutputType } from "./options_GET.schema";
 
-// Admin names for pickers such as an exam's owner. admin/admins/list is for
-// super admins only; this is readable by every role that works on content, so
-// it carries no emails, roles or login times.
+// Admin names for pickers such as an exam's owner. admin/admins/list needs the
+// admins module; this is readable by every admin, so it carries no emails,
+// roles or login times.
 export async function handle(request: Request) {
   try {
-    await getAdminServerSessionOrThrow(request, ["super_admin", "admin", "manager"]);
+    await getAdminServerSessionOrThrow(request);
 
     const rows = await db
       .selectFrom("admins")

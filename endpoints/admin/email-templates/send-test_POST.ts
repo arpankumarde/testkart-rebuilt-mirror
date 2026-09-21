@@ -8,7 +8,7 @@ import superjson from "superjson";
 export async function handle(request: Request) {
   try {
     // Require admin authentication
-    await getAdminServerSessionOrThrow(request, ['super_admin', 'admin']);
+    await getAdminServerSessionOrThrow(request);
 
     const json = superjson.parse(await request.text());
     const { templateId, recipientEmail } = schema.parse(json);

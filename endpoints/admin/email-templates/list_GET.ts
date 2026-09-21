@@ -6,7 +6,7 @@ import superjson from "superjson";
 export async function handle(request: Request) {
   try {
     // Require admin authentication
-    await getAdminServerSessionOrThrow(request, ['super_admin', 'admin']);
+    await getAdminServerSessionOrThrow(request);
 
     const templates = await db
       .selectFrom("emailTemplates")

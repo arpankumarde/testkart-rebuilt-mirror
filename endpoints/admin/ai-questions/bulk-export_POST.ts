@@ -7,7 +7,7 @@ import { sql } from "kysely";
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    await getAdminServerSessionOrThrow(request, ['super_admin', 'admin']);
+    await getAdminServerSessionOrThrow(request);
 
     const json = superjson.parse(await request.text());
     const { ids, filters } = schema.parse(json);

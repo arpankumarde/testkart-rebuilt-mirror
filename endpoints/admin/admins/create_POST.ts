@@ -2,11 +2,12 @@ import { schema, OutputType } from "./create_POST.schema";
 import superjson from 'superjson';
 import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
+import { normalizeAdminPermissions } from "../../../helpers/adminPermissions";
 import bcrypt from 'bcryptjs';
 
 export async function handle(request: Request) {
   try {
-    await getAdminServerSessionOrThrow(request, ['super_admin']);
+    await getAdminServerSessionOrThrow(request);
 
     const json = superjson.parse(await request.text());
     const result = schema.parse(json);
@@ -29,6 +30,7 @@ export async function handle(request: Request) {
         fullName: result.fullName,
         passwordHash,
         role: result.role,
+        permissions: normalizeAdminPermissions(result.permissions),
         isActive: true,
       })
       .execute();

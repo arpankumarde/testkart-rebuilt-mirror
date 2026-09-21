@@ -14,9 +14,9 @@ import {
   CreditCard,
   Sparkles,
 } from "lucide-react";
-import type { AdminRole } from "./AdminTypes";
 import type { AttentionCounts } from "../endpoints/admin/dashboard/overview_GET.schema";
-import { adminNavigation } from "./adminNavigation";
+import { adminNavigation, type AdminPermissionList } from "./adminNavigation";
+import { hasAdminModule } from "./adminPermissions";
 import { adminFormat } from "./adminFormat";
 
 export type AttentionTone = "money" | "verify" | "inbox" | "sales" | "content" | "system";
@@ -32,21 +32,19 @@ export type AttentionTile = {
   href: string;
   icon: LucideIcon;
   tone: AttentionTone;
-  /** The stuck-orders queue has a one-click fix that finance roles may run. */
+  /** The stuck-orders queue has a one-click fix for admins with Transactions access. */
   canReconcile?: boolean;
 };
 
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
-const RECONCILE_ROLES: AdminRole[] = ["super_admin", "admin", "billing_manager"];
-
 /**
  * Every work queue an admin can act on, in the order it should be looked at:
  * money first, then verifications, then people waiting on a reply. Zero
- * counts are dropped, and queues that live on a page the role cannot open are
+ * counts are dropped, and queues that live on a page the admin cannot open are
  * dropped too.
  */
-const tiles = (attention: AttentionCounts, role: AdminRole | null): AttentionTile[] => {
+const tiles = (attention: AttentionCounts, permissions: AdminPermissionList): AttentionTile[] => {
   const all: AttentionTile[] = [
     {
       key: "staleOrders",
@@ -56,7 +54,7 @@ const tiles = (attention: AttentionCounts, role: AdminRole | null): AttentionTil
       href: "/admin/transactions?status=pending&filter=stale-pending",
       icon: Clock,
       tone: "money",
-      canReconcile: role !== null && RECONCILE_ROLES.includes(role),
+      canReconcile: hasAdminModule(permissions, ["transactions"]),
     },
     {
       key: "teacherWithdrawals",
@@ -186,10 +184,10 @@ const tiles = (attention: AttentionCounts, role: AdminRole | null): AttentionTil
     },
   ];
 
-  return all.filter((tile) => tile.count > 0 && adminNavigation.canOpen(tile.href, role));
+  return all.filter((tile) => tile.count > 0 && adminNavigation.canOpen(tile.href, permissions));
 };
 
-const total = (attention: AttentionCounts, role: AdminRole | null): number =>
-  tiles(attention, role).reduce((sum, tile) => sum + tile.count, 0);
+const total = (attention: AttentionCounts, permissions: AdminPermissionList): number =>
+  tiles(attention, permissions).reduce((sum, tile) => sum + tile.count, 0);
 
 export const adminAttention = { tiles, total };

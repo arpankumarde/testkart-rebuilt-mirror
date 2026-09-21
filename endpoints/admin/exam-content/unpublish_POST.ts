@@ -6,7 +6,7 @@ import { mapExamContentRow, EXAM_CONTENT_SELECT_COLUMNS } from "../../../helpers
 
 export async function handle(request: Request) {
   try {
-    await getAdminServerSessionOrThrow(request, ["super_admin", "admin", "manager"]);
+    await getAdminServerSessionOrThrow(request);
 
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);

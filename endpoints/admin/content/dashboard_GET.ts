@@ -2,7 +2,6 @@ import { sql } from "kysely";
 import superjson from "superjson";
 import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
-import type { AdminRole } from "../../../helpers/AdminTypes";
 import {
   schema,
   CONTENT_STALE_DAYS,
@@ -22,8 +21,6 @@ import {
 } from "./dashboard_GET.schema";
 
 const RANGE_DAYS = { "1d": 1, "7d": 7, "30d": 30, "90d": 90 } as const;
-
-const CONTENT_ROLES: AdminRole[] = ["super_admin", "admin", "manager"];
 
 // The admin team works in India. IST has no daylight saving, so a fixed offset
 // is exact and calendar days can be cut in JS without a timezone library.
@@ -78,7 +75,7 @@ function windowBounds(days: number) {
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    await getAdminServerSessionOrThrow(request, CONTENT_ROLES);
+    await getAdminServerSessionOrThrow(request);
 
     const url = new URL(request.url);
     const { range } = schema.parse({ range: url.searchParams.get("range") ?? undefined });

@@ -3,6 +3,8 @@
  * It ensures type consistency between frontend and backend code that deals with admin profiles.
  */
 
+import type { AdminModule } from "./adminPermissions";
+
 export interface AdminProfile {
   id: number;
   email: string;
@@ -11,6 +13,8 @@ export interface AdminProfile {
   avatarUrl?: string | null;
   avatarFileId?: string | null;
   bio?: string | null;
+  /** Modules this admin may open. Filled from the database by every session check; the JWT does not carry it. */
+  permissions?: AdminModule[];
 }
 
 export type AdminRole = AdminProfile['role'];

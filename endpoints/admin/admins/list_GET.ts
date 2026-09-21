@@ -5,7 +5,7 @@ import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 
 export async function handle(request: Request) {
   try {
-    await getAdminServerSessionOrThrow(request, ['super_admin']);
+    await getAdminServerSessionOrThrow(request);
 
     const adminsList = await db
       .selectFrom('admins')
@@ -14,6 +14,7 @@ export async function handle(request: Request) {
         'email',
         'fullName',
         'role',
+        'permissions',
         'isActive',
         'lastLoginAt',
         'createdAt'

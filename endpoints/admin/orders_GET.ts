@@ -6,7 +6,7 @@ import superjson from "superjson";
 
 export async function handle(request: Request) {
   try {
-    await getAdminServerSessionOrThrow(request, ['super_admin', 'admin', 'billing_manager']);
+    await getAdminServerSessionOrThrow(request);
 
     // First query: Fetch all orders with user details
     const orders = await db

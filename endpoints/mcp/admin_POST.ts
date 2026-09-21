@@ -13,7 +13,25 @@ import {
   SERVER_VERSION,
   TOOL_WRITE_ROUTES,
 } from "../../helpers/mcpToolDefs";
-import { callRead, callWrite, loadAdmin, McpToolError } from "../../helpers/mcpTools";
+import {
+  callRead,
+  callWrite,
+  listPermittedReadRoutes,
+  loadAdmin,
+  McpToolError,
+} from "../../helpers/mcpTools";
+import { ADMIN_MODULES } from "../../helpers/adminPermissions";
+
+async function listTools(access: McpAccess) {
+  if (access.audience !== "admin") return buildToolDefinitions([]);
+  try {
+    const admin = await loadAdmin(access.adminId);
+    return buildToolDefinitions(admin.permissions ?? []);
+  } catch {
+    // Inactive or removed admins still get whoami, which explains the problem.
+    return buildToolDefinitions([]);
+  }
+}
 
 async function callTool(
   access: McpAccess,
@@ -27,7 +45,13 @@ async function callTool(
 
   if (name === "testkart_whoami") {
     const admin = await loadAdmin(adminId);
-    return { admin, scope: describeMcpScope() };
+    const held = new Set<string>(admin.permissions ?? []);
+    return {
+      admin,
+      access: ADMIN_MODULES.filter((m) => held.has(m.key)).map((m) => `${m.group}: ${m.label}`),
+      readablePaths: listPermittedReadRoutes(admin.permissions ?? []),
+      scope: describeMcpScope(),
+    };
   }
 
   if (name === "testkart_read") {
@@ -68,7 +92,7 @@ export async function handle(request: Request) {
     name: SERVER_NAME,
     version: SERVER_VERSION,
     instructions: SERVER_INSTRUCTIONS,
-    listTools: buildToolDefinitions,
+    listTools,
     callTool,
   });
 }

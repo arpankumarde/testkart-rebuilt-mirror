@@ -4,8 +4,9 @@ import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { hasPendingReview } from "../../../helpers/contentReviewQueue";
 import {
   schema,
-  OutputType,
+  PreviewBody,
   PreviewFact,
+  PreviewReview,
   PreviewStatus,
   PreviewTestItem,
   PreviewBundleItem,
@@ -127,7 +128,7 @@ const catalogueStatus = (status: string | null): PreviewStatus =>
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    await getAdminServerSessionOrThrow(request, ["super_admin", "admin", "manager"]);
+    await getAdminServerSessionOrThrow(request);
   } catch {
     return new Response(superjson.stringify({ error: "Not authenticated" }), { status: 401 });
   }
@@ -140,7 +141,19 @@ export async function handle(request: Request): Promise<Response> {
     }
     const { type, id } = parsed.data;
     const inReview = await hasPendingReview(db, type, id);
-    let output: OutputType;
+    const review = await db
+      .selectFrom("contentReviews")
+      .select(["status", "adminNotes", "reviewedAt"])
+      .where("contentType", "=", type)
+      .where("contentId", "=", id)
+      .where("status", "!=", "pending")
+      .orderBy("updatedAt", "desc")
+      .orderBy("id", "desc")
+      .executeTakeFirst();
+    const lastReview: PreviewReview | null = review
+      ? { status: review.status === "approved" ? "approved" : "rejected", notes: review.adminNotes, reviewedAt: review.reviewedAt }
+      : null;
+    let output: PreviewBody;
 
     switch (type) {
       case "mock_test": {
@@ -412,7 +425,7 @@ export async function handle(request: Request): Promise<Response> {
       }
     }
 
-    return new Response(superjson.stringify(output));
+    return new Response(superjson.stringify({ ...output, lastReview }));
   } catch (error) {
     console.error("Error loading admin content preview:", error);
     return new Response(superjson.stringify({ error: "Could not load this item" }), { status: 500 });

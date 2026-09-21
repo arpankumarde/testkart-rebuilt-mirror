@@ -7,7 +7,7 @@ export const schema = z.object({});
 
 export type InputType = z.infer<typeof schema>;
 
-export type AdminListItem = Pick<Selectable<Admins>, 'id' | 'email' | 'fullName' | 'role' | 'isActive' | 'lastLoginAt' | 'createdAt'>;
+export type AdminListItem = Pick<Selectable<Admins>, 'id' | 'email' | 'fullName' | 'role' | 'permissions' | 'isActive' | 'lastLoginAt' | 'createdAt'>;
 
 export type OutputType = {
   admins: AdminListItem[]

@@ -7,7 +7,7 @@ export async function handle(request: Request): Promise<Response> {
   try {
     // We still check for an admin session to ensure this endpoint is protected,
     // even though we are clearing the user session.
-    await getAdminServerSessionOrThrow(request, ['super_admin', 'admin']);
+    await getAdminServerSessionOrThrow(request);
 
     const response = new Response(superjson.stringify({ success: true } satisfies OutputType), {
       headers: { "Content-Type": "application/json" },

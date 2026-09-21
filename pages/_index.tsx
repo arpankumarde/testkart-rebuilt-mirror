@@ -4,6 +4,7 @@ import { SEOHead } from "../components/SEOHead";
 import { HomepageSearchHero } from "../components/HomepageSearchHero";
 import { HomepageCategoryCards } from "../components/HomepageCategoryCards";
 import { HomepageLiveSpotlight } from "../components/HomepageLiveSpotlight";
+import { HomepageFeaturedCourses } from "../components/HomepageFeaturedCourses";
 import { HomepageContentSection, TeacherProductCard } from "../components/HomepageContentSection";
 import type { HomepageTestItem, HomepageCourseItem, HomepageNoteItem } from "../endpoints/homepage/data_GET.schema";
 import { formatItemPrice } from "../helpers/homepageItemUtils";
@@ -101,6 +102,11 @@ const HomePage: React.FC = () => {
                 />
               );
             }}
+          />
+
+          <HomepageFeaturedCourses
+            courses={data?.featuredCourses ?? []}
+            isLoading={isFetching}
           />
 
           <HomepageContentSection

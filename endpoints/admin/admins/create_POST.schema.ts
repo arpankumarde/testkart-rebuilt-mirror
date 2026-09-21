@@ -1,6 +1,7 @@
 import { z } from "zod";
 import superjson from 'superjson';
 import { AdminRoleArrayValues } from "../../../helpers/schema";
+import { ADMIN_MODULE_KEYS, type AdminModule } from "../../../helpers/adminPermissions";
 
 export const schema = z.object({
   email: z.string().trim().toLowerCase().email("Invalid email address"),
@@ -9,10 +10,11 @@ export const schema = z.object({
     .string()
     .min(8, "Password must be at least 8 characters")
     .max(64, "Password must be 64 characters or fewer"),
-  role: z.enum(AdminRoleArrayValues)
+  role: z.enum(AdminRoleArrayValues),
+  permissions: z.array(z.enum(ADMIN_MODULE_KEYS as [AdminModule, ...AdminModule[]])).default([]),
 });
 
-export type InputType = z.infer<typeof schema>;
+export type InputType = z.input<typeof schema>;
 
 export type OutputType = {
   success: boolean;

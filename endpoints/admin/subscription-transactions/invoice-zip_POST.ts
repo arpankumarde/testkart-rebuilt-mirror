@@ -7,7 +7,7 @@ import { processSubscriptionInvoiceQueue } from "../../../helpers/invoiceNumberi
 
 export async function handle(request: Request) {
   try {
-    await getAdminServerSessionOrThrow(request, ["super_admin", "admin", "billing_manager"]);
+    await getAdminServerSessionOrThrow(request);
 
     const json = superjson.parse(await request.text());
     const { transactionIds } = schema.parse(json);

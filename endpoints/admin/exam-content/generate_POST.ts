@@ -43,7 +43,7 @@ function stripHtmlFence(raw: string): string {
 
 export async function handle(request: Request) {
   try {
-    const admin = await getAdminServerSessionOrThrow(request, ["super_admin", "admin", "manager"]);
+    const admin = await getAdminServerSessionOrThrow(request);
 
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);

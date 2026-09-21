@@ -1,5 +1,5 @@
 import { AdminDashboardLayout } from '../components/AdminDashboardLayout';
-import { AdminProtectedRouteContent } from '../components/AdminProtectedRoute';
+import { AdminProtectedRoute } from '../components/AdminProtectedRoute';
 import { AdminAuthProvider } from '../helpers/useAdminAuth';
 
-export default [AdminAuthProvider, AdminProtectedRouteContent, AdminDashboardLayout];
+export default [AdminAuthProvider, AdminProtectedRoute, AdminDashboardLayout];

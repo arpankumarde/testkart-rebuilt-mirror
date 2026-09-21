@@ -9,6 +9,7 @@ import { AdminUploadLimitsManager } from "../components/AdminUploadLimitsManager
 import { AdminManagementSection } from "../components/AdminManagementSection";
 import { ConsolePageHeader } from "../components/ConsolePageHeader";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/Tabs";
+import { hasAdminModule } from "../helpers/adminPermissions";
 import styles from "./admin.settings.module.css";
 
 const AdminSettingsPage: React.FC = () => {
@@ -24,7 +25,11 @@ const AdminSettingsPage: React.FC = () => {
     );
   }
 
-  if (authState.type === "unauthenticated" || authState.admin.role !== "super_admin") {
+  const permissions = authState.type === "authenticated" ? authState.admin.permissions ?? [] : [];
+  const canManageAdmins = hasAdminModule(permissions, ["admins"]);
+  const canEditSettings = hasAdminModule(permissions, ["settings"]);
+
+  if (authState.type === "unauthenticated" || (!canManageAdmins && !canEditSettings)) {
     return <Navigate to="/admin/dashboard" replace />;
   }
 
@@ -37,29 +42,39 @@ const AdminSettingsPage: React.FC = () => {
       <div className={styles.page}>
         <ConsolePageHeader title="Settings" />
 
-        <Tabs defaultValue="general" className={styles.tabs}>
+        <Tabs defaultValue={canManageAdmins ? "general" : "scripts"} className={styles.tabs}>
           <TabsList className={styles.tabsList}>
-            <TabsTrigger value="general">Admins</TabsTrigger>
-            <TabsTrigger value="scripts">Scripts</TabsTrigger>
-            <TabsTrigger value="ai">AI provider</TabsTrigger>
-            <TabsTrigger value="limits">Upload limits</TabsTrigger>
+            {canManageAdmins && <TabsTrigger value="general">Admins and access</TabsTrigger>}
+            {canEditSettings && (
+              <>
+                <TabsTrigger value="scripts">Scripts</TabsTrigger>
+                <TabsTrigger value="ai">AI provider</TabsTrigger>
+                <TabsTrigger value="limits">Upload limits</TabsTrigger>
+              </>
+            )}
           </TabsList>
 
-          <TabsContent value="general">
-            <AdminManagementSection />
-          </TabsContent>
+          {canManageAdmins && (
+            <TabsContent value="general">
+              <AdminManagementSection />
+            </TabsContent>
+          )}
 
-          <TabsContent value="scripts">
-            <ScriptsManager />
-          </TabsContent>
+          {canEditSettings && (
+            <>
+              <TabsContent value="scripts">
+                <ScriptsManager />
+              </TabsContent>
 
-          <TabsContent value="ai">
-            <AIProviderManager />
-          </TabsContent>
+              <TabsContent value="ai">
+                <AIProviderManager />
+              </TabsContent>
 
-          <TabsContent value="limits">
-            <AdminUploadLimitsManager />
-          </TabsContent>
+              <TabsContent value="limits">
+                <AdminUploadLimitsManager />
+              </TabsContent>
+            </>
+          )}
         </Tabs>
       </div>
     </>

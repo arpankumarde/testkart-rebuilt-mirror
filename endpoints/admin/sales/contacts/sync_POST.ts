@@ -6,12 +6,8 @@ import { sql } from "kysely";
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    // 1. Check admin session (roles: super_admin, admin, manager)
-    await getAdminServerSessionOrThrow(request, [
-      "super_admin",
-      "admin",
-      "manager",
-    ]);
+    // 1. Check admin session
+    await getAdminServerSessionOrThrow(request);
 
     const text = await request.text();
     const json = text ? superjson.parse(text) : {};

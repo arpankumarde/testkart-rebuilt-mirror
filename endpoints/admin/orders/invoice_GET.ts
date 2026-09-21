@@ -5,7 +5,7 @@ import { generateSalesInvoicePdf, InvoiceNotEligibleError } from "../../../helpe
 
 export async function handle(request: Request) {
   try {
-    await getAdminServerSessionOrThrow(request, ['super_admin', 'admin', 'billing_manager']);
+    await getAdminServerSessionOrThrow(request);
 
     const url = new URL(request.url);
     const queryParams = {

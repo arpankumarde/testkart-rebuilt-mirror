@@ -8,7 +8,7 @@ import { z } from "zod";
 export async function handle(request: Request): Promise<Response> {
   try {
     // Verify admin session
-    await getAdminServerSessionOrThrow(request, ['super_admin', 'admin', 'billing_manager']);
+    await getAdminServerSessionOrThrow(request);
 
     // Parse and validate query params
     const url = new URL(request.url);

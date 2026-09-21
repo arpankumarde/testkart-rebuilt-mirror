@@ -5,7 +5,7 @@ import superjson from "superjson";
 
 export async function handle(request: Request): Promise<Response> {
   try {
-        await getAdminServerSessionOrThrow(request, ['super_admin', 'admin', 'manager']);
+        await getAdminServerSessionOrThrow(request);
 
     const url = new URL(request.url);
     const categoryId = url.searchParams.get("categoryId");

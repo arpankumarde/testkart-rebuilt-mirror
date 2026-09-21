@@ -23,6 +23,7 @@ import { ConsoleListEmpty } from "../components/ConsoleListEmpty";
 import { MathMLContent } from "../components/MathMLContent";
 import { VideoPreview } from "../components/VideoPreview";
 import { AdminPreviewQuestions } from "../components/AdminPreviewQuestions";
+import { AdminContentStatusActions } from "../components/AdminContentStatusActions";
 import {
   adminPreviewPath,
   PREVIEW_STATUS_LABELS,
@@ -539,6 +540,7 @@ export default function AdminContentPreviewPage() {
     <div className={styles.page}>
       {helmet}
       <ConsolePageHeader title={data.title}>
+        <AdminContentStatusActions data={data} />
         {liveUrl && (
           <Button variant="outline" asChild>
             <a href={liveUrl} target="_blank" rel="noopener noreferrer">
@@ -563,6 +565,16 @@ export default function AdminContentPreviewPage() {
         <p className={styles.notice}>
           Admin preview. Students cannot see this {PREVIEW_TYPE_LABELS[data.type].toLowerCase()} while it is{" "}
           {PREVIEW_STATUS_LABELS[data.status].toLowerCase()}.
+        </p>
+      )}
+
+      {data.lastReview && (
+        <p className={`${styles.notice} ${data.lastReview.status === "rejected" ? styles.noticeRejected : ""}`}>
+          <strong>
+            {data.lastReview.status === "rejected" ? "Rejected" : "Approved"} {formatDate(data.lastReview.reviewedAt)}
+            {data.lastReview.notes ? ": " : ""}
+          </strong>
+          {data.lastReview.notes}
         </p>
       )}
 

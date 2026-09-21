@@ -20,7 +20,7 @@ const IST = "Asia/Kolkata";
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    const admin = await getAdminServerSessionOrThrow(request, ['super_admin', 'admin', 'manager']);
+    const admin = await getAdminServerSessionOrThrow(request);
 
     const url = new URL(request.url);
     const search = url.searchParams.get("search") || "";

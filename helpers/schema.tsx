@@ -137,6 +137,7 @@ export interface Admins {
   isActive: Generated<boolean | null>;
   lastLoginAt: Timestamp | null;
   passwordHash: string;
+  permissions: Generated<string[]>;
   role: Generated<AdminRole>;
   sessionInvalidatedAt: Timestamp | null;
   updatedAt: Generated<Timestamp | null>;

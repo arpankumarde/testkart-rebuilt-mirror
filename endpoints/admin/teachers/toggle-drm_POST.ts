@@ -6,7 +6,7 @@ import superjson from "superjson";
 /* Turns the per-teacher DRM opt-in on or off. Only the flag is stored here. */
 export async function handle(request: Request): Promise<Response> {
   try {
-    await getAdminServerSessionOrThrow(request, ['super_admin', 'admin', 'manager']);
+    await getAdminServerSessionOrThrow(request);
 
     const json = superjson.parse(await request.text());
     const { teacherId, drmEnabled } = schema.parse(json);

@@ -5,7 +5,7 @@ import superjson from "superjson";
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    await getAdminServerSessionOrThrow(request, ['super_admin']);
+    await getAdminServerSessionOrThrow(request);
 
     const setting = await db
       .selectFrom("platformSettings")

@@ -7,11 +7,7 @@ import { syncMockTestStudentsEnrolled } from "../../../helpers/enrollmentCounter
 export async function handle(request: Request) {
   try {
     // 1. Verify admin authentication
-    await getAdminServerSessionOrThrow(request, [
-      "super_admin",
-      "admin",
-      "billing_manager",
-    ]);
+    await getAdminServerSessionOrThrow(request);
 
     // 2. Parse and validate input
     const json = superjson.parse(await request.text());

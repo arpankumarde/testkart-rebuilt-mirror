@@ -220,8 +220,8 @@ const AdminSidebar = ({
   const navigate = useNavigate();
   const isDarkMode = useDarkModeObserver();
   const [isLogoutOpen, setLogoutOpen] = useState(false);
-  const role = authState.type === "authenticated" ? authState.admin.role : null;
-  const groups = adminNavigation.visibleGroups(role);
+  const permissions = authState.type === "authenticated" ? authState.admin.permissions ?? [] : null;
+  const groups = adminNavigation.visibleGroups(permissions);
 
   const activeHref = adminNavigation.findByPath(location.pathname)?.href;
   const activeGroupKey = groups.find((group) => group.items.some((item) => item.href === activeHref))?.key;

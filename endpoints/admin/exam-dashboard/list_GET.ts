@@ -15,7 +15,7 @@ import superjson from "superjson";
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    await getAdminServerSessionOrThrow(request, ["super_admin", "admin", "manager"]);
+    await getAdminServerSessionOrThrow(request);
 
     const [exams, categories, contentPages, contentIssues, mockTestCounts, digitalProductCounts] =
       await Promise.all([

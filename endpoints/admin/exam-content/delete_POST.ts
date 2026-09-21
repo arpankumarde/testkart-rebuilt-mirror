@@ -7,7 +7,7 @@ import superjson from "superjson";
 // reversible alternative: it keeps the draft and only takes the section off the public site.
 export async function handle(request: Request): Promise<Response> {
   try {
-    await getAdminServerSessionOrThrow(request, ["super_admin", "admin", "manager"]);
+    await getAdminServerSessionOrThrow(request);
 
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);

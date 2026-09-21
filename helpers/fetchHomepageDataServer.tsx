@@ -1,6 +1,7 @@
 import type { OutputType } from "../endpoints/homepage/data_GET.schema";
 import { homepageFetchTopMockTests } from "./homepageFetchTopMockTests";
 import { homepageFetchPopularCourses } from "./homepageFetchPopularCourses";
+import { homepageFetchFeaturedCourses } from "./homepageFetchFeaturedCourses";
 import { homepageFetchPopularNotes } from "./homepageFetchPopularNotes";
 import { homepageFetchLiveSpotlight } from "./homepageFetchLiveSpotlight";
 import { fetchPopularTeachers } from "./homepageFetchPopularTeachers";
@@ -15,10 +16,11 @@ import { fetchPopularTeachers } from "./homepageFetchPopularTeachers";
  * endpoints/homepage/data_GET.ts.
  */
 export async function fetchHomepageDataServer(): Promise<OutputType> {
-  const [topMockTests, popularCourses, popularNotes, liveTestSpotlight, popularTeachers] =
+  const [topMockTests, popularCourses, featuredCourses, popularNotes, liveTestSpotlight, popularTeachers] =
     await Promise.all([
       homepageFetchTopMockTests().catch((e) => { console.error("Top mock tests fetch failed", e); return []; }),
       homepageFetchPopularCourses().catch((e) => { console.error("Popular courses fetch failed", e); return []; }),
+      homepageFetchFeaturedCourses().catch((e) => { console.error("Featured courses fetch failed", e); return []; }),
       homepageFetchPopularNotes().catch((e) => { console.error("Popular notes fetch failed", e); return []; }),
       homepageFetchLiveSpotlight().catch((e) => { console.error("Live spotlight fetch failed", e); return []; }),
       fetchPopularTeachers().catch((e) => { console.error("Popular teachers fetch failed", e); return []; }),
@@ -27,6 +29,7 @@ export async function fetchHomepageDataServer(): Promise<OutputType> {
   return {
     topMockTests,
     popularCourses,
+    featuredCourses,
     popularNotes,
     liveTestSpotlight,
     popularTeachers,

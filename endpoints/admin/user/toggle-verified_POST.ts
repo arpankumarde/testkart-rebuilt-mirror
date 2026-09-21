@@ -7,7 +7,7 @@ import superjson from "superjson";
 export async function handle(request: Request): Promise<Response> {
   try {
     // 1. Authenticate Admin
-    await getAdminServerSessionOrThrow(request, ['super_admin', 'admin', 'manager']);
+    await getAdminServerSessionOrThrow(request);
 
     // 2. Parse and Validate Input
     const json = superjson.parse(await request.text());

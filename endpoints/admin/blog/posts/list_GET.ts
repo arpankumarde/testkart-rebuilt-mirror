@@ -16,7 +16,7 @@ const SORT_COLUMNS = {
 
 export async function handle(request: Request) {
   try {
-    await getAdminServerSessionOrThrow(request, ["super_admin", "admin", "manager"]);
+    await getAdminServerSessionOrThrow(request);
     
     const url = new URL(request.url);
     const searchParams = Object.fromEntries(url.searchParams.entries());

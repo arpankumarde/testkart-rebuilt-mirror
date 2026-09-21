@@ -5,7 +5,7 @@ import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 
 export async function handle(request: Request) {
   try {
-    await getAdminServerSessionOrThrow(request, ['super_admin', 'admin', 'billing_manager']);
+    await getAdminServerSessionOrThrow(request);
     
     const body = superjson.parse(await request.text());
     const input = schema.parse(body);

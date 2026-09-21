@@ -6,7 +6,7 @@ import { addContactToAudience } from "../../helpers/resendContacts";
 export async function handle(request: Request) {
   try {
     // 1. Require admin authentication
-    await getAdminServerSessionOrThrow(request, ['super_admin']);
+    await getAdminServerSessionOrThrow(request);
 
     // Parse input (empty object, optional - this endpoint doesn't require any body)
     const text = await request.text().catch(() => "");

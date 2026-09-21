@@ -130,7 +130,7 @@ const AdminDashboardPage: React.FC = () => {
         )}
 
         <div className={`${styles.content} ${isFetching && data ? styles.busy : ""}`} aria-busy={isFetching}>
-          <AdminAttentionBand attention={data?.attention} role={admin.role} isLoading={isFetching} />
+          <AdminAttentionBand attention={data?.attention} permissions={admin.permissions ?? []} isLoading={isFetching} />
 
           <AdminKpiLedger kpis={data?.kpis} daily={daily} days={days} isLoading={isFetching} />
 

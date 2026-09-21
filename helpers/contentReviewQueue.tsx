@@ -8,7 +8,8 @@ type Executor = Kysely<DB> | Transaction<DB>;
  * Teacher content goes live only after an admin approves it. A teacher's
  * publish action queues a pending contentReviews row; admin/content-reviews
  * approves it (publishApprovedContent) or rejects it with a note. Admin users
- * publish directly.
+ * publish directly. The admin preview page can also make any item live, move it
+ * back to draft or reject it after it went live (takeDownContent).
  */
 
 export const REVIEW_QUEUED_NOTE =
@@ -143,5 +144,102 @@ export async function publishApprovedContent(
         .execute();
       return;
     }
+  }
+}
+
+export type ContentState = {
+  teacherId: number;
+  title: string;
+  live: boolean;
+  endTime: Date | null;
+};
+
+/** Owner, title and whether students can currently find and buy the item. */
+export async function loadContentState(
+  executor: Executor,
+  contentType: ContentType,
+  contentId: number
+): Promise<ContentState | null> {
+  switch (contentType) {
+    case "mock_test": {
+      const row = await executor
+        .selectFrom("mockTests")
+        .select(["teacherId", "title", "isPublished", "deletedAt"])
+        .where("id", "=", contentId)
+        .executeTakeFirst();
+      return row ? { teacherId: row.teacherId, title: row.title, live: row.isPublished && !row.deletedAt, endTime: null } : null;
+    }
+    case "course": {
+      const row = await executor
+        .selectFrom("courses")
+        .select(["teacherId", "title", "status"])
+        .where("id", "=", contentId)
+        .executeTakeFirst();
+      return row ? { teacherId: row.teacherId, title: row.title, live: row.status === "published", endTime: null } : null;
+    }
+    case "digital_product": {
+      const row = await executor
+        .selectFrom("digitalProducts")
+        .select(["teacherId", "title", "status"])
+        .where("id", "=", contentId)
+        .executeTakeFirst();
+      return row ? { teacherId: row.teacherId, title: row.title, live: row.status === "published", endTime: null } : null;
+    }
+    case "course_bundle": {
+      const row = await executor
+        .selectFrom("courseBundles")
+        .select(["teacherId", "title", "isPublished"])
+        .where("id", "=", contentId)
+        .executeTakeFirst();
+      return row ? { teacherId: row.teacherId, title: row.title, live: row.isPublished, endTime: null } : null;
+    }
+    case "live_test": {
+      const row = await executor
+        .selectFrom("liveTests")
+        .select(["teacherId", "title", "isActive", "endTime"])
+        .where("id", "=", contentId)
+        .executeTakeFirst();
+      return row ? { teacherId: row.teacherId, title: row.title, live: row.isActive, endTime: row.endTime } : null;
+    }
+  }
+}
+
+/**
+ * Takes live content off the store the same way the teacher's own unpublish
+ * does. Students who already bought it keep access; carts drop it.
+ */
+export async function takeDownContent(
+  trx: Transaction<DB>,
+  contentType: ContentType,
+  contentId: number,
+  now: Date
+): Promise<void> {
+  switch (contentType) {
+    case "mock_test":
+      await trx.updateTable("mockTests").set({ isPublished: false, updatedAt: now }).where("id", "=", contentId).execute();
+      await trx.deleteFrom("cartItems").where("mockTestId", "=", contentId).execute();
+      return;
+    case "course":
+      await trx.updateTable("courses").set({ status: "draft", updatedAt: now }).where("id", "=", contentId).execute();
+      await trx.deleteFrom("cartItems").where("courseId", "=", contentId).execute();
+      return;
+    case "digital_product":
+      await trx
+        .updateTable("digitalProducts")
+        .set({ status: "draft", isPublished: false, updatedAt: now })
+        .where("id", "=", contentId)
+        .execute();
+      await trx.deleteFrom("cartItems").where("digitalProductId", "=", contentId).execute();
+      return;
+    case "course_bundle":
+      await trx
+        .updateTable("courseBundles")
+        .set({ isPublished: false, publishedAt: null, updatedAt: now })
+        .where("id", "=", contentId)
+        .execute();
+      return;
+    case "live_test":
+      await trx.updateTable("liveTests").set({ isActive: false, updatedAt: now }).where("id", "=", contentId).execute();
+      return;
   }
 }

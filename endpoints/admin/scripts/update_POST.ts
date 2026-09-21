@@ -6,9 +6,9 @@ import { ZodError } from "zod";
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    const admin = await getAdminServerSessionOrThrow(request, ['super_admin', 'admin']);
+    const admin = await getAdminServerSessionOrThrow(request);
 
-        // Role check is now handled by getAdminServerSessionOrThrow above
+        // Permission check is handled per route by getAdminServerSessionOrThrow above
 
     const json = superjson.parse(await request.text());
     const validatedInput = schema.parse(json);

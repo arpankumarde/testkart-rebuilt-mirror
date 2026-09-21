@@ -7,7 +7,7 @@ import { randomBytes } from "crypto";
 
 export async function handle(request: Request): Promise<Response> {
   try {
-        const adminProfile = await getAdminServerSessionOrThrow(request, ['super_admin', 'admin']);
+        const adminProfile = await getAdminServerSessionOrThrow(request);
 
     const json = superjson.parse(await request.text());
     const { userId } = schema.parse(json);

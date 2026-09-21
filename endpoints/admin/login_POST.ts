@@ -5,6 +5,7 @@ import { ZodError } from "zod";
 import { db } from "../../helpers/db";
 import { getClientIp } from "../../helpers/getClientIp";
 import { setAdminServerSession } from "../../helpers/getAdminSession";
+import { normalizeAdminPermissions } from "../../helpers/adminPermissions";
 import { schema, InputType, OutputType } from "./login_POST.schema";
 
 const MAX_FAILED_ATTEMPTS = 5;
@@ -120,9 +121,12 @@ export async function handle(request: Request) {
     };
 
     const response = new Response(
-      superjson.stringify({ admin: adminProfile } satisfies OutputType)
+      superjson.stringify({
+        admin: { ...adminProfile, permissions: normalizeAdminPermissions(admin.permissions) },
+      } satisfies OutputType)
     );
 
+    // Permissions stay out of the cookie; every session check reads them from the database.
     await setAdminServerSession(response, adminProfile);
 
     return response;

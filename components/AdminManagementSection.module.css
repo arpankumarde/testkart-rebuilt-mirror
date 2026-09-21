@@ -67,6 +67,10 @@
   width: 8.25rem;
 }
 
+.colAccess {
+  width: 9.5rem;
+}
+
 .colDate {
   width: 6rem;
 }
@@ -272,9 +276,9 @@
   }
 }
 
-/* The three fixed columns take 17.5rem, so 48rem leaves the Admin column
-   30rem for name and email. Narrower than that, the same data reads as cards. */
-@container results (min-width: 48rem) {
+/* The four fixed columns take 27rem, so 54rem leaves the Admin column
+   27rem for name and email. Narrower than that, the same data reads as cards. */
+@container results (min-width: 54rem) {
   .tableContainer {
     display: block;
   }

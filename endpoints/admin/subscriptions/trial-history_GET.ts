@@ -6,11 +6,7 @@ import { sql } from "kysely";
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    await getAdminServerSessionOrThrow(request, [
-      "super_admin",
-      "admin",
-      "billing_manager",
-    ]);
+    await getAdminServerSessionOrThrow(request);
 
     // Every admin-granted custom trial ever created, active or not — lets
     // an admin see when a past trial ran and what fee it carried, not just

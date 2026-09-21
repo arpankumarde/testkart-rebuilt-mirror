@@ -7,7 +7,7 @@ import { sql } from "kysely";
 export async function handle(request: Request): Promise<Response> {
   try {
     // Require admin session
-    await getAdminServerSessionOrThrow(request, ["super_admin", "admin", "manager"]);
+    await getAdminServerSessionOrThrow(request);
 
     const url = new URL(request.url);
     const contactIdStr = url.searchParams.get("contactId");

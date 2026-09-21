@@ -5,7 +5,7 @@ import superjson from "superjson";
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    await getAdminServerSessionOrThrow(request, ['super_admin', 'admin', 'manager']);
+    await getAdminServerSessionOrThrow(request);
 
     const bundles = await db
       .selectFrom("courseBundles")

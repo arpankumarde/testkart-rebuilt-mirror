@@ -62,6 +62,13 @@ export type PreviewBundleItem = {
 
 export type PreviewFact = { label: string; value: string };
 
+/* The latest approve or reject decision, from the review queue or the preview page's status actions. */
+export type PreviewReview = {
+  status: "approved" | "rejected";
+  notes: string | null;
+  reviewedAt: Date | null;
+};
+
 type PreviewBase = {
   id: number;
   title: string;
@@ -78,7 +85,7 @@ type PreviewBase = {
   facts: PreviewFact[];
 };
 
-export type OutputType =
+export type PreviewBody =
   | (PreviewBase & { type: "mock_test"; longDescription: string | null; whatYouLearn: string[]; tests: PreviewTestItem[] })
   | (PreviewBase & { type: "course"; sections: PreviewSection[] })
   | (PreviewBase & { type: "digital_product"; shortDescription: string | null; files: PreviewNoteFile[] })
@@ -92,6 +99,8 @@ export type OutputType =
       prizeTiers: PreviewFact[];
       tests: PreviewTestItem[];
     });
+
+export type OutputType = PreviewBody & { lastReview: PreviewReview | null };
 
 export const getAdminContentPreview = async (params: InputType, init?: RequestInit): Promise<OutputType> => {
   const validated = schema.parse(params);

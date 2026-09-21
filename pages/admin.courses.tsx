@@ -23,6 +23,7 @@ import {
   ArchiveRestore,
   Users,
   Eye,
+  ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 import { CourseStatus } from "../helpers/schema";
@@ -240,7 +241,7 @@ const AdminCoursesPage: React.FC = () => {
 
   const renderTitle = (course: AdminCourseListItem) => (
     <a
-      href={course.status === 'published' ? getCourseUrl(course.slug) : adminPreviewPath("course", course.id)}
+      href={adminPreviewPath("course", course.id)}
       target="_blank"
       rel="noopener noreferrer"
       className={`${styles.titleLink} ${styles.truncate}`}
@@ -266,6 +267,23 @@ const AdminCoursesPage: React.FC = () => {
         </TooltipTrigger>
         <TooltipContent>View details</TooltipContent>
       </Tooltip>
+      {course.status === 'published' && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon-md" className={styles.iconButton} asChild>
+              <a
+                href={getCourseUrl(course.slug)}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Open public page for ${course.title}`}
+              >
+                <ExternalLink />
+              </a>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Open public page</TooltipContent>
+        </Tooltip>
+      )}
       {course.status === 'published' && (
         <Tooltip>
           <TooltipTrigger asChild>
