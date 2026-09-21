@@ -1,5 +1,4 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import {
   Sheet,
   SheetContent,
@@ -139,10 +138,10 @@ export const AdminProductDetailPanel: React.FC<AdminProductDetailPanelProps> = (
           <SheetFooter className={styles.footer}>
             {previewUrl && (
               <Button variant="primary" asChild>
-                <Link to={previewUrl}>
+                <a href={previewUrl} target="_blank" rel="noopener noreferrer">
                   <ScanEye size={14} />
                   Preview content
-                </Link>
+                </a>
               </Button>
             )}
             {publicUrl && (

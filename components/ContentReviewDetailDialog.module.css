@@ -151,10 +151,24 @@
   border-radius: var(--radius);
 }
 
+/* Pasted tables and embeds scroll inside themselves instead of widening the pane. */
+.descriptionHtml table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+.descriptionHtml iframe,
+.descriptionHtml video {
+  max-width: 100%;
+}
+
+/* Sized by the space it sits in, so the dialog and the narrower split-view pane both fit. */
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--spacing-3);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 10.5rem), 1fr));
+  gap: var(--spacing-2);
 }
 
 .gridItem {
@@ -162,10 +176,9 @@
   flex-direction: column;
   gap: var(--spacing-1);
   min-width: 0;
-  padding: var(--spacing-3);
-  background-color: var(--background);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: var(--muted);
+  border-radius: var(--radius-sm);
 }
 
 .gridLabel {
@@ -174,7 +187,8 @@
   gap: var(--spacing-1);
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--muted-foreground);
+  /* Muted-foreground alone runs 4.4:1 on the grey fact cells. */
+  color: color-mix(in srgb, var(--muted-foreground) 70%, var(--foreground));
 }
 
 .gridValue {
@@ -197,7 +211,7 @@
 
 .subValue {
   font-size: 0.8125rem;
-  color: var(--muted-foreground);
+  color: color-mix(in srgb, var(--muted-foreground) 70%, var(--foreground));
 }
 
 .priceGroup,
@@ -221,7 +235,7 @@
 .muted {
   margin: 0;
   font-size: 0.8125rem;
-  color: var(--muted-foreground);
+  color: color-mix(in srgb, var(--muted-foreground) 70%, var(--foreground));
 }
 
 .adminNotes {
@@ -331,16 +345,4 @@
 
 .capitalize {
   text-transform: capitalize;
-}
-
-@media (max-width: 900px) {
-  .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 560px) {
-  .grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }

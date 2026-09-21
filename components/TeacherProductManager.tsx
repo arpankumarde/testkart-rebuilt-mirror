@@ -310,9 +310,13 @@ export const TeacherProductManager: React.FC = () => {
                     )}
                   </td>
                   <td>
-                    <Badge variant={getStatusBadgeVariant(product.status || 'draft')}>
-                      {product.status}
-                    </Badge>
+                    {product.inReview ? (
+                      <Badge variant="warning">in review</Badge>
+                    ) : (
+                      <Badge variant={getStatusBadgeVariant(product.status || 'draft')}>
+                        {product.status}
+                      </Badge>
+                    )}
                   </td>
                   <td>
                     <div className={styles.salesCount}>
@@ -339,14 +343,14 @@ export const TeacherProductManager: React.FC = () => {
                           <Share2 size={16} />
                         </Button>
                       )}
-                      {product.status !== 'published' ? (
+                      {product.inReview ? null : product.status !== 'published' ? (
                         <Button
                           size="sm"
                           onClick={() => togglePublish(product)}
                           disabled={publishProductMutation.isPending}
                           className={styles.publishBtn}
                         >
-                          <Upload size={14} /> Publish product
+                          <Upload size={14} /> Submit for review
                         </Button>
                       ) : (
                         <Button
@@ -444,7 +448,7 @@ export const TeacherProductManager: React.FC = () => {
               onClick={() => runBulk('publish')}
               disabled={bulkActionMutation.isPending}
             >
-              <Upload size={14} /> Publish
+              <Upload size={14} /> Submit for review
             </Button>
             <Button
               size="sm"

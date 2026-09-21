@@ -202,13 +202,25 @@ export const completeMultipartUpload = async (key: string, uploadId: string, par
 };
 
 /**
- * Lists the uploaded parts of a multipart upload
+ * Lists the uploaded parts of a multipart upload, in the shape CompleteMultipartUpload takes
  */
 export const listMultipartParts = async (key: string, uploadId: string): Promise<{ PartNumber: number; ETag: string }[]> => {
+  const parts = await listMultipartPartsWithSize(key, uploadId);
+  return parts.map(({ PartNumber, ETag }) => ({ PartNumber, ETag }));
+};
+
+/**
+ * Lists the uploaded parts of a multipart upload with their stored sizes.
+ * Throws an error named "NoSuchUpload" once the upload is completed, aborted or expired.
+ */
+export const listMultipartPartsWithSize = async (
+  key: string,
+  uploadId: string
+): Promise<{ PartNumber: number; ETag: string; Size: number }[]> => {
   const client = getR2Client();
-  const allParts: { PartNumber: number; ETag: string }[] = [];
-    let partNumberMarker: string | undefined;
-  
+  const allParts: { PartNumber: number; ETag: string; Size: number }[] = [];
+  let partNumberMarker: string | undefined;
+
   // ListParts is paginated, so we need to loop
   while (true) {
     const command = new ListPartsCommand({
@@ -222,7 +234,7 @@ export const listMultipartParts = async (key: string, uploadId: string): Promise
     if (response.Parts) {
       for (const part of response.Parts) {
         if (part.PartNumber != null && part.ETag) {
-          allParts.push({ PartNumber: part.PartNumber, ETag: part.ETag });
+          allParts.push({ PartNumber: part.PartNumber, ETag: part.ETag, Size: part.Size ?? 0 });
         }
       }
     }

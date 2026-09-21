@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { UploadCloud, FileText, X, AlertCircle, CheckCircle } from 'lucide-react';
-import { uploadFileToR2 } from '../helpers/useR2Upload';
+import { UploadCloud, FileText, X, AlertCircle, CheckCircle, RotateCw } from 'lucide-react';
+import { uploadFileToR2, UploadInterruptedError, type UploadStatus } from '../helpers/useR2Upload';
+import { Button } from './Button';
 import { Spinner } from './Spinner';
 import styles from './FileUploader.module.css';
 
@@ -42,6 +43,35 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<UploadStatus>('uploading');
+  // The checked file whose upload stopped on a dropped connection; Resume sends it again.
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
+
+  const uploadChecked = useCallback(async (fileToUpload: File) => {
+    setError(null);
+    setResumeFile(null);
+    onUploadStart?.();
+    setIsUploading(true);
+    setUploadStatus('uploading');
+    setUploadProgress(0);
+    setFileName(fileToUpload.name);
+
+    try {
+      const result = await uploadFileToR2(fileToUpload, folder, fileToUpload.name, (pct) => setUploadProgress(pct), {
+        onStatus: setUploadStatus,
+      });
+      setIsUploading(false);
+      setUploadProgress(100);
+      onSuccess({ url: result.url, fileId: result.key, size: fileToUpload.size, name: fileToUpload.name });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Upload failed. Please try again.';
+      setIsUploading(false);
+      setError(errorMessage);
+      if (err instanceof UploadInterruptedError) setResumeFile(fileToUpload);
+      if (onError) onError(new Error(errorMessage));
+      setFileName(null);
+    }
+  }, [folder, onUploadStart, onSuccess, onError]);
 
   const processFile = useCallback(async (file: File) => {
     if (busyRef.current) return;
@@ -71,6 +101,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     }
 
     busyRef.current = true;
+    setResumeFile(null);
     try {
       let fileToUpload = file;
       if (validateFile) {
@@ -87,27 +118,21 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         fileToUpload = checked.file;
       }
 
-      onUploadStart?.();
-      setIsUploading(true);
-      setUploadProgress(0);
-      setFileName(fileToUpload.name);
-
-      try {
-        const result = await uploadFileToR2(fileToUpload, folder, fileToUpload.name, (pct) => setUploadProgress(pct));
-        setIsUploading(false);
-        setUploadProgress(100);
-        onSuccess({ url: result.url, fileId: result.key, size: fileToUpload.size, name: fileToUpload.name });
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Upload failed. Please try again.';
-        setIsUploading(false);
-        setError(errorMessage);
-        if (onError) onError(new Error(errorMessage));
-        setFileName(null);
-      }
+      await uploadChecked(fileToUpload);
     } finally {
       busyRef.current = false;
     }
-  }, [acceptedTypes, maxSizeInMB, validateFile, folder, onUploadStart, onSuccess, onError]);
+  }, [acceptedTypes, maxSizeInMB, validateFile, uploadChecked, onError]);
+
+  const handleResume = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!resumeFile || busyRef.current) return;
+    busyRef.current = true;
+    uploadChecked(resumeFile).finally(() => {
+      busyRef.current = false;
+    });
+  };
 
   const handleUploadChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
     const file = evt.target.files?.[0];
@@ -207,7 +232,18 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         <div className={styles.overlay}>
           <div className={styles.progressContainer}>
             <Spinner size="md" />
-            <p>{isChecking ? 'Checking file...' : `Uploading... ${uploadProgress}%`}</p>
+            <p>
+              {isChecking
+                ? 'Checking file...'
+                : uploadStatus === 'offline'
+                  ? `Waiting for internet... ${uploadProgress}%`
+                  : uploadStatus === 'reconnecting'
+                    ? `Connection lost, retrying... ${uploadProgress}%`
+                    : `Uploading... ${uploadProgress}%`}
+            </p>
+            {!isChecking && uploadStatus !== 'uploading' && (
+              <p className={styles.progressHint}>Keep this page open. The upload continues on its own.</p>
+            )}
           </div>
         </div>
       )}
@@ -215,7 +251,15 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
       {!isUploading && !isChecking && error && (
         <div className={`${styles.overlay} ${styles.errorOverlay}`}>
           <AlertCircle size={24} className={styles.errorIcon} />
-          <p className={styles.errorMessage}>{error}</p>
+          <p className={styles.errorMessage}>
+            {resumeFile ? 'The upload stopped because the connection dropped.' : error}
+          </p>
+          {resumeFile && (
+            <Button type="button" size="sm" onClick={handleResume}>
+              <RotateCw size={16} />
+              Resume upload
+            </Button>
+          )}
         </div>
       )}
     </div>

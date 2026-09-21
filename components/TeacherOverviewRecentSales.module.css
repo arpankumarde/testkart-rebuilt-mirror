@@ -92,33 +92,6 @@
   color: var(--muted-foreground);
 }
 
-/* Only drawn when an order is not completed, so a clean list stays clean. */
-.dot {
-  position: absolute;
-  top: -3px;
-  right: -3px;
-  width: 0.625rem;
-  height: 0.625rem;
-  border-radius: 50%;
-  border: 2px solid var(--surface);
-}
-
-.pending {
-  background-color: var(--warning);
-}
-
-.failed {
-  background-color: var(--error);
-}
-
-.refunded {
-  background-color: var(--info);
-}
-
-.completed {
-  background-color: var(--success);
-}
-
 .body {
   display: flex;
   flex-direction: column;

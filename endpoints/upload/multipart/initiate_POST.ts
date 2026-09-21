@@ -6,7 +6,8 @@ import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
 import { validateUploadSize, validateUploadType } from "../../../helpers/uploadSizeValidation";
 import { recordUploadedFile } from "../../../helpers/r2FileOwnership";
 
-const PART_SIZE = 50 * 1024 * 1024; // 50 MB
+const DEFAULT_PART_SIZE = 50 * 1024 * 1024; // 50 MB
+const MAX_PART_COUNT = 10000;
 
 export async function handle(request: Request) {
   try {
@@ -31,6 +32,12 @@ export async function handle(request: Request) {
     );
     if (sizeValidationResponse) return sizeValidationResponse;
 
+    const partSize = validatedInput.partSize ?? DEFAULT_PART_SIZE;
+    const numParts = Math.ceil(validatedInput.fileSize / partSize);
+    if (numParts > MAX_PART_COUNT) {
+      return new Response(superjson.stringify({ error: "This file needs larger upload parts." }), { status: 400 });
+    }
+
     // Sanitize the file name to prevent tricky paths or encoding issues
     const safeFileName = validatedInput.fileName.replace(/[^a-zA-Z0-9.-]/g, "_");
     
@@ -43,8 +50,6 @@ export async function handle(request: Request) {
     // Create the multipart upload session
     const uploadId = await createMultipartUpload(key, validatedInput.contentType);
 
-    // Calculate number of parts and generate presigned URLs for each part
-    const numParts = Math.ceil(validatedInput.fileSize / PART_SIZE);
     const parts: Array<{ partNumber: number; presignedUrl: string }> = [];
 
     // Part numbers must be 1-indexed for S3
@@ -58,7 +63,7 @@ export async function handle(request: Request) {
     // Recorded so only this uploader can later delete the key
     await recordUploadedFile(key, session.kind === "user" ? session.ownerUserId : null);
 
-    return new Response(superjson.stringify({ uploadId, key, publicUrl, parts } satisfies OutputType), {
+    return new Response(superjson.stringify({ uploadId, key, publicUrl, partSize, parts } satisfies OutputType), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

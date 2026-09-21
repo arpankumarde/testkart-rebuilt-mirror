@@ -1,23 +1,46 @@
-/* Console page shell - see admin.transactions.module.css for the measure rule.
-   The compact table follows admin.teachers.module.css. */
+/* Phones: a normal scrolling page, the queue full width, details in a dialog. */
 .page {
+  /* Muted-foreground runs 4.4:1 on the grey fills; pulled toward the foreground to clear 4.5. */
+  --reviews-quiet-text: color-mix(in srgb, var(--muted-foreground) 70%, var(--foreground));
   display: flex;
   flex-direction: column;
   gap: var(--spacing-4);
   width: 100%;
   max-width: 80rem;
   margin: 0 auto;
-  padding: var(--spacing-6) var(--spacing-6) var(--spacing-8);
+  padding: var(--spacing-4);
   box-sizing: border-box;
 }
 
-.results {
-  container: results / inline-size;
+/* Tablet and up: the page fills the admin shell's scrolling main, and the queue
+   and the pane each scroll on their own, so nothing pushes the page taller. */
+.pageSplit {
+  height: 100%;
+  min-height: 32rem;
+  max-width: 110rem;
+  padding: var(--spacing-5, 1.25rem) var(--spacing-6) var(--spacing-4);
+}
+
+.workspace {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
   min-width: 0;
 }
 
-.tableContainer {
-  display: none;
+.pageSplit .workspace {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: clamp(16rem, 32%, 24rem) minmax(0, 1fr);
+  min-height: 0;
+}
+
+.queue,
+.pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
   background-color: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -25,144 +48,143 @@
   overflow: hidden;
 }
 
-/* Fixed layout: the Content column takes whatever the others leave. */
-.table {
-  width: 100%;
-  table-layout: fixed;
-  border-collapse: collapse;
-}
-
-.colTeacher {
-  width: 11rem;
-}
-
-.colStatus {
-  width: 6.25rem;
-}
-
-.colDate {
-  width: 6.75rem;
-}
-
-.colActions {
-  width: 7.5rem;
-}
-
-.table th,
-.table td {
-  padding: var(--spacing-2) 0.625rem;
-  border-bottom: 1px solid var(--border);
-  text-align: left;
-  vertical-align: middle;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.table th:first-child,
-.table td:first-child {
-  padding-left: var(--spacing-4);
-}
-
-.table th:last-child,
-.table td:last-child {
-  padding-right: var(--spacing-2);
-}
-
-.table th {
-  height: 2.25rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--muted-foreground);
-  background-color: var(--muted);
-}
-
-.table td {
-  font-size: 0.8125rem;
-  line-height: 1.35;
-  color: var(--foreground);
-}
-
-.table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.table tbody tr:hover {
-  background-color: var(--muted);
-}
-
-.date {
-  font-variant-numeric: tabular-nums;
-}
-
-.stack {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-}
-
-.primaryLine,
-.valueLine,
-.secondaryLine,
-.truncate {
-  display: block;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.primaryLine {
-  font-weight: 600;
-  color: var(--foreground);
-}
-
-.titleLink {
-  color: var(--foreground);
-  text-decoration: none;
-  border-radius: var(--radius-sm);
-}
-
-.titleLink:hover {
-  text-decoration: underline;
-}
-
-.titleLink:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus);
-}
-
-.secondaryLine {
-  font-size: 0.75rem;
-  color: var(--muted-foreground);
-}
-
-.metaLine {
+.queueHead {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+  padding: var(--spacing-2) var(--spacing-2) var(--spacing-2) var(--spacing-4);
+  border-bottom: 1px solid var(--border);
+  background-color: var(--muted);
+}
+
+.queueCount {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-2);
+  min-width: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.updating {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--reviews-quiet-text);
+}
+
+.sortTrigger {
+  flex-shrink: 0;
+  width: auto;
+  min-width: 8.5rem;
+  height: 2rem;
+  font-size: 0.8125rem;
+  background-color: var(--surface);
+}
+
+.queueScroll {
+  min-height: 0;
+}
+
+.pageSplit .queueScroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.queueList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.queueList > li + li {
+  border-top: 1px solid var(--border);
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  width: 100%;
+  min-width: 0;
+  padding: 0.625rem var(--spacing-4);
+  border: 0;
+  background: none;
+  color: var(--foreground);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.row:hover {
+  background-color: var(--muted);
+}
+
+.row:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: -2px;
+}
+
+/* The open review: a deep brand bar down the left edge and its title in the brand ink. */
+.rowSelected,
+.rowSelected:hover {
+  background-color: var(--muted);
+  box-shadow: inset 4px 0 0 var(--tk-brand-text);
+}
+
+.rowTitle {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.rowSelected .rowTitle {
+  color: var(--tk-brand-text);
+}
+
+.rowMeta {
+  display: flex;
+  align-items: baseline;
   gap: var(--spacing-2);
   min-width: 0;
   font-size: 0.75rem;
-  color: var(--muted-foreground);
+  color: var(--reviews-quiet-text);
 }
 
-.metaType {
+.rowType {
   flex-shrink: 0;
+  font-weight: 600;
+  color: var(--foreground);
 }
 
-/* ContentReviewMetaDisplay's pill row, held to one line: pills that do not fit
-   wrap onto a clipped second line instead of being cut in half. */
-.metaLine > div {
-  flex: 1 1 0;
+.rowTeacher {
+  flex: 1 1 auto;
   min-width: 0;
-  max-height: 1.25rem;
-  margin-top: 0;
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowDate {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .flag {
-  align-self: flex-start;
+  align-self: center;
   flex-shrink: 0;
   padding: 0 0.375rem;
   font-size: 0.6875rem;
@@ -170,163 +192,153 @@
   line-height: 1.125rem;
 }
 
-.rowActions {
+.rowSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-4);
+}
+
+.queuePagination {
+  flex-shrink: 0;
+  margin: 0;
+  padding: var(--spacing-2) var(--spacing-3);
+  border-top: 1px solid var(--border);
+}
+
+/* The review pane: title band, a scrolling body, and the decision bar pinned at the foot. */
+.paneHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  flex-shrink: 0;
+  padding: var(--spacing-4) var(--spacing-5, 1.25rem);
+  border-bottom: 1px solid var(--border);
+}
+
+.paneHeading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.paneTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+.paneBadges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.paneHeader > a {
+  flex-shrink: 0;
+}
+
+.paneBody {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  min-height: 0;
+  padding: var(--spacing-4) var(--spacing-5, 1.25rem) var(--spacing-6);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.decisionBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  flex-shrink: 0;
+  padding: var(--spacing-3) var(--spacing-5, 1.25rem);
+  border-top: 1px solid var(--border);
+  background-color: var(--muted);
+}
+
+.decisionHint {
+  margin: 0;
+  min-width: 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--reviews-quiet-text);
+}
+
+.decisionActions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 2px;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
 }
 
-.iconButton svg {
-  width: 1rem;
-  height: 1rem;
+.paneIdle {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-8) var(--spacing-4);
+  color: var(--muted-foreground);
+  text-align: center;
 }
 
-.iconButtonDanger {
-  color: var(--error-text);
+.paneIdle p {
+  margin: 0;
+  font-size: 0.875rem;
 }
 
-.iconButtonDanger:hover {
-  background-color: color-mix(in srgb, var(--error) 12%, transparent);
-  color: var(--error-text);
-}
-
-/* Themed labels: the success token as type on its own 10% tint runs about
-   2.1:1. The !important flags were removed along with the tinted fill. */
-.approveBtn,
+/* Themed labels: the success and error tokens as type run too light on their tints. */
 .approveAllBtn {
   color: var(--success-text);
   border-color: color-mix(in srgb, var(--success) 45%, var(--border));
   background-color: transparent;
 }
 
-.approveBtn:hover,
 .approveAllBtn:hover {
   background-color: color-mix(in srgb, var(--success) 12%, transparent);
 }
 
-.srOnly {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+.rejectBtn {
+  color: var(--error-text);
+  border-color: color-mix(in srgb, var(--error) 45%, var(--border));
+  background-color: transparent;
 }
 
-.cardsContainer {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--spacing-3);
+.rejectBtn:hover {
+  background-color: color-mix(in srgb, var(--error) 12%, transparent);
+  color: var(--error-text);
 }
 
-.card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-3);
-  min-width: 0;
-  padding: var(--spacing-3) var(--spacing-4);
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
-}
-
-.cardHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--spacing-2);
-  min-width: 0;
-  font-size: 0.875rem;
-}
-
-.cardHeader .rowActions {
-  flex-shrink: 0;
-  margin: calc(-1 * var(--spacing-1)) calc(-1 * var(--spacing-2)) 0 0;
-}
-
-.cardTitleLine {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  min-width: 0;
-  font-weight: 600;
-  color: var(--foreground);
-}
-
-.cardTitleLine .flag {
-  align-self: center;
-}
-
-.cardMeta > div {
-  margin-top: 0;
-}
-
-/* The console shape for a quoted note: a muted slab with a left rule. */
-.adminNotes {
-  margin: 0;
-  font-size: 0.8125rem;
-  color: var(--muted-foreground);
-  padding: var(--spacing-2);
-  background-color: var(--muted);
-  border-radius: var(--radius-sm);
-  border-left: 3px solid var(--border);
-  overflow-wrap: anywhere;
-}
-
-.cardStats {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(6.75rem, 1fr));
-  gap: var(--spacing-2) var(--spacing-3);
-  margin: 0;
-  padding-top: var(--spacing-3);
-  border-top: 1px solid var(--border);
-}
-
-.cardStat {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-}
-
-.cardStat dt {
-  font-size: 0.75rem;
-  color: var(--muted-foreground);
-}
-
-.cardStat dd {
-  margin: 0;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--foreground);
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
-}
-
-@media (max-width: 640px) {
-  .page {
-    padding: var(--spacing-4);
-  }
-}
-
-@container results (min-width: 40rem) {
-  .cardsContainer {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-/* Four fixed columns take 31.5rem, plus 12rem for Content is 43.5rem, so the table shows from 48rem. */
-@container results (min-width: 48rem) {
-  .tableContainer {
-    display: block;
-  }
-
-  .cardsContainer {
+/* A narrow pane drops the hint so the two buttons keep their room. */
+@container pane (max-width: 34rem) {
+  .decisionHint {
     display: none;
+  }
+
+  .decisionBar {
+    justify-content: flex-end;
+  }
+}
+
+.pane {
+  container: pane / inline-size;
+}
+
+@media (max-width: 1023px) {
+  .pageSplit {
+    padding: var(--spacing-4);
   }
 }

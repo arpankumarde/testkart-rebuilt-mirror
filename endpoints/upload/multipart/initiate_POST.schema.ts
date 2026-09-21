@@ -6,6 +6,13 @@ export const schema = z.object({
   contentType: z.string().min(1, "Content type is required"),
   folder: z.string().min(1, "Folder is required"),
   fileSize: z.number().int().positive("File size must be positive"),
+  // R2 needs every part but the last to be the same size, and at least 5 MiB. Defaults to 50 MiB.
+  partSize: z
+    .number()
+    .int()
+    .min(5 * 1024 * 1024, "Part size must be at least 5 MiB")
+    .max(100 * 1024 * 1024, "Part size must be at most 100 MiB")
+    .optional(),
 });
 
 export type InputType = z.infer<typeof schema>;
@@ -14,6 +21,7 @@ export type OutputType = {
   uploadId: string;
   key: string;
   publicUrl: string;
+  partSize: number;
   parts: Array<{ partNumber: number; presignedUrl: string }>;
 };
 

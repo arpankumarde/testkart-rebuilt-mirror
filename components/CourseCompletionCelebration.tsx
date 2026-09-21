@@ -13,7 +13,7 @@ export interface CourseCompletionCelebrationProps {
   courseSlug: string;
   /** The total number of lessons in the course. */
   totalLessons: number;
-  /** Optional callback function to be executed when the "Back to Dashboard" button is clicked. */
+  /** Optional callback run when the "Back to My Courses" link is clicked. */
   onBackToDashboard?: () => void;
   /** Optional callback to dismiss the celebration */
   onDismiss?: () => void;
@@ -57,24 +57,30 @@ export const CourseCompletionCelebration: React.FC<CourseCompletionCelebrationPr
           <strong>{courseName}</strong>
         </p>
         <div className={styles.stats}>
-          <span className={styles.statItem}>100% Complete</span>
-          <span className={styles.separator}>•</span>
-          <span className={styles.statItem}>{totalLessons} lessons finished</span>
+          <span className={styles.statItem}>100% complete</span>
+          <span className={styles.statItem}>
+            {totalLessons} {totalLessons === 1 ? 'lesson' : 'lessons'} finished
+          </span>
         </div>
         <div className={styles.actions}>
-          <Button size="lg" asChild onClick={onBackToDashboard}>
-            <Link to="/student/courses">Back to My Courses</Link>
+          <Button size="lg" asChild className={styles.primaryAction}>
+            <Link to="/student/certificates">
+              <Award size={20} />
+              Get your certificate
+            </Link>
           </Button>
-          {onDismiss && (
-            <Button size="lg" variant="outline" onClick={onDismiss}>
-              Continue Learning
+          <div className={`${styles.secondaryActions} ${onDismiss ? '' : styles.single}`}>
+            <Button size="lg" variant="outline" asChild onClick={onBackToDashboard}>
+              <Link to="/student/courses">Back to My Courses</Link>
             </Button>
-          )}
-          <Button size="lg" variant="secondary" disabled>
-            <Award size={20} />
-            View Certificate
-          </Button>
+            {onDismiss && (
+              <Button size="lg" variant="outline" onClick={onDismiss}>
+                Continue learning
+              </Button>
+            )}
+          </div>
           <ShareButton
+            className={styles.shareAction}
             kind="course"
             handle={courseSlug}
             title={courseName}

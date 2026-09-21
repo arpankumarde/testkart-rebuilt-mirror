@@ -1,5 +1,4 @@
 import React, { useState, Suspense } from "react";
-import { Link } from "react-router-dom";
 import { sanitizeHtml } from "../helpers/sanitizeHtml";
 import { adminPreviewPath } from "../helpers/useAdminContentPreview";
 import { PREVIEW_CONTENT_TYPES, PreviewContentType } from "../endpoints/admin/content-preview/details_GET.schema";
@@ -8,6 +7,7 @@ import {
   ConsoleDialogContent,
   ConsoleDialogHeader,
   ConsoleDialogBody,
+  ConsoleDialogFooter,
 } from "./ConsoleDialog";
 import { Badge } from "./Badge";
 import { Separator } from "./Separator";
@@ -39,7 +39,6 @@ import {
   Clock,
   Trophy,
   Layers,
-  ScanEye,
 } from "lucide-react";
 import styles from "./ContentReviewDetailDialog.module.css";
 
@@ -47,7 +46,7 @@ const ContentReviewPdfViewer = React.lazy(() => import('./ContentReviewPdfViewer
 
 export const reviewPreviewPath = (review: { contentType: string; contentId: number }): string | null =>
   (PREVIEW_CONTENT_TYPES as readonly string[]).includes(review.contentType)
-    ? adminPreviewPath(review.contentType as PreviewContentType, review.contentId)
+    ? `${adminPreviewPath(review.contentType as PreviewContentType, review.contentId)}?from=reviews`
     : null;
 
 // ─── Formatters ─────────────────────────────────────────────────────────────
@@ -107,8 +106,8 @@ const getStatusBadgeVariant = (
 const contentTypeLabel: Record<string, string> = {
   mock_test: "Test series",
   course: "Course",
-  digital_product: "Digital product",
-  course_bundle: "Course bundle",
+  digital_product: "Study notes",
+  course_bundle: "Bundle",
   live_test: "Live test",
 };
 
@@ -525,24 +524,44 @@ const LiveTestDetails = ({ meta }: { meta: LiveTestMeta }) => (
   </div>
 );
 
-// ─── Main Dialog ──────────────────────────────────────────────────────────────
+// ─── Shared by the dialog and the split-view pane ─────────────────────────────
 
-interface Props {
-  review: ContentReviewAdminView | null;
-  onClose: () => void;
-  className?: string;
-}
+export const ContentReviewBadges = ({ review }: { review: ContentReviewAdminView }) => (
+  <>
+    <Badge variant="outline">
+      {contentTypeLabel[review.contentType] ?? review.contentType}
+    </Badge>
+    <Badge variant={getStatusBadgeVariant(review.status)}>
+      {review.status.charAt(0).toUpperCase() + review.status.slice(1)}
+    </Badge>
+  </>
+);
 
-export const ContentReviewDetailDialog = ({
+/* The full preview always opens in a new tab so the review queue stays where it was. */
+export const ContentReviewOpenButton = ({
   review,
-  onClose,
-  className,
-}: Props) => {
-  const isOpen = review !== null;
-  const previewPath = review ? reviewPreviewPath(review) : null;
+  size = "sm",
+  variant = "primary",
+}: {
+  review: ContentReviewAdminView;
+  size?: "sm" | "md";
+  variant?: "primary" | "outline";
+}) => {
+  const previewPath = reviewPreviewPath(review);
+  if (!previewPath) return null;
+  return (
+    <Button variant={variant} size={size} asChild>
+      <a href={previewPath} target="_blank" rel="noopener noreferrer">
+        <ExternalLink size={14} />
+        Open in new tab
+      </a>
+    </Button>
+  );
+};
 
+export const ContentReviewDetailBody = ({ review }: { review: ContentReviewAdminView }) => {
   const renderMeta = () => {
-    if (!review?.contentMeta) {
+    if (!review.contentMeta) {
       return (
         <p className={styles.muted}>
           No additional metadata available for this content item.
@@ -574,70 +593,84 @@ export const ContentReviewDetailDialog = ({
   };
 
   return (
+    <>
+      <div className={styles.grid}>
+        <GridItem
+          label="Teacher"
+          value={
+            <span className={styles.stack}>
+              <span>{review.teacherName}</span>
+              <span className={styles.subValue}>{review.teacherEmail}</span>
+            </span>
+          }
+          icon={<User size={12} />}
+        />
+        <GridItem
+          label="Submitted on"
+          value={formatDate(review.createdAt)}
+          icon={<CalendarDays size={12} />}
+        />
+        {review.reviewedAt && (
+          <GridItem
+            label="Reviewed on"
+            value={formatDate(review.reviewedAt)}
+            icon={<CalendarDays size={12} />}
+          />
+        )}
+      </div>
+
+      {review.adminNotes && (
+        <div
+          className={`${styles.adminNotes} ${
+            review.status === "rejected" ? styles.adminNotesRejected : ""
+          }`}
+        >
+          <span className={styles.adminNotesLabel}>Admin notes</span>
+          <p className={styles.adminNotesText}>{review.adminNotes}</p>
+        </div>
+      )}
+
+      <Separator />
+
+      {renderMeta()}
+    </>
+  );
+};
+
+// ─── Dialog, used on phones where there is no room for the split view ─────────
+
+interface Props {
+  review: ContentReviewAdminView | null;
+  onClose: () => void;
+  className?: string;
+  /* Decision buttons for a pending review, pinned under the details. */
+  footer?: React.ReactNode;
+}
+
+export const ContentReviewDetailDialog = ({
+  review,
+  onClose,
+  className,
+  footer,
+}: Props) => {
+  const isOpen = review !== null;
+
+  return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <ConsoleDialogContent size="xl" className={className} aria-describedby={undefined}>
         <ConsoleDialogHeader title={review?.contentTitle ?? "Content details"}>
           {review && (
             <div className={styles.headerBadgeRow}>
-              <Badge variant="outline">
-                {contentTypeLabel[review.contentType] ?? review.contentType}
-              </Badge>
-              <Badge variant={getStatusBadgeVariant(review.status)}>
-                {review.status.charAt(0).toUpperCase() + review.status.slice(1)}
-              </Badge>
-              {previewPath && (
-                <Button variant="primary" size="sm" asChild>
-                  <Link to={previewPath}>
-                    <ScanEye size={14} />
-                    Preview all content
-                  </Link>
-                </Button>
-              )}
+              <ContentReviewBadges review={review} />
+              <ContentReviewOpenButton review={review} />
             </div>
           )}
         </ConsoleDialogHeader>
 
         <ConsoleDialogBody>
-          <div className={styles.grid}>
-            <GridItem
-              label="Teacher"
-              value={
-                <span className={styles.stack}>
-                  <span>{review?.teacherName}</span>
-                  <span className={styles.subValue}>{review?.teacherEmail}</span>
-                </span>
-              }
-              icon={<User size={12} />}
-            />
-            <GridItem
-              label="Submitted on"
-              value={review ? formatDate(review.createdAt) : "-"}
-              icon={<CalendarDays size={12} />}
-            />
-            {review?.reviewedAt && (
-              <GridItem
-                label="Reviewed on"
-                value={formatDate(review.reviewedAt)}
-                icon={<CalendarDays size={12} />}
-              />
-            )}
-          </div>
-
-          {review?.adminNotes && (
-            <div
-              className={`${styles.adminNotes} ${
-                review.status === "rejected" ? styles.adminNotesRejected : ""
-              }`}
-            >
-              <span className={styles.adminNotesLabel}>Admin notes</span>
-              <p className={styles.adminNotesText}>{review.adminNotes}</p>
-            </div>
-          )}
-
-          <Separator />
-
-          {renderMeta()}
+          {review && <ContentReviewDetailBody review={review} />}
         </ConsoleDialogBody>
+        {footer ? <ConsoleDialogFooter>{footer}</ConsoleDialogFooter> : null}
       </ConsoleDialogContent>
     </Dialog>
   );

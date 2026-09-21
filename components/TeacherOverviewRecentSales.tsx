@@ -14,14 +14,6 @@ type Props = {
   className?: string;
 };
 
-const STATUS_CLASS: Record<string, string> = {
-  completed: "completed",
-  pending: "pending",
-  failed: "failed",
-  cancelled: "failed",
-  refunded: "refunded",
-};
-
 const Thumbnail = ({ sale }: { sale: TeacherRecentSale }) => {
   const thumbnail = teacherContentThumbnail(sale.kind, sale.thumbnail);
   if (thumbnail.type === "image") {
@@ -61,14 +53,10 @@ export const TeacherOverviewRecentSales = ({ sales, isLoading, showAmounts = tru
       ) : (
         <ul className={styles.rows}>
           {sales.map((sale) => {
-            const statusClass = STATUS_CLASS[sale.status] ?? "pending";
             return (
               <li key={sale.orderId} className={styles.row}>
                 <span className={styles.thumb}>
                   <Thumbnail sale={sale} />
-                  {sale.status !== "completed" && (
-                    <span className={`${styles.dot} ${styles[statusClass]}`} title={sale.status} />
-                  )}
                 </span>
                 <span className={styles.body}>
                   <span className={styles.summary} title={sale.summary}>

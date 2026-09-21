@@ -1,26 +1,26 @@
 import { z } from "zod";
 import superjson from "superjson";
-import { UploadNotFoundError } from "./parts_POST.schema";
 
 export const schema = z.object({
   key: z.string().min(1, "Key is required"),
   uploadId: z.string().min(1, "Upload ID is required"),
-  // When given, the upload completes only once exactly this many parts are stored.
-  partCount: z.number().int().positive().optional(),
+  // Parts the client still needs to send; each one not already stored gets a fresh upload URL.
+  partNumbers: z.array(z.number().int().min(1).max(10000)).max(10000),
 });
 
 export type InputType = z.infer<typeof schema>;
 
 export type OutputType = {
-  publicUrl: string;
+  uploadedParts: Array<{ partNumber: number; size: number }>;
+  urls: Array<{ partNumber: number; presignedUrl: string }>;
 };
 
-/** Some parts have not reached R2 yet; send them and complete again. */
-export class UploadIncompleteError extends Error {}
+/** The multipart upload is finished, aborted, expired or was never issued to this uploader. */
+export class UploadNotFoundError extends Error {}
 
-export const postUploadMultipartComplete = async (body: InputType, init?: RequestInit): Promise<OutputType> => {
+export const postUploadMultipartParts = async (body: InputType, init?: RequestInit): Promise<OutputType> => {
   const validatedInput = schema.parse(body);
-  const result = await fetch(`/_api/upload/multipart/complete`, {
+  const result = await fetch(`/_api/upload/multipart/parts`, {
     method: "POST",
     body: superjson.stringify(validatedInput),
     ...init,
@@ -33,7 +33,6 @@ export const postUploadMultipartComplete = async (body: InputType, init?: Reques
   if (!result.ok) {
     const errorObject = superjson.parse<{ error: string }>(await result.text());
     if (result.status === 404) throw new UploadNotFoundError(errorObject.error);
-    if (result.status === 409) throw new UploadIncompleteError(errorObject.error);
     throw new Error(errorObject.error);
   }
 

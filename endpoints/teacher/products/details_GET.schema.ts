@@ -15,6 +15,8 @@ export type OutputType = Omit<Selectable<DigitalProducts>, "price" | "rating" | 
   rating: number | null;
   fileSizeBytes: number | null;
   files: DigitalProductFileItem[];
+  /** Submitted for publishing and waiting on admin approval. */
+  inReview?: boolean;
 };
 
 export const getTeacherProductDetails = async (

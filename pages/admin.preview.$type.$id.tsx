@@ -1,8 +1,9 @@
 import React, { Suspense, useState } from "react";
 import { Helmet } from "react-helmet";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   AlertCircle,
+  ArrowLeft,
   ChevronDown,
   ExternalLink,
   FileText,
@@ -483,6 +484,40 @@ const LoadingState = () => (
   </div>
 );
 
+const LIST_PATHS: Record<PreviewContentType, { href: string; label: string }> = {
+  mock_test: { href: "/admin/test-series", label: "test series" },
+  course: { href: "/admin/courses", label: "courses" },
+  digital_product: { href: "/admin/notes", label: "study notes" },
+  course_bundle: { href: "/admin/bundles", label: "bundles" },
+  live_test: { href: "/admin/live-tests", label: "live tests" },
+};
+
+/* Previews usually open in a new tab with no history, so the arrow falls back to the list they came from. */
+const BackLink = ({ type }: { type: PreviewContentType | null }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const target =
+    searchParams.get("from") === "reviews" || !type
+      ? { href: "/admin/content-reviews", label: "content reviews" }
+      : LIST_PATHS[type];
+  const hasHistory = location.key !== "default";
+  return (
+    <Link
+      to={target.href}
+      className={styles.backLink}
+      onClick={(e) => {
+        if (!hasHistory) return;
+        e.preventDefault();
+        navigate(-1);
+      }}
+    >
+      <ArrowLeft size={16} aria-hidden="true" />
+      {hasHistory ? "Back" : `Back to ${target.label}`}
+    </Link>
+  );
+};
+
 export default function AdminContentPreviewPage() {
   const params = useParams<{ type: string; id: string }>();
   const type = (PREVIEW_CONTENT_TYPES as readonly string[]).includes(params.type ?? "")
@@ -504,6 +539,7 @@ export default function AdminContentPreviewPage() {
     return (
       <div className={styles.page}>
         {helmet}
+        <BackLink type={type} />
         <ConsoleListEmpty
           tone="error"
           icon={<AlertCircle size={24} />}
@@ -520,6 +556,7 @@ export default function AdminContentPreviewPage() {
     return (
       <div className={styles.page}>
         {helmet}
+        <BackLink type={type} />
         <ConsoleListEmpty
           tone="error"
           icon={<AlertCircle size={24} />}
@@ -539,6 +576,7 @@ export default function AdminContentPreviewPage() {
   return (
     <div className={styles.page}>
       {helmet}
+      <BackLink type={type} />
       <ConsolePageHeader title={data.title}>
         <AdminContentStatusActions data={data} />
         {liveUrl && (

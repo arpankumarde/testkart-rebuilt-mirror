@@ -5,10 +5,11 @@ import { deleteFromR2 } from "./r2Client";
 /**
  * Ownership for user-uploaded R2 objects. upload/presign and
  * upload/multipart/initiate record who each key was issued to (the teacher
- * account for team managers, null for admin panel uploads). A user may only
- * delete keys recorded as theirs that no stored content still points at.
- * Objects uploaded before recording started have no row, so they are never
- * deleted on a user's request.
+ * account for team managers, null for admin panel uploads). Only that
+ * uploader may resume or complete a multipart upload on the key, and a user
+ * may only delete keys recorded as theirs that no stored content still points
+ * at. Objects uploaded before recording started have no row, so they are
+ * never deleted on a user's request.
  */
 
 export async function recordUploadedFile(key: string, ownerUserId: number | null): Promise<void> {
@@ -17,6 +18,16 @@ export async function recordUploadedFile(key: string, ownerUserId: number | null
     .values({ key, ownerUserId })
     .onConflict((oc) => oc.column("key").doNothing())
     .execute();
+}
+
+/** True when the key was issued to this uploader (null for admin panel uploads). */
+export async function isUploadIssuedTo(key: string, ownerUserId: number | null): Promise<boolean> {
+  const record = await db
+    .selectFrom("uploadedFiles")
+    .select("ownerUserId")
+    .where("key", "=", key)
+    .executeTakeFirst();
+  return !!record && record.ownerUserId === ownerUserId;
 }
 
 // Every column that stores an R2 key or its public URL.

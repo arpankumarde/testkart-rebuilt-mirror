@@ -17,7 +17,7 @@ import { useTeacherProductDetailsQuery } from '../helpers/useTeacherProductDetai
 import { useTeacherProductAnalyzePdf } from '../helpers/useTeacherProductAnalyzePdf';
 import { useUploadLimits } from '../helpers/useUploadLimits';
 import { useUnsavedChangesGuard } from '../helpers/useUnsavedChangesGuard';
-import { uploadFileToR2 } from '../helpers/useR2Upload';
+import { uploadFileToR2, type UploadStatus } from '../helpers/useR2Upload';
 import { parseErrorMessage } from '../helpers/parseErrorMessage';
 import { DIGITAL_PRODUCT_CATEGORIES, isRealFileUrl, STUDY_NOTES_PDF_MAX_MB } from '../helpers/digitalProductRules';
 import { checkStudyNotesPdf } from '../helpers/studyNotesPdfCheck';
@@ -131,7 +131,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
   // Its own state rather than price === 0, so unticking always re-enables the
   // price input even while the price is still 0.
   const [isFreeChecked, setIsFreeChecked] = useState(true);
-  const [replacing, setReplacing] = useState<{ clientKey: string; progress: number; checking: boolean } | null>(null);
+  const [replacing, setReplacing] = useState<{ clientKey: string; progress: number; checking: boolean; status?: UploadStatus } | null>(null);
   const replaceInputRef = useRef<HTMLInputElement>(null);
   const replaceKeyRef = useRef<string | null>(null);
   const formRootRef = useRef<HTMLFormElement>(null);
@@ -150,6 +150,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
     isFetching: isDetailsFetching,
   } = useTeacherProductDetailsQuery(isEditMode ? productId : undefined);
   const isPublished = productDetails?.status === 'published';
+  const isInReview = !isPublished && !!productDetails?.inReview;
 
   const form = useForm({
     schema: formSchema,
@@ -322,8 +323,12 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
       }
       const pdf = checked.file;
       setReplacing({ clientKey, progress: 0, checking: false });
-      const result = await uploadFileToR2(pdf, 'products/files', pdf.name, (progress) =>
-        setReplacing({ clientKey, progress, checking: false })
+      const result = await uploadFileToR2(
+        pdf,
+        'products/files',
+        pdf.name,
+        (progress) => setReplacing((prev) => ({ clientKey, progress, checking: false, status: prev?.status })),
+        { onStatus: (status) => setReplacing((prev) => (prev ? { ...prev, status } : prev)) }
       );
       backfilledKeysRef.current.add(clientKey);
       handleFilesChange((prevFiles) =>
@@ -524,21 +529,22 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
               return match ? { ...f, id: match.id } : f;
             })
           );
-          // A published product is already live, so saving is the whole job.
-          if (action === 'publish' && !isPublished) {
+          // A published product is already live and one in review is already
+          // queued, so for those saving is the whole job.
+          if (action === 'publish' && !isPublished && !isInReview) {
             publishProductMutation.mutate({ id: productId }, {
               onSuccess: () => {
-                toast.success('Saved and published');
+                toast.success('Saved and submitted for review. We will email you once it is approved or needs changes.');
                 leaveAfterSave();
               },
               onError: (error) => {
                 markSaved();
                 setIsSubmittingAction(null);
-                toast.error(`Your changes are saved, but the product was not published. ${parseErrorMessage(error)}`);
+                toast.error(`Your changes are saved, but the product was not submitted for review. ${parseErrorMessage(error)}`);
               },
             });
           } else {
-            toast.success(isPublished ? 'Changes saved and live' : 'Draft saved');
+            toast.success(isPublished ? 'Changes saved and live' : isInReview ? 'Changes saved. It is still in review.' : 'Draft saved');
             leaveAfterSave();
           }
         },
@@ -915,7 +921,11 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
                                 {isReplacing
                                   ? replacing?.checking
                                     ? 'Checking PDF...'
-                                    : `Uploading replacement... ${replacing?.progress ?? 0}%`
+                                    : replacing?.status === 'offline'
+                                      ? `Waiting for internet... ${replacing.progress}%`
+                                      : replacing?.status === 'reconnecting'
+                                        ? `Connection lost, retrying... ${replacing.progress}%`
+                                        : `Uploading replacement... ${replacing?.progress ?? 0}%`
                                   : meta}
                               </span>
                               <FormMessage />
@@ -1101,10 +1111,13 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
               {isPublished && (
                 <p className={styles.liveNote}>This product is live. Saving updates it for students straight away.</p>
               )}
+              {isInReview && (
+                <p className={styles.liveNote}>This product is in review. Students can buy it once our team approves it.</p>
+              )}
               <Button type="button" variant="outline" onClick={() => guard.leave('/teacher/products')} disabled={isSubmitting}>
                 Cancel
               </Button>
-              {!isEditMode || isPublished ? (
+              {!isEditMode || isPublished || isInReview ? (
                 <Button
                   type="button"
                   onClick={() => handleSave('save')}
@@ -1131,7 +1144,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
                     title={readiness.fileIssue || undefined}
                   >
                     {isSubmittingAction === 'publish' && <Spinner size="sm" />}
-                    Save &amp; Publish
+                    Save &amp; submit for review
                   </Button>
                 </>
               )}

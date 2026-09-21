@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from "react";
 import { Helmet } from "react-helmet";
-import { Link } from "react-router-dom";
 import { useAdminLiveTestsQuery, useDeactivateLiveTestMutation } from "../helpers/useAdminLiveTests";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
@@ -299,9 +298,14 @@ const AdminLiveTestsPage: React.FC = () => {
       <Tooltip>
         <TooltipTrigger asChild>
           <Button variant="ghost" size="icon-md" className={styles.iconButton} asChild>
-            <Link to={adminPreviewPath("live_test", liveTest.id)} aria-label={`Preview content of ${liveTest.title}`}>
+            <a
+              href={adminPreviewPath("live_test", liveTest.id)}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Preview content of ${liveTest.title} in a new tab`}
+            >
               <ScanEye />
-            </Link>
+            </a>
           </Button>
         </TooltipTrigger>
         <TooltipContent>Preview content</TooltipContent>

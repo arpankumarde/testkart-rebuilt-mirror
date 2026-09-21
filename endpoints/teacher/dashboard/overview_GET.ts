@@ -236,6 +236,8 @@ export async function handle(request: Request): Promise<Response> {
         FROM mine
         JOIN orders o ON o.id = mine.id
         LEFT JOIN users u ON u.id = o.user_id
+        -- Same rule as the earnings transactions: only completed orders are sales.
+        WHERE o.status = 'completed'
         ORDER BY o.created_at DESC NULLS LAST
         LIMIT 6
       `.execute(db),
