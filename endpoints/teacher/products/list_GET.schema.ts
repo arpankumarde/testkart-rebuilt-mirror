@@ -6,6 +6,8 @@ import { DigitalProducts, DigitalProductStatusArrayValues } from "../../../helpe
 export const schema = z.object({
   status: z.enum(DigitalProductStatusArrayValues).optional(),
   category: z.string().optional(),
+  /** Matches title, category or exam name, case-insensitive. */
+  search: z.string().trim().max(100).optional(),
   page: z.number().int().min(1).default(1),
   limit: z.number().int().min(1).max(100).default(20),
 });
@@ -24,6 +26,8 @@ export type OutputType = {
   products: TeacherProductListItem[];
   page: number;
   limit: number;
+  /** Products matching the filters across all pages. */
+  total: number;
 };
 
 export const getTeacherProductsList = async (
@@ -33,6 +37,7 @@ export const getTeacherProductsList = async (
   const queryParams = new URLSearchParams();
   if (params.status) queryParams.set("status", params.status);
   if (params.category) queryParams.set("category", params.category);
+  if (params.search) queryParams.set("search", params.search);
   queryParams.set("page", params.page.toString());
   queryParams.set("limit", params.limit.toString());
 

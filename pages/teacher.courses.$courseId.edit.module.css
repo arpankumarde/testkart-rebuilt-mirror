@@ -1,21 +1,328 @@
 /*
- * The console's page shell. No padding of its own - .pageBody owns the gutter,
- * and the old --spacing-8 doubled it. Kept at the full 1440 measure rather
- * than the 46rem form one, because step 2 is CourseSectionBuilder, a workspace
- * rather than a form column.
+ * The course editor shell. No padding of its own - .pageBody owns the gutter.
+ * Container queries, not viewport ones: the teacher sidebar takes a variable
+ * share of the window, and the side column needs real room beside the tabs.
  */
 .page {
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-6);
   width: 100%;
-  max-width: 1440px;
+  max-width: 76rem;
   margin: 0 auto;
   box-sizing: border-box;
 }
 
-.mainContent {
-  width: 100%;
+/* TeacherDashboardLayout's main is overflow:auto but never scrolls, which
+   leaves the sticky side column and save bars inert. Same page-scoped fix as
+   the test series editor. */
+:global(main):has(.page) {
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  align-self: flex-start;
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  text-decoration: none;
+}
+
+.backLink:hover {
+  color: var(--foreground);
+}
+
+.backLink:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.titleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-3) var(--spacing-6);
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-width: 0;
+  flex: 1 1 24rem;
+}
+
+.title {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-family: var(--font-family-heading);
+  font-size: 1.625rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--foreground);
+  text-wrap: balance;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2) var(--spacing-3);
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.status {
+  padding: 0.125rem var(--spacing-2);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.statusDraft {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.statusReview {
+  background-color: color-mix(in srgb, var(--info) 14%, var(--surface));
+  color: var(--info-text);
+}
+
+.statusLive {
+  background-color: color-mix(in srgb, var(--success) 14%, var(--surface));
+  color: var(--success-text);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.menu [role="menuitem"] {
+  gap: var(--spacing-2);
+  font-size: 0.875rem;
+}
+
+.dangerItem {
+  color: var(--error-text);
+}
+
+.dangerItem:hover,
+.dangerItem[data-highlighted] {
+  background-color: var(--muted);
+  color: var(--error-text);
+}
+
+.moreButton {
+  flex: 0 0 auto;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-6);
+  align-items: start;
+}
+
+.main {
+  min-width: 0;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.tabs {
+  gap: var(--spacing-1);
+  padding: 0 var(--spacing-4);
+}
+
+.tab {
+  gap: var(--spacing-2);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.tab[data-state="active"] {
+  color: var(--foreground);
+  font-weight: 700;
+}
+
+.tabCount {
+  min-width: 1.5rem;
+  padding: 0 var(--spacing-2);
+  border-radius: var(--radius-full);
+  background-color: var(--muted);
+  color: var(--foreground);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.5rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.unsavedDot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand-text);
+}
+
+/* Both panels stay mounted (forceMount) so unsaved edits survive a switch. */
+.panel {
+  padding: var(--spacing-6);
+  outline: none;
+}
+
+.panel[data-state="inactive"] {
+  display: none;
+}
+
+.aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  min-width: 0;
+}
+
+.asideNote {
+  margin: 0;
+  padding: var(--spacing-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--foreground);
+}
+
+.readiness {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+}
+
+.readinessHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+}
+
+.readinessTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.readinessCount {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.readinessList {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.readinessList li {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-height: 2.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.readinessList li:first-child {
+  border-top: none;
+}
+
+.readinessList svg {
+  flex-shrink: 0;
+}
+
+.itemDone svg {
+  color: var(--success-text);
+}
+
+.itemTodo svg {
+  color: var(--muted-foreground);
+}
+
+.itemLabel {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+
+.itemDone .itemLabel {
+  color: var(--muted-foreground);
+}
+
+.itemFix {
+  flex-shrink: 0;
+  min-height: 2rem;
+  padding: 0 var(--spacing-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--foreground);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.itemFix:hover {
+  background-color: var(--muted);
+}
+
+.itemFix:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--tk-brand-text);
+}
+
+.softWarning {
+  margin: var(--spacing-1) 0 0;
+  padding-top: var(--spacing-3);
+  border-top: 1px solid var(--border);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--warning-text);
 }
 
 /* Same panel as TeacherListEmpty. */
@@ -44,7 +351,6 @@
   color: var(--error-text);
 }
 
-/* Panel heading scale. This was 2rem/600 - larger than the page's own h1. */
 .errorTitle {
   margin: 0;
   font-family: var(--font-family-heading);
@@ -62,18 +368,22 @@
   color: var(--muted-foreground);
 }
 
-.navigationButtons {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--spacing-4);
-  padding-top: var(--spacing-4);
-  border-top: 1px solid var(--border);
+/* Side column beside the tabs once the page itself has the room. */
+@container (min-width: 60rem) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr) 19rem;
+  }
+
+  .aside {
+    position: sticky;
+    top: var(--spacing-4);
+  }
 }
 
-/* Keeps Next on the right when there is no Previous beside it. */
-.navSpacer {
-  margin-right: auto;
+@container (min-width: 68rem) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr) 21rem;
+  }
 }
 
 @media (max-width: 640px) {
@@ -81,15 +391,27 @@
     gap: var(--spacing-4);
   }
 
+  .title {
+    font-size: 1.375rem;
+  }
+
+  .actions {
+    width: 100%;
+  }
+
+  .actions > * {
+    flex: 1 1 auto;
+  }
+
+  .tabs {
+    padding: 0 var(--spacing-2);
+  }
+
+  .panel {
+    padding: var(--spacing-4);
+  }
+
   .errorState {
     padding: var(--spacing-12) var(--spacing-4);
-  }
-
-  .navigationButtons {
-    flex-direction: column-reverse;
-  }
-
-  .navigationButtons button {
-    width: 100%;
   }
 }

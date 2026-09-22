@@ -1,245 +1,438 @@
-.builderContainer {
-  width: 100%;
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
-  padding: var(--spacing-4) var(--spacing-6) var(--spacing-6);
-  box-sizing: border-box;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--spacing-4);
-  margin-bottom: var(--spacing-4);
-  padding-bottom: var(--spacing-3);
-  border-bottom: 1px solid var(--border);
-}
-
-.headerText {
+/*
+ * The Content tab: one numbered outline. Chapters are split by hairlines, not
+ * boxed; lessons are quiet rows under them. The page supplies the panel. The
+ * compact layout follows the panel's own width (the teacher sidebar and the
+ * side column both take room), not the window's.
+ */
+.builder {
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  min-width: 0;
+  gap: var(--spacing-4);
 }
 
-.heading {
+.errorState {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-4);
+  border: 1px solid var(--error);
+  border-radius: var(--radius-md);
+  color: var(--error-text);
+  font-size: 0.875rem;
+}
+
+.chapters {
+  display: flex;
+  flex-direction: column;
   margin: 0;
-  font-family: var(--font-family-heading);
-  font-size: 1.125rem;
-  font-weight: 700;
+  padding: 0;
+  list-style: none;
+}
+
+.chapter {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-4) 0;
+  border-top: 1px solid var(--border);
+  background-color: var(--surface);
+}
+
+.chapter:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+.dragging {
+  z-index: 2;
+  border-radius: var(--radius-md);
+  box-shadow: 0 12px 28px -12px hsl(220 10% 15% / 0.45);
+}
+
+.chapterHead {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-height: 2.25rem;
+}
+
+/* Visible at rest in the muted ink so touch and keyboard users find it too. */
+.handle {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted-foreground);
+  cursor: grab;
+  touch-action: none;
+}
+
+.handle:hover {
+  background-color: var(--muted);
   color: var(--foreground);
 }
 
-.headerMeta {
+.handle:active {
+  cursor: grabbing;
+}
+
+.handle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--tk-brand-text);
+}
+
+.chapterNumber {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  padding: 0 var(--spacing-1);
+  border-radius: var(--radius-sm);
+  background-color: var(--muted);
+  color: var(--foreground);
+  font-family: var(--font-family-heading);
+  font-size: 0.8125rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  box-sizing: border-box;
+}
+
+.chapterTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-width: 0;
+  padding: var(--spacing-1) var(--spacing-2);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--foreground);
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-align: left;
+  cursor: text;
+}
+
+.chapterTitle:hover {
+  background-color: var(--muted);
+}
+
+.chapterTitle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--tk-brand-text);
+}
+
+.chapterTitleText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.renameIcon {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+
+.renameForm {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.renameInput {
+  height: 2.25rem;
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.chapterMeta {
+  flex-shrink: 0;
+  margin-left: auto;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* 32px, the console's row-action size: the kit's icon-sm is too small to tap. */
+.menuButton {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  color: var(--muted-foreground);
+}
+
+.menuButton:hover {
+  color: var(--foreground);
+}
+
+.menu {
+  min-width: 12rem;
+}
+
+/* The kit highlights items in coral on a coral wash, which reads at about 2:1. */
+.menu [role="menuitem"] {
+  gap: var(--spacing-2);
+  font-size: 0.875rem;
+}
+
+.menu [role="menuitem"]:hover,
+.menu [role="menuitem"]:focus-visible,
+.menu [role="menuitem"][data-highlighted] {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.menu [role="menuitem"] svg {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+
+.menu .dangerItem,
+.menu .dangerItem:hover,
+.menu .dangerItem[data-highlighted],
+.menu .dangerItem svg {
+  color: var(--error-text);
+}
+
+.lessons {
+  display: flex;
+  flex-direction: column;
   margin: 0;
+  padding: 0 0 0 1.75rem;
+  list-style: none;
+}
+
+.lesson {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+}
+
+.lesson + .lesson {
+  border-top: 1px solid color-mix(in srgb, var(--border) 70%, var(--surface));
+}
+
+.deleting {
+  opacity: 0.55;
+}
+
+.lessonMain {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-width: 0;
+  min-height: 2.75rem;
+  padding: var(--spacing-1) var(--spacing-2);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--foreground);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lessonMain:hover {
+  background-color: var(--muted);
+}
+
+.lessonMain:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--tk-brand-text);
+}
+
+.lessonNumber {
+  flex-shrink: 0;
+  min-width: 2rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.lessonIcon {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+
+.lessonTitle {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lessonMeta {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.8125rem;
+}
+
+.lessonDetail {
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.freeTag {
+  padding: 0.0625rem var(--spacing-2);
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--secondary) 14%, var(--surface));
+  color: var(--secondary-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.missing {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  color: var(--warning-text);
+  font-weight: 600;
+}
+
+.chapterEmpty {
+  margin: 0;
+  padding: var(--spacing-2) 0 var(--spacing-1) 3.75rem;
   font-size: 0.8125rem;
   color: var(--muted-foreground);
 }
 
-.emptyState {
-  text-align: center;
-  padding: var(--spacing-8) var(--spacing-4);
+/*
+ * Three quiet actions under each chapter. The kit renders them as outline
+ * buttons; here they drop the border until hovered so a long course does not
+ * turn into a wall of boxes.
+ */
+.chapterActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-1);
+  padding-left: 3.25rem;
+}
+
+.chapterActions button {
+  border-color: transparent;
+  background-color: transparent;
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.chapterActions button:hover:not(:disabled) {
+  border-color: var(--border);
   background-color: var(--muted);
-  border-radius: var(--radius-md);
-  color: var(--muted-foreground);
+  color: var(--foreground);
 }
 
-.emptyState p {
-  margin: 0;
+.chapterActions button svg {
+  color: var(--tk-brand-text);
 }
 
-.errorState {
-  text-align: center;
-  padding: var(--spacing-8);
-  background-color: var(--surface);
-  border: 1px solid var(--error);
-  border-radius: var(--radius-md);
-  color: var(--error-text);
-}
-
-.sectionsList {
+.newChapter {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-4);
+  gap: var(--spacing-2);
+  padding-top: var(--spacing-4);
+  border-top: 1px dashed var(--border);
 }
 
-.section {
-  border: 1px solid var(--border);
+.newChapterFirst {
+  padding: var(--spacing-8) var(--spacing-6);
+  border: 1px dashed var(--border);
   border-radius: var(--radius-md);
   background-color: var(--background);
 }
 
-.sectionHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--spacing-3);
-  padding: var(--spacing-2) var(--spacing-3);
-  background-color: var(--surface);
-  border-bottom: 1px solid var(--border);
-  border-top-left-radius: var(--radius-md);
-  border-top-right-radius: var(--radius-md);
-}
-
-.sectionTitleContainer {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  flex: 1;
-  min-width: 0;
-}
-
-.sectionTitle {
-  margin: 0;
+.newChapterLabel {
   font-family: var(--font-family-heading);
   font-size: 0.9375rem;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--foreground);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.sectionMeta {
-  flex-shrink: 0;
-  font-size: 0.8125rem;
+.newChapterFirst .newChapterLabel {
+  font-size: 1.125rem;
+}
+
+.newChapterHint {
+  margin: 0;
+  max-width: 56ch;
+  font-size: 0.875rem;
+  line-height: 1.5;
   color: var(--muted-foreground);
 }
 
-.moveButtons {
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.sectionActions {
+.newChapterRow {
   display: flex;
-  align-items: center;
-  gap: var(--spacing-1);
-  flex-shrink: 0;
-}
-
-.deleteButton {
-  color: var(--error-text);
-}
-
-.deleteButton:hover {
-  background-color: color-mix(in srgb, var(--error) 10%, var(--surface));
-  color: var(--error-text);
-}
-
-.lessonsList {
-  padding: var(--spacing-2) var(--spacing-3) var(--spacing-3);
-  display: flex;
-  flex-direction: column;
   gap: var(--spacing-2);
+  max-width: 34rem;
 }
 
-.lessonItem {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--spacing-3);
-  padding: var(--spacing-1) var(--spacing-2);
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-}
-
-.lessonTitleContainer {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  flex: 1;
+.newChapterRow > input {
+  flex: 1 1 auto;
   min-width: 0;
 }
 
-.lessonIcon {
-  display: inline-flex;
-  color: var(--tk-brand-text);
+.newChapterRow > button {
   flex-shrink: 0;
 }
 
-.lessonTitle {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--foreground);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.previewBadge {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--secondary-text);
-  background-color: color-mix(in srgb, var(--secondary) 15%, var(--surface));
-  padding: 2px var(--spacing-2);
-  border-radius: var(--radius-sm);
-  flex-shrink: 0;
-}
-
-.contentBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-1);
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 2px var(--spacing-2);
-  border-radius: var(--radius-full);
-  flex-shrink: 0;
-}
-
-.contentBadgeHasContent {
-  background-color: color-mix(in srgb, var(--success) 15%, var(--surface));
-  color: var(--success-text);
-}
-
-.contentBadgeNoContent {
-  background-color: color-mix(in srgb, var(--warning) 18%, var(--surface));
-  color: var(--warning-text);
-}
-
-.lessonActions {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-1);
-  flex-shrink: 0;
-}
-
-.addLessonContainer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-2);
-  padding-top: var(--spacing-1);
-}
-
-.continueContainer {
-  display: flex;
-  justify-content: center;
-  margin-top: var(--spacing-6);
-  padding-top: var(--spacing-4);
-  border-top: 1px solid var(--border);
-}
-
-@media (max-width: 768px) {
-  .builderContainer {
-    padding: var(--spacing-4);
+@container (max-width: 34rem) {
+  .lessons {
+    padding-left: 0;
   }
 
-  .header {
+  .lessonMain {
+    flex-wrap: wrap;
+    row-gap: 0;
+  }
+
+  .lessonMeta {
+    flex-basis: 100%;
+    padding-left: 2.5rem;
+  }
+
+  .chapterEmpty,
+  .chapterActions {
+    padding-left: 0;
+  }
+
+  .chapterMeta {
+    display: none;
+  }
+
+  .newChapterFirst {
+    padding: var(--spacing-6) var(--spacing-4);
+  }
+
+  .newChapterRow {
     flex-direction: column;
-    align-items: stretch;
+    max-width: none;
   }
+}
 
-  .lessonItem {
-    flex-wrap: wrap;
-  }
-
-  .lessonTitleContainer {
-    flex-wrap: wrap;
+@media (prefers-reduced-motion: reduce) {
+  .chapter,
+  .lesson {
+    transition: none !important;
   }
 }

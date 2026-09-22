@@ -1,4 +1,5 @@
 import { db } from "../../../helpers/db";
+import { sql } from "kysely";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./list_GET.schema";
 import superjson from "superjson";
@@ -20,6 +21,7 @@ export async function handle(request: Request): Promise<Response> {
     const queryInput = {
       status: searchParams.get("status") || undefined,
       category: searchParams.get("category") || undefined,
+      search: searchParams.get("search") || undefined,
       page: searchParams.get("page") ? Number(searchParams.get("page")) : 1,
       limit: searchParams.get("limit") ? Number(searchParams.get("limit")) : 20,
     };
@@ -39,13 +41,29 @@ export async function handle(request: Request): Promise<Response> {
       query = query.where("category", "=", input.category);
     }
 
+    if (input.search) {
+      const pattern = `%${input.search.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+      query = query.where((eb) =>
+        eb.or([
+          eb("title", "ilike", pattern),
+          eb("category", "ilike", pattern),
+          eb("examName", "ilike", pattern),
+        ])
+      );
+    }
+
     const offset = (input.page - 1) * input.limit;
 
-    const products = await query
+    // The total rides on each row so the list and its count cost one round trip.
+    const rows = await query
+      .select(sql<string>`count(*) over()`.as("totalCount"))
       .orderBy("createdAt", "desc")
       .limit(input.limit)
       .offset(offset)
       .execute();
+
+    const total = rows.length > 0 ? Number(rows[0].totalCount) : 0;
+    const products = rows.map(({ totalCount: _totalCount, ...product }) => product);
 
     const inReview = await pendingReviewIds(db, "digital_product", products.map((p) => p.id));
 
@@ -59,6 +77,7 @@ export async function handle(request: Request): Promise<Response> {
       })),
       page: input.page,
       limit: input.limit,
+      total,
     };
 
     return new Response(superjson.stringify(output));

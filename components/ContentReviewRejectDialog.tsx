@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { XCircle } from "lucide-react";
 import { ConsoleConfirmDialog } from "./ConsoleConfirmDialog";
 import { ContentReviewAdminView } from "../endpoints/admin/content-reviews/list_GET.schema";
+import { CONTENT_REJECTION_REASONS } from "../helpers/contentRejectionReasons";
 
 interface ContentReviewRejectDialogProps {
   review: ContentReviewAdminView | null;
@@ -49,8 +50,9 @@ export const ContentReviewRejectDialog: React.FC<
         value: notes,
         onChange: setNotes,
         placeholder: "Explain why this content is being rejected...",
-        hint: "Required.",
+        hint: "Required. Pick a reason to start from, or write your own.",
         required: true,
+        presets: CONTENT_REJECTION_REASONS,
       }}
     />
   );

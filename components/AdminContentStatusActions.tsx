@@ -5,6 +5,7 @@ import { ConsoleConfirmDialog } from "./ConsoleConfirmDialog";
 import { OutputType } from "../endpoints/admin/content-preview/details_GET.schema";
 import { ContentStatusAction } from "../endpoints/admin/content-preview/status_POST.schema";
 import { PREVIEW_TYPE_LABELS, useAdminContentStatusMutation } from "../helpers/useAdminContentPreview";
+import { CONTENT_REJECTION_REASONS } from "../helpers/contentRejectionReasons";
 
 /* Status controls on the admin preview page: make live, move back to draft, or reject with a reason. */
 export const AdminContentStatusActions = ({ data }: { data: OutputType }) => {
@@ -100,8 +101,9 @@ export const AdminContentStatusActions = ({ data }: { data: OutputType }) => {
                 value: note,
                 onChange: setNote,
                 placeholder: "Explain what needs to change...",
-                hint: "Required. Sent to the teacher by email.",
+                hint: "Required. Pick a reason to start from, or write your own. Sent to the teacher by email.",
                 required: true,
+                presets: CONTENT_REJECTION_REASONS,
               }
             : undefined
         }

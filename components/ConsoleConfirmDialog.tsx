@@ -1,5 +1,5 @@
-import React from "react";
-import { AlertTriangle } from "lucide-react";
+import React, { useLayoutEffect, useRef } from "react";
+import { AlertTriangle, Check, Plus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +10,13 @@ import {
 } from "./Dialog";
 import { Button } from "./Button";
 import { Textarea } from "./Textarea";
+import {
+  ReasonPreset,
+  nextBlank,
+  isPresetInUse,
+  togglePreset,
+  unfilledBlanks,
+} from "../helpers/reasonPresets";
 import styles from "./ConsoleConfirmDialog.module.css";
 
 interface ConsoleConfirmDialogProps {
@@ -38,6 +45,9 @@ interface ConsoleConfirmDialogProps {
     placeholder?: string;
     hint?: string;
     required?: boolean;
+    /* Pills under the box that drop in a ready-made reason to edit. Confirm
+       stays disabled while any [bracketed] blank from them is left in. */
+    presets?: ReasonPreset[];
   };
 }
 
@@ -62,7 +72,31 @@ export const ConsoleConfirmDialog: React.FC<ConsoleConfirmDialogProps> = ({
   onConfirm,
   note,
 }) => {
-  const noteMissing = !!note?.required && note.value.trim() === "";
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const pendingSelection = useRef<number | null>(null);
+  const presets = note?.presets ?? [];
+  const blanks = note ? unfilledBlanks(note.value, presets) : [];
+  const noteMissing =
+    (!!note?.required && note.value.trim() === "") || blanks.length > 0;
+
+  /* After a pill adds text, select its first blank so typing replaces it. */
+  useLayoutEffect(() => {
+    const from = pendingSelection.current;
+    const el = textareaRef.current;
+    if (from === null || !el || !note) return;
+    pendingSelection.current = null;
+    const range = nextBlank(note.value, from) ?? [note.value.length, note.value.length];
+    el.focus();
+    el.setSelectionRange(range[0], range[1]);
+    el.scrollTop = from > 0 ? el.scrollHeight : 0;
+  }, [note?.value]);
+
+  const applyPreset = (preset: ReasonPreset) => {
+    if (!note) return;
+    const next = togglePreset(note.value, preset, presets);
+    pendingSelection.current = next.insertedAt >= 0 ? next.insertedAt : null;
+    note.onChange(next.value);
+  };
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -72,7 +106,9 @@ export const ConsoleConfirmDialog: React.FC<ConsoleConfirmDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={styles.content}>
+      <DialogContent
+        className={`${styles.content} ${presets.length > 0 ? styles.contentWide : ""}`}
+      >
         <DialogHeader>
           <div className={styles.header}>
             <span
@@ -99,13 +135,47 @@ export const ConsoleConfirmDialog: React.FC<ConsoleConfirmDialogProps> = ({
                 {note.label}
               </label>
               <Textarea
+                ref={textareaRef}
                 id="console-confirm-note"
-                rows={3}
+                rows={presets.length > 0 ? 4 : 3}
                 value={note.value}
                 placeholder={note.placeholder}
                 onChange={(e) => note.onChange(e.target.value)}
                 disabled={isPending}
+                aria-describedby={
+                  blanks.length > 0 ? "console-confirm-blanks" : undefined
+                }
               />
+              {presets.length > 0 ? (
+                <div className={styles.presets} role="group" aria-label="Common reasons">
+                  {presets.map((preset) => {
+                    const inUse = isPresetInUse(note.value, preset);
+                    return (
+                      <button
+                        key={preset.label}
+                        type="button"
+                        className={`${styles.preset} ${inUse ? styles.presetInUse : ""}`}
+                        aria-pressed={inUse}
+                        title={preset.text}
+                        onClick={() => applyPreset(preset)}
+                        disabled={isPending}
+                      >
+                        {inUse ? (
+                          <Check size={14} aria-hidden="true" />
+                        ) : (
+                          <Plus size={14} aria-hidden="true" />
+                        )}
+                        {preset.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : null}
+              {blanks.length > 0 ? (
+                <p className={styles.noteBlanks} id="console-confirm-blanks">
+                  Fill in the blanks first: {blanks.join(", ")}
+                </p>
+              ) : null}
               {note.hint ? <p className={styles.noteHint}>{note.hint}</p> : null}
             </div>
           ) : null}

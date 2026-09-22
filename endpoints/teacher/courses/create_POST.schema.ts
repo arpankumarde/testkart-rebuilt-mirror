@@ -5,9 +5,8 @@ import { Courses, CourseLevelArrayValues } from "../../../helpers/schema";
 
 export const schema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters long."),
-  description: z
-    .string()
-    .min(10, "Description must be at least 10 characters long."),
+  // Optional while drafting; teacher/courses/publish requires one.
+  description: z.string().optional(),
   category: z.string().min(1, "Category is required."),
   level: z.enum(CourseLevelArrayValues),
   price: z.number().min(0, "Price cannot be negative."),

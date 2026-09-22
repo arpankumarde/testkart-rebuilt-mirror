@@ -75,6 +75,20 @@ app.post('_api/cart/add',async c => {
     return c.text("Error loading endpoint code " + e.message,  500)
   }
 })
+app.get('_api/mcp/admin',async c => {
+  try {
+    const { handle } = await import("./endpoints/mcp/admin_GET.js");
+    let request = c.req.raw;
+    const response = await handle(request);
+    if (!(response instanceof Response) && response.constructor.name !== "Response") {
+      return c.text("Invalid response format. handle should always return a Response object." + response.constructor.name, 500);
+    }
+    return response;
+  } catch (e) {
+    console.error(e);
+    return c.text("Error loading endpoint code " + e.message,  500)
+  }
+})
 app.get('_api/news/list',async c => {
   try {
     const { handle } = await import("./endpoints/news/list_GET.js");
@@ -190,6 +204,20 @@ app.post('_api/blog/react',async c => {
 app.get('_api/ifsc-lookup',async c => {
   try {
     const { handle } = await import("./endpoints/ifsc-lookup_GET.js");
+    let request = c.req.raw;
+    const response = await handle(request);
+    if (!(response instanceof Response) && response.constructor.name !== "Response") {
+      return c.text("Invalid response format. handle should always return a Response object." + response.constructor.name, 500);
+    }
+    return response;
+  } catch (e) {
+    console.error(e);
+    return c.text("Error loading endpoint code " + e.message,  500)
+  }
+})
+app.get('_api/mcp/teacher',async c => {
+  try {
+    const { handle } = await import("./endpoints/mcp/teacher_GET.js");
     let request = c.req.raw;
     const response = await handle(request);
     if (!(response instanceof Response) && response.constructor.name !== "Response") {
@@ -817,6 +845,20 @@ app.get('_api/admin/tests/list',async c => {
     return c.text("Error loading endpoint code " + e.message,  500)
   }
 })
+app.post('_api/analytics/track',async c => {
+  try {
+    const { handle } = await import("./endpoints/analytics/track_POST.js");
+    let request = c.req.raw;
+    const response = await handle(request);
+    if (!(response instanceof Response) && response.constructor.name !== "Response") {
+      return c.text("Invalid response format. handle should always return a Response object." + response.constructor.name, 500);
+    }
+    return response;
+  } catch (e) {
+    console.error(e);
+    return c.text("Error loading endpoint code " + e.message,  500)
+  }
+})
 app.post('_api/auth/verify_otp',async c => {
   try {
     const { handle } = await import("./endpoints/auth/verify_otp_POST.js");
@@ -848,6 +890,20 @@ app.get('_api/exam-content/get',async c => {
 app.post('_api/mcp/admin/token',async c => {
   try {
     const { handle } = await import("./endpoints/mcp/admin/token_POST.js");
+    let request = c.req.raw;
+    const response = await handle(request);
+    if (!(response instanceof Response) && response.constructor.name !== "Response") {
+      return c.text("Invalid response format. handle should always return a Response object." + response.constructor.name, 500);
+    }
+    return response;
+  } catch (e) {
+    console.error(e);
+    return c.text("Error loading endpoint code " + e.message,  500)
+  }
+})
+app.post('_api/mcp/oauth/token',async c => {
+  try {
+    const { handle } = await import("./endpoints/mcp/oauth/token_POST.js");
     let request = c.req.raw;
     const response = await handle(request);
     if (!(response instanceof Response) && response.constructor.name !== "Response") {
@@ -1433,9 +1489,51 @@ app.post('_api/mcp/admin/register',async c => {
     return c.text("Error loading endpoint code " + e.message,  500)
   }
 })
+app.get('_api/mcp/oauth/authorize',async c => {
+  try {
+    const { handle } = await import("./endpoints/mcp/oauth/authorize_GET.js");
+    let request = c.req.raw;
+    const response = await handle(request);
+    if (!(response instanceof Response) && response.constructor.name !== "Response") {
+      return c.text("Invalid response format. handle should always return a Response object." + response.constructor.name, 500);
+    }
+    return response;
+  } catch (e) {
+    console.error(e);
+    return c.text("Error loading endpoint code " + e.message,  500)
+  }
+})
+app.post('_api/mcp/oauth/register',async c => {
+  try {
+    const { handle } = await import("./endpoints/mcp/oauth/register_POST.js");
+    let request = c.req.raw;
+    const response = await handle(request);
+    if (!(response instanceof Response) && response.constructor.name !== "Response") {
+      return c.text("Invalid response format. handle should always return a Response object." + response.constructor.name, 500);
+    }
+    return response;
+  } catch (e) {
+    console.error(e);
+    return c.text("Error loading endpoint code " + e.message,  500)
+  }
+})
 app.post('_api/teacher/ai/rewrite',async c => {
   try {
     const { handle } = await import("./endpoints/teacher/ai/rewrite_POST.js");
+    let request = c.req.raw;
+    const response = await handle(request);
+    if (!(response instanceof Response) && response.constructor.name !== "Response") {
+      return c.text("Invalid response format. handle should always return a Response object." + response.constructor.name, 500);
+    }
+    return response;
+  } catch (e) {
+    console.error(e);
+    return c.text("Error loading endpoint code " + e.message,  500)
+  }
+})
+app.get('_api/teacher/assets/list',async c => {
+  try {
+    const { handle } = await import("./endpoints/teacher/assets/list_GET.js");
     let request = c.req.raw;
     const response = await handle(request);
     if (!(response instanceof Response) && response.constructor.name !== "Response") {
@@ -2357,6 +2455,48 @@ app.get('_api/teacher/ai-connections',async c => {
     return c.text("Error loading endpoint code " + e.message,  500)
   }
 })
+app.post('_api/teacher/assets/create',async c => {
+  try {
+    const { handle } = await import("./endpoints/teacher/assets/create_POST.js");
+    let request = c.req.raw;
+    const response = await handle(request);
+    if (!(response instanceof Response) && response.constructor.name !== "Response") {
+      return c.text("Invalid response format. handle should always return a Response object." + response.constructor.name, 500);
+    }
+    return response;
+  } catch (e) {
+    console.error(e);
+    return c.text("Error loading endpoint code " + e.message,  500)
+  }
+})
+app.post('_api/teacher/assets/delete',async c => {
+  try {
+    const { handle } = await import("./endpoints/teacher/assets/delete_POST.js");
+    let request = c.req.raw;
+    const response = await handle(request);
+    if (!(response instanceof Response) && response.constructor.name !== "Response") {
+      return c.text("Invalid response format. handle should always return a Response object." + response.constructor.name, 500);
+    }
+    return response;
+  } catch (e) {
+    console.error(e);
+    return c.text("Error loading endpoint code " + e.message,  500)
+  }
+})
+app.post('_api/teacher/assets/rename',async c => {
+  try {
+    const { handle } = await import("./endpoints/teacher/assets/rename_POST.js");
+    let request = c.req.raw;
+    const response = await handle(request);
+    if (!(response instanceof Response) && response.constructor.name !== "Response") {
+      return c.text("Invalid response format. handle should always return a Response object." + response.constructor.name, 500);
+    }
+    return response;
+  } catch (e) {
+    console.error(e);
+    return c.text("Error loading endpoint code " + e.message,  500)
+  }
+})
 app.post('_api/teacher/products/bulk',async c => {
   try {
     const { handle } = await import("./endpoints/teacher/products/bulk_POST.js");
@@ -2595,6 +2735,20 @@ app.get('_api/student/withdrawal/list',async c => {
     return c.text("Error loading endpoint code " + e.message,  500)
   }
 })
+app.get('_api/teacher/analytics/sales',async c => {
+  try {
+    const { handle } = await import("./endpoints/teacher/analytics/sales_GET.js");
+    let request = c.req.raw;
+    const response = await handle(request);
+    if (!(response instanceof Response) && response.constructor.name !== "Response") {
+      return c.text("Invalid response format. handle should always return a Response object." + response.constructor.name, 500);
+    }
+    return response;
+  } catch (e) {
+    console.error(e);
+    return c.text("Error loading endpoint code " + e.message,  500)
+  }
+})
 app.post('_api/teacher/bundles/create',async c => {
   try {
     const { handle } = await import("./endpoints/teacher/bundles/create_POST.js");
@@ -2780,6 +2934,20 @@ app.get('_api/teacher/test-items/list',async c => {
 app.get('_api/teacher/withdrawal/list',async c => {
   try {
     const { handle } = await import("./endpoints/teacher/withdrawal/list_GET.js");
+    let request = c.req.raw;
+    const response = await handle(request);
+    if (!(response instanceof Response) && response.constructor.name !== "Response") {
+      return c.text("Invalid response format. handle should always return a Response object." + response.constructor.name, 500);
+    }
+    return response;
+  } catch (e) {
+    console.error(e);
+    return c.text("Error loading endpoint code " + e.message,  500)
+  }
+})
+app.post('_api/upload/multipart/parts',async c => {
+  try {
+    const { handle } = await import("./endpoints/upload/multipart/parts_POST.js");
     let request = c.req.raw;
     const response = await handle(request);
     if (!(response instanceof Response) && response.constructor.name !== "Response") {
@@ -3351,6 +3519,48 @@ app.post('_api/teacher/ai/generate-list',async c => {
     return c.text("Error loading endpoint code " + e.message,  500)
   }
 })
+app.get('_api/teacher/analytics/academy',async c => {
+  try {
+    const { handle } = await import("./endpoints/teacher/analytics/academy_GET.js");
+    let request = c.req.raw;
+    const response = await handle(request);
+    if (!(response instanceof Response) && response.constructor.name !== "Response") {
+      return c.text("Invalid response format. handle should always return a Response object." + response.constructor.name, 500);
+    }
+    return response;
+  } catch (e) {
+    console.error(e);
+    return c.text("Error loading endpoint code " + e.message,  500)
+  }
+})
+app.get('_api/teacher/analytics/reviews',async c => {
+  try {
+    const { handle } = await import("./endpoints/teacher/analytics/reviews_GET.js");
+    let request = c.req.raw;
+    const response = await handle(request);
+    if (!(response instanceof Response) && response.constructor.name !== "Response") {
+      return c.text("Invalid response format. handle should always return a Response object." + response.constructor.name, 500);
+    }
+    return response;
+  } catch (e) {
+    console.error(e);
+    return c.text("Error loading endpoint code " + e.message,  500)
+  }
+})
+app.get('_api/teacher/analytics/summary',async c => {
+  try {
+    const { handle } = await import("./endpoints/teacher/analytics/summary_GET.js");
+    let request = c.req.raw;
+    const response = await handle(request);
+    if (!(response instanceof Response) && response.constructor.name !== "Response") {
+      return c.text("Invalid response format. handle should always return a Response object." + response.constructor.name, 500);
+    }
+    return response;
+  } catch (e) {
+    console.error(e);
+    return c.text("Error loading endpoint code " + e.message,  500)
+  }
+})
 app.post('_api/teacher/bank-details/add',async c => {
   try {
     const { handle } = await import("./endpoints/teacher/bank-details/add_POST.js");
@@ -3662,6 +3872,48 @@ app.post('_api/admin/withdrawals/process',async c => {
 app.post('_api/auth/email-login/send-otp',async c => {
   try {
     const { handle } = await import("./endpoints/auth/email-login/send-otp_POST.js");
+    let request = c.req.raw;
+    const response = await handle(request);
+    if (!(response instanceof Response) && response.constructor.name !== "Response") {
+      return c.text("Invalid response format. handle should always return a Response object." + response.constructor.name, 500);
+    }
+    return response;
+  } catch (e) {
+    console.error(e);
+    return c.text("Error loading endpoint code " + e.message,  500)
+  }
+})
+app.get('_api/teacher/analytics/payments',async c => {
+  try {
+    const { handle } = await import("./endpoints/teacher/analytics/payments_GET.js");
+    let request = c.req.raw;
+    const response = await handle(request);
+    if (!(response instanceof Response) && response.constructor.name !== "Response") {
+      return c.text("Invalid response format. handle should always return a Response object." + response.constructor.name, 500);
+    }
+    return response;
+  } catch (e) {
+    console.error(e);
+    return c.text("Error loading endpoint code " + e.message,  500)
+  }
+})
+app.get('_api/teacher/analytics/products',async c => {
+  try {
+    const { handle } = await import("./endpoints/teacher/analytics/products_GET.js");
+    let request = c.req.raw;
+    const response = await handle(request);
+    if (!(response instanceof Response) && response.constructor.name !== "Response") {
+      return c.text("Invalid response format. handle should always return a Response object." + response.constructor.name, 500);
+    }
+    return response;
+  } catch (e) {
+    console.error(e);
+    return c.text("Error loading endpoint code " + e.message,  500)
+  }
+})
+app.get('_api/teacher/analytics/students',async c => {
+  try {
+    const { handle } = await import("./endpoints/teacher/analytics/students_GET.js");
     let request = c.req.raw;
     const response = await handle(request);
     if (!(response instanceof Response) && response.constructor.name !== "Response") {
@@ -4597,6 +4849,34 @@ app.post('_api/admin/blog/comments/moderate',async c => {
     return c.text("Error loading endpoint code " + e.message,  500)
   }
 })
+app.get('_api/admin/content-preview/details',async c => {
+  try {
+    const { handle } = await import("./endpoints/admin/content-preview/details_GET.js");
+    let request = c.req.raw;
+    const response = await handle(request);
+    if (!(response instanceof Response) && response.constructor.name !== "Response") {
+      return c.text("Invalid response format. handle should always return a Response object." + response.constructor.name, 500);
+    }
+    return response;
+  } catch (e) {
+    console.error(e);
+    return c.text("Error loading endpoint code " + e.message,  500)
+  }
+})
+app.post('_api/admin/content-preview/status',async c => {
+  try {
+    const { handle } = await import("./endpoints/admin/content-preview/status_POST.js");
+    let request = c.req.raw;
+    const response = await handle(request);
+    if (!(response instanceof Response) && response.constructor.name !== "Response") {
+      return c.text("Invalid response format. handle should always return a Response object." + response.constructor.name, 500);
+    }
+    return response;
+  } catch (e) {
+    console.error(e);
+    return c.text("Error loading endpoint code " + e.message,  500)
+  }
+})
 app.post('_api/admin/content-reviews/review',async c => {
   try {
     const { handle } = await import("./endpoints/admin/content-reviews/review_POST.js");
@@ -5227,6 +5507,20 @@ app.post('_api/admin/ai-questions/bulk-export',async c => {
     return c.text("Error loading endpoint code " + e.message,  500)
   }
 })
+app.get('_api/admin/content-preview/questions',async c => {
+  try {
+    const { handle } = await import("./endpoints/admin/content-preview/questions_GET.js");
+    let request = c.req.raw;
+    const response = await handle(request);
+    if (!(response instanceof Response) && response.constructor.name !== "Response") {
+      return c.text("Invalid response format. handle should always return a Response object." + response.constructor.name, 500);
+    }
+    return response;
+  } catch (e) {
+    console.error(e);
+    return c.text("Error loading endpoint code " + e.message,  500)
+  }
+})
 app.post('_api/admin/custom-exam-names/delete',async c => {
   try {
     const { handle } = await import("./endpoints/admin/custom-exam-names/delete_POST.js");
@@ -5398,6 +5692,20 @@ app.get('_api/teacher/test-item-subjects/list',async c => {
 app.post('_api/teacher/test-items/bulk-create',async c => {
   try {
     const { handle } = await import("./endpoints/teacher/test-items/bulk-create_POST.js");
+    let request = c.req.raw;
+    const response = await handle(request);
+    if (!(response instanceof Response) && response.constructor.name !== "Response") {
+      return c.text("Invalid response format. handle should always return a Response object." + response.constructor.name, 500);
+    }
+    return response;
+  } catch (e) {
+    console.error(e);
+    return c.text("Error loading endpoint code " + e.message,  500)
+  }
+})
+app.post('_api/admin/admins/update-permissions',async c => {
+  try {
+    const { handle } = await import("./endpoints/admin/admins/update-permissions_POST.js");
     let request = c.req.raw;
     const response = await handle(request);
     if (!(response instanceof Response) && response.constructor.name !== "Response") {
@@ -6336,6 +6644,20 @@ app.post('_api/admin/subscription-transactions/mark-failed',async c => {
 app.post('_api/payment/payu/subscription/verify-and-complete',async c => {
   try {
     const { handle } = await import("./endpoints/payment/payu/subscription/verify-and-complete_POST.js");
+    let request = c.req.raw;
+    const response = await handle(request);
+    if (!(response instanceof Response) && response.constructor.name !== "Response") {
+      return c.text("Invalid response format. handle should always return a Response object." + response.constructor.name, 500);
+    }
+    return response;
+  } catch (e) {
+    console.error(e);
+    return c.text("Error loading endpoint code " + e.message,  500)
+  }
+})
+app.post('_api/maintenance/approve-review-temp',async c => {
+  try {
+    const { handle } = await import("./endpoints/maintenance/approve-review-temp_POST.js");
     let request = c.req.raw;
     const response = await handle(request);
     if (!(response instanceof Response) && response.constructor.name !== "Response") {

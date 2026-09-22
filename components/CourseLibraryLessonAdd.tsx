@@ -58,7 +58,7 @@ export const CourseLibraryLessonAdd: React.FC<{ sectionId: number; sectionTitle:
   return (
     <>
       <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
-        <FolderOpen size={14} /> Add from Library
+        <FolderOpen size={14} /> Add from library
       </Button>
       <TeacherAssetPicker
         open={open}

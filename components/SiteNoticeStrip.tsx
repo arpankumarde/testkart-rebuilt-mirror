@@ -5,7 +5,7 @@ import styles from "./SiteNoticeStrip.module.css";
 const NOTICE_MESSAGE = "Testkart will be undergoing maintenance today at 11 PM IST";
 
 // Midnight IST after the maintenance, so a stale "today" never shows.
-const NOTICE_ENDS_AT = Date.parse("2026-09-16T00:00:00+05:30");
+const NOTICE_ENDS_AT = Date.parse("2026-09-25T00:00:00+05:30");
 
 // Full-screen test and course players, which size themselves to the viewport.
 const HIDDEN_PATH_PREFIXES = ["/portal/", "/live-portal/", "/student/courses/"];

@@ -6,6 +6,7 @@ import {
   hasPendingReview,
   queueContentReview,
 } from "../../../helpers/contentReviewQueue";
+import { hasCourseDescription } from "../../../helpers/courseDraft";
 import { schema, OutputType } from "./publish_POST.schema";
 import superjson from "superjson";
 
@@ -25,7 +26,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const course = await db
       .selectFrom("courses")
-      .select(["teacherId", "status", "thumbnailImageUrl", "introVideoUrl"])
+      .select(["teacherId", "status", "description", "thumbnailImageUrl", "introVideoUrl"])
       .where("id", "=", courseId)
       .executeTakeFirst();
 
@@ -62,6 +63,15 @@ export async function handle(request: Request): Promise<Response> {
       return new Response(
         superjson.stringify({
           error: "Cannot publish a course without a thumbnail image or intro video. Please add at least one.",
+        }),
+        { status: 400 }
+      );
+    }
+
+    if (!hasCourseDescription(course.description)) {
+      return new Response(
+        superjson.stringify({
+          error: "Add a course description before submitting it for review.",
         }),
         { status: 400 }
       );

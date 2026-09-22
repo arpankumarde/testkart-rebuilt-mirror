@@ -42,54 +42,6 @@
     box-shadow: var(--shadow);
   }
 
-  .formLayout {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-4);
-  }
-
-  .formActions {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: var(--spacing-3);
-    padding-top: var(--spacing-4);
-    border-top: 1px solid var(--border);
-  }
-
-  .uploadNote {
-    margin: 0 auto 0 0;
-    font-size: 0.8125rem;
-    color: var(--muted-foreground);
-  }
-
-  .durationField {
-    max-width: 14rem;
-  }
-
-  /* A PDF shows a file badge, not a picture, so it does not need the 16:9 box. */
-  .pdfUploader {
-    min-height: 7.5rem;
-  }
-
-  .pdfMeta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: var(--spacing-2);
-  }
-
-  .pdfLoading {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 9999;
-  }
-
   /* Same panel as TeacherListEmpty. */
   .errorContainer {
     display: flex;
@@ -134,17 +86,6 @@
     color: var(--muted-foreground);
   }
 
-  .checkboxGroup {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-2);
-  }
-
-  .checkboxLabel {
-    margin-bottom: 0;
-    cursor: pointer;
-  }
-
   @media (max-width: 640px) {
     .page {
       gap: var(--spacing-4);
@@ -153,34 +94,15 @@
     .formCard {
       padding: var(--spacing-4);
     }
-
-    .formActions {
-      flex-direction: column-reverse;
-    }
-
-    .formActions button {
-      width: 100%;
-    }
-
-    .uploadNote {
-      margin: 0;
-    }
-
-    .durationField {
-      max-width: none;
-    }
   }
+}
 
-  .libraryPick {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--spacing-2) var(--spacing-3);
-    margin-top: var(--spacing-2);
-  }
-
-  .libraryHint {
-    font-size: 0.8125rem;
-    color: var(--muted-foreground);
-  }
+/*
+ * Outside the layer on purpose: TeacherDashboardLayout's main is overflow:auto
+ * (unlayered), which leaves the editor's sticky save row inert. Same page-scoped
+ * fix as the course and test series editors.
+ */
+:global(main):has(.page) {
+  overflow-x: clip;
+  overflow-y: visible;
 }

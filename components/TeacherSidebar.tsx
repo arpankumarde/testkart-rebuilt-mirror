@@ -81,7 +81,7 @@ const NAV_GROUPS: TeacherNavGroup[] = [
     label: 'Application',
     alwaysOpen: true,
     items: [
-      { href: '/teacher/dashboard', label: 'Dashboard', icon: LayoutDashboard, badge: 'New' },
+      { href: '/teacher/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { href: '/teacher/analytics', label: 'Analytics', icon: TrendingUp, ownerOnly: true, badge: 'New' },
       {
         href: '/teacher/test-series',

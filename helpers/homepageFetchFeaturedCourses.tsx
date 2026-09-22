@@ -9,10 +9,11 @@ import type { HomepageFeaturedCourseItem } from "../endpoints/homepage/data_GET.
  * slugs are skipped, so a course taken down drops out on its own.
  */
 export const FEATURED_COURSE_SLUGS = [
-  "engineering-graphics",
   "ts-and-ap-eamcet-complete-notes-with-previous-year-questions",
-  "complete-vectors-for-physics-jee-main-neet",
-  "basic-mathematics-for-physics-calculus-jee-neet-iat-nest",
+  "mole-concept-and-foundations-of-chemistryanimated-for-neetjee-main",
+  "engineering-graphics",
+  "physics-courseiit-jee-foundation",
+  "neetjee-chemistry-foundation",
 ];
 
 export async function homepageFetchFeaturedCourses(): Promise<HomepageFeaturedCourseItem[]> {

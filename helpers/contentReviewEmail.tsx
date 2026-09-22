@@ -1,5 +1,6 @@
 import { db } from "./db";
 import { sendEmail } from "./sendEmail";
+import { escapeHtmlAttribute } from "./escapeHtmlAttribute";
 
 /* Approved/rejected emails for teacher content, shared by the review queue and the admin preview status actions. */
 
@@ -45,7 +46,11 @@ export async function sendReviewEmail(
       adminNotes: adminNotes ?? "",
     };
 
-    const html = replacePlaceholders(template.htmlContent, replacements);
+    /* Notes can hold several reasons, one per paragraph, so the HTML keeps their line breaks. */
+    const html = replacePlaceholders(template.htmlContent, {
+      ...replacements,
+      adminNotes: escapeHtmlAttribute(adminNotes ?? "").replace(/\r?\n/g, "<br>"),
+    });
     const text = template.textContent ? replacePlaceholders(template.textContent, replacements) : undefined;
     const subject = replacePlaceholders(template.subject, replacements);
 

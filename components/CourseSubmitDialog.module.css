@@ -1,0 +1,127 @@
+.footer {
+  flex-wrap: wrap;
+}
+
+.footerStart {
+  margin-right: auto;
+}
+
+.writing {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  border-radius: var(--radius-md);
+  background-color: var(--muted);
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+
+.writing p {
+  margin: 0;
+}
+
+.draftBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.draftLabel {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.draft {
+  max-height: 18rem;
+  overflow-y: auto;
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--background);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--foreground);
+}
+
+.draft > :first-child {
+  margin-top: 0;
+}
+
+.draft > :last-child {
+  margin-bottom: 0;
+}
+
+.draft ul,
+.draft ol {
+  padding-left: 1.25rem;
+}
+
+.note {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding: var(--spacing-3);
+  border: 1px solid color-mix(in srgb, var(--error) 40%, var(--surface));
+  border-radius: var(--radius-md);
+  background-color: color-mix(in srgb, var(--error) 8%, var(--surface));
+  color: var(--error-text);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.error svg {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.checklist {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.checklist li {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  min-height: 2.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.checklist li:first-child {
+  border-top: none;
+}
+
+.checklist li svg {
+  flex-shrink: 0;
+}
+
+.done svg {
+  color: var(--success-text);
+}
+
+.todo svg {
+  color: var(--muted-foreground);
+}
+
+.itemLabel {
+  flex: 1 1 auto;
+  font-size: 0.9375rem;
+  color: var(--foreground);
+}
+
+.done .itemLabel {
+  color: var(--muted-foreground);
+}

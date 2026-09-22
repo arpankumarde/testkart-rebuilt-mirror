@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight, Users, Clock, Award, BookOpen } from 'lucide-react';
 import { Badge } from './Badge';
+import { VerifiedBadge } from './VerifiedBadge';
 import styles from './CourseHero.module.css';
 
 export type PublicCourseDetails = {
@@ -17,6 +18,7 @@ export type PublicCourseDetails = {
     id: number;
     displayName: string;
     profilePicture: string | null;
+    isVerified: boolean;
   };
   isEnrolled: boolean;
   sections?: Array<{ lessons: Array<any> }>;
@@ -94,6 +96,7 @@ export const CourseHero: React.FC<CourseHeroProps> = ({ course, className }) => 
                 >
                   {course.teacher.displayName}
                 </button>
+                <VerifiedBadge isVerified={course.teacher.isVerified} size="sm" />
               </div>
             </div>
 

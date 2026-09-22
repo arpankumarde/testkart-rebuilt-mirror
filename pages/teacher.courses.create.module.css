@@ -1,8 +1,155 @@
 /*
- * A transition screen, not a form: this page creates the draft course and then
- * navigates straight to its editor. Shared shape with the Test editor's
- * redirect screen so the two waits look the same.
+ * Two screens share this page after the AI prompt: the short start form for
+ * "I'll fill the details myself", and the wait while the AI-filled draft is
+ * created. The start form sits beside the same card preview the editor shows,
+ * so the course looks the same from its first keystroke to Submit.
  */
+
+/* The query container; .start cannot measure itself. */
+.startWrap {
+  container-type: inline-size;
+}
+
+.start {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-8);
+  width: 100%;
+  max-width: 60rem;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.startMain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  min-width: 0;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  font-family: var(--font-family-base);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  cursor: pointer;
+}
+
+.backLink:hover {
+  color: var(--foreground);
+}
+
+.backLink:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.startTitle {
+  margin: var(--spacing-2) 0 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--foreground);
+}
+
+.startLead {
+  margin: 0;
+  max-width: 46ch;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--muted-foreground);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: var(--spacing-4);
+  max-width: 30rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.optional {
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.error {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--error-text);
+}
+
+.priceRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.rupeeInput {
+  position: relative;
+  width: 10rem;
+}
+
+.rupee {
+  position: absolute;
+  top: 50%;
+  left: var(--spacing-3);
+  transform: translateY(-50%);
+  font-weight: 600;
+  color: var(--muted-foreground);
+  pointer-events: none;
+}
+
+.rupeeInput input {
+  padding-left: 1.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.submit {
+  align-self: flex-start;
+  margin-top: var(--spacing-2);
+}
+
+.preview {
+  align-self: start;
+}
+
+.bannerError {
+  max-width: 60rem;
+  margin: 0 auto var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid color-mix(in srgb, var(--error) 35%, var(--surface));
+  border-radius: var(--radius-md);
+  background-color: color-mix(in srgb, var(--error) 8%, var(--surface));
+  color: var(--error-text);
+  font-size: 0.875rem;
+}
+
+/* The wait while an AI-filled draft is created, then the editor opens. */
 .status {
   display: flex;
   flex-direction: column;
@@ -19,11 +166,20 @@
   color: var(--muted-foreground);
 }
 
-.error {
-  padding: var(--spacing-3) var(--spacing-4);
-  border: 1px solid color-mix(in srgb, var(--error) 30%, transparent);
-  border-radius: var(--radius-md);
-  background-color: color-mix(in srgb, var(--error) 10%, transparent);
-  color: var(--error-text);
-  font-size: 0.875rem;
+@container (min-width: 44rem) {
+  .start {
+    grid-template-columns: minmax(0, 1fr) 20rem;
+    align-items: start;
+    padding-top: var(--spacing-6);
+  }
+}
+
+@media (max-width: 480px) {
+  .startTitle {
+    font-size: 1.5rem;
+  }
+
+  .submit {
+    align-self: stretch;
+  }
 }

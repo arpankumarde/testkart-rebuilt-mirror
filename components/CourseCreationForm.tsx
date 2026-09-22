@@ -1,48 +1,49 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { useForm, Form, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from './Form';
 import { Input } from './Input';
 import { RichTextEditor } from './RichTextEditor';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './Select';
+import { SegmentedControl } from './SegmentedControl';
 import { ExamNamePicker } from './ExamNamePicker';
 import { Button } from './Button';
 import { Spinner } from './Spinner';
 import { CourseThumbnailVideo } from './CourseThumbnailVideo';
 import { ThumbnailUploader } from './ThumbnailUploader';
-import { schema as createSchema } from '../endpoints/teacher/courses/create_POST.schema';
+import { AIRewriteButton } from './AIRewriteButton';
+import { schema as updateSchema } from '../endpoints/teacher/courses/update_POST.schema';
 import { useTeacherCourseMutations } from '../helpers/useTeacherCoursesQuery';
 import type { TeacherCourseListItem } from '../endpoints/teacher/courses/list_GET.schema';
-import { CourseLevelArrayValues } from '../helpers/schema';
-import { AIRewriteButton } from './AIRewriteButton';
 import styles from './CourseCreationForm.module.css';
 
+const formSchema = updateSchema.omit({ courseId: true, thumbnailUrl: true, thumbnailFileId: true }).extend({
+  price: z.coerce.number().min(0, 'Price cannot be negative.'),
+});
+
+export type CourseDetailsValues = z.infer<typeof formSchema>;
+export type CourseDetailsField = 'title' | 'description' | 'cover' | 'price';
+
+export interface CourseDetailsFormHandle {
+  /** Saves the form. Resolves false when a field needs attention or the save failed. */
+  save: () => Promise<boolean>;
+  focusField: (field: CourseDetailsField) => void;
+  /** Puts text into the description without saving it. */
+  setDescription: (html: string) => void;
+}
+
 interface CourseCreationFormProps {
-  course?: TeacherCourseListItem;
-  onSuccess: (courseId: number) => void;
-  /** Reports whether the form holds edits that are not saved yet. */
+  course: TeacherCourseListItem;
+  /** Chapter names, handed to AI so a drafted description matches the curriculum. */
+  chapterTitles?: string[];
+  /** Shown above the first field, e.g. after AI filled the course in. */
+  notice?: React.ReactNode;
+  onValuesChange?: (values: CourseDetailsValues) => void;
   onDirtyChange?: (dirty: boolean) => void;
-  /** Reports whether the thumbnail or intro video is still uploading. */
   onUploadingChange?: (uploading: boolean) => void;
 }
 
-const formSchema = createSchema.merge(z.object({
-  price: z.coerce.number().min(0, "Price cannot be negative."),
-  introVideoFileId: z.string().nullable().optional(),
-  thumbnailImageFileId: z.string().nullable().optional(),
-})).superRefine((data, ctx) => {
-  if (!data.introVideoUrl && !data.thumbnailImageUrl) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Please upload a course thumbnail image or intro video.",
-      path: ["thumbnailImageUrl"],
-    });
-  }
-});
-
-type CourseFormValues = z.infer<typeof formSchema>;
-
-const AI_COURSE_DATA_KEY = 'testkart_ai_course_data';
+type PriceMode = 'free' | 'paid';
 
 const LANGUAGES = [
   "English", "Hindi", "Bengali", "Telugu", "Marathi", "Tamil",
@@ -52,23 +53,18 @@ const LANGUAGES = [
   "Sindhi", "Manipuri", "Multiple Languages",
 ];
 
-const EMPTY_VALUES: CourseFormValues = {
-  title: '',
-  description: '',
-  category: '',
-  level: 'beginner',
-  price: 0,
-  introVideoUrl: null,
-  thumbnailImageUrl: null,
-  introVideoFileId: null,
-  thumbnailImageFileId: null,
-  language: null,
-  examName: '',
-};
+const LEVEL_OPTIONS = [
+  { value: 'beginner', label: 'Beginner' },
+  { value: 'intermediate', label: 'Intermediate' },
+  { value: 'advanced', label: 'Advanced' },
+] as const;
 
-const FIELD_KEYS = Object.keys(EMPTY_VALUES) as (keyof CourseFormValues)[];
+const PRICE_OPTIONS = [
+  { value: 'free', label: 'Free' },
+  { value: 'paid', label: 'Paid' },
+] as const;
 
-const toFormValues = (course: TeacherCourseListItem): CourseFormValues => ({
+const toFormValues = (course: TeacherCourseListItem): CourseDetailsValues => ({
   title: course.title,
   description: course.description ?? '',
   category: course.category || '',
@@ -82,298 +78,355 @@ const toFormValues = (course: TeacherCourseListItem): CourseFormValues => ({
   examName: course.examName || '',
 });
 
-const readAiOverrides = (): Partial<Pick<CourseFormValues, 'description' | 'language'>> => {
-  try {
-    const raw = sessionStorage.getItem(AI_COURSE_DATA_KEY);
-    if (!raw) return {};
-    const data = JSON.parse(raw);
-    return {
-      ...(typeof data?.description === 'string' && data.description ? { description: data.description } : {}),
-      ...(typeof data?.language === 'string' && data.language ? { language: data.language } : {}),
-    };
-  } catch (e) {
-    console.error("Failed to parse AI course data from sessionStorage", e);
-    return {};
-  }
-};
+const FIELD_KEYS: (keyof CourseDetailsValues)[] = [
+  'title', 'description', 'category', 'level', 'price', 'introVideoUrl', 'thumbnailImageUrl',
+  'introVideoFileId', 'thumbnailImageFileId', 'language', 'examName',
+];
 
 const normalize = (value: unknown) => (value === undefined || value === '' ? null : value);
 
-const hasUnsavedChanges = (values: CourseFormValues, saved: CourseFormValues) =>
+const hasUnsavedChanges = (values: CourseDetailsValues, saved: CourseDetailsValues) =>
   FIELD_KEYS.some((key) => normalize(values[key]) !== normalize(saved[key]));
 
-function useReportToParent(callback: ((value: boolean) => void) | undefined, value: boolean) {
+function useReportToParent<T>(callback: ((value: T) => void) | undefined, value: T, resetValue?: T) {
   const callbackRef = useRef(callback);
   callbackRef.current = callback;
   useEffect(() => {
     callbackRef.current?.(value);
   }, [value]);
-  useEffect(() => () => callbackRef.current?.(false), []);
+  useEffect(
+    () => () => {
+      if (resetValue !== undefined) callbackRef.current?.(resetValue);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
 }
 
-export const CourseCreationForm: React.FC<CourseCreationFormProps> = ({
-  course,
-  onSuccess,
-  onDirtyChange,
-  onUploadingChange,
-}) => {
-  const isEditMode = !!course;
-  const { createCourseMutation, updateCourseMutation } = useTeacherCourseMutations();
+/*
+ * The Details tab of the course editor. It stays mounted while the teacher is
+ * on the Content tab, so unsaved edits survive a tab switch, and it reports its
+ * live values up so the page's card preview and checklist follow the typing.
+ */
+export const CourseCreationForm = forwardRef<CourseDetailsFormHandle, CourseCreationFormProps>(
+  ({ course, chapterTitles = [], notice, onValuesChange, onDirtyChange, onUploadingChange }, ref) => {
+    const { updateCourseMutation } = useTeacherCourseMutations();
+    const rootRef = useRef<HTMLDivElement>(null);
 
-  // Seeded once per mount. The edit page keys this form by course id, so a
-  // background refetch of the same course never overwrites unsaved typing.
-  // Unsaved AI suggestions start the form dirty, since the server does not have them.
-  const [seed] = useState(() => {
-    const saved = course ? toFormValues(course) : EMPTY_VALUES;
-    return { saved, initial: course ? { ...saved, ...readAiOverrides() } : saved };
-  });
-  const [savedValues, setSavedValues] = useState<CourseFormValues>(seed.saved);
+    // Seeded once per mount. The editor keys this form by course id, so a
+    // background refetch of the same course never overwrites unsaved typing.
+    const [seed] = useState(() => toFormValues(course));
+    const [savedValues, setSavedValues] = useState<CourseDetailsValues>(seed);
+    const [priceMode, setPriceMode] = useState<PriceMode>(seed.price > 0 ? 'paid' : 'free');
 
-  const form = useForm({
-    schema: formSchema,
-    defaultValues: seed.initial,
-  });
+    const form = useForm({ schema: formSchema, defaultValues: seed });
 
-  useEffect(() => {
-    if (!isEditMode) return;
-    try {
-      sessionStorage.removeItem(AI_COURSE_DATA_KEY);
-    } catch {
-      // Storage can be unavailable; the overrides were already read.
-    }
-  }, [isEditMode]);
+    const [uploads, setUploads] = useState({ thumbnail: false, video: false });
+    const isUploading = uploads.thumbnail || uploads.video;
+    const isSaving = updateCourseMutation.isPending;
+    const isDirty = useMemo(() => hasUnsavedChanges(form.values, savedValues), [form.values, savedValues]);
 
-  const [uploads, setUploads] = useState({ thumbnail: false, video: false });
-  const isUploading = uploads.thumbnail || uploads.video;
-  const isSubmitting = createCourseMutation.isPending || updateCourseMutation.isPending;
-  const isDirty = useMemo(() => hasUnsavedChanges(form.values, savedValues), [form.values, savedValues]);
+    useReportToParent(onValuesChange, form.values);
+    useReportToParent(onDirtyChange, isDirty, false);
+    useReportToParent(onUploadingChange, isUploading, false);
 
-  useReportToParent(onDirtyChange, isDirty);
-  useReportToParent(onUploadingChange, isUploading);
+    const setField = <K extends keyof CourseDetailsValues>(key: K, value: CourseDetailsValues[K]) =>
+      form.setValues((prev) => ({ ...prev, [key]: value }));
 
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    if (isSubmitting || isUploading) return;
-    if (!form.validateForm()) {
-      toast.error('Some course details need attention. Check the highlighted fields.');
-      return;
-    }
-    const values = form.values;
-    const handleError = (error: unknown) => {
-      toast.error(
-        error instanceof Error && error.message ? error.message : 'Could not save the course. Try again.',
+    const focusField = (field: CourseDetailsField) => {
+      const target = rootRef.current?.querySelector<HTMLElement>(`[data-field="${field}"]`);
+      if (!target) return;
+      const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      target.scrollIntoView({ block: 'center', behavior: reduceMotion ? 'auto' : 'smooth' });
+      const control = target.querySelector<HTMLElement>(
+        'input:not([type="file"]):not([type="hidden"]), textarea, [contenteditable="true"], button'
       );
+      control?.focus({ preventScroll: true });
     };
 
-    if (isEditMode && course) {
-      updateCourseMutation.mutate(
-        { ...values, courseId: course.id },
-        {
-          onSuccess: (data) => {
-            setSavedValues(values);
-            toast.success('Course details saved.');
-            onSuccess(data.id);
-          },
-          onError: handleError,
-        },
-      );
-    } else {
-      createCourseMutation.mutate(values, {
-        onSuccess: (data) => {
-          setSavedValues(values);
-          onSuccess(data.id);
-        },
-        onError: handleError,
-      });
-    }
-  };
+    const save = async (): Promise<boolean> => {
+      if (isSaving || isUploading) return false;
+      const price = priceMode === 'free' ? 0 : Number(form.values.price);
+      if (priceMode === 'paid' && !(price > 0)) {
+        form.setFieldError('price', 'Enter a price, or choose Free.');
+        focusField('price');
+        return false;
+      }
+      const values: CourseDetailsValues = { ...form.values, price };
+      if (!form.validateForm()) {
+        toast.error('Some course details need attention. Check the highlighted fields.');
+        return false;
+      }
+      try {
+        await updateCourseMutation.mutateAsync({ ...values, courseId: course.id });
+        form.setValues(values);
+        setSavedValues(values);
+        toast.success('Course details saved.');
+        return true;
+      } catch (error) {
+        toast.error(error instanceof Error && error.message ? error.message : 'Could not save the course. Try again.');
+        return false;
+      }
+    };
 
-  let submitLabel = isEditMode ? 'Save Changes' : 'Save and Continue';
-  if (isSubmitting) submitLabel = 'Saving...';
-  if (isUploading) submitLabel = 'Uploading...';
+    const discard = () => {
+      form.setValues(savedValues);
+      setPriceMode(savedValues.price > 0 ? 'paid' : 'free');
+    };
 
-  return (
-    <div className={styles.formContainer}>
-      <Form {...form}>
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <FormItem name="title">
-            <div className={styles.labelRow}>
-              <FormLabel>Course Title</FormLabel>
-              <AIRewriteButton
-                field="title"
-                contentType="course"
-                currentValue={form.values.title}
-                context={{ category: form.values.category, level: form.values.level, language: form.values.language || undefined }}
-                onAccept={(suggestion) => form.setValues((prev) => ({ ...prev, title: suggestion }))}
-              />
-            </div>
-            <FormControl>
-              <Input
-                placeholder="e.g., Mastering Advanced Calculus"
-                value={form.values.title}
-                onChange={(e) => form.setValues((prev) => ({ ...prev, title: e.target.value }))}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
+    useImperativeHandle(ref, () => ({
+      save,
+      focusField,
+      setDescription: (html: string) => setField('description', html),
+    }));
 
-          <FormItem name="description">
-            <div className={styles.labelRow}>
-              <FormLabel>Course Description</FormLabel>
-              <AIRewriteButton
-                field="description"
-                contentType="course"
-                currentValue={form.values.description}
-                context={{ category: form.values.category, level: form.values.level, language: form.values.language || undefined, title: form.values.title }}
-                onAccept={(suggestion) => form.setValues((prev) => ({ ...prev, description: suggestion }))}
-              />
-            </div>
-            <FormControl>
-              <RichTextEditor
-                placeholder="A brief summary of what students will learn in this course."
-                value={form.values.description}
-                onChange={(html) => form.setValues((prev) => ({ ...prev, description: html }))}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
+    const changePriceMode = (mode: PriceMode) => {
+      setPriceMode(mode);
+      if (mode === 'free') setField('price', 0);
+      else window.setTimeout(() => focusField('price'), 0);
+    };
 
-          <div className={styles.grid}>
-            <FormItem name="category">
-              <FormLabel>Category</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="e.g., Mathematics, Programming"
-                  value={form.values.category}
-                  onChange={(e) => form.setValues((prev) => ({ ...prev, category: e.target.value }))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+    const aiContext = {
+      title: form.values.title,
+      category: form.values.category || undefined,
+      level: form.values.level,
+      language: form.values.language || undefined,
+      examName: form.values.examName || undefined,
+      subjects: chapterTitles.length > 0 ? chapterTitles.slice(0, 30) : undefined,
+    };
 
-            <FormItem name="level">
-              <FormLabel>Difficulty Level</FormLabel>
-              <FormControl>
-                <Select
-                  value={form.values.level}
-                  onValueChange={(value) => form.setValues((prev) => ({ ...prev, level: value as typeof prev.level }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CourseLevelArrayValues.map((level) => (
-                      <SelectItem key={level} value={level}>
-                        {level.charAt(0).toUpperCase() + level.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+    const showSaveBar = isDirty || isUploading || isSaving;
 
-            <FormItem name="language">
-              <FormLabel>Language (Optional)</FormLabel>
-              <FormControl>
-                <Select
-                  value={form.values.language || '__empty'}
-                  onValueChange={(val) => form.setValues((prev) => ({ ...prev, language: val === '__empty' ? null : val }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select language" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__empty">Select language</SelectItem>
-                    {LANGUAGES.map((lang) => (
-                      <SelectItem key={lang} value={lang}>{lang}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+    return (
+      <div ref={rootRef} className={styles.root}>
+        <Form {...form}>
+          <form
+            className={styles.form}
+            noValidate
+            onSubmit={(event) => {
+              event.preventDefault();
+              void save();
+            }}
+          >
+            {notice ? <div className={styles.notice}>{notice}</div> : null}
 
-            <FormItem name="examName">
-              <FormLabel>Exam (Optional)</FormLabel>
-              <FormControl>
-                <ExamNamePicker
-                  value={form.values.examName || ''}
-                  onChange={(examName) => form.setValues((prev) => ({ ...prev, examName }))}
-                />
-              </FormControl>
-              <FormDescription>Tag this course to an exam so it shows up on that exam's page.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          </div>
+            <section className={styles.group} aria-labelledby="course-about-heading">
+              <h3 id="course-about-heading" className={styles.groupTitle}>About the course</h3>
 
-          <FormItem name="price">
-            <FormLabel>Price (INR)</FormLabel>
-            <FormControl>
-              <Input
-                type="number"
-                placeholder="Enter 0 for a free course"
-                value={form.values.price}
-                onChange={(e) => form.setValues((prev) => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
-              />
-            </FormControl>
-            <FormDescription>Enter 0 to make the course free for all students.</FormDescription>
-            <FormMessage />
-          </FormItem>
+              <div data-field="title">
+                <FormItem name="title" className={styles.field}>
+                  <div className={styles.labelRow}>
+                    <FormLabel>Title</FormLabel>
+                    <AIRewriteButton
+                      field="title"
+                      contentType="course"
+                      currentValue={form.values.title}
+                      context={aiContext}
+                      onAccept={(suggestion) => setField('title', suggestion)}
+                    />
+                  </div>
+                  <FormControl>
+                    <Input
+                      placeholder="e.g., Class 10 Physics, full syllabus"
+                      value={form.values.title}
+                      onChange={(e) => setField('title', e.target.value)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              </div>
 
-          <FormItem name="thumbnailImageUrl">
-            <FormLabel>Course Thumbnail Image</FormLabel>
-            <FormControl>
-              <ThumbnailUploader
-                folder={course ? `course/${course.id}` : "course-thumbnails"}
-                value={form.values.thumbnailImageUrl}
-                currentFileId={form.values.thumbnailImageFileId ?? undefined}
-                onChange={(url, fileId) => {
-                  form.setValues((prev) => ({
-                    ...prev,
-                    thumbnailImageUrl: url || null,
-                    thumbnailImageFileId: fileId || null,
-                  }));
-                }}
-                onRemove={() => {
-                  form.setValues((prev) => ({ ...prev, thumbnailImageUrl: null, thumbnailImageFileId: null }));
-                }}
-                onUploadingChange={(uploading) => setUploads((prev) => ({ ...prev, thumbnail: uploading }))}
-              />
-            </FormControl>
-            <FormDescription>Upload a thumbnail image for your course. This will be displayed on course cards and the detail page.</FormDescription>
-            <FormMessage />
-          </FormItem>
+              <div data-field="description">
+                <FormItem name="description" className={styles.field}>
+                  <div className={styles.labelRow}>
+                    <FormLabel>Description</FormLabel>
+                    <AIRewriteButton
+                      field="description"
+                      contentType="course"
+                      currentValue={form.values.description ?? ''}
+                      context={aiContext}
+                      allowEmpty={form.values.title.trim().length >= 3}
+                      onAccept={(suggestion) => setField('description', suggestion)}
+                    />
+                  </div>
+                  <FormControl>
+                    <RichTextEditor
+                      placeholder="What will students learn, and who is this course for?"
+                      value={form.values.description ?? ''}
+                      onChange={(html) => setField('description', html)}
+                    />
+                  </FormControl>
+                  <FormDescription>Needed before you submit. Students read it before they enrol.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              </div>
+            </section>
 
-          <FormItem name="introVideoUrl">
-            <FormLabel>Course Introduction Video</FormLabel>
-            <FormControl>
-              <CourseThumbnailVideo
-                value={form.values.introVideoUrl ?? null}
-                fileId={form.values.introVideoFileId ?? null}
-                courseId={course?.id}
-                onChange={(url, fileId) => {
-                  form.setValues((prev) => ({
-                    ...prev,
-                    introVideoUrl: url,
-                    introVideoFileId: fileId,
-                  }));
-                }}
-                onUploadingChange={(uploading) => setUploads((prev) => ({ ...prev, video: uploading }))}
-              />
-            </FormControl>
-            <FormDescription>Upload a promotional video to showcase your course. This will be displayed on the course card.</FormDescription>
-            <FormMessage />
-          </FormItem>
+            <section className={styles.group} aria-labelledby="course-cover-heading">
+              <div className={styles.groupHead}>
+                <h3 id="course-cover-heading" className={styles.groupTitle}>Cover</h3>
+                <p className={styles.groupHint}>Add a cover image, a short intro video, or both. One is needed to submit.</p>
+              </div>
+              <div className={styles.mediaGrid} data-field="cover">
+                <FormItem name="thumbnailImageUrl" className={styles.field}>
+                  <FormLabel>Cover image</FormLabel>
+                  <FormControl>
+                    <ThumbnailUploader
+                      folder={`course/${course.id}`}
+                      value={form.values.thumbnailImageUrl}
+                      currentFileId={form.values.thumbnailImageFileId ?? undefined}
+                      onChange={(url, fileId) =>
+                        form.setValues((prev) => ({
+                          ...prev,
+                          thumbnailImageUrl: url || null,
+                          thumbnailImageFileId: fileId || null,
+                        }))
+                      }
+                      onRemove={() =>
+                        form.setValues((prev) => ({ ...prev, thumbnailImageUrl: null, thumbnailImageFileId: null }))
+                      }
+                      onUploadingChange={(uploading) => setUploads((prev) => ({ ...prev, thumbnail: uploading }))}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
 
-          <div className={styles.formActions}>
-            <Button type="submit" disabled={isSubmitting || isUploading}>
-              {(isSubmitting || isUploading) && <Spinner size="sm" />}
-              {submitLabel}
-            </Button>
-          </div>
-        </form>
-      </Form>
-    </div>
-  );
-};
+                <FormItem name="introVideoUrl" className={styles.field}>
+                  <FormLabel>Intro video (optional)</FormLabel>
+                  <FormControl>
+                    <CourseThumbnailVideo
+                      value={form.values.introVideoUrl ?? null}
+                      fileId={form.values.introVideoFileId ?? null}
+                      courseId={course.id}
+                      onChange={(url, fileId) =>
+                        form.setValues((prev) => ({ ...prev, introVideoUrl: url, introVideoFileId: fileId }))
+                      }
+                      onUploadingChange={(uploading) => setUploads((prev) => ({ ...prev, video: uploading }))}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              </div>
+            </section>
+
+            <section className={styles.group} aria-labelledby="course-audience-heading">
+              <h3 id="course-audience-heading" className={styles.groupTitle}>Price and audience</h3>
+
+              <div className={styles.fieldGrid}>
+                <div data-field="price" className={styles.wide}>
+                  <FormItem name="price" className={styles.field}>
+                    <FormLabel>Price</FormLabel>
+                    <div className={styles.priceRow}>
+                      <SegmentedControl
+                        aria-label="Free or paid"
+                        value={priceMode}
+                        onValueChange={changePriceMode}
+                        options={PRICE_OPTIONS}
+                      />
+                      {priceMode === 'paid' ? (
+                        <div className={styles.rupeeInput}>
+                          <span className={styles.rupee} aria-hidden="true">
+                            ₹
+                          </span>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              inputMode="decimal"
+                              min={0}
+                              placeholder="499"
+                              value={form.values.price > 0 ? form.values.price : ''}
+                              onChange={(e) => {
+                                const next = parseFloat(e.target.value);
+                                setField('price', Number.isFinite(next) ? next : 0);
+                              }}
+                            />
+                          </FormControl>
+                        </div>
+                      ) : null}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                </div>
+
+                <div className={`${styles.field} ${styles.wide}`}>
+                  <span className={styles.fieldLabel} aria-hidden="true">Level</span>
+                  <SegmentedControl
+                    aria-label="Level"
+                    value={form.values.level}
+                    onValueChange={(level) => setField('level', level)}
+                    options={LEVEL_OPTIONS}
+                  />
+                </div>
+
+                <FormItem name="language" className={styles.field}>
+                  <FormLabel>Language</FormLabel>
+                  <FormControl>
+                    <Select
+                      value={form.values.language || '__empty'}
+                      onValueChange={(value) => setField('language', value === '__empty' ? null : value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose a language" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__empty">Not set</SelectItem>
+                        {LANGUAGES.map((lang) => (
+                          <SelectItem key={lang} value={lang}>
+                            {lang}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+
+                <FormItem name="category" className={styles.field}>
+                  <FormLabel>Subject</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="e.g., Physics"
+                      value={form.values.category}
+                      onChange={(e) => setField('category', e.target.value)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+
+                <FormItem name="examName" className={`${styles.field} ${styles.wide}`}>
+                  <FormLabel>Exam (optional)</FormLabel>
+                  <FormControl>
+                    <ExamNamePicker
+                      value={form.values.examName || ''}
+                      onChange={(examName) => setField('examName', examName)}
+                    />
+                  </FormControl>
+                  <FormDescription>Lists the course on that exam's page too.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              </div>
+            </section>
+
+            {showSaveBar ? (
+              <div className={styles.saveBar} role="region" aria-label="Unsaved changes">
+                <p className={styles.saveText} role="status">
+                  {isUploading ? 'Uploading. Save unlocks when it finishes.' : 'You have unsaved changes.'}
+                </p>
+                <div className={styles.saveActions}>
+                  <Button type="button" variant="outline" onClick={discard} disabled={isSaving || isUploading || !isDirty}>
+                    Discard
+                  </Button>
+                  <Button type="submit" disabled={isSaving || isUploading}>
+                    {isSaving || isUploading ? <Spinner size="sm" /> : null}
+                    {isSaving ? 'Saving...' : 'Save changes'}
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+          </form>
+        </Form>
+      </div>
+    );
+  }
+);
+CourseCreationForm.displayName = 'CourseCreationForm';

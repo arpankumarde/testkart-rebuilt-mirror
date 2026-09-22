@@ -1,0 +1,133 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  flex: 1 0 auto;
+}
+
+/* FormItem carries its own bottom margin; .fields owns the rhythm. */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+/* Matches FormLabel for controls that label themselves with aria-label. */
+.fieldLabel {
+  font-family: var(--font-family-base);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--foreground);
+}
+
+.typeControl {
+  align-self: flex-start;
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.durationField {
+  max-width: 12rem;
+}
+
+/* A PDF shows a file badge, not a picture, so it does not need the 16:9 box. */
+.pdfUploader {
+  min-height: 7.5rem;
+}
+
+.pdfMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.pdfLoading {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: color-mix(in srgb, black 60%, transparent);
+}
+
+.libraryPick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2) var(--spacing-3);
+}
+
+.libraryHint {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.checkboxGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.checkboxLabel {
+  margin-bottom: 0;
+  cursor: pointer;
+}
+
+/*
+ * Stays on screen while the form scrolls: inside the side panel the panel is
+ * the scroller; on the lesson page the page sets :global(main):has(.page).
+ */
+.actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-6);
+  padding: var(--spacing-3) 0;
+  border-top: 1px solid var(--border);
+  background-color: var(--lesson-editor-bg, var(--surface));
+}
+
+.uploadNote {
+  margin: 0 auto 0 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 640px) {
+  .durationField {
+    max-width: none;
+  }
+
+  .actions {
+    flex-wrap: wrap;
+  }
+
+  .actions button {
+    flex: 1 1 0;
+  }
+
+  .uploadNote {
+    flex-basis: 100%;
+    margin: 0;
+  }
+}

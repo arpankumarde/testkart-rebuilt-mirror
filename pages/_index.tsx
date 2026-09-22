@@ -109,6 +109,7 @@ const HomePage: React.FC = () => {
             isLoading={isFetching}
           />
 
+          {/* Popular courses hidden for now: Featured courses covers it. homepage/data still returns popularCourses.
           <HomepageContentSection
             title="Popular courses"
             viewAllLink="/course"
@@ -132,6 +133,7 @@ const HomePage: React.FC = () => {
               />
             )}
           />
+          */}
 
           <HomepageContentSection
             title="Popular study notes"

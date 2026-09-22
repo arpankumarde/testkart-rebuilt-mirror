@@ -350,7 +350,7 @@ export const CourseBulkVideoUpload: React.FC<CourseBulkVideoUploadProps> = ({ co
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
-          <UploadCloud size={14} /> Upload Videos
+          <UploadCloud size={14} /> Upload videos
         </Button>
       </DialogTrigger>
       <ConsoleDialogContent size="lg">

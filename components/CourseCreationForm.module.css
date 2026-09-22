@@ -1,50 +1,185 @@
-/* A form panel on the console contract: surface, hairline border, flat shadow. */
-.formContainer {
-  width: 100%;
-  max-width: 46rem;
-  margin: 0 auto;
-  padding: var(--spacing-6);
-  background-color: var(--surface);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
-  border: 1px solid var(--border);
-  box-sizing: border-box;
+/*
+ * The Details tab. One surface with three groups split by hairlines - no
+ * card inside a card. The page supplies the panel; this only lays out fields.
+ */
+.root {
+  container-type: inline-size;
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+}
+
+.notice {
+  margin-bottom: var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid color-mix(in srgb, var(--info) 35%, var(--surface));
+  border-radius: var(--radius-md);
+  background-color: color-mix(in srgb, var(--info) 10%, var(--surface));
+  color: var(--foreground);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-6) 0;
+  border-top: 1px solid var(--border);
+}
+
+.group:first-of-type {
+  padding-top: 0;
+  border-top: none;
+}
+
+.groupHead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.groupTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  color: var(--foreground);
+}
+
+.groupHint {
+  margin: 0;
+  max-width: 60ch;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+/* FormItem carries its own bottom margin; the groups own the rhythm here. */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-width: 0;
+  margin-bottom: 0;
 }
 
 .labelRow {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  min-height: 2rem;
+}
+
+/* Matches FormLabel for controls that label themselves with aria-label. */
+.fieldLabel {
+  font-family: var(--font-family-base);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--foreground);
+}
+
+.mediaGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-4);
+}
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-4);
+}
+
+.priceRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.rupeeInput {
+  position: relative;
+  width: 10rem;
+}
+
+.rupee {
+  position: absolute;
+  top: 50%;
+  left: var(--spacing-3);
+  transform: translateY(-50%);
+  font-weight: 600;
+  color: var(--muted-foreground);
+  pointer-events: none;
+}
+
+.rupeeInput input {
+  padding-left: 1.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Pinned to the bottom of the window while there is something to save, so the
+ * button is always one move away. :global(main):has(.page) on the editor page
+ * lets sticky work inside the teacher layout.
+ */
+.saveBar {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  margin: var(--spacing-2) calc(var(--spacing-6) * -1) calc(var(--spacing-6) * -1);
+  padding: var(--spacing-3) var(--spacing-6);
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  background-color: var(--surface);
+  box-shadow: 0 -6px 16px -10px hsl(220 10% 15% / 0.35);
+}
+
+.saveText {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.saveActions {
+  display: flex;
   gap: var(--spacing-2);
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--spacing-4);
-  align-items: start;
+@container (min-width: 36rem) {
+  .mediaGrid,
+  .fieldGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wide {
+    grid-column: 1 / -1;
+  }
 }
 
-.formActions {
-  display: flex;
-  justify-content: flex-end;
-  padding-top: var(--spacing-4);
-  border-top: 1px solid var(--border);
-}
+@media (max-width: 640px) {
+  .saveBar {
+    margin: var(--spacing-2) calc(var(--spacing-4) * -1) calc(var(--spacing-4) * -1);
+    padding: var(--spacing-3) var(--spacing-4);
+  }
 
-@media (max-width: 768px) {
-  .formContainer {
-    padding: var(--spacing-4);
-  }
-  .grid {
-    grid-template-columns: 1fr;
-  }
-  .formActions button {
+  .saveActions {
     width: 100%;
+  }
+
+  .saveActions button {
+    flex: 1 1 0;
   }
 }
