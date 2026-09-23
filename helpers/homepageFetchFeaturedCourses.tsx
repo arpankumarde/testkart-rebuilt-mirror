@@ -1,6 +1,7 @@
 import { sql } from "kysely";
 import { db } from "./db";
 import { sanitizeUrl } from "./sanitizeUrl";
+import { courseDiscountPrice } from "./coursePricing";
 import type { HomepageFeaturedCourseItem } from "../endpoints/homepage/data_GET.schema";
 
 /**
@@ -30,6 +31,7 @@ export async function homepageFetchFeaturedCourses(): Promise<HomepageFeaturedCo
       "courses.slug",
       "courses.thumbnailImageUrl as thumbnailUrl",
       "courses.price",
+      "courses.discountPrice",
       "courses.examName",
       "courses.level",
       "users.displayName as teacherName",
@@ -49,6 +51,7 @@ export async function homepageFetchFeaturedCourses(): Promise<HomepageFeaturedCo
       slug: c.slug,
       thumbnailUrl: sanitizeUrl(c.thumbnailUrl),
       price: Number(c.price),
+      discountPrice: courseDiscountPrice(c.price, c.discountPrice),
       examName: c.examName && c.examName !== "Unspecified" ? c.examName : null,
       level: c.level,
       totalLessons: Number(c.totalLessons || 0),

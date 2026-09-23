@@ -16,8 +16,6 @@ export type SwmgVideo = {
 
 export type SwmgFaqItem = { question: string; answer: string };
 
-export type SwmgUnit = { number: number; name: string; topics: string[] };
-
 const BASE_PATH = "/ugc-net-swmg-success-with-mukesh-goyal";
 
 export const swmgPromoContent = {
@@ -26,7 +24,6 @@ export const swmgPromoContent = {
   basePath: BASE_PATH,
   paths: {
     overview: BASE_PATH,
-    evs: `${BASE_PATH}/environmental-science`,
     reviews: `${BASE_PATH}/reviews`,
   },
   name: "Dr. Mukesh Goyal",
@@ -42,7 +39,7 @@ export const swmgPromoContent = {
     { value: "JRF", label: "UGC NET qualified" },
     { value: "Ph.D.", label: "Environmental Science" },
     { value: "10+ years", label: "Teaching UGC NET" },
-    { value: "140K+", label: "YouTube subscribers" },
+    { value: "120K+", label: "YouTube subscribers" },
   ],
   channels: {
     paper1: {
@@ -69,148 +66,6 @@ export const swmgPromoContent = {
     "https://www.instagram.com/mukesh.goyal.31542",
     "https://x.com/mukeshgoyal995",
   ],
-  method: [
-    {
-      title: "Learn the concept",
-      text: "Every topic starts from the basics and builds to exam depth, with diagrams, processes and worked numericals where the unit needs them.",
-    },
-    {
-      title: "Apply it to PYQs",
-      text: "The same topic is then read through previous-year questions, so you see how NTA turns a syllabus line into statements, matches and close options.",
-    },
-    {
-      title: "Test yourself",
-      text: "Topic tests, unit tests and full mocks show which mistakes come from concepts, recall, calculation or time pressure.",
-    },
-    {
-      title: "Revise the gap",
-      text: "Wrong answers become a revision list. You go back to that lesson, fix it, and test again instead of restarting the syllabus.",
-    },
-  ],
-  paper1Units: [
-    "Teaching Aptitude",
-    "Research Aptitude",
-    "Comprehension",
-    "Communication",
-    "Mathematical Reasoning and Aptitude",
-    "Logical Reasoning",
-    "Data Interpretation",
-    "Information and Communication Technology (ICT)",
-    "People, Development and Environment",
-    "Higher Education System",
-  ],
-  evsUnits: [
-    {
-      number: 1,
-      name: "Fundamentals of Environmental Sciences",
-      topics: [
-        "Definition, principles and scope of environmental science",
-        "Structure of the atmosphere, hydrosphere, lithosphere and biosphere",
-        "Laws of thermodynamics, heat transfer and material balance",
-        "Meteorology: stability, inversions, mixing height and wind roses",
-        "Sustainable development and environmental ethics",
-      ],
-    },
-    {
-      number: 2,
-      name: "Environmental Chemistry",
-      topics: [
-        "Stoichiometry, chemical kinetics, Gibbs energy and chemical potential",
-        "Water chemistry: pH, alkalinity, hardness, DO, BOD and COD",
-        "Atmospheric chemistry: photochemical smog, ozone and greenhouse gases",
-        "Soil chemistry, heavy metals and pesticides",
-        "Analytical methods from titrimetry to AAS, chromatography and spectroscopy",
-      ],
-    },
-    {
-      number: 3,
-      name: "Environmental Biology",
-      topics: [
-        "Ecosystem structure, food chains, energy flow and ecological pyramids",
-        "Population and community ecology, succession and biomes",
-        "Biogeochemical cycles",
-        "Biodiversity, hotspots and conservation strategies",
-        "Toxicology and bioaccumulation",
-      ],
-    },
-    {
-      number: 4,
-      name: "Environmental Geosciences",
-      topics: [
-        "Origin of the Earth, geological time scale and plate tectonics",
-        "Minerals, rocks, weathering and soil formation",
-        "Hydrological cycle and groundwater",
-        "Natural hazards: earthquakes, landslides, floods and cyclones",
-        "Remote sensing and GIS in environmental studies",
-      ],
-    },
-    {
-      number: 5,
-      name: "Energy and Environment",
-      topics: [
-        "Solar radiation and the Earth's energy budget",
-        "Fossil fuels and their environmental impact",
-        "Solar, wind, hydro, tidal, geothermal and biomass energy",
-        "Nuclear energy and radioactive waste",
-        "Energy conservation and efficiency",
-      ],
-    },
-    {
-      number: 6,
-      name: "Environmental Pollution and Control",
-      topics: [
-        "Air pollutants, dispersion and control equipment",
-        "Water pollution and wastewater treatment",
-        "Soil, noise, marine, thermal and radioactive pollution",
-        "Ambient standards and monitoring",
-        "Pollution prevention and cleaner production",
-      ],
-    },
-    {
-      number: 7,
-      name: "Solid and Hazardous Waste Management",
-      topics: [
-        "Sources, composition and characteristics of solid waste",
-        "Collection, segregation and the 3Rs",
-        "Sanitary landfill, incineration, composting and vermicomposting",
-        "Hazardous, biomedical and electronic waste",
-        "Waste-to-energy options",
-      ],
-    },
-    {
-      number: 8,
-      name: "Environmental Assessment, Management and Legislation",
-      topics: [
-        "Environmental Impact Assessment: screening, scoping, baseline and public hearing",
-        "Environmental audit, life cycle assessment and ISO 14000",
-        "Environment Protection Act 1986, Water Act 1974 and Air Act 1981",
-        "Wildlife, forest and biodiversity legislation",
-        "National Green Tribunal and environmental clearances",
-      ],
-    },
-    {
-      number: 9,
-      name: "Statistical Approaches and Modelling in Environmental Sciences",
-      topics: [
-        "Central tendency, dispersion and probability distributions",
-        "Hypothesis testing: t-test, chi-square and ANOVA",
-        "Correlation and regression",
-        "Environmental models such as Gaussian plume and DO sag",
-        "Population growth models",
-      ],
-    },
-    {
-      number: 10,
-      name: "Contemporary Environmental Issues",
-      topics: [
-        "Climate change, ozone depletion and acid rain",
-        "International conventions from Stockholm 1972 to Paris 2015",
-        "India's climate action plans and missions",
-        "Environmental movements such as Chipko and Narmada Bachao",
-        "Major environmental disasters and what they changed",
-      ],
-    },
-  ] as SwmgUnit[],
   videos: {
     firstAttempt: {
       id: "idIp78MvBfw",
@@ -335,41 +190,6 @@ export const swmgPromoContent = {
       question: "Can a course guarantee NET or JRF?",
       answer:
         "No. A course gives you structure, teaching and practice. Whether you qualify depends on your own preparation, revision and performance on the day.",
-    },
-  ] as SwmgFaqItem[],
-  evsFaqs: [
-    {
-      question: "What is the subject code for UGC NET Environmental Science?",
-      answer: "Environmental Sciences is subject code 89 in UGC NET. It is the Paper 2 you take alongside the common Paper 1.",
-    },
-    {
-      question: "How many units are in the UGC NET Environmental Science syllabus?",
-      answer:
-        "Ten. They run from the fundamentals of environmental science through chemistry, biology, geosciences, energy, pollution, waste, assessment and legislation, statistics and modelling, to contemporary environmental issues.",
-    },
-    {
-      question: "What is the exam pattern?",
-      answer:
-        "The exam is computer based. Paper 1 has 50 questions for 100 marks and Environmental Science Paper 2 has 100 questions for 200 marks. Both are attempted together in 3 hours, every question carries 2 marks and there is no negative marking.",
-    },
-    {
-      question: "How often is UGC NET held?",
-      answer: "NTA conducts UGC NET twice a year, in a June cycle and a December cycle. Check the NTA notification for each cycle's exact dates.",
-    },
-    {
-      question: "Which unit do students find hardest?",
-      answer:
-        "Many find Unit 9, statistics and modelling, and the numericals in Unit 2 the hardest, because they need regular calculation practice rather than reading. Dr. Goyal breaks these into steps and practises them through PYQs.",
-    },
-    {
-      question: "Can beginners prepare Environmental Science with Dr. Goyal?",
-      answer:
-        "Yes. His teaching starts from basic concepts and builds to exam level, so it suits first-time candidates as well as repeaters strengthening weak units.",
-    },
-    {
-      question: "Is Environmental Science a good subject for JRF?",
-      answer:
-        "JRF goes to the top-scoring candidates within the NET cut-off and has an upper age limit set in each NTA notification. Candidates who cover all ten units and practise PYQs and mocks consistently give themselves the best chance.",
     },
   ] as SwmgFaqItem[],
   reviewFaqs: [

@@ -9,6 +9,7 @@ import { Button } from './Button';
 import { VideoPreview } from './VideoPreview';
 import { ShareAssetDialog } from './ShareAssetDialog';
 import { PUBLIC_PAGE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
+import { courseDiscountPrice } from '../helpers/coursePricing';
 import styles from './CourseSidebar.module.css';
 
 export type PublicCourseDetails = {
@@ -19,6 +20,7 @@ export type PublicCourseDetails = {
   thumbnailImageUrl: string | null;
   introVideoUrl?: string | null;
   price: number;
+  discountPrice?: number | null;
   level: 'beginner' | 'intermediate' | 'advanced';
   estimatedDurationMinutes: number | null;
   teacher: {
@@ -138,13 +140,19 @@ export const CourseSidebar: React.FC<CourseSidebarProps> = ({
     return addToCartMutation.isPending ? 'Adding...' : 'Add to Cart';
   };
 
-  const formattedPrice = isFree
-    ? "Free"
-    : new Intl.NumberFormat("en-IN", {
-        style: "currency",
-        currency: "INR",
-        minimumFractionDigits: 0,
-      }).format(course.price);
+  const formatInr = (amount: number) =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      minimumFractionDigits: 0,
+    }).format(amount);
+  const discountPrice = isFree ? null : courseDiscountPrice(course.price, course.discountPrice);
+  const hasDiscount = discountPrice !== null;
+  const formattedPrice = isFree ? "Free" : formatInr(discountPrice ?? course.price);
+  const formattedOriginalPrice = hasDiscount ? formatInr(course.price) : null;
+  const discountPercentage = hasDiscount
+    ? Math.round(((course.price - discountPrice) / course.price) * 100)
+    : 0;
 
   return (
     <div className={`${styles.sidebar} ${className || ''}`}>
@@ -241,6 +249,12 @@ export const CourseSidebar: React.FC<CourseSidebarProps> = ({
                 <div className={styles.pricing}>
                   <div className={styles.priceRow}>
                     <span className={styles.currentPrice}>{formattedPrice}</span>
+                    {formattedOriginalPrice && (
+                      <>
+                        <span className={styles.originalPrice}>{formattedOriginalPrice}</span>
+                        <span className={styles.discount}>{discountPercentage}% off</span>
+                      </>
+                    )}
                   </div>
                 </div>
               )}

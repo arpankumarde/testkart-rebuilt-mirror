@@ -11,6 +11,13 @@ import {
   syncProductFiles,
   ProductRuleError,
 } from "../../../helpers/digitalProductRules";
+import {
+  ContentExamError,
+  loadContentExamList,
+  primaryExamFields,
+  resolveExamSelection,
+  saveContentExams,
+} from "../../../helpers/contentExams";
 
 async function generateUniqueSlug(baseTitle: string, currentId: number): Promise<string> {
   // Leaves room for a -N suffix inside the 255-character slug column.
@@ -95,32 +102,16 @@ export async function handle(request: Request): Promise<Response> {
     if (input.thumbnailUrl !== undefined) updateSet.thumbnailUrl = input.thumbnailUrl;
     if (input.thumbnailFileId !== undefined) updateSet.thumbnailFileId = input.thumbnailFileId;
 
-    if (input.examName !== undefined) {
-      if (input.examName && input.examName.trim() !== "") {
-        const trimmedExamName = input.examName.trim();
-        const exam = await db
-          .selectFrom("exams")
-          .select(["id", "examName"])
-          .where((eb) =>
-            eb.or([
-              eb("examName", "ilike", trimmedExamName),
-              eb("fullName", "ilike", trimmedExamName),
-            ])
-          )
-          .executeTakeFirst();
-
-        if (exam) {
-          updateSet.examId = exam.id;
-          updateSet.examName = exam.examName;
-        } else {
-          updateSet.examId = null;
-          updateSet.examName = trimmedExamName;
-        }
-      } else {
-        updateSet.examId = null;
-        updateSet.examName = null;
-      }
-    }
+    // Resolved before the transaction: the exam lookup uses the shared connection.
+    const exams =
+      input.examNames !== undefined || input.examName !== undefined
+        ? await resolveExamSelection({
+            examNames: input.examNames,
+            examName: input.examName,
+            existing: await loadContentExamList(db, "digital_product", input.id),
+          })
+        : undefined;
+    if (exams) Object.assign(updateSet, primaryExamFields(exams));
 
     const { updatedProduct, files } = await db.transaction().execute(async (trx) => {
       let syncedFiles: DigitalProductFileItem[] | null = null;
@@ -181,6 +172,8 @@ export async function handle(request: Request): Promise<Response> {
         .returningAll()
         .executeTakeFirstOrThrow();
 
+      if (exams) await saveContentExams(trx, "digital_product", input.id, exams);
+
       return {
         updatedProduct: product,
         files: syncedFiles ?? (await listProductFiles(trx, input.id)),
@@ -197,7 +190,7 @@ export async function handle(request: Request): Promise<Response> {
 
     return new Response(superjson.stringify(output));
   } catch (error) {
-    if (error instanceof ProductRuleError) {
+    if (error instanceof ProductRuleError || error instanceof ContentExamError) {
       return new Response(superjson.stringify({ error: error.message }), { status: 400 });
     }
     console.error("Error updating digital product:", error);

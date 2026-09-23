@@ -4,6 +4,7 @@ import { schema, OutputType } from "./details_GET.schema";
 import superjson from "superjson";
 import { DigitalProductFileItem } from "../../../helpers/digitalProductFileTypes";
 import { hasPendingReview } from "../../../helpers/contentReviewQueue";
+import { loadContentExamList } from "../../../helpers/contentExams";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -66,6 +67,7 @@ export async function handle(request: Request): Promise<Response> {
       rating: product.rating ? Number(product.rating) : null,
       fileSizeBytes: product.fileSizeBytes ? Number(product.fileSizeBytes) : null,
       files,
+      exams: await loadContentExamList(db, "digital_product", product.id),
       inReview: await hasPendingReview(db, "digital_product", product.id),
     };
 

@@ -48,6 +48,7 @@ export const computeTeacherProfileStats = ({
   tests,
   liveTests,
   products,
+  examNames,
 }: OutputType): TeacherProfileStats => {
   const students =
     tests.reduce((sum, test) => sum + toNumber(test.studentsEnrolled), 0) +
@@ -85,6 +86,7 @@ export const computeTeacherProfileStats = ({
         ...liveTests.map((liveTest) => liveTest.examName),
         ...courses.map((course) => course.examName),
         ...products.map((product) => product.examName),
+        ...(examNames ?? []),
       ]
         .filter((name): name is string => typeof name === "string" && name.trim().length > 0)
         .map((name) => name.trim())

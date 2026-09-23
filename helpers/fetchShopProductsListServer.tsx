@@ -2,6 +2,8 @@ import { db } from "./db";
 import { sql } from "kysely";
 import { schema, InputType, OutputType } from "../endpoints/shop/list_GET.schema";
 import { slugify } from "./slugify";
+import { contentInExam } from "./contentExams";
+import { pinnedTeacherFirst, sortPinsTeachers } from "./pinnedTeachers";
 
 /**
  * Direct-DB counterpart to endpoints/shop/list_GET.ts, for use ONLY from
@@ -75,7 +77,11 @@ export async function fetchShopProductsListServer(rawInput: Partial<InputType> =
     .where("digitalProducts.isPublished", "=", true);
 
   if (input.category) query = query.where("digitalProducts.category", "=", input.category);
-  if (input.examId !== undefined) query = query.where("digitalProducts.examId", "=", input.examId);
+  if (input.examId !== undefined) {
+    query = query.where(
+      contentInExam("digital_product", "digitalProducts.id", "digitalProducts.examId", input.examId)
+    );
+  }
   if (input.priceMin !== undefined) query = query.where("digitalProducts.price", ">=", input.priceMin.toString());
   if (input.priceMax !== undefined) query = query.where("digitalProducts.price", "<=", input.priceMax.toString());
   if (input.language) query = query.where("digitalProducts.language", "=", input.language);
@@ -90,6 +96,9 @@ export async function fetchShopProductsListServer(rawInput: Partial<InputType> =
     );
   }
 
+  if (sortPinsTeachers(input.sort)) {
+    query = query.orderBy(pinnedTeacherFirst("digital_products.teacher_id"));
+  }
   switch (input.sort) {
     case "popular":
       query = query.orderBy(sql`(

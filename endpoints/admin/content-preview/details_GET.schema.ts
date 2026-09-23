@@ -100,7 +100,15 @@ export type PreviewBody =
       tests: PreviewTestItem[];
     });
 
-export type OutputType = PreviewBody & { lastReview: PreviewReview | null };
+/*
+ * awaitingSenior: the open review was moved to Senior approval (inReview stays true).
+ * exams: every exam the item is listed under, primary first (a live test's come from its mock test; empty for bundles).
+ */
+export type OutputType = PreviewBody & {
+  exams: { examId: number | null; examName: string }[];
+  lastReview: PreviewReview | null;
+  awaitingSenior: boolean;
+};
 
 export const getAdminContentPreview = async (params: InputType, init?: RequestInit): Promise<OutputType> => {
   const validated = schema.parse(params);

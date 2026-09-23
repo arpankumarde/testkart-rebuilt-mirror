@@ -1,4 +1,5 @@
 import React from "react";
+import { getItemExamNames } from "../helpers/itemExams";
 import {
   BookOpen,
   Layers,
@@ -63,8 +64,8 @@ const MockTestMetaDisplay: React.FC<{ meta: MockTestMeta }> = ({ meta }) => (
       label={`${meta.totalQuestions} questions`}
     />
     <StatPill icon={<Tag size={11} />} label={formatPrice(meta.price)} />
-    {meta.examName && (
-      <StatPill icon={<BookOpen size={11} />} label={meta.examName} />
+    {getItemExamNames(meta).length > 0 && (
+      <StatPill icon={<BookOpen size={11} />} label={getItemExamNames(meta).join(", ")} />
     )}
   </div>
 );

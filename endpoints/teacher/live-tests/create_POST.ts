@@ -1,7 +1,7 @@
 import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { slugify } from "../../../helpers/slugify";
-import { resolveExamByName } from "../../../helpers/resolveExam";
+import { primaryExamFields, resolveExamSelection, saveContentExams } from "../../../helpers/contentExams";
 import { schema, OutputType } from "./create_POST.schema";
 import superjson from "superjson";
 import { Transaction } from "kysely";
@@ -74,7 +74,7 @@ export async function handle(request: Request) {
         : "teacher_wallet"
       : null;
 
-    const resolvedExam = await resolveExamByName(input.examName);
+    const exams = (await resolveExamSelection({ examNames: input.examNames, examName: input.examName })) ?? [];
     const sortedTiers = sortPrizeTiers(input.hasPrizes ? input.prizeTiers : []);
     const legacyPrizes = tiersToLegacyPrizes(sortedTiers);
     const totalPrizePool = getTotalPrizePool(sortedTiers);
@@ -92,8 +92,7 @@ export async function handle(request: Request) {
           title: input.title,
           slug: slug,
           description,
-          examId: resolvedExam.examId,
-          examName: resolvedExam.examName,
+          ...primaryExamFields(exams),
           language: input.language || null,
           thumbnailUrl: input.thumbnailUrl || null,
           introVideoUrl: input.introVideoUrl || null,
@@ -111,6 +110,8 @@ export async function handle(request: Request) {
         })
         .returningAll()
         .executeTakeFirstOrThrow();
+
+      if (exams.length > 0) await saveContentExams(trx, "mock_test", newMockTest.id, exams);
 
       await trx
         .insertInto("mockTestItems")

@@ -9,7 +9,9 @@ import { Input } from "../components/Input";
 import { Textarea } from "../components/Textarea";
 import { Checkbox } from "../components/Checkbox";
 import { AutoComplete, type Option } from "../components/AutoComplete";
-import { ExamNamePicker } from "../components/ExamNamePicker";
+import { ExamMultiPicker } from "../components/ExamMultiPicker";
+import { useExamNameSuggestions } from "../helpers/useExamNameSuggestions";
+import { addSuggestedExam } from "../helpers/itemExams";
 import { ThumbnailUploader } from "../components/ThumbnailUploader";
 import { AIRewriteButton } from "../components/AIRewriteButton";
 import { AIListGenerateButton } from "../components/AIListGenerateButton";
@@ -40,6 +42,8 @@ export default function CreateTestPage() {
   const [aiData, setAiData] = useState<any>(null);
   const [languageInput, setLanguageInput] = useState("");
   const [isStorefrontOpen, setIsStorefrontOpen] = useState(false);
+  const [examNames, setExamNames] = useState<string[]>([]);
+  const { officialExams } = useExamNameSuggestions();
 
   const { useCreateTestWithItemsMutation } = useTeacherBulkMutations();
   const createTestMutation = useCreateTestWithItemsMutation();
@@ -66,11 +70,13 @@ export default function CreateTestPage() {
 
   useEffect(() => {
     if (aiData && showForm) {
+      const suggestedExams = addSuggestedExam(examNames, aiData.examName, officialExams);
+      setExamNames(suggestedExams);
       form.setValues((prev) => ({
         ...prev,
         title: aiData.title || prev.title,
         description: aiData.shortDescription || (aiData.description ? aiData.description.slice(0, 200) : prev.description),
-        examName: aiData.examName || prev.examName,
+        examName: suggestedExams[0] ?? prev.examName,
         language: aiData.language || prev.language,
         price: aiData.suggestedPrice || prev.price,
         longDescription: aiData.description || prev.longDescription,
@@ -79,6 +85,7 @@ export default function CreateTestPage() {
         setLanguageInput(aiData.language);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aiData, showForm, form.setValues]);
 
   const handleThumbnailChange = useCallback((url: string, fileId?: string) => {
@@ -111,7 +118,8 @@ export default function CreateTestPage() {
     const finalValues = {
       ...values,
       language: languageInput || values.language,
-      examName: values.examName || null,
+      examName: examNames[0] ?? null,
+      examNames,
       whatYouLearn: filteredWhatYouLearn.length > 0 ? filteredWhatYouLearn : null,
       requirements: filteredRequirements.length > 0 ? filteredRequirements : null,
       longDescription: values.longDescription || null
@@ -207,11 +215,14 @@ export default function CreateTestPage() {
 
               <div className={styles.row}>
                 <FormItem name="examName">
-                  <FormLabel>Exam</FormLabel>
+                  <FormLabel>Exams</FormLabel>
                   <FormControl>
-                    <ExamNamePicker
-                      value={form.values.examName || ""}
-                      onChange={(val) => form.setValues(p => ({...p, examName: val}))}
+                    <ExamMultiPicker
+                      value={examNames}
+                      onChange={(names) => {
+                        setExamNames(names);
+                        form.setValues((p) => ({ ...p, examName: names[0] ?? "" }));
+                      }}
                     />
                   </FormControl>
                   <FormMessage />

@@ -3,6 +3,8 @@ import { sql } from "kysely";
 import { schema, OutputType } from "./list_GET.schema";
 import superjson from "superjson";
 import { slugify } from "../../helpers/slugify";
+import { contentInExam } from "../../helpers/contentExams";
+import { pinnedTeacherFirst, sortPinsTeachers } from "../../helpers/pinnedTeachers";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -92,7 +94,9 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     if (input.examId !== undefined) {
-      query = query.where("digitalProducts.examId", "=", input.examId);
+      query = query.where(
+        contentInExam("digital_product", "digitalProducts.id", "digitalProducts.examId", input.examId)
+      );
     }
 
     if (input.priceMin !== undefined) {
@@ -118,6 +122,9 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     // Sorting
+    if (sortPinsTeachers(input.sort)) {
+      query = query.orderBy(pinnedTeacherFirst("digital_products.teacher_id"));
+    }
     switch (input.sort) {
             case "popular":
         query = query.orderBy(sql`(

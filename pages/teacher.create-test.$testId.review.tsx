@@ -7,6 +7,7 @@ import { useTeacherTestMutations } from '../helpers/useTeacherTestMutations';
 import { useTeacherLiveTestsQuery } from '../helpers/useTeacherLiveTestsQuery';
 import { Skeleton } from '../components/Skeleton';
 import { Badge } from '../components/Badge';
+import { WithdrawReviewButton } from '../components/WithdrawReviewButton';
 import type { TestItemWithQuestionsCount } from "../endpoints/teacher/test-items/list_GET.schema";
 import {
   AlertCircle,
@@ -340,6 +341,12 @@ const Page = () => {
                       <Button asChild size="lg">
                         <Link to={doneLink}>Done</Link>
                       </Button>
+                      <WithdrawReviewButton
+                        size="lg"
+                        contentType={isLiveTest && liveTest ? "live_test" : "mock_test"}
+                        contentId={isLiveTest && liveTest ? liveTest.id : packageId}
+                        title={testPackage.title}
+                      />
                     </div>
                   </>
                 )}

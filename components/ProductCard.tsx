@@ -1,8 +1,8 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { ShoppingBag, Star, IndianRupee, User, Eye, FileText, Files } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Star } from 'lucide-react';
 import type { ShopProductListItem } from '../endpoints/shop/list_GET.schema';
-import { Badge } from './Badge';
+import { Avatar, AvatarImage, AvatarFallback } from './Avatar';
 import { VerifiedBadge } from './VerifiedBadge';
 import styles from './ProductCard.module.css';
 
@@ -11,10 +11,14 @@ interface ProductCardProps {
   className?: string;
 }
 
+const formatCount = (count: number, singular: string, plural: string) =>
+  `${count.toLocaleString('en-IN')} ${count === 1 ? singular : plural}`;
+
 export const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
+  const navigate = useNavigate();
   const detailsUrl = `/study-notes/${product.slug}`;
   const isFree = product.price === 0;
-  
+
   const formattedPrice = isFree
     ? 'Free'
     : new Intl.NumberFormat('en-IN', {
@@ -24,74 +28,70 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, className }) 
       }).format(product.price);
 
   const hasRating = product.rating !== null && product.rating !== undefined;
-  const ratingValue = hasRating ? Number(product.rating).toFixed(1) : null;
+  const hasExam = !!product.examName && product.examName !== 'Unspecified';
+
+  // The whole card is already a link, so the teacher name is a link-role span
+  // that navigates itself - an <a> inside an <a> is invalid HTML.
+  const openTeacher = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/expert/${product.teacherSlug}`);
+  };
 
   return (
     <Link to={detailsUrl} className={`${styles.cardLink} ${className || ''}`}>
       <div className={styles.card}>
-        <div className={styles.cardContent}>
-          <div className={styles.topRow}>
-            <FileText size={16} className={styles.productIcon} />
-            {product.category && (
-              <Badge variant="default" className={styles.badge}>{product.category}</Badge>
-            )}
-            {product.examName && (
-              <Badge variant="secondary" className={styles.badge}>{product.examName}</Badge>
-            )}
-          </div>
-          <h3 className={styles.title}>{product.title}</h3>
-          
-          <div className={styles.metaRow}>
-            <Link 
-              to={`/expert/${product.teacherSlug}`} 
-              className={styles.teacherInfo}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className={styles.avatarPlaceholder}>
-                <User size={12} />
-              </div>
+        <h3 className={styles.title}>{product.title}</h3>
+
+        <div className={styles.metaRow}>
+          <span
+            role="link"
+            tabIndex={0}
+            className={styles.teacher}
+            onClick={openTeacher}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') openTeacher(e);
+            }}
+          >
+            <Avatar className={styles.avatar}>
+              {product.teacherAvatar && <AvatarImage src={product.teacherAvatar} alt="" />}
+              <AvatarFallback className={styles.avatarFallback}>
+                {Array.from(product.teacherName.trim())[0] ?? ''}
+              </AvatarFallback>
+            </Avatar>
+            <span className={styles.nameGroup}>
               <span className={styles.teacherName}>{product.teacherName}</span>
               <VerifiedBadge isVerified={product.teacherIsVerified} size="sm" />
-            </Link>
-            
-            {hasRating && (
-              <div className={styles.rating}>
-                <Star size={14} fill="currentColor" className={styles.starIcon} />
-                <span>{ratingValue}</span>
-              </div>
-            )}
-          </div>
+            </span>
+          </span>
 
-          <div className={styles.cardFooter}>
-            <div className={styles.statsGroup}>
-                            {/* Purchases count - hidden for now */}
-              {false && <div className={styles.purchases}>
-                <ShoppingBag size={14} />
-                <span>{product.totalPurchases} sold</span>
-              </div>}
-              <div className={styles.purchases}>
-                <Eye size={14} />
-                <span>{product.views ?? 0} views</span>
-              </div>
-              {product.pageCount ? (
-                <div className={styles.purchases}>
-                  <FileText size={14} />
-                  <span>{product.pageCount} pages</span>
-                </div>
-              ) : null}
-              {product.fileCount > 1 && (
-                <div className={styles.purchases}>
-                  <Files size={14} />
-                  <span>{product.fileCount} files</span>
-                </div>
-              )}
-            </div>
-            
-            <div className={`${styles.price} ${isFree ? styles.freePrice : ''}`}>
-              {!isFree && <IndianRupee size={16} />}
-              <span>{isFree ? 'Free' : formattedPrice.replace('₹', '')}</span>
-            </div>
-          </div>
+          {hasRating && (
+            <span className={styles.rating}>
+              <Star size={14} fill="currentColor" className={styles.starIcon} />
+              {Number(product.rating).toFixed(1)}
+            </span>
+          )}
+        </div>
+
+        {hasExam && (
+          <p className={styles.exam} title={product.examName ?? undefined}>
+            {product.examName}
+          </p>
+        )}
+
+        <div className={styles.footer}>
+          <p className={styles.stats}>
+            <span>{formatCount(product.views ?? 0, 'view', 'views')}</span>
+            {product.pageCount ? (
+              <span>{formatCount(product.pageCount, 'page', 'pages')}</span>
+            ) : null}
+            {product.fileCount > 1 && (
+              <span>{formatCount(product.fileCount, 'file', 'files')}</span>
+            )}
+          </p>
+          <span className={`${styles.price} ${isFree ? styles.freePrice : ''}`}>
+            {formattedPrice}
+          </span>
         </div>
       </div>
     </Link>

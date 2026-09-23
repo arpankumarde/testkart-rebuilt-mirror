@@ -40,6 +40,11 @@ export const schema = z
     hasPrizes: z.boolean().optional().default(false),
     prizeTiers: z.array(prizeTierSchema).optional().default([]),
     examName: z.string().optional().nullable(),
+    examNames: z
+      .array(z.string().trim().min(1))
+      .max(5)
+      .optional()
+      .describe("Official exam names, up to 5, first is the primary"),
   })
   .refine((data) => {
     // Only validate if both registrationDeadline and startTime exist

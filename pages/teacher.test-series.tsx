@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { getItemExamNames } from '../helpers/itemExams';
 import { Helmet } from 'react-helmet';
 import { Link } from 'react-router-dom';
 import { Plus, Search, ListChecks } from 'lucide-react';
@@ -83,7 +84,7 @@ const TeacherTestSeriesPage: React.FC = () => {
       filtered = filtered.filter(
         (test) =>
           test.title.toLowerCase().includes(query) ||
-          (test.examName ?? '').toLowerCase().includes(query)
+          getItemExamNames(test).some((name) => name.toLowerCase().includes(query))
       );
     }
 

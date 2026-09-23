@@ -11,6 +11,8 @@ export type InputType = z.infer<typeof schema>;
 export type OutputType = {
   signedUrl: string;
   expiresIn: number; // in seconds
+  // The file's own title for a multi-file product, otherwise the product's, for the reader's header.
+  title: string;
 };
 
 export const postStudentShopViewUrl = async (

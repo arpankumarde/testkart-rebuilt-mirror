@@ -63,6 +63,7 @@ export const LiveTestCreationForm: React.FC<LiveTestCreationFormProps> = ({ clas
       title: initialValues?.title || '',
       description: initialValues?.description || null,
       examName: initialValues?.examName || null,
+      examNames: initialValues?.examName ? [initialValues.examName] : [],
       language: initialValues?.language || undefined,
       durationMinutes: initialValues?.durationMinutes || 60,
       calculatorEnabled: false,

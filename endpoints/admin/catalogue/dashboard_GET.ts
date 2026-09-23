@@ -100,6 +100,7 @@ export async function handle(request: Request): Promise<Response> {
             (SELECT count(*) FROM content_reviews WHERE status = 'pending') AS reviews_pending,
             (SELECT coalesce(max(extract(epoch FROM now() - created_at)), 0) / 86400
                FROM content_reviews WHERE status = 'pending') AS reviews_oldest_days,
+            (SELECT count(*) FROM content_reviews WHERE status = 'senior_review') AS reviews_senior,
             (SELECT count(*) FROM live_tests
                WHERE has_prizes = true AND prize_distribution_status = 'pending' AND end_time < now()) AS prizes_undistributed,
             (SELECT count(*) FROM mock_tests mt
@@ -282,20 +283,29 @@ export async function handle(request: Request): Promise<Response> {
 
         sql<Row>`
           WITH items AS (
-            SELECT exam_id FROM mock_tests WHERE is_published = true AND deleted_at IS NULL AND exam_id IS NOT NULL
-            UNION ALL SELECT exam_id FROM courses WHERE status = 'published' AND exam_id IS NOT NULL
-            UNION ALL SELECT exam_id FROM digital_products WHERE status = 'published' AND exam_id IS NOT NULL
-          ),
-          per_exam AS (SELECT exam_id, count(*) AS n FROM items GROUP BY exam_id)
+            SELECT 'mt' AS kind, mt.id, mt.exam_id FROM mock_tests mt
+              WHERE mt.is_published = true AND mt.deleted_at IS NULL AND mt.exam_id IS NOT NULL
+            UNION SELECT 'mt', x.mock_test_id, x.exam_id FROM mock_test_exams x JOIN mock_tests mt ON mt.id = x.mock_test_id
+              WHERE mt.is_published = true AND mt.deleted_at IS NULL AND x.exam_id IS NOT NULL
+            UNION SELECT 'c', c.id, c.exam_id FROM courses c
+              WHERE c.status = 'published' AND c.exam_id IS NOT NULL
+            UNION SELECT 'c', x.course_id, x.exam_id FROM course_exams x JOIN courses c ON c.id = x.course_id
+              WHERE c.status = 'published' AND x.exam_id IS NOT NULL
+            UNION SELECT 'dp', dp.id, dp.exam_id FROM digital_products dp
+              WHERE dp.status = 'published' AND dp.exam_id IS NOT NULL
+            UNION SELECT 'dp', x.digital_product_id, x.exam_id FROM digital_product_exams x
+              JOIN digital_products dp ON dp.id = x.digital_product_id
+              WHERE dp.status = 'published' AND x.exam_id IS NOT NULL
+          )
           SELECT ec.id AS category_id, ec.category_name,
-                 count(e.id) AS exams,
-                 count(pe.exam_id) AS covered,
-                 coalesce(sum(pe.n), 0) AS published_items
+                 count(DISTINCT e.id) AS exams,
+                 count(DISTINCT i.exam_id) AS covered,
+                 count(DISTINCT i.kind || ':' || i.id) AS published_items
           FROM exam_categories ec
           LEFT JOIN exams e ON e.category_id = ec.id
-          LEFT JOIN per_exam pe ON pe.exam_id = e.id
+          LEFT JOIN items i ON i.exam_id = e.id
           GROUP BY ec.id, ec.category_name
-          ORDER BY count(e.id) DESC, ec.category_name
+          ORDER BY count(DISTINCT e.id) DESC, ec.category_name
         `.execute(db),
 
         sql<Row>`
@@ -409,6 +419,7 @@ export async function handle(request: Request): Promise<Response> {
     const queues: ContentQueues = {
       reviewsPending: num(get(q, "reviews_pending")),
       reviewsOldestDays: Math.floor(num(get(q, "reviews_oldest_days"))),
+      reviewsSenior: num(get(q, "reviews_senior")),
       prizesUndistributed: num(get(q, "prizes_undistributed")),
       emptySeries: num(get(q, "empty_series")),
       testsWithoutQuestions: num(get(q, "tests_without_questions")),

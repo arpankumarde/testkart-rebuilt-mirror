@@ -4,6 +4,7 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./list_GET.schema";
 import superjson from "superjson";
 import { pendingReviewIds } from "../../../helpers/contentReviewQueue";
+import { loadContentExams } from "../../../helpers/contentExams";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -66,6 +67,7 @@ export async function handle(request: Request): Promise<Response> {
     const products = rows.map(({ totalCount: _totalCount, ...product }) => product);
 
     const inReview = await pendingReviewIds(db, "digital_product", products.map((p) => p.id));
+    const examsById = await loadContentExams(db, "digital_product", products.map((p) => p.id));
 
     const output: OutputType = {
       products: products.map((p) => ({
@@ -73,6 +75,7 @@ export async function handle(request: Request): Promise<Response> {
         price: Number(p.price),
         rating: p.rating ? Number(p.rating) : null,
         fileSizeBytes: p.fileSizeBytes ? Number(p.fileSizeBytes) : null,
+        exams: examsById.get(p.id) ?? [],
         inReview: inReview.has(p.id),
       })),
       page: input.page,

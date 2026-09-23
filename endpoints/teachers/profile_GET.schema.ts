@@ -5,6 +5,7 @@ import { LiveTestListItem } from "../live-tests/list_GET.schema";
 import { CourseListItem } from "../courses/list_GET.schema";
 import { ShopProductListItem } from "../shop/list_GET.schema";
 import { TeacherPublicProfile, WorkExperience } from "../../helpers/teacherProfileTypes";
+import type { TeacherProfileBundle } from "../../helpers/loadTeacherProfileBundles";
 
 export const schema = z.object({
   teacherSlug: z.string(),
@@ -12,7 +13,7 @@ export const schema = z.object({
 
 export type InputType = z.infer<typeof schema>;
 
-export type { TeacherPublicProfile, WorkExperience, TestListItem, LiveTestListItem, CourseListItem, ShopProductListItem };
+export type { TeacherPublicProfile, WorkExperience, TestListItem, LiveTestListItem, CourseListItem, ShopProductListItem, TeacherProfileBundle };
 
 export type OutputType = {
   teacher: TeacherPublicProfile;
@@ -20,6 +21,10 @@ export type OutputType = {
   tests: TestListItem[];
   liveTests: LiveTestListItem[];
   products: ShopProductListItem[];
+  // Optional so a profile cached before bundles were added still renders.
+  bundles?: TeacherProfileBundle[];
+  // Every exam the teacher's published items are listed under, primary and other.
+  examNames?: string[];
 };
 
 export const getTeachersProfile = async (

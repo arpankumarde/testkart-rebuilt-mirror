@@ -9,6 +9,7 @@ import {
 import superjson from "superjson";
 import { sql } from "kysely";
 import { pendingReviewIds } from "../../../helpers/contentReviewQueue";
+import { loadContentExams } from "../../../helpers/contentExams";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -199,10 +200,12 @@ export async function handle(request: Request) {
     const total = testsWithStatus.length;
     const paginatedTests = testsWithStatus.slice(offset, offset + limit);
     const inReview = await pendingReviewIds(db, "live_test", paginatedTests.map((test) => test.id));
+    const examsByMockTestId = await loadContentExams(db, "mock_test", paginatedTests.map((test) => test.mockTestId));
 
     const responseData = paginatedTests.map(test => ({
       ...test,
       inReview: inReview.has(test.id),
+      exams: examsByMockTestId.get(test.mockTestId) ?? [],
       price: parseFloat(test.price),
       totalPrizePool: parseFloat(test.totalPrizePool),
       firstPrize: parseFloat(test.firstPrize),

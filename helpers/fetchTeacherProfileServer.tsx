@@ -1,5 +1,6 @@
 import { db } from "./db";
 import { sql } from "kysely";
+import { courseDiscountPrice } from "./coursePricing";
 import type {
   OutputType,
   TestListItem,
@@ -10,6 +11,8 @@ import type {
 import { slugify } from "./slugify";
 import type { SocialLinks, AwardCertificate, WorkExperience } from "./teacherProfileTypes";
 import { getLiveTestStatus } from "./liveTestStatus";
+import { loadContentExams } from "./contentExams";
+import { loadTeacherProfileBundles } from "./loadTeacherProfileBundles";
 
 export class TeacherNotFoundError extends Error {
   constructor() {
@@ -74,6 +77,7 @@ export async function fetchTeacherProfileServer(teacherSlug: string): Promise<Ou
       "courses.thumbnailUrl",
       "courses.thumbnailImageUrl",
       "courses.price",
+      "courses.discountPrice",
       "courses.category",
       "courses.level",
       "courses.language",
@@ -120,6 +124,7 @@ export async function fetchTeacherProfileServer(teacherSlug: string): Promise<Ou
     thumbnailUrl: course.thumbnailUrl,
     thumbnailImageUrl: course.thumbnailImageUrl,
     price: Number(course.price),
+    discountPrice: courseDiscountPrice(course.price, course.discountPrice),
     category: course.category,
     level: course.level,
     language: course.language,
@@ -151,6 +156,7 @@ export async function fetchTeacherProfileServer(teacherSlug: string): Promise<Ou
       "digitalProducts.category",
       "digitalProducts.examName",
       "digitalProducts.pageCount",
+      "digitalProducts.language",
       "digitalProducts.price",
       "digitalProducts.rating",
       "digitalProducts.totalPurchases",
@@ -188,6 +194,7 @@ export async function fetchTeacherProfileServer(teacherSlug: string): Promise<Ou
     category: p.category,
     examName: p.examName ?? null,
     pageCount: p.pageCount ?? null,
+    language: p.language ?? null,
     price: Number(p.price),
     rating: p.rating ? Number(p.rating) : null,
     totalPurchases: p.totalPurchases ?? 0,
@@ -373,6 +380,20 @@ export async function fetchTeacherProfileServer(teacherSlug: string): Promise<Ou
     }
   }
 
+  const [courseExams, productExams, testExams, bundles] = await Promise.all([
+    loadContentExams(db, "course", courses.map((course) => course.id)),
+    loadContentExams(db, "digital_product", products.map((product) => product.id)),
+    loadContentExams(db, "mock_test", tests.map((test) => test.id)),
+    loadTeacherProfileBundles(teacher.id),
+  ]);
+  const examNames = [
+    ...new Set(
+      [...courseExams.values(), ...productExams.values(), ...testExams.values()]
+        .flat()
+        .map((exam) => exam.examName)
+    ),
+  ];
+
   return {
     teacher: {
       id: teacher.id,
@@ -401,5 +422,7 @@ export async function fetchTeacherProfileServer(teacherSlug: string): Promise<Ou
     tests: regularTests,
     liveTests: liveTestsData,
     products: productsData,
+    bundles,
+    examNames,
   };
 }

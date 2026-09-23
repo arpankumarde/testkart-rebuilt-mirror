@@ -32,6 +32,7 @@ export async function handle(request: Request): Promise<Response> {
         "courseSections.courseId",
         "courseLessons.contentUrl",
         "courseLessons.contentType",
+        "courseLessons.title",
       ])
       .where("courseLessons.id", "=", lessonId)
       .executeTakeFirst();
@@ -88,6 +89,7 @@ export async function handle(request: Request): Promise<Response> {
     const output: OutputType = {
       signedUrl,
       expiresIn: EXPIRATION_SECONDS,
+      title: lesson.title,
     };
 
     return new Response(superjson.stringify(output satisfies OutputType));

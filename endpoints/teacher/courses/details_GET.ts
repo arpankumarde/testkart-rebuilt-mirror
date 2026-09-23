@@ -4,6 +4,7 @@ import { OutputType } from "./details_GET.schema";
 import superjson from "superjson";
 import { z } from "zod";
 import { hasPendingReview } from "../../../helpers/contentReviewQueue";
+import { loadContentExamList } from "../../../helpers/contentExams";
 
 const schema = z.object({
   courseId: z.coerce.number().int().positive(),
@@ -81,9 +82,11 @@ export async function handle(request: Request): Promise<Response> {
     const output: OutputType = {
       ...course,
       price: Number(course.price),
+      discountPrice: course.discountPrice === null ? null : Number(course.discountPrice),
       sections: sectionsWithLessons,
       sectionsCount: sections.length,
       lessonsCount: lessons.length,
+      exams: await loadContentExamList(db, "course", course.id),
       inReview: await hasPendingReview(db, "course", course.id),
     };
 

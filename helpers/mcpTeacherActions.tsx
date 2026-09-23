@@ -626,22 +626,25 @@ function reviveDates(schema: ZodTypeAny | null | undefined, value: unknown): unk
   }
 }
 
-async function buildRequest(
-  access: TeacherAccess,
-  path: string,
-  init: { method: "GET" | "POST"; body?: string }
-): Promise<Request> {
+type AuthHeaders = Record<string, string>;
+
+async function connectionHeaders(access: TeacherAccess): Promise<AuthHeaders> {
   const now = Date.now();
   const token = await createServerSessionToken(
     { id: access.sessionId, createdAt: now, lastAccessed: now },
     SESSION_TTL
   );
+  return { authorization: `Bearer ${token}` };
+}
+
+function buildRequest(
+  headers: AuthHeaders,
+  path: string,
+  init: { method: "GET" | "POST"; body?: string }
+): Request {
   return new Request(`${SITE_ORIGIN}/_api/teacher/${path}`, {
     method: init.method,
-    headers: {
-      authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
+    headers: { ...headers, "Content-Type": "application/json" },
     ...(init.body === undefined ? {} : { body: init.body }),
   });
 }
@@ -657,8 +660,44 @@ async function run(handler: EndpointHandler, request: Request, action: string): 
   return payload;
 }
 
+/** Reads send input as query parameters, writes as the POST body. */
+function execute(
+  definition: TeacherAction,
+  action: string,
+  input: Record<string, unknown> | undefined,
+  headers: AuthHeaders
+): Promise<unknown> {
+  if (definition.kind === "read") {
+    const search = new URLSearchParams();
+    for (const [key, value] of Object.entries(input ?? {})) {
+      if (value !== undefined && value !== null) search.append(key, String(value));
+    }
+    const suffix = search.toString() ? `?${search.toString()}` : "";
+    return run(definition.handler, buildRequest(headers, `${action}${suffix}`, { method: "GET" }), action);
+  }
+  const payload = input ?? {};
+  const encoded = definition.plainJson
+    ? JSON.stringify(payload)
+    : superjson.stringify(reviveDates(definition.schema, payload));
+  return run(definition.handler, buildRequest(headers, action, { method: "POST", body: encoded }), action);
+}
+
+/**
+ * Runs one action as whoever the headers authenticate. Used by the admin connector's content
+ * editing (helpers/mcpAdminContentEdit), which checks confirmation and allowed actions itself.
+ */
+export function invokeTeacherAction(
+  action: string,
+  input: Record<string, unknown> | undefined,
+  headers: AuthHeaders
+): Promise<unknown> {
+  return execute(lookup(action), action, input, headers);
+}
+
 export async function describeTeacherAccount(access: TeacherAccess) {
-  const session = await getServerUserSession(await buildRequest(access, "whoami", { method: "GET" }));
+  const session = await getServerUserSession(
+    buildRequest(await connectionHeaders(access), "whoami", { method: "GET" })
+  );
   if (session.user.role !== "teacher") {
     throw new McpTeacherToolError("This account is no longer a teacher account. Remove the connector.");
   }
@@ -690,14 +729,7 @@ export async function callTeacherRead(
   action: string,
   query?: Record<string, unknown>
 ): Promise<unknown> {
-  const definition = lookup(action, "read");
-  const search = new URLSearchParams();
-  for (const [key, value] of Object.entries(query ?? {})) {
-    if (value !== undefined && value !== null) search.append(key, String(value));
-  }
-  const suffix = search.toString() ? `?${search.toString()}` : "";
-  const request = await buildRequest(access, `${action}${suffix}`, { method: "GET" });
-  return run(definition.handler, request, action);
+  return execute(lookup(action, "read"), action, query, await connectionHeaders(access));
 }
 
 export async function callTeacherWrite(
@@ -713,10 +745,5 @@ export async function callTeacherWrite(
         "record, amount or plan - then call again with confirm: true once they approve."
     );
   }
-  const payload = body ?? {};
-  const encoded = definition.plainJson
-    ? JSON.stringify(payload)
-    : superjson.stringify(reviveDates(definition.schema, payload));
-  const request = await buildRequest(access, action, { method: "POST", body: encoded });
-  return run(definition.handler, request, action);
+  return execute(definition, action, body, await connectionHeaders(access));
 }

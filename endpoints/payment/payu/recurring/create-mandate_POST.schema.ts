@@ -22,6 +22,7 @@ export type OutputType = {
   // Standing Instruction (SI) parameters
   si: string;
   si_details: string; // JSON string containing billingAmount, billingCycle, billingInterval, paymentStartDate, paymentEndDate, billingCurrency
+  api_version: string;
 };
 
 export const postPaymentPayuRecurringCreateMandate = async (

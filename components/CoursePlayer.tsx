@@ -1,22 +1,21 @@
-import React, { useState, useMemo, Suspense } from 'react';
+import React, { useState, useMemo } from 'react';
 import { CheckCircle, Lock, PlayCircle, ChevronLeft, ChevronRight, Menu, X, FileText, HelpCircle, ArrowLeft, AlertCircle, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { toast } from 'sonner';
 import { Button } from './Button';
 import { VideoPreview } from './VideoPreview';
 import { GumletEmbedPlayer } from './GumletEmbedPlayer';
 import { StudentQuizViewer } from './StudentQuizViewer';
 import { CourseCompletionCelebration } from './CourseCompletionCelebration';
+import { PdfReader } from './PdfReader';
 import { useSignedVideoUrl } from '../helpers/useSignedVideoUrl';
 import { useSignedPdfUrl } from '../helpers/useSignedPdfUrl';
+import { documentSource } from '../helpers/pdfReaderSources';
 import { wrapContentTables } from '../helpers/contentTables';
 import { sanitizeHtml } from '../helpers/sanitizeHtml';
 import type { OutputType as LessonsOutputType } from '../endpoints/student/course/lessons_GET.schema';
 import type { OutputType as ProgressOutputType } from '../endpoints/student/course/progress_GET.schema';
 
 import styles from './CoursePlayer.module.css';
-
-const CoursePlayerPdfViewer = React.lazy(() => import('./CoursePlayerPdfViewer'));
 
 type Lesson = LessonsOutputType['sections'][0]['lessons'][0];
 
@@ -52,7 +51,7 @@ const LessonContent: React.FC<{
   });
 
   const isPdfLesson = lesson.contentType === 'pdf';
-  const { signedUrl: signedPdfUrl, isLoading: isLoadingPdf, error: pdfError } = useSignedPdfUrl({
+  const { signedUrl: signedPdfUrl, isLoading: isLoadingPdf, error: pdfError, refetch: refetchPdf } = useSignedPdfUrl({
     courseId: isPdfLesson ? courseId : null,
     lessonId: isPdfLesson ? lesson.id : null,
     enabled: isPdfLesson && !!lesson.contentUrl,
@@ -60,7 +59,6 @@ const LessonContent: React.FC<{
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
-    toast.error('Content download is not allowed');
   };
 
   switch (lesson.contentType) {
@@ -185,31 +183,18 @@ const LessonContent: React.FC<{
         );
       }
 
-      if (isLoadingPdf) {
-        return (
-          <div className={styles.pdfContainer}>
-            <div className={styles.pdfLoadingState}>
-              <Shield size={48} className={styles.loadingIcon} />
-              <p>Loading secure PDF...</p>
-            </div>
-          </div>
-        );
-      }
-
-      if (pdfError || !signedPdfUrl) {
-        return (
-          <div className={styles.errorPlaceholder}>
-            <AlertCircle size={48} />
-            <h2>PDF Not Available</h2>
-            <p>Unable to load PDF. Please try refreshing the page or contact the course instructor.</p>
-          </div>
-        );
-      }
-
       return (
-        <Suspense fallback={<div className={styles.pdfContainer}><div className={styles.pdfLoadingState}><Shield size={48} className={styles.loadingIcon} /><p>Loading PDF viewer...</p></div></div>}>
-          <CoursePlayerPdfViewer lesson={lesson} signedUrl={signedPdfUrl} handleContextMenu={handleContextMenu} />
-        </Suspense>
+        <PdfReader
+          key={lesson.id}
+          className={styles.pdfReader}
+          title={lesson.title}
+          source={signedPdfUrl ? documentSource(signedPdfUrl) : null}
+          loading={isLoadingPdf}
+          error={pdfError ? 'Unable to load this PDF. Try again, or contact the course instructor if it keeps failing.' : null}
+          onRetry={refetchPdf}
+          restricted
+          openInNewTabHref={`/student/courses/${courseId}/read/${lesson.id}`}
+        />
       );
     default:
       return <div className={styles.textContent}>Unsupported lesson type.</div>;

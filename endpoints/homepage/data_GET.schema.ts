@@ -32,6 +32,7 @@ export type HomepageCourseItem = {
   slug: string;
   thumbnailUrl: string | null;
   price: number;
+  discountPrice: number | null;
   studentsEnrolled: number;
   rating: number | null;
   totalLessons: number;
@@ -50,6 +51,7 @@ export type HomepageFeaturedCourseItem = {
   slug: string;
   thumbnailUrl: string | null;
   price: number;
+  discountPrice: number | null;
   examName: string | null;
   level: "beginner" | "intermediate" | "advanced" | null;
   totalLessons: number;

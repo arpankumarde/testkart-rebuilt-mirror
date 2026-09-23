@@ -11,7 +11,6 @@ import {
 } from "../helpers/useTeacherSubscription";
 import {
   useMandateStatusQuery,
-  useCancelMandateMutation,
   useAutoRenewalCheck,
 } from "../helpers/useRecurringPayment";
 import { useTeacherSubscriptionPaymentInfoQuery, useTeacherWalletSubscribeMutation } from "../helpers/useTeacherWalletSubscriptionHooks";
@@ -42,6 +41,7 @@ const SubscriptionPage: React.FC = () => {
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
   const [isInitiatingPayment, setIsInitiatingPayment] = useState(false);
   const [pendingPlan, setPendingPlan] = useState<{id: number; name: string; price: number; durationDays: number} | null>(null);
+  const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
 
   const paymentInfoQuery = useTeacherSubscriptionPaymentInfoQuery();
@@ -56,7 +56,6 @@ const SubscriptionPage: React.FC = () => {
   const walletSubscribeMutation = useTeacherWalletSubscribeMutation();
   const historyQuery = useSubscriptionHistoryQuery(historyPage, 10);
   const cancelMutation = useCancelSubscriptionMutation();
-  const cancelMandateMutation = useCancelMandateMutation();
   const subscribeMutation = useSubscribeToPlanMutation();
 
   // Auto-renewal check on page load
@@ -116,11 +115,15 @@ const SubscriptionPage: React.FC = () => {
       statusQuery.refetch();
       setSearchParams({}, { replace: true });
     } else if (status === "mandate_created") {
-      toast.success(
-        "UPI Autopay activated! Your subscription will auto-renew."
-      );
+      toast.success("Autopay is on. Your subscription will renew automatically.");
       statusQuery.refetch();
       mandateQuery.refetch();
+      setSearchParams({}, { replace: true });
+    } else if (status === "activated_without_autopay") {
+      toast.warning(
+        "Your subscription is active, but autopay could not be set up. You will need to renew it yourself."
+      );
+      statusQuery.refetch();
       setSearchParams({}, { replace: true });
     } else if (status === "failed") {
       const failure = paymentFailureReason.parse(searchParams.get("reason"));
@@ -164,7 +167,7 @@ const SubscriptionPage: React.FC = () => {
 
     if (paymentMode === "recurring") {
       setIsInitiatingPayment(true);
-      const loadingToast = toast.loading("Setting up UPI Autopay payment...");
+      const loadingToast = toast.loading("Setting up autopay...");
       try {
         const paymentData = await postPaymentPayuRecurringCreateMandate({
           planId: plan.id,
@@ -222,37 +225,23 @@ const SubscriptionPage: React.FC = () => {
     }
   };
 
-  const handleCancel = () => {
-    toast.promise(cancelMutation.mutateAsync(), {
-      loading: "Cancelling your subscription...",
-      success: "Your subscription has been cancelled.",
-      error: (err) =>
-        err instanceof Error ? err.message : "Cancellation failed.",
+  // The mutation shows its own success and error toasts.
+  const handleConfirmCancel = () => {
+    cancelMutation.mutate(undefined, {
+      onSettled: () => setConfirmCancelOpen(false),
     });
   };
 
-  const handleCancelMandate = () => {
-    if (!statusQuery.data?.id) {
-      toast.error("No active subscription found.");
-      return;
-    }
-    toast.promise(
-      cancelMandateMutation.mutateAsync({
-        subscriptionId: statusQuery.data.id,
-      }),
-      {
-        loading: "Cancelling auto-renewal...",
-        success:
-          "Auto-renewal has been cancelled. Your subscription will remain active until it expires.",
-        error: (err) =>
-          err instanceof Error
-            ? err.message
-            : "Failed to cancel auto-renewal.",
-      }
-    );
-  };
-
   const hasActiveSub = !!statusQuery.data;
+  const currentSub = statusQuery.data;
+  const currentEndDate = currentSub?.endDate
+    ? new Date(currentSub.endDate).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" })
+    : null;
+  // A paid plan whose autopay was cancelled can be bought again to restart it.
+  const canRenewCurrentPlan =
+    paymentMode === "recurring" &&
+    (currentSub?.planPrice ?? 0) > 0 &&
+    !(currentSub?.autoRenew && mandateQuery.data?.mandateStatus === "active");
 
   return (
     <>
@@ -270,10 +259,9 @@ const SubscriptionPage: React.FC = () => {
           <CurrentSubscriptionStatus
             statusQuery={statusQuery}
             mandateQuery={effectiveMandateQuery}
-            onCancel={handleCancel}
-            onCancelMandate={handleCancelMandate}
+            paymentMode={paymentMode}
+            onCancel={() => setConfirmCancelOpen(true)}
             isCancelling={cancelMutation.isPending}
-            isCancellingMandate={cancelMandateMutation.isPending}
           />
         )}
 
@@ -281,6 +269,7 @@ const SubscriptionPage: React.FC = () => {
             plansQuery={plansQuery}
             hasActiveSub={hasActiveSub}
             currentPlanId={statusQuery.data?.planId}
+            canRenewCurrentPlan={canRenewCurrentPlan}
             subscriptionStatus={statusQuery.data?.status}
             isInitiatingPayment={isInitiatingPayment}
             onSelectPlan={handleSelectPlan}
@@ -296,6 +285,33 @@ const SubscriptionPage: React.FC = () => {
             onPageChange={setHistoryPage}
           />
       </div>
+
+      <Dialog open={confirmCancelOpen} onOpenChange={(open) => !open && !cancelMutation.isPending && setConfirmCancelOpen(false)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancel your subscription?</DialogTitle>
+            <DialogDescription>
+              {paymentMode === "recurring"
+                ? "Autopay will be turned off with your bank or UPI app, and you won't be charged again."
+                : "Your plan won't renew and you won't be charged again."}{" "}
+              You keep {currentSub?.planName ?? "your plan"}
+              {currentEndDate ? ` until ${currentEndDate}` : ""}, then your account moves to the Free plan.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmCancelOpen(false)} disabled={cancelMutation.isPending}>
+              Keep Subscription
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmCancel} disabled={cancelMutation.isPending}>
+              {cancelMutation.isPending ? (
+                <><Loader2 size={16} className={styles.spinner} style={{ marginRight: 8 }} /> Cancelling...</>
+              ) : (
+                "Cancel Subscription"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!pendingPlan} onOpenChange={(open) => !open && !isInitiatingPayment && setPendingPlan(null)}>
         <DialogContent>

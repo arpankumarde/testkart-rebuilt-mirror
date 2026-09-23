@@ -32,6 +32,8 @@ import { wrapContentTables } from '../helpers/contentTables';
 import { sanitizeHtml } from '../helpers/sanitizeHtml';
 import { getBundleRedirectUrl } from '../endpoints/payment/payu/bundle-redirect_GET.schema';
 import { MobileStickyPurchaseBar } from './MobileStickyPurchaseBar';
+import { AssetTopRow } from './AssetTopRow';
+import { PublicCouponsCard } from './PublicCouponsCard';
 import styles from './BundleDetailsView.module.css';
 
 interface BundleDetailsViewProps {
@@ -219,7 +221,9 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
         <meta name="description" content={bundle.description || `Learn more about the ${bundle.title} course bundle.`} />
       </Helmet>
       <div className={`${styles.container} ${className || ''}`}>
-        <h1 className={styles.title}>{bundle.title}</h1>
+        <AssetTopRow leading="title" kind="bundle" handle={slug} title={bundle.title}>
+          <h1 className={styles.title}>{bundle.title}</h1>
+        </AssetTopRow>
         
         <div className={styles.mediaContainer}>
           {renderMedia()}
@@ -406,6 +410,10 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
             </>
           )}
         </div>
+
+        {!bundle.isEnrolled && bundle.price > 0 && (
+          <PublicCouponsCard itemType="bundle" itemId={bundle.id} spaced={false} />
+        )}
 
         <div className={styles.teacherInfo}>
           <img

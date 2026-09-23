@@ -3,6 +3,9 @@ import { OutputType } from "./list_GET.schema";
 import superjson from "superjson";
 import { sql } from "kysely";
 import { slugify } from "../../helpers/slugify";
+import { contentInExam } from "../../helpers/contentExams";
+import { pinnedTeacherFirst, sortPinsTeachers } from "../../helpers/pinnedTeachers";
+import { courseDiscountPrice, courseEffectivePriceSql } from "../../helpers/coursePricing";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -33,6 +36,7 @@ export async function handle(request: Request): Promise<Response> {
         "courses.thumbnailImageUrl",
         "courses.introVideoUrl",
         "courses.price",
+        "courses.discountPrice",
         "courses.category",
         "courses.level",
         "courses.language",
@@ -83,7 +87,7 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     if (examId) {
-      query = query.where("courses.examId", "=", Number(examId));
+      query = query.where(contentInExam("course", "courses.id", "courses.examId", Number(examId)));
     }
 
     if (level) {
@@ -107,10 +111,10 @@ export async function handle(request: Request): Promise<Response> {
       query = query.where("courses.price", ">", "0");
 
       if (minPrice) {
-        query = query.where("courses.price", ">=", minPrice);
+        query = query.where(courseEffectivePriceSql, ">=", minPrice);
       }
       if (maxPrice) {
-        query = query.where("courses.price", "<=", maxPrice);
+        query = query.where(courseEffectivePriceSql, "<=", maxPrice);
       }
     }
 
@@ -122,12 +126,15 @@ export async function handle(request: Request): Promise<Response> {
     const totalCount = Number(countResult?.count ?? 0);
 
     // Apply sorting
+    if (sortPinsTeachers(sortBy)) {
+      query = query.orderBy(pinnedTeacherFirst("courses.teacher_id"));
+    }
     switch (sortBy) {
       case "price_asc":
-        query = query.orderBy("courses.price", "asc");
+        query = query.orderBy(courseEffectivePriceSql, "asc");
         break;
       case "price_desc":
-        query = query.orderBy("courses.price", "desc");
+        query = query.orderBy(courseEffectivePriceSql, "desc");
         break;
             case "popular":
         query = query.orderBy(
@@ -171,6 +178,7 @@ export async function handle(request: Request): Promise<Response> {
       courses: courses.map((course) => ({
         ...course,
         price: Number(course.price),
+        discountPrice: courseDiscountPrice(course.price, course.discountPrice),
         enrollmentCount: Number(course.enrollmentCount),
         views: Number(course.views ?? 0),
         teacherIsVerified: !!course.teacherIsVerified,

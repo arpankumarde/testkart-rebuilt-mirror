@@ -6,6 +6,8 @@
 // helpers/getServerUserSession
 // together with this in one toolcall.
 
+import type { ExamFocusItem } from "./examFocusShared";
+
 export interface User {
   id: number;
   email: string | null;
@@ -55,4 +57,7 @@ export interface User {
   discoverySource?: string | null;
   schoolCollegeName?: string | null;
   signupSource?: string | null;
+  // Filled by auth/session only. Login responses leave them out.
+  examFocus?: ExamFocusItem[];
+  examFocusPromptDue?: boolean;
 }

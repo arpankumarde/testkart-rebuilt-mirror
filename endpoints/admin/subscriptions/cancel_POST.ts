@@ -2,6 +2,7 @@ import { schema, OutputType } from "./cancel_POST.schema";
 import { db } from "../../../helpers/db";
 import superjson from "superjson";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
+import { revokeSubscriptionMandate } from "../../../helpers/teacherMandate";
 
 export async function handle(request: Request) {
   try {
@@ -74,6 +75,10 @@ export async function handle(request: Request) {
         .where("id", "=", sub.teacherId)
         .execute();
     });
+
+    await revokeSubscriptionMandate(input.subscriptionId).catch((err) =>
+      console.error("[admin/subscriptions/cancel] Revoking the mandate failed:", err)
+    );
 
     return new Response(
       superjson.stringify({ success: true } satisfies OutputType)

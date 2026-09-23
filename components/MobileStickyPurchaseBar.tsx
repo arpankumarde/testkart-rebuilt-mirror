@@ -15,7 +15,7 @@ import styles from './MobileStickyPurchaseBar.module.css';
 
 export type ProductData = 
   | { type: 'test'; id: number; price: number; discountPrice: number | null; isEnrolled: boolean }
-  | { type: 'course'; id: number; price: number; isEnrolled: boolean }
+  | { type: 'course'; id: number; price: number; discountPrice?: number | null; isEnrolled: boolean }
   | { type: 'digitalProduct'; id: number; price: number; isEnrolled: boolean }
   | { type: 'bundle'; id: number; price: number; originalPrice?: number; isEnrolled: boolean; slug?: string }
   | { type: 'liveTest'; id: number; price: number; isEnrolled: boolean; canEnroll?: boolean };
@@ -155,7 +155,13 @@ export const MobileStickyPurchaseBar: React.FC<MobileStickyPurchaseBarProps> = (
         minimumFractionDigits: 0,
       }).format(Number(product.originalPrice));
     discountPercentage = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
-  } else if (product.type === 'test' && product.discountPrice !== null && product.discountPrice > 0 && product.discountPrice < product.price && !isFree) {
+  } else if (
+    (product.type === 'test' || product.type === 'course') &&
+    product.discountPrice != null &&
+    product.discountPrice > 0 &&
+    product.discountPrice < product.price &&
+    !isFree
+  ) {
     displayPrice = product.discountPrice;
     formattedOriginalPrice = new Intl.NumberFormat("en-IN", {
         style: "currency",

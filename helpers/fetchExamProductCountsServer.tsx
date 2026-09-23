@@ -1,5 +1,6 @@
 import { db } from "./db";
 import { sql } from "kysely";
+import { contentInExam } from "./contentExams";
 import type { OutputType } from "../endpoints/exam-products/counts_GET.schema";
 
 /**
@@ -34,7 +35,7 @@ export async function fetchExamProductCountsServer(examSlug: string): Promise<Ou
     db
       .selectFrom("mockTests")
       .select((eb) => eb.fn.countAll<number>().as("count"))
-      .where("examId", "=", examId)
+      .where(contentInExam("mock_test", "mockTests.id", "mockTests.examId", examId))
       .where("isPublished", "=", true)
       .where("deletedAt", "is", null)
       .where((eb) =>
@@ -51,14 +52,14 @@ export async function fetchExamProductCountsServer(examSlug: string): Promise<Ou
     db
       .selectFrom("digitalProducts")
       .select((eb) => eb.fn.countAll<number>().as("count"))
-      .where("examId", "=", examId)
+      .where(contentInExam("digital_product", "digitalProducts.id", "digitalProducts.examId", examId))
       .where("status", "=", "published")
       .where("isPublished", "=", true)
       .executeTakeFirst(),
     db
       .selectFrom("courses")
       .select((eb) => eb.fn.countAll<number>().as("count"))
-      .where("examId", "=", examId)
+      .where(contentInExam("course", "courses.id", "courses.examId", examId))
       .where("status", "=", "published")
       .executeTakeFirst(),
     db
@@ -72,7 +73,9 @@ export async function fetchExamProductCountsServer(examSlug: string): Promise<Ou
           LEFT JOIN digital_products dp ON dp.id = cbi.digital_product_id
           LEFT JOIN courses c ON c.id = cbi.course_id
           WHERE cbi.bundle_id = course_bundles.id
-            AND (mt.exam_id = ${examId} OR dp.exam_id = ${examId} OR c.exam_id = ${examId})
+            AND (${contentInExam("mock_test", "mt.id", "mt.examId", examId)}
+              OR ${contentInExam("digital_product", "dp.id", "dp.examId", examId)}
+              OR ${contentInExam("course", "c.id", "c.examId", examId)})
         )`
       )
       .executeTakeFirst(),

@@ -3,6 +3,8 @@ import { sql } from "kysely";
 import { syncMockTestAggregates } from "./syncMockTestAggregates";
 import { deleteFromR2 } from "./r2Client";
 import { releaseGumletAssets } from "./syncLessonVideoToGumlet";
+import { releaseMuxAssets } from "./syncLessonVideoToMux";
+import { clearOpenReviews } from "./contentReviewQueue";
 
 export async function dbCleanup(): Promise<void> {
   console.log("Starting database cleanup job...");
@@ -119,6 +121,8 @@ export async function dbCleanup(): Promise<void> {
           .where("sourceMockTestId", "=", mt.id)
           .execute();
 
+        await clearOpenReviews(trx, "mock_test", mt.id);
+
         await trx
           .deleteFrom("mockTests")
           .where("id", "=", mt.id)
@@ -160,7 +164,7 @@ export async function dbCleanup(): Promise<void> {
 
       if (hasOrders || hasEnrollments) continue;
 
-      const gumletAssetIds = await db.transaction().execute(async (trx) => {
+      const drmAssetIds = await db.transaction().execute(async (trx) => {
         const sections = await trx
           .selectFrom("courseSections")
           .select(["id"])
@@ -168,15 +172,15 @@ export async function dbCleanup(): Promise<void> {
           .execute();
 
         const sectionIds = sections.map((s) => s.id);
-        let lessonAssetIds: Array<string | null> = [];
+        let lessonAssetIds: { gumlet: Array<string | null>; mux: Array<string | null> } = { gumlet: [], mux: [] };
 
         if (sectionIds.length > 0) {
           const lessons = await trx
             .selectFrom("courseLessons")
-            .select("gumletAssetId")
+            .select(["gumletAssetId", "muxAssetId"])
             .where("sectionId", "in", sectionIds)
             .execute();
-          lessonAssetIds = lessons.map((l) => l.gumletAssetId);
+          lessonAssetIds = { gumlet: lessons.map((l) => l.gumletAssetId), mux: lessons.map((l) => l.muxAssetId) };
 
           await trx
             .deleteFrom("courseLessons")
@@ -199,6 +203,8 @@ export async function dbCleanup(): Promise<void> {
           .where("courseId", "=", course.id)
           .execute();
 
+        await clearOpenReviews(trx, "course", course.id);
+
         await trx
           .deleteFrom("courses")
           .where("id", "=", course.id)
@@ -207,7 +213,8 @@ export async function dbCleanup(): Promise<void> {
         return lessonAssetIds;
       });
 
-      await releaseGumletAssets(gumletAssetIds);
+      await releaseGumletAssets(drmAssetIds.gumlet);
+      await releaseMuxAssets(drmAssetIds.mux);
       deletedAbandonedCoursesCount++;
     }
     console.log(`[Cleanup] Permanently deleted ${deletedAbandonedCoursesCount} abandoned course drafts older than 7 days.`);
@@ -332,6 +339,8 @@ export async function dbCleanup(): Promise<void> {
           .deleteFrom("questionBank")
           .where("sourceMockTestId", "=", mt.id)
           .execute();
+
+        await clearOpenReviews(trx, "mock_test", mt.id);
 
         await trx
           .deleteFrom("mockTests")

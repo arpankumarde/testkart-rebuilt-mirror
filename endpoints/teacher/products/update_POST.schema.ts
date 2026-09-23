@@ -28,6 +28,11 @@ export const schema = z.object({
   category: z.string().optional().nullable(),
   tags: z.array(z.string()).optional().nullable(),
   examName: z.string().optional().nullable(),
+  examNames: z
+    .array(z.string().trim().min(1))
+    .max(5)
+    .optional()
+    .describe("Official exam names, up to 5, first is the primary"),
   files: z.array(updateFileEntrySchema).optional().nullable(),
 });
 

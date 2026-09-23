@@ -15,6 +15,7 @@ import { ShareAssetDialog } from './ShareAssetDialog';
 import { TEACHER_CONSOLE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
 import { TeacherCourseListItem } from '../endpoints/teacher/courses/list_GET.schema';
 import { useTeacherCourseMutations } from '../helpers/useTeacherCoursesQuery';
+import { courseDiscountPrice } from '../helpers/coursePricing';
 import styles from './TeacherCourseCard.module.css';
 
 interface TeacherCourseCardProps {
@@ -53,11 +54,14 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
   const status = course.status ?? 'draft';
   const isInReview = status !== 'published' && course.inReview;
 
-  const formattedPrice = new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 0,
-  }).format(course.price);
+  const formatInr = (amount: number) =>
+    new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 0,
+    }).format(amount);
+  const discountPrice = courseDiscountPrice(course.price, course.discountPrice);
+  const formattedPrice = formatInr(discountPrice ?? course.price);
 
   const plainDescription = course.description
     ?.replace(/<[^>]*>/g, ' ')
@@ -115,7 +119,10 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
       </div>
 
       <div className={styles.footer}>
-        <p className={styles.price}>{formattedPrice}</p>
+        <p className={styles.price}>
+          {formattedPrice}
+          {discountPrice !== null && <span className={styles.wasPrice}>{formatInr(course.price)}</span>}
+        </p>
         <div className={styles.actions}>
           {status === 'published' && (
             <Button

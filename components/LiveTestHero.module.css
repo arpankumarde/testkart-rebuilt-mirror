@@ -248,14 +248,6 @@
   margin-top: var(--spacing-2);
 }
 
-.shareButton {
-  width: 100%;
-  max-width: 300px;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-3);
-}
-
 .ctaButton {
   width: 100%;
   max-width: 300px;
@@ -432,9 +424,6 @@
     font-size: 1.75rem;
   }
   .ctaButton {
-    max-width: 100%;
-  }
-  .shareButton {
     max-width: 100%;
   }
   .teacherInfoBox {

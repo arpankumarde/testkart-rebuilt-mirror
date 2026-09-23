@@ -4,6 +4,7 @@ import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { AdminModule, hasAdminModule } from "../../../helpers/adminPermissions";
 import { loadContentState, publishApprovedContent, takeDownContent } from "../../../helpers/contentReviewQueue";
 import { sendReviewEmail } from "../../../helpers/contentReviewEmail";
+import { OPEN_REVIEW_STATUSES } from "../../../helpers/contentReviewStatus";
 import { countLiveTestEnrollments } from "../../../helpers/enrollmentCounters";
 import { PreviewContentType } from "./details_GET.schema";
 import { schema, OutputType } from "./status_POST.schema";
@@ -52,7 +53,7 @@ export async function handle(request: Request): Promise<Response> {
       .select("id")
       .where("contentType", "=", type)
       .where("contentId", "=", id)
-      .where("status", "=", "pending")
+      .where("status", "in", [...OPEN_REVIEW_STATUSES])
       .executeTakeFirst();
     const now = new Date();
 

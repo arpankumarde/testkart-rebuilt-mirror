@@ -170,7 +170,7 @@ function FeaturedCourseCard({ course }: { course: HomepageFeaturedCourseItem }) 
             {course.level && <span>{LEVEL_LABEL[course.level]}</span>}
           </span>
           <span className={isFree ? styles.priceFree : styles.price}>
-            {formatItemPrice(course.price)}
+            {formatItemPrice(course.price, course.discountPrice)}
           </span>
         </div>
       </div>

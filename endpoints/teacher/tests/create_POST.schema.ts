@@ -22,6 +22,11 @@ export const schema = z.object({
   requirements: z.array(z.string().min(1)).optional().nullable(),
   longDescription: z.string().optional().nullable(),
   examName: z.string().optional().nullable(),
+  examNames: z
+    .array(z.string().trim().min(1))
+    .max(5)
+    .optional()
+    .describe("Official exam names, up to 5, first is the primary"),
 }).refine(
   (data) => {
     if (data.isFree) {

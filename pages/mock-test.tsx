@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { SEOHead } from "../components/SEOHead";
 import { Button } from "../components/Button";
@@ -21,7 +22,9 @@ import {
 import { InputType, TestListItem } from "../endpoints/tests/list_GET.schema";
 import styles from "./mock-test.module.css";
 
-const SORT_OPTIONS = [
+type SortValue = NonNullable<InputType["sortBy"]>;
+
+const SORT_OPTIONS: { value: SortValue; label: string }[] = [
   { value: "newest", label: "Newest" },
   { value: "price_asc", label: "Price: Low to High" },
   { value: "price_desc", label: "Price: High to Low" },
@@ -29,31 +32,64 @@ const SORT_OPTIONS = [
   { value: "rating", label: "Highest Rated" },
 ];
 
+const DEFAULT_SORT: SortValue = "popular";
+
+const parseSort = (raw: string | null): SortValue =>
+  SORT_OPTIONS.find((opt) => opt.value === raw)?.value ?? DEFAULT_SORT;
+
 const ITEMS_PER_PAGE = 12;
 
 const OnlineMockTestsPage: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const sortBy = parseSort(searchParams.get("sort"));
+  const urlSearch = searchParams.get("search") || "";
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(urlSearch);
   const debouncedSearch = useDebounce(search, 300);
-  const [filters, setFilters] = useState<InputType>({
-    sortBy: "popular",
-  });
   const [allTests, setAllTests] = useState<TestListItem[]>([]);
+
+  // Sort and search live in the URL (same param names as /study-notes) so a
+  // filtered view can be shared or reloaded. Page is not kept there because
+  // Load More accumulates pages in memory. Unrelated params are left alone.
+  const updateParam = useCallback(
+    (key: string, value: string | null) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (value) next.set(key, value);
+          else next.delete(key);
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
+
+  // Typing reaches the URL once the debounce settles; a URL change that did
+  // not come from typing (a link back to /mock-test) is copied into the box.
+  useEffect(() => {
+    if (debouncedSearch !== urlSearch) updateParam("search", debouncedSearch);
+  }, [debouncedSearch]);
+
+  useEffect(() => {
+    if (urlSearch !== debouncedSearch) setSearch(urlSearch);
+  }, [urlSearch]);
 
   useEffect(() => {
     setPage(1);
     setAllTests([]);
-  }, [debouncedSearch]);
+  }, [debouncedSearch, sortBy]);
 
   // Query with pagination parameters
   const queryFilters = React.useMemo(
     () => ({
-      ...filters,
+      sortBy,
       search: debouncedSearch || undefined,
       page: page.toString(),
       limit: ITEMS_PER_PAGE.toString(),
     }),
-    [filters, debouncedSearch, page],
+    [sortBy, debouncedSearch, page],
   );
 
   const { data, isFetching, error } = useTestsQuery(queryFilters);
@@ -70,11 +106,14 @@ const OnlineMockTestsPage: React.FC = () => {
     }
   }, [data, page]);
 
-  const handleSortChange = useCallback((sortBy: string) => {
-    setFilters((prev) => ({ ...prev, sortBy: sortBy as InputType["sortBy"] }));
-    setPage(1); // Reset to first page when sort changes
-    setAllTests([]);
-  }, []);
+  const handleSortChange = useCallback(
+    (value: string) => {
+      const next = parseSort(value);
+      updateParam("sort", next === DEFAULT_SORT ? null : next);
+      setPage(1);
+    },
+    [updateParam],
+  );
 
   const canonicalUrl = "https://testkart.in/mock-test";
   const pageTitle = "Online Mock Tests | Testkart";
@@ -259,7 +298,7 @@ const OnlineMockTestsPage: React.FC = () => {
               <div className={styles.sortControls}>
                 <label className={styles.sortLabel}>Sort by:</label>
                 <Select
-                  value={filters.sortBy || "popular"}
+                  value={sortBy}
                   onValueChange={handleSortChange}
                 >
                   <SelectTrigger className={styles.sortTrigger}>

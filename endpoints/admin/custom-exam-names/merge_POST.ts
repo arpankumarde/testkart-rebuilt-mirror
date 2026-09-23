@@ -2,6 +2,7 @@ import { schema, OutputType } from "./merge_POST.schema";
 import superjson from "superjson";
 import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
+import { linkCustomExamsToExam } from "../../../helpers/customExamNameContent";
 
 export async function handle(request: Request) {
   try {
@@ -36,6 +37,15 @@ export async function handle(request: Request) {
         .where("examName", "in", sourceNames)
         .where("examId", "is", null)
         .executeTakeFirst();
+
+      await trx
+        .updateTable("courses")
+        .set({ examId: targetExamId })
+        .where("examName", "in", sourceNames)
+        .where("examId", "is", null)
+        .execute();
+
+      await linkCustomExamsToExam(trx, sourceNames, { id: targetExam.id, examName: targetExam.examName });
 
       return {
         mergedMockTests: Number(mockTestsResult.numUpdatedRows ?? 0),

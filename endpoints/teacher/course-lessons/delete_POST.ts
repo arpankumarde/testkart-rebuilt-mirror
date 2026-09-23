@@ -4,6 +4,7 @@ import { schema, OutputType } from "./delete_POST.schema";
 import superjson from "superjson";
 import { deleteOwnedR2Files } from "../../../helpers/r2FileOwnership";
 import { releaseGumletAssets } from "../../../helpers/syncLessonVideoToGumlet";
+import { releaseMuxAssets } from "../../../helpers/syncLessonVideoToMux";
 
 async function checkLessonOwnership(lessonId: number, teacherId: number, userRole: string): Promise<boolean> {
     if (userRole === 'admin') return true;
@@ -35,7 +36,7 @@ export async function handle(request: Request): Promise<Response> {
     // Fetch the lesson to get contentFileId before deletion
     console.log(`Fetching lesson ${lessonId} for deletion`);
     const lesson = await db.selectFrom("courseLessons")
-      .select(["id", "contentFileId", "gumletAssetId"])
+      .select(["id", "contentFileId", "gumletAssetId", "muxAssetId"])
       .where("id", "=", lessonId)
       .executeTakeFirst();
 
@@ -52,6 +53,7 @@ export async function handle(request: Request): Promise<Response> {
     // Then remove its file and DRM copy if nothing else uses them
     await deleteOwnedR2Files(effectiveTeacherId, [lesson.contentFileId]);
     await releaseGumletAssets([lesson.gumletAssetId]);
+    await releaseMuxAssets([lesson.muxAssetId]);
 
     return new Response(superjson.stringify({ success: true } satisfies OutputType));
 

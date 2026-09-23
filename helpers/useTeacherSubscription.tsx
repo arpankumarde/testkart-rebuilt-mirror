@@ -48,7 +48,8 @@ export const useSubscriptionHistoryQuery = (page: number, limit: number) => {
 };
 
 /**
- * Cancels the active subscription for the authenticated teacher.
+ * Cancels the teacher's paid plan: renewal stops and any autopay mandate is
+ * revoked, while the plan stays active until its end date.
  */
 export const useCancelSubscriptionMutation = () => {
   const queryClient = useQueryClient();
@@ -56,14 +57,12 @@ export const useCancelSubscriptionMutation = () => {
   return useMutation({
     mutationFn: () => postTeacherSubscriptionCancel({}),
     onSuccess: () => {
+      // Covers the status, history and mandate queries.
       queryClient.invalidateQueries({
-        queryKey: subscriptionQueryKeys.status(),
+        queryKey: subscriptionQueryKeys.all,
       });
-      queryClient.invalidateQueries({
-        queryKey: subscriptionQueryKeys.history(),
-      });
-      toast.success("Subscription cancelled successfully", {
-        description: "Your subscription will remain active until the end of the current billing period.",
+      toast.success("Subscription cancelled", {
+        description: "You won't be charged again. Your plan stays active until the end of the current billing period.",
       });
     },
     onError: (error) => {

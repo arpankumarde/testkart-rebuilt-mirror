@@ -3,6 +3,7 @@ import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { schema, OutputType } from "./list_GET.schema";
 import superjson from "superjson";
 import { sql } from "kysely";
+import { contentInExam } from "../../../helpers/contentExams";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -36,7 +37,7 @@ export async function handle(request: Request): Promise<Response> {
       .where("testQuestions.isAiGenerated", "=", true);
 
     if (filters.examId) {
-      query = query.where("mockTests.examId", "=", filters.examId);
+      query = query.where(contentInExam("mock_test", "mockTests.id", "mockTests.examId", filters.examId));
     }
     if (filters.teacherId) {
       query = query.where("mockTests.teacherId", "=", filters.teacherId);

@@ -18,6 +18,7 @@ export const schema = z.object({
   validFrom: z.coerce.date().optional(),
   validUntil: z.coerce.date().optional().nullable(),
   isActive: z.boolean().optional(),
+  isPublic: z.boolean().optional(),
 });
 
 export type InputType = z.infer<typeof schema>;

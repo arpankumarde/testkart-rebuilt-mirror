@@ -2,6 +2,7 @@ import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./delete_POST.schema";
 import { countMockTestEnrollments } from "../../../helpers/enrollmentCounters";
+import { clearOpenReviews } from "../../../helpers/contentReviewQueue";
 import superjson from "superjson";
 
 export async function handle(request: Request): Promise<Response> {
@@ -64,13 +65,16 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
-    // Use a transaction to ensure atomic soft delete and cart cleanup
+    // Use a transaction to ensure atomic soft delete, cart and review cleanup.
+    // A trashed series cannot be approved, so its waiting review goes too.
     await db.transaction().execute(async (trx) => {
       // 1. Remove test from any carts
       await trx
         .deleteFrom("cartItems")
         .where("mockTestId", "=", testId)
         .execute();
+
+      await clearOpenReviews(trx, "mock_test", testId);
 
       // 2. Soft delete the test by setting deletedAt and unpublishing
       await trx

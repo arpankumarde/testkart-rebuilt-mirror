@@ -21,6 +21,10 @@ export interface Session {
 
   // Set when an admin is impersonating a user
   impersonatorAdminId?: number;
+
+  // Set when an admin edits one of this teacher's items from the admin panel
+  // (helpers/adminContentEdit). Limits the session to that content type's routes.
+  adminEditType?: string;
 }
 
 const CookieName = "floot_built_app_session";
@@ -73,6 +77,7 @@ export async function getServerSessionOrThrow(
       lastAccessed: payload.lastAccessed as number,
       passwordChangeRequired: payload.passwordChangeRequired as boolean,
       impersonatorAdminId: payload.impersonatorAdminId as number | undefined,
+      adminEditType: typeof payload.adminEditType === "string" ? payload.adminEditType : undefined,
     };
   } catch (error) {
     throw new NotAuthenticatedError();
@@ -93,6 +98,7 @@ export async function createServerSessionToken(
     lastAccessed: session.lastAccessed,
     passwordChangeRequired: session.passwordChangeRequired,
     impersonatorAdminId: session.impersonatorAdminId,
+    ...(session.adminEditType ? { adminEditType: session.adminEditType } : {}),
   })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()

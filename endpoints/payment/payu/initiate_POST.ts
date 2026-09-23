@@ -8,6 +8,7 @@ import { PAYU_MODE } from "../../../helpers/_publicConfigs";
 import { sql } from "kysely";
 import { getTeacherPlatformFee } from "../../../helpers/getTeacherPlatformFee";
 import { promoCodeCoversTeacher } from "../../../helpers/promoCodeEligibility";
+import { courseEffectivePriceSql } from "../../../helpers/coursePricing";
 
 export async function handle(request: Request) {
   try {
@@ -53,7 +54,8 @@ export async function handle(request: Request) {
           "mockTests.discountPrice as testDiscountPrice",
           "mockTests.teacherId as testTeacherId",
           "courses.title as courseTitle",
-          "courses.price as coursePrice",
+          // Effective price: the discounted price when valid, else the list price.
+          courseEffectivePriceSql.as("coursePrice"),
           "courses.teacherId as courseTeacherId",
           "digitalProducts.title as digitalProductTitle",
           "digitalProducts.price as digitalProductPrice",

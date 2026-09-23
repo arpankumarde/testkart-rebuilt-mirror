@@ -97,10 +97,13 @@ const fakeDb = (
   return { db, statements, writes };
 };
 
-const makeDeps = (examCalls: (string | null)[] = []) => ({
-  resolveExam: async (examName: string | null) => {
-    examCalls.push(examName);
-    return { examId: 7, examName };
+type ExamSelection = { examNames?: string[]; examName?: string | null };
+
+const makeDeps = (examCalls: ExamSelection[] = []) => ({
+  resolveExams: async (selection: ExamSelection) => {
+    examCalls.push(selection);
+    const names = selection.examNames ?? (selection.examName ? [selection.examName] : []);
+    return names.map((examName) => ({ examId: 7, examName }));
   },
   countEnrollments: async () => 0,
 });
@@ -138,6 +141,7 @@ describe("applyLiveTestUpdate", () => {
   it("rejects every field the form locks on a published test, and writes nothing", async () => {
     const samples: Record<string, unknown> = {
       examName: "UPSC",
+      examNames: ["UPSC"],
       durationMinutes: 30,
       calculatorEnabled: true,
       subjectWiseTiming: true,
@@ -178,12 +182,18 @@ describe("applyLiveTestUpdate", () => {
     expect(mockTestWrite?.parameters).toContain("English");
   });
 
-  it("resolves the exam only when examName is sent", async () => {
-    const calls: (string | null)[] = [];
+  it("resolves the exams only when examName or examNames is sent, and saves the list", async () => {
+    const calls: ExamSelection[] = [];
     await applyLiveTestUpdate(fakeDb(storedLiveTest()).db, 75001, { id: 75010, title: "Mock B" }, makeDeps(calls));
     expect(calls).toEqual([]);
     await applyLiveTestUpdate(fakeDb(storedLiveTest()).db, 75001, { id: 75010, examName: "SSC CGL" }, makeDeps(calls));
-    expect(calls).toEqual(["SSC CGL"]);
+    expect(calls).toEqual([{ examNames: undefined, examName: "SSC CGL" }]);
+    const { db, writes } = fakeDb(storedLiveTest());
+    await applyLiveTestUpdate(db, 75001, { id: 75010, examNames: ["SSC CGL", "UPSC"] }, makeDeps(calls));
+    const joinInserts = writes().filter((s) => s.sql.startsWith("INSERT INTO") && s.sql.includes("mock_test_exams"));
+    expect(joinInserts.map((s) => s.parameters[2])).toEqual(["SSC CGL", "UPSC"]);
+    const primaryWrite = writes().find((s) => s.sql.startsWith('update "mock_tests"'));
+    expect(primaryWrite?.parameters).toContain("SSC CGL");
   });
 
   it("checks a partial schedule against the stored start time", async () => {

@@ -156,6 +156,9 @@
  * meant for orange type on a surface.
  */
 .price {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-2);
   margin: 0;
   min-width: 0;
   font-family: var(--font-family-heading);
@@ -164,6 +167,14 @@
   letter-spacing: -0.01em;
   color: var(--tk-brand-text);
   font-variant-numeric: tabular-nums;
+}
+
+.wasPrice {
+  font-family: var(--font-family-base);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  text-decoration: line-through;
 }
 
 .actions {

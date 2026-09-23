@@ -1,4 +1,5 @@
 import { db } from "../helpers/db";
+import { sql } from "kysely";
 import { slugify } from "../helpers/slugify";
 import { EXAM_CONTENT_PAGE_META, type ExamContentPageType } from "../helpers/examContentTypes";
 import {
@@ -9,6 +10,12 @@ import {
 } from "../helpers/fetchIndexableUgcIds";
 
 const BASE_URL = "https://testkart.in";
+
+// Inside a subquery on exams: the item is listed under that exam, as its primary exam or any other.
+const listedUnderExam = (table: "mockTests" | "digitalProducts" | "courses", joinTable: string, fk: string) =>
+  sql<boolean>`(${sql.ref(`${table}.examId`)} = exams.id OR EXISTS (
+    SELECT 1 FROM ${sql.table(joinTable)} ce WHERE ce.${sql.ref(fk)} = ${sql.ref(`${table}.id`)} AND ce.exam_id = exams.id
+  ))`;
 
 type UrlEntry = {
   loc: string;
@@ -54,7 +61,6 @@ export async function handle(request: Request) {
       { loc: `${BASE_URL}/ai-mock-test-generator`, changefreq: "monthly", priority: 0.6 },
       { loc: `${BASE_URL}/ai-quiz-generator`, changefreq: "monthly", priority: 0.6 },
       { loc: `${BASE_URL}/ugc-net-swmg-success-with-mukesh-goyal`, changefreq: "weekly", priority: 0.8 },
-      { loc: `${BASE_URL}/ugc-net-swmg-success-with-mukesh-goyal/environmental-science`, changefreq: "weekly", priority: 0.7 },
       { loc: `${BASE_URL}/ugc-net-swmg-success-with-mukesh-goyal/reviews`, changefreq: "weekly", priority: 0.7 },
       { loc: `${BASE_URL}/contact`, changefreq: "yearly", priority: 0.3 },
       { loc: `${BASE_URL}/privacy`, changefreq: "yearly", priority: 0.2 },
@@ -87,9 +93,16 @@ export async function handle(request: Request) {
         .execute(),
       db
         .selectFrom("exams")
-        .innerJoin("mockTests", "mockTests.examId", "exams.id")
-        .where("mockTests.isPublished", "=", true)
-        .where("mockTests.deletedAt", "is", null)
+        .where((eb) =>
+          eb.exists(
+            eb
+              .selectFrom("mockTests")
+              .where(listedUnderExam("mockTests", "mock_test_exams", "mock_test_id"))
+              .where("mockTests.isPublished", "=", true)
+              .where("mockTests.deletedAt", "is", null)
+              .select("mockTests.id")
+          )
+        )
         .select(["exams.examSlug", "exams.updatedAt"])
         .distinct()
         .execute(),
@@ -114,7 +127,7 @@ export async function handle(request: Request) {
           eb.exists(
             eb
               .selectFrom("courses")
-              .whereRef("courses.examId", "=", "exams.id")
+              .where(listedUnderExam("courses", "course_exams", "course_id"))
               .where("courses.status", "=", "published")
               .select("courses.id")
           )
@@ -128,7 +141,7 @@ export async function handle(request: Request) {
           eb.exists(
             eb
               .selectFrom("digitalProducts")
-              .whereRef("digitalProducts.examId", "=", "exams.id")
+              .where(listedUnderExam("digitalProducts", "digital_product_exams", "digital_product_id"))
               .where("digitalProducts.status", "=", "published")
               .where("digitalProducts.isPublished", "=", true)
               .select("digitalProducts.id")
@@ -148,12 +161,10 @@ export async function handle(request: Request) {
               .leftJoin("digitalProducts", "digitalProducts.id", "courseBundleItems.digitalProductId")
               .leftJoin("courses", "courses.id", "courseBundleItems.courseId")
               .where("courseBundles.isPublished", "=", true)
-              .where((eb2) =>
-                eb2.or([
-                  eb2("mockTests.examId", "=", eb.ref("exams.id")),
-                  eb2("digitalProducts.examId", "=", eb.ref("exams.id")),
-                  eb2("courses.examId", "=", eb.ref("exams.id")),
-                ])
+              .where(
+                sql<boolean>`(${listedUnderExam("mockTests", "mock_test_exams", "mock_test_id")}
+                  OR ${listedUnderExam("digitalProducts", "digital_product_exams", "digital_product_id")}
+                  OR ${listedUnderExam("courses", "course_exams", "course_id")})`
               )
               .select("courseBundles.id")
           )

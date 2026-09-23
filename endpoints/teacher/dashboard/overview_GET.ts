@@ -79,11 +79,11 @@ export async function handle(request: Request): Promise<Response> {
     const [attentionRows, saleRows, activityRows, recentRows, totalRows] = await Promise.all([
       sql<Row>`
         SELECT
-          (SELECT count(*) FROM content_reviews WHERE teacher_id = ${teacherId} AND status = 'pending' AND content_type = 'mock_test') AS reviews_pending_tests,
-          (SELECT count(*) FROM content_reviews WHERE teacher_id = ${teacherId} AND status = 'pending' AND content_type = 'course') AS reviews_pending_courses,
-          (SELECT count(*) FROM content_reviews WHERE teacher_id = ${teacherId} AND status = 'pending' AND content_type = 'digital_product') AS reviews_pending_products,
-          (SELECT count(*) FROM content_reviews WHERE teacher_id = ${teacherId} AND status = 'pending' AND content_type = 'course_bundle') AS reviews_pending_bundles,
-          (SELECT count(*) FROM content_reviews WHERE teacher_id = ${teacherId} AND status = 'pending' AND content_type = 'live_test') AS reviews_pending_live_tests,
+          (SELECT count(*) FROM content_reviews WHERE teacher_id = ${teacherId} AND status IN ('pending', 'senior_review') AND content_type = 'mock_test') AS reviews_pending_tests,
+          (SELECT count(*) FROM content_reviews WHERE teacher_id = ${teacherId} AND status IN ('pending', 'senior_review') AND content_type = 'course') AS reviews_pending_courses,
+          (SELECT count(*) FROM content_reviews WHERE teacher_id = ${teacherId} AND status IN ('pending', 'senior_review') AND content_type = 'digital_product') AS reviews_pending_products,
+          (SELECT count(*) FROM content_reviews WHERE teacher_id = ${teacherId} AND status IN ('pending', 'senior_review') AND content_type = 'course_bundle') AS reviews_pending_bundles,
+          (SELECT count(*) FROM content_reviews WHERE teacher_id = ${teacherId} AND status IN ('pending', 'senior_review') AND content_type = 'live_test') AS reviews_pending_live_tests,
           (SELECT count(*) FROM teacher_withdrawals WHERE teacher_id = ${teacherId} AND status = 'pending') AS withdrawals_pending,
           (SELECT coalesce(sum(amount), 0) FROM teacher_withdrawals WHERE teacher_id = ${teacherId} AND status = 'pending') AS withdrawals_pending_amount,
           (SELECT count(DISTINCT m.thread_id) FROM support_messages m

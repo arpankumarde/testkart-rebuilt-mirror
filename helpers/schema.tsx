@@ -69,6 +69,8 @@ export type MentorshipBookingStatus = "cancelled" | "completed" | "no_show" | "s
 
 export type MentorshipSubscriptionStatus = "active" | "cancelled" | "expired";
 
+export type MuxPushStatus = "failed" | "ready" | "submitted";
+
 export type Numeric = ColumnType<string, number | string, number | string>;
 
 export type OrderStatus = "cancelled" | "completed" | "failed" | "pending" | "refunded";
@@ -81,7 +83,7 @@ export type PromoCodeAppliesTo = "all" | "bundles" | "courses" | "digital_produc
 
 export type QuestionType = "assertion_reason" | "comprehension" | "match_the_following" | "multiple_correct_mcq" | "numerical" | "single_correct_mcq";
 
-export type ReviewStatus = "approved" | "pending" | "rejected";
+export type ReviewStatus = "approved" | "pending" | "rejected" | "senior_review";
 
 export type SalesActivityType = "assignment_changed" | "call_logged" | "follow_up_changed" | "note_added" | "stage_changed";
 
@@ -347,6 +349,15 @@ export interface CourseEnrollments {
   studentId: number;
 }
 
+export interface CourseExams {
+  courseId: number;
+  createdAt: Generated<Timestamp>;
+  examId: number | null;
+  examName: string;
+  id: Generated<number>;
+  position: Generated<number>;
+}
+
 export interface CourseLessons {
   contentFileId: string | null;
   contentType: LessonContentType;
@@ -360,6 +371,11 @@ export interface CourseLessons {
   gumletStatus: GumletPushStatus | null;
   id: Generated<number>;
   isPreview: Generated<boolean>;
+  muxAssetId: string | null;
+  muxError: string | null;
+  muxPlaybackId: string | null;
+  muxSourceUrl: string | null;
+  muxStatus: MuxPushStatus | null;
   orderIndex: number;
   sectionId: number;
   textContent: string | null;
@@ -388,6 +404,7 @@ export interface Courses {
   category: string | null;
   createdAt: Generated<Timestamp>;
   description: string;
+  discountPrice: Numeric | null;
   estimatedDurationMinutes: Generated<number | null>;
   examId: number | null;
   examName: string | null;
@@ -446,6 +463,15 @@ export interface DeletedAccounts {
   reason: string | null;
   registeredAt: Timestamp | null;
   role: string;
+}
+
+export interface DigitalProductExams {
+  createdAt: Generated<Timestamp>;
+  digitalProductId: number;
+  examId: number | null;
+  examName: string;
+  id: Generated<number>;
+  position: Generated<number>;
 }
 
 export interface DigitalProductFiles {
@@ -826,6 +852,15 @@ export interface MockTestEnrollments {
   studentId: number;
 }
 
+export interface MockTestExams {
+  createdAt: Generated<Timestamp>;
+  examId: number | null;
+  examName: string;
+  id: Generated<number>;
+  mockTestId: number;
+  position: Generated<number>;
+}
+
 export interface MockTestItems {
   calculatorEnabled: Generated<boolean>;
   createdAt: Generated<Timestamp | null>;
@@ -1017,6 +1052,7 @@ export interface PromoCodes {
   discountValue: Numeric;
   id: Generated<number>;
   isActive: Generated<boolean>;
+  isPublic: Generated<boolean>;
   maxDiscountAmount: Generated<Numeric | null>;
   minPurchaseAmount: Generated<Numeric | null>;
   perUserLimit: number | null;
@@ -1486,6 +1522,14 @@ export interface UploadLimits {
   updatedAt: Generated<Timestamp>;
 }
 
+export interface UserExamFocus {
+  createdAt: Generated<Timestamp>;
+  examId: number;
+  id: Generated<number>;
+  position: Generated<number>;
+  userId: number;
+}
+
 export interface UserPasswords {
   createdAt: Generated<Timestamp | null>;
   id: Generated<number>;
@@ -1568,6 +1612,7 @@ export interface DB {
   courseBundleItems: CourseBundleItems;
   courseBundles: CourseBundles;
   courseEnrollments: CourseEnrollments;
+  courseExams: CourseExams;
   courseLessons: CourseLessons;
   courseMedia: CourseMedia;
   courseProgress: CourseProgress;
@@ -1575,6 +1620,7 @@ export interface DB {
   courseSections: CourseSections;
   courseTransactions: CourseTransactions;
   deletedAccounts: DeletedAccounts;
+  digitalProductExams: DigitalProductExams;
   digitalProductFiles: DigitalProductFiles;
   digitalProductPurchases: DigitalProductPurchases;
   digitalProducts: DigitalProducts;
@@ -1603,6 +1649,7 @@ export interface DB {
   meta: Meta;
   mobileOtps: MobileOtps;
   mockTestEnrollments: MockTestEnrollments;
+  mockTestExams: MockTestExams;
   mockTestItems: MockTestItems;
   mockTests: MockTests;
   newsCoverage: NewsCoverage;
@@ -1648,6 +1695,7 @@ export interface DB {
   testQuestions: TestQuestions;
   uploadedFiles: UploadedFiles;
   uploadLimits: UploadLimits;
+  userExamFocus: UserExamFocus;
   userPasswords: UserPasswords;
   users: Users;
   wellKnownFiles: WellKnownFiles;
@@ -1682,7 +1730,7 @@ export const PrizeDistributionStatusArrayValues: [PrizeDistributionStatus, ...Pr
 export const PrizeFundSourceArrayValues: [PrizeFundSource, ...PrizeFundSource[]] = ["enrollment","teacher_wallet"];
 export const PromoCodeAppliesToArrayValues: [PromoCodeAppliesTo, ...PromoCodeAppliesTo[]] = ["all","bundles","courses","digital_products","live_tests","tests"];
 export const QuestionTypeArrayValues: [QuestionType, ...QuestionType[]] = ["assertion_reason","comprehension","match_the_following","multiple_correct_mcq","numerical","single_correct_mcq"];
-export const ReviewStatusArrayValues: [ReviewStatus, ...ReviewStatus[]] = ["approved","pending","rejected"];
+export const ReviewStatusArrayValues: [ReviewStatus, ...ReviewStatus[]] = ["approved","pending","rejected","senior_review"];
 export const SalesActivityTypeArrayValues: [SalesActivityType, ...SalesActivityType[]] = ["assignment_changed","call_logged","follow_up_changed","note_added","stage_changed"];
 export const SalesContactSourceArrayValues: [SalesContactSource, ...SalesContactSource[]] = ["demo_request","signup"];
 export const SalesStageArrayValues: [SalesStage, ...SalesStage[]] = ["converted","follow_up","new","not_interested","qualified"];
@@ -1696,6 +1744,7 @@ export const WalletTransactionTypeArrayValues: [WalletTransactionType, ...Wallet
 export const WithdrawalStatusArrayValues: [WithdrawalStatus, ...WithdrawalStatus[]] = ["cancelled","completed","failed","pending"];
 export const GumletPushStatusArrayValues: [GumletPushStatus, ...GumletPushStatus[]] = ["failed","ready","submitted"];
 export const TeacherAssetKindArrayValues: [TeacherAssetKind, ...TeacherAssetKind[]] = ["pdf","video"];
+export const MuxPushStatusArrayValues: [MuxPushStatus, ...MuxPushStatus[]] = ["failed","ready","submitted"];
 // Table/column names whose snake_case spelling kysely's default CamelCasePlugin
 // cannot recover from the camelCase name used in code (an underscore directly
 // before a digit, e.g. reminder_48h_sent ⇄ reminder48hSent). The db helper's

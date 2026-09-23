@@ -21,6 +21,12 @@ import {
   McpToolError,
 } from "../../helpers/mcpTools";
 import { ADMIN_MODULES } from "../../helpers/adminPermissions";
+import {
+  callContentEdit,
+  describeContentEditAction,
+  editableContentTypes,
+  listContentEditActions,
+} from "../../helpers/mcpAdminContentEdit";
 
 async function listTools(access: McpAccess) {
   if (access.audience !== "admin") return buildToolDefinitions([]);
@@ -50,6 +56,7 @@ async function callTool(
       admin,
       access: ADMIN_MODULES.filter((m) => held.has(m.key)).map((m) => `${m.group}: ${m.label}`),
       readablePaths: listPermittedReadRoutes(admin.permissions ?? []),
+      editableContentTypes: editableContentTypes(admin.permissions ?? []),
       scope: describeMcpScope(),
     };
   }
@@ -61,6 +68,29 @@ async function callTool(
       | Record<string, string | number | boolean>
       | undefined;
     return callRead(adminId, path, query);
+  }
+
+  if (name === "content_edit_actions") {
+    return typeof args.action === "string" && args.action
+      ? describeContentEditAction(adminId, args.type, args.action)
+      : listContentEditActions(adminId, args.type);
+  }
+
+  if (name === "content_edit") {
+    const { id, action, input } = args;
+    if (typeof id !== "number" || !Number.isInteger(id) || id < 1) throw new McpToolError("id is required.");
+    if (typeof action !== "string" || !action) throw new McpToolError("action is required.");
+    if (input !== undefined && input !== null && (typeof input !== "object" || Array.isArray(input))) {
+      throw new McpToolError("input must be an object.");
+    }
+    return callContentEdit(
+      adminId,
+      args.type,
+      id,
+      action,
+      (input ?? undefined) as Record<string, unknown> | undefined,
+      args.confirm === true
+    );
   }
 
   const routeKey = TOOL_WRITE_ROUTES[name];

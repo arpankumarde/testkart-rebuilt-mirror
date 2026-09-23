@@ -30,6 +30,8 @@ import { DigitalProductStatus } from "../helpers/schema";
 import { AdminProductListItem } from "../endpoints/admin/products/list_GET.schema";
 import { AdminProductDetailPanel } from "../components/AdminProductDetailPanel";
 import { adminPreviewPath } from "../helpers/useAdminContentPreview";
+import { adminEditPath } from "../helpers/adminContentEdit";
+import { AdminEditIconButton } from "../components/AdminEditIconButton";
 import styles from "./admin.notes.module.css";
 
 const ALL_TEACHERS = "__all__";
@@ -275,6 +277,7 @@ export default function AdminNotesPage() {
         </TooltipTrigger>
         <TooltipContent>View details</TooltipContent>
       </Tooltip>
+      <AdminEditIconButton type="digital_product" id={product.id} title={product.title} className={styles.iconButton} />
       {product.status === 'published' && (
         <Tooltip>
           <TooltipTrigger asChild>
@@ -514,6 +517,7 @@ export default function AdminNotesPage() {
             isLive={panelProduct.status === 'published'}
             publicUrl={panelProduct.status === 'published' ? getProductUrl(panelProduct.slug) : null}
             previewUrl={adminPreviewPath("digital_product", panelProduct.id)}
+            editUrl={adminEditPath("digital_product", panelProduct.id)}
             teacherName={panelProduct.teacherName}
             price={panelProduct.price}
             createdAt={panelProduct.createdAt}

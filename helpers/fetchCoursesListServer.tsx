@@ -2,6 +2,9 @@ import { db } from "./db";
 import { sql } from "kysely";
 import type { InputType, OutputType } from "../endpoints/courses/list_GET.schema";
 import { slugify } from "./slugify";
+import { contentInExam } from "./contentExams";
+import { pinnedTeacherFirst, sortPinsTeachers } from "./pinnedTeachers";
+import { courseDiscountPrice, courseEffectivePriceSql } from "./coursePricing";
 
 /**
  * Direct-DB counterpart to endpoints/courses/list_GET.ts, for use ONLY from
@@ -35,6 +38,7 @@ export async function fetchCoursesListServer(filters: InputType = {}): Promise<O
       "courses.thumbnailImageUrl",
       "courses.introVideoUrl",
       "courses.price",
+      "courses.discountPrice",
       "courses.category",
       "courses.level",
       "courses.language",
@@ -80,7 +84,7 @@ export async function fetchCoursesListServer(filters: InputType = {}): Promise<O
   }
 
   if (category) query = query.where("courses.category", "=", category);
-  if (examId) query = query.where("courses.examId", "=", Number(examId));
+  if (examId) query = query.where(contentInExam("course", "courses.id", "courses.examId", Number(examId)));
   if (level) query = query.where("courses.level", "=", level as "beginner" | "intermediate" | "advanced");
 
   if (language) {
@@ -92,20 +96,23 @@ export async function fetchCoursesListServer(filters: InputType = {}): Promise<O
     query = query.where("courses.price", "=", "0");
   } else if (priceType === "paid") {
     query = query.where("courses.price", ">", "0");
-    if (minPrice) query = query.where("courses.price", ">=", minPrice);
-    if (maxPrice) query = query.where("courses.price", "<=", maxPrice);
+    if (minPrice) query = query.where(courseEffectivePriceSql, ">=", minPrice);
+    if (maxPrice) query = query.where(courseEffectivePriceSql, "<=", maxPrice);
   }
 
   const countQuery = query.clearSelect().select((eb) => eb.fn.countAll<number>().as("count"));
   const countResult = await countQuery.executeTakeFirst();
   const totalCount = Number(countResult?.count ?? 0);
 
+  if (sortPinsTeachers(sortBy)) {
+    query = query.orderBy(pinnedTeacherFirst("courses.teacher_id"));
+  }
   switch (sortBy) {
     case "price_asc":
-      query = query.orderBy("courses.price", "asc");
+      query = query.orderBy(courseEffectivePriceSql, "asc");
       break;
     case "price_desc":
-      query = query.orderBy("courses.price", "desc");
+      query = query.orderBy(courseEffectivePriceSql, "desc");
       break;
     case "popular":
       query = query.orderBy(sql`(
@@ -141,6 +148,7 @@ export async function fetchCoursesListServer(filters: InputType = {}): Promise<O
     courses: courses.map((course) => ({
       ...course,
       price: Number(course.price),
+      discountPrice: courseDiscountPrice(course.price, course.discountPrice),
       enrollmentCount: Number(course.enrollmentCount),
       views: Number(course.views ?? 0),
       teacherIsVerified: !!course.teacherIsVerified,

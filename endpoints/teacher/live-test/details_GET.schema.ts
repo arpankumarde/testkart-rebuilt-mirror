@@ -2,6 +2,7 @@ import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
 import { LiveTests, MockTestItems, MockTests, TestItemSubjects } from "../../../helpers/schema";
+import type { ContentExam } from "../../../helpers/contentExams";
 
 export const schema = z.object({
   liveTestId: z.coerce.number().int().positive(),
@@ -17,6 +18,8 @@ export type OutputType = Selectable<LiveTests> & {
   mockTest: Selectable<MockTests> | null;
   mockTestItem: Selectable<MockTestItems> | null;
   subjects: SubjectWithQuestionCount[];
+  /** Every exam the live test is listed under (from its mock test), primary first. */
+  exams: ContentExam[];
   /** Submitted for publishing and waiting on admin approval. */
   inReview: boolean;
 };

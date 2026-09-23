@@ -25,6 +25,11 @@ export const schema = z
     title: z.string().min(3).max(100).optional(),
     description: z.preprocess(emptyRichTextToNull, z.string().max(2000).nullable().optional()),
     examName: z.string().optional().nullable(),
+    examNames: z
+      .array(z.string().trim().min(1))
+      .max(5)
+      .optional()
+      .describe("Official exam names, up to 5, first is the primary"),
     language: z.string().max(100).optional().nullable(),
     price: z.number().min(0).optional(),
     discountPrice: z.number().min(0).optional().nullable(),

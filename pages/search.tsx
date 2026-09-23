@@ -238,7 +238,7 @@ export default function SearchPage() {
                         teacherIsVerified={course.teacherIsVerified}
                         productTitle={course.title}
                         stats={`${course.views.toLocaleString('en-IN')} views`}
-                        priceLabel={formatItemPrice(course.price)}
+                        priceLabel={formatItemPrice(course.price, course.discountPrice)}
                         isFree={course.price === 0}
                         thumbnailUrl={course.thumbnailUrl}
                         placeholderUrl={Placeholder.COURSE}
@@ -288,8 +288,8 @@ export default function SearchPage() {
                         teacherIsVerified={bundle.teacherIsVerified}
                         productTitle={bundle.title}
                         stats={`${bundle.itemCount} items`}
-                        priceLabel={formatItemPrice(bundle.price, bundle.originalPrice)}
-                        isFree={(bundle.originalPrice ?? bundle.price) === 0}
+                        priceLabel={formatItemPrice(bundle.price)}
+                        isFree={bundle.price === 0}
                         thumbnailUrl={bundle.thumbnailUrl}
                         placeholderUrl={Placeholder.TEST}
                       />

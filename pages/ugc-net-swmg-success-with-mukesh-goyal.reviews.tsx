@@ -183,8 +183,8 @@ export default function SwmgReviewsPage() {
           actions={
             <>
               <SwmgBrandAction to={`${content.paths.overview}#courses`}>See his courses</SwmgBrandAction>
-              <SwmgBrandAction to={content.paths.evs} variant="outline">
-                Environmental Science syllabus
+              <SwmgBrandAction to={`/expert/${content.teacherSlug}`} variant="outline">
+                Open his Testkart profile
               </SwmgBrandAction>
             </>
           }

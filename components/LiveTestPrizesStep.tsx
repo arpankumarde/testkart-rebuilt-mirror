@@ -6,6 +6,7 @@ import { Checkbox } from './Checkbox';
 import { Button } from './Button';
 import { Trophy, AlertTriangle, Plus, X } from 'lucide-react';
 import { useAuth } from '../helpers/useAuth';
+import { useAdminContentEdit } from '../helpers/useAdminContentEdit';
 import {
   PrizeTier,
   getTotalPrizePool,
@@ -26,9 +27,10 @@ interface LiveTestPrizesStepProps {
 
 export const LiveTestPrizesStep: React.FC<LiveTestPrizesStepProps> = ({ values, setValues, disabled = false }) => {
   const { authState } = useAuth();
-  // Prize money comes out of the owner's earnings, so a team manager cannot set it.
+  // Prize money comes out of the owner's earnings, so a team manager or an admin cannot set it.
   const isManager = authState.type === 'authenticated' && authState.user.teacherRole === 'manager';
-  const locked = disabled || isManager;
+  const adminEdit = useAdminContentEdit();
+  const locked = disabled || isManager || !!adminEdit;
   const tiers = values.prizeTiers || [];
   const totalPrizePool = getTotalPrizePool(tiers);
   const validationError = tiers.length > 0 ? validatePrizeTiers(tiers) : null;
@@ -70,9 +72,11 @@ export const LiveTestPrizesStep: React.FC<LiveTestPrizesStepProps> = ({ values, 
           <div className={styles.checkboxRowText}>
             <FormLabel htmlFor="hasPrizes-live">Offer Prize Money</FormLabel>
             <FormDescription>
-              {isManager
-                ? "Prize money comes out of the academy's earnings, so only the account owner can set it."
-                : "Enable this to offer cash prizes to top performers."}
+              {adminEdit
+                ? "Prize money comes out of the teacher's earnings, so only the teacher can change it."
+                : isManager
+                  ? "Prize money comes out of the academy's earnings, so only the account owner can set it."
+                  : "Enable this to offer cash prizes to top performers."}
             </FormDescription>
           </div>
         </div>

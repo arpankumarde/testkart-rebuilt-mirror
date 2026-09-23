@@ -37,8 +37,10 @@ export type CourseSeo = {
   robots: "index,follow" | "noindex,follow";
 };
 
-export type OutputType = Omit<Selectable<Courses>, "price"> & {
+export type OutputType = Omit<Selectable<Courses>, "price" | "discountPrice"> & {
   price: number;
+  /** Valid discounted price (between 0 and price), or null. */
+  discountPrice: number | null;
   seo: CourseSeo;
   teacher: {
     id: number;

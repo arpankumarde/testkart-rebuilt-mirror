@@ -12,6 +12,7 @@ import {
 import { LIVE_TEST_FIELD_LABELS, LIVE_TEST_PUBLISHED_LOCKED_FIELDS } from "./liveTestLocks";
 import { jsonbParam } from "./jsonbParam";
 import { sanitizeHtml } from "./sanitizeHtml";
+import { saveContentExams, type ContentExam } from "./contentExams";
 
 export class LiveTestUpdateError extends Error {
   constructor(message: string, readonly status: number) {
@@ -21,7 +22,11 @@ export class LiveTestUpdateError extends Error {
 }
 
 export interface LiveTestUpdateDeps {
-  resolveExam: (examName: string | null) => Promise<{ examId: number | null; examName: string | null }>;
+  /** The mock test's new exam list, or undefined when the request leaves exams alone. */
+  resolveExams: (
+    selection: { examNames?: string[]; examName?: string | null },
+    mockTestId: number
+  ) => Promise<ContentExam[] | undefined>;
   countEnrollments: (liveTestId: number) => Promise<number>;
   /** False for team managers: prize money comes out of the owner's earnings. */
   canChangePrizes?: boolean;
@@ -226,11 +231,10 @@ export async function applyLiveTestUpdate(
   if (input.requirements !== undefined) {
     mockTestSet.requirements = input.requirements ? JSON.stringify(input.requirements) : null;
   }
-  if (input.examName !== undefined) {
-    const exam = await deps.resolveExam(input.examName);
-    mockTestSet.examId = exam.examId;
-    mockTestSet.examName = exam.examName;
-  }
+  const exams =
+    input.examNames !== undefined || input.examName !== undefined
+      ? await deps.resolveExams({ examNames: input.examNames, examName: input.examName }, liveTest.mockTestId)
+      : undefined;
 
   return executor.transaction().execute(async (trx) => {
     const updated =
@@ -249,6 +253,7 @@ export async function applyLiveTestUpdate(
     if (Object.keys(mockTestSet).length > 0) {
       await trx.updateTable("mockTests").set(mockTestSet).where("id", "=", liveTest.mockTestId).execute();
     }
+    if (exams) await saveContentExams(trx, "mock_test", liveTest.mockTestId, exams);
     return updated;
   });
 }

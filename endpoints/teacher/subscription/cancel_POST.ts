@@ -1,11 +1,14 @@
 import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
-import { schema, OutputType } from "./cancel_POST.schema";
+import { OutputType } from "./cancel_POST.schema";
 import superjson from "superjson";
 import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
 import { sendEmail } from "../../../helpers/sendEmail";
 import { subscriptionCancelled } from "../../../helpers/emailTemplates";
+import { stopTeacherRenewal } from "../../../helpers/teacherMandate";
 
+// Cancelling stops renewal and revokes the PayU mandate; the paid plan stays
+// active until its end date (see helpers/teacherMandate).
 export async function handle(request: Request): Promise<Response> {
   try {
     const { user, effectiveTeacherId, teacherRole } = await getServerUserSession(request);
@@ -22,51 +25,26 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
-    const [updatedSubscription] = await db
-      .updateTable("teacherSubscriptions")
-      .set({
-        status: "cancelled",
-        autoRenew: false,
-        updatedAt: new Date(),
-      })
-      .where("teacherId", "=", effectiveTeacherId)
-      .where("status", "=", "active")
-      .returningAll()
-      .execute();
-
-    if (!updatedSubscription) {
-      throw new Error(
-        "No active subscription found to cancel or already cancelled."
-      );
+    const stopped = await stopTeacherRenewal(effectiveTeacherId);
+    if (!stopped) {
+      throw new Error("No active paid subscription found to cancel.");
     }
 
-    // Revoke verification when subscription is cancelled
-    await db
-      .updateTable("users")
-      .set({ isVerified: false })
-      .where("id", "=", effectiveTeacherId)
-      .execute();
+    const updatedSubscription = await db
+      .selectFrom("teacherSubscriptions")
+      .selectAll()
+      .where("id", "=", stopped.subscriptionId)
+      .executeTakeFirstOrThrow();
 
-    if (updatedSubscription.endDate) {
+    if (stopped.endDate && user.email) {
       try {
-        const plan = await db.selectFrom("subscriptionPlans")
-          .select(["name"])
-          .where("id", "=", updatedSubscription.planId)
-          .executeTakeFirst();
-        
-        if (plan && user.email) {
-          const template = subscriptionCancelled(
-            user.displayName,
-            plan.name,
-            updatedSubscription.endDate as Date
-          );
-          await sendEmail({
-            to: user.email,
-            subject: template.subject,
-            html: template.html,
-            text: template.text,
-          });
-        }
+        const template = subscriptionCancelled(user.displayName, stopped.planName, new Date(stopped.endDate));
+        await sendEmail({
+          to: user.email,
+          subject: template.subject,
+          html: template.html,
+          text: template.text,
+        });
       } catch (err) {
         console.error("[cancel_POST] Failed to send cancellation email:", err);
       }

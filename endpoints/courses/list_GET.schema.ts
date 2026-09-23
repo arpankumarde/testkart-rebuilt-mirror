@@ -41,6 +41,8 @@ export type CourseListItem = Pick<
   teacherIsVerified: boolean;
   enrollmentCount: number;
   price: number; // Convert from Numeric to number
+  /** Valid discounted price (between 0 and price), or null. */
+  discountPrice: number | null;
   views: number;
   avgRating: number | null;
   ratingsCount: number;

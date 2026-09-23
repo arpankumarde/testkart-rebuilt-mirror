@@ -1,3 +1,5 @@
+const NOTICE_MATURES_AFTER_MS = 23 * 60 * 60 * 1000;
+
 export type MandateChargeCandidate = {
   status: string;
   autoRenew: boolean | null;
@@ -29,6 +31,10 @@ export function getMandateChargeRefusal(
   }
   if (!subscription.preDebitSentAt) {
     return "The pre-debit notice for this renewal has not been sent yet.";
+  }
+  // The notice promises the debit for the day after it went out.
+  if (now.getTime() - new Date(subscription.preDebitSentAt).getTime() < NOTICE_MATURES_AFTER_MS) {
+    return "The renewal date in the pre-debit notice has not arrived yet.";
   }
   return null;
 }

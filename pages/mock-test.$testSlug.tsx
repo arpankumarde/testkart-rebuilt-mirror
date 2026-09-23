@@ -19,6 +19,7 @@ import { TestReviews } from "../components/TestReviews";
 import { TeacherProfileCard } from "../components/TeacherProfileCard";
 import { TeacherCtaBanner } from "../components/TeacherCtaBanner";
 import { BundleSuggestions } from "../components/BundleSuggestions";
+import { PublicCouponsCard } from "../components/PublicCouponsCard";
 import { useTrackStorefrontView } from "../helpers/trackStorefrontEvent";
 import styles from "./mock-test.$testSlug.module.css";
 
@@ -289,6 +290,9 @@ const TestDetailsPage: React.FC = () => {
       {/* Main Content */}
       <div className={styles.contentWrapper}>
         <main className={styles.mainColumn}>
+          {!testPackage.isEnrolled && testPackage.price > 0 && (
+            <PublicCouponsCard itemType="test" itemId={testPackage.id} />
+          )}
           {/* Test Series Content */}
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>Test series content</h2>

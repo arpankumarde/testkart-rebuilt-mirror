@@ -2,6 +2,7 @@ import { schema, OutputType } from "./delete_POST.schema";
 import superjson from "superjson";
 import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
+import { removeCustomExamFromContent } from "../../../helpers/customExamNameContent";
 
 export async function handle(request: Request) {
   try {
@@ -23,6 +24,15 @@ export async function handle(request: Request) {
         .where("examName", "=", name)
         .where("examId", "is", null)
         .execute();
+
+      await trx
+        .updateTable("courses")
+        .set({ examName: null })
+        .where("examName", "=", name)
+        .where("examId", "is", null)
+        .execute();
+
+      await removeCustomExamFromContent(trx, name);
     });
 
     return new Response(

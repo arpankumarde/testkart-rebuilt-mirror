@@ -6,6 +6,12 @@ import superjson from "superjson";
 import { sanitizeOptionalHtml } from "../../../helpers/sanitizeHtml";
 import { DigitalProductFileItem } from "../../../helpers/digitalProductFileTypes";
 import { isRealFileUrl, PLACEHOLDER_PDF_URL } from "../../../helpers/digitalProductRules";
+import {
+  ContentExamError,
+  primaryExamFields,
+  resolveExamSelection,
+  saveContentExams,
+} from "../../../helpers/contentExams";
 
 async function generateUniqueSlug(baseTitle: string): Promise<string> {
   // Leaves room for a -N suffix inside the 255-character slug column.
@@ -51,30 +57,7 @@ export async function handle(request: Request): Promise<Response> {
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);
 
-    let examId: number | null = null;
-    let examName: string | null = null;
-
-    if (input.examName && input.examName.trim() !== "") {
-      const trimmedExamName = input.examName.trim();
-      const exam = await db
-        .selectFrom("exams")
-        .select(["id", "examName"])
-        .where((eb) =>
-          eb.or([
-            eb("examName", "ilike", trimmedExamName),
-            eb("fullName", "ilike", trimmedExamName),
-          ])
-        )
-        .executeTakeFirst();
-
-      if (exam) {
-        examId = exam.id;
-        examName = exam.examName;
-      } else {
-        examId = null;
-        examName = trimmedExamName;
-      }
-    }
+    const exams = (await resolveExamSelection({ examNames: input.examNames, examName: input.examName })) ?? [];
 
     const slug = await generateUniqueSlug(input.title);
 
@@ -123,13 +106,14 @@ export async function handle(request: Request): Promise<Response> {
           language: input.language ?? null,
           category: input.category ?? null,
           tags: input.tags ?? null,
-          examId: examId,
-          examName: examName,
+          ...primaryExamFields(exams),
           status: "draft",
           isPublished: false,
         })
         .returningAll()
         .executeTakeFirstOrThrow();
+
+      if (exams.length > 0) await saveContentExams(trx, "digital_product", product.id, exams);
 
       const rows = filesToInsert.length > 0
         ? await trx
@@ -172,6 +156,9 @@ export async function handle(request: Request): Promise<Response> {
 
     return new Response(superjson.stringify(output), { status: 201 });
   } catch (error) {
+    if (error instanceof ContentExamError) {
+      return new Response(superjson.stringify({ error: error.message }), { status: 400 });
+    }
     console.error("Error creating digital product:", error);
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred";

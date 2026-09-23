@@ -8,6 +8,13 @@ import { nanoid } from "nanoid";
 import { addDays, format } from "date-fns";
 import { getTeacherAvailableBalance } from "./getTeacherAvailableBalance";
 import { lockWallet } from "./walletLock";
+import { settlePendingRenewalCharges } from "./settlePendingRenewalCharges";
+import {
+  newChargeTxnid,
+  refreshMandateBeforeRenewal,
+  revokeLeftoverMandates,
+  revokeSubscriptionMandate,
+} from "./teacherMandate";
 
 export async function subscriptionRenew(): Promise<void> {
   console.log("[subscriptionRenew] Starting scheduled job...");
@@ -25,6 +32,13 @@ export async function subscriptionRenew(): Promise<void> {
   const next48Hours = addDays(now, 2);
   const next24Hours = addDays(now, 1);
   const next72Hours = addDays(now, 3);
+  // The job runs once a day. A pre-debit notice promises the debit for tomorrow,
+  // so it goes out only when the charge falls before the next run, and the
+  // charge waits until the notice is a run old.
+  const HOUR_MS = 60 * 60 * 1000;
+  const preDebitCutoff = new Date(now.getTime() + 23 * HOUR_MS);
+  const noticeMatured = new Date(now.getTime() - 23 * HOUR_MS);
+  const noticeStale = new Date(now.getTime() - 47 * HOUR_MS);
 
   // Fetch payment mode setting
   const paymentModeSetting = await db
@@ -38,6 +52,45 @@ export async function subscriptionRenew(): Promise<void> {
 
   if (paymentMode === "recurring") {
     // =========================================================================
+    // Phase 0: Settle renewal charges still pending at PayU (Recurring mode only)
+    // =========================================================================
+    console.log("[subscriptionRenew] Phase 0: Settling pending renewal charges");
+    try {
+      const settled = await settlePendingRenewalCharges(now);
+      console.log(`[subscriptionRenew] Settled pending charges: ${JSON.stringify(settled)}`);
+    } catch (err) {
+      console.error("[subscriptionRenew] Failed during Phase 0:", err);
+    }
+
+    // A notice whose debit day passed without a charge (a missed run) is void;
+    // clearing it lets Phase 1 send a fresh one.
+    try {
+      const cleared = await db
+        .updateTable("teacherSubscriptions")
+        .set({ preDebitSentAt: null })
+        .where("status", "=", "active")
+        .where("preDebitSentAt", "<", noticeStale)
+        .where((eb) =>
+          eb.not(
+            eb.exists(
+              eb
+                .selectFrom("subscriptionTransactions")
+                .select("subscriptionTransactions.id")
+                .whereRef("subscriptionTransactions.subscriptionId", "=", "teacherSubscriptions.id")
+                .where("subscriptionTransactions.status", "=", "pending")
+                .where("subscriptionTransactions.paymentMethod", "=", "payu_recurring")
+            )
+          )
+        )
+        .executeTakeFirst();
+      if (cleared.numUpdatedRows > 0n) {
+        console.log(`[subscriptionRenew] Cleared ${cleared.numUpdatedRows} stale pre-debit notices`);
+      }
+    } catch (err) {
+      console.error("[subscriptionRenew] Failed clearing stale pre-debit notices:", err);
+    }
+
+    // =========================================================================
     // Phase 1: Send pre-debit notifications (Recurring mode only)
     // =========================================================================
     console.log("[subscriptionRenew] Phase 1: Sending pre-debit notifications");
@@ -49,14 +102,16 @@ export async function subscriptionRenew(): Promise<void> {
         .select([
           "teacherSubscriptions.id",
           "teacherSubscriptions.mandateId",
+          "teacherSubscriptions.mandateStatus",
+          "teacherSubscriptions.mandatePaymentMode",
           "subscriptionPlans.price",
         ])
         .where("teacherSubscriptions.status", "=", "active")
         .where("teacherSubscriptions.autoRenew", "=", true)
-        .where("teacherSubscriptions.mandateStatus", "=", "active")
+        .where("teacherSubscriptions.mandateStatus", "in", ["active", "paused"])
         .where("teacherSubscriptions.mandateId", "is not", null)
         .where("teacherSubscriptions.nextChargeDate", "is not", null)
-        .where("teacherSubscriptions.nextChargeDate", "<=", next48Hours)
+        .where("teacherSubscriptions.nextChargeDate", "<=", preDebitCutoff)
         .where("teacherSubscriptions.preDebitSentAt", "is", null)
         .where((eb) =>
           eb.not(
@@ -80,6 +135,15 @@ export async function subscriptionRenew(): Promise<void> {
         if (!sub.mandateId) continue;
 
         try {
+          // A mandate the payer revoked or paused at PayU gets no notice and no charge.
+          const canRenew = await refreshMandateBeforeRenewal({
+            id: sub.id,
+            mandateId: sub.mandateId,
+            mandateStatus: sub.mandateStatus,
+            mandatePaymentMode: sub.mandatePaymentMode,
+          });
+          if (!canRenew) continue;
+
           const result = await sendPreDebitNotification({
             authPayuId: sub.mandateId,
             amount: sub.price,
@@ -137,7 +201,7 @@ export async function subscriptionRenew(): Promise<void> {
         .where("teacherSubscriptions.mandateId", "is not", null)
         .where("teacherSubscriptions.nextChargeDate", "is not", null)
         .where("teacherSubscriptions.nextChargeDate", "<=", now)
-        .where("teacherSubscriptions.preDebitSentAt", "is not", null)
+        .where("teacherSubscriptions.preDebitSentAt", "<=", noticeMatured)
         // A charge still pending at PayU may yet capture; charging again would
         // bill the teacher twice. verify-pending settles it.
         .where((eb) =>
@@ -162,7 +226,7 @@ export async function subscriptionRenew(): Promise<void> {
         if (!sub.mandateId || !sub.email) continue;
 
         chargesAttempted++;
-        const txnid = `testkart-charge-${nanoid(10)}`;
+        const txnid = newChargeTxnid();
         let transactionId: number | undefined;
 
         try {
@@ -293,7 +357,7 @@ export async function subscriptionRenew(): Promise<void> {
               recentFailed.every((t) => t.status === "failed")
             ) {
               console.warn(
-                `[subscriptionRenew] Sub ${sub.id} failed 3 times. Cancelling mandate.`
+                `[subscriptionRenew] Sub ${sub.id} failed 3 times. Cancelling it and revoking its mandate.`
               );
 
               const freePlan = await db.selectFrom("subscriptionPlans").where("price", "=", "0").selectAll().executeTakeFirst();
@@ -302,7 +366,6 @@ export async function subscriptionRenew(): Promise<void> {
                 await trx
                   .updateTable("teacherSubscriptions")
                   .set({
-                    mandateStatus: "failed",
                     autoRenew: false,
                     status: "cancelled",
                     updatedAt: now,
@@ -335,6 +398,10 @@ export async function subscriptionRenew(): Promise<void> {
                   .where("id", "=", sub.teacherId)
                   .execute();
               });
+
+              await revokeSubscriptionMandate(sub.id).catch((err) =>
+                console.error(`[subscriptionRenew] Revoking the mandate of sub ${sub.id} failed:`, err)
+              );
 
               const cancelTemplate = subscriptionCancelled(
                 sub.displayName,
@@ -572,6 +639,18 @@ export async function subscriptionRenew(): Promise<void> {
   }
 
   // =========================================================================
+  // Phase 3b: Revoke mandates left on closed or non-renewing plans (Both modes)
+  // =========================================================================
+  // Covers plans cancelled, switched or expired above or elsewhere, and
+  // revokes PayU did not confirm earlier.
+  let mandatesRevoked = 0;
+  try {
+    mandatesRevoked = await revokeLeftoverMandates();
+  } catch (err) {
+    console.error("[subscriptionRenew] Failed during Phase 3b:", err);
+  }
+
+  // =========================================================================
   // Phase 4: Send expiry reminders (Normal mode only)
   // =========================================================================
   if (paymentMode === "normal") {
@@ -670,5 +749,6 @@ export async function subscriptionRenew(): Promise<void> {
     console.log(`  Charges pending: ${chargesPending}`);
   }
   console.log(`  Subscriptions expired: ${subsExpired}`);
+  console.log(`  Leftover mandates handled: ${mandatesRevoked}`);
   console.log("[subscriptionRenew] Scheduled job completed.");
 }

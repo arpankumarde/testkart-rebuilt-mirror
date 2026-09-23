@@ -1,0 +1,6 @@
+.screen {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-nav);
+  background-color: var(--background);
+}

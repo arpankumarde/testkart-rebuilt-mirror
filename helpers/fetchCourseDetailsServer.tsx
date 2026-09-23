@@ -4,6 +4,7 @@ import type { OutputType } from "../endpoints/courses/details_GET.schema";
 import { slugify } from "./slugify";
 import { PRODUCT_DISCLAIMER } from "./productDisclaimer";
 import { computeCourseSeo } from "./seoIndexability";
+import { courseDiscountPrice } from "./coursePricing";
 
 export async function fetchCourseDetailsServer(slug: string): Promise<OutputType> {
   const course = await db
@@ -115,6 +116,7 @@ export async function fetchCourseDetailsServer(slug: string): Promise<OutputType
     ...course,
     description: course.description,
     price: Number(course.price),
+    discountPrice: courseDiscountPrice(course.price, course.discountPrice),
     teacher: {
       id: course.teacherId,
       displayName: course.teacherDisplayName,

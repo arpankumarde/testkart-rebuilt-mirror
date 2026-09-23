@@ -49,33 +49,34 @@ export async function handle(request: Request): Promise<Response> {
           ])
           .groupBy("examId")
           .execute(),
-        db
-          .selectFrom("mockTests")
-          .select(["examId"])
-          .select((eb) => eb.fn.countAll().as("count"))
-          .where("examId", "is not", null)
-          .where("deletedAt", "is", null)
-          .groupBy("examId")
-          .execute(),
-        db
-          .selectFrom("digitalProducts")
-          .select(["examId"])
-          .select((eb) => eb.fn.countAll().as("count"))
-          .where("examId", "is not", null)
-          .groupBy("examId")
-          .execute(),
+        // Items listed under each exam, as their primary exam or any other. UNION drops the pair a
+        // join row repeats, so an item counts once per exam.
+        sql<{ examId: number; count: string }>`
+          SELECT exam_id, count(*) AS count FROM (
+            SELECT id, exam_id FROM mock_tests WHERE deleted_at IS NULL AND exam_id IS NOT NULL
+            UNION
+            SELECT x.mock_test_id, x.exam_id FROM mock_test_exams x
+            JOIN mock_tests mt ON mt.id = x.mock_test_id
+            WHERE mt.deleted_at IS NULL AND x.exam_id IS NOT NULL
+          ) listed
+          GROUP BY exam_id
+        `.execute(db),
+        sql<{ examId: number; count: string }>`
+          SELECT exam_id, count(*) AS count FROM (
+            SELECT id, exam_id FROM digital_products WHERE exam_id IS NOT NULL
+            UNION
+            SELECT digital_product_id, exam_id FROM digital_product_exams WHERE exam_id IS NOT NULL
+          ) listed
+          GROUP BY exam_id
+        `.execute(db),
       ]);
 
     const categoryNameById = new Map(categories.map((c) => [c.id, c.categoryName]));
     const mockTestCountByExam = new Map(
-      mockTestCounts
-        .filter((row): row is typeof row & { examId: number } => row.examId !== null)
-        .map((row) => [row.examId, Number(row.count)])
+      mockTestCounts.rows.map((row) => [Number(row.examId), Number(row.count)])
     );
     const digitalProductCountByExam = new Map(
-      digitalProductCounts
-        .filter((row): row is typeof row & { examId: number } => row.examId !== null)
-        .map((row) => [row.examId, Number(row.count)])
+      digitalProductCounts.rows.map((row) => [Number(row.examId), Number(row.count)])
     );
     const contentIssuesByExam = new Map(contentIssues.map((row) => [row.examId, row]));
     const inSectionOrder = (types: string[] | undefined): AdminExamSectionType[] =>

@@ -4,6 +4,8 @@ import { schema, OutputType } from "./delete_POST.schema";
 import superjson from "superjson";
 import { deleteOwnedR2Files } from "../../../helpers/r2FileOwnership";
 import { releaseGumletAssets } from "../../../helpers/syncLessonVideoToGumlet";
+import { releaseMuxAssets } from "../../../helpers/syncLessonVideoToMux";
+import { clearOpenReviews } from "../../../helpers/contentReviewQueue";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -75,11 +77,12 @@ export async function handle(request: Request): Promise<Response> {
     
     const sectionIdList = sectionIds.map(s => s.id);
     const gumletAssetIds: Array<string | null> = [];
+    const muxAssetIds: Array<string | null> = [];
 
     if (sectionIdList.length > 0) {
       const lessons = await db
         .selectFrom("courseLessons")
-        .select(["contentFileId", "gumletAssetId"])
+        .select(["contentFileId", "gumletAssetId", "muxAssetId"])
         .where("sectionId", "in", sectionIdList)
         .execute();
       
@@ -88,6 +91,7 @@ export async function handle(request: Request): Promise<Response> {
           fileIdsToDelete.push(lesson.contentFileId);
         }
         gumletAssetIds.push(lesson.gumletAssetId);
+        muxAssetIds.push(lesson.muxAssetId);
       });
     }
 
@@ -100,7 +104,9 @@ export async function handle(request: Request): Promise<Response> {
       
       // Delete sections
       await trx.deleteFrom("courseSections").where("courseId", "=", courseId).execute();
-      
+
+      await clearOpenReviews(trx, "course", courseId);
+
       // Delete course
       await trx.deleteFrom("courses").where("id", "=", courseId).execute();
     });
@@ -108,6 +114,7 @@ export async function handle(request: Request): Promise<Response> {
     // With the rows gone, remove the files the course's teacher uploaded that nothing else uses
     const { deleted } = await deleteOwnedR2Files(course.teacherId, fileIdsToDelete);
     await releaseGumletAssets(gumletAssetIds);
+    await releaseMuxAssets(muxAssetIds);
 
     console.log(`[Course Delete] Deleted course ${courseId} and ${deleted.length}/${fileIdsToDelete.length} associated R2 files`);
 

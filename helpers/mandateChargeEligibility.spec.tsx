@@ -76,4 +76,11 @@ describe("getMandateChargeRefusal", () => {
       "The pre-debit notice for this renewal has not been sent yet."
     );
   });
+
+  it("refuses until the debit day named in the notice arrives", () => {
+    expect(getMandateChargeRefusal({ ...due, preDebitSentAt: new Date("2026-09-11T00:30:00Z") }, now)).toBe(
+      "The renewal date in the pre-debit notice has not arrived yet."
+    );
+    expect(getMandateChargeRefusal({ ...due, preDebitSentAt: new Date("2026-09-10T12:30:00Z") }, now)).toBeNull();
+  });
 });

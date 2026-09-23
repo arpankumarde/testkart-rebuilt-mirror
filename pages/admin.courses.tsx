@@ -30,6 +30,8 @@ import { CourseStatus } from "../helpers/schema";
 import { AdminCourseListItem } from "../endpoints/admin/courses/list_GET.schema";
 import { AdminProductDetailPanel } from "../components/AdminProductDetailPanel";
 import { adminPreviewPath } from "../helpers/useAdminContentPreview";
+import { adminEditPath } from "../helpers/adminContentEdit";
+import { AdminEditIconButton } from "../components/AdminEditIconButton";
 import styles from "./admin.courses.module.css";
 
 const ALL_TEACHERS = "__all__";
@@ -267,6 +269,7 @@ const AdminCoursesPage: React.FC = () => {
         </TooltipTrigger>
         <TooltipContent>View details</TooltipContent>
       </Tooltip>
+      <AdminEditIconButton type="course" id={course.id} title={course.title} className={styles.iconButton} />
       {course.status === 'published' && (
         <Tooltip>
           <TooltipTrigger asChild>
@@ -508,6 +511,7 @@ const AdminCoursesPage: React.FC = () => {
             isLive={panelCourse.status === 'published'}
             publicUrl={panelCourse.status === 'published' ? getCourseUrl(panelCourse.slug) : null}
             previewUrl={adminPreviewPath("course", panelCourse.id)}
+            editUrl={adminEditPath("course", panelCourse.id)}
             teacherName={panelCourse.teacherName}
             price={panelCourse.price}
             createdAt={panelCourse.createdAt}

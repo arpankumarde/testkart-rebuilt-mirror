@@ -2,7 +2,7 @@ import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { slugify } from "../../../helpers/slugify";
 import { syncMockTestAggregates } from "../../../helpers/syncMockTestAggregates";
-import { resolveExamByName } from "../../../helpers/resolveExam";
+import { primaryExamFields, resolveExamSelection, saveContentExams } from "../../../helpers/contentExams";
 import { schema, OutputType } from "./create-with-items_POST.schema";
 import superjson from "superjson";
 import { sanitizeHtml } from "../../../helpers/sanitizeHtml";
@@ -42,6 +42,9 @@ export async function handle(request: Request): Promise<Response> {
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);
 
+    // With no exam the series keeps the "Unspecified" placeholder as its primary name.
+    const exams = (await resolveExamSelection({ examNames: input.examNames, examName: input.examName })) ?? [];
+
     // Fall back to a content-derived title (never a static generic string)
     // so that if a draft package is ever published without the teacher
     // setting a title, it still gets a unique, non-duplicate <title> tag
@@ -54,10 +57,6 @@ export async function handle(request: Request): Promise<Response> {
         .slice(0, 10)}`;
     const slug = await generateUniqueSlug(title);
 
-    const resolvedExam = await resolveExamByName(input.examName);
-    const examId = input.examName ? resolvedExam.examId : null;
-    const examName = input.examName ? resolvedExam.examName : "Unspecified";
-
     const price = input.price ?? 0;
     const isFree = input.isFree ?? (input.price ? input.price <= 0 : true);
     
@@ -69,8 +68,7 @@ export async function handle(request: Request): Promise<Response> {
         title: title,
         slug: slug,
         description: input.description || "Draft test package",
-        examName: examName,
-        examId: examId,
+        ...primaryExamFields(exams, "Unspecified"),
         subject: JSON.stringify(input.subjects || []),
         price: price.toString(),
         discountPrice:
@@ -88,6 +86,8 @@ export async function handle(request: Request): Promise<Response> {
       })
       .returningAll()
       .executeTakeFirstOrThrow();
+
+    if (exams.length > 0) await saveContentExams(db, "mock_test", newTest.id, exams, "Unspecified");
 
     if (input.itemCount > 0) {
       const itemsToInsert = Array.from({ length: input.itemCount }).map((_, index) => ({

@@ -13,14 +13,17 @@ import { isPlaceholderDisplayName } from "../helpers/isPlaceholderDisplayName";
 import { useSendOtpMutation, useVerifyOtpMutation } from "../helpers/useMobileVerification";
 import { useSendEmailOtpMutation, useVerifyEmailOtpMutation } from "../helpers/useEmailVerification";
 import { useStudentProfileMutations } from "../helpers/useStudentProfileMutations";
+import { useSaveExamFocusMutation } from "../helpers/useExamFocus";
+import type { ExamFocusItem } from "../helpers/examFocusShared";
+import { ExamFocusPicker } from "./ExamFocusPicker";
 import styles from "./MissingContactInfoDialog.module.css";
 
 const RESEND_COOLDOWN_SECONDS = 30;
 const DISMISSAL_DAYS = 7;
 const DISMISSAL_MS = DISMISSAL_DAYS * 24 * 60 * 60 * 1000;
 
-/** Collected in this order: phone, then email, then name. */
-type StepKey = "mobile" | "email" | "name";
+/** Collected in this order: phone, then email, then name, then exam focus. */
+type StepKey = "mobile" | "email" | "name" | "exam";
 
 const emailSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -61,6 +64,7 @@ export const MissingContactInfoDialog: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [resendTimer, setResendTimer] = useState(0);
   const [skippedSteps, setSkippedSteps] = useState<StepKey[]>([]);
+  const [examPicks, setExamPicks] = useState<ExamFocusItem[]>([]);
 
   const otpInputRef = useRef<HTMLInputElement>(null);
   // Frozen when the dialog opens so the "Step 1 of 3" counter does not shrink
@@ -73,6 +77,7 @@ export const MissingContactInfoDialog: React.FC = () => {
   const verifyMobileOtpMutation = useVerifyOtpMutation();
   const { useUpdateStudentProfileMutation } = useStudentProfileMutations();
   const updateProfileMutation = useUpdateStudentProfileMutation();
+  const saveExamFocusMutation = useSaveExamFocusMutation();
 
   const emailForm = useForm({ defaultValues: { email: "" }, schema: emailSchema });
   const emailOtpForm = useForm({ defaultValues: { otpCode: "" }, schema: emailOtpSchema });
@@ -91,6 +96,9 @@ export const MissingContactInfoDialog: React.FC = () => {
   // The name step writes through /_api/student/profile/update, which rejects
   // teachers - and this dialog is mounted by the teacher shell too.
   const isStudent = authState.type === "authenticated" && authState.user.role === "student";
+  const isTeacher = authState.type === "authenticated" && authState.user.role === "teacher";
+  // The session decides who is asked: students and academy owners past onboarding, never while impersonating.
+  const examDue = authState.type === "authenticated" && authState.user.examFocusPromptDue === true;
 
   /*
    * Steps are derived from the session, not held in state. Each mutation
@@ -102,8 +110,9 @@ export const MissingContactInfoDialog: React.FC = () => {
     if (!userMobileNumber) steps.push("mobile");
     if (!userEmail) steps.push("email");
     if (isStudent && isPlaceholderDisplayName(userDisplayName)) steps.push("name");
+    if (examDue) steps.push("exam");
     return steps;
-  }, [userMobileNumber, userEmail, userDisplayName, isStudent]);
+  }, [userMobileNumber, userEmail, userDisplayName, isStudent, examDue]);
 
   const remainingSteps = pendingSteps.filter((step) => !skippedSteps.includes(step));
   const currentStep: StepKey | null = remainingSteps[0] ?? null;
@@ -150,7 +159,8 @@ export const MissingContactInfoDialog: React.FC = () => {
     const hasMissing =
       !userMobileNumber ||
       !userEmail ||
-      (isStudent && isPlaceholderDisplayName(userDisplayName));
+      (isStudent && isPlaceholderDisplayName(userDisplayName)) ||
+      examDue;
 
     if (!hasMissing) {
       setIsOpen(false);
@@ -174,12 +184,13 @@ export const MissingContactInfoDialog: React.FC = () => {
       if (!userMobileNumber) steps.push("mobile");
       if (!userEmail) steps.push("email");
       if (isStudent && isPlaceholderDisplayName(userDisplayName)) steps.push("name");
+      if (examDue) steps.push("exam");
       totalStepsRef.current = steps.length;
       setIsOpen(true);
     }, 1500);
 
     return () => clearTimeout(timer);
-  }, [userId, userEmail, userMobileNumber, userDisplayName, isStudent]);
+  }, [userId, userEmail, userMobileNumber, userDisplayName, isStudent, examDue]);
 
   if (authState.type !== "authenticated" || currentStep === null) {
     return null;
@@ -196,6 +207,7 @@ export const MissingContactInfoDialog: React.FC = () => {
       setError(null);
       setInputValue("");
       setSkippedSteps([]);
+      setExamPicks([]);
       emailForm.setValues({ email: "" });
       mobileForm.setValues({ mobileNumber: "" });
       emailOtpForm.setValues({ otpCode: "" });
@@ -276,6 +288,17 @@ export const MissingContactInfoDialog: React.FC = () => {
     );
   };
 
+  const handleSaveExams = () => {
+    setError(null);
+    saveExamFocusMutation.mutate(
+      examPicks.map((exam) => exam.id),
+      {
+        onSuccess: () => setExamPicks([]),
+        onError: (err) => setError(err.message),
+      }
+    );
+  };
+
   const handleResendOtp = () => {
     if (resendTimer > 0) return;
     if (currentStep === "email") {
@@ -297,7 +320,8 @@ export const MissingContactInfoDialog: React.FC = () => {
 
   const isSending = sendEmailOtpMutation.isPending || sendMobileOtpMutation.isPending;
   const isVerifying = verifyEmailOtpMutation.isPending || verifyMobileOtpMutation.isPending;
-  const isLoading = isSending || isVerifying || updateProfileMutation.isPending;
+  const isLoading =
+    isSending || isVerifying || updateProfileMutation.isPending || saveExamFocusMutation.isPending;
 
   const hasLaterStep = remainingSteps.length > 1;
 
@@ -314,12 +338,18 @@ export const MissingContactInfoDialog: React.FC = () => {
       title: "What should we call you?",
       description: "Your account is still using an auto-generated name. Enter your full name.",
     },
+    exam: {
+      title: isTeacher ? "Which exams do you prepare students for?" : "Which exams are you preparing for?",
+      description: isTeacher
+        ? "Pick up to 5. This helps us match your content with the right students."
+        : "Pick up to 5 so we can tailor Testkart to what you are preparing for.",
+    },
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleDismiss(); }}>
       <DialogContent
-        className={styles.dialogContent}
+        className={`${styles.dialogContent} ${currentStep === "exam" ? styles.dialogContentWide : ""}`}
         hideCloseButton
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
@@ -431,6 +461,27 @@ export const MissingContactInfoDialog: React.FC = () => {
                 </Button>
               </form>
             </Form>
+          )}
+
+          {currentStep === "exam" && (
+            <div className={styles.form}>
+              <ExamFocusPicker value={examPicks} onChange={setExamPicks} disabled={isLoading} />
+              <Button
+                type="button"
+                onClick={handleSaveExams}
+                disabled={isLoading || examPicks.length === 0}
+                className={styles.submitButton}
+              >
+                {isLoading ? (
+                  <span className={styles.loadingText}>
+                    <Spinner className={styles.spinner} size="sm" />
+                    Saving...
+                  </span>
+                ) : (
+                  "Save Exams"
+                )}
+              </Button>
+            </div>
           )}
 
           {phase === "otp" && currentStep === "email" && (

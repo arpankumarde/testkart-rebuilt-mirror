@@ -1,6 +1,7 @@
-import React, { useState, Suspense } from "react";
-import { sanitizeHtml } from "../helpers/sanitizeHtml";
+import React from "react";
+import { getItemExamNames } from "../helpers/itemExams";
 import { adminPreviewPath } from "../helpers/useAdminContentPreview";
+import { reviewStatusBadgeVariant, reviewStatusLabel } from "../helpers/contentReviewStatus";
 import { PREVIEW_CONTENT_TYPES, PreviewContentType } from "../endpoints/admin/content-preview/details_GET.schema";
 import { Dialog } from "./Dialog";
 import {
@@ -12,6 +13,7 @@ import {
 import { Badge } from "./Badge";
 import { Separator } from "./Separator";
 import { Button } from "./Button";
+import { AdminPreviewContentLoader } from "./AdminPreviewContent";
 import {
   ContentReviewAdminView,
   MockTestMeta,
@@ -42,12 +44,13 @@ import {
 } from "lucide-react";
 import styles from "./ContentReviewDetailDialog.module.css";
 
-const ContentReviewPdfViewer = React.lazy(() => import('./ContentReviewPdfViewer'));
+const previewType = (contentType: string): PreviewContentType | null =>
+  (PREVIEW_CONTENT_TYPES as readonly string[]).includes(contentType) ? (contentType as PreviewContentType) : null;
 
-export const reviewPreviewPath = (review: { contentType: string; contentId: number }): string | null =>
-  (PREVIEW_CONTENT_TYPES as readonly string[]).includes(review.contentType)
-    ? `${adminPreviewPath(review.contentType as PreviewContentType, review.contentId)}?from=reviews`
-    : null;
+export const reviewPreviewPath = (review: { contentType: string; contentId: number }): string | null => {
+  const type = previewType(review.contentType);
+  return type ? `${adminPreviewPath(type, review.contentId)}?from=reviews` : null;
+};
 
 // ─── Formatters ─────────────────────────────────────────────────────────────
 
@@ -86,22 +89,7 @@ const formatDuration = (minutes: number | null): string => {
   return `${h}h ${m}m`;
 };
 
-// ─── Status / Type Badge helpers ─────────────────────────────────────────────
-
-const getStatusBadgeVariant = (
-  status: string
-): "warning" | "success" | "destructive" | "outline" => {
-  switch (status) {
-    case "pending":
-      return "warning";
-    case "approved":
-      return "success";
-    case "rejected":
-      return "destructive";
-    default:
-      return "outline";
-  }
-};
+// ─── Type Badge helpers ──────────────────────────────────────────────────────
 
 const contentTypeLabel: Record<string, string> = {
   mock_test: "Test series",
@@ -131,27 +119,6 @@ const GridItem = ({
   </div>
 );
 
-const ThumbnailSection = ({ url, alt }: { url: string; alt: string }) => (
-  <div className={styles.thumbnailWrapper}>
-    <img src={url} alt={alt} className={styles.thumbnail} />
-  </div>
-);
-
-// Study notes and newer courses store rich-text HTML; older courses, test series and live tests store plain text.
-const HTML_TAG_PATTERN = /<\/?[a-z][a-z0-9]*(\s[^>]*)?\/?>/i;
-
-const DescriptionSection = ({ text }: { text: string }) => {
-  if (!HTML_TAG_PATTERN.test(text)) {
-    return <p className={styles.description}>{text}</p>;
-  }
-  return (
-    <div
-      className={styles.descriptionHtml}
-      dangerouslySetInnerHTML={{ __html: sanitizeHtml(text) }}
-    />
-  );
-};
-
 const RatingDisplay = ({
   rating,
   reviewsCount,
@@ -172,7 +139,7 @@ const RatingDisplay = ({
   );
 };
 
-// ─── Content-specific sections ───────────────────────────────────────────────
+// ─── Content-specific numbers; the contents themselves come from AdminPreviewContent ───
 
 const MockTestDetails = ({ meta }: { meta: MockTestMeta }) => {
   const total = meta.aiQuestionsCount + meta.manualQuestionsCount;
@@ -181,17 +148,7 @@ const MockTestDetails = ({ meta }: { meta: MockTestMeta }) => {
 
   return (
     <div className={styles.metaSection}>
-      {meta.thumbnailUrl && (
-        <ThumbnailSection url={meta.thumbnailUrl} alt="Test thumbnail" />
-      )}
-      {meta.description && <DescriptionSection text={meta.description} />}
-
       <div className={styles.grid}>
-        <GridItem
-          label="Exam"
-          value={meta.examName ?? "-"}
-          icon={<FileText size={12} />}
-        />
         <GridItem
           label="Language"
           value={meta.language ?? "-"}
@@ -291,95 +248,60 @@ const MockTestDetails = ({ meta }: { meta: MockTestMeta }) => {
   );
 };
 
-const DigitalProductDetails = ({
-  meta,
-  title,
-}: {
-  meta: DigitalProductMeta;
-  title: string;
-}) => {
-  const [showPdf, setShowPdf] = useState(false);
-
-  return (
-    <div className={styles.metaSection}>
-      {meta.thumbnailUrl && (
-        <ThumbnailSection url={meta.thumbnailUrl} alt="Product thumbnail" />
-      )}
-      {meta.description && <DescriptionSection text={meta.description} />}
-
-      <div className={styles.grid}>
-        <GridItem
-          label="Category"
-          value={meta.category ?? "-"}
-          icon={<Package size={12} />}
-        />
-        <GridItem
-          label="Language"
-          value={meta.language ?? "-"}
-          icon={<Globe size={12} />}
-        />
-        <GridItem
-          label="Price"
-          value={formatCurrency(meta.price)}
-          icon={<Tag size={12} />}
-        />
-        <GridItem
-          label="Page count"
-          value={meta.pageCount !== null ? formatNumber(meta.pageCount) : "-"}
-          icon={<FileText size={12} />}
-        />
-        <GridItem
-          label="File size"
-          value={formatFileSize(meta.fileSizeBytes)}
-          icon={<BarChart2 size={12} />}
-        />
-        <GridItem
-          label="Preview pages"
-          value={meta.previewPages !== null ? formatNumber(meta.previewPages) : "-"}
-          icon={<BookOpen size={12} />}
-        />
-        <GridItem
-          label="Total purchases"
-          value={formatNumber(meta.totalPurchases)}
-          icon={<ShoppingCart size={12} />}
-        />
-        <GridItem
-          label="Rating"
-          value={
-            <RatingDisplay
-              rating={meta.rating}
-              reviewsCount={meta.reviewsCount}
-            />
-          }
-          icon={<Star size={12} />}
-        />
-      </div>
-
-      {meta.pdfUrl && (
-        <div className={styles.pdfButtonRow}>
-          <Button variant="outline" onClick={() => setShowPdf(true)}>
-            <ExternalLink size={15} />
-            Preview PDF
-          </Button>
-        </div>
-      )}
-
-      {showPdf && meta.pdfUrl && (
-        <Suspense fallback={<div className={styles.pdfLoading}>Loading PDF viewer...</div>}>
-          <ContentReviewPdfViewer pdfUrl={meta.pdfUrl} title={title} onClose={() => setShowPdf(false)} />
-        </Suspense>
-      )}
+const DigitalProductDetails = ({ meta }: { meta: DigitalProductMeta }) => (
+  <div className={styles.metaSection}>
+    <div className={styles.grid}>
+      <GridItem
+        label="Category"
+        value={meta.category ?? "-"}
+        icon={<Package size={12} />}
+      />
+      <GridItem
+        label="Language"
+        value={meta.language ?? "-"}
+        icon={<Globe size={12} />}
+      />
+      <GridItem
+        label="Price"
+        value={formatCurrency(meta.price)}
+        icon={<Tag size={12} />}
+      />
+      <GridItem
+        label="Page count"
+        value={meta.pageCount !== null ? formatNumber(meta.pageCount) : "-"}
+        icon={<FileText size={12} />}
+      />
+      <GridItem
+        label="File size"
+        value={formatFileSize(meta.fileSizeBytes)}
+        icon={<BarChart2 size={12} />}
+      />
+      <GridItem
+        label="Preview pages"
+        value={meta.previewPages !== null ? formatNumber(meta.previewPages) : "-"}
+        icon={<BookOpen size={12} />}
+      />
+      <GridItem
+        label="Total purchases"
+        value={formatNumber(meta.totalPurchases)}
+        icon={<ShoppingCart size={12} />}
+      />
+      <GridItem
+        label="Rating"
+        value={
+          <RatingDisplay
+            rating={meta.rating}
+            reviewsCount={meta.reviewsCount}
+          />
+        }
+        icon={<Star size={12} />}
+      />
     </div>
-  );
-};
+  </div>
+);
 
 const CourseDetails = ({ meta }: { meta: CourseMeta }) => (
   <div className={styles.metaSection}>
-    {meta.thumbnailUrl && (
-      <ThumbnailSection url={meta.thumbnailUrl} alt="Course thumbnail" />
-    )}
-    {meta.description && <DescriptionSection text={meta.description} />}
-
     <div className={styles.grid}>
       <GridItem
         label="Category"
@@ -439,11 +361,6 @@ const CourseDetails = ({ meta }: { meta: CourseMeta }) => (
 
 const CourseBundleDetails = ({ meta }: { meta: CourseBundleMeta }) => (
   <div className={styles.metaSection}>
-    {meta.thumbnailUrl && (
-      <ThumbnailSection url={meta.thumbnailUrl} alt="Bundle thumbnail" />
-    )}
-    {meta.description && <DescriptionSection text={meta.description} />}
-
     <div className={styles.grid}>
       <GridItem
         label="Price"
@@ -473,11 +390,6 @@ const CourseBundleDetails = ({ meta }: { meta: CourseBundleMeta }) => (
 
 const LiveTestDetails = ({ meta }: { meta: LiveTestMeta }) => (
   <div className={styles.metaSection}>
-    {meta.thumbnailUrl && (
-      <ThumbnailSection url={meta.thumbnailUrl} alt="Live test thumbnail" />
-    )}
-    {meta.description && <DescriptionSection text={meta.description} />}
-
     <div className={styles.grid}>
       <GridItem
         label="Start time"
@@ -531,8 +443,8 @@ export const ContentReviewBadges = ({ review }: { review: ContentReviewAdminView
     <Badge variant="outline">
       {contentTypeLabel[review.contentType] ?? review.contentType}
     </Badge>
-    <Badge variant={getStatusBadgeVariant(review.status)}>
-      {review.status.charAt(0).toUpperCase() + review.status.slice(1)}
+    <Badge variant={reviewStatusBadgeVariant(review.status)}>
+      {reviewStatusLabel(review.status)}
     </Badge>
   </>
 );
@@ -560,14 +472,10 @@ export const ContentReviewOpenButton = ({
 };
 
 export const ContentReviewDetailBody = ({ review }: { review: ContentReviewAdminView }) => {
+  const type = previewType(review.contentType);
+
   const renderMeta = () => {
-    if (!review.contentMeta) {
-      return (
-        <p className={styles.muted}>
-          No additional metadata available for this content item.
-        </p>
-      );
-    }
+    if (!review.contentMeta) return null;
 
     const meta = review.contentMeta;
 
@@ -575,12 +483,7 @@ export const ContentReviewDetailBody = ({ review }: { review: ContentReviewAdmin
       case "mock_test":
         return <MockTestDetails meta={meta} />;
       case "digital_product":
-        return (
-          <DigitalProductDetails
-            meta={meta}
-            title={review.contentTitle}
-          />
-        );
+        return <DigitalProductDetails meta={meta} />;
       case "course":
         return <CourseDetails meta={meta} />;
       case "course_bundle":
@@ -610,6 +513,13 @@ export const ContentReviewDetailBody = ({ review }: { review: ContentReviewAdmin
           value={formatDate(review.createdAt)}
           icon={<CalendarDays size={12} />}
         />
+        {getItemExamNames(review).length > 0 && (
+          <GridItem
+            label={getItemExamNames(review).length > 1 ? "Exams" : "Exam"}
+            value={getItemExamNames(review).join(", ")}
+            icon={<FileText size={12} />}
+          />
+        )}
         {review.reviewedAt && (
           <GridItem
             label="Reviewed on"
@@ -633,6 +543,12 @@ export const ContentReviewDetailBody = ({ review }: { review: ContentReviewAdmin
       <Separator />
 
       {renderMeta()}
+
+      {type ? (
+        <AdminPreviewContentLoader type={type} id={review.contentId} />
+      ) : (
+        <p className={styles.muted}>This content type has no preview.</p>
+      )}
     </>
   );
 };

@@ -1,6 +1,6 @@
 import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
-import { resolveExamByName } from "../../../helpers/resolveExam";
+import { loadContentExamList, resolveExamSelection } from "../../../helpers/contentExams";
 import { countLiveTestEnrollments } from "../../../helpers/enrollmentCounters";
 import { applyLiveTestUpdate, LiveTestUpdateError } from "../../../helpers/liveTestUpdate";
 import { parseStoredPrizeTiers } from "../../../helpers/liveTestPrizeTiers";
@@ -9,7 +9,7 @@ import superjson from "superjson";
 
 export async function handle(request: Request) {
   try {
-    const { user, effectiveTeacherId, teacherRole } = await getServerUserSession(request);
+    const { user, effectiveTeacherId, teacherRole, session } = await getServerUserSession(request);
     if (user.role !== "teacher" && user.role !== "admin") {
       return new Response(
         superjson.stringify({ error: "Unauthorized" }),
@@ -21,9 +21,12 @@ export async function handle(request: Request) {
     const input = schema.parse(json);
 
     const updatedTest = await applyLiveTestUpdate(db, effectiveTeacherId, input, {
-      resolveExam: resolveExamByName,
+      resolveExams: async (selection, mockTestId) =>
+        resolveExamSelection({ ...selection, existing: await loadContentExamList(db, "mock_test", mockTestId) }),
       countEnrollments: (liveTestId) => countLiveTestEnrollments(liveTestId),
-      canChangePrizes: teacherRole !== "manager",
+      // Prize money comes out of the owner's earnings: team managers and admins editing
+      // from the admin panel leave it as the owner set it.
+      canChangePrizes: teacherRole !== "manager" && !session.adminEditType,
     });
 
     const output: OutputType = {

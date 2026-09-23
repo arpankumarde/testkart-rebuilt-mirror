@@ -2,15 +2,19 @@ import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
 import { Courses } from "../../../helpers/schema";
+import type { ContentExam } from "../../../helpers/contentExams";
 
 export const schema = z.object({});
 
 export type InputType = z.infer<typeof schema>;
 
-export type TeacherCourseListItem = Omit<Selectable<Courses>, "price"> & {
+export type TeacherCourseListItem = Omit<Selectable<Courses>, "price" | "discountPrice"> & {
   price: number;
+  discountPrice: number | null;
   sectionsCount: number;
   lessonsCount: number;
+  /** Every exam the course is listed under, primary first. */
+  exams: ContentExam[];
   /** Submitted for publishing and waiting on admin approval. */
   inReview: boolean;
 };

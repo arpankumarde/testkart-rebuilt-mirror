@@ -25,7 +25,7 @@ export const useSignedPdfUrl = ({
 
   const isQueryEnabled = !!courseId && !!lessonId && enabled;
 
-  const { data, isLoading, isFetching, error } = useQuery({
+  const { data, isLoading, isFetching, error, refetch } = useQuery({
     queryKey,
     queryFn: async () => {
       // Type safety check, enabled flag should prevent this from throwing in practice
@@ -47,7 +47,9 @@ export const useSignedPdfUrl = ({
 
   return {
     signedUrl: data?.signedUrl ?? null,
+    title: data?.title ?? null,
     isLoading: isLoading || isFetching,
     error: error instanceof Error ? error : null,
+    refetch: () => void refetch(),
   };
 };

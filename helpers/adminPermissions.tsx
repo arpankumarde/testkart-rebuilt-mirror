@@ -146,6 +146,7 @@ const API_RULES: Record<string, ApiRule> = {
   "admin/catalogue": ["catalogue"],
   "admin/content-reviews": ["content_reviews"],
   "admin/content-preview": CATALOGUE_PREVIEW,
+  "admin/content-edit": ["courses", "notes", "test_series", "live_tests", "bundles"],
   "admin/courses": ["courses"],
   "admin/products": ["notes"],
   "admin/tests": ["test_series"],

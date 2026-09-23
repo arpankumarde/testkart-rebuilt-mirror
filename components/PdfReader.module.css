@@ -1,0 +1,395 @@
+.root {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  background-color: var(--muted);
+  color: var(--foreground);
+  container-type: inline-size;
+}
+
+/* Narrow readers (phones, slim inline columns) get two rows: title and close on top, controls across the
+   full width below. The one-row layout is opted into by container width, so a browser without container
+   queries falls back to the layout that fits everywhere. */
+.header {
+  position: relative;
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "title close"
+    "controls controls";
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2);
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.titleBlock {
+  grid-area: title;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-3);
+}
+
+.title {
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--foreground);
+}
+
+.note {
+  display: none;
+  flex-shrink: 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.controls {
+  grid-area: controls;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+}
+
+.actions,
+.closeSlot {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.closeSlot {
+  grid-area: close;
+}
+
+.pageControl {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.pageInput {
+  width: 2.75rem;
+  height: 2rem;
+  padding: 0 var(--spacing-1);
+  text-align: center;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground);
+  background-color: var(--background);
+  border: 1px solid var(--muted-foreground);
+  border-radius: var(--radius);
+}
+
+.pageInput:disabled {
+  opacity: 0.5;
+}
+
+.pageInput:focus-visible,
+.zoomValue:focus-visible,
+.scroll:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 1px;
+}
+
+.scroll:focus-visible {
+  outline-offset: -2px;
+}
+
+.divider {
+  display: none;
+  width: 1px;
+  height: 1.25rem;
+  margin: 0 var(--spacing-1);
+  background-color: var(--border);
+}
+
+.zoomGroup {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.zoomValue {
+  min-width: 3.25rem;
+  height: 2rem;
+  padding: 0 var(--spacing-1);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground);
+  background-color: transparent;
+  border: 0;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.zoomValue:hover {
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.iconButton {
+  color: var(--foreground);
+}
+
+.iconButton:hover {
+  color: var(--tk-brand-text);
+}
+
+.progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 3px;
+  pointer-events: none;
+}
+
+.progressFill {
+  width: 100%;
+  height: 100%;
+  background-color: var(--tk-brand-text);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overflow-anchor: none;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  background-color: var(--muted);
+  touch-action: pan-x pan-y;
+}
+
+.restricted {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.frame {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: max-content;
+  min-width: 100%;
+  min-height: 100%;
+  padding: 16px;
+}
+
+.documentRoot {
+  display: contents;
+}
+
+.slot {
+  position: relative;
+  flex-shrink: 0;
+  overflow: hidden;
+  background-color: var(--surface);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+}
+
+.slot canvas {
+  display: block;
+}
+
+.pageImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+}
+
+.pageOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  text-align: center;
+  color: var(--muted-foreground);
+  background-color: var(--surface);
+}
+
+.pageOverlay p {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.spinner {
+  color: var(--tk-brand-text);
+  animation: spin 1s linear infinite;
+}
+
+.message {
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-3);
+  max-width: 26rem;
+  padding: var(--spacing-8);
+  text-align: center;
+  color: var(--muted-foreground);
+}
+
+.message p {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.loadingIcon {
+  color: var(--tk-brand-text);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.errorIcon {
+  color: var(--error-text);
+}
+
+.dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(96vw, 62rem);
+  max-width: none;
+  height: 92vh;
+  height: 92dvh;
+  max-height: none;
+  padding: 0;
+  overflow: hidden;
+}
+
+.reader {
+  flex: 1;
+  min-height: 0;
+}
+
+:global(.dark) .slot {
+  filter: brightness(0.9);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@media (max-width: 768px) {
+  .dialog {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    border-radius: 0;
+  }
+}
+
+@media (pointer: coarse) {
+  .iconButton {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .pageInput,
+  .zoomValue {
+    height: 2.5rem;
+  }
+
+  .pageInput {
+    font-size: 1rem;
+  }
+}
+
+@container (min-width: 36rem) {
+  .header {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas: "title controls close";
+    gap: var(--spacing-1);
+    padding: var(--spacing-2) var(--spacing-3);
+  }
+
+  .titleBlock {
+    margin-right: var(--spacing-3);
+  }
+
+  .note {
+    display: inline;
+  }
+
+  .controls {
+    justify-content: flex-start;
+    gap: var(--spacing-1);
+  }
+
+  .divider {
+    display: block;
+  }
+
+  .zoomGroup {
+    border-color: transparent;
+  }
+}
+
+/* Smallest phones (320px): trims the buttons so page, zoom and both actions still share one row. */
+@container (max-width: 22rem) {
+  .iconButton {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .zoomValue {
+    min-width: 2.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loadingIcon,
+  .spinner {
+    animation: none;
+  }
+}

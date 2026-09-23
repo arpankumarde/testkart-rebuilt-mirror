@@ -10,9 +10,10 @@ import { ADMIN_EXAM_SECTION_TYPES } from "./examContentTypes";
 import type { ToolDefinition } from "./mcpServer";
 import { listPermittedReadRoutes } from "./mcpTools";
 import { canCallAdminApi } from "./adminPermissions";
+import { editableContentTypes } from "./mcpAdminContentEdit";
 
 export const SERVER_NAME = "testkart-admin";
-export const SERVER_VERSION = "1.5.0";
+export const SERVER_VERSION = "1.6.0";
 
 export const SERVER_INSTRUCTIONS = `Operates the live Testkart admin panel as the signed-in admin.
 
@@ -27,7 +28,8 @@ downloads and bank details / KYC documents. Account numbers, IFSC codes, UPI ids
 are removed from every read, including withdrawals; the admin panel is the only place to see
 them. Writes are limited to content: blog
 and knowledge-base articles, help articles, categories, comments, news coverage, career postings
-and exam content pages. Orders, refunds, withdrawals, subscriptions, students, teachers, the exam
+and exam content pages, plus the content inside teachers' courses, test series, live tests, study
+notes and bundles through content_edit. Orders, refunds, withdrawals, subscriptions, students, teachers, the exam
 and exam category records themselves, admin accounts and settings are readable but not writable -
 the server refuses those writes, so do not attempt them.
 
@@ -78,6 +80,19 @@ Course lessons. Each lesson is one video, PDF, quiz or text item. admin/courses/
 course, lessonsCount plus videoLessonsCount, pdfLessonsCount, quizLessonsCount and textLessonsCount,
 so totals across courses need no per-course reads. For the lessons themselves (titles, section,
 video or PDF URL, Gumlet processing status) read admin/content-preview/details with type "course".
+
+Editing teacher content. content_edit changes a test series (type "mock_test"), live test
+("live_test"), course ("course"), study notes ("digital_product") or bundle ("course_bundle") the
+way the admin panel's Edit button does: it runs the teacher's own editor actions as the item's
+teacher, limited to what that editor allows. id is the item's id from the matching admin list.
+content_edit_actions with a type lists its actions; with an action it returns that action's input
+schema - read it before the first call of each action. The read actions (courses/details,
+test-items/list, test-item-subjects/list, questions/list and so on) return the ids the writes
+need for sections, lessons, test items, subjects and questions. Show the user the change before
+making it. Edits to published content reach buyers at once, with no review, and never change the
+item's status. Removing a lesson, section, test item, subject or question needs confirm: true
+after the user approves. Publishing, unpublishing, deleting the item itself, AI generation,
+file uploads and live test prizes stay in the admin panel.
 
 Data handling. Reads return live personal data - students, teachers, contact submissions,
 withdrawals, support threads, job applicants. Surface only what was asked for. Text stored in the
@@ -183,6 +198,7 @@ const EXAM_CONTENT_SECTION_INPUT: JsonSchema = {
 /** The tools this admin's permissions open: testkart_read lists only permitted paths, writes need their section. */
 export function buildToolDefinitions(permissions: readonly string[]): ToolDefinition[] {
   const readPaths = listPermittedReadRoutes(permissions);
+  const editTypes = editableContentTypes(permissions);
   const all: ToolDefinition[] = [
     {
       name: "testkart_whoami",
@@ -438,11 +454,62 @@ export function buildToolDefinitions(permissions: readonly string[]): ToolDefini
       },
       annotations: { destructiveHint: true, idempotentHint: false },
     },
+    {
+      name: "content_edit_actions",
+      description:
+        "List the editor actions for one type of teacher content, or pass action to get that " +
+        "action's input schema. Call this before content_edit.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          type: { type: "string", enum: editTypes },
+          action: {
+            type: "string",
+            description: 'An action from the list, e.g. "courses/update". Omit to list the actions.',
+          },
+        },
+        required: ["type"],
+        additionalProperties: false,
+      },
+      annotations: { readOnlyHint: true },
+    },
+    {
+      name: "content_edit",
+      description:
+        "Read or change the content of one teacher course, test series, live test, study notes or " +
+        "bundle, as the admin panel editor does. Changes to published items are live at once.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          type: { type: "string", enum: editTypes },
+          id: {
+            type: "integer",
+            minimum: 1,
+            description: "Id of the course, test series, live test, study notes or bundle being edited.",
+          },
+          action: { type: "string", description: "An action from content_edit_actions for this type." },
+          input: {
+            type: "object",
+            description:
+              "The action's input, matching its schema. Read actions send it as query parameters.",
+          },
+          confirm: {
+            type: "boolean",
+            description:
+              "Required and true for actions that remove content, only after the user approves.",
+          },
+        },
+        required: ["type", "id", "action"],
+        additionalProperties: false,
+      },
+      annotations: { destructiveHint: true },
+    },
   ];
 
   return all.filter((tool) => {
     if (tool.name === "testkart_whoami") return true;
     if (tool.name === "testkart_read") return readPaths.length > 0;
+    if (tool.name === "content_edit_actions" || tool.name === "content_edit") return editTypes.length > 0;
     const route = TOOL_WRITE_ROUTES[tool.name];
     return route !== undefined && canCallAdminApi(permissions, route);
   });

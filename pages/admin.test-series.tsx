@@ -31,6 +31,8 @@ import {
 import { toast } from "sonner";
 import { AdminProductDetailPanel } from "../components/AdminProductDetailPanel";
 import { adminPreviewPath } from "../helpers/useAdminContentPreview";
+import { adminEditPath } from "../helpers/adminContentEdit";
+import { AdminEditIconButton } from "../components/AdminEditIconButton";
 import styles from "./admin.test-series.module.css";
 
 const ALL_TEACHERS = "__all__";
@@ -325,6 +327,7 @@ const AdminTestSeriesPage: React.FC = () => {
         </TooltipTrigger>
         <TooltipContent>View details</TooltipContent>
       </Tooltip>
+      <AdminEditIconButton type="mock_test" id={test.id} title={test.title} className={styles.iconButton} />
       {test.isPublished && (
         <Tooltip>
           <TooltipTrigger asChild>
@@ -565,6 +568,7 @@ const AdminTestSeriesPage: React.FC = () => {
             isLive={viewingTest.isPublished}
             publicUrl={viewingTest.isPublished ? getTestUrl(viewingTest) : null}
             previewUrl={adminPreviewPath("mock_test", viewingTest.id)}
+            editUrl={adminEditPath("mock_test", viewingTest.id)}
             teacherName={viewingTest.teacherName}
             price={viewingTest.isFree ? 0 : viewingTest.price}
             createdAt={viewingTest.createdAt}

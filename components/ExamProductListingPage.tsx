@@ -407,7 +407,7 @@ const CoursesBody: React.FC<{ examId: number; examName: string }> = ({ examId, e
             teacherIsVerified={course.teacherIsVerified}
             productTitle={course.title}
             stats={`${course.views.toLocaleString("en-IN")} views`}
-            priceLabel={formatItemPrice(course.price)}
+            priceLabel={formatItemPrice(course.price, course.discountPrice)}
             isFree={course.price === 0}
             thumbnailUrl={course.thumbnailImageUrl || course.thumbnailUrl}
             placeholderUrl={Placeholder.COURSE}

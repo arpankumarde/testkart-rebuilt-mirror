@@ -2,6 +2,7 @@ import { db } from "./db";
 import { sql } from "kysely";
 import type { InputType, OutputType } from "../endpoints/tests/list_GET.schema";
 import { slugify } from "./slugify";
+import { contentInExam } from "./contentExams";
 
 /**
  * Direct-DB counterpart to endpoints/tests/list_GET.ts, for use ONLY from
@@ -111,8 +112,16 @@ export async function fetchTestsListServer(filters: InputType = {}): Promise<Out
     );
   }
 
+  // Rows present the requested exam even when it is not their primary exam - see endpoints/tests/list_GET.ts.
+  let requestedExam: { examName: string; examSlug: string } | undefined;
   if (examId) {
-    query = query.where("mockTests.examId", "=", parseInt(examId, 10));
+    const requestedExamId = parseInt(examId, 10);
+    query = query.where(contentInExam("mock_test", "mockTests.id", "mockTests.examId", requestedExamId));
+    requestedExam = await db
+      .selectFrom("exams")
+      .select(["examName", "examSlug"])
+      .where("id", "=", requestedExamId)
+      .executeTakeFirst();
   }
 
   if (language) {
@@ -189,14 +198,16 @@ export async function fetchTestsListServer(filters: InputType = {}): Promise<Out
     const totalTests = itemCounts.total;
     const freeTestsCount = itemCounts.free;
 
-    let examSlug = test.examSlug;
-    if (!examSlug && test.examName) {
-      const fallbackSlug = slugify(test.examName);
+    let examSlug = requestedExam?.examSlug ?? test.examSlug;
+    const examName = requestedExam?.examName ?? test.examName;
+    if (!examSlug && examName) {
+      const fallbackSlug = slugify(examName);
       examSlug = fallbackSlug || "general-exam";
     }
 
     return {
       ...test,
+      examName,
       durationMinutes,
       price,
       discountPrice,

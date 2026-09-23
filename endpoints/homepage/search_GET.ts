@@ -2,6 +2,7 @@ import { db } from "../../helpers/db";
 import { sql } from "kysely";
 import { OutputType, SearchTeacherItem, schema } from "./search_GET.schema";
 import superjson from "superjson";
+import { courseDiscountPrice } from "../../helpers/coursePricing";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -60,6 +61,10 @@ export async function handle(request: Request): Promise<Response> {
           eb("mockTests.description", "ilike", searchTerm),
           eb("mockTests.subject", "ilike", searchTerm),
           eb("mockTests.examName", "ilike", searchTerm),
+          sql<boolean>`EXISTS (
+            SELECT 1 FROM mock_test_exams mte
+            WHERE mte.mock_test_id = mock_tests.id AND mte.exam_name ILIKE ${searchTerm}
+          )`,
           eb("users.displayName", "ilike", searchTerm),
         ])
       )
@@ -80,6 +85,7 @@ export async function handle(request: Request): Promise<Response> {
         "courses.title",
         "courses.thumbnailImageUrl as thumbnailUrl",
         "courses.price",
+        "courses.discountPrice",
         "courses.views",
         "courses.category",
         "users.displayName as teacherName",
@@ -265,6 +271,7 @@ export async function handle(request: Request): Promise<Response> {
       title: c.title,
       thumbnailUrl: c.thumbnailUrl,
       price: Number(c.price),
+      discountPrice: courseDiscountPrice(c.price, c.discountPrice),
       teacherName: c.teacherName,
       teacherIsVerified: !!c.teacherIsVerified,
       teacherAvatarUrl: c.teacherAvatarUrl ?? null,

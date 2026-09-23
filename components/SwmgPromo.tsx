@@ -99,8 +99,6 @@ export const SwmgPromoHero = ({
 
         <p className={styles.heroLede}>{lede}</p>
 
-        <div className={styles.heroActions}>{actions}</div>
-
         {showCredentials && (
           <dl className={styles.credentials}>
             {content.credentials.map((item) => (
@@ -111,6 +109,8 @@ export const SwmgPromoHero = ({
             ))}
           </dl>
         )}
+
+        <div className={styles.heroActions}>{actions}</div>
       </div>
 
       <div className={styles.heroPortrait}>
@@ -132,7 +132,6 @@ export const SwmgPromoHero = ({
 
 const PAGE_LINKS = [
   { key: "overview", label: "Overview", to: content.paths.overview },
-  { key: "evs", label: "Environmental Science syllabus and plan", to: content.paths.evs },
   { key: "reviews", label: "Student results and reviews", to: content.paths.reviews },
 ] as const;
 
@@ -187,20 +186,19 @@ export const SwmgTextLink = ({ to, children }: { to: string; children: React.Rea
 );
 
 type CatalogProps = {
-  /** Keeps only items whose title or exam name matches, e.g. Environmental Science. */
-  match?: RegExp;
   emptyTitle: string;
   emptyText: string;
 };
 
-export const SwmgCatalog = ({ match, emptyTitle, emptyText }: CatalogProps) => {
+type CatalogGroup = { id: string; title: string; intro: string; cards: React.ReactNode[] };
+
+/** His published items as one section per kind; kinds with nothing published are left out. */
+export const SwmgCatalogSections = ({ emptyTitle, emptyText }: CatalogProps) => {
   const { data, isFetching } = useTeacherPublicProfileQuery(content.teacherSlug);
 
-  const cards = useMemo(() => {
+  const groups = useMemo((): CatalogGroup[] => {
     if (!data) return [];
     const { teacher, courses, tests, liveTests, products } = data;
-    const keep = (title: string, examName: string | null | undefined) =>
-      !match || match.test(title) || (!!examName && match.test(examName));
     const teacherProps = {
       teacherName: teacher.displayName,
       teacherAvatarUrl: teacher.avatarUrl ?? null,
@@ -210,10 +208,12 @@ export const SwmgCatalog = ({ match, emptyTitle, emptyText }: CatalogProps) => {
       teacherIsVerified: !!teacher.isVerified,
     };
 
-    return [
-      ...courses
-        .filter((course) => keep(course.title, course.examName))
-        .map((course) => (
+    const all: CatalogGroup[] = [
+      {
+        id: "course-list",
+        title: "Dr. Goyal's courses",
+        intro: "Full UGC NET courses. Buy once and study on the web or in the Testkart app.",
+        cards: courses.map((course) => (
           <TeacherProductCard
             key={`course-${course.id}`}
             {...teacherProps}
@@ -221,15 +221,18 @@ export const SwmgCatalog = ({ match, emptyTitle, emptyText }: CatalogProps) => {
             productTitle={course.title}
             examName={course.examName}
             stats="Course"
-            priceLabel={formatItemPrice(course.price)}
+            priceLabel={formatItemPrice(course.price, course.discountPrice)}
             isFree={course.price === 0}
             thumbnailUrl={course.thumbnailImageUrl}
             placeholderUrl={Placeholder.COURSE}
           />
         )),
-      ...tests
-        .filter((test) => keep(test.title, test.examName))
-        .map((test) => (
+      },
+      {
+        id: "test-series",
+        title: "Test series",
+        intro: "Mock tests in the UGC NET pattern, to practise under exam conditions.",
+        cards: tests.map((test) => (
           <TeacherProductCard
             key={`test-${test.id}`}
             {...teacherProps}
@@ -243,9 +246,12 @@ export const SwmgCatalog = ({ match, emptyTitle, emptyText }: CatalogProps) => {
             placeholderUrl={Placeholder.TEST}
           />
         )),
-      ...liveTests
-        .filter((liveTest) => keep(liveTest.title, liveTest.examName))
-        .map((liveTest) => (
+      },
+      {
+        id: "live-tests",
+        title: "Live tests",
+        intro: "Scheduled tests you sit at the same time as other aspirants.",
+        cards: liveTests.map((liveTest) => (
           <TeacherProductCard
             key={`live-${liveTest.id}`}
             {...teacherProps}
@@ -259,9 +265,12 @@ export const SwmgCatalog = ({ match, emptyTitle, emptyText }: CatalogProps) => {
             placeholderUrl={Placeholder.LIVE}
           />
         )),
-      ...products
-        .filter((product) => keep(product.title, product.examName))
-        .map((product) => (
+      },
+      {
+        id: "study-notes",
+        title: "Study notes",
+        intro: "His notes for reading and revision, on the web or in the Testkart app.",
+        cards: products.map((product) => (
           <TeacherProductCard
             key={`product-${product.id}`}
             {...teacherProps}
@@ -273,40 +282,58 @@ export const SwmgCatalog = ({ match, emptyTitle, emptyText }: CatalogProps) => {
             isFree={product.price === 0}
           />
         )),
+      },
     ];
-  }, [data, match]);
+    return all.filter((group) => group.cards.length > 0);
+  }, [data]);
 
   if (!data && isFetching) {
     return (
-      <div className={styles.catalogGrid} aria-busy="true">
-        {Array.from({ length: 3 }).map((_, index) => (
-          <Skeleton key={index} className={styles.catalogSkeleton} />
-        ))}
+      <div id="courses" className={styles.catalogSections}>
+        <SwmgSection title="Dr. Goyal's courses">
+          <div className={styles.catalogGrid} aria-busy="true">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <Skeleton key={index} className={styles.catalogSkeleton} />
+            ))}
+          </div>
+        </SwmgSection>
       </div>
     );
   }
 
-  if (cards.length === 0) {
+  if (groups.length === 0) {
     return (
-      <div className={styles.emptyPanel}>
-        <h3 className={styles.emptyTitle}>{emptyTitle}</h3>
-        <p className={styles.emptyText}>{emptyText}</p>
-        <div className={styles.emptyActions}>
-          <Button asChild variant="primary" size="lg">
-            <a href={content.channels.evs.url} target="_blank" rel="noopener noreferrer">
-              <FaYoutube size={18} aria-hidden="true" />
-              Watch his free classes
-            </a>
-          </Button>
-          <Button asChild variant="outline" size="lg">
-            <Link to={`/expert/${content.teacherSlug}`}>Follow his Testkart profile</Link>
-          </Button>
-        </div>
+      <div id="courses" className={styles.catalogSections}>
+        <SwmgSection title="Study with Dr. Goyal on Testkart">
+          <div className={styles.emptyPanel}>
+            <h3 className={styles.emptyTitle}>{emptyTitle}</h3>
+            <p className={styles.emptyText}>{emptyText}</p>
+            <div className={styles.emptyActions}>
+              <Button asChild variant="primary" size="lg">
+                <a href={content.channels.evs.url} target="_blank" rel="noopener noreferrer">
+                  <FaYoutube size={18} aria-hidden="true" />
+                  Watch his free classes
+                </a>
+              </Button>
+              <Button asChild variant="outline" size="lg">
+                <Link to={`/expert/${content.teacherSlug}`}>Follow his Testkart profile</Link>
+              </Button>
+            </div>
+          </div>
+        </SwmgSection>
       </div>
     );
   }
 
-  return <div className={styles.catalogGrid}>{cards}</div>;
+  return (
+    <div id="courses" className={styles.catalogSections}>
+      {groups.map((group) => (
+        <SwmgSection key={group.id} id={group.id} title={group.title} intro={group.intro}>
+          <div className={styles.catalogGrid}>{group.cards}</div>
+        </SwmgSection>
+      ))}
+    </div>
+  );
 };
 
 /** Testkart ratings for his published items. Shows nothing invented: no ratings, no stars. */

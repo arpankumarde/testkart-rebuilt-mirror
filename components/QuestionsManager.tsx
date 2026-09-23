@@ -39,6 +39,7 @@ import { Plus, ChevronRight, Library, X } from "lucide-react";
 import { QuestionForm } from "./QuestionForm";
 import { AIQuestionGeneratorDialog } from "./AIQuestionGeneratorDialog";
 import { useAuth } from "../helpers/useAuth";
+import { useAdminContentEdit } from "../helpers/useAdminContentEdit";
 import { Switch } from "./Switch";
 import { Input } from "./Input";
 import { useBulkUpdateMarks } from "../helpers/useBulkUpdateMarks";
@@ -62,7 +63,7 @@ type QuestionsManagerProps = {
 
 export const QuestionsManager = ({
   testId,
-  itemId,
+  itemId: itemIdProp,
   subjectId,
   examName,
   subjectName,
@@ -70,6 +71,9 @@ export const QuestionsManager = ({
   refetchSubjects,
   questionWiseTiming,
 }: QuestionsManagerProps) => {
+  const adminEdit = useAdminContentEdit();
+  // The full-page question editor lives in the teacher console, so the admin editor keeps the dialogs.
+  const itemId = adminEdit ? undefined : itemIdProp;
   const [localQuestions, setLocalQuestions] = useState<
     Selectable<TestQuestions>[] | null
   >(null);
@@ -277,13 +281,15 @@ export const QuestionsManager = ({
 
   const addUpdateButtons = (
     <div className={styles.controls}>
-      <AIQuestionGeneratorDialog
-        subjectId={subjectId}
-        examName={examName}
-        subjectName={subjectName}
-        onSuccess={handleAddOrUpdateSuccess}
-        onGenerationError={(err) => setGenerationError(err)}
-      />
+      {!adminEdit && (
+        <AIQuestionGeneratorDialog
+          subjectId={subjectId}
+          examName={examName}
+          subjectName={subjectName}
+          onSuccess={handleAddOrUpdateSuccess}
+          onGenerationError={(err) => setGenerationError(err)}
+        />
+      )}
       <BulkQuestionUpload
         subjectId={subjectId}
         onSuccess={() => {

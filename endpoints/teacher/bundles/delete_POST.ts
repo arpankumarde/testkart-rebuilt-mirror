@@ -3,6 +3,7 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, type OutputType } from "./delete_POST.schema";
 import superjson from "superjson";
 import { deleteOwnedR2Files } from "../../../helpers/r2FileOwnership";
+import { clearOpenReviews } from "../../../helpers/contentReviewQueue";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -49,6 +50,7 @@ export async function handle(request: Request): Promise<Response> {
 
       // Cascade delete should handle bundle items, but doing it explicitly is safer.
       await trx.deleteFrom("courseBundleItems").where("bundleId", "=", input.bundleId).execute();
+      await clearOpenReviews(trx, "course_bundle", input.bundleId);
       const deleteResult = await trx.deleteFrom("courseBundles").where("id", "=", input.bundleId).executeTakeFirst();
 
       if (deleteResult.numDeletedRows === 0n) {

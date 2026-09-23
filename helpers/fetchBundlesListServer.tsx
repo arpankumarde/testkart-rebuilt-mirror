@@ -1,5 +1,6 @@
 import { db } from "./db";
 import { sql } from "kysely";
+import { contentInExam } from "./contentExams";
 import { schema, InputType, OutputType } from "../endpoints/bundles/list_GET.schema";
 
 /**
@@ -74,7 +75,9 @@ export async function fetchBundlesListServer(rawInput: Partial<InputType> = {}):
       LEFT JOIN digital_products dp ON dp.id = cbi.digital_product_id
       LEFT JOIN courses c ON c.id = cbi.course_id
       WHERE cbi.bundle_id = course_bundles.id
-        AND (mt.exam_id = ${examId} OR dp.exam_id = ${examId} OR c.exam_id = ${examId})
+        AND (${contentInExam("mock_test", "mt.id", "mt.examId", examId)}
+          OR ${contentInExam("digital_product", "dp.id", "dp.examId", examId)}
+          OR ${contentInExam("course", "c.id", "c.examId", examId)})
     )`;
     query = query.where(examRelevance);
     countQuery = countQuery.where(examRelevance);
@@ -100,7 +103,7 @@ export async function fetchBundlesListServer(rawInput: Partial<InputType> = {}):
 
   const bundlesQuery = query
     .selectAll("courseBundles")
-    .select(["users.displayName as teacherName", "users.isVerified as teacherIsVerified"])
+    .select(["users.displayName as teacherName", "users.isVerified as teacherIsVerified", "users.avatarUrl as teacherAvatarUrl"])
     .select((eb) => [
       sql<number>`(
         SELECT COUNT(*)

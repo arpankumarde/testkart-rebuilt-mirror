@@ -2,13 +2,15 @@ import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { verifyPayUPayment } from "../../../helpers/verifyPayUPayment";
 import { ensureOrderCompletionSideEffects } from "../../../helpers/ensureOrderCompletionSideEffects";
-import { activateTeacherSubscription, extendRenewedSubscription } from "../../../helpers/activateTeacherSubscription";
+import { extendRenewedSubscription } from "../../../helpers/activateTeacherSubscription";
+import { activatePaidSubscription, isMandateRegistered } from "../../../helpers/activatePaidSubscription";
 import { refundOrphanedWalletSubscriptionPayment } from "../../../helpers/refundOrphanedWalletSubscriptionPayment";
 import { OutputType } from "./verify-pending_POST.schema";
 import superjson from "superjson";
 import { sql } from "kysely";
 import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
 import { PAYU_NOT_FOUND_STATUS } from "../../../helpers/extractPayUFailure";
+import { isMandateTxnid, revokeLeftoverMandates } from "../../../helpers/teacherMandate";
 
 const PENDING_ORDER_AGE_MINUTES = 5;
 // If PayU still can't resolve a transaction after this long, stop retrying and
@@ -233,9 +235,9 @@ export async function handle(request: Request) {
           continue;
         }
 
-        if (verificationResult.status === "success") {
+        if (verificationResult.status === "success" && transaction.paymentMethod === "payu_recurring" && transaction.subscriptionId) {
+          // Renewal charge on an existing subscription
           await db.transaction().execute(async (trx) => {
-            // Lock the transaction row to prevent race conditions
             const lockedTransaction = await trx
               .selectFrom("subscriptionTransactions")
               .select("status")
@@ -243,7 +245,6 @@ export async function handle(request: Request) {
               .forUpdate()
               .executeTakeFirst();
 
-            // Check if the transaction is still pending before updating
             if (lockedTransaction?.status === "pending") {
               await trx
                 .updateTable("subscriptionTransactions")
@@ -251,14 +252,8 @@ export async function handle(request: Request) {
                 .where("id", "=", transaction.id)
                 .execute();
 
-              if (transaction.paymentMethod === "payu_recurring" && transaction.subscriptionId) {
-                // Renewal charge on an existing subscription
-                await extendRenewedSubscription(transaction.subscriptionId, transaction.teacherId, trx);
-              } else {
-                // Create subscription and verify teacher if not already done
-                await activateTeacherSubscription(transaction.teacherId, transaction.planId, trx);
-              }
-              
+              await extendRenewedSubscription(transaction.subscriptionId!, transaction.teacherId, trx);
+
               updatedSubscriptionTransactions.push({
                 transactionId: transaction.id,
                 previousStatus: "pending",
@@ -266,6 +261,46 @@ export async function handle(request: Request) {
               });
             }
           });
+        } else if (verificationResult.status === "success") {
+          // A new plan whose callback never landed. Replaces the current plan (the Free plan
+          // included) and, for an autopay sign-up PayU registered, records the mandate.
+          const plan = await db
+            .selectFrom("subscriptionPlans")
+            .select(["price", "durationDays"])
+            .where("id", "=", transaction.planId)
+            .executeTakeFirst();
+          if (!plan) {
+            console.error(`[VerifyPending] Plan ${transaction.planId} missing for subscription transaction ${transaction.id}.`);
+            continue;
+          }
+
+          const isAutopaySignUp = isMandateTxnid(transaction.transactionId);
+          const mihpayid = verificationResult.mihpayid ?? "";
+          const mandateRegistered =
+            isAutopaySignUp && (await isMandateRegistered(undefined, mihpayid, verificationResult.mode));
+
+          const activation = await db.transaction().execute((trx) =>
+            activatePaidSubscription(trx, {
+              transactionId: transaction.id,
+              teacherId: transaction.teacherId,
+              planId: transaction.planId,
+              planPrice: plan.price,
+              durationDays: plan.durationDays,
+              paymentMethod: isAutopaySignUp ? "payu_recurring" : "payu",
+              mandate: mandateRegistered ? { mandateId: mihpayid, paymentMode: verificationResult.mode ?? null } : null,
+            })
+          );
+
+          if (activation) {
+            await revokeLeftoverMandates(transaction.teacherId).catch((err) =>
+              console.error("[VerifyPending] Revoking leftover mandates failed:", err)
+            );
+            updatedSubscriptionTransactions.push({
+              transactionId: transaction.id,
+              previousStatus: "pending",
+              newStatus: "completed",
+            });
+          }
         } else if (verificationResult.status === "failure") {
           await db.transaction().execute(async (trx) => {
             const lockedTransaction = await trx

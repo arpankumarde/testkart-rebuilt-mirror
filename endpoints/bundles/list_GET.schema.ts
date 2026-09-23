@@ -27,6 +27,7 @@ export type BundleListItem = Omit<
   discountPercentage: number | null;
   teacherName: Selectable<Users>["displayName"];
   teacherIsVerified: boolean;
+  teacherAvatarUrl: string | null;
   itemCount: number;
   courseTitles: string[];
 };

@@ -7,6 +7,7 @@ import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { slugify } from "../../helpers/slugify";
 import { PRODUCT_DISCLAIMER } from "../../helpers/productDisclaimer";
 import { computeCourseSeo } from "../../helpers/seoIndexability";
+import { courseDiscountPrice } from "../../helpers/coursePricing";
 
 
 
@@ -145,6 +146,7 @@ export async function handle(request: Request): Promise<Response> {
       ...course,
       description: course.description,
       price: Number(course.price),
+      discountPrice: courseDiscountPrice(course.price, course.discountPrice),
       teacher: {
         id: course.teacherId,
         displayName: course.teacherDisplayName,

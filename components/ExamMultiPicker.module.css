@@ -1,0 +1,138 @@
+@layer base {
+  .container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
+    width: 100%;
+    min-width: 0;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-1) var(--spacing-2);
+    max-width: 100%;
+    min-height: 2rem;
+    padding: var(--spacing-1) var(--spacing-1) var(--spacing-1) var(--spacing-3);
+    border: 1px solid var(--muted-foreground);
+    border-radius: var(--radius-full);
+    background: var(--card);
+    color: var(--foreground);
+    font-size: 0.875rem;
+    line-height: 1.3;
+  }
+
+  .chipPrimary {
+    border: 2px solid var(--tk-brand-text);
+  }
+
+  .chipName {
+    min-width: 0;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  .tag {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .tagPrimary {
+    color: var(--tk-brand-text);
+  }
+
+  .tagCustom {
+    color: var(--muted-foreground);
+  }
+
+  .textButton {
+    padding: 0.125rem var(--spacing-1);
+    border: none;
+    border-radius: var(--radius-sm);
+    background: none;
+    color: var(--tk-brand-text);
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+  }
+
+  .removeButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: var(--foreground);
+    cursor: pointer;
+  }
+
+  .removeButton:hover {
+    background: var(--muted);
+  }
+
+  .removeButton:focus-visible,
+  .textButton:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--background),
+      0 0 0 4px var(--tk-brand-text);
+  }
+
+  .inputArea {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .limit,
+  .empty,
+  .helper {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+  }
+
+  .limit {
+    color: var(--foreground);
+    font-weight: 600;
+  }
+
+  .empty {
+    color: var(--foreground);
+  }
+
+  .helper {
+    color: var(--muted-foreground);
+  }
+
+  .srOnly {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}

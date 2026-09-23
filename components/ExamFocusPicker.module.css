@@ -1,0 +1,125 @@
+@layer base {
+  .container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+    width: 100%;
+    min-width: 0;
+  }
+
+  .quickPicks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-2);
+  }
+
+  .quickPick {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-1);
+    min-height: 2.25rem;
+    padding: var(--spacing-1) var(--spacing-3);
+    border: 1px solid var(--muted-foreground);
+    border-radius: var(--radius-full);
+    background: var(--card);
+    color: var(--foreground);
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .quickPick:hover:not(:disabled) {
+    border-color: var(--tk-brand-text);
+  }
+
+  .quickPickSelected {
+    border: 2px solid var(--tk-brand-text);
+    color: var(--tk-brand-text);
+  }
+
+  .quickPick:disabled {
+    cursor: not-allowed;
+    border-style: dashed;
+    background: var(--muted);
+  }
+
+  .quickPick:focus-visible,
+  .removeButton:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--background),
+      0 0 0 4px var(--tk-brand-text);
+  }
+
+  .search {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-1);
+    max-width: 100%;
+    min-height: 2rem;
+    padding: var(--spacing-1) var(--spacing-1) var(--spacing-1) var(--spacing-3);
+    border: 2px solid var(--tk-brand-text);
+    border-radius: var(--radius-full);
+    background: var(--card);
+    color: var(--foreground);
+    font-size: 0.875rem;
+  }
+
+  .chipName {
+    min-width: 0;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  .removeButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: var(--foreground);
+    cursor: pointer;
+  }
+
+  .removeButton:hover {
+    background: var(--muted);
+  }
+
+  .helper {
+    margin: 0;
+    color: var(--muted-foreground);
+    font-size: 0.8125rem;
+  }
+
+  .srOnly {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}

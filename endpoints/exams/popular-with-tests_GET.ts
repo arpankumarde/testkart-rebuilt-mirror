@@ -1,27 +1,28 @@
 import { db } from "../../helpers/db";
-import { OutputType } from "./popular-with-tests_GET.schema";
+import { OutputType, PopularExam } from "./popular-with-tests_GET.schema";
 import superjson from "superjson";
 import { sql } from "kysely";
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    const popularExams = await db
-      .selectFrom("exams")
-      .innerJoin("mockTests", "mockTests.examId", "exams.id")
-      .select([
-        "exams.id",
-        "exams.examName",
-        "exams.examSlug",
-        // The count function in kysely with postgres returns a bigint, which is serialized as a string.
-        // We need to cast it to an integer to ensure it's a number in the final JSON.
-        sql<number>`COUNT(mock_tests.id)::int`.as("seriesCount"),
-      ])
-      .where("mockTests.isPublished", "=", true)
-      .groupBy(["exams.id", "exams.examName", "exams.examSlug"])
-      .orderBy("seriesCount", "desc")
-      .orderBy("exams.examName", "asc")
-      .limit(24) // Limit to top 24 popular exams
-      .execute();
+    // A series counts once under every exam it is listed under (primary or other); UNION drops the
+    // pair a join row repeats. COUNT is cast to int so it serializes as a number, not a bigint string.
+    const { rows: popularExams } = await sql<PopularExam>`
+      WITH listed AS (
+        SELECT mt.id AS mock_test_id, mt.exam_id FROM mock_tests mt
+        WHERE mt.is_published = true AND mt.exam_id IS NOT NULL
+        UNION
+        SELECT mte.mock_test_id, mte.exam_id FROM mock_test_exams mte
+        JOIN mock_tests mt ON mt.id = mte.mock_test_id
+        WHERE mt.is_published = true AND mte.exam_id IS NOT NULL
+      )
+      SELECT e.id, e.exam_name, e.exam_slug, COUNT(*)::int AS series_count
+      FROM exams e
+      JOIN listed l ON l.exam_id = e.id
+      GROUP BY e.id, e.exam_name, e.exam_slug
+      ORDER BY series_count DESC, e.exam_name ASC
+      LIMIT 24
+    `.execute(db);
 
     return new Response(
       superjson.stringify({

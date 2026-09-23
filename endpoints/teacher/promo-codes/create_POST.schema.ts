@@ -16,6 +16,7 @@ export const schema = z.object({
     perUserLimit: z.number().int().positive().optional().nullable(),
     validFrom: z.coerce.date().optional(),
     validUntil: z.coerce.date().optional().nullable(),
+    isPublic: z.boolean().optional(),
 }).refine(data => {
     if (data.discountType === 'percentage') {
         return data.discountValue <= 100;

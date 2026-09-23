@@ -13,7 +13,7 @@ type UseSignedShopPdfUrlOptions = {
  * A React Query hook to fetch and cache a secure, short-lived signed URL for
  * viewing a purchased study-notes PDF in-app. This intentionally never
  * powers a downloadable <a href> — it's only meant to be handed to the
- * react-pdf viewer (see components/StudentShopPdfViewer.tsx).
+ * shared reader (see components/PdfReader.tsx).
  */
 export const useSignedShopPdfUrl = ({
   productId,
@@ -24,7 +24,7 @@ export const useSignedShopPdfUrl = ({
 
   const isQueryEnabled = !!productId && enabled;
 
-  const { data, isLoading, isFetching, error } = useQuery({
+  const { data, isLoading, isFetching, error, refetch } = useQuery({
     queryKey,
     queryFn: async () => {
       if (!productId) {
@@ -41,7 +41,9 @@ export const useSignedShopPdfUrl = ({
 
   return {
     signedUrl: data?.signedUrl ?? null,
+    title: data?.title ?? null,
     isLoading: isLoading || isFetching,
     error: error instanceof Error ? error : null,
+    refetch: () => void refetch(),
   };
 };

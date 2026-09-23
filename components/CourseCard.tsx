@@ -9,6 +9,7 @@ import { useAuth } from '../helpers/useAuth';
 import { VideoPreview } from './VideoPreview';
 import { VerifiedBadge } from "./VerifiedBadge";
 import { Placeholder } from '../helpers/placeholderImages';
+import { courseDiscountPrice } from '../helpers/coursePricing';
 import styles from './CourseCard.module.css';
 
 interface CourseCardProps {
@@ -32,13 +33,17 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, className }) => 
   const detailsUrl = `/course/${course.slug}`;
 
   const isFree = course.price === 0;
-  const formattedPrice = isFree
-    ? 'Free'
-    : new Intl.NumberFormat('en-IN', {
-        style: 'currency',
-        currency: 'INR',
-        minimumFractionDigits: 0,
-      }).format(course.price);
+  const discountPrice = isFree ? null : courseDiscountPrice(course.price, course.discountPrice);
+  const formatInr = (amount: number) =>
+    new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 0,
+    }).format(amount);
+  const formattedPrice = isFree ? 'Free' : formatInr(discountPrice ?? course.price);
+  const formattedOriginalPrice = discountPrice !== null ? formatInr(course.price) : null;
+  const discountPercentage =
+    discountPrice !== null ? Math.round(((course.price - discountPrice) / course.price) * 100) : 0;
 
   const levelInfo = levelDisplay[course.level] || { text: course.level, icon: <BarChart3 size={16} /> };
 
@@ -155,6 +160,12 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, className }) => 
             </div>
           ) : (
             <div className={styles.priceContainer}>
+              {formattedOriginalPrice && (
+                <div className={styles.originalPriceRow}>
+                  <span className={styles.originalPrice}>{formattedOriginalPrice}</span>
+                  <span className={styles.discountBadge}>{discountPercentage}% off</span>
+                </div>
+              )}
               <div className={`${styles.price} ${isFree ? styles.freePrice : ''}`}>
                 {!isFree && <IndianRupee size={20} />}
                 <span>{isFree ? 'Free' : formattedPrice.replace('₹', '')}</span>

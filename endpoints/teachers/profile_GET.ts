@@ -5,8 +5,11 @@ import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { hasStudentEnrolledInMockTest } from "../../helpers/hasStudentEnrolledInMockTest";
 import { slugify } from "../../helpers/slugify";
 import { sql } from "kysely";
+import { courseDiscountPrice } from "../../helpers/coursePricing";
 import { SocialLinks, AwardCertificate, WorkExperience } from "../../helpers/teacherProfileTypes";
 import { getLiveTestStatus } from "../../helpers/liveTestStatus";
+import { loadContentExams } from "../../helpers/contentExams";
+import { loadTeacherProfileBundles } from "../../helpers/loadTeacherProfileBundles";
 
 export async function handle(request: Request) {
   const url = new URL(request.url);
@@ -79,6 +82,7 @@ export async function handle(request: Request) {
         "courses.thumbnailUrl",
         "courses.thumbnailImageUrl",
         "courses.price",
+        "courses.discountPrice",
         "courses.category",
         "courses.level",
         "courses.language",
@@ -125,6 +129,7 @@ export async function handle(request: Request) {
       thumbnailUrl: course.thumbnailUrl,
       thumbnailImageUrl: course.thumbnailImageUrl,
       price: Number(course.price),
+      discountPrice: courseDiscountPrice(course.price, course.discountPrice),
       category: course.category,
       level: course.level,
       language: course.language,
@@ -157,6 +162,7 @@ export async function handle(request: Request) {
         "digitalProducts.category",
         "digitalProducts.examName",
         "digitalProducts.pageCount",
+        "digitalProducts.language",
         "digitalProducts.price",
         "digitalProducts.rating",
         "digitalProducts.totalPurchases",
@@ -194,6 +200,7 @@ export async function handle(request: Request) {
       category: p.category,
       examName: p.examName ?? null,
       pageCount: p.pageCount ?? null,
+      language: p.language ?? null,
       price: Number(p.price),
       rating: p.rating ? Number(p.rating) : null,
       totalPurchases: p.totalPurchases ?? 0,
@@ -425,6 +432,20 @@ export async function handle(request: Request) {
       }
     }
 
+    const [courseExams, productExams, testExams, bundles] = await Promise.all([
+      loadContentExams(db, "course", courses.map((course) => course.id)),
+      loadContentExams(db, "digital_product", products.map((product) => product.id)),
+      loadContentExams(db, "mock_test", tests.map((test) => test.id)),
+      loadTeacherProfileBundles(teacher.id),
+    ]);
+    const examNames = [
+      ...new Set(
+        [...courseExams.values(), ...productExams.values(), ...testExams.values()]
+          .flat()
+          .map((exam) => exam.examName)
+      ),
+    ];
+
     const response: OutputType = {
       teacher: {
         id: teacher.id,
@@ -457,6 +478,8 @@ export async function handle(request: Request) {
       tests: regularTests,
       liveTests: liveTestsData,
       products: productsData,
+      bundles,
+      examNames,
     };
 
     return new Response(superjson.stringify(response));

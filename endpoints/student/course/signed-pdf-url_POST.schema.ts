@@ -11,6 +11,7 @@ export type InputType = z.infer<typeof schema>;
 export type OutputType = {
   signedUrl: string;
   expiresIn: number; // in seconds
+  title: string;
 };
 
 export const postStudentCourseSignedPdfUrl = async (

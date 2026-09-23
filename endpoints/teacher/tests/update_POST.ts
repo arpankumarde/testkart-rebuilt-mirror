@@ -1,7 +1,12 @@
 import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { slugify } from "../../../helpers/slugify";
-import { resolveExamByName } from "../../../helpers/resolveExam";
+import {
+  loadContentExamList,
+  primaryExamFields,
+  resolveExamSelection,
+  saveContentExams,
+} from "../../../helpers/contentExams";
 import { buildMockTestUpdateSet } from "../../../helpers/testSeriesEditing";
 import { schema, OutputType } from "./update_POST.schema";
 import superjson from "superjson";
@@ -80,10 +85,17 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
-    const { testId, examName, ...fields } = input;
+    const { testId, examName, examNames, ...fields } = input;
 
-    // Exam fields change only when the request carries examName; null or "" clears them.
-    const exam = examName !== undefined ? await resolveExamByName(examName) : undefined;
+    // Exams change only when the request carries examNames or examName; an empty list, null or "" clears them.
+    const exams =
+      examNames !== undefined || examName !== undefined
+        ? await resolveExamSelection({
+            examNames,
+            examName,
+            existing: await loadContentExamList(db, "mock_test", testId),
+          })
+        : undefined;
 
     // The slug follows the title only while the series is unpublished.
     let slug: string | undefined;
@@ -93,10 +105,12 @@ export async function handle(request: Request): Promise<Response> {
 
     const updatedTest = await db
       .updateTable("mockTests")
-      .set(buildMockTestUpdateSet(fields, { now: new Date(), slug, exam }))
+      .set(buildMockTestUpdateSet(fields, { now: new Date(), slug, exam: exams ? primaryExamFields(exams) : undefined }))
       .where("id", "=", testId)
       .returningAll()
       .executeTakeFirstOrThrow();
+
+    if (exams) await saveContentExams(db, "mock_test", testId, exams);
 
     const output: OutputType = {
       ...updatedTest,

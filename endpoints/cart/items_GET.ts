@@ -2,6 +2,7 @@ import { db } from "../../helpers/db";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { OutputType, CartItem } from "./items_GET.schema";
 import superjson from "superjson";
+import { courseDiscountPrice } from "../../helpers/coursePricing";
 
 export async function handle(request: Request) {
   try {
@@ -27,6 +28,7 @@ export async function handle(request: Request) {
         "courses.title as courseTitle",
         "courses.slug as courseSlug",
         "courses.price as coursePrice",
+        "courses.discountPrice as courseDiscountPrice",
         "courses.thumbnailUrl as courseThumbnailUrl",
         "courses.thumbnailImageUrl as courseThumbnailImageUrl",
         "users.displayName as courseTeacherName",
@@ -60,7 +62,7 @@ export async function handle(request: Request) {
           slug: item.courseSlug!,
           title: item.courseTitle!,
           price: parseFloat(item.coursePrice!),
-          discountPrice: null, // Courses don't have discount prices yet
+          discountPrice: courseDiscountPrice(item.coursePrice, item.courseDiscountPrice),
           thumbnailUrl: item.courseThumbnailUrl,
           thumbnailImageUrl: item.courseThumbnailImageUrl,
           teacherName: item.courseTeacherName,

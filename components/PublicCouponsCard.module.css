@@ -1,0 +1,158 @@
+/*
+ * The code chip is the brand coral with the deep ink on it (6.2:1), fixed in
+ * both themes like the teacher CTA banner's card. Everything set as type on the
+ * page surface uses --tk-brand-text, which the base tokens flip per theme; the
+ * raw coral would sit at about 2.1:1 there.
+ */
+.card {
+  container-type: inline-size;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-6);
+}
+
+/* Off where the parent already spaces its children with a flex gap. */
+.spaced {
+  margin-bottom: var(--spacing-8);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-4);
+}
+
+.headerIcon {
+  color: var(--tk-brand-text);
+  flex-shrink: 0;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--surface-foreground);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.code {
+  padding: 0.375rem 0.75rem;
+  background-color: var(--tk-brand);
+  color: var(--tk-brand-ink);
+  border: 2px dashed var(--tk-brand-ink);
+  border-radius: var(--radius);
+  font-family: var(--font-family-monospace);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  user-select: all;
+}
+
+.details {
+  min-width: 0;
+}
+
+.headline {
+  font-weight: 700;
+  color: var(--surface-foreground);
+}
+
+.finePrint {
+  margin-top: var(--spacing-1);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--muted-foreground);
+}
+
+.copyButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  min-height: 44px;
+  padding: 0 var(--spacing-4);
+  background-color: var(--surface);
+  color: var(--tk-brand-text);
+  border: 2px solid var(--tk-brand-text);
+  border-radius: var(--radius);
+  font-family: var(--font-family-base);
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
+}
+
+.copyButton:hover,
+.copyButton.copied {
+  background-color: var(--tk-brand-text);
+  color: var(--surface);
+}
+
+.copyButton:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+@media (max-width: 991px) {
+  .spaced {
+    margin-bottom: var(--spacing-6);
+  }
+}
+
+@media (max-width: 520px) {
+  .card {
+    padding: var(--spacing-4);
+  }
+}
+
+/* The card's own width decides, not the window's: it sits in a ~700px article
+   column beside a sidebar on some pages and full width on others. */
+@container (max-width: 30rem) {
+  .item {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-3);
+  }
+
+  .code {
+    order: 1;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .copyButton {
+    order: 2;
+    margin-left: auto;
+  }
+
+  .details {
+    order: 3;
+    flex: 1 1 100%;
+  }
+}

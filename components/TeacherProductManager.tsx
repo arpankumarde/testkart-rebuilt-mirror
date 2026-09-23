@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useId, useRef } from 'react';
+import { getItemExamNames, summarizeExamNames } from '../helpers/itemExams';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Plus,
@@ -35,6 +36,7 @@ import { TeacherListToolbar, teacherToolbarControlClass } from './TeacherListToo
 import { TeacherListEmpty } from './TeacherListEmpty';
 import { TeacherListPagination } from './TeacherListPagination';
 import { ShareAssetDialog } from './ShareAssetDialog';
+import { WithdrawReviewButton } from './WithdrawReviewButton';
 import { buildPublicAssetUrl, TEACHER_CONSOLE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
 import { useDebounce } from '../helpers/useDebounce';
 import { DIGITAL_PRODUCT_CATEGORIES } from '../helpers/digitalProductRules';
@@ -81,7 +83,8 @@ const rowStateOf = (product: TeacherProductListItem): RowState => {
 
 const describeProduct = (product: TeacherProductListItem) => {
   const kind = product.category || 'PDF';
-  const exam = product.examName ? ` for ${product.examName}` : '';
+  const exams = summarizeExamNames(getItemExamNames(product));
+  const exam = exams.label ? ` for ${exams.label}` : '';
   const pages = product.pageCount
     ? `, ${product.pageCount} ${product.pageCount === 1 ? 'page' : 'pages'}`
     : '';
@@ -155,7 +158,12 @@ const ProductRow: React.FC<ProductRowProps> = ({
           <Link to={editPath} className={styles.titleLink}>
             {product.title}
           </Link>
-          <span className={styles.productMeta}>{describeProduct(product)}</span>
+          <span
+            className={styles.productMeta}
+            title={getItemExamNames(product).length > 1 ? `Exams: ${getItemExamNames(product).join(', ')}` : undefined}
+          >
+            {describeProduct(product)}
+          </span>
         </div>
       </div>
 
@@ -176,7 +184,13 @@ const ProductRow: React.FC<ProductRowProps> = ({
             <ExternalLink size={13} aria-hidden="true" />
           </a>
         ) : state === 'inReview' ? (
-          <span className={styles.nextNote}>Waiting for admin approval</span>
+          <WithdrawReviewButton
+            appearance="inline"
+            className={styles.nextStep}
+            contentType="digital_product"
+            contentId={product.id}
+            title={product.title}
+          />
         ) : (
           <button
             type="button"

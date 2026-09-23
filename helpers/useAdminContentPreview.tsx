@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   getAdminContentPreview,
@@ -67,14 +67,19 @@ const STALE_AFTER_STATUS_CHANGE = [
   ADMIN_CATALOGUE_DASHBOARD_QUERY_KEY,
 ];
 
+/* After an admin changes a teacher item: the open preview reloads and each list loads fresh next time. */
+export const dropAdminCatalogueCaches = (queryClient: QueryClient) => {
+  queryClient.invalidateQueries({ queryKey: ["admin", "contentPreview"] });
+  for (const queryKey of STALE_AFTER_STATUS_CHANGE) queryClient.removeQueries({ queryKey: [...queryKey] });
+};
+
 export const useAdminContentStatusMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: StatusInput) => postAdminContentStatus(input),
     onSuccess: (data) => {
       toast.success(data.message);
-      queryClient.invalidateQueries({ queryKey: ["admin", "contentPreview"] });
-      for (const queryKey of STALE_AFTER_STATUS_CHANGE) queryClient.removeQueries({ queryKey: [...queryKey] });
+      dropAdminCatalogueCaches(queryClient);
     },
     onError: (error: unknown) => {
       toast.error("Status not changed", { description: parseErrorMessage(error) });

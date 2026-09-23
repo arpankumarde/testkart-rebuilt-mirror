@@ -4,9 +4,10 @@ import { ChevronDown, PlayCircle, FileText, Lock, X, AlertCircle, Loader2 } from
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './Dialog';
 import { wrapContentTables } from '../helpers/contentTables';
 import { sanitizeHtml } from '../helpers/sanitizeHtml';
+import { documentSource } from '../helpers/pdfReaderSources';
 import styles from './CourseCurriculum.module.css';
 
-const CoursePDFPreview = React.lazy(() => import('./CoursePDFPreview').then(m => ({ default: m.CoursePDFPreview })));
+const PdfReaderDialog = React.lazy(() => import('./PdfReaderDialog').then(m => ({ default: m.PdfReaderDialog })));
 
 // These types would be imported from a public course details endpoint schema
 type Lesson = {
@@ -50,13 +51,6 @@ const extractYouTubeVideoId = (url: string): string | null => {
   return null;
 };
 
-// Helper function to check if URL is an image URL
-const isImageUrl = (url: string): boolean => {
-  if (!url) return false;
-  const cleanUrl = url.toLowerCase().split('?')[0].split('#')[0];
-  return ['.jpg', '.jpeg', '.png', '.gif', '.webp'].some(ext => cleanUrl.endsWith(ext));
-};
-
 // Helper function to convert YouTube URL to embed URL
 const convertToYouTubeEmbed = (url: string): string | null => {
   const videoId = extractYouTubeVideoId(url);
@@ -80,6 +74,9 @@ const LessonIcon = ({ type }: { type: Lesson['contentType'] }) => {
 
 export const CourseCurriculum: React.FC<CourseCurriculumProps> = ({ sections, className }) => {
   const [previewLesson, setPreviewLesson] = useState<Lesson | null>(null);
+
+  // PDF lessons open in the shared reader instead of the generic preview dialog
+  const readerLesson = previewLesson?.contentType === 'pdf' && previewLesson.contentUrl ? previewLesson : null;
 
   const totalSections = sections.length;
   const totalLessons = sections.reduce((acc, section) => acc + section.lessons.length, 0);
@@ -166,7 +163,7 @@ export const CourseCurriculum: React.FC<CourseCurriculumProps> = ({ sections, cl
         ))}
       </Accordion.Root>
 
-      <Dialog open={!!previewLesson} onOpenChange={(open) => !open && setPreviewLesson(null)}>
+      <Dialog open={!!previewLesson && !readerLesson} onOpenChange={(open) => !open && setPreviewLesson(null)}>
         <DialogContent className={styles.previewDialog}>
           <DialogHeader>
             <DialogTitle>{previewLesson?.title}</DialogTitle>
@@ -203,17 +200,6 @@ export const CourseCurriculum: React.FC<CourseCurriculumProps> = ({ sections, cl
                 <div dangerouslySetInnerHTML={{ __html: wrapContentTables(sanitizeHtml(previewLesson.textContent)) }} />
               </div>
             )}
-            {previewLesson?.contentType === 'pdf' && previewLesson.contentUrl && (
-              isImageUrl(previewLesson.contentUrl) ? (
-                <div className={styles.imageContainer}>
-                  <img src={previewLesson.contentUrl} alt={previewLesson.title} className={styles.previewImage} />
-                </div>
-              ) : (
-                <React.Suspense fallback={<div>Loading PDF viewer...</div>}>
-                  <CoursePDFPreview url={previewLesson.contentUrl} />
-                </React.Suspense>
-              )
-            )}
             {!previewLesson?.contentUrl && !previewLesson?.textContent && (
               <div className={styles.noPreview}>
                 <p>Preview content is not available for this lesson.</p>
@@ -222,6 +208,18 @@ export const CourseCurriculum: React.FC<CourseCurriculumProps> = ({ sections, cl
           </div>
         </DialogContent>
       </Dialog>
+
+      {readerLesson?.contentUrl && (
+        <React.Suspense fallback={null}>
+          <PdfReaderDialog
+            isOpen
+            onClose={() => setPreviewLesson(null)}
+            title={readerLesson.title}
+            source={documentSource(readerLesson.contentUrl)}
+            restricted
+          />
+        </React.Suspense>
+      )}
     </div>
   );
 };

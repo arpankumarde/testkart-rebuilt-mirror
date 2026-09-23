@@ -15,6 +15,9 @@ export type LiveTestStatus = (typeof LiveTestStatusArray)[number];
 export const schema = z.object({
   status: z.enum(["all", ...LiveTestStatusArray]).optional(),
   examName: z.string().optional(),
+  examSlug: z.string().optional(),
+  // The shipped mobile app sends the slug as both exam and examSlug.
+  exam: z.string().optional(),
   searchQuery: z.string().optional(),
   page: z.coerce.number().int().positive().optional().default(1),
   limit: z.coerce.number().int().positive().optional().default(10),
@@ -70,6 +73,7 @@ export const getLiveTestsList = async (
 
   if (filters.status) params.append("status", filters.status);
   if (filters.examName) params.append("examName", filters.examName);
+  if (filters.examSlug) params.append("examSlug", filters.examSlug);
   if (filters.searchQuery) params.append("searchQuery", filters.searchQuery);
   if (filters.page) params.append("page", filters.page.toString());
   if (filters.limit) params.append("limit", filters.limit.toString());

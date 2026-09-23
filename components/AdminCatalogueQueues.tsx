@@ -5,6 +5,7 @@ import {
   ChevronRight,
   CheckCircle2,
   ClipboardCheck,
+  UserCheck,
   Trophy,
   ListChecks,
   CircleHelp,
@@ -51,6 +52,15 @@ const buildTiles = (queues: ContentQueues): QueueTile[] => {
           : "waiting for a decision",
       href: "/admin/content-reviews?status=pending",
       icon: ClipboardCheck,
+      tone: "queue",
+    },
+    {
+      key: "reviewsSenior",
+      count: queues.reviewsSenior,
+      title: plural(queues.reviewsSenior, "content review", "content reviews"),
+      detail: "waiting for senior approval",
+      href: "/admin/content-reviews?status=senior_review",
+      icon: UserCheck,
       tone: "queue",
     },
     {

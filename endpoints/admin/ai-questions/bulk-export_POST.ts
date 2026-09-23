@@ -4,6 +4,7 @@ import { schema } from "./bulk-export_POST.schema";
 import superjson from "superjson";
 import * as xlsx from "xlsx";
 import { sql } from "kysely";
+import { contentInExam } from "../../../helpers/contentExams";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -24,7 +25,9 @@ export async function handle(request: Request): Promise<Response> {
     if (ids && ids.length > 0) {
       query = query.where("testQuestions.id", "in", ids);
     } else if (filters) {
-      if (filters.examId) query = query.where("mockTests.examId", "=", filters.examId);
+      if (filters.examId) {
+        query = query.where(contentInExam("mock_test", "mockTests.id", "mockTests.examId", filters.examId));
+      }
       if (filters.teacherId) query = query.where("mockTests.teacherId", "=", filters.teacherId);
       if (filters.hasCustomPrompt === true) query = query.where(sql`"testQuestions"."ai_generation_metadata"->>'customPrompt'`, 'is not', null);
       if (filters.hasCustomPrompt === false) query = query.where(sql`"testQuestions"."ai_generation_metadata"->>'customPrompt'`, 'is', null);

@@ -5,6 +5,7 @@ import superjson from "superjson";
 import { nanoid } from "nanoid";
 import { createHash } from "crypto";
 import { PAYU_MODE } from "../../helpers/_publicConfigs";
+import { courseEffectivePrice } from "../../helpers/coursePricing";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -21,7 +22,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const course = await db
       .selectFrom("courses")
-      .select(["id", "title", "price", "status"])
+      .select(["id", "title", "price", "discountPrice", "status"])
       .where("id", "=", courseId)
       .executeTakeFirst();
 
@@ -33,7 +34,7 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     const txnid = `testkart-course-${nanoid(10)}`;
-    const amount = Number(course.price).toFixed(2);
+    const amount = courseEffectivePrice(course.price, course.discountPrice).toFixed(2);
     const productInfo = course.title.substring(0, 100).replace(/\|/g, " ");
     const firstname = (user.displayName || "Student").replace(/\|/g, " ");
     const email = user.email ?? `${user.mobileNumber}@mail.testkart.in`;

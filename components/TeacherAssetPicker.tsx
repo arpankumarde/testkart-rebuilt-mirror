@@ -8,6 +8,7 @@ import { Skeleton } from "./Skeleton";
 import { Spinner } from "./Spinner";
 import { TeacherAssetPreview } from "./TeacherAssetPreview";
 import { useTeacherAssetsQuery } from "../helpers/useTeacherAssets";
+import { useAdminContentEdit } from "../helpers/useAdminContentEdit";
 import {
   formatAssetDuration,
   formatAssetSize,
@@ -52,6 +53,7 @@ export const TeacherAssetPicker: React.FC<TeacherAssetPickerProps> = ({
   onConfirm,
 }) => {
   const { data, isPending: isLoading, error, refetch } = useTeacherAssetsQuery(open);
+  const adminEdit = useAdminContentEdit();
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [search, setSearch] = useState("");
   const [kindFilter, setKindFilter] = useState<TeacherAssetKindValue | "all">("all");
@@ -118,12 +120,18 @@ export const TeacherAssetPicker: React.FC<TeacherAssetPickerProps> = ({
             <FolderOpen size={22} />
           </span>
           <p className={styles.emptyTitle}>No {kindNoun} in your library yet</p>
-          <p className={styles.emptyText}>Upload them in your Asset Library, then come back to pick them here.</p>
-          <Button variant="outline" size="sm" asChild>
-            <a href="/teacher/assets" target="_blank" rel="noreferrer">
-              <ExternalLink size={14} /> Open Asset Library
-            </a>
-          </Button>
+          {adminEdit ? (
+            <p className={styles.emptyText}>The teacher has not uploaded any to their Asset Library.</p>
+          ) : (
+            <>
+              <p className={styles.emptyText}>Upload them in your Asset Library, then come back to pick them here.</p>
+              <Button variant="outline" size="sm" asChild>
+                <a href="/teacher/assets" target="_blank" rel="noreferrer">
+                  <ExternalLink size={14} /> Open Asset Library
+                </a>
+              </Button>
+            </>
+          )}
         </div>
       );
     }

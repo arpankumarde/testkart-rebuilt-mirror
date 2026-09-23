@@ -4,6 +4,7 @@ import { schema, OutputType } from "./update_POST.schema";
 import superjson from "superjson";
 import { sanitizeOptionalHtml } from "../../../helpers/sanitizeHtml";
 import { syncLessonVideoToGumlet } from "../../../helpers/syncLessonVideoToGumlet";
+import { syncLessonVideoToMux } from "../../../helpers/syncLessonVideoToMux";
 
 async function checkLessonOwnership(lessonId: number, teacherId: number, userRole: string): Promise<boolean> {
     if (userRole === 'admin') return true;
@@ -44,6 +45,7 @@ export async function handle(request: Request): Promise<Response> {
         .executeTakeFirstOrThrow();
 
     await syncLessonVideoToGumlet(lessonId);
+    await syncLessonVideoToMux(lessonId);
 
     return new Response(superjson.stringify(updatedLesson satisfies OutputType));
 

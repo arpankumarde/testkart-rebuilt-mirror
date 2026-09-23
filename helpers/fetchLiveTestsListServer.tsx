@@ -1,6 +1,34 @@
 import { db } from "./db";
 import { sql } from "kysely";
+import { contentInExamSlug, loadContentExams } from "./contentExams";
 import type { OutputType, InputType, LiveTestStatus } from "../endpoints/live-tests/list_GET.schema";
+
+type DisplayExam = { examName: string; examSlug: string | null };
+
+// Keep in sync with otherExamsMatchingName in endpoints/live-tests/list_GET.ts.
+async function otherExamsMatchingName(mockTestIds: number[], examName: string) {
+  const needle = examName.toLowerCase();
+  const lists = await loadContentExams(db, "mock_test", mockTestIds);
+  const picks = new Map<number, { examId: number | null; examName: string }>();
+  for (const [mockTestId, exams] of lists) {
+    const hit = exams.find((exam) => exam.examName.toLowerCase().includes(needle));
+    if (hit) picks.set(mockTestId, hit);
+  }
+  const examIds = [...picks.values()].flatMap((exam) => (exam.examId === null ? [] : [exam.examId]));
+  const slugRows =
+    examIds.length > 0
+      ? await db.selectFrom("exams").select(["id", "examSlug"]).where("id", "in", examIds).execute()
+      : [];
+  const slugById = new Map(slugRows.map((row) => [row.id, row.examSlug]));
+  const result = new Map<number, DisplayExam>();
+  for (const [mockTestId, exam] of picks) {
+    result.set(mockTestId, {
+      examName: exam.examName,
+      examSlug: exam.examId === null ? null : slugById.get(exam.examId) ?? null,
+    });
+  }
+  return result;
+}
 
 function getLiveTestStatus(
   startTime: Date | null,
@@ -44,6 +72,7 @@ export async function fetchLiveTestsListServer(
 ): Promise<OutputType> {
   const status = filters.status;
   const examName = filters.examName;
+  const examSlugFilter = filters.examSlug || filters.exam;
   const searchQuery = filters.searchQuery;
   const page = filters.page ?? 1;
   const limit = filters.limit ?? 10;
@@ -108,8 +137,28 @@ export async function fetchLiveTestsListServer(
       )`.as("subjects"),
     ]);
 
+  let filterExam: DisplayExam | null = null;
+  if (examSlugFilter) {
+    query = query.where(contentInExamSlug("mock_test", "mockTests.id", "mockTests.examId", examSlugFilter));
+    filterExam =
+      (await db
+        .selectFrom("exams")
+        .select(["examName", "examSlug"])
+        .where("examSlug", "=", examSlugFilter)
+        .executeTakeFirst()) ?? null;
+  }
+
   if (examName) {
-    query = query.where("mockTests.examName", "ilike", `%${examName}%`);
+    const examPattern = `%${examName}%`;
+    query = query.where((eb) =>
+      eb.or([
+        eb("mockTests.examName", "ilike", examPattern),
+        sql<boolean>`EXISTS (
+          SELECT 1 FROM mock_test_exams mte
+          WHERE mte.mock_test_id = ${eb.ref("mockTests.id")} AND mte.exam_name ILIKE ${examPattern}
+        )`,
+      ])
+    );
   }
 
   if (searchQuery) {
@@ -164,8 +213,19 @@ export async function fetchLiveTestsListServer(
   const total = testsWithStatus.length;
   const paginatedTests = testsWithStatus.slice(offset, offset + limit);
 
+  const nameMatchedExams =
+    !filterExam && examName
+      ? await otherExamsMatchingName(
+          paginatedTests
+            .filter((test) => !test.examName?.toLowerCase().includes(examName.toLowerCase()))
+            .map((test) => test.mockTestId),
+          examName
+        )
+      : new Map<number, DisplayExam>();
+
   const testsWithEnrollment = paginatedTests.map((test) => {
-    const examSlug = test.examSlug || "general-exam";
+    const displayExam = filterExam ?? nameMatchedExams.get(test.mockTestId);
+    const examSlug = (displayExam ? displayExam.examSlug : test.examSlug) || "general-exam";
 
     return {
       ...test,
@@ -182,7 +242,7 @@ export async function fetchLiveTestsListServer(
       hasAttempted: false,
       examSlug,
       teacherIsVerified: !!test.teacherIsVerified,
-      examName: test.examName ?? null,
+      examName: displayExam?.examName ?? test.examName ?? null,
     };
   });
 

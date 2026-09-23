@@ -28,6 +28,8 @@ export interface AvailablePlansProps {
   plansQuery: ReturnType<typeof useSubscriptionPlansQuery>;
   hasActiveSub: boolean;
   currentPlanId?: number;
+  // The current plan can be bought again, e.g. to restart autopay after a cancel.
+  canRenewCurrentPlan?: boolean;
   subscriptionStatus: string | undefined;
   isInitiatingPayment: boolean;
   paymentMode: "normal" | "recurring";
@@ -46,6 +48,7 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
   plansQuery,
   hasActiveSub,
   currentPlanId,
+  canRenewCurrentPlan = false,
   subscriptionStatus,
   isInitiatingPayment,
   paymentMode,
@@ -251,7 +254,7 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
                           durationDays: plan.durationDays,
                         })
                       }
-                      disabled={isCurrentPlan || isInitiatingPayment}
+                      disabled={(isCurrentPlan && !canRenewCurrentPlan) || isInitiatingPayment}
                       variant={
                         isCurrentPlan
                           ? "secondary"
@@ -265,6 +268,8 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
                           <Loader2 size={16} className={styles.spinner} />{" "}
                           Processing...
                         </>
+                      ) : isCurrentPlan && canRenewCurrentPlan ? (
+                        "Restart Autopay"
                       ) : isCurrentPlan ? (
                         "Current Plan"
                       ) : isFree ? (

@@ -10,7 +10,9 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '.
 import { Checkbox } from './Checkbox';
 import { Spinner } from './Spinner';
 import { FileUploader } from './FileUploader';
-import { ExamNamePicker } from './ExamNamePicker';
+import { ExamMultiPicker } from './ExamMultiPicker';
+import { useExamNameSuggestions } from '../helpers/useExamNameSuggestions';
+import { addSuggestedExam, getItemExamNames, MAX_ITEM_EXAMS } from '../helpers/itemExams';
 import { Skeleton } from './Skeleton';
 import { useTeacherProductMutations } from '../helpers/useTeacherProductsQuery';
 import { useTeacherProductDetailsQuery } from '../helpers/useTeacherProductDetailsQuery';
@@ -25,8 +27,10 @@ import { schema as createSchema } from '../endpoints/teacher/products/create_POS
 import { postTeacherProductsPdfPageCount, PdfRejectedError } from '../endpoints/teacher/products/pdf-page-count_POST.schema';
 import { Plus, GripVertical, ArrowUp, ArrowDown, X, Eye, Sparkles, AlertTriangle, AlertCircle, CheckCircle, FileText, RefreshCw } from 'lucide-react';
 import { AIRewriteButton } from './AIRewriteButton';
+import { WithdrawReviewButton } from './WithdrawReviewButton';
+import { useAdminContentEdit } from '../helpers/useAdminContentEdit';
 
-const LazyPdfViewer = React.lazy(() => import('./ContentReviewPdfViewer'));
+const LazyPdfReaderDialog = React.lazy(() => import('./PdfReaderDialog').then(m => ({ default: m.PdfReaderDialog })));
 import styles from './ProductStepForm.module.css';
 
 interface ProductStepFormProps {
@@ -63,6 +67,7 @@ const fileRowSchema = z.object({
 const formSchema = createSchema.extend({
   tagsString: z.string().optional(),
   pdfUrl: z.string().optional(),
+  examNames: z.array(z.string()).max(MAX_ITEM_EXAMS, `Pick up to ${MAX_ITEM_EXAMS} exams.`).optional().default([]),
   // Files are required to publish, not to save, so an empty list is valid.
   files: z.array(fileRowSchema).optional().default([]),
 }).omit({ tags: true, thumbnailUrl: true, thumbnailFileId: true });
@@ -77,6 +82,7 @@ const FIELD_LABELS: Record<string, string> = {
   category: 'Category',
   language: 'Language',
   examName: 'Exam name',
+  examNames: 'Exams',
   tagsString: 'Tags',
   previewPages: 'Preview pages',
 };
@@ -93,7 +99,7 @@ const snapshotValues = (v: FormValues, isFree: boolean) =>
     isFree ? 0 : v.price,
     v.category || '',
     v.language || '',
-    v.examName || '',
+    v.examNames ?? [],
     v.previewPages || 0,
     v.tagsString || '',
     (v.files || []).filter((f) => isRealFileUrl(f.fileUrl)).map((f) => [f.title, f.fileUrl]),
@@ -117,6 +123,9 @@ const generateClientKey = () =>
 export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiInitialValues }) => {
   const navigate = useNavigate();
   const isEditMode = !!productId;
+  // Inside the admin panel the form only saves; status changes stay on the admin preview page.
+  const adminEdit = useAdminContentEdit();
+  const exitTo = adminEdit?.exitTo ?? '/teacher/products';
 
   const [isSubmittingAction, setIsSubmittingAction] = useState<'save' | 'publish' | null>(null);
   const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
@@ -151,6 +160,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
   } = useTeacherProductDetailsQuery(isEditMode ? productId : undefined);
   const isPublished = productDetails?.status === 'published';
   const isInReview = !isPublished && !!productDetails?.inReview;
+  const { officialExams } = useExamNameSuggestions();
 
   const form = useForm({
     schema: formSchema,
@@ -162,6 +172,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
       category: '',
       language: '',
       examName: '',
+      examNames: [],
       previewPages: 0,
       pageCount: 0,
       tagsString: '',
@@ -190,6 +201,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
       setActiveStepTab(hasRealFiles ? 'details' : 'files');
       setIsFreeChecked(productDetails.price === 0);
 
+      const savedExamNames = getItemExamNames(productDetails);
       form.setValues({
         title: productDetails.title,
         description: productDetails.description || '',
@@ -197,7 +209,8 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
         price: productDetails.price,
         category: productDetails.category || '',
         language: productDetails.language || '',
-        examName: productDetails.examName || '',
+        examName: savedExamNames[0] ?? '',
+        examNames: savedExamNames,
         previewPages: productDetails.previewPages || 0,
         pageCount: files.reduce((sum: number, f: any) => sum + (f.pageCount || 0), 0),
         tagsString: productDetails.tags ? productDetails.tags.join(', ') : '',
@@ -215,7 +228,9 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
     } else if (!isEditMode && !isFormInitialized) {
       if (aiInitialValues) {
         const suggestedPrice = aiInitialValues.suggestedPrice ?? 0;
-        form.setValues(prev => ({
+        form.setValues(prev => {
+          const examNames = addSuggestedExam(prev.examNames ?? [], aiInitialValues.examName, officialExams);
+          return {
           ...prev,
           title: aiInitialValues.title || prev.title,
           description: aiInitialValues.description || prev.description,
@@ -223,9 +238,11 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
           price: suggestedPrice > 0 ? suggestedPrice : prev.price,
           category: aiInitialValues.category || prev.category,
           language: aiInitialValues.language || prev.language,
-          examName: aiInitialValues.examName || prev.examName,
+          examName: examNames[0] ?? prev.examName,
+          examNames,
           tagsString: aiInitialValues.tags ? aiInitialValues.tags.join(', ') : prev.tagsString,
-        }));
+          };
+        });
         // A suggested price means the product is not free; the box must agree
         // with the price that will be saved.
         setIsFreeChecked(!(suggestedPrice > 0));
@@ -380,14 +397,18 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
       { title: form.values.title || undefined, extractedText: extractedPdfText },
       {
         onSuccess: (data) => {
-          form.setValues(prev => ({
+          form.setValues(prev => {
+            const examNames = addSuggestedExam(prev.examNames ?? [], data.examName, officialExams);
+            return {
             ...prev,
             category: prev.category && prev.category.trim() !== '' ? prev.category : (data.category || prev.category),
-            examName: prev.examName && prev.examName.trim() !== '' ? prev.examName : (data.examName || prev.examName),
+            examName: examNames[0] ?? '',
+            examNames,
             tagsString: prev.tagsString && prev.tagsString.trim() !== ''
               ? prev.tagsString
               : (data.tags && data.tags.length > 0 ? data.tags.join(', ') : prev.tagsString),
-          }));
+            };
+          });
           toast.success("Applied suggestions from the PDF - review and adjust as needed.");
         },
       }
@@ -418,7 +439,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
     }
     if (!form.values.category) recommended.push("Pick a category so students can filter for it.");
     if (!form.values.language) recommended.push("Set the language.");
-    if (!form.values.examName) recommended.push("Tag the exam this is for, to help students find it.");
+    if (!form.values.examNames?.length) recommended.push("Tag the exams this is for, to help students find it.");
     if (!form.values.tagsString || form.values.tagsString.trim().length === 0) {
       recommended.push("Add a few tags to improve search visibility.");
     }
@@ -456,7 +477,8 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
       price: isFreeChecked ? 0 : form.values.price,
       category: form.values.category || null,
       language: form.values.language || null,
-      examName: form.values.examName || null,
+      examName: form.values.examNames?.[0] ?? null,
+      examNames: form.values.examNames ?? [],
       tags,
       files,
       pageCount: files.reduce((sum, f) => sum + (f.pageCount || 0), 0) || null,
@@ -516,7 +538,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
     const leaveAfterSave = () => {
       markSaved();
       setIsSubmittingAction(null);
-      navigate('/teacher/products');
+      navigate(exitTo);
     };
 
     if (isEditMode && productId) {
@@ -531,7 +553,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
           );
           // A published product is already live and one in review is already
           // queued, so for those saving is the whole job.
-          if (action === 'publish' && !isPublished && !isInReview) {
+          if (action === 'publish' && !isPublished && !isInReview && !adminEdit) {
             publishProductMutation.mutate({ id: productId }, {
               onSuccess: () => {
                 toast.success('Saved and submitted for review. We will email you once it is approved or needs changes.');
@@ -544,7 +566,12 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
               },
             });
           } else {
-            toast.success(isPublished ? 'Changes saved and live' : isInReview ? 'Changes saved. It is still in review.' : 'Draft saved');
+            toast.success(
+              isPublished ? 'Changes saved and live'
+                : isInReview ? 'Changes saved. It is still in review.'
+                : adminEdit ? 'Changes saved'
+                : 'Draft saved'
+            );
             leaveAfterSave();
           }
         },
@@ -602,8 +629,8 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
               {isDetailsFetching && <Spinner size="sm" />}
               Try again
             </Button>
-            <Button variant="outline" onClick={() => navigate('/teacher/products')}>
-              Back to Notes &amp; PDFs
+            <Button variant="outline" onClick={() => navigate(exitTo)}>
+              {adminEdit ? 'Go back' : <>Back to Notes &amp; PDFs</>}
             </Button>
           </div>
         </div>
@@ -759,12 +786,12 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
                 </FormItem>
               </div>
 
-              <FormItem name="examName">
-                <FormLabel>Exam Name</FormLabel>
+              <FormItem name="examNames">
+                <FormLabel>Exams</FormLabel>
                 <FormControl>
-                  <ExamNamePicker
-                    value={form.values.examName || ""}
-                    onChange={(val) => form.setValues(p => ({ ...p, examName: val }))}
+                  <ExamMultiPicker
+                    value={form.values.examNames ?? []}
+                    onChange={(names) => form.setValues(p => ({ ...p, examNames: names, examName: names[0] ?? '' }))}
                   />
                 </FormControl>
                 <FormMessage />
@@ -835,7 +862,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
                 <div className={styles.fileListHeader}>
                   <span className={styles.fileListLabel}>Product files (PDF)</span>
                   <div className={styles.fileListHeaderActions}>
-                    {extractedPdfText && (
+                    {extractedPdfText && !adminEdit && (
                       <Button
                         type="button"
                         variant="outline"
@@ -1112,12 +1139,20 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
                 <p className={styles.liveNote}>This product is live. Saving updates it for students straight away.</p>
               )}
               {isInReview && (
-                <p className={styles.liveNote}>This product is in review. Students can buy it once our team approves it.</p>
+                <>
+                  <p className={styles.liveNote}>This product is in review. Students can buy it once our team approves it.</p>
+                  <WithdrawReviewButton
+                    contentType="digital_product"
+                    contentId={productId!}
+                    title={productDetails?.title || 'This study note'}
+                    onWithdrawn={() => refetchDetails()}
+                  />
+                </>
               )}
-              <Button type="button" variant="outline" onClick={() => guard.leave('/teacher/products')} disabled={isSubmitting}>
+              <Button type="button" variant="outline" onClick={() => guard.leave(exitTo)} disabled={isSubmitting}>
                 Cancel
               </Button>
-              {!isEditMode || isPublished || isInReview ? (
+              {!isEditMode || isPublished || isInReview || adminEdit ? (
                 <Button
                   type="button"
                   onClick={() => handleSave('save')}
@@ -1164,7 +1199,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
 
       {previewPdfUrl && (
         <React.Suspense fallback={<div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)', zIndex: 9999 }}><Spinner /></div>}>
-          <LazyPdfViewer pdfUrl={previewPdfUrl} title={previewPdfTitle} onClose={() => setPreviewPdfUrl(null)} />
+          <LazyPdfReaderDialog isOpen onClose={() => setPreviewPdfUrl(null)} title={previewPdfTitle} source={{ kind: 'pdf', url: previewPdfUrl }} />
         </React.Suspense>
       )}
     </div>

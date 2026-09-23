@@ -2,6 +2,7 @@ import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { OutputType } from "./list_GET.schema";
 import superjson from "superjson";
+import { loadContentExams } from "../../../helpers/contentExams";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -98,8 +99,11 @@ export async function handle(request: Request): Promise<Response> {
       .orderBy("mockTests.createdAt", "desc")
       .execute();
 
+    const examsByTest = await loadContentExams(db, "mock_test", tests.map((test) => test.id));
+
     const output: OutputType = tests.map((test) => ({
       ...test,
+      exams: examsByTest.get(test.id) ?? [],
       price: Number(test.price),
       discountPrice: test.discountPrice != null ? Number(test.discountPrice) : null,
       rating: test.rating != null ? Number(test.rating) : null,

@@ -4,6 +4,7 @@ import { schema, OutputType } from "./delete_POST.schema";
 import superjson from "superjson";
 import { countLiveTestEnrollments } from "../../../helpers/enrollmentCounters";
 import { deleteOwnedR2Files } from "../../../helpers/r2FileOwnership";
+import { clearOpenReviews } from "../../../helpers/contentReviewQueue";
 
 export async function handle(request: Request) {
   try {
@@ -70,11 +71,11 @@ export async function handle(request: Request) {
       }
     }
 
-    // Hard delete from database
-    await db
-      .deleteFrom("liveTests")
-      .where("id", "=", id)
-      .execute();
+    // Hard delete from database, taking any waiting review with it
+    await db.transaction().execute(async (trx) => {
+      await clearOpenReviews(trx, "live_test", id);
+      await trx.deleteFrom("liveTests").where("id", "=", id).execute();
+    });
 
     // Then remove the thumbnail if the teacher uploaded it and nothing else uses it
     await deleteOwnedR2Files(liveTest.teacherId, [liveTest.thumbnailFileId]);

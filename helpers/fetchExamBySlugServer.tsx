@@ -1,4 +1,5 @@
 import { db } from "./db";
+import { sql } from "kysely";
 
 export type ExamDetailServerData = {
   id: number;
@@ -16,11 +17,6 @@ export const fetchExamBySlugServer = async (
   const exam = await db
     .selectFrom("exams")
     .leftJoin("examCategories", "examCategories.id", "exams.categoryId")
-    .leftJoin("mockTests", (join) =>
-      join
-        .onRef("mockTests.examId", "=", "exams.id")
-        .on("mockTests.isPublished", "=", true)
-    )
     .select([
       "exams.id",
       "exams.examName",
@@ -28,10 +24,15 @@ export const fetchExamBySlugServer = async (
       "exams.examSlug",
       "exams.description",
       "examCategories.categoryName",
-      (eb) => eb.fn.count<number>("mockTests.id").as("testCount"),
+      // Published series listed under this exam, as their primary exam or any other.
+      sql<number>`(
+        SELECT count(*) FROM mock_tests mt
+        WHERE mt.is_published = true AND (mt.exam_id = exams.id OR EXISTS (
+          SELECT 1 FROM mock_test_exams mte WHERE mte.mock_test_id = mt.id AND mte.exam_id = exams.id
+        ))
+      )`.as("testCount"),
     ])
     .where("exams.examSlug", "=", slug)
-    .groupBy(["exams.id", "examCategories.id"])
     .executeTakeFirst();
 
   if (!exam) {

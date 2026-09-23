@@ -1,6 +1,7 @@
 import { sql } from "kysely";
 import { db } from "./db";
 import { sanitizeUrl } from "./sanitizeUrl";
+import { courseDiscountPrice } from "./coursePricing";
 import { HomepageCourseItem } from "../endpoints/homepage/data_GET.schema";
 
 export async function homepageFetchPopularCourses(): Promise<HomepageCourseItem[]> {
@@ -16,6 +17,7 @@ export async function homepageFetchPopularCourses(): Promise<HomepageCourseItem[
       "courses.slug",
       "courses.thumbnailImageUrl as thumbnailUrl",
       "courses.price",
+      "courses.discountPrice",
       "courses.rating",
       "courses.views",
       "users.displayName as teacherName",
@@ -47,6 +49,7 @@ export async function homepageFetchPopularCourses(): Promise<HomepageCourseItem[
     slug: c.slug,
    thumbnailUrl: sanitizeUrl((c as any).thumbnailUrl),
     price: Number(c.price),
+    discountPrice: courseDiscountPrice(c.price, c.discountPrice),
     studentsEnrolled: Number(c.studentsEnrolled || 0),
     rating: c.rating != null ? Number(c.rating) : null,
     totalLessons: Number(c.totalLessons || 0),

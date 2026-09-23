@@ -2,6 +2,7 @@ import { schema, OutputType } from "./update_POST.schema";
 import superjson from "superjson";
 import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
+import { renameCustomExamOnContent } from "../../../helpers/customExamNameContent";
 
 export async function handle(request: Request) {
   try {
@@ -23,6 +24,15 @@ export async function handle(request: Request) {
         .where("examName", "=", oldName)
         .where("examId", "is", null)
         .execute();
+
+      await trx
+        .updateTable("courses")
+        .set({ examName: newName })
+        .where("examName", "=", oldName)
+        .where("examId", "is", null)
+        .execute();
+
+      await renameCustomExamOnContent(trx, oldName, newName);
     });
 
     return new Response(

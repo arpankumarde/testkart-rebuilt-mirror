@@ -97,6 +97,12 @@
   gap: var(--spacing-4);
 }
 
+.priceStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
 .priceRow {
   display: flex;
   flex-wrap: wrap;

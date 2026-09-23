@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { LiveTestFormValues } from '../helpers/liveTestCreationFormSchema';
-import { ExamNamePicker } from './ExamNamePicker';
+import { ExamMultiPicker } from './ExamMultiPicker';
 import { FormItem, FormLabel, FormControl, FormDescription, FormMessage } from './Form';
 import { Input } from './Input';
 import { RichTextEditor } from './RichTextEditor';
@@ -101,12 +101,12 @@ export const LiveTestBasicInfoStep: React.FC<LiveTestBasicInfoStepProps> = ({
           </FormItem>
 
           <div className={styles.grid}>
-            <FormItem name="examName">
-              <FormLabel>Exam Name</FormLabel>
+            <FormItem name="examNames">
+              <FormLabel>Exams</FormLabel>
               <FormControl>
-                <ExamNamePicker 
-                  value={values.examName || ""} 
-                  onChange={(val) => setValues(p => ({...p, examName: val}))} 
+                <ExamMultiPicker
+                  value={values.examNames ?? []}
+                  onChange={(names) => setValues(p => ({ ...p, examNames: names, examName: names[0] ?? null }))}
                   disabled={disabled}
                 />
               </FormControl>

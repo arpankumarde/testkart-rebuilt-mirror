@@ -2,6 +2,7 @@ import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
 import { DigitalProducts, DigitalProductStatusArrayValues } from "../../../helpers/schema";
+import type { ContentExam } from "../../../helpers/contentExams";
 
 export const schema = z.object({
   status: z.enum(DigitalProductStatusArrayValues).optional(),
@@ -18,6 +19,8 @@ export type TeacherProductListItem = Omit<Selectable<DigitalProducts>, "price" |
   price: number;
   rating: number | null;
   fileSizeBytes: number | null;
+  /** Every exam the product is listed under, primary first. */
+  exams: ContentExam[];
   /** Submitted for publishing and waiting on admin approval. */
   inReview: boolean;
 };

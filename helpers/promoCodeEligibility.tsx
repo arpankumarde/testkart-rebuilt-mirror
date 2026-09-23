@@ -9,3 +9,40 @@ export function promoCodeCoversTeacher(
 ): boolean {
   return createdByTeacherId === null || createdByTeacherId === itemTeacherId;
 }
+
+export const PROMO_ITEM_TYPES = [
+  "course",
+  "test",
+  "live_test",
+  "bundle",
+  "digital_product",
+] as const;
+
+export type PromoItemType = (typeof PROMO_ITEM_TYPES)[number];
+
+const APPLIES_TO_BY_ITEM_TYPE: Record<PromoItemType, string> = {
+  course: "courses",
+  test: "tests",
+  live_test: "live_tests",
+  bundle: "bundles",
+  digital_product: "digital_products",
+};
+
+/**
+ * Whether a code's "applies to" scope and its target item list include one
+ * item. Mirrors the per-item checks in promo-codes/validate; the teacher
+ * ownership check is separate (promoCodeCoversTeacher).
+ */
+export function promoCodeAppliesToItem(
+  promo: { appliesTo: string; targetItemIds: number[] | null },
+  itemType: PromoItemType,
+  itemId: number
+): boolean {
+  if (promo.appliesTo !== "all" && promo.appliesTo !== APPLIES_TO_BY_ITEM_TYPE[itemType]) {
+    return false;
+  }
+  if (promo.targetItemIds && promo.targetItemIds.length > 0) {
+    return promo.targetItemIds.includes(itemId);
+  }
+  return true;
+}

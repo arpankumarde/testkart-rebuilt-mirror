@@ -4,6 +4,7 @@ import { OutputType } from "./list_GET.schema";
 import superjson from "superjson";
 import { sql } from "kysely";
 import { pendingReviewIds } from "../../../helpers/contentReviewQueue";
+import { loadContentExams } from "../../../helpers/contentExams";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -37,12 +38,15 @@ export async function handle(request: Request): Promise<Response> {
       .execute();
 
     const inReview = await pendingReviewIds(db, "course", courses.map((course) => course.id));
+    const examsById = await loadContentExams(db, "course", courses.map((course) => course.id));
 
     const output: OutputType = courses.map((course) => ({
       ...course,
       price: Number(course.price),
+      discountPrice: course.discountPrice === null ? null : Number(course.discountPrice),
       sectionsCount: Number(course.sectionsCount),
       lessonsCount: Number(course.lessonsCount),
+      exams: examsById.get(course.id) ?? [],
       inReview: inReview.has(course.id),
     }));
 

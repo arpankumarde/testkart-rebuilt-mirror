@@ -304,14 +304,6 @@
   cursor: progress;
 }
 
-.nextNote {
-  display: inline-flex;
-  align-items: center;
-  min-height: 1.5rem;
-  font-size: 0.8125rem;
-  color: var(--muted-foreground);
-}
-
 /* Its three figures sit in the row's own columns until the row turns into a
    card. */
 .figures {

@@ -11,6 +11,8 @@ export const schema = z.object({
   category: z.string().min(1, "Category is required."),
   level: z.enum(CourseLevelArrayValues),
   price: z.number().min(0, "Price cannot be negative."),
+  // Omitted keeps the stored discount; null clears it. Must sit between 0 and price.
+  discountPrice: z.number().min(0, "Discounted price cannot be negative.").optional().nullable(),
   thumbnailUrl: z.string().url("Must be a valid URL.").optional().nullable(),
   thumbnailFileId: z.string().optional().nullable(),
   thumbnailImageUrl: z.string().url("Must be a valid URL.").optional().nullable(),
@@ -19,12 +21,18 @@ export const schema = z.object({
   introVideoFileId: z.string().optional().nullable(),
   language: z.string().optional().nullable(),
   examName: z.string().optional().nullable(),
+  examNames: z
+    .array(z.string().trim().min(1))
+    .max(5)
+    .optional()
+    .describe("Official exam names, up to 5, first is the primary"),
 });
 
 export type InputType = z.infer<typeof schema>;
 
-export type OutputType = Omit<Selectable<Courses>, "price"> & {
+export type OutputType = Omit<Selectable<Courses>, "price" | "discountPrice"> & {
   price: number;
+  discountPrice: number | null;
 };
 
 export const postTeacherCoursesUpdate = async (

@@ -11,10 +11,10 @@ import styles from "./expert.$teacherSlug.module.css";
 const SITE_URL = "https://testkart.in";
 
 // Legacy: the page used to run on tabs named courses/tests/live/products and
-// took the opening one from router state. The landing page keeps the same
-// names as catalogue filters, and also accepts them as ?tab= so a shared link
-// can open on one.
-const CATALOGUE_FILTERS = ["courses", "tests", "live", "products"] as const;
+// took the opening one from router state. The catalogue now stacks every
+// category, and the same names (from router state or ?tab=) scroll a shared
+// link to that category's group. "bundles" was added with the Bundles group.
+const CATALOGUE_FILTERS = ["courses", "tests", "live", "products", "bundles"] as const;
 type CatalogueFilter = (typeof CATALOGUE_FILTERS)[number];
 
 const asFilter = (value: string | null | undefined): CatalogueFilter | null =>
@@ -89,6 +89,7 @@ const ExpertProfilePage = () => {
   }
 
   const { teacher, courses, tests, liveTests, products } = data;
+  const bundles = data.bundles ?? [];
   const canonicalUrl = `${SITE_URL}/expert/${teacherSlug}`;
 
   const offerings: string[] = [];
@@ -105,7 +106,8 @@ const ExpertProfilePage = () => {
   const bioSnippet = teacher.bio ? ` ${teacher.bio.substring(0, 100).trim()}` : "";
   const metaDescription = `Explore ${offeringsText} by ${teacher.displayName} on Testkart.${bioSnippet}`;
   const pageTitle = `${teacher.displayName} – Explore Courses, Mock Tests & Study Material | Testkart`;
-  const totalContentCount = courses.length + tests.length + liveTests.length + products.length;
+  const totalContentCount =
+    courses.length + tests.length + liveTests.length + products.length + bundles.length;
   const avatarUrl = teacher.avatarUrl ? teacher.avatarUrl : `${SITE_URL}/default-avatar.png`;
 
   const sameAsLinks: string[] = [];
@@ -218,6 +220,12 @@ const ExpertProfilePage = () => {
                   url: `${SITE_URL}/study-notes/${product.slug}`,
                   name: product.title,
                 })),
+                ...bundles.map((bundle, index) => ({
+                  "@type": "ListItem",
+                  position: courses.length + tests.length + liveTests.length + products.length + index + 1,
+                  url: `${SITE_URL}/bundles/${bundle.slug}`,
+                  name: bundle.title,
+                })),
               ],
             },
           ]
@@ -225,7 +233,7 @@ const ExpertProfilePage = () => {
     ],
   };
 
-  // Null lets the view open on whichever category the teacher actually has.
+  // Null leaves the page at the top.
   const initialFilter = asFilter(searchParams.get("tab")) ?? asFilter(defaultTab);
 
   return (

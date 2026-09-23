@@ -24,6 +24,7 @@ import {
 import { toast } from "sonner";
 import { AdminLiveTestListItem } from "../endpoints/admin/live-tests/list_GET.schema";
 import { adminPreviewPath } from "../helpers/useAdminContentPreview";
+import { AdminEditIconButton } from "../components/AdminEditIconButton";
 import styles from "./admin.live-tests.module.css";
 
 const ALL_TEACHERS = "__all__";
@@ -310,6 +311,7 @@ const AdminLiveTestsPage: React.FC = () => {
         </TooltipTrigger>
         <TooltipContent>Preview content</TooltipContent>
       </Tooltip>
+      <AdminEditIconButton type="live_test" id={liveTest.id} title={liveTest.title} className={styles.iconButton} />
       {liveTest.isActive && (
         <Tooltip>
           <TooltipTrigger asChild>

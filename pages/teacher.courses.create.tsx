@@ -8,7 +8,9 @@ import type { InputType as CreateCourseInput } from "../endpoints/teacher/course
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
 import { SegmentedControl } from "../components/SegmentedControl";
-import { ExamNamePicker } from "../components/ExamNamePicker";
+import { ExamMultiPicker } from "../components/ExamMultiPicker";
+import { useExamNameSuggestions } from "../helpers/useExamNameSuggestions";
+import { addSuggestedExam } from "../helpers/itemExams";
 import { CourseCardPreview } from "../components/CourseCardPreview";
 import { AIContentPrompt } from "../components/AIContentPrompt";
 import { useAuth } from "../helpers/useAuth";
@@ -16,6 +18,8 @@ import styles from "./teacher.courses.create.module.css";
 
 type Mode = "ai" | "manual" | "creating";
 type PriceMode = "free" | "paid";
+type CourseCreateRequest = CreateCourseInput & { examNames?: string[] };
+type StartValues = { title: string; examName: string | null; examNames: string[]; price: number };
 
 const PRICE_OPTIONS = [
   { value: "free", label: "Free" },
@@ -37,14 +41,14 @@ const StartForm: React.FC<{
   teacherName: string | null;
   isPending: boolean;
   onBack: () => void;
-  onCreate: (values: { title: string; examName: string | null; price: number }) => void;
+  onCreate: (values: StartValues) => void;
 }> = ({ teacherName, isPending, onBack, onCreate }) => {
   const titleId = useId();
   const titleErrorId = useId();
   const priceErrorId = useId();
   const priceInputRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState("");
-  const [examName, setExamName] = useState("");
+  const [examNames, setExamNames] = useState<string[]>([]);
   const [priceMode, setPriceMode] = useState<PriceMode>("free");
   const [price, setPrice] = useState("");
   const [errors, setErrors] = useState<{ title?: string; price?: string }>({});
@@ -58,7 +62,7 @@ const StartForm: React.FC<{
     if (priceMode === "paid" && !(priceValue > 0)) nextErrors.price = "Enter a price, or choose Free.";
     setErrors(nextErrors);
     if (nextErrors.title || nextErrors.price) return;
-    onCreate({ title: title.trim(), examName: examName.trim() || null, price: priceValue });
+    onCreate({ title: title.trim(), examName: examNames[0] ?? null, examNames, price: priceValue });
   };
 
   return (
@@ -100,9 +104,9 @@ const StartForm: React.FC<{
 
             <div className={styles.field}>
               <span className={styles.label}>
-                Exam <span className={styles.optional}>(optional)</span>
+                Exams <span className={styles.optional}>(optional)</span>
               </span>
-              <ExamNamePicker value={examName} onChange={setExamName} />
+              <ExamMultiPicker value={examNames} onChange={setExamNames} />
             </div>
 
             <div className={styles.field}>
@@ -177,11 +181,12 @@ export default function CreateCoursePage() {
   const { createCourseMutation } = useTeacherCourseMutations();
   const { authState } = useAuth();
   const teacherName = authState.type === "authenticated" ? authState.user.displayName : null;
+  const { officialExams } = useExamNameSuggestions();
 
   const [mode, setMode] = useState<Mode>("ai");
-  const lastRequest = useRef<{ input: CreateCourseInput; fromAi: boolean } | null>(null);
+  const lastRequest = useRef<{ input: CourseCreateRequest; fromAi: boolean } | null>(null);
 
-  const create = (input: CreateCourseInput, fromAi: boolean) => {
+  const create = (input: CourseCreateRequest, fromAi: boolean) => {
     lastRequest.current = { input, fromAi };
     // The manual form stays on screen with its own pending button.
     if (fromAi) setMode("creating");
@@ -196,6 +201,7 @@ export default function CreateCoursePage() {
 
   const handleGenerated = (ai: AiCourseValues) => {
     const level = ai.level === "advanced" || ai.level === "intermediate" ? ai.level : "beginner";
+    const examNames = addSuggestedExam([], ai.examName, officialExams);
     create(
       {
         title: ai.title?.trim() || "Untitled course",
@@ -204,13 +210,14 @@ export default function CreateCoursePage() {
         level,
         price: ai.suggestedPrice && ai.suggestedPrice > 0 ? ai.suggestedPrice : 0,
         language: ai.language || null,
-        examName: ai.examName || null,
+        examName: examNames[0] ?? null,
+        examNames,
       },
       true
     );
   };
 
-  const handleManualCreate = (values: { title: string; examName: string | null; price: number }) =>
+  const handleManualCreate = (values: StartValues) =>
     create({ ...values, category: "General", level: "beginner" }, false);
 
   return (

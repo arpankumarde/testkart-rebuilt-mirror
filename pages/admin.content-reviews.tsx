@@ -24,7 +24,8 @@ import {
   ContentReviewDetailDialog,
   ContentReviewOpenButton,
 } from "../components/ContentReviewDetailDialog";
-import { FileText, CheckCircle, XCircle, AlertCircle, MousePointerClick } from "lucide-react";
+import { FileText, CheckCircle, XCircle, AlertCircle, MousePointerClick, UserCheck, Undo2 } from "lucide-react";
+import { isOpenReview, reviewStatusBadgeVariant, reviewStatusLabel } from "../helpers/contentReviewStatus";
 import { ConsolePageHeader } from "../components/ConsolePageHeader";
 import { ConsoleListToolbar, consoleToolbarControlClass } from "../components/ConsoleListToolbar";
 import { ConsoleListEmpty } from "../components/ConsoleListEmpty";
@@ -36,7 +37,7 @@ import { useRefetchOnLinkArrival } from "../helpers/useRefetchOnLinkArrival";
 import { ContentReviewAdminView, ContentReviewSortBy } from "../endpoints/admin/content-reviews/list_GET.schema";
 import styles from "./admin.content-reviews.module.css";
 
-type StatusFilter = "all" | "pending" | "approved" | "rejected";
+type StatusFilter = "all" | "pending" | "senior_review" | "approved" | "rejected";
 type ContentTypeFilter = ContentType | "all";
 type SortChoice = "newest" | "oldest" | "title" | "teacher";
 
@@ -51,6 +52,7 @@ const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
 const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "All" },
   { value: "pending", label: "Pending" },
+  { value: "senior_review", label: "Senior approval" },
   { value: "approved", label: "Approved" },
   { value: "rejected", label: "Rejected" },
 ];
@@ -74,21 +76,6 @@ const SORT_OPTIONS: { value: SortChoice; label: string; sortBy: ContentReviewSor
 const STATUS_VALUES = STATUS_OPTIONS.map((opt) => opt.value);
 const CONTENT_TYPE_VALUES = CONTENT_TYPE_OPTIONS.map((opt) => opt.value);
 
-const getStatusBadgeVariant = (
-  status: string
-): "warning" | "success" | "destructive" | "default" => {
-  switch (status) {
-    case "pending":
-      return "warning";
-    case "approved":
-      return "success";
-    case "rejected":
-      return "destructive";
-    default:
-      return "default";
-  }
-};
-
 const formatDate = (date: Date | null | string): string => {
   if (!date) return "-";
   return new Intl.DateTimeFormat("en-US", {
@@ -98,13 +85,12 @@ const formatDate = (date: Date | null | string): string => {
   }).format(new Date(date));
 };
 
-const sentenceCase = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
-
 const getTypeLabel = (review: ContentReviewAdminView) =>
   CONTENT_TYPE_LABELS[review.contentType as ContentType] ?? review.contentType;
 
 const countLabel = (count: number, status: StatusFilter) => {
   if (status === "pending") return `${count} waiting on review`;
+  if (status === "senior_review") return `${count} waiting on senior approval`;
   if (status === "all") return `${count} ${count === 1 ? "review" : "reviews"}`;
   return `${count} ${status}`;
 };
@@ -192,7 +178,7 @@ const AdminContentReviewsPage: React.FC = () => {
         onSuccess: () => {
           setApproveTarget(null);
           setViewingReview(null);
-          if (statusFilter === "pending") selectNeighbourOf(target);
+          if (statusFilter !== "all") selectNeighbourOf(target);
         },
       }
     );
@@ -206,7 +192,19 @@ const AdminContentReviewsPage: React.FC = () => {
         onSuccess: () => {
           setRejectTarget(null);
           setViewingReview(null);
-          if (target && statusFilter === "pending") selectNeighbourOf(target);
+          if (target && statusFilter !== "all") selectNeighbourOf(target);
+        },
+      }
+    );
+  };
+
+  const handleSeniorToggle = (review: ContentReviewAdminView) => {
+    reviewMutation.mutate(
+      { reviewId: review.id, action: review.status === "senior_review" ? "back_to_pending" : "send_to_senior" },
+      {
+        onSuccess: () => {
+          setViewingReview(null);
+          if (statusFilter !== "all") selectNeighbourOf(review);
         },
       }
     );
@@ -240,6 +238,10 @@ const AdminContentReviewsPage: React.FC = () => {
 
   const renderDecision = (review: ContentReviewAdminView) => (
     <div className={styles.decisionActions}>
+      <Button variant="outline" onClick={() => handleSeniorToggle(review)} disabled={reviewMutation.isPending}>
+        {review.status === "senior_review" ? <Undo2 size={16} /> : <UserCheck size={16} />}
+        {review.status === "senior_review" ? "Move back to pending" : "Send for senior approval"}
+      </Button>
       <Button
         variant="outline"
         className={styles.rejectBtn}
@@ -280,12 +282,15 @@ const AdminContentReviewsPage: React.FC = () => {
 
     const isFiltered = !!debouncedSearch || statusFilter !== "all" || contentTypeFilter !== "all";
     const isCleanPending = statusFilter === "pending" && !debouncedSearch && contentTypeFilter === "all";
+    const isCleanSenior = statusFilter === "senior_review" && !debouncedSearch && contentTypeFilter === "all";
     return (
       <ConsoleListEmpty
         icon={<FileText size={24} />}
         title={
           isCleanPending
             ? "Nothing waiting on review"
+            : isCleanSenior
+            ? "Nothing waiting on senior approval"
             : isFiltered
             ? "No reviews match these filters"
             : "No content reviews yet"
@@ -293,6 +298,8 @@ const AdminContentReviewsPage: React.FC = () => {
         description={
           isCleanPending
             ? "Everything teachers have submitted has been looked at."
+            : isCleanSenior
+            ? "Reviews your team sends up for a senior decision show here."
             : isFiltered
             ? "Nothing here for this status, type and search. Widen the filters to see the rest."
             : "Content teachers submit for approval appears here."
@@ -361,8 +368,8 @@ const AdminContentReviewsPage: React.FC = () => {
                       </span>
                       <span className={styles.rowDate}>{formatDate(review.createdAt)}</span>
                       {statusFilter === "all" && (
-                        <Badge variant={getStatusBadgeVariant(review.status)} className={styles.flag}>
-                          {sentenceCase(review.status)}
+                        <Badge variant={reviewStatusBadgeVariant(review.status)} className={styles.flag}>
+                          {reviewStatusLabel(review.status)}
                         </Badge>
                       )}
                     </span>
@@ -412,10 +419,12 @@ const AdminContentReviewsPage: React.FC = () => {
           <ContentReviewDetailBody review={selectedReview} />
         </div>
 
-        {selectedReview.status === "pending" && (
+        {isOpenReview(selectedReview.status) && (
           <footer className={styles.decisionBar}>
             <p className={styles.decisionHint}>
-              Approve puts it live for students. Reject sends the teacher your notes.
+              {selectedReview.status === "senior_review"
+                ? "Waiting for a senior decision. Approve puts it live for students. Reject sends the teacher your notes."
+                : "Approve puts it live for students. Reject sends the teacher your notes. Not sure? Send it for senior approval."}
             </p>
             {renderDecision(selectedReview)}
           </footer>
@@ -500,7 +509,7 @@ const AdminContentReviewsPage: React.FC = () => {
       <ContentReviewDetailDialog
         review={isSplit ? null : viewingReview}
         onClose={() => setViewingReview(null)}
-        footer={viewingReview?.status === "pending" ? renderDecision(viewingReview) : undefined}
+        footer={viewingReview && isOpenReview(viewingReview.status) ? renderDecision(viewingReview) : undefined}
       />
 
       <ConsoleConfirmDialog
@@ -524,7 +533,7 @@ const AdminContentReviewsPage: React.FC = () => {
         onOpenChange={setIsApproveAllOpen}
         icon={<CheckCircle size={20} />}
         title="Approve everything pending?"
-        description="Every item waiting on review goes live at once, including ones further down this list. There is no undo - each would have to be taken down one at a time."
+        description="Every pending item goes live at once, including ones further down this list. Items sent for senior approval are left alone. There is no undo - each would have to be taken down one at a time."
         confirmLabel="Approve all"
         pendingLabel="Approving..."
         isPending={approveAllMutation.isPending}

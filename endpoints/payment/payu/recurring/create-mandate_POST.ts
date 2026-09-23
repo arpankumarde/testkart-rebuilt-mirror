@@ -5,7 +5,7 @@ import superjson from "superjson";
 import { createHash } from "crypto";
 import { PAYU_MODE } from "../../../../helpers/_publicConfigs";
 import { NotAuthenticatedError } from "../../../../helpers/getSetServerSession";
-import { randomUUID } from "crypto";
+import { newMandateTxnid } from "../../../../helpers/teacherMandate";
 
 function formatDate(date: Date): string {
   const year = date.getFullYear();
@@ -61,7 +61,7 @@ export async function handle(request: Request) {
         .where("status", "=", "pending")
         .execute();
 
-      const txnid = `testkart-mandate-${randomUUID()}`;
+      const txnid = newMandateTxnid();
       const amount = parseFloat(plan.price).toFixed(2);
 
       await trx
@@ -95,6 +95,7 @@ export async function handle(request: Request) {
 
       const siDetailsJson = JSON.stringify(siDetails);
 
+      // PayU hashes si_details only under api_version 7; without it the request fails the hash check.
       const hashString = `${PAYU_MERCHANT_KEY}|${txnid}|${amount}|${productInfo}|${firstname}|${email}|||||||||||${siDetailsJson}|${PAYU_MERCHANT_SALT}`;
       const hash = createHash("sha512").update(hashString).digest("hex");
 
@@ -110,13 +111,14 @@ export async function handle(request: Request) {
         productinfo: productInfo,
         firstname,
         email,
-        phone: "9999999999", // Default phone
+        phone: user.mobileNumber || "9999999999",
         surl: `${baseUrl}/_api/payment/payu/recurring/mandate-callback`,
         furl: `${baseUrl}/_api/payment/payu/recurring/mandate-callback`,
         hash,
         payuUrl,
         si: "1",
         si_details: siDetailsJson,
+        api_version: "7",
       } satisfies OutputType;
     });
 

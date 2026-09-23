@@ -1,7 +1,7 @@
 import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { slugify } from "../../../helpers/slugify";
-import { resolveExamByName } from "../../../helpers/resolveExam";
+import { primaryExamFields, resolveExamSelection, saveContentExams } from "../../../helpers/contentExams";
 import { schema, OutputType } from "./create_POST.schema";
 import superjson from "superjson";
 import { sanitizeHtml } from "../../../helpers/sanitizeHtml";
@@ -47,11 +47,10 @@ export async function handle(request: Request): Promise<Response> {
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);
 
+    const exams = (await resolveExamSelection({ examNames: input.examNames, examName: input.examName })) ?? [];
+
     // Generate unique slug from title
     const slug = await generateUniqueSlug(input.title);
- 
-   // Resolve examId and examName from input.examName
-   const resolvedExam = await resolveExamByName(input.examName);
 
        const newTest = await db
       .insertInto("mockTests")
@@ -61,8 +60,7 @@ export async function handle(request: Request): Promise<Response> {
         title: input.title,
         slug: slug,
         description: input.description,
-       examId: resolvedExam.examId,
-       examName: resolvedExam.examName,
+        ...primaryExamFields(exams),
         subject: JSON.stringify(input.subjects || []),
         price: input.price.toString(),
         discountPrice: input.discountPrice !== null && input.discountPrice !== undefined ? input.discountPrice.toString() : null,
@@ -79,6 +77,8 @@ export async function handle(request: Request): Promise<Response> {
       })
       .returningAll()
       .executeTakeFirstOrThrow();
+
+    if (exams.length > 0) await saveContentExams(db, "mock_test", newTest.id, exams);
 
     const output: OutputType = {
       ...newTest,

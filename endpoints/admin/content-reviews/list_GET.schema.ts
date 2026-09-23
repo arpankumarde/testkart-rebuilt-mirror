@@ -6,7 +6,7 @@ export const ContentReviewSortValues = ["title", "teacher", "status", "createdAt
 export type ContentReviewSortBy = (typeof ContentReviewSortValues)[number];
 
 export const schema = z.object({
-  status: z.enum(["pending", "approved", "rejected"]).optional(),
+  status: z.enum(["pending", "senior_review", "approved", "rejected"]).optional(),
   contentType: z.enum(ContentTypeArrayValues).optional(),
   search: z.string().optional(),
   sortBy: z.enum(ContentReviewSortValues).optional(),
@@ -112,6 +112,8 @@ export type ContentReviewAdminView = {
   reviewedAt: Date | null;
   createdAt: Date;
   contentMeta: ContentMeta | null;
+  // Every exam the item is listed under, primary first. Empty for bundles.
+  exams: { examId: number | null; examName: string }[];
 };
 
 export type OutputType = {

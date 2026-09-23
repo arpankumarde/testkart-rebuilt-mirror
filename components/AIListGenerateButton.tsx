@@ -3,6 +3,7 @@ import { Sparkles } from "lucide-react";
 import { Button } from "./Button";
 import { Spinner } from "./Spinner";
 import { useTeacherAIGenerateList } from "../helpers/useTeacherAIGenerateList";
+import { useAdminContentEdit } from "../helpers/useAdminContentEdit";
 import styles from "./AIListGenerateButton.module.css";
 
 export interface AIListGenerateButtonProps {
@@ -27,7 +28,11 @@ export interface AIListGenerateButtonProps {
 // button drafts a whole bullet list from scratch — "generate and auto fill"
 // per the product ask — so it stays visible regardless of whether the list
 // is currently empty.
-export const AIListGenerateButton: React.FC<AIListGenerateButtonProps> = ({
+// Hidden while an admin edits the teacher's item, since it spends the teacher's credits.
+export const AIListGenerateButton: React.FC<AIListGenerateButtonProps> = (props) =>
+  useAdminContentEdit() ? null : <AIListGenerateButtonBody {...props} />;
+
+const AIListGenerateButtonBody: React.FC<AIListGenerateButtonProps> = ({
   field,
   context = {},
   onGenerate,

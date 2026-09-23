@@ -4,7 +4,6 @@ import {
   BookOpen,
   Briefcase,
   ClipboardList,
-  Compass,
   Eye,
   GraduationCap,
   Globe,
@@ -16,7 +15,6 @@ import {
   Sparkles,
   Star,
   Target,
-  TrendingUp,
   User,
   Users,
 } from "lucide-react";
@@ -38,9 +36,9 @@ import { VerifiedBadge } from "./VerifiedBadge";
 import { TeacherCtaBanner } from "./TeacherCtaBanner";
 import styles from "./ExpertProfileView.module.css";
 
-type CatalogueFilter = "courses" | "tests" | "live" | "products";
+type CatalogueFilter = "courses" | "tests" | "live" | "products" | "bundles";
 
-/** One row of cards, then a View more button. */
+/** One row of cards per group, then a View more button. */
 const ROWS_PER_STEP = 2;
 
 interface ExpertProfileViewProps {
@@ -50,34 +48,76 @@ interface ExpertProfileViewProps {
    * so it drops a size step and never claims the full viewport height.
    */
   variant?: "page" | "preview";
+  /** Scrolls the page to that group on load, for ?tab= links. */
   initialFilter?: CatalogueFilter | null;
   className?: string;
 }
 
-const FILTER_LABELS: Record<CatalogueFilter, string> = {
+const GROUP_LABELS: Record<CatalogueFilter, string> = {
   courses: "Courses",
   tests: "Test series",
   live: "Live tests",
   products: "Notes & PDFs",
+  bundles: "Bundles",
 };
 
-const LEARNING_STEPS = [
-  {
-    icon: Compass,
-    title: "Pick what you need",
-    text: "Full test series, a course, a live exam or a set of notes - each one built for a specific exam.",
-  },
-  {
-    icon: Target,
-    title: "Practise the real thing",
-    text: "Exam-pattern papers with timers, detailed solutions and question-level explanations.",
-  },
-  {
-    icon: TrendingUp,
-    title: "See where you stand",
-    text: "Scores, accuracy and All India rank after every attempt, so you know what to fix next.",
-  },
-];
+interface CatalogueGroupProps {
+  title: string;
+  cards: React.ReactNode[];
+  groupRef: (node: HTMLElement | null) => void;
+}
+
+const CatalogueGroup: React.FC<CatalogueGroupProps> = ({ title, cards, groupRef }) => {
+  const gridRef = useRef<HTMLDivElement | null>(null);
+  const [columns, setColumns] = useState(4);
+  const [rowsShown, setRowsShown] = useState(1);
+
+  // The grid is auto-fill, so the column count is whatever the current width
+  // resolves to - read it off the resolved template rather than guessing from
+  // a breakpoint, so "one row" means one row at every size.
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (!grid || typeof ResizeObserver === "undefined") return;
+
+    const measure = () => {
+      const template = window.getComputedStyle(grid).gridTemplateColumns;
+      const count = template.split(" ").filter(Boolean).length;
+      if (count > 0) setColumns(count);
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(grid);
+    return () => observer.disconnect();
+  }, []);
+
+  const shownCards = cards.slice(0, columns * rowsShown);
+  const hiddenCount = cards.length - shownCards.length;
+
+  return (
+    <section className={styles.group} ref={groupRef}>
+      <h3 className={styles.groupTitle}>
+        {title}
+        <span className={styles.groupCount}>{cards.length}</span>
+      </h3>
+      <div className={styles.grid} ref={gridRef}>
+        {shownCards}
+      </div>
+      {hiddenCount > 0 && (
+        <div className={styles.loadMoreRow}>
+          <button
+            type="button"
+            className={styles.loadMore}
+            onClick={() => setRowsShown((rows) => rows + ROWS_PER_STEP)}
+          >
+            View more
+            <span className={styles.loadMoreCount}>{hiddenCount}</span>
+          </button>
+        </div>
+      )}
+    </section>
+  );
+};
 
 const formatMonthYear = (value: Date | string | null) => {
   if (!value) return "";
@@ -100,32 +140,12 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
   className,
 }) => {
   const { teacher, courses, tests, liveTests, products } = data;
+  const bundles = data.bundles ?? [];
   const stats = useMemo(() => computeTeacherProfileStats(data), [data]);
 
   const catalogueRef = useRef<HTMLElement | null>(null);
   const aboutRef = useRef<HTMLElement | null>(null);
-
-  const availableFilters = useMemo(() => {
-    const filters: { value: CatalogueFilter; count: number }[] = [
-      { value: "tests", count: stats.tests },
-      { value: "courses", count: stats.courses },
-      { value: "live", count: stats.liveTests },
-      { value: "products", count: stats.products },
-    ];
-    return filters.filter((filter) => filter.count > 0);
-  }, [stats]);
-
-  // Resolved rather than stored, so a teacher who publishes their first course
-  // does not have to be re-defaulted by an effect.
-  const [filter, setFilter] = useState<CatalogueFilter | null>(initialFilter ?? null);
-  const activeFilter =
-    filter && availableFilters.some((item) => item.value === filter)
-      ? filter
-      : availableFilters[0]?.value ?? null;
-
-  const gridRef = useRef<HTMLDivElement | null>(null);
-  const [columns, setColumns] = useState(4);
-  const [rowsShown, setRowsShown] = useState(1);
+  const groupRefs = useRef<Partial<Record<CatalogueFilter, HTMLElement | null>>>({});
   const [shareOpen, setShareOpen] = useState(false);
 
   const teacherCardProps = {
@@ -142,9 +162,10 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
   };
 
   // A teacher's email and phone are never surfaced on the public page - not as
-  // text, not as a mailto:/tel: href. The website is the only outbound contact
-  // route offered here; everything else goes through Testkart.
-  const contactHref = teacher.websiteUrl
+  // text, not as a mailto:/tel: href. The website (first icon in the social row)
+  // is the only outbound contact route offered here; everything else goes
+  // through Testkart.
+  const websiteHref = teacher.websiteUrl
     ? teacher.websiteUrl.match(/^https?:\/\//)
       ? teacher.websiteUrl
       : `https://${teacher.websiteUrl}`
@@ -216,7 +237,7 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
       productTitle={course.title}
       examName={course.examName}
       stats={`${(course.views ?? 0).toLocaleString("en-IN")} views`}
-      priceLabel={formatItemPrice(course.price)}
+      priceLabel={formatItemPrice(course.price, course.discountPrice)}
       isFree={course.price === 0}
       thumbnailUrl={course.thumbnailImageUrl}
       placeholderUrl={Placeholder.COURSE}
@@ -274,41 +295,41 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
     />
   ));
 
-  const visibleCards =
-    activeFilter === "courses"
-      ? courseCards
-      : activeFilter === "tests"
-        ? testCards
-        : activeFilter === "live"
-          ? liveCards
-          : activeFilter === "products"
-            ? productCards
-            : [];
+  const bundleCards = bundles.map((bundle) => (
+    <TeacherProductCard
+      key={`bundle-${bundle.id}`}
+      {...teacherCardProps}
+      link={`/bundles/${bundle.slug}`}
+      productTitle={bundle.title}
+      stats={`${bundle.itemCount} ${bundle.itemCount === 1 ? "item" : "items"}`}
+      priceLabel={formatItemPrice(bundle.price)}
+      isFree={bundle.price === 0}
+      thumbnailUrl={bundle.thumbnailUrl}
+      placeholderUrl={Placeholder.COURSE}
+    />
+  ));
 
-  // The grid is auto-fill, so the column count is whatever the current width
-  // resolves to - read it off the resolved template rather than guessing from
-  // a breakpoint, so "one row" means one row at every size.
-  const hasCards = visibleCards.length > 0;
+  // Every category stacks in this fixed order, each under its own heading; an
+  // empty category is left out rather than shown as an empty block.
+  const groups = (
+    [
+      { key: "courses", cards: courseCards },
+      { key: "tests", cards: testCards },
+      { key: "live", cards: liveCards },
+      { key: "products", cards: productCards },
+      { key: "bundles", cards: bundleCards },
+    ] as { key: CatalogueFilter; cards: React.ReactNode[] }[]
+  ).filter((group) => group.cards.length > 0);
+
   useEffect(() => {
-    const grid = gridRef.current;
-    if (!grid || typeof ResizeObserver === "undefined") return;
-
-    const measure = () => {
-      const template = window.getComputedStyle(grid).gridTemplateColumns;
-      const count = template.split(" ").filter(Boolean).length;
-      if (count > 0) setColumns(count);
-    };
-
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(grid);
-    return () => observer.disconnect();
-  }, [hasCards]);
-
-  const shownCards = visibleCards.slice(0, columns * rowsShown);
-  const hiddenCount = visibleCards.length - shownCards.length;
+    if (!initialFilter) return;
+    groupRefs.current[initialFilter]?.scrollIntoView({ block: "start" });
+    // Only on first load - a ?tab= link opens on its group once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const socialLinks = [
+    websiteHref && { key: "website", href: websiteHref, label: "Website", Icon: LinkIcon },
     teacher.socialLinks?.youtube && { key: "youtube", href: teacher.socialLinks.youtube, label: "YouTube", Icon: FaYoutube },
     teacher.socialLinks?.linkedin && { key: "linkedin", href: teacher.socialLinks.linkedin, label: "LinkedIn", Icon: FaLinkedin },
     teacher.socialLinks?.twitter && { key: "twitter", href: teacher.socialLinks.twitter, label: "X", Icon: FaXTwitter },
@@ -421,17 +442,10 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
                   </button>
                 )
               )}
-              {contactHref ? (
-                <a className={styles.heroSecondary} href={contactHref} target="_blank" rel="noreferrer">
-                  Visit website
-                </a>
-              ) : (
-                hasAbout &&
-                stats.catalogue > 0 && (
-                  <button type="button" className={styles.heroSecondary} onClick={() => scrollTo(aboutRef)}>
-                    About {shortName}
-                  </button>
-                )
+              {hasAbout && stats.catalogue > 0 && (
+                <button type="button" className={styles.heroSecondary} onClick={() => scrollTo(aboutRef)}>
+                  About {shortName}
+                </button>
               )}
             </div>
 
@@ -508,45 +522,19 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
           </p>
         </div>
 
-        {availableFilters.length > 1 && (
-          <div className={styles.filters} role="tablist" aria-label="Filter published material">
-            {availableFilters.map(({ value, count }) => (
-              <button
-                key={value}
-                type="button"
-                role="tab"
-                aria-selected={activeFilter === value}
-                className={`${styles.filter} ${activeFilter === value ? styles.filterActive : ""}`}
-                onClick={() => {
-                  setFilter(value);
-                  setRowsShown(1);
+        {groups.length > 0 ? (
+          <div className={styles.groups}>
+            {groups.map(({ key, cards }) => (
+              <CatalogueGroup
+                key={key}
+                title={GROUP_LABELS[key]}
+                cards={cards}
+                groupRef={(node) => {
+                  groupRefs.current[key] = node;
                 }}
-              >
-                {FILTER_LABELS[value]}
-                <span className={styles.filterCount}>{count}</span>
-              </button>
+              />
             ))}
           </div>
-        )}
-
-        {hasCards ? (
-          <>
-            <div className={styles.grid} ref={gridRef}>
-              {shownCards}
-            </div>
-            {hiddenCount > 0 && (
-              <div className={styles.loadMoreRow}>
-                <button
-                  type="button"
-                  className={styles.loadMore}
-                  onClick={() => setRowsShown((rows) => rows + ROWS_PER_STEP)}
-                >
-                  View more
-                  <span className={styles.loadMoreCount}>{hiddenCount}</span>
-                </button>
-              </div>
-            )}
-          </>
         ) : (
           <div className={styles.emptyPanel}>
             <span className={styles.emptyIcon} aria-hidden="true">
@@ -560,26 +548,6 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
           </div>
         )}
       </section>
-
-      {stats.catalogue > 0 && (
-        <section className={styles.section}>
-          <div className={styles.sectionHead}>
-            <h2 className={styles.sectionTitle}>How learning here works</h2>
-          </div>
-          <ol className={styles.steps}>
-            {LEARNING_STEPS.map(({ icon: Icon, title, text }, index) => (
-              <li key={title} className={styles.step}>
-                <span className={styles.stepNumber}>{index + 1}</span>
-                <span className={styles.stepIcon} aria-hidden="true">
-                  <Icon size={20} />
-                </span>
-                <h3 className={styles.stepTitle}>{title}</h3>
-                <p className={styles.stepText}>{text}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
-      )}
 
       <section className={styles.section} ref={aboutRef}>
         <div className={styles.sectionHead}>

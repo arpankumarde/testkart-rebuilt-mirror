@@ -4,6 +4,7 @@ import { db } from "../../../helpers/db";
 import { sql } from "kysely";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { slugify } from "../../../helpers/slugify";
+import { linkCustomExamsToExam } from "../../../helpers/customExamNameContent";
 
 export async function handle(request: Request) {
   try {
@@ -52,6 +53,15 @@ export async function handle(request: Request) {
         .where(sql<boolean>`exam_name ILIKE ${name}`)
         .where("examId", "is", null)
         .execute();
+
+      await trx
+        .updateTable("courses")
+        .set({ examId: newExam.id })
+        .where(sql<boolean>`exam_name ILIKE ${name}`)
+        .where("examId", "is", null)
+        .execute();
+
+      await linkCustomExamsToExam(trx, [name], { id: newExam.id, examName: name }, { caseInsensitive: true });
 
       return newExam.id;
     });

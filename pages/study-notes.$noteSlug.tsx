@@ -42,8 +42,10 @@ const ProductPDFPreview = React.lazy(() => import("../components/ProductPDFPrevi
 import { MobileStickyPurchaseBar } from "../components/MobileStickyPurchaseBar";
 import { toast } from "sonner";
 import { ShareAssetDialog } from "../components/ShareAssetDialog";
+import { AssetTopRow } from "../components/AssetTopRow";
 import { PUBLIC_PAGE_SHARE_CAMPAIGN } from "../helpers/shareLinks";
 import { useTrackStorefrontView } from "../helpers/trackStorefrontEvent";
+import { PublicCouponsCard } from "../components/PublicCouponsCard";
 import styles from "./study-notes.$noteSlug.module.css";
 
 const ProductDetailsPage: React.FC = () => {
@@ -211,7 +213,7 @@ const ProductDetailsPage: React.FC = () => {
 
   // 5. Derived values and handlers
   
-  // Filter out current product from related items
+  // The related endpoint already leaves the current note out of its results
   const relatedProducts = relatedData?.products || [];
 
   // Determine if user can write a review
@@ -330,11 +332,13 @@ const ProductDetailsPage: React.FC = () => {
       )}
 
       <div className={styles.container}>
-        <nav className={styles.breadcrumb}>
-          <Link to="/study-notes">Study Notes</Link>
-          <ChevronRight size={14} />
-          <span>{product.title}</span>
-        </nav>
+        <AssetTopRow kind="study-note" handle={product.slug} title={product.title}>
+          <nav className={styles.breadcrumb}>
+            <Link to="/study-notes">Study Notes</Link>
+            <ChevronRight size={14} />
+            <span>{product.title}</span>
+          </nav>
+        </AssetTopRow>
 
         <div className={styles.layoutGrid}>
           <div className={styles.titleSection}>
@@ -382,15 +386,21 @@ const ProductDetailsPage: React.FC = () => {
               )}
               <div className={styles.heroMetaItem}>
                 <span>By</span>
-                <button type="button" onClick={handleScrollToAuthor} className={styles.heroScrollLink}>
-                  {product.teacherName}
-                </button>
+                <span className={styles.heroTeacher}>
+                  <button type="button" onClick={handleScrollToAuthor} className={styles.heroScrollLink}>
+                    {product.teacherName}
+                  </button>
+                  <VerifiedBadge isVerified={product.teacherVerified} size="sm" />
+                </span>
               </div>
             </div>
           </div>
 
           <div className={styles.mainContent}>
             <div className={styles.contentSections}>
+              {!hasPurchased && !isFree && (
+                <PublicCouponsCard itemType="digital_product" itemId={product.id} spaced={false} />
+              )}
               {product.files && product.files.length > 0 && (
                 <div className={styles.section}>
                   <h2>{product.files.length > 1 ? `Files (${product.files.length})` : 'File'}</h2>
@@ -516,12 +526,15 @@ const ProductDetailsPage: React.FC = () => {
                 </AvatarFallback>
               </Avatar>
               <div className={styles.authorInfo}>
-                <Link
-                  to={`/expert/${product.teacherSlug}`}
-                  className={styles.authorName}
-                >
-                  {product.teacherName}
-                </Link>
+                <div className={styles.authorNameRow}>
+                  <Link
+                    to={`/expert/${product.teacherSlug}`}
+                    className={styles.authorName}
+                  >
+                    {product.teacherName}
+                  </Link>
+                  <VerifiedBadge isVerified={product.teacherVerified} size="sm" />
+                </div>
                 {product.teacherBio && (
                   <p className={styles.authorBio}>{product.teacherBio}</p>
                 )}
@@ -534,9 +547,8 @@ const ProductDetailsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Related Study Notes - the data for this was already being
-              fetched (useRelatedProductsQuery below) but never rendered,
-              so this page had no internal cross-links to related content. */}
+          {/* Related Study Notes - internal cross-links to sibling notes, the
+              page's only related-content block. */}
           {relatedProducts.length > 0 && (
             <div className={styles.section}>
               <h2>Related Study Notes</h2>
@@ -566,7 +578,7 @@ const ProductDetailsPage: React.FC = () => {
                 <div className={styles.teacherBlockInfo}>
                   <span className={styles.teacherBlockName}>
                     {product.teacherName}
-                    <VerifiedBadge isVerified={!!(product as any).teacherIsVerified} size="sm" className={styles.verifiedBadge} />
+                    <VerifiedBadge isVerified={product.teacherVerified} size="sm" />
                   </span>
                 </div>
               </Link>
@@ -696,18 +708,6 @@ const ProductDetailsPage: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* Related Products */}
-        {relatedProducts.length > 0 && (
-          <div className={styles.relatedSection}>
-            <h2>Related Products</h2>
-            <div className={styles.relatedGrid}>
-              {relatedProducts.map(p => (
-                <ProductCard key={p.id} product={p} />
-         ))} 
-        </div>
-       </div>
-     )}
 
         <BundleSuggestions teacherId={product.teacherId} title="Save with Bundles" />
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Edit, Trash2, MoreVertical, Eye, EyeOff, Package, ExternalLink, Share2 } from 'lucide-react';
+import { Edit, Trash2, MoreVertical, Eye, EyeOff, Package, ExternalLink, Share2, Undo2 } from 'lucide-react';
 import { Badge } from './Badge';
 import { Button } from './Button';
 import {
@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from './DropdownMenu';
 import { ShareAssetDialog } from './ShareAssetDialog';
+import { WithdrawReviewDialog, WITHDRAW_REVIEW_LABEL } from './WithdrawReviewButton';
 import { buildPublicAssetUrl, TEACHER_CONSOLE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
 import { computeBundlePricing } from '../helpers/bundlePricing';
 import type { BundleListItem } from '../endpoints/teacher/bundles/list_GET.schema';
@@ -29,6 +30,7 @@ export const BundleCard: React.FC<BundleCardProps> = ({
   onPublishToggle,
 }) => {
   const [isShareOpen, setShareOpen] = React.useState(false);
+  const [isWithdrawOpen, setWithdrawOpen] = React.useState(false);
 
   const bundleUrl = buildPublicAssetUrl('bundle', bundle.slug);
 
@@ -85,7 +87,8 @@ export const BundleCard: React.FC<BundleCardProps> = ({
               <Badge className={styles.discountBadge}>{discountPercentage}% OFF</Badge>
             )}
           </div>
-          <DropdownMenu>
+          {/* Non-modal so the dialogs it opens do not inherit its pointer lock. */}
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon-sm" className={styles.menuButton}>
                 <MoreVertical size={16} />
@@ -96,7 +99,12 @@ export const BundleCard: React.FC<BundleCardProps> = ({
                 <Edit size={16} />
                 <span>Edit Bundle</span>
               </DropdownMenuItem>
-              {!isInReview && (
+              {isInReview ? (
+                <DropdownMenuItem onClick={() => setWithdrawOpen(true)}>
+                  <Undo2 size={16} />
+                  <span>{WITHDRAW_REVIEW_LABEL}</span>
+                </DropdownMenuItem>
+              ) : (
                 <DropdownMenuItem onClick={onPublishToggle}>
                   {publishToggleIcon}
                   <span>{publishToggleLabel}</span>
@@ -170,6 +178,15 @@ export const BundleCard: React.FC<BundleCardProps> = ({
           handle={bundle.slug}
           campaign={TEACHER_CONSOLE_SHARE_CAMPAIGN}
           sharer="owner"
+          title={bundle.title}
+        />
+      )}
+      {isInReview && (
+        <WithdrawReviewDialog
+          open={isWithdrawOpen}
+          onOpenChange={setWithdrawOpen}
+          contentType="course_bundle"
+          contentId={bundle.id}
           title={bundle.title}
         />
       )}

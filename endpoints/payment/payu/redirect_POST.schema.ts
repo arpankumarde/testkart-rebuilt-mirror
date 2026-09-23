@@ -24,6 +24,8 @@ export const schema = z.object({
 
   // Optional Standing Instruction (SI) parameters for recurring payments
   si: z.string().optional(),
+  si_details: z.string().optional(),
+  api_version: z.string().optional(),
   si_start_date: z.string().optional(), // YYYY-MM-DD
   si_end_date: z.string().optional(), // YYYY-MM-DD
   si_frequency: z.string().optional(),

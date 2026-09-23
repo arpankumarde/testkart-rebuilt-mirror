@@ -12,6 +12,7 @@ import {
   Globe,
   Info,
   Pencil,
+  Target,
   UserCircle,
   X,
 } from 'lucide-react';
@@ -28,19 +29,21 @@ import { EditProfileIdentitySection } from '../components/EditProfileIdentitySec
 import { EditProfileWorkExperienceSection } from '../components/EditProfileWorkExperienceSection';
 import { EditProfileSocialSection } from '../components/EditProfileSocialSection';
 import { EditProfileAwardsSection } from '../components/EditProfileAwardsSection';
+import { ExamFocusSection } from '../components/ExamFocusSection';
 import { ExpertProfileView } from '../components/ExpertProfileView';
 import styles from './teacher.edit-profile.module.css';
 
-type SectionKey = 'basics' | 'details' | 'experience' | 'credentials';
+type SectionKey = 'basics' | 'details' | 'experience' | 'credentials' | 'exams';
 
 const SECTIONS: { key: SectionKey; label: string; hint: string; icon: LucideIcon }[] = [
   { key: 'basics', label: 'Basic information', hint: 'Photo, name, academy, URL, about', icon: UserCircle },
   { key: 'details', label: 'Details & links', hint: 'Location, languages, socials', icon: Globe },
   { key: 'experience', label: 'Work experience', hint: 'Where you have taught', icon: Briefcase },
   { key: 'credentials', label: 'Awards & certificates', hint: 'Proof of your record', icon: Award },
+  { key: 'exams', label: 'Exam focus', hint: 'Exams you prepare students for', icon: Target },
 ];
 
-// Work experience saves itself, row by row, through its own endpoints.
+// Work experience and exam focus save themselves through their own endpoints.
 const FORM_SECTIONS: SectionKey[] = ['basics', 'details', 'credentials'];
 
 // Which panel a failed field belongs to, so a validation error switches to the
@@ -245,6 +248,8 @@ const EditProfilePage: React.FC = () => {
   }
 
   const { user } = authState;
+  // Exam focus belongs to the academy owner, so managers do not see it.
+  const visibleSections = SECTIONS.filter((item) => item.key !== 'exams' || user.teacherRole !== 'manager');
 
   const renderSection = () => {
     switch (section) {
@@ -266,6 +271,8 @@ const EditProfilePage: React.FC = () => {
         );
       case 'experience':
         return <EditProfileWorkExperienceSection />;
+      case 'exams':
+        return <ExamFocusSection className={styles.examFocusSection} />;
       case 'credentials':
         return (
           <EditProfileAwardsSection
@@ -371,7 +378,7 @@ const EditProfilePage: React.FC = () => {
           <div className={styles.editLayout}>
             <aside className={styles.sideColumn}>
               <nav className={styles.sectionNav} aria-label="Profile sections">
-                {SECTIONS.map((item) => {
+                {visibleSections.map((item) => {
                   const Icon = item.icon;
                   const isActive = section === item.key;
                   return (
@@ -427,7 +434,7 @@ const EditProfilePage: React.FC = () => {
 
             <div className={styles.panelColumn}>
               <div className={styles.panel}>
-                {section === 'experience' ? (
+                {!FORM_SECTIONS.includes(section) ? (
                   renderSection()
                 ) : (
                   <Form {...form}>
@@ -456,7 +463,9 @@ const EditProfilePage: React.FC = () => {
               ) : (
                 <div className={styles.saveBar}>
                   <span className={styles.saveHint}>
-                    Work experience entries save on their own, one at a time.
+                    {section === 'exams'
+                      ? 'Your exam focus is private. It is not shown on your public page.'
+                      : 'Work experience entries save on their own, one at a time.'}
                   </span>
                 </div>
               )}

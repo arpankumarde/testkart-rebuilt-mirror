@@ -6,6 +6,7 @@ import superjson from "superjson";
 import { DB } from "../../../helpers/schema";
 import { Transaction } from "kysely";
 import { buildDuplicatedLiveTestValues } from "../../../helpers/liveTestDuplicate";
+import { loadContentExamList, saveContentExams } from "../../../helpers/contentExams";
 
 async function generateUniqueSlug(baseTitle: string, trx: Transaction<DB>): Promise<string> {
   const baseSlug = slugify(baseTitle);
@@ -128,6 +129,9 @@ export async function handle(request: Request) {
         })
         .returningAll()
         .executeTakeFirstOrThrow();
+
+      const sourceExams = await loadContentExamList(trx, "mock_test", sourceMockTest.id);
+      if (sourceExams.length > 0) await saveContentExams(trx, "mock_test", newMockTest.id, sourceExams);
 
       // 2. Copy Mock Test Items
       const sourceTestItems = await trx

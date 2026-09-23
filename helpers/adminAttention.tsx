@@ -10,6 +10,7 @@ import {
   Inbox,
   Trophy,
   ClipboardCheck,
+  UserCheck,
   MessageCircle,
   CreditCard,
   Sparkles,
@@ -153,6 +154,15 @@ const tiles = (attention: AttentionCounts, permissions: AdminPermissionList): At
       detail: "pending",
       href: "/admin/content-reviews?status=pending",
       icon: ClipboardCheck,
+      tone: "content",
+    },
+    {
+      key: "reviewsSenior",
+      count: attention.reviewsSenior,
+      title: plural(attention.reviewsSenior, "content review", "content reviews"),
+      detail: "waiting for senior approval",
+      href: "/admin/content-reviews?status=senior_review",
+      icon: UserCheck,
       tone: "content",
     },
     {

@@ -12,6 +12,7 @@ import { Skeleton } from "../components/Skeleton";
 import { Button } from "../components/Button";
 import { TeacherProfileCard } from "../components/TeacherProfileCard";
 import { TeacherCtaBanner } from "../components/TeacherCtaBanner";
+import { PublicCouponsCard } from "../components/PublicCouponsCard";
 import { getLiveTestStatus } from "../helpers/useLiveTestHelpers";
 import { useTrackStorefrontView } from "../helpers/trackStorefrontEvent";
 import styles from "./mock-test.live.$liveTestId.module.css";
@@ -85,6 +86,9 @@ const LiveTestDetailsPage: React.FC = () => {
         <LiveTestHero liveTest={data} />
 
         <div className={styles.contentContainer}>
+          {!data.isEnrolled && data.price > 0 && (
+            <PublicCouponsCard itemType="live_test" itemId={data.id} />
+          )}
           <div className={styles.tabs}>
             <button
               className={`${styles.tabButton} ${

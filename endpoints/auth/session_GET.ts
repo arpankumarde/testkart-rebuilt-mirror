@@ -5,6 +5,7 @@ import {
 import { User } from "../../helpers/User";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { db } from "../../helpers/db";
+import { isExamFocusPromptDue, loadExamFocus } from "../../helpers/examFocus";
 import superjson from "superjson";
 import { OutputType } from "./session_GET.schema";
 
@@ -51,6 +52,8 @@ export async function handle(request: Request) {
       .where("id", "=", user.id)
       .executeTakeFirst();
 
+    const examFocus = await loadExamFocus(user.id);
+
         // Merge basic user info with profile info
     const fullUser: User = {
       ...user,
@@ -81,7 +84,13 @@ export async function handle(request: Request) {
      discoverySource: userProfile?.discoverySource,
      schoolCollegeName: userProfile?.schoolCollegeName,
      signupSource: userProfile?.signupSource,
+     examFocus,
     };
+    fullUser.examFocusPromptDue = isExamFocusPromptDue({
+      user: fullUser,
+      focusCount: examFocus.length,
+      impersonated: impersonatorAdminId != null,
+    });
 
     // Create response body
     const responseBody: OutputType = {

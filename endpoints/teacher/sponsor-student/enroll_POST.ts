@@ -15,6 +15,7 @@ import { PAYU_MODE } from "../../../helpers/_publicConfigs";
 import { getTeacherAvailableBalance } from "../../../helpers/getTeacherAvailableBalance";
 import { lockWallet } from "../../../helpers/walletLock";
 import { getTeacherPlatformFee } from "../../../helpers/getTeacherPlatformFee";
+import { courseDiscountPrice } from "../../../helpers/coursePricing";
 
 function isEmailIdentifier(identifier: string): boolean {
   return identifier.includes("@");
@@ -68,7 +69,7 @@ async function resolveContent(
   if (contentType === "course") {
     const row = await trx
       .selectFrom("courses")
-      .select(["id", "title", "price", "teacherId", "status"])
+      .select(["id", "title", "price", "discountPrice", "teacherId", "status"])
       .where("id", "=", contentId)
       .executeTakeFirst();
     if (!row) return null;
@@ -76,7 +77,7 @@ async function resolveContent(
       id: row.id,
       title: row.title,
       price: Number(row.price),
-      discountPrice: null,
+      discountPrice: courseDiscountPrice(row.price, row.discountPrice),
       teacherId: row.teacherId,
       isPublished: row.status === "published",
       isFree: Number(row.price) === 0,

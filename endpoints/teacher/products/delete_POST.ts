@@ -3,6 +3,7 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./delete_POST.schema";
 import superjson from "superjson";
 import { deleteOwnedR2Files } from "../../../helpers/r2FileOwnership";
+import { clearOpenReviews } from "../../../helpers/contentReviewQueue";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -76,6 +77,7 @@ export async function handle(request: Request): Promise<Response> {
       await trx.deleteFrom("cartItems").where("digitalProductId", "=", input.id).execute();
       await trx.deleteFrom("reviews").where("digitalProductId", "=", input.id).execute();
       await trx.deleteFrom("digitalProductFiles").where("productId", "=", input.id).execute();
+      await clearOpenReviews(trx, "digital_product", input.id);
       await trx.deleteFrom("digitalProducts").where("id", "=", input.id).execute();
     });
 

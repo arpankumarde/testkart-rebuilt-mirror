@@ -2,6 +2,7 @@ import type { OutputType as LiveTestDetails } from '../endpoints/teacher/live-te
 import { liveTestCreationFormSchema, isEmptyRichText, type LiveTestFormValues } from './liveTestCreationFormSchema';
 import { resolveLiveTestPrizeTiers, sortPrizeTiers } from './liveTestPrizeTiers';
 import { LIVE_TEST_FIELD_LABELS, isLiveTestFieldLocked } from './liveTestLocks';
+import { getItemExamNames, normalizeExamNames } from './itemExams';
 
 export type LiveTestStep = 'info' | 'schedule' | 'prizes' | 'review';
 export type LiveTestEditableStep = Exclude<LiveTestStep, 'review'>;
@@ -15,6 +16,7 @@ const FIELD_LAYOUT: { field: LiveTestFormField; step: LiveTestEditableStep; stor
   { field: 'title', step: 'info' },
   { field: 'description', step: 'info' },
   { field: 'examName', step: 'info' },
+  { field: 'examNames', step: 'info' },
   { field: 'language', step: 'info' },
   { field: 'durationMinutes', step: 'info' },
   { field: 'calculatorEnabled', step: 'info' },
@@ -47,7 +49,7 @@ export const getLiveTestFieldsForSteps = (steps: LiveTestEditableStep[]): LiveTe
 const UPDATE_GROUPS: LiveTestFormField[][] = [
   ['title'],
   ['description'],
-  ['examName'],
+  ['examName', 'examNames'],
   ['language'],
   ['durationMinutes', 'subjectWiseTiming', 'questionWiseTiming'],
   ['calculatorEnabled'],
@@ -60,6 +62,10 @@ const UPDATE_GROUPS: LiveTestFormField[][] = [
   ['registrationDeadline', 'startTime', 'endTime'],
   ['hasPrizes', 'prizeTiers'],
 ];
+
+// examNames follows the lock on examName until the lock list names it too.
+const isFieldLocked = (field: LiveTestFormField, isPublished: boolean): boolean =>
+  isLiveTestFieldLocked(field === 'examNames' ? 'examName' : field, isPublished);
 
 /** Reads a stored jsonb string list that may arrive as an array or as a JSON string. */
 export const parseStoredStringList = (value: unknown): string[] => {
@@ -80,10 +86,19 @@ const toNumber = (value: string | number | null | undefined): number => {
   return Number.isFinite(n) ? n : 0;
 };
 
-export const buildLiveTestEditValues = (liveTest: LiveTestDetails): LiveTestFormValues => ({
+const readLiveTestExamNames = (liveTest: LiveTestDetails): string[] => {
+  const withExams = liveTest as LiveTestDetails & { exams?: unknown };
+  const mockTest = liveTest.mockTest as ({ exams?: unknown; examName?: string | null } | null | undefined);
+  return getItemExamNames({ exams: withExams.exams ?? mockTest?.exams, examName: mockTest?.examName });
+};
+
+export const buildLiveTestEditValues = (liveTest: LiveTestDetails): LiveTestFormValues => {
+  const examNames = readLiveTestExamNames(liveTest);
+  return {
   title: liveTest.title,
   description: liveTest.description,
-  examName: liveTest.mockTest?.examName ?? null,
+  examName: examNames[0] ?? null,
+  examNames,
   language: liveTest.mockTest?.language ?? undefined,
   durationMinutes: liveTest.mockTestItem?.durationMinutes ?? 60,
   calculatorEnabled: liveTest.mockTestItem?.calculatorEnabled ?? false,
@@ -104,7 +119,8 @@ export const buildLiveTestEditValues = (liveTest: LiveTestDetails): LiveTestForm
   endTime: new Date(liveTest.endTime),
   hasPrizes: liveTest.hasPrizes,
   prizeTiers: resolveLiveTestPrizeTiers(liveTest.prizeTiers, liveTest.firstPrize, liveTest.secondPrize, liveTest.thirdPrize),
-});
+  };
+};
 
 const cleanList = (list: string[] | null | undefined): string[] | null => {
   const items = (list ?? []).filter((item) => item.trim() !== '');
@@ -116,10 +132,14 @@ const cleanList = (list: string[] | null | undefined): string[] | null => {
  * exist while prizes are on. */
 export const normalizeLiveTestFormValues = (values: LiveTestFormValues): LiveTestFormValues => {
   const timedPerSection = Boolean(values.subjectWiseTiming || values.questionWiseTiming);
+  const examNames = normalizeExamNames(
+    values.examNames && values.examNames.length > 0 ? values.examNames : values.examName ? [values.examName] : []
+  );
   return {
     ...values,
     description: isEmptyRichText(values.description) ? null : values.description,
-    examName: values.examName && values.examName.trim() !== '' ? values.examName : null,
+    examName: examNames[0] ?? null,
+    examNames,
     language: values.language || undefined,
     durationMinutes: timedPerSection ? 0 : values.durationMinutes,
     discountPrice: values.discountPrice ?? null,
@@ -152,7 +172,7 @@ export const buildLiveTestChanges = (
   const after = normalizeLiveTestFormValues(current);
   const changes: Record<string, unknown> = {};
   for (const group of UPDATE_GROUPS) {
-    const editable = group.filter((field) => !isLiveTestFieldLocked(field, isPublished));
+    const editable = group.filter((field) => !isFieldLocked(field, isPublished));
     if (editable.some((field) => comparable(before[field]) !== comparable(after[field]))) {
       for (const field of editable) {
         changes[field] = after[field] === undefined ? null : after[field];
@@ -170,7 +190,7 @@ export interface LiveTestFieldIssue {
 }
 
 const describeIssue = (field: LiveTestFormField, message: string): string => {
-  const label = LIVE_TEST_FIELD_LABELS[field] ?? field;
+  const label = LIVE_TEST_FIELD_LABELS[field] ?? (field === 'examNames' ? 'Exams' : field);
   const firstWord = label.split(' ')[0].toLowerCase();
   return message.toLowerCase().startsWith(firstWord) ? message : `${label}: ${message}`;
 };
@@ -188,7 +208,7 @@ export const findLiveTestIssues = (
   for (const issue of result.error.issues) {
     const layout = FIELD_LAYOUT.find((entry) => entry.field === issue.path[0]);
     if (!layout) continue;
-    if (isLiveTestFieldLocked(layout.field, Boolean(options.isPublished))) continue;
+    if (isFieldLocked(layout.field, Boolean(options.isPublished))) continue;
     if (options.steps && !options.steps.includes(layout.step)) continue;
     issues.push({
       field: layout.field,

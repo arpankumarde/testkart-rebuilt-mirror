@@ -25,6 +25,7 @@ export type AttentionCounts = {
   inquiriesPending: number;
   contactNew: number;
   reviewsPending: number;
+  reviewsSenior: number;
   demoRequestsNew: number;
   followupsOverdue: number;
   prizesUndistributed: number;

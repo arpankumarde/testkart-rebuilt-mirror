@@ -416,79 +416,48 @@
   font-weight: 700;
 }
 
-/* Same band, tabs and count pills as /teacher/test-series, so a teacher sees
-   one filter pattern on both sides of the product. */
-.filters {
+/* Courses, test series, live tests and notes stack one under another, each
+   with its own heading and View more, instead of sharing one tabbed grid. */
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.group {
+  scroll-margin-top: 5rem;
+}
+
+.groupTitle {
   display: flex;
   align-items: center;
-  gap: 2px;
-  margin-bottom: var(--spacing-6);
-  padding: var(--spacing-2) var(--spacing-3);
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.filters::-webkit-scrollbar {
-  display: none;
-}
-
-.filter {
-  display: inline-flex;
-  align-items: center;
   gap: var(--spacing-2);
-  flex-shrink: 0;
-  height: 2rem;
-  padding: 0 var(--spacing-3);
-  border: none;
-  border-radius: var(--radius);
-  background: none;
-  color: var(--muted-foreground);
-  font-family: var(--font-family-base);
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color var(--animation-duration-fast) ease,
-    color var(--animation-duration-fast) ease;
-}
-
-.filter:hover {
-  background-color: var(--muted);
+  margin: 0 0 var(--spacing-4);
+  padding-left: var(--spacing-3);
+  border-left: 4px solid var(--tk-brand-deep);
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
   color: var(--foreground);
 }
 
-.filter:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus);
-}
-
-.filterActive {
-  background-color: var(--tk-brand-tint);
-  color: var(--tk-brand-text);
-}
-
-.filterCount {
+.groupCount {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 1.25rem;
-  height: 1.125rem;
-  padding: 0 0.375rem;
+  min-width: 1.5rem;
+  height: 1.375rem;
+  padding: 0 0.5rem;
   border-radius: var(--radius-full);
-  background-color: var(--muted);
-  color: var(--muted-foreground);
-  font-size: 0.6875rem;
+  background-color: var(--tk-brand-deep);
+  color: #fff;
+  font-family: var(--font-family-base);
+  font-size: 0.75rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1;
-}
-
-.filterActive .filterCount {
-  background-color: var(--tk-brand-deep);
-  color: #fff;
 }
 
 .grid {
@@ -584,64 +553,6 @@
   max-width: 34rem;
   font-size: 0.875rem;
   line-height: 1.5;
-  color: var(--muted-foreground);
-}
-
-/* --------------------------------------------------------------- steps --- */
-
-.steps {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-  gap: var(--spacing-4);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  counter-reset: step;
-}
-
-.step {
-  position: relative;
-  padding: var(--spacing-6);
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
-}
-
-.stepNumber {
-  position: absolute;
-  top: var(--spacing-6);
-  right: var(--spacing-6);
-  font-family: var(--font-family-heading);
-  font-size: 2rem;
-  font-weight: 800;
-  line-height: 1;
-  color: var(--border);
-}
-
-.stepIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  border-radius: var(--radius-md);
-  background-color: var(--tk-brand-tint);
-  color: var(--tk-brand-text);
-}
-
-.stepTitle {
-  margin: var(--spacing-4) 0 0;
-  font-family: var(--font-family-heading);
-  font-size: 1.0625rem;
-  font-weight: 700;
-  color: var(--foreground);
-}
-
-.stepText {
-  margin: var(--spacing-2) 0 0;
-  font-size: 0.875rem;
-  line-height: 1.55;
   color: var(--muted-foreground);
 }
 
@@ -1130,7 +1041,7 @@
   .heroPrimary,
   .heroSecondary,
   .socialLink,
-  .filter {
+  .loadMore {
     transition: none;
   }
 }

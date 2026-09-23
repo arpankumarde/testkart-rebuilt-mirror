@@ -28,9 +28,16 @@ export async function handle(request: Request) {
       return new Response(superjson.stringify({ tests: [] } satisfies OutputType));
     }
 
-    const tests = await db
+    const rows = await db
       .selectFrom("mockTests")
-      .innerJoin("exams", "exams.id", "mockTests.examId")
+      // The exam matched by name below, whether it is the series' primary exam or another one.
+      .innerJoin("exams", (join) =>
+        join.on(
+          sql<boolean>`(exams.id = mock_tests.exam_id OR EXISTS (
+            SELECT 1 FROM mock_test_exams mte WHERE mte.mock_test_id = mock_tests.id AND mte.exam_id = exams.id
+          ))`
+        )
+      )
       .innerJoin("users", "users.id", "mockTests.teacherId")
       .select([
         "mockTests.id",
@@ -64,7 +71,7 @@ export async function handle(request: Request) {
         "mockTests.studentsEnrolled",
         "mockTests.rating",
         "mockTests.reviewsCount",
-        "mockTests.examName",
+        "exams.examName",
         "mockTests.language",
         "mockTests.views",
         "users.displayName as teacherName",
@@ -105,6 +112,9 @@ export async function handle(request: Request) {
       )
       .orderBy("mockTests.createdAt", "desc")
       .execute();
+
+    // Two exams can share a name, so a series listed under both would come back twice.
+    const tests = rows.filter((row, index) => rows.findIndex((other) => other.id === row.id) === index);
 
     // Bulk-fetch all mockTestItems for the fetched tests to calculate accurate counts
     const testIds = tests.map(test => test.id);

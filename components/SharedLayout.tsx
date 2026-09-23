@@ -231,6 +231,14 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
           </Link>
                     <nav className={styles.nav}>
             <NavLink
+              to="/course"
+              className={({ isActive }) =>
+                `${styles.navLink} ${isActive ? styles.active : ""}`
+              }
+            >
+              Courses
+            </NavLink>
+            <NavLink
               to="/mock-test"
               end
               className={({ isActive }) =>
@@ -260,14 +268,6 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
               }
             >
               Study Notes
-            </NavLink>
-            <NavLink
-              to="/course"
-              className={({ isActive }) =>
-                `${styles.navLink} ${isActive ? styles.active : ""}`
-              }
-            >
-              Courses
             </NavLink>
           </nav>
           <div className={styles.headerActions}>

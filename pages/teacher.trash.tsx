@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { getItemExamNames } from "../helpers/itemExams";
 import { Helmet } from "react-helmet";
 import { format } from "date-fns";
 import {
@@ -199,7 +200,7 @@ export default function TeacherTrashPage() {
               test.title,
               null,
               [
-                { label: "Exam", value: test.examName || "Not specified" },
+                { label: "Exam", value: getItemExamNames(test).join(", ") || "Not specified" },
                 {
                   label: "Contents",
                   value: `${test.testItemsCount} tests, ${test.totalQuestions} questions`,

@@ -9,6 +9,7 @@ import { Button } from './Button';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './Select';
 import { DatePicker } from './DatePicker';
 import { Checkbox } from './Checkbox';
+import { Switch } from './Switch';
 import { Popover, PopoverTrigger, PopoverContent } from './Popover';
 import { useCreatePromoCodeMutation, useUpdatePromoCodeMutation } from '../helpers/usePromoCodeMutations';
 import { useTeacherCoursesQuery } from '../helpers/useTeacherCoursesQuery';
@@ -38,6 +39,7 @@ const formSchema = z.object({
   validFrom: z.coerce.date(),
   validUntil: z.coerce.date().optional().nullable(),
   isActive: z.boolean().optional(),
+  isPublic: z.boolean().optional(),
 }).refine(data => {
   if (data.discountType === 'percentage') {
     return data.discountValue <= 100;
@@ -141,6 +143,7 @@ export const PromoCodeFormDialog: React.FC<PromoCodeFormDialogProps> = ({ isOpen
       perUserLimit: null,
       validFrom: new Date(),
       validUntil: null,
+      isPublic: false,
     },
   });
 
@@ -159,6 +162,7 @@ export const PromoCodeFormDialog: React.FC<PromoCodeFormDialogProps> = ({ isOpen
         validFrom: new Date(promoCode.validFrom),
         validUntil: promoCode.validUntil ? new Date(promoCode.validUntil) : null,
         isActive: promoCode.isActive,
+        isPublic: promoCode.isPublic,
       });
     } else {
       form.setValues({
@@ -173,6 +177,7 @@ export const PromoCodeFormDialog: React.FC<PromoCodeFormDialogProps> = ({ isOpen
         perUserLimit: null,
         validFrom: new Date(),
         validUntil: null,
+        isPublic: false,
       });
     }
   }, [promoCode, form.setValues]);
@@ -380,6 +385,25 @@ export const PromoCodeFormDialog: React.FC<PromoCodeFormDialogProps> = ({ isOpen
                 <FormMessage />
               </FormItem>
             </div>
+
+            <FormItem name="isPublic">
+              <div className={styles.switchRow}>
+                <FormControl>
+                  <Switch
+                    id="isPublic"
+                    checked={!!form.values.isPublic}
+                    onCheckedChange={(checked: boolean) => form.setValues((p: FormValues) => ({ ...p, isPublic: checked }))}
+                  />
+                </FormControl>
+                <div className={styles.switchText}>
+                  <FormLabel htmlFor="isPublic">Show on product pages</FormLabel>
+                  <FormDescription>
+                    Students see this code below the products it applies to and can copy it. Leave it off for codes you share privately.
+                  </FormDescription>
+                </div>
+              </div>
+              <FormMessage />
+            </FormItem>
 
             <div className={styles.formActions}>
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>

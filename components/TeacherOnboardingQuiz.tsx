@@ -8,13 +8,14 @@ import { Button } from "./Button";
 import { Input } from "./Input";
 import { Spinner } from "./Spinner";
 import type { InputType } from "../endpoints/teacher/onboarding/complete_POST.schema";
+import type { ExamFocusItem } from "../helpers/examFocusShared";
+import { ExamFocusPicker } from "./ExamFocusPicker";
 import { ChevronRight, ChevronLeft, CheckCircle2, X } from "lucide-react";
 import styles from "./TeacherOnboardingQuiz.module.css";
 
 // --- Constants ---
 const TEACHING_CATEGORIES = ["School", "College", "Government Exams", "Competitive Exams", "Skills", "Language", "Other"];
 const COMMON_SUBJECTS = ["Mathematics", "Physics", "Chemistry", "Biology", "English", "Reasoning", "Aptitude", "History", "Geography", "Political Science", "Economics", "Computer Science", "General Knowledge", "Hindi", "Accountancy"];
-const TARGET_EXAMS = ["UPSC", "SSC CGL", "SSC CHSL", "NEET", "JEE Main", "JEE Advanced", "CUET", "CTET", "UGC NET", "Banking", "Railway", "State PSC", "Board Exams", "GATE", "CAT", "CLAT", "Other"];
 const EXPERIENCE_LEVELS = ["Beginner", "Less than 1 year", "1–3 years", "3–5 years", "5–10 years", "10+ years"];
 const OCCUPATIONS = ["School Teacher", "Coaching Teacher", "College Faculty", "Full-time Educator", "Freelancer", "Student", "Other"];
 const CONTENT_TYPES = ["Mock Tests", "Practice Questions", "Study Notes", "Courses", "Live Tests", "PDFs", "E-books"];
@@ -171,7 +172,7 @@ export function TeacherOnboardingQuiz() {
   const [email, setEmail] = useState("");
   const [teachingCategories, setTeachingCategories] = useState<string[]>([]);
   const [subjects, setSubjects] = useState<string[]>([]);
-  const [targetExams, setTargetExams] = useState<string[]>([]);
+  const [examFocus, setExamFocus] = useState<ExamFocusItem[]>([]);
   const [teachingExperienceLevel, setTeachingExperienceLevel] = useState<string>("");
   const [currentOccupation, setCurrentOccupation] = useState<string>("");
   const [contentTypes, setContentTypes] = useState<string[]>([]);
@@ -191,7 +192,6 @@ export function TeacherOnboardingQuiz() {
 
   // "Other" input states
   const [otherCategory, setOtherCategory] = useState("");
-  const [otherExam, setOtherExam] = useState("");
   const [otherOccupation, setOtherOccupation] = useState("");
   const [otherLanguage, setOtherLanguage] = useState("");
   const [otherDiscovery, setOtherDiscovery] = useState("");
@@ -209,14 +209,6 @@ export function TeacherOnboardingQuiz() {
     if (trimmed && !teachingCategories.includes(trimmed)) {
       setTeachingCategories([...teachingCategories, trimmed]);
       setOtherCategory("");
-    }
-  };
-
-  const commitOtherExam = () => {
-    const trimmed = otherExam.trim();
-    if (trimmed && !targetExams.includes(trimmed)) {
-      setTargetExams([...targetExams, trimmed]);
-      setOtherExam("");
     }
   };
 
@@ -263,8 +255,8 @@ export function TeacherOnboardingQuiz() {
       toast.error("Please select at least one option");
       return;
     }
-    if (quizStep === 2 && targetExams.length === 0) {
-      toast.error("Please select at least one option");
+    if (quizStep === 2 && examFocus.length === 0) {
+      toast.error("Please pick at least one exam");
       return;
     }
     if (quizStep === 3 && !teachingExperienceLevel) {
@@ -311,7 +303,7 @@ export function TeacherOnboardingQuiz() {
     const payload: InputType = {
       teachingCategories,
       subjects,
-      targetExams,
+      examIds: examFocus.map((exam) => exam.id),
       teachingExperienceLevel,
       currentOccupation,
       contentTypes,
@@ -461,25 +453,7 @@ export function TeacherOnboardingQuiz() {
           {quizStep === 2 && (
             <div className={styles.questionContainer} key="step3">
               <h2 className={styles.questionTitle}>Target Exams</h2>
-              <div className={styles.languageChips}>
-                {TARGET_EXAMS.map((exam) => (
-                  <button
-                    key={exam}
-                    type="button"
-                    className={`${styles.languageChip} ${targetExams.includes(exam) ? styles.selected : ""}`}
-                    onClick={() => toggleMulti(targetExams, setTargetExams, exam)}
-                  >
-                    {exam}
-                  </button>
-                ))}
-              </div>
-              {targetExams.includes("Other") && (
-                <OtherInput
-                  value={otherExam}
-                  onChange={setOtherExam}
-                  onCommit={commitOtherExam}
-                />
-              )}
+              <ExamFocusPicker value={examFocus} onChange={setExamFocus} />
             </div>
           )}
 

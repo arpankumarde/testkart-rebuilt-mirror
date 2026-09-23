@@ -18,10 +18,9 @@ import styles from "./CurrentSubscriptionStatus.module.css";
 interface CurrentSubscriptionStatusProps {
   statusQuery: ReturnType<typeof useSubscriptionStatusQuery>;
   mandateQuery: ReturnType<typeof useMandateStatusQuery>;
+  paymentMode: "normal" | "recurring";
   onCancel: () => void;
-  onCancelMandate: () => void;
   isCancelling: boolean;
-  isCancellingMandate: boolean;
 }
 
 export const CurrentSubscriptionStatus: React.FC<
@@ -29,10 +28,9 @@ export const CurrentSubscriptionStatus: React.FC<
 > = ({
   statusQuery,
   mandateQuery,
+  paymentMode,
   onCancel,
-  onCancelMandate,
   isCancelling,
-  isCancellingMandate,
 }) => {
   const subscription = statusQuery.data;
   const mandate = mandateQuery.data;
@@ -85,7 +83,10 @@ export const CurrentSubscriptionStatus: React.FC<
   }
 
   const isActive = subscription.status === "active";
-  const isCancelled = subscription.status === "cancelled";
+  // In Recurring mode only a live mandate renews a plan; a cancelled plan
+  // stays active until its end date and then moves to the Free plan.
+  const willRenew =
+    !!subscription.autoRenew && (paymentMode === "normal" || mandateIsActive);
   const endDate = subscription.endDate
     ? new Date(subscription.endDate).toLocaleDateString("en-IN", {
         year: "numeric",
@@ -112,14 +113,14 @@ export const CurrentSubscriptionStatus: React.FC<
               {isFree ? "🆓 " : ""}
               {subscription.planName}
             </h3>
-            {isActive && !isCancelled && (
+            {isActive && willRenew && (
               <Badge variant="success">
                 <CheckCircle size={14} /> Active
               </Badge>
             )}
-            {isCancelled && (
+            {isActive && !willRenew && (
               <Badge variant="warning">
-                <Clock size={14} /> Cancelled
+                <Clock size={14} /> Ends {endDate}
               </Badge>
             )}
           </div>
@@ -154,16 +155,16 @@ export const CurrentSubscriptionStatus: React.FC<
             <>
               <div className={styles.detailRow}>
                 <span className={styles.detailLabel}>
-                  {isCancelled ? "Valid Until:" : "Renews On:"}
+                  {willRenew ? "Renews On:" : "Valid Until:"}
                 </span>
                 <span className={styles.detailValue}>{endDate}</span>
               </div>
 
-              {mandateIsActive && !isCancelled && (
+              {paymentMode === "recurring" && willRenew && (
                 <div className={styles.autoRenewBanner}>
                   <Zap size={16} />
                   <span>
-                    <strong>UPI Autopay Active</strong> - Your subscription will
+                    <strong>Autopay active</strong> - Your subscription will
                     auto-renew
                   </span>
                 </div>
@@ -174,7 +175,7 @@ export const CurrentSubscriptionStatus: React.FC<
 
         {!isFree && (
           <div className={styles.statusActions}>
-            {isActive && !isCancelled && (
+            {isActive && willRenew && (
               <Button
                 variant="destructive"
                 onClick={onCancel}
@@ -183,21 +184,11 @@ export const CurrentSubscriptionStatus: React.FC<
                 {isCancelling ? "Cancelling..." : "Cancel Subscription"}
               </Button>
             )}
-            {isActive && !isCancelled && mandateIsActive && (
-              <Button
-                variant="outline"
-                onClick={onCancelMandate}
-                disabled={isCancellingMandate}
-              >
-                {isCancellingMandate
-                  ? "Cancelling..."
-                  : "Cancel Auto-Renewal"}
-              </Button>
-            )}
-            {isCancelled && (
+            {isActive && !willRenew && (
               <p className={styles.cancelledNote}>
-                Your subscription will remain active until {endDate}. You can
-                resubscribe anytime.
+                {paymentMode === "recurring"
+                  ? `Autopay is off, so you won't be charged again. You keep this plan until ${endDate}, then move to the Free plan. To keep it, choose it again below; the new period starts when this one ends.`
+                  : `This plan won't renew on its own. You keep it until ${endDate}, then move to the Free plan.`}
               </p>
             )}
           </div>

@@ -12,6 +12,8 @@ import { serializeForInlineScript } from "../../../../helpers/serializeForInline
 import { extractPayUFailure } from "../../../../helpers/extractPayUFailure";
 import { paymentFailureReason } from "../../../../helpers/paymentFailureReason";
 import { payuLogFields } from "../../../../helpers/payuLogFields";
+import { activatePaidSubscription, isMandateRegistered } from "../../../../helpers/activatePaidSubscription";
+import { revokeLeftoverMandates } from "../../../../helpers/teacherMandate";
 
 export async function handle(request: Request) {
   const baseUrl = "https://testkart.in";
@@ -58,9 +60,9 @@ export async function handle(request: Request) {
       mode,
     } = validatedData;
 
-    // Hash verification MUST use udf1/udf2 values as they were in the original request,
-    // regardless of where mandate details actually appear in the callback.
-    const hashString = `${PAYU_MERCHANT_SALT}|${status}||||||||||${udf5}|${udf4}|${udf3}|${udf2}|${udf1}|${email}|${firstname}|${productinfo}|${amount}|${txnid}|${PAYU_MERCHANT_KEY}`;
+    // PayU's standard reverse hash; autopay responses do not add si_details to it.
+    const additionalCharges = typeof data.additionalCharges === "string" ? data.additionalCharges.trim() : "";
+    const hashString = `${additionalCharges ? `${additionalCharges}|` : ""}${PAYU_MERCHANT_SALT}|${status}||||||${udf5}|${udf4}|${udf3}|${udf2}|${udf1}|${email}|${firstname}|${productinfo}|${amount}|${txnid}|${PAYU_MERCHANT_KEY}`;
     const calculatedHash = createHash("sha512").update(hashString).digest("hex");
 
     // Fast-fail on invalid hash
@@ -73,8 +75,8 @@ export async function handle(request: Request) {
       });
     }
 
-    // mihpayid from PayU is the mandate ID (authPayuId) used for all future SI API calls.
-    // PayU does not send a separate mandate_status field in the SI callback; if status is "success", the mandate is active.
+    // mihpayid from PayU is the mandate ID (authpayuid) used for all future SI API calls.
+    // A "success" status alone does not prove a mandate; isMandateRegistered decides that below.
     console.log(
       `[PayU Mandate] txnid=${txnid} status=${status} mihpayid=${mihpayid || "(empty)"}`
     );
@@ -134,71 +136,37 @@ export async function handle(request: Request) {
       ]);
 
       const oldPlanName = existingActiveSubscription?.oldPlanName ?? null;
-      let startDate!: Date;
-      let endDate!: Date;
+      const mandateRegistered = await isMandateRegistered(validatedData.IsStandingInstructionSet, mihpayid, mode);
+      if (!mandateRegistered) {
+        console.warn(`[PayU Mandate] txnid=${txnid} paid without a registered mandate; activating without autopay`);
+      }
 
-      await db.transaction().execute(async (trx) => {
-        startDate = new Date();
-        endDate = new Date();
-        endDate.setDate(startDate.getDate() + transaction.durationDays);
+      const activation = await db.transaction().execute((trx) =>
+        activatePaidSubscription(trx, {
+          transactionId: transaction.id,
+          teacherId: transaction.teacherId,
+          planId: transaction.planId,
+          planPrice: transaction.planPrice,
+          durationDays: transaction.durationDays,
+          paymentMethod: "payu_recurring",
+          mandate: mandateRegistered ? { mandateId: mihpayid, paymentMode: mode || null } : null,
+        })
+      );
 
-        // Deactivate any existing active subscriptions for this teacher (subscription upgrade)
-        const deactivatedCount = await trx
-          .updateTable("teacherSubscriptions")
-          .set({
-            status: "expired",
-            endDate: startDate,
-            updatedAt: startDate,
-          })
-          .where("teacherId", "=", transaction.teacherId)
-          .where("status", "=", "active")
-          .executeTakeFirst();
-
-        if (deactivatedCount.numUpdatedRows > 0n) {
-          console.log(
-            `[PayU Mandate] Deactivated ${deactivatedCount.numUpdatedRows} existing active subscription(s) for teacherId=${transaction.teacherId} as part of upgrade`
-          );
-        }
-
-        const [newSubscription] = await trx
-          .insertInto("teacherSubscriptions")
-          .values({
-            teacherId: transaction.teacherId,
-            planId: transaction.planId,
-            status: "active",
-            startDate,
-            endDate,
-            paymentMethod: "payu_recurring",
-            autoRenew: true,
-            mandateId: mihpayid,
-            mandateStatus: "active",
-            mandateMaxAmount: transaction.planPrice,
-            mandateStartDate: startDate,
-            mandateEndDate: new Date(new Date().setFullYear(new Date().getFullYear() + 5)),
-            mandateFrequency: transaction.durationDays > 31 ? "YEARLY" : "MONTHLY",
-            mandatePaymentMode: mode,
-            lastChargeDate: startDate,
-            nextChargeDate: endDate,
-          })
-          .returning("id")
-          .execute();
-
-        await trx
-          .updateTable("subscriptionTransactions")
-          .set({
-            subscriptionId: newSubscription.id,
-            status: "completed",
-          })
-          .where("id", "=", transaction.id)
-          .execute();
-
-        // Auto-verify teacher similar to one-time subscription callback
-        await trx
-          .updateTable("users")
-          .set({ isVerified: true })
-          .where("id", "=", transaction.teacherId)
-          .execute();
-      });
+      // A reconciliation got there first; the plan already exists.
+      if (!activation) {
+        return await createHtmlResponse({
+          status: "success",
+          txnid,
+          redirectUrl: `${baseRedirectUrl}?status=success`,
+          session,
+        });
+      }
+      const { startDate, endDate } = activation;
+      // The plan this one replaced may still hold a live mandate at PayU.
+      await revokeLeftoverMandates(transaction.teacherId).catch((err) =>
+        console.error("[PayU Mandate] Revoking leftover mandates failed:", err)
+      );
 
       // Email notification after transaction commits
       if (teacher) {
@@ -224,7 +192,9 @@ export async function handle(request: Request) {
       return await createHtmlResponse({
         status: "success",
         txnid,
-        redirectUrl: `${baseRedirectUrl}?status=mandate_created&txnid=${txnid}`,
+        redirectUrl: mandateRegistered
+          ? `${baseRedirectUrl}?status=mandate_created&txnid=${txnid}`
+          : `${baseRedirectUrl}?status=activated_without_autopay`,
         session,
       });
     } else if (status === "success") {

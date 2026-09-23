@@ -8,7 +8,7 @@ import { sendEmail } from "../../../../helpers/sendEmail";
 import { subscriptionRenewed } from "../../../../helpers/emailTemplates";
 import { executeSITransaction } from "../../../../helpers/payuSIApi";
 import { extractPayUFailure } from "../../../../helpers/extractPayUFailure";
-import { randomUUID } from "crypto";
+import { CHARGE_TXNID_PATTERNS, newChargeTxnid } from "../../../../helpers/teacherMandate";
 
 export async function handle(request: Request) {
   try {
@@ -82,7 +82,7 @@ export async function handle(request: Request) {
         .select("id")
         .where("subscriptionId", "=", subscription.id)
         .where("status", "=", "pending")
-        .where("transactionId", "like", "testkart-charge-%")
+        .where((eb) => eb.or(CHARGE_TXNID_PATTERNS.map((pattern) => eb("transactionId", "like", pattern))))
         .executeTakeFirst();
       if (pendingCharge) {
         throw new Error("A renewal payment for this subscription is already being processed.");
@@ -93,7 +93,7 @@ export async function handle(request: Request) {
         throw new Error("Teacher email not found. Cannot proceed with charge.");
       }
 
-      const txnid = `testkart-charge-${randomUUID()}`;
+      const txnid = newChargeTxnid();
       await trx
         .insertInto("subscriptionTransactions")
         .values({

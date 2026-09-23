@@ -3,7 +3,7 @@ import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { schema, OutputType } from "./approve-all_POST.schema";
 import { sendEmail } from "../../../helpers/sendEmail";
-import { publishApprovedContent } from "../../../helpers/contentReviewQueue";
+import { clearOpenReviews, ContentGoneError, publishApprovedContent } from "../../../helpers/contentReviewQueue";
 
 async function getEmailTemplate(templateKey: string) {
   return db
@@ -129,7 +129,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const now = new Date();
 
-    // Find all pending reviews
+    // Only pending: reviews moved to Senior approval wait for a person to decide them
     const pendingReviews = await db
       .selectFrom("contentReviews")
       .selectAll()
@@ -146,8 +146,10 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     // One transaction per item, so an item that can no longer go live (a
-    // passed live test schedule, a trashed series) stays pending on its own.
+    // passed live test schedule, a trashed series) stays pending on its own. A
+    // review whose item was deleted is removed from the queue without an email.
     const approved: typeof pendingReviews = [];
+    let removedCount = 0;
     for (const review of pendingReviews) {
       try {
         await db.transaction().execute(async (trx) => {
@@ -166,10 +168,15 @@ export async function handle(request: Request): Promise<Response> {
         });
         approved.push(review);
       } catch (err) {
+        if (err instanceof ContentGoneError) {
+          await clearOpenReviews(db, review.contentType, review.contentId);
+          removedCount++;
+          continue;
+        }
         console.warn(`Review ${review.id} left pending:`, err);
       }
     }
-    const skippedCount = pendingReviews.length - approved.length;
+    const skippedCount = pendingReviews.length - approved.length - removedCount;
 
     // Emails go out after each item's commit, without holding up the response
     const emailPromises = approved.map(async (review) => {
@@ -204,13 +211,17 @@ export async function handle(request: Request): Promise<Response> {
     // Fire and forget emails
     Promise.allSettled(emailPromises);
 
+    const removedNote =
+      removedCount > 0
+        ? ` ${removedCount} removed from the queue because the teacher deleted them (no email sent).`
+        : "";
     const output: OutputType = {
       success: true,
       approvedCount: approved.length,
       message:
-        skippedCount > 0
+        (skippedCount > 0
           ? `Approved and published ${approved.length} item(s). ${skippedCount} could not go live and are still pending - open them to see why.`
-          : `Successfully approved and published ${approved.length} item(s).`,
+          : `Successfully approved and published ${approved.length} item(s).`) + removedNote,
     };
 
     return new Response(superjson.stringify(output));

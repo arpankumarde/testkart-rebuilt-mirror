@@ -105,10 +105,13 @@
   flex-direction: column;
 }
 
+/* Every row keeps the same inset and divider so preview and locked lessons
+   line up; the clickable hover tint sits inside that inset. */
 .lessonItem {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--spacing-3);
   padding: var(--spacing-3) 0;
   border-bottom: 1px solid var(--border);
 }
@@ -120,8 +123,6 @@
 .lessonItemClickable {
   cursor: pointer;
   transition: background-color var(--animation-duration-fast);
-  margin: 0 calc(var(--spacing-4) * -1);
-  padding: var(--spacing-3) var(--spacing-4);
 }
 
 .lessonItemClickable:hover {
@@ -130,21 +131,34 @@
 
 .lessonInfo {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--spacing-3);
+  flex: 1 1 auto;
+  min-width: 0;
   color: var(--foreground);
+}
+
+/* Icon never shrinks on long titles; nudged to sit on the first text line. */
+.lessonInfo > svg {
+  flex-shrink: 0;
+  margin-top: 0.1875rem;
 }
 
 .lessonTitle {
   font-size: 0.9375rem;
+  line-height: 1.4;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .lessonMeta {
   display: flex;
   align-items: center;
   gap: var(--spacing-3);
+  flex-shrink: 0;
   color: var(--muted-foreground);
   font-size: 0.875rem;
+  white-space: nowrap;
 }
 
 .previewBadge {
@@ -233,23 +247,6 @@
   margin-bottom: var(--spacing-4);
 }
 
-.imageContainer {
-  width: 100%;
-  max-height: 70vh;
-  overflow-y: auto;
-  border-radius: var(--radius);
-  background-color: var(--muted);
-  display: flex;
-  justify-content: center;
-  padding: var(--spacing-4);
-}
-
-.previewImage {
-  max-width: 100%;
-  height: auto;
-  object-fit: contain;
-}
-
 .noPreview {
   padding: var(--spacing-8);
   text-align: center;
@@ -283,7 +280,48 @@
   }
 }
 
+.summary {
+  flex-wrap: wrap;
+}
+
+.accordionTrigger {
+  gap: var(--spacing-3);
+}
+
+.sectionTitle {
+  min-width: 0;
+}
+
+.sectionMeta {
+  flex-shrink: 0;
+}
+
 @media (max-width: 768px) {
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .accordionTrigger {
+    padding: var(--spacing-3);
+  }
+
+  .lessonList {
+    padding: var(--spacing-1) var(--spacing-3) var(--spacing-3);
+  }
+
+  .lessonInfo {
+    gap: var(--spacing-2);
+  }
+
+  .lessonTitle {
+    font-size: 0.875rem;
+  }
+
+  .lessonMeta {
+    gap: var(--spacing-2);
+    font-size: 0.8125rem;
+  }
+
   .previewDialog {
     max-width: 95vw;
   }
@@ -297,10 +335,6 @@
   }
 
   .textContent {
-    max-height: 50vh;
-  }
-
-  .imageContainer {
     max-height: 50vh;
   }
 }

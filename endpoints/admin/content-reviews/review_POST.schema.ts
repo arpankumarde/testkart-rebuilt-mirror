@@ -1,9 +1,12 @@
 import { z } from "zod";
 import superjson from "superjson";
 
+export const REVIEW_ACTIONS = ["approve", "reject", "send_to_senior", "back_to_pending"] as const;
+export type ReviewAction = (typeof REVIEW_ACTIONS)[number];
+
 export const schema = z.object({
   reviewId: z.number().int().positive(),
-  action: z.enum(["approve", "reject"]),
+  action: z.enum(REVIEW_ACTIONS),
   adminNotes: z.string().optional(),
 });
 

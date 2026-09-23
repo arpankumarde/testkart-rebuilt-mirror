@@ -20,6 +20,7 @@ import { Badge } from '../components/Badge';
 import { EmailConnectionPrompt } from '../components/EmailConnectionPrompt';
 import { R2FileUploader } from '../components/R2FileUploader';
 import { BillingDetailsSection } from '../components/BillingDetailsSection';
+import { ExamFocusSection } from '../components/ExamFocusSection';
 import { ConsolePageHeader } from '../components/ConsolePageHeader';
 
 import styles from './student.profile.module.css';
@@ -349,6 +350,8 @@ const StudentProfilePage: React.FC = () => {
             </div>
           </form>
         </Form>
+
+        <ExamFocusSection />
 
         <BillingDetailsSection />
 

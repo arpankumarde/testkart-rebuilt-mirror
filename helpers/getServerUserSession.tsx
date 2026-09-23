@@ -1,16 +1,46 @@
 import { db } from "./db";
 import { User } from "./User";
 import { TeacherRoleContext } from "./getTeacherContext";
+import { ADMIN_EDIT_MODULES, isAdminEditRouteAllowed, isAdminEditType } from "./adminContentEdit";
+import { getAdminServerSessionOrThrow } from "./getAdminSession";
+import { hasAdminModule } from "./adminPermissions";
 
 import {
   CleanupProbability,
   getServerSessionOrThrow,
   NotAuthenticatedError,
+  Session,
   SessionExpirationSeconds,
 } from "./getSetServerSession";
 
+/*
+ * An admin editing session works only on its content type's routes, and only alongside the
+ * signed-in admin who opened it while that admin still holds the section.
+ */
+async function assertAdminEditAllowed(request: Request, session: Session) {
+  const type = session.adminEditType;
+  if (!isAdminEditType(type) || session.impersonatorAdminId == null) {
+    throw new NotAuthenticatedError();
+  }
+  if (!isAdminEditRouteAllowed(type, new URL(request.url).pathname)) {
+    throw new NotAuthenticatedError("Not authenticated: admins can't do this from the admin editor");
+  }
+  let admin;
+  try {
+    admin = await getAdminServerSessionOrThrow(request);
+  } catch {
+    throw new NotAuthenticatedError();
+  }
+  if (admin.id !== session.impersonatorAdminId || !hasAdminModule(admin.permissions, [ADMIN_EDIT_MODULES[type]])) {
+    throw new NotAuthenticatedError();
+  }
+}
+
 export async function getServerUserSession(request: Request) {
   const session = await getServerSessionOrThrow(request);
+  if (session.adminEditType !== undefined) {
+    await assertAdminEditAllowed(request, session);
+  }
 
   // Occasionally clean up expired sessions
   if (Math.random() < CleanupProbability * 0.01) {

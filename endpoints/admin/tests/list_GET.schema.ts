@@ -32,6 +32,8 @@ export type AdminTestListItem = Pick<
   teacherId: Selectable<Users>["id"];
   examSlug: Selectable<Exams>["examSlug"] | null;
   examName: Selectable<Exams>["examName"] | null;
+  /* Every exam the series is listed under, primary first. examSlug/examName are the primary's. */
+  exams: { examId: number | null; examName: string }[];
   aiQuestionsCount: number;
   manualQuestionsCount: number;
   totalOrders: number;

@@ -4,6 +4,7 @@ import { schema, OutputType } from "./delete_POST.schema";
 import superjson from "superjson";
 import { deleteOwnedR2Files } from "../../../helpers/r2FileOwnership";
 import { syncMockTestAggregates } from "../../../helpers/syncMockTestAggregates";
+import { clearOpenReviews } from "../../../helpers/contentReviewQueue";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -101,6 +102,7 @@ export async function handle(request: Request): Promise<Response> {
           .where("sourceMockTestId", "=", testId)
           .execute();
 
+        await clearOpenReviews(trx, "mock_test", testId);
         await trx.deleteFrom("mockTests").where("id", "=", testId).execute();
       });
 

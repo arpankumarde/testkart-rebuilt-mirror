@@ -1,5 +1,6 @@
 import { db } from "../../helpers/db";
 import { sql } from "kysely";
+import { contentInExam } from "../../helpers/contentExams";
 import { schema, OutputType } from "./counts_GET.schema";
 import superjson from "superjson";
 
@@ -31,7 +32,7 @@ export async function handle(request: Request): Promise<Response> {
       db
         .selectFrom("mockTests")
         .select((eb) => eb.fn.countAll<number>().as("count"))
-        .where("examId", "=", examId)
+        .where(contentInExam("mock_test", "mockTests.id", "mockTests.examId", examId))
         .where("isPublished", "=", true)
         .where("deletedAt", "is", null)
         .where((eb) =>
@@ -47,14 +48,14 @@ export async function handle(request: Request): Promise<Response> {
       db
         .selectFrom("digitalProducts")
         .select((eb) => eb.fn.countAll<number>().as("count"))
-        .where("examId", "=", examId)
+        .where(contentInExam("digital_product", "digitalProducts.id", "digitalProducts.examId", examId))
         .where("status", "=", "published")
         .where("isPublished", "=", true)
         .executeTakeFirst(),
       db
         .selectFrom("courses")
         .select((eb) => eb.fn.countAll<number>().as("count"))
-        .where("examId", "=", examId)
+        .where(contentInExam("course", "courses.id", "courses.examId", examId))
         .where("status", "=", "published")
         .executeTakeFirst(),
       db
@@ -68,7 +69,9 @@ export async function handle(request: Request): Promise<Response> {
             LEFT JOIN digital_products dp ON dp.id = cbi.digital_product_id
             LEFT JOIN courses c ON c.id = cbi.course_id
             WHERE cbi.bundle_id = course_bundles.id
-              AND (mt.exam_id = ${examId} OR dp.exam_id = ${examId} OR c.exam_id = ${examId})
+              AND (${contentInExam("mock_test", "mt.id", "mt.examId", examId)}
+                OR ${contentInExam("digital_product", "dp.id", "dp.examId", examId)}
+                OR ${contentInExam("course", "c.id", "c.examId", examId)})
           )`
         )
         .executeTakeFirst(),

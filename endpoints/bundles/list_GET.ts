@@ -2,6 +2,7 @@ import { db } from "../../helpers/db";
 import { OutputType, schema } from "./list_GET.schema";
 import superjson from "superjson";
 import { sql } from "kysely";
+import { contentInExam } from "../../helpers/contentExams";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -75,8 +76,8 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     // A bundle is "for" an exam if ANY of its items (mock test, digital
-    // product, or course) is tagged to that exam — bundles have no exam
-    // field of their own, so this is derived rather than a direct filter.
+    // product, or course) is listed under that exam, as its primary exam or
+    // any other - bundles have no exam field of their own.
     if (examId) {
       const examRelevance = sql<boolean>`EXISTS (
         SELECT 1 FROM course_bundle_items cbi
@@ -84,7 +85,9 @@ export async function handle(request: Request): Promise<Response> {
         LEFT JOIN digital_products dp ON dp.id = cbi.digital_product_id
         LEFT JOIN courses c ON c.id = cbi.course_id
         WHERE cbi.bundle_id = course_bundles.id
-          AND (mt.exam_id = ${examId} OR dp.exam_id = ${examId} OR c.exam_id = ${examId})
+          AND (${contentInExam("mock_test", "mt.id", "mt.examId", examId)}
+            OR ${contentInExam("digital_product", "dp.id", "dp.examId", examId)}
+            OR ${contentInExam("course", "c.id", "c.examId", examId)})
       )`;
       query = query.where(examRelevance);
       countQuery = countQuery.where(examRelevance);
@@ -111,7 +114,11 @@ export async function handle(request: Request): Promise<Response> {
 
     const bundlesQuery = query
       .selectAll("courseBundles")
-      .select(["users.displayName as teacherName", "users.isVerified as teacherIsVerified"])
+      .select([
+        "users.displayName as teacherName",
+        "users.isVerified as teacherIsVerified",
+        "users.avatarUrl as teacherAvatarUrl",
+      ])
       .select((eb) => [
         sql<number>`(
           SELECT COUNT(*)

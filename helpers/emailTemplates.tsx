@@ -447,7 +447,7 @@ export const subscriptionCancelled = (
     accent: "warning",
     heading: "Subscription Cancelled",
     subheading: `Hi ${teacherName}`,
-    bodyHtml: `<p style="margin:0;">We've processed your request to cancel your <strong>${planName}</strong> subscription. You will continue to have access to all your subscription benefits until <strong>${format(endDate, "PPP")}</strong>.</p>`,
+    bodyHtml: `<p style="margin:0;">We've processed your request to cancel your <strong>${planName}</strong> subscription. You will continue to have access to all your subscription benefits until <strong>${format(endDate, "PPP")}</strong>. You won't be charged again, and after that date your account moves to the Free plan.</p>`,
     ctaLabel: "Resubscribe",
     ctaUrl: "https://testkart.in/teacher/subscription",
   });

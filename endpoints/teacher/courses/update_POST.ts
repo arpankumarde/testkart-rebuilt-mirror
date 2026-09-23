@@ -1,13 +1,20 @@
 import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { slugify } from "../../../helpers/slugify";
-import { resolveExamByName } from "../../../helpers/resolveExam";
+import {
+  ContentExamError,
+  loadContentExamList,
+  primaryExamFields,
+  resolveExamSelection,
+  saveContentExams,
+} from "../../../helpers/contentExams";
 import type { Courses } from "../../../helpers/schema";
 import { schema, OutputType } from "./update_POST.schema";
 import superjson from "superjson";
 import type { Updateable } from "kysely";
 import { ZodError } from "zod";
 import { sanitizeHtml } from "../../../helpers/sanitizeHtml";
+import { courseDiscountError } from "../../../helpers/coursePricing";
 
 async function generateUniqueSlug(baseTitle: string, excludeCourseId: number): Promise<string> {
   const baseSlug = slugify(baseTitle);
@@ -56,12 +63,12 @@ export async function handle(request: Request): Promise<Response> {
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);
 
-    const { courseId, price, examName, ...fields } = input;
+    const { courseId, price, discountPrice, examName, examNames, ...fields } = input;
 
     // Verify ownership
     const existingCourse = await db
       .selectFrom("courses")
-      .select(["teacherId", "status", "title"])
+      .select(["teacherId", "status", "title", "discountPrice"])
       .where("id", "=", courseId)
       .executeTakeFirst();
 
@@ -86,7 +93,14 @@ export async function handle(request: Request): Promise<Response> {
       slug = await generateUniqueSlug(fields.title, courseId);
     }
 
-    const resolvedExam = examName !== undefined ? await resolveExamByName(examName) : undefined;
+    const exams =
+      examNames !== undefined || examName !== undefined
+        ? await resolveExamSelection({
+            examNames,
+            examName,
+            existing: await loadContentExamList(db, "course", courseId),
+          })
+        : undefined;
 
     // Only columns present in the request are written. An omitted optional field
     // keeps its stored value; an explicit null clears it.
@@ -97,12 +111,30 @@ export async function handle(request: Request): Promise<Response> {
       }
     }
     if (price !== undefined) changes.price = price.toString();
+
+    // Discounted price: an omitted value keeps the stored one, but it is
+    // re-checked against the (possibly new) price. Making a course free
+    // clears its discount.
+    if (price === 0 && discountPrice === undefined) {
+      changes.discountPrice = null;
+    } else {
+      const nextDiscount =
+        discountPrice !== undefined
+          ? discountPrice
+          : existingCourse.discountPrice === null
+            ? null
+            : Number(existingCourse.discountPrice);
+      const discountError = courseDiscountError(price, nextDiscount);
+      if (discountError) {
+        return new Response(superjson.stringify({ error: discountError }), { status: 400 });
+      }
+      if (discountPrice !== undefined) {
+        changes.discountPrice = discountPrice === null ? null : discountPrice.toString();
+      }
+    }
     if (typeof changes.description === "string") changes.description = sanitizeHtml(changes.description);
     if (slug) changes.slug = slug;
-    if (resolvedExam) {
-      changes.examId = resolvedExam.examId;
-      changes.examName = resolvedExam.examName;
-    }
+    if (exams) Object.assign(changes, primaryExamFields(exams));
 
     const updatedCourse = await db
       .updateTable("courses")
@@ -111,13 +143,19 @@ export async function handle(request: Request): Promise<Response> {
       .returningAll()
       .executeTakeFirstOrThrow();
 
+    if (exams) await saveContentExams(db, "course", courseId, exams);
+
     const output: OutputType = {
       ...updatedCourse,
       price: Number(updatedCourse.price),
+      discountPrice: updatedCourse.discountPrice === null ? null : Number(updatedCourse.discountPrice),
     };
 
     return new Response(superjson.stringify(output));
   } catch (error) {
+    if (error instanceof ContentExamError) {
+      return new Response(superjson.stringify({ error: error.message }), { status: 400 });
+    }
     if (error instanceof ZodError) {
       return new Response(
         superjson.stringify({ error: error.errors[0]?.message ?? "Invalid course details" }),

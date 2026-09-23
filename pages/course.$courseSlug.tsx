@@ -10,6 +10,7 @@ import { CourseCurriculum } from '../components/CourseCurriculum';
 import { TeacherProfileCard } from '../components/TeacherProfileCard';
 import { TeacherCtaBanner } from '../components/TeacherCtaBanner';
 import { MobileStickyPurchaseBar } from '../components/MobileStickyPurchaseBar';
+import { PublicCouponsCard } from '../components/PublicCouponsCard';
 import { AlertCircle, BookOpen, CheckCircle, Star } from "lucide-react";
 import { ReviewDialog } from '../components/ReviewDialog';
 import { useAuth } from '../helpers/useAuth';
@@ -101,7 +102,7 @@ export default function CourseDetailsPage() {
     if (desc && desc.length >= 50) return desc;
     const lessonCount = course.sections.reduce((sum, section) => sum + section.lessons.length, 0);
     const lessonsText = lessonCount > 0 ? `${lessonCount} lesson${lessonCount > 1 ? "s" : ""}` : "a structured curriculum";
-    const priceText = course.price === 0 ? "Free" : `₹${course.price}`;
+    const priceText = course.price === 0 ? "Free" : `₹${course.discountPrice ?? course.price}`;
     const examText = course.examName ? `Prepare for ${course.examName} with` : "Learn with";
     return `${course.title} - ${lessonsText} by ${course.teacher?.displayName || "expert educators"} | ${priceText} | ${examText} this course on Testkart`;
   }, [course]);
@@ -129,7 +130,7 @@ export default function CourseDetailsPage() {
       "url": canonicalUrl,
       "offers": {
         "@type": "Offer",
-        "price": course.price === 0 ? "0" : course.price.toString(),
+        "price": course.price === 0 ? "0" : (course.discountPrice ?? course.price).toString(),
         "priceCurrency": "INR",
         "availability": "https://schema.org/InStock",
         "url": canonicalUrl,
@@ -235,13 +236,16 @@ export default function CourseDetailsPage() {
         </script>
       )}
 
-      <CourseHero course={course} />
+      <CourseHero course={course} slug={courseSlug!} />
 
       
 
       {/* Main Content */}
       <div className={styles.contentWrapper}>
         <main className={styles.mainColumn}>
+          {!course.isEnrolled && !isFree && (
+            <PublicCouponsCard itemType="course" itemId={course.id} />
+          )}
           
 
 
@@ -398,6 +402,7 @@ export default function CourseDetailsPage() {
           type: 'course',
           id: course.id,
           price: course.price,
+          discountPrice: course.discountPrice,
           isEnrolled: course.isEnrolled,
         }}
         isVisible={isStickyBarVisible}

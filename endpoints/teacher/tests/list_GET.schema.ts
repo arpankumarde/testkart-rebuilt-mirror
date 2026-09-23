@@ -2,6 +2,7 @@ import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
 import { MockTests } from "../../../helpers/schema";
+import type { ContentExam } from "../../../helpers/contentExams";
 
 export const schema = z.object({});
 
@@ -12,6 +13,8 @@ export type TeacherTest = Omit<Selectable<MockTests>, "price" | "rating"> & {
   rating: number | null;
   testItemsCount: number;
   examSlug: string | null;
+  /** Every exam the series is listed under, primary first. */
+  exams: ContentExam[];
   /** Submitted for publishing and waiting on admin approval. */
   inReview: boolean;
 };

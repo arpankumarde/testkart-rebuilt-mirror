@@ -66,5 +66,8 @@ export function describeMcpScope() {
     read: "Reads cover the admin surfaces exposed by the testkart_read tool.",
     write: [...MCP_WRITE_ALLOWLIST].sort(),
     requiresConfirmation: [...MCP_DESTRUCTIVE].sort(),
+    contentEdit:
+      "content_edit changes teacher courses, test series, live tests, study notes and bundles " +
+      "with the admin panel editor's actions; content_edit_actions lists them.",
   };
 }

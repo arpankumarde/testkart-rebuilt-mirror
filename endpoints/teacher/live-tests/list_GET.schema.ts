@@ -2,6 +2,7 @@ import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
 import { LiveTests } from "../../../helpers/schema";
+import type { ContentExam } from "../../../helpers/contentExams";
 
 export const LiveTestStatusArray = [
   "draft",
@@ -46,6 +47,8 @@ export type TeacherLiveTestItem = Omit<Selectable<LiveTests>, "price" | "totalPr
   subjectWiseTiming: boolean;
   questionWiseTiming: boolean;
   status: LiveTestStatus;
+  /** Every exam the live test is listed under (from its mock test), primary first. */
+  exams: ContentExam[];
   /** Submitted for publishing and waiting on admin approval. */
   inReview: boolean;
 };

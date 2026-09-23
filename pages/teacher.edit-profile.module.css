@@ -336,6 +336,14 @@
   display: block;
 }
 
+/* The panel is already the card, so the shared exam focus section drops its own frame here. */
+.examFocusSection {
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
 .saveBar {
   display: flex;
   align-items: center;

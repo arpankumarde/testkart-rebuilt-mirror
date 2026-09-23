@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import {
   Sheet,
   SheetContent,
@@ -9,7 +10,7 @@ import {
 } from "./Sheet";
 import { Badge } from "./Badge";
 import { Button } from "./Button";
-import { ExternalLink, Ban, ScanEye } from "lucide-react";
+import { ExternalLink, Ban, ScanEye, Pencil } from "lucide-react";
 import styles from "./AdminProductDetailPanel.module.css";
 
 export interface AdminProductDetailStat {
@@ -31,6 +32,8 @@ interface AdminProductDetailPanelProps {
   publicUrl: string | null;
   /** Admin-only preview of every lesson, test, question and file, in any status */
   previewUrl?: string;
+  /** Admin editor for the item's content; opens in this tab */
+  editUrl?: string | null;
   teacherName: string;
   price: number;
   createdAt: Date | string | null;
@@ -60,6 +63,7 @@ export const AdminProductDetailPanel: React.FC<AdminProductDetailPanelProps> = (
   isLive,
   publicUrl,
   previewUrl,
+  editUrl,
   teacherName,
   price,
   createdAt,
@@ -69,7 +73,7 @@ export const AdminProductDetailPanel: React.FC<AdminProductDetailPanelProps> = (
   unpublishLabel = "Unpublish",
   unpublishPendingLabel = "Unpublishing...",
 }) => {
-  const hasActions = !!previewUrl || !!publicUrl || !!onUnpublish;
+  const hasActions = !!previewUrl || !!editUrl || !!publicUrl || !!onUnpublish;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -142,6 +146,14 @@ export const AdminProductDetailPanel: React.FC<AdminProductDetailPanelProps> = (
                   <ScanEye size={14} />
                   Preview content
                 </a>
+              </Button>
+            )}
+            {editUrl && (
+              <Button variant="outline" asChild>
+                <Link to={editUrl}>
+                  <Pencil size={14} />
+                  Edit
+                </Link>
               </Button>
             )}
             {publicUrl && (

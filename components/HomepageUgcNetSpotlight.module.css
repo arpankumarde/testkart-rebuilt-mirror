@@ -1,0 +1,570 @@
+/*
+ * UGC NET spotlight: a coral profile band in TeacherCtaBanner's colours
+ * (fixed in both themes, --tk-brand-ink on --tk-brand at 6.2:1) above a
+ * themed card surface listing his items. The section is the query container,
+ * so the layout follows the homepage column rather than the viewport: compact
+ * rows on phones, full cards (up to 4 across) from tablet width up.
+ *
+ * Edges are kept at 3:1 or better against their surface in both themes: the
+ * block is framed in --tk-brand-text and cards use --spot-edge, a solid mix of
+ * the card text colour into the card surface.
+ */
+.section {
+  --spot-edge: color-mix(in srgb, var(--card-foreground) 50%, var(--card));
+  container-type: inline-size;
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--card);
+  color: var(--card-foreground);
+  border: 2px solid var(--tk-brand-text);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.profile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-4);
+  padding: var(--spacing-6) 1.25rem;
+  background-color: var(--tk-brand);
+  color: var(--tk-brand-ink);
+  min-width: 0;
+}
+
+.chip {
+  display: inline-block;
+  padding: 0.3125rem 0.5625rem;
+  background-color: #fff;
+  color: var(--tk-brand-deep);
+  border-radius: var(--radius-sm);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  min-width: 0;
+}
+
+.portrait {
+  flex: 0 0 auto;
+  width: 5.5rem;
+  height: 5.5rem;
+  object-fit: cover;
+  object-position: center 15%;
+  border: 3px solid var(--tk-brand-ink);
+  border-radius: 50%;
+  background-color: #eef1f5;
+}
+
+.nameBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--tk-brand-ink);
+  text-wrap: balance;
+}
+
+.academy {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--tk-brand-ink);
+}
+
+.lede {
+  margin: 0;
+  max-width: 52ch;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.55;
+  color: var(--tk-brand-ink);
+}
+
+.credentials {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  margin: 0;
+  border-top: 2px solid var(--tk-brand-ink);
+}
+
+.credential {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: 0.125rem;
+  padding: var(--spacing-3) var(--spacing-3) 0 0;
+}
+
+.credential:nth-child(even) {
+  padding-left: var(--spacing-3);
+  border-left: 2px solid var(--tk-brand-ink);
+}
+
+.credentialValue {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.credentialLabel {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-2);
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0 1.125rem;
+  border: 2px solid var(--tk-brand-ink);
+  border-radius: var(--radius-md);
+  background-color: var(--tk-brand-ink);
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    border-color var(--animation-duration-fast) ease;
+}
+
+.action:hover {
+  background-color: var(--tk-brand-ink-hover);
+  border-color: var(--tk-brand-ink-hover);
+}
+
+.action:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--tk-brand),
+    0 0 0 4px var(--tk-brand-ink);
+}
+
+.catalog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: 1.25rem 1.25rem var(--spacing-6);
+  min-width: 0;
+}
+
+.catalogHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+}
+
+.catalogTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 800;
+  line-height: 1.3;
+  color: var(--card-foreground);
+}
+
+.viewAllLink {
+  flex: 0 0 auto;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--tk-brand-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.viewAllLink:hover {
+  color: var(--tk-brand-hover);
+  text-decoration-thickness: 2px;
+}
+
+.list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.listItem {
+  min-width: 0;
+}
+
+/* Phones: a compact row with a small thumbnail on the left. */
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  height: 100%;
+  box-sizing: border-box;
+  padding: var(--spacing-3);
+  border: 1px solid var(--spot-edge);
+  border-radius: var(--radius-md);
+  background-color: var(--card);
+  color: var(--card-foreground);
+  text-decoration: none;
+  overflow: hidden;
+  transition: border-color var(--animation-duration-fast) ease;
+}
+
+a.row:hover {
+  border-color: var(--tk-brand-text);
+  box-shadow: inset 0 0 0 1px var(--tk-brand-text);
+}
+
+a.row:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.thumb,
+.cover,
+.skeletonThumb {
+  flex: 0 0 auto;
+  width: 6.5rem;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-sm);
+}
+
+.thumb {
+  display: block;
+  height: auto;
+  object-fit: cover;
+  background-color: var(--muted);
+}
+
+/* Study notes cover, on brand ink in both themes: white numbers (15:1),
+   coral unit and mark (6.2:1). */
+.cover {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  box-sizing: border-box;
+  padding: 0.375rem 0.5rem;
+  overflow: hidden;
+  background-color: var(--tk-brand-ink);
+  color: #fff;
+}
+
+.coverChip {
+  display: none;
+}
+
+.coverCount {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  column-gap: 0.25rem;
+  margin-top: auto;
+}
+
+.coverNumber {
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
+.coverUnit {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--tk-brand);
+}
+
+.coverMark {
+  display: none;
+}
+
+.rowBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.kind {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.3;
+  color: var(--tk-brand-text);
+}
+
+.rowTitle {
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--card-foreground);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+a.row:hover .rowTitle {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.rowFooter {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  column-gap: var(--spacing-3);
+}
+
+.meta {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--card-foreground);
+}
+
+.price,
+.priceFree {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.price {
+  color: var(--tk-brand-text);
+}
+
+.priceFree {
+  color: color-mix(in srgb, var(--success), var(--foreground) 50%);
+}
+
+.chevron {
+  flex: 0 0 auto;
+  color: var(--card-foreground);
+}
+
+.skeletonLine {
+  height: 1rem;
+  width: 100%;
+}
+
+.skeletonLineShort {
+  height: 0.875rem;
+  width: 55%;
+}
+
+/* Tablet and up: each item becomes a full card with the thumbnail on top. */
+@container (min-width: 40rem) {
+  .list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--spacing-4);
+  }
+
+  .row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 0;
+  }
+
+  .thumb,
+  .cover,
+  .skeletonThumb {
+    width: 100%;
+    border-radius: 0;
+  }
+
+  .cover {
+    padding: var(--spacing-4);
+  }
+
+  .coverChip {
+    position: relative;
+    z-index: 1;
+    display: inline-block;
+    padding: 0.3125rem 0.5625rem;
+    background-color: #fff;
+    color: var(--tk-brand-ink);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .coverNumber {
+    font-size: 2.25rem;
+  }
+
+  .coverUnit {
+    font-size: 1rem;
+  }
+
+  .coverMark {
+    display: block;
+    position: absolute;
+    top: var(--spacing-4);
+    right: var(--spacing-4);
+    width: 2.5rem;
+    height: 2.5rem;
+    color: var(--tk-brand);
+  }
+
+  .rowBody {
+    gap: var(--spacing-2);
+    padding: var(--spacing-4);
+  }
+
+  .kind {
+    font-size: 0.75rem;
+  }
+
+  .rowTitle {
+    font-size: 1rem;
+    min-height: 2.7em;
+    -webkit-line-clamp: 3;
+  }
+
+  .rowFooter {
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: var(--spacing-2);
+  }
+
+  .meta {
+    font-size: 0.875rem;
+  }
+
+  .price,
+  .priceFree {
+    font-size: 1.125rem;
+  }
+
+  .chevron {
+    display: none;
+  }
+}
+
+/* Desktop: the profile becomes a wide band (copy left, credentials right) and
+   the cards run four across, the same size as the other homepage cards. */
+@container (min-width: 56rem) {
+  .profile {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 26rem);
+    grid-template-areas:
+      "chip creds"
+      "identity creds"
+      "lede creds"
+      "actions creds";
+    column-gap: var(--spacing-12);
+    row-gap: var(--spacing-4);
+    align-items: start;
+    padding: var(--spacing-8);
+  }
+
+  .chip {
+    grid-area: chip;
+    justify-self: start;
+  }
+
+  .identity {
+    grid-area: identity;
+  }
+
+  .lede {
+    grid-area: lede;
+    font-size: 1rem;
+  }
+
+  .actions {
+    grid-area: actions;
+    margin-top: 0;
+  }
+
+  .credentials {
+    grid-area: creds;
+    align-self: center;
+  }
+
+  .credentialValue {
+    font-size: 1.625rem;
+  }
+
+  .title {
+    font-size: 2.25rem;
+  }
+
+  .portrait {
+    width: 6.5rem;
+    height: 6.5rem;
+  }
+
+  .catalog {
+    padding: var(--spacing-6) var(--spacing-8) var(--spacing-8);
+  }
+
+  .catalogTitle {
+    font-size: 1.25rem;
+  }
+
+  .list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@container (min-width: 72rem) {
+  .coverNumber {
+    font-size: 2.75rem;
+  }
+
+  .coverMark {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .action,
+  .row {
+    transition: none;
+  }
+}

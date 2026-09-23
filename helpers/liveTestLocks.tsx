@@ -6,6 +6,7 @@
  */
 export const LIVE_TEST_PUBLISHED_LOCKED_FIELDS = [
   "examName",
+  "examNames",
   "durationMinutes",
   "calculatorEnabled",
   "subjectWiseTiming",
@@ -30,6 +31,7 @@ export const LIVE_TEST_FIELD_LABELS: Record<string, string> = {
   title: "Title",
   description: "Description",
   examName: "Exam",
+  examNames: "Exam",
   language: "Language",
   durationMinutes: "Duration",
   calculatorEnabled: "Calculator",

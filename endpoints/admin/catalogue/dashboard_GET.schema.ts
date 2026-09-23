@@ -23,6 +23,7 @@ export type ContentKind = (typeof ContentKindValues)[number];
 export type ContentQueues = {
   reviewsPending: number;
   reviewsOldestDays: number;
+  reviewsSenior: number;
   prizesUndistributed: number;
   emptySeries: number;
   testsWithoutQuestions: number;

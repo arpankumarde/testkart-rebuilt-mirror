@@ -6,6 +6,7 @@ import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
 import { ZodError } from "zod";
 import { User } from "../../../helpers/User";
 import { checkTeacherSecondContact } from "../../../helpers/teacherSignupContact";
+import { ExamFocusError, saveExamFocus } from "../../../helpers/examFocus";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -28,6 +29,30 @@ export async function handle(request: Request): Promise<Response> {
 
     const json = superjson.parse(await request.text());
     const validatedInput = schema.parse(json);
+
+    let examIds = validatedInput.examIds;
+    if (!examIds?.length) {
+      const names = [...new Set((validatedInput.targetExams ?? []).map((name) => name.trim().toLowerCase()))];
+      const matches = await db
+        .selectFrom("exams")
+        .select(["id", "examName"])
+        .where((eb) => eb(eb.fn("lower", ["examName"]), "in", names))
+        .orderBy("id", "asc")
+        .execute();
+      const idByName = new Map<string, number>();
+      for (const exam of matches) {
+        const key = exam.examName.toLowerCase();
+        if (!idByName.has(key)) idByName.set(key, exam.id);
+      }
+      const unknown = names.filter((name) => !idByName.has(name));
+      if (unknown.length > 0) {
+        return new Response(
+          superjson.stringify({ error: `Not an official exam: ${unknown.join(", ")}. Pick exams from the exam list.` }),
+          { status: 400 }
+        );
+      }
+      examIds = names.map((name) => idByName.get(name)!);
+    }
 
     const existingUser = await db
       .selectFrom("users")
@@ -64,31 +89,35 @@ export async function handle(request: Request): Promise<Response> {
       }
     }
 
-    const [updatedUser] = await db
-      .updateTable("users")
-      .set({
-        teachingCategories: validatedInput.teachingCategories,
-        expertiseAreas: validatedInput.subjects,
-        targetExams: validatedInput.targetExams,
-        teachingExperienceLevel: validatedInput.teachingExperienceLevel,
-        currentOccupation: validatedInput.currentOccupation,
-        productInterest: validatedInput.contentTypes,
-        languages: validatedInput.languages,
-        goals: validatedInput.goals,
-        discoverySource: validatedInput.discoverySource,
-        academyName: validatedInput.academyName ?? null,
-        schoolCollegeName: validatedInput.schoolCollegeName ?? null,
-        location: validatedInput.location ?? null,
-        websiteUrl: validatedInput.websiteUrl ?? null,
-        socialLinks: validatedInput.socialLinks ?? null,
-        ...(signupSourceValue !== undefined && { signupSource: signupSourceValue }),
-        ...contactUpdates,
-        onboardingCompleted: true,
-        updatedAt: new Date(),
-      })
-      .where("id", "=", effectiveTeacherId)
-      .returningAll()
-      .execute();
+    const focusIds = examIds;
+    const { updatedUser, examFocus } = await db.transaction().execute(async (trx) => {
+      const [row] = await trx
+        .updateTable("users")
+        .set({
+          teachingCategories: validatedInput.teachingCategories,
+          expertiseAreas: validatedInput.subjects,
+          teachingExperienceLevel: validatedInput.teachingExperienceLevel,
+          currentOccupation: validatedInput.currentOccupation,
+          productInterest: validatedInput.contentTypes,
+          languages: validatedInput.languages,
+          goals: validatedInput.goals,
+          discoverySource: validatedInput.discoverySource,
+          academyName: validatedInput.academyName ?? null,
+          schoolCollegeName: validatedInput.schoolCollegeName ?? null,
+          location: validatedInput.location ?? null,
+          websiteUrl: validatedInput.websiteUrl ?? null,
+          socialLinks: validatedInput.socialLinks ?? null,
+          ...(signupSourceValue !== undefined && { signupSource: signupSourceValue }),
+          ...contactUpdates,
+          onboardingCompleted: true,
+          updatedAt: new Date(),
+        })
+        .where("id", "=", effectiveTeacherId)
+        .returningAll()
+        .execute();
+      if (!row) return { updatedUser: undefined, examFocus: [] };
+      return { updatedUser: row, examFocus: await saveExamFocus(trx, effectiveTeacherId, "teacher", focusIds) };
+    });
 
     if (!updatedUser) {
       return new Response(
@@ -118,7 +147,9 @@ export async function handle(request: Request): Promise<Response> {
       socialLinks: updatedUser.socialLinks as User["socialLinks"],
       awardsCertificates: updatedUser.awardsCertificates as User["awardsCertificates"],
       teachingCategories: updatedUser.teachingCategories as string[] | null,
-      targetExams: updatedUser.targetExams as string[] | null,
+      targetExams: examFocus.map((exam) => exam.examName),
+      examFocus,
+      examFocusPromptDue: false,
       teachingExperienceLevel: updatedUser.teachingExperienceLevel,
       currentOccupation: updatedUser.currentOccupation,
       goals: updatedUser.goals,
@@ -144,6 +175,9 @@ export async function handle(request: Request): Promise<Response> {
         superjson.stringify({ error: error.errors[0]?.message ?? "Validation error" }),
         { status: 400 }
       );
+    }
+    if (error instanceof ExamFocusError) {
+      return new Response(superjson.stringify({ error: error.message }), { status: 400 });
     }
     if (error instanceof Error) {
       return new Response(

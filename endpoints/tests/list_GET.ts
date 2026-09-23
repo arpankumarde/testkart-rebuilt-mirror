@@ -4,6 +4,7 @@ import { OutputType } from "./list_GET.schema";
 import superjson from "superjson";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { slugify } from "../../helpers/slugify";
+import { contentInExam } from "../../helpers/contentExams";
 
 export async function handle(request: Request) {
   try {
@@ -119,8 +120,17 @@ export async function handle(request: Request) {
       );
     }
 
+    // Rows present the requested exam even when it is not their primary exam, because clients (the
+    // mobile app) filter the list on examSlug.
+    let requestedExam: { examName: string; examSlug: string } | undefined;
     if (examId) {
-      query = query.where("mockTests.examId", "=", parseInt(examId, 10));
+      const requestedExamId = parseInt(examId, 10);
+      query = query.where(contentInExam("mock_test", "mockTests.id", "mockTests.examId", requestedExamId));
+      requestedExam = await db
+        .selectFrom("exams")
+        .select(["examName", "examSlug"])
+        .where("id", "=", requestedExamId)
+        .executeTakeFirst();
     }
 
     if (language) {
@@ -148,13 +158,16 @@ export async function handle(request: Request) {
     const countResult = await countQuery.executeTakeFirst();
     const totalCount = Number(countResult?.count ?? 0);
 
-    // Apply sorting
+    // Apply sorting. Price sorts use the price the card shows (the discount
+    // price when set), not the list price, and break ties by views so equal
+    // prices keep a sensible order.
+    const effectivePrice = sql`COALESCE(mock_tests.discount_price, mock_tests.price)`;
     switch (sortBy) {
       case 'price_asc':
-        query = query.orderBy("mockTests.price", "asc");
+        query = query.orderBy(effectivePrice, "asc").orderBy(sql`COALESCE(mock_tests.views, 0)`, "desc");
         break;
       case 'price_desc':
-        query = query.orderBy("mockTests.price", "desc");
+        query = query.orderBy(effectivePrice, "desc").orderBy(sql`COALESCE(mock_tests.views, 0)`, "desc");
         break;
             case 'popular':
         query = query.orderBy(sql`(
@@ -170,6 +183,8 @@ export async function handle(request: Request) {
         query = query.orderBy("mockTests.createdAt", "desc");
         break;
     }
+    // Unique last key so equal sort values cannot repeat or skip rows across pages
+    query = query.orderBy("mockTests.id", "desc");
 
     // Apply pagination
     const offset = (page - 1) * limit;
@@ -228,14 +243,16 @@ export async function handle(request: Request) {
         const freeTestsCount = itemCounts.free;
         
         // Generate examSlug fallback if exam_slug is null
-        let examSlug = test.examSlug;
-        if (!examSlug && test.examName) {
-          const fallbackSlug = slugify(test.examName);
+        let examSlug = requestedExam?.examSlug ?? test.examSlug;
+        const examName = requestedExam?.examName ?? test.examName;
+        if (!examSlug && examName) {
+          const fallbackSlug = slugify(examName);
           examSlug = fallbackSlug || "general-exam";
         }
         
         return {
           ...test,
+          examName,
           durationMinutes,
           price,
           discountPrice,

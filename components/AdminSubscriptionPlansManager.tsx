@@ -127,9 +127,9 @@ const PaymentModeSection: React.FC = () => {
             <div className={styles.radioCircle}>
               {selectedMode === "recurring" && <div className={styles.radioCircleInner} />}
             </div>
-            <span className={styles.radioLabel}>Recurring (UPI Autopay)</span>
+            <span className={styles.radioLabel}>Recurring (Autopay)</span>
           </div>
-          <p className={styles.radioDesc}>Teachers set up UPI mandate for auto-renewal. Requires PayU SI activation.</p>
+          <p className={styles.radioDesc}>Teachers set up an autopay mandate and each renewal is charged automatically. Methods are whatever PayU has enabled: cards, UPI Autopay, net banking.</p>
         </div>
       </div>
 

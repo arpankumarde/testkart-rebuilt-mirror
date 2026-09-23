@@ -1,0 +1,16 @@
+.tabs {
+  margin-bottom: var(--spacing-4);
+}
+
+.panel {
+  outline: none;
+}
+
+.panel[data-state="inactive"] {
+  display: none;
+}
+
+.form {
+  width: 100%;
+  max-width: 46rem;
+}

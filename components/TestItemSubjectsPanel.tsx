@@ -9,6 +9,7 @@ import {
   useTestItemSubjectsQuery,
   useTestItemSubjectsMutations,
 } from "../helpers/useTestItemSubjectsQuery";
+import { useAdminContentEdit } from "../helpers/useAdminContentEdit";
 import styles from "./TestItemSubjectsPanel.module.css";
 
 type TestItemSubjectsPanelProps = {
@@ -22,6 +23,11 @@ export const TestItemSubjectsPanel = ({
   itemId,
   subjectWiseTiming,
 }: TestItemSubjectsPanelProps) => {
+  const adminEdit = useAdminContentEdit();
+  const questionsHref = (subjectId: number) =>
+    adminEdit
+      ? `/admin/test-series/${packageId}/items/${itemId}/questions?subjectId=${subjectId}`
+      : `/teacher/create-test/${packageId}/test-items/${itemId}/questions?subjectId=${subjectId}`;
   const {
     data: subjects,
     isFetching: isSubjectsFetching,
@@ -112,7 +118,7 @@ export const TestItemSubjectsPanel = ({
             <div key={subject.id} className={styles.subjectCard}>
               <div className={styles.subjectContent}>
                 <Link
-                  to={`/teacher/create-test/${packageId}/test-items/${itemId}/questions?subjectId=${subject.id}`}
+                  to={questionsHref(subject.id)}
                   className={styles.subjectTitle}
                 >
                   {subject.subjectName}
@@ -134,9 +140,7 @@ export const TestItemSubjectsPanel = ({
               </div>
               <div className={styles.subjectActions}>
                 <Button asChild variant="outline" size="sm">
-                  <Link
-                    to={`/teacher/create-test/${packageId}/test-items/${itemId}/questions?subjectId=${subject.id}`}
-                  >
+                  <Link to={questionsHref(subject.id)}>
                     Manage Questions
                   </Link>
                 </Button>

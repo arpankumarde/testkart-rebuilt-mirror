@@ -50,6 +50,7 @@ export const liveTestCreationFormSchema = z
     hasPrizes: z.boolean().optional().default(false),
     prizeTiers: z.array(prizeTierSchema).optional().default([]),
     examName: z.string().optional().nullable(),
+    examNames: z.array(z.string()).max(5, 'Pick up to 5 exams.').optional().default([]),
   })
   .refine((data) => {
     if (data.registrationDeadline && data.startTime) {

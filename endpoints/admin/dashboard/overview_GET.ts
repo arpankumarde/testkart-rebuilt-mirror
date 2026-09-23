@@ -64,6 +64,7 @@ const ATTENTION_MODULE: Record<keyof AttentionCounts, AdminModule> = {
   inquiriesPending: "teacher_inquiries",
   contactNew: "contact_submissions",
   reviewsPending: "content_reviews",
+  reviewsSenior: "content_reviews",
   demoRequestsNew: "sales",
   followupsOverdue: "sales",
   prizesUndistributed: "live_tests",
@@ -164,6 +165,7 @@ export async function handle(request: Request): Promise<Response> {
             (SELECT count(*) FROM teacher_inquiries WHERE status = 'pending') AS inquiries_pending,
             (SELECT count(*) FROM contact_submissions WHERE status = 'new') AS contact_new,
             (SELECT count(*) FROM content_reviews WHERE status = 'pending') AS reviews_pending,
+            (SELECT count(*) FROM content_reviews WHERE status = 'senior_review') AS reviews_senior,
             (SELECT count(*) FROM sales_contacts WHERE stage = 'new' AND source = 'demo_request') AS demo_requests_new,
             (SELECT count(*) FROM sales_contacts
                WHERE stage IN ('new', 'follow_up', 'qualified') AND follow_up_date < (now() AT TIME ZONE ${IST})::date) AS followups_overdue,
@@ -378,6 +380,7 @@ export async function handle(request: Request): Promise<Response> {
       inquiriesPending: num(get(a, "inquiries_pending")),
       contactNew: num(get(a, "contact_new")),
       reviewsPending: num(get(a, "reviews_pending")),
+      reviewsSenior: num(get(a, "reviews_senior")),
       demoRequestsNew: num(get(a, "demo_requests_new")),
       followupsOverdue: num(get(a, "followups_overdue")),
       prizesUndistributed: num(get(a, "prizes_undistributed")),

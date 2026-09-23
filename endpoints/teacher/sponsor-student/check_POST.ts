@@ -6,6 +6,7 @@ import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
 import { normalizePhoneNumber } from "../../../helpers/normalizePhoneNumber";
 import { getTeacherAvailableBalance } from "../../../helpers/getTeacherAvailableBalance";
 import { getTeacherPlatformFee } from "../../../helpers/getTeacherPlatformFee";
+import { courseDiscountPrice } from "../../../helpers/coursePricing";
 
 function isEmailIdentifier(identifier: string): boolean {
   return identifier.includes("@");
@@ -46,7 +47,7 @@ async function resolveContent(
   if (contentType === "course") {
     const row = await db
       .selectFrom("courses")
-      .select(["id", "title", "price", "teacherId", "status"])
+      .select(["id", "title", "price", "discountPrice", "teacherId", "status"])
       .where("id", "=", contentId)
       .executeTakeFirst();
     if (!row) return null;
@@ -54,7 +55,7 @@ async function resolveContent(
       id: row.id,
       title: row.title,
       price: Number(row.price),
-      discountPrice: null,
+      discountPrice: courseDiscountPrice(row.price, row.discountPrice),
       teacherId: row.teacherId,
       isPublished: row.status === "published",
       isFree: Number(row.price) === 0,

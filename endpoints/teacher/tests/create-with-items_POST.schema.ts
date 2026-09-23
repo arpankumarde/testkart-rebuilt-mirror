@@ -9,6 +9,11 @@ export const schema = z
     title: z.string().min(3).optional(),
     description: z.string().max(200).optional(),
     examName: z.string().optional().nullable(),
+    examNames: z
+      .array(z.string().trim().min(1))
+      .max(5)
+      .optional()
+      .describe("Official exam names, up to 5, first is the primary"),
     language: z.string().optional(),
     price: z.number().min(0).optional(),
     isFree: z.boolean().optional(),

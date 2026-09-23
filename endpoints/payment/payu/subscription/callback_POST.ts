@@ -49,7 +49,9 @@ export async function handle(request: Request): Promise<Response> {
       udf5,
     } = validatedData;
 
-    const hashString = `${PAYU_MERCHANT_SALT}|${status}||||||${udf5}|${udf4}|${udf3}|${udf2}|${udf1}|${email}|${firstname}|${productinfo}|${amount}|${txnid}|${PAYU_MERCHANT_KEY}`;
+    // PayU prefixes the reverse hash with additionalCharges when it added a fee.
+    const additionalCharges = typeof data.additionalCharges === "string" ? data.additionalCharges.trim() : "";
+    const hashString = `${additionalCharges ? `${additionalCharges}|` : ""}${PAYU_MERCHANT_SALT}|${status}||||||${udf5}|${udf4}|${udf3}|${udf2}|${udf1}|${email}|${firstname}|${productinfo}|${amount}|${txnid}|${PAYU_MERCHANT_KEY}`;
     const calculatedHash = createHash("sha512").update(hashString).digest("hex");
 
     // Fast-fail on invalid hash

@@ -12,6 +12,7 @@ import {
 } from "./Dialog";
 import { useTeacherAIRewrite } from "../helpers/useTeacherAIRewrite";
 import { sanitizeHtml } from "../helpers/sanitizeHtml";
+import { useAdminContentEdit } from "../helpers/useAdminContentEdit";
 import styles from "./AIRewriteButton.module.css";
 
 export interface AIRewriteButtonProps {
@@ -47,7 +48,11 @@ export interface AIRewriteButtonProps {
   allowEmpty?: boolean;
 }
 
-export const AIRewriteButton: React.FC<AIRewriteButtonProps> = ({
+/* AI runs on the teacher's credits, so it is not offered while an admin edits their item. */
+export const AIRewriteButton: React.FC<AIRewriteButtonProps> = (props) =>
+  useAdminContentEdit() ? null : <AIRewriteButtonBody {...props} />;
+
+const AIRewriteButtonBody: React.FC<AIRewriteButtonProps> = ({
   field,
   contentType,
   currentValue = "",

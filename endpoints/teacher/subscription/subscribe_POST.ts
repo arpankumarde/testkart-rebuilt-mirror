@@ -3,6 +3,7 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./subscribe_POST.schema";
 import superjson from "superjson";
 import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
+import { revokeLeftoverMandates } from "../../../helpers/teacherMandate";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -71,6 +72,11 @@ export async function handle(request: Request): Promise<Response> {
 
       return newSubscription;
     });
+
+    // The paid plan this replaced may still hold a live mandate at PayU.
+    await revokeLeftoverMandates(effectiveTeacherId).catch((err) =>
+      console.error("[subscribe_POST] Revoking leftover mandates failed:", err)
+    );
 
     return new Response(superjson.stringify(output satisfies OutputType));
   } catch (error) {

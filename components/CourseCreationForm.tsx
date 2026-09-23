@@ -6,7 +6,8 @@ import { Input } from './Input';
 import { RichTextEditor } from './RichTextEditor';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './Select';
 import { SegmentedControl } from './SegmentedControl';
-import { ExamNamePicker } from './ExamNamePicker';
+import { ExamMultiPicker } from './ExamMultiPicker';
+import { getItemExamNames, MAX_ITEM_EXAMS } from '../helpers/itemExams';
 import { Button } from './Button';
 import { Spinner } from './Spinner';
 import { CourseThumbnailVideo } from './CourseThumbnailVideo';
@@ -14,11 +15,13 @@ import { ThumbnailUploader } from './ThumbnailUploader';
 import { AIRewriteButton } from './AIRewriteButton';
 import { schema as updateSchema } from '../endpoints/teacher/courses/update_POST.schema';
 import { useTeacherCourseMutations } from '../helpers/useTeacherCoursesQuery';
+import { courseDiscountError } from '../helpers/coursePricing';
 import type { TeacherCourseListItem } from '../endpoints/teacher/courses/list_GET.schema';
 import styles from './CourseCreationForm.module.css';
 
 const formSchema = updateSchema.omit({ courseId: true, thumbnailUrl: true, thumbnailFileId: true }).extend({
   price: z.coerce.number().min(0, 'Price cannot be negative.'),
+  examNames: z.array(z.string()).max(MAX_ITEM_EXAMS, `Pick up to ${MAX_ITEM_EXAMS} exams.`).optional(),
 });
 
 export type CourseDetailsValues = z.infer<typeof formSchema>;
@@ -64,26 +67,32 @@ const PRICE_OPTIONS = [
   { value: 'paid', label: 'Paid' },
 ] as const;
 
-const toFormValues = (course: TeacherCourseListItem): CourseDetailsValues => ({
+const toFormValues = (course: TeacherCourseListItem): CourseDetailsValues => {
+  const examNames = getItemExamNames(course);
+  return {
   title: course.title,
   description: course.description ?? '',
   category: course.category || '',
   level: course.level,
   price: course.price,
+  discountPrice: course.discountPrice ?? null,
   introVideoUrl: course.introVideoUrl,
   thumbnailImageUrl: course.thumbnailImageUrl,
   introVideoFileId: course.introVideoFileId || null,
   thumbnailImageFileId: course.thumbnailImageFileId || null,
   language: course.language || null,
-  examName: course.examName || '',
-});
+  examName: examNames[0] ?? '',
+  examNames,
+  };
+};
 
 const FIELD_KEYS: (keyof CourseDetailsValues)[] = [
-  'title', 'description', 'category', 'level', 'price', 'introVideoUrl', 'thumbnailImageUrl',
-  'introVideoFileId', 'thumbnailImageFileId', 'language', 'examName',
+  'title', 'description', 'category', 'level', 'price', 'discountPrice', 'introVideoUrl', 'thumbnailImageUrl',
+  'introVideoFileId', 'thumbnailImageFileId', 'language', 'examName', 'examNames',
 ];
 
-const normalize = (value: unknown) => (value === undefined || value === '' ? null : value);
+const normalize = (value: unknown) =>
+  Array.isArray(value) ? JSON.stringify(value) : value === undefined || value === '' ? null : value;
 
 const hasUnsavedChanges = (values: CourseDetailsValues, saved: CourseDetailsValues) =>
   FIELD_KEYS.some((key) => normalize(values[key]) !== normalize(saved[key]));
@@ -152,7 +161,16 @@ export const CourseCreationForm = forwardRef<CourseDetailsFormHandle, CourseCrea
         focusField('price');
         return false;
       }
-      const values: CourseDetailsValues = { ...form.values, price };
+      const rawDiscount = form.values.discountPrice;
+      const discountPrice = priceMode === 'free' || rawDiscount === null || rawDiscount === undefined ? null : Number(rawDiscount);
+      const discountError = courseDiscountError(price, discountPrice);
+      if (discountError) {
+        form.setFieldError('discountPrice', discountError);
+        focusField('price');
+        return false;
+      }
+      const examNames = form.values.examNames ?? [];
+      const values: CourseDetailsValues = { ...form.values, price, discountPrice, examNames, examName: examNames[0] ?? '' };
       if (!form.validateForm()) {
         toast.error('Some course details need attention. Check the highlighted fields.');
         return false;
@@ -182,7 +200,7 @@ export const CourseCreationForm = forwardRef<CourseDetailsFormHandle, CourseCrea
 
     const changePriceMode = (mode: PriceMode) => {
       setPriceMode(mode);
-      if (mode === 'free') setField('price', 0);
+      if (mode === 'free') form.setValues((prev) => ({ ...prev, price: 0, discountPrice: null }));
       else window.setTimeout(() => focusField('price'), 0);
     };
 
@@ -313,7 +331,7 @@ export const CourseCreationForm = forwardRef<CourseDetailsFormHandle, CourseCrea
               <h3 id="course-audience-heading" className={styles.groupTitle}>Price and audience</h3>
 
               <div className={styles.fieldGrid}>
-                <div data-field="price" className={styles.wide}>
+                <div data-field="price" className={`${styles.wide} ${styles.priceStack}`}>
                   <FormItem name="price" className={styles.field}>
                     <FormLabel>Price</FormLabel>
                     <div className={styles.priceRow}>
@@ -346,6 +364,33 @@ export const CourseCreationForm = forwardRef<CourseDetailsFormHandle, CourseCrea
                     </div>
                     <FormMessage />
                   </FormItem>
+                  {priceMode === 'paid' ? (
+                    <FormItem name="discountPrice" className={styles.field}>
+                      <FormLabel>Discounted price (optional)</FormLabel>
+                      <div className={styles.rupeeInput}>
+                        <span className={styles.rupee} aria-hidden="true">
+                          ₹
+                        </span>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            inputMode="decimal"
+                            min={0}
+                            placeholder="e.g., 299"
+                            value={form.values.discountPrice ?? ''}
+                            onChange={(e) => {
+                              const next = parseFloat(e.target.value);
+                              setField('discountPrice', Number.isFinite(next) ? next : null);
+                            }}
+                          />
+                        </FormControl>
+                      </div>
+                      <FormDescription>
+                        Students pay this instead, with the price shown struck through. Leave empty for no discount.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  ) : null}
                 </div>
 
                 <div className={`${styles.field} ${styles.wide}`}>
@@ -393,15 +438,16 @@ export const CourseCreationForm = forwardRef<CourseDetailsFormHandle, CourseCrea
                   <FormMessage />
                 </FormItem>
 
-                <FormItem name="examName" className={`${styles.field} ${styles.wide}`}>
-                  <FormLabel>Exam (optional)</FormLabel>
+                <FormItem name="examNames" className={`${styles.field} ${styles.wide}`}>
+                  <FormLabel>Exams (optional)</FormLabel>
                   <FormControl>
-                    <ExamNamePicker
-                      value={form.values.examName || ''}
-                      onChange={(examName) => setField('examName', examName)}
+                    <ExamMultiPicker
+                      value={form.values.examNames ?? []}
+                      onChange={(names) =>
+                        form.setValues((prev) => ({ ...prev, examNames: names, examName: names[0] ?? '' }))
+                      }
                     />
                   </FormControl>
-                  <FormDescription>Lists the course on that exam's page too.</FormDescription>
                   <FormMessage />
                 </FormItem>
               </div>

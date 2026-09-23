@@ -5,10 +5,11 @@ const CANDIDATE_LIMIT = 50;
 const OUTPUT_LIMIT = 10;
 
 export async function fetchPopularTeachers(): Promise<HomepageTeacher[]> {
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const oneYearAgo = new Date();
+  oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
 
-  // Step 1: Collect revenue and enrollments in the last 30 days
+  // Step 1: Collect revenue and enrollments in the last year, keeping the top
+  // CANDIDATE_LIMIT teachers per source
   const [
     mockTestRev,
     courseRev,
@@ -24,12 +25,13 @@ export async function fetchPopularTeachers(): Promise<HomepageTeacher[]> {
       .innerJoin("orders", "orders.id", "orderItems.orderId")
       .innerJoin("mockTests", "mockTests.id", "orderItems.mockTestId")
       .where("orders.status", "=", "completed")
-      .where("orders.createdAt", ">=", thirtyDaysAgo)
+      .where("orders.createdAt", ">=", oneYearAgo)
       .groupBy("mockTests.teacherId")
       .select([
         "mockTests.teacherId",
         db.fn.sum("orderItems.priceAtPurchase").as("revenue"),
       ])
+      .orderBy("revenue", "desc")
       .limit(CANDIDATE_LIMIT)
       .execute(),
 
@@ -38,12 +40,13 @@ export async function fetchPopularTeachers(): Promise<HomepageTeacher[]> {
       .innerJoin("orders", "orders.id", "orderItems.orderId")
       .innerJoin("courses", "courses.id", "orderItems.courseId")
       .where("orders.status", "=", "completed")
-      .where("orders.createdAt", ">=", thirtyDaysAgo)
+      .where("orders.createdAt", ">=", oneYearAgo)
       .groupBy("courses.teacherId")
       .select([
         "courses.teacherId",
         db.fn.sum("orderItems.priceAtPurchase").as("revenue"),
       ])
+      .orderBy("revenue", "desc")
       .limit(CANDIDATE_LIMIT)
       .execute(),
 
@@ -52,12 +55,13 @@ export async function fetchPopularTeachers(): Promise<HomepageTeacher[]> {
       .innerJoin("orders", "orders.id", "orderItems.orderId")
       .innerJoin("digitalProducts", "digitalProducts.id", "orderItems.digitalProductId")
       .where("orders.status", "=", "completed")
-      .where("orders.createdAt", ">=", thirtyDaysAgo)
+      .where("orders.createdAt", ">=", oneYearAgo)
       .groupBy("digitalProducts.teacherId")
       .select([
         "digitalProducts.teacherId",
         db.fn.sum("orderItems.priceAtPurchase").as("revenue"),
       ])
+      .orderBy("revenue", "desc")
       .limit(CANDIDATE_LIMIT)
       .execute(),
 
@@ -65,48 +69,52 @@ export async function fetchPopularTeachers(): Promise<HomepageTeacher[]> {
     db
       .selectFrom("mockTestEnrollments")
       .innerJoin("mockTests", "mockTests.id", "mockTestEnrollments.mockTestId")
-      .where("mockTestEnrollments.enrolledAt", ">=", thirtyDaysAgo)
+      .where("mockTestEnrollments.enrolledAt", ">=", oneYearAgo)
       .groupBy("mockTests.teacherId")
       .select([
         "mockTests.teacherId",
         db.fn.count("mockTestEnrollments.id").as("enrollments"),
       ])
+      .orderBy("enrollments", "desc")
       .limit(CANDIDATE_LIMIT)
       .execute(),
 
     db
       .selectFrom("courseEnrollments")
       .innerJoin("courses", "courses.id", "courseEnrollments.courseId")
-      .where("courseEnrollments.enrolledAt", ">=", thirtyDaysAgo)
+      .where("courseEnrollments.enrolledAt", ">=", oneYearAgo)
       .groupBy("courses.teacherId")
       .select([
         "courses.teacherId",
         db.fn.count("courseEnrollments.id").as("enrollments"),
       ])
+      .orderBy("enrollments", "desc")
       .limit(CANDIDATE_LIMIT)
       .execute(),
 
     db
       .selectFrom("digitalProductPurchases")
       .innerJoin("digitalProducts", "digitalProducts.id", "digitalProductPurchases.productId")
-      .where("digitalProductPurchases.purchasedAt", ">=", thirtyDaysAgo)
+      .where("digitalProductPurchases.purchasedAt", ">=", oneYearAgo)
       .groupBy("digitalProducts.teacherId")
       .select([
         "digitalProducts.teacherId",
         db.fn.count("digitalProductPurchases.id").as("enrollments"),
       ])
+      .orderBy("enrollments", "desc")
       .limit(CANDIDATE_LIMIT)
       .execute(),
 
     db
       .selectFrom("liveTestEnrollments")
       .innerJoin("liveTests", "liveTests.id", "liveTestEnrollments.liveTestId")
-      .where("liveTestEnrollments.enrolledAt", ">=", thirtyDaysAgo)
+      .where("liveTestEnrollments.enrolledAt", ">=", oneYearAgo)
       .groupBy("liveTests.teacherId")
       .select([
         "liveTests.teacherId",
         db.fn.count("liveTestEnrollments.id").as("enrollments"),
       ])
+      .orderBy("enrollments", "desc")
       .limit(CANDIDATE_LIMIT)
       .execute(),
   ]);

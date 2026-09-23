@@ -2,7 +2,7 @@ import { db } from "../../helpers/db";
 import { schema, OutputType } from "./related_GET.schema";
 import superjson from "superjson";
 import { slugify } from "../../helpers/slugify";
-import { sql } from "kysely";
+import { sql, type RawBuilder } from "kysely";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -16,10 +16,10 @@ export async function handle(request: Request): Promise<Response> {
 
     const input = schema.parse(queryInput);
 
-    // 1. Fetch current product to get its category and teacherId
+    // 1. Fetch current product to get its teacher, category and exam
     const currentProduct = await db
       .selectFrom("digitalProducts")
-      .select(["category", "teacherId"])
+      .select(["category", "teacherId", "examId", "examName"])
       .where("id", "=", input.productId)
       .executeTakeFirst();
 
@@ -84,22 +84,42 @@ export async function handle(request: Request): Promise<Response> {
       .where("digitalProducts.status", "=", "published")
       .where("digitalProducts.isPublished", "=", true);
 
-    // 3. Rank sorting strategy
-    // Since we use the camelCase plugin, we must use snake_case for raw sql statements
-    if (currentProduct.category) {
-      query = query.orderBy(
-        sql<number>`CASE WHEN digital_products.category = ${currentProduct.category} THEN 1 ELSE 0 END`,
-        "desc"
-      );
-    }
-    
-    query = query.orderBy(
-      sql<number>`CASE WHEN digital_products.teacher_id = ${currentProduct.teacherId} THEN 1 ELSE 0 END`,
-      "desc"
-    );
+    // 3. Rank in three tiers; the limit is filled from tier 1 down:
+    //    1 - same teacher and same category
+    //    2 - same exam, any teacher
+    //    3 - everything else, top rated first
+    // A blank category or exam never counts as a match. The exam matches on
+    // exam_id or on the trimmed, case-insensitive name (NEET and NEET UG share an id).
+    // Since we use the camelCase plugin, raw sql statements must use snake_case
+    const category = currentProduct.category?.trim() || null;
+    const examName = currentProduct.examName?.trim().toLowerCase() || null;
 
-    query = query.orderBy("digitalProducts.totalPurchases", "desc");
-    query = query.orderBy("digitalProducts.publishedAt", "desc");
+    const sameTeacherAndCategory = category
+      ? sql`(digital_products.teacher_id = ${currentProduct.teacherId} AND digital_products.category = ${category})`
+      : sql`false`;
+
+    const examMatches: RawBuilder<unknown>[] = [];
+    if (currentProduct.examId != null) {
+      examMatches.push(sql`digital_products.exam_id = ${currentProduct.examId}`);
+    }
+    if (examName) {
+      examMatches.push(sql`lower(btrim(digital_products.exam_name)) = ${examName}`);
+    }
+    const sameExam = examMatches.length
+      ? sql`(${sql.join(examMatches, sql` OR `)})`
+      : sql`false`;
+
+    const tier = sql<number>`CASE WHEN ${sameTeacherAndCategory} THEN 1 WHEN ${sameExam} THEN 2 ELSE 3 END`;
+    // Ratings only order tier 3; tiers 1 and 2 rank by popularity
+    const tier3Only = (column: string) =>
+      sql`CASE WHEN ${tier} = 3 THEN ${sql.ref(column)} END DESC NULLS LAST`;
+
+    query = query
+      .orderBy(tier, "asc")
+      .orderBy(tier3Only("reviewStats.avgRating"))
+      .orderBy(tier3Only("reviewStats.ratingsCount"))
+      .orderBy(sql`coalesce(digital_products.total_purchases, 0) DESC`)
+      .orderBy(sql`digital_products.published_at DESC NULLS LAST`);
 
     const products = await query
       .limit(input.limit || 4)

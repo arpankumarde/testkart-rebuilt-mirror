@@ -22,6 +22,8 @@ export type ShopProductListItem = Pick<
   "id" | "title" | "slug" | "thumbnailUrl" | "category" | "publishedAt" | "pageCount"
 > & {
   fileCount: number;
+  // Only set by the teacher profile endpoints for now.
+  language?: string | null;
   price: number;
   rating: number | null;
   ratingsCount: number;

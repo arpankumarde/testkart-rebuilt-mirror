@@ -28,6 +28,8 @@ import { toast } from "sonner";
 import { AdminBundleListItem } from "../endpoints/admin/bundles/list_GET.schema";
 import { AdminProductDetailPanel } from "../components/AdminProductDetailPanel";
 import { adminPreviewPath } from "../helpers/useAdminContentPreview";
+import { adminEditPath } from "../helpers/adminContentEdit";
+import { AdminEditIconButton } from "../components/AdminEditIconButton";
 import styles from "./admin.bundles.module.css";
 
 const ALL_TEACHERS = "__all__";
@@ -227,6 +229,7 @@ export default function AdminBundlesPage() {
         </TooltipTrigger>
         <TooltipContent>View details</TooltipContent>
       </Tooltip>
+      <AdminEditIconButton type="course_bundle" id={bundle.id} title={bundle.title} className={styles.iconButton} />
       {bundle.isPublished && (
         <Tooltip>
           <TooltipTrigger asChild>
@@ -448,6 +451,7 @@ export default function AdminBundlesPage() {
             isLive={panelBundle.isPublished}
             publicUrl={panelBundle.isPublished ? getBundleUrl(panelBundle.slug) : null}
             previewUrl={adminPreviewPath("course_bundle", panelBundle.id)}
+            editUrl={adminEditPath("course_bundle", panelBundle.id)}
             teacherName={panelBundle.teacherName}
             price={panelBundle.price}
             createdAt={panelBundle.createdAt}

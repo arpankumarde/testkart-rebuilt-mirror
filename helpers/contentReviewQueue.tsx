@@ -1,6 +1,7 @@
 import type { Kysely, Transaction } from "kysely";
 import type { ContentType, DB } from "./schema";
 import { assertTeacherCanFundPrizePool } from "./liveTestPrizeFunding";
+import { CONTENT_NOUNS, OPEN_REVIEW_STATUSES } from "./contentReviewStatus";
 
 type Executor = Kysely<DB> | Transaction<DB>;
 
@@ -10,6 +11,13 @@ type Executor = Kysely<DB> | Transaction<DB>;
  * approves it (publishApprovedContent) or rejects it with a note. Admin users
  * publish directly. The admin preview page can also make any item live, move it
  * back to draft or reject it after it went live (takeDownContent).
+ *
+ * A review that a teammate could not decide moves to senior_review. It is still
+ * waiting, so the helpers below count both statuses as "in review".
+ *
+ * A teacher can take an item back out of review (clearOpenReviews), and deleting
+ * or trashing an item clears its waiting review the same way, so the queue never
+ * holds a review for content that is gone.
  */
 
 export const REVIEW_QUEUED_NOTE =
@@ -18,7 +26,18 @@ export const REVIEW_QUEUED_NOTE =
 export const alreadyInReviewMessage = (noun: string) =>
   `This ${noun} is already waiting for review. We will email you once it is approved or needs changes.`;
 
-/** Queues content for admin review. Returns false when it is already waiting. */
+/** Thrown when a review's content no longer exists, so the review can be closed instead of approved. */
+export class ContentGoneError extends Error {
+  constructor(contentType: ContentType) {
+    super(`This ${CONTENT_NOUNS[contentType]} no longer exists.`);
+    this.name = "ContentGoneError";
+  }
+}
+
+export const contentGoneMessage = (contentType: ContentType) =>
+  `The teacher deleted this ${CONTENT_NOUNS[contentType]}, so it was removed from the review queue. No email was sent.`;
+
+/** Queues content for admin review. Returns false when it is already waiting (pending or senior approval). */
 export async function queueContentReview(
   executor: Executor,
   input: { contentType: ContentType; contentId: number; teacherId: number }
@@ -45,9 +64,24 @@ export async function hasPendingReview(
     .select("id")
     .where("contentType", "=", contentType)
     .where("contentId", "=", contentId)
-    .where("status", "=", "pending")
+    .where("status", "in", [...OPEN_REVIEW_STATUSES])
     .executeTakeFirst();
   return Boolean(row);
+}
+
+/** Removes an item's waiting reviews (pending or senior approval). Returns how many were removed. */
+export async function clearOpenReviews(
+  executor: Executor,
+  contentType: ContentType,
+  contentId: number
+): Promise<number> {
+  const result = await executor
+    .deleteFrom("contentReviews")
+    .where("contentType", "=", contentType)
+    .where("contentId", "=", contentId)
+    .where("status", "in", [...OPEN_REVIEW_STATUSES])
+    .executeTakeFirst();
+  return Number(result.numDeletedRows);
 }
 
 /** Ids among contentIds that have a pending review, for teacher list badges. */
@@ -62,14 +96,15 @@ export async function pendingReviewIds(
     .select("contentId")
     .where("contentType", "=", contentType)
     .where("contentId", "in", contentIds)
-    .where("status", "=", "pending")
+    .where("status", "in", [...OPEN_REVIEW_STATUSES])
     .execute();
   return new Set(rows.map((row) => row.contentId));
 }
 
 /**
  * Puts approved content live. Throws with a reason an admin can act on when it
- * can no longer go live (trashed, schedule passed, prize pool not covered).
+ * can no longer go live (trashed, schedule passed, prize pool not covered), and
+ * ContentGoneError when the item was deleted.
  */
 export async function publishApprovedContent(
   trx: Transaction<DB>,
@@ -84,7 +119,7 @@ export async function publishApprovedContent(
         .select(["deletedAt"])
         .where("id", "=", contentId)
         .executeTakeFirst();
-      if (!test) throw new Error("This test series no longer exists.");
+      if (!test) throw new ContentGoneError(contentType);
       if (test.deletedAt) throw new Error("The teacher moved this test series to the Trash.");
       await trx
         .updateTable("mockTests")
@@ -94,29 +129,35 @@ export async function publishApprovedContent(
       return;
     }
 
-    case "course":
-      await trx
+    case "course": {
+      const result = await trx
         .updateTable("courses")
         .set({ status: "published", publishedAt: now, updatedAt: now })
         .where("id", "=", contentId)
-        .execute();
+        .executeTakeFirst();
+      if (Number(result.numUpdatedRows) === 0) throw new ContentGoneError(contentType);
       return;
+    }
 
-    case "digital_product":
-      await trx
+    case "digital_product": {
+      const result = await trx
         .updateTable("digitalProducts")
         .set({ status: "published", isPublished: true, publishedAt: now, updatedAt: now })
         .where("id", "=", contentId)
-        .execute();
+        .executeTakeFirst();
+      if (Number(result.numUpdatedRows) === 0) throw new ContentGoneError(contentType);
       return;
+    }
 
-    case "course_bundle":
-      await trx
+    case "course_bundle": {
+      const result = await trx
         .updateTable("courseBundles")
         .set({ isPublished: true, publishedAt: now, updatedAt: now })
         .where("id", "=", contentId)
-        .execute();
+        .executeTakeFirst();
+      if (Number(result.numUpdatedRows) === 0) throw new ContentGoneError(contentType);
       return;
+    }
 
     case "live_test": {
       const liveTest = await trx
@@ -124,7 +165,7 @@ export async function publishApprovedContent(
         .selectAll()
         .where("id", "=", contentId)
         .executeTakeFirst();
-      if (!liveTest) throw new Error("This live test no longer exists.");
+      if (!liveTest) throw new ContentGoneError(contentType);
       if (
         (liveTest.registrationDeadline && liveTest.registrationDeadline <= now) ||
         (liveTest.startTime && liveTest.startTime <= now) ||

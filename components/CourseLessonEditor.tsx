@@ -21,7 +21,7 @@ import { TeacherAssetPicker } from './TeacherAssetPicker';
 import { Spinner } from './Spinner';
 import styles from './CourseLessonEditor.module.css';
 
-const LazyPdfViewer = React.lazy(() => import('./ContentReviewPdfViewer'));
+const LazyPdfReaderDialog = React.lazy(() => import('./PdfReaderDialog').then(m => ({ default: m.PdfReaderDialog })));
 
 const formSchema = createSchema.omit({ sectionId: true }).merge(
   z.object({
@@ -451,10 +451,11 @@ export const CourseLessonEditor = forwardRef<CourseLessonEditorHandle, CourseLes
               </div>
             }
           >
-            <LazyPdfViewer
-              pdfUrl={form.values.contentUrl}
-              title={form.values.title || 'PDF preview'}
+            <LazyPdfReaderDialog
+              isOpen
               onClose={() => setShowPdfPreview(false)}
+              title={form.values.title || 'PDF preview'}
+              source={{ kind: 'pdf', url: form.values.contentUrl }}
             />
           </React.Suspense>
         )}

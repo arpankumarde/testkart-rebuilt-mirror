@@ -6,8 +6,9 @@ import { extractR2Key } from "../../../helpers/extractR2Key";
 import superjson from "superjson";
 
 // Short-lived on purpose: this URL is only ever consumed by the in-app
-// react-pdf viewer (never exposed as a plain <a href> download link), so a
-// long expiry isn't needed the way the old raw-download endpoint used one.
+// reader (components/PdfReader.tsx, never exposed as a plain <a href>
+// download link), so a long expiry isn't needed the way the old
+// raw-download endpoint used one.
 const EXPIRATION_SECONDS = 1800; // 30 minutes
 
 export async function handle(request: Request): Promise<Response> {
@@ -38,6 +39,7 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     let viewFileUrl: string | null = null;
+    let viewTitle: string = purchase.title;
 
     if (input.fileId) {
       // Fetch the specific file from digital_product_files
@@ -56,6 +58,7 @@ export async function handle(request: Request): Promise<Response> {
       }
 
       viewFileUrl = file.fileUrl;
+      viewTitle = file.title || purchase.title;
     } else {
       // Fallback to the product's main pdfUrl
       viewFileUrl = purchase.pdfUrl;
@@ -86,7 +89,7 @@ export async function handle(request: Request): Promise<Response> {
     const signedUrl = await getSignedDownloadUrl(r2Key, EXPIRATION_SECONDS);
 
     return new Response(
-      superjson.stringify({ signedUrl, expiresIn: EXPIRATION_SECONDS } satisfies OutputType),
+      superjson.stringify({ signedUrl, expiresIn: EXPIRATION_SECONDS, title: viewTitle } satisfies OutputType),
       {
         status: 200,
         headers: { "Content-Type": "application/json" },

@@ -7,6 +7,7 @@ import { getTeacherPlatformFee } from "../../../helpers/getTeacherPlatformFee";
 import { ensureOrderCompletionSideEffects } from "../../../helpers/ensureOrderCompletionSideEffects";
 import { promoCodeCoversTeacher } from "../../../helpers/promoCodeEligibility";
 import { lockWallet } from "../../../helpers/walletLock";
+import { courseEffectivePriceSql } from "../../../helpers/coursePricing";
 import { sql } from "kysely";
 
 export async function handle(request: Request) {
@@ -50,7 +51,8 @@ export async function handle(request: Request) {
           "mockTests.discountPrice as testDiscountPrice",
           "mockTests.teacherId as testTeacherId",
           "courses.title as courseTitle",
-          "courses.price as coursePrice",
+          // Effective price: the discounted price when valid, else the list price.
+          courseEffectivePriceSql.as("coursePrice"),
           "courses.teacherId as courseTeacherId",
           "digitalProducts.title as digitalProductTitle",
           "digitalProducts.price as digitalProductPrice",

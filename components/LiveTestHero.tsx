@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../helpers/useAuth';
-import { Clock, Users, Calendar, Zap, CheckCircle, XCircle, IndianRupee, PlayCircle, Info, ChevronRight, Eye, Share2, FileText, BookOpen, Trophy } from 'lucide-react';
+import { Clock, Users, Calendar, Zap, CheckCircle, XCircle, IndianRupee, PlayCircle, Info, ChevronRight, Eye, FileText, BookOpen, Trophy } from 'lucide-react';
 import { useCountdownTimer } from '../helpers/useCountdownTimer';
 import { getLiveTestStatus } from '../helpers/useLiveTestHelpers';
 import { Placeholder } from '../helpers/placeholderImages';
@@ -19,8 +19,7 @@ import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { LIVE_TEST_DETAILS_QUERY_KEY_PREFIX } from '../helpers/useLiveTestDetailsQuery';
 import { LIVE_TESTS_QUERY_KEY } from '../helpers/useLiveTestsQuery';
-import { ShareAssetDialog } from './ShareAssetDialog';
-import { PUBLIC_PAGE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
+import { AssetTopRow } from './AssetTopRow';
 import { VideoPreview } from "./VideoPreview";
 import styles from './LiveTestHero.module.css';
 
@@ -59,7 +58,6 @@ export const LiveTestHero: React.FC<LiveTestHeroProps> = ({ liveTest, className 
   const enrollmentMutation = useLiveTestEnrollment();
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
-  const [isShareOpen, setShareOpen] = useState(false);
   const queryClient = useQueryClient();
   const { authState } = useAuth();
   const navigate = useNavigate();
@@ -279,11 +277,13 @@ export const LiveTestHero: React.FC<LiveTestHeroProps> = ({ liveTest, className 
         
         {/* Left Column */}
         <div className={styles.leftColumn}>
-          <nav className={styles.breadcrumb}>
-            <Link to="/mock-test/live">Live Competitions</Link>
-            <ChevronRight size={14} />
-            <span>{liveTest.title}</span>
-          </nav>
+          <AssetTopRow kind="live-test" handle={liveTest.id} title={liveTest.title}>
+            <nav className={styles.breadcrumb}>
+              <Link to="/mock-test/live">Live Competitions</Link>
+              <ChevronRight size={14} />
+              <span>{liveTest.title}</span>
+            </nav>
+          </AssetTopRow>
           
           <div className={styles.badgesRow}>
             {status === 'live' && <Badge variant="destructive" className={styles.liveBadge}><Zap size={14} /> LIVE NOW</Badge>}
@@ -339,16 +339,6 @@ export const LiveTestHero: React.FC<LiveTestHeroProps> = ({ liveTest, className 
               {renderCTA()}
             </div>
           )}
-
-          <Button 
-            variant="outline" 
-            size="lg" 
-            className={styles.shareButton}
-            onClick={() => setShareOpen(true)}
-          >
-            <Share2 size={18} />
-            Share this live test
-          </Button>
         </div>
 
         {/* Right Column */}
@@ -408,15 +398,6 @@ export const LiveTestHero: React.FC<LiveTestHeroProps> = ({ liveTest, className 
         </div>
 
       </div>
-
-      <ShareAssetDialog
-        open={isShareOpen}
-        onOpenChange={setShareOpen}
-        kind="live-test"
-        handle={liveTest.id}
-        title={liveTest.title}
-        campaign={PUBLIC_PAGE_SHARE_CAMPAIGN}
-      />
     </div>
   );
 };

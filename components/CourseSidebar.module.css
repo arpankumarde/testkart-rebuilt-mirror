@@ -112,6 +112,27 @@
   color: var(--surface-foreground);
 }
 
+.originalPrice {
+  font-size: 1.125rem;
+  color: var(--muted-foreground);
+  text-decoration: line-through;
+}
+
+.discount {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--success-text);
+  padding: var(--spacing-1) var(--spacing-2);
+  background-color: color-mix(in srgb, var(--success) 15%, transparent);
+  border-radius: var(--radius-sm);
+}
+
+@media (max-width: 576px) {
+  .originalPrice {
+    font-size: 1rem;
+  }
+}
+
 .ctaButtons {
   display: flex;
   flex-direction: column;

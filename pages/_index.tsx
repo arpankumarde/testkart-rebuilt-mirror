@@ -5,6 +5,8 @@ import { HomepageSearchHero } from "../components/HomepageSearchHero";
 import { HomepageCategoryCards } from "../components/HomepageCategoryCards";
 import { HomepageLiveSpotlight } from "../components/HomepageLiveSpotlight";
 import { HomepageFeaturedCourses } from "../components/HomepageFeaturedCourses";
+import { HomepageUgcNetSpotlight } from "../components/HomepageUgcNetSpotlight";
+import { HomepageTeacherSpotlight } from "../components/HomepageTeacherSpotlight";
 import { HomepageContentSection, TeacherProductCard } from "../components/HomepageContentSection";
 import type { HomepageTestItem, HomepageCourseItem, HomepageNoteItem } from "../endpoints/homepage/data_GET.schema";
 import { formatItemPrice } from "../helpers/homepageItemUtils";
@@ -70,7 +72,8 @@ const HomePage: React.FC = () => {
 
         <div className={styles.contentWrapper}>
           <HomepageCategoryCards />
-         <HomepageLiveSpotlight spotlights={data?.liveTestSpotlight ?? []} />
+          <HomepageLiveSpotlight spotlights={data?.liveTestSpotlight ?? []} />
+          <HomepageUgcNetSpotlight />
 
           <HomepageContentSection
             title="Top mock tests this week"
@@ -126,7 +129,7 @@ const HomePage: React.FC = () => {
                 teacherIsVerified={item.teacherIsVerified}
                 productTitle={item.title}
                 stats={`${item.views.toLocaleString("en-IN")} views · ${item.totalLessons} lessons`}
-                priceLabel={formatItemPrice(item.price)}
+                priceLabel={formatItemPrice(item.price, item.discountPrice)}
                 isFree={item.price === 0}
                 thumbnailUrl={item.thumbnailUrl}
                 placeholderUrl={Placeholder.COURSE}
@@ -159,6 +162,11 @@ const HomePage: React.FC = () => {
                 isFree={item.price === 0}
               />
             )}
+          />
+
+          <HomepageTeacherSpotlight
+            teachers={data?.popularTeachers ?? []}
+            isLoading={isFetching}
           />
         </div>
       </div>

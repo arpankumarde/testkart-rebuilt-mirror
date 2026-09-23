@@ -2,6 +2,7 @@ import React from "react";
 import { BarChart3, Clock, ExternalLink, Globe, ListVideo, PlayCircle } from "lucide-react";
 import { Placeholder } from "../helpers/placeholderImages";
 import { formatCourseMinutes, pluralize } from "../helpers/courseDraft";
+import { courseDiscountPrice } from "../helpers/coursePricing";
 import styles from "./CourseCardPreview.module.css";
 
 interface CourseCardPreviewProps {
@@ -14,6 +15,7 @@ interface CourseCardPreviewProps {
   hasIntroVideo: boolean;
   creatorName: string | null;
   price: number;
+  discountPrice?: number | null;
   /* Null before the course exists, so the card does not claim "0 lessons". */
   lessonCount: number | null;
   totalMinutes: number;
@@ -47,6 +49,7 @@ export const CourseCardPreview: React.FC<CourseCardPreviewProps> = ({
   hasIntroVideo,
   creatorName,
   price,
+  discountPrice = null,
   lessonCount,
   totalMinutes,
   pageUrl,
@@ -58,6 +61,8 @@ export const CourseCardPreview: React.FC<CourseCardPreviewProps> = ({
   const shownLanguage = language?.trim();
   const levelLabel = level ? LEVEL_LABELS[level] ?? level : null;
   const listPrice = Number.isFinite(price) && price > 0 ? price : 0;
+  const salePrice = listPrice > 0 ? courseDiscountPrice(listPrice, discountPrice) : null;
+  const percentOff = salePrice !== null ? Math.round(((listPrice - salePrice) / listPrice) * 100) : 0;
 
   return (
     <section className={`${styles.stage} ${className ?? ""}`} aria-labelledby={headingId}>
@@ -130,7 +135,13 @@ export const CourseCardPreview: React.FC<CourseCardPreviewProps> = ({
         </div>
 
         <div className={styles.priceRow}>
-          {listPrice > 0 ? (
+          {listPrice > 0 && salePrice !== null ? (
+            <>
+              <span className={styles.price}>{formatRupees(salePrice)}</span>
+              <s className={styles.listPrice}>{formatRupees(listPrice)}</s>
+              <span className={styles.saving}>{percentOff}% off</span>
+            </>
+          ) : listPrice > 0 ? (
             <span className={styles.price}>{formatRupees(listPrice)}</span>
           ) : (
             <span className={`${styles.price} ${styles.priceFree}`}>Free</span>

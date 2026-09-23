@@ -1,9 +1,11 @@
 import superjson from "superjson";
 import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
-import { hasPendingReview } from "../../../helpers/contentReviewQueue";
+import { OPEN_REVIEW_STATUSES } from "../../../helpers/contentReviewStatus";
+import { loadContentExamList, type ContentExam } from "../../../helpers/contentExams";
 import {
   schema,
+  PreviewContentType,
   PreviewBody,
   PreviewFact,
   PreviewReview,
@@ -26,6 +28,19 @@ const fact = (label: string, value: unknown): PreviewFact | null => {
 };
 
 const facts = (...items: (PreviewFact | null)[]): PreviewFact[] => items.filter((f): f is PreviewFact => f !== null);
+
+const examFact = (exams: ContentExam[], fallback: string | null) =>
+  fact(exams.length > 1 ? "Exams" : "Exam", exams.length > 0 ? exams.map((exam) => exam.examName).join(", ") : fallback);
+
+// Every exam the item is listed under, primary first. A live test uses its mock test's exams.
+async function loadPreviewExams(type: PreviewContentType, id: number): Promise<ContentExam[]> {
+  if (type === "course_bundle") return [];
+  if (type === "live_test") {
+    const liveTest = await db.selectFrom("liveTests").select("mockTestId").where("id", "=", id).executeTakeFirst();
+    return liveTest ? loadContentExamList(db, "mock_test", liveTest.mockTestId) : [];
+  }
+  return loadContentExamList(db, type, id);
+}
 
 // what_you_learn is stored as a jsonb array, a JSON string of one, or a doubly encoded string.
 function toStringList(value: unknown): string[] {
@@ -140,19 +155,29 @@ export async function handle(request: Request): Promise<Response> {
       return new Response(superjson.stringify({ error: "Invalid content type or id" }), { status: 400 });
     }
     const { type, id } = parsed.data;
-    const inReview = await hasPendingReview(db, type, id);
+    const openReview = await db
+      .selectFrom("contentReviews")
+      .select("status")
+      .where("contentType", "=", type)
+      .where("contentId", "=", id)
+      .where("status", "in", [...OPEN_REVIEW_STATUSES])
+      .orderBy("id", "desc")
+      .executeTakeFirst();
+    const inReview = Boolean(openReview);
+    const awaitingSenior = openReview?.status === "senior_review";
     const review = await db
       .selectFrom("contentReviews")
       .select(["status", "adminNotes", "reviewedAt"])
       .where("contentType", "=", type)
       .where("contentId", "=", id)
-      .where("status", "!=", "pending")
+      .where("status", "in", ["approved", "rejected"])
       .orderBy("updatedAt", "desc")
       .orderBy("id", "desc")
       .executeTakeFirst();
     const lastReview: PreviewReview | null = review
       ? { status: review.status === "approved" ? "approved" : "rejected", notes: review.adminNotes, reviewedAt: review.reviewedAt }
       : null;
+    const exams = await loadPreviewExams(type, id);
     let output: PreviewBody;
 
     switch (type) {
@@ -176,7 +201,7 @@ export async function handle(request: Request): Promise<Response> {
           longDescription: row.longDescription,
           whatYouLearn: toStringList(row.whatYouLearn),
           facts: facts(
-            fact("Exam", row.examName),
+            examFact(exams, row.examName),
             fact("Subject", row.subject),
             fact("Language", row.language),
             fact("Price", row.isFree ? "Free" : rupees(row.price)),
@@ -240,7 +265,7 @@ export async function handle(request: Request): Promise<Response> {
           updatedAt: row.updatedAt,
           publishedAt: row.publishedAt,
           facts: facts(
-            fact("Exam", row.examName),
+            examFact(exams, row.examName),
             fact("Category", row.category),
             fact("Level", row.level),
             fact("Language", row.language),
@@ -300,7 +325,7 @@ export async function handle(request: Request): Promise<Response> {
           publishedAt: row.publishedAt,
           shortDescription: row.shortDescription,
           facts: facts(
-            fact("Exam", row.examName),
+            examFact(exams, row.examName),
             fact("Category", row.category),
             fact("Language", row.language),
             fact("Price", Number(row.price) > 0 ? rupees(row.price) : "Free"),
@@ -425,7 +450,7 @@ export async function handle(request: Request): Promise<Response> {
       }
     }
 
-    return new Response(superjson.stringify({ ...output, lastReview }));
+    return new Response(superjson.stringify({ ...output, exams, lastReview, awaitingSenior }));
   } catch (error) {
     console.error("Error loading admin content preview:", error);
     return new Response(superjson.stringify({ error: "Could not load this item" }), { status: 500 });

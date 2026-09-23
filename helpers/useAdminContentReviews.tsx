@@ -6,6 +6,13 @@ import { postReviewContent, InputType as ReviewInput } from "../endpoints/admin/
 
 export const ADMIN_CONTENT_REVIEWS_QUERY_KEY = "admin-content-reviews";
 
+const SUCCESS_TITLES: Record<ReviewInput["action"], string> = {
+  approve: "Content approved successfully.",
+  reject: "Content rejected successfully.",
+  send_to_senior: "Sent for senior approval.",
+  back_to_pending: "Moved back to pending.",
+};
+
 export function useAdminContentReviewsQuery(filters: ListInput = {}) {
   return useQuery({
     queryKey: [ADMIN_CONTENT_REVIEWS_QUERY_KEY, filters],
@@ -21,8 +28,7 @@ export function useReviewContentMutation() {
   return useMutation({
     mutationFn: (input: ReviewInput) => postReviewContent(input),
     onSuccess: (data, variables) => {
-      const actionLabel = variables.action === "approve" ? "approved" : "rejected";
-      toast.success(`Content ${actionLabel} successfully.`, {
+      toast.success(SUCCESS_TITLES[variables.action], {
         description: data.message,
       });
       queryClient.invalidateQueries({ queryKey: [ADMIN_CONTENT_REVIEWS_QUERY_KEY] });
@@ -31,6 +37,8 @@ export function useReviewContentMutation() {
       toast.error("Action failed", {
         description: parseErrorMessage(error),
       });
+      // The review may have been withdrawn or removed meanwhile, so the queue reloads either way.
+      queryClient.invalidateQueries({ queryKey: [ADMIN_CONTENT_REVIEWS_QUERY_KEY] });
     },
   });
 }

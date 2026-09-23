@@ -12,6 +12,7 @@ import {
   schema,
 } from "./list_GET.schema";
 import { sql } from "kysely";
+import { loadContentExams, type ContentExam } from "../../../helpers/contentExams";
 
 const SORT_COLUMNS = {
   title: "contentTitle",
@@ -428,20 +429,54 @@ export async function handle(request: Request): Promise<Response> {
       }
     }
 
-    // Batch fetch metadata for all content types in parallel
+    // A live test's exams are those of its mock test.
+    const liveTestMockTests =
+      liveTestIds.length > 0
+        ? await db
+            .selectFrom("liveTests")
+            .select(["id", "mockTestId"])
+            .where("id", "in", liveTestIds)
+            .execute()
+        : [];
+    const mockTestIdByLiveTest = new Map(liveTestMockTests.map((row) => [row.id, row.mockTestId]));
+
+    // Batch fetch metadata and exam lists for all content types in parallel
     const [
       mockTestMetaMap,
       courseMetaMap,
       digitalProductMetaMap,
       courseBundleMetaMap,
       liveTestMetaMap,
+      mockTestExams,
+      courseExams,
+      digitalProductExams,
     ] = await Promise.all([
       fetchMockTestMeta(mockTestIds),
       fetchCourseMeta(courseIds),
       fetchDigitalProductMeta(digitalProductIds),
       fetchCourseBundleMeta(courseBundleIds),
       fetchLiveTestMeta(liveTestIds),
+      loadContentExams(db, "mock_test", [...mockTestIds, ...mockTestIdByLiveTest.values()]),
+      loadContentExams(db, "course", courseIds),
+      loadContentExams(db, "digital_product", digitalProductIds),
     ]);
+
+    const getContentExams = (contentType: string, contentId: number): ContentExam[] => {
+      switch (contentType) {
+        case "mock_test":
+          return mockTestExams.get(contentId) ?? [];
+        case "course":
+          return courseExams.get(contentId) ?? [];
+        case "digital_product":
+          return digitalProductExams.get(contentId) ?? [];
+        case "live_test": {
+          const mockTestId = mockTestIdByLiveTest.get(contentId);
+          return mockTestId === undefined ? [] : mockTestExams.get(mockTestId) ?? [];
+        }
+        default:
+          return [];
+      }
+    };
 
     const getContentMeta = (
       contentType: string,
@@ -480,6 +515,7 @@ export async function handle(request: Request): Promise<Response> {
         reviewedAt: r.reviewedAt ?? null,
         createdAt: r.createdAt,
         contentMeta: getContentMeta(r.contentType, r.contentId),
+        exams: getContentExams(r.contentType, r.contentId),
       })),
       totalCount,
       currentPage: page,

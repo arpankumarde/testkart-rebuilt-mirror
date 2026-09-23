@@ -1,0 +1,26 @@
+.tabs {
+  margin-bottom: var(--spacing-4);
+}
+
+.panel {
+  outline: none;
+}
+
+.panel[data-state="inactive"] {
+  display: none;
+}
+
+.testsToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+}
+
+.testsHint {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}

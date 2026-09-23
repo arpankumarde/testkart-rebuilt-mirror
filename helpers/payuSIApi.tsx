@@ -1,7 +1,7 @@
 import { createHash } from "crypto";
 import { PAYU_MODE } from "./_publicConfigs";
 import { nanoid } from "nanoid";
-import { format, addDays } from "date-fns";
+import { addDays } from "date-fns";
 
 export type PayUSIResponse = {
   status: number | string;
@@ -101,7 +101,8 @@ export async function sendPreDebitNotification(params: {
 }): Promise<{ success: boolean; message: string }> {
   console.log(`[sendPreDebitNotification] Initiating for mandate ${params.authPayuId}`);
 
-  const debitDate = format(addDays(new Date(), 1), "yyyy-MM-dd");
+  // Tomorrow as an Indian date (yyyy-mm-dd); the server clock runs on UTC.
+  const debitDate = addDays(new Date(), 1).toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
   const amountStr =
     typeof params.amount === "number"
       ? params.amount.toFixed(2)
@@ -146,44 +147,49 @@ export async function executeSITransaction(params: {
 }> {
   console.log(`[executeSITransaction] Initiating charge ${params.txnid} for mandate ${params.authPayuId}`);
 
+  // si_transaction requires the lowercase "authpayuid"; "authPayuId" is rejected as a missing column.
   const var1Json = {
-    authPayuId: params.authPayuId,
+    authpayuid: params.authPayuId,
     txnid: params.txnid,
     amount: params.amount,
     email: params.email,
     phone: params.phone || "0000000000",
-    firstname: params.firstname || "User",
   };
 
   const response = await callPayUSICommand("si_transaction", var1Json);
 
   if (response.status === 1 || response.status === "1") {
-    const txStatus = String(response.transaction_status || response.status).toLowerCase();
+    // status 1 only means PayU processed the request; the charge outcome is in details[txnid].status
+    // (captured, pending, in-progress or failed).
+    const detail = response.details?.[params.txnid] ?? {};
+    const txStatus = String(detail.status ?? "").toLowerCase();
     let finalStatus = "pending";
 
-    if (txStatus === "captured" || txStatus === "success" || txStatus === "1") {
+    if (txStatus === "captured" || txStatus === "success") {
       finalStatus = "captured";
-    } else if (txStatus === "failed" || txStatus === "failure" || txStatus === "0") {
+    } else if (txStatus === "failed" || txStatus === "failure") {
       finalStatus = "failed";
     }
 
+    const message = detail.field9 || response.message || response.msg || "Transaction processed";
     if (finalStatus === "failed") {
-        console.error(`[executeSITransaction] Transaction ${params.txnid} failed: ${response.msg}`);
+      console.error(`[executeSITransaction] Transaction ${params.txnid} failed: ${message}`);
     } else {
-        console.log(`[executeSITransaction] Transaction ${params.txnid} status: ${finalStatus}`);
+      console.log(`[executeSITransaction] Transaction ${params.txnid} status: ${finalStatus} (${txStatus || "no status"})`);
     }
 
     return {
       success: finalStatus !== "failed",
       status: finalStatus,
-      message: response.msg || "Transaction processed",
-      mihpayid: response.mihpayid,
-      transactionId: response.transaction_id,
+      message,
+      mihpayid: detail.payuid || undefined,
+      transactionId: detail.transactionid,
     };
   }
 
-  console.error(`[executeSITransaction] API error for charge ${params.txnid}: ${response.msg}`);
-  return { success: false, status: "failed", message: response.msg || "Transaction failed" };
+  const errorMessage = response.message || response.msg || "Transaction failed";
+  console.error(`[executeSITransaction] API error for charge ${params.txnid}: ${errorMessage}`);
+  return { success: false, status: "failed", message: errorMessage };
 }
 
 /**
@@ -201,22 +207,28 @@ export async function checkMandateStatus(
     else if (paymentMode.toUpperCase().startsWith("NB")) command = "NB_mandate_status";
   }
 
-  const response = await callPayUSICommand(command, { authPayuId });
+  // check_mandate_status (cards) refuses a request without requestId; UPI accepts it.
+  const response = await callPayUSICommand(command, { authPayuId, requestId: nanoid() });
 
-  if (response.status === 1 || response.status === "1") {
-    console.log(`[checkMandateStatus] Status for ${authPayuId}: ${response.mandate_status}`);
+  // Card mandates answer status 1 plus mandate_status; UPI mandates put the state itself in
+  // status (e.g. "active"). 0 means PayU has no such mandate.
+  const apiStatus = String(response.status ?? "").toLowerCase();
+  if (apiStatus !== "" && apiStatus !== "0") {
+    const mandateStatus = String(apiStatus === "1" ? response.mandate_status || "active" : apiStatus).toLowerCase();
+    console.log(`[checkMandateStatus] Status for ${authPayuId}: ${mandateStatus}`);
     return {
       success: true,
-      mandateStatus: response.mandate_status || "ACTIVE",
-      message: response.msg || "Mandate status checked",
+      mandateStatus,
+      message: response.message || response.msg || "Mandate status checked",
     };
   }
 
-  console.error(`[checkMandateStatus] Failed to check status for ${authPayuId}: ${response.msg}`);
+  const errorMessage = response.message || response.msg || "Failed to check mandate status";
+  console.error(`[checkMandateStatus] Failed to check status for ${authPayuId}: ${errorMessage}`);
   return {
     success: false,
-    mandateStatus: "UNKNOWN",
-    message: response.msg || "Failed to check mandate status",
+    mandateStatus: "unknown",
+    message: errorMessage,
   };
 }
 

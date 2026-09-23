@@ -8,6 +8,9 @@ export type VerifyPaymentResult = {
   productinfo?: string;
   firstname?: string;
   email?: string;
+  // PayU's payment id (the mandate id for an autopay sign-up) and payment mode.
+  mihpayid?: string;
+  mode?: string;
   error?: string;
   // PayU's reason fields, mapped to the orders columns. Present whenever PayU returned the transaction.
   failure?: PaymentFailureColumns;
@@ -47,6 +50,8 @@ export async function verifyPayUPayment(
     productinfo: details.productinfo,
     firstname: details.firstname,
     email: details.email,
+    mihpayid: details.mihpayid,
+    mode: details.mode,
     failure: extractPayUFailure(details),
   };
 }

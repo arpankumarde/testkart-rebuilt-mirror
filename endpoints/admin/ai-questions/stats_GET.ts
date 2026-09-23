@@ -15,17 +15,24 @@ export async function handle(request: Request): Promise<Response> {
       .select(db.fn.countAll().as("count"))
       .executeTakeFirstOrThrow();
 
-    // Questions by exam
-    const byExamPromise = db.selectFrom("testQuestions")
-      .innerJoin("mockTestItems", "testQuestions.testId", "mockTestItems.id")
-      .innerJoin("mockTests", "mockTestItems.packageId", "mockTests.id")
-      .innerJoin("exams", "mockTests.examId", "exams.id")
-      .where("testQuestions.isAiGenerated", "=", true)
-      .select(["exams.examName", db.fn.countAll<string>().as("count")])
-      .groupBy("exams.examName")
-      .orderBy("count", "desc")
-      .limit(10)
-      .execute();
+    // Questions by exam: a question counts under every exam its series is listed under, primary or other
+    const byExamPromise = sql<{ examName: string; count: string }>`
+      SELECT e.exam_name, count(DISTINCT tq.id) AS count
+      FROM test_questions tq
+      JOIN mock_test_items mti ON mti.id = tq.test_id
+      JOIN (
+        SELECT id AS mock_test_id, exam_id FROM mock_tests WHERE exam_id IS NOT NULL
+        UNION
+        SELECT mock_test_id, exam_id FROM mock_test_exams WHERE exam_id IS NOT NULL
+      ) listed ON listed.mock_test_id = mti.package_id
+      JOIN exams e ON e.id = listed.exam_id
+      WHERE tq.is_ai_generated = true
+      GROUP BY e.exam_name
+      ORDER BY count(DISTINCT tq.id) DESC
+      LIMIT 10
+    `
+      .execute(db)
+      .then((result) => result.rows);
 
     // Custom prompts count
     const customPromptsPromise = baseQuery

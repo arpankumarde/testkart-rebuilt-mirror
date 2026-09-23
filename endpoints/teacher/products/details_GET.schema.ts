@@ -3,6 +3,7 @@ import superjson from "superjson";
 import { Selectable } from "kysely";
 import { DigitalProducts } from "../../../helpers/schema";
 import { DigitalProductFileItem } from "../../../helpers/digitalProductFileTypes";
+import type { ContentExam } from "../../../helpers/contentExams";
 
 export const schema = z.object({
   id: z.number().int().positive(),
@@ -15,6 +16,8 @@ export type OutputType = Omit<Selectable<DigitalProducts>, "price" | "rating" | 
   rating: number | null;
   fileSizeBytes: number | null;
   files: DigitalProductFileItem[];
+  /** Every exam the product is listed under, primary first. */
+  exams: ContentExam[];
   /** Submitted for publishing and waiting on admin approval. */
   inReview?: boolean;
 };

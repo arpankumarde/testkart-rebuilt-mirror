@@ -4,6 +4,7 @@ import { schema, OutputType } from "./details_GET.schema";
 import superjson from "superjson";
 import { sql } from "kysely";
 import { hasPendingReview } from "../../../helpers/contentReviewQueue";
+import { loadContentExamList } from "../../../helpers/contentExams";
 
 export async function handle(request: Request) {
   try {
@@ -70,6 +71,7 @@ export async function handle(request: Request) {
       mockTest: mockTest || null,
       mockTestItem: mockTestItem || null,
       subjects: subjects,
+      exams: await loadContentExamList(db, "mock_test", liveTest.mockTestId),
       inReview: await hasPendingReview(db, "live_test", liveTest.id),
     };
 
