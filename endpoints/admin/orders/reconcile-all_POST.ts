@@ -2,6 +2,8 @@ import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { verifyPayUPayment } from "../../../helpers/verifyPayUPayment";
 import { ensureOrderCompletionSideEffects } from "../../../helpers/ensureOrderCompletionSideEffects";
+import { unpaidOrderStatus } from "../../../helpers/extractPayUFailure";
+import { fillMissingOrderReasons } from "../../../helpers/fillMissingOrderReasons";
 import { schema, OutputType } from "./reconcile-all_POST.schema";
 import superjson from "superjson";
 import { sql } from "kysely";
@@ -39,6 +41,7 @@ export async function handle(request: Request) {
       markedFailed: 0,
       stillPending: 0,
       errors: 0,
+      reasonsFilled: 0,
       details: [],
     };
 
@@ -112,15 +115,15 @@ export async function handle(request: Request) {
             message = "Successfully reconciled to completed";
             requiresSideEffects = true;
           } else if (verificationResult.status === "failure") {
-            // Payment Failed
+            const unpaidStatus = unpaidOrderStatus(verificationResult.failure);
             await trx
               .updateTable("orders")
-              .set({ status: "failed", ...verificationResult.failure })
+              .set({ status: unpaidStatus, ...verificationResult.failure })
               .where("id", "=", order.id)
               .execute();
 
-            finalStatus = "failed";
-            message = "Successfully reconciled to failed";
+            finalStatus = unpaidStatus;
+            message = `Successfully reconciled to ${unpaidStatus}`;
           } else {
             // Still pending in PayU
             finalStatus = "pending";
@@ -131,7 +134,7 @@ export async function handle(request: Request) {
         // Update counters based on the final status
         if (finalStatus === "completed") {
           summary.reconciled++;
-        } else if (finalStatus === "failed") {
+        } else if (finalStatus === "failed" || finalStatus === "cancelled") {
           summary.markedFailed++;
         } else if (finalStatus === "pending" && message !== "Order no longer pending when locked") {
           summary.stillPending++;
@@ -159,6 +162,12 @@ export async function handle(request: Request) {
           message: `Internal error processing order: ${orderError instanceof Error ? orderError.message : "Unknown error"}`,
         });
       }
+    }
+
+    try {
+      summary.reasonsFilled = await fillMissingOrderReasons({ limit: 200 });
+    } catch (reasonError) {
+      console.error("[ReconcileAll] Filling missing order reasons failed:", reasonError);
     }
 
     return new Response(superjson.stringify(summary satisfies OutputType));

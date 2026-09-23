@@ -18,8 +18,15 @@ export const schema = z
       .max(100, "Slug must be 100 characters or less.")
       .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug can only contain lowercase letters, numbers, and hyphens")
       .optional(),
-    avatarUrl: z.string().url("Invalid URL for avatar.").optional().nullable(),
-    avatarFileId: z.string().optional().nullable(),
+    // The edit form sends "" when there is no photo or it was removed.
+    avatarUrl: z.preprocess(
+      (val) => (val === "" ? null : val),
+      z.string().url("Invalid URL for avatar.").optional().nullable()
+    ),
+    avatarFileId: z.preprocess(
+      (val) => (val === "" ? null : val),
+      z.string().optional().nullable()
+    ),
     bio: z.string().optional(),
         websiteUrl: z.string().optional().nullable().transform((val) => {
       if (!val || val === '') return val;

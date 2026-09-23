@@ -10,9 +10,12 @@ export type OutputType = {
   success: boolean;
   totalPending: number;
   reconciled: number;
+  // Pending orders PayU reports as unpaid, closed as failed or cancelled.
   markedFailed: number;
   stillPending: number;
   errors: number;
+  // Closed orders that had no PayU reason and got one.
+  reasonsFilled: number;
   details: Array<{
     orderId: number;
     previousStatus: OrderStatus;

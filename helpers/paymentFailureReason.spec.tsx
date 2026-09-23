@@ -1,5 +1,5 @@
 import { paymentFailureReason, type PaymentFailureReason } from "./paymentFailureReason";
-import { extractPayUFailure, isPayUCancellation } from "./extractPayUFailure";
+import { extractPayUFailure, isPayUCancellation, unpaidOrderStatus } from "./extractPayUFailure";
 
 // Field combinations PayU returned for Testkart orders during the 2026-09-11 backfill.
 const observed: Array<[Parameters<typeof extractPayUFailure>[0], PaymentFailureReason]> = [
@@ -86,5 +86,19 @@ describe("isPayUCancellation", () => {
   it("control: the previous status-only check missed PayU's real cancellation shape", () => {
     const status: string = "failure";
     expect(status === "userCancelled" || status.toLowerCase().includes("cancel")).toBe(false);
+  });
+});
+
+describe("unpaidOrderStatus", () => {
+  it("closes a Cancel or Back press as cancelled, whether read from the callback or the Verify Payment API", () => {
+    expect(unpaidOrderStatus(extractPayUFailure({ status: "failure", unmappedstatus: "userCancelled", error: "E1605" }))).toBe("cancelled");
+    expect(unpaidOrderStatus(extractPayUFailure({ status: "failure", unmappedstatus: "userCancelled", error_code: "E1206" }))).toBe("cancelled");
+  });
+
+  it("closes every other PayU failure as failed", () => {
+    expect(unpaidOrderStatus(extractPayUFailure({ status: "failure", unmappedstatus: "bounced" }))).toBe("failed");
+    expect(unpaidOrderStatus(extractPayUFailure({ status: "failure", unmappedstatus: "dropped" }))).toBe("failed");
+    expect(unpaidOrderStatus(extractPayUFailure({ status: "failure", unmappedstatus: "failed", error: "E308" }))).toBe("failed");
+    expect(unpaidOrderStatus(undefined)).toBe("failed");
   });
 });

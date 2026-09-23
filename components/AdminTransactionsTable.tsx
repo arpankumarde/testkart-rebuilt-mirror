@@ -253,7 +253,7 @@ export const AdminTransactionsTable: React.FC = () => {
     mutationFn: () => postReconcileAllOrders({}),
     onSuccess: (data) => {
       toast.success(
-        `Reconciled: ${data.reconciled}, Failed: ${data.markedFailed}, Still Pending: ${data.stillPending}, Errors: ${data.errors}`
+        `Reconciled: ${data.reconciled}, Failed or cancelled: ${data.markedFailed}, Still Pending: ${data.stillPending}, Errors: ${data.errors}, Reasons added: ${data.reasonsFilled}`
       );
       queryClient.invalidateQueries({ queryKey: ADMIN_ORDERS_QUERY_KEY });
     },
@@ -386,7 +386,13 @@ export const AdminTransactionsTable: React.FC = () => {
   const totalPages = Math.ceil(filteredOrders.length / PAGE_SIZE);
 
   const hasPendingToReconcile = useMemo(() => {
-    return orders?.some((o) => o.status === "pending" && !!o.paymentTransactionId) ?? false;
+    return (
+      orders?.some(
+        (o) =>
+          !!o.paymentTransactionId &&
+          (o.status === "pending" || ((o.status === "failed" || o.status === "cancelled") && !o.paymentFailure))
+      ) ?? false
+    );
   }, [orders]);
 
   const formatCurrency = (amount: number): string => {

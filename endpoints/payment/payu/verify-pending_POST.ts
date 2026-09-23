@@ -9,8 +9,9 @@ import { OutputType } from "./verify-pending_POST.schema";
 import superjson from "superjson";
 import { sql } from "kysely";
 import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
-import { PAYU_NOT_FOUND_STATUS } from "../../../helpers/extractPayUFailure";
+import { PAYU_NOT_FOUND_STATUS, unpaidOrderStatus } from "../../../helpers/extractPayUFailure";
 import { isMandateTxnid, revokeLeftoverMandates } from "../../../helpers/teacherMandate";
+import { fillMissingOrderReasons } from "../../../helpers/fillMissingOrderReasons";
 
 const PENDING_ORDER_AGE_MINUTES = 5;
 // If PayU still can't resolve a transaction after this long, stop retrying and
@@ -139,6 +140,7 @@ export async function handle(request: Request) {
           });
 
         } else if (verificationResult.status === "failure") {
+          const unpaidStatus = unpaidOrderStatus(verificationResult.failure);
           await db.transaction().execute(async (trx) => {
             const lockedOrder = await trx
               .selectFrom("orders")
@@ -150,20 +152,25 @@ export async function handle(request: Request) {
             if (lockedOrder?.status === "pending") {
               await trx
                 .updateTable("orders")
-                .set({ status: "failed", ...verificationResult.failure })
+                .set({ status: unpaidStatus, ...verificationResult.failure })
                 .where("id", "=", order.id)
                 .execute();
               
               updatedOrders.push({
                 orderId: order.id,
                 previousStatus: "pending",
-                newStatus: "failed",
+                newStatus: unpaidStatus,
               });
             }
           });
         }
       }
     }
+
+    // Checkouts this student replaced with a newer one close without PayU's reason; record it once PayU has settled.
+    await fillMissingOrderReasons({ userId: user.id, limit: 10 }).catch((error) =>
+      console.error(`[VerifyPending] Filling missing order reasons failed for user ${user.id}:`, error)
+    );
 
     // IMPORTANT: scoped to the current user's own teacherId. This used to fetch
     // EVERY pending subscription transaction platform-wide, so a single

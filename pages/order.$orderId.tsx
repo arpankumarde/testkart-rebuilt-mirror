@@ -327,7 +327,11 @@ const OrderConfirmationPage: React.FC = () => {
       case "cancelled":
         return {
           icon: <AlertCircle size={20} />,
-          text: failure && failure.reason !== "cancelled" ? `Payment was cancelled. ${failure.message}` : "Payment was cancelled.",
+          text: failure
+            ? failure.reason === "cancelled"
+              ? failure.message
+              : `Payment was cancelled. ${failure.message}`
+            : "Payment was cancelled.",
           className: styles.infoMessage,
         };
       default:
@@ -347,7 +351,7 @@ const OrderConfirmationPage: React.FC = () => {
 
   const statusMessage = getStatusMessage(data.status);
   const showRetryButton =
-    (data.status.toLowerCase() === "pending" || data.status.toLowerCase() === "failed") &&
+    ["pending", "failed", "cancelled"].includes(data.status.toLowerCase()) &&
     data.paymentFailure?.reason !== "payment_captured";
   const isPending = data.status.toLowerCase() === "pending";
   const isVerifying = verifyPaymentMutation.isPending || (isPending && isFetching && !pollingTimedOut);

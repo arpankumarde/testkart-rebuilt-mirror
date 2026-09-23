@@ -2,6 +2,7 @@ import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { verifyPayUPayment } from "../../../helpers/verifyPayUPayment";
 import { ensureOrderCompletionSideEffects } from "../../../helpers/ensureOrderCompletionSideEffects";
+import { unpaidOrderStatus } from "../../../helpers/extractPayUFailure";
 import { schema, OutputType } from "./reconcile_POST.schema";
 import superjson from "superjson";
 import { sql } from "kysely";
@@ -134,14 +135,17 @@ export async function handle(request: Request) {
         finalStatus = "completed";
         updated = true;
       } else if (verificationResult.status === "failure") {
-        // Payment Failed
+        // A pending order closes as cancelled or failed by PayU's answer. An order that is already
+        // cancelled or failed keeps its status, so a re-check only brings PayU's reason up to date.
+        const unpaidStatus: OrderStatus =
+          lockedOrder.status === "pending" ? unpaidOrderStatus(verificationResult.failure) : lockedOrder.status;
         await trx
           .updateTable("orders")
-          .set({ status: "failed", ...verificationResult.failure })
+          .set({ status: unpaidStatus, ...verificationResult.failure })
           .where("id", "=", orderId)
           .execute();
 
-        finalStatus = "failed";
+        finalStatus = unpaidStatus;
         updated = true;
       }
       // If status is pending/other from PayU, we leave the order as pending
@@ -161,7 +165,10 @@ export async function handle(request: Request) {
       return new Response(
         superjson.stringify({
           success: true,
-          message: `Order successfully reconciled to '${finalStatus}'`,
+          message:
+            previousStatus === finalStatus
+              ? `Order stays '${finalStatus}'. PayU's reason is up to date.`
+              : `Order successfully reconciled to '${finalStatus}'`,
           order: {
             id: orderId,
             previousStatus: previousStatus,

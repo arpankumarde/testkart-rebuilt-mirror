@@ -11,7 +11,7 @@ export type OutputType = {
   updatedOrders: {
     orderId: number;
     previousStatus: "pending";
-    newStatus: "completed" | "failed";
+    newStatus: "completed" | "failed" | "cancelled";
   }[];
   verifiedSubscriptionTransactionsCount: number;
   updatedSubscriptionTransactions: {

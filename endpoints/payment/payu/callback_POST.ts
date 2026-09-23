@@ -9,7 +9,7 @@ import { Session, setServerSession, SessionExpirationSeconds } from "../../../he
 import { sendEmail } from "../../../helpers/sendEmail";
 import { emailTemplatesExtra } from "../../../helpers/emailTemplatesExtra";
 import { serializeForInlineScript } from "../../../helpers/serializeForInlineScript";
-import { extractPayUFailure, isPayUCancellation } from "../../../helpers/extractPayUFailure";
+import { extractPayUFailure, isPayUCancellation, type PaymentFailureColumns } from "../../../helpers/extractPayUFailure";
 import { paymentFailureReason } from "../../../helpers/paymentFailureReason";
 
 function isDeepLink(url: string): boolean {
@@ -74,6 +74,24 @@ async function fetchUserSession(userId: number): Promise<Session | null> {
   } catch (error) {
     console.error("[PayU Callback] Failed to fetch user session:", error);
     return null;
+  }
+}
+
+/**
+ * A checkout replaced by a newer one is already cancelled when PayU answers for it. Keep that late answer
+ * (a cancel, a failure, or money PayU captured) as the order's reason instead of dropping it.
+ */
+async function recordReplacedOrderReason(txnid: string, columns: PaymentFailureColumns): Promise<void> {
+  try {
+    await db
+      .updateTable("orders")
+      .set(columns)
+      .where("paymentTransactionId", "=", txnid)
+      .where("status", "=", "cancelled")
+      .where("paymentGatewayStatus", "is", null)
+      .execute();
+  } catch (error) {
+    console.error(`[PayU Callback] Could not record the reason for replaced order txnid ${txnid}:`, error);
   }
 }
 
@@ -145,6 +163,7 @@ export async function handle(request: Request) {
         .executeTakeFirst();
       
       if (!existingOrder) {
+        await recordReplacedOrderReason(txnid, failureColumns);
         return createHtmlResponse({
           status: 'failed',
           txnid,
@@ -453,6 +472,10 @@ export async function handle(request: Request) {
         .executeTakeFirst();
 
       if (existingOrder) {
+        if (existingOrder.status === "cancelled") {
+          await recordReplacedOrderReason(txnid, failureColumns);
+        }
+
         // If order is completed, ensure all side effects exist
         if (existingOrder.status === 'completed') {
           console.log(`[PayU Callback] Order ${existingOrder.id} already completed, ensuring side effects exist`);

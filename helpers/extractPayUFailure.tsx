@@ -43,3 +43,9 @@ export function isPayUCancellation(fields: Pick<PayUFailureFields, "status" | "u
   const unmappedStatus = (fields.unmappedstatus ?? "").trim().toLowerCase();
   return status.includes("cancel") || unmappedStatus === "usercancelled";
 }
+
+// The status an unpaid order closes with: "cancelled" for a Cancel or Back press, "failed" for anything else.
+// Every path that closes an order from PayU's answer uses this, so a re-check never relabels a cancel as a failure.
+export function unpaidOrderStatus(failure: PaymentFailureColumns | null | undefined): "cancelled" | "failed" {
+  return isPayUCancellation({ unmappedstatus: failure?.paymentGatewayStatus }) ? "cancelled" : "failed";
+}
