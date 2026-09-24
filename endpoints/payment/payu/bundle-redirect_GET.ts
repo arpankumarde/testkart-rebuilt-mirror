@@ -7,6 +7,7 @@ import { completeBundleEnrollment } from "../../../helpers/completeBundleEnrollm
 import { getTeacherPlatformFee } from "../../../helpers/getTeacherPlatformFee";
 import { Transaction, Selectable } from "kysely";
 import { DB, PromoCodes } from "../../../helpers/schema";
+import { countPromoCodeUses } from "../../../helpers/promoCodeUsage";
 
 const generateErrorHtml = (errorMessage: string, backUrl: string) => `
 <!DOCTYPE html>
@@ -134,19 +135,12 @@ async function validateAndCalculatePromo(
     throw new Error("Promo code has expired.");
   }
 
-  if (promoCode.usageLimit !== null && promoCode.usageCount >= promoCode.usageLimit) {
+  if (promoCode.usageLimit !== null && (await countPromoCodeUses(trx, promoCodeId)) >= promoCode.usageLimit) {
     throw new Error("Promo code usage limit has been reached.");
   }
 
-  if (promoCode.perUserLimit !== null) {
-    const userUsageCount = await trx
-      .selectFrom("promoCodeUsages")
-      .where("promoCodeId", "=", promoCodeId)
-      .where("userId", "=", studentId)
-      .execute();
-    if (userUsageCount.length >= promoCode.perUserLimit) {
-      throw new Error("You have already used this promo code the maximum number of times.");
-    }
+  if (promoCode.perUserLimit !== null && (await countPromoCodeUses(trx, promoCodeId, studentId)) >= promoCode.perUserLimit) {
+    throw new Error("You have already used this promo code the maximum number of times.");
   }
 
   if (promoCode.createdByTeacherId !== null && promoCode.createdByTeacherId !== bundle.teacherId) {
@@ -196,12 +190,6 @@ async function recordPromoUsage(
       orderId,
       discountAmount: discountAmount.toFixed(2),
     })
-    .execute();
-
-  await trx
-    .updateTable("promoCodes")
-    .set((eb) => ({ usageCount: eb("usageCount", "+", 1) }))
-    .where("id", "=", promoCodeId)
     .execute();
 }
 

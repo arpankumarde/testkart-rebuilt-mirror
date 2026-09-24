@@ -10,6 +10,7 @@ import {
   Download,
   Landmark,
   type LucideIcon,
+  Tag,
 } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
 import { addDays, format } from 'date-fns';
@@ -26,7 +27,7 @@ import { WithdrawalRequestDialog } from '../components/WithdrawalRequestDialog';
 import { TeacherPageHeader } from '../components/TeacherPageHeader';
 import { Popover, PopoverTrigger, PopoverContent } from '../components/Popover';
 import { Calendar } from '../components/Calendar';
-import styles from './teacher.reports.module.css';
+import styles from './teacher.earnings.module.css';
 
 const MIN_WITHDRAWAL = 100;
 
@@ -46,7 +47,7 @@ const LedgerRow = ({ label, value, isLoading }: { label: string; value: string; 
   </div>
 );
 
-const TeacherReportsPage: React.FC = () => {
+const TeacherEarningsPage: React.FC = () => {
   const { data: transactions, isFetching, error } = useTeacherEarningsQuery();
   const { data: bankDetails, isFetching: isFetchingBankDetails } = useTeacherBankDetailsQuery();
   const { data: balanceData, isFetching: isFetchingBalance, refetch: refetchBalance } = useEarningsBalance();
@@ -142,6 +143,8 @@ const TeacherReportsPage: React.FC = () => {
         'Gross Amount': tx.grossAmount.toFixed(2),
         'Platform Fee %': type === 'withdrawal' || type === 'prize_deduction' || type === 'subscription' ? '-' : `${tx.platformFeePercentage.toFixed(0)}%`,
         'Net Earnings': tx.amountEarned.toFixed(2),
+        Coupon: tx.couponCode ?? '',
+        'Coupon Discount': tx.couponDiscount !== undefined ? tx.couponDiscount.toFixed(2) : '',
       };
     });
 
@@ -362,6 +365,13 @@ const TeacherReportsPage: React.FC = () => {
                                 Credited after the live test ends and prizes are paid
                               </span>
                             )}
+                            {tx.couponCode && (
+                              <span className={styles.couponNote}>
+                                <Tag size={12} aria-hidden="true" />
+                                Coupon <span className={styles.couponCode}>{tx.couponCode}</span>
+                                {tx.couponDiscount !== undefined && <span>{rupees.format(tx.couponDiscount)} off</span>}
+                              </span>
+                            )}
                           </div>
                         </td>
                         <td className={styles.numeric} data-label="Gross">
@@ -409,4 +419,4 @@ const TeacherReportsPage: React.FC = () => {
   );
 };
 
-export default TeacherReportsPage;
+export default TeacherEarningsPage;

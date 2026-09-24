@@ -17,6 +17,8 @@ export type EarningTransaction = {
   transactionType: TransactionType;
   isLiveTest?: boolean;
   liveTestEnded?: boolean;
+  couponCode?: string;
+  couponDiscount?: number;
 };
 
 export type OutputType = EarningTransaction[];

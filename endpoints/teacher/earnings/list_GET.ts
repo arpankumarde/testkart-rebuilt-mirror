@@ -6,6 +6,10 @@ import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
 import { getTeacherPlatformFee } from "../../../helpers/getTeacherPlatformFee";
 import { sql } from "kysely";
 
+// A promo code only counts for a teacher's row when it took money off that row.
+const couponFields = (code: string | null, discount: string | number | null) =>
+  code && Number(discount) > 0 ? { couponCode: code, couponDiscount: Number(discount) } : {};
+
 export async function handle(request: Request): Promise<Response> {
   try {
     const { user, effectiveTeacherId, teacherRole } = await getServerUserSession(request);
@@ -31,6 +35,7 @@ export async function handle(request: Request): Promise<Response> {
       .innerJoin("users", "orders.userId", "users.id")
       .innerJoin("orderItems", "orderItems.orderId", "orders.id")
       .innerJoin("mockTests", "orderItems.mockTestId", "mockTests.id")
+      .leftJoin("promoCodes", "orders.promoCodeId", "promoCodes.id")
       .where("mockTests.teacherId", "=", effectiveTeacherId)
       .where("orders.status", "=", "completed")
       .where((eb) => eb.or([eb("orders.paymentMethod", "is", null), eb("orders.paymentMethod", "!=", "teacher_sponsored")]))
@@ -50,6 +55,8 @@ export async function handle(request: Request): Promise<Response> {
         sql<string>`(order_items.price_at_purchase - order_items.discount_amount) * (1 - order_items.platform_fee_percentage / 100)`.as(
           "amountEarned"
         ),
+        "promoCodes.code as couponCode",
+        "orderItems.discountAmount as couponDiscount",
       ])
       .execute();
 
@@ -84,6 +91,7 @@ export async function handle(request: Request): Promise<Response> {
       transactionType: "sale" as const,
       isLiveTest: liveTestOrderMap.has(row.orderId),
       liveTestEnded: liveTestOrderMap.get(row.orderId) ?? false,
+      ...couponFields(row.couponCode, row.couponDiscount),
     }));
 
     // Fetch course sales transactions
@@ -92,6 +100,7 @@ export async function handle(request: Request): Promise<Response> {
       .innerJoin("users", "orders.userId", "users.id")
       .innerJoin("orderItems", "orderItems.orderId", "orders.id")
       .innerJoin("courses", "orderItems.courseId", "courses.id")
+      .leftJoin("promoCodes", "orders.promoCodeId", "promoCodes.id")
       .where("courses.teacherId", "=", effectiveTeacherId)
       .where("orders.status", "=", "completed")
       .where((eb) => eb.or([eb("orders.paymentMethod", "is", null), eb("orders.paymentMethod", "!=", "teacher_sponsored")]))
@@ -110,15 +119,18 @@ export async function handle(request: Request): Promise<Response> {
         sql<string>`(order_items.price_at_purchase - order_items.discount_amount) * (1 - order_items.platform_fee_percentage / 100)`.as(
           "amountEarned"
         ),
+        "promoCodes.code as couponCode",
+        "orderItems.discountAmount as couponDiscount",
       ])
       .execute();
 
-    const courseSalesTransactions: OutputType = courseSalesData.map((row) => ({
+    const courseSalesTransactions: OutputType = courseSalesData.map(({ couponCode, couponDiscount, ...row }) => ({
       ...row,
       grossAmount: Number(row.grossAmount),
       platformFeePercentage: Number(row.platformFeePercentage),
       amountEarned: Number(row.amountEarned),
       transactionType: "sale" as const,
+      ...couponFields(couponCode, couponDiscount),
     }));
 
     // Fetch digital product sales transactions
@@ -127,6 +139,7 @@ export async function handle(request: Request): Promise<Response> {
       .innerJoin("users", "orders.userId", "users.id")
       .innerJoin("orderItems", "orderItems.orderId", "orders.id")
       .innerJoin("digitalProducts", "orderItems.digitalProductId", "digitalProducts.id")
+      .leftJoin("promoCodes", "orders.promoCodeId", "promoCodes.id")
       .where("digitalProducts.teacherId", "=", effectiveTeacherId)
       .where("orders.status", "=", "completed")
       .where((eb) => eb.or([eb("orders.paymentMethod", "is", null), eb("orders.paymentMethod", "!=", "teacher_sponsored")]))
@@ -145,15 +158,18 @@ export async function handle(request: Request): Promise<Response> {
         sql<string>`(order_items.price_at_purchase - order_items.discount_amount) * (1 - order_items.platform_fee_percentage / 100)`.as(
           "amountEarned"
         ),
+        "promoCodes.code as couponCode",
+        "orderItems.discountAmount as couponDiscount",
       ])
       .execute();
 
-    const digitalProductSalesTransactions: OutputType = digitalProductSalesData.map((row) => ({
+    const digitalProductSalesTransactions: OutputType = digitalProductSalesData.map(({ couponCode, couponDiscount, ...row }) => ({
       ...row,
       grossAmount: Number(row.grossAmount),
       platformFeePercentage: Number(row.platformFeePercentage),
       amountEarned: Number(row.amountEarned),
       transactionType: "sale" as const,
+      ...couponFields(couponCode, couponDiscount),
     }));
 
     // Fetch bundle sales transactions
@@ -161,6 +177,7 @@ export async function handle(request: Request): Promise<Response> {
       .selectFrom("orders")
       .innerJoin("users", "orders.userId", "users.id")
       .innerJoin("courseBundles", "orders.bundleId", "courseBundles.id")
+      .leftJoin("promoCodes", "orders.promoCodeId", "promoCodes.id")
       .where("courseBundles.teacherId", "=", effectiveTeacherId)
       .where("orders.status", "=", "completed")
       .where("orders.bundleId", "is not", null)
@@ -177,6 +194,8 @@ export async function handle(request: Request): Promise<Response> {
         "users.displayName as studentName",
         sql<string>`orders.total_amount`.as("grossAmount"),
         "orders.platformFeePercentage",
+        "promoCodes.code as couponCode",
+        "orders.discountAmount as couponDiscount",
       ])
       .execute();
 
@@ -196,6 +215,7 @@ export async function handle(request: Request): Promise<Response> {
         platformFeePercentage: feePercentage,
         amountEarned: gross * (1 - feePercentage / 100),
         transactionType: "sale" as const,
+        ...couponFields(row.couponCode, row.couponDiscount),
       };
     });
 

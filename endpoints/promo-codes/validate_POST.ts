@@ -4,6 +4,7 @@ import { schema, OutputType } from "./validate_POST.schema";
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { promoCodeCoversTeacher } from "../../helpers/promoCodeEligibility";
+import { countPromoCodeUses } from "../../helpers/promoCodeUsage";
 
 type ItemWithType = {
   id: number;
@@ -72,7 +73,7 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
-    if (promoCode.usageLimit !== null && promoCode.usageCount >= promoCode.usageLimit) {
+    if (promoCode.usageLimit !== null && (await countPromoCodeUses(db, promoCode.id)) >= promoCode.usageLimit) {
       return new Response(
         superjson.stringify({
           valid: false,
@@ -83,14 +84,7 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     if (promoCode.perUserLimit !== null) {
-      const userUsage = await db
-        .selectFrom("promoCodeUsages")
-        .select((eb) => eb.fn.count<string>("id").as("count"))
-        .where("promoCodeId", "=", promoCode.id)
-        .where("userId", "=", user.id)
-        .executeTakeFirst();
-
-      if (userUsage && parseInt(userUsage.count, 10) >= promoCode.perUserLimit) {
+      if ((await countPromoCodeUses(db, promoCode.id, user.id)) >= promoCode.perUserLimit) {
         return new Response(
           superjson.stringify({
             valid: false,

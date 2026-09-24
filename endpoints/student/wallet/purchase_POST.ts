@@ -6,6 +6,7 @@ import { getStudentAvailableBalance } from "../../../helpers/getStudentAvailable
 import { getTeacherPlatformFee } from "../../../helpers/getTeacherPlatformFee";
 import { ensureOrderCompletionSideEffects } from "../../../helpers/ensureOrderCompletionSideEffects";
 import { promoCodeCoversTeacher } from "../../../helpers/promoCodeEligibility";
+import { countPromoCodeUses } from "../../../helpers/promoCodeUsage";
 import { lockWallet } from "../../../helpers/walletLock";
 import { courseEffectivePriceSql } from "../../../helpers/coursePricing";
 import { sql } from "kysely";
@@ -102,21 +103,12 @@ export async function handle(request: Request) {
           throw new Error("This promo code has expired.");
         }
 
-        if (promoCode.usageLimit !== null && promoCode.usageCount >= promoCode.usageLimit) {
+        if (promoCode.usageLimit !== null && (await countPromoCodeUses(trx, promoCodeId)) >= promoCode.usageLimit) {
           throw new Error("This promo code has reached its usage limit.");
         }
 
-        if (promoCode.perUserLimit !== null) {
-          const userUsageCount = await trx
-            .selectFrom("promoCodeUsages")
-            .where("promoCodeId", "=", promoCodeId)
-            .where("userId", "=", user.id)
-            .select(trx.fn.count<number>("id").as("count"))
-            .executeTakeFirst();
-
-          if (userUsageCount && userUsageCount.count >= promoCode.perUserLimit) {
-            throw new Error("You have reached the usage limit for this promo code.");
-          }
+        if (promoCode.perUserLimit !== null && (await countPromoCodeUses(trx, promoCodeId, user.id)) >= promoCode.perUserLimit) {
+          throw new Error("You have reached the usage limit for this promo code.");
         }
 
         if (promoCode.minPurchaseAmount !== null && totalAmount < parseFloat(String(promoCode.minPurchaseAmount))) {
@@ -207,12 +199,6 @@ export async function handle(request: Request) {
         discountAmount = Math.min(discountAmount, eligibleItemsTotal);
         finalAmount = totalAmount - discountAmount;
         validatedPromoCodeId = promoCodeId;
-
-        await trx
-          .updateTable("promoCodes")
-          .set({ usageCount: sql`usage_count + 1` })
-          .where("id", "=", promoCodeId)
-          .execute();
       }
 
       finalAmount = Math.max(0, finalAmount);

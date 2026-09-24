@@ -3,6 +3,7 @@ import { schema, OutputType } from "./public_GET.schema";
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { PromoItemType, promoCodeAppliesToItem } from "../../helpers/promoCodeEligibility";
+import { promoCodeUsesSql } from "../../helpers/promoCodeUsage";
 
 const MAX_COUPONS = 5;
 
@@ -48,6 +49,7 @@ export async function handle(request: Request): Promise<Response> {
     const rows = await db
       .selectFrom("promoCodes")
       .selectAll()
+      .select(promoCodeUsesSql().as("usesHeld"))
       .where("createdByTeacherId", "=", teacherId)
       .where("isPublic", "=", true)
       .where("isActive", "=", true)
@@ -57,7 +59,7 @@ export async function handle(request: Request): Promise<Response> {
       .execute();
 
     const promoCodes = rows
-      .filter((row) => row.usageLimit === null || row.usageCount < row.usageLimit)
+      .filter((row) => row.usageLimit === null || Number(row.usesHeld) < row.usageLimit)
       .filter((row) => promoCodeAppliesToItem(row, itemType, itemId))
       .slice(0, MAX_COUPONS)
       .map((row) => ({

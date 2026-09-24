@@ -160,7 +160,7 @@ export const TeacherAnalyticsSales = ({ range, enabled }: Props) => {
           { label: "Platform fee", slot: 2 },
         ]}
         actions={
-          <Link to="/teacher/reports" className={styles.link}>
+          <Link to="/teacher/earnings" className={styles.link}>
             Balance and payouts <ArrowRight size={14} aria-hidden="true" />
           </Link>
         }

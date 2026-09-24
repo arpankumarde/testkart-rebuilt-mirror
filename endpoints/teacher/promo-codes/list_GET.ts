@@ -3,6 +3,7 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./list_GET.schema";
 import superjson from "superjson";
 import { ZodError } from "zod";
+import { promoCodeUsesSql } from "../../../helpers/promoCodeUsage";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -37,14 +38,14 @@ export async function handle(request: Request): Promise<Response> {
                      ]))
                      .where((eb) => eb.or([
                          eb("usageLimit", "is", null),
-                         eb("usageCount", "<", eb.ref("usageLimit"))
+                         eb(promoCodeUsesSql(), "<", eb.ref("usageLimit"))
                      ]));
       } else if (status === "scheduled") {
         query = query.where("isActive", "=", true)
                      .where("validFrom", ">", now)
                      .where((eb) => eb.or([
                          eb("usageLimit", "is", null),
-                         eb("usageCount", "<", eb.ref("usageLimit"))
+                         eb(promoCodeUsesSql(), "<", eb.ref("usageLimit"))
                      ]));
       } else if (status === "expired") {
         query = query.where((eb) => eb.or([
@@ -52,18 +53,20 @@ export async function handle(request: Request): Promise<Response> {
             eb("validUntil", "<=", now),
             eb.and([
               eb("usageLimit", "is not", null),
-              eb("usageCount", ">=", eb.ref("usageLimit"))
+              eb(promoCodeUsesSql(), ">=", eb.ref("usageLimit"))
             ])
         ]));
       }
     }
 
-    const promoCodes = await query
+    const rows = await query
       .selectAll()
+      .select(promoCodeUsesSql().as("usesHeld"))
       .orderBy("createdAt", "desc")
       .limit(limit)
       .offset(offset)
       .execute();
+    const promoCodes = rows.map(({ usesHeld, ...row }) => ({ ...row, usageCount: Number(usesHeld) }));
 
     const totalResult = await query
       .clearSelect()

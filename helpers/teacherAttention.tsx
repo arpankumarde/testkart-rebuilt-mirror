@@ -55,7 +55,7 @@ const tiles = (attention: TeacherAttentionCounts): TeacherAttentionTile[] => {
       count: attention.withdrawalsPending,
       title: plural(attention.withdrawalsPending, "withdrawal request", "withdrawal requests"),
       detail: `${adminFormat.inr(attention.withdrawalsPendingAmount)} being processed`,
-      href: "/teacher/reports?filter=pending-withdrawals",
+      href: "/teacher/earnings?filter=pending-withdrawals",
       icon: ArrowDownToLine,
     },
     {
@@ -63,7 +63,7 @@ const tiles = (attention: TeacherAttentionCounts): TeacherAttentionTile[] => {
       count: bank ? 1 : 0,
       title: bank?.title ?? "",
       detail: bank?.detail ?? "",
-      href: "/teacher/reports",
+      href: "/teacher/earnings",
       icon: Landmark,
     },
     {

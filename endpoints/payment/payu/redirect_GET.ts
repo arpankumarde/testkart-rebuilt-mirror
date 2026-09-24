@@ -7,6 +7,7 @@ import { sql } from "kysely";
 import { getTeacherPlatformFee } from "../../../helpers/getTeacherPlatformFee";
 import { ensureOrderCompletionSideEffects } from "../../../helpers/ensureOrderCompletionSideEffects";
 import { promoCodeCoversTeacher } from "../../../helpers/promoCodeEligibility";
+import { countPromoCodeUses } from "../../../helpers/promoCodeUsage";
 import { courseEffectivePriceSql } from "../../../helpers/coursePricing";
 
 const generateErrorHtml = (errorMessage: string, backUrl: string) => `
@@ -211,22 +212,13 @@ export async function handle(request: Request) {
         }
 
         // Check usage limits
-        if (promoCode.usageLimit !== null && promoCode.usageCount >= promoCode.usageLimit) {
+        if (promoCode.usageLimit !== null && (await countPromoCodeUses(trx, promoCodeId)) >= promoCode.usageLimit) {
           throw new Error("This promo code has reached its usage limit.");
         }
 
         // Check per-user limit
-        if (promoCode.perUserLimit !== null) {
-          const userUsageCount = await trx
-            .selectFrom("promoCodeUsages")
-            .where("promoCodeId", "=", promoCodeId)
-            .where("userId", "=", user.id)
-            .select(trx.fn.count<number>("id").as("count"))
-            .executeTakeFirst();
-
-          if (userUsageCount && userUsageCount.count >= promoCode.perUserLimit) {
-            throw new Error("You have reached the usage limit for this promo code.");
-          }
+        if (promoCode.perUserLimit !== null && (await countPromoCodeUses(trx, promoCodeId, user.id)) >= promoCode.perUserLimit) {
+          throw new Error("You have reached the usage limit for this promo code.");
         }
 
         // Check minimum purchase amount
@@ -338,13 +330,6 @@ export async function handle(request: Request) {
         finalAmount = totalAmount - discountAmount;
 
         validatedPromoCodeId = promoCodeId;
-
-        // Increment promo code usage count atomically
-        await trx
-          .updateTable("promoCodes")
-          .set({ usageCount: sql`usage_count + 1` })
-          .where("id", "=", promoCodeId)
-          .execute();
 
         console.log(`Promo code ${promoCode.code} applied. Discount: ₹${discountAmount.toFixed(2)}`);
       }

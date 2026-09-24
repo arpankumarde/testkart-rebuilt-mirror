@@ -36,7 +36,7 @@ export const TeacherOverviewRecentSales = ({ sales, isLoading, showAmounts = tru
       <div className={styles.head}>
         <h2 className={styles.title}>Recent sales</h2>
         {showAmounts && (
-          <Link to="/teacher/reports" className={styles.link}>
+          <Link to="/teacher/earnings" className={styles.link}>
             All earnings
           </Link>
         )}

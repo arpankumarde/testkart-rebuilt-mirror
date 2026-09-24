@@ -430,7 +430,8 @@
   font-variant-numeric: tabular-nums;
 }
 
-.table th.numeric {
+.table th.numeric,
+.table td.numeric {
   text-align: right;
 }
 
@@ -476,6 +477,26 @@
   font-size: 0.75rem;
   font-weight: 500;
   color: var(--warning-text);
+}
+
+.couponNote {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-1);
+  margin-top: var(--spacing-1);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.couponCode {
+  padding: 0 var(--spacing-1);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
 }
 
 @container transactions (max-width: 52.99rem) {
