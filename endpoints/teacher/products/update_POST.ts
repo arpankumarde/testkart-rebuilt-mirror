@@ -11,6 +11,7 @@ import {
   syncProductFiles,
   ProductRuleError,
 } from "../../../helpers/digitalProductRules";
+import { assertStudyNoteFilesArePdfs } from "../../../helpers/studyNoteFileCheck";
 import {
   ContentExamError,
   loadContentExamList,
@@ -112,6 +113,22 @@ export async function handle(request: Request): Promise<Response> {
           })
         : undefined;
     if (exams) Object.assign(updateSet, primaryExamFields(exams));
+
+    // Only files new to this note are read; saved ones were checked when they were added.
+    const incomingFiles = Array.isArray(input.files)
+      ? input.files
+      : input.pdfUrl !== undefined && isRealFileUrl(input.pdfUrl)
+        ? [{ title: input.title ?? existingProduct.title, fileUrl: input.pdfUrl }]
+        : [];
+    if (incomingFiles.length > 0) {
+      const savedRows = await db
+        .selectFrom("digitalProductFiles")
+        .select("fileUrl")
+        .where("productId", "=", input.id)
+        .execute();
+      const savedUrls = new Set(savedRows.map((row) => row.fileUrl));
+      await assertStudyNoteFilesArePdfs(incomingFiles.filter((f) => !savedUrls.has(f.fileUrl)));
+    }
 
     const { updatedProduct, files } = await db.transaction().execute(async (trx) => {
       let syncedFiles: DigitalProductFileItem[] | null = null;

@@ -1,11 +1,8 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { getShopProductsList, InputType as ShopListInput } from "../endpoints/shop/list_GET.schema";
 import { getShopProductDetails } from "../endpoints/shop/details_GET.schema";
 import { getRelatedShopProducts } from "../endpoints/shop/related_GET.schema";
 import { getStudentPurchases, InputType as StudentPurchasesInput } from "../endpoints/student/shop/purchases_GET.schema";
-import { postStudentShopDownload } from "../endpoints/student/shop/download_POST.schema";
-import { toast } from "sonner";
-import { parseErrorMessage } from "./parseErrorMessage";
 
 export const SHOP_PRODUCTS_QUERY_KEY = ["shop", "products"];
 export const SHOP_PRODUCT_DETAILS_QUERY_KEY = (slug: string) => ["shop", "product", slug];
@@ -47,15 +44,5 @@ export const useStudentPurchasesQuery = (params: StudentPurchasesInput = { page:
     queryFn: () => getStudentPurchases(params),
     placeholderData: (previousData) => previousData,
     staleTime: 10 * 60 * 1000,
-  });
-};
-
-// Student Mutations
-export const useProductDownloadMutation = () => {
-  return useMutation({
-    mutationFn: postStudentShopDownload,
-    onError: (error) => {
-      toast.error(parseErrorMessage(error) ||  "Failed to generate download link");
-    },
   });
 };

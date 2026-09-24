@@ -192,6 +192,12 @@
   -webkit-user-select: none;
 }
 
+/* Pages cannot be long-pressed, dragged or right-clicked as images; the scroller underneath gets the gesture. */
+.restricted .pageImage {
+  pointer-events: none;
+  -webkit-touch-callout: none;
+}
+
 .frame {
   box-sizing: border-box;
   display: flex;
@@ -391,5 +397,19 @@
   .loadingIcon,
   .spinner {
     animation: none;
+  }
+}
+
+@media print {
+  .restricted .frame {
+    display: none;
+  }
+
+  .restricted::after {
+    content: "Printing is turned off for this document.";
+    display: block;
+    padding: 2rem;
+    text-align: center;
+    color: #000000;
   }
 }

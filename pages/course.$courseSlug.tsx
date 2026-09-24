@@ -251,7 +251,7 @@ export default function CourseDetailsPage() {
 
                               {/* Course Curriculum */}
           <section className={styles.section}>
-            <CourseCurriculum sections={course.sections} />
+            <CourseCurriculum courseId={course.id} sections={course.sections} />
           </section>
 
           

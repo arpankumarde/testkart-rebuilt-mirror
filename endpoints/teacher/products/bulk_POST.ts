@@ -3,6 +3,7 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./bulk_POST.schema";
 import superjson from "superjson";
 import { getProductPublishIssues, formatPublishIssues } from "../../../helpers/digitalProductRules";
+import { findStudyNoteFileProblem } from "../../../helpers/studyNoteFileCheck";
 import { pendingReviewIds, queueContentReview } from "../../../helpers/contentReviewQueue";
 
 export async function handle(request: Request): Promise<Response> {
@@ -41,7 +42,7 @@ export async function handle(request: Request): Promise<Response> {
       const fileRows = candidateIds.length > 0
         ? await db
             .selectFrom("digitalProductFiles")
-            .select(["productId", "fileUrl"])
+            .select(["productId", "title", "fileUrl", "pageCount"])
             .where("productId", "in", candidateIds)
             .execute()
         : [];
@@ -58,12 +59,22 @@ export async function handle(request: Request): Promise<Response> {
           failed.push({ id: p.id, title: p.title, reason: "Already waiting for review" });
           continue;
         }
+        const productFiles = fileRows.filter((f) => f.productId === p.id);
         const issues = getProductPublishIssues({
           ...p,
-          fileUrls: fileRows.filter((f) => f.productId === p.id).map((f) => f.fileUrl),
+          fileUrls: productFiles.map((f) => f.fileUrl),
+          filePageCounts: productFiles.map((f) => f.pageCount),
         });
         if (issues.length > 0) {
           failed.push({ id: p.id, title: p.title, reason: formatPublishIssues(issues) });
+          continue;
+        }
+        const fileProblems = await Promise.all(
+          (productFiles.length > 0 ? productFiles : [{ title: p.title, fileUrl: p.pdfUrl }]).map(findStudyNoteFileProblem)
+        );
+        const fileProblem = fileProblems.find((problem): problem is string => !!problem);
+        if (fileProblem) {
+          failed.push({ id: p.id, title: p.title, reason: fileProblem });
           continue;
         }
         succeeded.push(p.id);

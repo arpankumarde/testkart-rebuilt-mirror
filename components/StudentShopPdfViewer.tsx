@@ -1,6 +1,6 @@
 import React from 'react';
 import { PdfReaderDialog } from './PdfReaderDialog';
-import { useSignedShopPdfUrl } from '../helpers/useSignedShopPdfUrl';
+import { useProtectedDocument } from '../helpers/useProtectedDocument';
 
 interface StudentShopPdfViewerProps {
   isOpen: boolean;
@@ -11,13 +11,9 @@ interface StudentShopPdfViewerProps {
 }
 
 /**
- * Opens a purchased study-notes PDF in the shared reader. The reader draws it
- * in-app (canvas rendering, not a native browser PDF plugin), so there is no
- * "Save As" affordance the way a plain <a href download> or <embed> would
- * offer, and the underlying signed URL is short-lived and only ever used
- * inside the reader. The same protection model applies to course PDF lessons
- * - it deters casual downloading but, like any web content, can't fully
- * prevent screenshots.
+ * Opens a purchased study-notes file in the shared reader. Pages arrive as images rendered and watermarked
+ * on the server for this student, so the browser never holds the file or a link to it. Like any web
+ * content it cannot stop screenshots; the watermark ties them back to the buyer.
  */
 export const StudentShopPdfViewer: React.FC<StudentShopPdfViewerProps> = ({
   isOpen,
@@ -26,11 +22,10 @@ export const StudentShopPdfViewer: React.FC<StudentShopPdfViewerProps> = ({
   fileId,
   title,
 }) => {
-  const { signedUrl, isLoading, error, refetch } = useSignedShopPdfUrl({
-    productId,
-    fileId,
-    enabled: isOpen,
-  });
+  const { source, isLoading, error, refetch } = useProtectedDocument(
+    { type: 'note', productId, ...(fileId ? { fileId } : {}) },
+    isOpen,
+  );
 
   return (
     <PdfReaderDialog
@@ -38,9 +33,9 @@ export const StudentShopPdfViewer: React.FC<StudentShopPdfViewerProps> = ({
       onClose={onClose}
       title={title}
       note="Read only"
-      source={signedUrl ? { kind: 'pdf', url: signedUrl } : null}
+      source={source}
       loading={isLoading}
-      error={error ? 'This document could not be opened. Try again in a moment.' : null}
+      error={error ? error.message || 'This document could not be opened. Try again in a moment.' : null}
       onRetry={refetch}
       restricted
       openInNewTabHref={`/student/shop/${productId}/read${fileId ? `?file=${fileId}` : ''}`}

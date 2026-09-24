@@ -1,5 +1,6 @@
 import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
+import { syncMockTestAggregates } from "../../../helpers/syncMockTestAggregates";
 import { schema, OutputType } from "./delete_POST.schema";
 import superjson from "superjson";
 
@@ -9,6 +10,13 @@ export async function handle(request: Request): Promise<Response> {
 
     const json = superjson.parse(await request.text());
     const { id } = schema.parse(json);
+
+    const owner = await db
+      .selectFrom("testQuestions")
+      .innerJoin("mockTestItems", "mockTestItems.id", "testQuestions.testId")
+      .select("mockTestItems.packageId")
+      .where("testQuestions.id", "=", id)
+      .executeTakeFirst();
 
     const result = await db
       .deleteFrom("testQuestions")
@@ -22,6 +30,8 @@ export async function handle(request: Request): Promise<Response> {
         { status: 404 }
       );
     }
+
+    if (owner) await syncMockTestAggregates(owner.packageId);
 
     return new Response(superjson.stringify({ success: true } satisfies OutputType));
   } catch (error) {

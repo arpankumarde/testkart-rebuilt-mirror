@@ -1,31 +1,14 @@
 import { db } from "../../helpers/db";
-import { deleteFromR2, getPublicUrl, uploadToR2 } from "../../helpers/r2Client";
-import { PdfPreviewUnavailableError, renderPdfPreviewPage } from "../../helpers/pdfPreviewRender";
+import { getPublicUrl } from "../../helpers/r2Client";
+import { PdfPreviewUnavailableError } from "../../helpers/pdfPreviewRender";
+import { ensureStoredPage, type StoredPage } from "../../helpers/documentPages";
 import { schema, OutputType } from "./preview-page_GET.schema";
 import superjson from "superjson";
 
-// Preview pages are served as rendered images, never as the PDF itself, so only the first
-// previewPages pages of a paid file ever leave the server. Each page is rendered on first request
-// and reused from pdf_preview_pages after that.
-const PREVIEW_IMAGE_FOLDER = "products/previews";
-
-type StoredPreviewPage = {
-  imageKey: string;
-  width: number;
-  height: number;
-  sourcePageCount: number;
-};
-
-function findPreviewPage(sourceUrl: string, pageNumber: number): Promise<StoredPreviewPage | undefined> {
-  return db
-    .selectFrom("pdfPreviewPages")
-    .select(["imageKey", "width", "height", "sourcePageCount"])
-    .where("sourceUrl", "=", sourceUrl)
-    .where("pageNumber", "=", pageNumber)
-    .executeTakeFirst();
-}
-
-function toOutput(stored: StoredPreviewPage, page: number, previewPages: number): OutputType {
+// Preview pages are served as rendered images, never as the PDF itself, so only the first previewPages pages
+// of a paid file ever leave the server. The mobile app reads this; the web uses the watermarked
+// endpoints/reader pages instead.
+function toOutput(stored: StoredPage, page: number, previewPages: number): OutputType {
   return {
     page,
     totalPages: Math.min(previewPages, stored.sourcePageCount),
@@ -90,43 +73,12 @@ export async function handle(request: Request): Promise<Response> {
       sourceUrl = file.fileUrl;
     }
 
-    const cached = await findPreviewPage(sourceUrl, input.page);
-    if (cached) {
-      return new Response(superjson.stringify(toOutput(cached, input.page, previewPages)));
-    }
-
-    const rendered = await renderPdfPreviewPage(sourceUrl, input.page);
-    if (!rendered.image) {
+    const stored = await ensureStoredPage(sourceUrl, input.page, previewPages);
+    if (!stored) {
       return new Response(
         superjson.stringify({ error: "This page is not part of the preview" }),
         { status: 404 }
       );
-    }
-
-    const imageKey = `${PREVIEW_IMAGE_FOLDER}/${crypto.randomUUID()}.webp`;
-    await uploadToR2(imageKey, rendered.image.data, "image/webp");
-    const inserted = await db
-      .insertInto("pdfPreviewPages")
-      .values({
-        sourceUrl,
-        pageNumber: input.page,
-        imageKey,
-        width: rendered.image.width,
-        height: rendered.image.height,
-        sourcePageCount: rendered.pageCount,
-      })
-      .onConflict((oc) => oc.columns(["sourceUrl", "pageNumber"]).doNothing())
-      .returning(["imageKey", "width", "height", "sourcePageCount"])
-      .executeTakeFirst();
-
-    let stored: StoredPreviewPage | undefined = inserted;
-    if (!stored) {
-      // A concurrent request stored this page first; keep its image and drop the duplicate.
-      await deleteFromR2(imageKey);
-      stored = await findPreviewPage(sourceUrl, input.page);
-    }
-    if (!stored) {
-      throw new Error("Preview page was rendered but not stored");
     }
 
     return new Response(superjson.stringify(toOutput(stored, input.page, previewPages)));

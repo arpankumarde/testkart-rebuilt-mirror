@@ -1,5 +1,6 @@
 import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
+import { syncMockTestAggregates } from "../../../helpers/syncMockTestAggregates";
 import { schema, OutputType } from "./bulk-delete_POST.schema";
 import superjson from "superjson";
 
@@ -17,6 +18,15 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
+    const owners = await db
+      .selectFrom("testQuestions")
+      .innerJoin("mockTestItems", "mockTestItems.id", "testQuestions.testId")
+      .select("mockTestItems.packageId")
+      .distinct()
+      .where("testQuestions.id", "in", ids)
+      .where("testQuestions.isAiGenerated", "=", true)
+      .execute();
+
     const result = await db
       .deleteFrom("testQuestions")
       .where("id", "in", ids)
@@ -24,6 +34,10 @@ export async function handle(request: Request): Promise<Response> {
       .executeTakeFirst();
 
     const count = Number(result.numDeletedRows);
+
+    for (const { packageId } of owners) {
+      await syncMockTestAggregates(packageId);
+    }
 
     return new Response(superjson.stringify({ success: true, count } satisfies OutputType));
   } catch (error) {

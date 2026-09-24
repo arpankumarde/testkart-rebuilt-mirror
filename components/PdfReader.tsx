@@ -40,7 +40,8 @@ export type PdfReaderImagePage = {
 };
 
 // "pdf" opens the whole file in the browser. "images" is for pages the server renders one at a time, so the
-// file itself never reaches the reader (public study notes previews).
+// file itself never reaches the reader (every student-facing document: purchased notes, course lessons and
+// both kinds of preview).
 export type PdfReaderSource =
   | { kind: "pdf"; url: string }
   | {
@@ -272,6 +273,29 @@ export const PdfReader: React.FC<PdfReaderProps> = ({
     return () => document.removeEventListener("fullscreenchange", handleChange);
   }, []);
 
+  // Deterrents only: they stop the browser's save and print shortcuts and blank the clipboard after a
+  // PrintScreen, but cannot stop a determined screenshot. The server-side watermark covers that.
+  useEffect(() => {
+    if (!restricted) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const key = event.key.toLowerCase();
+      if ((event.ctrlKey || event.metaKey) && (key === "s" || key === "p")) {
+        event.preventDefault();
+      }
+    };
+    const handleKeyUp = (event: KeyboardEvent) => {
+      if (event.key === "PrintScreen") {
+        void navigator.clipboard?.writeText("").catch(() => undefined);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown, true);
+    window.addEventListener("keyup", handleKeyUp, true);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown, true);
+      window.removeEventListener("keyup", handleKeyUp, true);
+    };
+  }, [restricted]);
+
   const observe = useCallback<PdfReaderContextValue["observe"]>((element, onChange) => {
     if (!observerRef.current) {
       observerRef.current = new IntersectionObserver(
@@ -450,7 +474,7 @@ export const PdfReader: React.FC<PdfReaderProps> = ({
     });
   };
 
-  const handleContextMenu = (event: React.MouseEvent) => {
+  const blockEvent = (event: React.SyntheticEvent) => {
     event.preventDefault();
   };
 
@@ -608,7 +632,9 @@ export const PdfReader: React.FC<PdfReaderProps> = ({
           tabIndex={0}
           data-pdf-scroll=""
           onScroll={scheduleMeasure}
-          onContextMenu={restricted ? handleContextMenu : undefined}
+          onContextMenu={restricted ? blockEvent : undefined}
+          onCopy={restricted ? blockEvent : undefined}
+          onDragStart={restricted ? blockEvent : undefined}
         >
           <div ref={pagesFrameRef} className={styles.frame}>
             {body}

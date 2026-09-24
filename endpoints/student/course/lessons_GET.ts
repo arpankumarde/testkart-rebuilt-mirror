@@ -1,5 +1,6 @@
 import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
+import { isBearerRequest } from "../../../helpers/requestAuthTransport";
 import { OutputType } from "./lessons_GET.schema";
 import superjson from "superjson";
 import { z } from "zod";
@@ -52,9 +53,17 @@ export async function handle(request: Request): Promise<Response> {
       .orderBy("orderIndex", "asc")
       .execute();
 
+    // Only the mobile app, which still opens PDF lessons from their file, gets the storage link.
+    const hideDocumentLinks = !isBearerRequest(request);
     const sectionsWithLessons = sections.map((section) => ({
       ...section,
-      lessons: lessons.filter((lesson) => lesson.sectionId === section.id),
+      lessons: lessons
+        .filter((lesson) => lesson.sectionId === section.id)
+        .map((lesson) =>
+          hideDocumentLinks && lesson.contentType === "pdf"
+            ? { ...lesson, contentUrl: null, contentFileId: null }
+            : lesson
+        ),
     }));
 
     const output: OutputType = {

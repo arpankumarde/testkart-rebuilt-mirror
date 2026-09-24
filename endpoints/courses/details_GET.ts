@@ -8,6 +8,7 @@ import { slugify } from "../../helpers/slugify";
 import { PRODUCT_DISCLAIMER } from "../../helpers/productDisclaimer";
 import { computeCourseSeo } from "../../helpers/seoIndexability";
 import { courseDiscountPrice } from "../../helpers/coursePricing";
+import { isBearerRequest } from "../../helpers/requestAuthTransport";
 
 
 
@@ -127,6 +128,8 @@ export async function handle(request: Request): Promise<Response> {
       .orderBy("reviews.createdAt", "desc")
       .execute();
 
+    // A free PDF preview reaches the web as rendered pages (endpoints/reader); only the mobile app gets its link.
+    const hideDocumentLinks = !isBearerRequest(request);
     const sectionsWithLessons = sections.map((section) => ({
       ...section,
       lessons: lessons
@@ -134,7 +137,7 @@ export async function handle(request: Request): Promise<Response> {
         .map((lesson) => {
           // Only include contentUrl and textContent for preview lessons
           if (lesson.isPreview) {
-            return lesson;
+            return hideDocumentLinks && lesson.contentType === "pdf" ? { ...lesson, contentUrl: null } : lesson;
           } else {
             const { contentUrl, textContent, ...lessonWithoutContent } = lesson;
             return lessonWithoutContent;

@@ -4,6 +4,7 @@ import { schema, OutputType } from "./delete_POST.schema";
 import superjson from "superjson";
 import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
 import { ZodError } from "zod";
+import { syncMockTestAggregates } from "../../../helpers/syncMockTestAggregates";
 
 async function verifyOwnership(subjectId: number, userId: number, userRole: string) {
   if (userRole === 'admin') return true;
@@ -43,6 +44,13 @@ export async function handle(request: Request): Promise<Response> {
 
     await verifyOwnership(id, effectiveTeacherId, user.role);
 
+    const subjectPackage = await db
+      .selectFrom("testItemSubjects")
+      .innerJoin("mockTestItems", "testItemSubjects.testItemId", "mockTestItems.id")
+      .select("mockTestItems.packageId")
+      .where("testItemSubjects.id", "=", id)
+      .executeTakeFirst();
+
     await db.transaction().execute(async (trx) => {
       // Cascade delete questions associated with this subject
       await trx
@@ -60,6 +68,8 @@ export async function handle(request: Request): Promise<Response> {
         throw new Error("Subject not found or already deleted.");
       }
     });
+
+    if (subjectPackage) await syncMockTestAggregates(subjectPackage.packageId);
 
     return new Response(superjson.stringify({ success: true, message: "Subject deleted successfully." } satisfies OutputType));
   } catch (error) {

@@ -527,6 +527,17 @@ export interface DigitalProducts {
   views: Generated<number>;
 }
 
+export interface DocumentPageViews {
+  createdAt: Generated<Timestamp>;
+  documentId: number;
+  documentType: string;
+  id: Generated<Int8>;
+  ip: string | null;
+  itemId: number | null;
+  pageNumber: number;
+  userId: number | null;
+}
+
 export interface EmailOtps {
   attempts: Generated<number>;
   createdAt: Generated<Timestamp>;
@@ -1624,6 +1635,7 @@ export interface DB {
   digitalProductFiles: DigitalProductFiles;
   digitalProductPurchases: DigitalProductPurchases;
   digitalProducts: DigitalProducts;
+  documentPageViews: DocumentPageViews;
   emailOtps: EmailOtps;
   emailTemplates: EmailTemplates;
   examCategories: ExamCategories;

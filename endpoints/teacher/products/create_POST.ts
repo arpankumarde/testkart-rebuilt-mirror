@@ -5,7 +5,8 @@ import { schema, OutputType } from "./create_POST.schema";
 import superjson from "superjson";
 import { sanitizeOptionalHtml } from "../../../helpers/sanitizeHtml";
 import { DigitalProductFileItem } from "../../../helpers/digitalProductFileTypes";
-import { isRealFileUrl, PLACEHOLDER_PDF_URL } from "../../../helpers/digitalProductRules";
+import { isRealFileUrl, PLACEHOLDER_PDF_URL, ProductRuleError } from "../../../helpers/digitalProductRules";
+import { assertStudyNoteFilesArePdfs } from "../../../helpers/studyNoteFileCheck";
 import {
   ContentExamError,
   primaryExamFields,
@@ -82,6 +83,8 @@ export async function handle(request: Request): Promise<Response> {
           }]
         : [];
 
+    await assertStudyNoteFilesArePdfs(filesToInsert);
+
     const firstFile = filesToInsert[0];
     const totalBytes = filesToInsert.reduce((sum, f) => sum + (f.fileSizeBytes ?? 0), 0);
     const totalPages = filesToInsert.reduce((sum, f) => sum + (f.pageCount ?? 0), 0);
@@ -156,7 +159,7 @@ export async function handle(request: Request): Promise<Response> {
 
     return new Response(superjson.stringify(output), { status: 201 });
   } catch (error) {
-    if (error instanceof ContentExamError) {
+    if (error instanceof ContentExamError || error instanceof ProductRuleError) {
       return new Response(superjson.stringify({ error: error.message }), { status: 400 });
     }
     console.error("Error creating digital product:", error);

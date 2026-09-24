@@ -3,12 +3,21 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./download_POST.schema";
 import { getSignedDownloadUrl } from "../../../helpers/r2Client";
 import { extractR2Key } from "../../../helpers/extractR2Key";
+import { isBearerRequest } from "../../../helpers/requestAuthTransport";
 import superjson from "superjson";
 
 const SIGNED_URL_EXPIRE_SECONDS = 3600; // 1 hour
 
 export async function handle(request: Request): Promise<Response> {
   try {
+    // Whole-file links are for the mobile app only. The web opens purchased notes as watermarked pages
+    // (endpoints/reader), so a signed-in browser never gets a link to the file.
+    if (!isBearerRequest(request)) {
+      return new Response(
+        superjson.stringify({ error: "Study notes open in the reader. Downloads are available in the Testkart app." }),
+        { status: 403 }
+      );
+    }
     const { user } = await getServerUserSession(request);
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);
@@ -76,13 +85,10 @@ export async function handle(request: Request): Promise<Response> {
       .execute();
 
     // Generate a signed URL valid for 1 hour
-    console.log(`Generating signed URL for product: ${purchase.title} (${downloadFileUrl})`);
     const r2Key = extractR2Key(downloadFileUrl);
     const downloadUrl = await getSignedDownloadUrl(r2Key, SIGNED_URL_EXPIRE_SECONDS);
 
     const expiresAt = new Date(Date.now() + SIGNED_URL_EXPIRE_SECONDS * 1000).toISOString();
-
-    console.log(`Signed URL generated, expires at: ${expiresAt}`);
 
     return new Response(
       superjson.stringify({ downloadUrl, expiresAt } satisfies OutputType),

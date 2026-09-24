@@ -1,4 +1,5 @@
 import { db } from "../../../helpers/db";
+import { sql } from "kysely";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./start-attempt_POST.schema";
 import superjson from "superjson";
@@ -34,7 +35,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const testItem = await db
       .selectFrom("mockTestItems")
-      .select(["totalQuestions", "packageId", "scheduledDate"])
+      .select(["packageId", "scheduledDate"])
       .where("id", "=", input.testItemId)
       .executeTakeFirst();
 
@@ -96,6 +97,12 @@ export async function handle(request: Request): Promise<Response> {
       }
     }
 
+    const questionCount = await db
+      .selectFrom("testQuestions")
+      .select(sql<number>`count(*)::int`.as("count"))
+      .where("testId", "=", input.testItemId)
+      .executeTakeFirst();
+
     const startedAt = new Date();
     const newAttempt = await db
       .insertInto("testAttempts")
@@ -103,7 +110,7 @@ export async function handle(request: Request): Promise<Response> {
         studentId: user.id,
         testId: input.testItemId,
         startedAt: startedAt,
-        totalQuestions: testItem.totalQuestions,
+        totalQuestions: questionCount?.count ?? 0,
       })
       .returning(["id", "startedAt"])
       .executeTakeFirstOrThrow();

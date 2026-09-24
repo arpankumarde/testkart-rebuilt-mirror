@@ -4,10 +4,25 @@ import { sql } from "kysely";
 /**
  * Server-side helper to recalculate and sync aggregate fields on the mock_tests table.
  * It calculates total tests, free tests, total questions, and the effective total duration
- * based on the package's mock_test_items and associated tables.
+ * based on the package's mock_test_items and associated tables, and first sets each
+ * item's own total_questions to its real test_questions count.
  */
 export async function syncMockTestAggregates(mockTestId: number): Promise<void> {
   try {
+    // 0. Recount every item in the package, trashed ones included so a restore stays accurate
+    await sql`
+      update mock_test_items as i
+      set total_questions = c.cnt
+      from (
+        select i2.id, count(tq.id)::int as cnt
+        from mock_test_items i2
+        left join test_questions tq on tq.test_id = i2.id
+        where i2.package_id = ${mockTestId}
+        group by i2.id
+      ) as c
+      where i.id = c.id and i.total_questions is distinct from c.cnt
+    `.execute(db);
+
     // 1. Get total tests and free tests count for the mock test package
     const testItemsStats = await db
       .selectFrom("mockTestItems")

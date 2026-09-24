@@ -1,8 +1,7 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 import { PdfReaderPage } from "../components/PdfReaderPage";
-import { useSignedPdfUrl } from "../helpers/useSignedPdfUrl";
-import { documentSource } from "../helpers/pdfReaderSources";
+import { useProtectedDocument } from "../helpers/useProtectedDocument";
 
 const toId = (value: string | undefined): number | null => {
   if (!value || !/^\d+$/.test(value)) return null;
@@ -20,11 +19,9 @@ export default function StudentCourseReadPage() {
   const lessonId = toId(lessonIdParam);
   const isLinkValid = courseId !== null && lessonId !== null;
 
-  const { signedUrl, title, isLoading, error, refetch } = useSignedPdfUrl({
-    courseId,
-    lessonId,
-    enabled: isLinkValid,
-  });
+  const { source, title, isLoading, error, refetch } = useProtectedDocument(
+    courseId !== null && lessonId !== null ? { type: "lesson", courseId, lessonId } : null,
+  );
 
   let message: string | null = null;
   if (!isLinkValid) {
@@ -37,7 +34,7 @@ export default function StudentCourseReadPage() {
     <PdfReaderPage
       title={title ?? "Course lesson"}
       note="Read only"
-      source={signedUrl ? documentSource(signedUrl) : null}
+      source={source}
       loading={isLinkValid && isLoading}
       error={message}
       onRetry={isLinkValid ? refetch : undefined}

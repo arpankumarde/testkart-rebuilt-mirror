@@ -8,8 +8,7 @@ import { StudentQuizViewer } from './StudentQuizViewer';
 import { CourseCompletionCelebration } from './CourseCompletionCelebration';
 import { PdfReader } from './PdfReader';
 import { useSignedVideoUrl } from '../helpers/useSignedVideoUrl';
-import { useSignedPdfUrl } from '../helpers/useSignedPdfUrl';
-import { documentSource } from '../helpers/pdfReaderSources';
+import { useProtectedDocument } from '../helpers/useProtectedDocument';
 import { wrapContentTables } from '../helpers/contentTables';
 import { sanitizeHtml } from '../helpers/sanitizeHtml';
 import type { OutputType as LessonsOutputType } from '../endpoints/student/course/lessons_GET.schema';
@@ -51,11 +50,10 @@ const LessonContent: React.FC<{
   });
 
   const isPdfLesson = lesson.contentType === 'pdf';
-  const { signedUrl: signedPdfUrl, isLoading: isLoadingPdf, error: pdfError, refetch: refetchPdf } = useSignedPdfUrl({
-    courseId: isPdfLesson ? courseId : null,
-    lessonId: isPdfLesson ? lesson.id : null,
-    enabled: isPdfLesson && !!lesson.contentUrl,
-  });
+  // The web never receives a PDF lesson's file link; its pages come rendered and watermarked from the server.
+  const { source: pdfSource, isLoading: isLoadingPdf, error: pdfError, refetch: refetchPdf } = useProtectedDocument(
+    isPdfLesson ? { type: 'lesson', courseId, lessonId: lesson.id } : null,
+  );
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -173,24 +171,14 @@ const LessonContent: React.FC<{
         );
       }
     case 'pdf':
-      if (!lesson.contentUrl) {
-        return (
-          <div className={styles.errorPlaceholder}>
-            <AlertCircle size={48} />
-            <h2>PDF Not Available</h2>
-            <p>No PDF file found for this lesson. Please contact the course instructor.</p>
-          </div>
-        );
-      }
-
       return (
         <PdfReader
           key={lesson.id}
           className={styles.pdfReader}
           title={lesson.title}
-          source={signedPdfUrl ? documentSource(signedPdfUrl) : null}
+          source={pdfSource}
           loading={isLoadingPdf}
-          error={pdfError ? 'Unable to load this PDF. Try again, or contact the course instructor if it keeps failing.' : null}
+          error={pdfError ? `${pdfError.message || 'Unable to load this PDF.'} Try again, or contact the course instructor if it keeps failing.` : null}
           onRetry={refetchPdf}
           restricted
           openInNewTabHref={`/student/courses/${courseId}/read/${lesson.id}`}

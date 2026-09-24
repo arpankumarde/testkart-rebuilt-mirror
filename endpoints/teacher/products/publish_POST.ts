@@ -2,7 +2,8 @@ import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./publish_POST.schema";
 import superjson from "superjson";
-import { getProductPublishIssues, formatPublishIssues } from "../../../helpers/digitalProductRules";
+import { getProductPublishIssues, formatPublishIssues, ProductRuleError } from "../../../helpers/digitalProductRules";
+import { assertStudyNoteFilesArePdfs } from "../../../helpers/studyNoteFileCheck";
 import {
   REVIEW_QUEUED_NOTE,
   alreadyInReviewMessage,
@@ -55,17 +56,25 @@ export async function handle(request: Request): Promise<Response> {
 
     const files = await db
       .selectFrom("digitalProductFiles")
-      .select("fileUrl")
+      .select(["title", "fileUrl", "pageCount"])
       .where("productId", "=", input.id)
       .execute();
 
-    const issues = getProductPublishIssues({ ...product, fileUrls: files.map((f) => f.fileUrl) });
+    const issues = getProductPublishIssues({
+      ...product,
+      fileUrls: files.map((f) => f.fileUrl),
+      filePageCounts: files.map((f) => f.pageCount),
+    });
     if (issues.length > 0) {
       return new Response(
         superjson.stringify({ error: `Cannot publish yet. ${formatPublishIssues(issues)}.` }),
         { status: 400 }
       );
     }
+
+    await assertStudyNoteFilesArePdfs(
+      files.length > 0 ? files : [{ title: product.title, fileUrl: product.pdfUrl }]
+    );
 
     if (needsReview) {
       await queueContentReview(db, { contentType: "digital_product", contentId: input.id, teacherId: product.teacherId });
@@ -96,6 +105,12 @@ export async function handle(request: Request): Promise<Response> {
 
     return new Response(superjson.stringify(output));
   } catch (error) {
+    if (error instanceof ProductRuleError) {
+      return new Response(
+        superjson.stringify({ error: `Cannot publish yet. ${error.message}` }),
+        { status: 400 }
+      );
+    }
     console.error("Error publishing digital product:", error);
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred";

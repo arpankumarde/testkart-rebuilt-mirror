@@ -102,6 +102,16 @@ describe("getProductPublishIssues", () => {
     const issues = getProductPublishIssues({ title: "", description: "<p></p>", price: null, pdfUrl: PLACEHOLDER_PDF_URL, fileUrls: [] });
     expect(formatPublishIssues(issues)).toBe("Add a title, add a description, set a price (0 for free) and upload at least one PDF file");
   });
+
+  it("refuses a real file that has no page count, since the server never opened it as a PDF", () => {
+    const base = { title: "Physics notes", description: "Formulas", price: "0.00", pdfUrl: PLACEHOLDER_PDF_URL };
+    const fileUrls = ["https://cdn.testkart.in/a.pdf", "https://cdn.testkart.in/b.pdf"];
+    expect(getProductPublishIssues({ ...base, fileUrls, filePageCounts: [3, 5] })).toEqual([]);
+    expect(getProductPublishIssues({ ...base, fileUrls, filePageCounts: [3, null] }).length).toBe(1);
+    expect(getProductPublishIssues({ ...base, fileUrls, filePageCounts: [0, 5] }).length).toBe(1);
+    expect(getProductPublishIssues({ ...base, fileUrls: [PLACEHOLDER_PDF_URL, fileUrls[0]], filePageCounts: [null, 4] })).toEqual([]);
+    expect(getProductPublishIssues({ ...base, fileUrls: [PLACEHOLDER_PDF_URL], filePageCounts: [null] })).toEqual(["upload at least one PDF file"]);
+  });
 });
 
 describe("planProductFileSync", () => {

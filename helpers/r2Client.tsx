@@ -75,6 +75,18 @@ export const getSignedDownloadUrl = async (key: string, expiresIn: number = 3600
 };
 
 /**
+ * Reads a whole object from R2 into memory.
+ */
+export const downloadFromR2 = async (key: string): Promise<Uint8Array> => {
+  const client = getR2Client();
+  const response = await client.send(new GetObjectCommand({ Bucket: R2_BUCKET_NAME, Key: key }));
+  if (!response.Body) {
+    throw new Error(`R2 object ${key} has no body`);
+  }
+  return response.Body.transformToByteArray();
+};
+
+/**
  * Direct backend upload to R2. contentDisposition, when given, is stored with the object and served with it.
  */
 export const uploadToR2 = async (

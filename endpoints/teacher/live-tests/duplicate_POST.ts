@@ -7,6 +7,7 @@ import { DB } from "../../../helpers/schema";
 import { Transaction } from "kysely";
 import { buildDuplicatedLiveTestValues } from "../../../helpers/liveTestDuplicate";
 import { loadContentExamList, saveContentExams } from "../../../helpers/contentExams";
+import { syncMockTestAggregates } from "../../../helpers/syncMockTestAggregates";
 
 async function generateUniqueSlug(baseTitle: string, trx: Transaction<DB>): Promise<string> {
   const baseSlug = slugify(baseTitle);
@@ -280,6 +281,8 @@ export async function handle(request: Request) {
 
       return newLiveTest;
     });
+
+    await syncMockTestAggregates(duplicatedLiveTest.mockTestId);
 
     const output: OutputType = {
       ...duplicatedLiveTest,

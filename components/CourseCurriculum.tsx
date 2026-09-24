@@ -4,7 +4,7 @@ import { ChevronDown, PlayCircle, FileText, Lock, X, AlertCircle, Loader2 } from
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './Dialog';
 import { wrapContentTables } from '../helpers/contentTables';
 import { sanitizeHtml } from '../helpers/sanitizeHtml';
-import { documentSource } from '../helpers/pdfReaderSources';
+import { useProtectedDocument } from '../helpers/useProtectedDocument';
 import styles from './CourseCurriculum.module.css';
 
 const PdfReaderDialog = React.lazy(() => import('./PdfReaderDialog').then(m => ({ default: m.PdfReaderDialog })));
@@ -27,6 +27,7 @@ type Section = {
 };
 
 interface CourseCurriculumProps {
+  courseId: number;
   sections: Section[];
   className?: string;
 }
@@ -72,11 +73,14 @@ const LessonIcon = ({ type }: { type: Lesson['contentType'] }) => {
   }
 };
 
-export const CourseCurriculum: React.FC<CourseCurriculumProps> = ({ sections, className }) => {
+export const CourseCurriculum: React.FC<CourseCurriculumProps> = ({ courseId, sections, className }) => {
   const [previewLesson, setPreviewLesson] = useState<Lesson | null>(null);
 
-  // PDF lessons open in the shared reader instead of the generic preview dialog
-  const readerLesson = previewLesson?.contentType === 'pdf' && previewLesson.contentUrl ? previewLesson : null;
+  // PDF lessons open in the shared reader as server-rendered preview pages; the web gets no link to their file.
+  const readerLesson = previewLesson?.contentType === 'pdf' ? previewLesson : null;
+  const readerDocument = useProtectedDocument(
+    readerLesson ? { type: 'lessonPreview', courseId, lessonId: readerLesson.id } : null,
+  );
 
   const totalSections = sections.length;
   const totalLessons = sections.reduce((acc, section) => acc + section.lessons.length, 0);
@@ -209,13 +213,17 @@ export const CourseCurriculum: React.FC<CourseCurriculumProps> = ({ sections, cl
         </DialogContent>
       </Dialog>
 
-      {readerLesson?.contentUrl && (
+      {readerLesson && (
         <React.Suspense fallback={null}>
           <PdfReaderDialog
             isOpen
             onClose={() => setPreviewLesson(null)}
             title={readerLesson.title}
-            source={documentSource(readerLesson.contentUrl)}
+            note="Preview"
+            source={readerDocument.source}
+            loading={readerDocument.isLoading}
+            error={readerDocument.error ? readerDocument.error.message || 'This preview could not be loaded.' : null}
+            onRetry={readerDocument.refetch}
             restricted
           />
         </React.Suspense>

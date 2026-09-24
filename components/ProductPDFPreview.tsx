@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React from "react";
 import { PdfReaderDialog } from "./PdfReaderDialog";
-import type { PdfReaderSource } from "./PdfReader";
-import { getShopPreviewPage } from "../endpoints/shop/preview-page_GET.schema";
+import { useProtectedDocument } from "../helpers/useProtectedDocument";
 
 interface ProductPDFPreviewProps {
   product: {
@@ -21,7 +20,8 @@ interface ProductPDFPreviewProps {
   previewTitle?: string;
 }
 
-// Preview pages arrive as images rendered on the server, so the PDF itself never reaches the browser.
+// Preview pages arrive as images rendered and marked as a preview on the server, so the PDF itself never
+// reaches the browser.
 export const ProductPDFPreview: React.FC<ProductPDFPreviewProps> = ({
   product,
   isOpen,
@@ -29,21 +29,19 @@ export const ProductPDFPreview: React.FC<ProductPDFPreviewProps> = ({
   fileId,
   previewTitle,
 }) => {
-  const pageCount = product.previewPages ?? 0;
-
-  const source = useMemo<PdfReaderSource | null>(
-    () =>
-      pageCount > 0
-        ? {
-            kind: "images",
-            cacheKey: ["shop", "previewPage", product.id, fileId ?? null],
-            pageCount,
-            loadPage: (page) =>
-              getShopPreviewPage({ productId: product.id, page, fileId: fileId || undefined }),
-          }
-        : null,
-    [pageCount, product.id, fileId],
+  const previewPages = product.previewPages ?? 0;
+  const { source, totalPages, isLoading, error, refetch } = useProtectedDocument(
+    previewPages > 0 ? { type: "notePreview", productId: product.id, ...(fileId ? { fileId } : {}) } : null,
+    isOpen,
   );
+  const pageCount = totalPages ?? previewPages;
+
+  let message: string | null = null;
+  if (previewPages < 1) {
+    message = "No preview pages are available for this document.";
+  } else if (error) {
+    message = error.message || "The preview could not be loaded. Try again in a moment.";
+  }
 
   return (
     <PdfReaderDialog
@@ -52,7 +50,9 @@ export const ProductPDFPreview: React.FC<ProductPDFPreviewProps> = ({
       title={previewTitle || product.title}
       note={`Preview - ${pageCount} ${pageCount === 1 ? "page" : "pages"}`}
       source={source}
-      error={source ? null : "No preview pages are available for this document."}
+      loading={isLoading}
+      error={message}
+      onRetry={previewPages > 0 ? refetch : undefined}
       restricted
     />
   );
