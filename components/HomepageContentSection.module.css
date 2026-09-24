@@ -55,6 +55,18 @@
   }
 }
 
+@media (max-width: 767px) {
+  .twoRows > :nth-child(n + 5) {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .twoRows > :nth-child(n + 7) {
+    display: none;
+  }
+}
+
 .cardWrapper, .skeletonCard {
   display: block;
   width: 100%;

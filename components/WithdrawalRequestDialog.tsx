@@ -20,9 +20,11 @@ import styles from "./WithdrawalRequestDialog.module.css";
 const withdrawalSchema = z.object({
   amount: z.coerce
     .number()
+    .finite()
     .min(100, "Minimum withdrawal amount is ₹100")
-    .positive("Amount must be positive"),
-  notes: z.string().optional(),
+    .max(1_000_000, "Maximum withdrawal amount is ₹10,00,000")
+    .multipleOf(0.01, "Amount can have at most two decimal places"),
+  notes: z.string().max(500, "Notes can be at most 500 characters").optional(),
 });
 
 type WithdrawalFormValues = z.infer<typeof withdrawalSchema>;
@@ -102,6 +104,7 @@ export const WithdrawalRequestDialog: React.FC<WithdrawalRequestDialogProps> = (
             <Input
               id="amount"
               type="number"
+              step="0.01"
               placeholder="Enter amount"
               {...register("amount")}
               className={errors.amount ? styles.inputError : ""}
@@ -120,6 +123,7 @@ export const WithdrawalRequestDialog: React.FC<WithdrawalRequestDialogProps> = (
             </label>
             <Input
               id="notes"
+              maxLength={500}
               placeholder="Any specific instructions..."
               {...register("notes")}
             />

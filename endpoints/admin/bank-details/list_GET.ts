@@ -4,6 +4,7 @@ import { OutputType, schema } from "./list_GET.schema";
 import superjson from "superjson";
 import { ExpressionBuilder, sql } from "kysely";
 import { DB } from "../../../helpers/schema";
+import { adminKycImagePath } from "../../../helpers/kycImage";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -84,6 +85,7 @@ export async function handle(request: Request): Promise<Response> {
     const output: OutputType = {
       bankDetails: details.map(d => ({
         ...d,
+        panCardImageBase64: adminKycImagePath("teacher", d.id, d.panCardImageBase64, d.updatedAt),
         teacherName: d.teacherName,
         teacherEmail: d.teacherEmail ?? 'N/A',
       })),

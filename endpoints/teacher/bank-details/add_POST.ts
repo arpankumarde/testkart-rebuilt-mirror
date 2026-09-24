@@ -6,8 +6,7 @@ import { Insertable } from "kysely";
 import { TeacherBankDetails } from "../../../helpers/schema";
 import { sendAdminNotification } from "../../../helpers/sendAdminNotification";
 import { getTeacherAvailableBalance } from "../../../helpers/getTeacherAvailableBalance";
-import { uploadToR2, getPublicUrl } from "../../../helpers/r2Client";
-import { nanoid } from "nanoid";
+import { kycImageUrl, resolveKycImage } from "../../../helpers/kycImage";
 
 export async function handle(request: Request) {
   try {
@@ -37,23 +36,28 @@ export async function handle(request: Request) {
     const json = superjson.parse(await request.text());
     const validatedInput = schema.parse(json);
 
-    let panCardImageUrl = validatedInput.panCardImageBase64;
-    if (panCardImageUrl.startsWith('data:')) {
-      const matches = panCardImageUrl.match(/^data:(image\/[a-z]+);base64,(.*)$/);
-      if (!matches || matches.length !== 3) {
-        return new Response(superjson.stringify({ error: "Invalid image data format." }), { status: 400 });
-      }
-      const contentType = matches[1];
-      const base64Data = matches[2];
-      const buffer = Buffer.from(base64Data, 'base64');
-      const ext = contentType.split('/')[1] || 'jpg';
-      const key = `kyc/teachers/${effectiveTeacherId}/pan-${nanoid(8)}.${ext}`;
-      await uploadToR2(key, buffer, contentType);
-      panCardImageUrl = getPublicUrl(key);
+    const existing = await db
+      .selectFrom("teacherBankDetails")
+      .select("panCardImageBase64")
+      .where("teacherId", "=", effectiveTeacherId)
+      .executeTakeFirst();
+
+    const panCardImage = await resolveKycImage(
+      "teacher",
+      effectiveTeacherId,
+      validatedInput.panCardImageBase64,
+      existing?.panCardImageBase64
+    );
+    if (!panCardImage) {
+      return new Response(
+        superjson.stringify({ error: "The PAN card image could not be read. Please upload it again." }),
+        { status: 400 }
+      );
     }
 
     const newDetails: Insertable<TeacherBankDetails> = {
       ...validatedInput,
+      panCardImageBase64: panCardImage,
       teacherId: effectiveTeacherId,
       verificationStatus: "pending",
       rejectionReason: null,
@@ -65,7 +69,7 @@ export async function handle(request: Request) {
       .onConflict((oc) =>
         oc.column("teacherId").doUpdateSet({
           ...validatedInput,
-          panCardImageBase64: panCardImageUrl,
+          panCardImageBase64: panCardImage,
           verificationStatus: "pending", // Reset on update
           rejectionReason: null, // Clear on update
           updatedAt: new Date(),
@@ -80,7 +84,8 @@ export async function handle(request: Request) {
       userId: user.id,
     });
 
-    return new Response(superjson.stringify(result satisfies OutputType));
+    const output: OutputType = { ...result, panCardImageBase64: await kycImageUrl(result.panCardImageBase64) };
+    return new Response(superjson.stringify(output));
   } catch (error) {
     console.error("Error adding/updating teacher bank details:", error);
     const errorMessage =

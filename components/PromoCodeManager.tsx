@@ -1,13 +1,25 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useId } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Plus, Edit, Trash2, Copy, MoreVertical, AlertTriangle, Tag } from 'lucide-react';
+import {
+  Plus,
+  Pencil,
+  Power,
+  Copy,
+  MoreHorizontal,
+  AlertTriangle,
+  Tag,
+  CheckCircle2,
+  Clock,
+  CircleSlash,
+  Eye,
+  EyeOff,
+} from 'lucide-react';
 import { Selectable } from 'kysely';
-import { PromoCodes } from '../helpers/schema';
+import { PromoCodes, PromoCodeAppliesTo } from '../helpers/schema';
 import { useTeacherPromoCodesQuery } from '../helpers/useTeacherPromoCodes';
 import { useDeletePromoCodeMutation } from '../helpers/usePromoCodeMutations';
 import { Button } from './Button';
 import { Skeleton } from './Skeleton';
-import { Badge } from './Badge';
 import { PromoCodeFormDialog } from './PromoCodeFormDialog';
 import { TeacherPageHeader } from './TeacherPageHeader';
 import { TeacherListToolbar, type TeacherListTab } from './TeacherListToolbar';
@@ -25,6 +37,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './DropdownMenu';
 import { toast } from 'sonner';
@@ -39,47 +52,236 @@ const STATUS_TABS: TeacherListTab[] = [
   { value: 'expired', label: 'Expired' },
 ];
 
-const getPromoCodeStatus = (promoCode: Selectable<PromoCodes>): PromoStatus => {
-  const now = new Date();
-  const validFrom = new Date(promoCode.validFrom);
-  const validUntil = promoCode.validUntil ? new Date(promoCode.validUntil) : null;
+const STATUS_VALUES: PromoStatus[] = ['active', 'scheduled', 'expired'];
 
-  if (!promoCode.isActive) return 'expired';
-  if (validUntil && now > validUntil) return 'expired';
-  if (promoCode.usageLimit && promoCode.usageCount >= promoCode.usageLimit) return 'expired';
-  if (now < validFrom) return 'scheduled';
+const PAGE_SIZE = 10;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
+type PromoCode = Selectable<PromoCodes>;
+
+/* Finer than the tabs: Expired, Used up and Deactivated all sit under the
+   Expired tab, but the row says which one it is. The list endpoint filters
+   by the same rules. */
+type RowState = 'active' | 'scheduled' | 'ended' | 'usedUp' | 'off';
+
+const rowStateOf = (pc: PromoCode, now: Date): RowState => {
+  if (!pc.isActive) return 'off';
+  if (pc.validUntil && now > new Date(pc.validUntil)) return 'ended';
+  if (pc.usageLimit !== null && pc.usageCount >= pc.usageLimit) return 'usedUp';
+  if (now < new Date(pc.validFrom)) return 'scheduled';
   return 'active';
 };
 
-const HEADER_CELLS = ['Code', 'Discount', 'Applies to', 'Usage', 'Expires', 'Status', 'Actions'];
+// Every state is a word with its own icon, never colour alone.
+const STATE_META: Record<RowState, { label: string; icon: React.ElementType; className: string }> = {
+  active: { label: 'Active', icon: CheckCircle2, className: styles.stateActive },
+  scheduled: { label: 'Scheduled', icon: Clock, className: styles.stateScheduled },
+  ended: { label: 'Expired', icon: CircleSlash, className: styles.stateEnded },
+  usedUp: { label: 'Used up', icon: CircleSlash, className: styles.stateEnded },
+  off: { label: 'Deactivated', icon: Power, className: styles.stateEnded },
+};
+
+const rupees = new Intl.NumberFormat('en-IN', {
+  style: 'currency',
+  currency: 'INR',
+  maximumFractionDigits: 0,
+});
+
+const dateFormat = new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+const timeFormat = new Intl.DateTimeFormat('en-IN', { hour: 'numeric', minute: '2-digit' });
+
+const describeState = (pc: PromoCode, state: RowState, now: Date): string => {
+  switch (state) {
+    case 'active': {
+      if (!pc.validUntil) return 'No end date';
+      const until = new Date(pc.validUntil);
+      const left = until.getTime() - now.getTime();
+      if (left < DAY_MS) return `Ends at ${timeFormat.format(until)}`;
+      const days = Math.ceil(left / DAY_MS);
+      return days <= 14 ? `Ends in ${days} days` : `Ends ${dateFormat.format(until)}`;
+    }
+    case 'scheduled':
+      return `Starts ${dateFormat.format(new Date(pc.validFrom))}`;
+    case 'ended':
+      return `Ended ${dateFormat.format(new Date(pc.validUntil!))}`;
+    case 'usedUp':
+      return `All ${pc.usageLimit} uses taken`;
+    case 'off':
+      return 'No longer accepted at checkout';
+  }
+};
+
+const KIND_LABELS: Record<Exclude<PromoCodeAppliesTo, 'all'>, [string, string]> = {
+  courses: ['course', 'courses'],
+  tests: ['test series', 'test series'],
+  live_tests: ['live test', 'live tests'],
+  bundles: ['bundle', 'bundles'],
+  digital_products: ['note or PDF', 'notes and PDFs'],
+};
+
+/* What a student needs to know before the code works for them, in the order
+   they would hit it: what it covers, the minimum order, the cap, how often. */
+const describeTerms = (pc: PromoCode): string => {
+  const parts: string[] = [];
+  if (pc.appliesTo === 'all') {
+    parts.push('Everything you sell');
+  } else {
+    const [one, many] = KIND_LABELS[pc.appliesTo];
+    const picked = pc.targetItemIds?.length ?? 0;
+    parts.push(picked > 0 ? `${picked} selected ${picked === 1 ? one : many}` : `All ${many}`);
+  }
+  const minOrder = Number(pc.minPurchaseAmount ?? 0);
+  if (minOrder > 0) parts.push(`orders of ${rupees.format(minOrder)} or more`);
+  const cap = Number(pc.maxDiscountAmount ?? 0);
+  if (pc.discountType === 'percentage' && cap > 0) parts.push(`up to ${rupees.format(cap)} off`);
+  if (pc.perUserLimit) {
+    parts.push(pc.perUserLimit === 1 ? 'once per student' : `${pc.perUserLimit} times per student`);
+  }
+  return parts.join(', ');
+};
+
+const stubValueOf = (pc: PromoCode) =>
+  pc.discountType === 'percentage'
+    ? `${Number(pc.discountValue)}%`
+    : rupees.format(Number(pc.discountValue));
+
+const STUB_CLASS: Record<RowState, string> = {
+  active: styles.stubActive,
+  scheduled: styles.stubScheduled,
+  ended: styles.stubMuted,
+  usedUp: styles.stubMuted,
+  off: styles.stubMuted,
+};
+
+interface PromoRowProps {
+  promoCode: PromoCode;
+  now: Date;
+  onCopy: () => void;
+  onEdit: () => void;
+  onDeactivate: () => void;
+}
+
+const PromoRow: React.FC<PromoRowProps> = ({ promoCode: pc, now, onCopy, onEdit, onDeactivate }) => {
+  const state = rowStateOf(pc, now);
+  const meta = STATE_META[state];
+  const StateIcon = meta.icon;
+  const used = pc.usageCount;
+  const limit = pc.usageLimit;
+  const usedShare = limit ? Math.min(100, Math.round((used / limit) * 100)) : 0;
+  const canDeactivate = state === 'active' || state === 'scheduled';
+  const stubValue = stubValueOf(pc);
+
+  return (
+    <li className={styles.row}>
+      <div className={`${styles.stub} ${STUB_CLASS[state]}`}>
+        <span className={`${styles.stubValue} ${stubValue.length > 5 ? styles.stubLong : ''}`}>{stubValue}</span>
+        <span className={styles.stubUnit}>off</span>
+      </div>
+
+      <div className={styles.codeCell}>
+        <div className={styles.codeLine}>
+          <span className={styles.code}>{pc.code}</span>
+          <button
+            type="button"
+            className={styles.copyButton}
+            onClick={onCopy}
+            aria-label={`Copy ${pc.code}`}
+            title="Copy code"
+          >
+            <Copy size={15} aria-hidden="true" />
+          </button>
+        </div>
+        <span className={styles.terms}>{describeTerms(pc)}</span>
+        <span className={styles.visibility}>
+          {pc.isPublic ? (
+            <>
+              <Eye size={14} aria-hidden="true" /> Shown on product pages
+            </>
+          ) : (
+            <>
+              <EyeOff size={14} aria-hidden="true" /> Private, you share it
+            </>
+          )}
+        </span>
+      </div>
+
+      <div className={styles.usageCell}>
+        <span className={styles.usageText}>
+          <strong>{used}</strong>
+          {limit ? ` of ${limit} used` : ` ${used === 1 ? 'use' : 'uses'}`}
+        </span>
+        {limit ? (
+          <span className={styles.meter} aria-hidden="true">
+            <span className={styles.meterFill} style={{ width: `${usedShare}%` }} />
+          </span>
+        ) : (
+          <span className={styles.usageNote}>No limit</span>
+        )}
+      </div>
+
+      <div className={styles.statusCell}>
+        <span className={`${styles.state} ${meta.className}`}>
+          <StateIcon size={15} aria-hidden="true" />
+          {meta.label}
+        </span>
+        <span className={styles.stateDetail}>{describeState(pc, state, now)}</span>
+      </div>
+
+      <div className={styles.actionsCell}>
+        <button type="button" className={styles.rowButton} onClick={onEdit} aria-label={`Edit ${pc.code}`}>
+          <Pencil size={15} aria-hidden="true" />
+          Edit
+        </button>
+        {/* Non-modal so the dialog it opens does not inherit its pointer lock. */}
+        <DropdownMenu modal={false}>
+          <DropdownMenuTrigger asChild>
+            <button type="button" className={styles.iconButton} aria-label={`More actions for ${pc.code}`}>
+              <MoreHorizontal size={18} aria-hidden="true" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onSelect={onCopy} className={styles.menuItem}>
+              <Copy size={16} aria-hidden="true" />
+              Copy code
+            </DropdownMenuItem>
+            {canDeactivate && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={onDeactivate} className={`${styles.menuItem} ${styles.menuDanger}`}>
+                  <Power size={16} aria-hidden="true" />
+                  Deactivate
+                </DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </li>
+  );
+};
+
+const PromoListHead: React.FC = () => (
+  <div className={styles.listHead} aria-hidden="true">
+    <span>Discount</span>
+    <span>Code and terms</span>
+    <span>Uses</span>
+    <span>Status</span>
+    <span />
+  </div>
+);
 
 const PromoCodeManagerSkeleton: React.FC = () => (
-  <div className={styles.panel}>
-    <div className={styles.tableContainer}>
-      <div className={styles.table}>
-        <div className={styles.tableHeader}>
-          {HEADER_CELLS.map((label) => (
-            <div className={styles.headerCell} key={label}>
-              {label}
-            </div>
-          ))}
-        </div>
-        <div className={styles.tableBody}>
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div className={styles.tableRow} key={i}>
-              <div className={styles.cell}><Skeleton style={{ height: '1rem', width: '80px' }} /></div>
-              <div className={styles.cell}><Skeleton style={{ height: '1rem', width: '60px' }} /></div>
-              <div className={styles.cell}><Skeleton style={{ height: '1rem', width: '70px' }} /></div>
-              <div className={styles.cell}><Skeleton style={{ height: '1rem', width: '40px' }} /></div>
-              <div className={styles.cell}><Skeleton style={{ height: '1rem', width: '100px' }} /></div>
-              <div className={styles.cell}><Skeleton style={{ height: '1.5rem', width: '70px', borderRadius: 'var(--radius-full)' }} /></div>
-              <div className={styles.cell}><Skeleton style={{ height: '2rem', width: '80px' }} /></div>
-            </div>
-          ))}
+  <div className={styles.panel} aria-busy="true" aria-label="Loading promo codes">
+    <PromoListHead />
+    {Array.from({ length: 4 }).map((_, i) => (
+      <div className={styles.skeletonRow} key={i}>
+        <Skeleton className={styles.skeletonStub} />
+        <div className={styles.skeletonText}>
+          <Skeleton className={styles.skeletonCode} />
+          <Skeleton className={styles.skeletonMeta} />
         </div>
       </div>
-    </div>
+    ))}
   </div>
 );
 
@@ -89,21 +291,19 @@ export const PromoCodeManager: React.FC<{ className?: string }> = ({ className }
   const [editingPromoCode, setEditingPromoCode] = useState<Selectable<PromoCodes> | null>(null);
   const [deletingPromoCodeId, setDeletingPromoCodeId] = useState<number | null>(null);
 
-  const page = parseInt(searchParams.get('page') || '1', 10);
-  const statusFilter = searchParams.get('status') as PromoStatus | null;
+  const panelId = useId();
+  const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
+  const statusParam = searchParams.get('status');
+  const statusFilter = STATUS_VALUES.includes(statusParam as PromoStatus) ? (statusParam as PromoStatus) : null;
 
   const { data, isFetching, error } = useTeacherPromoCodesQuery({
     page,
-    limit: 10,
+    limit: PAGE_SIZE,
     status: statusFilter,
   });
 
-  const promoCodesWithStatus = useMemo(() => {
-    return data?.promoCodes.map(pc => ({
-      ...pc,
-      status: getPromoCodeStatus(pc),
-    })) ?? [];
-  }, [data?.promoCodes]);
+  // One clock per fetch, so every row is judged against the same moment.
+  const now = useMemo(() => new Date(), [data]);
 
   const handleSetFilter = (newStatus: string) => {
     setSearchParams(prev => {
@@ -140,7 +340,7 @@ export const PromoCodeManager: React.FC<{ className?: string }> = ({ className }
       .catch(() => toast.error('Could not copy the code. Select it and copy manually.'));
   };
 
-  const totalPages = data ? Math.max(1, Math.ceil(data.total / 10)) : 1;
+  const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
 
   const renderContent = () => {
     if (isFetching && !data) {
@@ -176,7 +376,7 @@ export const PromoCodeManager: React.FC<{ className?: string }> = ({ className }
         <TeacherListEmpty
           icon={<Tag size={26} />}
           title="No promo codes yet"
-          description="Promo codes let you discount a test series, course or your whole catalogue for a set period."
+          description="A promo code takes money off at checkout. Students type it in, or copy it from your product pages if you choose to show it there."
         >
           <Button onClick={handleCreate}>
             <Plus size={16} /> Create promo code
@@ -188,83 +388,21 @@ export const PromoCodeManager: React.FC<{ className?: string }> = ({ className }
     return (
       <>
         <div className={styles.panel}>
-          <div className={styles.tableContainer}>
-            <div className={styles.table}>
-              <div className={styles.tableHeader}>
-                {HEADER_CELLS.map((label) => (
-                  <div className={styles.headerCell} key={label}>
-                    {label}
-                  </div>
-                ))}
-              </div>
-              <div className={styles.tableBody}>
-                {promoCodesWithStatus.map((pc) => (
-                  <div className={styles.tableRow} key={pc.id}>
-                    <div className={styles.cell} data-label="Code">
-                      <span className={styles.codeText}>{pc.code}</span>
-                    </div>
-                    <div className={styles.cell} data-label="Discount">
-                      {pc.discountType === 'percentage'
-                        ? `${pc.discountValue}%`
-                        : `₹${pc.discountValue}`}
-                    </div>
-                    <div className={styles.cell} data-label="Applies to">
-                      {pc.appliesTo.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                    </div>
-                    <div className={styles.cell} data-label="Usage">
-                      {pc.usageCount} / {pc.usageLimit ?? '∞'}
-                    </div>
-                    <div className={styles.cell} data-label="Expires">
-                      {pc.validUntil ? new Date(pc.validUntil).toLocaleDateString() : 'Never'}
-                    </div>
-                    <div className={styles.cell} data-label="Status">
-                      <Badge variant={pc.status === 'active' ? 'success' : pc.status === 'scheduled' ? 'warning' : 'secondary'}>
-                        {pc.status.charAt(0).toUpperCase() + pc.status.slice(1)}
-                      </Badge>
-                    </div>
-                    <div className={`${styles.cell} ${styles.actionsCell}`} data-label="Actions">
-                      <div className={styles.desktopActions}>
-                        <Button variant="ghost" size="sm" onClick={() => handleEdit(pc)}>Edit</Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className={styles.deleteButton}
-                          onClick={() => setDeletingPromoCodeId(pc.id)}
-                        >
-                          Deactivate
-                        </Button>
-                      </div>
-                      <div className={styles.mobileActions}>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon-sm" aria-label={`Actions for ${pc.code}`}>
-                              <MoreVertical size={16} />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem className={styles.menuItem} onClick={() => handleCopy(pc.code)}>
-                              <Copy size={14} /> Copy code
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className={styles.menuItem} onClick={() => handleEdit(pc)}>
-                              <Edit size={14} /> Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className={`${styles.menuItem} ${styles.destructive}`}
-                              onClick={() => setDeletingPromoCodeId(pc.id)}
-                            >
-                              <Trash2 size={14} /> Deactivate
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          <PromoListHead />
+          <ul className={styles.list} aria-label="Promo codes">
+            {data.promoCodes.map((pc) => (
+              <PromoRow
+                key={pc.id}
+                promoCode={pc}
+                now={now}
+                onCopy={() => handleCopy(pc.code)}
+                onEdit={() => handleEdit(pc)}
+                onDeactivate={() => setDeletingPromoCodeId(pc.id)}
+              />
+            ))}
+          </ul>
         </div>
-        {data.total > 10 && (
+        {data.total > PAGE_SIZE && (
           <TeacherListPagination
             page={page}
             totalPages={totalPages}
@@ -288,9 +426,17 @@ export const PromoCodeManager: React.FC<{ className?: string }> = ({ className }
         value={statusFilter ?? 'all'}
         onValueChange={handleSetFilter}
         tabsLabel="Filter promo codes by status"
+        panelId={panelId}
       />
 
-      {renderContent()}
+      <div
+        id={panelId}
+        role="tabpanel"
+        aria-labelledby={`${panelId}-tab-${statusFilter ?? 'all'}`}
+        className={styles.content}
+      >
+        {renderContent()}
+      </div>
 
       <PromoCodeFormDialog
         isOpen={isFormOpen}

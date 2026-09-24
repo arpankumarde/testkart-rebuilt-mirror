@@ -5,9 +5,14 @@ import { TeacherWithdrawals } from "../../../helpers/schema";
 
 export const schema = z.object({
   teacherId: z.number().int().positive(),
-  amount: z.number().positive("Amount must be positive"),
+  amount: z
+    .number()
+    .finite()
+    .positive("Amount must be positive")
+    .max(1_000_000, "Maximum payout is ₹10,00,000")
+    .multipleOf(0.01, "Amount can have at most two decimal places"),
   transactionId: z.string().optional(),
-  notes: z.string().optional(),
+  notes: z.string().max(500, "Notes can be at most 500 characters").optional(),
 });
 
 export type InputType = z.infer<typeof schema>;

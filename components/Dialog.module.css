@@ -28,10 +28,13 @@
       cubic-bezier(0.16, 1, 0.3, 1);
   }
 
+  /* Raised so a dialog's own header strip (e.g. the leaderboard's z-indexed
+     header) can never paint over the only way to close it. */
   .close {
     position: absolute;
     top: var(--spacing-4);
     right: var(--spacing-4);
+    z-index: var(--z-content-high);
     display: flex;
     align-items: center;
     justify-content: center;

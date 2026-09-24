@@ -141,7 +141,8 @@ const HomePage: React.FC = () => {
           <HomepageContentSection
             title="Popular study notes"
             viewAllLink="/study-notes"
-            items={(data?.popularNotes ?? []).slice(0, 4)}
+            items={(data?.popularNotes ?? []).slice(0, 8)}
+            twoRows
             isLoading={isFetching}
             renderCard={(item: HomepageNoteItem) => (
               <TeacherProductCard

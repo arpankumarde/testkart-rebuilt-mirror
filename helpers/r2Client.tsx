@@ -14,6 +14,14 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { R2_ACCOUNT_ID, R2_BUCKET_NAME, R2_PUBLIC_URL } from "./_publicConfigs";
 
+/**
+ * KYC documents (PAN card images) live under kyc/. A Cloudflare WAF rule blocks /kyc/ on the
+ * public domain, so they can only be read through a short-lived signed link.
+ */
+const PRIVATE_LINK_SECONDS = 600;
+
+export const isPrivateKey = (key: string): boolean => key.startsWith("kyc/");
+
 let s3Client: S3Client | null = null;
 
 /**
@@ -62,7 +70,7 @@ export const getPresignedUploadUrl = async (
 };
 
 /**
- * Generates a presigned URL for secure downloads (if bypassing public URL is needed)
+ * Generates a presigned URL for downloads that must not go through the public domain
  */
 export const getSignedDownloadUrl = async (key: string, expiresIn: number = 3600): Promise<string> => {
   const client = getR2Client();
@@ -131,6 +139,10 @@ export const deleteFromR2 = async (key: string): Promise<void> => {
 export const getPublicUrl = (key: string): string => {
   return `https://${R2_PUBLIC_URL}/${key}`;
 };
+
+/** The link to hand a client: the CDN link for public keys, a ten-minute signed link for private ones. */
+export const getObjectUrl = async (key: string): Promise<string> =>
+  isPrivateKey(key) ? getSignedDownloadUrl(key, PRIVATE_LINK_SECONDS) : getPublicUrl(key);
 
 /**
  * Copies an object within the same R2 bucket from sourceKey to destinationKey

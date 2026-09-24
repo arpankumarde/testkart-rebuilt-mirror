@@ -1,7 +1,7 @@
 import { schema, OutputType } from "./complete_POST.schema";
 import superjson from "superjson";
 import { getUploaderSession } from "../../../helpers/getUploaderSession";
-import { completeMultipartUpload, getPublicUrl, listMultipartParts, r2ObjectExists } from "../../../helpers/r2Client";
+import { completeMultipartUpload, getObjectUrl, listMultipartParts, r2ObjectExists } from "../../../helpers/r2Client";
 import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
 import { isUploadIssuedTo } from "../../../helpers/r2FileOwnership";
 
@@ -14,7 +14,7 @@ export async function handle(request: Request) {
 
     const json = superjson.parse(await request.text());
     const validatedInput = schema.parse(json);
-    const publicUrl = getPublicUrl(validatedInput.key);
+    const publicUrl = await getObjectUrl(validatedInput.key);
     const success = () =>
       new Response(superjson.stringify({ publicUrl } satisfies OutputType), {
         status: 200,

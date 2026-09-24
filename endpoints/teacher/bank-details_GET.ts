@@ -1,6 +1,7 @@
 import { OutputType } from "./bank-details_GET.schema";
 import { db } from "../../helpers/db";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
+import { kycImageUrl } from "../../helpers/kycImage";
 import superjson from "superjson";
 
 export async function handle(request: Request) {
@@ -25,7 +26,9 @@ export async function handle(request: Request) {
       .where("teacherId", "=", effectiveTeacherId)
       .executeTakeFirst();
 
-    const response: OutputType = bankDetails ?? null;
+    const response: OutputType = bankDetails
+      ? { ...bankDetails, panCardImageBase64: await kycImageUrl(bankDetails.panCardImageBase64) }
+      : null;
 
     return new Response(superjson.stringify(response));
   } catch (error) {

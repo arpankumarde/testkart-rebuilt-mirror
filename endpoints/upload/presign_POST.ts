@@ -1,10 +1,11 @@
 import { schema, OutputType } from "./presign_POST.schema";
 import superjson from "superjson";
 import { getUploaderSession } from "../../helpers/getUploaderSession";
-import { getPresignedUploadUrl, getPublicUrl } from "../../helpers/r2Client";
+import { getObjectUrl, getPresignedUploadUrl, isPrivateKey } from "../../helpers/r2Client";
 import { NotAuthenticatedError } from "../../helpers/getSetServerSession";
 import { validateUploadSize, validateUploadType } from "../../helpers/uploadSizeValidation";
 import { recordUploadedFile } from "../../helpers/r2FileOwnership";
+import { kycKindForFolder, newKycKey } from "../../helpers/kycImage";
 
 export async function handle(request: Request) {
   try {
@@ -36,11 +37,25 @@ export async function handle(request: Request) {
     const sanitizedFolder = validatedInput.folder.replace(/^\/+/, '').replace(/\/+$/, '');
     const dotIndex = safeFileName.lastIndexOf('.');
     const ext = dotIndex > 0 ? safeFileName.substring(dotIndex + 1) : null;
-    const key = ext ? `${sanitizedFolder}/${crypto.randomUUID()}.${ext}` : `${sanitizedFolder}/${crypto.randomUUID()}`;
 
-    // Get the presigned PUT URL and the public CDN URL
+    // PAN card images go under the uploader's own kyc/ prefix, which the public domain does not serve
+    const kycKind = kycKindForFolder(sanitizedFolder);
+    if (isPrivateKey(`${sanitizedFolder}/`) && (!kycKind || session.kind !== "user" || session.user.role !== kycKind)) {
+      return new Response(
+        superjson.stringify({ error: "PAN card images can only be uploaded from your own bank details form." }),
+        { status: 403 }
+      );
+    }
+    const key =
+      kycKind && session.kind === "user"
+        ? newKycKey(kycKind, session.ownerUserId, ext)
+        : ext
+          ? `${sanitizedFolder}/${crypto.randomUUID()}.${ext}`
+          : `${sanitizedFolder}/${crypto.randomUUID()}`;
+
+    // The presigned PUT URL, and the link to show the file (a short-lived one for private keys)
     const presignedUrl = await getPresignedUploadUrl(key, validatedInput.contentType);
-    const publicUrl = getPublicUrl(key);
+    const publicUrl = await getObjectUrl(key);
 
     // Recorded so only this uploader can later delete the key
     await recordUploadedFile(key, session.kind === "user" ? session.ownerUserId : null);

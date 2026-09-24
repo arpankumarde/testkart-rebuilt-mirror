@@ -111,6 +111,8 @@ interface HomepageContentSectionProps {
   items: any[];
   renderCard: (item: any, index: number) => React.ReactNode;
   isLoading?: boolean;
+  // Caps the grid at two full rows per breakpoint (phones keep four cards).
+  twoRows?: boolean;
 }
 
 export function HomepageContentSection({
@@ -119,6 +121,7 @@ export function HomepageContentSection({
   items,
   renderCard,
   isLoading = false,
+  twoRows = false,
 }: HomepageContentSectionProps) {
 
   if (!isLoading && (!items || items.length === 0)) {
@@ -136,7 +139,7 @@ export function HomepageContentSection({
         )}
       </div>
 
-      <div className={styles.gridContainer}>
+      <div className={`${styles.gridContainer} ${twoRows ? styles.twoRows : ""}`}>
         {isLoading
           ? Array.from({ length: 8 }).map((_, i) => (
               <div key={`skeleton-${i}`} className={styles.skeletonCard}>

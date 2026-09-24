@@ -24,6 +24,8 @@ export async function handle(request: Request): Promise<Response> {
       .selectFrom("promoCodes")
       .where("createdByTeacherId", "=", effectiveTeacherId);
 
+    // Same rules as the list's row status: a code that has hit its usage limit
+    // counts as expired, not active.
     if (status) {
       const now = new Date();
       if (status === "active") {
@@ -32,14 +34,26 @@ export async function handle(request: Request): Promise<Response> {
                      .where((eb) => eb.or([
                          eb("validUntil", "is", null),
                          eb("validUntil", ">", now)
+                     ]))
+                     .where((eb) => eb.or([
+                         eb("usageLimit", "is", null),
+                         eb("usageCount", "<", eb.ref("usageLimit"))
                      ]));
       } else if (status === "scheduled") {
         query = query.where("isActive", "=", true)
-                     .where("validFrom", ">", now);
+                     .where("validFrom", ">", now)
+                     .where((eb) => eb.or([
+                         eb("usageLimit", "is", null),
+                         eb("usageCount", "<", eb.ref("usageLimit"))
+                     ]));
       } else if (status === "expired") {
         query = query.where((eb) => eb.or([
             eb("isActive", "=", false),
-            eb("validUntil", "<=", now)
+            eb("validUntil", "<=", now),
+            eb.and([
+              eb("usageLimit", "is not", null),
+              eb("usageCount", ">=", eb.ref("usageLimit"))
+            ])
         ]));
       }
     }

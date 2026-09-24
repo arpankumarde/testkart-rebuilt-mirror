@@ -27,13 +27,6 @@ export async function handle(request: Request): Promise<Response> {
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);
 
-    if (input.amount < 100) {
-      return new Response(
-        superjson.stringify({ error: "Minimum withdrawal amount is ₹100" }),
-        { status: 400 }
-      );
-    }
-
     // Check and insert under the wallet lock shared with every other teacher
     // debit, so parallel requests can't all pass against the same balance.
     const result = await db.transaction().execute(async (trx) => {
@@ -54,7 +47,7 @@ export async function handle(request: Request): Promise<Response> {
         .insertInto("teacherWithdrawals")
         .values({
           teacherId: effectiveTeacherId,
-          amount: input.amount.toString(),
+          amount: input.amount.toFixed(2),
           status: "pending",
           requestedDate: new Date(),
           notes: input.notes,

@@ -24,7 +24,7 @@ export async function handle(request: Request): Promise<Response> {
         .insertInto("teacherWithdrawals")
         .values({
           teacherId: input.teacherId,
-          amount: input.amount.toString(),
+          amount: input.amount.toFixed(2),
           status: "completed",
           processedDate: new Date(),
           transactionId: input.transactionId,

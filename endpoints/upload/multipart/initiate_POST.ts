@@ -1,10 +1,11 @@
 import { schema, OutputType } from "./initiate_POST.schema";
 import superjson from "superjson";
 import { getUploaderSession } from "../../../helpers/getUploaderSession";
-import { createMultipartUpload, getPresignedPartUrl, getPublicUrl } from "../../../helpers/r2Client";
+import { createMultipartUpload, getObjectUrl, getPresignedPartUrl, isPrivateKey } from "../../../helpers/r2Client";
 import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
 import { validateUploadSize, validateUploadType } from "../../../helpers/uploadSizeValidation";
 import { recordUploadedFile } from "../../../helpers/r2FileOwnership";
+import { kycKindForFolder, newKycKey } from "../../../helpers/kycImage";
 
 const DEFAULT_PART_SIZE = 50 * 1024 * 1024; // 50 MB
 const MAX_PART_COUNT = 10000;
@@ -45,7 +46,21 @@ export async function handle(request: Request) {
     const sanitizedFolder = validatedInput.folder.replace(/^\/+/, '').replace(/\/+$/, '');
     const dotIndex = safeFileName.lastIndexOf('.');
     const ext = dotIndex > 0 ? safeFileName.substring(dotIndex + 1) : null;
-    const key = ext ? `${sanitizedFolder}/${crypto.randomUUID()}.${ext}` : `${sanitizedFolder}/${crypto.randomUUID()}`;
+
+    // PAN card images go under the uploader's own kyc/ prefix, which the public domain does not serve
+    const kycKind = kycKindForFolder(sanitizedFolder);
+    if (isPrivateKey(`${sanitizedFolder}/`) && (!kycKind || session.kind !== "user" || session.user.role !== kycKind)) {
+      return new Response(
+        superjson.stringify({ error: "PAN card images can only be uploaded from your own bank details form." }),
+        { status: 403 }
+      );
+    }
+    const key =
+      kycKind && session.kind === "user"
+        ? newKycKey(kycKind, session.ownerUserId, ext)
+        : ext
+          ? `${sanitizedFolder}/${crypto.randomUUID()}.${ext}`
+          : `${sanitizedFolder}/${crypto.randomUUID()}`;
 
     // Create the multipart upload session
     const uploadId = await createMultipartUpload(key, validatedInput.contentType);
@@ -58,7 +73,7 @@ export async function handle(request: Request) {
       parts.push({ partNumber: i, presignedUrl });
     }
 
-    const publicUrl = getPublicUrl(key);
+    const publicUrl = await getObjectUrl(key);
 
     // Recorded so only this uploader can later delete the key
     await recordUploadedFile(key, session.kind === "user" ? session.ownerUserId : null);

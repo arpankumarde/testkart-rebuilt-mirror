@@ -176,6 +176,7 @@ const AdminEarningsPage: React.FC = () => {
   const formSchema = addWithdrawalSchema.extend({
     amount: z.coerce.number()
       .positive("Enter an amount above zero.")
+      .multipleOf(0.01, "Use at most two decimal places.")
       .max(selectedTeacher?.availableBalance ?? 0, "This is more than the teacher has available."),
   });
 
@@ -525,6 +526,7 @@ const AdminEarningsPage: React.FC = () => {
                 <label htmlFor="notes">Internal notes</label>
                 <textarea
                   id="notes"
+                  maxLength={500}
                   placeholder="Only the team sees these"
                   {...form.register("notes")}
                   className={styles.textarea}
