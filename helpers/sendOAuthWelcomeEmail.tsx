@@ -1,6 +1,6 @@
 import { db } from "./db";
 import { sendEmail } from "./sendEmail";
-import { welcomeStudent, welcomeTeacher } from "./emailTemplates";
+import { welcomeStudent } from "./emailTemplates";
 import { addContactToAudience } from "./resendContacts";
 
 export type SendOAuthWelcomeEmailParams = {
@@ -11,7 +11,8 @@ export type SendOAuthWelcomeEmailParams = {
 };
 
 /**
- * Sends welcome email and syncs contact to Resend for new OAuth users.
+ * Syncs a new OAuth user to Resend and sends students their welcome email.
+ * Teachers get theirs as email 1 of the onboarding sequence (helpers/teacherOnboarding).
  * This function is non-blocking and logs errors without throwing.
  */
 export async function sendOAuthWelcomeEmail({
@@ -34,11 +35,12 @@ export async function sendOAuthWelcomeEmail({
       console.error("Failed to sync OAuth contact to Resend:", err)
     );
 
+  if (role !== "student") return;
+
   // Send welcome email (non-blocking)
   const sendEmail_async = async () => {
     try {
-      const templateKey =
-        role === "student" ? "welcome_student" : "welcome_teacher";
+      const templateKey = "welcome_student";
 
       // Fetch email template from database
       const template = await db
@@ -76,10 +78,7 @@ export async function sendOAuthWelcomeEmail({
         console.warn(
           `${templateKey} template not found in database, using fallback`
         );
-        const emailTemplate =
-          role === "student"
-            ? welcomeStudent(userDisplayName, userEmail)
-            : welcomeTeacher(userDisplayName, userEmail);
+        const emailTemplate = welcomeStudent(userDisplayName, userEmail);
         subject = emailTemplate.subject;
         html = emailTemplate.html;
         text = emailTemplate.text;

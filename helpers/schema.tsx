@@ -563,6 +563,12 @@ export interface EmailTemplates {
   updatedAt: Generated<Timestamp | null>;
 }
 
+export interface EmailUnsubscribes {
+  createdAt: Generated<Timestamp>;
+  list: string;
+  userId: number;
+}
+
 export interface ExamCategories {
   categoryName: string;
   categorySlug: string;
@@ -1362,6 +1368,24 @@ export interface TeacherInquiries {
   updatedAt: Generated<Timestamp>;
 }
 
+export interface TeacherOnboarding {
+  enrolledAt: Generated<Timestamp>;
+  firstPublishedAt: Timestamp | null;
+  teacherId: number;
+}
+
+export interface TeacherOnboardingEmails {
+  attempts: Generated<number>;
+  createdAt: Generated<Timestamp>;
+  emailKey: string;
+  id: Generated<number>;
+  reason: string | null;
+  resendEmailId: string | null;
+  status: string;
+  teacherId: number;
+  updatedAt: Generated<Timestamp>;
+}
+
 export interface TeacherSponsoredEnrollments {
   bundleId: number | null;
   commissionAmount: Numeric;
@@ -1638,6 +1662,7 @@ export interface DB {
   documentPageViews: DocumentPageViews;
   emailOtps: EmailOtps;
   emailTemplates: EmailTemplates;
+  emailUnsubscribes: EmailUnsubscribes;
   examCategories: ExamCategories;
   examContentPages: ExamContentPages;
   exams: Exams;
@@ -1696,6 +1721,8 @@ export interface DB {
   teacherAssets: TeacherAssets;
   teacherBankDetails: TeacherBankDetails;
   teacherInquiries: TeacherInquiries;
+  teacherOnboarding: TeacherOnboarding;
+  teacherOnboardingEmails: TeacherOnboardingEmails;
   teacherSponsoredEnrollments: TeacherSponsoredEnrollments;
   teacherSubscriptions: TeacherSubscriptions;
   teacherTeamMembers: TeacherTeamMembers;

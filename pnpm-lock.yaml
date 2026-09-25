@@ -23,12 +23,18 @@ importers:
       '@dnd-kit/utilities':
         specifier: 3.2.2
         version: 3.2.2(react@19.3.0)
+      '@gumlet/player.js':
+        specifier: 3.0.9
+        version: 3.0.9
       '@hono/node-server':
         specifier: ^1.13.8
         version: 1.19.17(hono@4.13.7)
       '@hookform/resolvers':
         specifier: ^4.1.3
         version: 4.1.3(react-hook-form@7.88.0(react@19.3.0))
+      '@hyzyla/pdfium':
+        specifier: 2.1.13
+        version: 2.1.13
       '@radix-ui/react-accordion':
         specifier: ^1.2.3
         version: 1.2.20(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -194,6 +200,9 @@ importers:
       '@types/katex':
         specifier: 0.16.7
         version: 0.16.7
+      '@types/opentype.js':
+        specifier: 1.3.8
+        version: 1.3.8
       '@types/papaparse':
         specifier: 5.5.2
         version: 5.5.2
@@ -258,11 +267,17 @@ importers:
         specifier: 15.2.0
         version: 15.2.0
       nanoid:
-        specifier: 5.1.16
-        version: 5.1.16
+        specifier: 6.0.1
+        version: 6.0.1
+      opentype.js:
+        specifier: 1.3.4
+        version: 1.3.4
       papaparse:
         specifier: 5.5.3
         version: 5.5.3
+      payu-websdk:
+        specifier: 1.3.1
+        version: 1.3.1
       pdfmake:
         specifier: 0.2.20
         version: 0.2.20
@@ -344,6 +359,9 @@ importers:
       xlsx:
         specifier: 0.18.5
         version: 0.18.5
+      xss:
+        specifier: 1.0.15
+        version: 1.0.15
       zod:
         specifier: ^3.25.76
         version: 3.25.76
@@ -824,6 +842,9 @@ packages:
   '@foliojs-fork/restructure@2.0.2':
     resolution: {integrity: sha512-59SgoZ3EXbkfSX7b63tsou/SDGzwUEK6MuB5sKqgVK1/XE0fxmpsOb9DQI8LXW3KfGnAjImCGhhEb7uPPAUVNA==}
 
+  '@gumlet/player.js@3.0.9':
+    resolution: {integrity: sha512-9FqWqFyiG+VqMSmUAAzAD6Pdoa1/MjjG0SsNf9b6IY0xRYpF9K0HMOBbnmlkIpcC1a9OKOb997ktqy17ljWYkA==}
+
   '@hono/node-server@1.19.17':
     resolution: {integrity: sha512-dSneS5qhiauZWGDCeK4o695Xd9nUNjviSZCMQrj10eetr8Uln1ucn6bbphOM6UynAMMtNIzZNSpL9vnASJwrPQ==}
     engines: {node: '>=18.14.1'}
@@ -834,6 +855,9 @@ packages:
     resolution: {integrity: sha512-Jsv6UOWYTrEFJ/01ZrnwVXs7KDvP8XIo115i++5PWvNkNvkrsTfGiLS6w+eJ57CYtUtDQalUWovCZDHFJ8u1VQ==}
     peerDependencies:
       react-hook-form: ^7.0.0
+
+  '@hyzyla/pdfium@2.1.13':
+    resolution: {integrity: sha512-4J+xMFJW6V+jktxor6Lsk/2YdPCpeY+Ga69J98uyNQwYESkAsUDxz8BeFU0ZbZJIJ+fK3J6bm61gmwWnUzVU1g==}
 
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
@@ -2156,6 +2180,9 @@ packages:
   '@types/node@26.5.1':
     resolution: {integrity: sha512-CzNm2FezW4VR/LjG6yUdiEgLE/rAQ9Slj5gCu/C2VrdcW7I0ahNZ8DRbHT7zOZ6r3ONgd/bsQIeSaoDGrd1C6g==}
 
+  '@types/opentype.js@1.3.8':
+    resolution: {integrity: sha512-H6qeTp03jrknklSn4bpT1/9+1xCAEIU2CnjcWPkicJy8A1SKuthanbvoHYMiv79/2W3Xn1XE4gfSJFzt2U3JSw==}
+
   '@types/papaparse@5.5.2':
     resolution: {integrity: sha512-gFnFp/JMzLHCwRf7tQHrNnfhN4eYBVYYI897CGX4MY1tzY9l2aLkVyx2IlKZ/SAqDbB3I1AOZW5gTMGGsqWliA==}
 
@@ -2325,6 +2352,9 @@ packages:
     resolution: {integrity: sha512-/rFeCpNJQbhSZjGVwO9RFV3xPqbnERS8MmIQzCtD/zl6gpJuV/bMLuN92oG3F7d8oDEHHRrujSXNUr8fpjntKw==}
     engines: {node: '>=18'}
 
+  commander@2.20.3:
+    resolution: {integrity: sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==}
+
   commander@8.3.0:
     resolution: {integrity: sha512-OkTL9umf+He2DZkUq8f8J9of7yL6RJKI24dVITBmNfZBmri9zYZQrKkuXiKhyfPSu8tUhnVBB1iKXevvnlR4Ww==}
     engines: {node: '>= 12'}
@@ -2372,6 +2402,9 @@ packages:
   crypto-js@4.2.0:
     resolution: {integrity: sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q==}
     deprecated: Active development of CryptoJS has been discontinued. This library is no longer maintained.
+
+  cssfilter@0.0.10:
+    resolution: {integrity: sha512-FAaLDaplstoRsDR8XGYH51znUN0UY7nMc6Z9/fvE8EXGwvJE9hu7W2vHwx1+bd6gCYnln9nLbzxFTrcO9YQDZw==}
 
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
@@ -2875,9 +2908,9 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
-  nanoid@5.1.16:
-    resolution: {integrity: sha512-kVrnsrJqMR8+oLJnGEmSWw9BivK5mt7H3FZatVRjrc5wGqFYuBxX1yG7+A7Gi5AefkX6t/oCkizcQgpu0cY1dQ==}
-    engines: {node: ^18 || >=20}
+  nanoid@6.0.1:
+    resolution: {integrity: sha512-3wVS3i51pE2pi1k5FFL/95BGfVS0kSsvDVuGXHOtxox/TywUmtgq+3qiTOTbs9J7KfHaXPiN171k/A6dBnaXFw==}
+    engines: {node: ^22 || ^24 || >=26}
     hasBin: true
 
   node-stdlib-browser@1.3.1:
@@ -2906,6 +2939,11 @@ packages:
   object.assign@4.1.7:
     resolution: {integrity: sha512-nK28WOo+QIjBkDduTINE4JkF/UJJKyf2EJxvJKfblDpyg0Q+pkOHNTL0Qwy6NP6FhE/EnzV73BxxqcJaXY9anw==}
     engines: {node: '>= 0.4'}
+
+  opentype.js@1.3.4:
+    resolution: {integrity: sha512-d2JE9RP/6uagpQAVtJoF0pJJA/fgai89Cc50Yp0EJHk+eLp6QQ7gBoblsnubRULNY132I0J1QKMJ+JTbMqz4sw==}
+    engines: {node: '>= 8.0.0'}
+    hasBin: true
 
   orderedmap@2.1.1:
     resolution: {integrity: sha512-TvAWxi0nDe1j/rtMcWcIj94+Ffe6n7zhow33h40SKxmsmozs6dz/e+EajymfoFcHd7sxNn8yHM8839uixMOV6g==}
@@ -2946,6 +2984,9 @@ packages:
 
   path-parse@1.0.7:
     resolution: {integrity: sha512-LDJzPVEEEPR+y48z93A0Ed0yXb8pAByGWo/k5YYdYgpY2/2EsOsksJrq7lOHxryrVOn1ejG6oAp8ahvOIQD8sw==}
+
+  payu-websdk@1.3.1:
+    resolution: {integrity: sha512-Majzl7ELJKsw3Z+jpdBRI1VAR5/LqFC5l/MK9Ts0gwIcFivUuB2r0hDBXqX3Qm2FbfJk8TXN3v+lI4xqBewmcA==}
 
   pbkdf2@3.1.6:
     resolution: {integrity: sha512-BT6eelPB1EyGHo8pC0o9Bl6k6SYVhKO1jEbd3lcTrtr7XHdjP8BW1YpfCV3G9Kwkxgattk+S5q2/RvuttCsS1g==}
@@ -3381,6 +3422,9 @@ packages:
   stream-http@3.2.0:
     resolution: {integrity: sha512-Oq1bLqisTyK3TSCXpPbT4sdeYNdmyZJv1LxpEm2vu1ZhK89kSE5YXwZc3cWk0MagGaKriBh9mCFbVGtO+vY29A==}
 
+  string.prototype.codepointat@0.2.1:
+    resolution: {integrity: sha512-2cBVCj6I4IOvEnjgO/hWqXjqBGsY+zwPmHl12Srk9IXSZ56Jwwmy+66XO5Iut/oQVR7t5ihYdLB0GMa4alEUcg==}
+
   string_decoder@1.1.1:
     resolution: {integrity: sha512-n/ShnvDi6FHbbVfviro+WojiFzv+s8MPMHBczVePfUpDJLwoLT0ht1l4YwBCbi8pJAveEEdnkHyPyTP/mzRfwg==}
 
@@ -3581,6 +3625,11 @@ packages:
   xmldoc@2.0.3:
     resolution: {integrity: sha512-6gRk4NY/Jvg67xn7OzJuxLRsGgiXBaPUQplVJ/9l99uIugxh4FTOewYz5ic8WScj7Xx/2WvhENiQKwkK9RpE4w==}
     engines: {node: '>=12.0.0'}
+
+  xss@1.0.15:
+    resolution: {integrity: sha512-FVdlVVC67WOIPvfOwhoMETV72f6GbW7aOabBC3WxN/oUdoEMDyLz4OgRv5/gck2ZeNqEQu+Tb0kloovXOfpYVg==}
+    engines: {node: '>= 0.10.0'}
+    hasBin: true
 
   xtend@4.0.2:
     resolution: {integrity: sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==}
@@ -4054,6 +4103,8 @@ snapshots:
 
   '@foliojs-fork/restructure@2.0.2': {}
 
+  '@gumlet/player.js@3.0.9': {}
+
   '@hono/node-server@1.19.17(hono@4.13.7)':
     dependencies:
       hono: 4.13.7
@@ -4062,6 +4113,8 @@ snapshots:
     dependencies:
       '@standard-schema/utils': 0.3.0
       react-hook-form: 7.88.0(react@19.3.0)
+
+  '@hyzyla/pdfium@2.1.13': {}
 
   '@img/colour@1.1.0': {}
 
@@ -5249,6 +5302,8 @@ snapshots:
     dependencies:
       undici-types: 8.9.0
 
+  '@types/opentype.js@1.3.8': {}
+
   '@types/papaparse@5.5.2':
     dependencies:
       '@types/node': 26.5.1
@@ -5449,6 +5504,8 @@ snapshots:
 
   commander@13.1.0: {}
 
+  commander@2.20.3: {}
+
   commander@8.3.0: {}
 
   complex.js@2.4.3: {}
@@ -5507,6 +5564,8 @@ snapshots:
       randomfill: 1.0.4
 
   crypto-js@4.2.0: {}
+
+  cssfilter@0.0.10: {}
 
   csstype@3.2.3: {}
 
@@ -6032,7 +6091,7 @@ snapshots:
 
   nanoid@3.3.19: {}
 
-  nanoid@5.1.16: {}
+  nanoid@6.0.1: {}
 
   node-stdlib-browser@1.3.1:
     dependencies:
@@ -6086,6 +6145,11 @@ snapshots:
       has-symbols: 1.1.0
       object-keys: 1.1.1
 
+  opentype.js@1.3.4:
+    dependencies:
+      string.prototype.codepointat: 0.2.1
+      tiny-inflate: 1.0.3
+
   orderedmap@2.1.1: {}
 
   os-browserify@0.3.0: {}
@@ -6119,6 +6183,8 @@ snapshots:
   path-exists@4.0.0: {}
 
   path-parse@1.0.7: {}
+
+  payu-websdk@1.3.1: {}
 
   pbkdf2@3.1.6:
     dependencies:
@@ -6730,6 +6796,8 @@ snapshots:
       readable-stream: 3.6.2
       xtend: 4.0.2
 
+  string.prototype.codepointat@0.2.1: {}
+
   string_decoder@1.1.1:
     dependencies:
       safe-buffer: 5.1.2
@@ -6922,6 +6990,11 @@ snapshots:
   xmldoc@2.0.3:
     dependencies:
       sax: 1.6.1
+
+  xss@1.0.15:
+    dependencies:
+      commander: 2.20.3
+      cssfilter: 0.0.10
 
   xtend@4.0.2: {}
 

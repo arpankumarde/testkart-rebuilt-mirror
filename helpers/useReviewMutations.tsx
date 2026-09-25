@@ -4,7 +4,7 @@ import { parseErrorMessage } from "./parseErrorMessage";
 import { postSubmitReview, InputType as SubmitReviewInput } from '../endpoints/reviews/submit_POST.schema';
 import { ENROLLED_TESTS_QUERY_KEY } from './useEnrolledTestsQuery';
 import { SHOP_PRODUCTS_QUERY_KEY, SHOP_PRODUCT_DETAILS_QUERY_KEY, STUDENT_PURCHASES_QUERY_KEY } from './useShopQuery';
-import { PUBLIC_COURSES_QUERY_KEY, STUDENT_COURSES_QUERY_KEY, STUDENT_ENROLLED_COURSES_QUERY_KEY } from './useStudentCoursesQuery';
+import { PUBLIC_COURSES_QUERY_KEY, STUDENT_ENROLLED_COURSES_QUERY_KEY } from './useStudentCoursesQuery';
 
 interface UseReviewMutationsOptions {
   mockTestId?: number;
@@ -50,7 +50,8 @@ export const useReviewMutations = (options?: number | UseReviewMutationsOptions)
 
       if (courseId) {
         queryClient.invalidateQueries({ queryKey: PUBLIC_COURSES_QUERY_KEY });
-        queryClient.invalidateQueries({ queryKey: STUDENT_COURSES_QUERY_KEY });
+        // Not the whole student courses prefix: that also refetches the open player's lessons and progress,
+        // which swaps the player for its skeleton mid-lesson. Only the enrolled list carries review data.
         queryClient.invalidateQueries({ queryKey: STUDENT_ENROLLED_COURSES_QUERY_KEY });
       }
     },

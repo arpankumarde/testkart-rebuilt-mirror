@@ -1,6 +1,7 @@
 import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { syncToQuestionBank } from "../../../helpers/syncToQuestionBank";
+import { syncMockTestAggregates } from "../../../helpers/syncMockTestAggregates";
 import { schema, OutputType } from "./import-to-test_POST.schema";
 import superjson from "superjson";
 
@@ -73,6 +74,8 @@ export async function handle(request: Request): Promise<Response> {
     }));
 
     const insertedTestQs = await db.insertInto("testQuestions").values(newTestQs).returning(["id"]).execute();
+
+    await syncMockTestAggregates(subjectOwner.mockTestId);
 
     // Sync imported questions back to question bank as independent entries
     await syncToQuestionBank(

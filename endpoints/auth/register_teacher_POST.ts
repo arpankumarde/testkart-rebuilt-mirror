@@ -9,8 +9,6 @@ import {
 import { generatePasswordHash } from "../../helpers/generatePasswordHash";
 import superjson from "superjson";
 import { UserRole } from "../../helpers/schema";
-import { sendEmail } from "../../helpers/sendEmail";
-import { welcomeTeacher } from "../../helpers/emailTemplates";
 import { addContactToAudience } from "../../helpers/resendContacts";
 
 export async function handle(request: Request) {
@@ -170,66 +168,8 @@ export async function handle(request: Request) {
       lastAccessed: now.getTime(),
     });
 
-    // Send welcome email
-    const sendWelcomeEmail = async () => {
-      try {
-        // Fetch email template from database
-        const template = await db
-          .selectFrom("emailTemplates")
-          .selectAll()
-          .where("templateKey", "=", "welcome_teacher")
-          .where("isActive", "=", true)
-          .executeTakeFirst();
+    // The welcome email is email 1 of the teacher onboarding sequence (helpers/teacherOnboarding).
 
-        let subject: string;
-        let html: string;
-        let text: string;
-
-        if (template) {
-          // Replace placeholders
-          const replacePlaceholders = (str: string, data: Record<string, string>) => {
-            return Object.entries(data).reduce(
-              (acc, [key, value]) => acc.replace(new RegExp(`{{${key}}}`, 'g'), value),
-              str
-            );
-          };
-
-          const placeholders = {
-            displayName: newUser.displayName,
-            email: email,
-          };
-
-          subject = replacePlaceholders(template.subject, placeholders);
-          html = replacePlaceholders(template.htmlContent, placeholders);
-          text = replacePlaceholders(template.textContent || "", placeholders);
-        } else {
-          // Fallback to imported helper
-          console.warn("Welcome teacher template not found in database, using fallback");
-          const emailTemplate = welcomeTeacher(newUser.displayName, email);
-          subject = emailTemplate.subject;
-          html = emailTemplate.html;
-          text = emailTemplate.text;
-        }
-
-        const result = await sendEmail({
-          to: email,
-          subject,
-          html,
-          text,
-        });
-
-        if (result.success) {
-          console.log(`Welcome email sent successfully to ${newUser.email}`);
-        } else {
-          console.error(`Failed to send welcome email to ${newUser.email}:`, result.error);
-        }
-      } catch (error) {
-        console.error(`Error sending welcome email to ${newUser.email}:`, error);
-      }
-    };
- 
-   await sendWelcomeEmail();
- 
     return response;
   } catch (error: unknown) {
     console.error("Teacher registration error:", error);

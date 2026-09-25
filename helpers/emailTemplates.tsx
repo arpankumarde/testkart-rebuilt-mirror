@@ -52,36 +52,6 @@ export const welcomeStudent = (
   };
 };
 
-export const welcomeTeacher = (
-  displayName: string,
-  email: string
-): EmailTemplateResult => {
-  const subject = "Welcome to Testkart for Teachers! 🎓";
-  const html = getBrandedEmailHtml({
-    title: subject,
-    icon: "🎓",
-    heading: `Welcome, ${displayName}!`,
-    subheading: "You've joined the Testkart teaching community.",
-    bodyHtml: `
-      <p style="margin:0 0 16px;">You've taken the first step towards reaching thousands of students and monetizing your expertise. Our platform gives you all the tools you need to create, sell, and manage your educational content.</p>
-      <p style="margin:0;"><strong>To get started:</strong></p>
-      <ol style="margin:12px 0 0;padding-left:20px;line-height:1.8;">
-        <li>Complete your profile</li>
-        <li>Create your first mock test or course</li>
-        <li>Publish and start earning</li>
-      </ol>
-    `,
-    ctaLabel: "Go to Teacher Dashboard",
-    ctaUrl: "https://testkart.in/teacher/dashboard",
-  });
-
-  return {
-    subject,
-    html,
-    text: `Welcome to Testkart, ${displayName}! Start creating your content today at https://testkart.in/teacher/dashboard`,
-  };
-};
-
 export const orderConfirmation = (
   orderDetails: OrderDetails
 ): EmailTemplateResult => {

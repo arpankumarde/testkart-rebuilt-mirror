@@ -215,12 +215,18 @@
 }
 
 .contentHeader h1 {
+  flex: 1;
+  min-width: 0;
   margin: 0;
   font-size: 1.25rem;
   font-family: var(--font-family-heading);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.rateButton {
+  flex-shrink: 0;
 }
 
 .menuToggle {
@@ -435,6 +441,10 @@
   }
   .contentHeader h1 {
     font-size: 0.9375rem;
+  }
+  /* Icon only on phones; the button keeps its aria-label */
+  .rateLabel {
+    display: none;
   }
   .textContent {
     padding: var(--spacing-4) var(--spacing-3);

@@ -22,7 +22,8 @@ const ACCENT_STYLES: Record<EmailAccent, { solid: string; tint: string }> = {
 // clients don't reliably support hsl()).
 export const EMAIL_BRAND = {
   primary: "#FF9966",
-  primaryDark: "#FF7A33",
+  // --tk-brand-deep: 7.9:1 under white text, so buttons use it.
+  primaryDeep: "#903209",
   secondary: "#14B8A5",
   text: "#2E3138",
   muted: "#676F7E",
@@ -49,16 +50,23 @@ export interface BrandedEmailOptions {
   icon?: string;
   /** Controls the icon circle / heading accent color. Defaults to "brand". */
   accent?: EmailAccent;
-  heading: string;
+  /** Omit for a letter-style email that opens straight into the body. */
+  heading?: string;
   subheading?: string;
   /** Pre-built inner HTML (paragraphs, lists, etc.) rendered inside the content card. */
   bodyHtml?: string;
+  /** "plain" sets the body on the white page instead of the grey content card. */
+  bodyVariant?: "card" | "plain";
   /** Renders a large centered code box — used for OTP-style emails. */
   codeBlock?: string;
   /** Renders a simple label/value summary table (order totals, subscription details, etc.). */
   table?: EmailTableRow[];
   ctaLabel?: string;
   ctaUrl?: string;
+  /** Button fill. Defaults to EMAIL_BRAND.primaryDeep. */
+  ctaColor?: string;
+  /** Pre-built HTML rendered below the button. */
+  afterCtaHtml?: string;
   /** Optional extra line shown above the copyright in the footer. */
   footerNote?: string;
 }
@@ -119,9 +127,33 @@ export const getBrandedEmailHtml = (options: BrandedEmailOptions): string => {
     options.ctaLabel && options.ctaUrl
       ? `
       <div style="text-align:center;margin-top:28px;">
-        <a href="${options.ctaUrl}" style="display:inline-block;background-color:${EMAIL_BRAND.primaryDark};color:#ffffff;padding:14px 32px;text-decoration:none;border-radius:8px;font-weight:600;font-size:15px;">${options.ctaLabel} &rarr;</a>
+        <a href="${options.ctaUrl}" style="display:inline-block;background-color:${options.ctaColor ?? EMAIL_BRAND.primaryDeep};color:#ffffff;padding:14px 32px;text-decoration:none;border-radius:8px;font-weight:600;font-size:15px;">${options.ctaLabel} &rarr;</a>
       </div>`
       : "";
+
+  const afterCtaHtml = options.afterCtaHtml
+    ? `<div style="color:${EMAIL_BRAND.text};font-size:15px;line-height:1.65;margin-top:28px;">${options.afterCtaHtml}</div>`
+    : "";
+
+  const headerHtml =
+    options.heading || options.icon || options.subheading
+      ? `<div style="text-align:center;margin-bottom:28px;">
+                ${iconHtml}
+                ${options.heading ? `<h1 style="color:${EMAIL_BRAND.text};margin:0 0 8px;font-size:24px;font-weight:700;">${options.heading}</h1>` : ""}
+                ${subheadingHtml}
+              </div>`
+      : "";
+
+  const hasCardContent = Boolean(options.bodyHtml || options.codeBlock || options.table);
+  const contentHtml = !hasCardContent
+    ? ""
+    : options.bodyVariant === "plain"
+      ? `${bodyHtml}${codeBlockHtml}${tableHtml}`
+      : `<div style="background-color:${EMAIL_BRAND.surfaceMuted};border-radius:12px;padding:24px;">
+                      ${bodyHtml}
+                      ${codeBlockHtml}
+                      ${tableHtml}
+                    </div>`;
 
   const footerNoteHtml = options.footerNote
     ? `<p style="color:${EMAIL_BRAND.muted};margin:0 0 8px;font-size:12px;">${options.footerNote}</p>`
@@ -141,7 +173,7 @@ export const getBrandedEmailHtml = (options: BrandedEmailOptions): string => {
       <td align="center">
         <table width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;background-color:${EMAIL_BRAND.surface};border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(16,24,40,0.06);">
           <tr>
-            <td style="background:linear-gradient(90deg,${EMAIL_BRAND.primary} 0%,${EMAIL_BRAND.secondary} 100%);height:5px;line-height:5px;font-size:0;">&nbsp;</td>
+            <td style="background-color:${EMAIL_BRAND.primaryDeep};height:5px;line-height:5px;font-size:0;">&nbsp;</td>
           </tr>
           <tr>
             <td style="padding:28px 40px;text-align:center;border-bottom:1px solid ${EMAIL_BRAND.border};">
@@ -150,21 +182,10 @@ export const getBrandedEmailHtml = (options: BrandedEmailOptions): string => {
           </tr>
           <tr>
             <td style="padding:44px 40px 40px;">
-              <div style="text-align:center;margin-bottom:28px;">
-                ${iconHtml}
-                <h1 style="color:${EMAIL_BRAND.text};margin:0 0 8px;font-size:24px;font-weight:700;">${options.heading}</h1>
-                ${subheadingHtml}
-              </div>
-              ${
-                options.bodyHtml || options.codeBlock || options.table
-                  ? `<div style="background-color:${EMAIL_BRAND.surfaceMuted};border-radius:12px;padding:24px;">
-                      ${bodyHtml}
-                      ${codeBlockHtml}
-                      ${tableHtml}
-                    </div>`
-                  : ""
-              }
+              ${headerHtml}
+              ${contentHtml}
               ${ctaHtml}
+              ${afterCtaHtml}
             </td>
           </tr>
           <tr>

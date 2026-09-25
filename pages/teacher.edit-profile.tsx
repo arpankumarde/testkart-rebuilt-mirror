@@ -22,6 +22,7 @@ import { useAuth } from '../helpers/useAuth';
 import { useTeacherProfileMutations } from '../helpers/useTeacherProfileMutations';
 import { useTeacherPublicProfileQuery } from '../helpers/useTeacherPublicProfile';
 import { teacherProfileFormSchema, TeacherProfileFormValues } from '../helpers/teacherProfileFormSchema';
+import { teacherProfileCompleteness } from '../helpers/teacherProfileCompleteness';
 import { Button } from '../components/Button';
 import { Skeleton } from '../components/Skeleton';
 import { ToggleGroup, ToggleGroupItem } from '../components/ToggleGroup';
@@ -203,35 +204,7 @@ const EditProfilePage: React.FC = () => {
     }
   };
 
-  const completeness = useMemo(() => {
-    const values = form.values;
-    const checks: { label: string; done: boolean; section: SectionKey }[] = [
-      { label: 'Add a profile photo', done: !!values.avatarUrl, section: 'basics' },
-      { label: 'Set your display name', done: (values.displayName ?? '').trim().length >= 2, section: 'basics' },
-      { label: 'Claim your profile URL', done: !!values.slug, section: 'basics' },
-      { label: 'Write a tagline', done: (values.tagline ?? '').trim().length > 0, section: 'basics' },
-      { label: 'Write an about section', done: (values.bio ?? '').trim().length >= 40, section: 'basics' },
-      { label: 'Add your location', done: (values.location ?? '').trim().length > 0, section: 'details' },
-      { label: 'List the languages you teach in', done: (values.languages ?? []).length > 0, section: 'details' },
-      { label: 'List your expertise areas', done: (values.expertiseAreas ?? []).length > 0, section: 'details' },
-      {
-        label: 'Link a website or social profile',
-        done:
-          (values.websiteUrl ?? '').trim().length > 0 ||
-          Object.values(values.socialLinks ?? {}).some((link) => (link ?? '').trim().length > 0),
-        section: 'details',
-      },
-      { label: 'Add an award or certificate', done: (values.awardsCertificates ?? []).length > 0, section: 'credentials' },
-    ];
-
-    const done = checks.filter((check) => check.done).length;
-    return {
-      percent: Math.round((done / checks.length) * 100),
-      done,
-      total: checks.length,
-      next: checks.find((check) => !check.done) ?? null,
-    };
-  }, [form.values]);
+  const completeness = useMemo(() => teacherProfileCompleteness(form.values), [form.values]);
 
   if (authState.type === 'loading') {
     return (

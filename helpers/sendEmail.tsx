@@ -24,6 +24,12 @@ export type SendEmailParams = {
     filename?: string | false | undefined;
     path?: string;
   }[];
+  /** Display name in the From header. Defaults to "Testkart". */
+  fromName?: string;
+  headers?: Record<string, string>;
+  tags?: { name: string; value: string }[];
+  /** Resend drops a repeat send with the same key for 24 hours. */
+  idempotencyKey?: string;
 };
 
 export type SendEmailResult =
@@ -43,6 +49,10 @@ export const sendEmail = async ({
   cc,
   bcc,
   attachments,
+  fromName,
+  headers,
+  tags,
+  idempotencyKey,
 }: SendEmailParams): Promise<SendEmailResult> => {
   if (!process.env.RESEND_API_KEY) {
     console.error("RESEND_API_KEY is not defined in environment variables.");
@@ -53,17 +63,22 @@ export const sendEmail = async ({
   }
 
   try {
-        const data = await getResend().emails.send({
-      from: `Testkart <${FROM_EMAIL}>`,
-      to,
-      subject,
-      html,
-      text,
-      replyTo,
-      cc,
-      bcc,
-      attachments,
-    });
+    const data = await getResend().emails.send(
+      {
+        from: `${fromName ?? "Testkart"} <${FROM_EMAIL}>`,
+        to,
+        subject,
+        html,
+        text,
+        replyTo,
+        cc,
+        bcc,
+        attachments,
+        headers,
+        tags,
+      },
+      idempotencyKey ? { idempotencyKey } : undefined
+    );
 
     if (data.error) {
       console.error("Resend API Error:", data.error);

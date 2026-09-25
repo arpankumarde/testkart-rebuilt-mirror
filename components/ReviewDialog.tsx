@@ -112,7 +112,7 @@ export const ReviewDialog: React.FC<ReviewDialogProps> = ({
             {isEditMode 
               ? "Update your rating and feedback."
               : isCourse
-              ? "Thank you for completing this course! Your feedback helps other students and the instructor."
+              ? "You can rate this course at any point, whether or not you have finished it. Your feedback helps other students and the instructor."
               : isDigitalProduct 
               ? "Thank you for your purchase! Your feedback helps other students and the creator."
               : "Thank you for completing the test! Your feedback helps other students and the creator."

@@ -10,7 +10,7 @@ import {
 } from "../../../helpers/getSetServerSession";
 import { randomUUID } from "crypto";
 import { sendEmail } from "../../../helpers/sendEmail";
-import { welcomeStudent, welcomeTeacher } from "../../../helpers/emailTemplates";
+import { welcomeStudent } from "../../../helpers/emailTemplates";
 import { addContactToAudience } from "../../../helpers/resendContacts";
 import { addTeacherToSalesContacts } from "../../../helpers/addTeacherToSalesContacts";
 import { getClientIp } from "../../../helpers/getClientIp";
@@ -216,10 +216,11 @@ export async function handle(request: Request): Promise<Response> {
 
     response.headers.set("Set-Cookie", setCookieHeader);
 
-    // Send welcome email (non-blocking)
+    // Welcome email for students (non-blocking). Teachers get theirs as email 1
+    // of the onboarding sequence (helpers/teacherOnboarding).
     const sendWelcomeEmail = async () => {
       try {
-        const templateKey = role === "student" ? "welcome_student" : "welcome_teacher";
+        const templateKey = "welcome_student";
 
         const template = await db
           .selectFrom("emailTemplates")
@@ -250,10 +251,7 @@ export async function handle(request: Request): Promise<Response> {
           text = replacePlaceholders(template.textContent || "", placeholders);
         } else {
           console.warn(`${templateKey} template not found in database, using fallback`);
-          const emailTemplate =
-            role === "student"
-              ? welcomeStudent(updatedUser.displayName, updatedUser.email!)
-              : welcomeTeacher(updatedUser.displayName, updatedUser.email!);
+          const emailTemplate = welcomeStudent(updatedUser.displayName, updatedUser.email!);
           subject = emailTemplate.subject;
           html = emailTemplate.html;
           text = emailTemplate.text;
@@ -276,7 +274,7 @@ export async function handle(request: Request): Promise<Response> {
       }
     };
 
-    sendWelcomeEmail();
+    if (role === "student") sendWelcomeEmail();
 
     // Sync contact to Resend
     try {

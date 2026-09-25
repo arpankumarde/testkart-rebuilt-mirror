@@ -47,7 +47,8 @@ export default function StudentCoursesPage() {
   ];
 
   const renderContent = () => {
-    if (isFetching) {
+    // Skeleton only before the first load; a refresh after a review keeps the cards on screen.
+    if (isFetching && !data) {
       return (
         <div className={styles.coursesGrid}>
           {Array.from({ length: 4 }).map((_, i) =>

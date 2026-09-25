@@ -238,10 +238,9 @@ export async function handle(request: Request) {
       return new Response(superjson.stringify({ success: true, message: successMessage } satisfies OutputType));
     }
 
-    // This should never happen due to schema validation, but just in case
     // Handle course reviews
     if (courseId !== undefined) {
-      // 1. Check if the student is enrolled in this course
+      // 1. Any enrolled student can review (bought, free, bundle or sponsored); finishing the course is not required
       const enrollment = await db
         .selectFrom('courseEnrollments')
         .where('studentId', '=', user.id)
@@ -251,7 +250,7 @@ export async function handle(request: Request) {
         .executeTakeFirst();
 
       if (!enrollment) {
-        return new Response(superjson.stringify({ error: "You must enroll in this course before reviewing." }), { status: 403 });
+        return new Response(superjson.stringify({ error: "Only students who have bought or enrolled in this course can review it." }), { status: 403 });
       }
 
       // 2. Check if the user has already reviewed this course

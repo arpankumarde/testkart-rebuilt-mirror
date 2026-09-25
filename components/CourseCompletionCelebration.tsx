@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trophy, Award, X } from 'lucide-react';
+import { Trophy, Award, X, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from './Button';
 import { ShareButton } from './ShareButton';
@@ -17,6 +17,8 @@ export interface CourseCompletionCelebrationProps {
   onBackToDashboard?: () => void;
   /** Optional callback to dismiss the celebration */
   onDismiss?: () => void;
+  /** Opens the review dialog; omitted once the student has reviewed the course. */
+  onRateCourse?: () => void;
   /** Optional className to apply to the root element. */
   className?: string;
 }
@@ -31,6 +33,7 @@ export const CourseCompletionCelebration: React.FC<CourseCompletionCelebrationPr
   totalLessons,
   onBackToDashboard,
   onDismiss,
+  onRateCourse,
   className,
 }) => {
   return (
@@ -69,6 +72,12 @@ export const CourseCompletionCelebration: React.FC<CourseCompletionCelebrationPr
               Get your certificate
             </Link>
           </Button>
+          {onRateCourse && (
+            <Button size="lg" variant="outline" className={styles.rateAction} onClick={onRateCourse}>
+              <Star size={20} />
+              Rate this course
+            </Button>
+          )}
           <div className={`${styles.secondaryActions} ${onDismiss ? '' : styles.single}`}>
             <Button size="lg" variant="outline" asChild onClick={onBackToDashboard}>
               <Link to="/student/courses">Back to My Courses</Link>

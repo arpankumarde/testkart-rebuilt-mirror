@@ -41,8 +41,7 @@ export const EMAIL_TEMPLATE_WIRING: Record<string, EmailTemplateWiring> = {
   support_ticket_admin_notification: { status: "live", source: "endpoints/teacher/support/thread/create_POST" },
   verified_badge_granted: { status: "live", source: "endpoints/admin/user/toggle-verified_POST" },
   wallet_credit_received: { status: "live", source: "helpers/liveTestPrizePayout" },
-  welcome_student: { status: "live", source: "endpoints/auth/register_student_POST, register_with_password_POST, helpers/sendOAuthWelcomeEmail" },
-  welcome_teacher: { status: "live", source: "endpoints/auth/register_teacher_POST, helpers/sendOAuthWelcomeEmail" },
+  welcome_student: { status: "live", source: "endpoints/auth/register_student_POST, register_with_password_POST, email-signup and mobile-signup verify-and-register_POST, helpers/sendOAuthWelcomeEmail" },
 
   // Sent from a hardcoded function - edits here are ignored.
   bundle_enrollment: { status: "hardcoded", source: "emailTemplatesExtra.bundleEnrollmentStudent" },
@@ -73,6 +72,10 @@ export const EMAIL_TEMPLATE_WIRING: Record<string, EmailTemplateWiring> = {
   password_reset: { status: "no-trigger", source: "Student and teacher login is OTP-based; the admin reset email is built in code" },
   payment_successful: { status: "no-trigger", source: "Superseded by order_confirmation; helper has no caller" },
   test_completed: { status: "no-trigger", source: "Test submission sends no email" },
+  welcome_teacher: {
+    status: "no-trigger",
+    source: "Replaced by email 1 of the teacher onboarding sequence, built in helpers/teacherOnboardingContent",
+  },
 };
 
 export const getEmailTemplateWiring = (

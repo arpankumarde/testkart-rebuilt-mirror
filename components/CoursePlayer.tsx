@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { CheckCircle, Lock, PlayCircle, ChevronLeft, ChevronRight, Menu, X, FileText, HelpCircle, ArrowLeft, AlertCircle, Shield } from 'lucide-react';
+import { CheckCircle, Lock, PlayCircle, ChevronLeft, ChevronRight, Menu, X, FileText, HelpCircle, ArrowLeft, AlertCircle, Shield, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from './Button';
 import { VideoPreview } from './VideoPreview';
@@ -7,6 +7,8 @@ import { GumletEmbedPlayer } from './GumletEmbedPlayer';
 import { StudentQuizViewer } from './StudentQuizViewer';
 import { CourseCompletionCelebration } from './CourseCompletionCelebration';
 import { PdfReader } from './PdfReader';
+import { ReviewDialog } from './ReviewDialog';
+import { useStudentEnrolledCoursesQuery } from '../helpers/useStudentCoursesQuery';
 import { useSignedVideoUrl } from '../helpers/useSignedVideoUrl';
 import { useProtectedDocument } from '../helpers/useProtectedDocument';
 import { wrapContentTables } from '../helpers/contentTables';
@@ -199,6 +201,18 @@ export const CoursePlayer: React.FC<CoursePlayerProps> = ({
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
+
+  // The student's own review comes from the enrolled-courses list, which the review mutation refreshes,
+  // so saving a review never reloads the lessons and interrupts the lesson in progress.
+  const enrolledCoursesQuery = useStudentEnrolledCoursesQuery();
+  const enrolledCourse = enrolledCoursesQuery.data?.enrolledCourses.find(c => c.id === courseData.course.id);
+  const hasReviewed = !!enrolledCourse?.hasReviewed;
+
+  const openReview = () => {
+    setShowCelebration(false);
+    setIsReviewOpen(true);
+  };
 
   // Track content completion (video watched or quiz submitted) per lesson
   const [contentCompleted, setContentCompleted] = useState<Record<number, boolean>>({});
@@ -314,8 +328,17 @@ export const CoursePlayer: React.FC<CoursePlayerProps> = ({
           courseSlug={courseData.course.slug}
           totalLessons={totalLessons}
           onDismiss={() => setShowCelebration(false)}
+          onRateCourse={hasReviewed ? undefined : openReview}
         />
       )}
+      <ReviewDialog
+        isOpen={isReviewOpen}
+        onClose={() => setIsReviewOpen(false)}
+        courseId={courseData.course.id}
+        testPackageTitle={courseData.course.title}
+        initialRating={enrolledCourse?.reviewRating ?? null}
+        initialReviewText={enrolledCourse?.reviewText ?? null}
+      />
       <div className={`${styles.playerLayout} ${!isSidebarOpen ? styles.sidebarClosed : ''}`}>
       {/* Backdrop overlay for mobile */}
       {isSidebarOpen && (
@@ -388,6 +411,18 @@ export const CoursePlayer: React.FC<CoursePlayerProps> = ({
             {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </Button>
           <h1>{activeLesson.title}</h1>
+          {!enrolledCoursesQuery.isPending && (
+            <Button
+              variant="outline"
+              size="sm"
+              className={styles.rateButton}
+              onClick={openReview}
+              aria-label={hasReviewed ? 'Edit your review of this course' : 'Rate this course'}
+            >
+              <Star size={16} fill={hasReviewed ? 'currentColor' : 'none'} />
+              <span className={styles.rateLabel}>{hasReviewed ? 'Edit review' : 'Rate this course'}</span>
+            </Button>
+          )}
         </div>
         <div className={styles.contentArea}>
           {isActiveLessonLocked ? (

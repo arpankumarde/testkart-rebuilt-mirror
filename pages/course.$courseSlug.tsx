@@ -79,8 +79,11 @@ export default function CourseDetailsPage() {
   }, [course]);
 
   const reviews = (course as any)?.reviews || [];
-  const hasReviewed = authState.type === "authenticated" && reviews.some((r: any) => r.userId === authState.user.id);
-  const canReview = authState.type === "authenticated" && !!course?.isEnrolled && !hasReviewed;
+  const myReview = authState.type === "authenticated"
+    ? reviews.find((r: any) => r.userId === authState.user.id) ?? null
+    : null;
+  // Enrolment is the only gate: a student who bought the course can review it before finishing it.
+  const canReview = authState.type === "authenticated" && !!course?.isEnrolled;
 
   const ratingCounts = useMemo(() => {
     const counts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
@@ -187,7 +190,8 @@ export default function CourseDetailsPage() {
     );
   }
 
-  if (isFetching) {
+  // Only before the first load; a refetch (e.g. after a review) keeps the page in place.
+  if (isFetching && !course) {
     return <CourseDetailsSkeleton />;
   }
 
@@ -277,8 +281,6 @@ export default function CourseDetailsPage() {
                 slug: course.teacher.slug,
                 bio: null,
                 websiteUrl: null,
-                publicEmail: null,
-                publicPhone: null,
                 socialLinks: null,
                 awardsCertificates: null,
                 isVerified: course.teacher.isVerified,
@@ -311,10 +313,11 @@ export default function CourseDetailsPage() {
                      {canReview && (
                         <Button
                           size="sm"
+                          variant={myReview ? "outline" : "primary"}
                           onClick={() => setIsReviewDialogOpen(true)}
                           className={styles.writeReviewButton}
                         >
-                          Write a Review
+                          {myReview ? "Edit your review" : "Write a review"}
                         </Button>
                       )}
                   </div>
@@ -394,6 +397,8 @@ export default function CourseDetailsPage() {
           onClose={() => setIsReviewDialogOpen(false)}
           courseId={course.id}
           testPackageTitle={course.title}
+          initialRating={myReview?.rating ?? null}
+          initialReviewText={myReview?.reviewText ?? null}
         />
       )}
 

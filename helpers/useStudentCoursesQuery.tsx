@@ -28,6 +28,8 @@ export const usePublicCourseDetailsQuery = (slug: string | null) => {
     queryFn: () => getCoursesDetails({ slug: slug! }),
     enabled: !!slug,
     staleTime: 10 * 60 * 1000,
+    // refetchOnMount is off app-wide; without this a review saved in the course player stays hidden here.
+    refetchOnMount: true,
   });
 };
 
@@ -53,6 +55,8 @@ export const useStudentEnrolledCoursesQuery = () => {
     queryKey: STUDENT_ENROLLED_COURSES_QUERY_KEY,
     queryFn: () => getStudentEnrolledCourses(),
     staleTime: 5 * 60 * 1000,
+    // Carries each course's review state, which the player and course page can change while this list is unmounted.
+    refetchOnMount: true,
   });
 };
 

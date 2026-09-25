@@ -117,7 +117,8 @@
     gap: var(--spacing-3);
   }
 
-  .primaryAction {
+  .primaryAction,
+  .rateAction {
     width: 100%;
   }
 
