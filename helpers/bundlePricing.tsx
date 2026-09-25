@@ -32,7 +32,8 @@ export const formatInr = (amount: number) =>
 
 // The one definition of a bundle's original price and discount. The form shows
 // it live and the server stores it, both from the items' current prices, so the
-// two can never disagree about whether a price is allowed.
+// two can never disagree about whether a price is allowed. A free bundle is
+// always allowed, even when every item in it is free.
 export function computeBundlePricing(
   itemPrices: Array<number | string | null | undefined>,
   price: number
@@ -45,7 +46,7 @@ export function computeBundlePricing(
   let priceError: string | null = null;
   if (!Number.isFinite(price) || price < 0) {
     priceError = "Price cannot be negative.";
-  } else if (price >= originalPrice) {
+  } else if (price > 0 && price >= originalPrice) {
     priceError = `Bundle price must be less than the items' combined price of ${formatInr(originalPrice)}.`;
   }
   return { originalPrice, discountPercentage, priceError };

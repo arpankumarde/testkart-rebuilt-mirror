@@ -20,17 +20,29 @@ const PopoverContent = React.forwardRef<
       removeBackgroundAndPadding = false,
       align = "center",
       sideOffset = 4,
+      onWheel,
+      onTouchMove,
       ...props
     },
     ref,
   ) => (
     <PopoverPrimitive.Portal>
+      {/* The content is portaled outside any open dialog, whose document-level scroll lock
+          cancels wheel and touch scrolling it does not own; keep those events from reaching it. */}
       <PopoverPrimitive.Content
         ref={ref}
         align={align}
         sideOffset={sideOffset}
         className={`${styles.content} ${removeBackgroundAndPadding ? "" : styles.withBackgroundAndPadding} ${className ?? ""}`}
         {...props}
+        onWheel={(e) => {
+          e.stopPropagation();
+          onWheel?.(e);
+        }}
+        onTouchMove={(e) => {
+          e.stopPropagation();
+          onTouchMove?.(e);
+        }}
       />
     </PopoverPrimitive.Portal>
   ),

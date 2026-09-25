@@ -10,6 +10,7 @@ const COLLAPSED_KEY = "teacher_attention_collapsed";
 
 type Props = {
   attention: TeacherAttentionCounts | undefined;
+  availableBalance: number;
   className?: string;
 };
 
@@ -41,7 +42,7 @@ const Tile = ({ tile }: { tile: TeacherAttentionTile }) => {
  * loading and then disappears is worse than one that simply shows up when it
  * has something to say.
  */
-export const TeacherOverviewAttention = ({ attention, className }: Props) => {
+export const TeacherOverviewAttention = ({ attention, availableBalance, className }: Props) => {
   const bodyId = useId();
   const [collapsed, setCollapsed] = useState(false);
 
@@ -65,7 +66,7 @@ export const TeacherOverviewAttention = ({ attention, className }: Props) => {
     });
   };
 
-  const tiles = attention ? teacherAttention.tiles(attention) : [];
+  const tiles = attention ? teacherAttention.tiles(attention, availableBalance) : [];
   if (tiles.length === 0) return null;
 
   const total = tiles.reduce((sum, tile) => sum + tile.count, 0);

@@ -59,6 +59,12 @@ describe("computeBundlePricing", () => {
     expect(computeBundlePricing([400, 600], 1000).discountPercentage).toBe(0);
   });
 
+  it("always allows a free bundle, and refuses a paid one made of free items", () => {
+    expect(computeBundlePricing([0, 0], 0)).toEqual({ originalPrice: 0, discountPercentage: 0, priceError: null });
+    expect(computeBundlePricing([9, 9], 0)).toEqual({ originalPrice: 18, discountPercentage: 100, priceError: null });
+    expect(computeBundlePricing([0, 0], 499).priceError).toContain("less than");
+  });
+
   it("agrees with the form when items were repriced after the bundle was saved", () => {
     const storedOriginalPrice = 500;
     const currentItemPrices = [400, 600];

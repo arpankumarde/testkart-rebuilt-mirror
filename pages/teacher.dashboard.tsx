@@ -106,7 +106,7 @@ const TeacherDashboardPage: React.FC = () => {
         <div className={`${styles.content} ${isFetching && data ? styles.busy : ""}`} aria-busy={isFetching}>
           <TeamStatusBanner />
 
-          <TeacherOverviewAttention attention={data?.attention} />
+          <TeacherOverviewAttention attention={data?.attention} availableBalance={totals?.availableBalance ?? 0} />
 
           <TeacherOverviewNextSteps user={authState.user} publishedCount={publishedCount} />
 

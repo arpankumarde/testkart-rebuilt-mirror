@@ -25,6 +25,9 @@ export type TeacherAttentionTile = {
 
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
+/** Same gate as bank-details/add_POST: below it a teacher cannot add or change a bank account. */
+export const TEACHER_BANK_MIN_BALANCE = 100;
+
 const BANK_COPY: Record<string, { title: string; detail: string }> = {
   missing: {
     title: "bank account missing",
@@ -45,9 +48,11 @@ const BANK_COPY: Record<string, { title: string; detail: string }> = {
  * money first, then listings blocked from selling, then people waiting on a
  * reply, then what is about to happen. Zero counts are dropped, so a teacher
  * with nothing outstanding sees no band at all instead of a wall of zeroes.
+ * The bank tile waits for the balance to reach TEACHER_BANK_MIN_BALANCE, since
+ * there is nothing the teacher can do about the account before then.
  */
-const tiles = (attention: TeacherAttentionCounts): TeacherAttentionTile[] => {
-  const bank = BANK_COPY[attention.bankStatus];
+const tiles = (attention: TeacherAttentionCounts, availableBalance: number): TeacherAttentionTile[] => {
+  const bank = availableBalance >= TEACHER_BANK_MIN_BALANCE ? BANK_COPY[attention.bankStatus] : undefined;
 
   const all: TeacherAttentionTile[] = [
     {
@@ -143,7 +148,7 @@ const tiles = (attention: TeacherAttentionCounts): TeacherAttentionTile[] => {
   return all.filter((tile) => tile.count > 0);
 };
 
-const total = (attention: TeacherAttentionCounts): number =>
-  tiles(attention).reduce((sum, tile) => sum + tile.count, 0);
+const total = (attention: TeacherAttentionCounts, availableBalance: number): number =>
+  tiles(attention, availableBalance).reduce((sum, tile) => sum + tile.count, 0);
 
 export const teacherAttention = { tiles, total };
