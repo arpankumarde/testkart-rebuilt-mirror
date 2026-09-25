@@ -5,6 +5,7 @@ import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { sql } from "kysely";
 import { slugify } from "../../helpers/slugify";
 import { contentInExamSlug, loadContentExams } from "../../helpers/contentExams";
+import { liveTestDiscountPrice } from "../../helpers/liveTestPricing";
 
 type DisplayExam = { examName: string; examSlug: string | null };
 
@@ -93,6 +94,7 @@ export async function handle(request: Request) {
         "liveTests.title",
         "liveTests.description",
         "liveTests.price",
+        "liveTests.discountPrice",
         "liveTests.startTime",
         "liveTests.endTime",
         "liveTests.registrationDeadline",
@@ -281,6 +283,7 @@ export async function handle(request: Request) {
         return {
           ...test,
           price: parseFloat(test.price),
+          discountPrice: liveTestDiscountPrice(test.price, test.discountPrice),
           totalPrizePool: parseFloat(test.totalPrizePool),
           firstPrize: parseFloat(test.firstPrize),
           secondPrize: parseFloat(test.secondPrize),

@@ -6,6 +6,7 @@ import { hasStudentEnrolledInMockTest } from "../../helpers/hasStudentEnrolledIn
 import { slugify } from "../../helpers/slugify";
 import { sql } from "kysely";
 import { courseDiscountPrice } from "../../helpers/coursePricing";
+import { liveTestDiscountPrice } from "../../helpers/liveTestPricing";
 import { SocialLinks, AwardCertificate, WorkExperience } from "../../helpers/teacherProfileTypes";
 import { getLiveTestStatus } from "../../helpers/liveTestStatus";
 import { loadContentExams } from "../../helpers/contentExams";
@@ -261,6 +262,8 @@ export async function handle(request: Request) {
         "users.yearsOfExperience as teacherYearsOfExperience",
         "exams.examSlug",
         "liveTests.id as liveTestId",
+        "liveTests.price as liveTestPrice",
+        "liveTests.discountPrice as liveTestDiscountPrice",
         "liveTests.startTime",
         "liveTests.endTime",
         "liveTests.registrationDeadline",
@@ -363,7 +366,8 @@ export async function handle(request: Request) {
           title: test.title,
           description: test.description,
           examName: test.examName,
-          price: parseFloat(test.price),
+          price: parseFloat(test.liveTestPrice!),
+          discountPrice: liveTestDiscountPrice(test.liveTestPrice, test.liveTestDiscountPrice),
           startTime: test.startTime!,
           endTime: test.endTime!,
           registrationDeadline: test.registrationDeadline!,

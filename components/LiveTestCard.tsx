@@ -139,8 +139,11 @@ export const LiveTestCard: React.FC<LiveTestCardProps> = ({ liveTest, className 
             <span className={styles.ctaText}>{ctaLabel}</span>
             {!isFree && !isEnded && !liveTest.isEnrolled && (
               <span className={styles.ctaPriceBadge}>
+                {liveTest.discountPrice !== null && (
+                  <s className={styles.ctaOriginalPrice}>₹{liveTest.price}</s>
+                )}
                 <IndianRupee size={14} strokeWidth={2.5} />
-                {liveTest.price}
+                {liveTest.discountPrice ?? liveTest.price}
               </span>
             )}
           </div>

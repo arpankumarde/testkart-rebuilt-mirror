@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getCoursesList, InputType } from "../endpoints/courses/list_GET.schema";
 import { getCoursesDetails } from "../endpoints/courses/details_GET.schema";
+import { getRelatedCourses } from "../endpoints/courses/related_GET.schema";
 import { getStudentEnrolledCourses } from "../endpoints/student/enrolled-courses_GET.schema";
 import { getStudentCourseLessons } from "../endpoints/student/course/lessons_GET.schema";
 import { getStudentCourseProgress } from "../endpoints/student/course/progress_GET.schema";
@@ -30,6 +31,15 @@ export const usePublicCourseDetailsQuery = (slug: string | null) => {
     staleTime: 10 * 60 * 1000,
     // refetchOnMount is off app-wide; without this a review saved in the course player stays hidden here.
     refetchOnMount: true,
+  });
+};
+
+export const useRelatedCoursesQuery = (courseId: number | null, limit?: number) => {
+  return useQuery({
+    queryKey: [...PUBLIC_COURSES_QUERY_KEY, "related", courseId, { limit }],
+    queryFn: () => getRelatedCourses({ courseId: courseId!, limit }),
+    enabled: !!courseId,
+    staleTime: 15 * 60 * 1000,
   });
 };
 

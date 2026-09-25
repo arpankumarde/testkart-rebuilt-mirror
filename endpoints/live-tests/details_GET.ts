@@ -7,6 +7,7 @@ import { SocialLinks, AwardCertificate } from "../../helpers/teacherProfileTypes
 import { sql } from "kysely";
 import { slugify } from "../../helpers/slugify";
 import { PRODUCT_DISCLAIMER } from "../../helpers/productDisclaimer";
+import { liveTestDiscountPrice } from "../../helpers/liveTestPricing";
 
 
 
@@ -175,6 +176,7 @@ export async function handle(request: Request) {
       ...liveTest,
       description: liveTest.description,
       price: parseFloat(liveTest.price),
+      discountPrice: liveTestDiscountPrice(liveTest.price, liveTest.discountPrice),
       totalPrizePool: parseFloat(liveTest.totalPrizePool),
       firstPrize: parseFloat(liveTest.firstPrize),
       secondPrize: parseFloat(liveTest.secondPrize),

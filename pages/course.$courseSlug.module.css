@@ -330,6 +330,13 @@
   font-style: italic;
 }
 
+/* Related courses: two-up in the main column, one-up once a card would drop under 17rem */
+.relatedGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  gap: var(--spacing-6);
+}
+
 /* Sidebar Column */
 .sidebarColumn {
   /* No position property - let children use sticky */

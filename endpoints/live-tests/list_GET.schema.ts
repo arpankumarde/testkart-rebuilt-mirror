@@ -42,6 +42,8 @@ export type LiveTestListItem = Pick<
 > & {
   examName: string | null;
   price: number;
+  /** The valid discounted price students pay, or null when the list price applies. */
+  discountPrice: number | null;
   totalPrizePool: number;
   firstPrize: number;
   secondPrize: number;

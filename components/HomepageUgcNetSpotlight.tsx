@@ -8,7 +8,7 @@ import { Placeholder } from "../helpers/placeholderImages";
 import { Skeleton } from "./Skeleton";
 import styles from "./HomepageUgcNetSpotlight.module.css";
 
-const MAX_ITEMS = 6;
+const MAX_ITEMS = 8;
 
 const NBSP = String.fromCharCode(160);
 
@@ -43,7 +43,7 @@ export function HomepageUgcNetSpotlight() {
 
   const items = useMemo((): SpotlightItem[] => {
     if (!data) return [];
-    const { courses, tests, liveTests, products } = data;
+    const { courses, tests, liveTests, products, bundles = [] } = data;
     return [
       ...courses.map((course) => ({
         key: `course-${course.id}`,
@@ -54,6 +54,16 @@ export function HomepageUgcNetSpotlight() {
         priceLabel: formatItemPrice(course.price, course.discountPrice),
         isFree: course.price === 0,
         thumbnailUrl: course.thumbnailImageUrl ?? Placeholder.COURSE,
+      })),
+      ...bundles.map((bundle) => ({
+        key: `bundle-${bundle.id}`,
+        kind: "Bundle",
+        title: bundle.title,
+        link: `/bundles/${bundle.slug}`,
+        meta: `${bundle.itemCount} ${bundle.itemCount === 1 ? "item" : "items"}`,
+        priceLabel: formatItemPrice(bundle.price),
+        isFree: bundle.price === 0,
+        thumbnailUrl: bundle.thumbnailUrl ?? Placeholder.COURSE,
       })),
       ...tests.map((test) => ({
         key: `test-${test.id}`,
@@ -71,7 +81,7 @@ export function HomepageUgcNetSpotlight() {
         title: liveTest.title,
         link: `/mock-test/live/${liveTest.id}`,
         meta: liveTest.examName ?? null,
-        priceLabel: formatItemPrice(liveTest.price),
+        priceLabel: formatItemPrice(liveTest.price, liveTest.discountPrice),
         isFree: liveTest.price === 0,
         thumbnailUrl: liveTest.thumbnailUrl ?? Placeholder.LIVE,
       })),
@@ -141,7 +151,7 @@ export function HomepageUgcNetSpotlight() {
 
         <div className={styles.catalog}>
           <div className={styles.catalogHead}>
-            <h3 className={styles.catalogTitle}>His UGC NET courses and notes</h3>
+            <h3 className={styles.catalogTitle}>His UGC NET courses, bundles and notes</h3>
             <Link to={profileLink} className={styles.viewAllLink}>
               View all
             </Link>

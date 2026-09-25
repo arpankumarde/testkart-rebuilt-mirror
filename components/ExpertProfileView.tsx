@@ -253,7 +253,7 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
       productTitle={liveTest.title}
       examName={liveTest.examName}
       stats={liveTest.status.replace(/_/g, " ")}
-      priceLabel={formatItemPrice(liveTest.price)}
+      priceLabel={formatItemPrice(liveTest.price, liveTest.discountPrice)}
       isFree={liveTest.price === 0}
       thumbnailUrl={liveTest.thumbnailUrl}
       placeholderUrl={Placeholder.LIVE}

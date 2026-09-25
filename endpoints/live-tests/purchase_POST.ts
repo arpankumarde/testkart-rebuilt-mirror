@@ -8,6 +8,7 @@ import { PAYU_MODE } from "../../helpers/_publicConfigs";
 import { NotAuthenticatedError } from "../../helpers/getSetServerSession";
 import { getTeacherPlatformFee } from "../../helpers/getTeacherPlatformFee";
 import { sanitizePayuText } from "../../helpers/sanitizePayuText";
+import { liveTestEffectivePrice } from "../../helpers/liveTestPricing";
 
 export async function handle(request: Request) {
   try {
@@ -75,7 +76,7 @@ export async function handle(request: Request) {
         .execute();
 
       const txnid = `live-test-${liveTestId}-${nanoid(12)}`;
-      const amount = parseFloat(liveTest.price).toFixed(2);
+      const amount = liveTestEffectivePrice(liveTest.price, liveTest.discountPrice).toFixed(2);
       const productInfo = liveTest.title.substring(0, 100);
 
       const newOrder = await trx

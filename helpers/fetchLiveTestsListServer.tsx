@@ -1,6 +1,7 @@
 import { db } from "./db";
 import { sql } from "kysely";
 import { contentInExamSlug, loadContentExams } from "./contentExams";
+import { liveTestDiscountPrice } from "./liveTestPricing";
 import type { OutputType, InputType, LiveTestStatus } from "../endpoints/live-tests/list_GET.schema";
 
 type DisplayExam = { examName: string; examSlug: string | null };
@@ -88,6 +89,7 @@ export async function fetchLiveTestsListServer(
       "liveTests.title",
       "liveTests.description",
       "liveTests.price",
+      "liveTests.discountPrice",
       "liveTests.startTime",
       "liveTests.endTime",
       "liveTests.registrationDeadline",
@@ -230,6 +232,7 @@ export async function fetchLiveTestsListServer(
     return {
       ...test,
       price: parseFloat(test.price),
+      discountPrice: liveTestDiscountPrice(test.price, test.discountPrice),
       totalPrizePool: parseFloat(test.totalPrizePool),
       firstPrize: parseFloat(test.firstPrize),
       secondPrize: parseFloat(test.secondPrize),

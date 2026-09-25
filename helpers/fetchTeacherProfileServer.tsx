@@ -1,6 +1,7 @@
 import { db } from "./db";
 import { sql } from "kysely";
 import { courseDiscountPrice } from "./coursePricing";
+import { liveTestDiscountPrice } from "./liveTestPricing";
 import type {
   OutputType,
   TestListItem,
@@ -252,6 +253,8 @@ export async function fetchTeacherProfileServer(teacherSlug: string): Promise<Ou
       "users.yearsOfExperience as teacherYearsOfExperience",
       "exams.examSlug",
       "liveTests.id as liveTestId",
+      "liveTests.price as liveTestPrice",
+      "liveTests.discountPrice as liveTestDiscountPrice",
       "liveTests.startTime",
       "liveTests.endTime",
       "liveTests.registrationDeadline",
@@ -317,7 +320,8 @@ export async function fetchTeacherProfileServer(teacherSlug: string): Promise<Ou
         title: test.title,
         description: test.description,
         examName: test.examName,
-        price: parseFloat(test.price),
+        price: parseFloat(test.liveTestPrice!),
+        discountPrice: liveTestDiscountPrice(test.liveTestPrice, test.liveTestDiscountPrice),
         startTime: test.startTime!,
         endTime: test.endTime!,
         registrationDeadline: test.registrationDeadline!,

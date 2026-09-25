@@ -34,8 +34,10 @@ export type MockTestInfo = {
   firstTestItemId: number;
 };
 
-export type OutputType = Omit<Selectable<LiveTests>, "price" | "totalPrizePool" | "firstPrize" | "secondPrize" | "thirdPrize"> & {
+export type OutputType = Omit<Selectable<LiveTests>, "price" | "discountPrice" | "totalPrizePool" | "firstPrize" | "secondPrize" | "thirdPrize"> & {
   price: number;
+  /** The valid discounted price students pay, or null when the list price applies. */
+  discountPrice: number | null;
   totalPrizePool: number;
   firstPrize: number;
   secondPrize: number;

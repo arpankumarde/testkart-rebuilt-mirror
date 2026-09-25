@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useEffect, useMemo } from 'react';
+import { useParams, useSearchParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
+import { toast } from 'sonner';
 import { AlertTriangle, ArrowLeft } from 'lucide-react';
 import { useStudentCourseLessonsQuery, useStudentCourseProgressQuery } from '../helpers/useStudentCoursesQuery';
 import { useCourseEnrollment } from '../helpers/useCourseEnrollment';
@@ -12,52 +13,72 @@ import styles from './student.courses.$courseId.module.css';
 
 type Lesson = LessonsOutputType['sections'][0]['lessons'][0];
 
+const lastLessonKey = (courseId: number) => `tk-course-last-lesson:${courseId}`;
+
+const readLastLesson = (courseId: number): number | null => {
+  try {
+    const value = Number(window.localStorage.getItem(lastLessonKey(courseId)));
+    return Number.isInteger(value) && value > 0 ? value : null;
+  } catch {
+    return null;
+  }
+};
+
+const saveLastLesson = (courseId: number, lessonId: number) => {
+  try {
+    window.localStorage.setItem(lastLessonKey(courseId), String(lessonId));
+  } catch {
+    // Private mode or blocked storage: the course reopens at the first incomplete lesson.
+  }
+};
+
 const StudentCoursePlayerPage: React.FC = () => {
   const { courseId: courseIdStr } = useParams<{courseId: string;}>();
   const courseId = courseIdStr ? parseInt(courseIdStr, 10) : null;
+  const [searchParams, setSearchParams] = useSearchParams();
+  const lessonParam = Number(searchParams.get('lesson'));
 
-  const { data: lessonsData, isFetching: isFetchingLessons, error: lessonsError } = useStudentCourseLessonsQuery(courseId);
-  const { data: progressData, isFetching: isFetchingProgress, error: progressError } = useStudentCourseProgressQuery(courseId);
+  const { data: lessonsData, isPending: isLessonsPending, error: lessonsError } = useStudentCourseLessonsQuery(courseId);
+  const { data: progressData, isPending: isProgressPending, error: progressError } = useStudentCourseProgressQuery(courseId);
   const { markCompleteMutation, markIncompleteMutation } = useCourseEnrollment();
-
-  const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
 
   const allLessons = useMemo(() => {
     return lessonsData?.sections.flatMap((section) => section.lessons) ?? [];
   }, [lessonsData]);
 
+  // The lesson in the URL wins, then the last one opened on this device, then the first incomplete one.
+  const activeLesson = useMemo<Lesson | null>(() => {
+    if (!courseId || allLessons.length === 0 || !progressData) return null;
+    const fromUrl = allLessons.find((lesson) => lesson.id === lessonParam);
+    if (fromUrl) return fromUrl;
+    const lastId = readLastLesson(courseId);
+    const fromStorage = allLessons.find((lesson) => lesson.id === lastId);
+    if (fromStorage) return fromStorage;
+    const completedIds = new Set(progressData.completedLessonIds);
+    return allLessons.find((lesson) => !completedIds.has(lesson.id)) ?? allLessons[0];
+  }, [courseId, allLessons, progressData, lessonParam]);
+
+  const setActiveLesson = (lesson: Lesson) => {
+    const next = new URLSearchParams(searchParams);
+    next.set('lesson', String(lesson.id));
+    setSearchParams(next, { replace: true });
+  };
+
   useEffect(() => {
-    if (allLessons.length > 0 && progressData) {
-      const completedIds = new Set(progressData.completedLessonIds);
-
-      // Find the first incomplete lesson
-      const firstIncomplete = allLessons.find((lesson) => !completedIds.has(lesson.id));
-
-      // If an active lesson is already set, don't change it unless it's null
-      if (!activeLesson) {
-        setActiveLesson(firstIncomplete || allLessons[0]);
-      }
+    if (!courseId || !activeLesson) return;
+    saveLastLesson(courseId, activeLesson.id);
+    if (lessonParam !== activeLesson.id) {
+      const next = new URLSearchParams(searchParams);
+      next.set('lesson', String(activeLesson.id));
+      setSearchParams(next, { replace: true });
     }
-  }, [allLessons, progressData, activeLesson]);
+  }, [courseId, activeLesson, lessonParam, searchParams, setSearchParams]);
 
   const handleToggleComplete = (lessonId: number, isCompleted: boolean) => {
-    // If currently completed, we're unmarking it (use markIncompleteMutation)
-    // If currently incomplete, we're marking it complete (use markCompleteMutation)
     const mutation = isCompleted ? markIncompleteMutation : markCompleteMutation;
-    
     mutation.mutate({ lessonId }, {
-      onSuccess: () => {
-        // Only auto-navigate to next lesson when marking as complete
-        if (!isCompleted) {
-          const currentIndex = allLessons.findIndex((l) => l.id === lessonId);
-          if (currentIndex !== -1 && currentIndex < allLessons.length - 1) {
-            const nextLesson = allLessons[currentIndex + 1];
-            setActiveLesson(nextLesson);
-          }
-        }
-      },
-      onError: (error) => {
-        console.error(`Failed to ${isCompleted ? 'unmark' : 'mark'} lesson:`, error);
+      onError: () => {
+        toast.error('Your progress was not saved. Check your connection and try again.');
       }
     });
   };
@@ -77,10 +98,6 @@ const StudentCoursePlayerPage: React.FC = () => {
 
   }
 
-  if (isFetchingLessons || isFetchingProgress) {
-    return <CoursePlayerSkeleton />;
-  }
-
   const error = lessonsError || progressError;
   if (error) {
     return (
@@ -97,7 +114,20 @@ const StudentCoursePlayerPage: React.FC = () => {
 
   }
 
-  if (!lessonsData || !progressData || !activeLesson) {
+  if (lessonsData && progressData && allLessons.length === 0) {
+    return (
+      <div className={styles.errorContainer}>
+        <h2>No lessons yet</h2>
+        <p>The teacher has not added lessons to this course yet. Check back later.</p>
+        <Button asChild>
+          <Link to="/student/courses"><ArrowLeft size={16} /> Back to courses</Link>
+        </Button>
+      </div>);
+
+  }
+
+  // Only the first load shows the skeleton; a progress refresh after marking a lesson keeps the lesson playing.
+  if (isLessonsPending || isProgressPending || !lessonsData || !progressData || !activeLesson) {
     return <CoursePlayerSkeleton />;
   }
 

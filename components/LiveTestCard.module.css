@@ -238,3 +238,9 @@
   font-size: 0.9375rem;
   line-height: 1;
 }
+
+.ctaOriginalPrice {
+  margin-right: var(--spacing-1);
+  font-weight: 500;
+  font-size: 0.8125rem;
+}

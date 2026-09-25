@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
-import { usePublicCourseDetailsQuery } from '../helpers/useStudentCoursesQuery';
+import { usePublicCourseDetailsQuery, useRelatedCoursesQuery } from '../helpers/useStudentCoursesQuery';
 import { SEOHead } from '../components/SEOHead';
 import { Button } from '../components/Button';
 import { Skeleton } from '../components/Skeleton';
@@ -11,6 +11,8 @@ import { TeacherProfileCard } from '../components/TeacherProfileCard';
 import { TeacherCtaBanner } from '../components/TeacherCtaBanner';
 import { MobileStickyPurchaseBar } from '../components/MobileStickyPurchaseBar';
 import { PublicCouponsCard } from '../components/PublicCouponsCard';
+import { BundleSuggestions } from '../components/BundleSuggestions';
+import { CourseCard } from '../components/CourseCard';
 import { AlertCircle, BookOpen, CheckCircle, Star } from "lucide-react";
 import { ReviewDialog } from '../components/ReviewDialog';
 import { useAuth } from '../helpers/useAuth';
@@ -55,6 +57,8 @@ export default function CourseDetailsPage() {
 
   const { data: course, isFetching, error } = usePublicCourseDetailsQuery(courseSlug || null);
   useTrackStorefrontView("course", course?.id);
+  const { data: relatedData } = useRelatedCoursesQuery(course?.id ?? null, 4);
+  const relatedCourses = relatedData?.courses ?? [];
 
   // Intersection observer for mobile sticky bar
   useEffect(() => {
@@ -379,6 +383,19 @@ export default function CourseDetailsPage() {
               {course.disclaimer}
             </div>
           )}
+
+          {relatedCourses.length > 0 && (
+            <section className={styles.section}>
+              <h2 className={styles.sectionTitle}>Related courses</h2>
+              <div className={styles.relatedGrid}>
+                {relatedCourses.map((relatedCourse) => (
+                  <CourseCard key={relatedCourse.id} course={relatedCourse} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          <BundleSuggestions teacherId={course.teacher.id} variant="course" />
 
           <TeacherCtaBanner />
         </main>

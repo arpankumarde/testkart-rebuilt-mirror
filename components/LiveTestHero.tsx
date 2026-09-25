@@ -247,8 +247,11 @@ export const LiveTestHero: React.FC<LiveTestHeroProps> = ({ liveTest, className 
               <>
                 <span className={styles.ctaText}>Enter Contest</span>
                 <span className={styles.ctaPriceBadge}>
+                  {liveTest.discountPrice !== null && (
+                    <s className={styles.ctaOriginalPrice}>₹{liveTest.price}</s>
+                  )}
                   <IndianRupee size={18} strokeWidth={2.5} />
-                  {liveTest.price}
+                  {liveTest.discountPrice ?? liveTest.price}
                 </span>
               </>
             )}

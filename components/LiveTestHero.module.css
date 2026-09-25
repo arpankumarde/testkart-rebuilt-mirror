@@ -271,6 +271,12 @@
   line-height: 1;
 }
 
+.ctaOriginalPrice {
+  margin-right: var(--spacing-1);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
 .teacherInfoBox {
   display: flex;
   align-items: flex-start;

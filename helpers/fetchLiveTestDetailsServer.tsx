@@ -4,6 +4,7 @@ import { sql } from "kysely";
 import { slugify } from "./slugify";
 import type { SocialLinks, AwardCertificate } from "./teacherProfileTypes";
 import { PRODUCT_DISCLAIMER } from "./productDisclaimer";
+import { liveTestDiscountPrice } from "./liveTestPricing";
 
 export async function fetchLiveTestDetailsServer(liveTestId: number): Promise<OutputType> {
   const liveTest = await db
@@ -86,6 +87,7 @@ export async function fetchLiveTestDetailsServer(liveTestId: number): Promise<Ou
     ...liveTest,
     description: liveTest.description,
     price: parseFloat(liveTest.price as string),
+    discountPrice: liveTestDiscountPrice(liveTest.price, liveTest.discountPrice),
     totalPrizePool: parseFloat(liveTest.totalPrizePool as string),
     firstPrize: parseFloat(liveTest.firstPrize as string),
     secondPrize: parseFloat(liveTest.secondPrize as string),
