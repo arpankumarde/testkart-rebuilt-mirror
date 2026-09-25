@@ -3,7 +3,6 @@ import { Helmet } from "react-helmet";
 import { useAdminStudentsQuery } from "../helpers/useAdminStudents";
 import { useToggleUserStatusMutation } from "../helpers/useAdminUserActions";
 import { useImpersonateMutation } from "../helpers/useImpersonation";
-import { useDebounce } from "../helpers/useDebounce";
 import { Button } from "../components/Button";
 import { Badge } from "../components/Badge";
 import { Skeleton } from "../components/Skeleton";
@@ -136,11 +135,10 @@ const AdminStudentsPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<SortableColumn>("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [statusTarget, setStatusTarget] = useState<{ id: number; name: string; isActive: boolean } | null>(null);
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const { data, isFetching, isError, error, refetch } = useAdminStudentsQuery({
     page,
-    search: debouncedSearchTerm,
+    search: searchTerm,
     sortBy,
     sortOrder,
   });
@@ -150,7 +148,7 @@ const AdminStudentsPage: React.FC = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearchTerm]);
+  }, [searchTerm]);
 
   useEffect(() => {
     setPage(1);
@@ -268,14 +266,14 @@ const AdminStudentsPage: React.FC = () => {
       return (
         <ConsoleListEmpty
           icon={<UserX size={24} />}
-          title={debouncedSearchTerm ? "No students match that search" : "No students yet"}
+          title={searchTerm ? "No students match that search" : "No students yet"}
           description={
-            debouncedSearchTerm
-              ? `Nothing found for "${debouncedSearchTerm}". Try a different name or email.`
+            searchTerm
+              ? `Nothing found for "${searchTerm}". Try a different name or email.`
               : "Students who sign up will be listed here."
           }
         >
-          {debouncedSearchTerm && (
+          {searchTerm && (
             <Button variant="outline" onClick={() => setSearchTerm("")}>Clear search</Button>
           )}
         </ConsoleListEmpty>

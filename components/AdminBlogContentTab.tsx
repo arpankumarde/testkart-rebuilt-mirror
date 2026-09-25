@@ -5,7 +5,7 @@ import {
   useAdminBlogCategoriesQuery, 
   useDeleteBlogPostMutation 
 } from "../helpers/useAdminBlog";
-import { useDebounce } from "../helpers/useDebounce";
+import { useDebouncedInput } from "../helpers/useDebouncedInput";
 import { useListUrlParams } from "../helpers/useListUrlParams";
 import { useRefetchOnLinkArrival } from "../helpers/useRefetchOnLinkArrival";
 import { SortOrder } from "../helpers/useTableSort";
@@ -132,7 +132,7 @@ export const AdminBlogContentTab: React.FC<AdminBlogContentTabProps> = ({ type }
   const filter = read<AdminPostListFilter | "none">("filter", AdminPostListFilterValues, "none");
 
   const [searchTerm, setSearchTerm] = useState("");
-  const debouncedSearch = useDebounce(searchTerm, 500);
+  const searchInput = useDebouncedInput(searchTerm, setSearchTerm);
 
   const [pickedCategoryId, setPickedCategoryId] = useState<number | "all">("all");
   // A post with no category cannot be in one, so the uncategorised filter overrides the picker.
@@ -154,7 +154,7 @@ export const AdminBlogContentTab: React.FC<AdminBlogContentTabProps> = ({ type }
   };
 
   // A page number belongs to one set of list inputs, so changing any of them starts again at page 1.
-  const listKey = `${status}|${filter}|${categoryId}|${debouncedSearch}|${sortBy}|${sortOrder}`;
+  const listKey = `${status}|${filter}|${categoryId}|${searchTerm}|${sortBy}|${sortOrder}`;
   const [pagination, setPagination] = useState({ key: listKey, page: 1 });
   const page = pagination.key === listKey ? pagination.page : 1;
 
@@ -168,7 +168,7 @@ export const AdminBlogContentTab: React.FC<AdminBlogContentTabProps> = ({ type }
 
   // Main data query
   const { data, isFetching, error, refetch } = useAdminBlogPostsQuery({
-    search: debouncedSearch || undefined,
+    search: searchTerm || undefined,
     type,
     status: status === "all" ? undefined : status,
     categoryId: categoryId === "all" ? undefined : categoryId,
@@ -420,8 +420,11 @@ export const AdminBlogContentTab: React.FC<AdminBlogContentTabProps> = ({ type }
           <Search size={18} className={styles.searchIcon} />
           <Input 
             placeholder="Search..." 
-            value={searchTerm} 
-            onChange={(e) => setSearchTerm(e.target.value)} 
+            value={searchInput.value}
+            onChange={(e) => searchInput.onChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") searchInput.flush();
+            }}
             className={styles.searchInput}
           />
         </div>

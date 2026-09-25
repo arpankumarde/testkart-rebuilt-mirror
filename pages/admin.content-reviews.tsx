@@ -5,7 +5,6 @@ import {
   useReviewContentMutation,
 } from "../helpers/useAdminContentReviews";
 import { useApproveAllReviews } from "../helpers/useApproveAllReviews";
-import { useDebounce } from "../helpers/useDebounce";
 import { useMediaQuery } from "../helpers/useMediaQuery";
 import { Button } from "../components/Button";
 import { Badge } from "../components/Badge";
@@ -124,7 +123,6 @@ const AdminContentReviewsPage: React.FC = () => {
   const [isApproveAllOpen, setIsApproveAllOpen] = useState(false);
   const isSplit = useMediaQuery(SPLIT_QUERY);
 
-  const debouncedSearch = useDebounce(searchTerm, 500);
   const sort = SORT_OPTIONS.find((opt) => opt.value === sortChoice) ?? SORT_OPTIONS[0];
 
   const setStatusFilter = (value: StatusFilter) => {
@@ -140,7 +138,7 @@ const AdminContentReviewsPage: React.FC = () => {
   const filters = {
     status: statusFilter === "all" ? undefined : statusFilter,
     contentType: contentTypeFilter === "all" ? undefined : contentTypeFilter,
-    search: debouncedSearch || undefined,
+    search: searchTerm || undefined,
     sortBy: sort.sortBy,
     sortOrder: sort.sortOrder,
     page,
@@ -154,7 +152,7 @@ const AdminContentReviewsPage: React.FC = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, statusFilter, contentTypeFilter, sortChoice]);
+  }, [searchTerm, statusFilter, contentTypeFilter, sortChoice]);
 
   const reviews = data?.reviews ?? [];
   const isInitialLoad = isFetching && !data;
@@ -280,9 +278,9 @@ const AdminContentReviewsPage: React.FC = () => {
       );
     }
 
-    const isFiltered = !!debouncedSearch || statusFilter !== "all" || contentTypeFilter !== "all";
-    const isCleanPending = statusFilter === "pending" && !debouncedSearch && contentTypeFilter === "all";
-    const isCleanSenior = statusFilter === "senior_review" && !debouncedSearch && contentTypeFilter === "all";
+    const isFiltered = !!searchTerm || statusFilter !== "all" || contentTypeFilter !== "all";
+    const isCleanPending = statusFilter === "pending" && !searchTerm && contentTypeFilter === "all";
+    const isCleanSenior = statusFilter === "senior_review" && !searchTerm && contentTypeFilter === "all";
     return (
       <ConsoleListEmpty
         icon={<FileText size={24} />}

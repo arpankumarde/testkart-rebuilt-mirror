@@ -4,7 +4,6 @@ import { useSearchParams } from "react-router-dom";
 import { useAdminTeachersQuery } from "../helpers/useAdminTeachers";
 import { useToggleUserStatusMutation } from "../helpers/useAdminUserActions";
 import { useImpersonateMutation } from "../helpers/useImpersonation";
-import { useDebounce } from "../helpers/useDebounce";
 import { Button } from "../components/Button";
 import { Badge } from "../components/Badge";
 import { Skeleton } from "../components/Skeleton";
@@ -196,11 +195,10 @@ const AdminTeachersPage: React.FC = () => {
   const [statusTarget, setStatusTarget] = useState<{ id: number; name: string; isActive: boolean } | null>(null);
   const [verifyTarget, setVerifyTarget] = useState<{ id: number; name: string; isVerified: boolean } | null>(null);
   const [drmTarget, setDrmTarget] = useState<{ id: number; name: string; drmEnabled: boolean } | null>(null);
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const { data, isFetching, isError, error, refetch } = useAdminTeachersQuery({
     page,
-    search: debouncedSearchTerm,
+    search: searchTerm,
     sortBy,
     sortOrder,
   });
@@ -218,7 +216,7 @@ const AdminTeachersPage: React.FC = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearchTerm]);
+  }, [searchTerm]);
 
   useEffect(() => {
     setPage(1);
@@ -403,14 +401,14 @@ const AdminTeachersPage: React.FC = () => {
       return (
         <ConsoleListEmpty
           icon={<UserX size={24} />}
-          title={debouncedSearchTerm ? "No teachers match that search" : "No teachers yet"}
+          title={searchTerm ? "No teachers match that search" : "No teachers yet"}
           description={
-            debouncedSearchTerm
-              ? `Nothing found for "${debouncedSearchTerm}". Try a different name or email.`
+            searchTerm
+              ? `Nothing found for "${searchTerm}". Try a different name or email.`
               : "Teachers who sign up will be listed here."
           }
         >
-          {debouncedSearchTerm && (
+          {searchTerm && (
             <Button variant="outline" onClick={() => setSearchTerm("")}>Clear search</Button>
           )}
         </ConsoleListEmpty>

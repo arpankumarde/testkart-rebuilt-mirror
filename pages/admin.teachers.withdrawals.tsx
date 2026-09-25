@@ -13,7 +13,6 @@ import {
 import { toast } from "sonner";
 
 import { useAdminWithdrawalsQuery, useProcessWithdrawalMutation } from "../helpers/useAdminWithdrawalsQuery";
-import { useDebounce } from "../helpers/useDebounce";
 import { useListUrlParams } from "../helpers/useListUrlParams";
 import { useRefetchOnLinkArrival } from "../helpers/useRefetchOnLinkArrival";
 import { Input } from "../components/Input";
@@ -220,12 +219,11 @@ const AdminWithdrawalsPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<TeacherWithdrawalSortColumn | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
 
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const { data, isFetching, isError, error, refetch } = useAdminWithdrawalsQuery({
     page,
     limit: 20,
-    search: debouncedSearchTerm,
+    search: searchTerm,
     status: statusFilter,
     ...(sortBy ? { sortBy, sortOrder } : {}),
   });
@@ -255,7 +253,7 @@ const AdminWithdrawalsPage: React.FC = () => {
   // Reset page when filters change
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearchTerm, statusFilter]);
+  }, [searchTerm, statusFilter]);
 
   const handleStatusChange = (value: string) => {
     setPage(1);
@@ -423,7 +421,7 @@ const AdminWithdrawalsPage: React.FC = () => {
     }
 
     if (!data || data.withdrawals.length === 0) {
-      if (debouncedSearchTerm !== "") {
+      if (searchTerm !== "") {
         return (
           <ConsoleListEmpty
             icon={<Wallet size={24} />}

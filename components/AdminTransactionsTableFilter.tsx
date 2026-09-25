@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Button } from "./Button";
 import { Search, X } from "lucide-react";
 import { useListUrlParams } from "../helpers/useListUrlParams";
+import { useDebouncedInput } from "../helpers/useDebouncedInput";
 import { OrderStatus, OrderStatusArrayValues } from "../helpers/schema";
 import styles from "./AdminTransactionsTableFilter.module.css";
 
@@ -37,6 +38,8 @@ export const FilterSection: React.FC<{
   knownPaymentMethods: { value: string; label: string }[];
   dynamicPaymentMethods: string[];
 }> = ({ filters, onFilterChange, onClearFilters, hasListFilter, knownPaymentMethods, dynamicPaymentMethods }) => {
+  const search = useDebouncedInput(filters.search, (value) => onFilterChange({ ...filters, search: value }));
+
   const hasActiveFilters = 
     filters.search || 
     filters.status !== "__all" || 
@@ -55,8 +58,11 @@ export const FilterSection: React.FC<{
             <Input
               type="search"
               placeholder="Student name, email or phone..."
-              value={filters.search}
-              onChange={(e) => onFilterChange({ ...filters, search: e.target.value })}
+              value={search.value}
+              onChange={(e) => search.onChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") search.flush();
+              }}
               className={styles.searchInput}
             />
           </div>

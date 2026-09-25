@@ -81,7 +81,7 @@ const HomePage: React.FC = () => {
             items={(data?.topMockTests ?? []).slice(0, 4)}
             isLoading={isFetching}
             renderCard={(item: HomepageTestItem) => {
-              const statsParts = [`${item.views.toLocaleString("en-IN")} views`];
+              const statsParts: string[] = [];
               if (item.rating != null) {
                 statsParts.push(`⭐ ${item.rating}`);
               }
@@ -128,7 +128,7 @@ const HomePage: React.FC = () => {
                 teacherSlug={item.teacherSlug}
                 teacherIsVerified={item.teacherIsVerified}
                 productTitle={item.title}
-                stats={`${item.views.toLocaleString("en-IN")} views · ${item.totalLessons} lessons`}
+                stats={`${item.totalLessons} lessons`}
                 priceLabel={formatItemPrice(item.price, item.discountPrice)}
                 isFree={item.price === 0}
                 thumbnailUrl={item.thumbnailUrl}

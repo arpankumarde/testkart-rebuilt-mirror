@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { useAdminDeletedAccountsQuery } from "../helpers/useAdminDeletedAccounts";
-import { useDebounce } from "../helpers/useDebounce";
 import { SortOrder } from "../helpers/useTableSort";
 import { SortableTh } from "../components/SortableTh";
 import { Button } from "../components/Button";
@@ -95,7 +94,6 @@ const AccountCardSkeleton = () => (
 const AdminDeletedAccountsPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const [sortBy, setSortBy] = useState<DeletedAccountSortBy | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
 
@@ -115,14 +113,14 @@ const AdminDeletedAccountsPage: React.FC = () => {
 
   const { data, isFetching, isError, error, refetch } = useAdminDeletedAccountsQuery({
     page,
-    search: debouncedSearchTerm,
+    search: searchTerm,
     sortBy: sortBy ?? undefined,
     sortOrder: sortBy ? sortOrder : undefined,
   });
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearchTerm]);
+  }, [searchTerm]);
 
   const renderContent = () => {
     if (isFetching && !data) {
@@ -160,14 +158,14 @@ const AdminDeletedAccountsPage: React.FC = () => {
       return (
         <ConsoleListEmpty
           icon={<UserX size={24} />}
-          title={debouncedSearchTerm ? "No accounts match that search" : "No deleted accounts"}
+          title={searchTerm ? "No accounts match that search" : "No deleted accounts"}
           description={
-            debouncedSearchTerm
-              ? `Nothing found for "${debouncedSearchTerm}". Try a different name or email.`
+            searchTerm
+              ? `Nothing found for "${searchTerm}". Try a different name or email.`
               : "Accounts closed by their owner are recorded here."
           }
         >
-          {debouncedSearchTerm && (
+          {searchTerm && (
             <Button variant="outline" onClick={() => setSearchTerm("")}>Clear search</Button>
           )}
         </ConsoleListEmpty>

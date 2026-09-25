@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../helpers/useAuth';
-import { Clock, Users, Calendar, Zap, CheckCircle, XCircle, IndianRupee, PlayCircle, Info, ChevronRight, Eye, FileText, BookOpen, Trophy } from 'lucide-react';
+import { Clock, Users, Calendar, Zap, CheckCircle, XCircle, IndianRupee, PlayCircle, Info, ChevronRight, FileText, BookOpen, Trophy } from 'lucide-react';
 import { useCountdownTimer } from '../helpers/useCountdownTimer';
 import { getLiveTestStatus } from '../helpers/useLiveTestHelpers';
 import { Placeholder } from '../helpers/placeholderImages';
@@ -300,9 +300,6 @@ export const LiveTestHero: React.FC<LiveTestHeroProps> = ({ liveTest, className 
               </Link>{' '}
               <VerifiedBadge isVerified={liveTest.teacherIsVerified} size="sm" />
             </p>
-            <span className={styles.viewCount}>
-              <Eye size={16} /> {liveTest.viewCount.toLocaleString('en-IN')} views
-            </span>
           </div>
 
           {status === 'upcoming' && liveTest.startTime && <CountdownTimer target={liveTest.startTime} label="Test Starts In" />}

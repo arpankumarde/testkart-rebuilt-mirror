@@ -2,7 +2,7 @@ import React from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Badge } from "./Badge";
 import { Button } from "./Button";
-import { Clock, ShoppingCart, TrendingUp, IndianRupee, Star, Users, Plus, FileText, Eye } from "lucide-react";
+import { Clock, ShoppingCart, TrendingUp, IndianRupee, Star, Users, Plus, FileText } from "lucide-react";
 import type { TestListItem } from "../endpoints/tests/list_GET.schema";
 import { useAddToCartMutation } from "../helpers/useCartQuery";
 import { useAuth } from "../helpers/useAuth";
@@ -205,17 +205,6 @@ export const TestCard: React.FC<TestCardProps> = ({ test, className }) => {
                 </div>
               </div>
             )}
-
-            {/* Views */}
-            <div className={styles.infoRow}>
-              <div className={styles.infoIcon}>
-                <Eye size={16} />
-              </div>
-              <div className={styles.infoText}>
-                <span className={styles.infoLabel}>Views:</span>
-                <span className={styles.infoValue}>{formatNumber(test.views ?? 0)}</span>
-              </div>
-            </div>
 
             {/* Test Items */}
             <div className={styles.infoRow}>

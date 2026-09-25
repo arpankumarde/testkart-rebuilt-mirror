@@ -8,7 +8,6 @@ import {
   useSyncSalesContactsMutation
 } from "../helpers/useAdminSalesContacts";
 import { useAdminAuth } from "../helpers/useAdminAuth";
-import { useDebounce } from "../helpers/useDebounce";
 import { useListUrlParams } from "../helpers/useListUrlParams";
 import { useRefetchOnLinkArrival } from "../helpers/useRefetchOnLinkArrival";
 import { Input } from "../components/Input";
@@ -110,7 +109,6 @@ const AdminSalesPage: React.FC = () => {
   const [signupDateFrom, setSignupDateFrom] = useState<string>("");
   const [signupDateTo, setSignupDateTo] = useState<string>("");
   
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const [selectedContact, setSelectedContact] = useState<SalesContactView | null>(null);
   
@@ -127,7 +125,7 @@ const AdminSalesPage: React.FC = () => {
   
   const { data, isFetching, isError, error, refetch } = useAdminSalesContactsQuery({
     page,
-    search: debouncedSearchTerm,
+    search: searchTerm,
     stage: stageFilter === "__empty" ? undefined : stageFilter,
     source: sourceFilter === "__empty" ? undefined : sourceFilter,
     followUpFilter: followUpFilter === "__empty" ? undefined : followUpFilter,
@@ -146,7 +144,7 @@ const AdminSalesPage: React.FC = () => {
   useEffect(() => {
     setPage(1);
     setSelectedContactIds(new Set());
-  }, [debouncedSearchTerm, stageFilter, sourceFilter, followUpFilter, sortFilter, sortOrder, myLeads, assignedToFilter, signupDateFrom, signupDateTo, openOverdueOnly]);
+  }, [searchTerm, stageFilter, sourceFilter, followUpFilter, sortFilter, sortOrder, myLeads, assignedToFilter, signupDateFrom, signupDateTo, openOverdueOnly]);
 
   const chooseSort = (sort: SalesContactSort) => {
     setSortFilter(sort);
@@ -381,7 +379,7 @@ const AdminSalesPage: React.FC = () => {
           toggleContactSelection={toggleContactSelection}
           toggleAllSelection={toggleAllSelection}
           setSelectedContact={setSelectedContact}
-          searchTerm={debouncedSearchTerm}
+          searchTerm={searchTerm}
           sort={headerSort}
         />
 

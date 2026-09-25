@@ -1,6 +1,7 @@
 import React from "react";
 import { Search } from "lucide-react";
 import { Input } from "./Input";
+import { useDebouncedInput } from "../helpers/useDebouncedInput";
 import styles from "./ConsoleListToolbar.module.css";
 
 export interface ConsoleListTab {
@@ -18,6 +19,7 @@ interface ConsoleListToolbarProps {
   /* Id of the region the tabs filter. Wires aria-controls on each tab and
      gives tab ids of the form `${panelId}-tab-${value}` for aria-labelledby. */
   panelId?: string;
+  /* onChange fires once typing pauses, not on every keystroke. */
   search?: {
     value: string;
     onChange: (value: string) => void;
@@ -32,6 +34,26 @@ interface ConsoleListToolbarProps {
 /* Give this to a SelectTrigger dropped into the toolbar so it sizes like the
    sort control on Test series. */
 export const consoleToolbarControlClass = styles.control;
+
+const ToolbarSearch: React.FC<{ search: NonNullable<ConsoleListToolbarProps["search"]> }> = ({ search }) => {
+  const input = useDebouncedInput(search.value, search.onChange);
+  return (
+    <div className={styles.searchWrapper}>
+      <Search size={16} className={styles.searchIcon} aria-hidden="true" />
+      <Input
+        type="search"
+        placeholder={search.placeholder}
+        aria-label={search.label}
+        value={input.value}
+        onChange={(e) => input.onChange(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") input.flush();
+        }}
+        className={styles.searchInput}
+      />
+    </div>
+  );
+};
 
 /*
  * One band holding the status tabs and the filters. The pages this replaces
@@ -105,19 +127,7 @@ export const ConsoleListToolbar: React.FC<ConsoleListToolbarProps> = ({
 
       {hasFilters && (
         <div className={styles.filters}>
-          {search && (
-            <div className={styles.searchWrapper}>
-              <Search size={16} className={styles.searchIcon} aria-hidden="true" />
-              <Input
-                type="search"
-                placeholder={search.placeholder}
-                aria-label={search.label}
-                value={search.value}
-                onChange={(e) => search.onChange(e.target.value)}
-                className={styles.searchInput}
-              />
-            </div>
-          )}
+          {search && <ToolbarSearch search={search} />}
           {children}
         </div>
       )}

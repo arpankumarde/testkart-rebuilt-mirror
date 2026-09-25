@@ -183,7 +183,6 @@ const ShopPage: React.FC = () => {
                       productTitle={product.title}
                       examName={product.examName}
                       stats={[
-                        `${product.views.toLocaleString('en-IN')} views`,
                         product.pageCount ? `${product.pageCount} pages` : null,
                         product.fileCount > 1 ? `${product.fileCount} files` : null,
                       ].filter(Boolean).join(' · ')}

@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAdminEarningsQuery } from "../helpers/useAdminEarnings";
 import { useAddWithdrawalMutation } from "../helpers/useAdminWithdrawal";
-import { useDebounce } from "../helpers/useDebounce";
 import { Input } from "../components/Input";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
@@ -162,11 +161,10 @@ const AdminEarningsPage: React.FC = () => {
   const [selectedTeacher, setSelectedTeacher] = useState<TeacherEarningAdminView | null>(null);
   const [sortBy, setSortBy] = useState<SortableColumn>("totalEarnings");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const { data, isFetching, isError, error, refetch } = useAdminEarningsQuery({
     page,
-    search: debouncedSearchTerm,
+    search: searchTerm,
     sortBy,
     sortOrder,
   });
@@ -193,7 +191,7 @@ const AdminEarningsPage: React.FC = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearchTerm]);
+  }, [searchTerm]);
 
   useEffect(() => {
     setPage(1);
@@ -325,14 +323,14 @@ const AdminEarningsPage: React.FC = () => {
       return (
         <ConsoleListEmpty
           icon={<Wallet size={24} />}
-          title={debouncedSearchTerm ? "No teachers match that search" : "No earnings yet"}
+          title={searchTerm ? "No teachers match that search" : "No earnings yet"}
           description={
-            debouncedSearchTerm
-              ? `Nothing found for "${debouncedSearchTerm}". Try a different name or email.`
+            searchTerm
+              ? `Nothing found for "${searchTerm}". Try a different name or email.`
               : "Once teachers start selling, their balances appear here."
           }
         >
-          {debouncedSearchTerm && (
+          {searchTerm && (
             <Button variant="outline" onClick={() => setSearchTerm("")}>Clear search</Button>
           )}
         </ConsoleListEmpty>

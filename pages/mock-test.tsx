@@ -227,7 +227,7 @@ const OnlineMockTestsPage: React.FC = () => {
             teacherIsVerified={test.teacherIsVerified}
             productTitle={test.title}
             examName={test.examName}
-            stats={`${test.views.toLocaleString('en-IN')} views${test.rating ? ` · ⭐ ${test.rating}` : ''}`}
+            stats={test.rating ? `⭐ ${test.rating}` : undefined}
             priceLabel={formatItemPrice(test.price, test.discountPrice)}
             isFree={(test.discountPrice ?? test.price) === 0}
             thumbnailUrl={test.thumbnailUrl}

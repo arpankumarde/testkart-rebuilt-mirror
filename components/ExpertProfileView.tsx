@@ -4,7 +4,6 @@ import {
   BookOpen,
   Briefcase,
   ClipboardList,
-  Eye,
   GraduationCap,
   Globe,
   Link as LinkIcon,
@@ -193,18 +192,6 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
       value: formatStatCount(stats.questions),
       label: "Questions",
     },
-    stats.students > 0 && {
-      key: "students",
-      icon: Users,
-      value: formatStatCount(stats.students),
-      label: "Students",
-    },
-    stats.views > 0 && {
-      key: "views",
-      icon: Eye,
-      value: formatStatCount(stats.views),
-      label: "Views",
-    },
     stats.rating !== null && {
       key: "rating",
       icon: Star,
@@ -236,7 +223,6 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
       link={`/course/${course.slug}`}
       productTitle={course.title}
       examName={course.examName}
-      stats={`${(course.views ?? 0).toLocaleString("en-IN")} views`}
       priceLabel={formatItemPrice(course.price, course.discountPrice)}
       isFree={course.price === 0}
       thumbnailUrl={course.thumbnailImageUrl}
@@ -251,9 +237,7 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
       link={`/mock-test/${test.slug}`}
       productTitle={test.title}
       examName={test.examName}
-      stats={`${(test.views ?? 0).toLocaleString("en-IN")} views${
-        test.rating != null ? ` · ${test.rating.toFixed(1)} rating` : ""
-      }`}
+      stats={test.rating != null ? `${test.rating.toFixed(1)} rating` : undefined}
       priceLabel={formatItemPrice(test.price, test.discountPrice)}
       isFree={(test.discountPrice ?? test.price) === 0}
       thumbnailUrl={test.thumbnailUrl}
@@ -268,7 +252,7 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
       link={`/mock-test/live/${liveTest.id}`}
       productTitle={liveTest.title}
       examName={liveTest.examName}
-      stats={`${liveTest.enrolledCount.toLocaleString("en-IN")} enrolled · ${liveTest.status.replace(/_/g, " ")}`}
+      stats={liveTest.status.replace(/_/g, " ")}
       priceLabel={formatItemPrice(liveTest.price)}
       isFree={liveTest.price === 0}
       thumbnailUrl={liveTest.thumbnailUrl}
@@ -284,7 +268,6 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
       productTitle={product.title}
       examName={product.examName}
       stats={[
-        `${(product.views ?? 0).toLocaleString("en-IN")} views`,
         product.pageCount ? `${product.pageCount} pages` : null,
         product.fileCount > 1 ? `${product.fileCount} files` : null,
       ]

@@ -4,7 +4,6 @@ import { Helmet } from "react-helmet";
 import { toast } from "sonner";
 import { useAdminSubscriptionsQuery } from "../helpers/useAdminSubscriptions";
 import { useAdminCancelSubscription } from "../helpers/useAdminCancelSubscription";
-import { useDebounce } from "../helpers/useDebounce";
 import { useListUrlParams } from "../helpers/useListUrlParams";
 import { useRefetchOnLinkArrival } from "../helpers/useRefetchOnLinkArrival";
 import type { SortOrder } from "../helpers/useTableSort";
@@ -112,7 +111,6 @@ const AdminSubscriptionsPage: React.FC = () => {
   const [cancelTarget, setCancelTarget] = useState<{ id: number; name: string } | null>(null);
   const [cancelReason, setCancelReason] = useState("");
   const [trialTarget, setTrialTarget] = useState<{ id: number; name: string } | null>(null);
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const { read, write } = useListUrlParams();
   const listFilter = read<ListFilter | "none">("filter", LIST_FILTERS, "none");
   const expiringSoonOnly = listFilter === "expiring-7d";
@@ -130,7 +128,7 @@ const AdminSubscriptionsPage: React.FC = () => {
 
   const { data, isFetching, isError, error, refetch } = useAdminSubscriptionsQuery({
     page,
-    search: debouncedSearchTerm,
+    search: searchTerm,
     planId: selectedPlanId,
     status: selectedStatus,
     expiringWithin7Days: expiringSoonOnly || undefined,
@@ -171,7 +169,7 @@ const AdminSubscriptionsPage: React.FC = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearchTerm, selectedPlanId, selectedStatus, expiringSoonOnly, sortBy, sortOrder]);
+  }, [searchTerm, selectedPlanId, selectedStatus, expiringSoonOnly, sortBy, sortOrder]);
 
   const formatDate = (date: Date | null): string => {
     if (!date) return "-";
@@ -300,7 +298,7 @@ const AdminSubscriptionsPage: React.FC = () => {
     }
 
     if (!data || data.subscriptions.length === 0) {
-      const isFiltered = !!debouncedSearchTerm || !!selectedPlanId || !!selectedStatus || expiringSoonOnly;
+      const isFiltered = !!searchTerm || !!selectedPlanId || !!selectedStatus || expiringSoonOnly;
       return (
         <ConsoleListEmpty
           icon={<FileText size={24} />}

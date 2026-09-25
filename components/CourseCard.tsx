@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { BookOpen, Users, IndianRupee, BarChart3, Plus, Globe, Eye } from 'lucide-react';
+import { BookOpen, Users, IndianRupee, BarChart3, Plus, Globe } from 'lucide-react';
 import type { CourseListItem } from '../endpoints/courses/list_GET.schema';
 import { Badge } from './Badge';
 import { Button } from './Button';
@@ -134,10 +134,6 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, className }) => 
               <div className={styles.infoIcon}><Users size={16} /></div>
               <span>{course.enrollmentCount.toLocaleString()} Students</span>
             </div>}
-            <div className={styles.infoItem}>
-              <div className={styles.infoIcon}><Eye size={16} /></div>
-              <span>{(course.views ?? 0).toLocaleString()} Views</span>
-            </div>
             {course.language && (
               <div className={styles.infoItem}>
                 <div className={styles.infoIcon}><Globe size={16} /></div>

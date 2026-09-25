@@ -13,7 +13,6 @@ import {
 import { toast } from "sonner";
 
 import { useAdminStudentWithdrawalsList, useProcessStudentWithdrawal } from "../helpers/useAdminStudentWithdrawals";
-import { useDebounce } from "../helpers/useDebounce";
 import { useListUrlParams } from "../helpers/useListUrlParams";
 import { useRefetchOnLinkArrival } from "../helpers/useRefetchOnLinkArrival";
 import { Input } from "../components/Input";
@@ -206,12 +205,11 @@ const AdminStudentWithdrawalsPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<StudentWithdrawalSortColumn | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
 
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const { data, isFetching, isError, error, refetch } = useAdminStudentWithdrawalsList({
     page,
     limit: 20,
-    search: debouncedSearchTerm,
+    search: searchTerm,
     status: statusFilter === "all" ? undefined : statusFilter,
     ...(sortBy ? { sortBy, sortOrder } : {}),
   });
@@ -240,7 +238,7 @@ const AdminStudentWithdrawalsPage: React.FC = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearchTerm, statusFilter]);
+  }, [searchTerm, statusFilter]);
 
   const handleStatusChange = (value: string) => {
     setPage(1);
@@ -414,7 +412,7 @@ const AdminStudentWithdrawalsPage: React.FC = () => {
     }
 
     if (!data || data.withdrawals.length === 0) {
-      const isFiltered = debouncedSearchTerm !== "" || statusFilter !== "all";
+      const isFiltered = searchTerm !== "" || statusFilter !== "all";
       return (
         <ConsoleListEmpty
           icon={<Wallet size={24} />}

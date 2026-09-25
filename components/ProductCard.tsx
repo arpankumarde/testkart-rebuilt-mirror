@@ -81,7 +81,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, className }) 
 
         <div className={styles.footer}>
           <p className={styles.stats}>
-            <span>{formatCount(product.views ?? 0, 'view', 'views')}</span>
             {product.pageCount ? (
               <span>{formatCount(product.pageCount, 'page', 'pages')}</span>
             ) : null}

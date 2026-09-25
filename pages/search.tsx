@@ -187,7 +187,6 @@ export default function SearchPage() {
                         teacherIsVerified={test.teacherIsVerified}
                         productTitle={test.title}
                         examName={test.examName}
-                        stats={`${test.views.toLocaleString('en-IN')} views`}
                         priceLabel={formatItemPrice(test.price, test.discountPrice)}
                         isFree={(test.discountPrice ?? test.price) === 0}
                         thumbnailUrl={test.thumbnailUrl}
@@ -237,7 +236,6 @@ export default function SearchPage() {
                         teacherSlug={course.teacherSlug}
                         teacherIsVerified={course.teacherIsVerified}
                         productTitle={course.title}
-                        stats={`${course.views.toLocaleString('en-IN')} views`}
                         priceLabel={formatItemPrice(course.price, course.discountPrice)}
                         isFree={course.price === 0}
                         thumbnailUrl={course.thumbnailUrl}
@@ -338,7 +336,6 @@ export default function SearchPage() {
                         teacherIsVerified={product.teacherIsVerified}
                         productTitle={product.title}
                         examName={product.examName}
-                        stats={`${product.views.toLocaleString('en-IN')} views`}
                         priceLabel={formatItemPrice(product.price)}
                         isFree={product.price === 0}
                       />

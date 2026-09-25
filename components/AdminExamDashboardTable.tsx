@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { useDebouncedCallback } from "use-debounce";
 import {
   useAdminExamDashboardQuery,
   useBulkUpdateExamsMutation,
@@ -12,6 +11,7 @@ import {
 } from "../helpers/examContentTypes";
 import { humanisePageType } from "../helpers/adminContentSurfaces";
 import { useListUrlParams } from "../helpers/useListUrlParams";
+import { useDebouncedInput } from "../helpers/useDebouncedInput";
 import { useRefetchOnLinkArrival } from "../helpers/useRefetchOnLinkArrival";
 import { useTableSort, type SortAccessors } from "../helpers/useTableSort";
 import {
@@ -52,7 +52,6 @@ const PAGE_SIZE = 50;
 const STALE_DAYS = 90;
 const DUE_SOON_DAYS = 7;
 const SEARCH_PARAM = "search";
-const SEARCH_URL_DELAY_MS = 300;
 const CONTENT_PARAM = "content";
 const FILTER_PARAM = "filter";
 const READY_FOR_REVIEW_FILTER = "ready-for-review";
@@ -176,7 +175,9 @@ export const AdminExamDashboardTable: React.FC<AdminExamDashboardTableProps> = (
   const [bulkOwnerTag, setBulkOwnerTag] = useState<string | null | undefined>(undefined);
   const [bulkDueDate, setBulkDueDate] = useState<Date | undefined>(undefined);
 
-  const writeSearchToUrl = useDebouncedCallback((value: string) => {
+  const commitSearch = (value: string) => {
+    setSearch(value);
+    setPage(0);
     syncedSearch.current = value;
     setSearchParams(
       (prev) => {
@@ -187,17 +188,15 @@ export const AdminExamDashboardTable: React.FC<AdminExamDashboardTableProps> = (
       },
       { replace: true }
     );
-  }, SEARCH_URL_DELAY_MS);
-
-  useEffect(() => () => writeSearchToUrl.cancel(), [writeSearchToUrl]);
+  };
+  const searchInput = useDebouncedInput(search, commitSearch);
 
   useEffect(() => {
     if (urlSearch === syncedSearch.current) return;
-    writeSearchToUrl.cancel();
     syncedSearch.current = urlSearch;
     setSearch(urlSearch);
     setPage(0);
-  }, [urlSearch, writeSearchToUrl]);
+  }, [urlSearch]);
 
   useEffect(() => {
     setPage(0);
@@ -481,11 +480,10 @@ export const AdminExamDashboardTable: React.FC<AdminExamDashboardTableProps> = (
           <Search className={styles.searchIcon} size={18} />
           <Input
             placeholder="Search exam name, full name, or category..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(0);
-              writeSearchToUrl(e.target.value);
+            value={searchInput.value}
+            onChange={(e) => searchInput.onChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") searchInput.flush();
             }}
             className={styles.searchInput}
           />

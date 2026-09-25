@@ -296,7 +296,7 @@ const MockTestsBody: React.FC<{ examId: number; examName: string }> = ({ examId,
             teacherIsVerified={test.teacherIsVerified}
             productTitle={test.title}
             examName={test.examName}
-            stats={`${(test.views ?? 0).toLocaleString("en-IN")} views${test.rating != null ? ` · ⭐ ${test.rating.toFixed(2)}` : ""}`}
+            stats={test.rating != null ? `⭐ ${test.rating.toFixed(2)}` : undefined}
             priceLabel={formatItemPrice(test.price, test.discountPrice)}
             isFree={(test.discountPrice ?? test.price) === 0}
             thumbnailUrl={test.thumbnailUrl}
@@ -348,7 +348,6 @@ const StudyNotesBody: React.FC<{ examId: number; examName: string }> = ({ examId
             productTitle={product.title}
             examName={product.examName}
             stats={[
-              `${product.views.toLocaleString("en-IN")} views`,
               product.pageCount ? `${product.pageCount} pages` : null,
               product.fileCount > 1 ? `${product.fileCount} files` : null,
             ].filter(Boolean).join(" · ")}
@@ -406,7 +405,6 @@ const CoursesBody: React.FC<{ examId: number; examName: string }> = ({ examId, e
             teacherSlug={course.teacherSlug}
             teacherIsVerified={course.teacherIsVerified}
             productTitle={course.title}
-            stats={`${course.views.toLocaleString("en-IN")} views`}
             priceLabel={formatItemPrice(course.price, course.discountPrice)}
             isFree={course.price === 0}
             thumbnailUrl={course.thumbnailImageUrl || course.thumbnailUrl}

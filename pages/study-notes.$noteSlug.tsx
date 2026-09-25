@@ -592,10 +592,7 @@ const ProductDetailsPage: React.FC = () => {
 
                 <div className={styles.metaDivider}>•</div>
 
-                <div className={styles.purchaseCount}>
-                   <ShoppingCart size={16} />
-                   <span>{product.totalPurchases} purchases</span>
-                </div>
+
               </div>
 
               <div className={styles.priceSection}>

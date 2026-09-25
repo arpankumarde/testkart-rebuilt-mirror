@@ -126,7 +126,6 @@ export const ExamProductsSection: React.FC<ExamProductsSectionProps> = ({
               teacherIsVerified={test.teacherIsVerified}
               productTitle={test.title}
               examName={test.examName}
-              stats={`${(test.views ?? 0).toLocaleString("en-IN")} views`}
               priceLabel={formatItemPrice(test.price, test.discountPrice)}
               isFree={(test.discountPrice ?? test.price) === 0}
               thumbnailUrl={test.thumbnailUrl}
@@ -157,7 +156,6 @@ export const ExamProductsSection: React.FC<ExamProductsSectionProps> = ({
               productTitle={product.title}
               examName={product.examName}
               stats={[
-                `${product.views.toLocaleString("en-IN")} views`,
                 product.pageCount ? `${product.pageCount} pages` : null,
                 product.fileCount > 1 ? `${product.fileCount} files` : null,
               ].filter(Boolean).join(" · ")}
@@ -190,7 +188,6 @@ export const ExamProductsSection: React.FC<ExamProductsSectionProps> = ({
               teacherSlug={course.teacherSlug}
               teacherIsVerified={course.teacherIsVerified}
               productTitle={course.title}
-              stats={`${course.views.toLocaleString("en-IN")} views`}
               priceLabel={formatItemPrice(course.price, course.discountPrice)}
               isFree={course.price === 0}
               thumbnailUrl={course.thumbnailImageUrl || course.thumbnailUrl}

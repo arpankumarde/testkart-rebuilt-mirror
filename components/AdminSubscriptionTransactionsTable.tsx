@@ -7,6 +7,7 @@ import { postMarkSubscriptionTransactionFailed } from "../endpoints/admin/subscr
 import { getAdminSubscriptionTransactionInvoice } from "../endpoints/admin/subscription-transactions/invoice_GET.schema";
 import { TransactionStatus } from "../helpers/schema";
 import { useTableSort, SortAccessors } from "../helpers/useTableSort";
+import { useDebouncedInput } from "../helpers/useDebouncedInput";
 import { SortableTh } from "./SortableTh";
 import { Skeleton } from "./Skeleton";
 import { Badge } from "./Badge";
@@ -137,6 +138,8 @@ const FilterSection: React.FC<{
   onFilterChange: (filters: FilterState) => void;
   plans: string[];
 }> = ({ filters, onFilterChange, plans }) => {
+  const search = useDebouncedInput(filters.search, (value) => onFilterChange({ ...filters, search: value }));
+
   const handleClearFilters = () => {
     onFilterChange({ search: "", status: "__all", plan: "__all" });
   };
@@ -156,10 +159,11 @@ const FilterSection: React.FC<{
             <Input
               type="search"
               placeholder="Teacher name or email..."
-              value={filters.search}
-              onChange={(e) =>
-                onFilterChange({ ...filters, search: e.target.value })
-              }
+              value={search.value}
+              onChange={(e) => search.onChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") search.flush();
+              }}
               className={styles.searchInput}
             />
           </div>

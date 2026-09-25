@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Users, Calendar, Globe, Star, Clock, BookOpen, GraduationCap } from 'lucide-react';
+import { ChevronRight, Calendar, Globe, Star, Clock, BookOpen, GraduationCap } from 'lucide-react';
 import { Badge } from './Badge';
 import { VerifiedBadge } from './VerifiedBadge';
 import type { PackageDetails } from '../endpoints/tests/details_GET.schema';
@@ -112,12 +112,6 @@ export const TestPackageHero: React.FC<TestPackageHeroProps> = ({ className, tes
                 <div className={styles.metaItem}>
                   <Clock size={16} />
                   <span>{totalDurationMinutes > 0 ? `${totalDurationMinutes} Minutes` : "No Time Limit"}</span>
-                </div>
-              )}
-                            {testPackage.studentsEnrolled > 1 && (
-                <div className={styles.metaItem}>
-                  <Users size={16} />
-                  <span>{testPackage.studentsEnrolled.toLocaleString()} students enrolled</span>
                 </div>
               )}
               <div className={styles.metaItem}>

@@ -6,7 +6,7 @@ import {
   useAdminThreadsQuery,
   useRefreshAdminSupport,
 } from "../helpers/useAdminSupport";
-import { useDebounce } from "../helpers/useDebounce";
+import { useDebouncedInput } from "../helpers/useDebouncedInput";
 import { useListUrlParams } from "../helpers/useListUrlParams";
 import { adminFormat } from "../helpers/adminFormat";
 import type { AdminSupportThread } from "../endpoints/admin/support/threads_GET.schema";
@@ -39,10 +39,11 @@ export default function AdminSupportPage() {
   const selectedId = readId("thread");
 
   const [searchTerm, setSearchTerm] = useState("");
-  const debouncedSearch = useDebounce(searchTerm.trim(), 400);
+  const searchInput = useDebouncedInput(searchTerm, setSearchTerm);
+  const trimmedSearch = searchTerm.trim();
 
   // A page number belongs to one set of filters, so a filter change lands on page 1 without fetching the old page first.
-  const filterKey = `${statusFilter}|${unreadOnly}|${debouncedSearch}`;
+  const filterKey = `${statusFilter}|${unreadOnly}|${trimmedSearch}`;
   const [paging, setPaging] = useState({ filterKey, page: 1 });
   const page = paging.filterKey === filterKey ? paging.page : 1;
 
@@ -50,7 +51,7 @@ export default function AdminSupportPage() {
     page,
     PAGE_SIZE,
     statusFilter === "all" ? undefined : statusFilter,
-    debouncedSearch,
+    trimmedSearch,
     unreadOnly
   );
   const { data } = threadsQuery;
@@ -99,7 +100,7 @@ export default function AdminSupportPage() {
   const openThread = (id: number) => write({ thread: id });
   const closeThread = () => write({ thread: null });
 
-  const isFiltered = debouncedSearch !== "" || statusFilter !== "all" || unreadOnly;
+  const isFiltered = trimmedSearch !== "" || statusFilter !== "all" || unreadOnly;
   const clearFilters = () => {
     setSearchTerm("");
     write({ status: null, filter: null });
@@ -157,8 +158,11 @@ export default function AdminSupportPage() {
                 <Search size={16} className={styles.searchIcon} aria-hidden="true" />
                 <Input
                   type="search"
-                  value={searchTerm}
-                  onChange={(event) => setSearchTerm(event.target.value)}
+                  value={searchInput.value}
+                  onChange={(event) => searchInput.onChange(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") searchInput.flush();
+                  }}
                   placeholder="Name, email or subject"
                   aria-label="Search support threads"
                   className={styles.searchInput}

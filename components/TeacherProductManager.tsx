@@ -38,7 +38,6 @@ import { TeacherListPagination } from './TeacherListPagination';
 import { ShareAssetDialog } from './ShareAssetDialog';
 import { WithdrawReviewButton } from './WithdrawReviewButton';
 import { buildPublicAssetUrl, TEACHER_CONSOLE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
-import { useDebounce } from '../helpers/useDebounce';
 import { DIGITAL_PRODUCT_CATEGORIES } from '../helpers/digitalProductRules';
 import type { TeacherProductListItem } from '../endpoints/teacher/products/list_GET.schema';
 import styles from './TeacherProductManager.module.css';
@@ -276,8 +275,7 @@ export const TeacherProductManager: React.FC = () => {
   const statusFilter = read<StatusTab>('status', STATUS_VALUES, 'all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const debouncedSearch = useDebounce(searchQuery, 300);
-  const searchTerm = debouncedSearch.trim();
+  const searchTerm = searchQuery.trim();
   const filterKey = `${statusFilter}|${categoryFilter}|${searchTerm}`;
   const [pageState, setPageState] = useState({ key: filterKey, page: 1 });
   const page = pageState.key === filterKey ? pageState.page : 1;

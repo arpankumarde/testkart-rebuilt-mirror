@@ -20,7 +20,6 @@ import {
   DialogDescription,
   DialogFooter,
 } from './Dialog';
-import { useDebounce } from '../helpers/useDebounce';
 import type { BundleListItem } from '../endpoints/teacher/bundles/list_GET.schema';
 import styles from './BundleManager.module.css';
 
@@ -40,7 +39,6 @@ export const BundleManager: React.FC = () => {
   const navigate = useNavigate();
   const { read, readId, write } = useListUrlParams();
   const [searchTerm, setSearchTerm] = useState('');
-  const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [bundleToDelete, setBundleToDelete] = useState<BundleListItem | null>(null);
 
   const page = readId('page') ?? 1;
@@ -87,7 +85,7 @@ export const BundleManager: React.FC = () => {
     });
   };
 
-  const query = debouncedSearchTerm.trim().toLowerCase();
+  const query = searchTerm.trim().toLowerCase();
   const isSearching = query.length > 0;
 
   // Search narrows the page already loaded - the list endpoint takes no search
@@ -129,7 +127,7 @@ export const BundleManager: React.FC = () => {
           icon={<Package size={26} />}
           title={
             isSearching
-              ? `Nothing on this page matches "${debouncedSearchTerm.trim()}"`
+              ? `Nothing on this page matches "${searchTerm.trim()}"`
               : isEmptyOverall
                 ? 'No bundles yet'
                 : `No ${activeTabLabel} bundles`

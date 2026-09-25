@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useDebouncedInput } from "../helpers/useDebouncedInput";
 import {
   useAdminCustomExamNamesQuery,
   useAdminCustomExamNameDuplicatesQuery,
@@ -496,6 +497,7 @@ function MergeIntoExamDialog({
   const mergeMutation = useMergeCustomExamNamesMutation();
   const [targetExamId, setTargetExamId] = useState<string>("");
   const [search, setSearch] = useState("");
+  const searchInput = useDebouncedInput(search, setSearch);
 
   if (!isOpen) return null;
 
@@ -543,8 +545,8 @@ function MergeIntoExamDialog({
                 Target exam
               </label>
               <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={searchInput.value}
+                onChange={(e) => searchInput.onChange(e.target.value)}
                 placeholder="Search exams..."
                 aria-label="Search exams"
               />

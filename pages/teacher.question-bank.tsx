@@ -34,8 +34,7 @@ const TeacherQuestionBankPage: React.FC = () => {
   const [testItem, setTestItem] = useState<string>('__empty');
   const [subjectName, setSubjectName] = useState('');
 
-  // Debounced filters
-  const debouncedSearch = useDebounce(search, 500);
+  // The toolbar debounces search itself; the subject field sits outside it.
   const debouncedSubjectName = useDebounce(subjectName, 500);
 
   // Queries
@@ -49,7 +48,7 @@ const TeacherQuestionBankPage: React.FC = () => {
   const { data, isFetching, error } = useTeacherQuestionBankQuery({
     page,
     limit: 100,
-    search: debouncedSearch || undefined,
+    search: search || undefined,
     subjectName: isSourceSelected ? subjectName || undefined : debouncedSubjectName || undefined,
     sourceMockTestId,
     sourceTestItemId,

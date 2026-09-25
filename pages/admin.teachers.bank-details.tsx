@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAdminBankDetailsQuery, useVerifyBankDetailsMutation } from "../helpers/useAdminBankDetails";
-import { useDebounce } from "../helpers/useDebounce";
 import { useListUrlParams } from "../helpers/useListUrlParams";
 import { useRefetchOnLinkArrival } from "../helpers/useRefetchOnLinkArrival";
 import { Button } from "../components/Button";
@@ -105,11 +104,10 @@ const AdminBankDetailsPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<TeacherBankDetailsSortColumn | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
 
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const { data, isFetching, isError, error, refetch } = useAdminBankDetailsQuery({
     page,
-    search: debouncedSearchTerm,
+    search: searchTerm,
     status: statusFilter,
     ...(sortBy ? { sortBy, sortOrder } : {}),
   });
@@ -135,7 +133,7 @@ const AdminBankDetailsPage: React.FC = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearchTerm, statusFilter]);
+  }, [searchTerm, statusFilter]);
 
   const openDialog = (state: 'view' | 'verify' | 'reject', detail: BankDetailsAdminView) => {
     setSelectedDetail(detail);
@@ -200,7 +198,7 @@ const AdminBankDetailsPage: React.FC = () => {
     }
   };
 
-  const isFiltered = debouncedSearchTerm !== "" || statusFilter !== "all";
+  const isFiltered = searchTerm !== "" || statusFilter !== "all";
 
   const clearFilters = () => {
     setSearchTerm("");

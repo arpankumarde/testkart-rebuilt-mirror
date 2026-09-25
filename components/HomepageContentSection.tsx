@@ -13,7 +13,7 @@ interface TeacherProductCardProps {
   teacherSlug: string | null;
   teacherIsVerified: boolean;
   productTitle: string;
-  stats: string;
+  stats?: string;
   // Thumbnails are DISCONTINUED for study notes / digital products
   // site-wide (product decision) — never pass these two props when
   // rendering a study-notes card, on any page. Only mock tests and courses

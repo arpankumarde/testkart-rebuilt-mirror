@@ -5,7 +5,7 @@ import { apiDocsData, getApiCategories, ApiEndpoint } from "../helpers/apiDocsDa
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "../components/Accordion";
 import { ConsolePageHeader } from "../components/ConsolePageHeader";
 import { ConsoleListEmpty } from "../components/ConsoleListEmpty";
-import { useDebounce } from "../helpers/useDebounce";
+import { useDebouncedInput } from "../helpers/useDebouncedInput";
 import styles from "./admin.api-docs.module.css";
 
 const EndpointCard: React.FC<{ endpoint: ApiEndpoint }> = ({ endpoint }) => {
@@ -153,22 +153,22 @@ const EndpointCard: React.FC<{ endpoint: ApiEndpoint }> = ({ endpoint }) => {
 export default function AdminApiDocs() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
-  const debouncedSearch = useDebounce(searchQuery, 300);
+  const searchInput = useDebouncedInput(searchQuery, setSearchQuery);
 
   const categories = useMemo(() => getApiCategories(), []);
 
   const filteredEndpoints = useMemo(() => {
     return apiDocsData.filter((endpoint) => {
       const matchesCategory = activeCategory === "All" || endpoint.category === activeCategory;
-      const searchLower = debouncedSearch.toLowerCase();
+      const searchLower = searchQuery.toLowerCase();
       const matchesSearch =
-        debouncedSearch === "" ||
+        searchQuery === "" ||
         endpoint.route.toLowerCase().includes(searchLower) ||
         endpoint.description.toLowerCase().includes(searchLower);
       
       return matchesCategory && matchesSearch;
     });
-  }, [activeCategory, debouncedSearch]);
+  }, [activeCategory, searchQuery]);
 
   return (
     <>
@@ -215,8 +215,11 @@ export default function AdminApiDocs() {
               <input
                 type="text"
                 placeholder="Search by route or description"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={searchInput.value}
+                onChange={(e) => searchInput.onChange(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") searchInput.flush();
+                }}
                 className={styles.searchInput}
               />
             </div>
