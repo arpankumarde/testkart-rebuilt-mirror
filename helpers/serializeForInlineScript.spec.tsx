@@ -42,4 +42,15 @@ describe("serializeForInlineScript", () => {
     const url = "https://testkart.in/student/dashboard?order_id=12&txnid=testkart-AbC_12-xYz9";
     expect(JSON.parse(serializeForInlineScript(url))).toBe(url);
   });
+
+  it("serialises objects and escapes line and paragraph separators", () => {
+    const separators = String.fromCharCode(0x2028, 0x2029);
+    const value = { details: breakout + separators, nested: [separators, 1, null] };
+    const out = serializeForInlineScript(value);
+    expect(out).not.toContain(String.fromCharCode(0x2028));
+    expect(out).not.toContain(String.fromCharCode(0x2029));
+    expect(out).toContain("\\u2028\\u2029");
+    expect(countScripts(out)).toBe(1);
+    expect(JSON.parse(out)).toEqual(value);
+  });
 });

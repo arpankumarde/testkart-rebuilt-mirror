@@ -1,5 +1,6 @@
 import { User } from "./User";
 import { OAuthProviderType } from "./OAuthProvider";
+import { serializeForInlineScript } from "./serializeForInlineScript";
 
 export type OAuthSuccessMessage = {
   type: "OAUTH_SUCCESS";
@@ -37,7 +38,7 @@ export type OAuthPopupMessage =
 export function createOAuthPopupResponseHtml(
   message: OAuthPopupMessage
 ): string {
-  const messageJson = JSON.stringify(message);
+  const messageJson = serializeForInlineScript(message);
   const isSuccess =
     message.type === "OAUTH_SUCCESS" || message.type === "OAUTH_TOKEN_SUCCESS";
 

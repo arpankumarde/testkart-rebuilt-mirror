@@ -130,7 +130,8 @@ export async function handle(request: Request) {
         error: {
           message: "OAuth authentication failed",
           code: "oauth_error",
-          details: error,
+          // Provider error codes are snake_case; never echo arbitrary query text
+          details: /^[a-z_]{1,64}$/.test(error) ? error : "unrecognised_error",
         },
       };
       return new Response(createOAuthPopupResponseHtml(errorMessage), {

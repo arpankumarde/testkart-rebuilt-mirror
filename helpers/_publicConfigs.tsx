@@ -1,4 +1,5 @@
 // NOTE: this file is generated and should not be manually modified
+export const GUMLET_WORKSPACE_ID = "6ab0ad30947238a5c516fe62";
 export const FROM_EMAIL = "noreply@mail.testkart.in";
 export const PAYU_MODE = "production";
 export const R2_ACCOUNT_ID = "9a0ee8491a730947e4079fc0c1994031";
