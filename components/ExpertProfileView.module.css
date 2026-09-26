@@ -362,6 +362,12 @@
   box-sizing: border-box;
 }
 
+/* With no catalogue there is no closing band, and a signed-in visitor gets no
+   teacher CTA, so About ends the page and needs its own gap above the footer. */
+.section:last-child {
+  padding-bottom: var(--spacing-16);
+}
+
 .sectionHead {
   margin-bottom: var(--spacing-6);
 }
@@ -820,6 +826,7 @@
   padding-top: var(--spacing-12);
 }
 
+.preview .section:last-child,
 .preview .teacherCta {
   padding-bottom: var(--spacing-12);
 }
@@ -898,6 +905,7 @@
     padding-top: var(--spacing-12);
   }
 
+  .section:last-child,
   .teacherCta {
     padding-bottom: var(--spacing-12);
   }

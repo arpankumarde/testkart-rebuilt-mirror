@@ -9,6 +9,7 @@ import {
   hasPendingReview,
   queueContentReview,
 } from "../../../helpers/contentReviewQueue";
+import { sendReviewChatAlert } from "../../../helpers/reviewChatAlert";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -108,6 +109,7 @@ export async function handle(request: Request): Promise<Response> {
       await db.updateTable("courseBundles").set(priceFields).where("id", "=", input.bundleId).execute();
       await queueContentReview(db, { contentType: "course_bundle", contentId: input.bundleId, teacherId: bundle.teacherId });
       console.log(`Course bundle ${input.bundleId} submitted for review by teacher ${bundle.teacherId}`);
+      await sendReviewChatAlert([{ contentType: "course_bundle", contentId: input.bundleId, teacherId: bundle.teacherId }]);
       const output: OutputType = {
         success: true,
         message: `Your bundle has been submitted for review. ${REVIEW_QUEUED_NOTE}`,

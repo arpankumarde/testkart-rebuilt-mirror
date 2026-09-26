@@ -11,6 +11,7 @@ import {
   hasPendingReview,
   queueContentReview,
 } from "../../../helpers/contentReviewQueue";
+import { sendReviewChatAlert, type QueuedReview } from "../../../helpers/reviewChatAlert";
 
 async function validateTestContent(testId: number, trx: Transaction<DB>) {
   // Check for at least one test item
@@ -54,6 +55,7 @@ export async function handle(request: Request) {
     const input = schema.parse(json);
     const { testId } = input;
     const needsReview = user.role !== "admin";
+    let queued: QueuedReview | null = null;
 
     // Run all validations and publish (or queue for review) in a transaction
     await db.transaction().execute(async (trx) => {
@@ -110,7 +112,8 @@ export async function handle(request: Request) {
 
       // 7. Queue for review, or publish directly for an admin
       if (needsReview) {
-        await queueContentReview(trx, { contentType: "live_test", contentId: liveTest.id, teacherId: liveTest.teacherId });
+        queued = { contentType: "live_test", contentId: liveTest.id, teacherId: liveTest.teacherId };
+        await queueContentReview(trx, queued);
         console.log(`Live test (mockTestId: ${testId}) submitted for review by teacher ${liveTest.teacherId}`);
         return;
       }
@@ -125,6 +128,8 @@ export async function handle(request: Request) {
 
       console.log(`Live test (mockTestId: ${testId}) published by admin ${user.id}`);
     });
+
+    if (queued) await sendReviewChatAlert([queued]);
 
     const output: OutputType = {
       success: true,

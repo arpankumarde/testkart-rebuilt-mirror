@@ -9,6 +9,7 @@ import {
   hasPendingReview,
   queueContentReview,
 } from "../../../helpers/contentReviewQueue";
+import { sendReviewChatAlert } from "../../../helpers/reviewChatAlert";
 
 export async function handle(request: Request) {
   try {
@@ -106,6 +107,10 @@ export async function handle(request: Request) {
     console.log(
       `Live test ${liveTest.id} ${needsReview ? `submitted for review by teacher ${liveTest.teacherId}` : `published by admin ${user.id}`}`
     );
+
+    if (needsReview) {
+      await sendReviewChatAlert([{ contentType: "live_test", contentId: liveTest.id, teacherId: liveTest.teacherId }]);
+    }
 
     const output: OutputType = {
       success: true,

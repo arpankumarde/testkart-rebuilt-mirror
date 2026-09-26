@@ -7,6 +7,7 @@ import {
   hasPendingReview,
   queueContentReview,
 } from "../../../helpers/contentReviewQueue";
+import { sendReviewChatAlert } from "../../../helpers/reviewChatAlert";
 import { schema, OutputType } from "./publish_POST.schema";
 import superjson from "superjson";
 
@@ -123,6 +124,7 @@ export async function handle(request: Request): Promise<Response> {
         teacherId: test.teacherId,
       });
       console.log(`Mock test ${input.testId} submitted for review by teacher ${test.teacherId}`);
+      await sendReviewChatAlert([{ contentType: "mock_test", contentId: input.testId, teacherId: test.teacherId }]);
       const output: OutputType = {
         success: true,
         message: `Your test series has been submitted for review. ${REVIEW_QUEUED_NOTE}`,

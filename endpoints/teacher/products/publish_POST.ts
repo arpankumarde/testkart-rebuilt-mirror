@@ -10,6 +10,7 @@ import {
   hasPendingReview,
   queueContentReview,
 } from "../../../helpers/contentReviewQueue";
+import { sendReviewChatAlert } from "../../../helpers/reviewChatAlert";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -79,6 +80,7 @@ export async function handle(request: Request): Promise<Response> {
     if (needsReview) {
       await queueContentReview(db, { contentType: "digital_product", contentId: input.id, teacherId: product.teacherId });
       console.log(`Digital product ${input.id} submitted for review by teacher ${product.teacherId}`);
+      await sendReviewChatAlert([{ contentType: "digital_product", contentId: input.id, teacherId: product.teacherId }]);
       const output: OutputType = {
         success: true,
         message: `Your study note has been submitted for review. ${REVIEW_QUEUED_NOTE}`,
