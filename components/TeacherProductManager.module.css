@@ -327,6 +327,25 @@
   color: var(--success-text);
 }
 
+/* A sales count opens who bought the product and how much they read. */
+.figureLink {
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  color: var(--tk-brand-text);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.figureLink:hover {
+  text-decoration-thickness: 2px;
+}
+
+.figureLink:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
 /* The column head names these on a wide screen; the words are for screen
    readers until the card layout shows them. */
 .figureUnit {

@@ -1,6 +1,43 @@
 import type { BillingDetails } from "../endpoints/account/billing-details_GET.schema";
 import { BRAND_LOGO_LIGHT } from "./brandAssets";
 
+const BIHAR_REGISTRATION = {
+  companyAddress: "Sonvarsha Ghat, Chatham, Khagaria, Bihar, 851201",
+  companyGstin: "10AALCD1070H1Z5",
+};
+
+const UTTAR_PRADESH_REGISTRATION = {
+  companyAddress: "C-16, 1st Floor, Sector 6, Gautam Buddha Nagar, Noida, UP 201301",
+  companyGstin: "09AALCD1070H1ZO",
+};
+
+// Built in server-local time, the same clock formatDate prints the invoice
+// date in, so an invoice dated 01/10/2026 or later always carries the UP GSTIN.
+const UTTAR_PRADESH_REGISTRATION_FROM = new Date(2026, 9, 1);
+
+/**
+ * Seller details printed on an invoice. The GST registration moved from Bihar
+ * to Uttar Pradesh on 01-10-2026; invoices dated before that keep the Bihar
+ * details they were issued under, including when downloaded again later.
+ */
+export function getInvoiceSupplier(invoiceDate: Date | null): {
+  companyName: string;
+  companyAddress: string;
+  companyGstin: string;
+  companyEmail: string;
+} {
+  const registration =
+    invoiceDate && new Date(invoiceDate) < UTTAR_PRADESH_REGISTRATION_FROM
+      ? BIHAR_REGISTRATION
+      : UTTAR_PRADESH_REGISTRATION;
+
+  return {
+    companyName: "Digikind Education Private Limited",
+    companyEmail: "account@testkart.in",
+    ...registration,
+  };
+}
+
 // Module-level cache: the logo is the same for every invoice, so we only
 // want to hit the CDN once per warm serverless instance rather than on
 // every single PDF generation. `undefined` = not yet attempted, `null` =

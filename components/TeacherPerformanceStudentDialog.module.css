@@ -1,0 +1,84 @@
+.loading,
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  min-width: 0;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  min-width: 0;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.empty {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+/* The series name heads its papers; a solid --muted band, not a tint. */
+.groupRow th {
+  padding: var(--spacing-2) var(--spacing-4);
+  background-color: var(--muted);
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.enrolments {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+}
+
+.enrolment {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  min-width: 0;
+  padding: var(--spacing-3) var(--spacing-4);
+  border-top: 1px solid var(--border);
+  font-size: 0.875rem;
+}
+
+.enrolment:first-child {
+  border-top: none;
+}
+
+.enrolmentTitle {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+.enrolmentDate {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 640px) {
+  .enrolment {
+    flex-wrap: wrap;
+  }
+}

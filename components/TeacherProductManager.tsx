@@ -15,6 +15,8 @@ import {
   CheckCircle2,
   Clock,
   PenLine,
+  BookOpenCheck,
+  Users,
 } from 'lucide-react';
 import { useTeacherProductsQuery, useTeacherProductMutations } from '../helpers/useTeacherProductsQuery';
 import { useListUrlParams } from '../helpers/useListUrlParams';
@@ -38,6 +40,7 @@ import { TeacherListPagination } from './TeacherListPagination';
 import { ShareAssetDialog } from './ShareAssetDialog';
 import { WithdrawReviewButton } from './WithdrawReviewButton';
 import { buildPublicAssetUrl, TEACHER_CONSOLE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
+import { performanceHref } from '../helpers/teacherPerformanceFormat';
 import { DIGITAL_PRODUCT_CATEGORIES } from '../helpers/digitalProductRules';
 import type { TeacherProductListItem } from '../endpoints/teacher/products/list_GET.schema';
 import styles from './TeacherProductManager.module.css';
@@ -140,6 +143,9 @@ const ProductRow: React.FC<ProductRowProps> = ({
   const editPath = `/teacher/products/${product.id}/edit`;
   const sales = product.totalPurchases ?? 0;
   const views = product.views ?? 0;
+  // Live or already bought: there may be readers to follow in Student performance.
+  const hasReaders = sales > 0 || state === 'published';
+  const readersPath = performanceHref('notes', { note: product.id });
 
   return (
     <li className={`${styles.row} ${selected ? styles.rowSelected : ''}`}>
@@ -211,10 +217,21 @@ const ProductRow: React.FC<ProductRowProps> = ({
             priceFormatter.format(product.price)
           )}
         </span>
-        <span className={styles.figure}>
-          {sales}
-          <span className={styles.figureUnit}> {sales === 1 ? 'sale' : 'sales'}</span>
-        </span>
+        {sales > 0 ? (
+          <Link
+            to={readersPath}
+            className={`${styles.figure} ${styles.figureLink}`}
+            title="See who bought it and how much they read"
+          >
+            {sales}
+            <span className={styles.figureUnit}> {sales === 1 ? 'sale' : 'sales'}, see who read it</span>
+          </Link>
+        ) : (
+          <span className={styles.figure}>
+            {sales}
+            <span className={styles.figureUnit}> {sales === 1 ? 'sale' : 'sales'}</span>
+          </span>
+        )}
         <span className={styles.figure}>
           {views}
           <span className={styles.figureUnit}> {views === 1 ? 'view' : 'views'}</span>
@@ -238,6 +255,23 @@ const ProductRow: React.FC<ProductRowProps> = ({
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            {hasReaders && (
+              <>
+                <DropdownMenuItem asChild className={styles.menuItem}>
+                  <Link to={readersPath}>
+                    <BookOpenCheck size={16} aria-hidden="true" />
+                    Reading progress
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className={styles.menuItem}>
+                  <Link to={performanceHref('students', { note: product.id })}>
+                    <Users size={16} aria-hidden="true" />
+                    Students
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
             {state === 'published' && (
               <>
                 <DropdownMenuItem onSelect={onShare} className={styles.menuItem}>

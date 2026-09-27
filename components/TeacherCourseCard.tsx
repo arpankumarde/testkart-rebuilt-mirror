@@ -1,7 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Edit, Trash2, Eye, Users, BookOpen, MoreVertical, Globe, AlertCircle, Share2 } from 'lucide-react';
+import { Edit, Trash2, Eye, Users, BookOpen, MoreVertical, Globe, AlertCircle, Share2, TrendingUp } from 'lucide-react';
 import { Badge } from './Badge';
+import { TeacherCardInsights } from './TeacherCardInsights';
+import { performanceHref } from '../helpers/teacherPerformanceFormat';
 import { Button } from './Button';
 import {
   DropdownMenu,
@@ -189,6 +191,16 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
           </DropdownMenu>
         </div>
       </div>
+
+      {status !== 'draft' && (
+        <TeacherCardInsights
+          itemTitle={course.title}
+          items={[
+            { to: performanceHref('courses', { course: course.id }), label: 'Progress', icon: TrendingUp },
+            { to: performanceHref('students', { course: course.id }), label: 'Students', icon: Users },
+          ]}
+        />
+      )}
 
       {status === 'published' && (
         <ShareAssetDialog

@@ -10,8 +10,10 @@ import { stripHtmlClient } from '../helpers/stripHtmlClient';
 import { Button } from './Button';
 import { Badge } from './Badge';
 import { ShareAssetDialog } from './ShareAssetDialog';
+import { TeacherCardInsights } from './TeacherCardInsights';
 import { TEACHER_CONSOLE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
 import { Placeholder } from '../helpers/placeholderImages';
+import { performanceHref } from '../helpers/teacherPerformanceFormat';
 import { useAuth } from '../helpers/useAuth';
 import styles from './TeacherLiveTestCard.module.css';
 
@@ -384,6 +386,16 @@ export const TeacherLiveTestCard: React.FC<TeacherLiveTestCardProps> = ({
             </>
           )}
         </div>
+
+        {status !== 'draft' && (
+          <TeacherCardInsights
+            itemTitle={liveTest.title}
+            items={[
+              { to: performanceHref('leaderboards', { live: liveTest.id }), label: 'Leaderboard', icon: Trophy },
+              { to: performanceHref('students', { live: liveTest.id }), label: 'Students', icon: Users },
+            ]}
+          />
+        )}
       </div>
 
       {/* Drafts are not on the public site, so there is nothing to share. */}

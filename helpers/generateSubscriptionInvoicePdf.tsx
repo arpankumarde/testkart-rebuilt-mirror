@@ -3,7 +3,7 @@ import PdfPrinter from "pdfmake";
 import type { TDocumentDefinitions, TableCell } from "pdfmake/interfaces";
 import { getRobotoFonts } from "./robotoPdfFonts";
 import { processSubscriptionInvoiceQueue } from "./invoiceNumbering";
-import { buildBilledToStack, buildInvoiceMetaBox, getInvoiceLogoDataUri } from "./invoicePdfShared";
+import { buildBilledToStack, buildInvoiceMetaBox, getInvoiceLogoDataUri, getInvoiceSupplier } from "./invoicePdfShared";
 import type { BillingDetails } from "../endpoints/account/billing-details_GET.schema";
 
 export class InvoiceNotEligibleError extends Error {}
@@ -80,10 +80,7 @@ export async function generateSubscriptionInvoicePdf(
 
   const amount = parseFloat(txn.amount as unknown as string);
 
-  const companyName = "Digikind Education Private Limited";
-  const companyAddress = "Sonvarsha Ghat, Chatham, Khagaria, Bihar, 851201";
-  const companyGstin = "10AALCD1070H1Z5";
-  const companyEmail = "account@testkart.in";
+  const { companyName, companyAddress, companyGstin, companyEmail } = getInvoiceSupplier(txn.createdAt);
   const hsnSacCode = "998314";
   const taxRate = 0.18; // 18% IGST
 

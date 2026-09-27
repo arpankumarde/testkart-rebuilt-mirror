@@ -73,6 +73,10 @@ export const LiveTestInterface: React.FC<LiveTestInterfaceProps> = ({
   const startAttemptMutation = useStartAttemptMutation(testItemId);
   const submitAttemptMutation = useSubmitAttemptMutation(attemptId ?? 0);
 
+  // The timer outlives many renders, so it reads the latest handler from a ref
+  // instead of the one it closed over (which held the answers from first load).
+  const handleAutoSubmitRef = useRef<() => void>(undefined);
+
   useEffect(() => {
     if (stage !== 'testing' || !questionsQuery.isSuccess) {
       return;
@@ -82,7 +86,7 @@ export const LiveTestInterface: React.FC<LiveTestInterfaceProps> = ({
       setTimeRemaining((prevTime) => {
         if (prevTime <= 1) {
           clearInterval(timer);
-          handleAutoSubmit();
+          handleAutoSubmitRef.current?.();
           return 0;
         }
         return prevTime - 1;
@@ -132,6 +136,10 @@ export const LiveTestInterface: React.FC<LiveTestInterfaceProps> = ({
     alert("Time's up! Your test is being submitted automatically.");
     handleSubmit();
   }, [handleSubmit]);
+
+  useEffect(() => {
+    handleAutoSubmitRef.current = handleAutoSubmit;
+  }, [handleAutoSubmit]);
 
   useEffect(() => {
     if (stage !== 'testing') return;

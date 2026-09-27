@@ -11,9 +11,12 @@ import {
   ExternalLink,
   Share2,
   MoreVertical,
+  Trophy,
 } from 'lucide-react';
 import { TeacherTest } from '../endpoints/teacher/tests/list_GET.schema';
 import { Button } from './Button';
+import { TeacherCardInsights } from './TeacherCardInsights';
+import { performanceHref } from '../helpers/teacherPerformanceFormat';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -172,6 +175,16 @@ export const TeacherTestCard: React.FC<TeacherTestCardProps> = ({
           </DropdownMenu>
         </div>
       </div>
+
+      {(isPublished || test.wasEverPublished || hasEnrollments) && (
+        <TeacherCardInsights
+          itemTitle={test.title}
+          items={[
+            { to: performanceHref('leaderboards', { series: test.id }), label: 'Leaderboard', icon: Trophy },
+            { to: performanceHref('students', { series: test.id }), label: 'Students', icon: Users },
+          ]}
+        />
+      )}
 
       {isPublished && (
         <ShareAssetDialog

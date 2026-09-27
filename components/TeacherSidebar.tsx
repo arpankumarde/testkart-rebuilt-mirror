@@ -25,6 +25,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   TrendingUp,
+  Trophy,
 } from 'lucide-react';
 import { useAuth } from '../helpers/useAuth';
 import { Button } from './Button';
@@ -114,6 +115,7 @@ const NAV_GROUPS: TeacherNavGroup[] = [
     label: 'Students',
     items: [
       { href: '/teacher/students', label: 'Enrollments', icon: Users },
+      { href: '/teacher/students/performance', label: 'Performance', icon: Trophy, badge: 'New' },
       { href: '/teacher/promo-codes', label: 'Promo Codes', icon: Tag },
       { href: '/teacher/reviews', label: 'Reviews', icon: Star },
     ],
