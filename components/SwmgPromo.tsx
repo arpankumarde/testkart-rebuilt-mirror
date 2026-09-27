@@ -7,7 +7,7 @@ import { Skeleton } from "./Skeleton";
 import { TeacherProductCard } from "./HomepageContentSection";
 import { useTeacherPublicProfileQuery } from "../helpers/useTeacherPublicProfile";
 import { computeTeacherProfileStats } from "../helpers/teacherProfileStats";
-import { formatItemPrice } from "../helpers/homepageItemUtils";
+import { formatItemPrice, itemPriceProps } from "../helpers/homepageItemUtils";
 import { Placeholder } from "../helpers/placeholderImages";
 import { swmgPromoContent, type SwmgFaqItem, type SwmgVideo } from "../helpers/swmgPromoContent";
 import styles from "./SwmgPromo.module.css";
@@ -221,8 +221,7 @@ export const SwmgCatalogSections = ({ emptyTitle, emptyText }: CatalogProps) => 
             productTitle={course.title}
             examName={course.examName}
             stats="Course"
-            priceLabel={formatItemPrice(course.price, course.discountPrice)}
-            isFree={course.price === 0}
+            {...itemPriceProps(course.price, course.discountPrice)}
             thumbnailUrl={course.thumbnailImageUrl}
             placeholderUrl={Placeholder.COURSE}
           />
@@ -240,8 +239,7 @@ export const SwmgCatalogSections = ({ emptyTitle, emptyText }: CatalogProps) => 
             productTitle={test.title}
             examName={test.examName}
             stats="Test series"
-            priceLabel={formatItemPrice(test.price, test.discountPrice)}
-            isFree={(test.discountPrice ?? test.price) === 0}
+            {...itemPriceProps(test.price, test.discountPrice)}
             thumbnailUrl={test.thumbnailUrl}
             placeholderUrl={Placeholder.TEST}
           />

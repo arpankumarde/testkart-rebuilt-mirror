@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle, Clock, Share2, BookOpen, Info } from 'lucide-react';
+import { CheckCircle, Share2, Info } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '../helpers/useAuth';
@@ -7,6 +7,7 @@ import { useCartItemsQuery, useAddToCartMutation } from '../helpers/useCartQuery
 import { useCourseEnrollment } from '../helpers/useCourseEnrollment';
 import { Button } from './Button';
 import { VideoPreview } from './VideoPreview';
+import { PurchaseCardTeacher } from './PurchaseCardTeacher';
 import { ShareAssetDialog } from './ShareAssetDialog';
 import { PUBLIC_PAGE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
 import { courseDiscountPrice } from '../helpers/coursePricing';
@@ -28,6 +29,9 @@ export type PublicCourseDetails = {
     displayName: string;
     profilePicture: string | null;
     bio?: string | null;
+    slug: string;
+    isVerified: boolean;
+    academyName?: string | null;
   };
   isEnrolled: boolean;
   studentsEnrolled?: number;
@@ -59,26 +63,9 @@ export const CourseSidebar: React.FC<CourseSidebarProps> = ({
   const cartQuery = useCartItemsQuery();
 
   const isFree = course.price === 0;
-  const totalLessons = course.sections?.reduce((sum, section) => sum + section.lessons.length, 0) || 0;
   
   // Check if this course is already in the cart
   const isInCart = !isFree && cartQuery.data?.items.some(item => item.type === 'course' && item.courseId === course.id);
-
-  const formatDuration = (minutes: number): string => {
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    
-    if (hours > 0) {
-      const hoursText = hours === 1 ? '1 hour' : `${hours} hours`;
-      if (remainingMinutes > 0) {
-        const minutesText = remainingMinutes === 1 ? '1 minute' : `${remainingMinutes} minutes`;
-        return `${hoursText} ${minutesText}`;
-      }
-      return hoursText;
-    }
-    
-    return minutes === 1 ? '1 minute' : `${minutes} minutes`;
-  };
 
   const handleAction = async () => {
     // 1. Handle unauthenticated user
@@ -178,31 +165,6 @@ export const CourseSidebar: React.FC<CourseSidebarProps> = ({
               >
                 Go to My Courses
               </Button>
-
-              <div className={styles.features}>
-                <h4 className={styles.featuresTitle}>This course includes:</h4>
-                <ul className={styles.featuresList}>
-                  {totalLessons > 0 && (
-                    <li><BookOpen size={16} /> {totalLessons} {totalLessons === 1 ? 'lesson' : 'lessons'}</li>
-                  )}
-                  {course.estimatedDurationMinutes !== null && course.estimatedDurationMinutes > 0 && (
-                    <li><Clock size={16} /> {formatDuration(course.estimatedDurationMinutes)} of content</li>
-                  )}
-                  <li><CheckCircle size={16} /> Full lifetime access</li>
-                  <li><CheckCircle size={16} /> Access on mobile and desktop</li>
-                  <li><CheckCircle size={16} /> Track your learning progress</li>
-                </ul>
-              </div>
-
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className={styles.shareButton}
-                onClick={() => setShareOpen(true)}
-              >
-                <Share2 size={18} />
-                Share this course
-              </Button>
             </>
           ) : isTeacher ? (
             <>
@@ -217,31 +179,6 @@ export const CourseSidebar: React.FC<CourseSidebarProps> = ({
                   </p>
                 </div>
               </div>
-
-              <div className={styles.features}>
-                <h4 className={styles.featuresTitle}>This course includes:</h4>
-                <ul className={styles.featuresList}>
-                  {totalLessons > 0 && (
-                    <li><BookOpen size={16} /> {totalLessons} {totalLessons === 1 ? 'lesson' : 'lessons'}</li>
-                  )}
-                  {course.estimatedDurationMinutes !== null && course.estimatedDurationMinutes > 0 && (
-                    <li><Clock size={16} /> {formatDuration(course.estimatedDurationMinutes)} of content</li>
-                  )}
-                  <li><CheckCircle size={16} /> Full lifetime access</li>
-                  <li><CheckCircle size={16} /> Access on mobile and desktop</li>
-                  <li><CheckCircle size={16} /> Track your learning progress</li>
-                </ul>
-              </div>
-
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className={styles.shareButton}
-                onClick={() => setShareOpen(true)}
-              >
-                <Share2 size={18} />
-                Share this course
-              </Button>
             </>
           ) : (
             <>
@@ -269,36 +206,27 @@ export const CourseSidebar: React.FC<CourseSidebarProps> = ({
                   {getActionText()}
                 </Button>
               </div>
-
-              
-
-              <div className={styles.features}>
-                <h4 className={styles.featuresTitle}>This course includes:</h4>
-                <ul className={styles.featuresList}>
-                  {totalLessons > 0 && (
-                    <li><BookOpen size={16} /> {totalLessons} {totalLessons === 1 ? 'lesson' : 'lessons'}</li>
-                  )}
-                  {course.estimatedDurationMinutes !== null && course.estimatedDurationMinutes > 0 && (
-                    <li><Clock size={16} /> {formatDuration(course.estimatedDurationMinutes)} of content</li>
-                  )}
-                  <li><CheckCircle size={16} /> Full lifetime access</li>
-                  <li><CheckCircle size={16} /> Access on mobile and desktop</li>
-                  <li><CheckCircle size={16} /> Track your learning progress</li>
-                </ul>
-              </div>
-
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className={styles.shareButton}
-                onClick={() => setShareOpen(true)}
-              >
-                <Share2 size={18} />
-                Share this course
-              </Button>
             </>
           )}
         </div>
+
+        <PurchaseCardTeacher
+          label="Hosted by"
+          name={course.teacher.displayName}
+          avatarUrl={course.teacher.profilePicture}
+          slug={course.teacher.slug}
+          isVerified={course.teacher.isVerified}
+          academyName={course.teacher.academyName}
+        />
+
+        <button
+          type="button"
+          className={styles.shareBar}
+          onClick={() => setShareOpen(true)}
+        >
+          <Share2 size={18} aria-hidden="true" />
+          Share this course
+        </button>
       </div>
 
       <ShareAssetDialog

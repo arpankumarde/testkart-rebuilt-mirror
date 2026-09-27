@@ -11,8 +11,15 @@
 }
 
 .heroContent {
-  max-width: 1200px;
+  max-width: 1152px;
   margin: 0 auto;
+}
+
+/* The detail page lays its purchase card over the right side of the hero. */
+@media (min-width: 992px) {
+  .heroContent {
+    padding-right: calc(380px + var(--spacing-12));
+  }
 }
 
 .breadcrumb {

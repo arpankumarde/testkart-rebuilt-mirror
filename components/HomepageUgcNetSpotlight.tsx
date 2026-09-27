@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { ChevronRight, FileText } from "lucide-react";
 import { useTeacherPublicProfileQuery } from "../helpers/useTeacherPublicProfile";
 import { swmgPromoContent as content } from "../helpers/swmgPromoContent";
-import { formatItemPrice } from "../helpers/homepageItemUtils";
+import { bundlePriceProps, itemPriceProps, type ItemPriceProps } from "../helpers/homepageItemUtils";
 import { Placeholder } from "../helpers/placeholderImages";
 import { Skeleton } from "./Skeleton";
 import styles from "./HomepageUgcNetSpotlight.module.css";
@@ -18,14 +18,12 @@ const LEVEL_LABEL: Record<string, string> = {
   advanced: "Advanced",
 };
 
-type SpotlightItem = {
+type SpotlightItem = ItemPriceProps & {
   key: string;
   kind: string;
   title: string;
   link: string;
   meta: string | null;
-  priceLabel: string;
-  isFree: boolean;
   thumbnailUrl: string | null;
   notesCover?: { pageCount: number | null; language: string | null };
 };
@@ -51,8 +49,7 @@ export function HomepageUgcNetSpotlight() {
         title: course.title,
         link: `/course/${course.slug}`,
         meta: joinMeta([course.language, course.level ? LEVEL_LABEL[course.level] : null]),
-        priceLabel: formatItemPrice(course.price, course.discountPrice),
-        isFree: course.price === 0,
+        ...itemPriceProps(course.price, course.discountPrice),
         thumbnailUrl: course.thumbnailImageUrl ?? Placeholder.COURSE,
       })),
       ...bundles.map((bundle) => ({
@@ -61,8 +58,7 @@ export function HomepageUgcNetSpotlight() {
         title: bundle.title,
         link: `/bundles/${bundle.slug}`,
         meta: `${bundle.itemCount} ${bundle.itemCount === 1 ? "item" : "items"}`,
-        priceLabel: formatItemPrice(bundle.price),
-        isFree: bundle.price === 0,
+        ...bundlePriceProps(bundle.price, bundle.originalPrice),
         thumbnailUrl: bundle.thumbnailUrl ?? Placeholder.COURSE,
       })),
       ...tests.map((test) => ({
@@ -71,8 +67,7 @@ export function HomepageUgcNetSpotlight() {
         title: test.title,
         link: `/mock-test/${test.slug}`,
         meta: test.examName ?? null,
-        priceLabel: formatItemPrice(test.price, test.discountPrice),
-        isFree: (test.discountPrice ?? test.price) === 0,
+        ...itemPriceProps(test.price, test.discountPrice),
         thumbnailUrl: test.thumbnailUrl ?? Placeholder.TEST,
       })),
       ...liveTests.map((liveTest) => ({
@@ -81,8 +76,7 @@ export function HomepageUgcNetSpotlight() {
         title: liveTest.title,
         link: `/mock-test/live/${liveTest.id}`,
         meta: liveTest.examName ?? null,
-        priceLabel: formatItemPrice(liveTest.price, liveTest.discountPrice),
-        isFree: liveTest.price === 0,
+        ...itemPriceProps(liveTest.price, liveTest.discountPrice),
         thumbnailUrl: liveTest.thumbnailUrl ?? Placeholder.LIVE,
       })),
       ...products.map((product) => ({
@@ -91,8 +85,7 @@ export function HomepageUgcNetSpotlight() {
         title: product.title,
         link: `/study-notes/${product.slug}`,
         meta: product.fileCount ? `${product.fileCount} ${product.fileCount === 1 ? "file" : "files"}` : null,
-        priceLabel: formatItemPrice(product.price),
-        isFree: product.price === 0,
+        ...itemPriceProps(product.price),
         thumbnailUrl: null,
         notesCover: { pageCount: product.pageCount ?? null, language: product.language ?? null },
       })),
@@ -196,7 +189,10 @@ function SpotlightRow({ item }: { item: SpotlightItem }) {
         <span className={styles.rowTitle}>{item.title}</span>
         <span className={styles.rowFooter}>
           {item.meta && <span className={styles.meta}>{item.meta}</span>}
-          <span className={item.isFree ? styles.priceFree : styles.price}>{item.priceLabel}</span>
+          <span className={styles.priceGroup}>
+            {item.originalPriceLabel && <s className={styles.originalPrice}>{item.originalPriceLabel}</s>}
+            <span className={item.isFree ? styles.priceFree : styles.price}>{item.priceLabel}</span>
+          </span>
         </span>
       </div>
 

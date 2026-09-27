@@ -26,7 +26,7 @@ import {
 } from "react-icons/fa6";
 import type { OutputType } from "../endpoints/teachers/profile_GET.schema";
 import { computeTeacherProfileStats, formatStatCount } from "../helpers/teacherProfileStats";
-import { formatItemPrice } from "../helpers/homepageItemUtils";
+import { bundlePriceProps, formatItemPrice, itemPriceProps } from "../helpers/homepageItemUtils";
 import { Placeholder } from "../helpers/placeholderImages";
 import { EXPERT_PROFILE_SHARE_CAMPAIGN } from "../helpers/shareLinks";
 import { TeacherProductCard } from "./HomepageContentSection";
@@ -223,8 +223,7 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
       link={`/course/${course.slug}`}
       productTitle={course.title}
       examName={course.examName}
-      priceLabel={formatItemPrice(course.price, course.discountPrice)}
-      isFree={course.price === 0}
+      {...itemPriceProps(course.price, course.discountPrice)}
       thumbnailUrl={course.thumbnailImageUrl}
       placeholderUrl={Placeholder.COURSE}
     />
@@ -238,8 +237,7 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
       productTitle={test.title}
       examName={test.examName}
       stats={test.rating != null ? `${test.rating.toFixed(1)} rating` : undefined}
-      priceLabel={formatItemPrice(test.price, test.discountPrice)}
-      isFree={(test.discountPrice ?? test.price) === 0}
+      {...itemPriceProps(test.price, test.discountPrice)}
       thumbnailUrl={test.thumbnailUrl}
       placeholderUrl={Placeholder.TEST}
     />

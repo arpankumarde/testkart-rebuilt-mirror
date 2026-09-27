@@ -8,7 +8,7 @@ import { useBundlesQuery } from "../helpers/useBundlesQuery";
 import { TeacherProductCard } from "./HomepageContentSection";
 import type { BundleListItem } from "../endpoints/bundles/list_GET.schema";
 import { Placeholder } from "../helpers/placeholderImages";
-import { formatItemPrice } from "../helpers/homepageItemUtils";
+import { formatItemPrice, itemPriceProps } from "../helpers/homepageItemUtils";
 import styles from "./ExamProductsSection.module.css";
 
 const PREVIEW_LIMIT = 4;
@@ -126,8 +126,7 @@ export const ExamProductsSection: React.FC<ExamProductsSectionProps> = ({
               teacherIsVerified={test.teacherIsVerified}
               productTitle={test.title}
               examName={test.examName}
-              priceLabel={formatItemPrice(test.price, test.discountPrice)}
-              isFree={(test.discountPrice ?? test.price) === 0}
+              {...itemPriceProps(test.price, test.discountPrice)}
               thumbnailUrl={test.thumbnailUrl}
               placeholderUrl={Placeholder.TEST}
             />
@@ -188,8 +187,7 @@ export const ExamProductsSection: React.FC<ExamProductsSectionProps> = ({
               teacherSlug={course.teacherSlug}
               teacherIsVerified={course.teacherIsVerified}
               productTitle={course.title}
-              priceLabel={formatItemPrice(course.price, course.discountPrice)}
-              isFree={course.price === 0}
+              {...itemPriceProps(course.price, course.discountPrice)}
               thumbnailUrl={course.thumbnailImageUrl || course.thumbnailUrl}
               placeholderUrl={Placeholder.COURSE}
             />

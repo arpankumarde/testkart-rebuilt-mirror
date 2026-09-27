@@ -23,7 +23,7 @@ import { useTrackStorefrontView } from '../helpers/trackStorefrontEvent';
 import styles from "./course.$courseSlug.module.css";
 
 const CourseDetailsSkeleton: React.FC = () => (
-  <div>
+  <div className={styles.layout}>
     <div className={styles.heroSkeleton}>
       <div className={styles.heroContent}>
         <Skeleton style={{ height: "1rem", width: "200px", marginBottom: "var(--spacing-3)" }} />
@@ -244,9 +244,8 @@ export default function CourseDetailsPage() {
         </script>
       )}
 
-      <CourseHero course={course} slug={courseSlug!} />
-
-      
+      <div className={styles.layout}>
+      <CourseHero course={course} />
 
       {/* Main Content */}
       <div className={styles.contentWrapper}>
@@ -406,6 +405,7 @@ export default function CourseDetailsPage() {
             slug={courseSlug}
           />
         </div>
+      </div>
       </div>
 
       {canReview && (

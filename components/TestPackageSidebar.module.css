@@ -130,6 +130,38 @@
   padding: var(--spacing-6);
 }
 
+.pricingContent > :last-child {
+  margin-bottom: 0;
+}
+
+.shareBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  width: 100%;
+  min-height: 52px;
+  padding: var(--spacing-3) var(--spacing-4);
+  border: none;
+  border-top: 1px solid var(--border);
+  background-color: var(--muted);
+  color: var(--surface-foreground);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--animation-duration-fast);
+}
+
+.shareBar:hover {
+  color: var(--tk-brand-text);
+}
+
+.shareBar:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
 @media (max-width: 768px) {
   .enrolledBanner {
     font-size: 0.875rem;
@@ -277,58 +309,6 @@
   min-height: 44px;
 }
 
-.features {
-  margin-bottom: var(--spacing-4);
-}
-
-.featuresTitle {
-  font-weight: 600;
-  font-size: 0.9375rem;
-  margin: 0 0 var(--spacing-3);
-  color: var(--surface-foreground);
-}
-
-@media (max-width: 576px) {
-  .featuresTitle {
-    font-size: 0.875rem;
-    margin-bottom: var(--spacing-2);
-  }
-}
-
-.featuresList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-2);
-}
-
-.featuresList li {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  font-size: 0.875rem;
-  color: var(--muted-foreground);
-  line-height: 1.5;
-}
-
-@media (max-width: 576px) {
-  .featuresList li {
-    font-size: 0.8125rem;
-  }
-}
-
-.featuresList li svg {
-  color: var(--primary);
-  flex-shrink: 0;
-}
-
-.shareButton {
-  width: 100%;
-  margin-top: var(--spacing-2);
-}
-
 .couponInput {
   display: flex;
   gap: var(--spacing-2);
@@ -349,10 +329,6 @@
 @media (max-width: 576px) {
   .couponInput input {
     font-size: 0.8125rem;
-  }
-
-  .shareButton {
-    margin-top: var(--spacing-1);
   }
 }
 
@@ -420,19 +396,6 @@
 
   .ctaButtons {
     margin-bottom: var(--spacing-3);
-  }
-
-  .features {
-    margin-bottom: var(--spacing-2);
-  }
-
-  .featuresList {
-    gap: var(--spacing-1);
-  }
-
-  .featuresList li svg {
-    width: 14px;
-    height: 14px;
   }
 
   .couponInput {

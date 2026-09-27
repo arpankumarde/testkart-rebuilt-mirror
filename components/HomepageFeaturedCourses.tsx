@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { HomepageFeaturedCourseItem } from "../endpoints/homepage/data_GET.schema";
-import { formatItemPrice } from "../helpers/homepageItemUtils";
+import { itemPriceProps } from "../helpers/homepageItemUtils";
 import { Placeholder } from "../helpers/placeholderImages";
 import { Avatar, AvatarImage, AvatarFallback } from "./Avatar";
 import { VerifiedBadge } from "./VerifiedBadge";
@@ -135,7 +135,7 @@ export function HomepageFeaturedCourses({ courses, isLoading = false }: Homepage
 }
 
 function FeaturedCourseCard({ course }: { course: HomepageFeaturedCourseItem }) {
-  const isFree = course.price === 0;
+  const { priceLabel, originalPriceLabel, isFree } = itemPriceProps(course.price, course.discountPrice);
 
   return (
     <Link to={`/course/${course.slug}`} className={styles.card}>
@@ -169,8 +169,9 @@ function FeaturedCourseCard({ course }: { course: HomepageFeaturedCourseItem }) 
             </span>
             {course.level && <span>{LEVEL_LABEL[course.level]}</span>}
           </span>
-          <span className={isFree ? styles.priceFree : styles.price}>
-            {formatItemPrice(course.price, course.discountPrice)}
+          <span className={styles.priceGroup}>
+            {originalPriceLabel && <s className={styles.originalPrice}>{originalPriceLabel}</s>}
+            <span className={isFree ? styles.priceFree : styles.price}>{priceLabel}</span>
           </span>
         </div>
       </div>

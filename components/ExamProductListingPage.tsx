@@ -36,7 +36,7 @@ import { useShopProductsQuery } from "../helpers/useShopQuery";
 import { usePublicCoursesQuery } from "../helpers/useStudentCoursesQuery";
 import { useBundlesQuery } from "../helpers/useBundlesQuery";
 import { Placeholder } from "../helpers/placeholderImages";
-import { formatItemPrice } from "../helpers/homepageItemUtils";
+import { formatItemPrice, itemPriceProps } from "../helpers/homepageItemUtils";
 import { wrapContentTables } from "../helpers/contentTables";
 import { sanitizeHtml } from "../helpers/sanitizeHtml";
 import { getPublicExamContent } from "../endpoints/exam-content/get_GET.schema";
@@ -297,8 +297,7 @@ const MockTestsBody: React.FC<{ examId: number; examName: string }> = ({ examId,
             productTitle={test.title}
             examName={test.examName}
             stats={test.rating != null ? `⭐ ${test.rating.toFixed(2)}` : undefined}
-            priceLabel={formatItemPrice(test.price, test.discountPrice)}
-            isFree={(test.discountPrice ?? test.price) === 0}
+            {...itemPriceProps(test.price, test.discountPrice)}
             thumbnailUrl={test.thumbnailUrl}
             placeholderUrl={Placeholder.TEST}
           />
@@ -405,8 +404,7 @@ const CoursesBody: React.FC<{ examId: number; examName: string }> = ({ examId, e
             teacherSlug={course.teacherSlug}
             teacherIsVerified={course.teacherIsVerified}
             productTitle={course.title}
-            priceLabel={formatItemPrice(course.price, course.discountPrice)}
-            isFree={course.price === 0}
+            {...itemPriceProps(course.price, course.discountPrice)}
             thumbnailUrl={course.thumbnailImageUrl || course.thumbnailUrl}
             placeholderUrl={Placeholder.COURSE}
           />

@@ -363,6 +363,19 @@ a.row:hover .rowTitle {
   color: var(--card-foreground);
 }
 
+.priceGroup {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--spacing-1);
+  white-space: nowrap;
+}
+
+.originalPrice {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--card-foreground);
+}
+
 .price,
 .priceFree {
   font-size: 0.9375rem;

@@ -5,8 +5,14 @@
 }
 
 .heroSkeleton .heroContent {
-  max-width: 1200px;
+  max-width: 1152px;
   margin: 0 auto;
+}
+
+/* Hero, stats band and content share one positioned box so the purchase
+   card can start at the top of the hero and stay sticky to the end. */
+.layout {
+  position: relative;
 }
 
 /* Stats Card */
@@ -17,7 +23,7 @@
 }
 
 .statsContent {
-  max-width: 1200px;
+  max-width: 1152px;
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -184,9 +190,24 @@
 
 
 
-/* Sidebar Column */
-.sidebarColumn {
-  /* No position property - let children use sticky */
+@media (min-width: 992px) {
+  .heroSkeleton .heroContent,
+  .statsContent {
+    padding-right: calc(380px + var(--spacing-12));
+  }
+
+  /* Out of the grid flow: the rail runs from the hero top to the content
+     bottom on the right edge of the content column, and the card inside
+     it is sticky. */
+  .sidebarColumn {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: max(var(--spacing-6), calc((100% - 1152px) / 2));
+    width: 380px;
+    padding-top: var(--spacing-12);
+    padding-bottom: var(--spacing-8);
+  }
 }
 
 /* Error Container */

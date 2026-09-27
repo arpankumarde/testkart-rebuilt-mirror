@@ -236,13 +236,25 @@
   flex: 1 1 auto;
 }
 
-.priceTag {
-  font-weight: 700;
-  font-size: 0.875rem;
+.priceGroup {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--spacing-1);
   white-space: nowrap;
   margin-left: auto;
   padding-left: var(--spacing-2);
   flex: 0 0 auto;
+}
+
+.priceTag {
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.originalPrice {
+  font-weight: 500;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
 }
 
 .priceTagFree {
@@ -377,7 +389,8 @@
     font-size: 0.625rem;
   }
 
-  .priceTag {
+  .priceTag,
+  .originalPrice {
     font-size: 0.625rem;
   }
 }

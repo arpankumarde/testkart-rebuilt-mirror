@@ -23,6 +23,8 @@ interface TeacherProductCardProps {
   thumbnailUrl?: string | null;
   placeholderUrl?: string;
   priceLabel?: string;
+  // List price shown struck through beside priceLabel when a discount applies.
+  originalPriceLabel?: string;
   isFree?: boolean;
   examName?: string | null;
 }
@@ -40,6 +42,7 @@ export function TeacherProductCard({
   thumbnailUrl,
   placeholderUrl,
   priceLabel,
+  originalPriceLabel,
   isFree,
   examName,
 }: TeacherProductCardProps) {
@@ -95,8 +98,11 @@ export function TeacherProductCard({
         <p className={styles.productStats}>
           <span className={styles.statsText}>{stats}</span>
           {priceLabel && (
-            <span className={`${styles.priceTag} ${isFree ? styles.priceTagFree : styles.priceTagPaid}`}>
-              {priceLabel}
+            <span className={styles.priceGroup}>
+              {originalPriceLabel && <s className={styles.originalPrice}>{originalPriceLabel}</s>}
+              <span className={`${styles.priceTag} ${isFree ? styles.priceTagFree : styles.priceTagPaid}`}>
+                {priceLabel}
+              </span>
             </span>
           )}
         </p>

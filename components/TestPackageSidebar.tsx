@@ -10,6 +10,7 @@ import { ShareAssetDialog } from './ShareAssetDialog';
 import { PUBLIC_PAGE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
 import { Placeholder } from '../helpers/placeholderImages';
 import { VideoPreview } from './VideoPreview';
+import { PurchaseCardTeacher } from './PurchaseCardTeacher';
 import type { PackageDetails } from '../endpoints/tests/details_GET.schema';
 import styles from './TestPackageSidebar.module.css';
 
@@ -155,25 +156,6 @@ export const TestPackageSidebar: React.FC<TestPackageSidebarProps> = ({ classNam
                     </p>
                   </div>
                 </div>
-
-                <div className={styles.features}>
-                  <h4 className={styles.featuresTitle}>This package includes:</h4>
-                  <ul className={styles.featuresList}>
-                    <li><CheckCircle size={16} /> Full lifetime access</li>
-                    <li><CheckCircle size={16} /> Access on mobile and desktop</li>
-                    <li><CheckCircle size={16} /> Detailed performance analytics</li>
-                  </ul>
-                </div>
-
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  className={styles.shareButton}
-                  onClick={() => setShareOpen(true)}
-                >
-                  <Share2 size={18} />
-                  Share this test series
-                </Button>
               </>
             ) : isEnrolled ? (
               <>
@@ -188,25 +170,6 @@ export const TestPackageSidebar: React.FC<TestPackageSidebarProps> = ({ classNam
                   onClick={() => navigate('/student/dashboard')}
                 >
                   Go to My Tests
-                </Button>
-
-                <div className={styles.features}>
-                  <h4 className={styles.featuresTitle}>This package includes:</h4>
-                  <ul className={styles.featuresList}>
-                    <li><CheckCircle size={16} /> Full lifetime access</li>
-                    <li><CheckCircle size={16} /> Access on mobile and desktop</li>
-                    <li><CheckCircle size={16} /> Detailed performance analytics</li>
-                  </ul>
-                </div>
-
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  className={styles.shareButton}
-                  onClick={() => setShareOpen(true)}
-                >
-                  <Share2 size={18} />
-                  Share this test series
                 </Button>
               </>
             ) : (
@@ -252,28 +215,27 @@ export const TestPackageSidebar: React.FC<TestPackageSidebarProps> = ({ classNam
                   }
                 </Button>
                 </div>
-
-                <div className={styles.features}>
-                <h4 className={styles.featuresTitle}>This package includes:</h4>
-                <ul className={styles.featuresList}>
-                  <li><CheckCircle size={16} /> Full lifetime access</li>
-                  <li><CheckCircle size={16} /> Access on mobile and desktop</li>
-                  <li><CheckCircle size={16} /> Detailed performance analytics</li>
-                </ul>
-                </div>
-
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  className={styles.shareButton}
-                  onClick={() => setShareOpen(true)}
-                >
-                  <Share2 size={18} />
-                  Share this test series
-                </Button>
               </>
             )}
           </div>
+
+          <PurchaseCardTeacher
+            label="Created by"
+            name={testPackage.teacherName}
+            avatarUrl={testPackage.teacherAvatarUrl}
+            slug={testPackage.teacherSlug}
+            isVerified={testPackage.teacherIsVerified}
+            academyName={testPackage.teacherAcademyName}
+          />
+
+          <button
+            type="button"
+            className={styles.shareBar}
+            onClick={() => setShareOpen(true)}
+          >
+            <Share2 size={18} aria-hidden="true" />
+            Share this test series
+          </button>
       </div>
 
       <ShareAssetDialog

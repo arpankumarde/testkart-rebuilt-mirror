@@ -10,7 +10,7 @@ import { useDebounce } from '../helpers/useDebounce';
 import { SearchResultItem, SearchTeacherItem } from '../endpoints/homepage/search_GET.schema';
 import { TeacherProductCard } from '../components/HomepageContentSection';
 import { Placeholder } from '../helpers/placeholderImages';
-import { formatItemPrice } from '../helpers/homepageItemUtils';
+import { bundlePriceProps, formatItemPrice, itemPriceProps } from '../helpers/homepageItemUtils';
 import styles from './search.module.css';
 
 const TeacherResultCard = ({ teacher }: { teacher: SearchTeacherItem }) => {
@@ -187,8 +187,7 @@ export default function SearchPage() {
                         teacherIsVerified={test.teacherIsVerified}
                         productTitle={test.title}
                         examName={test.examName}
-                        priceLabel={formatItemPrice(test.price, test.discountPrice)}
-                        isFree={(test.discountPrice ?? test.price) === 0}
+                        {...itemPriceProps(test.price, test.discountPrice)}
                         thumbnailUrl={test.thumbnailUrl}
                         placeholderUrl={Placeholder.TEST}
                       />
@@ -236,8 +235,7 @@ export default function SearchPage() {
                         teacherSlug={course.teacherSlug}
                         teacherIsVerified={course.teacherIsVerified}
                         productTitle={course.title}
-                        priceLabel={formatItemPrice(course.price, course.discountPrice)}
-                        isFree={course.price === 0}
+                        {...itemPriceProps(course.price, course.discountPrice)}
                         thumbnailUrl={course.thumbnailUrl}
                         placeholderUrl={Placeholder.COURSE}
                       />
@@ -286,8 +284,7 @@ export default function SearchPage() {
                         teacherIsVerified={bundle.teacherIsVerified}
                         productTitle={bundle.title}
                         stats={`${bundle.itemCount} items`}
-                        priceLabel={formatItemPrice(bundle.price)}
-                        isFree={bundle.price === 0}
+                        {...bundlePriceProps(bundle.price, bundle.originalPrice)}
                         thumbnailUrl={bundle.thumbnailUrl}
                         placeholderUrl={Placeholder.TEST}
                       />

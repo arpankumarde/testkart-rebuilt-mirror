@@ -24,7 +24,7 @@ import { useTrackStorefrontView } from "../helpers/trackStorefrontEvent";
 import styles from "./mock-test.$testSlug.module.css";
 
 const TestDetailsSkeleton: React.FC = () => (
-  <div>
+  <div className={styles.layout}>
     <div className={styles.heroSkeleton}>
       <div className={styles.heroContent}>
         <Skeleton style={{ height: "1rem", width: "200px", marginBottom: "var(--spacing-3)" }} />
@@ -264,6 +264,7 @@ const TestDetailsPage: React.FC = () => {
         </script>
       )}
 
+      <div className={styles.layout}>
       <TestPackageHero 
         testPackage={testPackage} 
         totalQuestions={totalQuestions}
@@ -398,6 +399,7 @@ const TestDetailsPage: React.FC = () => {
         <div ref={sidebarRef} className={styles.sidebarColumn}>
           <TestPackageSidebar testPackage={testPackage} />
         </div>
+      </div>
       </div>
 
       <MobileStickyPurchaseBar 

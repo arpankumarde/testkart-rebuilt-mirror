@@ -248,6 +248,20 @@
   min-width: 0;
 }
 
+.priceGroup {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--spacing-1);
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.originalPrice {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
 .price,
 .priceFree {
   flex: 0 0 auto;

@@ -5,7 +5,6 @@ import { Badge } from './Badge';
 import { VerifiedBadge } from './VerifiedBadge';
 import type { PackageDetails } from '../endpoints/tests/details_GET.schema';
 import { VideoPreview } from "./VideoPreview";
-import { AssetTopRow } from "./AssetTopRow";
 import styles from './TestPackageHero.module.css';
 
 const StarRating: React.FC<{ rating: number; reviewsCount: number }> = ({ rating, reviewsCount }) => {
@@ -61,13 +60,11 @@ export const TestPackageHero: React.FC<TestPackageHeroProps> = ({ className, tes
   return (
     <div className={`${styles.hero} ${className || ''}`}>
       <div className={styles.heroContent}>
-        <AssetTopRow kind="test-series" handle={testPackage.slug} title={testPackage.title}>
-          <nav className={styles.breadcrumb}>
-            <Link to="/mock-test">Mock Tests</Link>
-            <ChevronRight size={14} />
-            <span>{testPackage.title}</span>
-          </nav>
-        </AssetTopRow>
+        <nav className={styles.breadcrumb}>
+          <Link to="/mock-test">Mock Tests</Link>
+          <ChevronRight size={14} />
+          <span>{testPackage.title}</span>
+        </nav>
 
         <div className={styles.heroMain}>
           <div>

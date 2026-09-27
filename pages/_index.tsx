@@ -9,7 +9,7 @@ import { HomepageUgcNetSpotlight } from "../components/HomepageUgcNetSpotlight";
 import { HomepageTeacherSpotlight } from "../components/HomepageTeacherSpotlight";
 import { HomepageContentSection, TeacherProductCard } from "../components/HomepageContentSection";
 import type { HomepageTestItem, HomepageCourseItem, HomepageNoteItem } from "../endpoints/homepage/data_GET.schema";
-import { formatItemPrice } from "../helpers/homepageItemUtils";
+import { formatItemPrice, itemPriceProps } from "../helpers/homepageItemUtils";
 import { Placeholder } from "../helpers/placeholderImages";
 import styles from "./_index.module.css";
 
@@ -98,8 +98,7 @@ const HomePage: React.FC = () => {
                   productTitle={item.title}
                   examName={item.examName}
                   stats={statsParts.join(" · ")}
-                  priceLabel={formatItemPrice(item.price, item.discountPrice)}
-                  isFree={(item.discountPrice ?? item.price) === 0}
+                  {...itemPriceProps(item.price, item.discountPrice)}
                   thumbnailUrl={item.thumbnailUrl}
                   placeholderUrl={Placeholder.TEST}
                 />
@@ -129,8 +128,7 @@ const HomePage: React.FC = () => {
                 teacherIsVerified={item.teacherIsVerified}
                 productTitle={item.title}
                 stats={`${item.totalLessons} lessons`}
-                priceLabel={formatItemPrice(item.price, item.discountPrice)}
-                isFree={item.price === 0}
+                {...itemPriceProps(item.price, item.discountPrice)}
                 thumbnailUrl={item.thumbnailUrl}
                 placeholderUrl={Placeholder.COURSE}
               />

@@ -9,7 +9,7 @@ import { Button } from "../components/Button";
 import { usePublicCoursesQuery } from "../helpers/useStudentCoursesQuery";
 import { TeacherProductCard } from "../components/HomepageContentSection";
 import { Placeholder } from "../helpers/placeholderImages";
-import { formatItemPrice } from "../helpers/homepageItemUtils";
+import { itemPriceProps } from "../helpers/homepageItemUtils";
 import { Skeleton } from "../components/Skeleton";
 import {
   Select,
@@ -186,8 +186,7 @@ const CoursesPage: React.FC = () => {
             teacherSlug={course.teacherSlug}
             teacherIsVerified={course.teacherIsVerified}
             productTitle={course.title}
-            priceLabel={formatItemPrice(course.price, course.discountPrice)}
-            isFree={course.price === 0}
+            {...itemPriceProps(course.price, course.discountPrice)}
             thumbnailUrl={course.thumbnailImageUrl || course.thumbnailUrl}
             placeholderUrl={Placeholder.COURSE}
           />

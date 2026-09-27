@@ -7,7 +7,7 @@ import { Button } from "../components/Button";
 import { useTestsQuery } from "../helpers/useTestsQuery";
 import { TeacherProductCard } from "../components/HomepageContentSection";
 import { Placeholder } from "../helpers/placeholderImages";
-import { formatItemPrice } from "../helpers/homepageItemUtils";
+import { itemPriceProps } from "../helpers/homepageItemUtils";
 import { Skeleton } from "../components/Skeleton";
 import { Search } from "lucide-react";
 import { Input } from "../components/Input";
@@ -228,8 +228,7 @@ const OnlineMockTestsPage: React.FC = () => {
             productTitle={test.title}
             examName={test.examName}
             stats={test.rating ? `⭐ ${test.rating}` : undefined}
-            priceLabel={formatItemPrice(test.price, test.discountPrice)}
-            isFree={(test.discountPrice ?? test.price) === 0}
+            {...itemPriceProps(test.price, test.discountPrice)}
             thumbnailUrl={test.thumbnailUrl}
             placeholderUrl={Placeholder.TEST}
           />

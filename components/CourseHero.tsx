@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { ChevronRight, Users, Clock, Award, BookOpen } from 'lucide-react';
 import { Badge } from './Badge';
 import { VerifiedBadge } from './VerifiedBadge';
-import { AssetTopRow } from './AssetTopRow';
 import styles from './CourseHero.module.css';
 
 export type PublicCourseDetails = {
@@ -27,12 +26,10 @@ export type PublicCourseDetails = {
 
 interface CourseHeroProps {
   course: PublicCourseDetails;
-  /** Public URL handle; the details payload carries no slug. */
-  slug: string;
   className?: string;
 }
 
-export const CourseHero: React.FC<CourseHeroProps> = ({ course, slug, className }) => {
+export const CourseHero: React.FC<CourseHeroProps> = ({ course, className }) => {
   const totalLessons = course.sections?.reduce((sum, section) => sum + section.lessons.length, 0) || 0;
   
   const formatDuration = (minutes: number): string => {
@@ -70,13 +67,11 @@ export const CourseHero: React.FC<CourseHeroProps> = ({ course, slug, className 
   return (
     <div className={`${styles.hero} ${className || ''}`}>
       <div className={styles.heroContent}>
-        <AssetTopRow kind="course" handle={slug} title={course.title} hideShareOnMobile>
-          <nav className={styles.breadcrumb}>
-            <Link to="/course">Courses</Link>
-            <ChevronRight size={14} />
-            <span>{course.title}</span>
-          </nav>
-        </AssetTopRow>
+        <nav className={styles.breadcrumb}>
+          <Link to="/course">Courses</Link>
+          <ChevronRight size={14} />
+          <span>{course.title}</span>
+        </nav>
 
         <div className={styles.heroMain}>
           <div>
