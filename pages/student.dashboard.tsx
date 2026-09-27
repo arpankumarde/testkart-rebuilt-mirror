@@ -5,11 +5,13 @@ import { useAuth } from "../helpers/useAuth";
 import { useEnrolledTestsQuery } from "../helpers/useEnrolledTestsQuery";
 import { useStudentEnrolledCoursesQuery } from "../helpers/useStudentCoursesQuery";
 import { useStudentEnrolledLiveTestsQuery } from "../helpers/useStudentEnrolledLiveTestsQuery";
+import { useStudentPurchasesQuery } from "../helpers/useShopQuery";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
 import { EnrolledTestCard } from "../components/EnrolledTestCard";
 import { EnrolledCourseCard } from "../components/EnrolledCourseCard";
 import { EnrolledLiveTestCard } from "../components/EnrolledLiveTestCard";
+import { StudentProductCard } from "../components/StudentProductCard";
 import { StudentProfileCompletionCard } from "../components/StudentProfileCompletionCard";
 import { BRAND_APP_ICON } from "../helpers/brandAssets";
 import {
@@ -20,6 +22,7 @@ import {
   BookOpen,
   GraduationCap,
   ChevronRight,
+  FileText,
   Radio,
   RotateCw,
   X,
@@ -98,10 +101,21 @@ const StudentDashboardPage: React.FC = () => {
     error: liveTestsError,
     refetch: refetchLiveTests,
   } = useStudentEnrolledLiveTestsQuery();
+  // Default params, so this shares its cache with /student/shop.
+  const {
+    data: notesData,
+    isFetching: isLoadingNotes,
+    error: notesError,
+    refetch: refetchNotes,
+  } = useStudentPurchasesQuery();
 
   const enrolledTests = enrolledData?.enrolledTests ?? [];
   const enrolledCourses = coursesData?.enrolledCourses ?? [];
   const enrolledLiveTests = liveTestsData?.enrolledLiveTests ?? [];
+  const purchasedNotes = notesData?.purchases ?? [];
+  // The response carries no total, so a full first page is not an exact count.
+  const notesCount =
+    notesData && purchasedNotes.length < notesData.limit ? purchasedNotes.length : undefined;
 
   const ongoingTests = useMemo(
     () => enrolledTests.filter((test) => test.completedItems < test.totalItems),
@@ -345,6 +359,55 @@ const StudentDashboardPage: React.FC = () => {
     );
   };
 
+  const renderNotesContent = () => {
+    if (isLoadingNotes && !notesData) {
+      return (
+        <div className={styles.coursesGrid}>
+          {Array.from({ length: 2 }).map((_, index) => (
+            <Skeleton key={index} className={styles.cardSkeleton} />
+          ))}
+        </div>
+      );
+    }
+
+    if (notesError) {
+      return (
+        <LoadError
+          message="We could not load your study notes."
+          onRetry={() => refetchNotes()}
+        />
+      );
+    }
+
+    if (purchasedNotes.length === 0) {
+      return (
+        <div className={styles.stateBlock}>
+          <span className={styles.stateIcon} aria-hidden="true">
+            <FileText size={22} />
+          </span>
+          <p className={styles.stateTitle}>No study notes yet</p>
+          <p className={styles.stateHint}>
+            Study notes you buy open here, readable any time inside Testkart.
+          </p>
+          <Button asChild size="sm">
+            <Link to="/study-notes">
+              Browse study notes <ArrowRight size={15} />
+            </Link>
+          </Button>
+        </div>
+      );
+    }
+
+    // A preview of the latest purchases; the full list lives on /student/shop via "View all".
+    return (
+      <div className={styles.coursesGrid}>
+        {purchasedNotes.slice(0, 4).map((purchase) => (
+          <StudentProductCard key={purchase.purchaseId} purchase={purchase} />
+        ))}
+      </div>
+    );
+  };
+
   const firstName = user.displayName?.split(" ")[0] || user.displayName;
 
   return (
@@ -437,6 +500,11 @@ const StudentDashboardPage: React.FC = () => {
           to="/student/courses"
         />
         {renderCoursesContent()}
+      </section>
+
+      <section className={styles.panel}>
+        <SectionHeader title="Your study notes" count={notesCount} to="/student/shop" />
+        {renderNotesContent()}
       </section>
 
       {showAppBanner && (
