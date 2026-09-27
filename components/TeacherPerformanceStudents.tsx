@@ -16,6 +16,9 @@ import {
   ariaSort,
   PerformanceFacts,
   PerformanceFact,
+  openRow,
+  OpenCell,
+  OpenHead,
 } from "./TeacherPerformanceKit";
 import { useTeacherPerformanceStudents } from "../helpers/useTeacherPerformance";
 import { adminFormat } from "../helpers/adminFormat";
@@ -91,7 +94,7 @@ export const TeacherPerformanceStudents = ({ toolbar, scope, onClearScope, onOpe
 
   const scopeKind = data?.scope?.kind ?? null;
   const totals = data?.totals;
-  const showTests = scopeKind !== "course" && scopeKind !== "note";
+  const showTests = scopeKind !== "course" && scopeKind !== "note" && (scopeKind !== null || (totals?.testTakers ?? 0) > 0);
   // On the full roster a column only shows once some student has something in it.
   const showCourses = scopeKind === "course" || (scopeKind === null && (totals?.courseLearners ?? 0) > 0);
   const showNotes = scopeKind === "note" || (scopeKind === null && (totals?.noteOwners ?? 0) > 0);
@@ -228,64 +231,31 @@ export const TeacherPerformanceStudents = ({ toolbar, scope, onClearScope, onOpe
     if (scopeKind === "note") {
       return [
         students,
-        { label: "Opened the notes", value: adminFormat.count(totals.noteReaders), note: "read at least one page" },
-        { label: "Pages read", value: adminFormat.count(data.students.reduce((sum, s) => sum + s.notePagesRead, 0)) },
-        { label: "Average read", value: scoreText(totals.averageNoteProgress), note: "of those who opened them" },
+        { label: "Opened the notes", value: adminFormat.count(totals.noteReaders) },
+        ...(totals.noteReaders > 0 ? [{ label: "Average read", value: scoreText(totals.averageNoteProgress) }] : []),
       ];
     }
     if (scopeKind === "course") {
+      const started = data.students.filter((s) => s.lessonsDone > 0).length;
       return [
         students,
-        { label: "Started the course", value: adminFormat.count(data.students.filter((s) => s.lessonsDone > 0).length) },
-        { label: "Lessons done", value: adminFormat.count(data.students.reduce((sum, s) => sum + s.lessonsDone, 0)) },
-        {
-          label: "Course progress",
-          value: scoreText(totals.averageProgress),
-          note: `${adminFormat.count(totals.courseLearners)} in a course`,
-        },
+        { label: "Started the course", value: adminFormat.count(started) },
+        ...(started > 0 ? [{ label: "Average progress", value: scoreText(totals.averageProgress) }] : []),
       ];
     }
-    const testFacts: PerformanceFact[] = [
-      students,
-      {
-        label: "Took a test",
-        value: adminFormat.count(totals.testTakers),
-        note: `${adminFormat.count(totals.papersFinished)} papers finished`,
-      },
-      { label: "Average score", value: scoreText(totals.averageScore), note: "best attempt on each paper" },
-    ];
-    if (showCourses) {
-      return [
-        ...testFacts,
-        {
-          label: "Course progress",
-          value: scoreText(totals.averageProgress),
-          note: `${adminFormat.count(totals.courseLearners)} in a course`,
-        },
-      ];
+    // A figure only shows when there is something behind it.
+    const items: PerformanceFact[] = [students];
+    if (totals.testTakers > 0) {
+      items.push({ label: "Took a test", value: adminFormat.count(totals.testTakers) });
+      items.push({ label: "Average score", value: scoreText(totals.averageScore) });
     }
-    if (showNotes) {
-      return [
-        ...testFacts,
-        {
-          label: "Notes read",
-          value: scoreText(totals.averageNoteProgress),
-          note: `${adminFormat.count(totals.noteReaders)} of ${adminFormat.count(totals.noteOwners)} buyers opened them`,
-        },
-      ];
+    if (showCourses && data.students.some((s) => s.lessonsDone > 0)) {
+      items.push({ label: "Course progress", value: scoreText(totals.averageProgress) });
     }
-    return [
-      ...testFacts,
-      {
-        label: "Best score",
-        value: scoreText(
-          data.students.reduce<number | null>(
-            (top, s) => (s.bestScore !== null && (top === null || s.bestScore > top) ? s.bestScore : top),
-            null
-          )
-        ),
-      },
-    ];
+    if (showNotes && totals.noteReaders > 0) {
+      items.push({ label: "Notes read", value: scoreText(totals.averageNoteProgress) });
+    }
+    return items.slice(0, 4);
   };
 
   return (
@@ -327,22 +297,20 @@ export const TeacherPerformanceStudents = ({ toolbar, scope, onClearScope, onOpe
               <thead>
                 <tr>
                   {header("name", "Student")}
-                  {header("enrolments", "Enrolled in", true)}
                   {showTests && header("papersFinished", "Papers done", true)}
                   {showTests && header("averageScore", "Average score")}
-                  {showTests && header("bestScore", "Best score")}
                   {showCourses && header("courseProgress", "Course progress")}
                   {showNotes && header("noteProgress", "Notes read")}
                   {header("lastActiveAt", "Last active")}
+                  <OpenHead />
                 </tr>
               </thead>
               <tbody>
                 {pageRows.map((row) => (
-                  <tr key={row.studentId}>
+                  <tr key={row.studentId} {...openRow(() => onOpenStudent(row.studentId))}>
                     <td>
-                      <StudentName name={row.name} avatarUrl={row.avatarUrl} onOpen={() => onOpenStudent(row.studentId)} />
+                      <StudentName name={row.name} avatarUrl={row.avatarUrl} />
                     </td>
-                    <td className={styles.num}>{adminFormat.count(row.enrolments)}</td>
                     {showTests && (
                       <td className={styles.num}>
                         {row.papersStarted === 0 ? (
@@ -360,28 +328,25 @@ export const TeacherPerformanceStudents = ({ toolbar, scope, onClearScope, onOpe
                         <ScoreBar value={row.averageScore} />
                       </td>
                     )}
-                    {showTests && <td className={styles.num}>{scoreText(row.bestScore)}</td>}
                     {showCourses && (
                       <td>
-                        {row.courses > 0 ? (
-                          <ProgressBar
-                            value={row.courseProgress ?? 0}
-                            caption={`${row.lessonsDone} lessons, ${row.courses} ${row.courses === 1 ? "course" : "courses"}`}
-                          />
-                        ) : (
+                        {row.courses === 0 ? (
                           <span className={styles.none}>-</span>
+                        ) : row.lessonsDone === 0 ? (
+                          <span className={styles.muted}>Not started</span>
+                        ) : (
+                          <ProgressBar value={row.courseProgress ?? 0} />
                         )}
                       </td>
                     )}
                     {showNotes && (
                       <td>
-                        {row.notes > 0 ? (
-                          <ProgressBar
-                            value={row.noteProgress ?? 0}
-                            caption={`${row.notePagesRead} pages, ${row.notes} ${row.notes === 1 ? "note" : "notes"}`}
-                          />
-                        ) : (
+                        {row.notes === 0 ? (
                           <span className={styles.none}>-</span>
+                        ) : row.notePagesRead === 0 ? (
+                          <span className={styles.muted}>Not opened</span>
+                        ) : (
+                          <ProgressBar value={row.noteProgress ?? 0} />
                         )}
                       </td>
                     )}
@@ -392,17 +357,14 @@ export const TeacherPerformanceStudents = ({ toolbar, scope, onClearScope, onOpe
                         <span className={styles.none}>Not yet</span>
                       )}
                     </td>
+                    <OpenCell label={`Open ${row.name}'s results`} onOpen={() => onOpenStudent(row.studentId)} />
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
           {totalPages > 1 && <ConsoleListPagination page={currentPage} totalPages={totalPages} onPageChange={setPage} />}
-          <p className={styles.footnote}>
-            Scores are percentages from each student's best finished attempt on each paper. Notes read counts pages opened
-            in the reader on the website. Last active is the last paper attempt, finished lesson or page read. Click a name
-            for the full breakdown.
-          </p>
+          {showTests && <p className={styles.footnote}>Average score uses each student's best attempt on each paper.</p>}
         </>
       )}
     </div>

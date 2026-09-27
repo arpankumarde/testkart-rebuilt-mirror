@@ -1,6 +1,9 @@
 import superjson from "superjson";
 import { sql, RawBuilder } from "kysely";
+import { db } from "./db";
 import { getServerUserSession } from "./getServerUserSession";
+import { Row, get } from "./teacherAnalyticsTime";
+import { calculateMaxPossibleMarksWithLimits, QuestionDataWithLimits } from "./testScoringLogic";
 
 export const performanceJson = (body: unknown, status = 200): Response =>
   new Response(superjson.stringify(body), {
@@ -142,3 +145,109 @@ export const toDateOrNull = (value: unknown): Date | null => {
 
 export const progressStatus = (done: number, total: number): "not_started" | "in_progress" | "completed" =>
   done <= 0 ? "not_started" : total > 0 && done >= total ? "completed" : "in_progress";
+
+/**
+ * Marks one saved answer earned. Answers saved before 02-2026 can lack
+ * marks_obtained; those fall back to the question's marks by correctness.
+ * Some questions store negative_marks as a negative number, so the magnitude is used.
+ */
+export const answerMarksSql = (answer: string, question: string) =>
+  sql.raw(
+    `CASE WHEN ${answer}.marks_obtained IS NOT NULL THEN ${answer}.marks_obtained::float8
+          WHEN ${answer}.is_correct THEN coalesce(${question}.positive_marks, 1)::float8
+          ELSE -abs(coalesce(${question}.negative_marks, 0))::float8 END`
+  );
+
+export type AttemptMarks = { gained: number; lost: number; net: number };
+
+/** Marks gained, lost to negative marking, and net, for each attempt id. Unsubmitted attempts have no answers. */
+export async function getAttemptMarks(attemptIds: number[]): Promise<Map<number, AttemptMarks>> {
+  const marks = new Map<number, AttemptMarks>();
+  const ids = [...new Set(attemptIds)];
+  if (ids.length === 0) return marks;
+  const result = await sql<Row>`
+    SELECT x.test_attempt_id AS attempt_id,
+           coalesce(sum(m.v) FILTER (WHERE m.v > 0), 0) AS gained,
+           coalesce(-sum(m.v) FILTER (WHERE m.v < 0), 0) AS lost,
+           coalesce(sum(m.v), 0) AS net
+    FROM test_attempt_answers x
+    LEFT JOIN test_questions q ON q.id = x.question_id
+    CROSS JOIN LATERAL (SELECT ${answerMarksSql("x", "q")} AS v) m
+    WHERE x.test_attempt_id IN (${sql.join(ids.map((id) => sql`${id}`))})
+    GROUP BY 1
+  `.execute(db);
+  for (const row of result.rows) {
+    marks.set(Number(get(row, "attempt_id")), {
+      gained: round2(Number(get(row, "gained"))) ?? 0,
+      lost: round2(Number(get(row, "lost"))) ?? 0,
+      net: round2(Number(get(row, "net"))) ?? 0,
+    });
+  }
+  return marks;
+}
+
+export type PaperQuestionLimitRow = {
+  id: number;
+  testId: number;
+  positiveMarks: string | number | null;
+  subjectId: number | null;
+  sectionId: number | null;
+  subjectMaxAttemptsAllowed: number | null;
+  sectionMaxAttemptsAllowed: number | null;
+};
+
+/** Maximum marks as the submit endpoint scores them: subject and section attempt limits count only the top questions. */
+export const paperMaxMarks = (questions: PaperQuestionLimitRow[]): number =>
+  round2(
+    calculateMaxPossibleMarksWithLimits(
+      questions.map(
+        (q): QuestionDataWithLimits => ({
+          id: q.id,
+          questionType: null,
+          correctOption: null,
+          correctOptions: null,
+          numericalAnswer: null,
+          numericalTolerance: null,
+          positiveMarks: q.positiveMarks,
+          negativeMarks: null,
+          partialMarking: null,
+          matchData: null,
+          explanation: null,
+          subjectId: q.subjectId,
+          sectionId: q.sectionId,
+          subjectMaxAttemptsAllowed: q.subjectMaxAttemptsAllowed,
+          sectionMaxAttemptsAllowed: q.sectionMaxAttemptsAllowed,
+        })
+      )
+    )
+  ) ?? 0;
+
+/** Today's maximum marks for each paper, by item id. */
+export async function getPaperMaxMarks(itemIds: number[]): Promise<Map<number, number>> {
+  const max = new Map<number, number>();
+  const ids = [...new Set(itemIds)];
+  if (ids.length === 0) return max;
+  const rows = await db
+    .selectFrom("testQuestions")
+    .leftJoin("testItemSubjects", "testItemSubjects.id", "testQuestions.subjectId")
+    .leftJoin("subjectSections", "subjectSections.id", "testQuestions.sectionId")
+    .select([
+      "testQuestions.id",
+      "testQuestions.testId",
+      "testQuestions.positiveMarks",
+      "testQuestions.subjectId",
+      "testQuestions.sectionId",
+      "testItemSubjects.maxAttemptsAllowed as subjectMaxAttemptsAllowed",
+      "subjectSections.maxAttemptsAllowed as sectionMaxAttemptsAllowed",
+    ])
+    .where("testQuestions.testId", "in", ids)
+    .execute();
+  const byPaper = new Map<number, PaperQuestionLimitRow[]>();
+  for (const row of rows) {
+    const list = byPaper.get(row.testId) ?? [];
+    list.push(row);
+    byPaper.set(row.testId, list);
+  }
+  for (const [itemId, questions] of byPaper) max.set(itemId, paperMaxMarks(questions));
+  return max;
+}

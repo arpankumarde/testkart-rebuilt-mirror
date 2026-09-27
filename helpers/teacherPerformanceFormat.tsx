@@ -27,6 +27,12 @@ export const scoreText = (value: number | null | undefined): string => {
   return `${Number.isInteger(rounded) ? rounded.toFixed(0) : rounded.toFixed(1)}%`;
 };
 
+/** Marks with at most two decimals: 14.68, 16, -1.5. */
+export const marksText = (value: number | null | undefined): string => {
+  if (value === null || value === undefined || !Number.isFinite(value)) return "-";
+  return String(Math.round(value * 100) / 100);
+};
+
 /** 21.57 minutes reads as "21m 34s"; an hour or more as "1h 05m". */
 export const durationText = (minutes: number | null | undefined): string => {
   if (minutes === null || minutes === undefined || !Number.isFinite(minutes) || minutes < 0) return "-";

@@ -7,7 +7,15 @@ import { SegmentedControl } from "./SegmentedControl";
 import { ConsoleListToolbar } from "./ConsoleListToolbar";
 import { ConsoleListEmpty } from "./ConsoleListEmpty";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./Select";
-import { perfStyles as styles, StudentName, ProgressBar, PerformanceFacts } from "./TeacherPerformanceKit";
+import {
+  perfStyles as styles,
+  StudentName,
+  ProgressBar,
+  PerformanceFacts,
+  openRow,
+  OpenCell,
+  OpenHead,
+} from "./TeacherPerformanceKit";
 import type { PerformanceToolbarTabs } from "./TeacherPerformanceStudents";
 import { useTeacherPerformanceCourse } from "../helpers/useTeacherPerformance";
 import { adminFormat } from "../helpers/adminFormat";
@@ -168,11 +176,7 @@ export const TeacherPerformanceCourses = ({ toolbar, courseId, onSelect, onOpenS
             { label: "Enrolled", value: adminFormat.count(course.totals.enrolled) },
             { label: "Started", value: adminFormat.count(course.totals.started) },
             { label: "Completed", value: adminFormat.count(course.totals.completed) },
-            {
-              label: "Average progress",
-              value: scoreText(course.totals.averageProgress),
-              note: `${adminFormat.count(course.lessons)} lessons in the course`,
-            },
+            { label: "Average progress", value: scoreText(course.totals.averageProgress) },
           ]}
         />
 
@@ -189,16 +193,21 @@ export const TeacherPerformanceCourses = ({ toolbar, courseId, onSelect, onOpenS
                 <th>Status</th>
                 <th className={styles.num}>Last lesson</th>
                 <th className={styles.num}>Enrolled on</th>
+                <OpenHead />
               </tr>
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.studentId}>
+                <tr key={row.studentId} {...openRow(() => onOpenStudent(row.studentId))}>
                   <td>
-                    <StudentName name={row.name} avatarUrl={row.avatarUrl} onOpen={() => onOpenStudent(row.studentId)} />
+                    <StudentName name={row.name} avatarUrl={row.avatarUrl} />
                   </td>
                   <td>
-                    <ProgressBar value={row.progress} caption={`${row.lessonsDone} of ${row.lessonsTotal} lessons`} />
+                    {row.lessonsDone > 0 ? (
+                      <ProgressBar value={row.progress} caption={`${row.lessonsDone} of ${row.lessonsTotal} lessons`} />
+                    ) : (
+                      <span className={styles.none}>-</span>
+                    )}
                   </td>
                   <td>
                     <Badge variant={STATUS_VARIANT[row.status]}>{STATUS_LABELS[row.status]}</Badge>
@@ -211,16 +220,14 @@ export const TeacherPerformanceCourses = ({ toolbar, courseId, onSelect, onOpenS
                     )}
                   </td>
                   <td className={styles.num}>{dateText(row.enrolledAt)}</td>
+                  <OpenCell label={`Open ${row.name}'s results`} onOpen={() => onOpenStudent(row.studentId)} />
                 </tr>
               ))}
             </tbody>
           </table>
         )}
       </section>
-      <p className={styles.footnote}>
-        Progress counts the lessons a student has marked done against the lessons the course has today, so adding lessons
-        lowers everyone's percentage until they catch up.
-      </p>
+      <p className={styles.footnote}>Progress is counted against the lessons the course has today.</p>
     </div>
   );
 };

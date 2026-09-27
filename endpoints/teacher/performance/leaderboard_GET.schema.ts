@@ -27,13 +27,16 @@ export type LeaderboardLiveOption = {
   enrolled: number;
 };
 
-/** One paper or one live test: each student's counted attempt, best first. */
+/** One paper or one live test: each student's counted attempt, best first. marks is that attempt's net marks. */
 export type AttemptRow = {
   rank: number;
   studentId: number;
   name: string;
   avatarUrl: string | null;
   score: number;
+  marks: number | null;
+  itemId: number;
+  attemptId: number;
   timeTakenMinutes: number | null;
   attempts: number | null;
   completedAt: Date | null;
@@ -52,9 +55,16 @@ export type SeriesRow = {
 };
 
 export type LeaderboardBoard =
-  | { kind: "paper"; seriesId: number; itemId: number; title: string; rows: AttemptRow[] }
+  | { kind: "paper"; seriesId: number; itemId: number; title: string; maxMarks: number | null; rows: AttemptRow[] }
   | { kind: "series"; seriesId: number; title: string; paperCount: number; rows: SeriesRow[] }
-  | { kind: "live"; liveTestId: number; title: string; status: "upcoming" | "live" | "ended"; rows: AttemptRow[] };
+  | {
+      kind: "live";
+      liveTestId: number;
+      title: string;
+      status: "upcoming" | "live" | "ended";
+      maxMarks: number | null;
+      rows: AttemptRow[];
+    };
 
 export type OutputType = {
   series: LeaderboardSeriesOption[];

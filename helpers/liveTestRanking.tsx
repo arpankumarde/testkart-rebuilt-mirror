@@ -4,6 +4,8 @@ import { liveTestSubmissionsCloseAt } from "./liveTestAttemptWindow";
 
 export type RankedLiveTestAttempt = {
   rank: number;
+  attemptId: number;
+  testId: number;
   studentId: number;
   studentName: string;
   score: number;
@@ -32,6 +34,8 @@ export async function getRankedLiveTestAttempts(
         .on("liveTestEnrollments.liveTestId", "=", liveTest.id)
     )
     .select([
+      "testAttempts.id as attemptId",
+      "testAttempts.testId",
       "testAttempts.studentId",
       "users.displayName as studentName",
       "testAttempts.score",
@@ -54,6 +58,8 @@ export async function getRankedLiveTestAttempts(
     seen.add(row.studentId);
     const completedAt = new Date(row.completedAt);
     counted.push({
+      attemptId: row.attemptId,
+      testId: row.testId,
       studentId: row.studentId,
       studentName: row.studentName,
       score: parseFloat(String(row.score ?? "0")),

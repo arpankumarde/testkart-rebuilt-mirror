@@ -46,6 +46,8 @@ interface TestResultQuestionRendererProps {
   optionD?: string | null;
   optionE?: string | null;
   id?: string;
+  /** A teacher reading a student's answers sees "Student's answer" instead of "Your Answer". */
+  viewer?: 'student' | 'teacher';
 }
 
 export const TestResultQuestionRenderer: React.FC<TestResultQuestionRendererProps> = ({
@@ -59,7 +61,9 @@ export const TestResultQuestionRenderer: React.FC<TestResultQuestionRendererProp
   optionD,
   optionE,
   id,
+  viewer = 'student',
 }) => {
+  const owner = viewer === 'teacher' ? "Student's" : 'Your';
   const [isExplanationOpen, setIsExplanationOpen] = useState(false);
 
   const renderMarks = () => {
@@ -197,7 +201,7 @@ export const TestResultQuestionRenderer: React.FC<TestResultQuestionRendererProp
       <>
         <div className={styles.numericalAnswer}>
           <div className={styles.answerRow}>
-            <strong>Your Answer:</strong>{' '}
+            <strong>{owner} Answer:</strong>{' '}
             {studentAnswer !== null ? studentAnswer : 'Not Attempted'}
           </div>
           {studentAnswer === null && (
@@ -228,7 +232,7 @@ export const TestResultQuestionRenderer: React.FC<TestResultQuestionRendererProp
             <thead>
               <tr>
                 <th>Item</th>
-                <th>Your Match</th>
+                <th>{owner} Match</th>
                 <th>Correct Match</th>
                 <th>Status</th>
               </tr>

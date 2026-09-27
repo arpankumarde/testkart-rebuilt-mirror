@@ -39,6 +39,11 @@
   overflow-wrap: anywhere;
 }
 
+.paperCell {
+  min-width: 12rem;
+  overflow-wrap: anywhere;
+}
+
 .enrolments {
   display: flex;
   flex-direction: column;

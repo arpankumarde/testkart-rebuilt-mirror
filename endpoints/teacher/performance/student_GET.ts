@@ -18,6 +18,8 @@ import {
   round2,
   progressStatus,
   avatarOrNull,
+  getAttemptMarks,
+  getPaperMaxMarks,
 } from "../../../helpers/teacherPerformance";
 import {
   schema,
@@ -61,7 +63,7 @@ export async function handle(request: Request): Promise<Response> {
       ),
       best AS (
         SELECT DISTINCT ON (ta.student_id, ta.test_id)
-               ta.student_id, ta.test_id, ta.score::float8 AS score,
+               ta.id AS attempt_id, ta.student_id, ta.test_id, ta.score::float8 AS score,
                ${minutesTakenSql("ta", "p.duration_minutes")} AS minutes, ta.completed_at
         FROM test_attempts ta JOIN papers p ON p.item_id = ta.test_id
         WHERE ta.test_id IN (SELECT test_id FROM mine) AND ${scoredAttemptSql("ta")}
@@ -75,7 +77,7 @@ export async function handle(request: Request): Promise<Response> {
       )
       SELECT p.item_id, p.paper_title, p.series_id, p.series_title, p.in_trash, p.removed,
              m.attempts, m.finished, m.first_score, m.latest_score, m.last_at,
-             r.score AS best_score, r.minutes, r.rank, r.ranked_of
+             r.score AS best_score, r.minutes, r.rank, r.ranked_of, r.attempt_id AS best_attempt_id
       FROM mine m
       JOIN papers p ON p.item_id = m.test_id
       LEFT JOIN ranked r ON r.test_id = m.test_id AND r.student_id = ${studentId}
@@ -171,11 +173,33 @@ export async function handle(request: Request): Promise<Response> {
         rankedOf: ranked.length,
         score: mine && Number.isFinite(mine.score) ? round2(mine.score) : null,
         timeTakenMinutes: mine ? round2(mine.timeTakenMinutes) : null,
+        itemId: mine?.testId ?? null,
+        attemptId: mine?.attemptId ?? null,
+        marks: null,
+        maxMarks: null,
       });
     }
 
-    const papers: StudentPaperResult[] = paperRows.rows.map((row) => ({
-      itemId: num(get(row, "item_id")),
+    const bestAttemptIds = paperRows.rows
+      .map((row) => toNumberOrNull(get(row, "best_attempt_id")))
+      .filter((id): id is number => id !== null);
+    const liveAttemptIds = liveResults.map((l) => l.attemptId).filter((id): id is number => id !== null);
+    const marks = await getAttemptMarks([...bestAttemptIds, ...liveAttemptIds]);
+    const maxMarks = await getPaperMaxMarks([
+      ...paperRows.rows.map((row) => num(get(row, "item_id"))),
+      ...liveResults.map((l) => l.itemId).filter((id): id is number => id !== null),
+    ]);
+    for (const live of liveResults) {
+      if (live.attemptId === null || live.itemId === null) continue;
+      live.marks = marks.get(live.attemptId) ?? { gained: 0, lost: 0, net: 0 };
+      live.maxMarks = maxMarks.get(live.itemId) ?? null;
+    }
+
+    const papers: StudentPaperResult[] = paperRows.rows.map((row) => {
+      const itemId = num(get(row, "item_id"));
+      const bestAttemptId = toNumberOrNull(get(row, "best_attempt_id"));
+      return {
+      itemId,
       paperTitle: str(get(row, "paper_title"), "Untitled paper").trim() || "Untitled paper",
       seriesId: num(get(row, "series_id")),
       seriesTitle: str(get(row, "series_title"), "Untitled").trim() || "Untitled",
@@ -190,7 +214,11 @@ export async function handle(request: Request): Promise<Response> {
       rank: toNumberOrNull(get(row, "rank")),
       rankedOf: toNumberOrNull(get(row, "ranked_of")),
       lastAttemptAt: toDateOrNull(get(row, "last_at")),
-    }));
+      bestAttemptId,
+      bestMarks: bestAttemptId === null ? null : marks.get(bestAttemptId) ?? { gained: 0, lost: 0, net: 0 },
+      maxMarks: maxMarks.get(itemId) ?? null,
+      };
+    });
 
     const courses: StudentCourseProgress[] = courseRows.rows.map((row) => {
       const total = num(get(row, "total"));

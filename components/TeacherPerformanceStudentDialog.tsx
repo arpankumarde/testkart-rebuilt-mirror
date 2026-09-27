@@ -4,15 +4,35 @@ import { Dialog } from "./Dialog";
 import { ConsoleDialogBody, ConsoleDialogContent, ConsoleDialogHeader } from "./ConsoleDialog";
 import { Badge } from "./Badge";
 import { Skeleton } from "./Skeleton";
-import { perfStyles, ScoreBar, ProgressBar, RankBadge, PerformanceFacts, StudentPhoto } from "./TeacherPerformanceKit";
+import {
+  perfStyles,
+  ScoreBar,
+  ProgressBar,
+  RankBadge,
+  PerformanceFacts,
+  PerformanceFact,
+  StudentPhoto,
+  MarksCell,
+  openRow,
+  OpenCell,
+  OpenHead,
+} from "./TeacherPerformanceKit";
+import { TeacherPerformanceTranscript } from "./TeacherPerformanceTranscript";
 import { NOTE_STATUS } from "./TeacherPerformanceNotes";
 import { useTeacherPerformanceStudent } from "../helpers/useTeacherPerformance";
 import { adminFormat } from "../helpers/adminFormat";
-import { dateText, durationText, scoreText } from "../helpers/teacherPerformanceFormat";
+import { dateText, scoreText } from "../helpers/teacherPerformanceFormat";
 import type { StudentEnrolment, StudentPaperResult } from "../endpoints/teacher/performance/student_GET.schema";
 import styles from "./TeacherPerformanceStudentDialog.module.css";
 
-type Props = { studentId: number | null; onClose: () => void };
+export type OpenPaper = { itemId: number; attemptId: number | null };
+
+type Props = {
+  studentId: number | null;
+  paper: OpenPaper | null;
+  onOpenPaper: (paper: OpenPaper | null) => void;
+  onClose: () => void;
+};
 
 const ENROLMENT_LABELS: Record<StudentEnrolment["kind"], string> = {
   test_series: "Test series",
@@ -28,18 +48,18 @@ const COURSE_STATUS: Record<string, { label: string; variant: "secondary" | "war
   completed: { label: "Completed", variant: "success" },
 };
 
-const LIVE_STATUS: Record<string, string> = { upcoming: "Not started", live: "Live now", ended: "Ended" };
+const LIVE_STATUS: Record<string, string> = { upcoming: "Not started", live: "Live now", ended: "Did not submit in time" };
 
-export const TeacherPerformanceStudentDialog = ({ studentId, onClose }: Props) => {
+export const TeacherPerformanceStudentDialog = ({ studentId, paper, onOpenPaper, onClose }: Props) => {
   const { data, isFetching, isError, error } = useTeacherPerformanceStudent(studentId);
   const current = data && data.student.id === studentId ? data : undefined;
 
   const groups = useMemo(() => {
     const bySeries = new Map<number, { title: string; inTrash: boolean; papers: StudentPaperResult[] }>();
-    for (const paper of current?.papers ?? []) {
-      const group = bySeries.get(paper.seriesId) ?? { title: paper.seriesTitle, inTrash: paper.inTrash, papers: [] };
-      group.papers.push(paper);
-      bySeries.set(paper.seriesId, group);
+    for (const item of current?.papers ?? []) {
+      const group = bySeries.get(item.seriesId) ?? { title: item.seriesTitle, inTrash: item.inTrash, papers: [] };
+      group.papers.push(item);
+      bySeries.set(item.seriesId, group);
     }
     return [...bySeries.entries()];
   }, [current]);
@@ -48,11 +68,32 @@ export const TeacherPerformanceStudentDialog = ({ studentId, onClose }: Props) =
   const average = scored.length ? scored.reduce((sum, p) => sum + (p.bestScore as number), 0) / scored.length : null;
   const ranked = (current?.liveTests ?? []).filter((l) => l.rank !== null);
   const bestLiveRank = ranked.length ? Math.min(...ranked.map((l) => l.rank as number)) : null;
-  const courseAverage = current?.courses.length
-    ? current.courses.reduce((sum, c) => sum + c.progress, 0) / current.courses.length
+  const startedCourses = (current?.courses ?? []).filter((c) => c.lessonsDone > 0);
+  const courseAverage = startedCourses.length
+    ? startedCourses.reduce((sum, c) => sum + c.progress, 0) / startedCourses.length
     : null;
   const notesRead = (current?.notes ?? []).filter((n) => n.pagesRead > 0);
   const noteAverage = notesRead.length ? notesRead.reduce((sum, n) => sum + n.progress, 0) / notesRead.length : null;
+  const anyRank = (current?.papers ?? []).some((p) => p.rank !== null);
+
+  // Only figures with something behind them.
+  const facts: PerformanceFact[] = [];
+  if (current) {
+    if (current.papers.length > 0) {
+      facts.push({ label: "Papers finished", value: `${scored.length} of ${current.papers.length}` });
+    }
+    if (average !== null) facts.push({ label: "Average score", value: scoreText(average) });
+    if (bestLiveRank !== null) facts.push({ label: "Best live test rank", value: `#${bestLiveRank}` });
+    if (courseAverage !== null) facts.push({ label: "Course progress", value: scoreText(courseAverage) });
+    if (noteAverage !== null) facts.push({ label: "Notes read", value: scoreText(noteAverage) });
+  }
+
+  const openPaperRank = paper
+    ? (() => {
+        const match = current?.papers.find((p) => p.itemId === paper.itemId);
+        return match?.rank && match.rankedOf ? { rank: match.rank, of: match.rankedOf } : null;
+      })()
+    : null;
 
   return (
     <Dialog open={studentId !== null} onOpenChange={(open) => !open && onClose()}>
@@ -68,12 +109,22 @@ export const TeacherPerformanceStudentDialog = ({ studentId, onClose }: Props) =
           title={current?.student.name ?? "Student results"}
           description={
             current
-              ? `Enrolled in ${current.enrolments.length} ${current.enrolments.length === 1 ? "item" : "items"} of yours. Scores are percentages.`
+              ? `Enrolled in ${current.enrolments.length} ${current.enrolments.length === 1 ? "item" : "items"} of yours`
               : "Loading their results"
           }
         />
         <ConsoleDialogBody>
-          {isError && !current ? (
+          {studentId !== null && paper ? (
+            <TeacherPerformanceTranscript
+              studentId={studentId}
+              itemId={paper.itemId}
+              attemptId={paper.attemptId}
+              rank={openPaperRank}
+              onSelectAttempt={(attemptId) => onOpenPaper({ itemId: paper.itemId, attemptId })}
+              onBack={() => onOpenPaper(null)}
+              backLabel="All results"
+            />
+          ) : isError && !current ? (
             <div className={perfStyles.error} role="alert">
               {error instanceof Error ? error.message : "Their results could not be loaded."}
             </div>
@@ -84,119 +135,79 @@ export const TeacherPerformanceStudentDialog = ({ studentId, onClose }: Props) =
             </div>
           ) : (
             <div className={`${styles.sections} ${isFetching ? perfStyles.busy : ""}`}>
-              <PerformanceFacts
-                items={[
-                  {
-                    label: "Papers finished",
-                    value: adminFormat.count(scored.length),
-                    note: `${adminFormat.count(current.papers.length)} opened`,
-                  },
-                  { label: "Average score", value: scoreText(average), note: "best attempt on each paper" },
-                  // Live tests, courses and notes only take a slot when the student has some.
-                  current.liveTests.length > 0
-                    ? {
-                        label: "Best live test rank",
-                        value: bestLiveRank ? `#${bestLiveRank}` : "-",
-                        note: `${adminFormat.count(current.liveTests.length)} live tests joined`,
-                      }
-                    : {
-                        label: "Attempts",
-                        value: adminFormat.count(current.papers.reduce((sum, p) => sum + p.attempts, 0)),
-                        note: "every paper, finished or not",
-                      },
-                  current.courses.length > 0
-                    ? {
-                        label: "Course progress",
-                        value: scoreText(courseAverage),
-                        note: `${adminFormat.count(current.courses.length)} ${current.courses.length === 1 ? "course" : "courses"}`,
-                      }
-                    : current.notes.length > 0
-                      ? {
-                          label: "Notes read",
-                          value: scoreText(noteAverage),
-                          note: `${adminFormat.count(notesRead.length)} of ${adminFormat.count(current.notes.length)} opened`,
-                        }
-                      : {
-                          label: "Last attempt",
-                          value: dateText(
-                            current.papers.reduce<Date | null>(
-                              (latest, p) =>
-                                p.lastAttemptAt && (!latest || new Date(p.lastAttemptAt) > latest)
-                                  ? new Date(p.lastAttemptAt)
-                                  : latest,
-                              null
-                            )
-                          ),
-                        },
-                ]}
-              />
+              {facts.length > 0 && <PerformanceFacts items={facts} />}
 
-              <section className={styles.section} aria-labelledby="perf-papers">
-                <h3 id="perf-papers" className={styles.sectionTitle}>
-                  Test papers
-                </h3>
-                {groups.length === 0 ? (
-                  <p className={styles.empty}>Has not opened any of your test papers.</p>
-                ) : (
+              {groups.length > 0 && (
+                <section className={styles.section} aria-labelledby="perf-papers">
+                  <h3 id="perf-papers" className={styles.sectionTitle}>
+                    Test papers
+                  </h3>
                   <div className={perfStyles.panel}>
                     <table className={perfStyles.table}>
                       <thead>
                         <tr>
                           <th>Paper</th>
+                          <th className={perfStyles.num}>Marks</th>
+                          <th>Score</th>
+                          {anyRank && <th className={perfStyles.num}>Rank</th>}
                           <th className={perfStyles.num}>Attempts</th>
-                          <th className={perfStyles.num}>First</th>
-                          <th>Best</th>
-                          <th className={perfStyles.num}>Latest</th>
-                          <th className={perfStyles.num}>Rank</th>
-                          <th className={perfStyles.num}>Time</th>
                           <th className={perfStyles.num}>Last attempt</th>
+                          <OpenHead />
                         </tr>
                       </thead>
                       {groups.map(([seriesId, group]) => (
                         <tbody key={seriesId}>
-                          <tr className={styles.groupRow}>
-                            <th colSpan={8} scope="colgroup">
-                              {group.title}
-                              {group.inTrash && <span className={perfStyles.tag}>In Trash</span>}
-                            </th>
-                          </tr>
-                          {group.papers.map((paper) => (
-                            <tr key={paper.itemId}>
-                              <td>
-                                {paper.paperTitle}
-                                {paper.removed && <span className={perfStyles.tag}>Removed</span>}
-                              </td>
-                              <td className={perfStyles.num}>
-                                {paper.attempts}
-                                {paper.finished < paper.attempts && (
-                                  <span className={perfStyles.muted}> ({paper.finished} finished)</span>
-                                )}
-                              </td>
-                              <td className={perfStyles.num}>{scoreText(paper.firstScore)}</td>
-                              <td>
-                                <ScoreBar value={paper.bestScore} />
-                              </td>
-                              <td className={perfStyles.num}>{scoreText(paper.latestScore)}</td>
-                              <td className={perfStyles.num}>
-                                {paper.rank ? (
-                                  <>
-                                    {paper.rank}
-                                    <span className={perfStyles.muted}> of {paper.rankedOf}</span>
-                                  </>
-                                ) : (
-                                  <span className={perfStyles.none}>-</span>
-                                )}
-                              </td>
-                              <td className={perfStyles.num}>{durationText(paper.timeTakenMinutes)}</td>
-                              <td className={perfStyles.num}>{dateText(paper.lastAttemptAt)}</td>
+                          {groups.length > 1 || group.inTrash ? (
+                            <tr className={styles.groupRow}>
+                              <th colSpan={anyRank ? 7 : 6} scope="colgroup">
+                                {group.title}
+                                {group.inTrash && <span className={perfStyles.tag}>In Trash</span>}
+                              </th>
                             </tr>
-                          ))}
+                          ) : null}
+                          {group.papers.map((item) => {
+                            const open = () => onOpenPaper({ itemId: item.itemId, attemptId: null });
+                            return (
+                              <tr key={item.itemId} {...openRow(open)}>
+                                <td className={styles.paperCell}>
+                                  {item.paperTitle}
+                                  {item.removed && <span className={perfStyles.tag}>Removed</span>}
+                                </td>
+                                <td className={perfStyles.num}>
+                                  <MarksCell marks={item.bestMarks} max={item.maxMarks} />
+                                </td>
+                                <td>
+                                  <ScoreBar value={item.bestScore} />
+                                </td>
+                                {anyRank && (
+                                  <td className={perfStyles.num}>
+                                    {item.rank ? (
+                                      <>
+                                        {item.rank}
+                                        <span className={perfStyles.muted}> of {item.rankedOf}</span>
+                                      </>
+                                    ) : (
+                                      <span className={perfStyles.none}>-</span>
+                                    )}
+                                  </td>
+                                )}
+                                <td className={perfStyles.num}>
+                                  {item.attempts}
+                                  {item.finished < item.attempts && (
+                                    <span className={perfStyles.muted}> ({item.finished} submitted)</span>
+                                  )}
+                                </td>
+                                <td className={perfStyles.num}>{dateText(item.lastAttemptAt)}</td>
+                                <OpenCell label={`Open answers for ${item.paperTitle}`} onOpen={open} />
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       ))}
                     </table>
                   </div>
-                )}
-              </section>
+                </section>
+              )}
 
               {current.liveTests.length > 0 && (
                 <section className={styles.section} aria-labelledby="perf-live">
@@ -209,31 +220,41 @@ export const TeacherPerformanceStudentDialog = ({ studentId, onClose }: Props) =
                         <tr>
                           <th className={perfStyles.rankCol}>Rank</th>
                           <th>Live test</th>
+                          <th className={perfStyles.num}>Marks</th>
                           <th>Score</th>
-                          <th className={perfStyles.num}>Time</th>
                           <th className={perfStyles.num}>Held on</th>
+                          <OpenHead />
                         </tr>
                       </thead>
                       <tbody>
-                        {current.liveTests.map((live) => (
-                          <tr key={live.liveTestId}>
-                            <td>
-                              <RankBadge rank={live.rank} />
-                            </td>
-                            <td>
-                              {live.title}
-                              <span className={perfStyles.muted}>
-                                {" "}
-                                {live.rank ? `of ${live.rankedOf}` : live.status === "ended" ? "- did not submit in time" : `- ${LIVE_STATUS[live.status]}`}
-                              </span>
-                            </td>
-                            <td>
-                              <ScoreBar value={live.score} />
-                            </td>
-                            <td className={perfStyles.num}>{durationText(live.timeTakenMinutes)}</td>
-                            <td className={perfStyles.num}>{dateText(live.startTime ?? live.endTime)}</td>
-                          </tr>
-                        ))}
+                        {current.liveTests.map((live) => {
+                          const open =
+                            live.itemId !== null && live.attemptId !== null
+                              ? () => onOpenPaper({ itemId: live.itemId as number, attemptId: live.attemptId })
+                              : null;
+                          return (
+                            <tr key={live.liveTestId} {...openRow(open)}>
+                              <td>
+                                <RankBadge rank={live.rank} />
+                              </td>
+                              <td className={styles.paperCell}>
+                                {live.title}
+                                <span className={perfStyles.muted}>
+                                  {" "}
+                                  {live.rank ? `of ${live.rankedOf}` : `- ${LIVE_STATUS[live.status]}`}
+                                </span>
+                              </td>
+                              <td className={perfStyles.num}>
+                                <MarksCell marks={live.marks} max={live.maxMarks} />
+                              </td>
+                              <td>
+                                <ScoreBar value={live.score} />
+                              </td>
+                              <td className={perfStyles.num}>{dateText(live.startTime ?? live.endTime)}</td>
+                              <OpenCell label={`Open answers for ${live.title}`} onOpen={open} />
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
@@ -258,12 +279,16 @@ export const TeacherPerformanceStudentDialog = ({ studentId, onClose }: Props) =
                       <tbody>
                         {current.courses.map((course) => (
                           <tr key={course.courseId}>
-                            <td>{course.title}</td>
+                            <td className={styles.paperCell}>{course.title}</td>
                             <td>
-                              <ProgressBar
-                                value={course.progress}
-                                caption={`${course.lessonsDone} of ${course.lessonsTotal} lessons`}
-                              />
+                              {course.lessonsDone > 0 ? (
+                                <ProgressBar
+                                  value={course.progress}
+                                  caption={`${course.lessonsDone} of ${course.lessonsTotal} lessons`}
+                                />
+                              ) : (
+                                <span className={perfStyles.none}>-</span>
+                              )}
                             </td>
                             <td>
                               <Badge variant={COURSE_STATUS[course.status].variant}>{COURSE_STATUS[course.status].label}</Badge>
@@ -295,14 +320,14 @@ export const TeacherPerformanceStudentDialog = ({ studentId, onClose }: Props) =
                       <tbody>
                         {current.notes.map((note) => (
                           <tr key={note.productId}>
-                            <td>{note.title}</td>
+                            <td className={styles.paperCell}>{note.title}</td>
                             <td>
-                              {note.pagesTotal > 0 ? (
-                                <ProgressBar value={note.progress} caption={`${note.pagesRead} of ${note.pagesTotal} pages`} />
-                              ) : note.pagesRead > 0 ? (
-                                `${note.pagesRead} pages`
-                              ) : (
+                              {note.pagesRead === 0 ? (
                                 <span className={perfStyles.none}>-</span>
+                              ) : note.pagesTotal > 0 ? (
+                                <ProgressBar value={note.progress} caption={`${note.pagesRead} of ${note.pagesTotal} pages`} />
+                              ) : (
+                                `${note.pagesRead} pages`
                               )}
                             </td>
                             <td>
@@ -332,6 +357,10 @@ export const TeacherPerformanceStudentDialog = ({ studentId, onClose }: Props) =
                     ))}
                   </ul>
                 </section>
+              )}
+
+              {current.papers.length === 0 && current.liveTests.length === 0 && (
+                <p className={styles.empty}>Has not attempted any of your tests yet.</p>
               )}
             </div>
           )}

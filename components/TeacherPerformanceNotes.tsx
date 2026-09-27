@@ -7,7 +7,15 @@ import { SegmentedControl } from "./SegmentedControl";
 import { ConsoleListToolbar } from "./ConsoleListToolbar";
 import { ConsoleListEmpty } from "./ConsoleListEmpty";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./Select";
-import { perfStyles as styles, StudentName, ProgressBar, PerformanceFacts } from "./TeacherPerformanceKit";
+import {
+  perfStyles as styles,
+  StudentName,
+  ProgressBar,
+  PerformanceFacts,
+  openRow,
+  OpenCell,
+  OpenHead,
+} from "./TeacherPerformanceKit";
 import type { PerformanceToolbarTabs } from "./TeacherPerformanceStudents";
 import { useTeacherPerformanceNote } from "../helpers/useTeacherPerformance";
 import { adminFormat } from "../helpers/adminFormat";
@@ -162,13 +170,9 @@ export const TeacherPerformanceNotes = ({ toolbar, productId, onSelect, onOpenSt
           flat
           items={[
             { label: "Bought", value: adminFormat.count(note.totals.buyers) },
-            { label: "Opened", value: adminFormat.count(note.totals.opened), note: "read at least one page" },
-            { label: "Finished", value: adminFormat.count(note.totals.finished), note: "read every page" },
-            {
-              label: "Average read",
-              value: scoreText(note.totals.averageProgress),
-              note: note.pages > 0 ? `${adminFormat.count(note.pages)} pages, of those who opened it` : "of those who opened it",
-            },
+            { label: "Opened", value: adminFormat.count(note.totals.opened) },
+            { label: "Finished", value: adminFormat.count(note.totals.finished) },
+            { label: "Average read", value: note.totals.opened > 0 ? scoreText(note.totals.averageProgress) : "-" },
           ]}
         />
 
@@ -185,21 +189,22 @@ export const TeacherPerformanceNotes = ({ toolbar, productId, onSelect, onOpenSt
                 <th>Status</th>
                 <th className={styles.num}>Last opened</th>
                 <th className={styles.num}>Bought on</th>
+                <OpenHead />
               </tr>
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.studentId}>
+                <tr key={row.studentId} {...openRow(() => onOpenStudent(row.studentId))}>
                   <td>
-                    <StudentName name={row.name} avatarUrl={row.avatarUrl} onOpen={() => onOpenStudent(row.studentId)} />
+                    <StudentName name={row.name} avatarUrl={row.avatarUrl} />
                   </td>
                   <td>
-                    {row.pagesTotal > 0 ? (
-                      <ProgressBar value={row.progress} caption={`${row.pagesRead} of ${row.pagesTotal} pages`} />
-                    ) : row.pagesRead > 0 ? (
-                      `${row.pagesRead} pages`
-                    ) : (
+                    {row.pagesRead === 0 ? (
                       <span className={styles.none}>-</span>
+                    ) : row.pagesTotal > 0 ? (
+                      <ProgressBar value={row.progress} caption={`${row.pagesRead} of ${row.pagesTotal} pages`} />
+                    ) : (
+                      `${row.pagesRead} pages`
                     )}
                   </td>
                   <td>
@@ -213,16 +218,14 @@ export const TeacherPerformanceNotes = ({ toolbar, productId, onSelect, onOpenSt
                     )}
                   </td>
                   <td className={styles.num}>{dateText(row.boughtAt)}</td>
+                  <OpenCell label={`Open ${row.name}'s results`} onOpen={() => onOpenStudent(row.studentId)} />
                 </tr>
               ))}
             </tbody>
           </table>
         )}
       </section>
-      <p className={styles.footnote}>
-        Pages read counts the pages a student opened in the reader on the website, from 29-09-2026 and for the last 90
-        days. Reading in the app is not counted.
-      </p>
+      <p className={styles.footnote}>Counts pages read on the website. Reading in the app is not counted.</p>
     </div>
   );
 };

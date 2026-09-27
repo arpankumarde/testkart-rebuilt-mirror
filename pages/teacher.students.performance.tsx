@@ -37,6 +37,8 @@ const TeacherStudentPerformancePage: React.FC = () => {
   const courseId = readId("course") ?? undefined;
   const noteId = readId("note") ?? undefined;
   const studentId = readId("student");
+  const paperId = readId("paper");
+  const attemptId = readId("attempt");
 
   const toolbar: PerformanceToolbarTabs = {
     tabs: TABS.map((value) => ({ value, label: TAB_LABELS[value] })),
@@ -47,7 +49,8 @@ const TeacherStudentPerformancePage: React.FC = () => {
     tabsLabel: "Performance sections",
   };
 
-  const openStudent = (id: number) => write({ student: id });
+  const openStudent = (id: number, paper?: { itemId: number; attemptId?: number }) =>
+    write({ student: id, paper: paper?.itemId ?? null, attempt: paper?.attemptId ?? null });
 
   return (
     <>
@@ -118,7 +121,12 @@ const TeacherStudentPerformancePage: React.FC = () => {
           />
         )}
 
-        <TeacherPerformanceStudentDialog studentId={studentId} onClose={() => write({ student: null })} />
+        <TeacherPerformanceStudentDialog
+          studentId={studentId}
+          paper={paperId ? { itemId: paperId, attemptId: attemptId ?? null } : null}
+          onOpenPaper={(next) => write({ paper: next?.itemId ?? null, attempt: next?.attemptId ?? null })}
+          onClose={() => write({ student: null, paper: null, attempt: null })}
+        />
       </div>
     </>
   );

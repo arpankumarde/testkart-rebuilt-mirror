@@ -13,6 +13,8 @@ import {
   toDateOrNull,
   round2,
   avatarOrNull,
+  getAttemptMarks,
+  getPaperMaxMarks,
 } from "../../../helpers/teacherPerformance";
 import {
   schema,
@@ -145,11 +147,15 @@ export async function handle(request: Request): Promise<Response> {
       const photoRows =
         ids.length > 0 ? await db.selectFrom("users").select(["id", "avatarUrl"]).where("id", "in", ids).execute() : [];
       const photos = new Map(photoRows.map((u) => [u.id, avatarOrNull(u.avatarUrl)]));
+      const liveMarks = await getAttemptMarks(ranked.map((entry) => entry.attemptId));
+      const livePapers = [...new Set(ranked.map((entry) => entry.testId))];
+      const liveMax = livePapers.length === 1 ? await getPaperMaxMarks(livePapers) : new Map<number, number>();
       board = {
         kind: "live",
         liveTestId: live.id,
         title: live.title,
         status,
+        maxMarks: livePapers.length === 1 ? liveMax.get(livePapers[0]) ?? null : null,
         rows: ranked
           .filter((entry) => Number.isFinite(entry.score))
           .map((entry, index) => ({
@@ -158,6 +164,9 @@ export async function handle(request: Request): Promise<Response> {
             name: entry.studentName?.trim() || "Student",
             avatarUrl: photos.get(entry.studentId) ?? null,
             score: round2(entry.score) ?? 0,
+            marks: liveMarks.get(entry.attemptId)?.net ?? 0,
+            itemId: entry.testId,
+            attemptId: entry.attemptId,
             timeTakenMinutes: round2(entry.timeTakenMinutes),
             attempts: null,
             completedAt: entry.completedAt,
@@ -180,7 +189,7 @@ export async function handle(request: Request): Promise<Response> {
         if (!paper) return performanceJson({ error: "That paper is not in this test series." }, 404);
         const result = await sql<Row>`
           WITH done AS (
-            SELECT ta.student_id, ta.score::float8 AS score,
+            SELECT ta.id AS attempt_id, ta.student_id, ta.score::float8 AS score,
                    ${minutesTakenSql("ta", "mti.duration_minutes")} AS minutes, ta.completed_at
             FROM test_attempts ta JOIN mock_test_items mti ON mti.id = ta.test_id
             WHERE ta.test_id = ${paper.id} AND ${scoredAttemptSql("ta")}
@@ -192,24 +201,32 @@ export async function handle(request: Request): Promise<Response> {
           counts AS (
             SELECT student_id, count(*) AS attempts FROM test_attempts WHERE test_id = ${paper.id} GROUP BY 1
           )
-          SELECT b.student_id, ${NAME_SQL} AS name, u.avatar_url, b.score, b.minutes,
+          SELECT b.attempt_id, b.student_id, ${NAME_SQL} AS name, u.avatar_url, b.score, b.minutes,
                  (b.completed_at AT TIME ZONE 'UTC') AS completed_at, c.attempts
           FROM best b
           JOIN users u ON u.id = b.student_id
           LEFT JOIN counts c ON c.student_id = b.student_id
           ORDER BY b.score DESC, b.minutes ASC NULLS LAST, b.completed_at ASC
         `.execute(db);
-        const rows: AttemptRow[] = result.rows.map((row, index) => ({
-          rank: index + 1,
-          studentId: num(get(row, "student_id")),
-          name: str(get(row, "name"), "Student"),
-          avatarUrl: avatarOrNull(get(row, "avatar_url")),
-          score: round2(toNumberOrNull(get(row, "score"))) ?? 0,
-          timeTakenMinutes: round2(toNumberOrNull(get(row, "minutes"))),
-          attempts: toNumberOrNull(get(row, "attempts")),
-          completedAt: toDateOrNull(get(row, "completed_at")),
-        }));
-        board = { kind: "paper", seriesId, itemId: paper.id, title: paper.title, rows };
+        const paperMarks = await getAttemptMarks(result.rows.map((row) => num(get(row, "attempt_id"))));
+        const paperMax = await getPaperMaxMarks([paper.id]);
+        const rows: AttemptRow[] = result.rows.map((row, index) => {
+          const attemptId = num(get(row, "attempt_id"));
+          return {
+            rank: index + 1,
+            studentId: num(get(row, "student_id")),
+            name: str(get(row, "name"), "Student"),
+            avatarUrl: avatarOrNull(get(row, "avatar_url")),
+            score: round2(toNumberOrNull(get(row, "score"))) ?? 0,
+            marks: paperMarks.get(attemptId)?.net ?? 0,
+            itemId: paper.id,
+            attemptId,
+            timeTakenMinutes: round2(toNumberOrNull(get(row, "minutes"))),
+            attempts: toNumberOrNull(get(row, "attempts")),
+            completedAt: toDateOrNull(get(row, "completed_at")),
+          };
+        });
+        board = { kind: "paper", seriesId, itemId: paper.id, title: paper.title, maxMarks: paperMax.get(paper.id) ?? null, rows };
       } else {
         const result = await sql<Row>`
           WITH best AS (

@@ -186,26 +186,79 @@
   font-weight: 600;
 }
 
-.nameButton {
-  padding: 0;
-  border: none;
-  background: none;
-  font: inherit;
-  font-weight: 600;
-  text-align: left;
+.rowLink {
   cursor: pointer;
 }
 
-.nameButton:hover .nameText {
+.table tbody tr.rowLink:hover .openButton {
   color: var(--tk-brand-text);
-  text-decoration: underline;
-  text-underline-offset: 2px;
 }
 
-.nameButton:focus-visible {
+.openCell {
+  width: 2.75rem;
+  padding-left: 0 !important;
+  text-align: right;
+}
+
+.openButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: none;
+  color: var(--muted-foreground);
+  cursor: pointer;
+}
+
+.openButton:focus-visible {
   outline: 2px solid var(--tk-brand-text);
-  outline-offset: 2px;
-  border-radius: var(--radius-sm);
+  outline-offset: 1px;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.marks {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.marksNet {
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.marksMax {
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.marksSplit {
+  display: inline-flex;
+  gap: var(--spacing-2);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.plus {
+  color: var(--success-text);
+}
+
+.minus {
+  color: var(--error-text);
 }
 
 .nameText {

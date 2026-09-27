@@ -6,11 +6,20 @@ import { SegmentedControl } from "./SegmentedControl";
 import { ConsoleListToolbar } from "./ConsoleListToolbar";
 import { ConsoleListEmpty } from "./ConsoleListEmpty";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "./Select";
-import { perfStyles as styles, StudentName, ScoreBar, RankBadge, PerformanceFacts } from "./TeacherPerformanceKit";
+import {
+  perfStyles as styles,
+  StudentName,
+  ScoreBar,
+  RankBadge,
+  PerformanceFacts,
+  openRow,
+  OpenCell,
+  OpenHead,
+} from "./TeacherPerformanceKit";
 import type { PerformanceToolbarTabs } from "./TeacherPerformanceStudents";
 import { useTeacherPerformanceLeaderboard } from "../helpers/useTeacherPerformance";
 import { adminFormat } from "../helpers/adminFormat";
-import { dateText, downloadCsv, durationText, scoreText } from "../helpers/teacherPerformanceFormat";
+import { dateText, downloadCsv, durationText, marksText, scoreText } from "../helpers/teacherPerformanceFormat";
 import type { AttemptRow, SeriesRow } from "../endpoints/teacher/performance/leaderboard_GET.schema";
 
 export type LeaderboardSelection = { seriesId?: number; itemId?: number; liveTestId?: number };
@@ -19,7 +28,7 @@ type Props = {
   toolbar: PerformanceToolbarTabs;
   selection: LeaderboardSelection;
   onSelect: (selection: LeaderboardSelection) => void;
-  onOpenStudent: (studentId: number) => void;
+  onOpenStudent: (studentId: number, paper?: { itemId: number; attemptId?: number }) => void;
   enabled: boolean;
 };
 
@@ -164,12 +173,12 @@ export const TeacherPerformanceLeaderboard = ({ toolbar, selection, onSelect, on
 
   const subtitle =
     board.kind === "live"
-      ? `${LIVE_STATUS[board.status]}. Ranked the way prizes are paid: each student's first attempt inside the live window, by score, then time.`
+      ? `${LIVE_STATUS[board.status]}. First attempt in the live window, ranked as prizes are paid.`
       : board.kind === "paper"
-        ? "Each student's best attempt, ranked by score, then time taken. Students see the same order on the public leaderboard."
+        ? "Best attempt per student, ranked by score, then time."
         : rankBy === "average"
-          ? "Average of each student's best score on every paper they finished. Ties go to whoever finished more papers."
-          : "Sum of each student's best score on every paper they finished, so finishing more papers counts.";
+          ? "Average of each student's best score per paper."
+          : "Sum of each student's best score per paper.";
 
   return (
     <div className={styles.stack}>
@@ -289,16 +298,17 @@ export const TeacherPerformanceLeaderboard = ({ toolbar, selection, onSelect, on
                 <th className={styles.num}>Papers done</th>
                 <th className={styles.num}>Best score</th>
                 <th className={styles.num}>Last attempt</th>
+                <OpenHead />
               </tr>
             </thead>
             <tbody>
               {visibleSeries.map((row: SeriesRow & { rank: number }) => (
-                <tr key={row.studentId}>
+                <tr key={row.studentId} {...openRow(() => onOpenStudent(row.studentId))}>
                   <td>
                     <RankBadge rank={row.rank} />
                   </td>
                   <td>
-                    <StudentName name={row.name} avatarUrl={row.avatarUrl} onOpen={() => onOpenStudent(row.studentId)} />
+                    <StudentName name={row.name} avatarUrl={row.avatarUrl} />
                   </td>
                   <td className={styles.num}>
                     {rankBy === "average" ? <ScoreBar value={row.averageScore} /> : <strong>{row.totalScore.toFixed(1)}</strong>}
@@ -312,6 +322,7 @@ export const TeacherPerformanceLeaderboard = ({ toolbar, selection, onSelect, on
                   </td>
                   <td className={styles.num}>{scoreText(row.bestScore)}</td>
                   <td className={styles.num}>{dateText(row.lastAt)}</td>
+                  <OpenCell label={`Open ${row.name}'s results`} onOpen={() => onOpenStudent(row.studentId)} />
                 </tr>
               ))}
             </tbody>
@@ -322,29 +333,45 @@ export const TeacherPerformanceLeaderboard = ({ toolbar, selection, onSelect, on
               <tr>
                 <th className={styles.rankCol}>Rank</th>
                 <th>Student</th>
+                {board.maxMarks ? <th className={styles.num}>Marks</th> : null}
                 <th>Score</th>
                 <th className={styles.num}>Time taken</th>
                 {board.kind === "paper" && <th className={styles.num}>Attempts</th>}
                 <th className={styles.num}>Finished on</th>
+                <OpenHead />
               </tr>
             </thead>
             <tbody>
-              {visibleAttempts.map((row) => (
-                <tr key={row.studentId}>
+              {visibleAttempts.map((row) => {
+                const open = () =>
+                  onOpenStudent(row.studentId, {
+                    itemId: row.itemId,
+                    attemptId: board.kind === "live" ? row.attemptId : undefined,
+                  });
+                return (
+                <tr key={row.studentId} {...openRow(open)}>
                   <td>
                     <RankBadge rank={row.rank} />
                   </td>
                   <td>
-                    <StudentName name={row.name} avatarUrl={row.avatarUrl} onOpen={() => onOpenStudent(row.studentId)} />
+                    <StudentName name={row.name} avatarUrl={row.avatarUrl} />
                   </td>
+                  {board.maxMarks ? (
+                    <td className={styles.num}>
+                      <strong>{marksText(row.marks)}</strong>
+                      <span className={styles.muted}> / {marksText(board.maxMarks)}</span>
+                    </td>
+                  ) : null}
                   <td>
                     <ScoreBar value={row.score} />
                   </td>
                   <td className={styles.num}>{durationText(row.timeTakenMinutes)}</td>
                   {board.kind === "paper" && <td className={styles.num}>{row.attempts ?? "-"}</td>}
                   <td className={styles.num}>{dateText(row.completedAt)}</td>
+                  <OpenCell label={`Open ${row.name}'s answers`} onOpen={open} />
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         )}

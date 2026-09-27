@@ -1,6 +1,6 @@
 import { z } from "zod";
 import superjson from "superjson";
-import type { NoteReadingStatus } from "../../../helpers/teacherPerformance";
+import type { AttemptMarks, NoteReadingStatus } from "../../../helpers/teacherPerformance";
 
 export const schema = z.object({
   studentId: z.coerce.number().int().positive(),
@@ -11,7 +11,8 @@ export type InputType = z.infer<typeof schema>;
 /**
  * One test-series paper the student has opened. bestScore and rank use the
  * public leaderboard's rule: each student's best finished attempt, ranked by
- * score then time taken. Scores are percentages.
+ * score then time taken. Scores are percentages of maxMarks; bestMarks are
+ * the marks of that same best attempt.
  */
 export type StudentPaperResult = {
   itemId: number;
@@ -29,6 +30,9 @@ export type StudentPaperResult = {
   rank: number | null;
   rankedOf: number | null;
   lastAttemptAt: Date | null;
+  bestAttemptId: number | null;
+  bestMarks: AttemptMarks | null;
+  maxMarks: number | null;
 };
 
 /** Ranked as the live leaderboard and prize payout rank: first in-window attempt only. */
@@ -42,6 +46,10 @@ export type StudentLiveResult = {
   rankedOf: number;
   score: number | null;
   timeTakenMinutes: number | null;
+  itemId: number | null;
+  attemptId: number | null;
+  marks: AttemptMarks | null;
+  maxMarks: number | null;
 };
 
 export type StudentCourseProgress = {

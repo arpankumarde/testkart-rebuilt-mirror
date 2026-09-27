@@ -10,6 +10,7 @@ import {
 } from "../endpoints/teacher/performance/leaderboard_GET.schema";
 import { getTeacherPerformanceCourse } from "../endpoints/teacher/performance/course_GET.schema";
 import { getTeacherPerformanceNote } from "../endpoints/teacher/performance/note_GET.schema";
+import { getTeacherPerformanceAttempt } from "../endpoints/teacher/performance/attempt_GET.schema";
 
 export const TEACHER_PERFORMANCE_QUERY_KEY = ["teacher", "performance"] as const;
 
@@ -44,6 +45,25 @@ export const useTeacherPerformanceLeaderboard = (input: LeaderboardInput, enable
     queryFn: () => getTeacherPerformanceLeaderboard(input),
     enabled,
     ...OPTIONS,
+  });
+
+export const useTeacherPerformanceAttempt = (
+  studentId: number | null,
+  itemId: number | null,
+  attemptId: number | null
+) =>
+  useQuery({
+    queryKey: [...TEACHER_PERFORMANCE_QUERY_KEY, "attempt", studentId, itemId, attemptId],
+    queryFn: () =>
+      getTeacherPerformanceAttempt({
+        studentId: studentId as number,
+        itemId: itemId as number,
+        attemptId: attemptId ?? undefined,
+      }),
+    enabled: studentId !== null && itemId !== null,
+    staleTime: OPTIONS.staleTime,
+    refetchOnMount: true,
+    placeholderData: <T,>(previous: T | undefined) => previous,
   });
 
 export const useTeacherPerformanceCourse = (courseId: number | null, enabled = true) =>
