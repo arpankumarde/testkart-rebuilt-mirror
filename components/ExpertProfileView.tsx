@@ -251,8 +251,7 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
       productTitle={liveTest.title}
       examName={liveTest.examName}
       stats={liveTest.status.replace(/_/g, " ")}
-      priceLabel={formatItemPrice(liveTest.price, liveTest.discountPrice)}
-      isFree={liveTest.price === 0}
+      {...itemPriceProps(liveTest.price, liveTest.discountPrice)}
       thumbnailUrl={liveTest.thumbnailUrl}
       placeholderUrl={Placeholder.LIVE}
     />
@@ -283,8 +282,7 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
       link={`/bundles/${bundle.slug}`}
       productTitle={bundle.title}
       stats={`${bundle.itemCount} ${bundle.itemCount === 1 ? "item" : "items"}`}
-      priceLabel={formatItemPrice(bundle.price)}
-      isFree={bundle.price === 0}
+      {...bundlePriceProps(bundle.price, bundle.originalPrice)}
       thumbnailUrl={bundle.thumbnailUrl}
       placeholderUrl={Placeholder.COURSE}
     />

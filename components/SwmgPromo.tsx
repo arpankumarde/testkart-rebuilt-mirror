@@ -257,8 +257,7 @@ export const SwmgCatalogSections = ({ emptyTitle, emptyText }: CatalogProps) => 
             productTitle={liveTest.title}
             examName={liveTest.examName}
             stats="Live test"
-            priceLabel={formatItemPrice(liveTest.price, liveTest.discountPrice)}
-            isFree={liveTest.price === 0}
+            {...itemPriceProps(liveTest.price, liveTest.discountPrice)}
             thumbnailUrl={liveTest.thumbnailUrl}
             placeholderUrl={Placeholder.LIVE}
           />

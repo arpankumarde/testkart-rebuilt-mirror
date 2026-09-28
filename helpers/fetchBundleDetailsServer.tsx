@@ -53,6 +53,7 @@ export async function fetchBundleDetailsServer(slug: string): Promise<OutputType
       "digitalProducts.language",
       "digitalProducts.pageCount",
       "digitalProducts.status",
+      "digitalProducts.isPublished",
       "courseBundleItems.orderIndex",
     ])
     .where("courseBundleItems.bundleId", "=", bundle.id)
@@ -73,14 +74,20 @@ export async function fetchBundleDetailsServer(slug: string): Promise<OutputType
       "mockTests.totalQuestions",
       "mockTests.language",
       "mockTests.isPublished",
+      "mockTests.deletedAt",
       "courseBundleItems.orderIndex",
     ])
     .where("courseBundleItems.bundleId", "=", bundle.id)
     .where("courseBundleItems.itemType", "=", "test")
     .execute();
 
+  // Students only see items that are live on their own; SEO below still scores every item, matching the sitemap.
+  const visibleCourses = coursesInBundle.filter((c) => c.status === "published");
+  const visibleProducts = digitalProductsInBundle.filter((d) => d.status === "published" && d.isPublished);
+  const visibleTests = testsInBundle.filter((t) => t.isPublished && t.deletedAt === null);
+
   const items: OutputType["items"] = [
-    ...coursesInBundle.map((c) => ({
+    ...visibleCourses.map((c) => ({
       type: "course" as const,
       id: c.id,
       title: c.title,
@@ -92,7 +99,7 @@ export async function fetchBundleDetailsServer(slug: string): Promise<OutputType
       language: c.language,
       orderIndex: c.orderIndex,
     })),
-      ...testsInBundle.map((t) => ({
+      ...visibleTests.map((t) => ({
         type: "test" as const,
         id: t.id,
         title: t.title,
@@ -105,7 +112,7 @@ export async function fetchBundleDetailsServer(slug: string): Promise<OutputType
         language: t.language,
         orderIndex: t.orderIndex,
       })),
-      ...digitalProductsInBundle.map((d) => ({
+      ...visibleProducts.map((d) => ({
         type: "digital_product" as const,
         id: d.id,
         title: d.title,
@@ -139,7 +146,7 @@ export async function fetchBundleDetailsServer(slug: string): Promise<OutputType
     title: bundle.title,
     description: bundle.description,
     isPublished: bundle.isPublished,
-    itemCount: items.length,
+    itemCount: coursesInBundle.length + digitalProductsInBundle.length + testsInBundle.length,
     publishedItemCount,
     distinctItemTypeCount,
     discountPercentage: bundle.discountPercentage ? Number(bundle.discountPercentage) : null,

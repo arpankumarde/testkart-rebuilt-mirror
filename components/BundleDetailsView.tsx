@@ -229,6 +229,7 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
           {renderMedia()}
         </div>
 
+        {bundle.items.length > 0 && (
         <div className={styles.sectionCard}>
           <h2 className={styles.sectionHeading}>What's Included</h2>
           <div className={styles.itemsList}>
@@ -314,6 +315,7 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
           </div>
           
         </div>
+        )}
 
         <div className={styles.pricingCard} ref={pricingRef}>
           <div className={styles.bundleSummaryBadges}>
