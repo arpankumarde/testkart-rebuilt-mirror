@@ -103,6 +103,15 @@ export async function handle(request: Request): Promise<Response> {
       .where("testId", "=", input.testItemId)
       .executeTakeFirst();
 
+    if (!questionCount || questionCount.count === 0) {
+      return new Response(
+        superjson.stringify({
+          error: "This test does not have any questions yet. Please check back later.",
+        }),
+        { status: 403 }
+      );
+    }
+
     const startedAt = new Date();
     const newAttempt = await db
       .insertInto("testAttempts")

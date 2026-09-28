@@ -177,6 +177,14 @@ export async function fetchTestsListServer(filters: InputType = {}): Promise<Out
       .select(["packageId", "isFree"])
       .where("packageId", "in", testIds)
       .where("deletedAt", "is", null)
+      .where((eb) =>
+        eb.exists(
+          eb
+            .selectFrom("testQuestions")
+            .select("testQuestions.id")
+            .whereRef("testQuestions.testId", "=", "mockTestItems.id")
+        )
+      )
       .execute();
 
     mockTestItems.forEach((item) => {

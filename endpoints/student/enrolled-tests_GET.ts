@@ -155,6 +155,8 @@ export async function handle(request: Request) {
    // Group test items by packageId in JavaScript
    const testItemsByPackage = new Map<number, (typeof testItemsData)[number][]>();
     for (const item of testItemsData) {
+      // A test with no questions cannot be taken, so it is not listed yet.
+      if (Number(item.actualTotalQuestions ?? 0) === 0) continue;
       const items = testItemsByPackage.get(item.packageId) || [];
       items.push(item);
       testItemsByPackage.set(item.packageId, items);

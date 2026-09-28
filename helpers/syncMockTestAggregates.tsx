@@ -23,7 +23,8 @@ export async function syncMockTestAggregates(mockTestId: number): Promise<void> 
       where i.id = c.id and i.total_questions is distinct from c.cnt
     `.execute(db);
 
-    // 1. Get total tests and free tests count for the mock test package
+    // 1. Get total tests and free tests count for the mock test package.
+    // Tests with no questions are not shown to students, so they are not counted.
     const testItemsStats = await db
       .selectFrom("mockTestItems")
       .select([
@@ -34,6 +35,7 @@ export async function syncMockTestAggregates(mockTestId: number): Promise<void> 
       ])
       .where("packageId", "=", mockTestId)
       .where("deletedAt", "is", null)
+      .where("totalQuestions", ">", 0)
       .executeTakeFirst();
 
     const totalTests = testItemsStats?.totalTests || 0;

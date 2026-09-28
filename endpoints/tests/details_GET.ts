@@ -143,7 +143,7 @@ export async function handle(request: Request) {
       .execute();
 
     // For each test item, fetch subjects and their question counts
-    const itemsWithSubjects = await Promise.all(
+    const allItemsWithSubjects = await Promise.all(
       items.map(async (item) => {
         const subjects = await db
           .selectFrom("testItemSubjects")
@@ -208,6 +208,12 @@ export async function handle(request: Request) {
           subjects: subjectsWithCounts,
         };
       })
+    );
+
+    // Tests with no questions are not offered to students. Keep in sync with
+    // helpers/fetchTestDetailsServer.tsx.
+    const itemsWithSubjects = allItemsWithSubjects.filter(
+      (item) => item.totalQuestions > 0
     );
 
     // Generate fallback exam slug if examSlug is null
