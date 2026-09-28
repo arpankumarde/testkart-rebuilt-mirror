@@ -15,7 +15,9 @@ import type { ZodTypeAny } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { db } from "./db";
 import { createServerSessionToken } from "./getSetServerSession";
+import { convertDelimitedLatex, inspectRichText } from "./delimitedLatexToMathNodes";
 import { getServerUserSession } from "./getServerUserSession";
+import { QUESTION_FORMAT_POINTER, QUESTION_RICH_TEXT_FIELDS } from "./mcpQuestionFormatDocs";
 import type { McpAccess } from "./mcpOauth";
 import { extractEndpointError, unwrapEndpointPayload } from "./mcpServer";
 import { SITE_ORIGIN } from "./shareLinks";
@@ -545,6 +547,7 @@ export function describeTeacherAction(action: string) {
         ? "Pass these as teacher_read query parameters."
         : "Pass this as the teacher_write body. Dates are ISO 8601 strings.",
     schema: toJsonSchema(definition.schema),
+    ...(definition.kind === "write" && QUESTION_ACTION.test(action) ? { formatDocs: QUESTION_FORMAT_POINTER } : {}),
   };
 }
 
@@ -660,8 +663,52 @@ async function run(handler: EndpointHandler, request: Request, action: string): 
   return payload;
 }
 
+const QUESTION_ACTION = /^(questions|question-bank)\//;
+const RICH_TEXT_FIELDS = new Set<string>(QUESTION_RICH_TEXT_FIELDS);
+
+type FormatReport = { formulas: number; converted: number; errors: string[]; warnings: string[] };
+
+/**
+ * Models write math as $...$ or \(...\), which the editor shows as raw text. Rewrite it into the
+ * editor's math nodes in every question field, including nested bulk and AI-draft lists, and
+ * record what inspectRichText finds under each field's path.
+ */
+function prepareQuestionFields<T>(value: T, report: FormatReport, path: string, richText = false): T {
+  if (typeof value === "string") {
+    if (!richText) return value;
+    const { html, converted } = convertDelimitedLatex(value);
+    const check = inspectRichText(html);
+    report.converted += converted;
+    report.formulas += check.formulas;
+    report.errors.push(...check.errors.map((message) => `${path}: ${message}`));
+    report.warnings.push(...check.warnings.map((message) => `${path}: ${message}`));
+    return html as T;
+  }
+  if (Array.isArray(value)) {
+    return value.map((item, index) => prepareQuestionFields(item, report, `${path}[${index}]`, richText)) as T;
+  }
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [
+        key,
+        prepareQuestionFields(item, report, path ? `${path}.${key}` : key, RICH_TEXT_FIELDS.has(key)),
+      ])
+    ) as T;
+  }
+  return value;
+}
+
+/** Adds formatCheck to a question write's result whenever it carried formulas or warnings. */
+function withFormatCheck(result: unknown, report: FormatReport): unknown {
+  if (report.formulas === 0 && report.converted === 0 && report.warnings.length === 0) return result;
+  const formatCheck = { formulas: report.formulas, converted: report.converted, warnings: report.warnings };
+  return result && typeof result === "object" && !Array.isArray(result)
+    ? { ...(result as Record<string, unknown>), formatCheck }
+    : { result, formatCheck };
+}
+
 /** Reads send input as query parameters, writes as the POST body. */
-function execute(
+async function execute(
   definition: TeacherAction,
   action: string,
   input: Record<string, unknown> | undefined,
@@ -675,11 +722,23 @@ function execute(
     const suffix = search.toString() ? `?${search.toString()}` : "";
     return run(definition.handler, buildRequest(headers, `${action}${suffix}`, { method: "GET" }), action);
   }
-  const payload = input ?? {};
+  let payload = input ?? {};
+  let report: FormatReport | null = null;
+  if (QUESTION_ACTION.test(action)) {
+    report = { formulas: 0, converted: 0, errors: [], warnings: [] };
+    payload = prepareQuestionFields(payload, report, "");
+    if (report.errors.length > 0) {
+      throw new McpTeacherToolError(
+        `${action} was not saved. Fix the question HTML (see formatDocs in this action's schema) and try again:\n- ` +
+          report.errors.join("\n- ")
+      );
+    }
+  }
   const encoded = definition.plainJson
     ? JSON.stringify(payload)
     : superjson.stringify(reviveDates(definition.schema, payload));
-  return run(definition.handler, buildRequest(headers, action, { method: "POST", body: encoded }), action);
+  const result = await run(definition.handler, buildRequest(headers, action, { method: "POST", body: encoded }), action);
+  return report ? withFormatCheck(result, report) : result;
 }
 
 /**

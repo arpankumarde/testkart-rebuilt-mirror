@@ -19,6 +19,7 @@ import {
   TEACHER_SERVER_NAME,
   TEACHER_SERVER_VERSION,
 } from "../../helpers/mcpTeacherToolDefs";
+import { TEACHER_DOCS, type TeacherDocsTopic } from "../../helpers/mcpQuestionFormatDocs";
 
 function requireAction(args: Record<string, unknown>): string {
   if (typeof args.action !== "string" || !args.action) {
@@ -51,6 +52,11 @@ async function callTool(
       return listTeacherActions(args.kind === "read" || args.kind === "write" ? args.kind : undefined);
     case "teacher_action_schema":
       return describeTeacherAction(requireAction(args));
+    case "teacher_docs":
+      if (typeof args.topic !== "string" || !Object.prototype.hasOwnProperty.call(TEACHER_DOCS, args.topic)) {
+        throw new McpTeacherToolError(`topic must be one of: ${Object.keys(TEACHER_DOCS).join(", ")}.`);
+      }
+      return TEACHER_DOCS[args.topic as TeacherDocsTopic];
     case "teacher_read":
       return callTeacherRead(access, requireAction(args), optionalObject(args.query, "query"));
     case "teacher_write":

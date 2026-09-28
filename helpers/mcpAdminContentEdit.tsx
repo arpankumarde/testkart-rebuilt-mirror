@@ -17,6 +17,7 @@ import {
 import { closeAdminEditSession, openAdminEditSession } from "./adminContentEditSession";
 import { hasAdminModule } from "./adminPermissions";
 import { createAdminSessionToken } from "./getAdminSession";
+import { QUESTION_FORMAT_DOCS } from "./mcpQuestionFormatDocs";
 import { describeTeacherAction, invokeTeacherAction, listTeacherActions } from "./mcpTeacherActions";
 import { loadAdmin, McpToolError } from "./mcpTools";
 
@@ -80,6 +81,8 @@ export async function describeContentEditAction(adminId: number, typeArg: unknow
       described.kind === "read"
         ? "Pass these as content_edit input; they are sent as query parameters."
         : "Pass this as content_edit input. Dates are ISO 8601 strings.",
+    // The admin connector has no teacher_docs tool, so question actions carry the full reference.
+    ...("formatDocs" in described ? { formatDocs: QUESTION_FORMAT_DOCS } : {}),
   };
 }
 

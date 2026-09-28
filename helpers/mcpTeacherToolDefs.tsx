@@ -8,10 +8,11 @@
  */
 
 import type { ToolDefinition } from "./mcpServer";
+import { TEACHER_DOCS } from "./mcpQuestionFormatDocs";
 import { teacherActionNames } from "./mcpTeacherActions";
 
 export const TEACHER_SERVER_NAME = "testkart-teacher";
-export const TEACHER_SERVER_VERSION = "1.2.0";
+export const TEACHER_SERVER_VERSION = "1.4.0";
 
 export const TEACHER_SERVER_INSTRUCTIONS = `Operates a Testkart teacher account as the signed-in teacher.
 
@@ -55,6 +56,17 @@ base64 (dataBase64); base64 is paid for in tokens, so crop and compress a figure
 A client that can run code with internet access should call editor-images/upload-url instead, PUT
 the file to uploadUrl with the returned headers, and only then use url - the CDN caches a missing
 file's 404 for hours. JPEG, PNG, GIF and WebP only, within Testkart's editor image size limit.
+
+Math. Before writing questions, read teacher_docs with topic "question-format": the HTML the
+editor keeps, the math node syntax and a worked example. In short, each formula is an empty node
+carrying its LaTeX in data-latex:
+<span data-type="inline-math" data-latex="\\frac{a}{b}"></span> inline, and
+<div data-type="block-math" data-latex="x^2 + y^2 = r^2"></div> on its own line (never inside a
+<p>). Write the attribute HTML-escaped: & as &amp;, " as &quot;, < as &lt;. On question and
+question-bank writes, $...$ and \\(...\\) are converted to inline nodes, and $$...$$ and \\[...\\]
+to a block node when they fill a paragraph, otherwise to inline display style. A literal dollar
+sign is written \\$. A write is refused, with nothing saved, when a formula does not render or a
+delimiter is left open. Successful writes return formatCheck with any warnings; act on them.
 
 Not available here. Cancelling a subscription or autopay mandate, and creating or changing promo
 codes, are refused - the teacher does those on the website. Other files, such as PDFs and videos,
@@ -110,6 +122,21 @@ export function buildTeacherToolDefinitions(): ToolDefinition[] {
           action: { type: "string", enum: [...readActions, ...writeActions].sort() },
         },
         required: ["action"],
+        additionalProperties: false,
+      },
+      annotations: { readOnlyHint: true },
+    },
+    {
+      name: "teacher_docs",
+      description:
+        'Format reference. "question-format": how question text, options, passages, explanations and ' +
+        "match items are written as HTML, with math as data-latex nodes, plus a worked questions/create body.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          topic: { type: "string", enum: Object.keys(TEACHER_DOCS) },
+        },
+        required: ["topic"],
         additionalProperties: false,
       },
       annotations: { readOnlyHint: true },
