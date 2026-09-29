@@ -7,6 +7,8 @@ export const schema = z.object({
   limit: z.number().int().positive().optional(),
   sortBy: z.enum(["name", "email", "createdAt", "testsCount", "bundlesCount", "coursesCount", "liveTestsCount", "productsCount", "totalEarnings"]).optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
+  /** An admin id, or "unassigned". */
+  relationshipManager: z.string().optional(),
 });
 
 export type InputType = z.infer<typeof schema>;
@@ -21,6 +23,8 @@ export type TeacherAdminView = {
   isActive: boolean;
   isVerified: boolean;
   drmEnabled: boolean;
+  relationshipManagerId: number | null;
+  relationshipManagerName: string | null;
   testsCount: number;
   bundlesCount: number;
   coursesCount: number;
@@ -65,6 +69,7 @@ export const getAdminTeachersList = async (
   if (params.limit) queryParams.set("limit", params.limit.toString());
   if (params.sortBy) queryParams.set("sortBy", params.sortBy);
   if (params.sortOrder) queryParams.set("sortOrder", params.sortOrder);
+  if (params.relationshipManager) queryParams.set("relationshipManager", params.relationshipManager);
 
   const result = await fetch(`/_api/admin/teachers/list?${queryParams.toString()}`, {
     method: "GET",

@@ -109,13 +109,16 @@
   min-width: 0;
 }
 
+/* Two lines, so a guide title still reads in the side panel's width. */
 .rowTitle {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   font-size: 0.8125rem;
   font-weight: 600;
+  line-height: 1.35;
   color: var(--foreground);
-  white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
   transition: color var(--animation-duration-fast) ease;
 }
 

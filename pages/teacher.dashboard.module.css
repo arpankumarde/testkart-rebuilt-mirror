@@ -1,4 +1,5 @@
 .page {
+  container: overview / inline-size;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-6);
@@ -65,26 +66,56 @@
   font-size: 0.875rem;
 }
 
-.content {
+/* The numbers and the work take the main column; the relationship manager,
+   AI connector and guides sit in a side panel once the page has room for one,
+   and stack under the main column below that. */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-6);
+  align-items: start;
+}
+
+.main {
+  container: overview-main / inline-size;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-6);
+  min-width: 0;
   transition: opacity var(--animation-duration-fast) ease;
+}
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  min-width: 0;
 }
 
 .busy {
   opacity: 0.65;
 }
 
-/* Two even halves, used by both the chart + guides row and the
-   sellers + sales row. Cards stretch to a shared height so the two sides of a
-   row always line up top and bottom — each card fills that height itself
-   rather than being top-aligned in a taller box. */
+@container overview (min-width: 62rem) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 20rem;
+  }
+}
+
+/* Best sellers beside Recent sales. Cards stretch to a shared height so the two
+   sides line up top and bottom - each card fills that height itself rather than
+   being top-aligned in a taller box. */
 .splitRow {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: var(--spacing-6);
   align-items: stretch;
+}
+
+@container overview-main (max-width: 43.99rem) {
+  .splitRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .totals {
@@ -116,18 +147,14 @@
   color: var(--muted-foreground);
 }
 
-@media (max-width: 1024px) {
-  .splitRow {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
 @media (max-width: 640px) {
   .page {
     gap: var(--spacing-4);
   }
 
-  .content {
+  .layout,
+  .main,
+  .rail {
     gap: var(--spacing-4);
   }
 
@@ -146,7 +173,7 @@
     animation: none;
   }
 
-  .content {
+  .main {
     transition: none;
   }
 }

@@ -1,8 +1,9 @@
 import { db } from "./db";
+import { assignRelationshipManager } from "./relationshipManager";
 
 /**
  * Backend-only helper function that adds a teacher to the sales_contacts table
- * if they don't already exist there.
+ * if they don't already exist there, and gives them a relationship manager.
  */
 export async function addTeacherToSalesContacts(userId: number): Promise<void> {
   try {
@@ -28,4 +29,6 @@ export async function addTeacherToSalesContacts(userId: number): Promise<void> {
     // Silently fail - sales contact sync is non-critical to the main user flow
     console.error("Failed to add teacher to sales contacts:", error);
   }
+
+  await assignRelationshipManager(userId);
 }

@@ -9,8 +9,7 @@ type Props = {
   className?: string;
 };
 
-// Matches the six rows Best sellers and Recent sales show, so every list card
-// on the dashboard comes out the same height.
+// Six rows, the same as Best sellers and Recent sales.
 const GUIDE_COUNT = 6;
 
 // The list endpoint has no sort option and returns newest-first, which for the
@@ -22,9 +21,8 @@ const FETCH_COUNT = 24;
 
 /**
  * The knowledge base, surfaced where a teacher is already deciding what to do
- * next. These are the "how to create and sell X" walkthroughs, so the card
- * sits opposite Recent sales and reinforces the same push as the catalogue
- * card above it.
+ * next. These are the "how to create and sell X" walkthroughs; the card sits in
+ * the dashboard's side panel, beside the catalogue it helps fill.
  */
 export const TeacherOverviewGuides = ({ className }: Props) => {
   const { data, isFetching } = useBlogPostsQuery({ type: "knowledge_base", limit: FETCH_COUNT });

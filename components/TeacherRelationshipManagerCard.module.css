@@ -1,0 +1,128 @@
+/*
+ * Relationship manager card in the teacher dashboard's side panel. A console surface like
+ * AiConnectorCard: the attention band keeps the dashboard's one coral block, so the brand shows only
+ * in the solid deep-orange initials and the ink action.
+ */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4) 1.25rem;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  color: var(--foreground);
+}
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  min-width: 0;
+}
+
+.avatar {
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+}
+
+.initials {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--tk-brand-deep);
+  color: #fff;
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.eyebrow {
+  margin: 0;
+  font-family: var(--font-family-base);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.name {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.email {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.actions {
+  display: flex;
+  gap: var(--spacing-2);
+}
+
+/* Ink with white type, as on AiConnectorCard: white on coral is 2.1:1, on ink it clears 12:1. */
+.cta {
+  flex: 1;
+  min-width: 0;
+  background-color: var(--tk-brand-ink);
+  border-color: var(--tk-brand-ink);
+  color: #fff;
+  font-weight: 700;
+}
+
+.cta:hover,
+.cta:active {
+  background-color: var(--tk-brand-ink-hover);
+  border-color: var(--tk-brand-ink-hover);
+  color: #fff;
+}
+
+:global(.dark) .cta {
+  background-color: var(--tk-brand);
+  border-color: var(--tk-brand);
+  color: var(--tk-brand-ink);
+}
+
+:global(.dark) .cta:hover,
+:global(.dark) .cta:active {
+  background-color: var(--tk-brand-hover);
+  border-color: var(--tk-brand-hover);
+  color: var(--tk-brand-hover-foreground);
+}
+
+.cta svg,
+.copy svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.copy {
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .card {
+    padding: var(--spacing-4);
+  }
+}

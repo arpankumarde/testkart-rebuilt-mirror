@@ -8,14 +8,16 @@ export const useAdminTeachersQuery = ({
   page = 1,
   sortBy,
   sortOrder,
+  relationshipManager = "",
 }: {
   search?: string;
   page?: number;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
+  relationshipManager?: string;
 }) => {
   return useQuery({
-    queryKey: [ADMIN_TEACHERS_QUERY_KEY, { search, page, sortBy, sortOrder }],
+    queryKey: [ADMIN_TEACHERS_QUERY_KEY, { search, page, sortBy, sortOrder, relationshipManager }],
     queryFn: () =>
       getAdminTeachersList({
         search,
@@ -23,6 +25,7 @@ export const useAdminTeachersQuery = ({
         limit: 20,
         sortBy: sortBy as any,
         sortOrder,
+        relationshipManager: relationshipManager || undefined,
       }),
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: true,

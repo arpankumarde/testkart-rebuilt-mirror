@@ -1605,6 +1605,7 @@ export interface Users {
   productInterest: Json | null;
   publicEmail: string | null;
   publicPhone: string | null;
+  relationshipManagerAdminId: number | null;
   responseTime: string | null;
   role: UserRole;
   schoolCollegeName: string | null;

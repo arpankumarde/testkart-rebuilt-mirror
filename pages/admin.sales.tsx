@@ -58,6 +58,8 @@ const mapContactToTeacherView = (contact: SalesContactView): TeacherAdminView =>
     isActive: true,
     isVerified: false,
     drmEnabled: false,
+    relationshipManagerId: null,
+    relationshipManagerName: null,
     testsCount: 0,
     bundlesCount: 0,
     coursesCount: 0,

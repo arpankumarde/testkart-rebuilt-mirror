@@ -43,8 +43,14 @@ import {
   Lock,
   LockOpen,
   ShieldCheck,
+  Handshake,
 } from "lucide-react";
 import { VerifiedBadge } from "../components/VerifiedBadge";
+import { useAdminOptionsQuery } from "../helpers/useAdminOptions";
+import {
+  AdminTeacherRelationshipManagerDialog,
+  RelationshipManagerTarget,
+} from "../components/AdminTeacherRelationshipManagerDialog";
 import { useAdminToggleVerifiedMutation } from "../helpers/useAdminToggleVerified";
 import { useAdminToggleTeacherDrmMutation } from "../helpers/useAdminToggleTeacherDrm";
 import { TeacherProfileDialog } from "../components/TeacherProfileDialog";
@@ -101,7 +107,7 @@ const TableColumns = () => (
     <col className={styles.colCount} />
     <col className={styles.colMoney} />
     <col className={styles.colDate} />
-    <col className={styles.colDrm} />
+    <col className={styles.colManager} />
     <col className={styles.colActions} />
   </colgroup>
 );
@@ -131,7 +137,9 @@ const TeacherRowSkeleton = () => (
     <td>
       <Skeleton style={{ height: "0.875rem", width: "5rem" }} />
     </td>
-    <td />
+    <td>
+      <Skeleton style={{ height: "0.875rem", width: "3.5rem" }} />
+    </td>
     <td>
       <Skeleton style={{ height: "1.5rem", width: "5.5rem", marginLeft: "auto" }} />
     </td>
@@ -161,19 +169,15 @@ interface SortIconProps {
   sortOrder: "asc" | "desc";
 }
 
-/* Icon-only in the table's DRM column; cards have no column header, so there it carries a label. */
-const DrmBadge = ({ withLabel = false }: { withLabel?: boolean }) => (
-  <Badge
-    variant="success"
-    className={withLabel ? `${styles.flag} ${styles.drmFlag}` : styles.drmBadge}
-    title="DRM is on for this teacher"
-    role={withLabel ? undefined : "img"}
-    aria-label={withLabel ? undefined : "DRM on"}
-  >
+/* A labelled flag beside the teacher's name, in the table and the cards alike. */
+const DrmBadge = () => (
+  <Badge variant="success" className={`${styles.flag} ${styles.drmFlag}`} title="DRM is on for this teacher">
     <ShieldCheck aria-hidden="true" />
-    {withLabel && "DRM"}
+    DRM
   </Badge>
 );
+
+const firstName = (name: string | null) => (name ? name.split(/\s+/)[0] : null);
 
 const SortIcon = ({ column, sortBy, sortOrder }: SortIconProps) => {
   if (sortBy !== column) {
@@ -195,13 +199,18 @@ const AdminTeachersPage: React.FC = () => {
   const [statusTarget, setStatusTarget] = useState<{ id: number; name: string; isActive: boolean } | null>(null);
   const [verifyTarget, setVerifyTarget] = useState<{ id: number; name: string; isVerified: boolean } | null>(null);
   const [drmTarget, setDrmTarget] = useState<{ id: number; name: string; drmEnabled: boolean } | null>(null);
+  const [managerFilter, setManagerFilter] = useState("all");
+  const [managerTarget, setManagerTarget] = useState<RelationshipManagerTarget | null>(null);
 
   const { data, isFetching, isError, error, refetch } = useAdminTeachersQuery({
     page,
     search: searchTerm,
     sortBy,
     sortOrder,
+    relationshipManager: managerFilter === "all" ? "" : managerFilter,
   });
+  const { data: adminOptions } = useAdminOptionsQuery();
+  const activeAdmins = (adminOptions?.admins ?? []).filter((admin) => admin.isActive);
 
   const toggleStatusMutation = useToggleUserStatusMutation();
   const toggleVerifiedMutation = useAdminToggleVerifiedMutation();
@@ -220,7 +229,7 @@ const AdminTeachersPage: React.FC = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [sortBy, sortOrder]);
+  }, [sortBy, sortOrder, managerFilter]);
 
   const handleSort = (column: SortableColumn) => {
     if (sortBy === column) {
@@ -271,11 +280,11 @@ const AdminTeachersPage: React.FC = () => {
     );
   };
 
-  const renderIdentity = (teacher: TeacherAdminView, withDrmFlag = false) => (
+  const renderIdentity = (teacher: TeacherAdminView) => (
     <span className={styles.primaryLine}>
       <span className={styles.truncate} title={teacher.fullName}>{teacher.fullName}</span>
       <VerifiedBadge isVerified={teacher.isVerified} size="sm" className={styles.verified} />
-      {withDrmFlag && teacher.drmEnabled && <DrmBadge withLabel />}
+      {teacher.drmEnabled && <DrmBadge />}
       {!teacher.isActive && (
         <Badge variant="destructive" className={styles.flag}>Inactive</Badge>
       )}
@@ -347,6 +356,18 @@ const AdminTeachersPage: React.FC = () => {
             ) : (
               <><Lock size={16} /> Turn on DRM</>
             )}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className={styles.menuItem}
+            onSelect={() =>
+              setManagerTarget({
+                teacherId: teacher.id,
+                teacherName: teacher.fullName,
+                currentAdminId: teacher.relationshipManagerId,
+              })
+            }
+          >
+            <Handshake size={16} /> Change relationship manager
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
@@ -427,7 +448,7 @@ const AdminTeachersPage: React.FC = () => {
                 {COUNT_FIELDS.map((field) => renderSortableHeader(field.key, field.label, true))}
                 {renderSortableHeader("totalEarnings", "Earnings", true)}
                 {renderSortableHeader("createdAt", "Registered")}
-                <th>DRM</th>
+                <th title="Relationship manager">RM</th>
                 <th><span className={styles.srOnly}>Actions</span></th>
               </tr>
             </thead>
@@ -459,7 +480,12 @@ const AdminTeachersPage: React.FC = () => {
                     {formatCurrency(teacher.totalEarnings)}
                   </td>
                   <td className={styles.date}>{formatDate(teacher.createdAt)}</td>
-                  <td>{teacher.drmEnabled && <DrmBadge />}</td>
+                  <td
+                    className={teacher.relationshipManagerName ? undefined : styles.zero}
+                    title={teacher.relationshipManagerName ?? undefined}
+                  >
+                    {firstName(teacher.relationshipManagerName) ?? "None"}
+                  </td>
                   <td>{renderActions(teacher)}</td>
                 </tr>
               ))}
@@ -473,7 +499,7 @@ const AdminTeachersPage: React.FC = () => {
               <article key={teacher.id} className={styles.card}>
                 <div className={styles.cardHeader}>
                   <div className={styles.stack}>
-                    {renderIdentity(teacher, true)}
+                    {renderIdentity(teacher)}
                     <span className={styles.secondaryLine} title={teacher.email}>{teacher.email}</span>
                     <span className={styles.secondaryLine}>{contact || "No phone or academy"}</span>
                   </div>
@@ -493,6 +519,12 @@ const AdminTeachersPage: React.FC = () => {
                   <div className={styles.cardStat}>
                     <dt>Registered</dt>
                     <dd>{formatDate(teacher.createdAt)}</dd>
+                  </div>
+                  <div className={styles.cardStat}>
+                    <dt>Relationship manager</dt>
+                    <dd className={teacher.relationshipManagerName ? undefined : styles.zero}>
+                      {teacher.relationshipManagerName ?? "None"}
+                    </dd>
                   </div>
                 </dl>
               </article>
@@ -523,6 +555,20 @@ const AdminTeachersPage: React.FC = () => {
             label: "Search teachers",
           }}
         >
+          <Select value={managerFilter} onValueChange={setManagerFilter}>
+            <SelectTrigger className={consoleToolbarControlClass} aria-label="Filter by relationship manager">
+              <SelectValue placeholder="All managers" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All managers</SelectItem>
+              {activeAdmins.map((admin) => (
+                <SelectItem key={admin.id} value={String(admin.id)}>
+                  {admin.fullName}
+                </SelectItem>
+              ))}
+              <SelectItem value="unassigned">No manager</SelectItem>
+            </SelectContent>
+          </Select>
           <Select
             value={sortBy}
             onValueChange={(val) => {
@@ -567,6 +613,11 @@ const AdminTeachersPage: React.FC = () => {
       <TeacherProfileDialog
         teacher={selectedTeacher}
         onClose={() => setSelectedTeacher(null)}
+      />
+
+      <AdminTeacherRelationshipManagerDialog
+        target={managerTarget}
+        onClose={() => setManagerTarget(null)}
       />
 
       <ConsoleConfirmDialog

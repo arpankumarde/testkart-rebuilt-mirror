@@ -21,6 +21,7 @@ import { TeacherOverviewRecentSales } from "../components/TeacherOverviewRecentS
 import { TeacherOverviewGuides } from "../components/TeacherOverviewGuides";
 import { TeamStatusBanner } from "../components/TeamStatusBanner";
 import { AiConnectorCard } from "../components/AiConnectorCard";
+import { TeacherRelationshipManagerCard } from "../components/TeacherRelationshipManagerCard";
 import styles from "./teacher.dashboard.module.css";
 
 const RANGE_DAYS: Record<TeacherOverviewRange, number> = { "7d": 7, "30d": 30, "90d": 90 };
@@ -103,62 +104,62 @@ const TeacherDashboardPage: React.FC = () => {
           </div>
         )}
 
-        <div className={`${styles.content} ${isFetching && data ? styles.busy : ""}`} aria-busy={isFetching}>
-          <TeamStatusBanner />
+        <div className={styles.layout}>
+          <div className={`${styles.main} ${isFetching && data ? styles.busy : ""}`} aria-busy={isFetching}>
+            <TeamStatusBanner />
 
-          <TeacherOverviewAttention attention={data?.attention} availableBalance={totals?.availableBalance ?? 0} />
+            <TeacherOverviewAttention attention={data?.attention} availableBalance={totals?.availableBalance ?? 0} />
 
-          <TeacherOverviewNextSteps user={authState.user} publishedCount={publishedCount} />
+            <TeacherOverviewNextSteps user={authState.user} publishedCount={publishedCount} />
 
-          <AiConnectorCard audience="teacher" />
+            <TeacherOverviewKpis kpis={data?.kpis} daily={daily} isLoading={isFetching} showEarnings={showMoney} />
 
-          <TeacherOverviewKpis kpis={data?.kpis} daily={daily} isLoading={isFetching} showEarnings={showMoney} />
+            <TeacherOverviewCatalogue totals={totals} />
 
-          <TeacherOverviewCatalogue totals={totals} />
+            {showMoney && <TeacherOverviewEarningsChart daily={daily} days={days} isLoading={isFetching} />}
 
-          {showMoney ? (
             <div className={styles.splitRow}>
-              <TeacherOverviewEarningsChart daily={daily} days={days} isLoading={isFetching} />
-              <TeacherOverviewGuides />
+              <TeacherOverviewTopSellers
+                sellers={data?.topSellers ?? []}
+                days={days}
+                isLoading={isFetching}
+                showEarnings={showMoney}
+              />
+              <TeacherOverviewRecentSales
+                sales={data?.recentSales ?? []}
+                isLoading={isFetching}
+                showAmounts={showMoney}
+              />
             </div>
-          ) : (
-            <TeacherOverviewGuides />
-          )}
 
-          <div className={styles.splitRow}>
-            <TeacherOverviewTopSellers
-              sellers={data?.topSellers ?? []}
-              days={days}
-              isLoading={isFetching}
-              showEarnings={showMoney}
-            />
-            <TeacherOverviewRecentSales
-              sales={data?.recentSales ?? []}
-              isLoading={isFetching}
-              showAmounts={showMoney}
-            />
+            {totals && (
+              <footer className={styles.totals} aria-label="Your totals">
+                {showMoney && (
+                  <div className={styles.total}>
+                    <span className={styles.totalValue}>{adminFormat.inr(totals.availableBalance)}</span>
+                    <span className={styles.totalLabel}>available to withdraw</span>
+                  </div>
+                )}
+                <div className={styles.total}>
+                  <span className={styles.totalValue}>{adminFormat.count(totals.students)}</span>
+                  <span className={styles.totalLabel}>students all time</span>
+                </div>
+                {showMoney && (
+                  <div className={styles.total}>
+                    <span className={styles.totalValue}>{adminFormat.inr(totals.lifetimeEarnings)}</span>
+                    <span className={styles.totalLabel}>earned all time</span>
+                  </div>
+                )}
+              </footer>
+            )}
           </div>
 
-          {totals && (
-            <footer className={styles.totals} aria-label="Your totals">
-              {showMoney && (
-                <div className={styles.total}>
-                  <span className={styles.totalValue}>{adminFormat.inr(totals.availableBalance)}</span>
-                  <span className={styles.totalLabel}>available to withdraw</span>
-                </div>
-              )}
-              <div className={styles.total}>
-                <span className={styles.totalValue}>{adminFormat.count(totals.students)}</span>
-                <span className={styles.totalLabel}>students all time</span>
-              </div>
-              {showMoney && (
-                <div className={styles.total}>
-                  <span className={styles.totalValue}>{adminFormat.inr(totals.lifetimeEarnings)}</span>
-                  <span className={styles.totalLabel}>earned all time</span>
-                </div>
-              )}
-            </footer>
-          )}
+          {/* Contacts and help sit beside the numbers rather than between them. */}
+          <aside className={styles.rail} aria-label="Help and contacts">
+            <TeacherRelationshipManagerCard />
+            <AiConnectorCard audience="teacher" />
+            <TeacherOverviewGuides />
+          </aside>
         </div>
       </div>
     </>

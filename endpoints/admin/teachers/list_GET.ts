@@ -49,10 +49,17 @@ export async function handle(request: Request): Promise<Response> {
     const offset = (page - 1) * limit;
     const sortBy = url.searchParams.get("sortBy") || "createdAt";
     const sortOrder = (url.searchParams.get("sortOrder") || "desc") as "asc" | "desc";
+    const relationshipManager = url.searchParams.get("relationshipManager") || "";
 
-    const baseQuery = db
+    let baseQuery = db
       .selectFrom("users")
       .where("users.role", "=", "teacher");
+
+    if (relationshipManager === "unassigned") {
+      baseQuery = baseQuery.where("users.relationshipManagerAdminId", "is", null);
+    } else if (/^\d+$/.test(relationshipManager)) {
+      baseQuery = baseQuery.where("users.relationshipManagerAdminId", "=", parseInt(relationshipManager, 10));
+    }
 
     let teachersQuery = baseQuery
       .selectAll("users")
@@ -87,6 +94,11 @@ export async function handle(request: Request): Promise<Response> {
         // (Previously this summed raw oi.price_at_purchase with no fee/discount deducted and no
         // bundle sales included, so it showed near-gross revenue rather than actual earnings.)
         asScalar(buildTeacherNetEarningsSql(teacherIdRef)).as("totalEarnings"),
+        sql<string | null>`(
+          SELECT admins.full_name
+          FROM admins
+          WHERE admins.id = users.relationship_manager_admin_id
+        )`.as("relationshipManagerName"),
       ])
       .orderBy(getSortExpression(sortBy), sortOrder)
       .limit(limit)
@@ -133,6 +145,8 @@ export async function handle(request: Request): Promise<Response> {
         isActive: t.isActive,
         isVerified: t.isVerified,
         drmEnabled: t.drmEnabled,
+        relationshipManagerId: t.relationshipManagerAdminId,
+        relationshipManagerName: t.relationshipManagerName,
         testsCount: parseInt(t.testsCount as any, 10),
         bundlesCount: parseInt(t.bundlesCount as any, 10),
         coursesCount: parseInt(t.coursesCount as any, 10),
