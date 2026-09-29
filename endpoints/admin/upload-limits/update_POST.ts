@@ -42,7 +42,7 @@ export async function handle(request: Request): Promise<Response> {
           kycDocumentMaxMb: validatedData.kycDocumentMaxMb ?? 5,
           coursePdfMaxMb: validatedData.coursePdfMaxMb ?? 40,
           courseIntroVideoMaxMb: validatedData.courseIntroVideoMaxMb ?? 50,
-          lessonVideoMaxMb: validatedData.lessonVideoMaxMb ?? 2048,
+          lessonVideoMaxMb: validatedData.lessonVideoMaxMb ?? 9728,
           digitalProductPdfMaxMb: validatedData.digitalProductPdfMaxMb ?? 40,
           richTextImageMaxMb: validatedData.richTextImageMaxMb ?? 5,
           updatedAt: new Date(),

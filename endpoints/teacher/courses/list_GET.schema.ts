@@ -3,6 +3,7 @@ import superjson from "superjson";
 import { Selectable } from "kysely";
 import { Courses } from "../../../helpers/schema";
 import type { ContentExam } from "../../../helpers/contentExams";
+import type { ContentRejection } from "../../../helpers/contentReviewStatus";
 
 export const schema = z.object({});
 
@@ -17,6 +18,8 @@ export type TeacherCourseListItem = Omit<Selectable<Courses>, "price" | "discoun
   exams: ContentExam[];
   /** Submitted for publishing and waiting on admin approval. */
   inReview: boolean;
+  /** Set when the latest review was rejected, with the admin's reason. */
+  rejection: ContentRejection | null;
 };
 
 export type OutputType = TeacherCourseListItem[];

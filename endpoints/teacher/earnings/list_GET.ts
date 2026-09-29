@@ -10,6 +10,10 @@ import { sql } from "kysely";
 const couponFields = (code: string | null, discount: string | number | null) =>
   code && Number(discount) > 0 ? { couponCode: code, couponDiscount: Number(discount) } : {};
 
+// A refunded sale stays listed, marked refunded and earning nothing, matching the balance.
+const refundFields = (status: string, refundedAt: Date | null, refundReason: string | null) =>
+  status === "refunded" ? { amountEarned: 0, isRefunded: true, refundedAt, refundReason } : {};
+
 export async function handle(request: Request): Promise<Response> {
   try {
     const { user, effectiveTeacherId, teacherRole } = await getServerUserSession(request);
@@ -37,7 +41,7 @@ export async function handle(request: Request): Promise<Response> {
       .innerJoin("mockTests", "orderItems.mockTestId", "mockTests.id")
       .leftJoin("promoCodes", "orders.promoCodeId", "promoCodes.id")
       .where("mockTests.teacherId", "=", effectiveTeacherId)
-      .where("orders.status", "=", "completed")
+      .where("orders.status", "in", ["completed", "refunded"])
       .where((eb) => eb.or([eb("orders.paymentMethod", "is", null), eb("orders.paymentMethod", "!=", "teacher_sponsored")]))
       .where("orders.id", "not in", (eb) =>
         eb
@@ -57,6 +61,9 @@ export async function handle(request: Request): Promise<Response> {
         ),
         "promoCodes.code as couponCode",
         "orderItems.discountAmount as couponDiscount",
+        "orders.status as orderStatus",
+        "orders.refundedAt",
+        "orders.refundReason",
       ])
       .execute();
 
@@ -92,6 +99,7 @@ export async function handle(request: Request): Promise<Response> {
       isLiveTest: liveTestOrderMap.has(row.orderId),
       liveTestEnded: liveTestOrderMap.get(row.orderId) ?? false,
       ...couponFields(row.couponCode, row.couponDiscount),
+      ...refundFields(row.orderStatus, row.refundedAt, row.refundReason),
     }));
 
     // Fetch course sales transactions
@@ -102,7 +110,7 @@ export async function handle(request: Request): Promise<Response> {
       .innerJoin("courses", "orderItems.courseId", "courses.id")
       .leftJoin("promoCodes", "orders.promoCodeId", "promoCodes.id")
       .where("courses.teacherId", "=", effectiveTeacherId)
-      .where("orders.status", "=", "completed")
+      .where("orders.status", "in", ["completed", "refunded"])
       .where((eb) => eb.or([eb("orders.paymentMethod", "is", null), eb("orders.paymentMethod", "!=", "teacher_sponsored")]))
       .where("orders.id", "not in", (eb) =>
         eb
@@ -121,16 +129,20 @@ export async function handle(request: Request): Promise<Response> {
         ),
         "promoCodes.code as couponCode",
         "orderItems.discountAmount as couponDiscount",
+        "orders.status as orderStatus",
+        "orders.refundedAt",
+        "orders.refundReason",
       ])
       .execute();
 
-    const courseSalesTransactions: OutputType = courseSalesData.map(({ couponCode, couponDiscount, ...row }) => ({
+    const courseSalesTransactions: OutputType = courseSalesData.map(({ couponCode, couponDiscount, orderStatus, refundedAt, refundReason, ...row }) => ({
       ...row,
       grossAmount: Number(row.grossAmount),
       platformFeePercentage: Number(row.platformFeePercentage),
       amountEarned: Number(row.amountEarned),
       transactionType: "sale" as const,
       ...couponFields(couponCode, couponDiscount),
+      ...refundFields(orderStatus, refundedAt, refundReason),
     }));
 
     // Fetch digital product sales transactions
@@ -141,7 +153,7 @@ export async function handle(request: Request): Promise<Response> {
       .innerJoin("digitalProducts", "orderItems.digitalProductId", "digitalProducts.id")
       .leftJoin("promoCodes", "orders.promoCodeId", "promoCodes.id")
       .where("digitalProducts.teacherId", "=", effectiveTeacherId)
-      .where("orders.status", "=", "completed")
+      .where("orders.status", "in", ["completed", "refunded"])
       .where((eb) => eb.or([eb("orders.paymentMethod", "is", null), eb("orders.paymentMethod", "!=", "teacher_sponsored")]))
       .where("orders.id", "not in", (eb) =>
         eb
@@ -160,16 +172,20 @@ export async function handle(request: Request): Promise<Response> {
         ),
         "promoCodes.code as couponCode",
         "orderItems.discountAmount as couponDiscount",
+        "orders.status as orderStatus",
+        "orders.refundedAt",
+        "orders.refundReason",
       ])
       .execute();
 
-    const digitalProductSalesTransactions: OutputType = digitalProductSalesData.map(({ couponCode, couponDiscount, ...row }) => ({
+    const digitalProductSalesTransactions: OutputType = digitalProductSalesData.map(({ couponCode, couponDiscount, orderStatus, refundedAt, refundReason, ...row }) => ({
       ...row,
       grossAmount: Number(row.grossAmount),
       platformFeePercentage: Number(row.platformFeePercentage),
       amountEarned: Number(row.amountEarned),
       transactionType: "sale" as const,
       ...couponFields(couponCode, couponDiscount),
+      ...refundFields(orderStatus, refundedAt, refundReason),
     }));
 
     // Fetch bundle sales transactions
@@ -179,7 +195,7 @@ export async function handle(request: Request): Promise<Response> {
       .innerJoin("courseBundles", "orders.bundleId", "courseBundles.id")
       .leftJoin("promoCodes", "orders.promoCodeId", "promoCodes.id")
       .where("courseBundles.teacherId", "=", effectiveTeacherId)
-      .where("orders.status", "=", "completed")
+      .where("orders.status", "in", ["completed", "refunded"])
       .where("orders.bundleId", "is not", null)
       .where((eb) => eb.or([eb("orders.paymentMethod", "is", null), eb("orders.paymentMethod", "!=", "teacher_sponsored")]))
       .where("orders.id", "not in", (eb) =>
@@ -196,6 +212,9 @@ export async function handle(request: Request): Promise<Response> {
         "orders.platformFeePercentage",
         "promoCodes.code as couponCode",
         "orders.discountAmount as couponDiscount",
+        "orders.status as orderStatus",
+        "orders.refundedAt",
+        "orders.refundReason",
       ])
       .execute();
 
@@ -216,6 +235,7 @@ export async function handle(request: Request): Promise<Response> {
         amountEarned: gross * (1 - feePercentage / 100),
         transactionType: "sale" as const,
         ...couponFields(row.couponCode, row.couponDiscount),
+        ...refundFields(row.orderStatus, row.refundedAt, row.refundReason),
       };
     });
 

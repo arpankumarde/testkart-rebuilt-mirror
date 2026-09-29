@@ -106,7 +106,7 @@ export async function handle(request: Request): Promise<Response> {
         .where("id", "=", state.teacherId)
         .executeTakeFirst();
       if (teacher?.email) {
-        await sendReviewEmail(teacher.email, teacher.displayName, type, state.title, action === "publish" ? "approve" : "reject", note);
+        await sendReviewEmail(teacher.email, teacher.displayName, type, id, state.title, action === "publish" ? "approve" : "reject", note);
       }
     }
 

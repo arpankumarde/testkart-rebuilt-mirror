@@ -1,7 +1,7 @@
 import type { Kysely, Transaction } from "kysely";
 import type { ContentType, DB } from "./schema";
 import { assertTeacherCanFundPrizePool } from "./liveTestPrizeFunding";
-import { CONTENT_NOUNS, OPEN_REVIEW_STATUSES } from "./contentReviewStatus";
+import { CONTENT_NOUNS, OPEN_REVIEW_STATUSES, type ContentRejection } from "./contentReviewStatus";
 
 type Executor = Kysely<DB> | Transaction<DB>;
 
@@ -99,6 +99,36 @@ export async function pendingReviewIds(
     .where("status", "in", [...OPEN_REVIEW_STATUSES])
     .execute();
   return new Set(rows.map((row) => row.contentId));
+}
+
+/**
+ * Items among contentIds whose latest review was a rejection, with the admin's
+ * note, for the teacher's "Rejected" state. A resubmission adds a newer pending
+ * row, so it clears this until that review is decided.
+ */
+export async function rejectedReviews(
+  executor: Executor,
+  contentType: ContentType,
+  contentIds: number[]
+): Promise<Map<number, ContentRejection>> {
+  const result = new Map<number, ContentRejection>();
+  if (contentIds.length === 0) return result;
+  const rows = await executor
+    .selectFrom("contentReviews")
+    .select(["contentId", "status", "adminNotes", "reviewedAt"])
+    .where("contentType", "=", contentType)
+    .where("contentId", "in", contentIds)
+    .orderBy("id", "desc")
+    .execute();
+  const seen = new Set<number>();
+  for (const row of rows) {
+    if (seen.has(row.contentId)) continue;
+    seen.add(row.contentId);
+    if (row.status === "rejected") {
+      result.set(row.contentId, { reason: row.adminNotes?.trim() || null, rejectedAt: row.reviewedAt });
+    }
+  }
+  return result;
 }
 
 /**

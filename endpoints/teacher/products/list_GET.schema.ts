@@ -3,6 +3,7 @@ import superjson from "superjson";
 import { Selectable } from "kysely";
 import { DigitalProducts, DigitalProductStatusArrayValues } from "../../../helpers/schema";
 import type { ContentExam } from "../../../helpers/contentExams";
+import type { ContentRejection } from "../../../helpers/contentReviewStatus";
 
 export const schema = z.object({
   status: z.enum(DigitalProductStatusArrayValues).optional(),
@@ -23,6 +24,8 @@ export type TeacherProductListItem = Omit<Selectable<DigitalProducts>, "price" |
   exams: ContentExam[];
   /** Submitted for publishing and waiting on admin approval. */
   inReview: boolean;
+  /** Set when the latest review was rejected, with the admin's reason. */
+  rejection: ContentRejection | null;
 };
 
 export type OutputType = {

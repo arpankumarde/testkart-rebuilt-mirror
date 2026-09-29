@@ -12,10 +12,12 @@ import {
   Share2,
   MoreVertical,
   Trophy,
+  Wrench,
 } from 'lucide-react';
 import { TeacherTest } from '../endpoints/teacher/tests/list_GET.schema';
 import { Button } from './Button';
 import { TeacherCardInsights } from './TeacherCardInsights';
+import { TeacherRejectionNote } from './TeacherRejectionNote';
 import { performanceHref } from '../helpers/teacherPerformanceFormat';
 import {
   DropdownMenu,
@@ -63,8 +65,25 @@ export const TeacherTestCard: React.FC<TeacherTestCardProps> = ({
   const canUnpublish = isPublished && hasEnrollments;
 
   const isInReview = !isPublished && test.inReview;
-  const status = isPublished ? 'live' : isInReview ? 'inReview' : test.wasEverPublished ? 'unpublished' : 'draft';
-  const statusLabel = isPublished ? 'Live' : isInReview ? 'In review' : test.wasEverPublished ? 'Unpublished' : 'Draft';
+  const rejection = !isPublished && !isInReview ? test.rejection : null;
+  const status = isPublished
+    ? 'live'
+    : isInReview
+      ? 'inReview'
+      : rejection
+        ? 'rejected'
+        : test.wasEverPublished
+          ? 'unpublished'
+          : 'draft';
+  const statusLabel = isPublished
+    ? 'Live'
+    : isInReview
+      ? 'In review'
+      : rejection
+        ? 'Rejected'
+        : test.wasEverPublished
+          ? 'Unpublished'
+          : 'Draft';
   const discounted = !test.isFree && test.discountPrice != null && Number(test.discountPrice) < Number(test.price);
 
   return (
@@ -103,6 +122,8 @@ export const TeacherTestCard: React.FC<TeacherTestCardProps> = ({
             <dd className={styles.metaValue}>{test.views ?? 0}</dd>
           </div>
         </dl>
+
+        {rejection && <TeacherRejectionNote rejection={rejection} />}
       </div>
 
       <div className={styles.footer}>
@@ -124,10 +145,10 @@ export const TeacherTestCard: React.FC<TeacherTestCardProps> = ({
             </Button>
           )}
 
-          <Button asChild variant="outline" size="sm">
+          <Button asChild variant={rejection ? 'primary' : 'outline'} size="sm">
             <Link to={`/teacher/test/${test.id}/edit`}>
-              <Edit size={14} />
-              Edit
+              {rejection ? <Wrench size={14} /> : <Edit size={14} />}
+              {rejection ? 'Fix it' : 'Edit'}
             </Link>
           </Button>
 

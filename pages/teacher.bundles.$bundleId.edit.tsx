@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { SEOHead } from '../components/SEOHead';
 import { BundleEditor } from '../components/BundleEditor';
 import { TeacherFormHeader } from '../components/TeacherFormHeader';
+import { TeacherRejectionBanner } from '../components/TeacherRejectionBanner';
 import { useTeacherBundleDetailsQuery } from '../helpers/useTeacherBundleDetailsQuery';
 import styles from './teacher.bundles.$bundleId.edit.module.css';
 
@@ -25,6 +26,8 @@ export default function EditBundlePage() {
           title="Edit bundle"
           subtitle={bundle?.title}
         />
+
+        <TeacherRejectionBanner contentType="course_bundle" contentId={id} />
 
         <div className={styles.content}>
           <BundleEditor bundleId={id} exitTo="/teacher/bundles" exitLabel="Bundles" />

@@ -3,7 +3,7 @@ import { sql } from "kysely";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./list_GET.schema";
 import superjson from "superjson";
-import { pendingReviewIds } from "../../../helpers/contentReviewQueue";
+import { pendingReviewIds, rejectedReviews } from "../../../helpers/contentReviewQueue";
 import { loadContentExams } from "../../../helpers/contentExams";
 
 export async function handle(request: Request): Promise<Response> {
@@ -67,6 +67,7 @@ export async function handle(request: Request): Promise<Response> {
     const products = rows.map(({ totalCount: _totalCount, ...product }) => product);
 
     const inReview = await pendingReviewIds(db, "digital_product", products.map((p) => p.id));
+    const rejections = await rejectedReviews(db, "digital_product", products.map((p) => p.id));
     const examsById = await loadContentExams(db, "digital_product", products.map((p) => p.id));
 
     const output: OutputType = {
@@ -77,6 +78,7 @@ export async function handle(request: Request): Promise<Response> {
         fileSizeBytes: p.fileSizeBytes ? Number(p.fileSizeBytes) : null,
         exams: examsById.get(p.id) ?? [],
         inReview: inReview.has(p.id),
+        rejection: rejections.get(p.id) ?? null,
       })),
       page: input.page,
       limit: input.limit,

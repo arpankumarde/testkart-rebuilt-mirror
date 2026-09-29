@@ -19,6 +19,10 @@ export type EarningTransaction = {
   liveTestEnded?: boolean;
   couponCode?: string;
   couponDiscount?: number;
+  // A refunded sale stays listed with amountEarned 0.
+  isRefunded?: boolean;
+  refundedAt?: Date | null;
+  refundReason?: string | null;
 };
 
 export type OutputType = EarningTransaction[];

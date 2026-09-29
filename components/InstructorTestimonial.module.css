@@ -1,0 +1,193 @@
+.section {
+  padding: clamp(1rem, 4vw, 3rem) 0 var(--teach-section-y, 4rem);
+}
+
+.band {
+  background-color: var(--teach-mist, var(--muted));
+}
+
+.inner {
+  position: relative;
+  max-width: 64rem;
+  margin: 0 auto;
+}
+
+.slide {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  margin: 0;
+  animation: slideIn 320ms ease-out;
+}
+
+.photoFrame {
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background-color: hsl(0 0% 92%);
+}
+
+.photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(1) contrast(1.06) brightness(1.04);
+}
+
+.words {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--spacing-8) var(--teach-gutter, 1rem) var(--spacing-6);
+}
+
+.quote {
+  margin: 0;
+}
+
+.quote p {
+  margin: 0;
+  font-size: clamp(1.25rem, 2vw, 1.6875rem);
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+  color: var(--teach-ink, var(--foreground));
+}
+
+.caption {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  margin-top: var(--spacing-6);
+}
+
+.name {
+  align-self: flex-start;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--teach-ink, var(--foreground));
+  text-decoration: none;
+}
+
+.name:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.name:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.subjects {
+  font-size: 1.0625rem;
+  color: var(--teach-muted, var(--muted-foreground));
+}
+
+/* Phones: the arrows sit in a row under the quote. */
+.nav {
+  display: flex;
+  gap: var(--spacing-3);
+  padding: 0 var(--teach-gutter, 1rem) var(--spacing-8);
+}
+
+.arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  padding: 0;
+  border: 1px solid var(--teach-rule, var(--border));
+  border-radius: var(--radius-full);
+  background-color: var(--surface);
+  color: var(--teach-ink, var(--foreground));
+  box-shadow: 0 2px 4px hsl(220 10% 15% / 0.08), 0 4px 12px hsl(220 10% 15% / 0.08);
+  cursor: pointer;
+  transition: transform var(--animation-duration-fast) ease, box-shadow var(--animation-duration-fast) ease;
+}
+
+.arrow:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px hsl(220 10% 15% / 0.1), 0 8px 20px hsl(220 10% 15% / 0.12);
+}
+
+.arrow:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (min-width: 768px) {
+  .slide {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  }
+
+  .photoFrame {
+    aspect-ratio: 1 / 1;
+  }
+
+  /* Right padding keeps the quote clear of the next arrow, which sits inside
+     the band until the viewport is wide enough to float it outside. */
+  .words {
+    padding: var(--spacing-12) 5.5rem var(--spacing-12) clamp(2rem, 4vw, 3rem);
+  }
+
+  /* Arrows float at the band's vertical centre, either side of the slide. */
+  .nav {
+    display: contents;
+  }
+
+  .arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .arrow:hover {
+    transform: translateY(-50%) scale(1.05);
+  }
+
+  .prev {
+    left: var(--spacing-4);
+  }
+
+  .next {
+    right: var(--spacing-4);
+  }
+}
+
+@media (min-width: 1024px) {
+  .slide {
+    grid-template-columns: minmax(0, 31.25rem) minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 1200px) {
+  .words {
+    padding-right: clamp(2rem, 4vw, 3rem);
+  }
+
+  .prev {
+    left: -5.5rem;
+  }
+
+  .next {
+    right: -5.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide {
+    animation: none;
+  }
+}

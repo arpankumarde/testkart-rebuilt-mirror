@@ -119,17 +119,18 @@ export async function handle(request: Request): Promise<Response> {
         );
       }
 
-      // Send approval email (non-blocking)
+      // Awaited: Floot drops a send still running after the response goes out.
       if (teacher?.email) {
         const contentTitle = await getContentTitle(review.contentType, review.contentId);
-        sendReviewEmail(
+        await sendReviewEmail(
           teacher.email,
           teacher.displayName,
           review.contentType,
+          review.contentId,
           contentTitle,
           "approve",
           input.adminNotes
-        ).catch(console.error);
+        );
       }
 
       const output: OutputType = {
@@ -158,17 +159,18 @@ export async function handle(request: Request): Promise<Response> {
         .where("id", "=", input.reviewId)
         .execute();
 
-      // Send rejection email (non-blocking)
+      // Awaited: Floot drops a send still running after the response goes out.
       if (teacher?.email) {
         const contentTitle = await getContentTitle(review.contentType, review.contentId);
-        sendReviewEmail(
+        await sendReviewEmail(
           teacher.email,
           teacher.displayName,
           review.contentType,
+          review.contentId,
           contentTitle,
           "reject",
           input.adminNotes
-        ).catch(console.error);
+        );
       }
 
       const output: OutputType = {

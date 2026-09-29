@@ -84,6 +84,14 @@
   z-index: var(--z-content-low);
 }
 
+/* Solid, like the Rejected badge on the other teacher cards: the Badge
+   variants are a 15% wash that sinks into the thumbnail. */
+.statusBadge.statusRejected {
+  background-color: var(--error-text);
+  border-color: var(--error-text);
+  color: var(--background);
+}
+
 .content {
   padding: var(--spacing-4);
   flex-grow: 1;

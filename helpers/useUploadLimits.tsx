@@ -10,7 +10,7 @@ export const DEFAULT_UPLOAD_LIMITS: UploadLimitsType = {
   kycDocumentMaxMb: 5,
   coursePdfMaxMb: 40,
   courseIntroVideoMaxMb: 50,
-  lessonVideoMaxMb: 2048,
+  lessonVideoMaxMb: 9728,
   digitalProductPdfMaxMb: 40,
   richTextImageMaxMb: 5,
 };

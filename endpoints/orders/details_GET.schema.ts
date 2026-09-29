@@ -39,6 +39,11 @@ export type OutputType = {
     reason: PaymentFailureReason;
     message: string;
   } | null;
+  // Only for refunded orders; refundedAt is null for refunds made before it was recorded.
+  refund: {
+    refundedAt: Date | null;
+    reason: string | null;
+  } | null;
 };
 
 export const getOrdersDetails = async (

@@ -170,10 +170,11 @@ export const AdminTransactionsTable: React.FC = () => {
   const [refundingId, setRefundingId] = useState<number | null>(null);
   const [isDownloadingZip, setIsDownloadingZip] = useState(false);
   const [refundTarget, setRefundTarget] = useState<{ id: number; amount: number } | null>(null);
+  const [refundReason, setRefundReason] = useState("");
 
   const refundMutation = useMutation({
-    mutationFn: (orderId: number) => postRefundOrder({ orderId }),
-    onMutate: (orderId) => {
+    mutationFn: ({ orderId, reason }: { orderId: number; reason: string }) => postRefundOrder({ orderId, reason }),
+    onMutate: ({ orderId }) => {
       setRefundingId(orderId);
     },
     onSuccess: (data) => {
@@ -194,9 +195,15 @@ export const AdminTransactionsTable: React.FC = () => {
 
   const confirmRefund = () => {
     if (!refundTarget) return;
-    refundMutation.mutate(refundTarget.id, {
-      onSuccess: () => setRefundTarget(null),
-    });
+    refundMutation.mutate(
+      { orderId: refundTarget.id, reason: refundReason.trim() },
+      {
+        onSuccess: () => {
+          setRefundTarget(null);
+          setRefundReason("");
+        },
+      }
+    );
   };
 
   const reconcileMutation = useMutation({
@@ -954,6 +961,14 @@ export const AdminTransactionsTable: React.FC = () => {
             ? `Order #${refundTarget.id} for ${formatCurrency(refundTarget.amount)} is marked refunded, and the amount comes back out of the teacher's earnings. The money itself is returned through PayU separately.`
             : undefined
         }
+        note={{
+          label: "Reason for the refund",
+          value: refundReason,
+          onChange: setRefundReason,
+          placeholder: "For example: bought the wrong test by mistake",
+          hint: "The student sees this on their order and the teacher sees it in their earnings.",
+          required: true,
+        }}
         confirmLabel="Refund order"
         pendingLabel="Refunding..."
         isPending={refundMutation.isPending}

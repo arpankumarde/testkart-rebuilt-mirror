@@ -32,7 +32,8 @@ tests, courses and study notes.
 Publishing goes through review. A publish action submits the content to the Testkart team, and it
 goes live only once an admin approves it; the teacher is emailed when it is approved or needs
 changes. List actions return inReview: true while it waits, and publishing it again is refused.
-Submit only when the teacher asks. Unpublishing takes live content off sale.
+When the latest review was rejected, list actions return rejection with the admin's reason; fix
+that before submitting again. Submit only when the teacher asks. Unpublishing takes live content off sale.
 
 Updates differ by action: some change only the fields you send, others replace whole lists such as
 options, files or items. Read the record first and check the action's schema.
@@ -58,15 +59,13 @@ the file to uploadUrl with the returned headers, and only then use url - the CDN
 file's 404 for hours. JPEG, PNG, GIF and WebP only, within Testkart's editor image size limit.
 
 Math. Before writing questions, read teacher_docs with topic "question-format": the HTML the
-editor keeps, the math node syntax and a worked example. In short, each formula is an empty node
-carrying its LaTeX in data-latex:
-<span data-type="inline-math" data-latex="\\frac{a}{b}"></span> inline, and
-<div data-type="block-math" data-latex="x^2 + y^2 = r^2"></div> on its own line (never inside a
-<p>). Write the attribute HTML-escaped: & as &amp;, " as &quot;, < as &lt;. On question and
-question-bank writes, $...$ and \\(...\\) are converted to inline nodes, and $$...$$ and \\[...\\]
-to a block node when they fill a paragraph, otherwise to inline display style. A literal dollar
-sign is written \\$. A write is refused, with nothing saved, when a formula does not render or a
-delimiter is left open. Successful writes return formatCheck with any warnings; act on them.
+editor keeps, the math node syntax and a worked example. In short, each formula is an empty
+<span data-type="inline-math" data-latex="\\frac{a}{b}"></span>, with the attribute HTML-escaped
+(& as &amp;, " as &quot;, < as &lt;). Question screens show no block-math; start a large formula
+with \\displaystyle instead. On question and question-bank writes, $...$, \\(...\\), $$...$$ and
+\\[...\\] are converted to these nodes, and a literal dollar sign is written \\$. A write is
+refused, with nothing saved, when a formula does not render or a delimiter is left open.
+Successful writes return formatCheck with any warnings; act on them.
 
 Not available here. Cancelling a subscription or autopay mandate, and creating or changing promo
 codes, are refused - the teacher does those on the website. Other files, such as PDFs and videos,

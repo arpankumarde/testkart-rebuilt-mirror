@@ -2,12 +2,13 @@ import React from "react";
 import { useHomepageData } from "../helpers/useHomepageData";
 import { SEOHead } from "../components/SEOHead";
 import { HomepageSearchHero } from "../components/HomepageSearchHero";
-import { HomepageCategoryCards } from "../components/HomepageCategoryCards";
+import { HomepageTopExams } from "../components/HomepageTopExams";
 import { HomepageLiveSpotlight } from "../components/HomepageLiveSpotlight";
 import { HomepageFeaturedCourses } from "../components/HomepageFeaturedCourses";
 import { HomepageUgcNetSpotlight } from "../components/HomepageUgcNetSpotlight";
 import { HomepageTeacherSpotlight } from "../components/HomepageTeacherSpotlight";
 import { HomepageContentSection, TeacherProductCard } from "../components/HomepageContentSection";
+import { JoinTestkart } from "../components/JoinTestkart";
 import type { HomepageTestItem, HomepageCourseItem, HomepageNoteItem } from "../endpoints/homepage/data_GET.schema";
 import { formatItemPrice, itemPriceProps } from "../helpers/homepageItemUtils";
 import { Placeholder } from "../helpers/placeholderImages";
@@ -71,7 +72,7 @@ const HomePage: React.FC = () => {
         <HomepageSearchHero />
 
         <div className={styles.contentWrapper}>
-          <HomepageCategoryCards />
+          <HomepageTopExams />
           <HomepageLiveSpotlight spotlights={data?.liveTestSpotlight ?? []} />
           <HomepageUgcNetSpotlight />
 
@@ -167,6 +168,8 @@ const HomePage: React.FC = () => {
             teachers={data?.popularTeachers ?? []}
             isLoading={isFetching}
           />
+
+          <JoinTestkart />
         </div>
       </div>
     </>

@@ -1005,6 +1005,8 @@ export interface Orders {
   paymentTransactionId: string | null;
   platformFeePercentage: Numeric | null;
   promoCodeId: number | null;
+  refundedAt: Timestamp | null;
+  refundReason: string | null;
   status: Generated<OrderStatus>;
   totalAmount: Numeric;
   updatedAt: Generated<Timestamp | null>;

@@ -11,6 +11,7 @@ import {
   Landmark,
   type LucideIcon,
   Tag,
+  Undo2,
 } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
 import { addDays, format } from 'date-fns';
@@ -137,7 +138,7 @@ const TeacherEarningsPage: React.FC = () => {
 
       return {
         Date: tx.transactionDate ? format(new Date(tx.transactionDate), 'yyyy-MM-dd') : 'N/A',
-        Type: type === 'sponsored' ? 'Sponsored' : type === 'prize_deduction' ? 'Prize Deduction' : type === 'subscription' ? 'Subscription' : type.charAt(0).toUpperCase() + type.slice(1),
+        Type: tx.isRefunded ? 'Refunded' : type === 'sponsored' ? 'Sponsored' : type === 'prize_deduction' ? 'Prize Deduction' : type === 'subscription' ? 'Subscription' : type.charAt(0).toUpperCase() + type.slice(1),
         'Item Title': itemTitle,
         'Student Name': studentName,
         'Gross Amount': tx.grossAmount.toFixed(2),
@@ -145,6 +146,8 @@ const TeacherEarningsPage: React.FC = () => {
         'Net Earnings': tx.amountEarned.toFixed(2),
         Coupon: tx.couponCode ?? '',
         'Coupon Discount': tx.couponDiscount !== undefined ? tx.couponDiscount.toFixed(2) : '',
+        'Refunded On': tx.refundedAt ? format(new Date(tx.refundedAt), 'yyyy-MM-dd') : '',
+        'Refund Reason': tx.refundReason ?? '',
       };
     });
 
@@ -274,7 +277,8 @@ const TeacherEarningsPage: React.FC = () => {
               Every figure is what you keep after the platform fee. Your fee rate depends on your
               plan - <Link to="/teacher/subscription" className={styles.introLink}>see plans</Link> to
               lower it. Sponsorships paid from your balance and subscription payments come out of it;
-              sponsorships paid online are listed for reference only.
+              sponsorships paid online are listed for reference only. A refunded sale stays in the
+              list, marked refunded, and you keep nothing from it.
             </p>
           </div>
 
@@ -319,9 +323,11 @@ const TeacherEarningsPage: React.FC = () => {
                 ) : filteredTransactions.length > 0 ? (
                   filteredTransactions.map((tx, i) => {
                     const txType = tx.transactionType as string; // Cast for potentially new types like 'sponsored'
-                    const isPendingLiveTest = !!tx.isLiveTest && !tx.liveTestEnded;
+                    const isRefunded = !!tx.isRefunded;
+                    const isPendingLiveTest = !!tx.isLiveTest && !tx.liveTestEnded && !isRefunded;
                     const hasNoFee = txType === 'withdrawal' || txType === 'prize_deduction' || txType === 'subscription';
                     const netClass =
+                      isRefunded ? styles.amountRefunded :
                       txType === 'sale' && !isPendingLiveTest ? styles.amountEarned :
                       txType === 'sale' && isPendingLiveTest ? styles.amountPending :
                       hasNoFee ? styles.amountOut :
@@ -332,8 +338,8 @@ const TeacherEarningsPage: React.FC = () => {
                       <tr key={i}>
                         <td className={styles.date}>{tx.transactionDate ? format(new Date(tx.transactionDate), 'MMM dd, yyyy') : 'N/A'}</td>
                         <td>
-                          <span className={`${styles.typeBadge} ${styles[txType]}`}>
-                            {txType === 'sponsored' ? 'Sponsored' : txType === 'prize_deduction' ? 'Prize deduction' : txType === 'subscription' ? 'Subscription' : txType}
+                          <span className={`${styles.typeBadge} ${isRefunded ? styles.refunded : styles[txType]}`}>
+                            {isRefunded ? 'Refunded' : txType === 'sponsored' ? 'Sponsored' : txType === 'prize_deduction' ? 'Prize deduction' : txType === 'subscription' ? 'Subscription' : txType}
                           </span>
                         </td>
                         <td>
@@ -363,6 +369,15 @@ const TeacherEarningsPage: React.FC = () => {
                               <span className={styles.pendingNote}>
                                 <Clock size={12} aria-hidden="true" />
                                 Credited after the live test ends and prizes are paid
+                              </span>
+                            )}
+                            {isRefunded && (
+                              <span className={styles.refundNote}>
+                                <Undo2 size={12} aria-hidden="true" />
+                                <span>
+                                  Refunded{tx.refundedAt ? ` on ${format(new Date(tx.refundedAt), 'MMM dd, yyyy')}` : ''}
+                                  {tx.refundReason ? `: ${tx.refundReason}` : ''}
+                                </span>
                               </span>
                             )}
                             {tx.couponCode && (

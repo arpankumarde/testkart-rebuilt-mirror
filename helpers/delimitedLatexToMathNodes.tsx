@@ -53,6 +53,14 @@ const inlineNode = (latex: string) => `<span data-type="inline-math" data-latex=
 // Keeps a trailing control space ("100\ "), which trim() would turn into a lone backslash.
 const trimLatex = (latex: string) => latex.replace(/^\s+/, "").replace(/(?<!\\)\s+$/, "");
 
+// Imported text often closes with "\\)" and writes "\left\\{", so a doubled backslash leaves a stray
+// one. A formula ending in a lone backslash never renders, so drop it.
+const tidyDelimitedLatex = (latex: string): string => {
+  const tidied = latex.replace(/\\(left|right|[bB]igg?[lr]?)\\\\(?=[{}])/g, (_, command: string) => `\\${command}\\`);
+  const trailing = tidied.match(/\\+$/)?.[0].length ?? 0;
+  return trailing % 2 === 1 ? trimLatex(tidied.slice(0, -1)) : tidied;
+};
+
 const tokenize = (html: string): Token[] => {
   const tokens: Token[] = [];
   let last = 0;
@@ -96,7 +104,7 @@ export const convertDelimitedLatex = (html: string): MathConversion => {
     for (const match of token.value.matchAll(MATH_PATTERN)) {
       const [whole, dollars, brackets, parens, single] = match;
       const display: string | undefined = dollars ?? brackets;
-      const latex = trimLatex(repairJsonEscapes(decodeEntities(display ?? parens ?? single ?? "")));
+      const latex = tidyDelimitedLatex(trimLatex(repairJsonEscapes(decodeEntities(display ?? parens ?? single ?? ""))));
       if (!latex) continue;
       const start = match.index ?? 0;
       output += plain(token.value.slice(last, start)) + inlineNode(display === undefined ? latex : `\\displaystyle ${latex}`);

@@ -3,6 +3,7 @@ import superjson from "superjson";
 import { Selectable } from "kysely";
 import { LiveTests } from "../../../helpers/schema";
 import type { ContentExam } from "../../../helpers/contentExams";
+import type { ContentRejection } from "../../../helpers/contentReviewStatus";
 
 export const LiveTestStatusArray = [
   "draft",
@@ -51,6 +52,8 @@ export type TeacherLiveTestItem = Omit<Selectable<LiveTests>, "price" | "totalPr
   exams: ContentExam[];
   /** Submitted for publishing and waiting on admin approval. */
   inReview: boolean;
+  /** Set when the latest review was rejected, with the admin's reason. */
+  rejection: ContentRejection | null;
 };
 
 export type OutputType = {

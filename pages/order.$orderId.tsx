@@ -10,7 +10,7 @@ import { Button } from "../components/Button";
 import { Badge } from "../components/Badge";
 import { Skeleton } from "../components/Skeleton";
 import { Spinner } from "../components/Spinner";
-import { AlertCircle, CheckCircle, IndianRupee, Package, AlertTriangle, XCircle, RefreshCw } from "lucide-react";
+import { AlertCircle, CheckCircle, IndianRupee, Package, AlertTriangle, XCircle, RefreshCw, Undo2 } from "lucide-react";
 import { BRAND_APP_ICON } from "../helpers/brandAssets";
 import styles from "./order.$orderId.module.css";
 
@@ -297,6 +297,8 @@ const OrderConfirmationPage: React.FC = () => {
         return <Badge variant="destructive">Failed</Badge>;
       case "cancelled":
         return <Badge variant="outline">Cancelled</Badge>;
+      case "refunded":
+        return <Badge variant="outline">Refunded</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -334,6 +336,17 @@ const OrderConfirmationPage: React.FC = () => {
             : "Payment was cancelled.",
           className: styles.infoMessage,
         };
+      case "refunded": {
+        const refund = data.refund;
+        const on = refund?.refundedAt
+          ? ` on ${new Date(refund.refundedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`
+          : "";
+        return {
+          icon: <Undo2 size={20} />,
+          text: `This order was refunded${on}.${refund?.reason ? ` Reason: ${refund.reason}` : ""}`,
+          className: styles.infoMessage,
+        };
+      }
       default:
         return null;
     }
@@ -408,7 +421,7 @@ const OrderConfirmationPage: React.FC = () => {
           <p>
             {isVerifying 
               ? `Your order #${data.id} is being verified. This usually takes a few seconds.`
-              : `Your order #${data.id} has been ${data.status.toLowerCase() === "completed" ? "confirmed" : "placed"}.`
+              : `Your order #${data.id} has been ${data.status.toLowerCase() === "completed" ? "confirmed" : data.status.toLowerCase() === "refunded" ? "refunded" : "placed"}.`
             }
           </p>
         </header>

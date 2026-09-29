@@ -62,7 +62,7 @@ export const apiDocsMcp: ApiEndpoint[] = [
     notes: [
       "Plain JSON-RPC 2.0 over the MCP Streamable HTTP transport, not superjson. Same protocol versions and 401 behaviour as the admin connector.",
       "Tools: teacher_whoami, teacher_actions, teacher_action_schema, teacher_docs, teacher_read and teacher_write. Each action maps onto a teacher console action and runs as the teacher who approved the connection.",
-      "teacher_docs returns format references; \"question-format\" covers question HTML and math nodes. questions/* and question-bank/* writes convert $...$, $$...$$, \\(...\\) and \\[...\\] to math nodes, refuse formulas KaTeX cannot render or unclosed delimiters, and add formatCheck { formulas, converted, warnings } to the result.",
+      "teacher_docs returns format references; \"question-format\" covers question HTML and math nodes. questions/* and question-bank/* writes convert $...$, $$...$$, \\(...\\) and \\[...\\] to inline-math nodes, refuse block-math, formulas KaTeX cannot render or unclosed delimiters, and add formatCheck { formulas, converted, warnings } to the result.",
       "A team manager's token works on the team owner's account. A token approved while an admin impersonated the teacher acts as that teacher until it is removed.",
     ],
   },

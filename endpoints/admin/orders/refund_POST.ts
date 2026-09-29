@@ -66,7 +66,7 @@ export async function handle(request: Request) {
       // Update the order status to refunded
       await trx
         .updateTable("orders")
-        .set({ status: "refunded" })
+        .set({ status: "refunded", refundedAt: new Date(), refundReason: reason, updatedAt: new Date() })
         .where("id", "=", orderId)
         .execute();
 

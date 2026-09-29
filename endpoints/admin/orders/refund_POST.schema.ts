@@ -4,7 +4,8 @@ import { OrderStatus } from "../../../helpers/schema";
 
 export const schema = z.object({
   orderId: z.number(),
-  reason: z.string().optional(),
+  // Shown to the student on their order and to the teacher in their earnings.
+  reason: z.string().trim().min(1, "Add a reason for the refund").max(500),
 });
 
 export type InputType = z.infer<typeof schema>;

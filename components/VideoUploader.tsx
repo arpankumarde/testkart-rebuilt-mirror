@@ -74,7 +74,7 @@ export const VideoUploader: React.FC<VideoUploaderProps> = ({
   onRemove,
   currentVideoUrl,
   acceptedTypes = 'video/mp4,video/webm,video/quicktime',
-  maxSizeInMB = 2048,
+  maxSizeInMB = 9728,
   aspectRatio = '16 / 9',
   label = 'Upload Video',
   className,

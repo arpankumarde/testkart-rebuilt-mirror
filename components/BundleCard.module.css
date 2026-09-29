@@ -70,6 +70,12 @@
   color: var(--info-foreground);
 }
 
+/* --error-text, not --error: white on the raw red is under 4:1. */
+.rejected {
+  background-color: var(--error-text);
+  color: var(--background);
+}
+
 .thumbnailImage {
   width: 100%;
   height: 100%;

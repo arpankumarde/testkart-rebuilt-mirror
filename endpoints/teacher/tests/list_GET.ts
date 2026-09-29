@@ -3,7 +3,7 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { OutputType } from "./list_GET.schema";
 import superjson from "superjson";
 import { sql } from "kysely";
-import { pendingReviewIds } from "../../../helpers/contentReviewQueue";
+import { pendingReviewIds, rejectedReviews } from "../../../helpers/contentReviewQueue";
 import { loadContentExams } from "../../../helpers/contentExams";
 
 export async function handle(request: Request): Promise<Response> {
@@ -36,6 +36,7 @@ export async function handle(request: Request): Promise<Response> {
       .execute();
 
     const inReview = await pendingReviewIds(db, "mock_test", tests.map((test) => test.id));
+    const rejections = await rejectedReviews(db, "mock_test", tests.map((test) => test.id));
     const examsById = await loadContentExams(db, "mock_test", tests.map((test) => test.id));
 
     const output: OutputType = tests.map((test) => ({
@@ -46,6 +47,7 @@ export async function handle(request: Request): Promise<Response> {
       examSlug: test.examSlug ?? null,
       exams: examsById.get(test.id) ?? [],
       inReview: inReview.has(test.id),
+      rejection: rejections.get(test.id) ?? null,
     }));
 
     return new Response(superjson.stringify(output));

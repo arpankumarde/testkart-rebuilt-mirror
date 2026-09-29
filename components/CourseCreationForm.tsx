@@ -36,7 +36,7 @@ export interface CourseDetailsFormHandle {
 }
 
 interface CourseCreationFormProps {
-  course: TeacherCourseListItem;
+  course: Omit<TeacherCourseListItem, 'rejection'>;
   /** Chapter names, handed to AI so a drafted description matches the curriculum. */
   chapterTitles?: string[];
   /** Shown above the first field, e.g. after AI filled the course in. */
@@ -67,7 +67,7 @@ const PRICE_OPTIONS = [
   { value: 'paid', label: 'Paid' },
 ] as const;
 
-const toFormValues = (course: TeacherCourseListItem): CourseDetailsValues => {
+const toFormValues = (course: Omit<TeacherCourseListItem, 'rejection'>): CourseDetailsValues => {
   const examNames = getItemExamNames(course);
   return {
   title: course.title,

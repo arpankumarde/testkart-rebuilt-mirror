@@ -11,6 +11,12 @@ import type { ContentType } from "./schema";
 
 export const OPEN_REVIEW_STATUSES = ["pending", "senior_review"] as const;
 
+/** An item's latest review when an admin rejected it: the note sent to the teacher. */
+export type ContentRejection = {
+  reason: string | null;
+  rejectedAt: Date | null;
+};
+
 /* How teacher-facing copy names each reviewable content type. */
 export const CONTENT_NOUNS: Record<ContentType, string> = {
   mock_test: "test series",

@@ -1,0 +1,54 @@
+/* A solid surface with an error-coloured edge, so the reason keeps full
+   contrast in both themes instead of sitting on a faint red wash. */
+.note {
+  display: flex;
+  gap: var(--spacing-2);
+  min-width: 0;
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: var(--surface);
+  border: 1px solid var(--error-text);
+  border-left-width: 3px;
+  border-radius: var(--radius-sm);
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.icon {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+  color: var(--error-text);
+}
+
+.body {
+  min-width: 0;
+}
+
+.label {
+  margin: 0;
+  font-weight: 700;
+  color: var(--error-text);
+}
+
+.reason {
+  margin: 0.125rem 0 0;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.hint {
+  margin: 0.25rem 0 0;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.large {
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  font-size: 0.9375rem;
+  border-radius: var(--radius-md);
+}
+
+.large .hint {
+  font-size: 0.8125rem;
+}

@@ -1,0 +1,83 @@
+/* Artwork band: the same peach and brown ink in both themes. */
+.band {
+  --stats-gap: clamp(2.5rem, 4.5vw, 5rem);
+  background-color: var(--teach-peach, #fbd1b4);
+  color: #5a260f;
+  padding: clamp(3rem, 4.5vw, 4.0625rem) clamp(1rem, 5.5vw, 5rem);
+}
+
+/* Phones: two columns, the fifth figure centred on its own row. */
+.list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--stats-gap);
+  row-gap: var(--spacing-12);
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+/* dt comes first in the markup; the figure leads visually. */
+.stat {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 0.625rem;
+  min-width: 0;
+  text-align: center;
+}
+
+.stat:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+/* The widest figures ("1,600+") are 3.2em wide; every breakpoint below keeps
+   a column wider than that, so figures never meet. */
+.value {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: clamp(2.25rem, 3.6vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.label {
+  font-size: 1.0625rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+/* Tablets: three over two, the second row centred under the first. */
+@media (min-width: 640px) {
+  .list {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .stat,
+  .stat:last-child:nth-child(odd) {
+    grid-column: span 2;
+  }
+
+  .stat:nth-child(4) {
+    grid-column: 2 / span 2;
+  }
+}
+
+/* Desktop: five equal columns. */
+@media (min-width: 1100px) {
+  .list {
+    grid-template-columns: repeat(5, minmax(150px, 1fr));
+  }
+
+  .stat,
+  .stat:nth-child(4),
+  .stat:last-child:nth-child(odd) {
+    grid-column: auto;
+  }
+
+  .label {
+    font-size: 1.125rem;
+  }
+}

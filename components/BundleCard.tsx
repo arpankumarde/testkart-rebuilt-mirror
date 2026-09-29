@@ -1,5 +1,5 @@
 import React from 'react';
-import { Edit, Trash2, MoreVertical, Eye, EyeOff, Package, ExternalLink, Share2, Undo2 } from 'lucide-react';
+import { Edit, Trash2, MoreVertical, Eye, EyeOff, Package, ExternalLink, Share2, Undo2, Wrench } from 'lucide-react';
 import { Badge } from './Badge';
 import { Button } from './Button';
 import {
@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from './DropdownMenu';
 import { ShareAssetDialog } from './ShareAssetDialog';
+import { TeacherRejectionNote } from './TeacherRejectionNote';
 import { WithdrawReviewDialog, WITHDRAW_REVIEW_LABEL } from './WithdrawReviewButton';
 import { buildPublicAssetUrl, TEACHER_CONSOLE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
 import { computeBundlePricing } from '../helpers/bundlePricing';
@@ -39,7 +40,15 @@ export const BundleCard: React.FC<BundleCardProps> = ({
   };
 
   const isInReview = !bundle.isPublished && bundle.inReview;
-  const statusText = bundle.isPublished ? 'Published' : isInReview ? 'In review' : 'Draft';
+  const rejection = !bundle.isPublished && !isInReview ? bundle.rejection : null;
+  const statusText = bundle.isPublished ? 'Published' : isInReview ? 'In review' : rejection ? 'Rejected' : 'Draft';
+  const statusClass = bundle.isPublished
+    ? styles.published
+    : isInReview
+      ? styles.inReview
+      : rejection
+        ? styles.rejected
+        : styles.draft;
 
   const formattedPrice = new Intl.NumberFormat('en-IN', {
     style: 'currency',
@@ -73,11 +82,7 @@ export const BundleCard: React.FC<BundleCardProps> = ({
           <Package size={32} className={styles.bundleIcon} />
         )}
         {/* Overlaid on the thumbnail, as on every other teacher card. */}
-        <span
-          className={`${styles.status} ${bundle.isPublished ? styles.published : isInReview ? styles.inReview : styles.draft}`}
-        >
-          {statusText}
-        </span>
+        <span className={`${styles.status} ${statusClass}`}>{statusText}</span>
       </div>
 
       <div className={styles.content}>
@@ -120,6 +125,8 @@ export const BundleCard: React.FC<BundleCardProps> = ({
         </div>
 
         <h3 className={styles.title}>{bundle.title}</h3>
+
+        {rejection && <TeacherRejectionNote rejection={rejection} />}
 
         {isPriceStale && (
           <p className={styles.staleNote}>
@@ -164,9 +171,16 @@ export const BundleCard: React.FC<BundleCardProps> = ({
               </Button>
             </>
           )}
-          <Button size="sm" variant="outline" onClick={onEdit}>
-            Manage
-          </Button>
+          {rejection ? (
+            <Button size="sm" variant="primary" onClick={onEdit}>
+              <Wrench size={14} />
+              Fix it
+            </Button>
+          ) : (
+            <Button size="sm" variant="outline" onClick={onEdit}>
+              Manage
+            </Button>
+          )}
         </div>
       </div>
 

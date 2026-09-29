@@ -1,0 +1,112 @@
+.section {
+  max-width: var(--teach-wrap, 1340px);
+  margin: 0 auto;
+  padding: var(--teach-section-y, 4rem) var(--teach-gutter, 1rem);
+}
+
+.title {
+  margin: 0 0 clamp(2rem, 4vw, 3.5rem);
+  font-family: var(--font-family-heading);
+  font-size: clamp(2rem, 3.8vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  text-align: center;
+  color: var(--teach-ink, var(--foreground));
+}
+
+.tabs {
+  max-width: 60rem;
+  margin: 0 auto;
+}
+
+/* Overrides for the kit Tabs (which live in @layer base). On phones the three
+   labels wrap onto centred rows rather than scrolling, so none is hidden. */
+.list {
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-3) var(--spacing-6);
+  overflow-x: visible;
+  border-bottom: 1px solid var(--teach-rule, var(--border));
+}
+
+.trigger {
+  padding: 0 var(--spacing-1) var(--spacing-3);
+  font-family: var(--font-family-heading);
+  font-size: clamp(1.0625rem, 2vw, 1.625rem);
+  font-weight: 700;
+  color: var(--teach-muted, var(--muted-foreground));
+}
+
+.trigger:hover,
+.trigger[data-state="active"] {
+  color: var(--teach-ink, var(--foreground));
+  font-weight: 700;
+}
+
+.trigger[data-state="active"]::after {
+  background-color: var(--teach-ink, var(--foreground));
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: -2px;
+  box-shadow: none;
+}
+
+.panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-8);
+  align-items: center;
+  max-width: 67rem;
+  margin: clamp(2.5rem, 5vw, 4rem) auto 0;
+  color: var(--teach-body, var(--muted-foreground));
+}
+
+.text {
+  margin: 0 0 var(--spacing-4);
+  font-size: clamp(1.0625rem, 1.35vw, 1.1875rem);
+  line-height: 1.85;
+  color: var(--teach-body, var(--muted-foreground));
+}
+
+.helpTitle {
+  margin: var(--spacing-8) 0 var(--spacing-3);
+  font-family: var(--font-family-heading);
+  font-size: 1.1875rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--teach-ink, var(--foreground));
+}
+
+.art {
+  display: block;
+  justify-self: center;
+  width: 100%;
+  max-width: 20rem;
+  height: auto;
+}
+
+:global(.dark) .art {
+  border-radius: var(--radius-lg);
+}
+
+@media (min-width: 720px) {
+  .list {
+    flex-wrap: nowrap;
+    gap: clamp(2rem, 5vw, 4.5rem);
+  }
+}
+
+@media (min-width: 900px) {
+  .panel {
+    grid-template-columns: minmax(0, 31rem) minmax(0, 24rem);
+    justify-content: space-between;
+    gap: var(--spacing-12);
+  }
+
+  .art {
+    max-width: 24rem;
+  }
+}

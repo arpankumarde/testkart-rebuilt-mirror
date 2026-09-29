@@ -1,0 +1,81 @@
+.section {
+  max-width: var(--teach-wrap, 1340px);
+  margin: 0 auto;
+  padding: var(--teach-section-y, 4rem) var(--teach-gutter, 1rem);
+}
+
+.title {
+  margin: 0 0 clamp(2.5rem, 5vw, 4rem);
+  font-family: var(--font-family-heading);
+  font-size: clamp(2rem, 3.8vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  text-align: center;
+  text-wrap: balance;
+  color: var(--teach-ink, var(--foreground));
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-12);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* The drawing fills the middle ~60% of the square, so this lands near the
+   reference's icon size. */
+.art {
+  display: block;
+  width: 11rem;
+  height: 11rem;
+}
+
+.itemTitle {
+  margin: var(--spacing-2) 0 var(--spacing-2);
+  font-family: var(--font-family-heading);
+  font-size: 1.3125rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--teach-ink, var(--foreground));
+}
+
+.itemBody {
+  margin: 0;
+  max-width: 24rem;
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  color: var(--teach-body, var(--muted-foreground));
+}
+
+/* Drawings sit on white paper; on a dark page they read as cards. */
+:global(.dark) .art {
+  border-radius: var(--radius-lg);
+}
+
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--spacing-8) clamp(1.5rem, 4vw, 4rem);
+  }
+}
+
+/* Desktop: one shared description width, so all three wrap to exactly two
+   lines (each copy fits two lines anywhere from 344px to 400px at this
+   size). Where a column is narrower than this, the text spills evenly into
+   the gaps, so columns, headings and illustrations stay where they are. */
+@media (min-width: 1200px) {
+  .itemBody {
+    width: 23rem;
+    max-width: none;
+  }
+}

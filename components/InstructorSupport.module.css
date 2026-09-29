@@ -1,0 +1,123 @@
+/* Phones and tablets: copy first, the two scenes side by side underneath. */
+.section {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-areas:
+    "copy copy"
+    "left right";
+  column-gap: var(--spacing-4);
+  row-gap: var(--spacing-8);
+  align-items: center;
+  padding: var(--teach-section-y, 4rem) var(--teach-gutter, 1rem);
+  overflow: clip;
+}
+
+.copy {
+  grid-area: copy;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 46rem;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: clamp(2rem, 3.8vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+  color: var(--teach-ink, var(--foreground));
+}
+
+.text {
+  margin: var(--spacing-4) 0 var(--spacing-8);
+  font-size: clamp(1.0625rem, 1.45vw, 1.25rem);
+  line-height: 1.75;
+  color: var(--teach-body, var(--muted-foreground));
+}
+
+.inlineLink {
+  font-weight: 600;
+  color: var(--teach-ink, var(--foreground));
+  text-decoration: none;
+}
+
+.inlineLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.more {
+  font-weight: 700;
+  color: var(--tk-brand-text);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+.more:hover {
+  text-decoration-thickness: 2px;
+}
+
+.inlineLink:focus-visible,
+.more:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.art {
+  display: block;
+  width: 100%;
+  max-width: 14rem;
+  height: auto;
+}
+
+.artLeft {
+  grid-area: left;
+  justify-self: end;
+}
+
+.artRight {
+  grid-area: right;
+  justify-self: start;
+}
+
+:global(.dark) .art {
+  border-radius: var(--radius-lg);
+}
+
+/* Desktop: scenes flank the copy and are nudged past the gutter so their
+   coloured panels meet the page edges; the section clips the overhang. */
+@media (min-width: 1080px) {
+  .section {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 42rem) minmax(0, 1fr);
+    grid-template-areas: "left copy right";
+    column-gap: var(--spacing-8);
+    padding-inline: 0;
+  }
+
+  .art {
+    max-width: 26rem;
+  }
+
+  .artLeft {
+    justify-self: start;
+    transform: translateX(-11%);
+  }
+
+  .artRight {
+    justify-self: end;
+    transform: translateX(10%);
+  }
+}
+
+@media (min-width: 1280px) {
+  .section {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 46rem) minmax(0, 1fr);
+  }
+}

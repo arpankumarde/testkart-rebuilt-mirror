@@ -1,0 +1,101 @@
+/* The backdrop is sampled from the portrait, so the band reads as one surface
+   with the photo. Artwork, not a themed surface: same colours in dark mode. */
+.hero {
+  background-color: var(--teach-cream, #faefe3);
+  color: var(--teach-fixed-body, hsl(222 12% 32%));
+}
+
+.inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  max-width: var(--teach-wrap, 1340px);
+  margin: 0 auto;
+  padding: var(--spacing-12) var(--teach-gutter, 1rem) 0;
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 26rem;
+}
+
+.title {
+  margin: 0;
+  max-width: 9ch;
+  font-family: var(--font-family-heading);
+  font-size: clamp(2.75rem, 5.4vw, 4.75rem);
+  font-weight: 700;
+  line-height: 1.06;
+  letter-spacing: -0.035em;
+  color: var(--teach-fixed-ink, hsl(222 24% 17%));
+}
+
+.lead {
+  margin: var(--spacing-4) 0 0;
+  font-size: clamp(1.125rem, 1.45vw, 1.3125rem);
+  line-height: 1.6;
+  color: var(--teach-fixed-body, hsl(222 12% 32%));
+}
+
+.cta {
+  margin-top: var(--spacing-6);
+}
+
+.media {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--spacing-8);
+}
+
+/* Fade the photo's left, right and top edges into the band; the bottom edge
+   meets the end of the section. */
+.photo {
+  display: block;
+  width: min(100%, 24rem);
+  height: auto;
+  -webkit-mask-image:
+    linear-gradient(to right, transparent, #000 14%, #000 86%, transparent),
+    linear-gradient(to bottom, transparent, #000 10%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent, #000 14%, #000 86%, transparent),
+    linear-gradient(to bottom, transparent, #000 10%);
+  mask-composite: intersect;
+}
+
+@media (min-width: 900px) {
+  .inner {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    min-height: clamp(34rem, 46vw, 44rem);
+    padding-top: 0;
+  }
+
+  .copy {
+    padding-block: var(--spacing-16);
+  }
+
+  /* The photo spans the band's full height, anchored to its bottom edge. */
+  .media {
+    position: relative;
+    align-self: stretch;
+    margin-top: 0;
+  }
+
+  .photo {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: auto;
+    height: 100%;
+    max-width: none;
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 480px) {
+  .inner {
+    padding-top: var(--spacing-8);
+  }
+}

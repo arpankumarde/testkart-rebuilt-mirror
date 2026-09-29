@@ -112,6 +112,11 @@
   color: var(--info-text);
 }
 
+.statusRejected {
+  background-color: var(--error-text);
+  color: var(--background);
+}
+
 .statusLive {
   background-color: color-mix(in srgb, var(--success) 14%, var(--surface));
   color: var(--success-text);

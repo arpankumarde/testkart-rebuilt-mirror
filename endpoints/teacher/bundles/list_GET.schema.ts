@@ -2,6 +2,7 @@ import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
 import { CourseBundles } from "../../../helpers/schema";
+import type { ContentRejection } from "../../../helpers/contentReviewStatus";
 
 export const schema = z.object({
   page: z.string().optional().default("1"),
@@ -20,6 +21,8 @@ export type BundleListItem = Pick<Selectable<CourseBundles>, "id" | "title" | "s
     itemCount: number;
     // Submitted for publishing and waiting on admin approval.
     inReview: boolean;
+    // Set when the latest review was rejected, with the admin's reason.
+    rejection: ContentRejection | null;
 };
 
 export type OutputType = {

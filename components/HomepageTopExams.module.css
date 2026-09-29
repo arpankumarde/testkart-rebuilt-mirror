@@ -1,0 +1,235 @@
+/* The track's own bottom padding (room for the strip and shadow) adds to this
+   margin, so it is smaller than the sibling sections' to land on the same
+   visual gap. */
+.section {
+  margin: var(--spacing-8) 0 var(--spacing-4);
+  min-width: 0;
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-4);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+
+.navButton:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 3px;
+}
+
+/*
+ * The carousel box is the visible window. HomepageTopExams sets its width from
+ * tablet up (whole cards plus a peek of the next), which can run past the
+ * homepage column on the right but stops at the viewport edge, so the page
+ * never scrolls sideways. It is also the hover area for the arrows.
+ */
+.carousel {
+  position: relative;
+}
+
+/* Overlay arrows: fully hidden at rest (no opacity ghost, no hit area) and
+   faded in while the pointer is anywhere over the carousel box, or while a
+   keyboard user is tabbing inside it. A direction that can't move is never
+   shown. Phones get a static grid, so they never render. Fixed charcoal in both themes;
+   the faint inset ring keeps the edge readable on the dark page. */
+.navButton {
+  position: absolute;
+  top: calc(50% - 0.625rem);
+  z-index: 1;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background-color: #2f3033;
+  color: #f4f4f5;
+  box-shadow:
+    inset 0 0 0 1px hsl(0 0% 100% / 0.06),
+    0 8px 20px -10px hsl(220 10% 10% / 0.45);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 200ms ease,
+    visibility 200ms ease,
+    background-color 200ms ease,
+    scale 200ms ease;
+}
+
+/* Prev straddles the first card's left edge; next sits over the peeking card.
+   The hover scale uses the separate `scale` property so it doesn't fight
+   these centring transforms. */
+.navPrev {
+  left: 0;
+  transform: translate(-50%, -50%);
+}
+
+.navNext {
+  right: 0.5rem;
+  transform: translateY(-50%);
+}
+
+.navButton:hover {
+  background-color: #45474b;
+  scale: 1.06;
+}
+
+.navButton:active {
+  scale: 0.98;
+}
+
+/* :focus-visible, not :focus-within: a mouse click leaves focus on the arrow
+   it pressed, and :focus-within would then keep both arrows up after the
+   pointer has left the carousel. */
+.carousel:hover .navButton:not(:disabled),
+.carousel:has(:focus-visible) .navButton:not(:disabled) {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/*
+ * The track bleeds into the homepage column's side padding (spacing-4, then
+ * spacing-8 from 1024px) and pads it back, so cards line up with the heading
+ * but scroll edge to edge. Block padding leaves room for the hover lift, the
+ * accent strip, the shadow and the focus ring, which the scroller would
+ * otherwise clip.
+ */
+.track {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-4);
+  margin: 0 calc(-1 * var(--spacing-4));
+  padding: var(--spacing-3) var(--spacing-4) var(--spacing-8);
+  list-style: none;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--spacing-4);
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.track::-webkit-scrollbar {
+  display: none;
+}
+
+/* Phones override this with the grid at the end of the file. */
+.item {
+  flex: 0 0 62%;
+  min-width: 12rem;
+  max-width: 15rem;
+  scroll-snap-align: start;
+}
+
+/* Staggered rhythm: every other card sits lower. A margin, not a transform,
+   so the track grows to fit the lower cards instead of clipping them (the
+   scroller clips vertically) and the gap to the next section holds. */
+.item:nth-child(even) {
+  margin-top: 2.25rem;
+}
+
+/* 16rem cards with a 1.25rem gap: five fit the 1400px homepage column. */
+@media (min-width: 768px) {
+  .header {
+    margin-bottom: var(--spacing-6);
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .navButton {
+    display: inline-flex;
+  }
+
+  .track {
+    gap: 1.25rem;
+  }
+
+  /* Sized window: the track still bleeds left into the column padding, but its
+     right edge is the window's, so the next card is clipped there. */
+  .carousel[data-windowed] .track {
+    margin-right: 0;
+  }
+
+  .item {
+    flex-basis: 16rem;
+    max-width: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .section {
+    margin-top: var(--spacing-12);
+  }
+
+  .title {
+    font-size: 2.25rem;
+  }
+
+  .track {
+    margin: 0 calc(-1 * var(--spacing-8));
+    padding-inline: var(--spacing-8);
+    scroll-padding-inline: var(--spacing-8);
+  }
+}
+
+/*
+ * Phones: no carousel. All twelve cards sit in a static two-column grid
+ * inside the homepage column, level rather than staggered so the rows read
+ * cleanly. Nothing overflows, so the arrows never get a direction to show
+ * (and are display: none below 768px anyway). The bottom padding is room for
+ * the last row's accent strip and shadow.
+ */
+@media (max-width: 767px) {
+  .track {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 0.75rem;
+    row-gap: 1rem;
+    margin: 0;
+    padding: 0 0 var(--spacing-6);
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+
+  .item,
+  .item:nth-child(even) {
+    min-width: 0;
+    max-width: none;
+    margin-top: 0;
+  }
+
+  /* Phones show the first eight (four rows); the rest stay on larger screens. */
+  .item:nth-child(n + 9) {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navButton {
+    transition: none;
+  }
+
+  .navButton:hover,
+  .navButton:active {
+    scale: none;
+  }
+}

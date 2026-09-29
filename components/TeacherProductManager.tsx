@@ -17,6 +17,8 @@ import {
   PenLine,
   BookOpenCheck,
   Users,
+  XCircle,
+  Wrench,
 } from 'lucide-react';
 import { useTeacherProductsQuery, useTeacherProductMutations } from '../helpers/useTeacherProductsQuery';
 import { useListUrlParams } from '../helpers/useListUrlParams';
@@ -39,6 +41,7 @@ import { TeacherListEmpty } from './TeacherListEmpty';
 import { TeacherListPagination } from './TeacherListPagination';
 import { ShareAssetDialog } from './ShareAssetDialog';
 import { WithdrawReviewButton } from './WithdrawReviewButton';
+import { TeacherRejectionNote } from './TeacherRejectionNote';
 import { buildPublicAssetUrl, TEACHER_CONSOLE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
 import { performanceHref } from '../helpers/teacherPerformanceFormat';
 import { DIGITAL_PRODUCT_CATEGORIES } from '../helpers/digitalProductRules';
@@ -64,7 +67,7 @@ const priceFormatter = new Intl.NumberFormat('en-IN', {
   minimumFractionDigits: 0,
 });
 
-type RowState = 'published' | 'draft' | 'archived' | 'inReview';
+type RowState = 'published' | 'draft' | 'archived' | 'inReview' | 'rejected';
 
 // Every state is named in words with its own icon, so it never rests on
 // colour alone.
@@ -73,6 +76,7 @@ const STATE_META: Record<RowState, { label: string; icon: React.ElementType; cla
   draft: { label: 'Draft', icon: PenLine, className: styles.stateDraft },
   archived: { label: 'Archived', icon: Archive, className: styles.stateArchived },
   inReview: { label: 'In review', icon: Clock, className: styles.stateReview },
+  rejected: { label: 'Rejected', icon: XCircle, className: styles.stateRejected },
 };
 
 // Same rule as the course card: a live product stays "Published" even while an
@@ -80,7 +84,8 @@ const STATE_META: Record<RowState, { label: string; icon: React.ElementType; cla
 const rowStateOf = (product: TeacherProductListItem): RowState => {
   if (product.status === 'published') return 'published';
   if (product.inReview) return 'inReview';
-  return product.status === 'archived' ? 'archived' : 'draft';
+  if (product.status === 'archived') return 'archived';
+  return product.rejection ? 'rejected' : 'draft';
 };
 
 const describeProduct = (product: TeacherProductListItem) => {
@@ -169,6 +174,9 @@ const ProductRow: React.FC<ProductRowProps> = ({
           >
             {describeProduct(product)}
           </span>
+          {state === 'rejected' && product.rejection && (
+            <TeacherRejectionNote rejection={product.rejection} className={styles.rejectionNote} />
+          )}
         </div>
       </div>
 
@@ -239,10 +247,21 @@ const ProductRow: React.FC<ProductRowProps> = ({
       </div>
 
       <div className={styles.actionsCell}>
-        <Link to={editPath} className={styles.rowButton} aria-label={`Edit ${product.title}`}>
-          <Pencil size={15} aria-hidden="true" />
-          Edit
-        </Link>
+        {state === 'rejected' ? (
+          <Link
+            to={editPath}
+            className={`${styles.rowButton} ${styles.rowButtonFix}`}
+            aria-label={`Fix ${product.title}`}
+          >
+            <Wrench size={15} aria-hidden="true" />
+            Fix it
+          </Link>
+        ) : (
+          <Link to={editPath} className={styles.rowButton} aria-label={`Edit ${product.title}`}>
+            <Pencil size={15} aria-hidden="true" />
+            Edit
+          </Link>
+        )}
         {/* Non-modal so the dialogs it opens do not inherit its pointer lock. */}
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>

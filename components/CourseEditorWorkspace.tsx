@@ -5,6 +5,7 @@ import { AlertCircle, ArrowLeft, CheckCircle2, Circle, ExternalLink, EyeOff, Mor
 import { useTeacherCourseDetailsQuery, useTeacherCourseMutations } from "../helpers/useTeacherCoursesQuery";
 import { useAuth } from "../helpers/useAuth";
 import { useAdminContentEdit } from "../helpers/useAdminContentEdit";
+import { useContentRejection } from "../helpers/useContentRejection";
 import {
   countCourseLessons,
   formatCourseMinutes,
@@ -20,6 +21,7 @@ import { CourseCardPreview } from "./CourseCardPreview";
 import { CourseSubmitDialog } from "./CourseSubmitDialog";
 import { ConsoleConfirmDialog } from "./ConsoleConfirmDialog";
 import { WithdrawReviewButton } from "./WithdrawReviewButton";
+import { TeacherRejectionNote } from "./TeacherRejectionNote";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./Tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./DropdownMenu";
 import { Skeleton } from "./Skeleton";
@@ -46,6 +48,7 @@ const FIX_LABELS: Record<CourseReadinessKey, string> = {
  */
 export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
   const adminEdit = useAdminContentEdit();
+  const rejection = useContentRejection("course", courseId);
   const exitTo = adminEdit?.exitTo ?? "/teacher/courses";
   const rootClass = adminEdit ? styles.embedded : styles.page;
   const [searchParams, setSearchParams] = useSearchParams();
@@ -165,7 +168,9 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
     ? { label: "Live", className: styles.statusLive }
     : isInReview
       ? { label: "In review", className: styles.statusReview }
-      : { label: "Draft", className: styles.statusDraft };
+      : rejection
+        ? { label: "Rejected", className: styles.statusRejected }
+        : { label: "Draft", className: styles.statusDraft };
 
   const summary = [
     pluralize(course.sections.length, "chapter"),
@@ -265,6 +270,8 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
             </div>
           </div>
         </header>
+
+        {rejection && !isPublished && !isInReview && <TeacherRejectionNote rejection={rejection} size="large" />}
 
         <div className={styles.workspace}>
           <Tabs value={tab} onValueChange={(value) => setTab(value as EditorTab)} className={styles.main}>

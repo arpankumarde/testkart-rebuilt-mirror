@@ -1,0 +1,35 @@
+/* Pastel peach with charcoal type: softer than the coral primary so it sits
+   inside the /teach pastel palette. Fixed in both themes, like the brand
+   blocks. Unlayered, so it outranks Button's @layer base primary styles. */
+.cta {
+  width: 100%;
+  height: 3.25rem;
+  border-color: transparent;
+  border-radius: var(--radius);
+  background-color: #fdba91;
+  color: hsl(222 24% 17%);
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  box-shadow:
+    0 1px 2px hsl(20 60% 30% / 0.12),
+    0 6px 16px -8px hsl(20 80% 45% / 0.45);
+}
+
+.cta:hover {
+  border-color: transparent;
+  background-color: #fca777;
+  color: hsl(222 24% 17%);
+}
+
+.cta:active {
+  border-color: transparent;
+  background-color: #fb9a63;
+  color: hsl(222 24% 17%);
+}
+
+.cta:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 4px var(--tk-brand-text);
+}

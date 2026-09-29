@@ -3,7 +3,7 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./list_GET.schema";
 import superjson from "superjson";
 import { sql } from "kysely";
-import { pendingReviewIds } from "../../../helpers/contentReviewQueue";
+import { pendingReviewIds, rejectedReviews } from "../../../helpers/contentReviewQueue";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -72,6 +72,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const totalResult = await totalQuery.executeTakeFirstOrThrow();
     const inReview = await pendingReviewIds(db, "course_bundle", bundles.map((bundle) => bundle.id));
+    const rejections = await rejectedReviews(db, "course_bundle", bundles.map((bundle) => bundle.id));
 
     const output: OutputType = {
       bundles: bundles.map(bundle => ({
@@ -81,6 +82,7 @@ export async function handle(request: Request): Promise<Response> {
         currentOriginalPrice: Math.round(Number(bundle.currentOriginalPrice) * 100) / 100,
         itemCount: Number(bundle.itemCount),
         inReview: inReview.has(bundle.id),
+        rejection: rejections.get(bundle.id) ?? null,
       })),
       total: Number(totalResult.total),
     };

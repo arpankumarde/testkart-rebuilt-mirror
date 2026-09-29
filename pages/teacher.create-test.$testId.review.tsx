@@ -8,6 +8,7 @@ import { useTeacherLiveTestsQuery } from '../helpers/useTeacherLiveTestsQuery';
 import { Skeleton } from '../components/Skeleton';
 import { Badge } from '../components/Badge';
 import { WithdrawReviewButton } from '../components/WithdrawReviewButton';
+import { TeacherRejectionBanner } from '../components/TeacherRejectionBanner';
 import type { TestItemWithQuestionsCount } from "../endpoints/teacher/test-items/list_GET.schema";
 import {
   AlertCircle,
@@ -303,6 +304,11 @@ const Page = () => {
               : `Check your ${kindLabel} the way students will see it, then submit it for review.`}
           </p>
         </header>
+
+        <TeacherRejectionBanner
+          contentType={isLiveTest && liveTest ? "live_test" : "mock_test"}
+          contentId={isLiveTest && liveTest ? liveTest.id : packageId}
+        />
 
         <div className={styles.layout}>
           <aside className={styles.rail} aria-labelledby="review-verdict">

@@ -1,8 +1,30 @@
 import { db } from "./db";
 import { sendEmail } from "./sendEmail";
 import { escapeHtmlAttribute } from "./escapeHtmlAttribute";
+import { SITE_ORIGIN } from "./shareLinks";
 
-/* Approved/rejected emails for teacher content, shared by the review queue and the admin preview status actions. */
+/*
+ * Approved/rejected emails for teacher content, shared by the review queue and the admin preview status actions.
+ * Callers must await it: Floot refuses a send started after the handler has returned.
+ */
+
+/** The teacher editor a rejected item's "Fix it" link opens; the list page when the type has no editor. */
+export function teacherEditUrl(contentType: string, contentId: number): string {
+  switch (contentType) {
+    case "mock_test":
+      return `${SITE_ORIGIN}/teacher/create-test/${contentId}/test-items`;
+    case "course":
+      return `${SITE_ORIGIN}/teacher/courses/${contentId}/edit`;
+    case "digital_product":
+      return `${SITE_ORIGIN}/teacher/products/${contentId}/edit`;
+    case "course_bundle":
+      return `${SITE_ORIGIN}/teacher/bundles/${contentId}/edit`;
+    case "live_test":
+      return `${SITE_ORIGIN}/teacher/live-test/${contentId}/edit`;
+    default:
+      return `${SITE_ORIGIN}/teacher/dashboard`;
+  }
+}
 
 async function getEmailTemplate(templateKey: string) {
   return db
@@ -26,6 +48,7 @@ export async function sendReviewEmail(
   teacherEmail: string,
   teacherName: string,
   contentType: string,
+  contentId: number,
   contentTitle: string,
   action: "approve" | "reject",
   adminNotes?: string | null
@@ -44,6 +67,7 @@ export async function sendReviewEmail(
       contentType: contentType.replace(/_/g, " "),
       contentTitle,
       adminNotes: adminNotes ?? "",
+      fixUrl: teacherEditUrl(contentType, contentId),
     };
 
     /* Notes can hold several reasons, one per paragraph, so the HTML keeps their line breaks. */

@@ -362,7 +362,7 @@
 /*
  * Every one of these ran at the raw semantic token as small type on white -
  * --success about 2.3:1, --warning about 2:1, --info about 3:1. Sale,
- * withdrawal, prize and sponsored labels use the themed status text tokens.
+ * withdrawal, prize, refunded and sponsored labels use the themed status text tokens.
  * Subscription has no themed purple, so it mixes --chart-color-5 with
  * --foreground, which darkens it on a light panel and lightens it on a dark one.
  */
@@ -399,6 +399,11 @@
 .subscription {
   background-color: color-mix(in srgb, var(--chart-color-5) 18%, transparent);
   color: color-mix(in srgb, var(--chart-color-5), var(--foreground) 60%);
+}
+
+.refunded {
+  background-color: color-mix(in srgb, var(--error) 12%, transparent);
+  color: var(--error-text);
 }
 
 .detailsCell {
@@ -462,6 +467,11 @@
   color: var(--foreground);
 }
 
+.amountRefunded {
+  font-weight: 700;
+  color: var(--muted-foreground);
+}
+
 .emptyRow td {
   padding: var(--spacing-12) var(--spacing-4);
   text-align: center;
@@ -477,6 +487,22 @@
   font-size: 0.75rem;
   font-weight: 500;
   color: var(--warning-text);
+}
+
+.refundNote {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--spacing-1);
+  margin-top: var(--spacing-1);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--error-text);
+  overflow-wrap: anywhere;
+}
+
+.refundNote svg {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
 }
 
 .couponNote {

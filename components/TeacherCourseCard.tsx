@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Edit, Trash2, Eye, Users, BookOpen, MoreVertical, Globe, AlertCircle, Share2, TrendingUp } from 'lucide-react';
+import { Edit, Trash2, Eye, Users, BookOpen, MoreVertical, Globe, AlertCircle, Share2, TrendingUp, Wrench } from 'lucide-react';
 import { Badge } from './Badge';
 import { TeacherCardInsights } from './TeacherCardInsights';
+import { TeacherRejectionNote } from './TeacherRejectionNote';
 import { performanceHref } from '../helpers/teacherPerformanceFormat';
 import { Button } from './Button';
 import {
@@ -55,6 +56,13 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
 
   const status = course.status ?? 'draft';
   const isInReview = status !== 'published' && course.inReview;
+  const rejection = status === 'draft' && !isInReview ? course.rejection : null;
+  const statusClass = isInReview
+    ? styles.inReview
+    : rejection
+      ? styles.rejected
+      : STATUS_CLASS[status] ?? styles.draft;
+  const statusText = isInReview ? 'in review' : rejection ? 'rejected' : status;
 
   const formatInr = (amount: number) =>
     new Intl.NumberFormat('en-IN', {
@@ -79,9 +87,7 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
           title={course.title}
           className={styles.thumbnail}
         />
-        <span className={`${styles.status} ${isInReview ? styles.inReview : STATUS_CLASS[status] ?? styles.draft}`}>
-          {isInReview ? 'in review' : status}
-        </span>
+        <span className={`${styles.status} ${statusClass}`}>{statusText}</span>
       </div>
 
       <div className={styles.content}>
@@ -118,6 +124,8 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
             </div>
           )}
         </div>
+
+        {rejection && <TeacherRejectionNote rejection={rejection} />}
       </div>
 
       <div className={styles.footer}>
@@ -138,10 +146,10 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
             </Button>
           )}
 
-          <Button asChild size="sm" variant="outline">
+          <Button asChild size="sm" variant={rejection ? 'primary' : 'outline'}>
             <Link to={`/teacher/courses/${course.id}/edit`}>
-              <Edit size={14} />
-              Edit
+              {rejection ? <Wrench size={14} /> : <Edit size={14} />}
+              {rejection ? 'Fix it' : 'Edit'}
             </Link>
           </Button>
           <DropdownMenu>

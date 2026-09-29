@@ -179,6 +179,10 @@ export async function handle(request: Request) {
       paymentTransactionId: order.paymentTransactionId,
       items: resolvedItems,
       paymentFailure: failure ? { reason: failure.reason, message: failure.payerMessage } : null,
+      refund:
+        order.status === "refunded"
+          ? { refundedAt: order.refundedAt, reason: order.refundReason }
+          : null,
     };
 
     return new Response(

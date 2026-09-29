@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Clock, Users, BarChart2, Edit, Trash2, IndianRupee, Trophy, ListChecks, CheckCircle, XCircle, Share2, RefreshCw, Download, Loader2, EyeOff, Info } from 'lucide-react';
+import { Clock, Users, BarChart2, Edit, Trash2, IndianRupee, Trophy, ListChecks, CheckCircle, XCircle, Share2, RefreshCw, Download, Loader2, EyeOff, Info, Wrench } from 'lucide-react';
 import * as Progress from '@radix-ui/react-progress';
 import * as Dialog from '@radix-ui/react-dialog';
 import { TeacherLiveTestItem } from '../endpoints/teacher/live-tests/list_GET.schema';
@@ -11,6 +11,7 @@ import { Button } from './Button';
 import { Badge } from './Badge';
 import { ShareAssetDialog } from './ShareAssetDialog';
 import { TeacherCardInsights } from './TeacherCardInsights';
+import { TeacherRejectionNote } from './TeacherRejectionNote';
 import { TEACHER_CONSOLE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
 import { Placeholder } from '../helpers/placeholderImages';
 import { performanceHref } from '../helpers/teacherPerformanceFormat';
@@ -59,6 +60,7 @@ export const TeacherLiveTestCard: React.FC<TeacherLiveTestCardProps> = ({
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isShareDialogOpen, setShareDialogOpen] = useState(false);
   const status = liveTest.status;
+  const rejection = status === 'draft' && !liveTest.inReview ? liveTest.rejection : null;
   const { mutate: downloadPdf, isPending: isDownloading } = useDownloadTestPdf();
   const { authState } = useAuth();
   // Team managers do not see the owner's revenue.
@@ -69,7 +71,9 @@ export const TeacherLiveTestCard: React.FC<TeacherLiveTestCardProps> = ({
       case 'draft':
         return liveTest.inReview
           ? { text: 'In review', variant: 'warning', className: styles.draft }
-          : { text: 'Draft', variant: 'secondary', className: styles.draft };
+          : rejection
+            ? { text: 'Rejected', variant: 'destructive', className: styles.draft }
+            : { text: 'Draft', variant: 'secondary', className: styles.draft };
       case 'upcoming':
         return { text: 'Upcoming', variant: 'secondary', className: styles.upcoming };
       case 'live':
@@ -83,7 +87,7 @@ export const TeacherLiveTestCard: React.FC<TeacherLiveTestCardProps> = ({
       default:
         return { text: 'Unknown', variant: 'outline', className: styles.ended };
     }
-  }, [status, liveTest.inReview]);
+  }, [status, liveTest.inReview, rejection]);
 
   const enrollmentPercentage = liveTest.maxSeats > 0 ? (liveTest.enrolledCount / liveTest.maxSeats) * 100 : 0;
   const totalRevenue = liveTest.actualRevenue;
@@ -126,7 +130,10 @@ export const TeacherLiveTestCard: React.FC<TeacherLiveTestCardProps> = ({
               className={styles.thumbnail}
             />
           )}
-          <Badge variant={statusInfo.variant} className={styles.statusBadge}>
+          <Badge
+            variant={statusInfo.variant}
+            className={`${styles.statusBadge} ${rejection ? styles.statusRejected : ''}`}
+          >
             {statusInfo.text}
           </Badge>
         </div>
@@ -135,7 +142,9 @@ export const TeacherLiveTestCard: React.FC<TeacherLiveTestCardProps> = ({
           <h3 className={styles.title}>{liveTest.title}</h3>
           <p className={styles.description}>{stripHtmlClient(liveTest.description)}</p>
 
-          {status === 'draft' && (
+          {rejection && <TeacherRejectionNote rejection={rejection} />}
+
+          {status === 'draft' && !rejection && (
             <div className={styles.draftNotice}>
               <Info size={14} className={styles.draftNoticeIcon} aria-hidden="true" />
               <span>
@@ -236,8 +245,8 @@ export const TeacherLiveTestCard: React.FC<TeacherLiveTestCardProps> = ({
             <>
               <div className={styles.primaryActions}>
                 <Button variant="outline" size="sm" onClick={() => onEdit(liveTest.id)} disabled={!canEditDetails}>
-                  <Edit size={14} />
-                  Edit Details
+                  {rejection ? <Wrench size={14} /> : <Edit size={14} />}
+                  {rejection ? 'Fix it' : 'Edit Details'}
                 </Button>
                 {onContinueEditing ? (
                   <Button 
