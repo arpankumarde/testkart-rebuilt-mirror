@@ -31,12 +31,20 @@
 
 /*
  * The carousel box is the visible window. HomepageTopExams sets its width from
- * tablet up (whole cards plus a peek of the next), which can run past the
- * homepage column on the right but stops at the viewport edge, so the page
- * never scrolls sideways. It is also the hover area for the arrows.
+ * tablet up (whole cards plus a peek of the next), which on desktop can run
+ * past the homepage column on the right but stops at the viewport edge, so the
+ * page never scrolls sideways. It is also the hover area for the arrows.
  */
 .carousel {
   position: relative;
+}
+
+/* Below desktop the window never outgrows the section; max-width holds that
+   between a resize and the next measurement. */
+@media (max-width: 1023px) {
+  .carousel {
+    max-width: 100%;
+  }
 }
 
 /* Overlay arrows: fully hidden at rest (no opacity ghost, no hit area) and
@@ -188,6 +196,24 @@
     margin: 0 calc(-1 * var(--spacing-8));
     padding-inline: var(--spacing-8);
     scroll-padding-inline: var(--spacing-8);
+  }
+}
+
+/* HomepageTopExams adjusts the card width a little when whole cards plus a
+   peek of the next must end at the window's edge; without the variable they
+   keep 16rem. After the 768px block so it wins over the flex-basis there. */
+@media (min-width: 768px) {
+  .item {
+    flex-basis: var(--fit-card-width, 16rem);
+  }
+}
+
+/* Desktop: the track bleeds 2rem into the column padding, so a card scrolled
+   off to the left would leave a sliver there. Clip the left edge just outside
+   the cards' resting position, keeping room for the focus ring. */
+@media (min-width: 1024px) {
+  .track {
+    clip-path: inset(0 0 0 calc(var(--spacing-8) - 0.5rem));
   }
 }
 

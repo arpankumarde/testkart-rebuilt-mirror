@@ -5,6 +5,7 @@ import { homepageFetchFeaturedCourses } from "./homepageFetchFeaturedCourses";
 import { homepageFetchPopularNotes } from "./homepageFetchPopularNotes";
 import { homepageFetchLiveSpotlight } from "./homepageFetchLiveSpotlight";
 import { fetchPopularTeachers } from "./homepageFetchPopularTeachers";
+import { homepageFetchTopExamCounts } from "./homepageFetchTopExamCounts";
 
 /**
  * Direct-DB counterpart to endpoints/homepage/data_GET.ts, for use ONLY from
@@ -16,15 +17,23 @@ import { fetchPopularTeachers } from "./homepageFetchPopularTeachers";
  * endpoints/homepage/data_GET.ts.
  */
 export async function fetchHomepageDataServer(): Promise<OutputType> {
-  const [topMockTests, popularCourses, featuredCourses, popularNotes, liveTestSpotlight, popularTeachers] =
-    await Promise.all([
-      homepageFetchTopMockTests().catch((e) => { console.error("Top mock tests fetch failed", e); return []; }),
-      homepageFetchPopularCourses().catch((e) => { console.error("Popular courses fetch failed", e); return []; }),
-      homepageFetchFeaturedCourses().catch((e) => { console.error("Featured courses fetch failed", e); return []; }),
-      homepageFetchPopularNotes().catch((e) => { console.error("Popular notes fetch failed", e); return []; }),
-      homepageFetchLiveSpotlight().catch((e) => { console.error("Live spotlight fetch failed", e); return []; }),
-      fetchPopularTeachers().catch((e) => { console.error("Popular teachers fetch failed", e); return []; }),
-    ]);
+  const [
+    topMockTests,
+    popularCourses,
+    featuredCourses,
+    popularNotes,
+    liveTestSpotlight,
+    popularTeachers,
+    topExamCounts,
+  ] = await Promise.all([
+    homepageFetchTopMockTests().catch((e) => { console.error("Top mock tests fetch failed", e); return []; }),
+    homepageFetchPopularCourses().catch((e) => { console.error("Popular courses fetch failed", e); return []; }),
+    homepageFetchFeaturedCourses().catch((e) => { console.error("Featured courses fetch failed", e); return []; }),
+    homepageFetchPopularNotes().catch((e) => { console.error("Popular notes fetch failed", e); return []; }),
+    homepageFetchLiveSpotlight().catch((e) => { console.error("Live spotlight fetch failed", e); return []; }),
+    fetchPopularTeachers().catch((e) => { console.error("Popular teachers fetch failed", e); return []; }),
+    homepageFetchTopExamCounts().catch((e) => { console.error("Top exam counts fetch failed", e); return {}; }),
+  ]);
 
   return {
     topMockTests,
@@ -33,5 +42,6 @@ export async function fetchHomepageDataServer(): Promise<OutputType> {
     popularNotes,
     liveTestSpotlight,
     popularTeachers,
+    topExamCounts,
   };
 }

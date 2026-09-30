@@ -72,7 +72,7 @@ const HomePage: React.FC = () => {
         <HomepageSearchHero />
 
         <div className={styles.contentWrapper}>
-          <HomepageTopExams />
+          <HomepageTopExams productCounts={data?.topExamCounts} />
           <HomepageLiveSpotlight spotlights={data?.liveTestSpotlight ?? []} />
           <HomepageUgcNetSpotlight />
 

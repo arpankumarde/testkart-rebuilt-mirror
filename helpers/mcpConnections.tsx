@@ -43,3 +43,48 @@ export async function listMcpConnections(audience: McpAudience, principalId: num
     .map(([clientName, lastUsedAt]) => ({ clientName, lastUsedAt }))
     .sort((a, b) => b.lastUsedAt.getTime() - a.lastUsedAt.getTime());
 }
+
+/**
+ * Disconnects one app by the name listMcpConnections groups it under: revokes every unrevoked token
+ * pair the principal holds for clients of that name and, for teachers, deletes the session rows
+ * behind them so access ends now rather than when the hour-long access token lapses. Returns how
+ * many token pairs were revoked; 0 means nothing by that name was connected.
+ */
+export async function revokeMcpConnection(
+  audience: McpAudience,
+  principalId: number,
+  clientName: string
+): Promise<number> {
+  return db.transaction().execute(async (trx) => {
+    const base = trx
+      .selectFrom("mcpOauthTokens")
+      .innerJoin("mcpOauthClients", "mcpOauthClients.clientId", "mcpOauthTokens.clientId")
+      .select(["mcpOauthTokens.id", "mcpOauthTokens.sessionId"])
+      .where("mcpOauthTokens.audience", "=", audience)
+      .where("mcpOauthTokens.revokedAt", "is", null)
+      .where("mcpOauthClients.clientName", "=", clientName);
+
+    const rows = await (audience === "admin"
+      ? base.where("mcpOauthTokens.adminId", "=", principalId)
+      : base.where("mcpOauthTokens.userId", "=", principalId)
+    ).execute();
+    if (rows.length === 0) return 0;
+
+    await trx
+      .updateTable("mcpOauthTokens")
+      .set({ revokedAt: new Date() })
+      .where(
+        "id",
+        "in",
+        rows.map((row) => row.id)
+      )
+      .where("revokedAt", "is", null)
+      .execute();
+
+    const sessionIds = rows.map((row) => row.sessionId).filter((id): id is string => !!id);
+    if (sessionIds.length > 0) {
+      await trx.deleteFrom("sessions").where("id", "in", sessionIds).execute();
+    }
+    return rows.length;
+  });
+}

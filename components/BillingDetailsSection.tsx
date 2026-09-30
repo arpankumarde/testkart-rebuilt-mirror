@@ -114,7 +114,7 @@ export const BillingDetailsSection: React.FC = () => {
         <div>
           <h2 className={styles.cardTitle}>Billing Details</h2>
           <p className={styles.cardDescription}>
-            Private information used only to fill the "Billed To" section of your invoices — not shown anywhere on your public profile.
+            Private information used only to fill the "Billed To" section of your invoices - not shown anywhere on your public profile.
           </p>
         </div>
       </div>

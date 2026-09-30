@@ -91,13 +91,13 @@ export const EditProfilePrivateSection: React.FC<EditProfilePrivateSectionProps>
 
   return (
     <div className={styles.section}>
-      <h2 className={styles.sectionTitle}>Private Credentials</h2>
+      <h2 className={styles.sectionTitle}>Sign-in details</h2>
       <p className={styles.sectionDescription}>
-        Your personal login credentials - these are not shown publicly.
+        The email and mobile number you sign in with. Neither appears on your public profile.
       </p>
 
       <div className={styles.fieldGroup}>
-        <label className={styles.fieldLabel}>Personal Email (Login)</label>
+        <label className={styles.fieldLabel}>Email</label>
         
         {emailState === 'idle' && (
           <div className={styles.inputRow}>
@@ -110,7 +110,7 @@ export const EditProfilePrivateSection: React.FC<EditProfilePrivateSectionProps>
             </div>
             <Button 
               variant="outline" 
-              size="sm" 
+              
               onClick={() => {
                 setNewEmail(user.email || '');
                 setEmailState('enterValue');
@@ -132,10 +132,10 @@ export const EditProfilePrivateSection: React.FC<EditProfilePrivateSectionProps>
                 disabled={sendEmailOtp.isPending}
               />
             </div>
-            <Button variant="outline" size="sm" onClick={() => setEmailState('idle')} disabled={sendEmailOtp.isPending}>
+            <Button variant="outline" onClick={() => setEmailState('idle')} disabled={sendEmailOtp.isPending}>
               Cancel
             </Button>
-            <Button size="sm" onClick={handleSendEmailOtp} disabled={!isValidEmail || sendEmailOtp.isPending}>
+            <Button onClick={handleSendEmailOtp} disabled={!isValidEmail || sendEmailOtp.isPending}>
               {sendEmailOtp.isPending ? 'Sending...' : 'Send OTP'}
             </Button>
           </div>
@@ -155,10 +155,10 @@ export const EditProfilePrivateSection: React.FC<EditProfilePrivateSectionProps>
                   disabled={verifyEmailOtp.isPending}
                 />
               </div>
-              <Button variant="outline" size="sm" onClick={() => setEmailState('idle')} disabled={verifyEmailOtp.isPending}>
+              <Button variant="outline" onClick={() => setEmailState('idle')} disabled={verifyEmailOtp.isPending}>
                 Cancel
               </Button>
-              <Button size="sm" onClick={handleVerifyEmail} disabled={emailOtp.length !== 6 || verifyEmailOtp.isPending}>
+              <Button onClick={handleVerifyEmail} disabled={emailOtp.length !== 6 || verifyEmailOtp.isPending}>
                 {verifyEmailOtp.isPending ? 'Verifying...' : 'Verify'}
               </Button>
             </div>
@@ -166,7 +166,7 @@ export const EditProfilePrivateSection: React.FC<EditProfilePrivateSectionProps>
               {emailTimer > 0 ? (
                 <span className={styles.timerText}>Resend OTP in {emailTimer}s</span>
               ) : (
-                <Button variant="link" size="sm" onClick={handleSendEmailOtp} disabled={sendEmailOtp.isPending} className={styles.resendBtn}>
+                <Button variant="link" onClick={handleSendEmailOtp} disabled={sendEmailOtp.isPending} className={styles.resendBtn}>
                   Resend OTP
                 </Button>
               )}
@@ -176,14 +176,14 @@ export const EditProfilePrivateSection: React.FC<EditProfilePrivateSectionProps>
         
         {emailState === 'idle' && (
           <p className={styles.fieldDescription}>
-            This is your private login email and cannot be changed without verification. It is never displayed publicly.
+            Changing it needs a code sent to the new address.
           </p>
         )}
       </div>
 
       <div className={styles.fieldGroup}>
         <label className={styles.fieldLabel}>
-          Mobile Number (Login)
+          Mobile number
           {user.mobileVerified ? (
             <Badge variant="success" style={{ marginLeft: 'var(--spacing-2)' }}>
               Verified
@@ -208,7 +208,7 @@ export const EditProfilePrivateSection: React.FC<EditProfilePrivateSectionProps>
             </div>
             <Button 
               variant="outline" 
-              size="sm" 
+              
               onClick={() => {
                 setNewMobile(user.mobileNumber || '');
                 setMobileState('enterValue');
@@ -228,10 +228,10 @@ export const EditProfilePrivateSection: React.FC<EditProfilePrivateSectionProps>
                 disabled={sendMobileOtp.isPending}
               />
             </div>
-            <Button variant="outline" size="sm" onClick={() => setMobileState('idle')} disabled={sendMobileOtp.isPending}>
+            <Button variant="outline" onClick={() => setMobileState('idle')} disabled={sendMobileOtp.isPending}>
               Cancel
             </Button>
-            <Button size="sm" onClick={handleSendMobileOtp} disabled={!isValidMobile || sendMobileOtp.isPending}>
+            <Button onClick={handleSendMobileOtp} disabled={!isValidMobile || sendMobileOtp.isPending}>
               {sendMobileOtp.isPending ? 'Sending...' : 'Send OTP'}
             </Button>
           </div>
@@ -251,10 +251,10 @@ export const EditProfilePrivateSection: React.FC<EditProfilePrivateSectionProps>
                   disabled={verifyMobileOtp.isPending}
                 />
               </div>
-              <Button variant="outline" size="sm" onClick={() => setMobileState('idle')} disabled={verifyMobileOtp.isPending}>
+              <Button variant="outline" onClick={() => setMobileState('idle')} disabled={verifyMobileOtp.isPending}>
                 Cancel
               </Button>
-              <Button size="sm" onClick={handleVerifyMobile} disabled={mobileOtp.length !== 4 || verifyMobileOtp.isPending}>
+              <Button onClick={handleVerifyMobile} disabled={mobileOtp.length !== 4 || verifyMobileOtp.isPending}>
                 {verifyMobileOtp.isPending ? 'Verifying...' : 'Verify'}
               </Button>
             </div>
@@ -262,7 +262,7 @@ export const EditProfilePrivateSection: React.FC<EditProfilePrivateSectionProps>
               {mobileTimer > 0 ? (
                 <span className={styles.timerText}>Resend OTP in {mobileTimer}s</span>
               ) : (
-                <Button variant="link" size="sm" onClick={handleSendMobileOtp} disabled={sendMobileOtp.isPending} className={styles.resendBtn}>
+                <Button variant="link" onClick={handleSendMobileOtp} disabled={sendMobileOtp.isPending} className={styles.resendBtn}>
                   Resend OTP
                 </Button>
               )}
@@ -272,7 +272,7 @@ export const EditProfilePrivateSection: React.FC<EditProfilePrivateSectionProps>
         
         {mobileState === 'idle' && (
           <p className={styles.fieldDescription}>
-            Your verified mobile number for login. Not shown publicly.
+            Changing it needs a code sent to the new number.
           </p>
         )}
       </div>

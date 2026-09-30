@@ -13,15 +13,18 @@ export interface ExamCategory {
 
 interface ExamCategoryCardProps {
   exam: ExamCategory;
+  /** Products on sale for the exam, shown under the name; omitted when unknown or 0. */
+  productCount?: number;
   className?: string;
 }
 
 /**
- * Large rounded exam card: name on top, arrow bottom-left, a duotone icon
- * (outlined lucide glyph over a pastel blob) bottom-right, and a pastel strip
- * peeking out from under the bottom edge. The whole card is one link.
+ * Large rounded exam card: name and product count on top, arrow bottom-left,
+ * a duotone icon (outlined lucide glyph over a pastel blob) bottom-right, and
+ * a pastel strip peeking out from under the bottom edge. The whole card is one
+ * link.
  */
-export function ExamCategoryCard({ exam, className }: ExamCategoryCardProps) {
+export function ExamCategoryCard({ exam, productCount, className }: ExamCategoryCardProps) {
   const Icon = exam.icon;
 
   return (
@@ -32,7 +35,14 @@ export function ExamCategoryCard({ exam, className }: ExamCategoryCardProps) {
     >
       <span className={styles.accent} aria-hidden />
       <span className={styles.card}>
-        <h3 className={styles.title}>{exam.name}</h3>
+        <span className={styles.heading}>
+          <h3 className={styles.title}>{exam.name}</h3>
+          {productCount != null && productCount > 0 && (
+            <span className={styles.count}>
+              {productCount.toLocaleString("en-IN")} {productCount === 1 ? "product" : "products"}
+            </span>
+          )}
+        </span>
         <span className={styles.footer}>
           <ArrowUpRight className={styles.arrow} strokeWidth={2} aria-hidden />
           <span className={styles.illustration} aria-hidden>

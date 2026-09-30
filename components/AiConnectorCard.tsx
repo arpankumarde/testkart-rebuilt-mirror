@@ -1,4 +1,5 @@
 import React, { useEffect, useId, useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { Check, ChevronDown, Copy, ExternalLink, Plug } from "lucide-react";
 import { SiClaude, SiPerplexity } from "react-icons/si";
@@ -30,6 +31,19 @@ const PITCH: Record<AiConnectorAudience, string> = {
   teacher: "Ask Claude, ChatGPT or Perplexity to check your sales, write questions and update your test series.",
   admin:
     "Ask Claude, ChatGPT or Perplexity to look up orders and teachers, or to write blog posts, help articles and exam pages.",
+};
+
+const DISCONNECT_HINT: Record<AiConnectorAudience, React.ReactNode> = {
+  teacher: (
+    <>
+      To disconnect, remove the connector in that app or use{" "}
+      <Link to="/teacher/settings#ai-apps" className={styles.extra}>
+        Connected AI apps in Settings
+      </Link>
+      .
+    </>
+  ),
+  admin: "To disconnect, remove the connector in that app.",
 };
 
 const guideFor = (client: ClientKey, links: AiConnectorLinks): Guide => {
@@ -264,8 +278,7 @@ export const AiConnectorCard = ({ audience, className }: Props) => {
               )}
 
               <p className={styles.consent}>
-                Nothing happens until you sign in to Testkart and select Allow. To disconnect, remove the
-                connector in that app.
+                Nothing happens until you sign in to Testkart and select Allow. {DISCONNECT_HINT[audience]}
               </p>
             </div>
 

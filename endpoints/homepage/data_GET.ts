@@ -6,6 +6,7 @@ import { homepageFetchFeaturedCourses } from "../../helpers/homepageFetchFeature
 import { homepageFetchPopularNotes } from "../../helpers/homepageFetchPopularNotes";
 import { homepageFetchLiveSpotlight } from "../../helpers/homepageFetchLiveSpotlight";
 import { fetchPopularTeachers } from "../../helpers/homepageFetchPopularTeachers";
+import { homepageFetchTopExamCounts } from "../../helpers/homepageFetchTopExamCounts";
 
 export async function handle(request: Request) {
   try {
@@ -17,6 +18,7 @@ export async function handle(request: Request) {
       popularNotes,
       liveTestSpotlight,
       popularTeachers,
+      topExamCounts,
     ] = await Promise.all([
       homepageFetchTopMockTests().catch((e) => { console.error("Top mock tests fetch failed", e); return []; }),
       homepageFetchPopularCourses().catch((e) => { console.error("Popular courses fetch failed", e); return []; }),
@@ -24,6 +26,7 @@ export async function handle(request: Request) {
       homepageFetchPopularNotes().catch((e) => { console.error("Popular notes fetch failed", e); return []; }),
       homepageFetchLiveSpotlight().catch((e) => { console.error("Live spotlight fetch failed", e); return []; }),
       fetchPopularTeachers().catch((e) => { console.error("Popular teachers fetch failed", e); return []; }),
+      homepageFetchTopExamCounts().catch((e) => { console.error("Top exam counts fetch failed", e); return {}; }),
     ]);
 
     return new Response(
@@ -34,6 +37,7 @@ export async function handle(request: Request) {
         popularNotes,
         liveTestSpotlight,
         popularTeachers,
+        topExamCounts,
       } satisfies OutputType)
     );
   } catch (error) {

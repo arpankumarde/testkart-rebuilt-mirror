@@ -145,6 +145,8 @@ export type OutputType = {
   popularNotes: HomepageNoteItem[];
   liveTestSpotlight: HomepageLiveTestSpotlight[];
   popularTeachers: HomepageTeacher[];
+  /** Products on sale per "Explore Top Exams" card, keyed by exam slug. */
+  topExamCounts: Record<string, number>;
 };
 
 export const getHomepageData = async (
