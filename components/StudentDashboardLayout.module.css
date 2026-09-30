@@ -10,19 +10,78 @@
   overflow-y: auto;
 }
 
-.mobileMenuButton {
+/*
+ * Mobile-only top bar: the brand sits right beside the hamburger. The 1px
+ * column gap plus the button's own inset around its 22px icon leaves about
+ * the same visual space as between the logo and the role chip. It sits below
+ * the backdrop and drawer, so the open drawer covers it.
+ */
+.mobileHeader {
   display: none;
-  position: fixed;
-  bottom: 80px;
-  left: var(--spacing-4);
-  z-index: calc(var(--z-nav) - 1);
+  position: sticky;
+  top: var(--site-notice-offset);
+  z-index: calc(var(--z-nav) - 2);
+  grid-template-columns: 40px 1fr 40px;
+  align-items: center;
+  gap: 1px;
+  height: 56px;
+  box-sizing: border-box;
+  padding: 0 var(--spacing-3);
   background-color: var(--surface);
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.mobileMenuButton {
+  width: 40px;
+  height: 40px;
+  color: var(--foreground);
 }
 
 .mobileMenuButton:hover {
   background-color: var(--muted);
+}
+
+.mobileBrand {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--spacing-2);
+  min-width: 0;
+  color: var(--foreground);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+
+.mobileBrand:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.mobileLogo {
+  display: block;
+  height: 24px;
+  width: auto;
+  max-width: 110px;
+  object-fit: contain;
+}
+
+/* Matches the chip in the sidebar header. */
+.mobileChip {
+  flex-shrink: 0;
+  padding: 0.25rem 0.5rem;
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+  border-radius: var(--radius-sm);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.mobileHeaderSpacer {
+  width: 40px;
+  height: 40px;
 }
 
 .backdrop {
@@ -52,8 +111,12 @@
     padding-bottom: calc(var(--spacing-4) + 72px); /* Account for mobile bottom nav */
   }
 
-  .mobileMenuButton {
-    display: flex;
+  .layout {
+    min-height: calc(100vh - var(--site-notice-offset) - 56px);
+  }
+
+  .mobileHeader {
+    display: grid;
   }
 
   .backdrop {

@@ -1,8 +1,15 @@
 .cardLink {
+  display: block;
   text-decoration: none;
   flex: 0 0 auto;
   width: 280px;
   scroll-snap-align: start;
+  border-radius: 18px;
+}
+
+.cardLink:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
 }
 
 @media (min-width: 768px) {
@@ -11,75 +18,140 @@
   }
 }
 
+/*
+ * Natural, flat palette - no gradients. Colours are card-scoped tokens so the
+ * dark theme only swaps values. The status strip's tint (--lsc-tone-*) is set
+ * by the .upcoming / .live modifier.
+ */
 .card {
+  --lsc-bg: #FFFFFF;
+  --lsc-border: #EEE6DD;
+  --lsc-border-hover: #E6D2C2;
+  --lsc-panel: #F8F4EF;
+  --lsc-panel-divider: #EBE3D9;
+  --lsc-ink: #2A2623;
+  --lsc-ink-soft: #5E5750;
+  --lsc-ink-faint: #8D857D;
+  --lsc-shadow: 0 1px 2px rgba(60, 40, 20, 0.04), 0 4px 16px rgba(60, 40, 20, 0.05);
+  --lsc-shadow-hover: 0 2px 4px rgba(60, 40, 20, 0.05), 0 12px 28px rgba(60, 40, 20, 0.08);
+
+  --lsc-peach-bg: #FCEEE4;
+  --lsc-peach-text: #9A4A26;
+  --lsc-peach-dot: #EC9468;
+
+  --lsc-sage-bg: #E7F0E8;
+  --lsc-sage-text: #2F6343;
+  --lsc-sage-dot: #5FA577;
+
+  --lsc-gold-bg: #FAF1DC;
+  --lsc-gold-text: #7A5214;
+
+  --lsc-track: #EAE1D6;
+  --lsc-fill: #EEA287;
+
+  /* Every card is the same size whatever its data. The height is the tallest
+     layout: a two-line title, the prize pill wrapped under the organiser and
+     the seats panel. Shorter content leaves the slack above the stats panel,
+     which stays pinned to the bottom. */
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: var(--spacing-2);
-  min-height: 200px;
-  padding: var(--spacing-3);
-  border-radius: var(--radius-md);
-  background: linear-gradient(135deg, hsl(25 95% 65%) 0%, hsl(355 85% 60%) 100%);
-  box-shadow: var(--shadow-md);
-  color: white;
+  gap: 6px;
+  height: 229px;
+  box-sizing: border-box;
   overflow: hidden;
-  transition: transform var(--animation-duration-fast) ease, box-shadow var(--animation-duration-fast) ease;
+  padding: 6px;
+  border-radius: 18px;
+  border: 1px solid var(--lsc-border);
+  background-color: var(--lsc-bg);
+  box-shadow: var(--lsc-shadow);
+  color: var(--lsc-ink);
+  transition:
+    transform var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease,
+    border-color var(--animation-duration-fast) ease;
 }
 
-.card:hover {
+:global(.dark) .card {
+  --lsc-bg: hsl(28 12% 13%);
+  --lsc-border: hsl(28 10% 21%);
+  --lsc-border-hover: hsl(24 25% 30%);
+  --lsc-panel: hsl(28 12% 16%);
+  --lsc-panel-divider: hsl(28 10% 24%);
+  --lsc-ink: hsl(30 20% 94%);
+  --lsc-ink-soft: hsl(30 10% 76%);
+  --lsc-ink-faint: hsl(30 8% 60%);
+  --lsc-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 4px 16px rgba(0, 0, 0, 0.18);
+  --lsc-shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.25), 0 12px 28px rgba(0, 0, 0, 0.28);
+
+  --lsc-peach-bg: hsl(22 35% 20%);
+  --lsc-peach-text: hsl(22 90% 80%);
+  --lsc-peach-dot: hsl(22 85% 68%);
+
+  --lsc-sage-bg: hsl(140 18% 19%);
+  --lsc-sage-text: hsl(140 35% 76%);
+  --lsc-sage-dot: hsl(140 40% 58%);
+
+  --lsc-gold-bg: hsl(40 28% 18%);
+  --lsc-gold-text: hsl(40 70% 76%);
+
+  --lsc-track: hsl(28 10% 24%);
+  --lsc-fill: hsl(16 70% 70%);
+}
+
+.upcoming {
+  --lsc-tone-bg: var(--lsc-peach-bg);
+  --lsc-tone-text: var(--lsc-peach-text);
+  --lsc-tone-dot: var(--lsc-peach-dot);
+}
+
+.live {
+  --lsc-tone-bg: var(--lsc-sage-bg);
+  --lsc-tone-text: var(--lsc-sage-text);
+  --lsc-tone-dot: var(--lsc-sage-dot);
+}
+
+.cardLink:hover .card {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+  border-color: var(--lsc-border-hover);
+  box-shadow: var(--lsc-shadow-hover);
 }
 
-.topRow {
+/* ---- Section 1: status row ----
+   No band of its own: a compact status chip on the left and the countdown as
+   plain text on the right, inset to line up with the title below. */
+.statusStrip {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-2);
+  padding: 8px 10px 0;
 }
 
-.prizeBadge {
-  display: flex;
+.status {
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  background-color: hsl(45 95% 55%);
-  color: hsl(30 100% 12%);
+  gap: 5px;
+  flex-shrink: 0;
   padding: 3px 8px;
   border-radius: var(--radius-full);
-  font-size: 0.6875rem;
-  font-weight: 800;
-  white-space: nowrap;
+  background-color: var(--lsc-tone-bg);
+  color: var(--lsc-tone-text);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  line-height: 1.2;
 }
 
-.prizeIcon {
-  flex-shrink: 0;
-}
-
-.badge {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background-color: rgba(0, 0, 0, 0.25);
-  padding: 2px 8px;
-  border-radius: var(--radius-full);
-  flex-shrink: 0;
-  margin-left: auto;
-}
-
-.badgeDot {
+.statusDot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
+  background-color: var(--lsc-tone-dot);
 }
 
-.liveDot {
-  background-color: #fff;
+.live .statusDot {
   animation: pulseDot 1.5s infinite ease-in-out;
-}
-
-.upcomingDot {
-  background-color: rgba(255, 255, 255, 0.7);
 }
 
 @keyframes pulseDot {
@@ -88,117 +160,223 @@
   100% { transform: scale(0.8); opacity: 0.5; }
 }
 
-.badgeText {
-  font-size: 0.625rem;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-}
-
-.teacherRow {
-  display: flex;
+.countdown {
+  display: inline-flex;
   align-items: center;
-  gap: var(--spacing-2);
-}
-
-.avatar {
-  width: 32px;
-  height: 32px;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-}
-
-.avatarFallback {
-  color: var(--primary);
-  background-color: #fff;
+  gap: 5px;
+  min-width: 0;
   font-size: 0.75rem;
-}
-
-.teacherInfo {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-1);
-  overflow: hidden;
-}
-
-.teacherName {
-  font-size: 0.8125rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--lsc-ink-soft);
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+
+.countdownIcon {
+  flex-shrink: 0;
+  color: var(--lsc-ink-faint);
+}
+
+.countdownText {
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+/* ---- Section 2: the test ---- */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+  padding: 8px 10px 6px;
+}
+
 .testTitle {
+  margin: 0;
   font-family: var(--font-family-heading);
-  font-size: 1rem;
+  font-size: 1.0625rem;
   font-weight: 700;
-  color: #fff;
-  line-height: 1.3;
+  line-height: 1.35;
+  /* Always two lines tall, so a one-line title keeps the organiser row in the
+     same place as on every other card. */
+  min-height: 2.7em;
+  letter-spacing: -0.01em;
+  color: var(--lsc-ink);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.seatsRow {
+.metaRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px var(--spacing-2);
+}
+
+.teacherRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* Scoped under .teacherRow so these beat the Avatar kit's own size, fill and
+   border, which otherwise win or lose on stylesheet order. */
+.teacherRow .avatar {
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--lsc-border);
+}
+
+.teacherRow .avatarFallback {
+  color: var(--lsc-peach-text);
+  background-color: var(--lsc-peach-bg);
+  font-size: 0.5625rem;
+  font-weight: 700;
+}
+
+.teacherName {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--lsc-ink-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.prizeBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background-color: var(--lsc-gold-bg);
+  color: var(--lsc-gold-text);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.prizeIcon {
+  flex-shrink: 0;
+}
+
+/* ---- Section 3: stats panel ---- */
+/* Fixed height: the price-only panel (no seat cap) matches the seats panel. */
+.stats {
+  display: flex;
+  flex-shrink: 0;
+  align-items: stretch;
+  height: 62px;
+  box-sizing: border-box;
+  border-radius: 12px;
+  background-color: var(--lsc-panel);
+}
+
+.seatsStat,
+.priceStat {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 12px;
+}
+
+.seatsStat {
+  flex: 1;
+  min-width: 0;
+}
+
+.priceStat {
+  flex-shrink: 0;
+  align-items: flex-end;
+  margin-left: auto;
+}
+
+/* No seat cap: the price is the panel's only stat, so it reads as one row. */
+.priceStat:only-child {
+  flex: 1;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-left: 0;
+}
+
+.seatsStat + .priceStat {
+  border-left: 1px solid var(--lsc-panel-divider);
+  min-width: 84px;
+}
+
+.statLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lsc-ink-faint);
+}
+
+.seatsValue {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--lsc-ink-soft);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.seatsValue strong {
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--lsc-ink);
 }
 
 .seatsBarTrack {
   width: 100%;
   height: 4px;
   border-radius: var(--radius-full);
-  background-color: rgba(255, 255, 255, 0.25);
+  background-color: var(--lsc-track);
   overflow: hidden;
 }
 
 .seatsBarFill {
   height: 100%;
   border-radius: var(--radius-full);
-  background-color: #fff;
+  background-color: var(--lsc-fill);
 }
 
-.seatsLabel {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+.priceValue {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 800;
+  line-height: 1.2;
   white-space: nowrap;
-}
-
-.bottomRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-2);
-}
-
-.countdown {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #fff;
-  font-variant-numeric: tabular-nums;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.priceBadge {
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: var(--radius-sm);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.free {
-  background-color: rgba(255, 255, 255, 0.25);
-  color: #fff;
 }
 
 .paid {
-  background-color: #fff;
-  color: hsl(20 100% 45%);
+  color: var(--lsc-peach-text);
+}
+
+.free {
+  color: var(--lsc-sage-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: border-color var(--animation-duration-fast) ease;
+  }
+
+  .cardLink:hover .card {
+    transform: none;
+  }
+
+  .live .statusDot {
+    animation: none;
+  }
 }

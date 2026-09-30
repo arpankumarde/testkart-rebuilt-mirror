@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, Lightbulb, CheckCircle2, Sparkles, GraduationCap, Users } from "lucide-react";
+import { BookOpen, Lightbulb, CheckCircle2, Sparkles, GraduationCap, Users, Presentation } from "lucide-react";
 import styles from "./JoinTestkart.module.css";
 
 /**
@@ -90,7 +90,12 @@ export function JoinTestkart() {
 
             <div className={styles.ctaWrapper}>
               <Link to="/signup" className={styles.cta}>
-                Get Started Free
+                <GraduationCap size={18} strokeWidth={2} aria-hidden="true" />
+                I’m a Student
+              </Link>
+              <Link to="/teacher/signup" className={`${styles.cta} ${styles.ctaTeacher}`}>
+                <Presentation size={18} strokeWidth={2} aria-hidden="true" />
+                I’m a Teacher
               </Link>
             </div>
           </div>

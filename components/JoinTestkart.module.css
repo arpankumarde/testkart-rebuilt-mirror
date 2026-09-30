@@ -145,14 +145,19 @@
 /* CTA wrapper and button */
 .ctaWrapper {
   margin-top: var(--spacing-4);
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-4);
+  width: 100%;
+  max-width: 30rem;
 }
 
 .cta {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: var(--spacing-2);
+  width: 100%;
   min-height: 3rem;
   padding: var(--spacing-4) var(--spacing-12);
   background-color: #F9B38D;
@@ -185,6 +190,25 @@
 .cta:focus-visible {
   outline: 2px solid #F9B38D;
   outline-offset: 2px;
+}
+
+/* Teacher CTA - pastel lavender counterpart to the peach student CTA */
+.ctaTeacher {
+  background-color: #D3C6F7;
+  box-shadow: 0 4px 12px rgba(140, 110, 220, 0.15);
+}
+
+.ctaTeacher:hover {
+  background-color: #C2B1F3;
+  box-shadow: 0 6px 16px rgba(140, 110, 220, 0.2);
+}
+
+.ctaTeacher:active {
+  box-shadow: 0 2px 6px rgba(140, 110, 220, 0.12);
+}
+
+.ctaTeacher:focus-visible {
+  outline-color: #C2B1F3;
 }
 
 /* Subtext below CTA */
@@ -273,6 +297,12 @@
   .description {
     font-size: 0.9375rem;
     line-height: 1.5;
+  }
+
+  .ctaWrapper {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--spacing-3);
+    max-width: 20rem;
   }
 
   .cta {
@@ -399,4 +429,12 @@
 
 .dark .cta:hover {
   background-color: #F5A078;
+}
+
+.dark .ctaTeacher {
+  background-color: #D3C6F7;
+}
+
+.dark .ctaTeacher:hover {
+  background-color: #C2B1F3;
 }

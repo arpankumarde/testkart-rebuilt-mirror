@@ -26,6 +26,7 @@ import {
   PanelLeftOpen,
   TrendingUp,
   Trophy,
+  Headset,
 } from 'lucide-react';
 import { useAuth } from '../helpers/useAuth';
 import { Button } from './Button';
@@ -128,6 +129,7 @@ const NAV_GROUPS: TeacherNavGroup[] = [
       { href: '/teacher/edit-profile', label: 'Profile', icon: UserCog, ownerOnly: true },
       { href: '/teacher/settings', label: 'Settings', icon: Settings, ownerOnly: true },
       { href: '/teacher/subscription', label: 'Subscription', icon: CreditCard, ownerOnly: true },
+      { href: '/teacher/support', label: 'Contact support', icon: Headset },
     ],
   },
 ];

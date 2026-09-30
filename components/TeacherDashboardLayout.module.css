@@ -81,19 +81,139 @@
   flex-shrink: 0;
 }
 
-.mobileMenuButton {
+/*
+ * Mobile-only top bar: the brand sits right beside the hamburger. The 1px
+ * column gap plus the button's own inset around its 22px icon leaves about
+ * the same visual space as between the logo and the role chip. It sits below
+ * the backdrop and drawer, so the open drawer covers it.
+ */
+.mobileHeader {
   display: none;
-  position: fixed;
-  bottom: 70px;
-  left: var(--spacing-4);
-  z-index: calc(var(--z-nav) - 1);
+  position: sticky;
+  top: var(--site-notice-offset);
+  z-index: calc(var(--z-nav) - 2);
+  grid-template-columns: 40px 1fr 40px;
+  align-items: center;
+  gap: 1px;
+  height: 56px;
+  box-sizing: border-box;
+  padding: 0 var(--spacing-3);
   background-color: var(--surface);
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.mobileMenuButton {
+  width: 40px;
+  height: 40px;
+  color: var(--foreground);
 }
 
 .mobileMenuButton:hover {
   background-color: var(--muted);
+}
+
+.mobileBrand {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--spacing-2);
+  min-width: 0;
+  color: var(--foreground);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+
+.mobileBrand:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.mobileLogo {
+  display: block;
+  height: 24px;
+  width: auto;
+  max-width: 110px;
+  object-fit: contain;
+}
+
+/* Matches the chip in the sidebar header. */
+.mobileChip {
+  flex-shrink: 0;
+  padding: 0.25rem 0.5rem;
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+  border-radius: var(--radius-sm);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.mobileHeaderSpacer {
+  width: 40px;
+  height: 40px;
+}
+
+/* Account trigger in the mobile header's right slot - the same 30px avatar
+   as the sidebar footer, in a 40px tap target. */
+.mobileProfileButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.mobileProfileButton:hover {
+  background-color: var(--muted);
+}
+
+.mobileProfileButton:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.mobileProfileAvatar {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+}
+
+.mobileProfileIcon {
+  color: var(--muted-foreground);
+}
+
+.mobileProfileMenu {
+  min-width: 200px;
+}
+
+.mobileProfileMeta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mobileProfileName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobileProfileRole {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--muted-foreground);
 }
 
 .backdrop {
@@ -126,11 +246,22 @@
     padding: var(--spacing-2) var(--spacing-4);
   }
 
-  .mobileMenuButton {
-    display: flex;
+  .layout {
+    min-height: calc(100vh - var(--site-notice-offset) - 56px);
+  }
+
+  .mobileHeader {
+    display: grid;
   }
 
   .backdrop {
     display: block;
+  }
+}
+
+/* Phones only: drop the "Need help?" label; the guide and support links stay. */
+@media (max-width: 640px) {
+  .supportText {
+    display: none;
   }
 }

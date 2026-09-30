@@ -1,11 +1,22 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { Menu, HelpCircle, Headset, BookOpen } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Menu, HelpCircle, Headset, BookOpen, LogOut, UserCircle } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { TeacherSidebar } from './TeacherSidebar';
 import { Button } from './Button';
 import { MissingContactInfoDialog } from './MissingContactInfoDialog';
-import { BRAND_FAVICON } from '../helpers/brandAssets';
+import { LogoutConfirmDialog } from './LogoutConfirmDialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from './DropdownMenu';
+import { useAuth } from '../helpers/useAuth';
+import { useDarkModeObserver } from '../helpers/useDarkModeObserver';
+import { BRAND_FAVICON, getBrandLogo } from '../helpers/brandAssets';
 import styles from './TeacherDashboardLayout.module.css';
 
 interface TeacherDashboardLayoutProps {
@@ -45,6 +56,20 @@ const FOCUSED_LAYOUT_ROUTE_PATTERNS: RegExp[] = [
 export const TeacherDashboardLayout: React.FC<TeacherDashboardLayoutProps> = ({ children, className, hideSupportBar = false, sidebarDefaultCollapsed = false }) => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const location = useLocation();
+  const isDarkMode = useDarkModeObserver();
+  const [isLogoutOpen, setLogoutOpen] = useState(false);
+  const { authState, logout } = useAuth();
+  const navigate = useNavigate();
+  const user = authState.type === 'authenticated' ? authState.user : null;
+  const isManager = user?.role === 'teacher' && user.teacherRole === 'manager';
+
+  // Same sign-out as the sidebar footer: confirmed through LogoutConfirmDialog,
+  // then back to the home page.
+  const handleLogout = async () => {
+    await logout();
+    setIsMobileSidebarOpen(false);
+    navigate('/');
+  };
   const isFocusedRoute = FOCUSED_LAYOUT_ROUTE_PATTERNS.some((pattern) => pattern.test(location.pathname));
   const effectiveHideSupportBar = hideSupportBar || isFocusedRoute;
   const effectiveSidebarDefaultCollapsed = sidebarDefaultCollapsed || isFocusedRoute;
@@ -67,16 +92,59 @@ export const TeacherDashboardLayout: React.FC<TeacherDashboardLayoutProps> = ({ 
         <link rel="shortcut icon" href={BRAND_FAVICON} />
       </Helmet>
 
-      {/* Mobile hamburger menu button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={toggleMobileSidebar}
-        className={styles.mobileMenuButton}
-        aria-label="Open menu"
-      >
-        <Menu size={24} />
-      </Button>
+      {/* Mobile-only top bar: hamburger left, brand centred, an equal-width
+          spacer on the right keeps the brand optically centred. Hidden above
+          768px, where the sidebar is always visible. */}
+      <header className={styles.mobileHeader}>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleMobileSidebar}
+          className={styles.mobileMenuButton}
+          aria-label="Open menu"
+        >
+          <Menu size={22} />
+        </Button>
+        <Link to="/" className={styles.mobileBrand} aria-label="Testkart home">
+          <img src={getBrandLogo(isDarkMode)} alt="Testkart" className={styles.mobileLogo} />
+          <span className={styles.mobileChip}>Teacher</span>
+        </Link>
+        {user ? (
+          // modal={false}: the menu hands off to a Dialog, and a modal menu
+          // would leave the body's pointer lock behind when it closes.
+          <DropdownMenu modal={false}>
+            <DropdownMenuTrigger asChild>
+              <button type="button" className={styles.mobileProfileButton} aria-label="Account menu">
+                {user.avatarUrl ? (
+                  <img src={user.avatarUrl} alt="" className={styles.mobileProfileAvatar} />
+                ) : (
+                  <UserCircle size={30} className={styles.mobileProfileIcon} aria-hidden="true" />
+                )}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className={styles.mobileProfileMenu}>
+              <DropdownMenuLabel className={styles.mobileProfileMeta}>
+                <span className={styles.mobileProfileName}>{user.displayName}</span>
+                <span className={styles.mobileProfileRole}>{isManager ? 'Manager' : 'Academy owner'}</span>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => setLogoutOpen(true)}>
+                <LogOut size={16} aria-hidden="true" />
+                Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <span className={styles.mobileHeaderSpacer} aria-hidden="true" />
+        )}
+      </header>
+
+      <LogoutConfirmDialog
+        open={isLogoutOpen}
+        onOpenChange={setLogoutOpen}
+        onConfirm={handleLogout}
+        panelLabel="your teacher account"
+      />
 
       {/* Backdrop overlay for mobile */}
       {isMobileSidebarOpen && (
@@ -101,7 +169,7 @@ export const TeacherDashboardLayout: React.FC<TeacherDashboardLayoutProps> = ({ 
               Need help?
             </span>
             <nav className={styles.supportActions} aria-label="Help">
-              <Link to="/help" className={styles.supportLink}>
+              <Link to="/help" target="_blank" rel="noopener noreferrer" className={styles.supportLink}>
                 <BookOpen size={14} className={styles.supportActionIcon} aria-hidden="true" />
                 Guides &amp; tutorials
               </Link>
