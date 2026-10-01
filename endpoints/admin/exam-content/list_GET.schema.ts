@@ -1,6 +1,6 @@
 import { z } from "zod";
 import superjson from "superjson";
-import type { AdminExamSectionType, FaqItem } from "../../../helpers/examContentTypes";
+import type { ExamCustomPage, ExamSectionPageType, FaqItem } from "../../../helpers/examContentTypes";
 
 export const schema = z.object({
   examId: z.number().int().positive(),
@@ -11,7 +11,7 @@ export type InputType = z.infer<typeof schema>;
 export type ExamContentPageItem = {
   id: number | null;
   examId: number;
-  pageType: AdminExamSectionType;
+  pageType: ExamSectionPageType;
   status: "draft" | "published";
 
   // Working draft — what the admin is editing. May differ from what's live.
@@ -55,6 +55,8 @@ export type OutputType = {
     examSlug: string;
     categoryName: string;
   };
+  // Admin-added pages, in sidebar order. Each also has an entry in pages.
+  customPages: ExamCustomPage[];
   pages: ExamContentPageItem[];
 };
 

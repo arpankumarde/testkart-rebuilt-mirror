@@ -13,11 +13,15 @@ type JoinTestkartProps = {
  * Join Testkart CTA section - community-focused enrollment call-to-action
  * with decorative learning-themed elements around a centered message.
  * A signed-in teacher gets a dashboard link in the teacher variant instead of sign-up.
+ * The student/teacher sign-up variant is hidden entirely for a signed-in student or teacher.
  */
 export function JoinTestkart({ audience = "all" }: JoinTestkartProps) {
   const { authState } = useAuth();
   const forTeachers = audience === "teacher";
-  const isTeacher = authState.type === "authenticated" && authState.user.role === "teacher";
+  const role = authState.type === "authenticated" ? authState.user.role : null;
+  const isTeacher = role === "teacher";
+
+  if (!forTeachers && (role === "student" || role === "teacher")) return null;
 
   return (
     <section className={styles.section} aria-labelledby="join-testkart-title">

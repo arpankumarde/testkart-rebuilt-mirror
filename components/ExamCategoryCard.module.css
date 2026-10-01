@@ -1,7 +1,7 @@
 /*
  * The link is the moving part: the accent strip and the card lift together.
  * The strip sits before the card in the DOM, so the card paints over it and
- * only its bottom 5px shows. The pastel is artwork, the same in both themes;
+ * only its bottom 8px shows. The pastel is artwork, the same in both themes;
  * the card itself follows --card.
  */
 .root {
@@ -17,11 +17,13 @@
 .accent {
   position: absolute;
   inset-inline: 1.5rem;
-  bottom: -5px;
+  bottom: -8px;
   height: 2rem;
   border-radius: 0 0 1.5rem 1.5rem;
   background-color: var(--exam-accent);
-  opacity: 0.85;
+  /* A touch deeper and richer than the icon blob's pastel, same hue, so the
+     strip reads against the page without turning bold. */
+  filter: saturate(1.35) brightness(0.93);
 }
 
 .card {

@@ -603,6 +603,7 @@ export const ExamProductListingPage: React.FC<ExamProductListingPageProps> = ({ 
         examSlug={examDetail.examSlug}
         currentSlug={productType}
         publishedPageTypes={contentData?.publishedPageTypes ?? []}
+        customPages={contentData?.publishedCustomPages ?? []}
         className={styles.subNav}
       />
 

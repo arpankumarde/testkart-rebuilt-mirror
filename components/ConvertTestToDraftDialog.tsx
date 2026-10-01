@@ -40,7 +40,7 @@ export const ConvertTestToDraftDialog: React.FC<ConvertTestToDraftDialogProps> =
       { testId: test.id },
       {
         onSuccess: () => {
-          toast.success(`"${test.title}" has been moved to drafts.`);
+          toast.success(`"${test.title}" has been unpublished.`);
           onClose();
           onConverted?.();
         },
@@ -57,9 +57,9 @@ export const ConvertTestToDraftDialog: React.FC<ConvertTestToDraftDialogProps> =
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className={className}>
         <DialogHeader>
-          <DialogTitle>Move to drafts</DialogTitle>
+          <DialogTitle>Unpublish</DialogTitle>
           <DialogDescription>
-            "{test.title}" is live on the marketplace. Moving it to drafts takes it down - students
+            "{test.title}" is live on the marketplace. Unpublishing moves it back to drafts and takes it down - students
             will no longer find it in search or on your profile, and nobody can buy it until you
             publish it again.
           </DialogDescription>
@@ -80,7 +80,7 @@ export const ConvertTestToDraftDialog: React.FC<ConvertTestToDraftDialogProps> =
             </Button>
           </DialogClose>
           <Button variant="secondary" onClick={handleConvert} disabled={convertMutation.isPending}>
-            {convertMutation.isPending ? 'Moving...' : 'Move to drafts'}
+            {convertMutation.isPending ? 'Unpublishing...' : 'Unpublish'}
           </Button>
         </DialogFooter>
       </DialogContent>

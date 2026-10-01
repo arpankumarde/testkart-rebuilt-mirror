@@ -2,9 +2,15 @@ import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { schema, OutputType } from "./generate_POST.schema";
 import superjson from "superjson";
-import { ADMIN_EXAM_SECTION_META, type FaqItem } from "../../../helpers/examContentTypes";
+import {
+  ADMIN_EXAM_SECTION_META,
+  customSectionMeta,
+  isCustomPageType,
+  type FaqItem,
+} from "../../../helpers/examContentTypes";
 import { mapExamContentRow, EXAM_CONTENT_SELECT_COLUMNS } from "../../../helpers/examContentMapper";
 import { setExamOwnerToEditor } from "../../../helpers/examOwner";
+import { examCustomPages } from "../../../helpers/examCustomPages";
 
 // Parses the model's FAQ reply into clean {question, answer} pairs. Mirrors
 // the tolerant parsing used for the teacher-facing "generate list" AI
@@ -75,7 +81,11 @@ export async function handle(request: Request) {
       );
     }
 
-    const meta = ADMIN_EXAM_SECTION_META[input.pageType];
+    const customPage = await examCustomPages.assertWritable(input.examId, input.pageType);
+    const meta =
+      customPage && isCustomPageType(input.pageType)
+        ? customSectionMeta(input.pageType, customPage.label)
+        : ADMIN_EXAM_SECTION_META[input.pageType as keyof typeof ADMIN_EXAM_SECTION_META];
     const examLabel = exam.fullName || exam.examName;
 
     const systemInstruction =
@@ -87,7 +97,13 @@ export async function handle(request: Request) {
 
     let taskInstruction = "";
 
-    if (target === "faqs") {
+    if (customPage) {
+      // Custom pages have no fixed brief - the admin's page name is the topic.
+      taskInstruction =
+        target === "faqs"
+          ? `Generate 3-4 FAQs a student preparing for ${examLabel} would have about "${customPage.label}". Output ONLY a JSON array of objects with "question" and "answer" string fields — no markdown, no commentary, no wrapper object.`
+          : `Write an exam information page titled "${customPage.label}" for ${examLabel} (category: ${exam.categoryName}). Cover what a candidate needs to know about this topic for this exam, without repeating general syllabus/pattern/eligibility/cutoff material unless the topic is about it. Use <h3> subheadings and <p>/<ul><li> content, or a <table> where it aids clarity. Output ONLY HTML — no markdown, no wrapper tags, no commentary.`;
+    } else if (target === "faqs") {
       switch (input.pageType) {
         case "overview":
           taskInstruction = `Generate 5-6 general FAQs about ${examLabel} as a whole — what the exam is, who should take it, how it's broadly structured, and how mock tests/practice help with preparation. Output ONLY a JSON array of objects with "question" and "answer" string fields — no markdown, no commentary, no wrapper object.`;

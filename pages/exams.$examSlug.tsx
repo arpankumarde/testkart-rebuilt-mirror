@@ -218,6 +218,7 @@ export default function ExamDetailPage() {
           examSlug={examDetail.examSlug}
           currentSlug={null}
           publishedPageTypes={publishedContentTypes}
+          customPages={contentSiloData?.publishedCustomPages ?? []}
           className={styles.subNav}
         />
 

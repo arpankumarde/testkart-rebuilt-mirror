@@ -1,19 +1,25 @@
 import { z } from "zod";
 import superjson from "superjson";
-import { ADMIN_EXAM_SECTION_TYPES, type AdminExamSectionType, type ExamContentPageType, type FaqItem } from "../../helpers/examContentTypes";
+import {
+  examSectionPageTypeSchema,
+  type ExamContentPageType,
+  type ExamSectionPageType,
+  type FaqItem,
+} from "../../helpers/examContentTypes";
 
 // Accepts the full admin section set (including "overview") since the exam
 // hub page fetches its own FAQ block through this same endpoint — "overview"
-// just never gets a public URL of its own.
+// just never gets a public URL of its own. Custom pages ("custom:<slug>") are
+// accepted too.
 export const schema = z.object({
   examSlug: z.string().min(1),
-  pageType: z.enum(ADMIN_EXAM_SECTION_TYPES),
+  pageType: examSectionPageTypeSchema,
 });
 
 export type InputType = z.infer<typeof schema>;
 
 export type PublicExamContentPage = {
-  pageType: AdminExamSectionType;
+  pageType: ExamSectionPageType;
   title: string;
   seoTitle: string | null;
   seoDescription: string | null;
@@ -35,6 +41,9 @@ export type OutputType = {
   // Every page type for this exam that currently has a published version -
   // ExamPageNav links only these, so types that don't exist yet stay hidden.
   publishedPageTypes: ExamContentPageType[];
+  // Published custom pages, in the order the admin added them - ExamPageNav
+  // links these after the built-in pages.
+  publishedCustomPages: { slug: string; label: string }[];
 };
 
 export const getPublicExamContent = async (

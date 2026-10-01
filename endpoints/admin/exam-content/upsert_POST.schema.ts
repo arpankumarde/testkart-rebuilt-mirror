@@ -1,6 +1,6 @@
 import { z } from "zod";
 import superjson from "superjson";
-import { ADMIN_EXAM_SECTION_TYPES } from "../../../helpers/examContentTypes";
+import { examSectionPageTypeSchema } from "../../../helpers/examContentTypes";
 import type { ExamContentPageItem } from "./list_GET.schema";
 
 const faqItemSchema = z.object({
@@ -10,7 +10,7 @@ const faqItemSchema = z.object({
 
 export const schema = z.object({
   examId: z.number().int().positive(),
-  pageType: z.enum(ADMIN_EXAM_SECTION_TYPES),
+  pageType: examSectionPageTypeSchema,
   title: z.string().min(1, "Title is required"),
   seoTitle: z.string().optional().nullable(),
   seoDescription: z.string().optional().nullable(),

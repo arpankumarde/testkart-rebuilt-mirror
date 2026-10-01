@@ -4,6 +4,7 @@ import { schema, OutputType } from "./upsert_POST.schema";
 import superjson from "superjson";
 import { mapExamContentRow, EXAM_CONTENT_SELECT_COLUMNS } from "../../../helpers/examContentMapper";
 import { setExamOwnerToEditor } from "../../../helpers/examOwner";
+import { examCustomPages } from "../../../helpers/examCustomPages";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -20,6 +21,7 @@ export async function handle(request: Request): Promise<Response> {
     if (!exam) {
       return new Response(superjson.stringify({ error: "Exam not found." }), { status: 404 });
     }
+    await examCustomPages.assertWritable(input.examId, input.pageType);
 
     // Manual edits are saved as a draft (or keep whatever status the row
     // already has — editing a published page doesn't silently republish it

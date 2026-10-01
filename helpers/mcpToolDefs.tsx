@@ -181,10 +181,12 @@ const EXAM_CONTENT_KEY: JsonSchema = {
   examId: { type: "integer", minimum: 1 },
   pageType: {
     type: "string",
-    enum: [...ADMIN_EXAM_SECTION_TYPES],
+    pattern: `^(${ADMIN_EXAM_SECTION_TYPES.join("|")}|custom:[a-z0-9]+(-[a-z0-9]+)*)$`,
     description:
       "overview is the block on the exam's own page; syllabus, exam_pattern, eligibility and cutoff " +
-      "are standalone pages; mock_tests, courses, study_notes and bundles overlay listing pages.",
+      "are standalone pages; mock_tests, courses, study_notes and bundles overlay listing pages. " +
+      "custom:<slug> is an admin-added page for that exam (listed under customPages in the exam's " +
+      "content list); it must already exist and is published at /exams/<examSlug>/<slug>.",
   },
 };
 

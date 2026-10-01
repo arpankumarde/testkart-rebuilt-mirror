@@ -1,7 +1,12 @@
 import { db } from "../helpers/db";
 import { sql } from "kysely";
 import { slugify } from "../helpers/slugify";
-import { EXAM_CONTENT_PAGE_META, type ExamContentPageType } from "../helpers/examContentTypes";
+import {
+  EXAM_CONTENT_PAGE_META,
+  customPageSlug,
+  isCustomPageType,
+  type ExamContentPageType,
+} from "../helpers/examContentTypes";
 import {
   getIndexableMockTestIds,
   getIndexableStudyNoteIds,
@@ -272,13 +277,16 @@ export async function handle(request: Request) {
     }
 
     // Add exam content silo pages (syllabus, exam pattern, eligibility,
-    // cutoff, FAQs) — only ones an admin has actually published, mirroring
-    // the "only index it if it has real content" rule used for exam pages.
+    // cutoff, plus admin-added custom pages) — only ones an admin has actually
+    // published, mirroring the "only index it if it has real content" rule
+    // used for exam pages.
     for (const contentPage of examContentPages) {
-      const meta = EXAM_CONTENT_PAGE_META[contentPage.pageType as ExamContentPageType];
-      if (!meta) continue;
+      const slug = isCustomPageType(contentPage.pageType)
+        ? customPageSlug(contentPage.pageType)
+        : EXAM_CONTENT_PAGE_META[contentPage.pageType as ExamContentPageType]?.slug;
+      if (!slug) continue;
       xml += generateUrlEntry({
-        loc: `${BASE_URL}/exams/${contentPage.examSlug}/${meta.slug}`,
+        loc: `${BASE_URL}/exams/${contentPage.examSlug}/${slug}`,
         lastmod: toW3CDate(contentPage.publishedAt),
         changefreq: "monthly",
         priority: 0.6,

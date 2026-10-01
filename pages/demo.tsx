@@ -39,15 +39,18 @@ const ListThumb = ({ video }: { video: TeacherVideo }) =>
   );
 
 export default function DemoPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const current = findTeacherVideo(searchParams.get("v")) ?? DEFAULT_VIDEO;
+  const [searchParams] = useSearchParams();
   // Only a video the visitor picked here starts on its own; a shared ?v= link waits for Play.
   const [pickedId, setPickedId] = useState<string | null>(null);
+  const current = findTeacherVideo(pickedId ?? searchParams.get("v")) ?? DEFAULT_VIDEO;
   const playerRef = useRef<HTMLDivElement>(null);
 
   const pick = (video: TeacherVideo) => {
     setPickedId(video.id);
-    setSearchParams({ v: video.id }, { replace: true, preventScrollReset: true });
+    // The app router scrolls to the top on any search change, so ?v= is kept shareable outside it.
+    const url = new URL(window.location.href);
+    url.searchParams.set("v", video.id);
+    window.history.replaceState(window.history.state, "", url);
     const player = playerRef.current;
     if (player && player.getBoundingClientRect().top < 0) {
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;

@@ -17,6 +17,13 @@
 // Every section (overview + the 4 silo pages) has a body content editor
 // plus optional FAQs — neither is mandatory to publish, but at least one of
 // the two must have something in it.
+//
+// On top of the fixed set, admins can add CUSTOM pages per exam (rows in
+// exam_custom_pages). Their content lives in exam_content_pages like every
+// other section, under the page type "custom:<slug>", and once published they
+// get a routable URL at /exams/:examSlug/:slug just like the 4 silo types.
+
+import { z } from "zod";
 
 export const EXAM_CONTENT_PAGE_TYPES = [
   "syllabus",
@@ -46,7 +53,7 @@ export const ADMIN_EXAM_SECTION_TYPES = [
 export type AdminExamSectionType = (typeof ADMIN_EXAM_SECTION_TYPES)[number];
 
 export interface ExamContentPageTypeMeta {
-  type: AdminExamSectionType;
+  type: ExamSectionPageType;
   // URL segment, e.g. /exams/ssc-cgl/exam-pattern — null for "overview",
   // which has no page of its own. For product page types this is the
   // existing route segment of that listing page (e.g. "mock-tests"), used
@@ -161,6 +168,98 @@ export function isExamContentPageType(value: string): value is ExamContentPageTy
 
 export function isAdminExamSectionType(value: string): value is AdminExamSectionType {
   return (ADMIN_EXAM_SECTION_TYPES as readonly string[]).includes(value);
+}
+
+// ---- Custom pages ---------------------------------------------------------
+
+export const CUSTOM_PAGE_TYPE_PREFIX = "custom:";
+
+export type CustomExamPageType = `custom:${string}`;
+
+// Everything the admin editor and the content endpoints accept.
+export type ExamSectionPageType = AdminExamSectionType | CustomExamPageType;
+
+export const CUSTOM_PAGE_LABEL_MAX = 60;
+export const CUSTOM_PAGE_SLUG_MAX = 60;
+export const CUSTOM_PAGE_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+// URL segments already taken under /exams/:examSlug/ - a custom page can't
+// reuse one, or its route would be shadowed by the built-in page.
+export const RESERVED_EXAM_PAGE_SLUGS: readonly string[] = [
+  "overview",
+  ...Object.values(ADMIN_EXAM_SECTION_META)
+    .map((meta) => meta.slug)
+    .filter((slug): slug is string => slug !== null),
+];
+
+export function customPageType(slug: string): CustomExamPageType {
+  return `${CUSTOM_PAGE_TYPE_PREFIX}${slug}`;
+}
+
+export function isCustomPageType(value: string): value is CustomExamPageType {
+  return (
+    value.startsWith(CUSTOM_PAGE_TYPE_PREFIX) &&
+    CUSTOM_PAGE_SLUG_PATTERN.test(value.slice(CUSTOM_PAGE_TYPE_PREFIX.length))
+  );
+}
+
+export function customPageSlug(pageType: CustomExamPageType): string {
+  return pageType.slice(CUSTOM_PAGE_TYPE_PREFIX.length);
+}
+
+export function isExamSectionPageType(value: string): value is ExamSectionPageType {
+  return isAdminExamSectionType(value) || isCustomPageType(value);
+}
+
+// "Previous Year Papers" -> "previous-year-papers"
+export function slugifyCustomPageLabel(label: string): string {
+  return label
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, CUSTOM_PAGE_SLUG_MAX)
+    .replace(/-+$/g, "");
+}
+
+// Returns why a slug can't be used, or null when it's fine. Uniqueness per
+// exam is checked separately (client against the loaded list, server by the
+// table's unique constraint).
+export function customPageSlugProblem(slug: string): string | null {
+  if (!slug) return "Add a URL slug.";
+  if (slug.length > CUSTOM_PAGE_SLUG_MAX) return `Keep the slug under ${CUSTOM_PAGE_SLUG_MAX} characters.`;
+  if (!CUSTOM_PAGE_SLUG_PATTERN.test(slug)) return "Use lowercase letters, numbers and single hyphens only.";
+  if (RESERVED_EXAM_PAGE_SLUGS.includes(slug)) return `"${slug}" is already used by a built-in section.`;
+  return null;
+}
+
+// Custom pages behave like the 4 silo pages: title, SEO, body content, FAQs.
+export function customSectionMeta(pageType: CustomExamPageType, label: string): ExamContentPageTypeMeta {
+  return {
+    type: pageType,
+    slug: customPageSlug(pageType),
+    label,
+    adminHint: `A custom page for this exam. Once published it gets its own URL and appears in the exam's page navigation.`,
+    titleSuffix: label,
+    hasBodyContent: true,
+  };
+}
+
+export const examSectionPageTypeSchema = z.union([
+  z.enum(ADMIN_EXAM_SECTION_TYPES),
+  z
+    .string()
+    .refine(isCustomPageType, "Unknown section type.")
+    .transform((value) => value as CustomExamPageType),
+]);
+
+// A custom page as listed for an exam.
+export interface ExamCustomPage {
+  id: number;
+  slug: string;
+  label: string;
+  pageType: CustomExamPageType;
 }
 
 export interface FaqItem {

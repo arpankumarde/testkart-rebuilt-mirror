@@ -7,7 +7,14 @@ import { SEOHead } from "./SEOHead";
 import { Skeleton } from "./Skeleton";
 import { Button } from "./Button";
 import { getPublicExamContent } from "../endpoints/exam-content/get_GET.schema";
-import { EXAM_CONTENT_PAGE_META, type ExamContentPageType } from "../helpers/examContentTypes";
+import {
+  EXAM_CONTENT_PAGE_META,
+  customPageSlug,
+  customSectionMeta,
+  isCustomPageType,
+  type CustomExamPageType,
+  type ExamContentPageType,
+} from "../helpers/examContentTypes";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "./Accordion";
 import { ExamPageNav } from "./ExamPageNav";
 import { ShareButton } from "./ShareButton";
@@ -22,12 +29,12 @@ import styles from "./ExamContentSiloPage.module.css";
 const DOMAIN = "https://testkart.in";
 
 interface ExamContentSiloPageProps {
-  pageType: ExamContentPageType;
+  // A built-in silo page, or an admin-added custom page ("custom:<slug>").
+  pageType: ExamContentPageType | CustomExamPageType;
 }
 
 export const ExamContentSiloPage: React.FC<ExamContentSiloPageProps> = ({ pageType }) => {
   const { examSlug } = useParams<{ examSlug: string }>();
-  const meta = EXAM_CONTENT_PAGE_META[pageType];
 
   const { data, isFetching } = useQuery({
     queryKey: ["exam-content", examSlug, pageType],
@@ -72,6 +79,14 @@ export const ExamContentSiloPage: React.FC<ExamContentSiloPageProps> = ({ pageTy
     return <Navigate to={hubUrl} replace />;
   }
 
+  // A custom page's label comes from the exam's published custom page list.
+  const meta = isCustomPageType(pageType)
+    ? customSectionMeta(
+        pageType,
+        (data.publishedCustomPages ?? []).find((page) => page.slug === customPageSlug(pageType))?.label ??
+          data.page.title
+      )
+    : EXAM_CONTENT_PAGE_META[pageType];
   const examLabel = data.exam.fullName || data.exam.examName;
   const canonicalUrl = `${DOMAIN}${hubUrl}/${meta.slug}`;
   const faqItems = data.page.faqItems || [];
@@ -158,6 +173,7 @@ export const ExamContentSiloPage: React.FC<ExamContentSiloPageProps> = ({ pageTy
         examSlug={data.exam.examSlug}
         currentSlug={meta.slug}
         publishedPageTypes={data.publishedPageTypes}
+        customPages={data.publishedCustomPages}
         className={styles.subNav}
       />
 

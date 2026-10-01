@@ -605,6 +605,16 @@ export interface ExamContentPages {
   updatedAt: Generated<Timestamp>;
 }
 
+export interface ExamCustomPages {
+  createdAt: Generated<Timestamp>;
+  createdByAdminId: number | null;
+  examId: number;
+  id: Generated<number>;
+  label: string;
+  slug: string;
+  sortOrder: Generated<number>;
+}
+
 export interface Exams {
   aiGenerationPrompt: string | null;
   categoryId: number;
@@ -1668,6 +1678,7 @@ export interface DB {
   emailUnsubscribes: EmailUnsubscribes;
   examCategories: ExamCategories;
   examContentPages: ExamContentPages;
+  examCustomPages: ExamCustomPages;
   exams: Exams;
   examSubjects: ExamSubjects;
   gumletFolders: GumletFolders;

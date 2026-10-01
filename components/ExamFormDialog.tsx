@@ -8,7 +8,7 @@ import { type Exams } from '../helpers/schema';
 import { slugify } from '../helpers/slugify';
 import { useCreateExamMutation, useUpdateExamMutation } from '../helpers/useAdminExamCategories';
 import { useAdminExamContentQuery } from '../helpers/useAdminExamContent';
-import { ADMIN_EXAM_SECTION_TYPES } from '../helpers/examContentTypes';
+import { ADMIN_EXAM_SECTION_TYPES, isAdminExamSectionType } from '../helpers/examContentTypes';
 import { Dialog, DialogClose } from './Dialog';
 import {
   ConsoleDialogContent,
@@ -238,7 +238,9 @@ export const ExamFormDialog: React.FC<ExamFormDialogProps> = ({ isOpen, onClose,
 // place to jump from "edit this exam" to "write its SEO content."
 const ExamContentPagesSummary: React.FC<{ examId: number }> = ({ examId }) => {
   const { data, isFetching } = useAdminExamContentQuery(examId);
-  const publishedCount = data?.pages.filter((p) => p.status === "published").length ?? 0;
+  // Built-in sections only, so the count matches its "of 9" total.
+  const publishedCount =
+    data?.pages.filter((p) => p.status === "published" && isAdminExamSectionType(p.pageType)).length ?? 0;
   const totalCount = ADMIN_EXAM_SECTION_TYPES.length;
 
   return (

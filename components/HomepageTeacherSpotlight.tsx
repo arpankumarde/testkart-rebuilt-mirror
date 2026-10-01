@@ -107,11 +107,6 @@ function TeacherCard({ teacher, rank }: { teacher: HomepageTeacher; rank: number
         {description && <span className={styles.tagline}>{description}</span>}
         <span className={styles.stats}>
           {catalog && <span className={styles.catalog}>{catalog}</span>}
-          {teacher.studentCount > 0 && (
-            <span className={styles.enrolments}>
-              {plural(teacher.studentCount, "recent enrolment", "recent enrolments")}
-            </span>
-          )}
         </span>
       </div>
 

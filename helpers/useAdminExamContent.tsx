@@ -11,6 +11,14 @@ import {
   postAdminExamContentReadyForReview,
   type InputType as ReadyForReviewInput,
 } from "../endpoints/admin/exam-content/ready-for-review_POST.schema";
+import {
+  postAdminCreateExamCustomPage,
+  type InputType as CreateCustomPageInput,
+} from "../endpoints/admin/exam-content/custom-page/create_POST.schema";
+import {
+  postAdminDeleteExamCustomPage,
+  type InputType as DeleteCustomPageInput,
+} from "../endpoints/admin/exam-content/custom-page/delete_POST.schema";
 
 const ADMIN_EXAM_CONTENT_QUERY_KEY = ["admin", "exam-content"];
 
@@ -97,6 +105,33 @@ export const useExamContentReadyForReviewMutation = () => {
     },
     onError: (error) => {
       toast.error(parseErrorMessage(error) || "Failed to update the review status.");
+    },
+  });
+};
+
+// Errors are shown inline in the add-page dialog, so no toast for them here.
+export const useCreateExamCustomPageMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateCustomPageInput) => postAdminCreateExamCustomPage(data),
+    onSuccess: (result, variables) => {
+      toast.success(`"${result.customPage.label}" added.`);
+      // Returned so the caller can open the new tab once it's in the list.
+      return invalidateExamContent(queryClient, variables.examId);
+    },
+  });
+};
+
+export const useDeleteExamCustomPageMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: DeleteCustomPageInput) => postAdminDeleteExamCustomPage(data),
+    onSuccess: (result, variables) => {
+      toast.success(result.wasPublished ? "Page deleted and taken off the site." : "Page deleted.");
+      return invalidateExamContent(queryClient, variables.examId);
+    },
+    onError: (error) => {
+      toast.error(parseErrorMessage(error) || "Failed to delete the page.");
     },
   });
 };

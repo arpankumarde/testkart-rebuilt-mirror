@@ -1,0 +1,67 @@
+.dialog {
+  max-width: 32rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--foreground);
+}
+
+.slugRow {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.slugPrefix {
+  display: inline-flex;
+  align-items: center;
+  max-width: 55%;
+  padding: 0 var(--spacing-3);
+  overflow: hidden;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+  border-right: none;
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+
+.slugRow .slugInput {
+  flex: 1;
+  min-width: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.error {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  font-weight: 500;
+  color: var(--error-text);
+}

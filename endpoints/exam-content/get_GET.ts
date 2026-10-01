@@ -2,6 +2,7 @@ import { db } from "../../helpers/db";
 import { schema, OutputType, PublicExamContentPage } from "./get_GET.schema";
 import superjson from "superjson";
 import { isExamContentPageType, type FaqItem } from "../../helpers/examContentTypes";
+import { examCustomPages } from "../../helpers/examCustomPages";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -28,27 +29,34 @@ export async function handle(request: Request): Promise<Response> {
       return new Response(superjson.stringify({ error: "Exam not found." }), { status: 404 });
     }
 
-    const publishedRows = await db
-      .selectFrom("examContentPages")
-      .select([
-        "pageType",
-        "publishedTitle",
-        "publishedSeoTitle",
-        "publishedSeoDescription",
-        "publishedDescription",
-        "publishedContent",
-        "publishedFaqItems",
-        "publishedAt",
-      ])
-      .where("examId", "=", exam.id)
-      .where("status", "=", "published")
-      .execute();
+    const [publishedRows, customPages] = await Promise.all([
+      db
+        .selectFrom("examContentPages")
+        .select([
+          "pageType",
+          "publishedTitle",
+          "publishedSeoTitle",
+          "publishedSeoDescription",
+          "publishedDescription",
+          "publishedContent",
+          "publishedFaqItems",
+          "publishedAt",
+        ])
+        .where("examId", "=", exam.id)
+        .where("status", "=", "published")
+        .execute(),
+      examCustomPages.list(exam.id),
+    ]);
 
     // Only the 4 routable silo types belong in this list — "overview" is
     // never a link target, it's folded straight into the hub page itself.
     const publishedPageTypes = publishedRows
       .map((row) => row.pageType)
       .filter(isExamContentPageType);
+    const publishedTypeSet = new Set(publishedRows.map((row) => row.pageType));
+    const publishedCustomPages = customPages
+      .filter((customPage) => publishedTypeSet.has(customPage.pageType))
+      .map(({ slug, label }) => ({ slug, label }));
     const matching = publishedRows.find((row) => row.pageType === validatedInput.pageType);
 
     const page: PublicExamContentPage | null =
@@ -76,6 +84,7 @@ export async function handle(request: Request): Promise<Response> {
         },
         page,
         publishedPageTypes,
+        publishedCustomPages,
       } satisfies OutputType)
     );
   } catch (error) {

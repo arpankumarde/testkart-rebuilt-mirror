@@ -76,8 +76,8 @@ export const SURFACE_PUBLISH_LABELS: Record<ContentSurface, string> = {
   email_template: "active",
 };
 
-/** "exam_pattern" to "Exam pattern". */
+/** "exam_pattern" to "Exam pattern", "custom:admit-card" to "Custom: admit card". */
 export const humanisePageType = (pageType: string): string => {
-  const spaced = pageType.replace(/_/g, " ");
+  const spaced = pageType.replace(/^custom:/, "custom: ").replace(/[_-]/g, " ");
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 };

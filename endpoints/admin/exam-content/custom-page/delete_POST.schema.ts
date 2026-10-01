@@ -1,30 +1,25 @@
 import { z } from "zod";
 import superjson from "superjson";
-import { examSectionPageTypeSchema } from "../../../helpers/examContentTypes";
+import { CUSTOM_PAGE_SLUG_PATTERN } from "../../../../helpers/examContentTypes";
 
 export const schema = z.object({
   examId: z.number().int().positive(),
-  pageType: examSectionPageTypeSchema,
+  slug: z.string().regex(CUSTOM_PAGE_SLUG_PATTERN),
 });
 
 export type InputType = z.infer<typeof schema>;
 
 export type OutputType = {
   success: true;
-  deleted: {
-    id: number;
-    examId: number;
-    pageType: InputType["pageType"];
-    wasPublished: boolean;
-  };
+  wasPublished: boolean;
 };
 
-export const postAdminDeleteExamContent = async (
+export const postAdminDeleteExamCustomPage = async (
   body: InputType,
   init?: RequestInit
 ): Promise<OutputType> => {
   const validatedInput = schema.parse(body);
-  const result = await fetch(`/_api/admin/exam-content/delete`, {
+  const result = await fetch(`/_api/admin/exam-content/custom-page/delete`, {
     method: "POST",
     body: superjson.stringify(validatedInput),
     ...init,

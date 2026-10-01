@@ -4,6 +4,7 @@ import { schema, OutputType, ExamContentPageItem } from "./list_GET.schema";
 import superjson from "superjson";
 import { ADMIN_EXAM_SECTION_TYPES } from "../../../helpers/examContentTypes";
 import { mapExamContentRow, EXAM_CONTENT_SELECT_COLUMNS } from "../../../helpers/examContentMapper";
+import { examCustomPages } from "../../../helpers/examCustomPages";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -31,24 +32,29 @@ export async function handle(request: Request): Promise<Response> {
       return new Response(superjson.stringify({ error: "Exam not found." }), { status: 404 });
     }
 
-    const existingRows = await db
-      .selectFrom("examContentPages")
-      .leftJoin("admins", "examContentPages.reviewedByAdminId", "admins.id")
-      .leftJoin(
-        "admins as readyForReviewAdmins",
-        "examContentPages.readyForReviewByAdminId",
-        "readyForReviewAdmins.id"
-      )
-      .select(EXAM_CONTENT_SELECT_COLUMNS)
-      .where("examContentPages.examId", "=", validatedInput.examId)
-      .execute();
+    const [existingRows, customPages] = await Promise.all([
+      db
+        .selectFrom("examContentPages")
+        .leftJoin("admins", "examContentPages.reviewedByAdminId", "admins.id")
+        .leftJoin(
+          "admins as readyForReviewAdmins",
+          "examContentPages.readyForReviewByAdminId",
+          "readyForReviewAdmins.id"
+        )
+        .select(EXAM_CONTENT_SELECT_COLUMNS)
+        .where("examContentPages.examId", "=", validatedInput.examId)
+        .execute(),
+      examCustomPages.list(validatedInput.examId),
+    ]);
 
     const byType = new Map(existingRows.map((row) => [row.pageType, row]));
 
-    // Always return one entry per known page type — even if nothing has been
-    // authored yet — so the admin UI can render a stable set of tabs without
-    // special-casing "not created yet".
-    const pages: ExamContentPageItem[] = ADMIN_EXAM_SECTION_TYPES.map((pageType) => {
+    // Always return one entry per known page type (built-in sections, then
+    // this exam's custom pages) — even if nothing has been authored yet — so
+    // the admin UI can render a stable set of tabs without special-casing
+    // "not created yet".
+    const pageTypes = [...ADMIN_EXAM_SECTION_TYPES, ...customPages.map((page) => page.pageType)];
+    const pages: ExamContentPageItem[] = pageTypes.map((pageType) => {
       const row = byType.get(pageType);
       if (!row) {
         return {
@@ -92,6 +98,7 @@ export async function handle(request: Request): Promise<Response> {
           examSlug: exam.examSlug,
           categoryName: exam.categoryName,
         },
+        customPages,
         pages,
       } satisfies OutputType)
     );

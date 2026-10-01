@@ -30,6 +30,8 @@ interface ExamPageNavProps {
   // URL segment of the page being shown ("syllabus", "mock-tests"); null on the hub.
   currentSlug: string | null;
   publishedPageTypes: ExamContentPageType[];
+  // Published admin-added pages, linked after the built-in content pages.
+  customPages?: { slug: string; label: string }[];
   className?: string;
 }
 
@@ -37,6 +39,7 @@ export const ExamPageNav: React.FC<ExamPageNavProps> = ({
   examSlug,
   currentSlug,
   publishedPageTypes,
+  customPages = [],
   className,
 }) => {
   const { data: countsData } = useExamProductCountsQuery(examSlug);
@@ -48,6 +51,7 @@ export const ExamPageNav: React.FC<ExamPageNavProps> = ({
       slug: EXAM_CONTENT_PAGE_META[type].slug,
       label: EXAM_CONTENT_PAGE_META[type].label,
     })),
+    ...customPages.map((page) => ({ slug: page.slug, label: page.label })),
     ...PRODUCT_LINKS.filter((link) => (countsData?.counts[link.countKey] ?? 0) > 0),
   ];
 

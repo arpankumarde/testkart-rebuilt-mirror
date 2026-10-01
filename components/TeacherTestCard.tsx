@@ -12,6 +12,7 @@ import {
   Share2,
   MoreVertical,
   Trophy,
+  Upload,
   Wrench,
 } from 'lucide-react';
 import { TeacherTest } from '../endpoints/teacher/tests/list_GET.schema';
@@ -19,6 +20,7 @@ import { Button } from './Button';
 import { TeacherCardInsights } from './TeacherCardInsights';
 import { TeacherRejectionNote } from './TeacherRejectionNote';
 import { performanceHref } from '../helpers/teacherPerformanceFormat';
+import { useTeacherTestMutations } from '../helpers/useTeacherTestMutations';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -54,6 +56,9 @@ export const TeacherTestCard: React.FC<TeacherTestCardProps> = ({
   className,
 }) => {
   const [isShareOpen, setShareOpen] = React.useState(false);
+  // Toasts its own success and error and refreshes the list, so the card
+  // moves to In review once it lands.
+  const publishMutation = useTeacherTestMutations().usePublishTestMutation();
   const testUrl = buildPublicAssetUrl('test-series', test.slug);
 
   const isPublished = test.isPublished;
@@ -183,7 +188,17 @@ export const TeacherTestCard: React.FC<TeacherTestCardProps> = ({
               {canConvertToDraft && onConvertToDraft && (
                 <DropdownMenuItem onSelect={onConvertToDraft} className={styles.menuItem}>
                   <ArchiveRestore size={16} />
-                  <span>Move to drafts</span>
+                  <span>Unpublish</span>
+                </DropdownMenuItem>
+              )}
+              {status === 'unpublished' && (
+                <DropdownMenuItem
+                  onSelect={() => publishMutation.mutate({ testId: test.id })}
+                  disabled={publishMutation.isPending}
+                  className={styles.menuItem}
+                >
+                  <Upload size={16} />
+                  <span>{publishMutation.isPending ? 'Submitting...' : 'Submit for review'}</span>
                 </DropdownMenuItem>
               )}
               {canDelete && (
