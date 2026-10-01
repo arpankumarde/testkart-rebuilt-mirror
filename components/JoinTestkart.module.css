@@ -142,6 +142,11 @@
   font-weight: 400;
 }
 
+/* Teacher variant: #555 holds 7.5:1 on the white card, where #808080 sits under AA. */
+.descriptionStrong {
+  color: #555555;
+}
+
 /* CTA wrapper and button */
 .ctaWrapper {
   margin-top: var(--spacing-4);
@@ -150,6 +155,11 @@
   gap: var(--spacing-4);
   width: 100%;
   max-width: 30rem;
+}
+
+.ctaWrapperSingle {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 20rem;
 }
 
 .cta {

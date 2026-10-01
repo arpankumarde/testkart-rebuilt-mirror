@@ -19,6 +19,7 @@ type Props = {
  */
 export const TeacherVideoFrame = ({ video, shape = "wide", startPlaying = false, className }: Props) => {
   const [playing, setPlaying] = useState(startPlaying);
+  const [thumbFallback, setThumbFallback] = useState(false);
   const duration = formatVideoDuration(video.durationSeconds);
   const frameClass = `${styles.frame} ${shape === "tall" ? styles.tall : ""} ${className ?? ""}`.trim();
 
@@ -40,16 +41,30 @@ export const TeacherVideoFrame = ({ video, shape = "wide", startPlaying = false,
     );
   }
 
+  const wideThumb = thumbFallback ? "sddefault.jpg" : "maxresdefault.jpg";
   const thumb =
     video.source === "youtube"
-      ? `https://i.ytimg.com/vi/${video.id}/${shape === "tall" ? "oar2.jpg" : "hqdefault.jpg"}`
+      ? `https://i.ytimg.com/vi/${video.id}/${shape === "tall" ? "oar2.jpg" : wideThumb}`
       : null;
+
+  // A video without a 1280px upload gets YouTube's 120x90 grey placeholder for maxresdefault, not an error.
+  const onThumbLoad = (event: React.SyntheticEvent<HTMLImageElement>) => {
+    if (shape === "wide" && !thumbFallback && event.currentTarget.naturalWidth <= 120) setThumbFallback(true);
+  };
 
   return (
     <div className={frameClass}>
       <button type="button" className={styles.facade} onClick={() => setPlaying(true)}>
         {thumb ? (
-          <img src={thumb} alt="" loading="lazy" decoding="async" className={styles.thumb} />
+          <img
+            src={thumb}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className={styles.thumb}
+            onLoad={onThumbLoad}
+            onError={() => shape === "wide" && setThumbFallback(true)}
+          />
         ) : (
           <span className={styles.fileCover} aria-hidden="true">
             {video.title}

@@ -1,13 +1,24 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { BookOpen, Lightbulb, CheckCircle2, Sparkles, GraduationCap, Users, Presentation } from "lucide-react";
+import { useAuth } from "../helpers/useAuth";
 import styles from "./JoinTestkart.module.css";
+
+type JoinTestkartProps = {
+  /** "teacher" swaps the student and teacher pair for a single teacher sign-up, for teacher-facing pages like /demo. */
+  audience?: "all" | "teacher";
+};
 
 /**
  * Join Testkart CTA section - community-focused enrollment call-to-action
  * with decorative learning-themed elements around a centered message.
+ * A signed-in teacher gets a dashboard link in the teacher variant instead of sign-up.
  */
-export function JoinTestkart() {
+export function JoinTestkart({ audience = "all" }: JoinTestkartProps) {
+  const { authState } = useAuth();
+  const forTeachers = audience === "teacher";
+  const isTeacher = authState.type === "authenticated" && authState.user.role === "teacher";
+
   return (
     <section className={styles.section} aria-labelledby="join-testkart-title">
       <div className={styles.container}>
@@ -80,24 +91,40 @@ export function JoinTestkart() {
         <div className={styles.card}>
           <div className={styles.content}>
             <h2 id="join-testkart-title" className={styles.headline}>
-              Join Testkart
+              {forTeachers ? "Join Testkart as a teacher" : "Join Testkart"}
             </h2>
 
-            <p className={styles.description}>
-              Prepare smarter, practice better, and connect with a growing community of learners. Explore tests,
-              improve your skills, and take your preparation to the next level.
-            </p>
+            {forTeachers ? (
+              <p className={`${styles.description} ${styles.descriptionStrong}`}>
+                Publish your mock tests, study notes and courses, set your own price, and earn on every sale. Free
+                to start.
+              </p>
+            ) : (
+              <p className={styles.description}>
+                Prepare smarter, practice better, and connect with a growing community of learners. Explore tests,
+                improve your skills, and take your preparation to the next level.
+              </p>
+            )}
 
-            <div className={styles.ctaWrapper}>
-              <Link to="/signup" className={styles.cta}>
-                <GraduationCap size={18} strokeWidth={2} aria-hidden="true" />
-                I’m a Student
-              </Link>
-              <Link to="/teacher/signup" className={`${styles.cta} ${styles.ctaTeacher}`}>
-                <Presentation size={18} strokeWidth={2} aria-hidden="true" />
-                I’m a Teacher
-              </Link>
-            </div>
+            {forTeachers ? (
+              <div className={`${styles.ctaWrapper} ${styles.ctaWrapperSingle}`}>
+                <Link to={isTeacher ? "/teacher/dashboard" : "/teacher/signup"} className={styles.cta}>
+                  <Presentation size={18} strokeWidth={2} aria-hidden="true" />
+                  {isTeacher ? "Go to your dashboard" : "Join as a teacher"}
+                </Link>
+              </div>
+            ) : (
+              <div className={styles.ctaWrapper}>
+                <Link to="/signup" className={styles.cta}>
+                  <GraduationCap size={18} strokeWidth={2} aria-hidden="true" />
+                  I’m a Student
+                </Link>
+                <Link to="/teacher/signup" className={`${styles.cta} ${styles.ctaTeacher}`}>
+                  <Presentation size={18} strokeWidth={2} aria-hidden="true" />
+                  I’m a Teacher
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>
