@@ -1,15 +1,13 @@
 .section {
-  margin-top: var(--spacing-8);
-  padding-top: var(--spacing-8);
-  border-top: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-8);
+  min-width: 0;
 }
 
 .sectionTitle {
   font-family: var(--font-family-heading);
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   margin: 0;
   color: var(--foreground);
@@ -26,20 +24,27 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-3);
+  padding-bottom: var(--spacing-3);
+  border-bottom: 1px solid var(--border);
 }
 
 .blockTitle {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
+  gap: var(--spacing-3);
   font-size: 1.125rem;
   font-weight: 700;
   margin: 0;
   color: var(--foreground);
 }
 
+/* Pastel icon tile next to each block title. */
 .blockTitle svg {
-  color: var(--tk-brand-text);
+  box-sizing: content-box;
+  padding: var(--spacing-2);
+  border-radius: var(--radius);
+  background-color: var(--exam-lavender-tint);
+  color: var(--exam-lavender-ink);
   flex-shrink: 0;
 }
 
@@ -47,16 +52,21 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-1);
+  padding: var(--spacing-1) var(--spacing-3);
+  border-radius: var(--radius-full);
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--tk-brand-text);
+  color: var(--exam-blue-ink);
   text-decoration: none;
   white-space: nowrap;
-  transition: gap var(--animation-duration-fast) ease;
+  transition:
+    gap var(--animation-duration-fast) ease,
+    background-color var(--animation-duration-fast) ease;
 }
 
 .viewAllLink:hover {
   gap: var(--spacing-2);
+  background-color: var(--exam-blue-tint);
 }
 
 .cardsGrid {
@@ -65,15 +75,20 @@
   gap: var(--spacing-4);
 }
 
+/* Lift the shared product cards slightly off the page background. */
+.cardsGrid > * {
+  box-shadow: var(--shadow);
+}
+
 @media (min-width: 480px) {
   .cardsGrid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (min-width: 768px) {
   .cardsGrid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -85,13 +100,13 @@
 
 @media (min-width: 480px) {
   .skeletonGrid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .skeletonGrid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -161,7 +176,7 @@
 }
 
 .miniCardIcon {
-  color: var(--tk-brand-text);
+  color: var(--exam-lavender-ink);
 }
 
 .miniCardTitle {
@@ -219,8 +234,6 @@
 
 @media (max-width: 768px) {
   .section {
-    margin-top: var(--spacing-6);
-    padding-top: var(--spacing-6);
     gap: var(--spacing-6);
   }
 

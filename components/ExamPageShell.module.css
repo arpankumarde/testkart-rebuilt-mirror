@@ -1,0 +1,119 @@
+.pageContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-6) var(--spacing-6) var(--spacing-16);
+  width: 100%;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "header"
+    "main";
+  gap: var(--spacing-6);
+}
+
+.layout.withSidebar {
+  grid-template-areas:
+    "header"
+    "sidebar"
+    "main";
+}
+
+.headerArea {
+  grid-area: header;
+  min-width: 0;
+}
+
+.sidebar {
+  grid-area: sidebar;
+  min-width: 0;
+}
+
+.mainArea {
+  grid-area: main;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+@media (min-width: 1024px) {
+  .layout.withSidebar {
+    grid-template-columns: minmax(0, 1fr) 300px;
+    /* The sidebar spans both rows; its extra height goes to the 1fr row so
+       the header row stays tight and the main column starts right below it. */
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "header sidebar"
+      "main sidebar";
+    column-gap: var(--spacing-8);
+  }
+
+  /* Sticks just below the sticky site header (and the site notice strip
+     when present); scrolls on its own if the link list outgrows the
+     viewport. Its grid area spans the full layout height, so it stops at
+     the end of the main content instead of overlapping the footer. */
+  .sidebar {
+    position: sticky;
+    top: calc(var(--header-height) + var(--site-notice-offset) + var(--spacing-6));
+    align-self: start;
+    max-height: calc(100vh - var(--header-height) - var(--site-notice-offset) - var(--spacing-12));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    /* Room inside the scroll box for the panel's soft shadow, which the
+       overflow would otherwise clip; the negative margin keeps the panel
+       aligned with the column edges. */
+    padding: 0 var(--spacing-3) var(--spacing-6);
+    margin: 0 calc(var(--spacing-3) * -1);
+  }
+
+  /* Slim scrollbar: a 4px soft grey thumb on an invisible track, no arrow
+     buttons. Chromium/Safari use the ::-webkit-scrollbar rules below —
+     Chromium ignores them whenever scrollbar-width/scrollbar-color are set,
+     so those standard properties are applied to Firefox only. */
+  .sidebar::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .sidebar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .sidebar::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+
+  .sidebar::-webkit-scrollbar-thumb {
+    border-radius: var(--radius-full);
+    background-color: color-mix(in srgb, var(--muted-foreground) 28%, transparent);
+  }
+
+  .sidebar::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(in srgb, var(--muted-foreground) 45%, transparent);
+  }
+
+  @supports not selector(::-webkit-scrollbar) {
+    .sidebar {
+      scrollbar-width: thin;
+      scrollbar-color: color-mix(in srgb, var(--muted-foreground) 28%, transparent) transparent;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .pageContainer {
+    padding: var(--spacing-4) var(--spacing-4) var(--spacing-12);
+  }
+
+  .layout {
+    gap: var(--spacing-4);
+  }
+
+  .mainArea {
+    gap: var(--spacing-6);
+  }
+}

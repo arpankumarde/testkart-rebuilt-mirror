@@ -16,7 +16,9 @@ import {
   type ExamContentPageType,
 } from "../helpers/examContentTypes";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "./Accordion";
-import { ExamPageNav } from "./ExamPageNav";
+import { ExamProductTabs } from "./ExamPageNav";
+import { ExamPageShell } from "./ExamPageShell";
+import { ExamPageHeader } from "./ExamPageHeader";
 import { ShareButton } from "./ShareButton";
 import { ExamContentExportButton } from "./ExamContentExportButton";
 import { PUBLIC_PAGE_SHARE_CAMPAIGN } from "../helpers/shareLinks";
@@ -126,7 +128,52 @@ export const ExamContentSiloPage: React.FC<ExamContentSiloPageProps> = ({ pageTy
   };
 
   return (
-    <div className={styles.pageContainer}>
+    <ExamPageShell
+      examSlug={data.exam.examSlug}
+      currentSlug={meta.slug}
+      publishedPageTypes={data.publishedPageTypes}
+      customPages={data.publishedCustomPages}
+      breadcrumb={
+        <nav className={styles.breadcrumb} aria-label="Breadcrumb">
+          <Link to="/" className={styles.breadcrumbLink}>Home</Link>
+          <ChevronRight size={14} className={styles.breadcrumbSeparator} />
+          <Link to="/exams" className={styles.breadcrumbLink}>Exams</Link>
+          <ChevronRight size={14} className={styles.breadcrumbSeparator} />
+          <Link to={hubUrl} className={styles.breadcrumbLink}>{examLabel}</Link>
+          <ChevronRight size={14} className={styles.breadcrumbSeparator} />
+          <span className={styles.breadcrumbCurrent}>{meta.label}</span>
+        </nav>
+      }
+      header={
+        <ExamPageHeader
+          badge={data.exam.categoryName}
+          title={data.page.title}
+          description={data.page.description}
+          actions={
+            <>
+              <ShareButton
+                kind="exam-page"
+                handle={`${data.exam.examSlug}/${meta.slug}`}
+                title={data.page.title}
+                campaign={PUBLIC_PAGE_SHARE_CAMPAIGN}
+                size="sm"
+              />
+              <ExamContentExportButton
+                examLabel={examLabel}
+                sectionLabel={meta.label}
+                title={data.page.title}
+                description=""
+                content={data.page.content || ""}
+                faqItems={faqItems}
+                label="Print"
+                variant="outline"
+                size="sm"
+              />
+            </>
+          }
+        />
+      }
+    >
       <SEOHead
         title={data.page.seoTitle || data.page.title}
         description={data.page.seoDescription || `${meta.titleSuffix} for ${examLabel} on Testkart.`}
@@ -136,46 +183,7 @@ export const ExamContentSiloPage: React.FC<ExamContentSiloPageProps> = ({ pageTy
         <script type="application/ld+json">{JSON.stringify(pageStructuredData)}</script>
       </Helmet>
 
-      <nav className={styles.breadcrumb} aria-label="Breadcrumb">
-        <Link to="/" className={styles.breadcrumbLink}>Home</Link>
-        <ChevronRight size={14} className={styles.breadcrumbSeparator} />
-        <Link to="/exams" className={styles.breadcrumbLink}>Exams</Link>
-        <ChevronRight size={14} className={styles.breadcrumbSeparator} />
-        <Link to={hubUrl} className={styles.breadcrumbLink}>{examLabel}</Link>
-        <ChevronRight size={14} className={styles.breadcrumbSeparator} />
-        <span className={styles.breadcrumbCurrent}>{meta.label}</span>
-      </nav>
-
-      <div className={styles.titleRow}>
-        <h1 className={styles.pageTitle}>{data.page.title}</h1>
-        <div className={styles.pageActions}>
-          <ShareButton
-            kind="exam-page"
-            handle={`${data.exam.examSlug}/${meta.slug}`}
-            title={data.page.title}
-            campaign={PUBLIC_PAGE_SHARE_CAMPAIGN}
-          />
-          <ExamContentExportButton
-            examLabel={examLabel}
-            sectionLabel={meta.label}
-            title={data.page.title}
-            description=""
-            content={data.page.content || ""}
-            faqItems={faqItems}
-            label="Print"
-            variant="outline"
-            size="md"
-          />
-        </div>
-      </div>
-
-      <ExamPageNav
-        examSlug={data.exam.examSlug}
-        currentSlug={meta.slug}
-        publishedPageTypes={data.publishedPageTypes}
-        customPages={data.publishedCustomPages}
-        className={styles.subNav}
-      />
+      <ExamProductTabs examSlug={data.exam.examSlug} currentSlug={null} />
 
       <div className={styles.content} dangerouslySetInnerHTML={{ __html: wrapContentTables(renderMathInHtml(sanitizeHtml(data.page.content))) }} />
 
@@ -199,6 +207,6 @@ export const ExamContentSiloPage: React.FC<ExamContentSiloPageProps> = ({ pageTy
           <Link to={hubUrl}>Browse {examLabel} Mock Tests</Link>
         </Button>
       </div>
-    </div>
+    </ExamPageShell>
   );
 };

@@ -1,58 +1,348 @@
-.nav {
+/* --- Product tabs (main column) ------------------------------------------ */
+
+.tabs {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-2);
+  gap: var(--spacing-1);
+  padding: var(--spacing-1);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 
-.link {
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+/* Equal-width tabs, so the row reads as one evenly spaced control. */
+.tab {
+  flex: 1 1 0;
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-1);
-  min-height: 2rem;
+  justify-content: center;
+  gap: var(--spacing-2);
+  min-height: 2.5rem;
   padding: 0 var(--spacing-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-full);
-  background-color: var(--surface);
-  color: var(--foreground);
-  font-size: 0.8125rem;
-  font-weight: 500;
+  border-radius: var(--radius-md);
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  font-weight: 600;
   line-height: 1.2;
   text-decoration: none;
   white-space: nowrap;
   transition:
-    border-color var(--animation-duration-fast) ease,
-    background-color var(--animation-duration-fast) ease;
+    background-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
 }
 
-.link svg {
+.tab svg {
   flex-shrink: 0;
-  color: var(--muted-foreground);
 }
 
-.link:hover {
-  border-color: var(--muted-foreground);
+.tab:hover {
+  background-color: var(--muted);
+  color: var(--foreground);
 }
 
-.link:focus-visible {
-  outline: 2px solid var(--tk-brand-text);
+.tab:focus-visible {
+  outline: 2px solid var(--exam-blue-ink);
   outline-offset: 2px;
 }
 
-.current,
-.current:hover {
-  background-color: var(--tk-brand);
-  border-color: var(--tk-brand);
-  color: var(--tk-brand-ink);
+/* Active tab: dusty blue, the same "current" colour as Important Links. */
+.tabCurrent,
+.tabCurrent:hover {
+  background-color: var(--exam-blue-tint);
+  color: var(--exam-blue-ink);
+  box-shadow: inset 0 0 0 1px var(--exam-blue-border);
 }
 
-.current svg {
+/* --- Important Links panel (sidebar) ------------------------------------- */
+
+/* Local aliases onto the --exam-* palette (base.css): warm ivory surface,
+   lavender icon tiles, sage hover and marker, dusty blue for the current
+   page. The old "peach" names now carry the dusty-blue active colours. */
+.panel {
+  --il-surface: var(--exam-ivory);
+  --il-header: color-mix(in srgb, var(--exam-lavender-tint) 70%, var(--exam-ivory));
+  --il-border: var(--exam-ivory-border);
+  --il-hover: color-mix(in srgb, var(--exam-sage-tint) 45%, var(--exam-ivory));
+  --il-tile: var(--exam-lavender-tint);
+  --il-tile-ink: var(--exam-lavender-ink);
+  --il-peach: var(--exam-blue-tint);
+  --il-peach-tile: color-mix(in srgb, var(--exam-blue-border) 55%, var(--exam-blue-tint));
+  --il-peach-ink: var(--exam-blue-ink);
+  --il-sage: var(--exam-sage);
+  --il-sage-tint: var(--exam-sage-tint);
+  --il-sage-ink: var(--exam-sage-ink);
+
+  overflow: hidden;
+  background-color: var(--il-surface);
+  border: 1px solid var(--il-border);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 1px 2px hsl(220 20% 30% / 0.04),
+    0 8px 20px -14px hsl(220 20% 30% / 0.16);
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  background: linear-gradient(180deg, var(--il-header), var(--il-surface));
+  border-bottom: 1px solid var(--il-border);
+}
+
+.panelIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  background-color: var(--il-sage-tint);
+  color: var(--il-sage-ink);
+}
+
+.panelHeading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.panelTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--surface-foreground);
+}
+
+.panelSubtitle {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.linkList {
+  list-style: none;
+  margin: 0;
+  padding: var(--spacing-2);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.linkItem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: 0.4375rem var(--spacing-2);
+  border-radius: var(--radius-md);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.35;
+  text-decoration: none;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
+}
+
+.linkItem:hover {
+  background-color: var(--il-hover);
+}
+
+.linkItem:focus-visible {
+  outline: 2px solid var(--il-sage);
+  outline-offset: -2px;
+}
+
+.linkIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: var(--radius);
+  background-color: var(--il-tile);
+  color: var(--il-tile-ink);
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
+}
+
+.linkItem:hover .linkIcon {
+  background-color: var(--il-sage-tint);
+  color: var(--il-sage-ink);
+}
+
+.linkLabel {
+  flex: 1;
+  min-width: 0;
+}
+
+.linkChevron {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+  opacity: 0;
+  transform: translateX(-2px);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.linkItem:hover .linkChevron {
+  opacity: 0.7;
+  transform: translateX(0);
+}
+
+/* Active: soft peach row, a slim sage marker on the left. */
+.linkItemCurrent,
+.linkItemCurrent:hover {
+  background-color: var(--il-peach);
+  color: var(--il-peach-ink);
+  font-weight: 600;
+}
+
+.linkItemCurrent::before {
+  content: "";
+  position: absolute;
+  left: -0.5rem;
+  top: 50%;
+  width: 3px;
+  height: 1.25rem;
+  transform: translateY(-50%);
+  border-radius: 0 var(--radius-full) var(--radius-full) 0;
+  background-color: var(--il-sage);
+}
+
+.linkItemCurrent .linkIcon,
+.linkItemCurrent:hover .linkIcon {
+  background-color: var(--il-peach-tile);
+  color: var(--il-peach-ink);
+}
+
+.linkItemCurrent .linkChevron {
+  opacity: 0.8;
+  transform: translateX(0);
   color: currentColor;
 }
 
+.linkSkeleton {
+  height: 2.875rem;
+  border-radius: var(--radius-md);
+  background-color: var(--il-tile);
+  animation: examNavPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes examNavPulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Below the sidebar breakpoint (matches ExamPageShell) the panel sits under
+   the page header and its list turns into a horizontally scrolling chip row,
+   so it never competes with the fixed mobile header or bottom nav. */
+@media (max-width: 1023px) {
+  .panelHeader {
+    padding: var(--spacing-3) var(--spacing-4);
+  }
+
+  .panelIcon {
+    width: 1.875rem;
+    height: 1.875rem;
+  }
+
+  .panelTitle {
+    font-size: 0.9375rem;
+  }
+
+  .panelSubtitle {
+    display: none;
+  }
+
+  .linkList {
+    flex-direction: row;
+    gap: var(--spacing-2);
+    padding: var(--spacing-3) var(--spacing-4);
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .linkList::-webkit-scrollbar {
+    display: none;
+  }
+
+  .linkList > li {
+    flex: 0 0 auto;
+  }
+
+  .linkItem {
+    gap: var(--spacing-2);
+    padding: 0.3125rem var(--spacing-3) 0.3125rem 0.3125rem;
+    border: 1px solid var(--il-border);
+    border-radius: var(--radius-full);
+    font-size: 0.8125rem;
+    white-space: nowrap;
+  }
+
+  .linkItemCurrent,
+  .linkItemCurrent:hover {
+    border-color: var(--il-peach-tile);
+  }
+
+  .linkIcon {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: var(--radius-full);
+  }
+
+  .linkIcon svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .linkChevron,
+  .linkItemCurrent::before {
+    display: none;
+  }
+
+  .linkSkeleton {
+    width: 7rem;
+    height: 2.25rem;
+    flex: 0 0 auto;
+    border-radius: var(--radius-full);
+  }
+}
+
 @media (max-width: 640px) {
-  .link {
-    min-height: 1.875rem;
+  .tab {
+    flex: 1 0 auto;
+    min-height: 2.25rem;
+    gap: var(--spacing-1);
+    font-size: 0.8125rem;
+  }
+}
+
+/* Phones: drop the tab icons and tighten padding so all four product tabs
+   fit in one row; the row still scrolls sideways on very narrow screens. */
+@media (max-width: 480px) {
+  .tab {
     padding: 0 var(--spacing-2);
-    font-size: 0.75rem;
+  }
+
+  .tab svg {
+    display: none;
   }
 }

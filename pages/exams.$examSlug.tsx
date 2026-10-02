@@ -8,7 +8,9 @@ import { SEOHead } from "../components/SEOHead";
 import { Skeleton } from "../components/Skeleton";
 import { Button } from "../components/Button";
 import { ExamProductsSection } from "../components/ExamProductsSection";
-import { ExamPageNav } from "../components/ExamPageNav";
+import { ExamProductTabs } from "../components/ExamPageNav";
+import { ExamPageShell } from "../components/ExamPageShell";
+import { ExamPageHeader } from "../components/ExamPageHeader";
 import { ShareButton } from "../components/ShareButton";
 import { ExamContentExportButton } from "../components/ExamContentExportButton";
 import { PUBLIC_PAGE_SHARE_CAMPAIGN } from "../helpers/shareLinks";
@@ -33,7 +35,7 @@ export default function ExamDetailPage() {
   // the sub-nav's `publishedPageTypes` list, so one call covers all three
   // instead of a second near-identical endpoint. This replaced the old
   // separate exams.additionalContent field — one admin editor, one query.
-  const { data: contentSiloData } = useQuery({
+  const { data: contentSiloData, isLoading: isContentLoading } = useQuery({
     queryKey: ["exam-content", examSlug, "overview"],
     queryFn: () => getPublicExamContent({ examSlug: examSlug as string, pageType: "overview" }),
     enabled: !!examSlug,
@@ -162,73 +164,66 @@ export default function ExamDetailPage() {
         </Helmet>
       )}
 
-      <div className={styles.pageContainer}>
-        <nav className={styles.breadcrumb} aria-label="Breadcrumb">
-          <Link to="/" className={styles.breadcrumbLink}>
-            Home
-          </Link>
-          <ChevronRight size={16} className={styles.breadcrumbSeparator} />
-          <Link to="/exams" className={styles.breadcrumbLink}>
-            Exams
-          </Link>
-          <ChevronRight size={16} className={styles.breadcrumbSeparator} />
-          <span className={styles.breadcrumbCurrent}>
-            {examDetail.examName}
-          </span>
-        </nav>
-
-        <header className={styles.hero}>
-          <div className={styles.heroContent}>
-            <span className={styles.categoryBadge}>
-              {examDetail.categoryName}
+      <ExamPageShell
+        examSlug={examDetail.examSlug}
+        currentSlug={null}
+        publishedPageTypes={publishedContentTypes}
+        customPages={contentSiloData?.publishedCustomPages ?? []}
+        linksLoading={isContentLoading}
+        breadcrumb={
+          <nav className={styles.breadcrumb} aria-label="Breadcrumb">
+            <Link to="/" className={styles.breadcrumbLink}>
+              Home
+            </Link>
+            <ChevronRight size={16} className={styles.breadcrumbSeparator} />
+            <Link to="/exams" className={styles.breadcrumbLink}>
+              Exams
+            </Link>
+            <ChevronRight size={16} className={styles.breadcrumbSeparator} />
+            <span className={styles.breadcrumbCurrent}>
+              {examDetail.examName}
             </span>
-            <h1 className={styles.heroTitle}>
-              {examDetail.fullName || examDetail.examName}
-            </h1>
-            {examDetail.description && (
-              <p className={styles.heroDescription}>
-                {examDetail.description}
-              </p>
-            )}
-            <div className={styles.heroActions}>
-              <ShareButton
-                kind="exam-page"
-                handle={examDetail.examSlug}
-                title={examDetail.fullName || examDetail.examName}
-                campaign={PUBLIC_PAGE_SHARE_CAMPAIGN}
-              />
-              {(overviewContent?.trim() || overviewFaqItems.length > 0) && (
-                <ExamContentExportButton
-                  examLabel={examDetail.fullName || examDetail.examName}
-                  sectionLabel="Overview"
+          </nav>
+        }
+        header={
+          <ExamPageHeader
+            badge={examDetail.categoryName}
+            title={examDetail.fullName || examDetail.examName}
+            description={examDetail.description}
+            actions={
+              <>
+                <ShareButton
+                  kind="exam-page"
+                  handle={examDetail.examSlug}
                   title={examDetail.fullName || examDetail.examName}
-                  description={examDetail.description ?? ""}
-                  content={overviewContent ?? ""}
-                  faqItems={overviewFaqItems}
-                  label="Print"
-                  variant="outline"
-                  size="md"
+                  campaign={PUBLIC_PAGE_SHARE_CAMPAIGN}
+                  size="sm"
                 />
-              )}
-            </div>
-          </div>
-        </header>
-
-        <ExamPageNav
-          examSlug={examDetail.examSlug}
-          currentSlug={null}
-          publishedPageTypes={publishedContentTypes}
-          customPages={contentSiloData?.publishedCustomPages ?? []}
-          className={styles.subNav}
-        />
-
-        <main className={styles.mainContent}>
-          <ExamProductsSection
-            examId={examDetail.id}
-            examSlug={examDetail.examSlug}
-            examName={examDetail.examName}
+                {(overviewContent?.trim() || overviewFaqItems.length > 0) && (
+                  <ExamContentExportButton
+                    examLabel={examDetail.fullName || examDetail.examName}
+                    sectionLabel="Overview"
+                    title={examDetail.fullName || examDetail.examName}
+                    description={examDetail.description ?? ""}
+                    content={overviewContent ?? ""}
+                    faqItems={overviewFaqItems}
+                    label="Print"
+                    variant="outline"
+                    size="sm"
+                  />
+                )}
+              </>
+            }
           />
-        </main>
+        }
+      >
+        <ExamProductTabs examSlug={examDetail.examSlug} currentSlug={null} />
+
+        <ExamProductsSection
+          examId={examDetail.id}
+          examSlug={examDetail.examSlug}
+          examName={examDetail.examName}
+        />
 
         {overviewContent && overviewContent.trim().length > 0 && (
           <section
@@ -250,7 +245,7 @@ export default function ExamDetailPage() {
             </Accordion>
           </section>
         )}
-      </div>
+      </ExamPageShell>
     </>
   );
 }

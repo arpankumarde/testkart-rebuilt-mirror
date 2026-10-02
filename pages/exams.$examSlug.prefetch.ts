@@ -6,7 +6,8 @@ import { fetchCoursesListServer } from "../helpers/fetchCoursesListServer";
 import { fetchBundlesListServer } from "../helpers/fetchBundlesListServer";
 import { fetchExamProductCountsServer } from "../helpers/fetchExamProductCountsServer";
 
-const PREVIEW_LIMIT = 4;
+// Must match PREVIEW_LIMIT in components/ExamProductsSection.tsx.
+const PREVIEW_LIMIT = 6;
 
 export const prefetch: PagePrefetchFn = async (ctx) => {
   const { qc, url } = ctx;
@@ -53,7 +54,7 @@ export const prefetch: PagePrefetchFn = async (ctx) => {
           queryKey: ["public", "bundles", bundlesFilters],
           queryFn: () => fetchBundlesListServer(bundlesFilters),
         }),
-        // Product pills in ExamPageNav; key matches useExamProductCountsQuery.
+        // Product tabs (ExamProductTabs); key matches useExamProductCountsQuery.
         qc.prefetchQuery({
           queryKey: ["exam-products", "counts", examSlug],
           queryFn: () => fetchExamProductCountsServer(examSlug),

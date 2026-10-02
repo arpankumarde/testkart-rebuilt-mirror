@@ -39,52 +39,7 @@
   margin-bottom: var(--spacing-6);
 }
 
-/* Hero */
-.hero {
-  background-color: var(--surface);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-8);
-  margin-bottom: var(--spacing-6);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow);
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.hero::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background-color: var(--primary);
-}
-
-.heroTitle {
-  font-family: var(--font-family-heading);
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--surface-foreground);
-  margin: 0 0 var(--spacing-2);
-  line-height: 1.2;
-}
-
-.heroDescription {
-  font-size: 1.0625rem;
-  color: var(--muted-foreground);
-  line-height: 1.6;
-  margin: 0;
-}
-
-.heroActions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--spacing-2);
-  margin-top: var(--spacing-4);
-}
+/* The page header itself lives in components/ExamPageHeader. */
 
 .heroSkeleton {
   background-color: var(--surface);
@@ -139,21 +94,22 @@
   gap: var(--spacing-4);
 }
 
+/* Lift the shared product cards slightly off the page background. */
+.grid > * {
+  box-shadow: var(--shadow);
+}
+
 @media (min-width: 480px) {
   .grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
+/* Capped at 3 — the main column shares the row with the Important Links
+   sidebar on desktop. */
 @media (min-width: 768px) {
   .grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -257,9 +213,12 @@
 /* Admin-authored content block, shown below the product grid and above the
    footer — same typography as the exam hub's Overview section. */
 .additionalContent {
-  margin-top: var(--spacing-8);
-  padding-top: var(--spacing-8);
-  border-top: 1px solid var(--border);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: var(--spacing-8);
+  min-width: 0;
   font-size: 1rem;
   line-height: 1.7;
   color: var(--foreground);
@@ -363,9 +322,11 @@
 
 /* FAQ section */
 .faqSection {
-  margin-top: var(--spacing-8);
-  padding-top: var(--spacing-8);
-  border-top: 1px solid var(--border);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: var(--spacing-6) var(--spacing-8);
 }
 
 .faqSectionTitle {
@@ -385,14 +346,6 @@
     padding: var(--spacing-4) var(--spacing-4) var(--spacing-12);
   }
 
-  .hero {
-    padding: var(--spacing-6) var(--spacing-4);
-  }
-
-  .heroTitle {
-    font-size: 1.5rem;
-  }
-
   .sortBar {
     padding: var(--spacing-3);
     justify-content: space-between;
@@ -404,10 +357,13 @@
     max-width: 200px;
   }
 
+  .breadcrumb {
+    margin-bottom: var(--spacing-4);
+  }
+
   .additionalContent,
   .faqSection {
-    margin-top: var(--spacing-6);
-    padding-top: var(--spacing-6);
+    padding: var(--spacing-6) var(--spacing-4);
   }
 
   .additionalContent h2 {

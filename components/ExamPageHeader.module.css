@@ -1,0 +1,116 @@
+/* Exam page header — a flat warm-ivory surface with a hairline border:
+   badge, title and description on the left, compact actions on the right.
+   Colours come from the --exam-* palette in base.css. */
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-6);
+  padding: 1.25rem var(--spacing-6);
+  background-color: var(--exam-ivory);
+  border: 1px solid var(--exam-ivory-border);
+  border-radius: var(--radius-lg);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 0.125rem;
+  padding: 0.1875rem 0.5rem;
+  border: 1px solid var(--exam-sage-border);
+  border-radius: var(--radius-full);
+  background-color: var(--exam-sage-tint);
+  color: var(--exam-sage-ink);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  color: var(--surface-foreground);
+  overflow-wrap: anywhere;
+}
+
+.description {
+  margin: 0;
+  max-width: 62ch;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--muted-foreground);
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+/* Recolour the shared outline Button (Share / Print) to dusty blue here
+   only. Button's own styles sit in @layer base, so these unlayered rules
+   win without touching the component used across the rest of the site. */
+.actions :global(button),
+.actions :global(a) {
+  background-color: var(--surface);
+  border-color: var(--exam-blue-border);
+  color: var(--exam-blue-ink);
+  --spinner-color: var(--exam-blue-ink);
+}
+
+.actions :global(button):hover,
+.actions :global(a):hover {
+  background-color: var(--exam-blue-tint);
+  border-color: var(--exam-blue-border);
+  color: var(--exam-blue-ink);
+}
+
+.actions :global(button):active,
+.actions :global(a):active {
+  background-color: color-mix(in srgb, var(--exam-blue-tint), var(--exam-blue-border) 40%);
+}
+
+.actions :global(button):focus-visible,
+.actions :global(a):focus-visible {
+  box-shadow:
+    0 0 0 2px var(--background),
+    0 0 0 4px var(--exam-blue-ink);
+}
+
+/* Below this the actions drop under the text so a long title keeps the
+   full card width instead of squeezing beside the buttons. */
+@media (max-width: 640px) {
+  .header {
+    flex-direction: column;
+    gap: var(--spacing-4);
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: var(--spacing-4);
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .description {
+    font-size: 0.875rem;
+  }
+}

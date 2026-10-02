@@ -11,7 +11,9 @@ import { Placeholder } from "../helpers/placeholderImages";
 import { formatItemPrice, itemPriceProps } from "../helpers/homepageItemUtils";
 import styles from "./ExamProductsSection.module.css";
 
-const PREVIEW_LIMIT = 4;
+// Two full rows of the 3-column preview grid. Keep in sync with
+// pages/exams.$examSlug.prefetch.ts so the SSR query keys match.
+const PREVIEW_LIMIT = 6;
 
 // A compact bundle card sized to match TeacherProductCard exactly, so the
 // Bundles block doesn't visually dominate the other three preview blocks
@@ -92,7 +94,7 @@ export const ExamProductsSection: React.FC<ExamProductsSectionProps> = ({
     return (
       <section className={styles.section}>
         <div className={styles.skeletonGrid}>
-          {Array.from({ length: 4 }).map((_, i) => (
+          {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className={styles.skeletonBlock} />
           ))}
         </div>

@@ -10,7 +10,9 @@ import { Button } from "./Button";
 import { TeacherProductCard } from "./HomepageContentSection";
 import { BundlesGrid } from "./BundlesGrid";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "./Accordion";
-import { ExamPageNav } from "./ExamPageNav";
+import { ExamProductTabs } from "./ExamPageNav";
+import { ExamPageShell } from "./ExamPageShell";
+import { ExamPageHeader } from "./ExamPageHeader";
 import { ShareButton } from "./ShareButton";
 import {
   Pagination,
@@ -477,7 +479,7 @@ export const ExamProductListingPage: React.FC<ExamProductListingPageProps> = ({ 
   // listing page — same CMS the exam hub's Overview section uses. Falls
   // back to the hardcoded defaults below when nothing's been published;
   // never gates whether the page itself exists (that's the product count).
-  const { data: contentData } = useQuery({
+  const { data: contentData, isLoading: isContentLoading } = useQuery({
     queryKey: ["exam-content", examSlug, meta.contentPageType],
     queryFn: () => getPublicExamContent({ examSlug: examSlug as string, pageType: meta.contentPageType }),
     enabled: !!examSlug,
@@ -570,42 +572,46 @@ export const ExamProductListingPage: React.FC<ExamProductListingPageProps> = ({ 
   };
 
   return (
-    <div className={styles.pageContainer}>
+    <ExamPageShell
+      examSlug={examDetail.examSlug}
+      currentSlug={productType}
+      publishedPageTypes={contentData?.publishedPageTypes ?? []}
+      customPages={contentData?.publishedCustomPages ?? []}
+      linksLoading={isContentLoading}
+      breadcrumb={
+        <nav className={styles.breadcrumb} aria-label="Breadcrumb">
+          <Link to="/" className={styles.breadcrumbLink}>Home</Link>
+          <ChevronRight size={14} className={styles.breadcrumbSeparator} />
+          <Link to="/exams" className={styles.breadcrumbLink}>Exams</Link>
+          <ChevronRight size={14} className={styles.breadcrumbSeparator} />
+          <Link to={hubUrl} className={styles.breadcrumbLink}>{examLabel}</Link>
+          <ChevronRight size={14} className={styles.breadcrumbSeparator} />
+          <span className={styles.breadcrumbCurrent}>{meta.label}</span>
+        </nav>
+      }
+      header={
+        <ExamPageHeader
+          badge={examDetail.categoryName}
+          title={pageTitle}
+          description={pageDescription}
+          actions={
+            <ShareButton
+              kind="exam-page"
+              handle={`${examDetail.examSlug}/${productType}`}
+              title={pageTitle}
+              campaign={PUBLIC_PAGE_SHARE_CAMPAIGN}
+              size="sm"
+            />
+          }
+        />
+      }
+    >
       <SEOHead title={seoTitle} description={seoDescription} url={canonicalUrl} />
       <Helmet>
         <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
       </Helmet>
 
-      <nav className={styles.breadcrumb} aria-label="Breadcrumb">
-        <Link to="/" className={styles.breadcrumbLink}>Home</Link>
-        <ChevronRight size={14} className={styles.breadcrumbSeparator} />
-        <Link to="/exams" className={styles.breadcrumbLink}>Exams</Link>
-        <ChevronRight size={14} className={styles.breadcrumbSeparator} />
-        <Link to={hubUrl} className={styles.breadcrumbLink}>{examLabel}</Link>
-        <ChevronRight size={14} className={styles.breadcrumbSeparator} />
-        <span className={styles.breadcrumbCurrent}>{meta.label}</span>
-      </nav>
-
-      <header className={styles.hero}>
-        <h1 className={styles.heroTitle}>{pageTitle}</h1>
-        <p className={styles.heroDescription}>{pageDescription}</p>
-        <div className={styles.heroActions}>
-          <ShareButton
-            kind="exam-page"
-            handle={`${examDetail.examSlug}/${productType}`}
-            title={pageTitle}
-            campaign={PUBLIC_PAGE_SHARE_CAMPAIGN}
-          />
-        </div>
-      </header>
-
-      <ExamPageNav
-        examSlug={examDetail.examSlug}
-        currentSlug={productType}
-        publishedPageTypes={contentData?.publishedPageTypes ?? []}
-        customPages={contentData?.publishedCustomPages ?? []}
-        className={styles.subNav}
-      />
+      <ExamProductTabs examSlug={examDetail.examSlug} currentSlug={productType} />
 
       <main className={styles.mainContent}>
         {productType === "mock-tests" && <MockTestsBody examId={examDetail.id} examName={examDetail.examName} />}
@@ -634,6 +640,6 @@ export const ExamProductListingPage: React.FC<ExamProductListingPageProps> = ({ 
           </Accordion>
         </section>
       )}
-    </div>
+    </ExamPageShell>
   );
 };
