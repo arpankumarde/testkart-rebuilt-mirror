@@ -5,6 +5,7 @@ import { getAdminServerSessionOrThrow } from "../../../../helpers/getAdminSessio
 import { slugify } from "../../../../helpers/slugify";
 import { Selectable } from "kysely";
 import { BlogPosts } from "../../../../helpers/schema";
+import { offloadDataImages } from "../../../../helpers/offloadDataImages";
 
 // Strip basic HTML elements to roughly isolate visible text and calculate expected reading time.
 function calculateReadingTime(htmlContent: string): number {
@@ -32,7 +33,9 @@ export async function handle(request: Request) {
       throw new Error("Post with this slug already exists.");
     }
 
-    const readingTime = calculateReadingTime(input.content);
+    const imageFolder = `${input.type === "knowledge_base" ? "help" : "blog"}/${targetSlug}`;
+    const content = await offloadDataImages(input.content, imageFolder);
+    const readingTime = calculateReadingTime(content);
     
     let post: Selectable<BlogPosts> | undefined;
     // Perform operations transactionally because of complex tag relationships scaling
@@ -71,7 +74,7 @@ export async function handle(request: Request) {
             authorId,
             title: input.title,
             slug: targetSlug,
-            content: input.content,
+            content,
             excerpt: input.excerpt ?? null,
             type: input.type,
             categoryId: input.categoryId ?? null,
@@ -102,7 +105,7 @@ export async function handle(request: Request) {
             authorId,
             title: input.title,
             slug: targetSlug,
-            content: input.content,
+            content,
             excerpt: input.excerpt ?? null,
             type: input.type,
             categoryId: input.categoryId ?? null,
