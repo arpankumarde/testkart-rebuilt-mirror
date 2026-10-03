@@ -103,7 +103,12 @@ export async function fetchBundlesListServer(rawInput: Partial<InputType> = {}):
 
   const bundlesQuery = query
     .selectAll("courseBundles")
-    .select(["users.displayName as teacherName", "users.isVerified as teacherIsVerified", "users.avatarUrl as teacherAvatarUrl"])
+    .select([
+      "users.displayName as teacherName",
+      "users.isVerified as teacherIsVerified",
+      "users.avatarUrl as teacherAvatarUrl",
+      "users.slug as teacherSlug",
+    ])
     .select((eb) => [
       sql<number>`(
         SELECT COUNT(*)

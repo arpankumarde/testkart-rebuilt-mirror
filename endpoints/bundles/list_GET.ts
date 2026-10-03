@@ -118,6 +118,7 @@ export async function handle(request: Request): Promise<Response> {
         "users.displayName as teacherName",
         "users.isVerified as teacherIsVerified",
         "users.avatarUrl as teacherAvatarUrl",
+        "users.slug as teacherSlug",
       ])
       .select((eb) => [
         sql<number>`(

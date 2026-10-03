@@ -28,6 +28,8 @@ export type BundleListItem = Omit<
   teacherName: Selectable<Users>["displayName"];
   teacherIsVerified: boolean;
   teacherAvatarUrl: string | null;
+  /** Profile slug for /expert/:slug. Optional: older callers build items without it. */
+  teacherSlug?: string | null;
   itemCount: number;
   courseTitles: string[];
 };

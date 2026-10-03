@@ -6,7 +6,7 @@ import { useShopProductsQuery } from "../helpers/useShopQuery";
 import { usePublicCoursesQuery } from "../helpers/useStudentCoursesQuery";
 import { useBundlesQuery } from "../helpers/useBundlesQuery";
 import { TeacherProductCard } from "./HomepageContentSection";
-import type { BundleListItem } from "../endpoints/bundles/list_GET.schema";
+import { PublicBundleCard } from "./PublicBundleCard";
 import { Placeholder } from "../helpers/placeholderImages";
 import { formatItemPrice, itemPriceProps } from "../helpers/homepageItemUtils";
 import styles from "./ExamProductsSection.module.css";
@@ -14,38 +14,6 @@ import styles from "./ExamProductsSection.module.css";
 // Two full rows of the 3-column preview grid. Keep in sync with
 // pages/exams.$examSlug.prefetch.ts so the SSR query keys match.
 const PREVIEW_LIMIT = 6;
-
-// A compact bundle card sized to match TeacherProductCard exactly, so the
-// Bundles block doesn't visually dominate the other three preview blocks
-// the way the full-size BundlesGrid card (designed for a dedicated bundles
-// page) would.
-const MiniBundleCard: React.FC<{ bundle: BundleListItem }> = ({ bundle }) => {
-  const isFree = bundle.price === 0;
-  const formattedPrice = new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(bundle.price);
-
-  return (
-    <Link to={`/bundles/${bundle.slug}`} className={styles.miniCard}>
-      <div className={styles.miniCardThumbnail}>
-        {bundle.thumbnailUrl ? (
-          <img src={bundle.thumbnailUrl} alt="" className={styles.miniCardImage} loading="lazy" />
-        ) : (
-          <Package size={24} className={styles.miniCardIcon} />
-        )}
-      </div>
-      <h4 className={styles.miniCardTitle}>{bundle.title}</h4>
-      <p className={styles.miniCardStats}>
-        <span className={styles.miniCardStatsText}>{bundle.itemCount} items</span>
-        <span className={isFree ? styles.miniCardPriceFree : styles.miniCardPricePaid}>
-          {isFree ? "Free" : formattedPrice}
-        </span>
-      </p>
-    </Link>
-  );
-};
 
 // The section's loading state, also shown by the exam hub while the exam
 // itself loads inside the exam shell, so the two read as one skeleton.
@@ -210,7 +178,7 @@ export const ExamProductsSection: React.FC<ExamProductsSectionProps> = ({
       content: (
         <div className={styles.cardsGrid}>
           {bundles.map((bundle) => (
-            <MiniBundleCard key={bundle.id} bundle={bundle} />
+            <PublicBundleCard key={bundle.id} bundle={bundle} />
           ))}
         </div>
       ),

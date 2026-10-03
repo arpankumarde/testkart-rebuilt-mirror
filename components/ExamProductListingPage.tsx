@@ -389,12 +389,10 @@ const BundlesBody: React.FC<{ examId: number; examName: string }> = ({ examId, e
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / data.limit)) : 1;
 
+  // BundlesGrid is its own grid; wrapping it in styles.grid nested the six
+  // skeletons inside the first column.
   if (isFetching && !data) {
-    return (
-      <div className={styles.grid}>
-        <BundlesGrid bundles={[]} isLoading={true} />
-      </div>
-    );
+    return <BundlesGrid bundles={[]} isLoading={true} />;
   }
   if (!data || data.bundles.length === 0) {
     return <EmptyProductState productType="bundles" examName={examName} />;
