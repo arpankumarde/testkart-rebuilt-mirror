@@ -77,6 +77,7 @@ export const Footer: React.FC = () => {
               <li><Link to="/help" className={styles.footerLink}>Help Doc</Link></li>
               <li><Link to="/contact" className={styles.footerLink}>Contact Us</Link></li>
               <li><Link to="/careers" className={styles.footerLink}>Careers</Link></li>
+              <li><Link to="/teach" className={styles.footerLink}>Teach on Testkart</Link></li>
               <li><Link to="/sell/mock-test" className={styles.footerLink}>Pricing</Link></li>
               <li><Link to="/exams" className={styles.footerLink}>Exams</Link></li>
             </ul>
@@ -156,7 +157,7 @@ export const Footer: React.FC = () => {
 
         <div className={styles.footerBottom}>
           <p className={styles.copyright}>
-            &copy; {new Date().getFullYear()} Testkart (Digikind Education Private Limited). All rights reserved.
+            Testkart&trade; is a registered trademark of Digikind Education Private Limited. All rights reserved.
           </p>
         </div>
       </div>

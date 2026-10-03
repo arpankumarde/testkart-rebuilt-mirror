@@ -2,7 +2,6 @@ import React, { useCallback, useMemo, useState } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight } from "lucide-react";
 
 import { SEOHead } from "./SEOHead";
 import { Skeleton } from "./Skeleton";
@@ -10,10 +9,7 @@ import { Button } from "./Button";
 import { TeacherProductCard } from "./HomepageContentSection";
 import { BundlesGrid } from "./BundlesGrid";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "./Accordion";
-import { ExamProductTabs } from "./ExamPageNav";
-import { ExamPageShell } from "./ExamPageShell";
-import { ExamPageHeader } from "./ExamPageHeader";
-import { ShareButton } from "./ShareButton";
+import { useInExamSectionShell } from "./ExamSectionLayout";
 import {
   Pagination,
   PaginationContent,
@@ -42,63 +38,20 @@ import { formatItemPrice, itemPriceProps } from "../helpers/homepageItemUtils";
 import { wrapContentTables } from "../helpers/contentTables";
 import { sanitizeHtml } from "../helpers/sanitizeHtml";
 import { getPublicExamContent } from "../endpoints/exam-content/get_GET.schema";
-import { PUBLIC_PAGE_SHARE_CAMPAIGN } from "../helpers/shareLinks";
-import type { AdminExamSectionType } from "../helpers/examContentTypes";
-import type { ExamProductCounts } from "../endpoints/exam-products/counts_GET.schema";
+import { examProductPageMeta, type ExamProductType } from "../helpers/examProductPageMeta";
 import type { InputType as TestsInputType } from "../endpoints/tests/list_GET.schema";
 import type { InputType as CoursesInputType } from "../endpoints/courses/list_GET.schema";
 
 import styles from "./ExamProductListingPage.module.css";
 
-export type ExamProductType = "mock-tests" | "courses" | "study-notes" | "bundles";
+export type { ExamProductType };
 
 const DOMAIN = "https://testkart.in";
 const ITEMS_PER_PAGE = 12;
 
-const PRODUCT_TYPE_META: Record<
-  ExamProductType,
-  {
-    label: string;
-    countKey: keyof ExamProductCounts;
-    // The matching exam-content-pages pageType used to fetch the optional
-    // admin-authored title/description/content/FAQ overlay for this page.
-    contentPageType: AdminExamSectionType;
-    description: (examLabel: string) => string;
-    // General (non-exam-scoped) marketplace page for this product type,
-    // used as a real link out when this exam currently has zero items —
-    // see EmptyProductState below.
-    browsePath: string;
-  }
-> = {
-  "mock-tests": {
-    label: "Mock Tests",
-    countKey: "mockTests",
-    contentPageType: "mock_tests",
-    description: (examLabel) => `Practice with mock tests built specifically for ${examLabel}.`,
-    browsePath: "/mock-test",
-  },
-  courses: {
-    label: "Courses",
-    countKey: "courses",
-    contentPageType: "courses",
-    description: (examLabel) => `Structured courses to help you prepare for ${examLabel}.`,
-    browsePath: "/course",
-  },
-  "study-notes": {
-    label: "Study Notes",
-    countKey: "digitalProducts",
-    contentPageType: "study_notes",
-    description: (examLabel) => `Notes, PDFs, and study material curated for ${examLabel}.`,
-    browsePath: "/study-notes",
-  },
-  bundles: {
-    label: "Bundles",
-    countKey: "bundles",
-    contentPageType: "bundles",
-    description: (examLabel) => `Save more with bundled test series and courses for ${examLabel}.`,
-    browsePath: "/bundles",
-  },
-};
+// Shared with ExamSectionLayout, which renders this page's breadcrumb and
+// header.
+const PRODUCT_TYPE_META = examProductPageMeta;
 
 const CARD_SORT_OPTIONS = [
   { value: "newest", label: "Newest" },
@@ -479,7 +432,7 @@ export const ExamProductListingPage: React.FC<ExamProductListingPageProps> = ({ 
   // listing page — same CMS the exam hub's Overview section uses. Falls
   // back to the hardcoded defaults below when nothing's been published;
   // never gates whether the page itself exists (that's the product count).
-  const { data: contentData, isLoading: isContentLoading } = useQuery({
+  const { data: contentData } = useQuery({
     queryKey: ["exam-content", examSlug, meta.contentPageType],
     queryFn: () => getPublicExamContent({ examSlug: examSlug as string, pageType: meta.contentPageType }),
     enabled: !!examSlug,
@@ -489,7 +442,15 @@ export const ExamProductListingPage: React.FC<ExamProductListingPageProps> = ({ 
 
   const isLoading = isExamFetching || isCountsFetching;
 
-  if (isLoading) {
+  // Inside ExamSectionLayout the breadcrumb, header, product tabs and
+  // Important Links sidebar are already on screen (and stay there when a
+  // product tab is clicked); this renders the listing itself.
+  const inShell = useInExamSectionShell();
+  if (inShell && isLoading && !(examDetail && countsData)) {
+    return <CardSkeletonGrid />;
+  }
+
+  if (isLoading && !inShell) {
     return (
       <div className={styles.pageContainer}>
         <div className={styles.breadcrumbSkeleton}>
@@ -571,42 +532,10 @@ export const ExamProductListingPage: React.FC<ExamProductListingPageProps> = ({ 
     ],
   };
 
+  // The breadcrumb, header (title, Share), product tabs and sidebar are
+  // rendered around this by ExamSectionLayout.
   return (
-    <ExamPageShell
-      examSlug={examDetail.examSlug}
-      currentSlug={productType}
-      publishedPageTypes={contentData?.publishedPageTypes ?? []}
-      customPages={contentData?.publishedCustomPages ?? []}
-      linksLoading={isContentLoading}
-      breadcrumb={
-        <nav className={styles.breadcrumb} aria-label="Breadcrumb">
-          <Link to="/" className={styles.breadcrumbLink}>Home</Link>
-          <ChevronRight size={14} className={styles.breadcrumbSeparator} />
-          <Link to="/exams" className={styles.breadcrumbLink}>Exams</Link>
-          <ChevronRight size={14} className={styles.breadcrumbSeparator} />
-          <Link to={hubUrl} className={styles.breadcrumbLink}>{examLabel}</Link>
-          <ChevronRight size={14} className={styles.breadcrumbSeparator} />
-          <span className={styles.breadcrumbCurrent}>{meta.label}</span>
-        </nav>
-      }
-      header={
-        <ExamPageHeader
-          badge={examDetail.categoryName}
-          title={pageTitle}
-          description={pageDescription}
-          actions={
-            <ShareButton
-              kind="exam-page"
-              handle={`${examDetail.examSlug}/${productType}`}
-              title={pageTitle}
-              campaign={PUBLIC_PAGE_SHARE_CAMPAIGN}
-              size="sm"
-            />
-          }
-          tabs={<ExamProductTabs examSlug={examDetail.examSlug} currentSlug={productType} />}
-        />
-      }
-    >
+    <>
       <SEOHead title={seoTitle} description={seoDescription} url={canonicalUrl} />
       <Helmet>
         <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
@@ -639,6 +568,6 @@ export const ExamProductListingPage: React.FC<ExamProductListingPageProps> = ({ 
           </Accordion>
         </section>
       )}
-    </ExamPageShell>
+    </>
   );
 };

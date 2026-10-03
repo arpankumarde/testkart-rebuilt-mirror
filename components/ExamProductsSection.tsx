@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { FileText, BookOpen, GraduationCap, Package, ArrowRight } from "lucide-react";
+import { ClipboardCheck, BookOpen, GraduationCap, Package, ArrowRight } from "lucide-react";
 import { useTestsQuery } from "../helpers/useTestsQuery";
 import { useShopProductsQuery } from "../helpers/useShopQuery";
 import { usePublicCoursesQuery } from "../helpers/useStudentCoursesQuery";
@@ -47,6 +47,18 @@ const MiniBundleCard: React.FC<{ bundle: BundleListItem }> = ({ bundle }) => {
   );
 };
 
+// The section's loading state, also shown by the exam hub while the exam
+// itself loads inside the exam shell, so the two read as one skeleton.
+export const ExamProductsSectionSkeleton: React.FC = () => (
+  <section className={styles.section}>
+    <div className={styles.skeletonGrid}>
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className={styles.skeletonBlock} />
+      ))}
+    </div>
+  </section>
+);
+
 interface ExamProductsSectionProps {
   examId: number;
   examSlug: string;
@@ -91,15 +103,7 @@ export const ExamProductsSection: React.FC<ExamProductsSectionProps> = ({
     testsQuery.isLoading || shopQuery.isLoading || coursesQuery.isLoading || bundlesQuery.isLoading;
 
   if (isInitialLoading) {
-    return (
-      <section className={styles.section}>
-        <div className={styles.skeletonGrid}>
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className={styles.skeletonBlock} />
-          ))}
-        </div>
-      </section>
-    );
+    return <ExamProductsSectionSkeleton />;
   }
 
   const tests = testsQuery.data?.tests ?? [];
@@ -111,7 +115,7 @@ export const ExamProductsSection: React.FC<ExamProductsSectionProps> = ({
     {
       key: "mock-tests",
       title: "Mock Tests",
-      icon: <FileText size={18} />,
+      icon: <ClipboardCheck size={18} />,
       count: tests.length,
       viewAllUrl: `/exams/${examSlug}/mock-tests`,
       content: (
@@ -223,7 +227,7 @@ export const ExamProductsSection: React.FC<ExamProductsSectionProps> = ({
     <section className={styles.section}>
       <h2 className={styles.sectionTitle}>{examName} Study Material</h2>
       {visibleBlocks.map((block) => (
-        <div key={block.key} className={styles.block}>
+        <div key={block.key} className={styles.block} data-block={block.key}>
           <div className={styles.blockHeader}>
             <h3 className={styles.blockTitle}>
               {block.icon}

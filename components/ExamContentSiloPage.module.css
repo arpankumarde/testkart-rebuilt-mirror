@@ -5,37 +5,8 @@
     padding: var(--spacing-6) var(--spacing-4) var(--spacing-16);
   }
 
-  .breadcrumb {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--spacing-1);
-    font-size: 0.8125rem;
-    color: var(--muted-foreground);
-    margin-bottom: 1.25rem;
-  }
-
-  .breadcrumbLink {
-    color: var(--muted-foreground);
-    text-decoration: none;
-  }
-
-  .breadcrumbLink:hover {
-    color: var(--foreground);
-    text-decoration: underline;
-  }
-
-  .breadcrumbCurrent {
-    color: var(--foreground);
-    font-weight: 500;
-  }
-
-  .breadcrumbSeparator {
-    color: var(--muted-foreground);
-    opacity: 0.6;
-  }
-
-  /* The page header itself lives in components/ExamPageHeader. */
+  /* The breadcrumb, page header, product tabs and sidebar live in
+     components/ExamSectionLayout. */
 
   .subNav {
     margin-bottom: var(--spacing-6);
@@ -244,15 +215,135 @@
     margin: 0 0 var(--spacing-3);
     color: var(--foreground);
   }
+
+  /* Section skeleton, shown in place of the content while a section loads
+     inside the persistent exam shell. Same boxes, padding and gaps as
+     .content and .faqSection above, so nothing shifts when it swaps in. The
+     bars shimmer between two of the exam pastels (lavender, mint) washed
+     into the surface. */
+  .sectionSkeleton {
+    --skeleton-a: color-mix(in srgb, #c8b6f2 24%, var(--surface));
+    --skeleton-b: color-mix(in srgb, #a9dcc8 26%, var(--surface));
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-6);
+    min-width: 0;
+  }
+
+  .skeletonContentCard,
+  .skeletonFaqCard {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+  }
+
+  .skeletonContentCard {
+    gap: 0.875rem;
+    padding: var(--spacing-8);
+  }
+
+  .skeletonFaqCard {
+    gap: var(--spacing-3);
+    padding: var(--spacing-6) var(--spacing-8);
+  }
+
+  .skeletonBar,
+  .skeletonFaqRow {
+    display: block;
+    background-image: linear-gradient(
+      90deg,
+      var(--skeleton-a) 0%,
+      var(--skeleton-b) 50%,
+      var(--skeleton-a) 100%
+    );
+    background-size: 200% 100%;
+    animation: sectionSkeletonShimmer 1.6s ease-in-out infinite;
+  }
+
+  .skeletonBar {
+    height: 0.875rem;
+    border-radius: var(--radius-full);
+  }
+
+  .skeletonHeading {
+    width: 42%;
+    height: 1.375rem;
+    margin-bottom: var(--spacing-1);
+  }
+
+  .skeletonSubheading {
+    width: 30%;
+    height: 1.125rem;
+    margin-top: var(--spacing-3);
+  }
+
+  .skeletonFaqTitle {
+    width: 16rem;
+    max-width: 70%;
+    height: 1.25rem;
+    margin-bottom: var(--spacing-1);
+  }
+
+  .skeletonFaqRow {
+    height: 3rem;
+    border-radius: var(--radius-md);
+  }
+
+  .srOnly {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+/* The CTA button wraps instead of running off narrow screens. Unlayered so
+   it wins over the shared Button's nowrap and fixed height (@layer base)
+   without changing Button anywhere else. */
+.ctaButton {
+  max-width: 100%;
+  height: auto;
+  min-height: 2.5rem;
+  padding-block: var(--spacing-2);
+  white-space: normal;
+  text-align: center;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+:global(.dark) .sectionSkeleton {
+  --skeleton-a: color-mix(in srgb, #c8b6f2 10%, var(--surface));
+  --skeleton-b: color-mix(in srgb, #a9dcc8 12%, var(--surface));
+}
+
+@keyframes sectionSkeletonShimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeletonBar,
+  .skeletonFaqRow {
+    animation: none;
+  }
 }
 
 @media (max-width: 640px) {
   .pageContainer {
     padding: var(--spacing-4) var(--spacing-4) var(--spacing-12);
-  }
-
-  .breadcrumb {
-    margin-bottom: var(--spacing-4);
   }
 
   .content {
@@ -269,5 +360,13 @@
 
   .faqSectionTitle {
     font-size: 1.125rem;
+  }
+
+  .skeletonContentCard {
+    padding: var(--spacing-6) var(--spacing-4);
+  }
+
+  .skeletonFaqCard {
+    padding: var(--spacing-4);
   }
 }

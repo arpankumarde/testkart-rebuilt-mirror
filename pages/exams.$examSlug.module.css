@@ -5,36 +5,8 @@
   width: 100%;
 }
 
-/* Breadcrumb Styles */
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--spacing-2);
-  margin-bottom: var(--spacing-6);
-  font-size: 0.875rem;
-  color: var(--muted-foreground);
-}
-
-.breadcrumbLink {
-  color: var(--muted-foreground);
-  text-decoration: none;
-  transition: color var(--animation-duration-fast) ease;
-}
-
-.breadcrumbLink:hover {
-  color: var(--foreground);
-}
-
-.breadcrumbSeparator {
-  opacity: 0.5;
-}
-
-.breadcrumbCurrent {
-  color: var(--foreground);
-  font-weight: 500;
-}
-
+/* The breadcrumb, page header, product tabs and sidebar live in
+   components/ExamSectionLayout. */
 .breadcrumbSkeleton {
   margin-bottom: var(--spacing-6);
 }
@@ -91,27 +63,29 @@
 }
 
 /* Tests Grid */
+/* minmax(0, 1fr): the columns may shrink below the skeleton bars' fixed
+   widths instead of pushing the grid past its container. */
 .testsGrid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--spacing-4);
 }
 
 @media (min-width: 480px) {
   .testsGrid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (min-width: 768px) {
   .testsGrid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 @media (min-width: 1024px) {
   .testsGrid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
@@ -119,6 +93,8 @@
 .skeletonCard {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
   background-color: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -145,6 +121,11 @@
   gap: var(--spacing-1);
   margin-left: var(--spacing-3);
   flex: 1;
+  min-width: 0;
+}
+
+.skeletonTeacherDetails > * {
+  max-width: 100%;
 }
 
 .cardBody {
@@ -404,10 +385,6 @@
 @media (max-width: 768px) {
   .pageContainer {
     padding: var(--spacing-4) var(--spacing-4) var(--spacing-12);
-  }
-
-  .breadcrumb {
-    margin-bottom: var(--spacing-4);
   }
 
   .sortBar {

@@ -1,0 +1,120 @@
+/* Breadcrumbs for the persistent exam shell, moved here unchanged from the
+   pages that used to render them: the hub's (pages/exams.$examSlug) and the
+   Important Links pages' (components/ExamContentSiloPage). */
+
+/* --- Product listing pages ----------------------------------------------
+   (The exam hub now uses the section breadcrumb below.) */
+
+.hubBreadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-6);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.hubBreadcrumbLink {
+  color: var(--muted-foreground);
+  text-decoration: none;
+  transition: color var(--animation-duration-fast) ease;
+}
+
+.hubBreadcrumbLink:hover {
+  color: var(--foreground);
+}
+
+.hubBreadcrumbSeparator {
+  opacity: 0.5;
+}
+
+.hubBreadcrumbCurrent {
+  color: var(--foreground);
+  font-weight: 500;
+}
+
+/* --- Informational sections (syllabus, exam pattern, ...) --------------- */
+
+.sectionBreadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-1);
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  margin-bottom: 1.25rem;
+}
+
+.sectionBreadcrumbLink {
+  color: var(--muted-foreground);
+  text-decoration: none;
+}
+
+.sectionBreadcrumbLink:hover {
+  color: var(--foreground);
+  text-decoration: underline;
+}
+
+.sectionBreadcrumbCurrent {
+  color: var(--foreground);
+  font-weight: 500;
+}
+
+.sectionBreadcrumbSeparator {
+  color: var(--muted-foreground);
+  opacity: 0.6;
+}
+
+/* Stand-in for a custom page's name while it loads: one pastel pill the
+   size of a short label. */
+.breadcrumbSkeleton {
+  display: inline-block;
+  width: 5rem;
+  height: 0.75rem;
+  border-radius: var(--radius-full);
+  background-image: linear-gradient(
+    90deg,
+    color-mix(in srgb, #f9b99a 30%, var(--surface)) 0%,
+    color-mix(in srgb, #c8b6f2 34%, var(--surface)) 50%,
+    color-mix(in srgb, #f9b99a 30%, var(--surface)) 100%
+  );
+  background-size: 200% 100%;
+  animation: examBreadcrumbShimmer 1.6s ease-in-out infinite;
+}
+
+:global(.dark) .breadcrumbSkeleton {
+  background-image: linear-gradient(
+    90deg,
+    color-mix(in srgb, #f9b99a 12%, var(--surface)) 0%,
+    color-mix(in srgb, #c8b6f2 14%, var(--surface)) 50%,
+    color-mix(in srgb, #f9b99a 12%, var(--surface)) 100%
+  );
+}
+
+@keyframes examBreadcrumbShimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .breadcrumbSkeleton {
+    animation: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .hubBreadcrumb {
+    margin-bottom: var(--spacing-4);
+  }
+}
+
+@media (max-width: 640px) {
+  .sectionBreadcrumb {
+    margin-bottom: var(--spacing-4);
+  }
+}

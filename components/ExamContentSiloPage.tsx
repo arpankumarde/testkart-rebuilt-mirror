@@ -2,7 +2,6 @@ import React from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight } from "lucide-react";
 import { SEOHead } from "./SEOHead";
 import { Skeleton } from "./Skeleton";
 import { Button } from "./Button";
@@ -16,12 +15,7 @@ import {
   type ExamContentPageType,
 } from "../helpers/examContentTypes";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "./Accordion";
-import { ExamProductTabs } from "./ExamPageNav";
-import { ExamPageShell } from "./ExamPageShell";
-import { ExamPageHeader } from "./ExamPageHeader";
-import { ShareButton } from "./ShareButton";
-import { ExamContentExportButton } from "./ExamContentExportButton";
-import { PUBLIC_PAGE_SHARE_CAMPAIGN } from "../helpers/shareLinks";
+import { useInExamSectionShell } from "./ExamSectionLayout";
 import { renderMathInHtml } from "../helpers/renderMathInHtml";
 import { wrapContentTables } from "../helpers/contentTables";
 import { sanitizeHtml } from "../helpers/sanitizeHtml";
@@ -35,8 +29,37 @@ interface ExamContentSiloPageProps {
   pageType: ExamContentPageType | CustomExamPageType;
 }
 
+// Placeholder for the section content while it loads inside the persistent
+// exam shell (ExamSectionLayout): the content card with a heading and text
+// lines, then the FAQ card, on the same boxes and spacing as the real ones.
+const SectionContentSkeleton: React.FC = () => (
+  <div className={styles.sectionSkeleton} role="status" aria-busy="true" aria-live="polite">
+    <span className={styles.srOnly}>Loading section</span>
+    <div className={styles.skeletonContentCard} aria-hidden="true">
+      <span className={`${styles.skeletonBar} ${styles.skeletonHeading}`} />
+      <span className={styles.skeletonBar} style={{ width: "100%" }} />
+      <span className={styles.skeletonBar} style={{ width: "96%" }} />
+      <span className={styles.skeletonBar} style={{ width: "88%" }} />
+      <span className={styles.skeletonBar} style={{ width: "64%" }} />
+      <span className={`${styles.skeletonBar} ${styles.skeletonSubheading}`} />
+      <span className={styles.skeletonBar} style={{ width: "98%" }} />
+      <span className={styles.skeletonBar} style={{ width: "92%" }} />
+      <span className={styles.skeletonBar} style={{ width: "76%" }} />
+    </div>
+    <div className={styles.skeletonFaqCard} aria-hidden="true">
+      <span className={`${styles.skeletonBar} ${styles.skeletonFaqTitle}`} />
+      <span className={styles.skeletonFaqRow} />
+      <span className={styles.skeletonFaqRow} />
+      <span className={styles.skeletonFaqRow} />
+    </div>
+  </div>
+);
+
 export const ExamContentSiloPage: React.FC<ExamContentSiloPageProps> = ({ pageType }) => {
   const { examSlug } = useParams<{ examSlug: string }>();
+  // Inside ExamSectionLayout the breadcrumb, header, product tabs and
+  // Important Links sidebar are already on screen; this renders the section.
+  const inShell = useInExamSectionShell();
 
   const { data, isFetching } = useQuery({
     queryKey: ["exam-content", examSlug, pageType],
@@ -46,6 +69,7 @@ export const ExamContentSiloPage: React.FC<ExamContentSiloPageProps> = ({ pageTy
   });
 
   if (isFetching && !data) {
+    if (inShell) return <SectionContentSkeleton />;
     return (
       <div className={styles.pageContainer}>
         <Skeleton style={{ width: "220px", height: "16px", marginBottom: "var(--spacing-5)" }} />
@@ -127,54 +151,10 @@ export const ExamContentSiloPage: React.FC<ExamContentSiloPageProps> = ({ pageTy
     "@graph": structuredDataGraph,
   };
 
+  // The breadcrumb, header (title, Share/Print), product tabs and sidebar are
+  // rendered around this by ExamSectionLayout.
   return (
-    <ExamPageShell
-      examSlug={data.exam.examSlug}
-      currentSlug={meta.slug}
-      publishedPageTypes={data.publishedPageTypes}
-      customPages={data.publishedCustomPages}
-      breadcrumb={
-        <nav className={styles.breadcrumb} aria-label="Breadcrumb">
-          <Link to="/" className={styles.breadcrumbLink}>Home</Link>
-          <ChevronRight size={14} className={styles.breadcrumbSeparator} />
-          <Link to="/exams" className={styles.breadcrumbLink}>Exams</Link>
-          <ChevronRight size={14} className={styles.breadcrumbSeparator} />
-          <Link to={hubUrl} className={styles.breadcrumbLink}>{examLabel}</Link>
-          <ChevronRight size={14} className={styles.breadcrumbSeparator} />
-          <span className={styles.breadcrumbCurrent}>{meta.label}</span>
-        </nav>
-      }
-      header={
-        <ExamPageHeader
-          badge={data.exam.categoryName}
-          title={data.page.title}
-          description={data.page.description}
-          actions={
-            <>
-              <ShareButton
-                kind="exam-page"
-                handle={`${data.exam.examSlug}/${meta.slug}`}
-                title={data.page.title}
-                campaign={PUBLIC_PAGE_SHARE_CAMPAIGN}
-                size="sm"
-              />
-              <ExamContentExportButton
-                examLabel={examLabel}
-                sectionLabel={meta.label}
-                title={data.page.title}
-                description=""
-                content={data.page.content || ""}
-                faqItems={faqItems}
-                label="Print"
-                variant="outline"
-                size="sm"
-              />
-            </>
-          }
-          tabs={<ExamProductTabs examSlug={data.exam.examSlug} currentSlug={null} />}
-        />
-      }
-    >
+    <>
       <SEOHead
         title={data.page.seoTitle || data.page.title}
         description={data.page.seoDescription || `${meta.titleSuffix} for ${examLabel} on Testkart.`}
@@ -200,12 +180,15 @@ export const ExamContentSiloPage: React.FC<ExamContentSiloPageProps> = ({ pageTy
         </div>
       )}
 
+      {/* The short exam name ("NEET UG"): the full title often reads like a
+          page heading ("NEET UG 2027 Mock Tests, Courses & ...") and makes
+          this sentence and button run long. */}
       <div className={styles.ctaBox}>
-        <p>Ready to practice? Explore {examLabel} mock tests from top educators.</p>
-        <Button asChild>
-          <Link to={hubUrl}>Browse {examLabel} Mock Tests</Link>
+        <p>Ready to practice? Explore {data.exam.examName} mock tests from top educators.</p>
+        <Button asChild className={styles.ctaButton}>
+          <Link to={hubUrl}>Browse {data.exam.examName} Mock Tests</Link>
         </Button>
       </div>
-    </ExamPageShell>
+    </>
   );
 };

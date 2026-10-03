@@ -13,9 +13,12 @@ const STATS = [
   { value: "4,900+", label: "Study notes" },
 ];
 
-/** /teach: full-width peach band of platform numbers. */
+/** /teach: full-width peach band of platform numbers. The heading is for screen readers and search only. */
 export const TeachStats = () => (
-  <section className={styles.band} aria-label="Testkart in numbers">
+  <section className={styles.band} aria-labelledby="teach-stats-title">
+    <h2 id="teach-stats-title" className={styles.srOnly}>
+      Testkart at a glance
+    </h2>
     <dl className={styles.list}>
       {STATS.map((stat) => (
         <div key={stat.label} className={styles.stat}>

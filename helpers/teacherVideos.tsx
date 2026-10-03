@@ -64,14 +64,7 @@ export const TEACHER_VIDEO_GROUPS: TeacherVideoGroup[] = [
     key: "courses",
     title: "Video courses",
     videos: [
-      {
-        id: "guide-course-sections",
-        title: "Arrange a course into sections and lessons",
-        durationSeconds: 235,
-        source: "file",
-        src: "https://cdn.testkart.in/editor-videos/064a2956-55d8-437e-b31d-c14379727914.mp4",
-        guideSlug: "how-to-structure-course-sections-lessons-content",
-      },
+      { id: "saYB6NO7d9s", title: "Arrange a course into sections and lessons", durationSeconds: 235, source: "youtube", guideSlug: "how-to-structure-course-sections-lessons-content" },
     ],
   },
   {

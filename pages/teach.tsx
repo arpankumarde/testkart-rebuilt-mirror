@@ -2,9 +2,11 @@ import { SEOHead } from "../components/SEOHead";
 import { TeachHero } from "../components/TeachHero";
 import { TeachingReasons } from "../components/TeachingReasons";
 import { TeachStats } from "../components/TeachStats";
+import { TeachWhatYouCanSell } from "../components/TeachWhatYouCanSell";
 import { HowToBegin } from "../components/HowToBegin";
 import { InstructorTestimonial } from "../components/InstructorTestimonial";
 import { InstructorSupport } from "../components/InstructorSupport";
+import { TeachFAQ } from "../components/TeachFAQ";
 import { TeachFinalCTA } from "../components/TeachFinalCTA";
 import styles from "./teach.module.css";
 
@@ -18,9 +20,11 @@ export default function TeachPage() {
       <TeachHero />
       <TeachingReasons />
       <TeachStats />
+      <TeachWhatYouCanSell />
       <HowToBegin />
       <InstructorTestimonial />
       <InstructorSupport />
+      <TeachFAQ />
       <TeachFinalCTA />
     </div>
   );

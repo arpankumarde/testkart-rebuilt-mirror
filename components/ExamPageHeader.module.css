@@ -1,48 +1,93 @@
-/* Exam page header — a flat warm-ivory surface with a hairline border:
-   badge, title and description on the left, compact actions on the right.
-   Colours come from the --exam-* palette in base.css. */
+/* Exam page header, styled after the homepage "Explore Top Exams" cards: a
+   rounded warm-ivory card with a faint pastel wash in the corners, a mint
+   category pill, pastel pill buttons and the product tabs attached flush
+   underneath (see .tabs in ExamPageNav.module.css). The pastels are the
+   same artwork hexes the exam cards use. */
+.root {
+  --eh-peach: #f9b99a;
+  --eh-mint: #a9dcc8;
+  --eh-lavender: #c8b6f2;
+  --eh-sky: #aed3f2;
+  --eh-butter: #f4dfa3;
+  --eh-ink: hsl(220 30% 12%);
+  --eh-wash: 18%;
+
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--eh-peach) var(--eh-wash), transparent), transparent 38%),
+    radial-gradient(circle at 0% 100%, color-mix(in srgb, var(--eh-lavender) calc(var(--eh-wash) * 0.7), transparent), transparent 32%),
+    var(--exam-ivory);
+  border: 1px solid var(--exam-ivory-border);
+  border-radius: 1.5rem;
+  box-shadow:
+    0 1px 2px hsl(220 10% 15% / 0.03),
+    0 8px 22px -14px hsl(220 10% 15% / 0.14);
+}
+
+:global(.dark) .root {
+  --eh-wash: 7%;
+}
+
 .header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--spacing-6);
-  padding: 1.25rem var(--spacing-6);
-  background-color: var(--exam-ivory);
-  border: 1px solid var(--exam-ivory-border);
-  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem 1.125rem;
 }
 
 .content {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.375rem;
+  gap: 0.4375rem;
   min-width: 0;
 }
 
+/* Mint pill with a little wobbly dot, like a sticker. */
 .badge {
   display: inline-flex;
   align-items: center;
-  margin-bottom: 0.125rem;
-  padding: 0.1875rem 0.5rem;
-  border: 1px solid var(--exam-sage-border);
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem 0.25rem 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--eh-mint) 80%, var(--exam-ivory-border));
   border-radius: var(--radius-full);
-  background-color: var(--exam-sage-tint);
-  color: var(--exam-sage-ink);
+  background-color: color-mix(in srgb, var(--eh-mint) 38%, var(--exam-ivory));
+  color: color-mix(in srgb, var(--eh-mint), var(--eh-ink) 78%);
   font-size: 0.6875rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.06em;
   line-height: 1.2;
   text-transform: uppercase;
+}
+
+.badge::before {
+  content: "";
+  width: 0.4375rem;
+  height: 0.4375rem;
+  flex-shrink: 0;
+  border-radius: 58% 42% 55% 45% / 48% 58% 42% 52%;
+  background-color: color-mix(in srgb, var(--eh-mint), var(--eh-ink) 35%);
+  transform: rotate(-12deg);
+}
+
+:global(.dark) .badge {
+  background-color: color-mix(in srgb, var(--eh-mint) 16%, var(--exam-ivory));
+  border-color: color-mix(in srgb, var(--eh-mint) 40%, var(--exam-ivory));
+  color: var(--eh-mint);
+}
+
+:global(.dark) .badge::before {
+  background-color: var(--eh-mint);
 }
 
 .title {
   margin: 0;
   font-family: var(--font-family-heading);
   font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  line-height: 1.25;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.22;
   color: var(--surface-foreground);
   overflow-wrap: anywhere;
 }
@@ -62,34 +107,165 @@
   gap: var(--spacing-2);
 }
 
-/* Recolour the shared outline Button (Share / Print) to dusty blue here
-   only. Button's own styles sit in @layer base, so these unlayered rules
-   win without touching the component used across the rest of the site. */
+/* Recolour the shared outline Button (Share / Print) into pastel pills here
+   only: sky for the first, butter for the second. Button's own styles sit in
+   @layer base, so these unlayered rules win without touching the component
+   used across the rest of the site. */
 .actions :global(button),
 .actions :global(a) {
+  --eh-act: var(--eh-sky);
+  border-radius: var(--radius-full);
+  padding-inline: 0.875rem;
   background-color: var(--surface);
-  border-color: var(--exam-blue-border);
-  color: var(--exam-blue-ink);
-  --spinner-color: var(--exam-blue-ink);
+  border: 1.5px solid color-mix(in srgb, var(--eh-act) 75%, var(--exam-ivory-border));
+  color: color-mix(in srgb, var(--eh-act), var(--eh-ink) 76%);
+  --spinner-color: currentColor;
+  font-weight: 600;
+  box-shadow: 0 1px 2px hsl(220 10% 15% / 0.05);
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease,
+    transform 200ms ease;
+}
+
+.actions > :global(button):nth-of-type(2),
+.actions > :global(a):nth-of-type(2) {
+  --eh-act: var(--eh-butter);
 }
 
 .actions :global(button):hover,
 .actions :global(a):hover {
-  background-color: var(--exam-blue-tint);
-  border-color: var(--exam-blue-border);
-  color: var(--exam-blue-ink);
+  background-color: color-mix(in srgb, var(--eh-act) 34%, var(--surface));
+  border-color: color-mix(in srgb, var(--eh-act), var(--eh-ink) 18%);
+  color: color-mix(in srgb, var(--eh-act), var(--eh-ink) 80%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px -6px hsl(220 10% 15% / 0.22);
 }
 
 .actions :global(button):active,
 .actions :global(a):active {
-  background-color: color-mix(in srgb, var(--exam-blue-tint), var(--exam-blue-border) 40%);
+  transform: translateY(0);
+  background-color: color-mix(in srgb, var(--eh-act) 48%, var(--surface));
+  box-shadow: 0 1px 2px hsl(220 10% 15% / 0.05);
 }
 
 .actions :global(button):focus-visible,
 .actions :global(a):focus-visible {
   box-shadow:
     0 0 0 2px var(--background),
-    0 0 0 4px var(--exam-blue-ink);
+    0 0 0 4px color-mix(in srgb, var(--eh-act), var(--eh-ink) 45%);
+}
+
+:global(.dark) .actions :global(button),
+:global(.dark) .actions :global(a) {
+  border-color: color-mix(in srgb, var(--eh-act) 45%, var(--exam-ivory));
+  color: var(--eh-act);
+}
+
+:global(.dark) .actions :global(button):hover,
+:global(.dark) .actions :global(a):hover {
+  background-color: color-mix(in srgb, var(--eh-act) 16%, var(--surface));
+  border-color: color-mix(in srgb, var(--eh-act) 70%, var(--exam-ivory));
+  color: var(--eh-act);
+}
+
+/* --- Loading skeleton (while the next section loads) ---------------------
+   Each bar sits in a box exactly one text line tall (the title's 1.22 and
+   the description's 1.55 line-height), so the header keeps its height when
+   the real text swaps in. The shimmer runs between the header's own peach
+   and lavender washes; the pills match Share / Print's size. */
+.titleSkeleton {
+  --eh-skeleton-a: color-mix(in srgb, var(--eh-peach) 30%, var(--surface));
+  --eh-skeleton-b: color-mix(in srgb, var(--eh-lavender) 34%, var(--surface));
+
+  display: flex;
+  flex-direction: column;
+  width: 34rem;
+  max-width: 100%;
+}
+
+:global(.dark) .titleSkeleton,
+:global(.dark) .actions {
+  --eh-skeleton-a: color-mix(in srgb, var(--eh-peach) 12%, var(--surface));
+  --eh-skeleton-b: color-mix(in srgb, var(--eh-lavender) 14%, var(--surface));
+}
+
+.actions {
+  --eh-skeleton-a: color-mix(in srgb, var(--eh-peach) 30%, var(--surface));
+  --eh-skeleton-b: color-mix(in srgb, var(--eh-lavender) 34%, var(--surface));
+}
+
+.skeletonLine,
+.skeletonDescription,
+.skeletonAction {
+  display: block;
+  background-image: linear-gradient(
+    90deg,
+    var(--eh-skeleton-a) 0%,
+    var(--eh-skeleton-b) 50%,
+    var(--eh-skeleton-a) 100%
+  );
+  background-size: 200% 100%;
+  animation: examHeaderShimmer 1.6s ease-in-out infinite;
+}
+
+/* Title line box: 1.5rem x 1.22 = 1.83rem. */
+.skeletonLine {
+  height: 1.3rem;
+  margin: 0.265rem 0;
+  border-radius: var(--radius-full);
+}
+
+.skeletonLineLong {
+  width: 100%;
+}
+
+.skeletonLineShort {
+  width: 62%;
+}
+
+/* Description line box: 0.9375rem x 1.55 = 1.453rem, after the content gap. */
+.skeletonDescription {
+  width: 78%;
+  height: 0.875rem;
+  margin: calc(0.4375rem + 0.289rem) 0 0.289rem;
+  border-radius: var(--radius-full);
+  opacity: 0.8;
+}
+
+.skeletonAction {
+  height: 1.5rem;
+  border-radius: var(--radius-full);
+}
+
+.skeletonShare {
+  width: 5.85rem;
+}
+
+.skeletonPrint {
+  width: 5.4rem;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@keyframes examHeaderShimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
 }
 
 /* Below this the actions drop under the text so a long title keeps the
@@ -97,11 +273,20 @@
 @media (max-width: 640px) {
   .header {
     flex-direction: column;
-    gap: var(--spacing-4);
+    gap: var(--spacing-3);
+    padding: 1.125rem 1.25rem 1rem;
+  }
+
+  .titleSkeleton {
+    width: 100%;
   }
 }
 
 @media (max-width: 480px) {
+  .root {
+    border-radius: 1.25rem;
+  }
+
   .header {
     padding: var(--spacing-4);
   }
@@ -112,5 +297,35 @@
 
   .description {
     font-size: 0.875rem;
+  }
+
+  /* Title line box: 1.25rem x 1.22 = 1.525rem. */
+  .skeletonLine {
+    height: 1.05rem;
+    margin: 0.2375rem 0;
+  }
+
+  /* Description line box: 0.875rem x 1.55 = 1.356rem. */
+  .skeletonDescription {
+    height: 0.8125rem;
+    margin: calc(0.4375rem + 0.2719rem) 0 0.2719rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .actions :global(button),
+  .actions :global(a) {
+    transition: none;
+  }
+
+  .actions :global(button):hover,
+  .actions :global(a):hover {
+    transform: none;
+  }
+
+  .skeletonLine,
+  .skeletonDescription,
+  .skeletonAction {
+    animation: none;
   }
 }

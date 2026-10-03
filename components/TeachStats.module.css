@@ -6,6 +6,19 @@
   padding: clamp(3rem, 4.5vw, 4.0625rem) clamp(1rem, 5.5vw, 5rem);
 }
 
+/* Visually hidden (not display:none), so the heading stays in the outline. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Phones: two columns, the fifth figure centred on its own row. */
 .list {
   display: grid;

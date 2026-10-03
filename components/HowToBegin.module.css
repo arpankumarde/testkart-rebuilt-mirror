@@ -106,6 +106,13 @@
     gap: var(--spacing-12);
   }
 
+  /* The copy is much shorter than the illustration, so centring it left a
+     tall gap under the tabs. Pin it near the top instead. */
+  .copy {
+    align-self: start;
+    padding-top: clamp(2rem, 5vw, 4.5rem);
+  }
+
   .art {
     max-width: 24rem;
   }

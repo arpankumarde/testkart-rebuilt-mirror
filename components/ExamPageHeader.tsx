@@ -12,20 +12,51 @@ interface ExamPageHeaderProps {
   // bottom edge so the two read as one card. Renders nothing when the exam
   // has no products, and the card simply ends after the header.
   tabs?: React.ReactNode;
+  // While the next section loads (ExamSectionLayout): the badge and tabs
+  // stay, the title, description and actions become skeletons sized like
+  // the real ones. `loadingDescription` adds the description line.
+  loading?: boolean;
+  loadingDescription?: boolean;
 }
 
 // The one header used by every /exams/:examSlug page (Overview, the product
 // listing tabs and the Important Links content pages), so they share the
 // same layout, type scale, spacing and surface.
-export const ExamPageHeader: React.FC<ExamPageHeaderProps> = ({ badge, title, description, actions, tabs }) => (
+export const ExamPageHeader: React.FC<ExamPageHeaderProps> = ({
+  badge,
+  title,
+  description,
+  actions,
+  tabs,
+  loading = false,
+  loadingDescription = false,
+}) => (
   <div className={styles.root}>
-    <header className={styles.header}>
+    <header className={styles.header} aria-busy={loading || undefined}>
       <div className={styles.content}>
         {badge && <span className={styles.badge}>{badge}</span>}
-        <h1 className={styles.title}>{title}</h1>
-        {description && <p className={styles.description}>{description}</p>}
+        {loading ? (
+          <div className={styles.titleSkeleton} role="status">
+            <span className={styles.srOnly}>Loading section</span>
+            <span className={`${styles.skeletonLine} ${styles.skeletonLineLong}`} aria-hidden="true" />
+            <span className={`${styles.skeletonLine} ${styles.skeletonLineShort}`} aria-hidden="true" />
+            {loadingDescription && <span className={styles.skeletonDescription} aria-hidden="true" />}
+          </div>
+        ) : (
+          <>
+            <h1 className={styles.title}>{title}</h1>
+            {description && <p className={styles.description}>{description}</p>}
+          </>
+        )}
       </div>
-      {actions && <div className={styles.actions}>{actions}</div>}
+      {loading ? (
+        <div className={styles.actions} aria-hidden="true">
+          <span className={`${styles.skeletonAction} ${styles.skeletonShare}`} />
+          <span className={`${styles.skeletonAction} ${styles.skeletonPrint}`} />
+        </div>
+      ) : (
+        actions && <div className={styles.actions}>{actions}</div>
+      )}
     </header>
     {tabs}
   </div>

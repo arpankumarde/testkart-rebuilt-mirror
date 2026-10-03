@@ -17,6 +17,7 @@ const TESTIMONIALS = [
     name: "Deep’s Physics Classes",
     subjects: "IIT JAM and JEST",
     profilePath: "/expert/deepsphysicsclasses",
+    alt: "Deep’s Physics Classes, an IIT JAM and JEST teacher on Testkart",
     photo: "/_cdn/static/fca7a37a-bf6d-4076-a55f-443be39afa86-testimonial-deeps-physics-classes.jpg",
     focus: "50% 52%",
   },
@@ -27,6 +28,7 @@ const TESTIMONIALS = [
     name: "NATA ACE Tutorial",
     subjects: "NATA, Architecture",
     profilePath: "/expert/nata-ace-tutorial",
+    alt: "NATA ACE Tutorial, a NATA and architecture teacher on Testkart",
     photo: "/_cdn/static/da6b434b-7c59-47c7-9a97-5480c255a681-testimonial-nata-ace-tutorial.jpg",
     focus: "50% 30%",
   },
@@ -40,7 +42,10 @@ export const InstructorTestimonial = () => {
   const step = (delta: number) => setIndex((i) => (i + delta + count) % count);
 
   return (
-    <section className={styles.section} aria-roledescription="carousel" aria-label="What teachers say about Testkart">
+    <section className={styles.section} aria-roledescription="carousel" aria-labelledby="teach-testimonial-title">
+      <h2 id="teach-testimonial-title" className={styles.title}>
+        What teachers say about Testkart
+      </h2>
       <div className={styles.band}>
         <div className={styles.inner}>
           <figure
@@ -54,7 +59,7 @@ export const InstructorTestimonial = () => {
             <div className={styles.photoFrame}>
               <img
                 src={current.photo}
-                alt={current.name}
+                alt={current.alt}
                 width={540}
                 height={960}
                 loading="lazy"

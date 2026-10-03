@@ -38,35 +38,118 @@
   color: var(--foreground);
 }
 
-/* Pastel icon tile next to each block title. */
+/* Pastel icon tile next to each block title, in the block's own product
+   colour (--va-accent, set on .block below; same as its "View all"). */
 .blockTitle svg {
   box-sizing: content-box;
   padding: var(--spacing-2);
   border-radius: var(--radius);
-  background-color: var(--exam-lavender-tint);
-  color: var(--exam-lavender-ink);
+  background-color: color-mix(in srgb, var(--va-accent) 42%, var(--surface));
+  color: color-mix(in srgb, var(--va-accent), var(--va-ink) 76%);
   flex-shrink: 0;
 }
 
+:global(.dark) .blockTitle svg {
+  background-color: color-mix(in srgb, var(--va-accent) 16%, var(--surface));
+  color: var(--va-accent);
+}
+
+/* "View all": a pastel pill like the header's Share / Print buttons, in each
+   block's own product colour (the same pastels as the product tabs). */
+.block {
+  --va-accent: #aed3f2; /* sky */
+  --va-ink: hsl(220 30% 12%);
+}
+
+.block[data-block="mock-tests"] {
+  --va-accent: #f9b99a; /* peach */
+}
+
+.block[data-block="courses"] {
+  --va-accent: #a9dcc8; /* mint */
+}
+
+.block[data-block="study-notes"] {
+  --va-accent: #c8b6f2; /* lavender */
+}
+
+.block[data-block="bundles"] {
+  --va-accent: #f4dfa3; /* butter */
+}
+
 .viewAllLink {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: var(--spacing-1);
-  padding: var(--spacing-1) var(--spacing-3);
+  gap: var(--spacing-2);
+  height: 1.5rem;
+  padding: 0 0.875rem;
+  border: 1.5px solid color-mix(in srgb, var(--va-accent) 75%, var(--exam-ivory-border));
   border-radius: var(--radius-full);
+  background-color: var(--surface);
+  color: color-mix(in srgb, var(--va-accent), var(--va-ink) 76%);
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--exam-blue-ink);
   text-decoration: none;
   white-space: nowrap;
+  box-shadow: 0 1px 2px hsl(220 10% 15% / 0.05);
   transition:
-    gap var(--animation-duration-fast) ease,
-    background-color var(--animation-duration-fast) ease;
+    background-color 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease,
+    transform 200ms ease;
+}
+
+.viewAllLink svg {
+  flex-shrink: 0;
+  transition: transform 200ms ease;
 }
 
 .viewAllLink:hover {
-  gap: var(--spacing-2);
-  background-color: var(--exam-blue-tint);
+  background-color: color-mix(in srgb, var(--va-accent) 34%, var(--surface));
+  border-color: color-mix(in srgb, var(--va-accent), var(--va-ink) 18%);
+  color: color-mix(in srgb, var(--va-accent), var(--va-ink) 80%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px -6px hsl(220 10% 15% / 0.22);
+}
+
+.viewAllLink:hover svg {
+  transform: translateX(2px);
+}
+
+.viewAllLink:active {
+  transform: translateY(0);
+  background-color: color-mix(in srgb, var(--va-accent) 48%, var(--surface));
+  box-shadow: 0 1px 2px hsl(220 10% 15% / 0.05);
+}
+
+.viewAllLink:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--background),
+    0 0 0 4px color-mix(in srgb, var(--va-accent), var(--va-ink) 45%);
+}
+
+:global(.dark) .viewAllLink {
+  border-color: color-mix(in srgb, var(--va-accent) 45%, var(--exam-ivory));
+  color: var(--va-accent);
+}
+
+:global(.dark) .viewAllLink:hover {
+  background-color: color-mix(in srgb, var(--va-accent) 16%, var(--surface));
+  border-color: color-mix(in srgb, var(--va-accent) 70%, var(--exam-ivory));
+  color: var(--va-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .viewAllLink,
+  .viewAllLink svg {
+    transition: none;
+  }
+
+  .viewAllLink:hover,
+  .viewAllLink:hover svg {
+    transform: none;
+  }
 }
 
 .cardsGrid {

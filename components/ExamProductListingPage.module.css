@@ -5,36 +5,8 @@
   width: 100%;
 }
 
-/* Breadcrumb */
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--spacing-2);
-  margin-bottom: var(--spacing-6);
-  font-size: 0.875rem;
-  color: var(--muted-foreground);
-}
-
-.breadcrumbLink {
-  color: var(--muted-foreground);
-  text-decoration: none;
-  transition: color var(--animation-duration-fast) ease;
-}
-
-.breadcrumbLink:hover {
-  color: var(--foreground);
-}
-
-.breadcrumbSeparator {
-  opacity: 0.5;
-}
-
-.breadcrumbCurrent {
-  color: var(--foreground);
-  font-weight: 500;
-}
-
+/* The breadcrumb, page header, product tabs and sidebar live in
+   components/ExamSectionLayout. */
 .breadcrumbSkeleton {
   margin-bottom: var(--spacing-6);
 }
@@ -355,10 +327,6 @@
     min-width: unset;
     flex: 1;
     max-width: 200px;
-  }
-
-  .breadcrumb {
-    margin-bottom: var(--spacing-4);
   }
 
   .additionalContent,

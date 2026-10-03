@@ -34,3 +34,22 @@
 .cta {
   width: min(100%, 25rem);
 }
+
+.watch {
+  margin-top: var(--spacing-4);
+  font-weight: 700;
+  color: var(--tk-brand-text);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+.watch:hover {
+  text-decoration-thickness: 2px;
+}
+
+.watch:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+  border-radius: 2px;
+}

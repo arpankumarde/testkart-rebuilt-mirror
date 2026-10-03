@@ -3,17 +3,17 @@ import styles from "./TeachingReasons.module.css";
 const REASONS = [
   {
     title: "Teach your way",
-    body: "Create courses and tests your way, with complete control over what you teach.",
+    body: "Create tests, notes and courses your way, and set your own price for each one.",
     image: "/_cdn/static/c2c3cb38-0611-49df-83b9-77a06ae18700.png",
   },
   {
     title: "Inspire learners",
-    body: "Share your knowledge, help students build new skills, and make learning accessible.",
+    body: "Help aspirants prepare with timed mock tests, instant results and live leaderboards.",
     image: "/_cdn/static/ff7837ce-9ca2-4445-a5f2-e59487ef705b.png",
   },
   {
     title: "Get rewarded",
-    body: "Grow your audience, build your reputation, and earn from your educational content.",
+    body: "Earn on every sale. Earnings collect in your wallet and you withdraw them to your bank.",
     image: "/_cdn/static/907a7c08-4325-4faf-97c6-a834cc54783e.png",
   },
 ];
@@ -22,7 +22,7 @@ const REASONS = [
 export const TeachingReasons = () => (
   <section className={styles.section} aria-labelledby="teach-reasons-title">
     <h2 id="teach-reasons-title" className={styles.title}>
-      So many reasons to teach
+      Why teach on Testkart
     </h2>
     <ul className={styles.grid}>
       {REASONS.map((reason) => (

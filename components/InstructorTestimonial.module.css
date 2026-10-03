@@ -2,6 +2,19 @@
   padding: clamp(1rem, 4vw, 3rem) 0 var(--teach-section-y, 4rem);
 }
 
+.title {
+  margin: 0 0 clamp(2rem, 4vw, 3.5rem);
+  padding: 0 var(--teach-gutter, 1rem);
+  font-family: var(--font-family-heading);
+  font-size: clamp(2rem, 3.8vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  text-align: center;
+  text-wrap: balance;
+  color: var(--teach-ink, var(--foreground));
+}
+
 .band {
   background-color: var(--teach-mist, var(--muted));
 }

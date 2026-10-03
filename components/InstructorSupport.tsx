@@ -7,7 +7,7 @@ const ART_RIGHT = "/_cdn/static/b6909452-80c0-463e-a71b-075e81260ba7.png";
 /** /teach: centred support message between two illustrations that run to the page edges. */
 export const InstructorSupport = () => (
   <section className={styles.section} aria-labelledby="teach-support-title">
-    <img src={ART_LEFT} alt="" width={768} height={1024} loading="lazy" decoding="async" className={`${styles.art} ${styles.artLeft}`} />
+    <img src={ART_LEFT} alt="Testkart instructor support team helping a teacher" width={768} height={1024} loading="lazy" decoding="async" className={`${styles.art} ${styles.artLeft}`} />
     <div className={styles.copy}>
       <h2 id="teach-support-title" className={styles.title}>
         You won’t have to do it alone
@@ -23,7 +23,7 @@ export const InstructorSupport = () => (
         </Link>
         ,{" "}
         <Link to="/demo" className={styles.inlineLink}>
-          guidance
+          video tutorials
         </Link>
         , and a growing community of educators along the way.
       </p>
