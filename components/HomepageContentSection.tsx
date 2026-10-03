@@ -13,7 +13,9 @@ interface TeacherProductCardProps {
   teacherSlug: string | null;
   teacherIsVerified: boolean;
   productTitle: string;
-  stats?: string;
+  // Usually plain text ("12 pages"); a node lets a caller add a chip, e.g.
+  // the bundle card's green "Save X%".
+  stats?: React.ReactNode;
   // Thumbnails are DISCONTINUED for study notes / digital products
   // site-wide (product decision) — never pass these two props when
   // rendering a study-notes card, on any page. Only mock tests and courses

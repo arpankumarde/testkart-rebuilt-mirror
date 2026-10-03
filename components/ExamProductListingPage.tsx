@@ -7,7 +7,7 @@ import { SEOHead } from "./SEOHead";
 import { Skeleton } from "./Skeleton";
 import { Button } from "./Button";
 import { TeacherProductCard } from "./HomepageContentSection";
-import { BundlesGrid } from "./BundlesGrid";
+import { PublicBundleCard } from "./PublicBundleCard";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "./Accordion";
 import { useInExamSectionShell } from "./ExamSectionLayout";
 import {
@@ -389,11 +389,9 @@ const BundlesBody: React.FC<{ examId: number; examName: string }> = ({ examId, e
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / data.limit)) : 1;
 
-  // BundlesGrid is its own grid; wrapping it in styles.grid nested the six
-  // skeletons inside the first column.
-  if (isFetching && !data) {
-    return <BundlesGrid bundles={[]} isLoading={true} />;
-  }
+  // Same grid and skeleton as the mock test, notes and course tabs: bundle
+  // cards are TeacherProductCards too, so the four tabs read alike.
+  if (isFetching && !data) return <CardSkeletonGrid />;
   if (!data || data.bundles.length === 0) {
     return <EmptyProductState productType="bundles" examName={examName} />;
   }
@@ -401,7 +399,11 @@ const BundlesBody: React.FC<{ examId: number; examName: string }> = ({ examId, e
   return (
     <>
       <SortBar sortBy={sort} onSortChange={handleSortChange} />
-      <BundlesGrid bundles={data.bundles} isLoading={false} />
+      <div className={styles.grid}>
+        {data.bundles.map((bundle) => (
+          <PublicBundleCard key={bundle.id} bundle={bundle} />
+        ))}
+      </div>
       <PaginationBar
         page={data.page}
         totalPages={totalPages}

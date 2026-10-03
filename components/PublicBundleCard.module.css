@@ -1,248 +1,82 @@
-.card {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-width: 0;
-  overflow: hidden;
-  background-color: var(--surface);
-  color: inherit;
-  text-decoration: none;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-
-a.card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--primary);
-}
-
-a.card:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-}
-
-.thumbnailWrapper {
-  position: relative;
-  aspect-ratio: 16 / 9;
-  flex-shrink: 0;
-  overflow: hidden;
-  background: linear-gradient(135deg, var(--muted) 0%, color-mix(in srgb, var(--primary) 10%, transparent) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.bundleIcon {
-  color: var(--primary);
-}
-
-.thumbnailImage {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.cardContent {
-  padding: var(--spacing-4);
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-2);
-  min-width: 0;
-}
-
-/* Always present, so cards with and without a discount line up. */
-.badgeRow {
-  display: flex;
-  min-height: 1.75rem;
-  align-items: center;
-}
-
-.savingsBadge {
-  font-weight: 600;
-}
-
-/* Two lines reserved, so short and long titles keep the rows below level. */
-.title {
-  font-family: var(--font-family-heading);
-  font-size: 1.125rem;
+/* Green discount chip inside the TeacherProductCard stats line. */
+.saveChip {
+  display: inline-block;
+  margin-left: var(--spacing-2);
+  padding: 0.0625rem 0.4375rem;
+  border-radius: 6px;
+  /* Deep green with near-white text (about 7:1 contrast), same in both themes. */
+  background-color: hsl(150 62% 26%);
+  color: hsl(140 60% 96%);
+  font-size: 0.75rem;
   font-weight: 700;
-  margin: 0;
-  color: var(--foreground);
   line-height: 1.4;
-  min-height: 2.8em;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  vertical-align: middle;
 }
 
-.creator,
-.infoItem {
+@media (max-width: 767px) {
+  .saveChip {
+    margin-left: var(--spacing-1);
+    padding: 0 0.3125rem;
+    font-size: 0.625rem;
+  }
+}
+
+/* Skeleton: the card itself is TeacherProductCard. Sizes mirror its CSS in
+   HomepageContentSection.module.css. */
+.skeletonCard {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+  padding: var(--spacing-4);
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.skeletonHeader {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
-  min-width: 0;
-  font-size: 0.875rem;
-  color: var(--muted-foreground);
-  font-weight: 500;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
 }
 
-.creator {
-  align-self: flex-start;
-  max-width: 100%;
-}
-
-.creatorLink {
-  cursor: pointer;
-  border-radius: var(--radius-sm, 4px);
-}
-
-.creatorLink:hover .creatorName {
-  color: var(--foreground);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.creatorLink:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-}
-
-.avatar {
-  width: 1.5rem;
-  height: 1.5rem;
+.skeletonAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   flex-shrink: 0;
 }
 
-.avatarFallback {
-  font-size: 0.625rem;
-  font-weight: 700;
+.skeletonThumbnail {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius);
+  margin-bottom: var(--spacing-3);
 }
 
-.creatorName {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.cardFooter {
-  padding: var(--spacing-4);
-  border-top: 1px solid var(--border);
+.skeletonStats {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
   justify-content: space-between;
-  gap: var(--spacing-2) var(--spacing-4);
   margin-top: auto;
 }
 
-.price {
-  display: flex;
-  align-items: baseline;
-  gap: var(--spacing-2);
-  font-size: 1.375rem;
-  font-weight: 700;
-  color: var(--primary);
-  font-family: var(--font-family-heading);
-  white-space: nowrap;
-}
+@media (max-width: 767px) {
+  .skeletonCard {
+    padding: var(--spacing-2);
+  }
 
-.freePrice {
-  color: var(--success-text);
-  font-size: 1.25rem;
-}
+  .skeletonAvatar {
+    width: 28px;
+    height: 28px;
+  }
 
-.originalPrice {
-  font-size: 0.9375rem;
-  font-weight: 500;
-  color: var(--muted-foreground);
-  text-decoration: line-through;
-}
-
-.viewButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-2);
-  font-weight: 600;
-  white-space: nowrap;
-  color: var(--tk-brand-text);
-  transition: color var(--animation-duration-fast) ease;
-}
-
-a.card:hover .viewButton {
-  color: var(--tk-brand-hover);
-}
-
-/* Matches the price line's height (1.375rem text). */
-.priceSkeleton {
-  height: 1.8125rem;
-}
-
-/* Narrow cards (the exam overview's 3-up grid is ~260px a card): tighten the
-   footer so price, struck price and "View Bundle" stay on one line. */
-.card {
-  container-type: inline-size;
-}
-
-@container (max-width: 300px) {
-  .cardFooter {
-    padding-inline: var(--spacing-3);
+  .skeletonHeader {
     gap: var(--spacing-2);
+    margin-bottom: var(--spacing-2);
   }
 
-  .price {
-    font-size: 1.1875rem;
-    gap: var(--spacing-1);
-  }
-
-  .originalPrice {
-    font-size: 0.8125rem;
-  }
-
-  .viewButton {
-    gap: var(--spacing-1);
-    font-size: 0.875rem;
-  }
-
-  .viewButton svg {
-    display: none;
-  }
-
-  .priceSkeleton {
-    height: 1.5rem;
-  }
-}
-
-/* Skeleton */
-/* Same height as .title's two reserved lines (1.125rem x 1.4 x 2). */
-.titleSkeleton {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 0.5rem;
-  min-height: 3.15rem;
-}
-
-.thumbnailWrapperSkeleton {
-  flex-shrink: 0;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  background-color: var(--muted);
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
+  .skeletonThumbnail {
+    margin-bottom: var(--spacing-2);
   }
 }
