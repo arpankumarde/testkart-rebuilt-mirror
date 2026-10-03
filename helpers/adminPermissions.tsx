@@ -206,5 +206,4 @@ export function canCallAdminApi(permissions: readonly string[], pathname: string
 export const EXTRA_PAGE_RULES: Record<string, ApiRule> = {
   "/admin/profile": ANY_ADMIN,
   "/admin/preview": CATALOGUE_PREVIEW,
-  "/admin/settings": ["settings", "admins"],
 };

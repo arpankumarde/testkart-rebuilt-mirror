@@ -42,6 +42,8 @@ export type AdminNavItem = {
   end?: boolean;
   /** The admin needs any one of these modules (helpers/adminPermissions) to see and open the page. */
   modules: AdminModule[];
+  /** Every admin sees and opens the page; `modules` then only marks who gets its platform-wide parts. */
+  everyAdmin?: boolean;
   /** Attention counters that show as a pending badge next to the item. */
   countKeys?: (keyof AttentionCounts)[];
   /** Extra words the command palette should match on. */
@@ -138,7 +140,14 @@ const groups: AdminNavGroup[] = [
       { href: "/admin/static-pages", label: "Static pages", icon: Layout, modules: ["static_pages"], keywords: "terms privacy about" },
       { href: "/admin/email-templates", label: "Email templates", icon: Mail, modules: ["email_templates"], keywords: "resend notifications" },
       { href: "/admin/api-docs", label: "API docs", icon: FileCode2, modules: ["api_docs"], keywords: "endpoints reference" },
-      { href: "/admin/settings", label: "Settings", icon: Settings, modules: ["settings", "admins"], keywords: "admins roles access permissions ai provider scripts" },
+      {
+        href: "/admin/settings",
+        label: "Settings",
+        icon: Settings,
+        modules: ["settings", "admins"],
+        everyAdmin: true,
+        keywords: "admins roles access permissions ai provider scripts connected ai apps claude chatgpt disconnect",
+      },
     ],
   },
   {
@@ -152,7 +161,7 @@ const groups: AdminNavGroup[] = [
 ];
 
 const isAllowed = (item: AdminNavItem, permissions: AdminPermissionList): boolean =>
-  hasAdminModule(permissions, item.modules);
+  (item.everyAdmin === true && permissions !== null) || hasAdminModule(permissions, item.modules);
 
 const visibleGroups = (permissions: AdminPermissionList): AdminNavGroup[] =>
   groups
@@ -191,8 +200,13 @@ const canOpen = (href: string, permissions: AdminPermissionList): boolean => {
   return rule === ANY_ADMIN || hasAdminModule(permissions, rule);
 };
 
-/** Where to send an admin who opens a page they cannot use: their first sidebar page, else their profile. */
+/**
+ * Where to send an admin who opens a page they cannot use: their first sidebar page that a module
+ * unlocks, else their profile.
+ */
 const homeHref = (permissions: AdminPermissionList): string =>
-  visibleGroups(permissions)[0]?.items[0]?.href ?? "/admin/profile";
+  visibleGroups(permissions)
+    .flatMap((group) => group.items)
+    .find((item) => hasAdminModule(permissions, item.modules))?.href ?? "/admin/profile";
 
 export const adminNavigation = { groups, visibleGroups, isAllowed, countFor, groupCount, findByPath, canOpen, homeHref };

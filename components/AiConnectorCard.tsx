@@ -43,7 +43,15 @@ const DISCONNECT_HINT: Record<AiConnectorAudience, React.ReactNode> = {
       .
     </>
   ),
-  admin: "To disconnect, remove the connector in that app.",
+  admin: (
+    <>
+      To disconnect, remove the connector in that app or use{" "}
+      <Link to="/admin/settings#ai-apps" className={styles.extra}>
+        Connected AI apps in Settings
+      </Link>
+      .
+    </>
+  ),
 };
 
 const guideFor = (client: ClientKey, links: AiConnectorLinks): Guide => {

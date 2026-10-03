@@ -59,6 +59,8 @@ describe("adminPermissions", () => {
     expect(adminNavigation.canOpen("/admin/teachers/earnings", ["teacher_earnings"])).toBe(true);
     expect(adminNavigation.canOpen("/admin/profile", [])).toBe(true);
     expect(adminNavigation.canOpen("/admin/settings", ["admins"])).toBe(true);
+    expect(adminNavigation.canOpen("/admin/settings", ["blog"])).toBe(true);
+    expect(adminNavigation.canOpen("/admin/settings", null)).toBe(false);
     expect(adminNavigation.canOpen("/admin/preview/course/1", ["blog"])).toBe(false);
     expect(adminNavigation.homeHref([])).toBe("/admin/profile");
     expect(adminNavigation.homeHref(["blog", "support"])).toBe("/admin/support");

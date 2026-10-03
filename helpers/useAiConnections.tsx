@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AiConnectorAudience } from "./aiConnectors";
 import { getAdminAiConnections } from "../endpoints/admin/ai-connections_GET.schema";
 import { getTeacherAiConnections } from "../endpoints/teacher/ai-connections_GET.schema";
+import { postAdminAiConnectionRevoke } from "../endpoints/admin/ai-connections/revoke_POST.schema";
 import { postTeacherAiConnectionRevoke } from "../endpoints/teacher/ai-connections/revoke_POST.schema";
 
 /**
@@ -19,11 +20,12 @@ export const useAiConnections = (audience: AiConnectorAudience, enabled = true) 
     enabled,
   });
 
-/** Disconnects one of the teacher's AI apps by the name the connection list shows. */
-export const useRevokeTeacherAiConnection = () => {
+/** Disconnects one of the viewer's AI apps by the name the connection list shows. */
+export const useRevokeAiConnection = (audience: AiConnectorAudience) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (clientName: string) => postTeacherAiConnectionRevoke({ clientName }),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ["ai-connections", "teacher"] }),
+    mutationFn: (clientName: string) =>
+      audience === "admin" ? postAdminAiConnectionRevoke({ clientName }) : postTeacherAiConnectionRevoke({ clientName }),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["ai-connections", audience] }),
   });
 };

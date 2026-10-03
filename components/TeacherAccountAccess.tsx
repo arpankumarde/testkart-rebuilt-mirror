@@ -7,15 +7,17 @@ import { RiOpenaiFill } from "react-icons/ri";
 import { Button } from "./Button";
 import { Skeleton } from "./Skeleton";
 import { ConsoleConfirmDialog } from "./ConsoleConfirmDialog";
-import { useAiConnections, useRevokeTeacherAiConnection } from "../helpers/useAiConnections";
+import { useAiConnections, useRevokeAiConnection } from "../helpers/useAiConnections";
 import { useSignOutOtherDevices, useTeacherSignIns } from "../helpers/useTeacherSignIns";
+import type { AiConnectorAudience } from "../helpers/aiConnectors";
 import { adminFormat } from "../helpers/adminFormat";
 import styles from "./TeacherAccountAccess.module.css";
 
 /*
  * The two "who can get into this account" panels on teacher Settings: the AI apps holding a
  * connector token, and the teacher's sign-ins on other browsers and devices. Each can be cut off
- * from here without contacting support.
+ * from here without contacting support. The AI apps panel also sits on admin Settings for the
+ * admin connector.
  */
 
 const appMark = (clientName: string): React.ReactNode => {
@@ -35,10 +37,39 @@ const lastUsedLabel = (date: Date): string => {
 
 type SectionProps = { id: string };
 
-export const ConnectedAppsSection = ({ id }: SectionProps) => {
+type AppsCopy = { description: string; emptyUse: string; scope: string; connectFrom: string; connectHref: string };
+
+const APPS_COPY: Record<AiConnectorAudience, AppsCopy> = {
+  teacher: {
+    description:
+      "These apps can read and change your test series, courses, study notes and sales as you. Disconnect any you no longer use or do not recognise.",
+    emptyUse: "check sales or write questions",
+    scope: "your Testkart account",
+    connectFrom: "your Overview",
+    connectHref: "/teacher/dashboard",
+  },
+  admin: {
+    description:
+      "These apps can see every admin section you can open and edit its content as you. Disconnect any you no longer use or do not recognise.",
+    emptyUse: "look up orders and teachers or write content",
+    scope: "the Testkart admin panel",
+    connectFrom: "the Dashboard",
+    connectHref: "/admin/dashboard",
+  },
+};
+
+type ConnectedAppsProps = SectionProps & {
+  audience?: AiConnectorAudience;
+  /** Overrides where "Connect an app" goes; null hides it for viewers who cannot open that page. */
+  connectHref?: string | null;
+};
+
+export const ConnectedAppsSection = ({ id, audience = "teacher", connectHref }: ConnectedAppsProps) => {
   const titleId = useId();
-  const { data, isPending, isError, refetch, isRefetching } = useAiConnections("teacher");
-  const revoke = useRevokeTeacherAiConnection();
+  const copy = APPS_COPY[audience];
+  const connectTo = connectHref === undefined ? copy.connectHref : connectHref;
+  const { data, isPending, isError, refetch, isRefetching } = useAiConnections(audience);
+  const revoke = useRevokeAiConnection(audience);
   const [pendingApp, setPendingApp] = useState<string | null>(null);
   const connections = data?.connections ?? [];
 
@@ -61,14 +92,11 @@ export const ConnectedAppsSection = ({ id }: SectionProps) => {
           <h2 id={titleId} className={styles.title}>
             Connected AI apps
           </h2>
-          <p className={styles.description}>
-            These apps can read and change your test series, courses, study notes and sales as you. Disconnect
-            any you no longer use or do not recognise.
-          </p>
+          <p className={styles.description}>{copy.description}</p>
         </div>
-        {connections.length > 0 && (
+        {connections.length > 0 && connectTo && (
           <Button asChild variant="outline" className={styles.headAction}>
-            <Link to="/teacher/dashboard">Connect another app</Link>
+            <Link to={connectTo}>Connect another app</Link>
           </Button>
         )}
       </div>
@@ -101,13 +129,15 @@ export const ConnectedAppsSection = ({ id }: SectionProps) => {
           <div className={styles.emptyText}>
             <p className={styles.emptyTitle}>No AI apps are connected</p>
             <p className={styles.emptyBody}>
-              Connect Claude, ChatGPT or Perplexity from your Overview to check sales or write questions by
+              Connect Claude, ChatGPT or Perplexity{connectTo ? ` from ${copy.connectFrom}` : ""} to {copy.emptyUse} by
               asking.
             </p>
           </div>
-          <Button asChild className={styles.ink}>
-            <Link to="/teacher/dashboard">Connect an app</Link>
-          </Button>
+          {connectTo && (
+            <Button asChild className={styles.ink}>
+              <Link to={connectTo}>Connect an app</Link>
+            </Button>
+          )}
         </div>
       ) : (
         <ul className={styles.ring} role="list">
@@ -122,7 +152,6 @@ export const ConnectedAppsSection = ({ id }: SectionProps) => {
               </div>
               <Button
                 variant="outline"
-               
                 className={styles.disconnect}
                 onClick={() => setPendingApp(connection.clientName)}
                 aria-label={`Disconnect ${connection.clientName}`}
@@ -143,7 +172,7 @@ export const ConnectedAppsSection = ({ id }: SectionProps) => {
         tone="destructive"
         icon={<Unplug />}
         title={`Disconnect ${pendingApp ?? "this app"}?`}
-        description={`${pendingApp ?? "The app"} loses access to your Testkart account straight away, on every device it was added on. To use it again, connect it from your Overview.`}
+        description={`${pendingApp ?? "The app"} loses access to ${copy.scope} straight away, on every device it was added on.${connectTo ? ` To use it again, connect it from ${copy.connectFrom}.` : ""}`}
         confirmLabel="Disconnect"
         pendingLabel="Disconnecting..."
         isPending={revoke.isPending}
