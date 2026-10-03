@@ -171,6 +171,7 @@ export const ExamContentSiloPage: React.FC<ExamContentSiloPageProps> = ({ pageTy
               />
             </>
           }
+          tabs={<ExamProductTabs examSlug={data.exam.examSlug} currentSlug={null} />}
         />
       }
     >
@@ -182,8 +183,6 @@ export const ExamContentSiloPage: React.FC<ExamContentSiloPageProps> = ({ pageTy
       <Helmet>
         <script type="application/ld+json">{JSON.stringify(pageStructuredData)}</script>
       </Helmet>
-
-      <ExamProductTabs examSlug={data.exam.examSlug} currentSlug={null} />
 
       <div className={styles.content} dangerouslySetInnerHTML={{ __html: wrapContentTables(renderMathInHtml(sanitizeHtml(data.page.content))) }} />
 

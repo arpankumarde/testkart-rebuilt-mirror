@@ -51,7 +51,7 @@
   outline-offset: 2px;
 }
 
-/* Active tab: dusty blue, the same "current" colour as Important Links. */
+/* Active tab: dusty blue. */
 .tabCurrent,
 .tabCurrent:hover {
   background-color: var(--exam-blue-tint);
@@ -61,82 +61,100 @@
 
 /* --- Important Links panel (sidebar) ------------------------------------- */
 
-/* Local aliases onto the --exam-* palette (base.css): warm ivory surface,
-   lavender icon tiles, sage hover and marker, dusty blue for the current
-   page. The old "peach" names now carry the dusty-blue active colours. */
+/* Styled after the homepage "Explore Top Exams" cards (ExamCategoryCard):
+   each link gets its own pastel (peach, mint, lavender, sky, butter, cycling
+   by position) that drives a wobbly duotone icon blob, its hover wash and its
+   active state. The pastels are artwork, the same in both themes; the washes
+   mix them into the panel surface, so they follow the theme. */
 .panel {
   --il-surface: var(--exam-ivory);
-  --il-header: color-mix(in srgb, var(--exam-lavender-tint) 70%, var(--exam-ivory));
   --il-border: var(--exam-ivory-border);
-  --il-hover: color-mix(in srgb, var(--exam-sage-tint) 45%, var(--exam-ivory));
-  --il-tile: var(--exam-lavender-tint);
-  --il-tile-ink: var(--exam-lavender-ink);
-  --il-peach: var(--exam-blue-tint);
-  --il-peach-tile: color-mix(in srgb, var(--exam-blue-border) 55%, var(--exam-blue-tint));
-  --il-peach-ink: var(--exam-blue-ink);
-  --il-sage: var(--exam-sage);
-  --il-sage-tint: var(--exam-sage-tint);
-  --il-sage-ink: var(--exam-sage-ink);
+  /* How much pastel goes into the hover / active row fills. */
+  --il-wash-mix: 26%;
+  --il-active-mix: 38%;
 
   overflow: hidden;
   background-color: var(--il-surface);
   border: 1px solid var(--il-border);
-  border-radius: var(--radius-lg);
+  border-radius: 1.5rem;
   box-shadow:
-    0 1px 2px hsl(220 20% 30% / 0.04),
-    0 8px 20px -14px hsl(220 20% 30% / 0.16);
+    0 1px 2px hsl(220 10% 15% / 0.03),
+    0 8px 22px -14px hsl(220 10% 15% / 0.14);
+}
+
+/* Dark: lighter washes and light text, so labels stay readable. */
+:global(.dark) .panel {
+  --il-wash-mix: 14%;
+  --il-active-mix: 24%;
 }
 
 .panelHeader {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
-  padding: var(--spacing-4);
-  background: linear-gradient(180deg, var(--il-header), var(--il-surface));
-  border-bottom: 1px solid var(--il-border);
-}
-
-.panelIcon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  flex-shrink: 0;
-  border-radius: var(--radius-md);
-  background-color: var(--il-sage-tint);
-  color: var(--il-sage-ink);
+  padding: var(--spacing-4) 1.25rem var(--spacing-3);
+  border-bottom: 1.5px dashed var(--il-border);
 }
 
 .panelHeading {
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
+  gap: 0.1875rem;
   min-width: 0;
 }
 
 .panelTitle {
   margin: 0;
   font-family: var(--font-family-heading);
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 1.125rem;
+  font-weight: 800;
   line-height: 1.2;
+  letter-spacing: -0.01em;
   color: var(--surface-foreground);
 }
 
 .panelSubtitle {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
 }
 
 .linkList {
   list-style: none;
   margin: 0;
-  padding: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-3) var(--spacing-4);
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0.375rem;
+}
+
+/* One pastel, blob shape and tilt per position, so neighbours never match
+   and no two icons sit quite the same way. */
+.linkList > li:nth-child(5n + 1) {
+  --il-accent: #f9b99a; /* peach */
+  --il-blob: 64% 36% 58% 42% / 44% 62% 38% 56%;
+  --il-tilt: -10deg;
+}
+
+.linkList > li:nth-child(5n + 2) {
+  --il-accent: #a9dcc8; /* mint */
+  --il-blob: 38% 62% 44% 56% / 60% 40% 64% 36%;
+  --il-tilt: 8deg;
+}
+
+.linkList > li:nth-child(5n + 3) {
+  --il-accent: #c8b6f2; /* lavender */
+  --il-blob: 56% 44% 32% 68% / 42% 60% 40% 58%;
+  --il-tilt: -5deg;
+}
+
+.linkList > li:nth-child(5n + 4) {
+  --il-accent: #aed3f2; /* sky */
+  --il-blob: 68% 32% 56% 44% / 56% 38% 62% 44%;
+  --il-tilt: 12deg;
+}
+
+.linkList > li:nth-child(5n + 5) {
+  --il-accent: #f4dfa3; /* butter */
+  --il-blob: 40% 60% 66% 34% / 64% 44% 56% 36%;
+  --il-tilt: -13deg;
 }
 
 .linkItem {
@@ -144,45 +162,70 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-3);
-  padding: 0.4375rem var(--spacing-2);
-  border-radius: var(--radius-md);
+  padding: 0.375rem var(--spacing-3) 0.375rem 0.375rem;
+  border-radius: 1rem;
   color: var(--foreground);
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   font-weight: 500;
   line-height: 1.35;
   text-decoration: none;
   transition:
-    background-color 180ms ease,
-    color 180ms ease;
+    background-color 220ms ease,
+    color 220ms ease,
+    box-shadow 220ms ease,
+    transform 220ms ease;
 }
 
 .linkItem:hover {
-  background-color: var(--il-hover);
+  background-color: color-mix(in srgb, var(--il-accent) var(--il-wash-mix), var(--il-surface));
+  transform: translateX(2px);
 }
 
 .linkItem:focus-visible {
-  outline: 2px solid var(--il-sage);
-  outline-offset: -2px;
+  outline: 2px solid color-mix(in srgb, var(--il-accent), hsl(220 30% 12%) 45%);
+  outline-offset: 1px;
 }
 
+/* Duotone icon, as on the exam cards: an off-centre pastel blob with the
+   outlined glyph drawn over it in a deep shade of the same pastel. */
 .linkIcon {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  width: 2.375rem;
+  height: 2.375rem;
   flex-shrink: 0;
-  border-radius: var(--radius);
-  background-color: var(--il-tile);
-  color: var(--il-tile-ink);
-  transition:
-    background-color 180ms ease,
-    color 180ms ease;
+  color: color-mix(in srgb, var(--il-accent), hsl(220 30% 12%) 72%);
+  transition: transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+.linkBlob {
+  position: absolute;
+  inset: 0.1875rem 0.125rem 0.0625rem 0.25rem;
+  border-radius: var(--il-blob);
+  background-color: var(--il-accent);
+  transform: rotate(var(--il-tilt));
+  transition:
+    transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    filter 220ms ease;
+}
+
+.linkIcon svg {
+  position: relative;
+  width: 1.125rem;
+  height: 1.125rem;
+  stroke-width: 1.85;
+  transform: translate(-0.0625rem, -0.0625rem);
+}
+
+/* Hover: the blob wiggles the other way and the icon hops up a touch. */
 .linkItem:hover .linkIcon {
-  background-color: var(--il-sage-tint);
-  color: var(--il-sage-ink);
+  transform: translateY(-2px) rotate(-4deg);
+}
+
+.linkItem:hover .linkBlob {
+  transform: rotate(calc(var(--il-tilt) * -1)) scale(1.08);
 }
 
 .linkLabel {
@@ -194,53 +237,51 @@
   flex-shrink: 0;
   color: var(--muted-foreground);
   opacity: 0;
-  transform: translateX(-2px);
+  transform: translateX(-4px);
   transition:
-    opacity 180ms ease,
-    transform 180ms ease;
+    opacity 220ms ease,
+    transform 220ms ease;
 }
 
 .linkItem:hover .linkChevron {
-  opacity: 0.7;
+  opacity: 0.75;
   transform: translateX(0);
 }
 
-/* Active: soft peach row, a slim sage marker on the left. */
+/* Active: a deeper wash of the link's own pastel, a soft ring and a pastel
+   strip peeking out under the bottom edge, like the exam cards. */
 .linkItemCurrent,
 .linkItemCurrent:hover {
-  background-color: var(--il-peach);
-  color: var(--il-peach-ink);
-  font-weight: 600;
+  background-color: color-mix(in srgb, var(--il-accent) var(--il-active-mix), var(--il-surface));
+  color: color-mix(in srgb, var(--il-accent), hsl(220 30% 12%) 80%);
+  font-weight: 650;
+  box-shadow:
+    inset 0 0 0 1.5px color-mix(in srgb, var(--il-accent) 75%, transparent),
+    0 3px 0 0 color-mix(in srgb, var(--il-accent) 85%, hsl(220 30% 12%));
 }
 
-.linkItemCurrent::before {
-  content: "";
-  position: absolute;
-  left: -0.5rem;
-  top: 50%;
-  width: 3px;
-  height: 1.25rem;
-  transform: translateY(-50%);
-  border-radius: 0 var(--radius-full) var(--radius-full) 0;
-  background-color: var(--il-sage);
+.linkItemCurrent:hover {
+  transform: none;
 }
 
-.linkItemCurrent .linkIcon,
-.linkItemCurrent:hover .linkIcon {
-  background-color: var(--il-peach-tile);
-  color: var(--il-peach-ink);
+:global(.dark) .linkItemCurrent {
+  color: var(--surface-foreground);
+}
+
+.linkItemCurrent .linkBlob {
+  filter: saturate(1.3) brightness(0.96);
 }
 
 .linkItemCurrent .linkChevron {
-  opacity: 0.8;
+  opacity: 0.85;
   transform: translateX(0);
   color: currentColor;
 }
 
 .linkSkeleton {
-  height: 2.875rem;
-  border-radius: var(--radius-md);
-  background-color: var(--il-tile);
+  height: 3.125rem;
+  border-radius: 1rem;
+  background-color: color-mix(in srgb, var(--il-accent) var(--il-wash-mix), var(--il-surface));
   animation: examNavPulse 1.4s ease-in-out infinite;
 }
 
@@ -254,17 +295,16 @@
    the page header and its list turns into a horizontally scrolling chip row,
    so it never competes with the fixed mobile header or bottom nav. */
 @media (max-width: 1023px) {
-  .panelHeader {
-    padding: var(--spacing-3) var(--spacing-4);
+  .panel {
+    border-radius: 1.25rem;
   }
 
-  .panelIcon {
-    width: 1.875rem;
-    height: 1.875rem;
+  .panelHeader {
+    padding: var(--spacing-3) var(--spacing-4) var(--spacing-2);
   }
 
   .panelTitle {
-    font-size: 0.9375rem;
+    font-size: 1rem;
   }
 
   .panelSubtitle {
@@ -274,7 +314,7 @@
   .linkList {
     flex-direction: row;
     gap: var(--spacing-2);
-    padding: var(--spacing-3) var(--spacing-4);
+    padding: var(--spacing-3) var(--spacing-4) var(--spacing-4);
     overflow-x: auto;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
@@ -290,22 +330,26 @@
 
   .linkItem {
     gap: var(--spacing-2);
-    padding: 0.3125rem var(--spacing-3) 0.3125rem 0.3125rem;
-    border: 1px solid var(--il-border);
+    padding: 0.25rem var(--spacing-3) 0.25rem 0.25rem;
+    border: 1.5px solid color-mix(in srgb, var(--il-accent) 55%, var(--il-border));
     border-radius: var(--radius-full);
     font-size: 0.8125rem;
     white-space: nowrap;
   }
 
+  .linkItem:hover {
+    transform: none;
+  }
+
   .linkItemCurrent,
   .linkItemCurrent:hover {
-    border-color: var(--il-peach-tile);
+    border-color: color-mix(in srgb, var(--il-accent) 85%, hsl(220 30% 12%));
+    box-shadow: none;
   }
 
   .linkIcon {
-    width: 1.5rem;
-    height: 1.5rem;
-    border-radius: var(--radius-full);
+    width: 1.75rem;
+    height: 1.75rem;
   }
 
   .linkIcon svg {
@@ -313,16 +357,33 @@
     height: 14px;
   }
 
-  .linkChevron,
-  .linkItemCurrent::before {
+  .linkChevron {
     display: none;
   }
 
   .linkSkeleton {
     width: 7rem;
-    height: 2.25rem;
+    height: 2.375rem;
     flex: 0 0 auto;
     border-radius: var(--radius-full);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .linkItem,
+  .linkIcon,
+  .linkBlob,
+  .linkChevron {
+    transition: none;
+  }
+
+  .linkItem:hover,
+  .linkItem:hover .linkIcon {
+    transform: none;
+  }
+
+  .linkItem:hover .linkBlob {
+    transform: rotate(var(--il-tilt));
   }
 }
 

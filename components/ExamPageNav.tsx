@@ -7,7 +7,6 @@ import {
   FileText,
   GraduationCap,
   LayoutGrid,
-  Link2,
   ListChecks,
   Package,
   TrendingUp,
@@ -134,9 +133,6 @@ export const ExamImportantLinks: React.FC<ExamImportantLinksProps> = ({
   return (
     <nav className={`${styles.panel} ${className ?? ""}`} aria-label="Important links">
       <div className={styles.panelHeader}>
-        <span className={styles.panelIcon} aria-hidden="true">
-          <Link2 size={16} />
-        </span>
         <div className={styles.panelHeading}>
           <h2 className={styles.panelTitle}>Important Links</h2>
           <p className={styles.panelSubtitle}>Everything about this exam</p>
@@ -157,6 +153,7 @@ export const ExamImportantLinks: React.FC<ExamImportantLinksProps> = ({
                     aria-current={isCurrent ? "page" : undefined}
                   >
                     <span className={styles.linkIcon} aria-hidden="true">
+                      <span className={styles.linkBlob} />
                       {INFO_LINK_ICONS[link.slug ?? "overview"] ?? <FileText size={16} />}
                     </span>
                     <span className={styles.linkLabel}>{link.label}</span>

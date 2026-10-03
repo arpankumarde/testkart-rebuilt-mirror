@@ -214,11 +214,10 @@ export default function ExamDetailPage() {
                 )}
               </>
             }
+            tabs={<ExamProductTabs examSlug={examDetail.examSlug} currentSlug={null} />}
           />
         }
       >
-        <ExamProductTabs examSlug={examDetail.examSlug} currentSlug={null} />
-
         <ExamProductsSection
           examId={examDetail.id}
           examSlug={examDetail.examSlug}

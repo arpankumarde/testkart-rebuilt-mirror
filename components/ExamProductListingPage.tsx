@@ -603,6 +603,7 @@ export const ExamProductListingPage: React.FC<ExamProductListingPageProps> = ({ 
               size="sm"
             />
           }
+          tabs={<ExamProductTabs examSlug={examDetail.examSlug} currentSlug={productType} />}
         />
       }
     >
@@ -610,8 +611,6 @@ export const ExamProductListingPage: React.FC<ExamProductListingPageProps> = ({ 
       <Helmet>
         <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
       </Helmet>
-
-      <ExamProductTabs examSlug={examDetail.examSlug} currentSlug={productType} />
 
       <main className={styles.mainContent}>
         {productType === "mock-tests" && <MockTestsBody examId={examDetail.id} examName={examDetail.examName} />}
