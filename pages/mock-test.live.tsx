@@ -129,7 +129,6 @@ const LiveTestsPage: React.FC = () => {
       <SEOHead
         title="Live Mock Tests | Compete in Real-Time"
         description="Join live competitive mock tests, compete with thousands of students in real-time, and win prizes. Check your ranking instantly."
-        image="https://assets.floot.app/0a7f01ed-7b95-4c38-9275-16e713383937/54922abf-b666-4d9f-9732-aec0c03c9254.png"
       />
       <div className={styles.pageContainer}>
         <header className={styles.hero}>

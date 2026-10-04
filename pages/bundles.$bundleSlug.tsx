@@ -2,6 +2,7 @@ import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { SEOHead } from '../components/SEOHead';
+import { Placeholder } from '../helpers/placeholderImages';
 import { BundleDetailsView } from '../components/BundleDetailsView';
 import { getBundlesList } from '../endpoints/bundles/list_GET.schema';
 import { BundlesGrid } from '../components/BundlesGrid';
@@ -68,7 +69,7 @@ const BundleDetailsPage: React.FC = () => {
         <SEOHead
           title={bundle.title}
           description={bundle.description || `Explore the ${bundle.title} course bundle on Testkart.`}
-          image={bundle.thumbnailUrl || undefined}
+          image={bundle.thumbnailUrl || Placeholder.TEST}
           url={pageUrl}
           noIndex={!bundle.seo.indexable}
         />

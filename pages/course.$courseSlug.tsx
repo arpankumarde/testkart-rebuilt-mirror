@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { usePublicCourseDetailsQuery, useRelatedCoursesQuery } from '../helpers/useStudentCoursesQuery';
 import { SEOHead } from '../components/SEOHead';
+import { Placeholder } from '../helpers/placeholderImages';
 import { Button } from '../components/Button';
 import { Skeleton } from '../components/Skeleton';
 import { CourseHero } from '../components/CourseHero';
@@ -18,6 +19,7 @@ import { ReviewDialog } from '../components/ReviewDialog';
 import { useAuth } from '../helpers/useAuth';
 import { wrapContentTables } from '../helpers/contentTables';
 import { sanitizeHtml } from '../helpers/sanitizeHtml';
+import { htmlToPlainText } from '../helpers/courseDraft';
 import { Avatar, AvatarImage, AvatarFallback } from '../components/Avatar';
 import { useTrackStorefrontView } from '../helpers/trackStorefrontEvent';
 import styles from "./course.$courseSlug.module.css";
@@ -99,14 +101,17 @@ export default function CourseDetailsPage() {
     return counts;
   }, [reviews]);
 
-  // Falls back to a content-derived description when the teacher-entered
-  // one is missing or too short/generic (e.g. the "Draft test package"
-  // default), instead of letting a thin or duplicate string reach the
-  // <meta name="description"> tag.
+  // The teacher's description is rich-text HTML, so it is flattened and cut to
+  // about 160 characters. Falls back to a content-derived description when it
+  // is missing or too short to describe the course.
   const metaDescription = useMemo(() => {
     if (!course) return "";
-    const desc = course.description?.trim();
-    if (desc && desc.length >= 50) return desc;
+    const desc = htmlToPlainText(course.description);
+    if (desc.length >= 50) {
+      if (desc.length <= 160) return desc;
+      const cut = desc.slice(0, 157);
+      return `${cut.slice(0, cut.lastIndexOf(" ") > 100 ? cut.lastIndexOf(" ") : 157)}...`;
+    }
     const lessonCount = course.sections.reduce((sum, section) => sum + section.lessons.length, 0);
     const lessonsText = lessonCount > 0 ? `${lessonCount} lesson${lessonCount > 1 ? "s" : ""}` : "a structured curriculum";
     const priceText = course.price === 0 ? "Free" : `₹${course.discountPrice ?? course.price}`;
@@ -135,6 +140,7 @@ export default function CourseDetailsPage() {
         "sameAs": baseUrl,
       },
       "url": canonicalUrl,
+      "image": course.thumbnailImageUrl || course.thumbnailUrl || Placeholder.COURSE,
       "offers": {
         "@type": "Offer",
         "price": course.price === 0 ? "0" : (course.discountPrice ?? course.price).toString(),
@@ -233,7 +239,7 @@ export default function CourseDetailsPage() {
       <SEOHead
         title={course.title}
         description={metaDescription}
-        image={course.thumbnailUrl || course.thumbnailUrl || undefined}
+        image={course.thumbnailImageUrl || course.thumbnailUrl || Placeholder.COURSE}
         url={`https://testkart.in/course/${courseSlug}`}
         type="website"
         noIndex={!course.seo.indexable}

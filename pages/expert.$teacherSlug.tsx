@@ -2,6 +2,7 @@ import React from "react";
 import { useParams, useLocation, useSearchParams } from "react-router-dom";
 import { AlertTriangle } from "lucide-react";
 import { SEOHead } from "../components/SEOHead";
+import { BRAND_APP_ICON } from "../helpers/brandAssets";
 import { useTeacherPublicProfileQuery } from "../helpers/useTeacherPublicProfile";
 import { ExpertProfileView } from "../components/ExpertProfileView";
 import { Skeleton } from "../components/Skeleton";
@@ -61,7 +62,7 @@ const ExpertProfilePage = () => {
   if (isLoading) {
     return (
       <>
-        <SEOHead title="Loading expert profile..." description="Loading expert profile information" />
+        <SEOHead title="Loading expert profile..." description="Loading expert profile information" image={null} />
         <ExpertProfilePageSkeleton />
       </>
     );
@@ -70,7 +71,7 @@ const ExpertProfilePage = () => {
   if (isError) {
     return (
       <div className={styles.page}>
-        <SEOHead title="Expert not found" description="Expert profile not found" />
+        <SEOHead title="Expert not found" description="Expert profile not found" image={null} />
         <div className={styles.errorState} role="alert">
           <span className={styles.errorIcon} aria-hidden="true">
             <AlertTriangle size={26} />
@@ -108,7 +109,6 @@ const ExpertProfilePage = () => {
   const pageTitle = `${teacher.displayName} – Explore Courses, Mock Tests & Study Material | Testkart`;
   const totalContentCount =
     courses.length + tests.length + liveTests.length + products.length + bundles.length;
-  const avatarUrl = teacher.avatarUrl ? teacher.avatarUrl : `${SITE_URL}/default-avatar.png`;
 
   const sameAsLinks: string[] = [];
   if (teacher.socialLinks) {
@@ -127,7 +127,7 @@ const ExpertProfilePage = () => {
         "@type": "Person",
         "@id": `${canonicalUrl}#person`,
         name: teacher.displayName,
-        image: teacher.avatarUrl || avatarUrl,
+        image: teacher.avatarUrl || undefined,
         description: teacher.bio || `Educator and test creator on Testkart`,
         url: canonicalUrl,
         jobTitle: "Educator",
@@ -241,7 +241,8 @@ const ExpertProfilePage = () => {
       <SEOHead
         title={`${teacher.displayName} – Explore Courses, Mock Tests & Study Material`}
         description={metaDescription}
-        image={teacher.avatarUrl || avatarUrl}
+        image={teacher.avatarUrl || BRAND_APP_ICON}
+        twitterCard="summary"
         url={canonicalUrl}
         type="profile"
       />

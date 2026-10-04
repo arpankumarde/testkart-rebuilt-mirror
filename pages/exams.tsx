@@ -176,7 +176,6 @@ const ExamsPage: React.FC = () => {
         title="Browse Exams"
         description="Choose your exam from JEE, NEET, UPSC, SSC, Banking, Railway and more. Find expert-created mock tests for your preparation."
         url={CANONICAL_URL}
-        image="https://assets.floot.app/0a7f01ed-7b95-4c38-9275-16e713383937/54922abf-b666-4d9f-9732-aec0c03c9254.png"
       />
       <Helmet>
         {/* Structured Data */}

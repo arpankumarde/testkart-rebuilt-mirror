@@ -28,8 +28,13 @@ export interface SEOHeadProps {
   title: string;
   /** A brief description of the page, used for the meta description and social media previews. */
   description: string;
-  /** The URL of the image to use for social media previews. Defaults to the Testkart logo. */
-  image?: string;
+  /**
+   * The URL of the image to use for social media previews. Defaults to the
+   * Testkart share image. Pass null to send no og:image / twitter:image at all.
+   */
+  image?: string | null;
+  /** Twitter card layout. Use "summary" for square images such as avatars. */
+  twitterCard?: 'summary' | 'summary_large_image';
   /**
    * The canonical URL of the page. Defaults to the current route. Only the
    * path is used — the origin is always https://testkart.in.
@@ -53,13 +58,14 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
   title,
   description,
   image = DEFAULT_IMAGE_URL,
+  twitterCard = 'summary_large_image',
   url,
   type = 'website',
   noIndex = false,
 }) => {
   const location = useLocation();
-  
-  const finalImage = image.startsWith('data:') ? DEFAULT_IMAGE_URL : image;
+
+  const finalImage = image === null ? null : image.startsWith('data:') ? DEFAULT_IMAGE_URL : image;
 
   // Construct the canonical URL from the current route if not provided. Always
   // re-anchored to the official domain — see toCanonicalUrl.
@@ -78,16 +84,16 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
       {/* Open Graph (for Facebook, LinkedIn, etc.) */}
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />
-      <meta property="og:image" content={finalImage} />
+      {finalImage && <meta property="og:image" content={finalImage} />}
       <meta property="og:url" content={canonicalUrl} />
       <meta property="og:type" content={type} />
       <meta property="og:site_name" content={SITE_NAME} />
 
       {/* Twitter Card */}
-      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:card" content={finalImage ? twitterCard : 'summary'} />
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={finalImage} />
+      {finalImage && <meta name="twitter:image" content={finalImage} />}
     </Helmet>
   );
 };

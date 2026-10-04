@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useTestDetailsQuery } from "../helpers/useTestDetailsQuery";
 import { SEOHead } from "../components/SEOHead";
+import { Placeholder } from "../helpers/placeholderImages";
 import { slugify } from "../helpers/slugify";
 import { wrapContentTables } from "../helpers/contentTables";
 import { sanitizeHtml } from "../helpers/sanitizeHtml";
@@ -254,7 +255,7 @@ const TestDetailsPage: React.FC = () => {
       <SEOHead
         title={testPackage.title}
         description={metaDescription}
-        image={testPackage.thumbnailUrl || testPackage.thumbnailUrl || undefined}
+        image={testPackage.thumbnailUrl || Placeholder.TEST}
         url={canonicalUrl}
         noIndex={!testPackage.seo.indexable}
       />
@@ -372,8 +373,6 @@ const TestDetailsPage: React.FC = () => {
                 avatarUrl: testPackage.teacherAvatarUrl,
                 bio: testPackage.teacherBio,
                 websiteUrl: testPackage.teacherWebsiteUrl,
-                publicEmail: testPackage.teacherPublicEmail,
-                publicPhone: testPackage.teacherPublicPhone,
                 isVerified: testPackage.teacherIsVerified,
                 socialLinks: testPackage.teacherSocialLinks,
                 awardsCertificates: testPackage.teacherAwardsCertificates,

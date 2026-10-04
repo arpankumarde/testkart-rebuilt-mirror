@@ -5,6 +5,7 @@ import { stripHtmlClient } from "../helpers/stripHtmlClient";
 import { wrapContentTables } from "../helpers/contentTables";
 import { BookOpen, BarChart2, AlertTriangle, PlayCircle, FileText, Target, Trophy, Clock, AlertCircle, ShieldAlert, CreditCard, Award } from "lucide-react";
 import { SEOHead } from "../components/SEOHead";
+import { Placeholder } from "../helpers/placeholderImages";
 import { useLiveTestDetailsQuery } from "../helpers/useLiveTestDetailsQuery";
 import { LiveTestHero } from "../components/LiveTestHero";
 import { LiveTestLeaderboard } from "../components/LiveTestLeaderboard";
@@ -80,7 +81,7 @@ const LiveTestDetailsPage: React.FC = () => {
           stripHtmlClient(data.description) ||
           `Join the live test '${data.title}'${formattedStartDate ? ` on ${formattedStartDate}` : ''} on Testkart. Compete, learn, and see where you stand.`
         }
-        image={data.thumbnailUrl ?? undefined}
+        image={data.thumbnailUrl || Placeholder.LIVE}
       />
       <div className={styles.pageContainer}>
         <LiveTestHero liveTest={data} />
@@ -260,8 +261,6 @@ const LiveTestDetailsPage: React.FC = () => {
                       slug: data.teacherSlug,
                       bio: data.teacherProfile.bio,
                       websiteUrl: data.teacherProfile.websiteUrl,
-                      publicEmail: data.teacherProfile.publicEmail,
-                      publicPhone: data.teacherProfile.publicPhone,
                       isVerified: data.teacherIsVerified,
                       socialLinks: data.teacherProfile.socialLinks,
                       awardsCertificates: data.teacherProfile.awardsCertificates,

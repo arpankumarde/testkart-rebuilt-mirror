@@ -65,7 +65,6 @@ const HomePage: React.FC = () => {
         title="India's Marketplace for Mock Tests, Courses & Study Notes"
         description="India's online marketplace where teachers sell and students buy mock tests, courses, and study materials for exam preparation. Join thousands of educators and learners on Testkart."
         url="https://testkart.in/"
-        image="https://assets.floot.app/0a7f01ed-7b95-4c38-9275-16e713383937/54922abf-b666-4d9f-9732-aec0c03c9254.png"
       />
       <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
       <div className={styles.pageContainer}>

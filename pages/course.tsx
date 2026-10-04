@@ -215,7 +215,6 @@ const CoursesPage: React.FC = () => {
         title={pageTitle}
         description={pageDescription}
         url={canonicalUrl}
-        image="https://assets.floot.app/0a7f01ed-7b95-4c38-9275-16e713383937/54922abf-b666-4d9f-9732-aec0c03c9254.png"
       />
       <Helmet>
         {/* Structured Data (JSON-LD) */}

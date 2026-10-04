@@ -105,7 +105,6 @@ const SellOnlineCoursesPage: React.FC = () => {
         title="Create and Sell Online Video Courses | Testkart"
         description="Join India's leading marketplace to create and sell online video courses. Get unlimited hosting, AI tools, and reach millions of students. Zero investment required."
         url="https://testkart.in/sell/courses"
-        image="https://assets.floot.app/0a7f01ed-7b95-4c38-9275-16e713383937/54922abf-b666-4d9f-9732-aec0c03c9254.png"
       />
 
       <Helmet>

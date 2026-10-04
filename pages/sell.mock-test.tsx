@@ -34,7 +34,6 @@ const MockTestPage: React.FC = () => {
         title="Create and Sell Mock Tests Online"
         description="Join Testkart to create and sell mock tests for UPSC, NEET, JEE, SSC, and Banking exams. Features AI question generation, advanced analytics, and zero investment."
         url="https://testkart.in/sell/mock-test"
-        image="https://assets.floot.app/0a7f01ed-7b95-4c38-9275-16e713383937/54922abf-b666-4d9f-9732-aec0c03c9254.png"
       />
       <Helmet>
         {/* Structured Data (JSON-LD) */}
