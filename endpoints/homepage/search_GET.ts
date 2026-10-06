@@ -87,7 +87,7 @@ export async function handle(request: Request): Promise<Response> {
         "courses.price",
         "courses.discountPrice",
         "courses.views",
-        "courses.category",
+        "courses.examName",
         "users.displayName as teacherName",
         "users.isVerified as teacherIsVerified",
         "users.avatarUrl as teacherAvatarUrl",
@@ -279,7 +279,7 @@ export async function handle(request: Request): Promise<Response> {
       teacherYearsOfExperience: c.teacherYearsOfExperience ?? null,
       teacherSlug: c.teacherSlug ?? null,
       views: Number(c.views ?? 0),
-     category: c.category,
+     category: c.examName ?? null,
      type: "course",
     }));
 

@@ -86,6 +86,7 @@ import { handle as subscriptionsTeacherOrders } from "../endpoints/admin/subscri
 import { handle as subscriptionsTrialHistory } from "../endpoints/admin/subscriptions/trial-history_GET";
 import { handle as supportThreadMessages } from "../endpoints/admin/support/thread/messages_GET";
 import { handle as wellKnownList } from "../endpoints/admin/well-known/list_GET";
+import { handle as examProductCounts } from "../endpoints/exam-products/counts_GET";
 
 import { handle as blogPostsUpsert } from "../endpoints/admin/blog/posts/upsert_POST";
 import { handle as blogPostsDelete } from "../endpoints/admin/blog/posts/delete_POST";
@@ -100,13 +101,15 @@ import { handle as careersDelete } from "../endpoints/admin/careers/delete_POST"
 import { handle as careersDeleteApplication } from "../endpoints/admin/careers/delete-application_POST";
 import { handle as examContentUpsert } from "../endpoints/admin/exam-content/upsert_POST";
 import { handle as examContentPublish } from "../endpoints/admin/exam-content/publish_POST";
+import { handle as examContentReadyForReview } from "../endpoints/admin/exam-content/ready-for-review_POST";
 import { handle as examContentUnpublish } from "../endpoints/admin/exam-content/unpublish_POST";
 import { handle as examContentDelete } from "../endpoints/admin/exam-content/delete_POST";
 
 type EndpointHandler = (request: Request) => Promise<Response>;
 
 // Every admin GET endpoint except the two invoice downloads (PDF bytes, not JSON),
-// admin/session (testkart_whoami covers it) and the teacher and student bank details / KYC lists.
+// admin/session (testkart_whoami covers it) and the teacher and student bank details / KYC lists,
+// plus the public reads in PUBLIC_READ_ACCESS.
 const READ_ROUTES: Record<string, EndpointHandler> = {
   "admin/blog/posts/list": blogPostsList,
   "admin/blog/posts/get": blogPostsGet,
@@ -172,7 +175,20 @@ const READ_ROUTES: Record<string, EndpointHandler> = {
   "admin/subscriptions/trial-history": subscriptionsTrialHistory,
   "admin/support/thread/messages": supportThreadMessages,
   "admin/well-known/list": wellKnownList,
+  "exam-products/counts": examProductCounts,
 };
+
+// Public (non-admin) endpoints in READ_ROUTES, to the admin route whose access opens them on the
+// connector. They carry no admin rule of their own, so without this they would never be listed.
+const PUBLIC_READ_ACCESS: Record<string, string> = {
+  // One exam's published product counts by examSlug - what decides whether its listing pages show.
+  "exam-products/counts": "admin/exam-content/list",
+};
+
+/** The admin route whose permission rule gates a path. Admin paths gate themselves. */
+function accessRoute(path: string): string {
+  return PUBLIC_READ_ACCESS[path] ?? path;
+}
 
 const WRITE_ROUTES: Record<string, EndpointHandler> = {
   "admin/blog/posts/upsert": blogPostsUpsert,
@@ -188,6 +204,7 @@ const WRITE_ROUTES: Record<string, EndpointHandler> = {
   "admin/careers/delete-application": careersDeleteApplication,
   "admin/exam-content/upsert": examContentUpsert,
   "admin/exam-content/publish": examContentPublish,
+  "admin/exam-content/ready-for-review": examContentReadyForReview,
   "admin/exam-content/unpublish": examContentUnpublish,
   "admin/exam-content/delete": examContentDelete,
 };
@@ -251,7 +268,7 @@ export async function loadAdmin(adminId: number): Promise<AdminProfile> {
 }
 
 function assertPermitted(admin: AdminProfile, path: string): void {
-  if (!canCallAdminApi(admin.permissions ?? [], path)) {
+  if (!canCallAdminApi(admin.permissions ?? [], accessRoute(path))) {
     throw new McpToolError(
       `Refused: your admin account does not have access to ${path}. An admin with "Admins and access" ` +
         "can tick that section for you in the admin panel under Settings."
@@ -294,7 +311,7 @@ export function listReadRoutes(): string[] {
 
 /** Read paths this admin's permissions open. */
 export function listPermittedReadRoutes(permissions: readonly string[]): string[] {
-  return listReadRoutes().filter((path) => canCallAdminApi(permissions, path));
+  return listReadRoutes().filter((path) => canCallAdminApi(permissions, accessRoute(path)));
 }
 
 export async function callRead(

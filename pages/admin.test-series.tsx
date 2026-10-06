@@ -1,20 +1,21 @@
-import React, { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Helmet } from "react-helmet";
-import { useAdminTestsQuery, useDeactivateTestMutation } from "../helpers/useAdminTests";
-import { AdminTestListItem } from "../endpoints/admin/tests/list_GET.schema";
+import { useAdminTestSeriesPageQuery, useDeactivateTestMutation } from "../helpers/useAdminTests";
+import { AdminTestSeriesPageItem, TestSeriesSortColumn } from "../endpoints/admin/tests/page_GET.schema";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
 import { Badge } from "../components/Badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/Select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../components/Tooltip";
 import { ConsolePageHeader } from "../components/ConsolePageHeader";
-import { ConsoleListToolbar, consoleToolbarControlClass } from "../components/ConsoleListToolbar";
+import { ConsoleListToolbar } from "../components/ConsoleListToolbar";
 import { ConsoleListEmpty } from "../components/ConsoleListEmpty";
 import { ConsoleConfirmDialog } from "../components/ConsoleConfirmDialog";
 import { ConsoleFilterNotice } from "../components/ConsoleFilterNotice";
+import { ConsoleListPagination } from "../components/ConsoleListPagination";
 import { useListUrlParams } from "../helpers/useListUrlParams";
 import { useRefetchOnLinkArrival } from "../helpers/useRefetchOnLinkArrival";
-import { useTableSort, SortAccessors } from "../helpers/useTableSort";
+import { useServerTableSort, SortOrder } from "../helpers/useTableSort";
+import { useListPage } from "../helpers/useListPage";
 import { SortableTh } from "../components/SortableTh";
 import {
   CheckCircle2,
@@ -35,35 +36,19 @@ import { adminEditPath } from "../helpers/adminContentEdit";
 import { AdminEditIconButton } from "../components/AdminEditIconButton";
 import styles from "./admin.test-series.module.css";
 
-const ALL_TEACHERS = "__all__";
-
 const STATUS_VALUES = ["all", "published", "unpublished"] as const;
 type StatusFilter = (typeof STATUS_VALUES)[number];
 
-/* Subsets only a dashboard links to. Each mirrors a catalogue dashboard queue's SQL. */
+/* Subsets only a dashboard links to. Each mirrors a catalogue dashboard queue's SQL, run on the server. */
 const LIST_FILTERS = ["no-tests", "empty-tests"] as const;
 type ListFilter = (typeof LIST_FILTERS)[number];
 
-const matchesListFilter = (test: AdminTestListItem, filter: ListFilter | "none"): boolean => {
-  if (filter === "none") return true;
-  if (!test.isPublished || test.deletedAt !== null) return false;
-  return filter === "no-tests" ? test.liveItemCount === 0 : test.emptyTestCount > 0;
-};
-
-type SortColumn = "title" | "students" | "tests" | "price" | "createdAt";
-
-const SORT_ACCESSORS: SortAccessors<AdminTestListItem, SortColumn> = {
-  title: (t) => t.title,
-  students: (t) => t.studentsEnrolled,
-  tests: (t) => t.totalTests,
-  price: (t) => t.price,
-  createdAt: (t) => (t.createdAt ? new Date(t.createdAt) : null),
-};
-
-/* Dashboard subsets show the live item count in the Tests column, so they sort by it too. */
-const LIVE_ITEM_SORT_ACCESSORS: SortAccessors<AdminTestListItem, SortColumn> = {
-  ...SORT_ACCESSORS,
-  tests: (t) => t.liveItemCount,
+const FIRST_SORT_ORDER: Record<TestSeriesSortColumn, SortOrder> = {
+  title: "asc",
+  students: "desc",
+  tests: "desc",
+  price: "desc",
+  createdAt: "desc",
 };
 
 const formatNumber = (num: number): string => num.toLocaleString("en-IN");
@@ -80,7 +65,7 @@ const formatDate = (date: Date | string | null): string => {
   }).format(new Date(date));
 };
 
-const getTestUrl = (test: Pick<AdminTestListItem, "slug" | "examSlug">): string => {
+const getTestUrl = (test: Pick<AdminTestSeriesPageItem, "slug">): string => {
   return `/mock-test/${test.slug}`;
 };
 
@@ -140,22 +125,35 @@ const TestSeriesCardSkeleton = () => (
 );
 
 const AdminTestSeriesPage: React.FC = () => {
-  const { data: tests, isFetching, isError, error, refetch } = useAdminTestsQuery();
   const deactivateMutation = useDeactivateTestMutation();
 
   const [isDeactivateDialogOpen, setIsDeactivateDialogOpen] = useState(false);
   const [selectedTest, setSelectedTest] = useState<{ id: number; title: string } | null>(null);
-  const [viewingTest, setViewingTest] = useState<AdminTestListItem | null>(null);
+  const [viewingTest, setViewingTest] = useState<AdminTestSeriesPageItem | null>(null);
 
   const { read, readId, write } = useListUrlParams();
   const statusFilter = read<StatusFilter>("status", STATUS_VALUES, "all");
   const listFilter = read<ListFilter | "none">("filter", LIST_FILTERS, "none");
   const focusId = readId();
 
-  useRefetchOnLinkArrival(listFilter !== "none" || focusId !== null || statusFilter !== "all", isFetching, refetch);
-
   const [searchQuery, setSearchQuery] = useState("");
-  const [teacherFilter, setTeacherFilter] = useState(ALL_TEACHERS);
+  const sort = useServerTableSort(FIRST_SORT_ORDER);
+  const [page, setPage] = useListPage(
+    JSON.stringify([searchQuery, statusFilter, listFilter, focusId, sort.sortBy, sort.sortOrder])
+  );
+
+  const { data, isFetching, isPlaceholderData, isError, error, refetch } = useAdminTestSeriesPageQuery({
+    page,
+    search: searchQuery || undefined,
+    status: statusFilter === "all" ? undefined : statusFilter,
+    filter: listFilter === "none" ? undefined : listFilter,
+    id: focusId ?? undefined,
+    sortBy: sort.sortBy ?? undefined,
+    sortOrder: sort.sortBy ? sort.sortOrder : undefined,
+  });
+  const tests = isPlaceholderData ? undefined : data?.items;
+
+  useRefetchOnLinkArrival(listFilter !== "none" || focusId !== null || statusFilter !== "all", isFetching, refetch);
 
   const setStatusFilter = (value: string) => write({ status: value === "all" ? null : value });
 
@@ -173,66 +171,35 @@ const AdminTestSeriesPage: React.FC = () => {
     setViewingTest(match);
   }, [focusId, tests]);
 
-  const teachers = useMemo(() => {
-    if (!tests) return [];
-    return Array.from(new Set(tests.map((t) => t.teacherName))).sort();
-  }, [tests]);
+  const counts = data?.statusCounts;
+  const statusTabs = [
+    { value: "all", label: "All", count: counts?.all },
+    { value: "published", label: "Published", count: counts?.published },
+    { value: "unpublished", label: "Unpublished", count: counts?.unpublished },
+  ];
 
-  const statusTabs = useMemo(() => {
-    const all = tests ?? [];
-    return [
-      { value: "all", label: "All", count: all.length },
-      { value: "published", label: "Published", count: all.filter((t) => t.isPublished).length },
-      { value: "unpublished", label: "Unpublished", count: all.filter((t) => !t.isPublished).length },
-    ];
-  }, [tests]);
-
-  const filteredTests = useMemo(() => {
-    if (!tests) return [];
-    return tests.filter((test) => {
-      const matchesSearch = test.title
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-      const matchesStatus =
-        statusFilter === "all" ||
-        (statusFilter === "published" && test.isPublished) ||
-        (statusFilter === "unpublished" && !test.isPublished);
-      const matchesTeacher =
-        teacherFilter === ALL_TEACHERS || test.teacherName === teacherFilter;
-      const matchesFocus = focusId === null || test.id === focusId;
-      return (
-        matchesSearch && matchesStatus && matchesTeacher && matchesFocus && matchesListFilter(test, listFilter)
-      );
-    });
-  }, [tests, searchQuery, statusFilter, teacherFilter, focusId, listFilter]);
-
-  const { sorted: sortedTests, ...sort } = useTableSort(
-    filteredTests,
-    listFilter === "none" ? SORT_ACCESSORS : LIVE_ITEM_SORT_ACCESSORS
-  );
+  const sortedTests = tests ?? [];
+  const matchingCount = tests ? data?.total : undefined;
 
   const focusedTest = focusId === null ? undefined : tests?.find((t) => t.id === focusId);
 
   const hasUrlFilter = listFilter !== "none" || focusId !== null;
-  const hasActiveFilters =
-    searchQuery !== "" || statusFilter !== "all" || teacherFilter !== ALL_TEACHERS || hasUrlFilter;
+  const hasActiveFilters = searchQuery !== "" || statusFilter !== "all" || hasUrlFilter;
 
   const clearFilters = () => {
     setSearchQuery("");
-    setTeacherFilter(ALL_TEACHERS);
     write({ status: null, filter: null, id: null });
   };
 
   /* totalTests is a stored counter that can drift; the dashboard filters count live, so they show the live number. */
-  const getTestCount = (test: AdminTestListItem) =>
+  const getTestCount = (test: AdminTestSeriesPageItem) =>
     listFilter === "none" ? test.totalTests : test.liveItemCount;
 
   const getListFilterLabel = (filter: ListFilter): string => {
     if (filter === "no-tests") return "Published series with no tests inside";
     const label = "Published series with tests that have no questions";
-    if (!tests) return label;
-    const emptyTests = filteredTests.reduce((sum, test) => sum + test.emptyTestCount, 0);
-    return `${label} - ${formatCount(emptyTests, "test", "tests")} in ${formatNumber(filteredTests.length)} series`;
+    if (!tests || data?.emptyTestTotal == null) return label;
+    return `${label} - ${formatCount(data.emptyTestTotal, "test", "tests")} in ${formatNumber(data.total)} series`;
   };
 
   const getEmptyCopy = (): { title: string; description: string } => {
@@ -246,7 +213,7 @@ const AdminTestSeriesPage: React.FC = () => {
       return { title: "No test series yet", description: "Test series teachers create will be listed here." };
     }
     const onlyListFilter =
-      focusId === null && searchQuery === "" && statusFilter === "all" && teacherFilter === ALL_TEACHERS;
+      focusId === null && searchQuery === "" && statusFilter === "all";
     if (onlyListFilter && listFilter === "no-tests") {
       return {
         title: "Every published series has tests",
@@ -262,8 +229,8 @@ const AdminTestSeriesPage: React.FC = () => {
     return {
       title: "No test series match these filters",
       description: hasUrlFilter
-        ? "Nothing here for this status, teacher, search and the filter named above. Clear them to see the rest."
-        : "Nothing here for this status, teacher and search. Widen the filters to see the rest.",
+        ? "Nothing here for this status, search and the filter named above. Clear them to see the rest."
+        : "Nothing here for this status and search. Widen the filters to see the rest.",
     };
   };
 
@@ -289,7 +256,7 @@ const AdminTestSeriesPage: React.FC = () => {
 
   /* Published is the usual state, so only an unpublished series carries a flag.
      Under the empty-tests filter each row also flags how many of its tests have no questions. */
-  const renderIdentity = (test: AdminTestListItem) => (
+  const renderIdentity = (test: AdminTestSeriesPageItem) => (
     <span className={styles.primaryLine}>
       <a
         href={test.isPublished ? getTestUrl(test) : adminPreviewPath("mock_test", test.id)}
@@ -311,7 +278,7 @@ const AdminTestSeriesPage: React.FC = () => {
     </span>
   );
 
-  const renderActions = (test: AdminTestListItem) => (
+  const renderActions = (test: AdminTestSeriesPageItem) => (
     <div className={styles.rowActions}>
       <Tooltip>
         <TooltipTrigger asChild>
@@ -352,7 +319,20 @@ const AdminTestSeriesPage: React.FC = () => {
   );
 
   const renderContent = () => {
-    if (isFetching) {
+    if (isError) {
+      return (
+        <ConsoleListEmpty
+          tone="error"
+          icon={<AlertTriangle size={24} />}
+          title="Could not load the test series"
+          description={error instanceof Error ? error.message : "The request did not come back. Check your connection and try again."}
+        >
+          <Button variant="outline" onClick={() => refetch()}>Try again</Button>
+        </ConsoleListEmpty>
+      );
+    }
+
+    if (!tests) {
       return (
         <>
           <div className={styles.tableContainer}>
@@ -370,20 +350,7 @@ const AdminTestSeriesPage: React.FC = () => {
       );
     }
 
-    if (isError) {
-      return (
-        <ConsoleListEmpty
-          tone="error"
-          icon={<AlertTriangle size={24} />}
-          title="Could not load the test series"
-          description={error instanceof Error ? error.message : "The request did not come back. Check your connection and try again."}
-        >
-          <Button variant="outline" onClick={() => refetch()}>Try again</Button>
-        </ConsoleListEmpty>
-      );
-    }
-
-    if (filteredTests.length === 0) {
+    if (sortedTests.length === 0) {
       const emptyCopy = getEmptyCopy();
       return (
         <ConsoleListEmpty
@@ -497,27 +464,15 @@ const AdminTestSeriesPage: React.FC = () => {
           search={{
             value: searchQuery,
             onChange: setSearchQuery,
-            placeholder: "Search by title",
+            placeholder: "Search by title or teacher",
             label: "Search test series",
           }}
-        >
-          <Select value={teacherFilter} onValueChange={setTeacherFilter}>
-            <SelectTrigger className={consoleToolbarControlClass}>
-              <SelectValue placeholder="All teachers" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL_TEACHERS}>All teachers</SelectItem>
-              {teachers.map((teacher) => (
-                <SelectItem key={teacher} value={teacher}>{teacher}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </ConsoleListToolbar>
+        />
 
         {listFilter !== "none" && (
           <ConsoleFilterNotice
             label={getListFilterLabel(listFilter)}
-            count={tests && listFilter === "no-tests" ? filteredTests.length : undefined}
+            count={listFilter === "no-tests" ? matchingCount : undefined}
             onClear={() => write({ filter: null })}
             clearLabel="Show all"
           />
@@ -525,13 +480,17 @@ const AdminTestSeriesPage: React.FC = () => {
         {focusId !== null && (
           <ConsoleFilterNotice
             label={focusedTest?.title ?? `Test series #${focusId}`}
-            count={tests ? filteredTests.length : undefined}
+            count={matchingCount}
             onClear={() => write({ id: null })}
             clearLabel="Show all"
           />
         )}
 
         <div className={styles.results}>{renderContent()}</div>
+
+        {tests && data && data.totalPages > 1 && (
+          <ConsoleListPagination page={data.page} totalPages={data.totalPages} onPageChange={setPage} />
+        )}
 
         <ConsoleConfirmDialog
           open={isDeactivateDialogOpen}

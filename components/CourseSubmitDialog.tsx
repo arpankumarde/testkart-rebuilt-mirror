@@ -12,7 +12,6 @@ import styles from './CourseSubmitDialog.module.css';
 
 export type CourseAiContext = {
   title: string;
-  category?: string;
   level?: string;
   language?: string;
   examName?: string;
@@ -96,7 +95,6 @@ export const CourseSubmitDialog: React.FC<CourseSubmitDialogProps> = ({
         currentValue: '',
         context: {
           title: aiContext.title,
-          category: aiContext.category || undefined,
           level: aiContext.level || undefined,
           language: aiContext.language || undefined,
           examName: aiContext.examName || undefined,

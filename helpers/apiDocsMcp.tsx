@@ -26,6 +26,8 @@ export const apiDocsMcp: ApiEndpoint[] = [
       "Plain JSON-RPC 2.0 over the MCP Streamable HTTP transport, not superjson. Protocol versions 2025-06-18 (default), 2025-03-26 and 2024-11-05.",
       "Send Authorization: Bearer <access_token> from the MCP OAuth flow. A missing or expired token gets 401 with a WWW-Authenticate header pointing at /.well-known/oauth-protected-resource/_api/mcp/admin.",
       "The tool list follows the admin's section access: testkart_whoami, testkart_read and content tools (blog, news, careers, exam content and content_edit). Orders, payouts, users and settings are read-only.",
+      "Exam content tools: exam_content_upsert (draft only), exam_content_publish, exam_content_ready_for_review (marks or clears the saved draft's ready-for-review mark, never publishes), exam_content_unpublish and exam_content_delete. All need the Exam content section.",
+      "testkart_read covers the admin GET endpoints plus exam-products/counts (one exam's published product counts by examSlug), which is listed for admins with the Exam content section.",
       "Tools that permanently delete a record refuse until the call is repeated with confirm: true.",
     ],
   },

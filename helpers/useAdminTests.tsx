@@ -1,21 +1,15 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAdminTestsList } from "../endpoints/admin/tests/list_GET.schema";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import { getAdminTestSeriesPage, InputType as TestSeriesPageInput } from "../endpoints/admin/tests/page_GET.schema";
 import { postDeactivateTest } from "../endpoints/admin/tests/deactivate_POST.schema";
 
 export const ADMIN_TESTS_QUERY_KEY = ["admin", "tests"] as const;
 
-/**
- * A React Query hook to fetch the list of all mock tests for the admin panel.
- *
- * This hook calls the `/api/admin/tests/list` endpoint and provides data, loading, and error states.
- *
- * @returns The result of the `useQuery` hook, containing the list of all tests.
- */
-export const useAdminTestsQuery = () => {
+/* One page of the admin test series list; the previous page stays on screen while the next loads. */
+export const useAdminTestSeriesPageQuery = (input: TestSeriesPageInput) => {
   return useQuery({
-    queryKey: ADMIN_TESTS_QUERY_KEY,
-    queryFn: getAdminTestsList,
-    staleTime: 5 * 60 * 1000,
+    queryKey: [...ADMIN_TESTS_QUERY_KEY, "page", input],
+    queryFn: () => getAdminTestSeriesPage(input),
+    placeholderData: keepPreviousData,
   });
 };
 

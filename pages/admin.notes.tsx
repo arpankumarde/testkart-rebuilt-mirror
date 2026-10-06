@@ -1,20 +1,21 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Helmet } from "react-helmet";
-import { useAdminProductsQuery, useDeactivateProductMutation } from "../helpers/useAdminProducts";
+import { useAdminNotesPageQuery, useDeactivateProductMutation } from "../helpers/useAdminProducts";
 import { useListUrlParams } from "../helpers/useListUrlParams";
 import { useRefetchOnLinkArrival } from "../helpers/useRefetchOnLinkArrival";
-import { useTableSort, SortAccessors } from "../helpers/useTableSort";
+import { useServerTableSort, SortOrder } from "../helpers/useTableSort";
+import { useListPage } from "../helpers/useListPage";
 import { SortableTh } from "../components/SortableTh";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
 import { Badge } from "../components/Badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/Select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../components/Tooltip";
 import { ConsolePageHeader } from "../components/ConsolePageHeader";
-import { ConsoleListToolbar, consoleToolbarControlClass } from "../components/ConsoleListToolbar";
+import { ConsoleListToolbar } from "../components/ConsoleListToolbar";
 import { ConsoleListEmpty } from "../components/ConsoleListEmpty";
 import { ConsoleFilterNotice } from "../components/ConsoleFilterNotice";
 import { ConsoleConfirmDialog } from "../components/ConsoleConfirmDialog";
+import { ConsoleListPagination } from "../components/ConsoleListPagination";
 import {
   CheckCircle2,
   FileText,
@@ -27,14 +28,12 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { DigitalProductStatus } from "../helpers/schema";
-import { AdminProductListItem } from "../endpoints/admin/products/list_GET.schema";
+import { AdminNotesPageItem, NotesSortColumn } from "../endpoints/admin/products/page_GET.schema";
 import { AdminProductDetailPanel } from "../components/AdminProductDetailPanel";
 import { adminPreviewPath } from "../helpers/useAdminContentPreview";
 import { adminEditPath } from "../helpers/adminContentEdit";
 import { AdminEditIconButton } from "../components/AdminEditIconButton";
 import styles from "./admin.notes.module.css";
-
-const ALL_TEACHERS = "__all__";
 
 const STATUS_TABS = ["all", "published", "draft", "archived"] as const;
 type StatusTab = (typeof STATUS_TABS)[number];
@@ -43,16 +42,13 @@ type StatusTab = (typeof STATUS_TABS)[number];
 const LIST_FILTERS = ["no-file"] as const;
 type ListFilter = (typeof LIST_FILTERS)[number];
 
-const SORT_ACCESSORS: SortAccessors<
-  AdminProductListItem,
-  "title" | "status" | "category" | "price" | "sales" | "createdAt"
-> = {
-  title: (p) => p.title,
-  status: (p) => p.status,
-  category: (p) => p.category,
-  price: (p) => p.price,
-  sales: (p) => p.totalPurchases ?? 0,
-  createdAt: (p) => (p.createdAt ? new Date(p.createdAt) : null),
+const FIRST_SORT_ORDER: Record<NotesSortColumn, SortOrder> = {
+  title: "asc",
+  status: "asc",
+  category: "asc",
+  price: "desc",
+  sales: "desc",
+  createdAt: "desc",
 };
 
 /* Shared by the loading and loaded tables so the columns do not jump. */
@@ -115,12 +111,11 @@ const ProductCardSkeleton = () => (
 );
 
 export default function AdminNotesPage() {
-  const { data: products, isFetching, isError, error, refetch } = useAdminProductsQuery();
   const deactivateMutation = useDeactivateProductMutation();
 
   const [isDeactivateDialogOpen, setIsDeactivateDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<{ id: number; title: string } | null>(null);
-  const [panelProduct, setPanelProduct] = useState<AdminProductListItem | null>(null);
+  const [panelProduct, setPanelProduct] = useState<AdminNotesPageItem | null>(null);
 
   const { read, readId, write } = useListUrlParams();
   const statusFilter = read<StatusTab>("status", STATUS_TABS, "all");
@@ -128,7 +123,21 @@ export default function AdminNotesPage() {
   const focusId = readId();
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [teacherFilter, setTeacherFilter] = useState(ALL_TEACHERS);
+  const sort = useServerTableSort(FIRST_SORT_ORDER);
+  const [page, setPage] = useListPage(
+    JSON.stringify([searchQuery, statusFilter, listFilter, focusId, sort.sortBy, sort.sortOrder])
+  );
+
+  const { data, isFetching, isPlaceholderData, isError, error, refetch } = useAdminNotesPageQuery({
+    page,
+    search: searchQuery || undefined,
+    status: statusFilter === "all" ? undefined : statusFilter,
+    filter: listFilter || undefined,
+    id: focusId ?? undefined,
+    sortBy: sort.sortBy ?? undefined,
+    sortOrder: sort.sortBy ? sort.sortOrder : undefined,
+  });
+  const products = isPlaceholderData ? undefined : data?.items;
 
   const focusedProduct = useMemo(
     () => (focusId === null ? null : products?.find((p) => p.id === focusId) ?? null),
@@ -145,45 +154,25 @@ export default function AdminNotesPage() {
 
   useRefetchOnLinkArrival(listFilter !== "" || focusId !== null, isFetching, refetch);
 
-  const teachers = useMemo(() => {
-    if (!products) return [];
-    return Array.from(new Set(products.map((p) => p.teacherName))).sort();
-  }, [products]);
+  const counts = data?.statusCounts;
+  const statusTabs = [
+    { value: "all", label: "All", count: counts?.all },
+    { value: "published", label: "Published", count: counts?.published },
+    { value: "draft", label: "Draft", count: counts?.draft },
+    { value: "archived", label: "Archived", count: counts?.archived },
+  ];
 
-  const statusTabs = useMemo(() => {
-    const all = products ?? [];
-    return [
-      { value: "all", label: "All", count: all.length },
-      { value: "published", label: "Published", count: all.filter((p) => p.status === "published").length },
-      { value: "draft", label: "Draft", count: all.filter((p) => p.status === "draft").length },
-      { value: "archived", label: "Archived", count: all.filter((p) => p.status === "archived").length },
-    ];
-  }, [products]);
-
-  const filteredProducts = useMemo(() => {
-    if (!products) return [];
-    return products.filter((product) => {
-      const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesStatus = statusFilter === "all" || product.status === statusFilter;
-      const matchesTeacher = teacherFilter === ALL_TEACHERS || product.teacherName === teacherFilter;
-      const matchesListFilter = listFilter !== "no-file" || !product.hasRealFile;
-      const matchesFocus = focusId === null || product.id === focusId;
-      return matchesSearch && matchesStatus && matchesTeacher && matchesListFilter && matchesFocus;
-    });
-  }, [products, searchQuery, statusFilter, teacherFilter, listFilter, focusId]);
-
-  const { sorted: sortedProducts, ...sort } = useTableSort(filteredProducts, SORT_ACCESSORS);
+  const sortedProducts = products ?? [];
+  const matchingCount = products ? data?.total : undefined;
 
   const hasActiveFilters =
     searchQuery !== "" ||
     statusFilter !== "all" ||
-    teacherFilter !== ALL_TEACHERS ||
     listFilter !== "" ||
     focusId !== null;
 
   const clearFilters = () => {
     setSearchQuery("");
-    setTeacherFilter(ALL_TEACHERS);
     write({ status: null, filter: null, id: null });
   };
 
@@ -249,7 +238,7 @@ export default function AdminNotesPage() {
     }
   };
 
-  const renderTitle = (product: AdminProductListItem) => (
+  const renderTitle = (product: AdminNotesPageItem) => (
     <a
       href={product.status === 'published' ? getProductUrl(product.slug) : adminPreviewPath("digital_product", product.id)}
       target="_blank"
@@ -261,7 +250,7 @@ export default function AdminNotesPage() {
     </a>
   );
 
-  const renderActions = (product: AdminProductListItem) => (
+  const renderActions = (product: AdminNotesPageItem) => (
     <div className={styles.rowActions}>
       <Tooltip>
         <TooltipTrigger asChild>
@@ -299,7 +288,20 @@ export default function AdminNotesPage() {
   );
 
   const renderContent = () => {
-    if (isFetching) {
+    if (isError) {
+      return (
+        <ConsoleListEmpty
+          tone="error"
+          icon={<AlertTriangle size={24} />}
+          title="Could not load the study notes"
+          description={error instanceof Error ? error.message : "The request did not come back. Check your connection and try again."}
+        >
+          <Button variant="outline" onClick={() => refetch()}>Try again</Button>
+        </ConsoleListEmpty>
+      );
+    }
+
+    if (!products) {
       return (
         <>
           <div className={styles.tableContainer}>
@@ -317,27 +319,14 @@ export default function AdminNotesPage() {
       );
     }
 
-    if (isError) {
-      return (
-        <ConsoleListEmpty
-          tone="error"
-          icon={<AlertTriangle size={24} />}
-          title="Could not load the study notes"
-          description={error instanceof Error ? error.message : "The request did not come back. Check your connection and try again."}
-        >
-          <Button variant="outline" onClick={() => refetch()}>Try again</Button>
-        </ConsoleListEmpty>
-      );
-    }
-
-    if (filteredProducts.length === 0) {
+    if (sortedProducts.length === 0) {
       const description =
         focusId !== null && !focusedProduct
           ? "The linked study note is no longer in the list. It may have been deleted."
           : listFilter === "no-file"
             ? "Every study note that matches these filters has a file to download."
             : hasActiveFilters
-              ? "Nothing here for this status, teacher and search. Widen the filters to see the rest."
+              ? "Nothing here for this status and search. Widen the filters to see the rest."
               : "Study notes teachers publish will be listed here.";
       return (
         <ConsoleListEmpty
@@ -458,27 +447,15 @@ export default function AdminNotesPage() {
           search={{
             value: searchQuery,
             onChange: setSearchQuery,
-            placeholder: "Search by title",
+            placeholder: "Search by title or teacher",
             label: "Search study notes",
           }}
-        >
-          <Select value={teacherFilter} onValueChange={setTeacherFilter}>
-            <SelectTrigger className={consoleToolbarControlClass}>
-              <SelectValue placeholder="All teachers" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL_TEACHERS}>All teachers</SelectItem>
-              {teachers.map((teacher) => (
-                <SelectItem key={teacher} value={teacher}>{teacher}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </ConsoleListToolbar>
+        />
 
         {listFilter === "no-file" && (
           <ConsoleFilterNotice
             label="Notes with no file to download"
-            count={products ? filteredProducts.length : undefined}
+            count={matchingCount}
             onClear={() => write({ filter: null })}
             clearLabel="Show all"
           />
@@ -486,13 +463,17 @@ export default function AdminNotesPage() {
         {focusId !== null && (
           <ConsoleFilterNotice
             label={focusedProduct?.title ?? `Study note #${focusId}`}
-            count={products ? filteredProducts.length : undefined}
+            count={matchingCount}
             onClear={() => write({ id: null })}
             clearLabel="Show all"
           />
         )}
 
         <div className={styles.results}>{renderContent()}</div>
+
+        {products && data && data.totalPages > 1 && (
+          <ConsoleListPagination page={data.page} totalPages={data.totalPages} onPageChange={setPage} />
+        )}
 
         <ConsoleConfirmDialog
           open={isDeactivateDialogOpen}

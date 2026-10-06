@@ -74,7 +74,6 @@ export async function handle(request: Request): Promise<Response> {
         title: input.title,
         slug: slug,
         description: sanitizeHtml(input.description ?? ""),
-        category: input.category,
         level: input.level,
         price: input.price.toString(),
         discountPrice: input.discountPrice == null ? null : input.discountPrice.toString(),

@@ -7,7 +7,6 @@ import styles from "./CourseCardPreview.module.css";
 
 interface CourseCardPreviewProps {
   title: string;
-  category?: string | null;
   language?: string | null;
   /* Omitted on the start form, where the teacher has not picked one yet. */
   level?: string | null;
@@ -36,13 +35,12 @@ const formatRupees = (amount: number) =>
 /*
  * The course card as students meet it in the store, drawn from the editor's
  * unsaved values so it changes as the teacher types. Same order as CourseCard -
- * category, cover, title, creator, facts, price - without the cart controls.
+ * cover, title, creator, facts, price - without the cart controls.
  * The coral stage is TeacherCtaBanner's brand block, fixed in both themes, so
  * the card on it uses fixed light colours too (as TestSeriesCardPreview does).
  */
 export const CourseCardPreview: React.FC<CourseCardPreviewProps> = ({
   title,
-  category,
   language,
   level,
   thumbnailUrl,
@@ -57,7 +55,6 @@ export const CourseCardPreview: React.FC<CourseCardPreviewProps> = ({
 }) => {
   const headingId = React.useId();
   const shownTitle = title.trim();
-  const shownCategory = category?.trim();
   const shownLanguage = language?.trim();
   const levelLabel = level ? LEVEL_LABELS[level] ?? level : null;
   const listPrice = Number.isFinite(price) && price > 0 ? price : 0;
@@ -79,12 +76,6 @@ export const CourseCardPreview: React.FC<CourseCardPreviewProps> = ({
       </div>
 
       <div className={styles.card}>
-        {shownCategory ? (
-          <div className={styles.chips}>
-            <span className={styles.categoryChip}>{shownCategory}</span>
-          </div>
-        ) : null}
-
         <div className={styles.thumbnail}>
           <img
             src={thumbnailUrl || Placeholder.COURSE}

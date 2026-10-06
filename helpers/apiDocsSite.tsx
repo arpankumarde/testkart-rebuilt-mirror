@@ -39,7 +39,7 @@ export const apiDocsSite: ApiEndpoint[] = [
     ],
     responseFields: [
       { name: "tests", type: "array", description: "Published series that are not live tests: { id, slug, title, thumbnailUrl, price, discountPrice, examName, category, views, type: 'test', teacher fields }" },
-      { name: "courses", type: "array", description: "Published courses: { id, slug, title, thumbnailUrl, price, discountPrice, category, views, type: 'course', teacher fields }" },
+      { name: "courses", type: "array", description: "Published courses: { id, slug, title, thumbnailUrl, price, discountPrice, category (the primary exam name), views, type: 'course', teacher fields }" },
       { name: "bundles", type: "array", description: "Published bundles: { id, slug, title, thumbnailUrl, price, originalPrice, itemCount, type: 'bundle', teacher fields }" },
       { name: "products", type: "array", description: "Published study notes: { id, slug, title, thumbnailUrl, price, examName, category, views, type: 'product', teacher fields }" },
       { name: "teachers", type: "array", description: "Up to 5 active teachers with published content: { id, displayName, avatarUrl, slug, isVerified, testCount, courseCount, studentCount }" },

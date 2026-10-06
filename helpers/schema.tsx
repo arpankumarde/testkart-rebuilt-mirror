@@ -401,7 +401,6 @@ export interface CourseProgress {
 }
 
 export interface Courses {
-  category: string | null;
   createdAt: Generated<Timestamp>;
   description: string;
   discountPrice: Numeric | null;

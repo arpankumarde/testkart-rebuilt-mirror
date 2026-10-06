@@ -4,10 +4,9 @@ import { useAdminLiveTestsQuery, useDeactivateLiveTestMutation } from "../helper
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
 import { Badge } from "../components/Badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/Select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../components/Tooltip";
 import { ConsolePageHeader } from "../components/ConsolePageHeader";
-import { ConsoleListToolbar, consoleToolbarControlClass } from "../components/ConsoleListToolbar";
+import { ConsoleListToolbar } from "../components/ConsoleListToolbar";
 import { ConsoleListEmpty } from "../components/ConsoleListEmpty";
 import { ConsoleConfirmDialog } from "../components/ConsoleConfirmDialog";
 import { ConsoleFilterNotice } from "../components/ConsoleFilterNotice";
@@ -26,8 +25,6 @@ import { AdminLiveTestListItem } from "../endpoints/admin/live-tests/list_GET.sc
 import { adminPreviewPath } from "../helpers/useAdminContentPreview";
 import { AdminEditIconButton } from "../components/AdminEditIconButton";
 import styles from "./admin.live-tests.module.css";
-
-const ALL_TEACHERS = "__all__";
 
 const STATUS_VALUES = ["all", "active", "inactive"] as const;
 type StatusFilter = (typeof STATUS_VALUES)[number];
@@ -146,17 +143,11 @@ const AdminLiveTestsPage: React.FC = () => {
   useRefetchOnLinkArrival(listFilter !== "none" || focusId !== null || statusFilter !== "all", isFetching, refetch);
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [teacherFilter, setTeacherFilter] = useState(ALL_TEACHERS);
 
   const setStatusFilter = (value: string) => write({ status: value === "all" ? null : value });
 
   /* One clock per data load, so rows near a time boundary do not flicker between renders. */
   const now = useMemo(() => Date.now(), [liveTests]);
-
-  const teachers = useMemo(() => {
-    if (!liveTests) return [];
-    return Array.from(new Set(liveTests.map((t) => t.teacherName))).sort();
-  }, [liveTests]);
 
   const statusTabs = useMemo(() => {
     const all = liveTests ?? [];
@@ -169,35 +160,34 @@ const AdminLiveTestsPage: React.FC = () => {
 
   const filteredLiveTests = useMemo(() => {
     if (!liveTests) return [];
+    const term = searchQuery.toLowerCase();
     const rows = liveTests.filter((liveTest) => {
-      const matchesSearch = liveTest.title.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch =
+        liveTest.title.toLowerCase().includes(term) || liveTest.teacherName.toLowerCase().includes(term);
       const matchesStatus =
         statusFilter === "all" ||
         (statusFilter === "active" && liveTest.isActive) ||
         (statusFilter === "inactive" && !liveTest.isActive);
-      const matchesTeacher = teacherFilter === ALL_TEACHERS || liveTest.teacherName === teacherFilter;
       const matchesFocus = focusId === null || liveTest.id === focusId;
       return (
-        matchesSearch && matchesStatus && matchesTeacher && matchesFocus && matchesListFilter(liveTest, listFilter, now)
+        matchesSearch && matchesStatus && matchesFocus && matchesListFilter(liveTest, listFilter, now)
       );
     });
     if (listFilter === "starts-7d") {
       rows.sort((a, b) => (timeOf(a.startTime) ?? 0) - (timeOf(b.startTime) ?? 0));
     }
     return rows;
-  }, [liveTests, searchQuery, statusFilter, teacherFilter, focusId, listFilter, now]);
+  }, [liveTests, searchQuery, statusFilter, focusId, listFilter, now]);
 
   const { sorted: sortedLiveTests, ...sort } = useTableSort(filteredLiveTests, SORT_ACCESSORS);
 
   const focusedLiveTest = focusId === null ? undefined : liveTests?.find((t) => t.id === focusId);
 
   const hasUrlFilter = listFilter !== "none" || focusId !== null;
-  const hasActiveFilters =
-    searchQuery !== "" || statusFilter !== "all" || teacherFilter !== ALL_TEACHERS || hasUrlFilter;
+  const hasActiveFilters = searchQuery !== "" || statusFilter !== "all" || hasUrlFilter;
 
   const clearFilters = () => {
     setSearchQuery("");
-    setTeacherFilter(ALL_TEACHERS);
     write({ status: null, filter: null, id: null });
   };
 
@@ -212,7 +202,7 @@ const AdminLiveTestsPage: React.FC = () => {
       return { title: "No live tests yet", description: "Scheduled live tests will be listed here." };
     }
     const onlyListFilter =
-      focusId === null && searchQuery === "" && statusFilter === "all" && teacherFilter === ALL_TEACHERS;
+      focusId === null && searchQuery === "" && statusFilter === "all";
     if (onlyListFilter && listFilter === "prizes-pending") {
       return {
         title: "No prizes waiting to be distributed",
@@ -228,8 +218,8 @@ const AdminLiveTestsPage: React.FC = () => {
     return {
       title: "No live tests match these filters",
       description: hasUrlFilter
-        ? "Nothing here for this status, teacher, search and the filter named above. Clear them to see the rest."
-        : "Nothing here for this status, teacher and search. Widen the filters to see the rest.",
+        ? "Nothing here for this status, search and the filter named above. Clear them to see the rest."
+        : "Nothing here for this status and search. Widen the filters to see the rest.",
     };
   };
 
@@ -492,22 +482,10 @@ const AdminLiveTestsPage: React.FC = () => {
           search={{
             value: searchQuery,
             onChange: setSearchQuery,
-            placeholder: "Search by title",
+            placeholder: "Search by title or teacher",
             label: "Search live tests",
           }}
-        >
-          <Select value={teacherFilter} onValueChange={setTeacherFilter}>
-            <SelectTrigger className={consoleToolbarControlClass}>
-              <SelectValue placeholder="All teachers" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL_TEACHERS}>All teachers</SelectItem>
-              {teachers.map((teacher) => (
-                <SelectItem key={teacher} value={teacher}>{teacher}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </ConsoleListToolbar>
+        />
 
         {listFilter !== "none" && (
           <ConsoleFilterNotice

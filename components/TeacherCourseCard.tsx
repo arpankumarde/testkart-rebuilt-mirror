@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Edit, Trash2, Eye, Users, BookOpen, MoreVertical, Globe, AlertCircle, Share2, TrendingUp, Wrench } from 'lucide-react';
-import { Badge } from './Badge';
 import { TeacherCardInsights } from './TeacherCardInsights';
 import { TeacherRejectionNote } from './TeacherRejectionNote';
 import { performanceHref } from '../helpers/teacherPerformanceFormat';
@@ -97,12 +96,6 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
           </Link>
         </h3>
         {plainDescription ? <p className={styles.description}>{plainDescription}</p> : null}
-
-        {course.category && (
-          <Badge variant="outline" className={styles.categoryBadge}>
-            {course.category}
-          </Badge>
-        )}
 
         <div className={styles.stats}>
           <div className={styles.stat}>

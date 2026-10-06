@@ -75,9 +75,7 @@ const TeacherCoursesPage: React.FC = () => {
     const query = searchQuery.trim().toLowerCase();
     if (query) {
       filtered = filtered.filter(
-        (course) =>
-          course.title.toLowerCase().includes(query) ||
-          (course.category ?? '').toLowerCase().includes(query)
+        (course) => course.title.toLowerCase().includes(query)
       );
     }
 
@@ -205,7 +203,7 @@ const TeacherCoursesPage: React.FC = () => {
             search={{
               value: searchQuery,
               onChange: setSearchQuery,
-              placeholder: 'Search by title or category',
+              placeholder: 'Search by title',
               label: 'Search courses',
             }}
           >

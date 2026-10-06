@@ -13,7 +13,7 @@ import { canCallAdminApi } from "./adminPermissions";
 import { editableContentTypes } from "./mcpAdminContentEdit";
 
 export const SERVER_NAME = "testkart-admin";
-export const SERVER_VERSION = "1.6.0";
+export const SERVER_VERSION = "1.7.0";
 
 export const SERVER_INSTRUCTIONS = `Operates the live Testkart admin panel as the signed-in admin.
 
@@ -46,19 +46,44 @@ content. career_update is the one exception - a genuine partial update.
 Slugs. Left blank, a slug is derived from the title. Changing the slug of a published post breaks
 its live URL and any inbound links; say so before doing it.
 
-Exam content pages. Every exam has nine content sections, one per examId and pageType. "overview"
-is the content and FAQ block on the exam's own page. "syllabus", "exam_pattern", "eligibility" and
-"cutoff" are standalone pages at /exams/<examSlug>/<section> that exist only while published.
-"mock_tests", "courses", "study_notes" and "bundles" add a title, description and copy to listing
-pages that exist regardless. To find an exam, read admin/exam-categories/list, then admin/exams/list
-with categoryId - the unfiltered list holds well over a thousand exams. Then read
-admin/exam-content/list with examId, which returns all nine sections, id null for any never written.
+Exam content pages. Every exam has nine content sections, one per examId and pageType, plus any
+custom pages an admin has added in the admin panel (pageType "custom:<slug>", listed under
+customPages; this server cannot create them). "overview" is the content and FAQ block below the
+product grid on the exam's own page, /exams/<examSlug>. "syllabus", "exam_pattern", "eligibility",
+"cutoff" and custom pages are standalone pages at /exams/<examSlug>/<slug> that exist only while
+published. "mock_tests", "courses", "study_notes" and "bundles" add a title, description, copy and
+FAQs to the product listing pages, which show only while the exam has at least one published
+product of that type and otherwise redirect to the exam's own page. To find an exam, read
+admin/exam-categories/list, then admin/exams/list with categoryId - the unfiltered list holds well
+over a thousand exams. Then read admin/exam-content/list with examId, which returns every section
+with its draft, live copy, status and ready-for-review mark, id null for any never written. For the
+exam's published product counts read exam-products/counts with examSlug (digitalProducts are study
+notes); copy for a listing page whose count is 0 is never seen.
 
 Each section keeps a draft and a separate live copy. exam_content_upsert edits only the draft and
-changes nothing visitors see; exam_content_publish copies the draft live. The upsert replaces the
-draft, so send title, seoTitle, seoDescription, description, content and faqItems back whole.
-content is HTML rendered without sanitising: keep to the markup existing pages use (h3, p, ul, ol,
-li, strong, em, https links) and never add scripts, iframes, inline styles or event handlers.
+changes nothing visitors see; exam_content_publish copies the draft live and clears the
+ready-for-review mark. exam_content_ready_for_review marks a saved draft for the admin panel's
+review queue without publishing it. The upsert replaces the draft, so send title, seoTitle,
+seoDescription, description, content and faqItems back whole. It also sets the section's source to
+"manual" and sets the exam's owner tag to the calling admin.
+
+How the fields render. title is the page H1. seoTitle is the browser title with " | Testkart"
+appended, so keep it to 50 characters and add no suffix of your own; seoDescription is the meta
+description. When empty, seoTitle falls back to title and seoDescription to a generic line.
+description is the subtitle under the H1 on listing pages, and also on syllabus, exam_pattern,
+eligibility, cutoff and custom pages when set, but the admin editor only shows it for the four
+listing types, so leave it null elsewhere. For
+overview only content and faqItems are rendered: the exam page's H1, browser title and meta
+description come from the exam record (full name and description), which this server cannot edit,
+and title is required to save and publish but never shown. FAQ answers render as plain text - no
+HTML, markdown or links.
+
+content is HTML, sanitised on render against an allow-list: formatting, h2 and h3 headings, lists,
+tables, links and images are kept; scripts, event handlers, unsafe URLs and iframes other than
+YouTube or Vimeo embeds are stripped. Keep markup structural, as existing pages do: h2, h3, p, ul,
+ol, li, strong, em, tables (table, tbody, tr, th, td, with a <p> inside each cell) and https links.
+No h1 - the page already has one - and no hand-written inline styles.
+
 Publishing, unpublishing and deleting each change a public, indexed page - confirm with the user
 before every one.
 
@@ -213,7 +238,9 @@ export function buildToolDefinitions(permissions: readonly string[]): ToolDefini
       description:
         "Read any exposed Testkart admin surface. Use this for all reads. Common query parameters: " +
         "page, limit (max 100), search, status, type, categoryId, postId, examId. Several list " +
-        "endpoints do not clamp page and limit, so pass sane values.",
+        "endpoints do not clamp page and limit, so pass sane values. admin/exam-dashboard/list " +
+        "takes no parameters and always returns every exam (well over a thousand rows); for one " +
+        "exam read admin/exam-content/list with examId and exam-products/counts with examSlug.",
       inputSchema: {
         type: "object",
         properties: {
@@ -388,27 +415,49 @@ export function buildToolDefinitions(permissions: readonly string[]): ToolDefini
         "Create or update the draft of one exam content section. Never changes the live page - " +
         "follow with exam_content_publish to put it live. This REPLACES the draft: read it first " +
         "with testkart_read on admin/exam-content/list and send every field back with your changes " +
-        "applied, or omitted fields will be cleared.",
+        "applied, or omitted fields will be cleared. It also sets the section's source to manual " +
+        "and sets the exam's owner tag to the calling admin. For overview only content and " +
+        "faqItems are rendered; the exam page's H1, browser title and meta description come from " +
+        "the exam record, which this server cannot edit.",
       inputSchema: {
         type: "object",
         properties: {
           ...EXAM_CONTENT_KEY,
-          title: { type: "string", minLength: 1 },
-          seoTitle: { type: ["string", "null"] },
-          seoDescription: { type: ["string", "null"] },
+          title: {
+            type: "string",
+            minLength: 1,
+            description: "The page H1. Required, but not shown for overview.",
+          },
+          seoTitle: {
+            type: ["string", "null"],
+            description:
+              'Browser title. " | Testkart" is appended on render, so keep it to 50 characters ' +
+              "and add no suffix of your own. Falls back to title. Not used for overview.",
+          },
+          seoDescription: {
+            type: ["string", "null"],
+            description: "Meta description. Falls back to a generic line. Not used for overview.",
+          },
           description: {
             type: ["string", "null"],
             description:
-              "Subtitle under the H1. Only rendered for mock_tests, courses, study_notes and bundles.",
+              "Subtitle under the H1 on the mock_tests, courses, study_notes and bundles listing " +
+              "pages. Syllabus, exam_pattern, eligibility, cutoff and custom pages also render it " +
+              "when set, but the admin editor cannot show or edit it there, so leave it null for " +
+              "those and for overview.",
           },
           content: {
             type: ["string", "null"],
             description:
-              "HTML body, rendered without sanitising. Structural markup only - no scripts, " +
-              "iframes, inline styles or event handlers.",
+              "HTML body, sanitised on render against an allow-list (formatting, h2/h3, lists, " +
+              "tables, links, images; scripts, event handlers, unsafe URLs and non-YouTube/Vimeo " +
+              "iframes are stripped). Keep it structural: h2, h3, p, ul, ol, li, strong, em, " +
+              "table/tbody/tr/th/td with a <p> in each cell, https links. No h1 and no " +
+              "hand-written inline styles.",
           },
           faqItems: {
             type: ["array", "null"],
+            description: "Question and answer pairs. Answers render as plain text - no HTML, markdown or links.",
             items: {
               type: "object",
               properties: {
@@ -432,6 +481,27 @@ export function buildToolDefinitions(permissions: readonly string[]): ToolDefini
         "/exams/<examSlug>/<section> and into the sitemap. Needs a title and either body content " +
         "or at least one FAQ. Show the user what will go live and confirm first.",
       inputSchema: EXAM_CONTENT_SECTION_INPUT,
+    },
+    {
+      name: "exam_content_ready_for_review",
+      description:
+        "Mark the saved draft of one exam content section ready for review in the admin panel's " +
+        "review queue, or clear the mark with readyForReview false. Does not publish and does not " +
+        "change the live page or the section's status. Needs a saved draft with body content or " +
+        "at least one FAQ, so call exam_content_upsert first. Publishing clears the mark.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          ...EXAM_CONTENT_KEY,
+          readyForReview: {
+            type: "boolean",
+            description: "true to mark the draft ready for review, false to clear the mark.",
+          },
+        },
+        required: ["examId", "pageType", "readyForReview"],
+        additionalProperties: false,
+      },
+      annotations: { idempotentHint: true },
     },
     {
       name: "exam_content_unpublish",
@@ -532,6 +602,7 @@ export const TOOL_WRITE_ROUTES: Record<string, string> = {
   career_application_delete: "admin/careers/delete-application",
   exam_content_upsert: "admin/exam-content/upsert",
   exam_content_publish: "admin/exam-content/publish",
+  exam_content_ready_for_review: "admin/exam-content/ready-for-review",
   exam_content_unpublish: "admin/exam-content/unpublish",
   exam_content_delete: "admin/exam-content/delete",
 };

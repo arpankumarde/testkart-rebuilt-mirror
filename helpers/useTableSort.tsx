@@ -75,3 +75,26 @@ export function useTableSort<T, K extends string>(
   const state: TableSortState<K> = { sortBy, sortOrder, toggleSort };
   return { sorted, ...state };
 }
+
+/*
+ * Header sort state for paginated lists, which sort on the server. firstOrder
+ * gives each column's first direction (text A to Z, numbers and dates largest first).
+ */
+export function useServerTableSort<K extends string>(firstOrder: Record<K, SortOrder>): TableSortState<K> {
+  const [sortBy, setSortBy] = useState<K | null>(null);
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+
+  const toggleSort = useCallback(
+    (column: K) => {
+      if (column === sortBy) {
+        setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+        return;
+      }
+      setSortBy(column);
+      setSortOrder(firstOrder[column]);
+    },
+    [sortBy, firstOrder]
+  );
+
+  return { sortBy, sortOrder, toggleSort };
+}

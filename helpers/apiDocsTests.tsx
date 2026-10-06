@@ -521,7 +521,10 @@ export const apiDocsTests: ApiEndpoint[] = [
       { name: "examId", type: "number", description: "Exam id, or null when the slug is unknown" },
       { name: "counts", type: "object", description: "{ mockTests, digitalProducts, courses, bundles }. Live test series are not counted as mock tests" },
     ],
-    notes: ["An unknown slug returns 200 with examId null and zero counts. A missing slug returns 500."],
+    notes: [
+      "An unknown slug returns 200 with examId null and zero counts. A missing slug returns 500.",
+      "Also readable through the admin MCP connector as testkart_read path exam-products/counts, for admins with the Exam content section.",
+    ],
   },
   {
     method: "POST",

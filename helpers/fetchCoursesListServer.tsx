@@ -15,7 +15,6 @@ import { courseDiscountPrice, courseEffectivePriceSql } from "./coursePricing";
  */
 export async function fetchCoursesListServer(filters: InputType = {}): Promise<OutputType> {
   const search = filters.search;
-  const category = filters.category;
   const examId = filters.examId;
   const level = filters.level;
   const language = filters.language;
@@ -39,7 +38,6 @@ export async function fetchCoursesListServer(filters: InputType = {}): Promise<O
       "courses.introVideoUrl",
       "courses.price",
       "courses.discountPrice",
-      "courses.category",
       "courses.level",
       "courses.language",
       "courses.status",
@@ -83,7 +81,6 @@ export async function fetchCoursesListServer(filters: InputType = {}): Promise<O
     );
   }
 
-  if (category) query = query.where("courses.category", "=", category);
   if (examId) query = query.where(contentInExam("course", "courses.id", "courses.examId", Number(examId)));
   if (level) query = query.where("courses.level", "=", level as "beginner" | "intermediate" | "advanced");
 
@@ -129,18 +126,6 @@ export async function fetchCoursesListServer(filters: InputType = {}): Promise<O
   const offset = (page - 1) * limit;
   query = query.limit(limit).offset(offset);
 
-  const categoryRows = await db
-    .selectFrom("courses")
-    .select("courses.category")
-    .distinct()
-    .where("courses.status", "=", "published")
-    .where("courses.category", "is not", null)
-    .where("courses.category", "!=", "")
-    .orderBy("courses.category", "asc")
-    .execute();
-
-  const categories = categoryRows.map((row) => row.category?.trim() ?? "").filter((c) => c !== "");
-
   const courses = await query.execute();
   const totalPages = Math.ceil(totalCount / limit);
 
@@ -159,7 +144,6 @@ export async function fetchCoursesListServer(filters: InputType = {}): Promise<O
       avgRating: course.avgRating !== null && course.avgRating !== undefined ? Number(course.avgRating) : null,
       ratingsCount: Number(course.ratingsCount),
     })),
-    categories,
     pagination: { page, limit, totalCount, totalPages },
   };
 }

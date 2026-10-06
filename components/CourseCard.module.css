@@ -25,13 +25,6 @@
   border-color: var(--primary);
 }
 
-.badgeContainer {
-  padding: var(--spacing-4);
-  display: flex;
-  gap: var(--spacing-2);
-  flex-wrap: wrap;
-}
-
 .thumbnailWrapper {
   position: relative;
   overflow: hidden;

@@ -67,7 +67,7 @@ export async function handle(request: Request): Promise<Response> {
     }));
 
     const output: OutputType = {
-      course: { ...course, price: Number(course.price) },
+      course: { ...course, price: Number(course.price), category: course.examName || "Course" },
       sections: sectionsWithLessons,
     };
 

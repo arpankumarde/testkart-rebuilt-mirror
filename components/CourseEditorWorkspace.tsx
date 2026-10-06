@@ -139,7 +139,6 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
   const live = draft ?? {
     title: course.title,
     description: course.description,
-    category: course.category ?? "",
     level: course.level,
     price: course.price,
     discountPrice: course.discountPrice,
@@ -316,7 +315,6 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
           <aside className={styles.aside} aria-label="Course summary">
             <CourseCardPreview
               title={live.title}
-              category={live.category}
               language={live.language}
               level={live.level}
               thumbnailUrl={live.thumbnailImageUrl ?? null}
@@ -388,7 +386,6 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
             isSubmitting={publishCourseMutation.isPending}
             aiContext={{
               title: live.title,
-              category: live.category || undefined,
               level: live.level,
               language: live.language || undefined,
               examName: live.examName || undefined,

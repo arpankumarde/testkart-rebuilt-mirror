@@ -5,7 +5,6 @@ import { Courses, Users } from "../../helpers/schema";
 
 export const schema = z.object({
   search: z.string().optional(),
-  category: z.string().optional(),
   level: z.string().optional(),
   language: z.string().optional(), // comma-separated
   priceType: z.enum(["all", "free", "paid"]).optional(),
@@ -28,7 +27,6 @@ export type CourseListItem = Pick<
   | "thumbnailUrl"
   | "thumbnailImageUrl"
   | "introVideoUrl"
-  | "category"
   | "level"
   | "language"
   | "status"
@@ -53,7 +51,6 @@ export type CourseListItem = Pick<
 
 export type OutputType = {
   courses: CourseListItem[];
-  categories: string[];
   pagination: {
     page: number;
     limit: number;
@@ -69,7 +66,6 @@ export const getCoursesList = async (
   const params = new URLSearchParams();
 
   if (filters.search) params.append("search", filters.search);
-  if (filters.category) params.append("category", filters.category);
   if (filters.level) params.append("level", filters.level);
   if (filters.language) params.append("language", filters.language);
   if (filters.priceType) params.append("priceType", filters.priceType);

@@ -14,7 +14,8 @@ type SectionWithLessons = Selectable<CourseSections> & {
 };
 
 export type OutputType = {
-  course: Omit<Selectable<Courses>, "price"> & { price: number };
+  /** category: mobile builds up to 4.7.2 show it as a badge; it carries the primary exam name. */
+  course: Omit<Selectable<Courses>, "price"> & { price: number; category: string };
   sections: SectionWithLessons[];
 };
 

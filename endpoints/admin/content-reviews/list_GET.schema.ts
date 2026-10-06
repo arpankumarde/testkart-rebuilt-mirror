@@ -43,7 +43,6 @@ export type CourseMeta = {
   lessonsCount: number;
   price: string;
   level: string;
-  category: string | null;
   estimatedDurationMinutes: number | null;
   description: string | null;
   thumbnailUrl: string | null;

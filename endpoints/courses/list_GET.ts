@@ -12,7 +12,6 @@ export async function handle(request: Request): Promise<Response> {
     // Parse query parameters
     const url = new URL(request.url);
     const search = url.searchParams.get("search");
-    const category = url.searchParams.get("category");
     const level = url.searchParams.get("level");
     const language = url.searchParams.get("language");
     const priceType = url.searchParams.get("priceType");
@@ -37,7 +36,6 @@ export async function handle(request: Request): Promise<Response> {
         "courses.introVideoUrl",
         "courses.price",
         "courses.discountPrice",
-        "courses.category",
         "courses.level",
         "courses.language",
         "courses.status",
@@ -80,10 +78,6 @@ export async function handle(request: Request): Promise<Response> {
           eb("courses.description", "ilike", searchPattern),
         ])
       );
-    }
-
-    if (category) {
-      query = query.where("courses.category", "=", category);
     }
 
     if (examId) {
@@ -155,21 +149,6 @@ export async function handle(request: Request): Promise<Response> {
     const offset = (page - 1) * limit;
     query = query.limit(limit).offset(offset);
 
-    // Fetch distinct categories from published courses
-    const categoryRows = await db
-      .selectFrom("courses")
-      .select("courses.category")
-      .distinct()
-      .where("courses.status", "=", "published")
-      .where("courses.category", "is not", null)
-      .where("courses.category", "!=", "")
-      .orderBy("courses.category", "asc")
-      .execute();
-
-    const categories = categoryRows
-      .map((row) => row.category?.trim() ?? "")
-      .filter((c) => c !== "");
-
     const courses = await query.execute();
 
     const totalPages = Math.ceil(totalCount / limit);
@@ -189,7 +168,6 @@ export async function handle(request: Request): Promise<Response> {
         avgRating: course.avgRating !== null && course.avgRating !== undefined ? Number(course.avgRating) : null,
         ratingsCount: Number(course.ratingsCount),
       })),
-      categories,
       pagination: {
         page,
         limit,

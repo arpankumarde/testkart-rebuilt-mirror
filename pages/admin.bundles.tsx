@@ -8,10 +8,9 @@ import { SortableTh } from "../components/SortableTh";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
 import { Badge } from "../components/Badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/Select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../components/Tooltip";
 import { ConsolePageHeader } from "../components/ConsolePageHeader";
-import { ConsoleListToolbar, consoleToolbarControlClass } from "../components/ConsoleListToolbar";
+import { ConsoleListToolbar } from "../components/ConsoleListToolbar";
 import { ConsoleListEmpty } from "../components/ConsoleListEmpty";
 import { ConsoleFilterNotice } from "../components/ConsoleFilterNotice";
 import { ConsoleConfirmDialog } from "../components/ConsoleConfirmDialog";
@@ -31,8 +30,6 @@ import { adminPreviewPath } from "../helpers/useAdminContentPreview";
 import { adminEditPath } from "../helpers/adminContentEdit";
 import { AdminEditIconButton } from "../components/AdminEditIconButton";
 import styles from "./admin.bundles.module.css";
-
-const ALL_TEACHERS = "__all__";
 
 const STATUS_TABS = ["all", "published", "unpublished"] as const;
 type StatusTab = (typeof STATUS_TABS)[number];
@@ -108,7 +105,6 @@ export default function AdminBundlesPage() {
   const focusId = readId();
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [teacherFilter, setTeacherFilter] = useState(ALL_TEACHERS);
 
   const focusedBundle = useMemo(
     () => (focusId === null ? null : bundles?.find((b) => b.id === focusId) ?? null),
@@ -125,11 +121,6 @@ export default function AdminBundlesPage() {
 
   useRefetchOnLinkArrival(statusFilter !== "all" || focusId !== null, isFetching, refetch);
 
-  const teachers = useMemo(() => {
-    if (!bundles) return [];
-    return Array.from(new Set(bundles.map((b) => b.teacherName))).sort();
-  }, [bundles]);
-
   const statusTabs = useMemo(() => {
     const all = bundles ?? [];
     return [
@@ -141,26 +132,25 @@ export default function AdminBundlesPage() {
 
   const filteredBundles = useMemo(() => {
     if (!bundles) return [];
+    const term = searchQuery.toLowerCase();
     return bundles.filter((bundle) => {
-      const matchesSearch = bundle.title.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch =
+        bundle.title.toLowerCase().includes(term) || bundle.teacherName.toLowerCase().includes(term);
       const matchesStatus =
         statusFilter === "all" ||
         (statusFilter === "published" && bundle.isPublished) ||
         (statusFilter === "unpublished" && !bundle.isPublished);
-      const matchesTeacher = teacherFilter === ALL_TEACHERS || bundle.teacherName === teacherFilter;
       const matchesFocus = focusId === null || bundle.id === focusId;
-      return matchesSearch && matchesStatus && matchesTeacher && matchesFocus;
+      return matchesSearch && matchesStatus && matchesFocus;
     });
-  }, [bundles, searchQuery, statusFilter, teacherFilter, focusId]);
+  }, [bundles, searchQuery, statusFilter, focusId]);
 
   const { sorted: sortedBundles, ...sort } = useTableSort(filteredBundles, SORT_ACCESSORS);
 
-  const hasActiveFilters =
-    searchQuery !== "" || statusFilter !== "all" || teacherFilter !== ALL_TEACHERS || focusId !== null;
+  const hasActiveFilters = searchQuery !== "" || statusFilter !== "all" || focusId !== null;
 
   const clearFilters = () => {
     setSearchQuery("");
-    setTeacherFilter(ALL_TEACHERS);
     write({ status: null, id: null });
   };
 
@@ -287,7 +277,7 @@ export default function AdminBundlesPage() {
         focusId !== null && !focusedBundle
           ? "The linked bundle is no longer in the list. It may have been deleted."
           : hasActiveFilters
-            ? "Nothing here for this status, teacher and search. Widen the filters to see the rest."
+            ? "Nothing here for this status and search. Widen the filters to see the rest."
             : "Bundles teachers publish will be listed here.";
       return (
         <ConsoleListEmpty
@@ -388,22 +378,10 @@ export default function AdminBundlesPage() {
           search={{
             value: searchQuery,
             onChange: setSearchQuery,
-            placeholder: "Search by title",
+            placeholder: "Search by title or teacher",
             label: "Search bundles",
           }}
-        >
-          <Select value={teacherFilter} onValueChange={setTeacherFilter}>
-            <SelectTrigger className={consoleToolbarControlClass}>
-              <SelectValue placeholder="All teachers" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL_TEACHERS}>All teachers</SelectItem>
-              {teachers.map((teacher) => (
-                <SelectItem key={teacher} value={teacher}>{teacher}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </ConsoleListToolbar>
+        />
 
         {focusId !== null && (
           <ConsoleFilterNotice

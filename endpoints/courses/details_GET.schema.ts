@@ -41,6 +41,8 @@ export type OutputType = Omit<Selectable<Courses>, "price" | "discountPrice"> & 
   price: number;
   /** Valid discounted price (between 0 and price), or null. */
   discountPrice: number | null;
+  /** Mobile builds up to 4.7.2 show this as a badge; it carries the primary exam name. */
+  category: string;
   seo: CourseSeo;
   teacher: {
     id: number;

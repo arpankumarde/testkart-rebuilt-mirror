@@ -7,7 +7,6 @@ export const schema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters long."),
   // Optional while drafting; teacher/courses/publish requires one.
   description: z.string().optional(),
-  category: z.string().min(1, "Category is required."),
   level: z.enum(CourseLevelArrayValues),
   price: z.number().min(0, "Price cannot be negative."),
   discountPrice: z.number().min(0, "Discounted price cannot be negative.").optional().nullable(),

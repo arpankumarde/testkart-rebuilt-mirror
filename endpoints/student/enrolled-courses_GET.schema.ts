@@ -9,7 +9,7 @@ export type InputType = z.infer<typeof schema>;
 
 export type EnrolledCourse = Pick<
   Selectable<Courses>,
-  "id" | "title" | "thumbnailUrl" | "thumbnailImageUrl" | "introVideoUrl" | "category"
+  "id" | "title" | "thumbnailUrl" | "thumbnailImageUrl" | "introVideoUrl"
 > &
   Pick<
     Selectable<CourseEnrollments>,

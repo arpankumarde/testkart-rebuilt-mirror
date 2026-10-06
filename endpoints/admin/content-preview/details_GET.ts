@@ -266,7 +266,6 @@ export async function handle(request: Request): Promise<Response> {
           publishedAt: row.publishedAt,
           facts: facts(
             examFact(exams, row.examName),
-            fact("Category", row.category),
             fact("Level", row.level),
             fact("Language", row.language),
             fact("Price", Number(row.price) > 0 ? rupees(row.price) : "Free"),

@@ -13,7 +13,6 @@ export type PublicCourseDetails = {
   price: number;
   level: 'beginner' | 'intermediate' | 'advanced';
   estimatedDurationMinutes: number | null;
-  category: string | null;
   teacher: {
     id: number;
     displayName: string;

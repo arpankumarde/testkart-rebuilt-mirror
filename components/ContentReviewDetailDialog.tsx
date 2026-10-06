@@ -304,11 +304,6 @@ const CourseDetails = ({ meta }: { meta: CourseMeta }) => (
   <div className={styles.metaSection}>
     <div className={styles.grid}>
       <GridItem
-        label="Category"
-        value={meta.category ?? "-"}
-        icon={<Package size={12} />}
-      />
-      <GridItem
         label="Level"
         value={
           <span className={styles.capitalize}>{meta.level}</span>

@@ -31,7 +31,6 @@ type AiCourseValues = {
   shortDescription?: string;
   description: string;
   examName?: string;
-  category?: string;
   language?: string;
   suggestedPrice?: number;
   level?: string;
@@ -206,7 +205,6 @@ export default function CreateCoursePage() {
       {
         title: ai.title?.trim() || "Untitled course",
         description: ai.description || ai.shortDescription || "",
-        category: ai.category || "General",
         level,
         price: ai.suggestedPrice && ai.suggestedPrice > 0 ? ai.suggestedPrice : 0,
         language: ai.language || null,
@@ -218,7 +216,7 @@ export default function CreateCoursePage() {
   };
 
   const handleManualCreate = (values: StartValues) =>
-    create({ ...values, category: "General", level: "beginner" }, false);
+    create({ ...values, level: "beginner" }, false);
 
   return (
     <>

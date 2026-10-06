@@ -72,7 +72,6 @@ export async function fetchCourseDetailsServer(slug: string): Promise<OutputType
     description: course.description,
     status: course.status,
     examId: course.examId,
-    category: course.category,
     totalLessons: lessons.length,
     videoLessons,
     lessonsWithDescriptionRatio,
@@ -114,6 +113,7 @@ export async function fetchCourseDetailsServer(slug: string): Promise<OutputType
 
   return {
     ...course,
+    category: course.examName || "Course",
     description: course.description,
     price: Number(course.price),
     discountPrice: courseDiscountPrice(course.price, course.discountPrice),

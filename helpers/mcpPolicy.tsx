@@ -20,6 +20,7 @@ export const MCP_WRITE_ALLOWLIST = [
   "admin/careers/delete-application",
   "admin/exam-content/upsert",
   "admin/exam-content/publish",
+  "admin/exam-content/ready-for-review",
   "admin/exam-content/unpublish",
   "admin/exam-content/delete",
 ] as const;

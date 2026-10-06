@@ -64,27 +64,6 @@
   box-shadow: 0 10px 24px -12px hsl(20 60% 28% / 0.6);
 }
 
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-2);
-  padding: 0.625rem var(--spacing-3) 0;
-}
-
-.categoryChip {
-  max-width: 100%;
-  overflow: hidden;
-  padding: 0.125rem var(--spacing-2);
-  border-radius: var(--radius-full);
-  background-color: hsl(20 100% 92%);
-  color: var(--tk-brand-deep);
-  font-size: 0.75rem;
-  font-weight: 600;
-  line-height: 1.4;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
 .thumbnail {
   position: relative;
   margin: 0.625rem var(--spacing-3) 0;

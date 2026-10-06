@@ -2,7 +2,6 @@ import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { BookOpen, Users, IndianRupee, BarChart3, Plus, Globe } from 'lucide-react';
 import type { CourseListItem } from '../endpoints/courses/list_GET.schema';
-import { Badge } from './Badge';
 import { Button } from './Button';
 import { useAddToCartMutation } from '../helpers/useCartQuery';
 import { useAuth } from '../helpers/useAuth';
@@ -78,12 +77,6 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, className }) => 
   return (
     <Link to={detailsUrl} className={`${styles.cardLink} ${className || ''}`}>
       <div className={styles.card}>
-        {course.category && (
-          <div className={styles.badgeContainer}>
-            <Badge variant="default">{course.category}</Badge>
-          </div>
-        )}
-        
         <div className={styles.thumbnailWrapper}>
           <VideoPreview
             videoUrl={course.introVideoUrl || course.thumbnailUrl}

@@ -103,7 +103,6 @@ export async function handle(request: Request): Promise<Response> {
       description: course.description,
       status: course.status,
       examId: course.examId,
-      category: course.category,
       totalLessons: lessons.length,
       videoLessons,
       lessonsWithDescriptionRatio,
@@ -147,6 +146,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const output: OutputType = {
       ...course,
+      category: course.examName || "Course",
       description: course.description,
       price: Number(course.price),
       discountPrice: courseDiscountPrice(course.price, course.discountPrice),

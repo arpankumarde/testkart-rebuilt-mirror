@@ -39,7 +39,7 @@ export async function handle(request: Request) {
         fieldsInstruction = `title, shortDescription (short bio for card), description (detailed description in HTML), examName, language, tags, suggestedPrice`;
         break;
       case "course":
-        fieldsInstruction = `title, shortDescription, description (HTML with bullet points), category (e.g. "General" or relevant category), level ("beginner" | "intermediate" | "advanced"), language, tags, suggestedPrice`;
+        fieldsInstruction = `title, shortDescription, description (HTML with bullet points), examName, level ("beginner" | "intermediate" | "advanced"), language, tags, suggestedPrice`;
         break;
       case "liveTest":
         fieldsInstruction = `title, shortDescription, description (HTML), examName, language, tags, suggestedPrice, durationMinutes (e.g. 60, 90, 120, 180)`;

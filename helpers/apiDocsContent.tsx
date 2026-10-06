@@ -11,7 +11,6 @@ export const apiDocsContent: ApiEndpoint[] = [
     usedBy: ["web", "mobile"],
     queryParams: [
       { name: "search", type: "string", required: false, description: "Case-insensitive match on title and description" },
-      { name: "category", type: "string", required: false, description: "Exact category name" },
       { name: "level", type: "'beginner' | 'intermediate' | 'advanced'", required: false, description: "Course level. Not validated" },
       { name: "language", type: "string", required: false, description: "Comma-separated languages. A course matches if its language equals any of them" },
       { name: "priceType", type: "'free' | 'paid' | 'all'", required: false, description: "'free' returns price 0, 'paid' returns price above 0. Omitted or 'all' applies no price filter" },
@@ -23,8 +22,7 @@ export const apiDocsContent: ApiEndpoint[] = [
       { name: "limit", type: "number", required: false, description: "Items per page, default 6, no maximum" },
     ],
     responseFields: [
-      { name: "courses", type: "array", description: "Array of { id, slug, title, description, thumbnailUrl, thumbnailImageUrl, introVideoUrl, price, discountPrice, category, level, language, status, publishedAt, views, examId, examName, teacherName, teacherSlug, teacherIsVerified, teacherAvatarUrl, teacherTagline, teacherYearsOfExperience, enrollmentCount, avgRating, ratingsCount }" },
-      { name: "categories", type: "array", description: "Distinct non-empty category names across all published courses, ignoring the current filters" },
+      { name: "courses", type: "array", description: "Array of { id, slug, title, description, thumbnailUrl, thumbnailImageUrl, introVideoUrl, price, discountPrice, level, language, status, publishedAt, views, examId, examName, teacherName, teacherSlug, teacherIsVerified, teacherAvatarUrl, teacherTagline, teacherYearsOfExperience, enrollmentCount, avgRating, ratingsCount }" },
       { name: "pagination", type: "object", description: "{ page, limit, totalCount, totalPages }" },
     ],
     notes: [
@@ -43,7 +41,8 @@ export const apiDocsContent: ApiEndpoint[] = [
       { name: "slug", type: "string", required: true, description: "Course slug" },
     ],
     responseFields: [
-      { name: "(course fields)", type: "object", description: "The course sits at the top level, with no wrapper: id, slug, title, description, price, discountPrice, thumbnailUrl, thumbnailImageUrl, introVideoUrl, category, level, language, status, estimatedDurationMinutes, examId, examName, publishedAt, rating, reviewsCount, views" },
+      { name: "(course fields)", type: "object", description: "The course sits at the top level, with no wrapper: id, slug, title, description, price, discountPrice, thumbnailUrl, thumbnailImageUrl, introVideoUrl, level, language, status, estimatedDurationMinutes, examId, examName, publishedAt, rating, reviewsCount, views" },
+      { name: "category", type: "string", description: "Courses no longer have a category. Kept for mobile builds up to 4.7.2, which show it as a badge: the primary exam name, or 'Course'" },
       { name: "teacher", type: "object", description: "{ id, displayName, profilePicture, isVerified, slug, bio, academyName }" },
       { name: "sections", type: "array", description: "Ordered { id, courseId, title, description, orderIndex, lessons }, where lessons are { id, sectionId, title, description, contentType, durationMinutes, isPreview, orderIndex, contentUrl?, textContent? }" },
       { name: "reviews", type: "array", description: "Newest first: { id, rating, reviewText, createdAt, userId, reviewerName, reviewerAvatarUrl }" },
@@ -74,7 +73,7 @@ export const apiDocsContent: ApiEndpoint[] = [
     ],
     notes: [
       "Returns 404 when courseId does not exist. Invalid values return 500, not 400.",
-      "Filled in three tiers: same teacher and category, then same exam, then everything else by rating. The course itself and unpublished courses are left out.",
+      "Filled in three tiers: same teacher and exam, then same exam, then everything else by rating. The course itself and unpublished courses are left out.",
     ],
   },
   {
@@ -105,7 +104,7 @@ export const apiDocsContent: ApiEndpoint[] = [
     category: "Courses",
     usedBy: ["web", "mobile"],
     responseFields: [
-      { name: "enrolledCourses", type: "array", description: "Most recently accessed first: { id, title, thumbnailUrl, thumbnailImageUrl, introVideoUrl, category, teacherName, enrolledAt, completionPercentage, lastAccessedAt, totalLessons, hasReviewed, reviewRating, reviewText }" },
+      { name: "enrolledCourses", type: "array", description: "Most recently accessed first: { id, title, thumbnailUrl, thumbnailImageUrl, introVideoUrl, teacherName, enrolledAt, completionPercentage, lastAccessedAt, totalLessons, hasReviewed, reviewRating, reviewText }" },
     ],
     notes: [
       "Takes no parameters and is not paged. The limit the mobile app sends is ignored.",
@@ -123,7 +122,7 @@ export const apiDocsContent: ApiEndpoint[] = [
       { name: "courseId", type: "number", required: true, description: "Id of a course the caller is enrolled in" },
     ],
     responseFields: [
-      { name: "course", type: "object", description: "The course row, with price as a number" },
+      { name: "course", type: "object", description: "The course row, with price as a number, plus category (the primary exam name, or 'Course') for mobile builds up to 4.7.2" },
       { name: "sections", type: "array", description: "Ordered { id, courseId, title, description, orderIndex, lessons }, where lessons are full lesson rows: { id, sectionId, title, description, contentType, contentUrl, contentFileId, textContent, durationMinutes, isPreview, orderIndex, plus video processing fields }" },
     ],
     notes: [

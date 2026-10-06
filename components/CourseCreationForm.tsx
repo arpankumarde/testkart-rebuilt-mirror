@@ -72,7 +72,6 @@ const toFormValues = (course: Omit<TeacherCourseListItem, 'rejection'>): CourseD
   return {
   title: course.title,
   description: course.description ?? '',
-  category: course.category || '',
   level: course.level,
   price: course.price,
   discountPrice: course.discountPrice ?? null,
@@ -87,7 +86,7 @@ const toFormValues = (course: Omit<TeacherCourseListItem, 'rejection'>): CourseD
 };
 
 const FIELD_KEYS: (keyof CourseDetailsValues)[] = [
-  'title', 'description', 'category', 'level', 'price', 'discountPrice', 'introVideoUrl', 'thumbnailImageUrl',
+  'title', 'description', 'level', 'price', 'discountPrice', 'introVideoUrl', 'thumbnailImageUrl',
   'introVideoFileId', 'thumbnailImageFileId', 'language', 'examName', 'examNames',
 ];
 
@@ -206,7 +205,6 @@ export const CourseCreationForm = forwardRef<CourseDetailsFormHandle, CourseCrea
 
     const aiContext = {
       title: form.values.title,
-      category: form.values.category || undefined,
       level: form.values.level,
       language: form.values.language || undefined,
       examName: form.values.examName || undefined,
@@ -422,18 +420,6 @@ export const CourseCreationForm = forwardRef<CourseDetailsFormHandle, CourseCrea
                         ))}
                       </SelectContent>
                     </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-
-                <FormItem name="category" className={styles.field}>
-                  <FormLabel>Subject</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="e.g., Physics"
-                      value={form.values.category}
-                      onChange={(e) => setField('category', e.target.value)}
-                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

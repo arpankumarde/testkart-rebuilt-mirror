@@ -85,9 +85,6 @@ const CourseMetaDisplay: React.FC<{ meta: CourseMeta }> = ({ meta }) => (
       icon={<FileText size={11} />}
       label={meta.level.charAt(0).toUpperCase() + meta.level.slice(1)}
     />
-    {meta.category && (
-      <StatPill icon={<Package size={11} />} label={meta.category} />
-    )}
     {meta.estimatedDurationMinutes != null && (
       <StatPill
         icon={<Clock size={11} />}

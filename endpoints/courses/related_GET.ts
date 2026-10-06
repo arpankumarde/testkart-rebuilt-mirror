@@ -15,7 +15,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const currentCourse = await db
       .selectFrom("courses")
-      .select(["category", "teacherId", "examId", "examName"])
+      .select(["teacherId", "examId", "examName"])
       .where("id", "=", input.courseId)
       .executeTakeFirst();
 
@@ -27,17 +27,12 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     // Same three tiers as shop/related; the limit is filled from tier 1 down:
-    //    1 - same teacher and same category
+    //    1 - same teacher and same exam
     //    2 - same exam, any teacher
     //    3 - everything else, top rated first
-    // A blank category or exam never counts as a match.
+    // A blank exam never counts as a match.
     // Raw sql skips the camelCase plugin, so it uses snake_case names.
-    const category = currentCourse.category?.trim() || null;
     const examName = currentCourse.examName?.trim().toLowerCase() || null;
-
-    const sameTeacherAndCategory = category
-      ? sql`(courses.teacher_id = ${currentCourse.teacherId} AND courses.category = ${category})`
-      : sql`false`;
 
     const examMatches: RawBuilder<unknown>[] = [];
     if (currentCourse.examId != null) {
@@ -49,8 +44,9 @@ export async function handle(request: Request): Promise<Response> {
     const sameExam = examMatches.length
       ? sql`(${sql.join(examMatches, sql` OR `)})`
       : sql`false`;
+    const sameTeacherAndExam = sql`(courses.teacher_id = ${currentCourse.teacherId} AND ${sameExam})`;
 
-    const tier = sql<number>`CASE WHEN ${sameTeacherAndCategory} THEN 1 WHEN ${sameExam} THEN 2 ELSE 3 END`;
+    const tier = sql<number>`CASE WHEN ${sameTeacherAndExam} THEN 1 WHEN ${sameExam} THEN 2 ELSE 3 END`;
     const avgRating = sql<number | null>`(SELECT AVG(r.rating) FROM reviews r WHERE r.course_id = courses.id)`;
     const ratingsCount = sql<number>`(SELECT COUNT(*) FROM reviews r WHERE r.course_id = courses.id)`;
     const enrollmentCount = sql<number>`(SELECT COUNT(*) FROM course_enrollments WHERE course_enrollments.course_id = courses.id)`;
@@ -68,7 +64,6 @@ export async function handle(request: Request): Promise<Response> {
         "courses.introVideoUrl",
         "courses.price",
         "courses.discountPrice",
-        "courses.category",
         "courses.level",
         "courses.language",
         "courses.status",

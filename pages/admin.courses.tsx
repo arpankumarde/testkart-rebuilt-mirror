@@ -1,20 +1,21 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Helmet } from "react-helmet";
-import { useAdminCoursesQuery, useDeactivateCourseMutation } from "../helpers/useAdminCourses";
+import { useAdminCoursesPageQuery, useDeactivateCourseMutation } from "../helpers/useAdminCourses";
 import { useListUrlParams } from "../helpers/useListUrlParams";
 import { useRefetchOnLinkArrival } from "../helpers/useRefetchOnLinkArrival";
-import { useTableSort, SortAccessors } from "../helpers/useTableSort";
+import { useServerTableSort, SortOrder } from "../helpers/useTableSort";
+import { useListPage } from "../helpers/useListPage";
 import { SortableTh } from "../components/SortableTh";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
 import { Badge } from "../components/Badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/Select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../components/Tooltip";
 import { ConsolePageHeader } from "../components/ConsolePageHeader";
-import { ConsoleListToolbar, consoleToolbarControlClass } from "../components/ConsoleListToolbar";
+import { ConsoleListToolbar } from "../components/ConsoleListToolbar";
 import { ConsoleListEmpty } from "../components/ConsoleListEmpty";
 import { ConsoleFilterNotice } from "../components/ConsoleFilterNotice";
 import { ConsoleConfirmDialog } from "../components/ConsoleConfirmDialog";
+import { ConsoleListPagination } from "../components/ConsoleListPagination";
 import {
   CheckCircle2,
   Archive,
@@ -27,14 +28,12 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { CourseStatus } from "../helpers/schema";
-import { AdminCourseListItem } from "../endpoints/admin/courses/list_GET.schema";
+import { AdminCoursePageItem, CourseSortColumn } from "../endpoints/admin/courses/page_GET.schema";
 import { AdminProductDetailPanel } from "../components/AdminProductDetailPanel";
 import { adminPreviewPath } from "../helpers/useAdminContentPreview";
 import { adminEditPath } from "../helpers/adminContentEdit";
 import { AdminEditIconButton } from "../components/AdminEditIconButton";
 import styles from "./admin.courses.module.css";
-
-const ALL_TEACHERS = "__all__";
 
 const STATUS_TABS = ["all", "published", "draft", "archived"] as const;
 type StatusTab = (typeof STATUS_TABS)[number];
@@ -43,12 +42,12 @@ type StatusTab = (typeof STATUS_TABS)[number];
 const LIST_FILTERS = ["no-lessons"] as const;
 type ListFilter = (typeof LIST_FILTERS)[number];
 
-const SORT_ACCESSORS: SortAccessors<AdminCourseListItem, "title" | "status" | "students" | "price" | "createdAt"> = {
-  title: (c) => c.title,
-  status: (c) => c.status,
-  students: (c) => c.studentsEnrolled,
-  price: (c) => c.price,
-  createdAt: (c) => (c.createdAt ? new Date(c.createdAt) : null),
+const FIRST_SORT_ORDER: Record<CourseSortColumn, SortOrder> = {
+  title: "asc",
+  status: "asc",
+  students: "desc",
+  price: "desc",
+  createdAt: "desc",
 };
 
 /* Shared by the loading and loaded tables so the columns do not jump. */
@@ -107,12 +106,11 @@ const CourseCardSkeleton = () => (
 );
 
 const AdminCoursesPage: React.FC = () => {
-  const { data: courses, isFetching, isError, error, refetch } = useAdminCoursesQuery();
   const deactivateMutation = useDeactivateCourseMutation();
 
   const [isDeactivateDialogOpen, setIsDeactivateDialogOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<{ id: number; title: string } | null>(null);
-  const [panelCourse, setPanelCourse] = useState<AdminCourseListItem | null>(null);
+  const [panelCourse, setPanelCourse] = useState<AdminCoursePageItem | null>(null);
 
   const { read, readId, write } = useListUrlParams();
   const statusFilter = read<StatusTab>("status", STATUS_TABS, "all");
@@ -120,7 +118,21 @@ const AdminCoursesPage: React.FC = () => {
   const focusId = readId();
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [teacherFilter, setTeacherFilter] = useState(ALL_TEACHERS);
+  const sort = useServerTableSort(FIRST_SORT_ORDER);
+  const [page, setPage] = useListPage(
+    JSON.stringify([searchQuery, statusFilter, listFilter, focusId, sort.sortBy, sort.sortOrder])
+  );
+
+  const { data, isFetching, isPlaceholderData, isError, error, refetch } = useAdminCoursesPageQuery({
+    page,
+    search: searchQuery || undefined,
+    status: statusFilter === "all" ? undefined : statusFilter,
+    filter: listFilter || undefined,
+    id: focusId ?? undefined,
+    sortBy: sort.sortBy ?? undefined,
+    sortOrder: sort.sortBy ? sort.sortOrder : undefined,
+  });
+  const courses = isPlaceholderData ? undefined : data?.items;
 
   const focusedCourse = useMemo(
     () => (focusId === null ? null : courses?.find((c) => c.id === focusId) ?? null),
@@ -137,45 +149,25 @@ const AdminCoursesPage: React.FC = () => {
 
   useRefetchOnLinkArrival(listFilter !== "" || focusId !== null, isFetching, refetch);
 
-  const teachers = useMemo(() => {
-    if (!courses) return [];
-    return Array.from(new Set(courses.map((c) => c.teacherName))).sort();
-  }, [courses]);
+  const counts = data?.statusCounts;
+  const statusTabs = [
+    { value: "all", label: "All", count: counts?.all },
+    { value: "published", label: "Published", count: counts?.published },
+    { value: "draft", label: "Draft", count: counts?.draft },
+    { value: "archived", label: "Archived", count: counts?.archived },
+  ];
 
-  const statusTabs = useMemo(() => {
-    const all = courses ?? [];
-    return [
-      { value: "all", label: "All", count: all.length },
-      { value: "published", label: "Published", count: all.filter((c) => c.status === "published").length },
-      { value: "draft", label: "Draft", count: all.filter((c) => c.status === "draft").length },
-      { value: "archived", label: "Archived", count: all.filter((c) => c.status === "archived").length },
-    ];
-  }, [courses]);
-
-  const filteredCourses = useMemo(() => {
-    if (!courses) return [];
-    return courses.filter((course) => {
-      const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesStatus = statusFilter === "all" || course.status === statusFilter;
-      const matchesTeacher = teacherFilter === ALL_TEACHERS || course.teacherName === teacherFilter;
-      const matchesListFilter = listFilter !== "no-lessons" || course.lessonsCount === 0;
-      const matchesFocus = focusId === null || course.id === focusId;
-      return matchesSearch && matchesStatus && matchesTeacher && matchesListFilter && matchesFocus;
-    });
-  }, [courses, searchQuery, statusFilter, teacherFilter, listFilter, focusId]);
-
-  const { sorted: sortedCourses, ...sort } = useTableSort(filteredCourses, SORT_ACCESSORS);
+  const sortedCourses = courses ?? [];
+  const matchingCount = courses ? data?.total : undefined;
 
   const hasActiveFilters =
     searchQuery !== "" ||
     statusFilter !== "all" ||
-    teacherFilter !== ALL_TEACHERS ||
     listFilter !== "" ||
     focusId !== null;
 
   const clearFilters = () => {
     setSearchQuery("");
-    setTeacherFilter(ALL_TEACHERS);
     write({ status: null, filter: null, id: null });
   };
 
@@ -241,7 +233,7 @@ const AdminCoursesPage: React.FC = () => {
     }
   };
 
-  const renderTitle = (course: AdminCourseListItem) => (
+  const renderTitle = (course: AdminCoursePageItem) => (
     <a
       href={adminPreviewPath("course", course.id)}
       target="_blank"
@@ -253,7 +245,7 @@ const AdminCoursesPage: React.FC = () => {
     </a>
   );
 
-  const renderActions = (course: AdminCourseListItem) => (
+  const renderActions = (course: AdminCoursePageItem) => (
     <div className={styles.rowActions}>
       <Tooltip>
         <TooltipTrigger asChild>
@@ -308,7 +300,20 @@ const AdminCoursesPage: React.FC = () => {
   );
 
   const renderContent = () => {
-    if (isFetching) {
+    if (isError) {
+      return (
+        <ConsoleListEmpty
+          tone="error"
+          icon={<AlertTriangle size={24} />}
+          title="Could not load the courses"
+          description={error instanceof Error ? error.message : "The request did not come back. Check your connection and try again."}
+        >
+          <Button variant="outline" onClick={() => refetch()}>Try again</Button>
+        </ConsoleListEmpty>
+      );
+    }
+
+    if (!courses) {
       return (
         <>
           <div className={styles.tableContainer}>
@@ -326,27 +331,14 @@ const AdminCoursesPage: React.FC = () => {
       );
     }
 
-    if (isError) {
-      return (
-        <ConsoleListEmpty
-          tone="error"
-          icon={<AlertTriangle size={24} />}
-          title="Could not load the courses"
-          description={error instanceof Error ? error.message : "The request did not come back. Check your connection and try again."}
-        >
-          <Button variant="outline" onClick={() => refetch()}>Try again</Button>
-        </ConsoleListEmpty>
-      );
-    }
-
-    if (filteredCourses.length === 0) {
+    if (sortedCourses.length === 0) {
       const description =
         focusId !== null && !focusedCourse
           ? "The linked course is no longer in the list. It may have been deleted."
           : listFilter === "no-lessons"
             ? "Every course that matches these filters has at least one lesson."
             : hasActiveFilters
-              ? "Nothing here for this status, teacher and search. Widen the filters to see the rest."
+              ? "Nothing here for this status and search. Widen the filters to see the rest."
               : "Courses teachers create will be listed here.";
       return (
         <ConsoleListEmpty
@@ -452,27 +444,15 @@ const AdminCoursesPage: React.FC = () => {
           search={{
             value: searchQuery,
             onChange: setSearchQuery,
-            placeholder: "Search by title",
+            placeholder: "Search by title or teacher",
             label: "Search courses",
           }}
-        >
-          <Select value={teacherFilter} onValueChange={setTeacherFilter}>
-            <SelectTrigger className={consoleToolbarControlClass}>
-              <SelectValue placeholder="All teachers" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL_TEACHERS}>All teachers</SelectItem>
-              {teachers.map((teacher) => (
-                <SelectItem key={teacher} value={teacher}>{teacher}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </ConsoleListToolbar>
+        />
 
         {listFilter === "no-lessons" && (
           <ConsoleFilterNotice
             label="Courses with no lessons"
-            count={courses ? filteredCourses.length : undefined}
+            count={matchingCount}
             onClear={() => write({ filter: null })}
             clearLabel="Show all"
           />
@@ -480,13 +460,17 @@ const AdminCoursesPage: React.FC = () => {
         {focusId !== null && (
           <ConsoleFilterNotice
             label={focusedCourse?.title ?? `Course #${focusId}`}
-            count={courses ? filteredCourses.length : undefined}
+            count={matchingCount}
             onClear={() => write({ id: null })}
             clearLabel="Show all"
           />
         )}
 
         <div className={styles.results}>{renderContent()}</div>
+
+        {courses && data && data.totalPages > 1 && (
+          <ConsoleListPagination page={data.page} totalPages={data.totalPages} onPageChange={setPage} />
+        )}
 
         <ConsoleConfirmDialog
           open={isDeactivateDialogOpen}

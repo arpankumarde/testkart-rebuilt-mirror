@@ -319,7 +319,6 @@ export type CourseSeoInput = {
   description: string | null;
   status: string | null;
   examId: number | null;
-  category: string | null;
   totalLessons: number;
   videoLessons: number;
   lessonsWithDescriptionRatio: number; // 0..1
@@ -339,10 +338,9 @@ export async function computeCourseSeo(
   const isPublished = input.status === "published";
   const hasValidTitle = title.length >= MIN_TITLE_LENGTH;
   const hasMeaningfulDescription = isMeaningfulText(input.description, 40);
-  // Neither exam tagging nor subject/topic (category) tagging gates
-  // indexing here — both excluded from the indexing decision site-wide per
-  // product decision (input.examId/category are accepted but intentionally
-  // unused for gating/scoring; kept for potential future use).
+  // Exam tagging does not gate indexing here - excluded from the indexing
+  // decision site-wide per product decision (input.examId is accepted but
+  // intentionally unused for gating/scoring; kept for potential future use).
   const hasMinVideoLessons = input.videoLessons >= MIN_COURSE_VIDEO_LESSONS;
 
   if (!isPublished) reasons.push("Not published");

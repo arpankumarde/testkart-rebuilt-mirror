@@ -18,7 +18,6 @@ export async function handle(request: Request): Promise<Response> {
         "courses.thumbnailUrl",
         "courses.thumbnailImageUrl",
         "courses.introVideoUrl",
-        "courses.category",
         "users.displayName as teacherName",
         "courseEnrollments.enrolledAt",
         "courseEnrollments.completionPercentage",
