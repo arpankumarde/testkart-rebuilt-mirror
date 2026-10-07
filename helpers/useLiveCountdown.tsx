@@ -1,35 +1,44 @@
 import { useEffect, useState } from "react";
 
-export function useLiveCountdown(startTime: Date, endTime: Date) {
-  const [label, setLabel] = useState<string>("");
-  const [isLive, setIsLive] = useState<boolean>(false);
+const pad = (n: number) => n.toString().padStart(2, "0");
+
+function formatDuration(diff: number): string {
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+  if (days > 0) return `${days}d ${pad(hours)}h`;
+  return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+}
+
+/**
+ * Ticking status label for a live test. A null startTime means the test is
+ * open until endTime. initialIsLive seeds the first render (and SSR) so the
+ * status badge does not flash before the first tick.
+ */
+export function useLiveCountdown(startTime: Date | null, endTime: Date, initialIsLive = false) {
+  const [label, setLabel] = useState<string>(initialIsLive ? "Live now" : "");
+  const [isLive, setIsLive] = useState<boolean>(initialIsLive);
+  const [isEnded, setIsEnded] = useState<boolean>(false);
 
   useEffect(() => {
     const update = () => {
       const now = Date.now();
-      const start = new Date(startTime).getTime();
+      const start = startTime === null ? null : new Date(startTime).getTime();
       const end = new Date(endTime).getTime();
 
-      if (now >= start && now <= end) {
-        setLabel("Live now");
-        setIsLive(true);
-      } else if (now < start) {
-        const diff = start - now;
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        
-        const pad = (n: number) => n.toString().padStart(2, "0");
-        if (days > 0) {
-          setLabel(`Starts in ${days}d ${pad(hours)}h`);
-        } else {
-          setLabel(`Starts in ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`);
-        }
-        setIsLive(false);
-      } else {
+      if (now > end) {
         setLabel("Ended");
         setIsLive(false);
+        setIsEnded(true);
+      } else if (start === null || now >= start) {
+        setLabel(`Ends in ${formatDuration(end - now)}`);
+        setIsLive(true);
+        setIsEnded(false);
+      } else {
+        setLabel(`Starts in ${formatDuration(start - now)}`);
+        setIsLive(false);
+        setIsEnded(false);
       }
     };
 
@@ -38,5 +47,5 @@ export function useLiveCountdown(startTime: Date, endTime: Date) {
     return () => clearInterval(interval);
   }, [startTime, endTime]);
 
-  return { label, isLive };
+  return { label, isLive, isEnded };
 }

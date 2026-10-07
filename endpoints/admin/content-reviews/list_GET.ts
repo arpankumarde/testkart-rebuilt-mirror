@@ -458,6 +458,23 @@ export async function handle(request: Request): Promise<Response> {
       loadContentExams(db, "digital_product", digitalProductIds),
     ]);
 
+    const reviewIds = rows.map((r) => r.id);
+    const bonusClaims =
+      reviewIds.length > 0
+        ? await db
+            .selectFrom("teacherCampaignClaims")
+            .select(["id", "contentReviewId", "amount", "status"])
+            .where("contentReviewId", "in", reviewIds)
+            .orderBy("id", "desc")
+            .execute()
+        : [];
+    const bonusByReview = new Map<number, { id: number; amount: number; status: string }>();
+    for (const claim of bonusClaims) {
+      if (claim.contentReviewId !== null && !bonusByReview.has(claim.contentReviewId)) {
+        bonusByReview.set(claim.contentReviewId, { id: claim.id, amount: Number(claim.amount), status: claim.status });
+      }
+    }
+
     const getContentExams = (contentType: string, contentId: number): ContentExam[] => {
       switch (contentType) {
         case "mock_test":
@@ -513,6 +530,7 @@ export async function handle(request: Request): Promise<Response> {
         createdAt: r.createdAt,
         contentMeta: getContentMeta(r.contentType, r.contentId),
         exams: getContentExams(r.contentType, r.contentId),
+        bonusClaim: bonusByReview.get(r.id) ?? null,
       })),
       totalCount,
       currentPage: page,

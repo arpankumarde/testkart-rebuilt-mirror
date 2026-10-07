@@ -8,6 +8,7 @@ import {
 } from "../../../helpers/contentReviewQueue";
 import { sendReviewChatAlert } from "../../../helpers/reviewChatAlert";
 import { hasCourseDescription } from "../../../helpers/courseDraft";
+import { submitForReview } from "../../../helpers/teacherCampaignSubmit";
 import { schema, OutputType } from "./publish_POST.schema";
 import superjson from "superjson";
 
@@ -23,7 +24,7 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     const json = superjson.parse(await request.text());
-    const { courseId } = schema.parse(json);
+    const { courseId, claimCreatorBonus } = schema.parse(json);
 
     const course = await db
       .selectFrom("courses")
@@ -96,12 +97,18 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     if (needsReview) {
-      await queueContentReview(db, { contentType: "course", contentId: courseId, teacherId: course.teacherId });
+      const submitted = await submitForReview(
+        { contentType: "course", contentId: courseId, teacherId: course.teacherId },
+        claimCreatorBonus === true
+      );
+      if (!submitted.ok) {
+        return new Response(superjson.stringify({ error: submitted.error }), { status: 400 });
+      }
       console.log(`Course ${courseId} submitted for review by teacher ${course.teacherId}`);
       await sendReviewChatAlert([{ contentType: "course", contentId: courseId, teacherId: course.teacherId }]);
       const output: OutputType = {
         success: true,
-        message: `Your course has been submitted for review. ${REVIEW_QUEUED_NOTE}`,
+        message: `Your course has been submitted for review.${submitted.bonusNote} ${REVIEW_QUEUED_NOTE}`,
       };
       return new Response(superjson.stringify(output));
     }

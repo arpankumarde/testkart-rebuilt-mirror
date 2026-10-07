@@ -24,6 +24,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const output: OutputType = {
       totalEarned: balance.totalEarned,
+      totalCampaignBonuses: balance.totalCampaignBonuses,
       totalWithdrawn: balance.totalWithdrawn,
       totalSponsored: balance.totalSponsored,
       totalPrizeDeductions: balance.totalPrizeDeductions,

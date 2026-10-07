@@ -209,6 +209,10 @@
   overflow: hidden;
 }
 
+/* Organiser and prize pill share a line when they fit; otherwise the pill
+   wraps whole onto its own line (the card height allows for that) and the
+   organiser row gets the full width. Only the name ever gives way, by
+   truncating - the avatar, verified badge and pill keep their size. */
 .metaRow {
   display: flex;
   align-items: center;
@@ -221,7 +225,9 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  flex: 0 1 auto;
   min-width: 0;
+  max-width: 100%;
 }
 
 /* Scoped under .teacherRow so these beat the Avatar kit's own size, fill and
@@ -229,6 +235,7 @@
 .teacherRow .avatar {
   width: 22px;
   height: 22px;
+  flex-shrink: 0;
   border: 1px solid var(--lsc-border);
 }
 
@@ -240,6 +247,8 @@
 }
 
 .teacherName {
+  flex: 0 1 auto;
+  min-width: 0;
   font-size: 0.8125rem;
   font-weight: 500;
   color: var(--lsc-ink-soft);
@@ -248,9 +257,16 @@
   text-overflow: ellipsis;
 }
 
+/* The row's gap already spaces it from the name. */
+.verifiedBadge {
+  flex-shrink: 0;
+  margin-left: 0;
+}
+
 .prizeBadge {
   display: inline-flex;
   align-items: center;
+  flex-shrink: 0;
   gap: 4px;
   padding: 2px 8px;
   border-radius: var(--radius-full);

@@ -17,7 +17,7 @@ export const apiDocsSite: ApiEndpoint[] = [
       { name: "popularCourses", type: "array", description: "Up to 8 published courses by enrollments in the last 30 days: { id, title, slug, thumbnailUrl, price, discountPrice, studentsEnrolled, rating, totalLessons, views, teacher fields }" },
       { name: "featuredCourses", type: "array", description: "Up to 5 hand-picked courses (a fixed list in code): { id, title, slug, thumbnailUrl, price, discountPrice, examName, level, totalLessons, teacherName, teacherAvatarUrl, teacherIsVerified }" },
       { name: "popularNotes", type: "array", description: "Up to 8 published study notes by recent purchases, then views: { id, title, slug, price, totalPurchases, rating, pageCount, views, examName, teacher fields }" },
-      { name: "liveTestSpotlight", type: "array", description: "Up to 5 active live tests that have not ended, running ones first: { id, title, examName, price, enrolledCount, maxSeats, hasPrizes, totalPrizePool, startTime, endTime, teacher fields }" },
+      { name: "liveTestSpotlight", type: "array", description: "Up to 8 active live tests that have not ended: running ones first (soonest to end), then upcoming ones (soonest to start), with up to 3 slots held for upcoming tests. A null startTime means no fixed start, so the test is running until endTime: { id, title, examName, price, enrolledCount, maxSeats, hasPrizes, totalPrizePool, startTime, endTime, isLive, teacher fields }" },
       { name: "popularTeachers", type: "array", description: "Up to 10 active teachers by revenue and enrollments over the last year: { id, displayName, avatarUrl, slug, isVerified, tagline, testCount, courseCount, productCount, studentCount, targetExams }" },
     ],
     notes: [

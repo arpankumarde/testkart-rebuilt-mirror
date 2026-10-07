@@ -9,6 +9,7 @@ import {
   buildTeacherSponsoredDeductionsSql,
   buildTeacherPrizeDeductionsSql,
   buildTeacherSubscriptionWalletPaymentsSql,
+  buildTeacherCampaignCreditsSql,
 } from "../../../helpers/teacherEarningsSql";
 import {
   startOfDay,
@@ -150,7 +151,8 @@ export async function handle(request: Request): Promise<Response> {
     // 4. Teacher Wallet Balance (Stock metric: ALWAYS All-Time)
     // Built from the single shared formula in helpers/teacherEarningsSql.tsx, called here
     // with no teacher filter for a platform-wide total:
-    // availableBalance = totalEarned - totalWithdrawn - totalSponsored - totalPrizeDeductions - totalSubscriptionWalletPayments
+    // availableBalance = totalEarned + campaignBonuses - totalWithdrawn - totalSponsored - totalPrizeDeductions
+    //   - totalSubscriptionWalletPayments
     // (This used to be a hand-copied version of the formula that only summed mock tests,
     // never subtracted subscription wallet payments, and didn't exclude teacher-sponsored
     // orders from earnings — all three silently overstated the platform-wide wallet balance.)
@@ -159,6 +161,7 @@ export async function handle(request: Request): Promise<Response> {
     const allTimeSponsoredQuery = buildTeacherSponsoredDeductionsSql();
     const allTimePrizeDeductionsQuery = buildTeacherPrizeDeductionsSql();
     const allTimeSubscriptionWalletPaymentsQuery = buildTeacherSubscriptionWalletPaymentsSql();
+    const allTimeCampaignCreditsQuery = buildTeacherCampaignCreditsSql();
 
     // 5. Pending Withdrawals (Stock metric: ALWAYS All-Time)
     const pendingWithdrawalsQuery = db
@@ -307,6 +310,7 @@ export async function handle(request: Request): Promise<Response> {
       studentWithdrawalsResult,
       studentPurchaseDebitsResult,
       studentPendingWithdrawalsResult,
+      allTimeCampaignCreditsResult,
     ] = await Promise.all([
       revenueQuery.executeTakeFirst(),
       itemsQuery.executeTakeFirst(),
@@ -328,6 +332,7 @@ export async function handle(request: Request): Promise<Response> {
       studentWithdrawalsQuery,
       studentPurchaseDebitsQuery,
       studentPendingWithdrawalsQuery,
+      allTimeCampaignCreditsQuery.execute(db),
     ]);
 
     // Parse results
@@ -341,9 +346,12 @@ export async function handle(request: Request): Promise<Response> {
     const allTimeSponsored = parseFloat(allTimeSponsoredResult.rows[0]?.total || "0");
     const totalPrizeDeductions = parseFloat(allTimePrizeDeductionsResult.rows[0]?.total || "0");
     const allTimeSubscriptionWalletPayments = parseFloat(allTimeSubscriptionWalletPaymentsResult.rows[0]?.total || "0");
+    const campaignBonusesCredited = parseFloat(allTimeCampaignCreditsResult.rows[0]?.total || "0");
     const totalTeacherWalletBalance = Math.max(
       0,
-      Math.round((allTimeEarnings - allTimeWithdrawals - allTimeSponsored - totalPrizeDeductions - allTimeSubscriptionWalletPayments) * 100) / 100
+      Math.round(
+        (allTimeEarnings + campaignBonusesCredited - allTimeWithdrawals - allTimeSponsored - totalPrizeDeductions - allTimeSubscriptionWalletPayments) * 100
+      ) / 100
     );
 
     const totalPendingWithdrawals = parseFloat(pendingWithdrawalsResult?.total || "0");
@@ -389,6 +397,7 @@ export async function handle(request: Request): Promise<Response> {
       sponsoredRevenue,
       studentWalletBalance,
       studentPendingWithdrawals,
+      campaignBonusesCredited,
     };
 
     return new Response(superjson.stringify(output), {

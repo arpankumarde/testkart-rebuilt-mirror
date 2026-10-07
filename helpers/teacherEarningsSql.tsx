@@ -308,13 +308,27 @@ export function buildTeacherSubscriptionWalletPaymentsSql(teacherIdExpr?: Teache
 }
 
 /**
+ * Campaign bonuses an admin credited (helpers/teacherCampaign). Reversing a bonus
+ * moves its status off 'credited', so it drops out of the balance here.
+ */
+export function buildTeacherCampaignCreditsSql(teacherIdExpr?: TeacherIdExpr) {
+  return sql<{ total: string }>`(
+    SELECT COALESCE(SUM(tcc.amount), 0) AS total
+    FROM teacher_campaign_claims tcc
+    WHERE tcc.status = 'credited'
+      ${teacherFilter("tcc.teacher_id", teacherIdExpr)}
+  )`;
+}
+
+/**
  * The full available-balance formula, composed from the builders above:
- * netEarnings - completed withdrawals - pending withdrawals - sponsoredDeductions
- *   - prizeDeductions - subscriptionWalletPayments
+ * netEarnings + campaignCredits - completed withdrawals - pending withdrawals
+ *   - sponsoredDeductions - prizeDeductions - subscriptionWalletPayments
  */
 export function buildTeacherAvailableBalanceSql(teacherIdExpr?: TeacherIdExpr) {
   return sql<{ total: string }>`(
     ${buildTeacherNetEarningsSql(teacherIdExpr)}
+    + ${buildTeacherCampaignCreditsSql(teacherIdExpr)}
     - ${buildTeacherWithdrawalsSql(teacherIdExpr, "completed")}
     - ${buildTeacherWithdrawalsSql(teacherIdExpr, "pending")}
     - ${buildTeacherSponsoredDeductionsSql(teacherIdExpr)}

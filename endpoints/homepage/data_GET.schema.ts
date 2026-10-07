@@ -87,8 +87,11 @@ export type HomepageLiveTestSpotlight = {
   maxSeats: number;
   hasPrizes: boolean;
   totalPrizePool: number;
-  startTime: Date;
+  /** Null means no fixed start: the test is open until endTime. */
+  startTime: Date | null;
   endTime: Date;
+  /** Whether the test was running when the response was built. */
+  isLive: boolean;
   teacherName: string;
   teacherSlug: string | null;
   teacherAvatarUrl: string | null;

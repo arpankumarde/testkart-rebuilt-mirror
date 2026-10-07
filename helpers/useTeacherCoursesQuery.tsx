@@ -23,6 +23,7 @@ import {
 import { toast } from "sonner";
 import { parseErrorMessage } from "./parseErrorMessage";
 import { TEACHER_DASHBOARD_STATS_QUERY_KEY } from "./useTeacherDashboardStats";
+import { CREATOR_BONUS_QUERY_KEY } from "./useCreatorBonus";
 
 export const TEACHER_COURSES_QUERY_KEY = ["teacher", "courses"];
 export const TEACHER_COURSE_DETAILS_QUERY_KEY = (courseId: number) => [
@@ -137,6 +138,7 @@ export const useTeacherCourseMutations = () => {
     onSuccess: (data) => {
       toast.success(data.message);
       invalidateLists();
+      queryClient.invalidateQueries({ queryKey: CREATOR_BONUS_QUERY_KEY });
     },
     onError: (error) => {
       toast.error(parseErrorMessage(error) || "Could not submit the course for review");

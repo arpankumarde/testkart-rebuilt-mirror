@@ -4,11 +4,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet';
 import { toast } from 'sonner';
 import {
-  BookCopy,
   BookOpen,
-  User,
-  Tag,
   CheckCircle,
+  ChevronDown,
   Info,
   ArrowRight,
   Loader,
@@ -19,18 +17,25 @@ import {
   Clock,
   HelpCircle,
   Package,
+  Infinity as InfinityIcon,
+  ListChecks,
+  ScrollText,
+  Sparkles,
 } from 'lucide-react';
 import { useBundleDetailsQuery } from '../helpers/useBundlesQuery';
 import { usePurchaseBundleMutation } from '../helpers/useStudentBundles';
 import { useAuth } from '../helpers/useAuth';
 import { Skeleton } from './Skeleton';
 import { Button } from './Button';
-import { Badge } from './Badge';
+import { Avatar, AvatarFallback, AvatarImage } from './Avatar';
 import { PromoCodeInput } from './PromoCodeInput';
+import { VerifiedBadge } from './VerifiedBadge';
 import { Placeholder } from '../helpers/placeholderImages';
 import { wrapContentTables } from '../helpers/contentTables';
 import { sanitizeHtml } from '../helpers/sanitizeHtml';
+import { bundleDescriptionToHtml, bundleDescriptionToPlainText } from '../helpers/bundleDescription';
 import { getBundleRedirectUrl } from '../endpoints/payment/payu/bundle-redirect_GET.schema';
+import type { OutputType as BundleDetails } from '../endpoints/bundles/details_GET.schema';
 import { MobileStickyPurchaseBar } from './MobileStickyPurchaseBar';
 import { AssetTopRow } from './AssetTopRow';
 import { PublicCouponsCard } from './PublicCouponsCard';
@@ -41,39 +46,284 @@ interface BundleDetailsViewProps {
   className?: string;
 }
 
-const levelDisplay: Record<string, { text: string; icon: React.ReactNode }> = {
-  beginner: { text: 'Beginner', icon: <BarChart3 size={12} /> },
-  intermediate: { text: 'Intermediate', icon: <BarChart3 size={12} /> },
-  advanced: { text: 'Advanced', icon: <BarChart3 size={12} /> },
+type BundleItem = BundleDetails['items'][number];
+type ItemType = BundleItem['type'];
+type BundleTeacher = BundleDetails['teacher'];
+
+const ITEM_TYPES: ItemType[] = ['course', 'test', 'digital_product'];
+
+/** Rows shown before "Show all", so a large bundle does not run for pages. */
+const INITIAL_VISIBLE_ITEMS = 8;
+
+const levelLabel: Record<string, string> = {
+  beginner: 'Beginner',
+  intermediate: 'Intermediate',
+  advanced: 'Advanced',
+};
+
+const itemTypeConfig: Record<
+  ItemType,
+  {
+    label: string;
+    singular: string;
+    plural: string;
+    icon: React.ElementType;
+    tone: string;
+    fallbackImage: string;
+    path: string;
+  }
+> = {
+  course: {
+    label: 'Course',
+    singular: 'Course',
+    plural: 'Courses',
+    icon: GraduationCap,
+    tone: styles.tonePeach,
+    fallbackImage: Placeholder.COURSE,
+    path: '/course',
+  },
+  test: {
+    label: 'Test Series',
+    singular: 'Test Series',
+    plural: 'Test Series',
+    icon: FileText,
+    tone: styles.toneBlue,
+    fallbackImage: Placeholder.TEST,
+    path: '/mock-test',
+  },
+  digital_product: {
+    label: 'Study Notes',
+    singular: 'Study Note',
+    plural: 'Study Notes',
+    icon: BookOpen,
+    tone: styles.toneLavender,
+    fallbackImage: Placeholder.NOTE,
+    path: '/study-notes',
+  },
+};
+
+const formatInr = (amount: number) => `₹${new Intl.NumberFormat('en-IN').format(amount)}`;
+
+const htmlEntities: Record<string, string> = {
+  amp: '&',
+  lt: '<',
+  gt: '>',
+  quot: '"',
+  apos: "'",
+  nbsp: ' ',
+  rsquo: '’',
+  lsquo: '‘',
+  rdquo: '”',
+  ldquo: '“',
+  ndash: '–',
+  mdash: '—',
+  hellip: '…',
+};
+
+const decodeEntity = (entity: string, name: string) => {
+  if (name[0] === '#') {
+    const code = name[1] === 'x' || name[1] === 'X' ? parseInt(name.slice(2), 16) : parseInt(name.slice(1), 10);
+    return Number.isFinite(code) ? String.fromCodePoint(code) : entity;
+  }
+  return htmlEntities[name] ?? entity;
 };
 
 const stripHtml = (html: string | undefined | null) => {
   if (!html) return '';
-  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  return html
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, decodeEntity)
+    .replace(/\s+/g, ' ')
+    .trim();
 };
 
-const renderMarkdown = (text: string) => {
-  if (!text) return '';
+const initials = (name: string) =>
+  name
+    .split(' ')
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join('')
+    .substring(0, 2)
+    .toUpperCase() || 'T';
 
-  let html = text
-    .replace(/^#\s+(.*)$/gm, '<h2>$1</h2>')
-    .replace(/^##\s+(.*)$/gm, '<h3>$1</h3>')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+const plural = (count: number, singular: string, pluralForm: string) => (count === 1 ? singular : pluralForm);
 
-  html = html.replace(/(?:^[*-]\s+.*(?:\n|$))+/gm, (match) => {
-    const items = match.trim().split('\n').map(line => `<li>${line.replace(/^[*-]\s+/, '')}</li>`).join('');
-    return `<ul>${items}</ul>\n`;
-  });
+const ItemMeta: React.FC<{ item: BundleItem }> = ({ item }) => {
+  const entries: { key: string; icon: React.ReactNode; text: string; title: string }[] = [];
 
-  const blocks = html.split(/\n\n+/);
-  const wrapped = blocks.map(block => {
-    if (block.trim().startsWith('<h') || block.trim().startsWith('<ul')) {
-      return block.trim();
-    }
-    return `<p>${block.trim().replace(/\n/g, '<br>')}</p>`;
-  });
+  if (item.type === 'course') {
+    entries.push({ key: 'level', icon: <BarChart3 size={12} />, text: levelLabel[item.level] || item.level, title: 'Level' });
+  } else if (item.type === 'test') {
+    entries.push({ key: 'duration', icon: <Clock size={12} />, text: `${item.durationMinutes} mins`, title: 'Duration' });
+    entries.push({ key: 'questions', icon: <HelpCircle size={12} />, text: `${item.totalQuestions} questions`, title: 'Questions' });
+  } else if (item.pageCount) {
+    entries.push({ key: 'pages', icon: <BookOpen size={12} />, text: `${item.pageCount} ${plural(item.pageCount, 'page', 'pages')}`, title: 'Pages' });
+  }
 
-  return wrapped.join('\n');
+  if (item.language) {
+    entries.push({ key: 'language', icon: <Languages size={12} />, text: item.language, title: 'Language' });
+  }
+
+  if (entries.length === 0) return null;
+
+  return (
+    <div className={styles.itemMeta}>
+      {entries.map((entry) => (
+        <span key={entry.key} title={entry.title}>
+          <span className={styles.metaIcon}>{entry.icon}</span>
+          {entry.text}
+        </span>
+      ))}
+    </div>
+  );
+};
+
+// Every item in a bundle belongs to the bundle's teacher (bundles can only be
+// built from the teacher's own products), so the bundle teacher is the educator.
+const BundleItemCard: React.FC<{ item: BundleItem; teacher: BundleTeacher }> = ({ item, teacher }) => {
+  const navigate = useNavigate();
+  const config = itemTypeConfig[item.type];
+  const TypeIcon = config.icon;
+
+  // The card is itself a link, so the name cannot be a nested <a>. It navigates
+  // on its own and stops the card's click, as TeacherProductCard's teacher row does.
+  const openProfile = (e: React.MouseEvent | React.KeyboardEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/expert/${teacher.slug}`);
+  };
+
+  return (
+    <Link
+      to={`${config.path}/${item.slug}`}
+      className={`${styles.itemCard} ${config.tone}`}
+      title={item.title}
+    >
+      <div className={styles.itemThumb}>
+        <img
+          src={item.thumbnailUrl || config.fallbackImage}
+          alt=""
+          loading="lazy"
+          className={styles.itemThumbImage}
+        />
+        <span className={styles.typePill}>
+          <TypeIcon size={12} aria-hidden="true" />
+          {config.label}
+        </span>
+      </div>
+      <div className={styles.itemBody}>
+        <h3 className={styles.itemTitle}>{item.title}</h3>
+        <div className={styles.itemEducator}>
+          <Avatar className={styles.itemEducatorAvatar}>
+            <AvatarImage src={teacher.profilePicture || undefined} alt="" />
+            <AvatarFallback>{initials(teacher.displayName)}</AvatarFallback>
+          </Avatar>
+          {teacher.slug ? (
+            <span
+              className={`${styles.itemEducatorName} ${styles.educatorLink}`}
+              role="link"
+              tabIndex={0}
+              onClick={openProfile}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') openProfile(e);
+              }}
+            >
+              {teacher.displayName}
+            </span>
+          ) : (
+            <span className={styles.itemEducatorName}>{teacher.displayName}</span>
+          )}
+          <VerifiedBadge isVerified={!!teacher.isVerified} size="sm" />
+        </div>
+        <ItemMeta item={item} />
+        <div className={styles.itemFooter}>
+          {item.price === 0 ? (
+            <span className={styles.itemPriceFree}>Free</span>
+          ) : (
+            <span className={styles.itemPriceGroup}>
+              <span className={styles.itemPriceLabel}>Worth</span>
+              <span className={styles.itemPriceStrike}>{formatInr(item.price)}</span>
+            </span>
+          )}
+          <span className={styles.itemArrow} aria-hidden="true">
+            <ArrowRight size={14} />
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+};
+
+const IncludedItems: React.FC<{ items: BundleItem[]; teacher: BundleTeacher }> = ({ items, teacher }) => {
+  const [filter, setFilter] = useState<ItemType | 'all'>('all');
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const presentTypes = ITEM_TYPES.filter((type) => items.some((item) => item.type === type));
+  const filtered = filter === 'all' ? items : items.filter((item) => item.type === filter);
+  const visible = isExpanded ? filtered : filtered.slice(0, INITIAL_VISIBLE_ITEMS);
+  const canToggle = filtered.length > INITIAL_VISIBLE_ITEMS;
+
+  const selectFilter = (next: ItemType | 'all') => {
+    setFilter(next);
+    setIsExpanded(false);
+  };
+
+  return (
+    <>
+      {presentTypes.length > 1 && (
+        <div className={styles.filterTabs} role="group" aria-label="Filter included items">
+          <button
+            type="button"
+            className={`${styles.filterTab} ${styles.filterTabPlain} ${styles.toneNeutral}`}
+            aria-pressed={filter === 'all'}
+            onClick={() => selectFilter('all')}
+          >
+            All
+          </button>
+          {presentTypes.map((type) => {
+            const config = itemTypeConfig[type];
+            const TypeIcon = config.icon;
+            const count = items.filter((item) => item.type === type).length;
+            return (
+              <button
+                key={type}
+                type="button"
+                className={`${styles.filterTab} ${config.tone}`}
+                aria-pressed={filter === type}
+                onClick={() => selectFilter(type)}
+              >
+                <TypeIcon size={14} aria-hidden="true" />
+                {config.plural}
+                <span className={styles.filterCount}>{count}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      <div className={styles.itemsList}>
+        {visible.map((item) => (
+          <BundleItemCard key={`${item.type}-${item.id}`} item={item} teacher={teacher} />
+        ))}
+      </div>
+
+      {canToggle && (
+        <button
+          type="button"
+          className={styles.showMore}
+          aria-expanded={isExpanded}
+          onClick={() => setIsExpanded((value) => !value)}
+        >
+          {isExpanded ? 'Show fewer' : `Show all ${filtered.length} items`}
+          <ChevronDown
+            size={16}
+            aria-hidden="true"
+            className={isExpanded ? styles.chevronUp : undefined}
+          />
+        </button>
+      )}
+    </>
+  );
 };
 
 export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, className }) => {
@@ -89,6 +339,20 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
   const [discountAmount, setDiscountAmount] = useState(0);
   const [isStickyBarVisible, setIsStickyBarVisible] = useState(false);
   const pricingRef = useRef<HTMLDivElement>(null);
+  const asideRef = useRef<HTMLElement>(null);
+
+  // The sticky card's offset is clamped against its own height in CSS, so a card
+  // taller than a short laptop screen sticks by its bottom edge (Buy Now in view)
+  // instead of being cut off.
+  useEffect(() => {
+    const aside = asideRef.current;
+    if (!aside || typeof ResizeObserver === 'undefined') return;
+    const sync = () => aside.style.setProperty('--bd-aside-height', `${aside.offsetHeight}px`);
+    sync();
+    const observer = new ResizeObserver(sync);
+    observer.observe(aside);
+    return () => observer.disconnect();
+  }, [bundle]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -103,7 +367,7 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
     }
 
     return () => observer.disconnect();
-}, [bundle]);
+  }, [bundle]);
 
   const handlePurchase = () => {
     if (authState.type !== 'authenticated') {
@@ -134,7 +398,8 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
     }
   };
 
-  if (isFetching) {
+  // Only before the first load; the refetch after a free enrollment keeps the page in place.
+  if (isFetching && !bundle) {
     return <BundleDetailsSkeleton />;
   }
 
@@ -155,17 +420,11 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
   const totalItemsValue = bundle.items.reduce((sum, item) => sum + item.price, 0);
   const hasDiscount = totalItemsValue > finalPrice;
   const totalSavings = totalItemsValue - finalPrice;
+  const savingsPercent = hasDiscount && totalItemsValue > 0 ? Math.round((totalSavings / totalItemsValue) * 100) : 0;
+  const itemCount = bundle.items.length;
 
-  const renderItemPrice = (price: number) => {
-    if (price === 0) {
-      return <span className={styles.itemPriceFree}>Free</span>;
-    }
-    return <span className={styles.itemPriceStrikethrough}>₹{new Intl.NumberFormat('en-IN').format(price)}</span>;
-  };
-
-  const courseCount = bundle.items.filter(item => item.type === 'course').length;
-  const testCount = bundle.items.filter(item => item.type === 'test').length;
-  const productCount = bundle.items.filter(item => item.type === 'digital_product').length;
+  const descriptionHtml = wrapContentTables(sanitizeHtml(bundleDescriptionToHtml(bundle.description)));
+  const hasDescription = stripHtml(descriptionHtml).length > 0;
 
   const renderMedia = () => {
     if (bundle.introVideoUrl) {
@@ -177,7 +436,7 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
             ? urlObj.searchParams.get('v')
             : urlObj.pathname.slice(1);
           const embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}` : bundle.introVideoUrl;
-          
+
           return (
             <iframe
               src={embedUrl}
@@ -211,173 +470,148 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
       );
     }
 
-    return <Package size={64} className={styles.bundleIcon} />;
+    return <Package size={56} className={styles.bundleIcon} />;
   };
+
+  const includeChips = [
+    ...ITEM_TYPES.map((type) => {
+      const count = bundle.items.filter((item) => item.type === type).length;
+      if (count === 0) return null;
+      const config = itemTypeConfig[type];
+      const TypeIcon = config.icon;
+      return {
+        key: type,
+        tone: config.tone,
+        icon: <TypeIcon size={14} aria-hidden="true" />,
+        text: `${count} ${plural(count, config.singular, config.plural)}`,
+      };
+    }),
+    { key: 'lifetime', tone: styles.toneMint, icon: <InfinityIcon size={14} aria-hidden="true" />, text: 'Lifetime access' },
+  ].filter(Boolean) as { key: string; tone: string; icon: React.ReactNode; text: string }[];
+
+  // Cached payloads from before teacher.slug existed have none; those render the name as plain text.
+  const profilePath = bundle.teacher.slug ? `/expert/${bundle.teacher.slug}` : null;
+
+  const teacherAvatar = (className: string) => (
+    <Avatar className={className}>
+      <AvatarImage src={bundle.teacher.profilePicture || undefined} alt="" />
+      <AvatarFallback>{initials(bundle.teacher.displayName)}</AvatarFallback>
+    </Avatar>
+  );
 
   return (
     <>
       <Helmet>
         <title>{`${bundle.title} | Testkart`}</title>
-        <meta name="description" content={bundle.description || `Learn more about the ${bundle.title} course bundle.`} />
+        <meta name="description" content={bundleDescriptionToPlainText(bundle.description) || `Learn more about the ${bundle.title} course bundle.`} />
       </Helmet>
       <div className={`${styles.container} ${className || ''}`}>
-        <AssetTopRow leading="title" kind="bundle" handle={slug} title={bundle.title}>
-          <h1 className={styles.title}>{bundle.title}</h1>
-        </AssetTopRow>
-        
-        <div className={styles.mediaContainer}>
-          {renderMedia()}
-        </div>
-
-        {bundle.items.length > 0 && (
-        <div className={styles.sectionCard}>
-          <h2 className={styles.sectionHeading}>What's Included</h2>
-          <div className={styles.itemsList}>
-            {bundle.items.map((item) => {
-              const description = stripHtml(item.description);
-              if (item.type === 'course') {
-                const levelInfo = levelDisplay[item.level] || { text: item.level, icon: <BarChart3 size={12} /> };
-                return (
-                  <Link to={`/course/${item.slug}`} key={`course-${item.id}`} className={styles.itemCard}>
-                    <img
-                      src={item.thumbnailUrl || Placeholder.COURSE}
-                      alt={item.title}
-                      className={styles.itemThumbnail}
-                    />
-                    <div className={styles.itemCardContent}>
-                      <div className={styles.itemTypeTag}>
-                        <GraduationCap size={12} />
-                        <span>Course</span>
-                      </div>
-                      <h4 className={styles.itemTitle}>{item.title}</h4>
-                      <p className={styles.itemDescription}>{description}</p>
-                      <div className={styles.itemMeta}>
-                        <span title="Level"><div className={styles.metaIcon}>{levelInfo.icon}</div> {levelInfo.text}</span>
-                        {item.language && <span title="Language"><div className={styles.metaIcon}><Languages size={12} /></div> {item.language}</span>}
-                      </div>
-                    </div>
-                    <div className={styles.itemPriceContainer}>
-                      {renderItemPrice(item.price)}
-                    </div>
-                  </Link>
-                );
-              } else if (item.type === 'digital_product') {
-                return (
-                  <Link to={`/study-notes/${item.slug}`} key={`product-${item.id}`} className={styles.itemCard}>
-                    <div className={styles.itemIconPlaceholder}>
-                      <FileText size={24} />
-                    </div>
-                    <div className={styles.itemCardContent}>
-                      <div className={styles.itemTypeTag}>
-                        <BookOpen size={12} />
-                        <span>Study Notes</span>
-                      </div>
-                      <h4 className={styles.itemTitle}>{item.title}</h4>
-                      <p className={styles.itemDescription}>{description}</p>
-                      <div className={styles.itemMeta}>
-                        {item.pageCount && <span title="Pages"><div className={styles.metaIcon}><BookOpen size={12} /></div> {item.pageCount} pages</span>}
-                        {item.language && <span title="Language"><div className={styles.metaIcon}><Languages size={12} /></div> {item.language}</span>}
-                      </div>
-                    </div>
-                    <div className={styles.itemPriceContainer}>
-                      {renderItemPrice(item.price)}
-                    </div>
-                  </Link>
-                );
-              } else {
-                return (
-                  <Link to={`/mock-test/${item.slug}`} key={`test-${item.id}`} className={styles.itemCard}>
-                    <img
-                      src={item.thumbnailUrl || Placeholder.TEST}
-                      alt={item.title}
-                      className={styles.itemThumbnail}
-                    />
-                    <div className={styles.itemCardContent}>
-                      <div className={styles.itemTypeTag}>
-                        <FileText size={12} />
-                        <span>Test Series</span>
-                      </div>
-                      <h4 className={styles.itemTitle}>{item.title}</h4>
-                      <p className={styles.itemDescription}>{description}</p>
-                      <div className={styles.itemMeta}>
-                        <span title="Duration"><div className={styles.metaIcon}><Clock size={12} /></div> {item.durationMinutes} mins</span>
-                        <span title="Questions"><div className={styles.metaIcon}><HelpCircle size={12} /></div> {item.totalQuestions} questions</span>
-                        {item.language && <span title="Language"><div className={styles.metaIcon}><Languages size={12} /></div> {item.language}</span>}
-                      </div>
-                    </div>
-                    <div className={styles.itemPriceContainer}>
-                      {renderItemPrice(item.price)}
-                    </div>
-                  </Link>
-                );
-              }
-            })}
-          </div>
-          
-        </div>
-        )}
-
-        <div className={styles.pricingCard} ref={pricingRef}>
-          <div className={styles.bundleSummaryBadges}>
-            {courseCount > 0 && (
-              <Badge variant="secondary" className={styles.summaryBadge}>
-                <GraduationCap size={14} className={styles.badgeIcon} /> {courseCount} {courseCount === 1 ? 'Course' : 'Courses'}
-              </Badge>
-            )}
-            {testCount > 0 && (
-              <Badge variant="secondary" className={styles.summaryBadge}>
-                <FileText size={14} className={styles.badgeIcon} /> {testCount} {testCount === 1 ? 'Test Series' : 'Test Series'}
-              </Badge>
-            )}
-            {productCount > 0 && (
-              <Badge variant="secondary" className={styles.summaryBadge}>
-                <BookOpen size={14} className={styles.badgeIcon} /> {productCount} {productCount === 1 ? 'Study Note' : 'Study Notes'}
-              </Badge>
-            )}
-            <Badge variant="outline" className={styles.summaryBadge}>
-              <BookCopy size={14} className={styles.badgeIcon} /> Lifetime access
-            </Badge>
-          </div>
-
-          <div className={styles.priceBox}>
-            <div className={styles.priceDisplay}>
-              <span className={styles.finalPrice}>
-                ₹{new Intl.NumberFormat('en-IN').format(finalPrice)}
+        <header className={styles.header}>
+          <AssetTopRow
+            leading="breadcrumb"
+            kind="bundle"
+            handle={slug}
+            title={bundle.title}
+            className={styles.topRow}
+          >
+            <div className={styles.titleBlock}>
+              <span className={`${styles.eyebrow} ${styles.tonePeach}`}>
+                <Package size={13} aria-hidden="true" />
+                Bundle
               </span>
-              {hasDiscount && (
-                <span className={styles.originalPrice}>
-                  ₹{new Intl.NumberFormat('en-IN').format(totalItemsValue)}
-                </span>
+              <h1 className={styles.title}>{bundle.title}</h1>
+            </div>
+          </AssetTopRow>
+          <div className={styles.byline}>
+            {teacherAvatar(styles.bylineAvatar)}
+            <span className={styles.bylineName}>
+              by{' '}
+              {profilePath ? (
+                <Link to={profilePath} className={styles.educatorLink}>
+                  <strong>{bundle.teacher.displayName}</strong>
+                </Link>
+              ) : (
+                <strong>{bundle.teacher.displayName}</strong>
               )}
-            </div>
-            {totalSavings > 0 && (
-              <div className={styles.savings}>
-                <Tag size={16} /> You save ₹{new Intl.NumberFormat('en-IN').format(totalSavings)}
-              </div>
-            )}
+              <VerifiedBadge isVerified={!!bundle.teacher.isVerified} size="sm" />
+            </span>
           </div>
+        </header>
 
-          {isTeacher ? (
-            <div className={styles.teacherInfo}>
-              <div className={styles.teacherInfoIcon}>
-                <Info size={24} />
+        <aside ref={asideRef} className={styles.aside} aria-label="Bundle summary">
+          <div className={styles.previewCard}>
+            <div className={styles.media}>{renderMedia()}</div>
+
+            <div className={styles.cardBody}>
+              <div className={styles.creatorRow}>
+                {teacherAvatar(styles.creatorAvatar)}
+                <div className={styles.creatorText}>
+                  <span className={styles.creatorLabel}>Created by</span>
+                  <span className={styles.creatorNameRow}>
+                    {profilePath ? (
+                      <Link to={profilePath} className={`${styles.creatorName} ${styles.educatorLink}`}>
+                        {bundle.teacher.displayName}
+                      </Link>
+                    ) : (
+                      <span className={styles.creatorName}>{bundle.teacher.displayName}</span>
+                    )}
+                    <VerifiedBadge isVerified={!!bundle.teacher.isVerified} size="sm" />
+                  </span>
+                </div>
               </div>
-              <div className={styles.teacherInfoContent}>
-                <h3 className={styles.teacherInfoTitle}>For Students Only</h3>
-                <p className={styles.teacherInfoText}>
-                  This bundle is designed for students. Teachers cannot purchase bundles.
-                </p>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className={styles.actionButtons}>
-                {bundle.isEnrolled ? (
-                  <Button size="lg" disabled>
-                    <CheckCircle size={20} /> Enrolled
-                  </Button>
+
+              <ul className={styles.includeChips} aria-label="This bundle includes">
+                {includeChips.map((chip) => (
+                  <li key={chip.key} className={`${styles.includeChip} ${chip.tone}`}>
+                    {chip.icon}
+                    {chip.text}
+                  </li>
+                ))}
+              </ul>
+
+              <div className={styles.purchaseBlock} ref={pricingRef}>
+                <div className={styles.priceRow}>
+                  <span className={styles.finalPrice}>
+                    {bundle.price === 0 ? 'Free' : formatInr(finalPrice)}
+                  </span>
+                  {hasDiscount && (
+                    <span className={styles.originalPrice}>{formatInr(totalItemsValue)}</span>
+                  )}
+                  {savingsPercent > 0 && (
+                    <span className={`${styles.offPill} ${styles.toneButter}`}>{savingsPercent}% off</span>
+                  )}
+                </div>
+                {totalSavings > 0 && (
+                  <div className={styles.savings}>
+                    <Sparkles size={15} aria-hidden="true" />
+                    <span>
+                      You save <strong>{formatInr(totalSavings)}</strong> on this bundle
+                    </span>
+                  </div>
+                )}
+
+                {isTeacher ? (
+                  <div className={styles.notice}>
+                    <Info size={20} className={styles.noticeIcon} aria-hidden="true" />
+                    <div>
+                      <h3 className={styles.noticeTitle}>For Students Only</h3>
+                      <p className={styles.noticeText}>
+                        This bundle is designed for students. Teachers cannot purchase bundles.
+                      </p>
+                    </div>
+                  </div>
+                ) : bundle.isEnrolled ? (
+                  <div className={styles.enrolledBanner} role="status">
+                    <CheckCircle size={20} aria-hidden="true" />
+                    <span>You're enrolled in this bundle</span>
+                  </div>
                 ) : (
-                  <Button size="lg" onClick={handlePurchase} disabled={purchaseMutation.isPending}>
+                  <Button
+                    size="lg"
+                    className={styles.ctaButton}
+                    onClick={handlePurchase}
+                    disabled={purchaseMutation.isPending}
+                  >
                     {purchaseMutation.isPending ? (
                       <Loader size={20} className={styles.spinner} />
                     ) : (
@@ -390,50 +624,68 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
                 )}
               </div>
 
-              {!bundle.isEnrolled && bundle.price > 0 && (
-                <>
-                  <div className={styles.divider}></div>
-                  <PromoCodeInput
-                    items={[{ id: bundle.id, type: 'bundle' as const, price: bundle.price }]}
-                    totalAmount={bundle.price}
-                    onApply={(id, amount, code, eligibleItemIds, ineligibleItemIds) => {
-                      setPromoCodeId(id);
-                      setDiscountAmount(amount);
-                      toast.success(`Promo code applied! You saved ₹${amount}.`);
-                    }}
-                    onRemove={() => {
-                      setPromoCodeId(null);
-                      setDiscountAmount(0);
-                      toast.info('Promo code removed.');
-                    }}
-                  />
-                </>
+              {!isTeacher && !bundle.isEnrolled && bundle.price > 0 && (
+                <PromoCodeInput
+                  items={[{ id: bundle.id, type: 'bundle' as const, price: bundle.price }]}
+                  totalAmount={bundle.price}
+                  onApply={(id, amount) => {
+                    setPromoCodeId(id);
+                    setDiscountAmount(amount);
+                    toast.success(`Promo code applied! You saved ₹${amount}.`);
+                  }}
+                  onRemove={() => {
+                    setPromoCodeId(null);
+                    setDiscountAmount(0);
+                    toast.info('Promo code removed.');
+                  }}
+                />
               )}
-            </>
+            </div>
+          </div>
+        </aside>
+
+        <div className={styles.main}>
+          {!bundle.isEnrolled && bundle.price > 0 && (
+            <PublicCouponsCard itemType="bundle" itemId={bundle.id} spaced={false} />
+          )}
+
+          {itemCount > 0 && (
+            <section className={styles.section} aria-labelledby="bundle-included-heading">
+              <div className={styles.sectionHeader}>
+                <span className={`${styles.sectionIcon} ${styles.toneButter}`}>
+                  <ListChecks size={18} aria-hidden="true" />
+                </span>
+                <h2 id="bundle-included-heading" className={styles.sectionTitle}>What's Included</h2>
+                <span className={styles.sectionCount}>
+                  {itemCount} {plural(itemCount, 'item', 'items')}
+                </span>
+              </div>
+              <IncludedItems items={bundle.items} teacher={bundle.teacher} />
+            </section>
+          )}
+
+          {/* One continuous block in the teacher's own order, beside the purchase card. */}
+          {hasDescription && (
+            <section className={styles.section} aria-labelledby="bundle-about-heading">
+              <div className={styles.sectionHeader}>
+                <span className={`${styles.sectionIcon} ${styles.toneSage}`}>
+                  <ScrollText size={18} aria-hidden="true" />
+                </span>
+                <h2 id="bundle-about-heading" className={styles.sectionTitle}>About this Bundle</h2>
+              </div>
+              <div
+                className={styles.description}
+                dangerouslySetInnerHTML={{ __html: descriptionHtml }}
+              />
+            </section>
+          )}
+
+          {bundle.disclaimer && (
+            <div className={styles.disclaimerSection}>
+              {bundle.disclaimer}
+            </div>
           )}
         </div>
-
-        {!bundle.isEnrolled && bundle.price > 0 && (
-          <PublicCouponsCard itemType="bundle" itemId={bundle.id} spaced={false} />
-        )}
-
-        <div className={styles.teacherInfo}>
-          <img
-            src={bundle.teacher.profilePicture || `https://api.dicebear.com/8.x/initials/svg?seed=${bundle.teacher.displayName}`}
-            alt={bundle.teacher.displayName}
-            className={styles.teacherAvatar}
-          />
-          <span>Created by <strong>{bundle.teacher.displayName}</strong></span>
-        </div>
-        <div 
-          className={styles.description} 
-          dangerouslySetInnerHTML={{ __html: wrapContentTables(sanitizeHtml(renderMarkdown(bundle.description || ''))) }} 
-        />
-        {bundle.disclaimer && (
-          <div className={styles.disclaimerSection} style={{ whiteSpace: 'pre-wrap' }}>
-            {bundle.disclaimer}
-          </div>
-        )}
       </div>
       <MobileStickyPurchaseBar
         product={{
@@ -451,39 +703,42 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
 
 const BundleDetailsSkeleton: React.FC = () => (
   <div className={styles.container}>
-    <Skeleton className={styles.title} style={{ height: '3.5rem', width: '70%' }} />
-    <Skeleton className={styles.mediaContainer} style={{ height: 'auto', aspectRatio: '16/9' }} />
-    
-    <div className={styles.sectionCard}>
-      <Skeleton style={{ height: '1.5rem', width: '150px', marginBottom: '1rem' }} />
-      <div className={styles.itemsList}>
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className={styles.itemCard}>
-            <Skeleton className={styles.itemThumbnail} />
-            <div className={styles.itemCardContent}>
-              <Skeleton style={{ height: '1rem', width: '80%', marginBottom: '0.5rem' }} />
-              <Skeleton style={{ height: '0.75rem', width: '100%' }} />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-    
-    <div className={styles.pricingCard}>
-      <div className={styles.bundleSummaryBadges}>
-         <Skeleton style={{ height: '1.5rem', width: '80px', borderRadius: '9999px' }} />
-         <Skeleton style={{ height: '1.5rem', width: '100px', borderRadius: '9999px' }} />
-      </div>
-      <Skeleton style={{ height: '3rem', width: '50%' }} />
-      <Skeleton style={{ height: '3rem', width: '100%' }} />
+    <div className={styles.header}>
+      <Skeleton style={{ height: '1.375rem', width: '84px', borderRadius: '9999px' }} />
+      <Skeleton style={{ height: '2.25rem', width: '80%' }} />
+      <Skeleton style={{ height: '1.25rem', width: '45%' }} />
     </div>
 
-    <div className={styles.teacherInfo}>
-      <Skeleton style={{ width: '48px', height: '48px', borderRadius: '50%' }} />
-      <Skeleton style={{ height: '1.25rem', width: '200px' }} />
+    <div className={styles.aside}>
+      <div className={styles.previewCard}>
+        <Skeleton className={styles.media} style={{ borderRadius: 0 }} />
+        <div className={styles.cardBody}>
+          <Skeleton style={{ height: '2.25rem', width: '60%' }} />
+          <div className={styles.includeChips}>
+            <Skeleton style={{ height: '1.75rem', width: '90px', borderRadius: '9999px' }} />
+            <Skeleton style={{ height: '1.75rem', width: '110px', borderRadius: '9999px' }} />
+          </div>
+          <Skeleton style={{ height: '2.25rem', width: '55%' }} />
+          <Skeleton style={{ height: '3rem', width: '100%', borderRadius: '9999px' }} />
+        </div>
+      </div>
     </div>
-    <Skeleton style={{ height: '1rem', width: '100%' }} />
-    <Skeleton style={{ height: '1rem', width: '90%' }} />
-    <Skeleton style={{ height: '1rem', width: '95%' }} />
+
+    <div className={styles.main}>
+      <div className={styles.section}>
+        <Skeleton style={{ height: '1.5rem', width: '180px', marginBottom: '1rem' }} />
+        <div className={styles.itemsList}>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className={styles.itemCard}>
+              <Skeleton className={styles.itemThumb} />
+              <div className={styles.itemBody}>
+                <Skeleton style={{ height: '1rem', width: '80%', marginBottom: '0.5rem' }} />
+                <Skeleton style={{ height: '0.75rem', width: '60%' }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   </div>
 );

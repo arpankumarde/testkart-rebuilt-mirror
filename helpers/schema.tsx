@@ -99,6 +99,8 @@ export type SupportThreadStatus = "closed" | "open" | "resolved";
 
 export type TeacherAssetKind = "pdf" | "video";
 
+export type TeacherCampaignClaimStatus = "claimed" | "credited" | "declined" | "reversed" | "withdrawn";
+
 export type TeacherTeamRole = "manager" | "owner";
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
@@ -1366,6 +1368,55 @@ export interface TeacherBankDetails {
   verificationStatus: Generated<BankVerificationStatus>;
 }
 
+export interface TeacherCampaignClaims {
+  amount: Numeric;
+  campaignId: number;
+  contentId: number;
+  contentReviewId: number | null;
+  contentType: ContentType;
+  createdAt: Generated<Timestamp>;
+  creditedAt: Timestamp | null;
+  criteriaAtClaim: Json;
+  criteriaAtCredit: Json | null;
+  decidedAt: Timestamp | null;
+  decidedBy: number | null;
+  decisionNote: string | null;
+  id: Generated<number>;
+  reversedAt: Timestamp | null;
+  reversedBy: number | null;
+  reverseReason: string | null;
+  status: Generated<TeacherCampaignClaimStatus>;
+  teacherId: number;
+  updatedAt: Generated<Timestamp>;
+}
+
+export interface TeacherCampaignExcludedContent {
+  campaignId: number;
+  contentId: number;
+  contentType: ContentType;
+}
+
+export interface TeacherCampaigns {
+  courseAmount: Numeric;
+  createdAt: Generated<Timestamp>;
+  endsAt: Timestamp | null;
+  id: Generated<number>;
+  isActive: Generated<boolean>;
+  maxCourses: number;
+  maxDeclinesPerItem: Generated<number>;
+  maxMockTests: number;
+  minMinutesPerVideo: Generated<number>;
+  minQuestions: number;
+  minTests: number;
+  minVideoMinutes: number;
+  minVideos: number;
+  mockTestAmount: Numeric;
+  slug: string;
+  startsAt: Timestamp;
+  title: string;
+  updatedAt: Generated<Timestamp>;
+}
+
 export interface TeacherInquiries {
   adminNotes: string | null;
   createdAt: Generated<Timestamp>;
@@ -1733,6 +1784,9 @@ export interface DB {
   supportThreads: SupportThreads;
   teacherAssets: TeacherAssets;
   teacherBankDetails: TeacherBankDetails;
+  teacherCampaignClaims: TeacherCampaignClaims;
+  teacherCampaignExcludedContent: TeacherCampaignExcludedContent;
+  teacherCampaigns: TeacherCampaigns;
   teacherInquiries: TeacherInquiries;
   teacherOnboarding: TeacherOnboarding;
   teacherOnboardingEmails: TeacherOnboardingEmails;
@@ -1797,6 +1851,7 @@ export const WithdrawalStatusArrayValues: [WithdrawalStatus, ...WithdrawalStatus
 export const GumletPushStatusArrayValues: [GumletPushStatus, ...GumletPushStatus[]] = ["failed","ready","submitted"];
 export const TeacherAssetKindArrayValues: [TeacherAssetKind, ...TeacherAssetKind[]] = ["pdf","video"];
 export const MuxPushStatusArrayValues: [MuxPushStatus, ...MuxPushStatus[]] = ["failed","ready","submitted"];
+export const TeacherCampaignClaimStatusArrayValues: [TeacherCampaignClaimStatus, ...TeacherCampaignClaimStatus[]] = ["claimed","credited","declined","reversed","withdrawn"];
 // Table/column names whose snake_case spelling kysely's default CamelCasePlugin
 // cannot recover from the camelCase name used in code (an underscore directly
 // before a digit, e.g. reminder_48h_sent ⇄ reminder48hSent). The db helper's

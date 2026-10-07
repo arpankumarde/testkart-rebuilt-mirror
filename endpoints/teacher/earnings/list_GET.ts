@@ -350,6 +350,56 @@ export async function handle(request: Request): Promise<Response> {
       transactionType: "subscription" as const,
     }));
 
+    // Creator Bonus credits. A reversed bonus lists the credit and the reversal, matching the balance.
+    const campaignData = await db
+      .selectFrom("teacherCampaignClaims")
+      .innerJoin("teacherCampaigns", "teacherCampaigns.id", "teacherCampaignClaims.campaignId")
+      .leftJoin("mockTests", (join) =>
+        join
+          .onRef("mockTests.id", "=", "teacherCampaignClaims.contentId")
+          .on("teacherCampaignClaims.contentType", "=", "mock_test")
+      )
+      .leftJoin("courses", (join) =>
+        join
+          .onRef("courses.id", "=", "teacherCampaignClaims.contentId")
+          .on("teacherCampaignClaims.contentType", "=", "course")
+      )
+      .where("teacherCampaignClaims.teacherId", "=", effectiveTeacherId)
+      .where("teacherCampaignClaims.status", "in", ["credited", "reversed"])
+      .select([
+        "teacherCampaignClaims.status",
+        "teacherCampaignClaims.amount",
+        "teacherCampaignClaims.creditedAt",
+        "teacherCampaignClaims.reversedAt",
+        "teacherCampaignClaims.reverseReason",
+        "teacherCampaigns.title as campaignTitle",
+        sql<string>`COALESCE(mock_tests.title, courses.title, 'Deleted item')`.as("contentTitle"),
+      ])
+      .execute();
+
+    const campaignTransactions: OutputType = campaignData.flatMap((row) => {
+      const amount = Number(row.amount);
+      const credit = {
+        transactionDate: row.creditedAt,
+        testTitle: row.contentTitle,
+        studentName: row.campaignTitle,
+        grossAmount: amount,
+        platformFeePercentage: 0,
+        amountEarned: amount,
+        transactionType: "campaign_bonus" as const,
+      };
+      if (row.status !== "reversed") return [credit];
+      return [
+        credit,
+        {
+          ...credit,
+          transactionDate: row.reversedAt,
+          studentName: `Reversed${row.reverseReason ? `: ${row.reverseReason}` : ""}`,
+          amountEarned: -amount,
+        },
+      ];
+    });
+
     // Combine all transaction arrays
    const allTransactions: OutputType = [
       ...mockTestSalesTransactions,
@@ -360,6 +410,7 @@ export async function handle(request: Request): Promise<Response> {
       ...subscriptionTransactions,
        ...sponsoredTransactions,
        ...prizeDeductionTransactions,
+       ...campaignTransactions,
      ];
 
     // Sort by transaction date descending (most recent first)

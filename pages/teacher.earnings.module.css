@@ -406,6 +406,11 @@
   color: var(--error-text);
 }
 
+.campaign_bonus {
+  background-color: var(--tk-brand);
+  color: var(--tk-brand-ink);
+}
+
 .detailsCell {
   display: flex;
   flex-direction: column;

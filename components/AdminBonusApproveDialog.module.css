@@ -1,0 +1,67 @@
+.content {
+  max-width: 34rem;
+}
+
+.header {
+  display: flex;
+  gap: var(--spacing-3);
+  align-items: flex-start;
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.title {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.description {
+  margin-top: var(--spacing-1);
+  color: var(--muted-foreground);
+}
+
+.bonus {
+  display: flex;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--radius-lg);
+  background: var(--tk-brand);
+  color: var(--tk-brand-ink);
+}
+
+.bonusIcon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 58% 42% 55% 45% / 48% 58% 42% 52%;
+  background: hsl(0 0% 100%);
+  color: var(--tk-brand-deep);
+  transform: rotate(-8deg);
+}
+
+.bonusTitle {
+  margin: 0;
+  font-weight: 800;
+}
+
+.bonusText {
+  margin: var(--spacing-1) 0 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.footer {
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}

@@ -2,7 +2,7 @@ import React, { useMemo, useRef, useState } from 'react';
 import { z } from 'zod';
 import { useForm, Form, FormItem, FormLabel, FormControl, FormMessage } from './Form';
 import { Input } from './Input';
-import { Textarea } from './Textarea';
+import { RichTextEditor } from './RichTextEditor';
 import { Button } from './Button';
 import { Checkbox } from './Checkbox';
 import { Skeleton } from './Skeleton';
@@ -11,6 +11,7 @@ import { useTeacherCoursesQuery } from '../helpers/useTeacherCoursesQuery';
 import { useTeacherTestsQuery } from '../helpers/useTeacherTestsQuery';
 import { usePublishedTeacherProductsQuery } from '../helpers/useTeacherProductsQuery';
 import { computeBundlePricing, formatInr } from '../helpers/bundlePricing';
+import { bundleDescriptionToHtml, normalizeBundleDescription } from '../helpers/bundleDescription';
 import { useUnsavedChangesGuard } from '../helpers/useUnsavedChangesGuard';
 import type { BundleDetailItem } from '../endpoints/teacher/bundles/details_GET.schema';
 import { BookOpen, Lock } from 'lucide-react';
@@ -54,7 +55,7 @@ type ItemOption = { id: number; title: string; price: number; isPublished: boole
 const snapshot = (v: BundleFormValues) =>
   JSON.stringify([
     v.title,
-    v.description || '',
+    normalizeBundleDescription(v.description),
     v.thumbnailUrl || null,
     v.introVideoUrl || null,
     [...v.courseIds].sort(),
@@ -84,7 +85,7 @@ export const BundleForm: React.FC<BundleFormProps> = ({
     schema: formSchema,
     defaultValues: {
       title: initialValues?.title || '',
-      description: initialValues?.description || '',
+      description: bundleDescriptionToHtml(initialValues?.description),
       thumbnailUrl: initialValues?.thumbnailUrl || null,
       thumbnailFileId: initialValues?.thumbnailFileId || null,
       introVideoUrl: initialValues?.introVideoUrl || null,
@@ -164,6 +165,7 @@ export const BundleForm: React.FC<BundleFormProps> = ({
     }
     onSubmit({
       ...values,
+      description: normalizeBundleDescription(values.description),
       thumbnailUrl: values.thumbnailUrl || null,
       thumbnailFileId: values.thumbnailUrl ? values.thumbnailFileId || null : null,
       introVideoUrl: values.introVideoUrl || null,
@@ -250,11 +252,10 @@ export const BundleForm: React.FC<BundleFormProps> = ({
             />
           </div>
           <FormControl>
-            <Textarea
+            <RichTextEditor
               placeholder="Describe what students will get in this bundle."
-              rows={4}
               value={form.values.description || ''}
-              onChange={(e) => form.setValues(prev => ({ ...prev, description: e.target.value }))}
+              onChange={(html) => form.setValues(prev => ({ ...prev, description: html }))}
             />
           </FormControl>
           <FormMessage />

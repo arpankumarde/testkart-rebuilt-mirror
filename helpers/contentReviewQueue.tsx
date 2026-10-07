@@ -2,6 +2,7 @@ import type { Kysely, Transaction } from "kysely";
 import type { ContentType, DB } from "./schema";
 import { assertTeacherCanFundPrizePool } from "./liveTestPrizeFunding";
 import { CONTENT_NOUNS, OPEN_REVIEW_STATUSES, type ContentRejection } from "./contentReviewStatus";
+import { withdrawClaimsForReviews } from "./teacherCampaign";
 
 type Executor = Kysely<DB> | Transaction<DB>;
 
@@ -19,7 +20,8 @@ type Executor = Kysely<DB> | Transaction<DB>;
  *
  * A teacher can take an item back out of review (clearOpenReviews), and deleting
  * or trashing an item clears its waiting review the same way, so the queue never
- * holds a review for content that is gone.
+ * holds a review for content that is gone. A Creator Bonus claim made with that
+ * review is withdrawn with it (helpers/teacherCampaign).
  */
 
 export const REVIEW_QUEUED_NOTE =
@@ -39,21 +41,22 @@ export class ContentGoneError extends Error {
 export const contentGoneMessage = (contentType: ContentType) =>
   `The teacher deleted this ${CONTENT_NOUNS[contentType]}, so it was removed from the review queue. No email was sent.`;
 
-/** Queues content for admin review. Returns false when it is already waiting (pending or senior approval). */
+/** Queues content for admin review. Returns the new review's id, or null when it is already waiting. */
 export async function queueContentReview(
   executor: Executor,
   input: { contentType: ContentType; contentId: number; teacherId: number }
-): Promise<boolean> {
-  if (await hasPendingReview(executor, input.contentType, input.contentId)) return false;
-  await executor
+): Promise<number | null> {
+  if (await hasPendingReview(executor, input.contentType, input.contentId)) return null;
+  const row = await executor
     .insertInto("contentReviews")
     .values({
       contentType: input.contentType,
       contentId: input.contentId,
       teacherId: input.teacherId,
     })
-    .execute();
-  return true;
+    .returning("id")
+    .executeTakeFirstOrThrow();
+  return row.id;
 }
 
 export async function hasPendingReview(
@@ -77,11 +80,19 @@ export async function clearOpenReviews(
   contentType: ContentType,
   contentId: number
 ): Promise<number> {
-  const result = await executor
-    .deleteFrom("contentReviews")
+  const open = await executor
+    .selectFrom("contentReviews")
+    .select("id")
     .where("contentType", "=", contentType)
     .where("contentId", "=", contentId)
     .where("status", "in", [...OPEN_REVIEW_STATUSES])
+    .execute();
+  if (open.length === 0) return 0;
+  const ids = open.map((r) => r.id);
+  await withdrawClaimsForReviews(executor, ids, "The review was withdrawn or the item was deleted.");
+  const result = await executor
+    .deleteFrom("contentReviews")
+    .where("id", "in", ids)
     .executeTakeFirst();
   return Number(result.numDeletedRows);
 }

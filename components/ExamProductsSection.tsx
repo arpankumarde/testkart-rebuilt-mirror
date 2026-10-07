@@ -34,7 +34,7 @@ interface ExamProductsSectionProps {
 }
 
 // Mixed "popular products" preview shown on the exam hub page — a small
-// slice (mock tests, study notes, courses, bundles) each tagged to this
+// slice (courses, mock tests, study notes, bundles) each tagged to this
 // exam, with a "View all" link to the dedicated full listing page for that
 // type. Per the hide-if-empty rule: any block with zero items is omitted,
 // and the whole section disappears if every block is empty (so an exam with
@@ -80,6 +80,33 @@ export const ExamProductsSection: React.FC<ExamProductsSectionProps> = ({
   const bundles = bundlesQuery.data?.bundles ?? [];
 
   const blocks = [
+    {
+      key: "courses",
+      title: "Courses",
+      icon: <GraduationCap size={18} />,
+      count: courses.length,
+      viewAllUrl: `/exams/${examSlug}/courses`,
+      content: (
+        <div className={styles.cardsGrid}>
+          {courses.map((course) => (
+            <TeacherProductCard
+              key={course.id}
+              link={`/course/${course.slug}`}
+              teacherName={course.teacherName}
+              teacherAvatarUrl={course.teacherAvatarUrl}
+              teacherTagline={course.teacherTagline}
+              teacherYearsOfExperience={course.teacherYearsOfExperience}
+              teacherSlug={course.teacherSlug}
+              teacherIsVerified={course.teacherIsVerified}
+              productTitle={course.title}
+              {...itemPriceProps(course.price, course.discountPrice)}
+              thumbnailUrl={course.thumbnailImageUrl || course.thumbnailUrl}
+              placeholderUrl={Placeholder.COURSE}
+            />
+          ))}
+        </div>
+      ),
+    },
     {
       key: "mock-tests",
       title: "Mock Tests",
@@ -137,33 +164,6 @@ export const ExamProductsSection: React.FC<ExamProductsSectionProps> = ({
               // Study note / digital product thumbnails are discontinued
               // site-wide — never pass thumbnailUrl/placeholderUrl here.
               // See the note on TeacherProductCard in HomepageContentSection.tsx.
-            />
-          ))}
-        </div>
-      ),
-    },
-    {
-      key: "courses",
-      title: "Courses",
-      icon: <GraduationCap size={18} />,
-      count: courses.length,
-      viewAllUrl: `/exams/${examSlug}/courses`,
-      content: (
-        <div className={styles.cardsGrid}>
-          {courses.map((course) => (
-            <TeacherProductCard
-              key={course.id}
-              link={`/course/${course.slug}`}
-              teacherName={course.teacherName}
-              teacherAvatarUrl={course.teacherAvatarUrl}
-              teacherTagline={course.teacherTagline}
-              teacherYearsOfExperience={course.teacherYearsOfExperience}
-              teacherSlug={course.teacherSlug}
-              teacherIsVerified={course.teacherIsVerified}
-              productTitle={course.title}
-              {...itemPriceProps(course.price, course.discountPrice)}
-              thumbnailUrl={course.thumbnailImageUrl || course.thumbnailUrl}
-              placeholderUrl={Placeholder.COURSE}
             />
           ))}
         </div>

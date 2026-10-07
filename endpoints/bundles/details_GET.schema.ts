@@ -75,6 +75,8 @@ export type OutputType = Omit<
     id: number;
     displayName: string;
     profilePicture: string | null;
+    isVerified: boolean;
+    slug: string;
   };
   items: BundleItem[];
   isEnrolled: boolean;

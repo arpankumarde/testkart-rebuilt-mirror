@@ -4,6 +4,7 @@ import superjson from "superjson";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { PRODUCT_DISCLAIMER } from "../../helpers/productDisclaimer";
 import { computeBundleSeo } from "../../helpers/seoIndexability";
+import { slugify } from "../../helpers/slugify";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -26,6 +27,8 @@ export async function handle(request: Request): Promise<Response> {
         "users.id as teacherId",
         "users.displayName as teacherDisplayName",
         "users.avatarUrl as teacherProfilePicture",
+        "users.isVerified as teacherIsVerified",
+        "users.slug as teacherSlug",
       ])
       .where("courseBundles.slug", "=", validation.data.slug)
       .where("courseBundles.isPublished", "=", true)
@@ -61,7 +64,7 @@ export async function handle(request: Request): Promise<Response> {
         "courses.title",
         "courses.slug",
         "courses.description",
-        "courses.thumbnailUrl",
+        "courses.thumbnailImageUrl",
         "courses.price",
         "courses.level",
         "courses.language",
@@ -127,7 +130,9 @@ export async function handle(request: Request): Promise<Response> {
         title: c.title,
         slug: c.slug,
         description: c.description,
-        thumbnailUrl: c.thumbnailUrl,
+        // A course's cover image is thumbnailImageUrl; its thumbnailUrl column is
+        // a legacy video slot (see CourseCard), so it is not an image to show.
+        thumbnailUrl: c.thumbnailImageUrl,
         price: Number(c.price),
         level: c.level,
         language: c.language,
@@ -200,6 +205,8 @@ export async function handle(request: Request): Promise<Response> {
         id: bundle.teacherId,
         displayName: bundle.teacherDisplayName,
         profilePicture: bundle.teacherProfilePicture,
+        isVerified: !!bundle.teacherIsVerified,
+        slug: bundle.teacherSlug || slugify(bundle.teacherDisplayName),
       },
       items,
       isEnrolled,

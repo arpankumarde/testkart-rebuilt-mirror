@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Edit, Trash2, Eye, Users, BookOpen, MoreVertical, Globe, AlertCircle, Share2, TrendingUp, Wrench } from 'lucide-react';
+import { Edit, Trash2, Eye, Users, BookOpen, MoreVertical, Globe, AlertCircle, Share2, TrendingUp, Wrench, Gift } from 'lucide-react';
 import { TeacherCardInsights } from './TeacherCardInsights';
 import { TeacherRejectionNote } from './TeacherRejectionNote';
 import { performanceHref } from '../helpers/teacherPerformanceFormat';
@@ -18,6 +18,7 @@ import { TEACHER_CONSOLE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
 import { TeacherCourseListItem } from '../endpoints/teacher/courses/list_GET.schema';
 import { useTeacherCourseMutations } from '../helpers/useTeacherCoursesQuery';
 import { courseDiscountPrice } from '../helpers/coursePricing';
+import { formatRupees } from '../helpers/teacherCampaignRules';
 import styles from './TeacherCourseCard.module.css';
 
 interface TeacherCourseCardProps {
@@ -25,6 +26,8 @@ interface TeacherCourseCardProps {
   onDelete: () => void;
   onUnpublish?: () => void;
   onArchive?: () => void;
+  /** The course's Creator Bonus state, from the teacher's bonus overview. */
+  bonus?: { state: string; amount: number };
 }
 
 const STATUS_CLASS: Record<string, string> = {
@@ -33,11 +36,20 @@ const STATUS_CLASS: Record<string, string> = {
   archived: styles.archived,
 };
 
+const bonusLabel = (bonus?: { state: string; amount: number }) => {
+  if (!bonus) return null;
+  if (bonus.state === 'ready') return `Bonus ready: ${formatRupees(bonus.amount)}`;
+  if (bonus.state === 'claimed') return 'Bonus claimed';
+  if (bonus.state === 'credited') return `${formatRupees(bonus.amount)} bonus earned`;
+  return null;
+};
+
 export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
   course,
   onDelete,
   onUnpublish,
   onArchive,
+  bonus,
 }) => {
   const { unpublishCourseMutation } = useTeacherCourseMutations();
   const [isShareOpen, setShareOpen] = React.useState(false);
@@ -76,6 +88,7 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
     ?.replace(/<[^>]*>/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+  const bonusText = bonusLabel(bonus);
 
   return (
     <div className={styles.card}>
@@ -119,6 +132,12 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
         </div>
 
         {rejection && <TeacherRejectionNote rejection={rejection} />}
+        {bonusText && (
+          <Link to="/teacher/creator-bonus" className={styles.bonus}>
+            <Gift size={13} aria-hidden="true" />
+            {bonusText}
+          </Link>
+        )}
       </div>
 
       <div className={styles.footer}>

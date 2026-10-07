@@ -192,6 +192,19 @@
   line-height: 1.125rem;
 }
 
+.bonusFlag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.0625rem 0.5rem;
+  border-radius: var(--radius-full);
+  background: var(--tk-brand);
+  color: var(--tk-brand-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .rowSkeleton {
   display: flex;
   flex-direction: column;

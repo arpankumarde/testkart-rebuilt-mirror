@@ -1,0 +1,276 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  width: 100%;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: var(--spacing-4);
+  box-sizing: border-box;
+}
+
+.intro {
+  display: flex;
+  gap: var(--spacing-3);
+  align-items: flex-start;
+  padding: var(--spacing-4);
+  border-radius: 1.25rem;
+  background: var(--tk-brand);
+  color: var(--tk-brand-ink);
+}
+
+.intro p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.introIcon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 58% 42% 55% 45% / 48% 58% 42% 52%;
+  background: hsl(0 0% 100%);
+  color: var(--tk-brand-deep);
+  transform: rotate(-10deg);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4) var(--spacing-5, 1.25rem);
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  background: var(--card);
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  align-items: flex-start;
+}
+
+.cardTitleBlock {
+  min-width: 0;
+}
+
+.kind {
+  display: inline-block;
+  margin-bottom: var(--spacing-1);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tk-brand-text);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.cardMeta {
+  margin: var(--spacing-1) 0 0;
+  font-size: 0.875rem;
+  color: color-mix(in srgb, var(--muted-foreground) 70%, var(--foreground));
+  overflow-wrap: anywhere;
+}
+
+.amountBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--spacing-1);
+  flex-shrink: 0;
+}
+
+.amount {
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.status {
+  padding: 0.125rem 0.625rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status_claimed {
+  background: var(--tk-brand);
+  color: var(--tk-brand-ink);
+}
+
+.status_credited {
+  background: color-mix(in srgb, var(--success) 15%, transparent);
+  color: var(--success-text);
+}
+
+.status_declined,
+.status_withdrawn {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.status_reversed {
+  background: color-mix(in srgb, var(--error) 12%, transparent);
+  color: var(--error-text);
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.fact {
+  padding: 0.125rem 0.625rem;
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius-full);
+  font-size: 0.8125rem;
+}
+
+.criteria {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2) var(--spacing-3);
+  align-items: baseline;
+  font-size: 0.875rem;
+}
+
+.criteriaLabel {
+  min-width: 4.5rem;
+  font-weight: 700;
+}
+
+.criteriaValues {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+}
+
+.met {
+  color: var(--success-text);
+  font-weight: 600;
+}
+
+.unmet {
+  color: var(--error-text);
+  font-weight: 600;
+}
+
+.need {
+  color: var(--foreground);
+  font-weight: 400;
+}
+
+.lessons {
+  font-size: 0.875rem;
+}
+
+.lessons summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.lessons ol {
+  margin: var(--spacing-2) 0 0;
+  padding-left: var(--spacing-5, 1.25rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.lessons li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+}
+
+.lessonMinutes {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.lessonTitle {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.lessonTitle a {
+  color: inherit;
+  font-weight: 600;
+}
+
+.lessonWhy {
+  font-size: 0.8125rem;
+  color: color-mix(in srgb, var(--muted-foreground) 70%, var(--foreground));
+}
+
+.lessonOut .lessonWhy {
+  color: var(--error-text);
+  font-weight: 600;
+}
+
+.note {
+  margin: 0;
+  padding: var(--spacing-2) var(--spacing-3);
+  border-left: 3px solid var(--tk-brand);
+  background: var(--muted);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  font-size: 0.875rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--spacing-2);
+}
+
+.blocked {
+  margin: 0;
+  font-size: 0.8125rem;
+  text-align: right;
+  color: color-mix(in srgb, var(--muted-foreground) 70%, var(--foreground));
+}
+
+@media (max-width: 640px) {
+  .cardHead {
+    flex-direction: column;
+  }
+
+  .amountBlock {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .actions {
+    justify-content: stretch;
+  }
+
+  .actions > * {
+    flex: 1 1 auto;
+  }
+
+  .blocked {
+    text-align: left;
+  }
+}

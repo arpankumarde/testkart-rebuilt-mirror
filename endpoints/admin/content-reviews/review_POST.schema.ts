@@ -8,6 +8,8 @@ export const schema = z.object({
   reviewId: z.number().int().positive(),
   action: z.enum(REVIEW_ACTIONS),
   adminNotes: z.string().optional(),
+  /** With approve: also credit the Creator Bonus the teacher claimed with this submission. */
+  creditBonus: z.boolean().optional(),
 });
 
 export type InputType = z.infer<typeof schema>;

@@ -27,6 +27,7 @@ import {
   TrendingUp,
   Trophy,
   Headset,
+  Gift,
 } from 'lucide-react';
 import { useAuth } from '../helpers/useAuth';
 import { Button } from './Button';
@@ -84,7 +85,8 @@ const NAV_GROUPS: TeacherNavGroup[] = [
     alwaysOpen: true,
     items: [
       { href: '/teacher/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-      { href: '/teacher/analytics', label: 'Analytics', icon: TrendingUp, ownerOnly: true, badge: 'New' },
+      { href: '/teacher/analytics', label: 'Analytics', icon: TrendingUp, ownerOnly: true },
+      { href: '/teacher/creator-bonus', label: 'Creator Bonus', icon: Gift, badge: 'New' },
       {
         href: '/teacher/test-series',
         label: 'Test Series',
@@ -116,7 +118,7 @@ const NAV_GROUPS: TeacherNavGroup[] = [
     label: 'Students',
     items: [
       { href: '/teacher/students', label: 'Enrollments', icon: Users },
-      { href: '/teacher/students/performance', label: 'Performance', icon: Trophy, badge: 'New' },
+      { href: '/teacher/students/performance', label: 'Performance', icon: Trophy },
       { href: '/teacher/promo-codes', label: 'Promo Codes', icon: Tag },
       { href: '/teacher/reviews', label: 'Reviews', icon: Star },
     ],

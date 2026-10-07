@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React from "react";
 import { Helmet } from "react-helmet";
 import { SEOHead } from "../components/SEOHead";
 import { Link } from "react-router-dom";
@@ -12,22 +12,6 @@ import { BookDemoButton } from "../components/BookDemoButton";
 import styles from "./sell.mock-test.module.css";
 
 const MockTestPage: React.FC = () => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (video) {
-      const playPromise = video.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(() => {
-          // Autoplay with sound failed, fallback to muted autoplay
-          video.muted = true;
-          video.play().catch(console.error);
-        });
-      }
-    }
-  }, []);
-
   return (
     <>
       <SEOHead
@@ -162,13 +146,13 @@ const MockTestPage: React.FC = () => {
             <p className={styles.heroSubtitle}>
               With Testkart, you can create and sell mock tests for a wide range of competitive examinations, including UPSC, NEET, JEE, SSC, Banking, and more. Transform your expertise into a thriving online academy.
             </p>
-            <video
-              ref={videoRef}
+            <iframe
               className={styles.heroVideo}
-              src="https://cdn.testkart.in/marketing-assets/testkart%20final%204.mp4"
-              autoPlay
-              playsInline
-              controls
+              src="https://www.youtube-nocookie.com/embed/1ZPVJGJcaKo?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1"
+              title="Create Mock Tests in Minutes with Testkart"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
             />
             <div className={styles.heroCtas}>
               <Button asChild size="lg">

@@ -27,6 +27,23 @@ export async function handle(request: Request): Promise<Response> {
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);
 
+    // Payouts go only to a bank account an admin has verified. The page hides the
+    // button otherwise, but the MCP tool and direct calls reach this endpoint too.
+    const verifiedBank = await db
+      .selectFrom("teacherBankDetails")
+      .select("id")
+      .where("teacherId", "=", effectiveTeacherId)
+      .where("verificationStatus", "=", "verified")
+      .executeTakeFirst();
+    if (!verifiedBank) {
+      return new Response(
+        superjson.stringify({
+          error: "Add your bank details and wait for them to be verified before requesting a withdrawal.",
+        }),
+        { status: 400 }
+      );
+    }
+
     // Check and insert under the wallet lock shared with every other teacher
     // debit, so parallel requests can't all pass against the same balance.
     const result = await db.transaction().execute(async (trx) => {

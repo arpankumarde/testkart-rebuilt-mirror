@@ -3,6 +3,8 @@ import superjson from "superjson";
 
 export const schema = z.object({
   courseId: z.number().int().positive(),
+  /** Also claim the Creator Bonus with this submission (helpers/teacherCampaign). */
+  claimCreatorBonus: z.boolean().optional(),
 });
 
 export type InputType = z.infer<typeof schema>;

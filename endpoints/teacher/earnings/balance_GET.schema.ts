@@ -12,6 +12,8 @@ export type BalanceBreakdownItem = {
 
 export type OutputType = {
   totalEarned: number;
+  /** Creator Bonus credits, on top of totalEarned. */
+  totalCampaignBonuses: number;
   totalWithdrawn: number;
   totalSponsored: number;
   totalPrizeDeductions: number;

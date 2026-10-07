@@ -13,6 +13,7 @@ import { SegmentedControl } from "../components/SegmentedControl";
 import { Skeleton } from "../components/Skeleton";
 import { TeacherOverviewAttention } from "../components/TeacherOverviewAttention";
 import { TeacherOverviewNextSteps } from "../components/TeacherOverviewNextSteps";
+import { TeacherOverviewCreatorBonus } from "../components/TeacherOverviewCreatorBonus";
 import { TeacherOverviewKpis } from "../components/TeacherOverviewKpis";
 import { TeacherOverviewCatalogue } from "../components/TeacherOverviewCatalogue";
 import { TeacherOverviewEarningsChart } from "../components/TeacherOverviewEarningsChart";
@@ -109,6 +110,8 @@ const TeacherDashboardPage: React.FC = () => {
             <TeamStatusBanner />
 
             <TeacherOverviewAttention attention={data?.attention} availableBalance={totals?.availableBalance ?? 0} />
+
+            <TeacherOverviewCreatorBonus />
 
             <TeacherOverviewNextSteps user={authState.user} publishedCount={publishedCount} />
 

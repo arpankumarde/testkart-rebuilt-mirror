@@ -48,10 +48,13 @@
 }
 
 .heroVideo {
+  display: block;
   max-width: 800px;
   width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
   border-radius: var(--radius-lg);
-  margin-bottom: var(--spacing-8);
+  margin: 0 auto var(--spacing-8);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-md);
 }

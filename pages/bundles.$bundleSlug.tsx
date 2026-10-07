@@ -8,23 +8,9 @@ import { getBundlesList } from '../endpoints/bundles/list_GET.schema';
 import { BundlesGrid } from '../components/BundlesGrid';
 import { useBundleDetailsQuery } from '../helpers/useBundlesQuery';
 import { TeacherCtaBanner } from '../components/TeacherCtaBanner';
-import { ShareButton } from '../components/ShareButton';
-import { PUBLIC_PAGE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
 import { useTrackStorefrontView } from '../helpers/trackStorefrontEvent';
+import { bundleDescriptionToPlainText } from '../helpers/bundleDescription';
 import styles from './bundles.$bundleSlug.module.css';
-
-const ShareBundle: React.FC<{ slug: string; title: string }> = ({ slug, title }) => (
-  <div className={styles.shareContainer}>
-    <h4 className={styles.shareTitle}>Share this bundle</h4>
-    <ShareButton
-      kind="bundle"
-      handle={slug}
-      title={title}
-      campaign={PUBLIC_PAGE_SHARE_CAMPAIGN}
-      size="lg"
-    />
-  </div>
-);
 
 const RelatedBundles: React.FC<{ teacherId: number; currentBundleId: number }> = ({ teacherId, currentBundleId }) => {
   const { data, isFetching } = useQuery({
@@ -68,7 +54,7 @@ const BundleDetailsPage: React.FC = () => {
       {bundle && (
         <SEOHead
           title={bundle.title}
-          description={bundle.description || `Explore the ${bundle.title} course bundle on Testkart.`}
+          description={bundleDescriptionToPlainText(bundle.description) || `Explore the ${bundle.title} course bundle on Testkart.`}
           image={bundle.thumbnailUrl || Placeholder.TEST}
           url={pageUrl}
           noIndex={!bundle.seo.indexable}
@@ -78,15 +64,7 @@ const BundleDetailsPage: React.FC = () => {
         <BundleDetailsView slug={bundleSlug} />
         {bundle && (
           <>
-            <ShareBundle slug={bundleSlug} title={bundle.title} />
             <RelatedBundles teacherId={bundle.teacher.id} currentBundleId={bundle.id} />
-            
-            {bundle.disclaimer && (
-              <div className={styles.disclaimerSection} style={{ whiteSpace: 'pre-wrap' }}>
-                {bundle.disclaimer}
-              </div>
-            )}
-
             <TeacherCtaBanner className={styles.teacherCta} />
           </>
         )}

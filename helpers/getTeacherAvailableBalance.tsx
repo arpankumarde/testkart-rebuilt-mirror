@@ -8,10 +8,13 @@ import {
   buildTeacherSponsoredDeductionsSql,
   buildTeacherPrizeDeductionsSql,
   buildTeacherSubscriptionWalletPaymentsSql,
+  buildTeacherCampaignCreditsSql,
 } from "./teacherEarningsSql";
 
 export type TeacherBalanceBreakdown = {
   totalEarned: number;
+  /** Campaign bonuses credited by admins; added to the balance on top of totalEarned. */
+  totalCampaignBonuses: number;
   totalWithdrawn: number;
   totalPendingWithdrawals: number;
   totalSponsored: number;
@@ -31,8 +34,9 @@ export type TeacherBalanceBreakdown = {
 
 /**
  * Calculates the full balance breakdown for a teacher.
- * Formula: availableBalance = totalEarned - totalWithdrawn - totalPendingWithdrawals
- *   - totalSponsored - totalPrizeDeductions - totalSubscriptionWalletPayments
+ * Formula: availableBalance = totalEarned + totalCampaignBonuses - totalWithdrawn
+ *   - totalPendingWithdrawals - totalSponsored - totalPrizeDeductions
+ *   - totalSubscriptionWalletPayments
  *
  * Pending withdrawal requests are subtracted so money already requested can't
  * also be spent on sponsorships, plans or prize pools. Callers that debit the
@@ -58,6 +62,7 @@ export async function getTeacherAvailableBalance(
     sponsoredResult,
     prizeDeductionsResult,
     subWalletResult,
+    campaignResult,
   ] = await Promise.all([
     buildTeacherNetEarningsSql(teacherId).execute(queryBuilder),
     buildTeacherSalesCountSql(teacherId).execute(queryBuilder),
@@ -66,6 +71,7 @@ export async function getTeacherAvailableBalance(
     buildTeacherSponsoredDeductionsSql(teacherId).execute(queryBuilder),
     buildTeacherPrizeDeductionsSql(teacherId).execute(queryBuilder),
     buildTeacherSubscriptionWalletPaymentsSql(teacherId).execute(queryBuilder),
+    buildTeacherCampaignCreditsSql(teacherId).execute(queryBuilder),
     // Withdrawal/sponsored/prize row counts are display-only (no financial
     // math depends on them), so they're fetched with small direct counts
     // below rather than added to the shared SQL builders.
@@ -115,6 +121,7 @@ export async function getTeacherAvailableBalance(
   const totalSponsored = Number(sponsoredResult.rows[0]?.total ?? 0);
   const totalPrizeDeductions = Number(prizeDeductionsResult.rows[0]?.total ?? 0);
   const totalSubscriptionWalletPayments = Number(subWalletResult.rows[0]?.total ?? 0);
+  const totalCampaignBonuses = Number(campaignResult.rows[0]?.total ?? 0);
 
   const withdrawalsCount = Number(withdrawalsCountResult?.count ?? 0);
   const sponsoredCount = Number(sponsoredCountResult?.count ?? 0);
@@ -124,7 +131,8 @@ export async function getTeacherAvailableBalance(
   // Round to 2 decimal places to avoid floating-point drift
   const rawBalance =
     Math.round(
-      (totalEarned -
+      (totalEarned +
+        totalCampaignBonuses -
         totalWithdrawn -
         totalPendingWithdrawals -
         totalSponsored -
@@ -136,6 +144,7 @@ export async function getTeacherAvailableBalance(
 
   return {
     totalEarned,
+    totalCampaignBonuses,
     totalWithdrawn,
     totalPendingWithdrawals,
     totalSponsored,

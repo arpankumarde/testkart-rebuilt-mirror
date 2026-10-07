@@ -12,6 +12,9 @@ import {
 import { getContentTitle, sendReviewEmail } from "../../../helpers/contentReviewEmail";
 import { isOpenReview } from "../../../helpers/contentReviewStatus";
 import type { ContentType } from "../../../helpers/schema";
+import { creditClaim, withdrawClaimsForReviews, type CampaignClaim } from "../../../helpers/teacherCampaign";
+import { sendCampaignDecisionEmail } from "../../../helpers/teacherCampaignEmail";
+import { formatRupees } from "../../../helpers/teacherCampaignRules";
 
 /* The item was deleted after it was submitted: close its review without emailing the teacher. */
 const goneResponse = async (contentType: ContentType, contentId: number) => {
@@ -133,9 +136,34 @@ export async function handle(request: Request): Promise<Response> {
         );
       }
 
+      // Crediting is a separate call on quality, so a failure here leaves the approval in place.
+      let bonusNote = "";
+      if (input.creditBonus) {
+        const claim = await db
+          .selectFrom("teacherCampaignClaims")
+          .select("id")
+          .where("contentReviewId", "=", input.reviewId)
+          .where("status", "=", "claimed")
+          .executeTakeFirst();
+        if (!claim) {
+          bonusNote = " No Creator Bonus claim was waiting on this submission.";
+        } else {
+          try {
+            const credited: CampaignClaim = await db
+              .transaction()
+              .execute((trx) => creditClaim(trx, claim.id, admin.id, new Date()));
+            await sendCampaignDecisionEmail(credited, "credited");
+            bonusNote = ` ${formatRupees(Number(credited.amount))} Creator Bonus credited.`;
+          } catch (creditError) {
+            const reason = creditError instanceof Error ? creditError.message : "it could not be credited.";
+            bonusNote = ` The Creator Bonus was not credited: ${reason}`;
+          }
+        }
+      }
+
       const output: OutputType = {
         success: true,
-        message: "Content approved and published successfully.",
+        message: `Content approved and published successfully.${bonusNote}`,
       };
       return new Response(superjson.stringify(output));
     } else {
@@ -147,17 +175,21 @@ export async function handle(request: Request): Promise<Response> {
         );
       }
 
-      await db
-        .updateTable("contentReviews")
-        .set({
-          status: "rejected",
-          reviewedBy: admin.id,
-          reviewedAt: now,
-          adminNotes: input.adminNotes,
-          updatedAt: now,
-        })
-        .where("id", "=", input.reviewId)
-        .execute();
+      const rejectionNote = input.adminNotes;
+      await db.transaction().execute(async (trx) => {
+        await trx
+          .updateTable("contentReviews")
+          .set({
+            status: "rejected",
+            reviewedBy: admin.id,
+            reviewedAt: now,
+            adminNotes: rejectionNote,
+            updatedAt: now,
+          })
+          .where("id", "=", input.reviewId)
+          .execute();
+        await withdrawClaimsForReviews(trx, [input.reviewId], "The content was not approved.");
+      });
 
       // Awaited: Floot drops a send still running after the response goes out.
       if (teacher?.email) {

@@ -5,7 +5,7 @@ export const schema = z.object({});
 
 export type InputType = z.infer<typeof schema>;
 
-export type TransactionType = "sale" | "withdrawal" | "sponsored" | "prize_deduction" | "subscription";
+export type TransactionType = "sale" | "withdrawal" | "sponsored" | "prize_deduction" | "subscription" | "campaign_bonus";
 
 export type EarningTransaction = {
   transactionDate: Date | null;

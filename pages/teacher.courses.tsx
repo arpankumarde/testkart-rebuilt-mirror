@@ -21,6 +21,7 @@ import {
 } from '../components/TeacherListToolbar';
 import { TeacherListEmpty } from '../components/TeacherListEmpty';
 import { TeacherCourseCard } from '../components/TeacherCourseCard';
+import { useCreatorBonusOverview } from '../helpers/useCreatorBonus';
 import { DeleteCourseDialog } from '../components/DeleteCourseDialog';
 import { TestCardSkeleton } from '../components/TestCardSkeleton';
 import styles from './teacher.courses.module.css';
@@ -40,6 +41,7 @@ const DEFAULT_TAB: StatusTab = 'all';
 
 const TeacherCoursesPage: React.FC = () => {
   const { data: courses, isFetching, error, refetch } = useTeacherCoursesQuery();
+  const { data: bonus } = useCreatorBonusOverview();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState('recent');
   const [courseToDelete, setCourseToDelete] = useState<TeacherCourseListItem | null>(null);
@@ -55,6 +57,16 @@ const TeacherCoursesPage: React.FC = () => {
   };
 
   const allCourses = useMemo(() => courses ?? [], [courses]);
+
+  const bonusByCourse = useMemo(() => {
+    const map = new Map<number, { state: string; amount: number }>();
+    if (bonus?.campaign) {
+      for (const item of bonus.items) {
+        if (item.type === 'course') map.set(item.id, { state: item.state, amount: bonus.slots.course.amount });
+      }
+    }
+    return map;
+  }, [bonus]);
 
   const counts = useMemo(() => {
     const base: Record<StatusTab, number> = { all: 0, published: 0, draft: 0, archived: 0 };
@@ -167,6 +179,7 @@ const TeacherCoursesPage: React.FC = () => {
           <TeacherCourseCard
             key={course.id}
             course={course}
+            bonus={bonusByCourse.get(course.id)}
             onDelete={() => setCourseToDelete(course)}
           />
         ))}

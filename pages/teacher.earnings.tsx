@@ -88,6 +88,7 @@ const TeacherEarningsPage: React.FC = () => {
     return {
       availableBalance: balanceData?.availableBalance ?? 0,
       totalEarnings: balanceData?.totalEarned ?? 0,
+      totalBonuses: balanceData?.totalCampaignBonuses ?? 0,
       totalWithdrawn: balanceData?.totalWithdrawn ?? 0,
       totalSales: balanceData?.breakdown.sales.count ?? 0,
       sponsoredCount: balanceData?.breakdown.sponsored.count ?? 0,
@@ -132,17 +133,19 @@ const TeacherEarningsPage: React.FC = () => {
         studentName = `Winner: ${tx.studentName}`;
       } else if (type === 'subscription') {
         studentName = tx.studentName;
+      } else if (type === 'campaign_bonus') {
+        studentName = tx.studentName;
       } else {
         studentName = `by ${tx.studentName}`;
       }
 
       return {
         Date: tx.transactionDate ? format(new Date(tx.transactionDate), 'yyyy-MM-dd') : 'N/A',
-        Type: tx.isRefunded ? 'Refunded' : type === 'sponsored' ? 'Sponsored' : type === 'prize_deduction' ? 'Prize Deduction' : type === 'subscription' ? 'Subscription' : type.charAt(0).toUpperCase() + type.slice(1),
+        Type: tx.isRefunded ? 'Refunded' : type === 'sponsored' ? 'Sponsored' : type === 'prize_deduction' ? 'Prize Deduction' : type === 'subscription' ? 'Subscription' : type === 'campaign_bonus' ? 'Creator Bonus' : type.charAt(0).toUpperCase() + type.slice(1),
         'Item Title': itemTitle,
         'Student Name': studentName,
         'Gross Amount': tx.grossAmount.toFixed(2),
-        'Platform Fee %': type === 'withdrawal' || type === 'prize_deduction' || type === 'subscription' ? '-' : `${tx.platformFeePercentage.toFixed(0)}%`,
+        'Platform Fee %': type === 'withdrawal' || type === 'prize_deduction' || type === 'subscription' || type === 'campaign_bonus' ? '-' : `${tx.platformFeePercentage.toFixed(0)}%`,
         'Net Earnings': tx.amountEarned.toFixed(2),
         Coupon: tx.couponCode ?? '',
         'Coupon Discount': tx.couponDiscount !== undefined ? tx.couponDiscount.toFixed(2) : '',
@@ -221,7 +224,7 @@ const TeacherEarningsPage: React.FC = () => {
                 <p className={styles.balanceValue}>{rupees.format(summary.availableBalance)}</p>
               )}
               <p className={styles.balanceNote}>
-                What is left after sales, withdrawals, sponsorships and subscription payments.
+                What is left after sales, bonuses, withdrawals, sponsorships and subscription payments.
               </p>
             </div>
 
@@ -261,6 +264,9 @@ const TeacherEarningsPage: React.FC = () => {
             <dl className={styles.ledger}>
               <LedgerRow label="Earned this month" value={rupees.format(summary.thisMonthEarnings)} isLoading={isTransactionsLoading} />
               <LedgerRow label="Earned in total" value={rupees.format(summary.totalEarnings)} isLoading={isBalanceLoading} />
+              {summary.totalBonuses > 0 && (
+                <LedgerRow label="Creator Bonus" value={rupees.format(summary.totalBonuses)} isLoading={isBalanceLoading} />
+              )}
               <LedgerRow label="Withdrawn in total" value={rupees.format(summary.totalWithdrawn)} isLoading={isBalanceLoading} />
               <LedgerRow label="Sales" value={summary.totalSales.toLocaleString('en-IN')} isLoading={isBalanceLoading} />
               <LedgerRow label="Sponsored students" value={summary.sponsoredCount.toLocaleString('en-IN')} isLoading={isBalanceLoading} />
@@ -325,11 +331,13 @@ const TeacherEarningsPage: React.FC = () => {
                     const txType = tx.transactionType as string; // Cast for potentially new types like 'sponsored'
                     const isRefunded = !!tx.isRefunded;
                     const isPendingLiveTest = !!tx.isLiveTest && !tx.liveTestEnded && !isRefunded;
-                    const hasNoFee = txType === 'withdrawal' || txType === 'prize_deduction' || txType === 'subscription';
+                    const isBonus = txType === 'campaign_bonus';
+                    const hasNoFee = txType === 'withdrawal' || txType === 'prize_deduction' || txType === 'subscription' || isBonus;
                     const netClass =
                       isRefunded ? styles.amountRefunded :
                       txType === 'sale' && !isPendingLiveTest ? styles.amountEarned :
                       txType === 'sale' && isPendingLiveTest ? styles.amountPending :
+                      isBonus && tx.amountEarned > 0 ? styles.amountEarned :
                       hasNoFee ? styles.amountOut :
                       txType === 'sponsored' && tx.amountEarned !== 0 ? styles.amountOut :
                       styles.amountNeutral;
@@ -339,7 +347,7 @@ const TeacherEarningsPage: React.FC = () => {
                         <td className={styles.date}>{tx.transactionDate ? format(new Date(tx.transactionDate), 'MMM dd, yyyy') : 'N/A'}</td>
                         <td>
                           <span className={`${styles.typeBadge} ${isRefunded ? styles.refunded : styles[txType]}`}>
-                            {isRefunded ? 'Refunded' : txType === 'sponsored' ? 'Sponsored' : txType === 'prize_deduction' ? 'Prize deduction' : txType === 'subscription' ? 'Subscription' : txType}
+                            {isRefunded ? 'Refunded' : txType === 'sponsored' ? 'Sponsored' : txType === 'prize_deduction' ? 'Prize deduction' : txType === 'subscription' ? 'Subscription' : isBonus ? 'Creator Bonus' : txType}
                           </span>
                         </td>
                         <td>
@@ -354,7 +362,7 @@ const TeacherEarningsPage: React.FC = () => {
                                 <span className={styles.itemTitle}>{tx.testTitle}</span>
                                 <span className={styles.counterparty}>Winner: {tx.studentName}</span>
                               </>
-                            ) : txType === 'subscription' ? (
+                            ) : txType === 'subscription' || isBonus ? (
                               <>
                                 <span className={styles.itemTitle}>{tx.testTitle}</span>
                                 <span className={styles.counterparty}>{tx.studentName}</span>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
+import { Link } from "react-router-dom";
 import {
   useAdminContentReviewsQuery,
   useReviewContentMutation,
@@ -23,7 +24,9 @@ import {
   ContentReviewDetailDialog,
   ContentReviewOpenButton,
 } from "../components/ContentReviewDetailDialog";
-import { FileText, CheckCircle, XCircle, AlertCircle, MousePointerClick, UserCheck, Undo2 } from "lucide-react";
+import { FileText, CheckCircle, XCircle, AlertCircle, MousePointerClick, UserCheck, Undo2, Gift } from "lucide-react";
+import { AdminBonusApproveDialog } from "../components/AdminBonusApproveDialog";
+import { formatRupees } from "../helpers/teacherCampaignRules";
 import { isOpenReview, reviewStatusBadgeVariant, reviewStatusLabel } from "../helpers/contentReviewStatus";
 import { ConsolePageHeader } from "../components/ConsolePageHeader";
 import { ConsoleListToolbar, consoleToolbarControlClass } from "../components/ConsoleListToolbar";
@@ -92,6 +95,20 @@ const countLabel = (count: number, status: StatusFilter) => {
   if (status === "senior_review") return `${count} waiting on senior approval`;
   if (status === "all") return `${count} ${count === 1 ? "review" : "reviews"}`;
   return `${count} ${status}`;
+};
+
+const openBonus = (review: ContentReviewAdminView | null) =>
+  review?.bonusClaim?.status === "claimed" ? review.bonusClaim : null;
+
+const BonusFlag = ({ review }: { review: ContentReviewAdminView }) => {
+  const claim = openBonus(review);
+  if (!claim) return null;
+  return (
+    <span className={styles.bonusFlag} title={`The teacher claimed the ${formatRupees(claim.amount)} Creator Bonus`}>
+      <Gift size={12} aria-hidden="true" />
+      Bonus {formatRupees(claim.amount)}
+    </span>
+  );
 };
 
 /* Tablet and up: the queue on the left, the clicked review open on the right. Phones open details in a dialog. */
@@ -167,11 +184,11 @@ const AdminContentReviewsPage: React.FC = () => {
     setSelectedId(neighbour?.id ?? null);
   };
 
-  const confirmApprove = () => {
+  const confirmApprove = (creditBonus = false) => {
     if (!approveTarget) return;
     const target = approveTarget;
     reviewMutation.mutate(
-      { reviewId: target.id, action: "approve" },
+      { reviewId: target.id, action: "approve", creditBonus },
       {
         onSuccess: () => {
           setApproveTarget(null);
@@ -365,6 +382,7 @@ const AdminContentReviewsPage: React.FC = () => {
                         {review.teacherName}
                       </span>
                       <span className={styles.rowDate}>{formatDate(review.createdAt)}</span>
+                      <BonusFlag review={review} />
                       {statusFilter === "all" && (
                         <Badge variant={reviewStatusBadgeVariant(review.status)} className={styles.flag}>
                           {reviewStatusLabel(review.status)}
@@ -408,6 +426,7 @@ const AdminContentReviewsPage: React.FC = () => {
             <h2 className={styles.paneTitle}>{selectedReview.contentTitle}</h2>
             <div className={styles.paneBadges}>
               <ContentReviewBadges review={selectedReview} />
+              <BonusFlag review={selectedReview} />
             </div>
           </div>
           <ContentReviewOpenButton review={selectedReview} variant="outline" />
@@ -445,6 +464,12 @@ const AdminContentReviewsPage: React.FC = () => {
 
       <div className={`${styles.page} ${isSplit ? styles.pageSplit : ""}`}>
         <ConsolePageHeader title="Content reviews">
+          <Button variant="outline" asChild>
+            <Link to="/admin/content-reviews/bonus-claims">
+              <Gift size={16} />
+              Creator Bonus claims
+            </Link>
+          </Button>
           {showApproveAll && (
             <Button
               variant="outline"
@@ -511,7 +536,7 @@ const AdminContentReviewsPage: React.FC = () => {
       />
 
       <ConsoleConfirmDialog
-        open={!!approveTarget}
+        open={!!approveTarget && !openBonus(approveTarget)}
         onOpenChange={(open) => !open && setApproveTarget(null)}
         icon={<CheckCircle size={20} />}
         title="Approve this content?"
@@ -523,7 +548,17 @@ const AdminContentReviewsPage: React.FC = () => {
         confirmLabel="Approve"
         pendingLabel="Approving..."
         isPending={reviewMutation.isPending}
-        onConfirm={confirmApprove}
+        onConfirm={() => confirmApprove(false)}
+      />
+
+      <AdminBonusApproveDialog
+        open={!!openBonus(approveTarget)}
+        onOpenChange={(open) => !open && setApproveTarget(null)}
+        contentTitle={approveTarget?.contentTitle ?? ""}
+        teacherName={approveTarget?.teacherName ?? ""}
+        amount={openBonus(approveTarget)?.amount ?? 0}
+        isPending={reviewMutation.isPending}
+        onApprove={confirmApprove}
       />
 
       <ConsoleConfirmDialog

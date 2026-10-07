@@ -45,3 +45,101 @@
 .cardsContainer::-webkit-scrollbar {
   display: none;
 }
+
+/* The hover area for the arrows. */
+.carousel {
+  position: relative;
+}
+
+/* Same overlay arrows as Explore Top Exams: fully hidden at rest (no hit
+   area), faded in while the pointer is over the carousel or a keyboard user
+   tabs inside it, and never shown for a direction that can't move. Only
+   rendered on devices that can hover; touch devices swipe instead. */
+.navButton {
+  position: absolute;
+  top: 50%;
+  z-index: 1;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background-color: #2f3033;
+  color: #f4f4f5;
+  box-shadow:
+    inset 0 0 0 1px hsl(0 0% 100% / 0.06),
+    0 8px 20px -10px hsl(220 10% 10% / 0.45);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-50%);
+  transition:
+    opacity 200ms ease,
+    visibility 200ms ease,
+    background-color 200ms ease,
+    scale 200ms ease;
+}
+
+.navPrev {
+  left: 0.5rem;
+}
+
+.navNext {
+  right: 0.5rem;
+}
+
+.navButton:hover {
+  background-color: #45474b;
+  scale: 1.06;
+}
+
+.navButton:active {
+  scale: 0.98;
+}
+
+.navButton:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 3px;
+}
+
+.carousel:hover .navButton:not(:disabled),
+.carousel:has(:focus-visible) .navButton:not(:disabled) {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .navButton {
+    display: inline-flex;
+  }
+}
+
+/* Desktop: the column's 2rem side padding has room for the arrows to
+   straddle the carousel's edges instead of covering the cards. */
+@media (hover: hover) and (pointer: fine) and (min-width: 1024px) {
+  .navPrev {
+    left: 0;
+    transform: translate(-50%, -50%);
+  }
+
+  .navNext {
+    right: 0;
+    transform: translate(50%, -50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navButton {
+    transition: none;
+  }
+
+  .navButton:hover,
+  .navButton:active {
+    scale: none;
+  }
+}

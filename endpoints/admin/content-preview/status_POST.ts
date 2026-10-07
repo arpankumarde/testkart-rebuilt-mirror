@@ -6,6 +6,7 @@ import { loadContentState, publishApprovedContent, takeDownContent } from "../..
 import { sendReviewEmail } from "../../../helpers/contentReviewEmail";
 import { OPEN_REVIEW_STATUSES } from "../../../helpers/contentReviewStatus";
 import { countLiveTestEnrollments } from "../../../helpers/enrollmentCounters";
+import { withdrawClaimsForReviews } from "../../../helpers/teacherCampaign";
 import { PreviewContentType } from "./details_GET.schema";
 import { schema, OutputType } from "./status_POST.schema";
 
@@ -87,6 +88,7 @@ export async function handle(request: Request): Promise<Response> {
         };
         if (pending) {
           await trx.updateTable("contentReviews").set(review).where("id", "=", pending.id).execute();
+          if (action === "reject") await withdrawClaimsForReviews(trx, [pending.id], "The content was not approved.");
         } else {
           await trx
             .insertInto("contentReviews")

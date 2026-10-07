@@ -9,6 +9,7 @@ import { Skeleton } from '../components/Skeleton';
 import { Badge } from '../components/Badge';
 import { WithdrawReviewButton } from '../components/WithdrawReviewButton';
 import { TeacherRejectionBanner } from '../components/TeacherRejectionBanner';
+import { CreatorBonusClaimCard } from '../components/CreatorBonusClaimCard';
 import type { TestItemWithQuestionsCount } from "../endpoints/teacher/test-items/list_GET.schema";
 import {
   AlertCircle,
@@ -112,6 +113,7 @@ const Page = () => {
   const { usePublishTestMutation, usePublishLiveTestMutation } = useTeacherTestMutations();
   const publishMutation = usePublishTestMutation();
   const publishLiveMutation = usePublishLiveTestMutation();
+  const [claimBonus, setClaimBonus] = useState(false);
 
   const testPackage = tests?.find((t) => t.id === packageId);
   const liveTest = liveTestsData?.tests.find((lt) => lt.mockTestId === packageId);
@@ -133,7 +135,7 @@ const Page = () => {
         onSuccess: () => navigate("/teacher/live-tests"),
       });
     } else {
-      publishMutation.mutate({ testId: packageId }, {
+      publishMutation.mutate({ testId: packageId, claimCreatorBonus: claimBonus || undefined }, {
         onSuccess: () => navigate("/teacher/test-series"),
       });
     }
@@ -368,6 +370,16 @@ const Page = () => {
                         {isPublishing ? "Submitting..." : "Submit for review"}
                       </Button>
                     </div>
+                    {!isLiveTest && (
+                      <CreatorBonusClaimCard
+                        type="mock_test"
+                        id={packageId}
+                        checked={claimBonus}
+                        onCheckedChange={setClaimBonus}
+                        disabled={isPublishing}
+                        onBrand
+                      />
+                    )}
                   </>
                 )}
                 {verdict === "blocked" && (

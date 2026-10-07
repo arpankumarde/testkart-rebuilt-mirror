@@ -1,0 +1,767 @@
+/*
+ * Creator Bonus: the free-flowing look of the exam pages and the homepage exam
+ * cards rather than the boxed console. Pastels and the coral block are artwork,
+ * the same in both themes, so everything sitting on them uses a fixed ink.
+ * Flat fills only: no gradients or see-through layers.
+ */
+.page {
+  --cb-ink: hsl(220 30% 12%);
+  --cb-peach: #f9b99a;
+  --cb-mint: #a9dcc8;
+  --cb-lavender: #c8b6f2;
+  --cb-sky: #aed3f2;
+  --cb-butter: #f4dfa3;
+  --cb-pink: #e8b7c8;
+  --cb-quiet: color-mix(in srgb, var(--muted-foreground) 70%, var(--foreground));
+
+  container: bonus / inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding-bottom: var(--spacing-8);
+  box-sizing: border-box;
+}
+
+.sectionTitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-3);
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+/* Hero: the coral block from the New Teacher CTA. */
+.hero {
+  position: relative;
+  display: grid;
+  gap: var(--spacing-6);
+  padding: 2rem 1.5rem;
+  border-radius: 1.875rem;
+  background: var(--tk-brand);
+  color: var(--tk-brand-ink);
+  box-shadow: 0 12px 28px -8px hsl(20 60% 35% / 0.4);
+  overflow: hidden;
+}
+
+.heroText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  max-width: 40rem;
+}
+
+.chip {
+  align-self: flex-start;
+  padding: 0.3125rem 0.75rem;
+  border-radius: var(--radius-full);
+  background: hsl(0 0% 100%);
+  color: var(--tk-brand-deep);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transform: rotate(-2deg);
+}
+
+.heroTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: clamp(1.625rem, 4cqi, 2.375rem);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  color: var(--tk-brand-ink);
+}
+
+.heroLead {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.meter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  max-width: 26rem;
+}
+
+.meterHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-2);
+}
+
+.meterValue {
+  font-family: var(--font-family-heading);
+  font-size: 2rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.meterOf {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.meterTrack {
+  display: block;
+  height: 0.875rem;
+  border: 2px solid var(--tk-brand-ink);
+  border-radius: var(--radius-full);
+  background: hsl(0 0% 100%);
+  overflow: hidden;
+}
+
+.meterFill {
+  display: block;
+  height: 100%;
+  min-width: 0.375rem;
+  background: var(--tk-brand-ink);
+}
+
+.heroArt {
+  position: relative;
+  display: none;
+}
+
+.bigCoin {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  border: 3px solid var(--tk-brand-ink);
+  background: hsl(0 0% 100%);
+  color: var(--tk-brand-ink);
+  font-family: var(--font-family-heading);
+  font-weight: 800;
+  transition: transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.bigCoinA {
+  top: 0.5rem;
+  left: 1rem;
+  width: 7.5rem;
+  height: 7.5rem;
+  font-size: 1.5rem;
+  border-radius: 58% 42% 55% 45% / 48% 58% 42% 52%;
+  transform: rotate(-12deg);
+}
+
+.bigCoinB {
+  top: 6.5rem;
+  left: 7.5rem;
+  width: 6rem;
+  height: 6rem;
+  font-size: 1.25rem;
+  background: var(--cb-butter);
+  border-radius: 44% 56% 41% 59% / 57% 43% 57% 43%;
+  transform: rotate(10deg);
+}
+
+.bigCoinC {
+  top: 1rem;
+  left: 10rem;
+  width: 4.5rem;
+  height: 4.5rem;
+  background: var(--cb-mint);
+  color: var(--cb-ink);
+  border-radius: 52% 48% 38% 62% / 46% 60% 40% 54%;
+  transform: rotate(-6deg);
+}
+
+.hero:hover .bigCoinA {
+  transform: rotate(4deg) scale(1.04);
+}
+
+.hero:hover .bigCoinB {
+  transform: rotate(-6deg) scale(1.04);
+}
+
+@container bonus (min-width: 46rem) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr) 15rem;
+    padding: 2.5rem 2.75rem;
+  }
+
+  .heroArt {
+    display: block;
+    min-height: 13rem;
+  }
+}
+
+/* Track cards: the homepage exam card, pastel strip peeking underneath. */
+.tracks {
+  display: grid;
+  align-items: start;
+  gap: 2rem 1.5rem;
+}
+
+@container bonus (min-width: 42rem) {
+  .tracks {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .tracks > :nth-child(even) {
+    margin-top: 1.75rem;
+  }
+}
+
+.track {
+  position: relative;
+  display: block;
+  transition: transform 220ms ease;
+}
+
+.track:hover {
+  transform: translateY(-4px);
+}
+
+.trackStrip {
+  position: absolute;
+  inset-inline: 1.5rem;
+  bottom: -8px;
+  height: 2rem;
+  border-radius: 0 0 1.5rem 1.5rem;
+  background: var(--track-accent);
+  filter: saturate(1.35) brightness(0.93);
+}
+
+.trackCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+  border-radius: 1.875rem;
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow:
+    0 1px 2px hsl(220 10% 15% / 0.03),
+    0 8px 22px -14px hsl(220 10% 15% / 0.12);
+}
+
+.trackHead {
+  display: flex;
+  gap: var(--spacing-3);
+  align-items: center;
+}
+
+.trackIcon {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 3rem;
+  height: 3rem;
+  color: var(--cb-ink);
+}
+
+.trackIcon svg {
+  position: relative;
+}
+
+.trackBlob {
+  position: absolute;
+  inset: 0.1875rem 0 0 0.25rem;
+  border-radius: 58% 42% 55% 45% / 48% 58% 42% 52%;
+  background: var(--track-accent);
+  transform: rotate(-8deg);
+  transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.track:hover .trackBlob {
+  transform: rotate(8deg) scale(1.08);
+}
+
+.trackTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.375rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.trackRule {
+  margin: 0.125rem 0 0;
+  font-size: 0.875rem;
+  color: var(--cb-quiet);
+}
+
+.coins {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.coin {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 58% 42% 55% 45% / 48% 58% 42% 52%;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  transform: rotate(var(--coin-tilt));
+}
+
+.coin_paid {
+  background: var(--coin-accent);
+  color: var(--cb-ink);
+  border: 2px solid var(--cb-ink);
+}
+
+.coin_waiting {
+  border: 2px dashed var(--foreground);
+  color: var(--foreground);
+}
+
+.coin_free {
+  border: 2px dotted var(--border);
+  color: var(--cb-quiet);
+}
+
+.trackFoot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding-top: var(--spacing-3);
+  border-top: 1.5px dashed var(--border);
+  font-size: 0.875rem;
+  color: var(--cb-quiet);
+}
+
+.trackLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 700;
+  color: var(--tk-brand-text);
+  text-decoration: none;
+}
+
+.trackLink:hover {
+  text-decoration: underline;
+}
+
+.trackLink svg {
+  transition: transform 220ms ease;
+}
+
+.trackLink:hover svg {
+  transform: translateX(2px);
+}
+
+/* How it works: tilted numbered blobs joined by a dashed line. */
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.stepList {
+  position: relative;
+  display: grid;
+  gap: 1.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stepList::before {
+  content: "";
+  position: absolute;
+  top: 1.75rem;
+  bottom: 1.75rem;
+  left: 1.75rem;
+  border-left: 2px dashed var(--border);
+}
+
+.step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+  column-gap: var(--spacing-4);
+  row-gap: 0.25rem;
+}
+
+.stepBlob {
+  position: relative;
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 58% 42% 55% 45% / 48% 58% 42% 52%;
+  color: var(--cb-ink);
+  transform: rotate(-8deg);
+  transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.step:nth-child(even) .stepBlob {
+  border-radius: 44% 56% 41% 59% / 57% 43% 57% 43%;
+  transform: rotate(9deg);
+}
+
+.step:hover .stepBlob {
+  transform: rotate(0deg) scale(1.08);
+}
+
+.stepNumber {
+  position: absolute;
+  top: -0.375rem;
+  right: -0.375rem;
+  display: grid;
+  place-items: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: var(--radius-full);
+  background: var(--cb-ink);
+  color: hsl(0 0% 100%);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.stepTitle {
+  margin: 0;
+  align-self: end;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 800;
+}
+
+.stepText {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--cb-quiet);
+}
+
+@container bonus (min-width: 52rem) {
+  .stepList {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .stepList::before {
+    top: 1.75rem;
+    bottom: auto;
+    left: 1.75rem;
+    right: 1.75rem;
+    border-left: none;
+    border-top: 2px dashed var(--border);
+  }
+
+  .step {
+    grid-template-columns: 1fr;
+    row-gap: var(--spacing-2);
+  }
+
+  .stepBlob {
+    grid-row: auto;
+    margin-bottom: var(--spacing-2);
+  }
+}
+
+.tone_peach {
+  background: var(--cb-peach);
+  color: var(--cb-ink);
+}
+
+.tone_mint {
+  background: var(--cb-mint);
+  color: var(--cb-ink);
+}
+
+.tone_lavender {
+  background: var(--cb-lavender);
+  color: var(--cb-ink);
+}
+
+.tone_sky {
+  background: var(--cb-sky);
+  color: var(--cb-ink);
+}
+
+.tone_butter {
+  background: var(--cb-butter);
+  color: var(--cb-ink);
+}
+
+.tone_pink {
+  background: var(--cb-pink);
+  color: var(--cb-ink);
+}
+
+.tone_grey {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+/* Your content */
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.contentHead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.readyBadge {
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  background: var(--tk-brand);
+  color: var(--tk-brand-ink);
+  font-family: var(--font-family-base);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  transform: rotate(-3deg);
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.filter {
+  padding: 0.375rem 0.875rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--card);
+  color: var(--foreground);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease;
+}
+
+.filter:hover {
+  border-color: var(--foreground);
+  transform: translateY(-1px);
+}
+
+.filter:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.filterOn {
+  border-color: var(--cb-ink);
+  background: var(--cb-ink);
+  color: hsl(0 0% 100%);
+}
+
+.itemList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: 1.125rem 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+  border-radius: 1.5rem;
+  background: var(--card);
+  color: var(--card-foreground);
+}
+
+.itemMain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.itemKind {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tk-brand-text);
+}
+
+.itemTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.3125rem 0.75rem;
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius-full);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.pillDone {
+  border: 1.5px solid transparent;
+  background: var(--cb-mint);
+  color: var(--cb-ink);
+}
+
+.pillTrack {
+  display: inline-block;
+  width: 3.5rem;
+  height: 0.375rem;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  overflow: hidden;
+}
+
+.pillFill {
+  display: block;
+  height: 100%;
+  background: var(--foreground);
+}
+
+.itemNext {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--cb-quiet);
+}
+
+.itemSide {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.sticker {
+  display: inline-block;
+  padding: 0.3125rem 0.875rem;
+  border-radius: 58% 42% 55% 45% / 48% 58% 42% 52%;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  white-space: nowrap;
+  transform: rotate(-3deg);
+}
+
+.item:nth-child(even) .sticker {
+  transform: rotate(3deg);
+}
+
+@container bonus (min-width: 40rem) {
+  .contentHead {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .item {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-5, 1.25rem);
+  }
+
+  .itemSide {
+    flex-direction: column;
+    align-items: flex-end;
+    flex-shrink: 0;
+  }
+}
+
+.emptyList,
+.quietPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding: 1.5rem;
+  border: 1.5px dashed var(--border);
+  border-radius: 1.5rem;
+}
+
+.emptyList p,
+.quietPanel p {
+  margin: 0;
+  color: var(--cb-quiet);
+}
+
+.emptyActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.quietTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.375rem;
+  font-weight: 800;
+}
+
+/* Rules: a dashed ivory note, the exam pages' divider language. */
+.rules {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: 1.5rem;
+  border: 1.5px dashed var(--border);
+  border-radius: 1.5rem;
+}
+
+.rules ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding-left: 1.25rem;
+  line-height: 1.55;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track,
+  .trackBlob,
+  .stepBlob,
+  .bigCoin,
+  .filter,
+  .trackLink svg {
+    transition: none;
+  }
+
+  .track:hover {
+    transform: none;
+  }
+}

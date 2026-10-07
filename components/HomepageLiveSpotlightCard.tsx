@@ -20,10 +20,11 @@ const formatPrizePool = (amount: number): string => {
  * Three stacked sections inside one card: a tinted status strip (status +
  * countdown), the test itself (title, organiser, prize), and an inset stats
  * panel (seats + price). The strip tint follows the status - peach while
- * upcoming, sage once live.
+ * upcoming, sage once live. The countdown runs to the start while upcoming
+ * and to the end once live.
  */
 export function HomepageLiveSpotlightCard({ spotlight }: HomepageLiveSpotlightCardProps) {
-  const { label, isLive } = useLiveCountdown(spotlight.startTime, spotlight.endTime);
+  const { label, isLive, isEnded } = useLiveCountdown(spotlight.startTime, spotlight.endTime, spotlight.isLive);
 
   const getInitials = (name: string) => name.substring(0, 2).toUpperCase();
   const displayTitle = spotlight.examName || spotlight.title;
@@ -40,7 +41,7 @@ export function HomepageLiveSpotlightCard({ spotlight }: HomepageLiveSpotlightCa
         <div className={styles.statusStrip}>
           <span className={styles.status}>
             <span className={styles.statusDot} aria-hidden="true" />
-            {isLive ? "LIVE" : "UPCOMING"}
+            {isLive ? "LIVE NOW" : isEnded ? "ENDED" : "UPCOMING"}
           </span>
           <span className={styles.countdown}>
             <Clock size={13} className={styles.countdownIcon} aria-hidden="true" />
@@ -57,8 +58,8 @@ export function HomepageLiveSpotlightCard({ spotlight }: HomepageLiveSpotlightCa
                 {spotlight.teacherAvatarUrl && <AvatarImage src={spotlight.teacherAvatarUrl} alt={spotlight.teacherName} />}
                 <AvatarFallback className={styles.avatarFallback}>{getInitials(spotlight.teacherName)}</AvatarFallback>
               </Avatar>
-              <span className={styles.teacherName}>{spotlight.teacherName}</span>
-              <VerifiedBadge isVerified={spotlight.teacherIsVerified} size="sm" />
+              <span className={styles.teacherName} title={spotlight.teacherName}>{spotlight.teacherName}</span>
+              <VerifiedBadge isVerified={spotlight.teacherIsVerified} size="sm" className={styles.verifiedBadge} />
             </div>
 
             {showPrize && (

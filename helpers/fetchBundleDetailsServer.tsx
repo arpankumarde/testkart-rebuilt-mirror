@@ -2,6 +2,7 @@ import { db } from "./db";
 import type { OutputType } from "../endpoints/bundles/details_GET.schema";
 import { PRODUCT_DISCLAIMER } from "./productDisclaimer";
 import { computeBundleSeo } from "./seoIndexability";
+import { slugify } from "./slugify";
 
 export async function fetchBundleDetailsServer(slug: string): Promise<OutputType> {
   const bundle = await db
@@ -12,6 +13,8 @@ export async function fetchBundleDetailsServer(slug: string): Promise<OutputType
       "users.id as teacherId",
       "users.displayName as teacherDisplayName",
       "users.avatarUrl as teacherProfilePicture",
+      "users.isVerified as teacherIsVerified",
+      "users.slug as teacherSlug",
     ])
     .where("courseBundles.slug", "=", slug)
     .where("courseBundles.isPublished", "=", true)
@@ -29,7 +32,7 @@ export async function fetchBundleDetailsServer(slug: string): Promise<OutputType
       "courses.title",
       "courses.slug",
       "courses.description",
-      "courses.thumbnailUrl",
+      "courses.thumbnailImageUrl",
       "courses.price",
       "courses.level",
       "courses.language",
@@ -93,7 +96,8 @@ export async function fetchBundleDetailsServer(slug: string): Promise<OutputType
       title: c.title,
       slug: c.slug,
       description: c.description,
-      thumbnailUrl: c.thumbnailUrl,
+      // Same mapping as bundles/details_GET: the cover image is thumbnailImageUrl.
+      thumbnailUrl: c.thumbnailImageUrl,
       price: Number(c.price),
       level: c.level,
       language: c.language,
@@ -164,6 +168,8 @@ export async function fetchBundleDetailsServer(slug: string): Promise<OutputType
       id: bundle.teacherId,
       displayName: bundle.teacherDisplayName,
       profilePicture: bundle.teacherProfilePicture,
+      isVerified: !!bundle.teacherIsVerified,
+      slug: bundle.teacherSlug || slugify(bundle.teacherDisplayName),
     },
     items,
     isEnrolled: false,

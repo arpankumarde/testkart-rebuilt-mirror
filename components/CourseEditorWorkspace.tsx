@@ -19,6 +19,7 @@ import { CourseCreationForm, type CourseDetailsFormHandle, type CourseDetailsVal
 import { CourseSectionBuilder } from "./CourseSectionBuilder";
 import { CourseCardPreview } from "./CourseCardPreview";
 import { CourseSubmitDialog } from "./CourseSubmitDialog";
+import { CreatorBonusClaimCard } from "./CreatorBonusClaimCard";
 import { ConsoleConfirmDialog } from "./ConsoleConfirmDialog";
 import { WithdrawReviewButton } from "./WithdrawReviewButton";
 import { TeacherRejectionNote } from "./TeacherRejectionNote";
@@ -71,6 +72,7 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
   const [detailsUploading, setDetailsUploading] = useState(false);
   const [isSubmitOpen, setSubmitOpen] = useState(false);
   const [isUnpublishOpen, setUnpublishOpen] = useState(false);
+  const [claimBonus, setClaimBonus] = useState(false);
 
   useEffect(() => {
     if (!detailsDirty && !detailsUploading) return;
@@ -180,7 +182,10 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
     .join(", ");
 
   const submit = () =>
-    publishCourseMutation.mutate({ courseId }, { onSuccess: () => setSubmitOpen(false) });
+    publishCourseMutation.mutate(
+      { courseId, claimCreatorBonus: claimBonus || undefined },
+      { onSuccess: () => setSubmitOpen(false) }
+    );
 
   const startSubmit = () => {
     if (isReady && !detailsDirty) {
@@ -371,6 +376,15 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
                   </p>
                 ) : null}
               </section>
+            )}
+            {!adminEdit && !isPublished && !isInReview && (
+              <CreatorBonusClaimCard
+                type="course"
+                id={courseId}
+                checked={claimBonus}
+                onCheckedChange={setClaimBonus}
+                disabled={publishCourseMutation.isPending}
+              />
             )}
           </aside>
         </div>

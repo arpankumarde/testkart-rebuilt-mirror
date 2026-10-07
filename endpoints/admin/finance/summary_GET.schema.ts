@@ -53,6 +53,8 @@ export type OutputType = {
   // Student wallet metrics (stock metrics - always all-time)
   studentWalletBalance: number;
   studentPendingWithdrawals: number;
+  /** All-time Creator Bonus credits still on teacher balances (reversed ones excluded). */
+  campaignBonusesCredited: number;
 };
 
 export const getAdminFinanceSummary = async (

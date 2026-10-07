@@ -71,6 +71,7 @@ import {
  import { CUSTOM_EXAM_NAMES_QUERY_KEY } from "./useExamNameSuggestions";
 import { TEACHER_TRASH_QUERY_KEY } from "./useTeacherTrash";
 import { TEACHER_DASHBOARD_STATS_QUERY_KEY } from "./useTeacherDashboardStats";
+import { CREATOR_BONUS_QUERY_KEY } from "./useCreatorBonus";
 
 export const useTeacherTestMutations = () => {
   const queryClient = useQueryClient();
@@ -151,6 +152,7 @@ export const useTeacherTestMutations = () => {
       onSuccess: (data) => {
         toast.success(data.message);
         invalidateTestsList();
+        queryClient.invalidateQueries({ queryKey: CREATOR_BONUS_QUERY_KEY });
       },
       onError: (error: Error) => {
         toast.error(parseErrorMessage(error) || "Failed to submit test series for review");
