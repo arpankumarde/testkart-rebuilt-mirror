@@ -9,7 +9,6 @@ import {
   User, 
   BookOpen, 
   HardDrive, 
-  Share2, 
   CheckCircle,
   AlertCircle,
   Eye,
@@ -41,9 +40,7 @@ import { VerifiedBadge } from "../components/VerifiedBadge";
 const ProductPDFPreview = React.lazy(() => import("../components/ProductPDFPreview").then(m => ({ default: m.ProductPDFPreview })));
 import { MobileStickyPurchaseBar } from "../components/MobileStickyPurchaseBar";
 import { toast } from "sonner";
-import { ShareAssetDialog } from "../components/ShareAssetDialog";
 import { AssetTopRow } from "../components/AssetTopRow";
-import { PUBLIC_PAGE_SHARE_CAMPAIGN } from "../helpers/shareLinks";
 import { useTrackStorefrontView } from "../helpers/trackStorefrontEvent";
 import { PublicCouponsCard } from "../components/PublicCouponsCard";
 import styles from "./study-notes.$noteSlug.module.css";
@@ -58,7 +55,6 @@ const ProductDetailsPage: React.FC = () => {
   const [previewFile, setPreviewFile] = useState<StudyNoteFileSummary | null>(null);
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
   const [isStickyBarVisible, setIsStickyBarVisible] = useState(false);
-  const [isShareOpen, setShareOpen] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
   // 2. Navigation and Auth hooks
@@ -332,7 +328,7 @@ const ProductDetailsPage: React.FC = () => {
       )}
 
       <div className={styles.container}>
-        <AssetTopRow kind="study-note" handle={product.slug} title={product.title}>
+        <AssetTopRow kind="study-note" handle={product.slug} title={product.title} className={styles.topRow}>
           <nav className={styles.breadcrumb}>
             <Link to="/study-notes">Study Notes</Link>
             <ChevronRight size={14} />
@@ -570,138 +566,151 @@ const ProductDetailsPage: React.FC = () => {
 
           <div ref={sidebarRef} className={styles.sidebarColumn}>
             <div className={styles.sidebarCard}>
-              <Link to={`/expert/${product.teacherSlug}`} className={styles.teacherBlock}>
-                <Avatar className={styles.teacherBlockAvatar}>
-                  {product.teacherAvatar && <AvatarImage src={product.teacherAvatar || undefined} />}
-                  <AvatarFallback><User size={20} /></AvatarFallback>
-                </Avatar>
-                <div className={styles.teacherBlockInfo}>
-                  <span className={styles.teacherBlockName}>
-                    {product.teacherName}
-                    <VerifiedBadge isVerified={product.teacherVerified} size="sm" />
+              <div className={styles.pricingContent}>
+                <Link to={`/expert/${product.teacherSlug}`} className={styles.writer}>
+                  <Avatar className={styles.writerAvatar}>
+                    <AvatarImage src={product.teacherAvatar || undefined} alt="" />
+                    <AvatarFallback><User size={18} /></AvatarFallback>
+                  </Avatar>
+                  <span className={styles.writerInfo}>
+                    <span className={styles.writerLabel}>Written by</span>
+                    <span className={styles.writerNameRow}>
+                      <span className={styles.writerName}>{product.teacherName}</span>
+                      <VerifiedBadge isVerified={product.teacherVerified} size="sm" />
+                    </span>
                   </span>
+                  <ChevronRight size={18} className={styles.writerChevron} aria-hidden="true" />
+                </Link>
+
+                <div className={styles.priceRow}>
+                  <span className={`${styles.price} ${isFree ? styles.freePrice : ''}`}>
+                    {isFree ? 'Free' : formattedPrice}
+                  </span>
+                  <button type="button" className={styles.ratingChip} onClick={handleScrollToReviews}>
+                    <Star size={14} fill="currentColor" className={styles.starIcon} aria-hidden="true" />
+                    <span className={styles.ratingValue}>
+                      {product.rating ? Number(product.rating).toFixed(1) : "New"}
+                    </span>
+                    <span className={styles.reviewCount}>
+                      ({product.reviewsCount} {product.reviewsCount === 1 ? "review" : "reviews"})
+                    </span>
+                  </button>
                 </div>
-              </Link>
 
-              <div className={styles.statsRow}>
-                <div className={styles.rating}>
-                  <Star size={16} fill="currentColor" className={styles.starIcon} />
-                  <span>{product.rating ? Number(product.rating).toFixed(1) : "New"}</span>
-                  <span className={styles.reviewCount}>({product.reviewsCount})</span>
-                </div>
-
-                <div className={styles.metaDivider}>•</div>
-
-
-              </div>
-
-              <div className={styles.priceSection}>
-                <span className={`${styles.price} ${isFree ? styles.freePrice : ''}`}>
-                  {isFree ? 'Free' : formattedPrice}
-                </span>
-              </div>
-
-              <div className={styles.actions}>
                 {isTeacher ? (
-                  <div className={styles.teacherInfo}>
-                    <div className={styles.teacherInfoIcon}>
-                      <Info size={24} />
-                    </div>
-                    <div className={styles.teacherInfoContent}>
-                      <h3 className={styles.teacherInfoTitle}>For Students Only</h3>
-                      <p className={styles.teacherInfoText}>
+                  <div className={styles.studentsNotice} role="note">
+                    <span className={styles.studentsNoticeIcon} aria-hidden="true">
+                      <Info size={16} />
+                    </span>
+                    <div>
+                      <p className={styles.studentsNoticeTitle}>For Students Only</p>
+                      <p className={styles.studentsNoticeText}>
                         Study notes are designed for students. Teachers cannot purchase study notes.
                       </p>
                     </div>
                   </div>
                 ) : hasPurchased ? (
-                  <Button asChild className={styles.actionButton} variant="secondary">
-                    <Link to="/student/shop">
-                      <CheckCircle size={18} /> Go to Dashboard
-                    </Link>
-                  </Button>
-                ) : isFree ? (
-                  <Button 
-                    className={styles.actionButton} 
-                    onClick={handleAddToCart}
-                    disabled={enrollFreeMutation.isPending}
-                  >
-                    {enrollFreeMutation.isPending ? (
-                      "Processing..."
-                    ) : (
-                      <>
-                        <BookOpen size={18} /> Get for Free
-                      </>
-                    )}
-                  </Button>
-                ) : isInCart ? (
-                  <Button asChild className={styles.actionButton} variant="secondary">
-                    <Link to="/cart">
-                      <CheckCircle size={18} /> Go to Cart
-                    </Link>
-                  </Button>
-                ) : (
-                  <Button 
-                    className={styles.actionButton} 
-                    onClick={handleAddToCart}
-                    disabled={addToCartMutation.isPending}
-                  >
-                    {addToCartMutation.isPending ? (
-                      "Adding..."
-                    ) : (
-                      <>
-                        <ShoppingCart size={18} /> Add to Cart
-                      </>
-                    )}
-                  </Button>
+                  <div className={styles.ownedBanner}>
+                    <span className={styles.ownedBannerIcon} aria-hidden="true">
+                      <CheckCircle size={16} />
+                    </span>
+                    <span>You own these study notes</span>
+                  </div>
+                ) : null}
+
+                {!isTeacher && (
+                  hasPurchased ? (
+                    <Button asChild size="lg" className={`${styles.primaryCta} ${styles.ownedCta}`}>
+                      <Link to="/student/shop">
+                        <CheckCircle size={18} /> Go to Dashboard
+                      </Link>
+                    </Button>
+                  ) : isFree ? (
+                    <Button
+                      size="lg"
+                      className={styles.primaryCta}
+                      onClick={handleAddToCart}
+                      disabled={enrollFreeMutation.isPending}
+                    >
+                      {enrollFreeMutation.isPending ? (
+                        "Processing..."
+                      ) : (
+                        <>
+                          <BookOpen size={18} /> Get for Free
+                        </>
+                      )}
+                    </Button>
+                  ) : isInCart ? (
+                    <Button asChild size="lg" className={styles.primaryCta}>
+                      <Link to="/cart">
+                        <ShoppingCart size={18} /> Go to Cart
+                      </Link>
+                    </Button>
+                  ) : (
+                    <Button
+                      size="lg"
+                      className={styles.primaryCta}
+                      onClick={handleAddToCart}
+                      disabled={addToCartMutation.isPending}
+                    >
+                      {addToCartMutation.isPending ? (
+                        "Adding..."
+                      ) : (
+                        <>
+                          <ShoppingCart size={18} /> Add to Cart
+                        </>
+                      )}
+                    </Button>
+                  )
                 )}
 
                 {product.previewPages != null && product.previewPages > 0 && (
-                  <Button 
-                    variant="outline" 
-                    className={styles.previewButton} 
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className={styles.previewCta}
                     onClick={handlePreviewMain}
                   >
-                    <Eye size={18} /> Preview
+                    <Eye size={18} /> Preview {product.previewPages} {product.previewPages === 1 ? "page" : "pages"}
                   </Button>
                 )}
-                
-                <Button variant="outline" className={styles.shareButton} onClick={() => setShareOpen(true)}>
-                  <Share2 size={18} /> Share
-                </Button>
-              </div>
 
-              <div className={styles.features}>
-                {product.fileCount != null && product.fileCount > 1 && (
-                  <div className={styles.featurePill}>
-                    <Files size={16} />
-                    <span>{product.fileCount} Files</span>
-                  </div>
-                )}
-                <div className={styles.featurePill}>
-                  <FileText size={16} />
-                  <span>{product.pageCount || "?"} Pages</span>
+                <div className={styles.includes}>
+                  <span className={styles.includesLabel}>This includes</span>
+                  <ul className={styles.includesList}>
+                    {product.fileCount != null && product.fileCount > 1 && (
+                      <li>
+                        <span className={`${styles.includesIcon} ${styles.toneLavender}`} aria-hidden="true">
+                          <Files size={15} />
+                        </span>
+                        <span>{product.fileCount} files</span>
+                      </li>
+                    )}
+                    <li>
+                      <span className={`${styles.includesIcon} ${styles.tonePeach}`} aria-hidden="true">
+                        <FileText size={15} />
+                      </span>
+                      <span>{product.pageCount ? `${product.pageCount} pages` : "Page count unavailable"}</span>
+                    </li>
+                    {product.fileSizeBytes && (
+                      <li>
+                        <span className={`${styles.includesIcon} ${styles.toneBlue}`} aria-hidden="true">
+                          <HardDrive size={15} />
+                        </span>
+                        <span>{(product.fileSizeBytes / (1024 * 1024)).toFixed(2)} MB PDF</span>
+                      </li>
+                    )}
+                    {product.language && (
+                      <li>
+                        <span className={`${styles.includesIcon} ${styles.toneSage}`} aria-hidden="true">
+                          <Globe size={15} />
+                        </span>
+                        <span>{product.language}</span>
+                      </li>
+                    )}
+                  </ul>
                 </div>
-                {product.fileSizeBytes && (
-                  <div className={styles.featurePill}>
-                    <HardDrive size={16} />
-                    <span>{(product.fileSizeBytes / (1024 * 1024)).toFixed(2)} MB PDF</span>
-                  </div>
-                )}
-                {product.language && (
-                  <div className={styles.featurePill}>
-                    <Globe size={16} />
-                    <span>{product.language}</span>
-                  </div>
-                )}
               </div>
-
-              {product.previewPages != null && product.previewPages > 0 && (
-                <div className={styles.previewNote}>
-                  <CheckCircle size={14} />
-                  <span>Includes {product.previewPages} preview pages</span>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -745,15 +754,6 @@ const ProductDetailsPage: React.FC = () => {
             isVisible={isStickyBarVisible}
           />
         )}
-
-        <ShareAssetDialog
-          open={isShareOpen}
-          onOpenChange={setShareOpen}
-          kind="study-note"
-          handle={product.slug}
-          title={product.title}
-          campaign={PUBLIC_PAGE_SHARE_CAMPAIGN}
-        />
       </div>
     </>
   );

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Edit, Trash2, Eye, Users, BookOpen, MoreVertical, Globe, AlertCircle, Share2, TrendingUp, Wrench, Gift } from 'lucide-react';
+import { Edit, Trash2, Eye, Users, Layers, BookOpen, MoreVertical, Globe, AlertCircle, Share2, TrendingUp, Wrench, Gift } from 'lucide-react';
 import { TeacherCardInsights } from './TeacherCardInsights';
 import { TeacherRejectionNote } from './TeacherRejectionNote';
 import { performanceHref } from '../helpers/teacherPerformanceFormat';
@@ -113,11 +113,11 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
         <div className={styles.stats}>
           <div className={styles.stat}>
             <BookOpen size={14} />
-            <span>{course.lessonsCount} lessons</span>
+            <span>{course.lessonsCount} {course.lessonsCount === 1 ? 'lesson' : 'lessons'}</span>
           </div>
           <div className={styles.stat}>
-            <Users size={14} />
-            <span>{course.sectionsCount} sections</span>
+            <Layers size={14} />
+            <span>{course.sectionsCount} {course.sectionsCount === 1 ? 'section' : 'sections'}</span>
           </div>
           <div className={styles.stat}>
             <Eye size={14} />

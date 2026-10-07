@@ -6,8 +6,7 @@ import styles from "./InstructorTestimonial.module.css";
 /*
  * Real teachers, real words: the quotes, names and profile slugs are the ones
  * SellPageTestimonials transcribed from the teachers' testimonial shorts, so
- * keep the two in step. Photos are stills from those videos, cropped above the
- * burnt-in captions and shown in black and white.
+ * keep the two in step. The image beside each quote is the academy's own logo.
  */
 const TESTIMONIALS = [
   {
@@ -17,9 +16,8 @@ const TESTIMONIALS = [
     name: "Deep’s Physics Classes",
     subjects: "IIT JAM and JEST",
     profilePath: "/expert/deepsphysicsclasses",
-    alt: "Deep’s Physics Classes, an IIT JAM and JEST teacher on Testkart",
-    photo: "/_cdn/static/fca7a37a-bf6d-4076-a55f-443be39afa86-testimonial-deeps-physics-classes.jpg",
-    focus: "50% 52%",
+    alt: "Deep’s Physics Classes logo - IIT JAM and JEST",
+    logo: "/_cdn/static/27786154-39c5-453b-9870-dd064a664ea3-logo-deeps-physics-classes.webp",
   },
   {
     id: "nata-ace-tutorial",
@@ -28,13 +26,12 @@ const TESTIMONIALS = [
     name: "NATA ACE Tutorial",
     subjects: "NATA, Architecture",
     profilePath: "/expert/nata-ace-tutorial",
-    alt: "NATA ACE Tutorial, a NATA and architecture teacher on Testkart",
-    photo: "/_cdn/static/da6b434b-7c59-47c7-9a97-5480c255a681-testimonial-nata-ace-tutorial.jpg",
-    focus: "50% 30%",
+    alt: "NATA ACE Tutorial logo - First Step Towards World of Architecture",
+    logo: "/_cdn/static/002aadda-7f6c-42e9-b072-c4a93bbfb5a4-logo-nata-ace-tutorial.png",
   },
 ];
 
-/** /teach: one teacher at a time, photo left and pull quote right, with round arrows to step through. */
+/** /teach: one teacher at a time, academy logo left and pull quote right, with round arrows to step through. */
 export const InstructorTestimonial = () => {
   const [index, setIndex] = useState(0);
   const count = TESTIMONIALS.length;
@@ -58,14 +55,13 @@ export const InstructorTestimonial = () => {
           >
             <div className={styles.photoFrame}>
               <img
-                src={current.photo}
+                src={current.logo}
                 alt={current.alt}
-                width={540}
-                height={960}
+                width={640}
+                height={640}
                 loading="lazy"
                 decoding="async"
                 className={styles.photo}
-                style={{ objectPosition: current.focus }}
               />
             </div>
             <div className={styles.words}>

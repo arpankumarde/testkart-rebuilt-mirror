@@ -46,6 +46,19 @@ flex-shrink: 0;
 opacity: 0.5;
 }
 
+/* AssetTopRow's Share button, made a pill with a pastel hover to match the
+   purchase card (same override as the bundle page). */
+.topRow > button {
+  border-radius: var(--radius-full);
+  transition: background-color var(--animation-duration-fast), border-color var(--animation-duration-fast), color var(--animation-duration-fast);
+}
+
+.topRow > button:hover {
+  background-color: color-mix(in srgb, var(--tk-brand) 16%, var(--surface));
+  border-color: color-mix(in srgb, var(--tk-brand) 60%, var(--surface));
+  color: var(--tk-brand-text);
+}
+
 /* minmax(0, 1fr), not 1fr: a bare 1fr track floors at its content's
    min-content width, so one long unbreakable string in the main column
    widens the grid past the container and pushes the sidebar off-screen. */
@@ -156,24 +169,324 @@ opacity: 0.5;
   gap: var(--spacing-8);
 }
 
+/* Purchase card: writer strip, price and rating, status notice, actions,
+   then what the PDF includes. Pastel tones come from the themed --exam-*
+   palette, and hovers here stay pastel instead of the global deep-orange
+   --tk-brand-hover. */
 .sidebarColumn {
   grid-column: 2;
   grid-row: 1 / 3;
   position: sticky;
   top: calc(var(--header-height, 72px) + var(--spacing-4) + var(--site-notice-offset));
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-6);
+  align-self: start;
+  z-index: calc(var(--z-nav-sticky) - 1);
 }
 
 .sidebarCard {
-  background-color: var(--surface);
+  background-color: var(--exam-ivory);
+  border: 1px solid var(--exam-ivory-border);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-6);
   box-shadow: var(--shadow-md);
+}
+
+.pricingContent {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-6);
+  gap: var(--spacing-4);
+  padding: var(--spacing-6);
+}
+
+.writer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: 0.625rem var(--spacing-3);
+  background-color: var(--exam-lavender-tint);
+  border: 1px solid var(--exam-lavender-border);
+  border-radius: var(--radius-md);
+  color: var(--surface-foreground);
+  text-decoration: none;
+  transition: background-color var(--animation-duration-fast);
+}
+
+.writer:hover {
+  background-color: color-mix(in srgb, var(--exam-lavender-border) 45%, var(--exam-lavender-tint));
+}
+
+.writer:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.writerAvatar {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border: 2px solid var(--surface);
+}
+
+.writerInfo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.writerLabel {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--exam-lavender-ink);
+}
+
+.writerNameRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  min-width: 0;
+}
+
+.writerName {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.writer:hover .writerName {
+  text-decoration: underline;
+}
+
+.writerChevron {
+  flex-shrink: 0;
+  color: var(--exam-lavender-ink);
+  transition: transform var(--animation-duration-fast);
+}
+
+.writer:hover .writerChevron {
+  transform: translateX(2px);
+}
+
+.priceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+}
+
+.price {
+  font-family: var(--font-family-heading);
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--surface-foreground);
+}
+
+.freePrice {
+  color: var(--exam-sage-ink);
+}
+
+.ratingChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-1) var(--spacing-3);
+  border: 1px solid var(--exam-ivory-border);
+  border-radius: var(--radius-full);
+  background-color: var(--surface);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  color: var(--surface-foreground);
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast), border-color var(--animation-duration-fast);
+}
+
+.ratingChip:hover {
+  background-color: color-mix(in srgb, var(--tk-brand) 14%, var(--surface));
+  border-color: color-mix(in srgb, var(--tk-brand) 45%, var(--surface));
+}
+
+.ratingChip:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.ratingValue {
+  font-weight: 700;
+}
+
+.studentsNotice,
+.ownedBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3);
+  border-radius: var(--radius-md);
+}
+
+.studentsNotice {
+  background-color: var(--exam-blue-tint);
+  border: 1px solid var(--exam-blue-border);
+  color: var(--exam-blue-ink);
+}
+
+.ownedBanner {
+  align-items: center;
+  background-color: var(--exam-sage-tint);
+  border: 1px solid var(--exam-sage-border);
+  color: var(--exam-sage-ink);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.studentsNoticeIcon,
+.ownedBannerIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  background-color: var(--surface);
+  border: 1px solid currentColor;
+}
+
+.studentsNoticeTitle {
+  margin: 0 0 2px;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.studentsNoticeText {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.primaryCta,
+.previewCta {
+  min-height: 44px;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  box-shadow: none;
+  transition: background-color var(--animation-duration-fast), border-color var(--animation-duration-fast), color var(--animation-duration-fast);
+}
+
+.primaryCta {
+  width: 100%;
+}
+
+.primaryCta:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--tk-brand) 78%, var(--surface));
+  border-color: color-mix(in srgb, var(--tk-brand) 78%, var(--surface));
+  color: var(--primary-foreground);
+}
+
+.primaryCta:active:not(:disabled) {
+  background-color: color-mix(in srgb, var(--tk-brand) 66%, var(--surface));
+  border-color: color-mix(in srgb, var(--tk-brand) 66%, var(--surface));
+  color: var(--primary-foreground);
+}
+
+.ownedCta {
+  background-color: var(--exam-sage-tint);
+  border-color: var(--exam-sage-border);
+  color: var(--exam-sage-ink);
+}
+
+.ownedCta:hover:not(:disabled),
+.ownedCta:active:not(:disabled) {
+  background-color: color-mix(in srgb, var(--exam-sage-border) 60%, var(--exam-sage-tint));
+  border-color: var(--exam-sage);
+  color: var(--exam-sage-ink);
+}
+
+.previewCta {
+  width: 100%;
+  background-color: var(--surface);
+  border-color: color-mix(in srgb, var(--tk-brand) 60%, var(--surface));
+  color: var(--tk-brand-text);
+}
+
+.previewCta:hover:not(:disabled),
+.previewCta:active:not(:disabled) {
+  background-color: color-mix(in srgb, var(--tk-brand) 16%, var(--surface));
+  border-color: var(--tk-brand);
+  color: var(--tk-brand-text);
+}
+
+.includes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding-top: var(--spacing-4);
+  border-top: 1px dashed var(--exam-ivory-border);
+}
+
+.includesLabel {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+}
+
+.includesList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.includesList li {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--surface-foreground);
+}
+
+.includesIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius);
+  border: 1px solid;
+}
+
+.toneLavender {
+  background-color: var(--exam-lavender-tint);
+  border-color: var(--exam-lavender-border);
+  color: var(--exam-lavender-ink);
+}
+
+.tonePeach {
+  background-color: color-mix(in srgb, var(--tk-brand) 16%, var(--surface));
+  border-color: color-mix(in srgb, var(--tk-brand) 40%, var(--surface));
+  color: var(--tk-brand-text);
+}
+
+.toneBlue {
+  background-color: var(--exam-blue-tint);
+  border-color: var(--exam-blue-border);
+  color: var(--exam-blue-ink);
+}
+
+.toneSage {
+  background-color: var(--exam-sage-tint);
+  border-color: var(--exam-sage-border);
+  color: var(--exam-sage-ink);
 }
 
 .categoryBadge {
@@ -198,93 +511,6 @@ opacity: 0.5;
   line-height: 1.5;
 }
 
-.teacherBlock {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
-  padding: var(--spacing-3);
-  background-color: var(--muted);
-  border-radius: var(--radius-md);
-  text-decoration: none;
-  color: inherit;
-  border: 1px solid transparent;
-  transition: border-color var(--animation-duration-fast);
-}
-
-.teacherBlock:hover {
-  border-color: var(--primary);
-}
-
-.teacherBlockAvatar {
-  width: 44px;
-  height: 44px;
-}
-
-.teacherBlockInfo {
-  display: flex;
-  flex-direction: column;
-}
-
-.teacherBlockName {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--foreground);
-  display: flex;
-  align-items: center;
-}
-
-.statsRow {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
-  font-size: 0.9375rem;
-  color: var(--muted-foreground);
-}
-
-.metaRow {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--spacing-3);
-  font-size: 0.9375rem;
-  color: var(--muted-foreground);
-}
-
-.metaDivider {
-  color: var(--muted-foreground);
-  opacity: 0.5;
-}
-
-.teacherInfo {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  text-decoration: none;
-  color: var(--foreground);
-  font-weight: 500;
-}
-
-.teacherInfo:hover .teacherName {
-  color: var(--primary);
-}
-
-.avatar {
-  width: 24px;
-  height: 24px;
-}
-
-.teacherName {
-  transition: color var(--animation-duration-fast);
-}
-
-.rating {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-1);
-  font-weight: 600;
-  color: var(--foreground);
-}
-
 .starIcon {
   color: hsl(45 100% 50%);
 }
@@ -292,131 +518,6 @@ opacity: 0.5;
 .reviewCount {
   color: var(--muted-foreground);
   font-weight: 400;
-}
-
-.purchaseCount {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-1);
-}
-
-.priceSection {
-  display: flex;
-  align-items: center;
-}
-
-.price {
-  font-family: var(--font-family-heading);
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--primary);
-  line-height: 1;
-}
-
-.freePrice {
-  color: var(--success-text);
-}
-
-.actions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-3);
-}
-
-.actionButton {
-  width: 100%;
-  height: 3.5rem;
-  font-size: 1.125rem;
-  font-weight: 600;
-}
-
-.teacherInfo {
-  display: flex;
-  gap: var(--spacing-4);
-  padding: var(--spacing-4);
-  background-color: color-mix(in srgb, var(--info) 8%, transparent);
-  border: 1px solid color-mix(in srgb, var(--info) 20%, transparent);
-  border-radius: var(--radius-lg);
-  margin-bottom: var(--spacing-2);
-}
-
-.teacherInfoIcon {
-  flex-shrink: 0;
-  color: var(--info-text);
-}
-
-.teacherInfoContent {
-  flex: 1;
-}
-
-.teacherInfoTitle {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--surface-foreground);
-  margin: 0 0 var(--spacing-2);
-}
-
-.teacherInfoText {
-  font-size: 0.9375rem;
-  color: var(--muted-foreground);
-  line-height: 1.5;
-  margin: 0;
-}
-
-@media (max-width: 576px) {
-  .teacherInfo {
-    flex-direction: column;
-    gap: var(--spacing-3);
-    padding: var(--spacing-3);
-  }
-
-  .teacherInfoTitle {
-    font-size: 1rem;
-  }
-
-  .teacherInfoText {
-    font-size: 0.875rem;
-  }
-}
-
-.previewButton,
-.shareButton {
-  width: 100%;
-  height: 2.75rem;
-}
-
-.features {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-2);
-}
-
-.featurePill {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-2) var(--spacing-3);
-  background-color: var(--muted);
-  border-radius: var(--radius-full);
-  color: var(--foreground);
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.featurePill svg {
-  color: var(--muted-foreground);
-}
-
-.previewNote {
-  padding: var(--spacing-3);
-  background-color: color-mix(in srgb, var(--success) 10%, transparent);
-  border-radius: var(--radius);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  font-size: 0.875rem;
-  color: var(--success-text);
-  font-weight: 500;
 }
 
 .contentSections {
@@ -576,6 +677,14 @@ opacity: 0.5;
 
 .writeReviewButton {
   margin-top: var(--spacing-2);
+  border-radius: var(--radius-full);
+}
+
+.writeReviewButton:hover:not(:disabled),
+.writeReviewButton:active:not(:disabled) {
+  background-color: color-mix(in srgb, var(--tk-brand) 78%, var(--surface));
+  border-color: color-mix(in srgb, var(--tk-brand) 78%, var(--surface));
+  color: var(--primary-foreground);
 }
 
 .ratingBars {
@@ -740,6 +849,14 @@ opacity: 0.5;
 
 .authorProfileButton {
   flex-shrink: 0;
+  border-radius: var(--radius-full);
+}
+
+.authorProfileButton:hover,
+.authorProfileButton:active {
+  background-color: var(--exam-lavender-tint);
+  border-color: var(--exam-lavender-border);
+  color: var(--exam-lavender-ink);
 }
 
 /* Related Study Notes: two-up in the article column (about 720px wide beside
@@ -808,6 +925,7 @@ opacity: 0.5;
   
   .sidebarColumn {
     position: static;
+    z-index: auto;
     order: 2;
     grid-column: 1;
     grid-row: auto;
@@ -837,12 +955,30 @@ opacity: 0.5;
   .categoryBadge {
     font-size: 0.625rem;
   }
-  .teacherBlockAvatar {
-    width: 36px;
-    height: 36px;
+  .sidebarCard {
+    border-radius: var(--radius-md);
   }
-  .teacherBlockName {
-    font-size: 0.9375rem;
+  .pricingContent {
+    gap: var(--spacing-4);
+    padding: var(--spacing-4);
+  }
+  .includes {
+    padding-top: var(--spacing-4);
+  }
+  .price {
+    font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .pricingContent {
+    padding: var(--spacing-3);
+  }
+  .price {
+    font-size: 1.5rem;
+  }
+  .includesList {
+    gap: var(--spacing-2) var(--spacing-3);
   }
 }
 
