@@ -9,8 +9,10 @@ type Executor = Kysely<DB> | Transaction<DB>;
  * Teacher content goes live only after an admin approves it. A teacher's
  * publish action queues a pending contentReviews row; admin/content-reviews
  * approves it (publishApprovedContent) or rejects it with a note. Admin users
- * publish directly. The admin preview page can also make any item live, move it
- * back to draft or reject it after it went live (takeDownContent).
+ * publish directly. Bundles skip review: they publish at once, but only when
+ * every item in them is already published. The admin preview page can also make
+ * any item live, move it back to draft or reject it after it went live
+ * (takeDownContent).
  *
  * A review that a teammate could not decide moves to senior_review. It is still
  * waiting, so the helpers below count both statuses as "in review".

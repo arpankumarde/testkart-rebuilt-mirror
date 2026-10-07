@@ -384,7 +384,7 @@ const ACTIONS: Record<string, TeacherAction> = {
   "bank-details/add": write(bankDetailsAdd, bankDetailsAddSchema, "Save or replace the bank account, UPI and PAN details payouts go to.", CONFIRM),
   "bundles/create": write(bundlesCreate, bundlesCreateSchema, "Create a bundle."),
   "bundles/delete": write(bundlesDelete, bundlesDeleteSchema, "Delete a bundle.", CONFIRM),
-  "bundles/publish": write(bundlesPublish, bundlesPublishSchema, "Submit a bundle for review (it goes live once approved), or unpublish it."),
+  "bundles/publish": write(bundlesPublish, bundlesPublishSchema, "Publish a bundle, or unpublish it. It goes live at once without review; every item in it must already be published."),
   "bundles/update": write(bundlesUpdate, bundlesUpdateSchema, "Update a bundle."),
   "course-lessons/create": write(courseLessonsCreate, courseLessonsCreateSchema, "Add a lesson to a course section."),
   "course-lessons/delete": write(courseLessonsDelete, courseLessonsDeleteSchema, "Delete a course lesson.", CONFIRM),

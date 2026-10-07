@@ -70,7 +70,7 @@ export const BundleCard: React.FC<BundleCardProps> = ({
   );
   const isPriceStale = Math.abs(bundle.currentOriginalPrice - bundle.originalPrice) >= 0.01;
 
-  const publishToggleLabel = bundle.isPublished ? 'Unpublish' : 'Submit for review';
+  const publishToggleLabel = bundle.isPublished ? 'Unpublish' : 'Publish';
   const publishToggleIcon = bundle.isPublished ? <EyeOff size={16} /> : <Eye size={16} />;
 
   return (

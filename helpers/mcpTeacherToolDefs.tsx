@@ -34,6 +34,8 @@ goes live only once an admin approves it; the teacher is emailed when it is appr
 changes. List actions return inReview: true while it waits, and publishing it again is refused.
 When the latest review was rejected, list actions return rejection with the admin's reason; fix
 that before submitting again. Submit only when the teacher asks. Unpublishing takes live content off sale.
+Bundles are the exception: they skip review and go live at once, and only when every item in them
+is already published.
 
 Updates differ by action: some change only the fields you send, others replace whole lists such as
 options, files or items. Read the record first and check the action's schema.
