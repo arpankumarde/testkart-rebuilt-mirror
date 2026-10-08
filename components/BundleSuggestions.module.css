@@ -1,110 +1,271 @@
+/*
+ * "Save with Bundles" on the course, mock test and study note detail pages.
+ *
+ * A warm ivory panel in the exam pages' pastel style: peach and lavender
+ * corner washes, two solid organic blobs peeking in from the edges, and a
+ * duotone blob icon by the title. Pastels are the exam artwork hexes; the
+ * washes mix into themed surfaces. The section's margins are wrapped in
+ * :where() so they carry no specificity: a page that already spaces its
+ * children (study notes uses a flex gap) can zero them with a plain class
+ * without fighting stylesheet order.
+ */
+:where(.container) {
+  margin: var(--spacing-12) 0;
+}
+
 .container {
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  --bs-peach: #f9b99a;
+  --bs-mint: #a9dcc8;
+  --bs-lavender: #c8b6f2;
+  --bs-butter: #f4dfa3;
+  --bs-ink: hsl(220 30% 12%);
+  --bs-wash: 22%;
+  --bs-blob: 40%;
+
+  container: bundles / inline-size;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   padding: var(--spacing-6);
-  margin-top: var(--spacing-8);
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--bs-peach) var(--bs-wash), transparent), transparent 40%),
+    radial-gradient(circle at 0% 100%, color-mix(in srgb, var(--bs-lavender) var(--bs-wash), transparent), transparent 38%),
+    var(--exam-ivory);
+  border: 1px solid var(--exam-ivory-border);
+  border-radius: 1.5rem;
+  box-shadow:
+    0 1px 2px hsl(220 10% 15% / 0.03),
+    0 8px 22px -14px hsl(220 10% 15% / 0.14);
+}
+
+:global(.dark) .container {
+  --bs-wash: 8%;
+  --bs-blob: 12%;
+}
+
+/* The blobs come first in the markup and the header and grid are positioned,
+   so those paint over them in tree order - no z-index needed. */
+.blob {
+  position: absolute;
+  pointer-events: none;
+}
+
+.blobMint {
+  width: 9rem;
+  height: 7.5rem;
+  top: -3.75rem;
+  right: 18%;
+  border-radius: 38% 62% 44% 56% / 60% 40% 64% 36%;
+  background-color: color-mix(in srgb, var(--bs-mint) var(--bs-blob), var(--exam-ivory));
+  transform: rotate(10deg);
+}
+
+.blobButter {
+  width: 8rem;
+  height: 6.5rem;
+  bottom: -3.5rem;
+  left: 30%;
+  border-radius: 40% 60% 66% 34% / 64% 44% 56% 36%;
+  background-color: color-mix(in srgb, var(--bs-butter) var(--bs-blob), var(--exam-ivory));
+  transform: rotate(-13deg);
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: var(--spacing-4);
+    border-radius: 1.25rem;
+  }
+}
+
+.header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  margin-bottom: 1.25rem;
+}
+
+/* Duotone blob icon, as on the exam pages: a wobbly peach blob with the
+   outlined glyph drawn over it in a deep shade of the same pastel. */
+.headerIcon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.375rem;
+  height: 2.375rem;
+  color: color-mix(in srgb, var(--bs-peach), var(--bs-ink) 72%);
+}
+
+.headerIcon::before {
+  content: "";
+  position: absolute;
+  inset: 0.125rem 0.0625rem 0 0.1875rem;
+  border-radius: 64% 36% 58% 42% / 44% 62% 38% 56%;
+  background-color: var(--bs-peach);
+  transform: rotate(-10deg);
+}
+
+.headerIcon svg {
+  position: relative;
+  stroke-width: 1.9;
 }
 
 .title {
   font-family: var(--font-family-heading);
   font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--surface-foreground);
-  margin: 0 0 var(--spacing-4) 0;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--foreground);
+  margin: 0;
 }
 
+/* One column on phones, two from a small tablet, three once each card keeps
+   at least ~13rem. Measured on the section, not the viewport, because the
+   course and mock test pages put it in a narrow article column. */
 .grid {
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--spacing-4);
 }
 
-@media (min-width: 1024px) {
+@container bundles (min-width: 30rem) {
   .grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-/* Card Styles */
+@container bundles (min-width: 42rem) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--spacing-5, 1.25rem);
+  }
+}
+
 .card {
-  background-color: var(--background);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  overflow: hidden;
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: var(--shadow);
   height: 100%;
-  text-decoration: none;
+  min-width: 0;
+  overflow: hidden;
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 2px hsl(220 20% 20% / 0.05), 0 6px 16px -8px hsl(220 20% 20% / 0.12);
   color: inherit;
+  text-decoration: none;
+  transition: transform var(--animation-duration-normal) ease,
+    box-shadow var(--animation-duration-normal) ease,
+    border-color var(--animation-duration-normal) ease;
 }
 
 .card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--tk-brand) 45%, var(--border));
+  box-shadow: 0 2px 4px hsl(20 40% 30% / 0.06), 0 14px 28px -12px hsl(20 60% 35% / 0.3);
 }
 
+.card:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 3px;
+}
+
+/* The image sits inset in the card with its own rounded corners. */
 .thumbnailWrapper {
   position: relative;
-  aspect-ratio: 16 / 9;
-  border-bottom: 1px solid var(--border);
-  background: linear-gradient(135deg, var(--muted) 0%, color-mix(in srgb, var(--primary) 10%, transparent) 100%);
+  padding: var(--spacing-2) var(--spacing-2) 0;
+}
+
+.thumbnail {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.bundleIcon {
-  color: var(--primary);
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background-color: color-mix(in srgb, var(--tk-brand) 14%, var(--card));
 }
 
 .thumbnailImage {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform var(--animation-duration-normal) ease;
 }
 
+.card:hover .thumbnailImage {
+  transform: scale(1.03);
+}
+
+.bundleIcon {
+  color: var(--tk-brand-text);
+}
+
+/* Fixed in both themes - it sits on cover artwork, not on a themed surface.
+   --tk-brand-deep on the pale peach reads at about 7:1. */
 .discountBadge {
   position: absolute;
-  top: var(--spacing-3);
-  left: var(--spacing-3);
-  background-color: var(--primary);
-  color: var(--primary-foreground);
-  border: 1px solid var(--primary);
-  font-weight: 700;
+  top: var(--spacing-4);
+  left: var(--spacing-4);
+  padding: 3px 10px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--tk-brand-deep);
+  background-color: hsl(22 100% 92%);
+  border: 1px solid hsl(20 90% 80%);
+  box-shadow: 0 2px 6px hsl(20 60% 25% / 0.18);
+}
+
+.discountBadge:hover {
+  background-color: hsl(22 100% 92%);
 }
 
 .content {
-  padding: var(--spacing-4);
-  flex-grow: 1;
   display: flex;
   flex-direction: column;
+  flex-grow: 1;
   gap: var(--spacing-2);
+  min-width: 0;
+  padding: var(--spacing-4) var(--spacing-4) var(--spacing-3);
 }
 
+/* Always two lines tall, so the creator rows line up across a row of cards
+   whatever the title length. */
 .cardTitle {
   font-family: var(--font-family-heading);
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.35;
+  min-height: calc(2 * 1.35em);
   color: var(--foreground);
   margin: 0;
-  line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
 }
 
 .teacherName {
-  font-size: 0.875rem;
-  color: var(--muted-foreground);
-  margin: 0;
   display: flex;
   align-items: center;
   gap: var(--spacing-1);
+  min-width: 0;
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.teacherNameText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .verifiedIcon {
@@ -112,75 +273,108 @@
 }
 
 .courseCount {
-  font-size: 0.875rem;
-  color: var(--muted-foreground);
-  font-weight: 500;
-  margin-top: auto;
-  padding-top: var(--spacing-3);
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
+  margin-top: auto;
+  padding-top: var(--spacing-2);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.countIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius);
+  border: 1px solid;
+}
+
+.toneSage {
+  background-color: var(--exam-sage-tint);
+  border-color: var(--exam-sage-border);
+  color: var(--exam-sage-ink);
+}
+
+.toneLavender {
+  background-color: var(--exam-lavender-tint);
+  border-color: var(--exam-lavender-border);
+  color: var(--exam-lavender-ink);
+}
+
+.toneBlue {
+  background-color: var(--exam-blue-tint);
+  border-color: var(--exam-blue-border);
+  color: var(--exam-blue-ink);
 }
 
 .footer {
-  padding: var(--spacing-3) var(--spacing-4);
-  border-top: 1px solid var(--border);
   display: flex;
   align-items: center;
-  background-color: color-mix(in srgb, var(--surface) 50%, var(--muted) 50%);
+  padding: var(--spacing-3) var(--spacing-4);
+  border-top: 1px dashed color-mix(in srgb, var(--tk-brand) 30%, var(--border));
+  background-color: color-mix(in srgb, var(--tk-brand) 6%, var(--card));
 }
 
 .priceContainer {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
-  gap: var(--spacing-2);
+  gap: 0 var(--spacing-2);
+  min-width: 0;
 }
 
 .price {
   font-family: var(--font-family-heading);
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: var(--primary);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--tk-brand-text);
 }
 
 .originalPrice {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
   text-decoration: line-through;
 }
 
-/* Skeleton Styles */
 .titleSkeleton {
   height: 2rem;
   width: 250px;
-  margin-bottom: var(--spacing-4);
+  max-width: 100%;
+  margin-bottom: var(--spacing-6);
 }
 
 .cardSkeleton {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  overflow: hidden;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
 }
 
 .thumbnailSkeleton {
   aspect-ratio: 16 / 9;
   height: auto;
-  border-radius: 0;
-  border-bottom: 1px solid var(--border);
+  border-radius: var(--radius-md);
 }
 
 .contentSkeleton {
-  padding: var(--spacing-4);
-  flex-grow: 1;
   display: flex;
   flex-direction: column;
+  flex-grow: 1;
+  min-height: 7rem;
+  padding: var(--spacing-4);
 }
 
 .footerSkeleton {
-  padding: var(--spacing-3) var(--spacing-4);
-  border-top: 1px solid var(--border);
   display: flex;
   align-items: center;
+  padding: var(--spacing-3) var(--spacing-4);
+  border-top: 1px solid var(--border);
 }

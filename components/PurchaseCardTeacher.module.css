@@ -6,6 +6,11 @@
   border-top: 1px solid var(--border);
   color: var(--surface-foreground);
   text-decoration: none;
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.teacher:hover {
+  background-color: color-mix(in srgb, var(--tk-brand) 8%, var(--surface));
 }
 
 .teacher:focus-visible {
@@ -59,14 +64,14 @@
   overflow: hidden;
 }
 
-.profileLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
+.chevron {
   flex-shrink: 0;
-  font-size: 0.875rem;
-  font-weight: 600;
   color: var(--tk-brand-text);
+  transition: transform var(--animation-duration-fast) ease;
+}
+
+.teacher:hover .chevron {
+  transform: translateX(3px);
 }
 
 .teacher:hover .name {

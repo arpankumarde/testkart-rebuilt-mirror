@@ -14,7 +14,7 @@ import { MobileStickyPurchaseBar } from '../components/MobileStickyPurchaseBar';
 import { PublicCouponsCard } from '../components/PublicCouponsCard';
 import { BundleSuggestions } from '../components/BundleSuggestions';
 import { CourseCard } from '../components/CourseCard';
-import { AlertCircle, BookOpen, CheckCircle, Star } from "lucide-react";
+import { AlertCircle, BookOpen, FileText, Info, Sparkles, Star, User } from "lucide-react";
 import { ReviewDialog } from '../components/ReviewDialog';
 import { useAuth } from '../helpers/useAuth';
 import { wrapContentTables } from '../helpers/contentTables';
@@ -24,11 +24,28 @@ import { Avatar, AvatarImage, AvatarFallback } from '../components/Avatar';
 import { useTrackStorefrontView } from '../helpers/trackStorefrontEvent';
 import styles from "./course.$courseSlug.module.css";
 
+type SectionTone = 'peach' | 'mint' | 'lavender' | 'sky' | 'butter';
+
+/* Section title with a wobbly duotone icon blob, as on the exam pages. */
+const SectionHeading: React.FC<{ icon: React.ReactNode; tone: SectionTone; children: React.ReactNode }> = ({
+  icon,
+  tone,
+  children,
+}) => (
+  <div className={styles.sectionHeading}>
+    <span className={styles.sectionIcon} data-tone={tone} aria-hidden="true">
+      <span className={styles.sectionBlob} />
+      {icon}
+    </span>
+    <h2 className={styles.sectionTitle}>{children}</h2>
+  </div>
+);
+
 const CourseDetailsSkeleton: React.FC = () => (
   <div className={styles.layout}>
     <div className={styles.heroSkeleton}>
       <div className={styles.heroContent}>
-        <Skeleton style={{ height: "1rem", width: "200px", marginBottom: "var(--spacing-3)" }} />
+        <Skeleton style={{ height: "1.5rem", width: "84px", borderRadius: "var(--radius-full)", marginBottom: "var(--spacing-3)" }} />
         <Skeleton style={{ height: "3rem", width: "80%", marginBottom: "var(--spacing-2)" }} />
         <Skeleton style={{ height: "1.5rem", width: "60%", marginBottom: "var(--spacing-4)" }} />
         <div style={{ display: "flex", gap: "var(--spacing-4)" }}>
@@ -257,31 +274,23 @@ export default function CourseDetailsPage() {
       <div className={styles.contentWrapper}>
         <main className={styles.mainColumn}>
           {!course.isEnrolled && !isFree && (
-            <PublicCouponsCard itemType="course" itemId={course.id} />
+            <PublicCouponsCard itemType="course" itemId={course.id} className={styles.couponsCard} />
           )}
-          
 
-
-                              {/* Course Curriculum */}
           <section className={styles.section}>
             <CourseCurriculum courseId={course.id} sections={course.sections} />
           </section>
 
-          
-
-
-          {/* Description */}
           <section className={styles.section}>
-            <h2 className={styles.sectionTitle}>Description</h2>
+            <SectionHeading tone="lavender" icon={<FileText />}>Description</SectionHeading>
             <div 
               className={styles.description}
               dangerouslySetInnerHTML={{ __html: wrapContentTables(sanitizeHtml(course.description)) }}
             />
           </section>
 
-          {/* About the Instructor */}
           <section id="instructor-profile" className={styles.section}>
-            <h2 className={styles.sectionTitle}>Course Hosted by</h2>
+            <SectionHeading tone="sky" icon={<User />}>Course Hosted by</SectionHeading>
             <TeacherProfileCard
               teacher={{
                 id: course.teacher.id,
@@ -298,11 +307,8 @@ export default function CourseDetailsPage() {
             />
           </section>
 
-          {/* Reviews Section */}
           <section id="reviews" className={styles.section}>
-            <div className={styles.reviewsHeader}>
-              <h2 className={styles.sectionTitle}>Student reviews</h2>
-            </div>
+            <SectionHeading tone="butter" icon={<Star />}>Student reviews</SectionHeading>
             
             <div className={styles.reviewsContainer}>
                <div className={styles.ratingSummary}>
@@ -384,14 +390,15 @@ export default function CourseDetailsPage() {
           </section>
 
           {course.disclaimer && (
-            <div className={styles.disclaimerSection} style={{ whiteSpace: 'pre-wrap' }}>
-              {course.disclaimer}
+            <div className={styles.disclaimerSection}>
+              <Info size={18} className={styles.disclaimerIcon} aria-hidden="true" />
+              <div className={styles.disclaimerText}>{course.disclaimer}</div>
             </div>
           )}
 
           {relatedCourses.length > 0 && (
-            <section className={styles.section}>
-              <h2 className={styles.sectionTitle}>Related courses</h2>
+            <section className={styles.plainSection}>
+              <SectionHeading tone="peach" icon={<Sparkles />}>Related courses</SectionHeading>
               <div className={styles.relatedGrid}>
                 {relatedCourses.map((relatedCourse) => (
                   <CourseCard key={relatedCourse.id} course={relatedCourse} />

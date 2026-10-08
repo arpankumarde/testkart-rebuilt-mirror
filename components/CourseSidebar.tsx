@@ -144,11 +144,15 @@ export const CourseSidebar: React.FC<CourseSidebarProps> = ({
   return (
     <div className={`${styles.sidebar} ${className || ''}`}>
       <div className={styles.sidebarCard}>
-        <VideoPreview
-          videoUrl={course.introVideoUrl || course.thumbnailUrl}
-          thumbnailUrl={course.thumbnailImageUrl}
-          title={course.title}
-        />
+        <div className={styles.media}>
+          <div className={styles.mediaFrame}>
+            <VideoPreview
+              videoUrl={course.introVideoUrl || course.thumbnailUrl}
+              thumbnailUrl={course.thumbnailImageUrl}
+              title={course.title}
+            />
+          </div>
+        </div>
 
         <div className={styles.pricingContent}>
           {course.isEnrolled ? (
@@ -210,14 +214,16 @@ export const CourseSidebar: React.FC<CourseSidebarProps> = ({
           )}
         </div>
 
-        <PurchaseCardTeacher
-          label="Hosted by"
-          name={course.teacher.displayName}
-          avatarUrl={course.teacher.profilePicture}
-          slug={course.teacher.slug}
-          isVerified={course.teacher.isVerified}
-          academyName={course.teacher.academyName}
-        />
+        <div className={styles.hostedBy}>
+          <PurchaseCardTeacher
+            label="Hosted by"
+            name={course.teacher.displayName}
+            avatarUrl={course.teacher.profilePicture}
+            slug={course.teacher.slug}
+            isVerified={course.teacher.isVerified}
+            academyName={course.teacher.academyName}
+          />
+        </div>
 
         <button
           type="button"

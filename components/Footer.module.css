@@ -1,8 +1,21 @@
+/*
+ * Layout follows a structured brand-row / CTA / link-columns / legal-line
+ * pattern; colour is Testkart's own. The surface is the warm ivory used on the
+ * exam pages and the accents are its pastel tints (peach, sage, blue,
+ * lavender), each paired with its own ink, so every icon and label holds
+ * contrast. All tokens are themed, so dark mode follows the site theme.
+ */
 .footer {
-  background-color: var(--surface);
-  border-top: 1px solid var(--border);
+  --footer-gap: clamp(0.75rem, 3vw, 2rem);
+
+  width: min(1360px, 100% - 2 * var(--footer-gap));
+  margin: var(--spacing-8) auto var(--footer-gap);
+  background-color: var(--exam-ivory);
+  border: 1px solid var(--exam-ivory-border);
+  border-radius: 2rem;
+  box-shadow: 0 10px 28px -12px hsl(220 10% 15% / 0.18);
   color: var(--muted-foreground);
-  padding: var(--spacing-12) var(--spacing-6);
+  padding: var(--spacing-12) var(--spacing-6) var(--spacing-8);
 }
 
 .footerContent {
@@ -10,21 +23,22 @@
   margin: 0 auto;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: var(--spacing-8);
-  margin-bottom: var(--spacing-12);
+  padding-bottom: var(--spacing-8);
+  border-bottom: 1px solid var(--exam-ivory-border);
 }
 
-.brandColumn {
-  grid-column: span 1;
+.brand {
+  max-width: 28rem;
 }
 
 .logo {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: var(--spacing-3);
   margin-bottom: var(--spacing-4);
   text-decoration: none;
   color: var(--foreground);
@@ -36,21 +50,72 @@
 }
 
 .tagline {
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   line-height: 1.6;
   margin: 0;
 }
 
+.cta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-6);
+  flex-wrap: wrap;
+}
+
+.ctaText {
+  margin: 0;
+  max-width: 17rem;
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--foreground);
+}
+
+.cta .ctaButton {
+  border-radius: var(--radius-full);
+  padding: 0 var(--spacing-6);
+  font-weight: 700;
+  box-shadow: 0 6px 16px -6px hsl(20 60% 35% / 0.45);
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    border-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
+}
+
+.cta .ctaButton:hover {
+  transform: translateY(-2px);
+}
+
+.cta .ctaButton svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  transition: transform var(--animation-duration-fast) ease;
+}
+
+.cta .ctaButton:hover svg {
+  transform: translateX(3px);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 0.9fr 1.5fr 1fr 1.1fr 1fr;
+  gap: var(--spacing-8);
+  padding: var(--spacing-12) 0;
+}
+
 .linksColumn {
-  grid-column: span 1;
+  min-width: 0;
 }
 
 .columnTitle {
   font-family: var(--font-family-heading);
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.9375rem;
+  font-weight: 700;
   color: var(--foreground);
-  margin-bottom: var(--spacing-4);
+  margin: 0 0 var(--spacing-4);
 }
 
 .linkList {
@@ -65,19 +130,92 @@
 .footerLink {
   color: var(--muted-foreground);
   text-decoration: none;
-  font-size: 0.8rem;
+  font-size: 0.875rem;
+  line-height: 1.4;
   transition: color var(--animation-duration-fast) ease;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-2);
 }
 
 .footerLink:hover {
-  color: var(--primary);
+  color: var(--tk-brand-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.footerLink:focus-visible,
+.socialLink:focus-visible,
+.logo:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+.socialList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+}
+
+.socialLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  text-decoration: none;
+  transition:
+    transform var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease,
+    border-color var(--animation-duration-fast) ease;
+}
+
+.socialLink:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px -4px hsl(220 10% 15% / 0.2);
+}
+
+.tonePeach {
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.tonePeach:hover {
+  border-color: var(--tk-brand-text);
+}
+
+.toneMint {
+  background-color: var(--exam-sage-tint);
+  color: var(--exam-sage-ink);
+}
+
+.toneMint:hover {
+  border-color: var(--exam-sage-ink);
+}
+
+.toneBlue {
+  background-color: var(--exam-blue-tint);
+  color: var(--exam-blue-ink);
+}
+
+.toneBlue:hover {
+  border-color: var(--exam-blue-ink);
+}
+
+.toneLavender {
+  background-color: var(--exam-lavender-tint);
+  color: var(--exam-lavender-ink);
+}
+
+.toneLavender:hover {
+  border-color: var(--exam-lavender-ink);
 }
 
 .footerBottom {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--exam-ivory-border);
   padding-top: var(--spacing-6);
   text-align: center;
 }
@@ -88,36 +226,73 @@
 }
 
 @media (max-width: 992px) {
-  .grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--spacing-6);
+  .topRow {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
-  .brandColumn {
-    grid-column: 1 / -1; /* Span full width */
-    margin-bottom: var(--spacing-6);
+  .cta {
+    justify-content: flex-start;
+  }
+
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-8) var(--spacing-6);
+    padding: var(--spacing-8) 0;
   }
 }
 
 @media (max-width: 768px) {
+  .footer {
+    border-radius: 1.5rem;
+  }
+
   .grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: var(--spacing-6);
   }
 }
 
 @media (max-width: 576px) {
   .footer {
-    padding: var(--spacing-8) var(--spacing-4);
+    padding: var(--spacing-8) var(--spacing-4) var(--spacing-6);
   }
 
+  .topRow {
+    gap: var(--spacing-6);
+  }
+
+  .cta {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-4);
+    width: 100%;
+  }
+
+  .ctaText {
+    max-width: none;
+  }
+
+  .cta .ctaButton {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
   .grid {
     grid-template-columns: 1fr;
-    gap: var(--spacing-6);
-    margin-bottom: var(--spacing-8);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .socialLink,
+  .cta .ctaButton,
+  .cta .ctaButton svg {
+    transition: none;
   }
 
-  .brandColumn {
-    margin-bottom: 0;
+  .socialLink:hover,
+  .cta .ctaButton:hover,
+  .cta .ctaButton:hover svg {
+    transform: none;
   }
 }

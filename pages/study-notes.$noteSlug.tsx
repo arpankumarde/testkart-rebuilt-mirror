@@ -715,7 +715,11 @@ const ProductDetailsPage: React.FC = () => {
           </div>
         </div>
 
-        <BundleSuggestions teacherId={product.teacherId} title="Save with Bundles" />
+        <BundleSuggestions
+          teacherId={product.teacherId}
+          title="Save with Bundles"
+          className={styles.bundleSuggestions}
+        />
 
         <TeacherCtaBanner className={styles.teacherCta} />
 

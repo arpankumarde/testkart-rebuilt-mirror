@@ -198,7 +198,10 @@ export const ExamProductsSection: React.FC<ExamProductsSectionProps> = ({
         <div key={block.key} className={styles.block} data-block={block.key}>
           <div className={styles.blockHeader}>
             <h3 className={styles.blockTitle}>
-              {block.icon}
+              <span className={styles.blockIcon} aria-hidden="true">
+                <span className={styles.blockBlob} />
+                {block.icon}
+              </span>
               {block.title}
             </h3>
             <Link to={block.viewAllUrl} className={styles.viewAllLink}>

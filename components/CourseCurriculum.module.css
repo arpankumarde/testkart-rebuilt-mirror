@@ -1,40 +1,126 @@
+/*
+ * Curriculum on the course detail page, in the exam pages' pastel language:
+ * a mint icon blob beside the title, pastel count pills, and sections as
+ * rounded ivory rows that wash mint while open. Pastels are the exam artwork
+ * hexes; washes mix into themed surfaces.
+ */
 .curriculum {
+  --cc-mint: #a9dcc8;
+  --cc-lavender: #c8b6f2;
+  --cc-sky: #aed3f2;
+  --cc-butter: #f4dfa3;
+  --cc-peach: #f9b99a;
+  --cc-ink: hsl(220 30% 12%);
+  --cc-wash: 30%;
+
   width: 100%;
 }
 
+:global(.dark) .curriculum {
+  --cc-wash: 12%;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3) var(--spacing-4);
+  margin-bottom: 1.25rem;
+  padding-bottom: var(--spacing-4);
+  border-bottom: 1.5px dashed var(--exam-ivory-border);
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  min-width: 0;
+}
+
+.headingIcon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  color: color-mix(in srgb, var(--cc-mint), var(--cc-ink) 72%);
+}
+
+.headingBlob {
+  position: absolute;
+  inset: 0.125rem 0.0625rem 0 0.1875rem;
+  border-radius: 38% 62% 44% 56% / 60% 40% 64% 36%;
+  background-color: var(--cc-mint);
+  transform: rotate(8deg);
+}
+
+.headingIcon svg {
+  position: relative;
+  width: 1.125rem;
+  height: 1.125rem;
+  stroke-width: 1.9;
+}
+
 .title {
+  margin: 0;
   font-family: var(--font-family-heading);
-  font-size: 1.75rem;
-  font-weight: 700;
-  margin-bottom: var(--spacing-2);
-  color: var(--foreground);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+  color: var(--surface-foreground);
 }
 
 .summary {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   gap: var(--spacing-2);
-  color: var(--muted-foreground);
-  margin-bottom: var(--spacing-6);
-  font-size: 0.9375rem;
 }
 
-.dot {
-  opacity: 0.5;
+.summaryPill {
+  --pill: var(--cc-sky);
+
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1875rem 0.625rem;
+  border: 1px solid color-mix(in srgb, var(--pill) 75%, var(--exam-ivory-border));
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--pill) 32%, var(--surface));
+  color: color-mix(in srgb, var(--pill), var(--cc-ink) 78%);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.pillLavender {
+  --pill: var(--cc-lavender);
+}
+
+.pillButter {
+  --pill: var(--cc-butter);
+}
+
+:global(.dark) .summaryPill {
+  background-color: color-mix(in srgb, var(--pill) 14%, var(--surface));
+  border-color: color-mix(in srgb, var(--pill) 40%, var(--border));
+  color: var(--pill);
 }
 
 .accordionRoot {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
 }
 
 .accordionItem {
-  border-bottom: 1px solid var(--border);
-}
-
-.accordionItem:last-child {
-  border-bottom: none;
+  overflow: hidden;
+  border: 1px solid var(--exam-ivory-border);
+  border-radius: 1rem;
+  background-color: var(--surface);
 }
 
 .accordionHeader {
@@ -46,8 +132,8 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  padding: var(--spacing-4) var(--spacing-4);
-  background-color: var(--surface);
+  padding: 0.875rem var(--spacing-4);
+  background-color: var(--exam-ivory);
   border: none;
   cursor: pointer;
   font-family: var(--font-family-base);
@@ -57,15 +143,21 @@
 }
 
 .accordionTrigger:hover {
-  background-color: var(--muted);
+  background-color: color-mix(in srgb, var(--cc-sky) var(--cc-wash), var(--exam-ivory));
 }
 
 .accordionTrigger[data-state='open'] {
-  background-color: color-mix(in srgb, var(--primary) 5%, transparent);
+  background-color: color-mix(in srgb, var(--cc-mint) var(--cc-wash), var(--exam-ivory));
+  border-bottom: 1.5px dashed var(--exam-ivory-border);
+}
+
+.accordionTrigger:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: -3px;
 }
 
 .sectionTitle {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--surface-foreground);
 }
 
@@ -87,7 +179,7 @@
 
 .accordionContent {
   overflow: hidden;
-  background-color: var(--background);
+  background-color: var(--surface);
 }
 
 .accordionContent[data-state='open'] {
@@ -99,7 +191,7 @@
 
 .lessonList {
   list-style: none;
-  padding: var(--spacing-2) var(--spacing-4) var(--spacing-4);
+  padding: var(--spacing-2) var(--spacing-2) var(--spacing-3);
   margin: 0;
   display: flex;
   flex-direction: column;
@@ -112,8 +204,8 @@
   justify-content: space-between;
   align-items: center;
   gap: var(--spacing-3);
-  padding: var(--spacing-3) 0;
-  border-bottom: 1px solid var(--border);
+  padding: var(--spacing-3) var(--spacing-2);
+  border-bottom: 1px solid var(--exam-ivory-border);
 }
 
 .lessonItem:last-child {
@@ -122,11 +214,12 @@
 
 .lessonItemClickable {
   cursor: pointer;
+  border-radius: 0.625rem;
   transition: background-color var(--animation-duration-fast);
 }
 
 .lessonItemClickable:hover {
-  background-color: color-mix(in srgb, var(--primary) 5%, transparent);
+  background-color: color-mix(in srgb, var(--cc-peach) 18%, var(--surface));
 }
 
 .lessonInfo {
@@ -162,8 +255,18 @@
 }
 
 .previewBadge {
-  color: var(--primary);
-  font-weight: 500;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--cc-peach) 70%, var(--exam-ivory-border));
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--cc-peach) 26%, var(--surface));
+  color: var(--tk-brand-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+:global(.dark) .previewBadge {
+  background-color: color-mix(in srgb, var(--cc-peach) 12%, var(--surface));
+  border-color: color-mix(in srgb, var(--cc-peach) 40%, var(--border));
 }
 
 .lockIcon {
@@ -298,7 +401,7 @@
 
 @media (max-width: 768px) {
   .title {
-    font-size: 1.5rem;
+    font-size: 1.125rem;
   }
 
   .accordionTrigger {
@@ -306,7 +409,7 @@
   }
 
   .lessonList {
-    padding: var(--spacing-1) var(--spacing-3) var(--spacing-3);
+    padding: var(--spacing-1) var(--spacing-1) var(--spacing-2);
   }
 
   .lessonInfo {

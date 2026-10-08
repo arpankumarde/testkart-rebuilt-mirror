@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as Accordion from '@radix-ui/react-accordion';
-import { ChevronDown, PlayCircle, FileText, Lock, X, AlertCircle, Loader2 } from 'lucide-react';
+import { ChevronDown, PlayCircle, FileText, Lock, ListChecks } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './Dialog';
 import { wrapContentTables } from '../helpers/contentTables';
 import { sanitizeHtml } from '../helpers/sanitizeHtml';
@@ -107,17 +107,23 @@ export const CourseCurriculum: React.FC<CourseCurriculumProps> = ({ courseId, se
 
   return (
     <div className={`${styles.curriculum} ${className || ''}`}>
-      <h2 className={styles.title}>Course Curriculum</h2>
-      <div className={styles.summary}>
-        <span>{totalSections} sections</span>
-        <span className={styles.dot}>•</span>
-        <span>{totalLessons} lessons</span>
-        {totalDurationMinutes > 0 && (
-          <>
-            <span className={styles.dot}>•</span>
-            <span>{Math.round(totalDurationMinutes / 60)}h {totalDurationMinutes % 60}m total length</span>
-          </>
-        )}
+      <div className={styles.header}>
+        <div className={styles.heading}>
+          <span className={styles.headingIcon} aria-hidden="true">
+            <span className={styles.headingBlob} />
+            <ListChecks />
+          </span>
+          <h2 className={styles.title}>Course Curriculum</h2>
+        </div>
+        <div className={styles.summary}>
+          <span className={`${styles.summaryPill} ${styles.pillSky}`}>{totalSections} sections</span>
+          <span className={`${styles.summaryPill} ${styles.pillLavender}`}>{totalLessons} lessons</span>
+          {totalDurationMinutes > 0 && (
+            <span className={`${styles.summaryPill} ${styles.pillButter}`}>
+              {Math.round(totalDurationMinutes / 60)}h {totalDurationMinutes % 60}m total length
+            </span>
+          )}
+        </div>
       </div>
 
       <Accordion.Root

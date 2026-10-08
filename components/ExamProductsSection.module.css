@@ -38,43 +38,66 @@
   color: var(--foreground);
 }
 
-/* Pastel icon tile next to each block title, in the block's own product
-   colour (--va-accent, set on .block below; same as its "View all"). */
-.blockTitle svg {
-  box-sizing: content-box;
-  padding: var(--spacing-2);
-  border-radius: var(--radius);
-  background-color: color-mix(in srgb, var(--va-accent) 42%, var(--surface));
-  color: color-mix(in srgb, var(--va-accent), var(--va-ink) 76%);
+/* Duotone icon next to each block title, the same as the product tabs: an
+   off-centre wobbly blob in the block's own pastel (--va-accent, set on
+   .block below) with the outlined glyph over it in a deep shade of it. The
+   pastel is artwork, so it stays the same in both themes, as the tabs do. */
+.blockIcon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  width: 2.375rem;
+  height: 2.375rem;
+  color: color-mix(in srgb, var(--va-accent), var(--va-ink) 72%);
 }
 
-:global(.dark) .blockTitle svg {
-  background-color: color-mix(in srgb, var(--va-accent) 16%, var(--surface));
-  color: var(--va-accent);
+.blockBlob {
+  position: absolute;
+  inset: 0.125rem 0.0625rem 0 0.1875rem;
+  border-radius: var(--va-blob);
+  background-color: var(--va-accent);
+  transform: rotate(var(--va-tilt));
+}
+
+.blockIcon svg {
+  position: relative;
+  stroke-width: 1.9;
 }
 
 /* "View all": a pastel pill like the header's Share / Print buttons, in each
-   block's own product colour (the same pastels as the product tabs). */
+   block's own product colour. Colour, blob shape and tilt match each
+   product's tab in ExamPageNav.module.css. */
 .block {
   --va-accent: #aed3f2; /* sky */
+  --va-blob: 62% 38% 52% 48% / 52% 44% 56% 48%;
+  --va-tilt: 10deg;
   --va-ink: hsl(220 30% 12%);
 }
 
 .block[data-block="mock-tests"] {
   --va-accent: #f9b99a; /* peach */
+  --va-blob: 64% 36% 58% 42% / 44% 62% 38% 56%;
+  --va-tilt: -10deg;
 }
 
 .block[data-block="courses"] {
   --va-accent: #a9dcc8; /* mint */
+  --va-blob: 38% 62% 44% 56% / 60% 40% 64% 36%;
+  --va-tilt: 8deg;
 }
 
 .block[data-block="study-notes"] {
   --va-accent: #c8b6f2; /* lavender */
+  --va-blob: 56% 44% 32% 68% / 42% 60% 40% 58%;
+  --va-tilt: -5deg;
 }
 
 .block[data-block="bundles"] {
   --va-accent: #f4dfa3; /* butter */
+  --va-blob: 40% 60% 66% 34% / 64% 44% 56% 36%;
+  --va-tilt: -13deg;
 }
 
 .viewAllLink {

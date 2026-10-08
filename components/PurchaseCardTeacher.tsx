@@ -23,7 +23,7 @@ const initials = (name: string) =>
     .substring(0, 2)
     .toUpperCase() || "T";
 
-/** Teacher strip inside the detail pages' purchase card, linking to the expert profile. */
+/** Teacher strip inside the detail pages' purchase card. The whole row is the link to the expert profile. */
 export const PurchaseCardTeacher: React.FC<PurchaseCardTeacherProps> = ({
   label,
   name,
@@ -36,7 +36,7 @@ export const PurchaseCardTeacher: React.FC<PurchaseCardTeacherProps> = ({
   const showAcademy = !!academy && academy.toLowerCase() !== name.trim().toLowerCase();
 
   return (
-    <Link to={`/expert/${slug}`} className={styles.teacher}>
+    <Link to={`/expert/${slug}`} className={styles.teacher} aria-label={`${label} ${name} - view profile`}>
       <Avatar className={styles.avatar}>
         <AvatarImage src={avatarUrl || undefined} alt="" />
         <AvatarFallback>{initials(name)}</AvatarFallback>
@@ -49,10 +49,7 @@ export const PurchaseCardTeacher: React.FC<PurchaseCardTeacherProps> = ({
         </span>
         {showAcademy && <span className={styles.academy}>{academy}</span>}
       </div>
-      <span className={styles.profileLink}>
-        Profile
-        <ChevronRight size={16} aria-hidden="true" />
-      </span>
+      <ChevronRight size={20} className={styles.chevron} aria-hidden="true" />
     </Link>
   );
 };

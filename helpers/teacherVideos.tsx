@@ -2,8 +2,8 @@
  * Walkthrough videos for teachers, shown on /demo and linked from /teach.
  *
  * YouTube entries come from the Testkart channel (youtube.com/@Testkart-in).
- * "file" entries are the clips embedded in help-centre guides and play from
- * cdn.testkart.in. Titles are written as the task a teacher wants to do, not
+ * "file" entries are mp4 clips that play from cdn.testkart.in; none are in
+ * use right now. Titles are written as the task a teacher wants to do, not
  * the upload title. Durations are seconds.
  */
 export const TESTKART_CHANNEL_URL = "https://www.youtube.com/@Testkart-in";
@@ -33,14 +33,7 @@ export const TEACHER_VIDEO_GROUPS: TeacherVideoGroup[] = [
       { id: "Jdz4LRGt2bQ", title: "Create a test series", durationSeconds: 308, source: "youtube", guideSlug: "how-to-create-a-test-series" },
       { id: "EriNQiRYFPM", title: "Publish a test series", durationSeconds: 204, source: "youtube" },
       { id: "huDQW8FJUBM", title: "Edit a test series", durationSeconds: 146, source: "youtube", guideSlug: "how-to-edit-unpublish-delete-test-series" },
-      {
-        id: "guide-test-series-students",
-        title: "See who joined your test series",
-        durationSeconds: 131,
-        source: "file",
-        src: "https://cdn.testkart.in/editor-videos/1f4ce866-3ed5-493e-b05b-f75287360f49.mp4",
-        guideSlug: "manage-test-series-students-testkart",
-      },
+      { id: "ZsFHsx_mIkA", title: "See who joined your test series", durationSeconds: 68, source: "youtube", guideSlug: "manage-test-series-students-testkart" },
     ],
   },
   {

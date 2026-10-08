@@ -868,6 +868,12 @@ opacity: 0.5;
   gap: var(--spacing-4);
 }
 
+/* The container's flex gap already spaces the bundles from the sections
+   around them, so their own margins are dropped here. */
+.bundleSuggestions {
+  margin: 0;
+}
+
 /* Closes the page, below the bundle suggestions. The margin adds to the
    container gap so the banner sits clear of the sections above it. */
 .teacherCta {

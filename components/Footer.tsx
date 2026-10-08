@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 import {
   FaFacebook,
   FaInstagram,
@@ -9,15 +10,49 @@ import {
 } from 'react-icons/fa6';
 import { useDarkModeObserver } from '../helpers/useDarkModeObserver';
 import { getBrandLogo } from '../helpers/brandAssets';
+import { Button } from './Button';
 import styles from './Footer.module.css';
+
+const SOCIAL_LINKS = [
+  {
+    label: 'Telegram',
+    href: 'https://t.me/testkart_in',
+    Icon: FaTelegram,
+    tone: styles.toneBlue,
+  },
+  {
+    label: 'Instagram',
+    href: 'https://www.instagram.com/testkart',
+    Icon: FaInstagram,
+    tone: styles.tonePeach,
+  },
+  {
+    label: 'X (Twitter)',
+    href: 'https://x.com/testkart_in',
+    Icon: FaXTwitter,
+    tone: styles.toneLavender,
+  },
+  {
+    label: 'Facebook Group',
+    href: 'https://www.facebook.com/groups/testkart/',
+    Icon: FaFacebook,
+    tone: styles.toneMint,
+  },
+  {
+    label: 'LinkedIn',
+    href: 'https://www.linkedin.com/company/testkart',
+    Icon: FaLinkedin,
+    tone: styles.toneBlue,
+  },
+];
 
 export const Footer: React.FC = () => {
   const isDarkMode = useDarkModeObserver();
   return (
     <footer className={styles.footer}>
       <div className={styles.footerContent}>
-        <div className={styles.grid}>
-          <div className={styles.brandColumn}>
+        <div className={styles.topRow}>
+          <div className={styles.brand}>
             <Link to="/" className={styles.logo}>
               <img
                 src={getBrandLogo(isDarkMode)}
@@ -28,6 +63,20 @@ export const Footer: React.FC = () => {
             <p className={styles.tagline}>Online marketplace connecting students with high-quality study materials, comprehensive courses, and mock tests created by expert teachers</p>
           </div>
 
+          <div className={styles.cta}>
+            <p className={styles.ctaText}>
+              Create, sell and host mock tests and courses on Testkart.
+            </p>
+            <Button asChild size="lg" variant="primary" className={styles.ctaButton}>
+              <Link to="/teach">
+                Teach on Testkart
+                <ArrowRight size={18} />
+              </Link>
+            </Button>
+          </div>
+        </div>
+
+        <div className={styles.grid}>
           <div className={styles.linksColumn}>
             <h3 className={styles.columnTitle}>Legal</h3>
             <ul className={styles.linkList}>
@@ -95,62 +144,21 @@ export const Footer: React.FC = () => {
 
           <div className={styles.linksColumn}>
             <h3 className={styles.columnTitle}>Connect With Us</h3>
-            <ul className={styles.linkList}>
-              <li>
-                <a
-                  href="https://t.me/testkart_in"
-                  className={styles.footerLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <FaTelegram size={16} />
-                  Telegram
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://www.instagram.com/testkart"
-                  className={styles.footerLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <FaInstagram size={16} />
-                  Instagram
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://x.com/testkart_in"
-                  className={styles.footerLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <FaXTwitter size={16} />
-                  X (Twitter)
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://www.facebook.com/groups/testkart/"
-                  className={styles.footerLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <FaFacebook size={16} />
-                  Facebook Group
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://www.linkedin.com/company/testkart"
-                  className={styles.footerLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <FaLinkedin size={16} />
-                  LinkedIn
-                </a>
-              </li>
+            <ul className={styles.socialList}>
+              {SOCIAL_LINKS.map(({ label, href, Icon, tone }) => (
+                <li key={label}>
+                  <a
+                    href={href}
+                    className={`${styles.socialLink} ${tone}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
+                    title={label}
+                  >
+                    <Icon size={20} aria-hidden="true" />
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
         </div>

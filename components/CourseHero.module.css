@@ -1,16 +1,66 @@
-/* Hero Section */
+/*
+ * Course detail hero, in the exam pages' pastel language (ExamPageHeader): a
+ * warm ivory band with powder-blue and mint washes, two solid organic blobs
+ * peeking in from the edges, and pastel sticker pills under the title. The
+ * pastel hexes are the exam cards' artwork colours, fixed in both themes; the
+ * washes mix them into the themed ivory, so the band follows the theme.
+ */
 .hero {
-  background: 
-    radial-gradient(circle at 10% 20%, hsla(217, 91%, 60%, 0.15), transparent 40%),
-    radial-gradient(circle at 90% 80%, hsla(195, 80%, 50%, 0.12), transparent 50%),
-    var(--background);
-  color: var(--foreground);
-  padding: var(--spacing-12) var(--spacing-6) var(--spacing-8);
-  border-bottom: 1px solid var(--border);
+  --ch-peach: #f9b99a;
+  --ch-mint: #a9dcc8;
+  --ch-lavender: #c8b6f2;
+  --ch-sky: #aed3f2;
+  --ch-butter: #f4dfa3;
+  --ch-ink: hsl(220 30% 12%);
+  --ch-wash: 30%;
+  --ch-blob: 42%;
+
+  position: relative;
+  isolation: isolate;
   overflow: hidden;
+  padding: var(--spacing-12) var(--spacing-6) var(--spacing-12);
+  background:
+    radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--ch-sky) var(--ch-wash), transparent), transparent 45%),
+    radial-gradient(circle at 70% 100%, color-mix(in srgb, var(--ch-mint) var(--ch-wash), transparent), transparent 45%),
+    var(--exam-ivory);
+  border-bottom: 1px solid var(--exam-ivory-border);
+  color: var(--foreground);
+}
+
+:global(.dark) .hero {
+  --ch-wash: 9%;
+  --ch-blob: 12%;
+}
+
+/* The blobs come first in the markup and the content is positioned, so the
+   content paints over them in tree order - no z-index needed. */
+.blob {
+  position: absolute;
+  pointer-events: none;
+}
+
+.blobSky {
+  width: 15rem;
+  height: 13rem;
+  top: -7rem;
+  left: -5rem;
+  border-radius: 64% 36% 58% 42% / 44% 62% 38% 56%;
+  background-color: color-mix(in srgb, var(--ch-sky) var(--ch-blob), var(--exam-ivory));
+  transform: rotate(-12deg);
+}
+
+.blobMint {
+  width: 11rem;
+  height: 9rem;
+  bottom: -5.5rem;
+  left: 46%;
+  border-radius: 38% 62% 44% 56% / 60% 40% 64% 36%;
+  background-color: color-mix(in srgb, var(--ch-mint) var(--ch-blob), var(--exam-ivory));
+  transform: rotate(10deg);
 }
 
 .heroContent {
+  position: relative;
   max-width: 1152px;
   margin: 0 auto;
 }
@@ -22,235 +72,182 @@
   }
 }
 
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  font-size: 0.875rem;
-  margin-bottom: var(--spacing-6);
-  color: var(--muted-foreground);
-}
-
-.breadcrumb a {
-  color: var(--foreground);
-  text-decoration: none;
-  transition: color var(--animation-duration-fast);
-}
-
-.breadcrumb a:hover {
-  color: var(--primary);
-  text-decoration: underline;
-}
-
 .heroMain {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-3);
   max-width: 800px;
 }
 
-.heroTitle {
-  font-family: var(--font-family-heading);
-  font-size: 2.5rem;
+/* Mint sticker with a wobbly dot, the same as the exam category pill. */
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem 0.25rem 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--ch-mint) 80%, var(--exam-ivory-border));
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--ch-mint) 38%, var(--exam-ivory));
+  color: color-mix(in srgb, var(--ch-mint), var(--ch-ink) 78%);
+  font-size: 0.6875rem;
   font-weight: 700;
+  letter-spacing: 0.06em;
   line-height: 1.2;
-  margin: 0 0 var(--spacing-4);
-  color: var(--foreground);
+  text-transform: uppercase;
 }
 
-.heroSubtitle {
-  font-size: 1.125rem;
-  line-height: 1.6;
-  margin: 0 0 var(--spacing-6);
-  color: var(--muted-foreground);
+.kicker::before {
+  content: "";
+  width: 0.4375rem;
+  height: 0.4375rem;
+  flex-shrink: 0;
+  border-radius: 58% 42% 55% 45% / 48% 58% 42% 52%;
+  background-color: color-mix(in srgb, var(--ch-mint), var(--ch-ink) 35%);
+  transform: rotate(-12deg);
+}
+
+:global(.dark) .kicker {
+  background-color: color-mix(in srgb, var(--ch-mint) 16%, var(--exam-ivory));
+  border-color: color-mix(in srgb, var(--ch-mint) 40%, var(--exam-ivory));
+  color: var(--ch-mint);
+}
+
+:global(.dark) .kicker::before {
+  background-color: var(--ch-mint);
+}
+
+.heroTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: clamp(1.625rem, 1.15rem + 2vw, 2.625rem);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.14;
+  color: var(--surface-foreground);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 
 .heroMeta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--spacing-4);
-  margin-bottom: var(--spacing-4);
+  gap: var(--spacing-2) var(--spacing-3);
+  margin-top: var(--spacing-1);
 }
 
-.levelBadge {
+/* One pastel per level, worn the way the exam tabs wear theirs. */
+.levelPill {
+  --lv: var(--ch-sky);
+
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-1);
-  font-weight: 600;
+  gap: 0.375rem;
+  min-height: 2rem;
+  padding: 0.25rem 0.75rem;
+  border: 1.5px solid color-mix(in srgb, var(--lv) 80%, var(--exam-ivory-border));
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--lv) 36%, var(--surface));
+  color: color-mix(in srgb, var(--lv), var(--ch-ink) 78%);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
-.metaItem {
-  display: flex;
+.levelPill[data-level="beginner"] {
+  --lv: var(--ch-mint);
+}
+
+.levelPill[data-level="intermediate"] {
+  --lv: var(--ch-butter);
+}
+
+.levelPill[data-level="advanced"] {
+  --lv: var(--ch-lavender);
+}
+
+:global(.dark) .levelPill {
+  background-color: color-mix(in srgb, var(--lv) 16%, var(--surface));
+  border-color: color-mix(in srgb, var(--lv) 45%, var(--border));
+  color: var(--lv);
+}
+
+.hostPill {
+  display: inline-flex;
   align-items: center;
-  gap: var(--spacing-2);
-  font-size: 0.875rem;
+  gap: 0.375rem;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 2rem;
+  padding: 0.25rem 0.75rem;
+  border: 1.5px solid color-mix(in srgb, var(--ch-sky) 70%, var(--exam-ivory-border));
+  border-radius: var(--radius-full);
+  background-color: var(--surface);
+  font-size: 0.8125rem;
+  line-height: 1.2;
+  box-shadow: 0 1px 2px hsl(220 10% 15% / 0.05);
+}
+
+:global(.dark) .hostPill {
+  border-color: color-mix(in srgb, var(--ch-sky) 35%, var(--border));
+}
+
+.hostLabel {
+  flex-shrink: 0;
   color: var(--muted-foreground);
 }
 
-.metaItem svg {
-  flex-shrink: 0;
-}
-
 .creatorLink {
-  color: var(--primary);
-  text-decoration: underline;
-  font-weight: 500;
-  transition: opacity var(--animation-duration-fast);
-  background: none;
-  border: none;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   padding: 0;
+  border: none;
+  background: none;
+  color: var(--tk-brand-text);
   font-family: inherit;
   font-size: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
   cursor: pointer;
 }
 
 .creatorLink:hover {
-  opacity: 0.8;
+  text-decoration-thickness: 2.5px;
 }
 
 .creatorLink:focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--tk-brand-text);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
 
-.heroInfo {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-4);
-}
-
-.infoItem {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  font-size: 0.875rem;
-  color: var(--muted-foreground);
-}
-
-.infoItem svg {
-  flex-shrink: 0;
-}
-
-/* Mobile Responsiveness */
-@media (max-width: 991px) {
-  .heroTitle {
-    font-size: 2rem;
-  }
-
-  .heroSubtitle {
-    font-size: 1rem;
-  }
+.verified {
+  margin-left: 0;
 }
 
 @media (max-width: 768px) {
   .hero {
-    padding: var(--spacing-8) var(--spacing-4) var(--spacing-6);
+    padding: var(--spacing-8) var(--spacing-4);
   }
 
-  .breadcrumb {
-    font-size: 0.8125rem;
-    margin-bottom: var(--spacing-4);
+  .blobSky {
+    width: 11rem;
+    height: 9.5rem;
   }
 
-  .breadcrumb svg {
-    width: 12px;
-    height: 12px;
-  }
-
-  .heroTitle {
-    font-size: 1.875rem;
-    margin-bottom: var(--spacing-3);
-  }
-
-  .heroSubtitle {
-    font-size: 1rem;
-    line-height: 1.5;
-    margin-bottom: var(--spacing-4);
-  }
-
-  .heroMeta {
-    gap: var(--spacing-3);
-  }
-
-  .metaItem {
-    font-size: 0.8125rem;
-  }
-
-  .metaItem svg {
-    width: 14px;
-    height: 14px;
-  }
-
-  .heroInfo {
-    gap: var(--spacing-3);
-  }
-
-  .infoItem {
-    font-size: 0.8125rem;
-  }
-
-  .infoItem svg {
-    width: 14px;
-    height: 14px;
+  .blobMint {
+    left: auto;
+    right: -3rem;
   }
 }
 
-@media (max-width: 576px) {
+@media (max-width: 480px) {
   .hero {
-    padding: var(--spacing-6) var(--spacing-3) var(--spacing-4);
-  }
-
-  .breadcrumb {
-    font-size: 0.75rem;
-    margin-bottom: var(--spacing-3);
-    gap: var(--spacing-1);
-  }
-
-  .breadcrumb svg {
-    width: 10px;
-    height: 10px;
-  }
-
-  .heroTitle {
-    font-size: 1.5rem;
-    line-height: 1.2;
-    margin-bottom: var(--spacing-2);
-  }
-
-  .heroSubtitle {
-    font-size: 0.9375rem;
-    line-height: 1.5;
-    margin-bottom: var(--spacing-3);
-  }
-
-  .heroMeta {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--spacing-2);
-  }
-
-  .metaItem {
-    font-size: 0.75rem;
-    gap: var(--spacing-1);
-  }
-
-  .metaItem svg {
-    width: 13px;
-    height: 13px;
-  }
-
-  .heroInfo {
-    gap: var(--spacing-2);
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .infoItem {
-    font-size: 0.75rem;
-    gap: var(--spacing-1);
-  }
-
-  .infoItem svg {
-    width: 13px;
-    height: 13px;
+    padding: var(--spacing-6) var(--spacing-4) var(--spacing-8);
   }
 }

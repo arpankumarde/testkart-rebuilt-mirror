@@ -1,4 +1,9 @@
-/* Sidebar */
+/*
+ * Course purchase card, matched to the exam pages' cards: white surface, warm
+ * ivory hairline, 1.5rem corners, a soft two-layer shadow and dashed seams
+ * between its bands. The preview sits inset with its own rounded corners.
+ * Pastels are the exam artwork hexes; their washes mix into themed surfaces.
+ */
 @media (min-width: 992px) {
   .sidebar {
     position: sticky;
@@ -18,25 +23,56 @@
 }
 
 .sidebarCard {
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  --cs-peach: #f9b99a;
+  --cs-mint: #a9dcc8;
+  --cs-sky: #aed3f2;
+  --cs-ink: hsl(220 30% 12%);
+  --cs-wash: 34%;
+
   overflow: hidden;
+  background-color: var(--surface);
+  border: 1px solid var(--exam-ivory-border);
+  border-radius: 1.5rem;
+  box-shadow:
+    0 1px 2px hsl(220 10% 15% / 0.04),
+    0 18px 40px -24px hsl(220 20% 15% / 0.28);
+}
+
+:global(.dark) .sidebarCard {
+  --cs-wash: 14%;
+}
+
+.media {
+  padding: 0.625rem 0.625rem 0;
+}
+
+.mediaFrame {
+  overflow: hidden;
+  border-radius: 1rem;
+  background-color: var(--exam-ivory);
+  box-shadow: 0 6px 16px -10px hsl(220 20% 15% / 0.35);
+}
+
+.pricingContent {
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.pricingContent > :last-child {
+  margin-bottom: 0;
 }
 
 .enrolledBanner {
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
-  padding: var(--spacing-4);
-  background-color: color-mix(in srgb, var(--success) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--success) 20%, transparent);
-  border-radius: var(--radius);
+  padding: var(--spacing-3) var(--spacing-4);
+  margin-bottom: var(--spacing-4);
+  background-color: var(--exam-sage-tint);
+  border: 1px solid var(--exam-sage-border);
+  border-radius: 1rem;
+  color: var(--exam-sage-ink);
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--success-text);
-  margin-bottom: var(--spacing-4);
 }
 
 .enrolledBanner svg {
@@ -47,15 +83,15 @@
   display: flex;
   gap: var(--spacing-4);
   padding: var(--spacing-4);
-  background-color: color-mix(in srgb, var(--info) 8%, transparent);
-  border: 1px solid color-mix(in srgb, var(--info) 20%, transparent);
-  border-radius: var(--radius-lg);
   margin-bottom: var(--spacing-4);
+  background-color: var(--exam-blue-tint);
+  border: 1px solid var(--exam-blue-border);
+  border-radius: 1rem;
 }
 
 .teacherInfoIcon {
   flex-shrink: 0;
-  color: var(--info-text);
+  color: var(--exam-blue-ink);
 }
 
 .teacherInfoContent {
@@ -63,38 +99,146 @@
 }
 
 .teacherInfoTitle {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--surface-foreground);
   margin: 0 0 var(--spacing-2);
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: var(--surface-foreground);
 }
 
 .teacherInfoText {
-  font-size: 0.9375rem;
-  color: var(--muted-foreground);
-  line-height: 1.5;
   margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--exam-blue-ink);
+}
+
+/* Shape shared by both CTAs. Button's own styles sit in @layer base, so these
+   unlayered rules win without touching the component elsewhere. */
+.primaryCta,
+.enrolledCta {
+  width: 100%;
+  min-height: 52px;
+  border-radius: var(--radius-full);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+/* Deep ink pill rather than the brand coral: the exam pages' heading ink,
+   which sits calmly on the pastel washes and still reads as the main action
+   (white on it is about 15:1). The peach ring on hover and focus ties it back
+   to the palette. In dark mode the ink would vanish into the surface, so the
+   pill turns soft peach with ink text instead. */
+.primaryCta {
+  --cta-fill: hsl(222 32% 16%);
+  --cta-fill-hover: hsl(222 28% 24%);
+  --cta-text: hsl(0 0% 100%);
+  --cta-ring: color-mix(in srgb, var(--cs-peach) 65%, transparent);
+
+  background-color: var(--cta-fill);
+  color: var(--cta-text);
+  border: none;
+  box-shadow: 0 6px 16px -10px hsl(222 32% 16% / 0.55);
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
+}
+
+.primaryCta:hover:not(:disabled) {
+  background-color: var(--cta-fill-hover);
+  color: var(--cta-text);
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 0 3px var(--cta-ring),
+    0 10px 20px -12px hsl(222 32% 16% / 0.6);
+}
+
+.primaryCta:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.primaryCta:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 5px color-mix(in srgb, var(--cs-peach), var(--cs-ink) 35%);
+}
+
+:global(.dark) .primaryCta {
+  --cta-fill: var(--cs-peach);
+  --cta-fill-hover: color-mix(in srgb, var(--cs-peach), white 18%);
+  --cta-text: var(--cs-ink);
+  --cta-ring: color-mix(in srgb, var(--cs-peach) 35%, transparent);
+
+  box-shadow: none;
 }
 
 .enrolledCta {
-  width: 100%;
-  font-weight: 600;
-  min-height: 44px;
+  margin-bottom: var(--spacing-4);
   background-color: var(--success);
   color: var(--success-foreground);
-  margin-bottom: var(--spacing-4);
 }
 
 .enrolledCta:hover {
   background-color: color-mix(in srgb, var(--success), black 10%);
 }
 
-.pricingContent {
-  padding: var(--spacing-6);
+.pricing {
+  margin-bottom: var(--spacing-4);
 }
 
-.pricingContent > :last-child {
-  margin-bottom: 0;
+.priceRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--spacing-1) var(--spacing-3);
+}
+
+.currentPrice {
+  font-family: var(--font-family-heading);
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--surface-foreground);
+}
+
+.originalPrice {
+  font-size: 1.0625rem;
+  color: var(--muted-foreground);
+  text-decoration: line-through;
+}
+
+.discount {
+  align-self: center;
+  padding: 0.1875rem 0.625rem;
+  border: 1px solid var(--exam-sage-border);
+  border-radius: var(--radius-full);
+  background-color: var(--exam-sage-tint);
+  color: var(--exam-sage-ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.ctaButtons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+}
+
+/* PurchaseCardTeacher is shared with the other detail pages; only this card's
+   copy gets the dashed seam and the sky hover. The wrapper's extra class
+   outweighs the component's own single-class rule. */
+.hostedBy > a {
+  border-top: 1.5px dashed var(--exam-ivory-border);
+  background-color: var(--exam-ivory);
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.hostedBy > a:hover {
+  background-color: color-mix(in srgb, var(--cs-sky) var(--cs-wash), var(--exam-ivory));
 }
 
 .shareBar {
@@ -106,89 +250,28 @@
   min-height: 52px;
   padding: var(--spacing-3) var(--spacing-4);
   border: none;
-  border-top: 1px solid var(--border);
-  background-color: var(--muted);
+  border-top: 1.5px dashed var(--exam-ivory-border);
+  background-color: var(--surface);
   color: var(--surface-foreground);
   font-family: inherit;
   font-size: 0.9375rem;
   font-weight: 600;
   cursor: pointer;
-  transition: color var(--animation-duration-fast);
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
 }
 
 .shareBar:hover {
-  color: var(--tk-brand-text);
-}
-
-.shareBar:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: -2px;
-}
-
-.pricing {
-  margin-bottom: var(--spacing-4);
-}
-
-.priceRow {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
-  flex-wrap: wrap;
-  margin-bottom: var(--spacing-2);
-}
-
-.currentPrice {
-  font-family: var(--font-family-heading);
-  font-size: 2rem;
-  font-weight: 700;
+  background-color: color-mix(in srgb, var(--cs-mint) var(--cs-wash), var(--surface));
   color: var(--surface-foreground);
 }
 
-.originalPrice {
-  font-size: 1.125rem;
-  color: var(--muted-foreground);
-  text-decoration: line-through;
+.shareBar:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: -3px;
 }
 
-.discount {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--success-text);
-  padding: var(--spacing-1) var(--spacing-2);
-  background-color: color-mix(in srgb, var(--success) 15%, transparent);
-  border-radius: var(--radius-sm);
-}
-
-@media (max-width: 576px) {
-  .originalPrice {
-    font-size: 1rem;
-  }
-}
-
-.ctaButtons {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-3);
-  margin-bottom: var(--spacing-4);
-}
-
-.primaryCta {
-  width: 100%;
-  font-weight: 600;
-  min-height: 44px;
-}
-
-.guarantee {
-  text-align: center;
-  font-size: 0.875rem;
-  color: var(--muted-foreground);
-  padding: var(--spacing-3) 0;
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  margin-bottom: var(--spacing-4);
-}
-
-/* Mobile Responsiveness */
 @media (max-width: 991px) {
   .sidebar {
     position: relative;
@@ -197,50 +280,29 @@
 }
 
 @media (max-width: 768px) {
-  .enrolledBanner {
-    font-size: 0.875rem;
-    padding: var(--spacing-3);
-  }
-
   .pricingContent {
     padding: var(--spacing-4);
   }
 
-    .sidebarCard {
-    border-radius: var(--radius-md);
-  }
-
-  .ctaButtons {
-    gap: var(--spacing-2);
-  }
-
-  .guarantee {
-    font-size: 0.8125rem;
-    padding: var(--spacing-2) 0;
+  .enrolledBanner {
+    padding: var(--spacing-3);
+    font-size: 0.875rem;
   }
 }
 
 @media (max-width: 576px) {
   .sidebarCard {
-    border-radius: var(--radius);
+    border-radius: 1.25rem;
   }
 
-  .enrolledBanner {
-    font-size: 0.8125rem;
-    padding: var(--spacing-2);
-    margin-bottom: var(--spacing-3);
-  }
-
-  .enrolledBanner svg {
-    width: 16px;
-    height: 16px;
+  .mediaFrame {
+    border-radius: 0.875rem;
   }
 
   .teacherInfo {
     flex-direction: column;
     gap: var(--spacing-3);
     padding: var(--spacing-3);
-    margin-bottom: var(--spacing-3);
   }
 
   .teacherInfoTitle {
@@ -251,38 +313,11 @@
     font-size: 0.875rem;
   }
 
-  .enrolledCta {
-    margin-bottom: var(--spacing-3);
-  }
-
-  .pricingContent {
-    padding: var(--spacing-3);
-  }
-
   .currentPrice {
-    font-size: 1.5rem;
+    font-size: 1.875rem;
   }
 
-  .pricing {
-    margin-bottom: var(--spacing-3);
-  }
-
-  .priceRow {
-    gap: var(--spacing-2);
-  }
-
-  .ctaButtons {
-    margin-bottom: var(--spacing-3);
-  }
-
-  .guarantee {
-    padding: var(--spacing-2) 0;
-    margin-bottom: var(--spacing-3);
-  }
-}
-
-@media (max-width: 480px) {
-  .currentPrice {
-    font-size: 1.25rem;
+  .originalPrice {
+    font-size: 1rem;
   }
 }

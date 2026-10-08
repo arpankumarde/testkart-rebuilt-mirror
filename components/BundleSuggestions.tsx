@@ -16,7 +16,14 @@ interface BundleSuggestionsProps {
   currentBundleId?: number;
 }
 
-const BundleSuggestionCard: React.FC<{ bundle: BundleListItem }> = ({ bundle }) => {
+/* Cycled across the cards for the "Includes" tile, so a row reads playful
+   without any one card turning colourful. */
+const INCLUDES_TONES = ['toneSage', 'toneLavender', 'toneBlue'] as const;
+
+const BundleSuggestionCard: React.FC<{ bundle: BundleListItem; index: number }> = ({
+  bundle,
+  index,
+}) => {
   const formattedPrice = new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',
@@ -34,27 +41,38 @@ const BundleSuggestionCard: React.FC<{ bundle: BundleListItem }> = ({ bundle }) 
       ? Math.round(((bundle.originalPrice - bundle.price) / bundle.originalPrice) * 100)
       : 0;
 
+  const toneClass = styles[INCLUDES_TONES[index % INCLUDES_TONES.length]];
+
   return (
     <Link to={`/bundles/${bundle.slug}`} className={styles.card}>
       <div className={styles.thumbnailWrapper}>
-        {bundle.thumbnailUrl ? (
-          <img src={bundle.thumbnailUrl} alt={bundle.title} className={styles.thumbnailImage} />
-        ) : (
-          <Package size={32} className={styles.bundleIcon} />
-        )}
+        <div className={styles.thumbnail}>
+          {bundle.thumbnailUrl ? (
+            <img
+              src={bundle.thumbnailUrl}
+              alt={bundle.title}
+              className={styles.thumbnailImage}
+              loading="lazy"
+            />
+          ) : (
+            <Package size={32} className={styles.bundleIcon} aria-hidden="true" />
+          )}
+        </div>
         {discountPercentage > 0 && (
           <Badge className={styles.discountBadge}>{discountPercentage}% OFF</Badge>
         )}
       </div>
 
       <div className={styles.content}>
-        <h4 className={styles.cardTitle}>{bundle.title}</h4>
+        <h4 className={styles.cardTitle} title={bundle.title}>{bundle.title}</h4>
         <p className={styles.teacherName}>
-          By {bundle.teacherName}
+          <span className={styles.teacherNameText}>By {bundle.teacherName}</span>
           <VerifiedBadge isVerified={bundle.teacherIsVerified} size="xs" className={styles.verifiedIcon} />
         </p>
         <div className={styles.courseCount}>
-          <BookCopy size={14} />
+          <span className={`${styles.countIcon} ${toneClass}`} aria-hidden="true">
+            <BookCopy size={13} />
+          </span>
           <span>
             Includes {bundle.itemCount} {bundle.itemCount === 1 ? 'item' : 'items'}
           </span>
@@ -80,7 +98,9 @@ const BundleSuggestionsSkeleton: React.FC = () => {
       <div className={styles.grid}>
         {Array.from({ length: 3 }).map((_, index) => (
           <div key={index} className={styles.cardSkeleton}>
-            <Skeleton className={styles.thumbnailSkeleton} />
+            <div className={styles.thumbnailWrapper}>
+              <Skeleton className={styles.thumbnailSkeleton} />
+            </div>
             <div className={styles.contentSkeleton}>
               <Skeleton style={{ height: '1.25rem', width: '80%' }} />
               <Skeleton style={{ height: '1rem', width: '50%', marginTop: 'var(--spacing-2)' }} />
@@ -125,10 +145,17 @@ export const BundleSuggestions: React.FC<BundleSuggestionsProps> = ({
 
   return (
     <section className={`${styles.container} ${className ?? ''}`}>
-      <h3 className={styles.title}>{title}</h3>
+      <span className={`${styles.blob} ${styles.blobMint}`} aria-hidden="true" />
+      <span className={`${styles.blob} ${styles.blobButter}`} aria-hidden="true" />
+      <div className={styles.header}>
+        <span className={styles.headerIcon} aria-hidden="true">
+          <Package size={18} />
+        </span>
+        <h3 className={styles.title}>{title}</h3>
+      </div>
       <div className={styles.grid}>
-        {suggestedBundles.map(bundle => (
-          <BundleSuggestionCard key={bundle.id} bundle={bundle} />
+        {suggestedBundles.map((bundle, index) => (
+          <BundleSuggestionCard key={bundle.id} bundle={bundle} index={index} />
         ))}
       </div>
     </section>
