@@ -33,8 +33,16 @@ type ListFilter = (typeof LIST_FILTERS)[number];
 const PAGE_SIZE = 20;
 
 export default function AdminSupportPage() {
-  const { read, readId, write } = useListUrlParams();
-  const statusFilter = read<StatusFilter>("status", STATUS_VALUES, "all");
+  const { searchParams, read, readId, write } = useListUrlParams();
+  // The inbox opens on Open. "All" is a choice of its own, kept in the URL as status=all.
+  const statusFilter = read<StatusFilter>("status", STATUS_VALUES, "open");
+
+  // A bare /admin/support, or a status the page does not know, settles on ?status=open so the
+  // address always names the tab on screen and a refresh keeps it.
+  const rawStatus = searchParams.get("status");
+  useEffect(() => {
+    if (rawStatus === null || !(STATUS_VALUES as readonly string[]).includes(rawStatus)) write({ status: "open" });
+  }, [rawStatus, write]);
   const unreadOnly = read<ListFilter | "none">("filter", LIST_FILTERS, "none") === "unread";
   const selectedId = readId("thread");
 
@@ -103,7 +111,7 @@ export default function AdminSupportPage() {
   const isFiltered = trimmedSearch !== "" || statusFilter !== "all" || unreadOnly;
   const clearFilters = () => {
     setSearchTerm("");
-    write({ status: null, filter: null });
+    write({ status: "all", filter: null });
   };
 
   const refreshTitle = threadsQuery.dataUpdatedAt
@@ -144,7 +152,7 @@ export default function AdminSupportPage() {
                     role="tab"
                     aria-selected={isActive}
                     className={`${styles.tab} ${isActive ? styles.tabActive : ""}`}
-                    onClick={() => write({ status: tab.value === "all" ? null : tab.value })}
+                    onClick={() => write({ status: tab.value })}
                   >
                     {tab.label}
                     {typeof count === "number" && <span className={styles.tabCount}>{count}</span>}

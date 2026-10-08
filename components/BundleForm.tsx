@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { z } from 'zod';
 import { useForm, Form, FormItem, FormLabel, FormControl, FormMessage } from './Form';
 import { Input } from './Input';
@@ -14,7 +14,7 @@ import { computeBundlePricing, formatInr } from '../helpers/bundlePricing';
 import { bundleDescriptionToHtml, normalizeBundleDescription } from '../helpers/bundleDescription';
 import { useUnsavedChangesGuard } from '../helpers/useUnsavedChangesGuard';
 import type { BundleDetailItem } from '../endpoints/teacher/bundles/details_GET.schema';
-import { BookOpen, Lock } from 'lucide-react';
+import { AlertTriangle, BookOpen, Lock } from 'lucide-react';
 import { ThumbnailUploader } from './ThumbnailUploader';
 import { VideoUploader } from './VideoUploader';
 import { AIRewriteButton } from './AIRewriteButton';
@@ -149,6 +149,20 @@ export const BundleForm: React.FC<BundleFormProps> = ({
   const pricing = computeBundlePricing(selectedOptions.map((o) => o.price), form.values.price);
   const showPriceError = !isLoadingItems && totalItemsSelected >= 2 && !!pricing.priceError;
   const bundleItemTitles = selectedOptions.map((o) => o.title);
+
+  // The price is only ever what the teacher typed: changing items moves the
+  // original price and discount, never the bundle price. reviewedOriginal is the
+  // original price the teacher last priced against, so a different one means
+  // the items changed since and the price is worth a second look.
+  const [reviewedOriginal, setReviewedOriginal] = useState<number | null>(null);
+  useEffect(() => {
+    if (reviewedOriginal === null && !isLoadingItems) setReviewedOriginal(pricing.originalPrice);
+  }, [reviewedOriginal, isLoadingItems, pricing.originalPrice]);
+  const showPriceReview =
+    !isLoadingItems &&
+    reviewedOriginal !== null &&
+    Math.abs(pricing.originalPrice - reviewedOriginal) >= 0.01 &&
+    form.values.price > 0;
 
   const toggleItem = (key: 'courseIds' | 'testIds' | 'digitalProductIds', id: number, isSelected: boolean) => {
     form.setValues((prev) => ({
@@ -345,15 +359,40 @@ export const BundleForm: React.FC<BundleFormProps> = ({
                 onChange={(e) => {
                   const val = e.target.value ? parseFloat(e.target.value) : 0;
                   form.setValues(prev => ({ ...prev, price: Number.isFinite(val) ? val : 0 }));
+                  setReviewedOriginal(pricing.originalPrice);
                 }}
               />
             </FormControl>
             <FormMessage />
-            {showPriceError && (
-              <p className={styles.priceError} role="alert">{pricing.priceError}</p>
-            )}
           </FormItem>
-          <div className={styles.priceInfo}>
+          {/* Under the price field, in a row of its own, so a message never changes
+              the height of the three cells above it. */}
+          {(showPriceError || showPriceReview) && (
+            <div className={styles.priceFeedback}>
+              {showPriceError && (
+                <p className={styles.priceError} role="alert">{pricing.priceError}</p>
+              )}
+              {showPriceReview && (
+                <div className={styles.priceNotice} role="status">
+                  <AlertTriangle size={14} className={styles.noticeIcon} aria-hidden="true" />
+                  <span className={styles.noticeText}>
+                    Items changed. Please review and update your bundle price. Original is now{' '}
+                    {formatInr(pricing.originalPrice)} (was {formatInr(reviewedOriginal ?? 0)}).{' '}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className={styles.keepPrice}
+                      onClick={() => setReviewedOriginal(pricing.originalPrice)}
+                    >
+                      Keep {formatInr(form.values.price)}
+                    </Button>
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+          <div className={`${styles.priceInfo} ${styles.discountInfo}`}>
             <span className={styles.priceLabel}>Discount</span>
             <span className={`${styles.priceValue} ${styles.discountValue}`}>
               {Math.round(pricing.discountPercentage)}% off

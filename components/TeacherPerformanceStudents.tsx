@@ -40,7 +40,7 @@ export type PerformanceToolbarTabs = {
 
 type Props = {
   toolbar: PerformanceToolbarTabs;
-  scope: { seriesId?: number; liveTestId?: number; courseId?: number; productId?: number };
+  scope: { seriesId?: number; liveTestId?: number; courseId?: number; productId?: number; bundleId?: number };
   onClearScope: () => void;
   onOpenStudent: (studentId: number) => void;
   enabled: boolean;
@@ -66,7 +66,13 @@ type SortKey =
   | "noteProgress"
   | "lastActiveAt";
 
-const SCOPE_LABELS = { series: "Test series", live_test: "Live test", course: "Course", note: "Notes" } as const;
+const SCOPE_LABELS = {
+  series: "Test series",
+  live_test: "Live test",
+  course: "Course",
+  note: "Notes",
+  bundle: "Bundle",
+} as const;
 
 const PAGE_SIZE = 25;
 
@@ -94,10 +100,12 @@ export const TeacherPerformanceStudents = ({ toolbar, scope, onClearScope, onOpe
 
   const scopeKind = data?.scope?.kind ?? null;
   const totals = data?.totals;
-  const showTests = scopeKind !== "course" && scopeKind !== "note" && (scopeKind !== null || (totals?.testTakers ?? 0) > 0);
-  // On the full roster a column only shows once some student has something in it.
-  const showCourses = scopeKind === "course" || (scopeKind === null && (totals?.courseLearners ?? 0) > 0);
-  const showNotes = scopeKind === "note" || (scopeKind === null && (totals?.noteOwners ?? 0) > 0);
+  // A bundle can hold any mix of items, so it reads like the full roster: a
+  // column only shows once some student has something in it.
+  const mixed = scopeKind === null || scopeKind === "bundle";
+  const showTests = scopeKind !== "course" && scopeKind !== "note" && (!mixed || (totals?.testTakers ?? 0) > 0);
+  const showCourses = scopeKind === "course" || (mixed && (totals?.courseLearners ?? 0) > 0);
+  const showNotes = scopeKind === "note" || (mixed && (totals?.noteOwners ?? 0) > 0);
 
   const rows = useMemo(() => {
     if (!data) return [];
@@ -213,7 +221,7 @@ export const TeacherPerformanceStudents = ({ toolbar, scope, onClearScope, onOpe
           title="Student results could not be loaded"
           description={error instanceof Error ? error.message : "Try again in a moment."}
         >
-          {(scope.seriesId || scope.liveTestId || scope.courseId || scope.productId) && (
+          {(scope.seriesId || scope.liveTestId || scope.courseId || scope.productId || scope.bundleId) && (
             <Button variant="outline" onClick={onClearScope}>
               Show all students
             </Button>

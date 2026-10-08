@@ -123,7 +123,7 @@ export async function handle(request: Request) {
       db
         .selectFrom("blogPosts")
         .where("status", "=", "published")
-        .select(["slug", "type", "title", "featuredImage"])
+        .select(["slug", "type", "title", "featuredImage", "ogImage"])
         .execute(),
     ]);
 
@@ -199,13 +199,14 @@ export async function handle(request: Request) {
       if (images.length > 0 || videos.length > 0) entries.push({ loc, images, videos });
     }
 
-    // Blog and knowledge base posts — featured image only.
+    // Blog and knowledge base posts — one image per post: social image, else featured image.
     for (const post of blogPosts) {
-      if (!post.slug || !post.featuredImage) continue;
+      const image = post.ogImage || post.featuredImage;
+      if (!post.slug || !image) continue;
       const path = post.type === "knowledge_base" ? "help" : "blog";
       entries.push({
         loc: `${BASE_URL}/${path}/${post.slug}`,
-        images: [{ loc: post.featuredImage, title: post.title }],
+        images: [{ loc: image, title: post.title }],
         videos: [],
       });
     }

@@ -3,16 +3,22 @@ import superjson from "superjson";
 
 const id = z.coerce.number().int().positive().optional();
 
-/** At most one scope: the roster of one test series, live test, course or study note. */
+/** At most one scope: the roster of one test series, live test, course, study note or bundle. */
 export const schema = z
-  .object({ seriesId: id, liveTestId: id, courseId: id, productId: id })
-  .refine((v) => [v.seriesId, v.liveTestId, v.courseId, v.productId].filter((x) => x !== undefined).length <= 1, {
-    message: "Pick one test series, live test, course or study note",
-  });
+  .object({ seriesId: id, liveTestId: id, courseId: id, productId: id, bundleId: id })
+  .refine(
+    (v) =>
+      [v.seriesId, v.liveTestId, v.courseId, v.productId, v.bundleId].filter((x) => x !== undefined).length <= 1,
+    { message: "Pick one test series, live test, course, study note or bundle" }
+  );
 
 export type InputType = z.infer<typeof schema>;
 
-export type PerformanceScope = { kind: "series" | "live_test" | "course" | "note"; id: number; title: string };
+export type PerformanceScope = {
+  kind: "series" | "live_test" | "course" | "note" | "bundle";
+  id: number;
+  title: string;
+};
 
 /**
  * One row per student who enrolled in, bought, or attempted the teacher's
@@ -63,6 +69,7 @@ export const getTeacherPerformanceStudents = async (query: InputType, init?: Req
   if (query.liveTestId) params.set("liveTestId", String(query.liveTestId));
   if (query.courseId) params.set("courseId", String(query.courseId));
   if (query.productId) params.set("productId", String(query.productId));
+  if (query.bundleId) params.set("bundleId", String(query.bundleId));
   const result = await fetch(`/_api/teacher/performance/students?${params.toString()}`, {
     method: "GET",
     ...init,

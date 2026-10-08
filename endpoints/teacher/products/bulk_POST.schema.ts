@@ -1,9 +1,14 @@
 import { z } from "zod";
 import superjson from "superjson";
+import type { AffectedBundle } from "../../../helpers/bundleDependencies";
 
 export const schema = z.object({
   ids: z.array(z.number().int().positive()).min(1, "Select at least one product."),
   action: z.enum(["publish", "unpublish", "archive"]),
+  // Sent once the teacher has accepted that the published bundles holding any
+  // of the products go down with them. Without it, unpublish and archive stop
+  // before changing anything when such a product is selected.
+  confirmBundleUnpublish: z.boolean().optional(),
 });
 
 export type InputType = z.infer<typeof schema>;
@@ -11,6 +16,7 @@ export type InputType = z.infer<typeof schema>;
 export type OutputType = {
   succeeded: number[];
   failed: { id: number; title?: string; reason: string }[];
+  unpublishedBundles: AffectedBundle[];
 };
 
 export const postTeacherProductsBulk = async (

@@ -54,6 +54,20 @@ describe("adminPermissions", () => {
     }
   });
 
+  it("finds the Support inbox by its path although its link carries ?status=open", () => {
+    const support = adminNavigation.findByPath("/admin/support");
+    expect(support?.label).toBe("Support inbox");
+    expect(support?.href).toBe("/admin/support?status=open");
+    expect(adminNavigation.findByPath("/admin/support?status=resolved&thread=4")?.label).toBe("Support inbox");
+    expect(adminNavigation.findByPath("/admin/teachers/earnings")?.label).toBe("Teacher earnings");
+  });
+
+  it("still gates the Support inbox by its module", () => {
+    expect(adminNavigation.canOpen("/admin/support", ["blog"])).toBe(false);
+    expect(adminNavigation.canOpen("/admin/support?status=open", ["blog"])).toBe(false);
+    expect(adminNavigation.canOpen("/admin/support?status=open", ["support"])).toBe(true);
+  });
+
   it("routes pages by module and sends admins without access home", () => {
     expect(adminNavigation.canOpen("/admin/teachers/earnings", ["teachers"])).toBe(false);
     expect(adminNavigation.canOpen("/admin/teachers/earnings", ["teacher_earnings"])).toBe(true);
@@ -63,7 +77,7 @@ describe("adminPermissions", () => {
     expect(adminNavigation.canOpen("/admin/settings", null)).toBe(false);
     expect(adminNavigation.canOpen("/admin/preview/course/1", ["blog"])).toBe(false);
     expect(adminNavigation.homeHref([])).toBe("/admin/profile");
-    expect(adminNavigation.homeHref(["blog", "support"])).toBe("/admin/support");
+    expect(adminNavigation.homeHref(["blog", "support"])).toBe("/admin/support?status=open");
     expect(adminNavigation.homeHref([...ADMIN_MODULE_KEYS])).toBe("/admin/dashboard");
   });
 });

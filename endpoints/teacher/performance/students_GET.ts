@@ -23,10 +23,14 @@ type Filters = {
   liveEnrolments: RawBuilder<unknown>;
   /** Narrows the study notes by dp; their reading counts in every scope that includes them. */
   notes: RawBuilder<unknown>;
-  /** Bundles and note orders belong to no single item, so they count only on the full roster. */
+  /** Note orders belong to no single item, so they count only on the full roster. */
   other: RawBuilder<unknown>;
+  /** Bundle enrolments: every bundle on the full roster, one bundle's own on its roster. */
+  bundles: RawBuilder<unknown>;
   /** One note's roster is its buyers, bundle grants included. */
   notePurchases: RawBuilder<unknown>;
+  /** Who may appear. A bundle's roster is the students who bought it, whatever else they did. */
+  roster: RawBuilder<unknown>;
 };
 
 const ALL = sql`true`;
@@ -34,7 +38,7 @@ const NONE = sql`false`;
 
 async function resolveScope(
   teacherId: number,
-  input: { seriesId?: number; liveTestId?: number; courseId?: number; productId?: number }
+  input: { seriesId?: number; liveTestId?: number; courseId?: number; productId?: number; bundleId?: number }
 ): Promise<{ scope: PerformanceScope | null; filters: Filters } | null> {
   if (input.seriesId) {
     const row = await db
@@ -53,7 +57,9 @@ async function resolveScope(
         liveEnrolments: NONE,
         notes: NONE,
         other: NONE,
+        bundles: NONE,
         notePurchases: NONE,
+        roster: ALL,
       },
     };
   }
@@ -74,7 +80,9 @@ async function resolveScope(
         liveEnrolments: sql`lt.id = ${input.liveTestId}`,
         notes: NONE,
         other: NONE,
+        bundles: NONE,
         notePurchases: NONE,
+        roster: ALL,
       },
     };
   }
@@ -95,7 +103,9 @@ async function resolveScope(
         liveEnrolments: NONE,
         notes: NONE,
         other: NONE,
+        bundles: NONE,
         notePurchases: NONE,
+        roster: ALL,
       },
     };
   }
@@ -116,7 +126,37 @@ async function resolveScope(
         liveEnrolments: NONE,
         notes: sql`dp.id = ${input.productId}`,
         other: NONE,
+        bundles: NONE,
         notePurchases: sql`dp.id = ${input.productId}`,
+        roster: ALL,
+      },
+    };
+  }
+  if (input.bundleId) {
+    const row = await db
+      .selectFrom("courseBundles")
+      .select("title")
+      .where("id", "=", input.bundleId)
+      .where("teacherId", "=", teacherId)
+      .executeTakeFirst();
+    if (!row) return null;
+    // The roster is the bundle's buyers, and each one's results are limited to
+    // the items the bundle holds. The items come from course_bundle_items, so a
+    // bundle edited later is followed without any list kept here.
+    const inBundle = (itemType: "course" | "test" | "digital_product", column: "course_id" | "mock_test_id" | "digital_product_id") =>
+      sql`(SELECT cbi.${sql.ref(column)} FROM course_bundle_items cbi WHERE cbi.bundle_id = ${input.bundleId} AND cbi.item_type = ${itemType}::bundle_item_type)`;
+    return {
+      scope: { kind: "bundle", id: input.bundleId, title: row.title },
+      filters: {
+        papers: sql`mt.id IN ${inBundle("test", "mock_test_id")}`,
+        courses: sql`c.id IN ${inBundle("course", "course_id")}`,
+        mockTestEnrolments: NONE,
+        liveEnrolments: NONE,
+        notes: sql`dp.id IN ${inBundle("digital_product", "digital_product_id")}`,
+        other: NONE,
+        bundles: sql`be.bundle_id = ${input.bundleId}`,
+        notePurchases: NONE,
+        roster: sql`student_id IN (SELECT be2.student_id FROM bundle_enrollments be2 WHERE be2.bundle_id = ${input.bundleId})`,
       },
     };
   }
@@ -129,7 +169,9 @@ async function resolveScope(
       liveEnrolments: ALL,
       notes: ALL,
       other: ALL,
+      bundles: ALL,
       notePurchases: NONE,
+      roster: ALL,
     },
   };
 }
@@ -146,6 +188,7 @@ export async function handle(request: Request): Promise<Response> {
       liveTestId: url.searchParams.get("liveTestId") ?? undefined,
       courseId: url.searchParams.get("courseId") ?? undefined,
       productId: url.searchParams.get("productId") ?? undefined,
+      bundleId: url.searchParams.get("bundleId") ?? undefined,
     });
 
     const resolved = await resolveScope(teacherId, input);
@@ -217,7 +260,7 @@ export async function handle(request: Request): Promise<Response> {
         UNION ALL
         SELECT be.student_id, (be.enrolled_at AT TIME ZONE 'UTC')
         FROM bundle_enrollments be JOIN course_bundles cb ON cb.id = be.bundle_id
-        WHERE cb.teacher_id = ${teacherId} AND ${filters.other}
+        WHERE cb.teacher_id = ${teacherId} AND ${filters.bundles}
         UNION ALL
         SELECT o.user_id, o.created_at
         FROM order_items oi
@@ -233,10 +276,13 @@ export async function handle(request: Request): Promise<Response> {
         SELECT student_id, count(*) AS n, min(at) AS first_at FROM enrolments GROUP BY 1
       ),
       roster AS (
-        SELECT student_id FROM enrol_stats
-        UNION SELECT student_id FROM test_stats
-        UNION SELECT student_id FROM course_stats
-        UNION SELECT student_id FROM note_stats
+        SELECT student_id FROM (
+          SELECT student_id FROM enrol_stats
+          UNION SELECT student_id FROM test_stats
+          UNION SELECT student_id FROM course_stats
+          UNION SELECT student_id FROM note_stats
+        ) everyone
+        WHERE ${filters.roster}
       )
       SELECT r.student_id, coalesce(nullif(trim(u.display_name), ''), 'Student') AS name, u.avatar_url,
              coalesce(es.n, 0) AS enrolments, es.first_at,

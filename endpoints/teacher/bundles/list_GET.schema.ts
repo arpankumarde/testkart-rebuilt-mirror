@@ -19,6 +19,8 @@ export type BundleListItem = Pick<Selectable<CourseBundles>, "id" | "title" | "s
     // The items' combined price right now.
     currentOriginalPrice: number;
     itemCount: number;
+    // Students who bought the bundle.
+    studentsEnrolled: number;
     // Submitted for publishing and waiting on admin approval.
     inReview: boolean;
     // Set when the latest review was rejected, with the admin's reason.

@@ -106,7 +106,7 @@ const groups: AdminNavGroup[] = [
       { href: "/admin/teachers/inquiries", label: "Teacher inquiries", icon: MessageSquare, modules: ["teacher_inquiries"], countKeys: ["inquiriesPending"], keywords: "institute leads" },
       { href: "/admin/contact-submissions", label: "Contact submissions", icon: Inbox, modules: ["contact_submissions"], countKeys: ["contactNew"], keywords: "messages contact form" },
       { href: "/admin/deleted-accounts", label: "Deleted accounts", icon: UserX, modules: ["deleted_accounts"] },
-      { href: "/admin/support", label: "Support inbox", icon: LifeBuoy, modules: ["support"], countKeys: ["supportUnread"], keywords: "tickets threads help" },
+      { href: "/admin/support?status=open", label: "Support inbox", icon: LifeBuoy, modules: ["support"], countKeys: ["supportUnread"], keywords: "tickets threads help" },
     ],
   },
   {
@@ -178,14 +178,18 @@ const countFor = (item: AdminNavItem, attention: AttentionCounts | undefined): n
 const groupCount = (group: AdminNavGroup, attention: AttentionCounts | undefined): number =>
   group.items.reduce((sum, item) => sum + countFor(item, attention), 0);
 
+/** An item's route without the query it may link with (the Support inbox opens on ?status=open). */
+const pathOf = (href: string): string => href.split("?")[0];
+
 /** The most specific item for a path, so /admin/teachers/earnings picks Teacher earnings, not Teachers. */
 const findByPath = (pathname: string): AdminNavItem | undefined => {
-  const path = pathname.split("?")[0];
+  const path = pathOf(pathname);
   let match: AdminNavItem | undefined;
   for (const group of groups) {
     for (const item of group.items) {
-      const hit = item.end ? path === item.href : path === item.href || path.startsWith(`${item.href}/`);
-      if (hit && (!match || item.href.length > match.href.length)) match = item;
+      const itemPath = pathOf(item.href);
+      const hit = item.end ? path === itemPath : path === itemPath || path.startsWith(`${itemPath}/`);
+      if (hit && (!match || itemPath.length > pathOf(match.href).length)) match = item;
     }
   }
   return match;

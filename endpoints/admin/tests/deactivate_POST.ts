@@ -1,6 +1,7 @@
 import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { schema, OutputType } from "./deactivate_POST.schema";
+import { unpublishBundlesContaining } from "../../../helpers/bundleDependencies";
 import superjson from "superjson";
 
 export async function handle(request: Request): Promise<Response> {
@@ -12,7 +13,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const test = await db
       .selectFrom("mockTests")
-      .select("id")
+      .select(["id", "isPublished"])
       .where("id", "=", testId)
       .executeTakeFirst();
 
@@ -23,16 +24,23 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
-    await db
-      .updateTable("mockTests")
-      .set({ isPublished: false })
-      .where("id", "=", testId)
-      .execute();
+    // The published bundles holding a live test go down with it, in the same transaction.
+    await db.transaction().execute(async (trx) => {
+      await trx
+        .updateTable("mockTests")
+        .set({ isPublished: false })
+        .where("id", "=", testId)
+        .execute();
 
-    await db
-      .deleteFrom("cartItems")
-      .where("mockTestId", "=", testId)
-      .execute();
+      await trx
+        .deleteFrom("cartItems")
+        .where("mockTestId", "=", testId)
+        .execute();
+
+      if (test.isPublished) {
+        await unpublishBundlesContaining(trx, "test", [testId]);
+      }
+    });
 
     console.log(`Deleted cart items referencing deactivated mock test ${testId}`);
 

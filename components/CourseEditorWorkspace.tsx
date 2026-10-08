@@ -4,6 +4,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { AlertCircle, ArrowLeft, CheckCircle2, Circle, ExternalLink, EyeOff, MoreHorizontal, Send } from "lucide-react";
 import { useTeacherCourseDetailsQuery, useTeacherCourseMutations } from "../helpers/useTeacherCoursesQuery";
 import { useAuth } from "../helpers/useAuth";
+import { useBundleUnpublishGuard } from "../helpers/useBundleUnpublishGuard";
 import { useAdminContentEdit } from "../helpers/useAdminContentEdit";
 import { useContentRejection } from "../helpers/useContentRejection";
 import {
@@ -65,6 +66,7 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
 
   const { data: course, isPending, error } = useTeacherCourseDetailsQuery(!isNaN(courseId) ? courseId : null);
   const { publishCourseMutation, unpublishCourseMutation } = useTeacherCourseMutations();
+  const { requestUnpublish, bundleUnpublishDialog } = useBundleUnpublishGuard();
 
   const detailsRef = useRef<CourseDetailsFormHandle>(null);
   const [draft, setDraft] = useState<CourseDetailsValues | null>(null);
@@ -204,6 +206,17 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
     return saved;
   };
 
+  // A course held by a published bundle gets the bundle warning in place of the
+  // generic confirmation; any other course gets the generic one as before.
+  const startUnpublish = () => {
+    if (unpublishCourseMutation.isPending) return;
+    void requestUnpublish({ itemType: "course", ids: [courseId] }, (confirmedBundleUnpublish) =>
+      confirmedBundleUnpublish
+        ? unpublishCourseMutation.mutateAsync({ courseId, confirmBundleUnpublish: true })
+        : setUnpublishOpen(true)
+    );
+  };
+
   const shownTitle = live.title.trim() || "Untitled course";
 
   const viewCourse = (
@@ -257,7 +270,7 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className={styles.menu}>
-                      <DropdownMenuItem className={styles.dangerItem} onSelect={() => setUnpublishOpen(true)}>
+                      <DropdownMenuItem className={styles.dangerItem} onSelect={startUnpublish}>
                         <EyeOff size={16} /> Unpublish course
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -430,6 +443,8 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
             isPending={unpublishCourseMutation.isPending}
             onConfirm={() => unpublishCourseMutation.mutate({ courseId }, { onSuccess: () => setUnpublishOpen(false) })}
           />
+
+          {bundleUnpublishDialog}
         </>
       )}
     </>

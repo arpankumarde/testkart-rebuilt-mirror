@@ -3,10 +3,10 @@ import { getAdminSupportThreads } from "../endpoints/admin/support/threads_GET.s
 
 export const prefetch: PagePrefetchFn = async (ctx) => {
   const { qc } = ctx;
-  /* Must match useAdminThreadsQuery's key for the default view: page 1, all statuses, no search, no unread filter. */
+  /* Must match useAdminThreadsQuery's key for the default view: page 1, the Open tab, no search, no unread filter. */
   await qc.prefetchQuery({
-    queryKey: ["admin", "support", "threads", 1, 20, undefined, "", false],
-    queryFn: () => getAdminSupportThreads({ page: 1, limit: 20 }),
+    queryKey: ["admin", "support", "threads", 1, 20, "open", "", false],
+    queryFn: () => getAdminSupportThreads({ page: 1, limit: 20, status: "open" }),
   });
   return { maxAge: 0 };
 };

@@ -1,6 +1,11 @@
 import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./unpublish_POST.schema";
+import {
+  bundleConfirmationResponse,
+  findPublishedBundlesContaining,
+  unpublishBundles,
+} from "../../../helpers/bundleDependencies";
 import superjson from "superjson";
 
 export async function handle(request: Request): Promise<Response> {
@@ -19,7 +24,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const product = await db
       .selectFrom("digitalProducts")
-      .select("id")
+      .select(["id", "status"])
       .where("id", "=", input.id)
       .where("teacherId", "=", effectiveTeacherId)
       .executeTakeFirst();
@@ -31,27 +36,50 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
-    const updatedProduct = await db
-      .updateTable("digitalProducts")
-      .set({
-        status: "draft",
-        isPublished: false,
-        updatedAt: new Date(),
-      })
-      .where("id", "=", input.id)
-      .returningAll()
-      .executeTakeFirstOrThrow();
+    // One transaction, so the product, its cart rows and the bundles holding it
+    // change together or not at all. A product that is not live is not holding
+    // any bundle up, so only a published one triggers the bundle check.
+    const result = await db.transaction().execute(async (trx) => {
+      const bundles =
+        product.status === "published"
+          ? await findPublishedBundlesContaining(trx, "digital_product", [input.id])
+          : [];
+      if (bundles.length > 0 && !input.confirmBundleUnpublish) {
+        return { kind: "needs-confirmation" as const, bundles };
+      }
 
-    // Remove this product from all carts since it's no longer published
-    await db
-      .deleteFrom("cartItems")
-      .where("digitalProductId", "=", input.id)
-      .execute();
+      const now = new Date();
+      const updatedProduct = await trx
+        .updateTable("digitalProducts")
+        .set({
+          status: "draft",
+          isPublished: false,
+          updatedAt: now,
+        })
+        .where("id", "=", input.id)
+        .returningAll()
+        .executeTakeFirstOrThrow();
 
+      // Remove this product from all carts since it's no longer published
+      await trx
+        .deleteFrom("cartItems")
+        .where("digitalProductId", "=", input.id)
+        .execute();
+
+      await unpublishBundles(trx, bundles, now);
+      return { kind: "done" as const, updatedProduct, bundles };
+    });
+
+    if (result.kind === "needs-confirmation") {
+      return bundleConfirmationResponse(result.bundles);
+    }
+
+    const { updatedProduct } = result;
     console.log(`Deleted cart items referencing digital product ${input.id} after unpublishing.`);
 
     const output: OutputType = {
       ...updatedProduct,
+      unpublishedBundles: result.bundles,
       price: Number(updatedProduct.price),
       rating: updatedProduct.rating ? Number(updatedProduct.rating) : null,
       fileSizeBytes: updatedProduct.fileSizeBytes ? Number(updatedProduct.fileSizeBytes) : null,

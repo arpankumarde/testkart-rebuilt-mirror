@@ -21,6 +21,7 @@ import {
   Wrench,
 } from 'lucide-react';
 import { useTeacherProductsQuery, useTeacherProductMutations } from '../helpers/useTeacherProductsQuery';
+import { useBundleUnpublishGuard } from '../helpers/useBundleUnpublishGuard';
 import { useListUrlParams } from '../helpers/useListUrlParams';
 import { useRefetchOnLinkArrival } from '../helpers/useRefetchOnLinkArrival';
 import { Button } from './Button';
@@ -358,6 +359,7 @@ export const TeacherProductManager: React.FC = () => {
     unpublishProductMutation,
     bulkActionMutation,
   } = useTeacherProductMutations();
+  const { requestUnpublish, bundleUnpublishDialog } = useBundleUnpublishGuard();
 
   const products = data?.products ?? [];
   const total = data?.total ?? 0;
@@ -414,16 +416,33 @@ export const TeacherProductManager: React.FC = () => {
   };
 
   const runBulk = (action: 'publish' | 'unpublish' | 'archive') => {
-    if (selectedIds.size === 0) return;
-    bulkActionMutation.mutate(
-      { ids: Array.from(selectedIds), action },
-      {
-        onSuccess: () => {
-          setSelectedIds(new Set());
-          setPendingBulkArchive(false);
-        },
-      }
-    );
+    if (selectedIds.size === 0 || bulkActionMutation.isPending) return;
+    const ids = Array.from(selectedIds);
+    const send = async (confirmBundleUnpublish: boolean) => {
+      await bulkActionMutation.mutateAsync({
+        ids,
+        action,
+        confirmBundleUnpublish: confirmBundleUnpublish || undefined,
+      });
+      setSelectedIds(new Set());
+      setPendingBulkArchive(false);
+    };
+
+    if (action === 'publish') {
+      void send(false).catch(() => undefined);
+      return;
+    }
+
+    // Unpublishing and archiving both take live products off the store. Only a
+    // published product can be holding a bundle up, so only those are checked.
+    // The archive dialog closes first so the bundle warning is not stacked on it.
+    setPendingBulkArchive(false);
+    const liveIds = products.filter((p) => selectedIds.has(p.id) && p.status === 'published').map((p) => p.id);
+    if (liveIds.length === 0) {
+      void send(false).catch(() => undefined);
+      return;
+    }
+    void requestUnpublish({ itemType: 'digital_product', ids: liveIds }, send);
   };
 
   const activeTabLabel = TABS.find((tab) => tab.value === statusFilter)?.label.toLowerCase() ?? 'all';
@@ -573,7 +592,15 @@ export const TeacherProductManager: React.FC = () => {
               selected={selectedIds.has(product.id)}
               onToggleSelected={() => toggleSelected(product.id)}
               onSubmit={() => publishProductMutation.mutate({ id: product.id })}
-              onUnpublish={() => unpublishProductMutation.mutate({ id: product.id })}
+              onUnpublish={() => {
+                if (unpublishProductMutation.isPending) return;
+                void requestUnpublish({ itemType: 'digital_product', ids: [product.id] }, (confirmed) =>
+                  unpublishProductMutation.mutateAsync({
+                    id: product.id,
+                    confirmBundleUnpublish: confirmed || undefined,
+                  })
+                );
+              }}
               onShare={() => setSharingProduct(product)}
               onDelete={() => setDeletingProduct(product)}
               isSubmitting={
@@ -690,6 +717,8 @@ export const TeacherProductManager: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {bundleUnpublishDialog}
 
       <Dialog open={pendingBulkArchive} onOpenChange={(open) => !open && setPendingBulkArchive(false)}>
         <DialogContent>

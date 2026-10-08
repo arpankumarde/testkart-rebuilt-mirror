@@ -24,6 +24,8 @@ import { toast } from "sonner";
 import { parseErrorMessage } from "./parseErrorMessage";
 import { TEACHER_DASHBOARD_STATS_QUERY_KEY } from "./useTeacherDashboardStats";
 import { CREATOR_BONUS_QUERY_KEY } from "./useCreatorBonus";
+import { invalidateTeacherBundles } from "./invalidateTeacherBundles";
+import { bundleCascadeNote } from "./bundleCascadeNote";
 
 export const TEACHER_COURSES_QUERY_KEY = ["teacher", "courses"];
 export const TEACHER_COURSE_DETAILS_QUERY_KEY = (courseId: number) => [
@@ -150,7 +152,8 @@ export const useTeacherCourseMutations = () => {
     onSuccess: (data) => {
       invalidateLists();
       invalidateDetails(data.id);
-      toast.success("Course unpublished. It is back in draft.");
+      if (data.unpublishedBundles.length > 0) invalidateTeacherBundles(queryClient);
+      toast.success(`Course unpublished. It is back in draft.${bundleCascadeNote(data.unpublishedBundles.length)}`);
     },
     onError: (error) => {
       toast.error(parseErrorMessage(error) || "Failed to unpublish course");

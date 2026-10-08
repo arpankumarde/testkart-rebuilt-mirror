@@ -1,6 +1,11 @@
 import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./unpublish_POST.schema";
+import {
+  bundleConfirmationResponse,
+  findPublishedBundlesContaining,
+  unpublishBundles,
+} from "../../../helpers/bundleDependencies";
 import superjson from "superjson";
 
 export async function handle(request: Request): Promise<Response> {
@@ -15,7 +20,7 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     const json = superjson.parse(await request.text());
-    const { courseId } = schema.parse(json);
+    const { courseId, confirmBundleUnpublish } = schema.parse(json);
 
     const course = await db
       .selectFrom("courses")
@@ -44,22 +49,51 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
-    const updatedCourse = await db
-      .updateTable("courses")
-      .set({ status: "draft", updatedAt: new Date() })
-      .where("id", "=", courseId)
-      .returningAll()
-      .executeTakeFirstOrThrow();
+    // One transaction, so the course, its cart rows and the bundles holding it
+    // change together or not at all. The status guard on the update makes a
+    // second, concurrent unpublish a no-op rather than a double write.
+    const result = await db.transaction().execute(async (trx) => {
+      const bundles = await findPublishedBundlesContaining(trx, "course", [courseId]);
+      if (bundles.length > 0 && !confirmBundleUnpublish) {
+        return { kind: "needs-confirmation" as const, bundles };
+      }
 
-    const deletedCartItems = await db
-      .deleteFrom("cartItems")
-      .where("courseId", "=", courseId)
-      .executeTakeFirst();
-    console.log(`Deleted ${deletedCartItems.numDeletedRows} cart item(s) for unpublished course ${courseId}`);
+      const now = new Date();
+      const updatedCourse = await trx
+        .updateTable("courses")
+        .set({ status: "draft", updatedAt: now })
+        .where("id", "=", courseId)
+        .where("status", "=", "published")
+        .returningAll()
+        .executeTakeFirst();
+
+      if (!updatedCourse) return { kind: "not-published" as const };
+
+      const deletedCartItems = await trx
+        .deleteFrom("cartItems")
+        .where("courseId", "=", courseId)
+        .executeTakeFirst();
+      console.log(`Deleted ${deletedCartItems.numDeletedRows} cart item(s) for unpublished course ${courseId}`);
+
+      await unpublishBundles(trx, bundles, now);
+      return { kind: "done" as const, updatedCourse, bundles };
+    });
+
+    if (result.kind === "needs-confirmation") {
+      return bundleConfirmationResponse(result.bundles);
+    }
+
+    if (result.kind === "not-published") {
+      return new Response(
+        superjson.stringify({ error: "Course is not published" }),
+        { status: 400 }
+      );
+    }
 
     const output: OutputType = {
-      ...updatedCourse,
-      price: Number(updatedCourse.price),
+      ...result.updatedCourse,
+      price: Number(result.updatedCourse.price),
+      unpublishedBundles: result.bundles,
     };
 
     return new Response(superjson.stringify(output));

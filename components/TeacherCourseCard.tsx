@@ -17,6 +17,7 @@ import { ShareAssetDialog } from './ShareAssetDialog';
 import { TEACHER_CONSOLE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
 import { TeacherCourseListItem } from '../endpoints/teacher/courses/list_GET.schema';
 import { useTeacherCourseMutations } from '../helpers/useTeacherCoursesQuery';
+import { useBundleUnpublishGuard } from '../helpers/useBundleUnpublishGuard';
 import { courseDiscountPrice } from '../helpers/coursePricing';
 import { formatRupees } from '../helpers/teacherCampaignRules';
 import styles from './TeacherCourseCard.module.css';
@@ -54,15 +55,17 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
   const { unpublishCourseMutation } = useTeacherCourseMutations();
   const [isShareOpen, setShareOpen] = React.useState(false);
 
+  const { requestUnpublish, bundleUnpublishDialog } = useBundleUnpublishGuard();
+
   const handleUnpublish = () => {
-    unpublishCourseMutation.mutate(
-      { courseId: course.id },
-      {
-        onSuccess: () => {
-          onUnpublish?.();
-        },
-      }
-    );
+    if (unpublishCourseMutation.isPending) return;
+    void requestUnpublish({ itemType: 'course', ids: [course.id] }, async (confirmed) => {
+      await unpublishCourseMutation.mutateAsync({
+        courseId: course.id,
+        confirmBundleUnpublish: confirmed || undefined,
+      });
+      onUnpublish?.();
+    });
   };
 
   const status = course.status ?? 'draft';
@@ -221,6 +224,8 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
           ]}
         />
       )}
+
+      {bundleUnpublishDialog}
 
       {status === 'published' && (
         <ShareAssetDialog

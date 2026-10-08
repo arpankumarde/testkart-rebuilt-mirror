@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { getItemExamNames } from '../helpers/itemExams';
 import { Helmet } from 'react-helmet';
+import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { Plus, Search, ListChecks } from 'lucide-react';
 import { useTeacherTestsQuery } from '../helpers/useTeacherTestsQuery';
@@ -15,6 +16,9 @@ import { TeacherTestCard } from '../components/TeacherTestCard';
 import { DeleteTestDialog } from '../components/DeleteTestDialog';
 import { UnpublishTestDialog } from '../components/UnpublishTestDialog';
 import { ConvertTestToDraftDialog } from '../components/ConvertTestToDraftDialog';
+import { useBundleUnpublishGuard } from '../helpers/useBundleUnpublishGuard';
+import { useTeacherTestMutations } from '../helpers/useTeacherTestMutations';
+import { bundleCascadeNote } from '../helpers/bundleCascadeNote';
 import { TestCardSkeleton } from '../components/TestCardSkeleton';
 import styles from './teacher.test-series.module.css';
 
@@ -46,6 +50,40 @@ const TeacherTestSeriesPage: React.FC = () => {
   const [testToDelete, setTestToDelete] = useState<TeacherTest | null>(null);
   const [testToUnpublish, setTestToUnpublish] = useState<TeacherTest | null>(null);
   const [testToConvertToDraft, setTestToConvertToDraft] = useState<TeacherTest | null>(null);
+
+  // A series held by a published bundle gets the bundle warning in place of the
+  // two dialogs above, and the unpublish runs from here once it is accepted.
+  const { requestUnpublish, bundleUnpublishDialog } = useBundleUnpublishGuard();
+  const { useUnpublishTestMutation } = useTeacherTestMutations();
+  const unpublishMutation = useUnpublishTestMutation();
+
+  const guardedUnpublish = (
+    test: TeacherTest,
+    openDialog: () => void,
+    afterUnpublish?: () => void
+  ) => {
+    if (unpublishMutation.isPending) return;
+    void requestUnpublish({ itemType: 'test', ids: [test.id] }, async (confirmedBundleUnpublish) => {
+      if (!confirmedBundleUnpublish) {
+        openDialog();
+        return;
+      }
+      try {
+        const result = await unpublishMutation.mutateAsync({
+          testId: test.id,
+          confirmBundleUnpublish: true,
+        });
+        toast.success(
+          `"${test.title}" has been unpublished.${bundleCascadeNote(result.unpublishedBundles.length)}`
+        );
+        afterUnpublish?.();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'An unknown error occurred.';
+        toast.error(`Failed to unpublish test: ${message}`);
+        throw error;
+      }
+    });
+  };
 
   // The tab lives in the URL so other screens can land the teacher on a
   // specific one - publishing sends them straight to ?status=published, and
@@ -186,8 +224,14 @@ const TeacherTestSeriesPage: React.FC = () => {
             key={test.id}
             test={test}
             onDelete={() => setTestToDelete(test)}
-            onUnpublish={() => setTestToUnpublish(test)}
-            onConvertToDraft={() => setTestToConvertToDraft(test)}
+            onUnpublish={() => guardedUnpublish(test, () => setTestToUnpublish(test))}
+            onConvertToDraft={() =>
+              guardedUnpublish(
+                test,
+                () => setTestToConvertToDraft(test),
+                () => setActiveTab('draft')
+              )
+            }
           />
         ))}
       </div>
@@ -283,6 +327,8 @@ const TeacherTestSeriesPage: React.FC = () => {
           onConverted={() => setActiveTab('draft')}
         />
       )}
+
+      {bundleUnpublishDialog}
     </>
   );
 };

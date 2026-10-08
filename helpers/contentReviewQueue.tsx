@@ -3,6 +3,7 @@ import type { ContentType, DB } from "./schema";
 import { assertTeacherCanFundPrizePool } from "./liveTestPrizeFunding";
 import { CONTENT_NOUNS, OPEN_REVIEW_STATUSES, type ContentRejection } from "./contentReviewStatus";
 import { withdrawClaimsForReviews } from "./teacherCampaign";
+import { unpublishBundlesContaining } from "./bundleDependencies";
 
 type Executor = Kysely<DB> | Transaction<DB>;
 
@@ -290,7 +291,8 @@ export async function loadContentState(
 
 /**
  * Takes live content off the store the same way the teacher's own unpublish
- * does. Students who already bought it keep access; carts drop it.
+ * does. Students who already bought it keep access; carts drop it; the
+ * published bundles holding it go down with it.
  */
 export async function takeDownContent(
   trx: Transaction<DB>,
@@ -302,10 +304,12 @@ export async function takeDownContent(
     case "mock_test":
       await trx.updateTable("mockTests").set({ isPublished: false, updatedAt: now }).where("id", "=", contentId).execute();
       await trx.deleteFrom("cartItems").where("mockTestId", "=", contentId).execute();
+      await unpublishBundlesContaining(trx, "test", [contentId], now);
       return;
     case "course":
       await trx.updateTable("courses").set({ status: "draft", updatedAt: now }).where("id", "=", contentId).execute();
       await trx.deleteFrom("cartItems").where("courseId", "=", contentId).execute();
+      await unpublishBundlesContaining(trx, "course", [contentId], now);
       return;
     case "digital_product":
       await trx
@@ -314,6 +318,7 @@ export async function takeDownContent(
         .where("id", "=", contentId)
         .execute();
       await trx.deleteFrom("cartItems").where("digitalProductId", "=", contentId).execute();
+      await unpublishBundlesContaining(trx, "digital_product", [contentId], now);
       return;
     case "course_bundle":
       await trx

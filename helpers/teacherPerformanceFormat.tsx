@@ -7,7 +7,7 @@ export type PerformanceTab = "students" | "leaderboards" | "courses" | "notes";
 /** Links into the Performance page, used by the content cards' shortcut strip and the notes list. */
 export const performanceHref = (
   tab: PerformanceTab,
-  target?: { series?: number; live?: number; course?: number; item?: number; note?: number }
+  target?: { series?: number; live?: number; course?: number; item?: number; note?: number; bundle?: number }
 ): string => {
   const params = new URLSearchParams();
   if (tab !== "students") params.set("tab", tab);
@@ -16,6 +16,7 @@ export const performanceHref = (
   if (target?.live) params.set("live", String(target.live));
   if (target?.course) params.set("course", String(target.course));
   if (target?.note) params.set("note", String(target.note));
+  if (target?.bundle) params.set("bundle", String(target.bundle));
   const query = params.toString();
   return query ? `${PERFORMANCE_PATH}?${query}` : PERFORMANCE_PATH;
 };

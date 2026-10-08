@@ -36,6 +36,7 @@ const TeacherStudentPerformancePage: React.FC = () => {
   const liveTestId = readId("live") ?? undefined;
   const courseId = readId("course") ?? undefined;
   const noteId = readId("note") ?? undefined;
+  const bundleId = readId("bundle") ?? undefined;
   const studentId = readId("student");
   const paperId = readId("paper");
   const attemptId = readId("attempt");
@@ -45,7 +46,15 @@ const TeacherStudentPerformancePage: React.FC = () => {
     value: tab,
     // A tab's picks belong to that tab, so switching starts it fresh.
     onValueChange: (value) =>
-      write({ tab: value === "students" ? null : value, series: null, item: null, live: null, course: null, note: null }),
+      write({
+        tab: value === "students" ? null : value,
+        series: null,
+        item: null,
+        live: null,
+        course: null,
+        note: null,
+        bundle: null,
+      }),
     tabsLabel: "Performance sections",
   };
 
@@ -84,9 +93,11 @@ const TeacherStudentPerformancePage: React.FC = () => {
                     ? { courseId }
                     : noteId
                       ? { productId: noteId }
-                      : {}
+                      : bundleId
+                        ? { bundleId }
+                        : {}
             }
-            onClearScope={() => write({ series: null, live: null, course: null, note: null })}
+            onClearScope={() => write({ series: null, live: null, course: null, note: null, bundle: null })}
             onOpenStudent={openStudent}
             enabled={enabled}
           />

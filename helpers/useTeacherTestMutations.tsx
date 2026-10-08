@@ -72,6 +72,7 @@ import {
 import { TEACHER_TRASH_QUERY_KEY } from "./useTeacherTrash";
 import { TEACHER_DASHBOARD_STATS_QUERY_KEY } from "./useTeacherDashboardStats";
 import { CREATOR_BONUS_QUERY_KEY } from "./useCreatorBonus";
+import { invalidateTeacherBundles } from "./invalidateTeacherBundles";
 
 export const useTeacherTestMutations = () => {
   const queryClient = useQueryClient();
@@ -162,7 +163,10 @@ export const useTeacherTestMutations = () => {
   const useUnpublishTestMutation = () =>
     useMutation({
       mutationFn: (data: UnpublishTestInput) => postTeacherTestsUnpublish(data),
-      onSuccess: invalidateTestsList,
+      onSuccess: (data) => {
+        invalidateTestsList();
+        if (data.unpublishedBundles.length > 0) invalidateTeacherBundles(queryClient);
+      },
     });
 
    const useDeleteTestMutation = () =>

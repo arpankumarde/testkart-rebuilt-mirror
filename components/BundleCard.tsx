@@ -1,18 +1,18 @@
 import React from 'react';
-import { Edit, Trash2, MoreVertical, Eye, EyeOff, Package, ExternalLink, Share2, Undo2, Wrench } from 'lucide-react';
+import { Edit, EyeOff, Trash2, MoreVertical, Package, Share2, Undo2, Wrench } from 'lucide-react';
 import { Badge } from './Badge';
 import { Button } from './Button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './DropdownMenu';
 import { ShareAssetDialog } from './ShareAssetDialog';
+import { TeacherCardInsights } from './TeacherCardInsights';
 import { TeacherRejectionNote } from './TeacherRejectionNote';
 import { WithdrawReviewDialog, WITHDRAW_REVIEW_LABEL } from './WithdrawReviewButton';
-import { buildPublicAssetUrl, TEACHER_CONSOLE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
+import { TEACHER_CONSOLE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
 import { computeBundlePricing } from '../helpers/bundlePricing';
 import type { BundleListItem } from '../endpoints/teacher/bundles/list_GET.schema';
 import styles from './BundleCard.module.css';
@@ -33,16 +33,11 @@ export const BundleCard: React.FC<BundleCardProps> = ({
   const [isShareOpen, setShareOpen] = React.useState(false);
   const [isWithdrawOpen, setWithdrawOpen] = React.useState(false);
 
-  const bundleUrl = buildPublicAssetUrl('bundle', bundle.slug);
-
-  const handleOpenLink = () => {
-    window.open(bundleUrl, '_blank');
-  };
-
-  const isInReview = !bundle.isPublished && bundle.inReview;
-  const rejection = !bundle.isPublished && !isInReview ? bundle.rejection : null;
-  const statusText = bundle.isPublished ? 'Published' : isInReview ? 'In review' : rejection ? 'Rejected' : 'Draft';
-  const statusClass = bundle.isPublished
+  const isPublished = bundle.isPublished;
+  const isInReview = !isPublished && bundle.inReview;
+  const rejection = !isPublished && !isInReview ? bundle.rejection : null;
+  const statusText = isPublished ? 'Published' : isInReview ? 'In review' : rejection ? 'Rejected' : 'Draft';
+  const statusClass = isPublished
     ? styles.published
     : isInReview
       ? styles.inReview
@@ -70,8 +65,28 @@ export const BundleCard: React.FC<BundleCardProps> = ({
   );
   const isPriceStale = Math.abs(bundle.currentOriginalPrice - bundle.originalPrice) >= 0.01;
 
-  const publishToggleLabel = bundle.isPublished ? 'Unpublish' : 'Publish';
-  const publishToggleIcon = bundle.isPublished ? <EyeOff size={16} /> : <Eye size={16} />;
+  // The only entry in the overflow menu. Non-modal so the dialogs it opens do
+  // not inherit its pointer lock.
+  const deleteMenu = (size: 'icon' | 'icon-sm') => (
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size={size}
+          className={styles.menuButton}
+          aria-label={`More actions for ${bundle.title}`}
+        >
+          <MoreVertical size={16} />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={onDelete} className={styles.deleteItem}>
+          <Trash2 size={16} />
+          <span>Delete</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 
   return (
     <div className={styles.card}>
@@ -86,43 +101,17 @@ export const BundleCard: React.FC<BundleCardProps> = ({
       </div>
 
       <div className={styles.content}>
-        <div className={styles.header}>
-          <div className={styles.badgeGroup}>
-            {discountPercentage > 0 && (
-              <Badge className={styles.discountBadge}>{discountPercentage}% OFF</Badge>
-            )}
-          </div>
-          {/* Non-modal so the dialogs it opens do not inherit its pointer lock. */}
-          <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon-sm" className={styles.menuButton}>
-                <MoreVertical size={16} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={onEdit}>
-                <Edit size={16} />
-                <span>Edit Bundle</span>
-              </DropdownMenuItem>
-              {isInReview ? (
-                <DropdownMenuItem onClick={() => setWithdrawOpen(true)}>
-                  <Undo2 size={16} />
-                  <span>{WITHDRAW_REVIEW_LABEL}</span>
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem onClick={onPublishToggle}>
-                  {publishToggleIcon}
-                  <span>{publishToggleLabel}</span>
-                </DropdownMenuItem>
+        {/* A published card keeps its menu in the price row, as the Test Series card does. */}
+        {(discountPercentage > 0 || !isPublished) && (
+          <div className={styles.header}>
+            <div className={styles.badgeGroup}>
+              {discountPercentage > 0 && (
+                <Badge className={styles.discountBadge}>{discountPercentage}% OFF</Badge>
               )}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={onDelete} className={styles.deleteItem}>
-                <Trash2 size={16} />
-                <span>Delete</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+            </div>
+            {!isPublished && deleteMenu('icon-sm')}
+          </div>
+        )}
 
         <h3 className={styles.title}>{bundle.title}</h3>
 
@@ -146,45 +135,59 @@ export const BundleCard: React.FC<BundleCardProps> = ({
             <span className={styles.originalPrice}>{formattedOriginalPrice}</span>
           )}
         </div>
-        <div className={styles.actions}>
-          {bundle.isPublished && (
-            <>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => setShareOpen(true)}
-                title="Share"
-                aria-label={`Share ${bundle.title}`}
-                className={styles.copyButton}
-              >
-                <Share2 size={16} />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={handleOpenLink}
-                title="Open in New Tab"
-                aria-label="Open in New Tab"
-                className={styles.copyButton}
-              >
-                <ExternalLink size={16} />
-              </Button>
-            </>
-          )}
-          {rejection ? (
-            <Button size="sm" variant="primary" onClick={onEdit}>
-              <Wrench size={14} />
-              Fix it
-            </Button>
-          ) : (
+        {isPublished ? (
+          <div className={styles.actions}>
             <Button size="sm" variant="outline" onClick={onEdit}>
-              Manage
+              <Edit size={14} />
+              Edit
             </Button>
-          )}
-        </div>
+            {deleteMenu('icon')}
+          </div>
+        ) : (
+          /* Publish stays here because the editor has no publish control of its own. */
+          <div className={styles.actions}>
+            {isInReview ? (
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => setWithdrawOpen(true)}
+                title={WITHDRAW_REVIEW_LABEL}
+                aria-label={WITHDRAW_REVIEW_LABEL}
+                className={styles.copyButton}
+              >
+                <Undo2 size={16} />
+              </Button>
+            ) : (
+              <Button size="sm" variant="outline" onClick={onPublishToggle}>
+                Publish
+              </Button>
+            )}
+            {rejection ? (
+              <Button size="sm" variant="primary" onClick={onEdit}>
+                <Wrench size={14} />
+                Fix it
+              </Button>
+            ) : (
+              <Button size="sm" variant="outline" onClick={onEdit}>
+                Edit
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
-      {bundle.isPublished && (
+      {isPublished && (
+        <TeacherCardInsights
+          itemTitle={bundle.title}
+          ariaLabel={`Actions for ${bundle.title}`}
+          items={[
+            { label: 'Share', icon: Share2, onClick: () => setShareOpen(true) },
+            { label: 'Unpublish', icon: EyeOff, onClick: onPublishToggle },
+          ]}
+        />
+      )}
+
+      {isPublished && (
         <ShareAssetDialog
           open={isShareOpen}
           onOpenChange={setShareOpen}

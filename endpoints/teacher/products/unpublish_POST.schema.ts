@@ -2,9 +2,13 @@ import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
 import { DigitalProducts } from "../../../helpers/schema";
+import type { AffectedBundle } from "../../../helpers/bundleDependencies";
 
 export const schema = z.object({
   id: z.number().int().positive(),
+  // Sent once the teacher has accepted that the published bundles holding the
+  // product go down with it. Without it, such a product is not unpublished.
+  confirmBundleUnpublish: z.boolean().optional(),
 });
 
 export type InputType = z.infer<typeof schema>;
@@ -13,6 +17,7 @@ export type OutputType = Omit<Selectable<DigitalProducts>, "price" | "rating" | 
   price: number;
   rating: number | null;
   fileSizeBytes: number | null;
+  unpublishedBundles: AffectedBundle[];
 };
 
 export const postTeacherProductsUnpublish = async (

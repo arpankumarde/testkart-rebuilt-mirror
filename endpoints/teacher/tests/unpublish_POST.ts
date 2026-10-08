@@ -1,6 +1,11 @@
 import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./unpublish_POST.schema";
+import {
+  bundleConfirmationResponse,
+  findPublishedBundlesContaining,
+  unpublishBundles,
+} from "../../../helpers/bundleDependencies";
 import superjson from "superjson";
 
 export async function handle(request: Request): Promise<Response> {
@@ -46,18 +51,46 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
-    await db
-      .updateTable("mockTests")
-      .set({ isPublished: false, updatedAt: new Date() })
-      .where("id", "=", testId)
-      .execute();
+    // One transaction, so the series, its cart rows and the bundles holding it
+    // change together or not at all. The isPublished guard on the update makes
+    // a second, concurrent unpublish a no-op rather than a double write.
+    const result = await db.transaction().execute(async (trx) => {
+      const bundles = await findPublishedBundlesContaining(trx, "test", [testId]);
+      if (bundles.length > 0 && !input.confirmBundleUnpublish) {
+        return { kind: "needs-confirmation" as const, bundles };
+      }
 
-    await db
-      .deleteFrom("cartItems")
-      .where("mockTestId", "=", testId)
-      .execute();
+      const now = new Date();
+      const updated = await trx
+        .updateTable("mockTests")
+        .set({ isPublished: false, updatedAt: now })
+        .where("id", "=", testId)
+        .where("isPublished", "=", true)
+        .executeTakeFirst();
 
-    const output: OutputType = { success: true };
+      if (Number(updated.numUpdatedRows) === 0) return { kind: "not-published" as const };
+
+      await trx
+        .deleteFrom("cartItems")
+        .where("mockTestId", "=", testId)
+        .execute();
+
+      await unpublishBundles(trx, bundles, now);
+      return { kind: "done" as const, bundles };
+    });
+
+    if (result.kind === "needs-confirmation") {
+      return bundleConfirmationResponse(result.bundles);
+    }
+
+    if (result.kind === "not-published") {
+      return new Response(
+        superjson.stringify({ error: "Test is already unpublished" }),
+        { status: 400 }
+      );
+    }
+
+    const output: OutputType = { success: true, unpublishedBundles: result.bundles };
     return new Response(superjson.stringify(output));
   } catch (error) {
     console.error("Error unpublishing test:", error);

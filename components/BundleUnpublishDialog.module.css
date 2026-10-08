@@ -1,0 +1,7 @@
+.bundles {
+  display: block;
+  margin-top: var(--spacing-2);
+  font-weight: 600;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}

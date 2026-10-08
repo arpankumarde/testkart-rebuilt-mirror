@@ -152,15 +152,33 @@
   font-weight: 500;
 }
 
+/*
+ * Three cells on one row, aligned along the price input. Messages sit in a second
+ * row under the centre column (priceFeedback), so they never stretch the cells.
+ */
 .priceGrid {
   display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
-  align-items: flex-end;
-  gap: var(--spacing-6);
+  grid-template-columns: minmax(6.5rem, 0.7fr) minmax(0, 2fr) minmax(6.5rem, 0.7fr);
+  align-items: end;
+  gap: var(--spacing-2) var(--spacing-4);
   background-color: var(--muted);
-  padding: var(--spacing-6);
+  padding: var(--spacing-4);
   border-radius: var(--radius-md);
   margin-top: var(--spacing-2);
+}
+
+.discountInfo {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.priceFeedback {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-width: 0;
 }
 
 .priceInfo {
@@ -178,8 +196,9 @@
 
 .priceValue {
   font-family: var(--font-family-heading);
-  font-size: 1.5rem;
+  font-size: 1.375rem;
   font-weight: 700;
+  line-height: 1.2;
   color: var(--foreground);
 }
 
@@ -198,6 +217,71 @@
   color: var(--error-text);
 }
 
+/* Same warning tint as validationMessage, as a slim inline alert under the price field. */
+.priceNotice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-1) var(--spacing-2);
+  padding: var(--spacing-1) var(--spacing-2);
+  background-color: color-mix(in srgb, var(--warning) 12%, var(--surface));
+  color: var(--warning-text);
+  border: 1px solid color-mix(in srgb, var(--warning) 45%, var(--surface));
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.noticeIcon {
+  flex-shrink: 0;
+}
+
+.noticeText {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/*
+ * A small pill that flows at the end of the message, so it adds no row of its own.
+ * Every state is set here, because the kit's outline button fills to the deep
+ * maroon on hover and inverts its label to white; this stays light with dark
+ * orange text throughout.
+ */
+.keepPrice {
+  display: inline-flex;
+  vertical-align: middle;
+  height: 1.25rem;
+  padding: 0 var(--spacing-2);
+  font-size: 0.75rem;
+  font-weight: 600;
+  background-color: var(--surface);
+  border-color: var(--primary);
+  color: var(--tk-brand-text);
+}
+
+.keepPrice:hover {
+  background-color: color-mix(in srgb, var(--primary) 16%, var(--surface));
+  border-color: var(--primary);
+  color: var(--tk-brand-text);
+}
+
+.keepPrice:active {
+  background-color: color-mix(in srgb, var(--primary) 26%, var(--surface));
+  border-color: var(--primary);
+  color: var(--tk-brand-text);
+}
+
+.keepPrice:focus-visible {
+  background-color: var(--surface);
+  color: var(--tk-brand-text);
+}
+
+.keepPrice:disabled {
+  background-color: var(--surface);
+  color: var(--tk-brand-text);
+}
+
 .formActions {
   display: flex;
   justify-content: flex-end;
@@ -208,10 +292,16 @@
 }
 
 @media (max-width: 640px) {
+  /* Stacked in source order: original, price, its message, discount. */
   .priceGrid {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-6);
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--spacing-3);
     padding: var(--spacing-4);
+  }
+  .discountInfo,
+  .priceFeedback {
+    grid-column: auto;
+    grid-row: auto;
   }
   .priceInfo {
     flex-direction: row;

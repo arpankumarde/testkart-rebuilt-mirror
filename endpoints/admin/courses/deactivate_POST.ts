@@ -1,6 +1,7 @@
 import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { schema, OutputType } from "./deactivate_POST.schema";
+import { unpublishBundlesContaining } from "../../../helpers/bundleDependencies";
 import superjson from "superjson";
 
 export async function handle(request: Request): Promise<Response> {
@@ -10,20 +11,28 @@ export async function handle(request: Request): Promise<Response> {
     const json = superjson.parse(await request.text());
     const { courseId } = schema.parse(json);
 
-    const result = await db
-      .updateTable("courses")
-      .set({
-        status: "archived",
-        publishedAt: null,
-      })
-      .where("id", "=", courseId)
-      .where("status", "=", "published")
-      .executeTakeFirst();
+    // The published bundles holding the course go down with it, in the same transaction.
+    const result = await db.transaction().execute(async (trx) => {
+      const updated = await trx
+        .updateTable("courses")
+        .set({
+          status: "archived",
+          publishedAt: null,
+        })
+        .where("id", "=", courseId)
+        .where("status", "=", "published")
+        .executeTakeFirst();
 
-    await db
-      .deleteFrom("cartItems")
-      .where("courseId", "=", courseId)
-      .execute();
+      await trx
+        .deleteFrom("cartItems")
+        .where("courseId", "=", courseId)
+        .execute();
+
+      if (updated.numUpdatedRows > 0n) {
+        await unpublishBundlesContaining(trx, "course", [courseId]);
+      }
+      return updated;
+    });
 
     if (result.numUpdatedRows === 0n) {
       const course = await db

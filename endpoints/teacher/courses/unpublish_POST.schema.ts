@@ -2,15 +2,20 @@ import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
 import { Courses } from "../../../helpers/schema";
+import type { AffectedBundle } from "../../../helpers/bundleDependencies";
 
 export const schema = z.object({
   courseId: z.number().int().positive(),
+  // Sent once the teacher has accepted that the published bundles holding the
+  // course go down with it. Without it, such a course is not unpublished.
+  confirmBundleUnpublish: z.boolean().optional(),
 });
 
 export type InputType = z.infer<typeof schema>;
 
 export type OutputType = Omit<Selectable<Courses>, "price"> & {
   price: number;
+  unpublishedBundles: AffectedBundle[];
 };
 
 export const postTeacherCoursesUnpublish = async (

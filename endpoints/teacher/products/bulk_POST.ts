@@ -6,6 +6,12 @@ import { getProductPublishIssues, formatPublishIssues } from "../../../helpers/d
 import { findStudyNoteFileProblem } from "../../../helpers/studyNoteFileCheck";
 import { pendingReviewIds, queueContentReview } from "../../../helpers/contentReviewQueue";
 import { sendReviewChatAlert, type QueuedReview } from "../../../helpers/reviewChatAlert";
+import {
+  bundleConfirmationResponse,
+  findPublishedBundlesContaining,
+  unpublishBundles,
+  type AffectedBundle,
+} from "../../../helpers/bundleDependencies";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -31,6 +37,7 @@ export async function handle(request: Request): Promise<Response> {
     const foundIds = new Set(products.map((p) => p.id));
     const succeeded: number[] = [];
     const failed: OutputType["failed"] = [];
+    let unpublishedBundles: AffectedBundle[] = [];
 
     for (const id of input.ids) {
       if (!foundIds.has(id)) {
@@ -94,34 +101,51 @@ export async function handle(request: Request): Promise<Response> {
           .where("id", "in", succeeded)
           .execute();
       }
-    } else if (input.action === "unpublish") {
-      for (const p of products) succeeded.push(p.id);
-      if (succeeded.length > 0) {
-        await db
-          .updateTable("digitalProducts")
-          .set({ status: "draft", isPublished: false, updatedAt: new Date() })
-          .where("id", "in", succeeded)
-          .execute();
-        await db
-          .deleteFrom("cartItems")
-          .where("digitalProductId", "in", succeeded)
-          .execute();
-      }
     } else {
-      // archive
-      for (const p of products) {
-        succeeded.push(p.id);
-      }
+      // Unpublish and archive both take live products off the store, so the
+      // published bundles holding any of them have to go down in the same
+      // transaction. Products that are not live hold no bundle up.
+      for (const p of products) succeeded.push(p.id);
+      const liveIds = products.filter((p) => p.status === "published").map((p) => p.id);
+
       if (succeeded.length > 0) {
-        await db
-          .updateTable("digitalProducts")
-          .set({ status: "archived", isPublished: false, updatedAt: new Date() })
-          .where("id", "in", succeeded)
-          .execute();
+        const result = await db.transaction().execute(async (trx) => {
+          const bundles = await findPublishedBundlesContaining(trx, "digital_product", liveIds);
+          if (bundles.length > 0 && !input.confirmBundleUnpublish) {
+            return { kind: "needs-confirmation" as const, bundles };
+          }
+
+          const now = new Date();
+          if (input.action === "unpublish") {
+            await trx
+              .updateTable("digitalProducts")
+              .set({ status: "draft", isPublished: false, updatedAt: now })
+              .where("id", "in", succeeded)
+              .execute();
+            await trx
+              .deleteFrom("cartItems")
+              .where("digitalProductId", "in", succeeded)
+              .execute();
+          } else {
+            await trx
+              .updateTable("digitalProducts")
+              .set({ status: "archived", isPublished: false, updatedAt: now })
+              .where("id", "in", succeeded)
+              .execute();
+          }
+
+          await unpublishBundles(trx, bundles, now);
+          return { kind: "done" as const, bundles };
+        });
+
+        if (result.kind === "needs-confirmation") {
+          return bundleConfirmationResponse(result.bundles);
+        }
+        unpublishedBundles = result.bundles;
       }
     }
 
-    const output: OutputType = { succeeded, failed };
+    const output: OutputType = { succeeded, failed, unpublishedBundles };
 
     return new Response(superjson.stringify(output));
   } catch (error) {

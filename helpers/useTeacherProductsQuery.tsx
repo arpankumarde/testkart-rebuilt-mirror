@@ -16,6 +16,8 @@ import { parseErrorMessage } from "./parseErrorMessage";
 import { CUSTOM_EXAM_NAMES_QUERY_KEY } from "./useExamNameSuggestions";
 import { TEACHER_PRODUCT_DETAILS_QUERY_KEY } from "./useTeacherProductDetailsQuery";
 import { TEACHER_DASHBOARD_STATS_QUERY_KEY } from "./useTeacherDashboardStats";
+import { invalidateTeacherBundles } from "./invalidateTeacherBundles";
+import { bundleCascadeNote } from "./bundleCascadeNote";
 
 export const TEACHER_PRODUCTS_QUERY_KEY = ["teacher", "products"];
 
@@ -125,9 +127,10 @@ export const useTeacherProductMutations = ({ silent = false }: MutationOptions =
   const unpublishProductMutation = useMutation({
     mutationFn: postTeacherProductsUnpublish,
     onSuccess: (data) => {
-      notifySuccess("Product unpublished");
+      notifySuccess(`Product unpublished.${bundleCascadeNote(data.unpublishedBundles.length)}`);
       invalidateList();
       queryClient.invalidateQueries({ queryKey: [...TEACHER_PRODUCT_DETAILS_QUERY_KEY, data.id] });
+      if (data.unpublishedBundles.length > 0) invalidateTeacherBundles(queryClient);
     },
     onError: (error) => notifyError(error, "Failed to unpublish product"),
   });
@@ -136,11 +139,13 @@ export const useTeacherProductMutations = ({ silent = false }: MutationOptions =
     mutationFn: postTeacherProductsBulk,
     onSuccess: (data, variables) => {
       invalidateList();
+      if (data.unpublishedBundles.length > 0) invalidateTeacherBundles(queryClient);
       const verb = BULK_VERBS[variables.action];
       const done = data.succeeded.length;
       const plural = (n: number) => `${n} product${n === 1 ? "" : "s"}`;
+      const bundleNote = bundleCascadeNote(data.unpublishedBundles.length);
       if (data.failed.length === 0) {
-        toast.success(`${verb} ${plural(done)}.`);
+        toast.success(`${verb} ${plural(done)}.${bundleNote}`);
         return;
       }
       const description = React.createElement(
@@ -152,7 +157,7 @@ export const useTeacherProductMutations = ({ silent = false }: MutationOptions =
       );
       const headline = done === 0
         ? `Nothing was ${variables.action === "publish" ? "submitted for review" : verb.toLowerCase()}. ${plural(data.failed.length)} skipped:`
-        : `${verb} ${plural(done)}. ${plural(data.failed.length)} skipped:`;
+        : `${verb} ${plural(done)}.${bundleNote} ${plural(data.failed.length)} skipped:`;
       (done === 0 ? toast.error : toast.warning)(headline, { description, duration: 12000 });
     },
     onError: (error) => {

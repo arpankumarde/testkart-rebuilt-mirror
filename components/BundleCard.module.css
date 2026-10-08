@@ -163,11 +163,16 @@
   gap: var(--spacing-3);
 }
 
+/* Only the strikethrough figure may give way, so the price never runs under a button. */
 .priceContainer {
   display: flex;
   align-items: baseline;
   gap: var(--spacing-2);
   min-width: 0;
+}
+
+.priceContainer .price {
+  flex-shrink: 0;
 }
 
 /*
@@ -189,6 +194,10 @@
   font-weight: 500;
   color: var(--muted-foreground);
   text-decoration: line-through;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .deleteItem {
@@ -208,7 +217,8 @@
 .actions {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
+  gap: var(--spacing-1);
+  flex-shrink: 0;
 }
 
 .copyButton {
