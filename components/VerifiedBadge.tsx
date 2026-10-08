@@ -3,59 +3,53 @@ import { BadgeCheck } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./Tooltip";
 import styles from "./VerifiedBadge.module.css";
 
+export type VerifiedBadgeSize = "xs" | "sm" | "md" | "lg";
+
 interface VerifiedBadgeProps {
   isVerified: boolean;
-  size?: "sm" | "md" | "lg";
+  size?: VerifiedBadgeSize;
+  /** Fill colour of the badge; the check mark stays white. Defaults to the brand coral. */
+  color?: string;
+  label?: string;
   className?: string;
 }
 
+/*
+ * The one verified mark on Testkart. Every place that shows a verified teacher
+ * renders this, so the icon, stroke and proportions never drift between pages -
+ * only the size and fill colour vary, through props.
+ */
 export const VerifiedBadge: React.FC<VerifiedBadgeProps> = ({
   isVerified,
   size = "sm",
+  color,
+  label = "Verified Teacher",
   className,
 }) => {
-  // Per instance, not a shared constant. Every badge renders its own <defs>,
-  // so a fixed id put duplicates in the document and each one resolved to the
-  // first match - which paints nothing when that first badge happens to sit in
-  // a display:none subtree, as it does for the expert page's breakpoint swap.
-  const gradientId = `verified-gradient-${React.useId().replace(/[^a-zA-Z0-9]/g, "")}`;
-
   if (!isVerified) return null;
 
-  return (
-    <div
-      className={`${styles.badgeWrapper} ${styles[size]} ${className || ""}`}
-    >
-      {/* Hidden SVG for defining the custom gradient fill */}
-      <svg width="0" height="0" className={styles.svgDefs}>
-        <defs>
-          <linearGradient
-            id={gradientId}
-            x1="0%"
-            y1="0%"
-            x2="100%"
-            y2="100%"
-          >
-            <stop stopColor="hsl(20 100% 75%)" offset="0%" />
-            <stop stopColor="hsl(20 100% 55%)" offset="100%" />
-          </linearGradient>
-        </defs>
-      </svg>
+  const style = color
+    ? ({ "--verified-badge-color": color } as React.CSSProperties)
+    : undefined;
 
+  return (
+    <span
+      className={`${styles.badgeWrapper} ${styles[size]} ${className || ""}`}
+      style={style}
+    >
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className={styles.iconContainer}>
+          <span className={styles.iconContainer} role="img" aria-label={label}>
             <BadgeCheck
               className={styles.icon}
               size="100%"
-              fill={`url(#${gradientId})`}
-              color="white"
               strokeWidth={1.5}
+              aria-hidden="true"
             />
-          </div>
+          </span>
         </TooltipTrigger>
-        <TooltipContent sideOffset={4}>Verified Teacher</TooltipContent>
+        <TooltipContent sideOffset={4}>{label}</TooltipContent>
       </Tooltip>
-    </div>
+    </span>
   );
 };

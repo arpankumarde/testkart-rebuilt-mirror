@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { BadgeCheck, ChevronLeft, ChevronRight, Play } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 import {
   type CarouselApi,
   Carousel,
   CarouselContent,
   CarouselItem,
 } from "./Carousel";
+import { VerifiedBadge } from "./VerifiedBadge";
 import styles from "./SellPageTestimonials.module.css";
 
 interface Testimonial {
@@ -76,8 +77,12 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
         <Link to={testimonial.profilePath} className={styles.who}>
           <span className={styles.whoName}>
             {testimonial.academyName}
-            <BadgeCheck className={styles.verifiedIcon} aria-hidden="true" />
-            <span className={styles.srOnly}>Verified teacher</span>
+            <VerifiedBadge
+              isVerified
+              size="md"
+              color="var(--tk-brand-ink)"
+              className={styles.verifiedIcon}
+            />
           </span>
           <span className={styles.whoMeta}>{testimonial.meta}</span>
         </Link>

@@ -172,10 +172,11 @@
   border-radius: 2px;
 }
 
+/* Ink fill, set by the caller: the default coral would vanish into this band. */
 .verifiedIcon {
   width: clamp(15px, 1.4vw, 18px);
   height: clamp(15px, 1.4vw, 18px);
-  flex-shrink: 0;
+  margin-left: 0;
 }
 
 .whoMeta {
@@ -292,18 +293,6 @@
 .dot:focus-visible {
   outline: 2px solid var(--tk-brand-ink);
   outline-offset: 2px;
-}
-
-.srOnly {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
 }
 
 /* Layout only below here. Sizes are fluid and defined once, above. */

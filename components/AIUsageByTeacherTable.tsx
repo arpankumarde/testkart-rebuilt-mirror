@@ -1,8 +1,8 @@
 import React from "react";
-import { ShieldCheck } from "lucide-react";
 import { Input } from "./Input";
 import { Button } from "./Button";
 import { Skeleton } from "./Skeleton";
+import { VerifiedBadge } from "./VerifiedBadge";
 import { TeacherAiUsageRow } from "../endpoints/admin/ai-usage/by-teacher_GET.schema";
 import styles from "./AIUsageByTeacherTable.module.css";
 
@@ -105,9 +105,7 @@ export const AIUsageByTeacherTable: React.FC<AIUsageByTeacherTableProps> = ({
       <div className={styles.stack}>
         <span className={styles.primaryLine}>
           <span className={styles.truncate} title={t.teacherName}>{t.teacherName}</span>
-          {t.isVerified && (
-            <ShieldCheck size={14} color="var(--secondary-text)" className={styles.verified} aria-label="Verified" />
-          )}
+          <VerifiedBadge isVerified={t.isVerified} size="xs" className={styles.verified} />
         </span>
         <span className={styles.secondaryLine} title={meta}>{meta}</span>
       </div>

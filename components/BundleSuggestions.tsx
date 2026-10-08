@@ -1,9 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Package, BookCopy, BadgeCheck } from 'lucide-react';
+import { Package, BookCopy } from 'lucide-react';
 import { useBundlesQuery } from '../helpers/useBundlesQuery';
 import { Skeleton } from './Skeleton';
 import { Badge } from './Badge';
+import { VerifiedBadge } from './VerifiedBadge';
 import type { BundleListItem } from '../endpoints/bundles/list_GET.schema';
 import styles from './BundleSuggestions.module.css';
 
@@ -50,7 +51,7 @@ const BundleSuggestionCard: React.FC<{ bundle: BundleListItem }> = ({ bundle }) 
         <h4 className={styles.cardTitle}>{bundle.title}</h4>
         <p className={styles.teacherName}>
           By {bundle.teacherName}
-          {bundle.teacherIsVerified && <BadgeCheck size={14} className={styles.verifiedIcon} />}
+          <VerifiedBadge isVerified={bundle.teacherIsVerified} size="xs" className={styles.verifiedIcon} />
         </p>
         <div className={styles.courseCount}>
           <BookCopy size={14} />

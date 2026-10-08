@@ -5,7 +5,7 @@ import { Textarea } from './Textarea';
 import { TeacherAvatarField } from './TeacherAvatarField';
 import { VerifiedBadge } from './VerifiedBadge';
 import { TeacherProfileFormValues } from '../helpers/teacherProfileFormSchema';
-import { ExternalLink, Copy, BadgeCheck } from 'lucide-react';
+import { ExternalLink, Copy } from 'lucide-react';
 import { Button } from './Button';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -76,7 +76,7 @@ export const EditProfileIdentitySection: React.FC<EditProfileIdentitySectionProp
           <FormLabel>Display Name</FormLabel>
           {isVerified && (
             <span className={styles.verifiedIndicator}>
-              <BadgeCheck size={16} className={styles.verifiedIcon} />
+              <VerifiedBadge isVerified size="sm" className={styles.verifiedIcon} />
               <span className={styles.verifiedText}>Verified Teacher</span>
             </span>
           )}
