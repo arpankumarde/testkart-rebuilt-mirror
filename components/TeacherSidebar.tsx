@@ -130,7 +130,7 @@ const NAV_GROUPS: TeacherNavGroup[] = [
       { href: '/teacher/earnings', label: 'Earnings', icon: BarChart3, ownerOnly: true },
       { href: '/teacher/edit-profile', label: 'Profile', icon: UserCog, ownerOnly: true },
       { href: '/teacher/settings', label: 'Settings', icon: Settings, ownerOnly: true },
-      { href: '/teacher/subscription', label: 'Subscription', icon: CreditCard, ownerOnly: true },
+      { href: '/teacher/subscription', label: 'Fees & billing', icon: CreditCard, ownerOnly: true },
       { href: '/teacher/support', label: 'Contact support', icon: Headset },
     ],
   },

@@ -6,7 +6,7 @@ import { nanoid } from "nanoid";
 import { createHash } from "crypto";
 import { PAYU_MODE } from "../../helpers/_publicConfigs";
 import { NotAuthenticatedError } from "../../helpers/getSetServerSession";
-import { getTeacherPlatformFee } from "../../helpers/getTeacherPlatformFee";
+import { getTeacherPlatformFee, DEFAULT_TEACHER_PLATFORM_FEE } from "../../helpers/getTeacherPlatformFee";
 import { sanitizePayuText } from "../../helpers/sanitizePayuText";
 import { liveTestEffectivePrice } from "../../helpers/liveTestPricing";
 
@@ -100,7 +100,7 @@ export async function handle(request: Request) {
 
       const platformFeePercentage = mockTest
         ? await getTeacherPlatformFee(mockTest.teacherId, trx)
-        : 30;
+        : DEFAULT_TEACHER_PLATFORM_FEE;
 
       await trx
         .insertInto("orderItems")

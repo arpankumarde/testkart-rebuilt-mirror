@@ -6,9 +6,9 @@
  * contrast. All tokens are themed, so dark mode follows the site theme.
  */
 .footer {
-  --footer-gap: clamp(0.75rem, 3vw, 2rem);
+  --footer-gap: 24px;
 
-  width: min(1360px, 100% - 2 * var(--footer-gap));
+  width: calc(100% - 2 * var(--footer-gap));
   margin: var(--spacing-8) auto var(--footer-gap);
   background-color: var(--exam-ivory);
   border: 1px solid var(--exam-ivory-border);
@@ -153,8 +153,8 @@
   list-style: none;
   padding: 0;
   margin: 0;
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, 2.75rem);
   gap: var(--spacing-3);
 }
 
@@ -223,6 +223,14 @@
 .copyright {
   font-size: 0.8125rem;
   margin: 0;
+}
+
+/* The fixed bottom nav (60px, shown at 968px and below) would cover the last
+   lines of the footer, so the bottom margin clears it. */
+@media (max-width: 968px) {
+  .footer {
+    margin-bottom: calc(var(--footer-gap) + 60px + env(safe-area-inset-bottom));
+  }
 }
 
 @media (max-width: 992px) {

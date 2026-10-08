@@ -120,7 +120,7 @@ const jsonLd = {
           name: "What is the platform fee?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "Our fee structure is transparent. Free plan users pay a standard transaction fee per sale, which covers payment gateway charges, secure hosting, and support. There are no hidden charges.",
+            text: "Testkart charges a flat 28% platform fee on each sale, which covers payment gateway charges, secure hosting, and support. There are no subscriptions and no hidden charges.",
           },
         },
       ],
@@ -416,7 +416,7 @@ const SellDigitalProductsPage: React.FC = () => {
               <AccordionItem value="faq-6">
                 <AccordionTrigger>What is the platform fee?</AccordionTrigger>
                 <AccordionContent>
-                  Our fee structure is transparent. Free plan users pay a standard transaction fee per sale, which covers payment gateway charges, secure hosting, and support. There are no hidden charges.
+                  Testkart charges a flat 28% platform fee on each sale, which covers payment gateway charges, secure hosting, and support. There are no subscriptions and no hidden charges.
                 </AccordionContent>
               </AccordionItem>
             </Accordion>

@@ -207,7 +207,7 @@ const MockTestPage: React.FC = () => {
             <div className={styles.stepCard}>
               <div className={styles.stepNumber}>1</div>
               <h3>Sign Up Free</h3>
-              <p>Create your academy profile in under 2 minutes. No credit card required, zero platform fees.</p>
+              <p>Create your academy profile in under 2 minutes. No credit card and no upfront cost.</p>
             </div>
             <div className={styles.stepCard}>
               <div className={styles.stepNumber}>2</div>

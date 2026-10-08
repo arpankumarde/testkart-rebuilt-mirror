@@ -1,5 +1,6 @@
 import { EMAIL_BRAND, getBrandedEmailHtml } from "./emailBaseTemplate";
 import type { OnboardingEmailKey } from "./teacherOnboardingSchedule";
+import { DEFAULT_TEACHER_PLATFORM_FEE } from "./teacherPlatformFeeDefault";
 
 /**
  * Copy for the eight teacher onboarding emails (timing lives in
@@ -204,18 +205,20 @@ const EMAILS = (ctx: OnboardingRenderContext): Record<OnboardingEmailKey, Onboar
     before: [
       { p: "Namaste," },
       { p: "When a student buys your test, notes or course, the money lands in your Testkart balance. To withdraw it, your bank account needs to be on file. Add it now so nothing waits when the first sale comes in. Open Earnings and click Bank account." },
-      ...(ctx.plans.length > 0
-        ? ([{ p: "What Testkart keeps from each sale depends on your plan:" }, { plans: true }] as Block[])
-        : []),
-      { p: "Start on Free. Move up when your sales make the lower fee worth it. Starter also adds a verified teacher badge and AI question generation." },
+      // Plans stopped selling on 13-10-2026, so the plan table is no longer shown.
+      // ...(ctx.plans.length > 0
+      //   ? ([{ p: "What Testkart keeps from each sale depends on your plan:" }, { plans: true }] as Block[])
+      //   : []),
+      // { p: "Start on Free. Move up when your sales make the lower fee worth it. Starter also adds a verified teacher badge and AI question generation." },
+      { p: `Testkart keeps a flat ${DEFAULT_TEACHER_PLATFORM_FEE}% platform fee from each sale, and the rest is yours. There are no plans or monthly charges.` },
     ],
     after: [
-      { p: "How payouts and plans work:" },
+      { p: "How payouts and fees work:" },
       {
         ul: [
           `[How to Add Bank Account](${external("https://youtu.be/u5QEBFyQqIM", "e7_bank_account_video")})`,
           `[How to Withdraw Money from Testkart](${site("/help/how-to-withdraw-money-from-testkart", "e7_help_withdrawal")})`,
-          `[How to Manage Your Testkart Subscription](${site("/help/how-to-manage-testkart-subscription", "e7_help_subscription")})`,
+          `[Testkart Platform Fee and Subscriptions](${site("/help/how-to-manage-testkart-subscription", "e7_help_subscription")})`,
           `[How to Set the Price of a Test Series](${site("/help/how-to-set-price-of-test-series", "e7_help_test_pricing")})`,
         ],
       },

@@ -130,7 +130,7 @@ const SellOnlineCoursesPage: React.FC = () => {
                   "@type": "Offer",
                   "price": "0",
                   "priceCurrency": "INR",
-                  "description": "Start for free with zero platform fees. We only make money when you do."
+                  "description": "Start for free with no upfront cost. We take a flat 28% platform fee only when you make a sale."
                 }
               },
               {

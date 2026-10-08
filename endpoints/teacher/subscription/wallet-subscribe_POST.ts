@@ -8,6 +8,7 @@ import { lockWallet } from "../../../helpers/walletLock";
 import { createHash, randomUUID } from "crypto";
 import { PAYU_MODE } from "../../../helpers/_publicConfigs";
 import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
+import { assertPlanRenewable } from "../../../helpers/teacherPlanRenewal";
 
 export async function handle(request: Request) {
   try {
@@ -49,6 +50,10 @@ export async function handle(request: Request) {
 
     const planPrice = Number(plan.price);
     const isFree = planPrice === 0;
+
+    if (!isFree) {
+      await assertPlanRenewable(effectiveTeacherId, plan.id);
+    }
 
     // c. Free plan
     if (isFree) {

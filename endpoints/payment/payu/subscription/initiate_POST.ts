@@ -6,6 +6,7 @@ import { nanoid } from "nanoid";
 import { createHash } from "crypto";
 import { PAYU_MODE } from "../../../../helpers/_publicConfigs";
 import { NotAuthenticatedError } from "../../../../helpers/getSetServerSession";
+import { assertPlanRenewable } from "../../../../helpers/teacherPlanRenewal";
 
 export async function handle(request: Request) {
   try {
@@ -48,6 +49,8 @@ export async function handle(request: Request) {
       if (!plan) {
         throw new Error("The selected subscription plan is not available. Please choose a different plan.");
       }
+
+      await assertPlanRenewable(user.id, plan.id, trx);
 
       // Cancel any existing pending subscription transactions for this teacher.
       // This prevents accumulation of multiple pending transactions when users retry payments.

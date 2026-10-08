@@ -169,7 +169,7 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
          AND ts.end_date > NOW()
        ORDER BY ts.created_at DESC
        LIMIT 1
-      ), 30) / 100) AS earnings,
+      ), 28) / 100) AS earnings,
       o.total_amount::numeric AS gross,
       o.created_at AS sold_at,
       o.id AS order_id,

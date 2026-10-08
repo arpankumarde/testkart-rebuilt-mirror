@@ -6,7 +6,7 @@ import { nanoid } from "nanoid";
 import { createHash } from "crypto";
 import { PAYU_MODE } from "../../../helpers/_publicConfigs";
 import { sql } from "kysely";
-import { getTeacherPlatformFee } from "../../../helpers/getTeacherPlatformFee";
+import { getTeacherPlatformFee, DEFAULT_TEACHER_PLATFORM_FEE } from "../../../helpers/getTeacherPlatformFee";
 import { promoCodeCoversTeacher } from "../../../helpers/promoCodeEligibility";
 import { countPromoCodeUses } from "../../../helpers/promoCodeUsage";
 import { courseEffectivePriceSql } from "../../../helpers/coursePricing";
@@ -318,7 +318,7 @@ export async function handle(request: Request) {
         }
 
         // Determine teacherId for this item and look up platform fee
-        let platformFeePercentage = 30;
+        let platformFeePercentage = DEFAULT_TEACHER_PLATFORM_FEE;
         if (item.mockTestId && item.testTeacherId) {
           platformFeePercentage = await getOrFetchFee(item.testTeacherId);
         } else if (item.courseId && item.courseTeacherId) {

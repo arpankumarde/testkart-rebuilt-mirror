@@ -59,7 +59,7 @@ const CONNECTORS: Record<McpAudience, ConnectorCopy> = {
     can: [
       "Read your tests, courses, study notes, bundles, students, earnings and support threads",
       "Create, edit, publish and delete your content, questions and team",
-      "Request withdrawals, save bank details and subscribe to plans, each only after you confirm",
+      "Request withdrawals, save bank details and renew your plan, each only after you confirm",
     ],
     cannot: ["Cancel your subscription or payment mandate", "Create or change promo codes"],
   },

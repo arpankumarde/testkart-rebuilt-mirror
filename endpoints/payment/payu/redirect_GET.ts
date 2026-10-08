@@ -4,7 +4,7 @@ import { PAYU_MODE } from "../../../helpers/_publicConfigs";
 import { createHash } from "crypto";
 import { nanoid } from "nanoid";
 import { sql } from "kysely";
-import { getTeacherPlatformFee } from "../../../helpers/getTeacherPlatformFee";
+import { getTeacherPlatformFee, DEFAULT_TEACHER_PLATFORM_FEE } from "../../../helpers/getTeacherPlatformFee";
 import { ensureOrderCompletionSideEffects } from "../../../helpers/ensureOrderCompletionSideEffects";
 import { promoCodeCoversTeacher } from "../../../helpers/promoCodeEligibility";
 import { countPromoCodeUses } from "../../../helpers/promoCodeUsage";
@@ -413,7 +413,7 @@ export async function handle(request: Request) {
             itemDiscount = (itemPrice / eligibleItemsTotal) * discountAmount;
           }
 
-          let platformFeePercentage = 30;
+          let platformFeePercentage = DEFAULT_TEACHER_PLATFORM_FEE;
           if (item.mockTestId && item.testTeacherId) {
             platformFeePercentage = await getOrFetchFee(item.testTeacherId);
           } else if (item.courseId && item.courseTeacherId) {
@@ -581,7 +581,7 @@ export async function handle(request: Request) {
         }
 
         // Determine teacherId for this item and look up platform fee
-        let platformFeePercentage = 30;
+        let platformFeePercentage = DEFAULT_TEACHER_PLATFORM_FEE;
         if (item.mockTestId && item.testTeacherId) {
           platformFeePercentage = await getOrFetchFee(item.testTeacherId);
         } else if (item.courseId && item.courseTeacherId) {

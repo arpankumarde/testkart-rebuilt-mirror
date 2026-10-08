@@ -33,6 +33,7 @@ import {
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { paymentFailureReason } from "../helpers/paymentFailureReason";
+import { DEFAULT_TEACHER_PLATFORM_FEE } from "../helpers/teacherPlatformFeeDefault";
 
 import styles from "./teacher.subscription.module.css";
 
@@ -234,6 +235,7 @@ const SubscriptionPage: React.FC = () => {
 
   const hasActiveSub = !!statusQuery.data;
   const currentSub = statusQuery.data;
+  const hasPaidSub = hasActiveSub && (currentSub?.planPrice ?? 0) > 0;
   const currentEndDate = currentSub?.endDate
     ? new Date(currentSub.endDate).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" })
     : null;
@@ -246,29 +248,30 @@ const SubscriptionPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Choose Your Plan - Testkart</title>
+        <title>Fees and billing - Testkart</title>
         <meta
           name="description"
-          content="Manage your Testkart teacher subscription, view plans, and see your billing history."
+          content="See your Testkart platform fee, manage an existing subscription and view your billing history."
         />
       </Helmet>
       <div className={styles.page}>
-        <TeacherPageHeader title="Subscription" />
+        <TeacherPageHeader title="Fees & billing" />
 
-        {hasActiveSub && (statusQuery.data?.planPrice ?? 0) > 0 && (
-          <CurrentSubscriptionStatus
-            statusQuery={statusQuery}
-            mandateQuery={effectiveMandateQuery}
-            paymentMode={paymentMode}
-            onCancel={() => setConfirmCancelOpen(true)}
-            isCancelling={cancelMutation.isPending}
-          />
-        )}
+        <CurrentSubscriptionStatus
+          statusQuery={statusQuery}
+          mandateQuery={effectiveMandateQuery}
+          paymentMode={paymentMode}
+          onCancel={() => setConfirmCancelOpen(true)}
+          isCancelling={cancelMutation.isPending}
+        />
 
-        <TeacherSubscriptionAvailablePlans
+        {/* New plan purchases closed on 13-10-2026; a paid subscriber can only renew their own plan. */}
+        {hasPaidSub && canRenewCurrentPlan && (
+          <TeacherSubscriptionAvailablePlans
             plansQuery={plansQuery}
             hasActiveSub={hasActiveSub}
             currentPlanId={statusQuery.data?.planId}
+            renewOnlyPlanId={currentSub?.planId}
             canRenewCurrentPlan={canRenewCurrentPlan}
             subscriptionStatus={statusQuery.data?.status}
             isInitiatingPayment={isInitiatingPayment}
@@ -278,6 +281,7 @@ const SubscriptionPage: React.FC = () => {
             useWalletBalance={useWalletBalance}
             setUseWalletBalance={setUseWalletBalance}
           />
+        )}
 
           <TeacherSubscriptionTransactionHistory
             historyQuery={historyQuery}
@@ -295,7 +299,7 @@ const SubscriptionPage: React.FC = () => {
                 ? "Autopay will be turned off with your bank or UPI app, and you won't be charged again."
                 : "Your plan won't renew and you won't be charged again."}{" "}
               You keep {currentSub?.planName ?? "your plan"}
-              {currentEndDate ? ` until ${currentEndDate}` : ""}, then your account moves to the Free plan.
+              {currentEndDate ? ` until ${currentEndDate}` : ""}, then your account moves to the standard {DEFAULT_TEACHER_PLATFORM_FEE}% platform fee. Once it ends, the plan can't be bought again.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

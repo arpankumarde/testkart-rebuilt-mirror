@@ -280,9 +280,9 @@ const TeacherEarningsPage: React.FC = () => {
           <div className={styles.panelHead}>
             <h2 id="transactions-title" className={styles.panelTitle}>Transactions</h2>
             <p className={styles.intro}>
-              Every figure is what you keep after the platform fee. Your fee rate depends on your
-              plan - <Link to="/teacher/subscription" className={styles.introLink}>see plans</Link> to
-              lower it. Sponsorships paid from your balance and subscription payments come out of it;
+              Every figure is what you keep after the platform fee, and each sale keeps the rate it
+              was sold at - <Link to="/teacher/subscription" className={styles.introLink}>see your current fee</Link>.
+              Sponsorships paid from your balance and subscription payments come out of it;
               sponsorships paid online are listed for reference only. A refunded sale stays in the
               list, marked refunded, and you keep nothing from it.
             </p>

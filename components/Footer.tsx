@@ -15,22 +15,16 @@ import styles from './Footer.module.css';
 
 const SOCIAL_LINKS = [
   {
-    label: 'Telegram',
-    href: 'https://t.me/testkart_in',
-    Icon: FaTelegram,
-    tone: styles.toneBlue,
-  },
-  {
     label: 'Instagram',
     href: 'https://www.instagram.com/testkart',
     Icon: FaInstagram,
     tone: styles.tonePeach,
   },
   {
-    label: 'X (Twitter)',
-    href: 'https://x.com/testkart_in',
-    Icon: FaXTwitter,
-    tone: styles.toneLavender,
+    label: 'LinkedIn',
+    href: 'https://www.linkedin.com/company/testkart',
+    Icon: FaLinkedin,
+    tone: styles.toneBlue,
   },
   {
     label: 'Facebook Group',
@@ -39,10 +33,16 @@ const SOCIAL_LINKS = [
     tone: styles.toneMint,
   },
   {
-    label: 'LinkedIn',
-    href: 'https://www.linkedin.com/company/testkart',
-    Icon: FaLinkedin,
+    label: 'Telegram',
+    href: 'https://t.me/testkart_in',
+    Icon: FaTelegram,
     tone: styles.toneBlue,
+  },
+  {
+    label: 'X (Twitter)',
+    href: 'https://x.com/testkart_in',
+    Icon: FaXTwitter,
+    tone: styles.toneLavender,
   },
 ];
 
@@ -126,8 +126,6 @@ export const Footer: React.FC = () => {
               <li><Link to="/help" className={styles.footerLink}>Help Doc</Link></li>
               <li><Link to="/contact" className={styles.footerLink}>Contact Us</Link></li>
               <li><Link to="/careers" className={styles.footerLink}>Careers</Link></li>
-              <li><Link to="/teach" className={styles.footerLink}>Teach on Testkart</Link></li>
-              <li><Link to="/sell/mock-test" className={styles.footerLink}>Pricing</Link></li>
               <li><Link to="/exams" className={styles.footerLink}>Exams</Link></li>
             </ul>
           </div>

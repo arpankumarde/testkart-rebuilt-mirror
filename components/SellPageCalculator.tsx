@@ -4,7 +4,7 @@ import styles from "./SellPageCalculator.module.css";
 export const SellPageCalculator: React.FC = () => {
   const [studentCount, setStudentCount] = useState(100);
   const [testPrice, setTestPrice] = useState(299);
-  const commissionRate = 0.85; // 85% to teacher
+  const commissionRate = 0.72; // 72% to teacher after the flat 28% platform fee
   const potentialEarnings = Math.floor(
     studentCount * testPrice * commissionRate,
   );

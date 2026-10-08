@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useSubscriptionStatusQuery } from "../helpers/useTeacherSubscription";
 import { useMandateStatusQuery } from "../helpers/useRecurringPayment";
+import { DEFAULT_TEACHER_PLATFORM_FEE } from "../helpers/teacherPlatformFeeDefault";
 import styles from "./CurrentSubscriptionStatus.module.css";
 
 interface CurrentSubscriptionStatusProps {
@@ -39,7 +40,7 @@ export const CurrentSubscriptionStatus: React.FC<
   if (statusQuery.isFetching) {
     return (
       <section>
-        <h2 className={styles.sectionHeading}>Current Subscription</h2>
+        <h2 className={styles.sectionHeading}>Your platform fee</h2>
         <div className={styles.statusCard}>
           <Skeleton style={{ height: "24px", width: "150px" }} />
           <Skeleton
@@ -59,24 +60,39 @@ export const CurrentSubscriptionStatus: React.FC<
   if (statusQuery.isError) {
     return (
       <section>
-        <h2 className={styles.sectionHeading}>Current Subscription</h2>
+        <h2 className={styles.sectionHeading}>Your platform fee</h2>
         <div className={styles.statusCard}>
-          <p className={styles.errorText}>Could not load subscription status.</p>
+          <p className={styles.errorText}>Could not load your platform fee.</p>
         </div>
       </section>
     );
   }
 
+  // Plans are no longer sold (13-10-2026), so a teacher without one sees their fee only.
   if (!subscription) {
     return (
       <section>
-        <h2 className={styles.sectionHeading}>Current Subscription</h2>
+        <h2 className={styles.sectionHeading}>Your platform fee</h2>
         <div className={styles.statusCard}>
-          <div className={styles.noSubIcon}>
+          {/* <div className={styles.noSubIcon}>
             <AlertTriangle size={48} />
           </div>
           <h3>No Active Subscription</h3>
-          <p>Choose a plan below to start monetizing your content!</p>
+          <p>Choose a plan below to start monetizing your content!</p> */}
+          <div className={styles.statusDetails}>
+            <div className={`${styles.platformFeeBox} ${styles.feeDefault}`}>
+              <Shield size={18} />
+              <div>
+                <div className={styles.feeLabel}>Your Platform Fee</div>
+                <div className={styles.feeValue}>{DEFAULT_TEACHER_PLATFORM_FEE}%</div>
+              </div>
+            </div>
+          </div>
+          <div className={styles.freeNote}>
+            <p>
+              This fee is taken from each sale. Past sales keep the rate they were sold at.
+            </p>
+          </div>
         </div>
       </section>
     );
@@ -84,7 +100,7 @@ export const CurrentSubscriptionStatus: React.FC<
 
   const isActive = subscription.status === "active";
   // In Recurring mode only a live mandate renews a plan; a cancelled plan
-  // stays active until its end date and then moves to the Free plan.
+  // stays active until its end date and then moves to the standard fee.
   const willRenew =
     !!subscription.autoRenew && (paymentMode === "normal" || mandateIsActive);
   const endDate = subscription.endDate
@@ -96,6 +112,8 @@ export const CurrentSubscriptionStatus: React.FC<
     : "N/A";
   
   const isFree = subscription.planPrice === 0;
+  const hasSpecialRate =
+    subscription.platformFeeOverride !== null && subscription.platformFeeOverride !== undefined;
 
   const feeColorClass = 
     !subscription.planPrice || subscription.planPrice === 0 ? styles.feeDefault :
@@ -105,12 +123,16 @@ export const CurrentSubscriptionStatus: React.FC<
 
   return (
     <section>
-      <h2 className={styles.sectionHeading}>Current Subscription</h2>
+      <h2 className={styles.sectionHeading}>{isFree ? "Your platform fee" : "Current Subscription"}</h2>
       <div className={`${styles.statusCard} ${isActive ? styles.active : ""}`}>
+        {isFree ? (
+          <div className={styles.statusHeader}>
+            <h3 className={styles.planName}>{hasSpecialRate ? "Special rate" : "Standard rate"}</h3>
+          </div>
+        ) : (
         <div className={styles.statusHeader}>
           <div>
             <h3 className={styles.planName}>
-              {isFree ? "🆓 " : ""}
               {subscription.planName}
             </h3>
             {isActive && willRenew && (
@@ -137,6 +159,7 @@ export const CurrentSubscriptionStatus: React.FC<
             )}
           </div>
         </div>
+        )}
 
         <div className={styles.statusDetails}>
           {(statusQuery.data as any).platformFeePercentage !== undefined && (
@@ -151,6 +174,13 @@ export const CurrentSubscriptionStatus: React.FC<
             </div>
           )}
           
+          {isFree && hasSpecialRate && (
+            <div className={styles.detailRow}>
+              <span className={styles.detailLabel}>Valid Until:</span>
+              <span className={styles.detailValue}>{endDate}</span>
+            </div>
+          )}
+
           {!isFree && (
             <>
               <div className={styles.detailRow}>
@@ -187,8 +217,8 @@ export const CurrentSubscriptionStatus: React.FC<
             {isActive && !willRenew && (
               <p className={styles.cancelledNote}>
                 {paymentMode === "recurring"
-                  ? `Autopay is off, so you won't be charged again. You keep this plan until ${endDate}, then move to the Free plan. To keep it, choose it again below; the new period starts when this one ends.`
-                  : `This plan won't renew on its own. You keep it until ${endDate}, then move to the Free plan.`}
+                  ? `Autopay is off, so you won't be charged again. You keep this plan until ${endDate}, then move to the standard ${DEFAULT_TEACHER_PLATFORM_FEE}% platform fee. To keep it, restart autopay below; the new period starts when this one ends.`
+                  : `This plan won't renew on its own. You keep it until ${endDate}, then move to the standard ${DEFAULT_TEACHER_PLATFORM_FEE}% platform fee.`}
               </p>
             )}
           </div>
@@ -197,7 +227,8 @@ export const CurrentSubscriptionStatus: React.FC<
         {isFree && (
           <div className={styles.freeNote}>
             <p>
-              You're on the Free Plan. Upgrade to a paid plan to enjoy lower platform fees and unlock premium features!
+              {/* You're on the Free Plan. Upgrade to a paid plan to enjoy lower platform fees and unlock premium features! */}
+              This fee is taken from each sale. Past sales keep the rate they were sold at.
             </p>
           </div>
         )}

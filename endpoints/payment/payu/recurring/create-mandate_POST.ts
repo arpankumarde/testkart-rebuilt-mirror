@@ -6,6 +6,7 @@ import { createHash } from "crypto";
 import { PAYU_MODE } from "../../../../helpers/_publicConfigs";
 import { NotAuthenticatedError } from "../../../../helpers/getSetServerSession";
 import { newMandateTxnid } from "../../../../helpers/teacherMandate";
+import { assertPlanRenewable } from "../../../../helpers/teacherPlanRenewal";
 
 function formatDate(date: Date): string {
   const year = date.getFullYear();
@@ -53,6 +54,8 @@ export async function handle(request: Request) {
       if (!plan) {
         throw new Error("The selected subscription plan is not available.");
       }
+
+      await assertPlanRenewable(user.id, plan.id, trx);
 
       await trx
         .updateTable("subscriptionTransactions")

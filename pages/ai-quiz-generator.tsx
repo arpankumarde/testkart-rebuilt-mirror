@@ -15,7 +15,7 @@ import {
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
 import { Textarea } from "../components/Textarea";
-import { TeacherSubscriptionPlans } from "../components/TeacherSubscriptionPlans";
+// import { TeacherSubscriptionPlans } from "../components/TeacherSubscriptionPlans";
 import {
   ArrowRight,
   BookOpenCheck,
@@ -328,13 +328,13 @@ const AiQuizGeneratorPage: React.FC = () => {
           </div>
         </section>
 
-        {/* Subscription Plans Section */}
+        {/* Pricing section: teacher plans stopped selling on 13-10-2026, one flat fee instead */}
         <section className={styles.subscriptionPlansSection}>
           <div className={styles.sectionHeader}>
-            <h2>Plans That Fit Your Needs</h2>
-            <p>Start for free and unlock more power as you grow.</p>
+            <h2>Free to Start, One Simple Fee</h2>
+            <p>Signing up and using the AI quiz generator cost nothing. Testkart takes a flat 28% platform fee only when you make a sale.</p>
           </div>
-          <TeacherSubscriptionPlans />
+          {/* <TeacherSubscriptionPlans /> */}
         </section>
 
         {/* Contact Form Section */}

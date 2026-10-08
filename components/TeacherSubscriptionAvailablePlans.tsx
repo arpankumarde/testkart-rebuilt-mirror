@@ -28,6 +28,8 @@ export interface AvailablePlansProps {
   plansQuery: ReturnType<typeof useSubscriptionPlansQuery>;
   hasActiveSub: boolean;
   currentPlanId?: number;
+  // Set while new purchases are closed: only this plan (the teacher's own) is shown, to renew.
+  renewOnlyPlanId?: number;
   // The current plan can be bought again, e.g. to restart autopay after a cancel.
   canRenewCurrentPlan?: boolean;
   subscriptionStatus: string | undefined;
@@ -48,6 +50,7 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
   plansQuery,
   hasActiveSub,
   currentPlanId,
+  renewOnlyPlanId,
   canRenewCurrentPlan = false,
   subscriptionStatus,
   isInitiatingPayment,
@@ -87,7 +90,7 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
   }
 
   // Pick the correct plan based on toggle, fallback to whichever exists if missing
-  const plansToDisplay = [
+  const allPlansToDisplay = [
     plansByBaseName.Free.monthly || plansByBaseName.Free.yearly,
     plansByBaseName.Starter[isYearly ? "yearly" : "monthly"] ||
       plansByBaseName.Starter.monthly ||
@@ -96,11 +99,18 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
       plansByBaseName.Individual.monthly ||
       plansByBaseName.Individual.yearly,
   ].filter(Boolean);
+  const renewPlan =
+    renewOnlyPlanId !== undefined
+      ? plansQuery.data?.find((plan) => plan.id === renewOnlyPlanId)
+      : undefined;
+  const plansToDisplay =
+    renewOnlyPlanId !== undefined ? (renewPlan ? [renewPlan] : []) : allPlansToDisplay;
 
   return (
     <section className={styles.plansSection}>
-      <h2 className={styles.sectionTitle}>Plans</h2>
+      <h2 className={styles.sectionTitle}>{renewOnlyPlanId !== undefined ? "Renew your plan" : "Plans"}</h2>
 
+      {renewOnlyPlanId === undefined && (
       <div className={styles.toolbar} role="tablist" aria-label="Billing period">
         <div className={styles.billingToggle}>
           <button
@@ -123,6 +133,7 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
           </button>
         </div>
       </div>
+      )}
 
       {paymentMode === "normal" && walletBalance > 0 && (
         <div className={styles.walletCard}>
@@ -286,6 +297,7 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
             })}
           </div>
 
+          {renewOnlyPlanId === undefined && (
           <div className={styles.note}>
             <Info size={18} />
             <div>
@@ -299,6 +311,7 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
               </p>
             </div>
           </div>
+          )}
         </>
       )}
     </section>

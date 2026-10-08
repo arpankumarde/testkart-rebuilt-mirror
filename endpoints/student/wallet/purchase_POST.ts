@@ -3,7 +3,7 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./purchase_POST.schema";
 import superjson from "superjson";
 import { getStudentAvailableBalance } from "../../../helpers/getStudentAvailableBalance";
-import { getTeacherPlatformFee } from "../../../helpers/getTeacherPlatformFee";
+import { getTeacherPlatformFee, DEFAULT_TEACHER_PLATFORM_FEE } from "../../../helpers/getTeacherPlatformFee";
 import { ensureOrderCompletionSideEffects } from "../../../helpers/ensureOrderCompletionSideEffects";
 import { promoCodeCoversTeacher } from "../../../helpers/promoCodeEligibility";
 import { countPromoCodeUses } from "../../../helpers/promoCodeUsage";
@@ -272,7 +272,7 @@ export async function handle(request: Request) {
             itemDiscount = (itemPrice / eligibleItemsTotal) * discountAmount;
           }
 
-          let platformFeePercentage = 30;
+          let platformFeePercentage = DEFAULT_TEACHER_PLATFORM_FEE;
           if (item.mockTestId && item.testTeacherId) platformFeePercentage = await getOrFetchFee(item.testTeacherId);
           else if (item.courseId && item.courseTeacherId) platformFeePercentage = await getOrFetchFee(item.courseTeacherId);
           else if (item.digitalProductId && item.digitalProductTeacherId) platformFeePercentage = await getOrFetchFee(item.digitalProductTeacherId);

@@ -42,12 +42,12 @@ options, files or items. Read the record first and check the action's schema.
 
 Confirmation. Actions marked requiresConfirm are refused unless confirm is true: deletes,
 unpublishing, bulk study-note changes, team changes, sponsoring a student, requesting a withdrawal,
-saving bank details and subscribing. Show the teacher exactly what will happen - the record, the
+saving bank details and renewing a plan. Show the teacher exactly what will happen - the record, the
 amount, the plan - and pass confirm: true only after they approve it in this conversation.
 Deleted test series and test items stay in trash (trash/list, trash/restore) until trash/delete,
 which is permanent.
 
-Money. Read earnings/balance and bank-details before requesting a withdrawal. Subscribing, and
+Money. Read earnings/balance and bank-details before requesting a withdrawal. Renewing a plan, and
 sponsoring a student with paymentMethod "online", can return PayU payment data that has to be
 completed in a browser. The connector cannot pay: tell the teacher to finish on testkart.in, or
 sponsor from balance instead.

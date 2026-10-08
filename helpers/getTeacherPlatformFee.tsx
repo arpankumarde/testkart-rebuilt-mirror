@@ -1,10 +1,13 @@
 import { db } from "./db";
 import { Kysely, Transaction } from "kysely";
 import { DB } from "./schema";
+import { DEFAULT_TEACHER_PLATFORM_FEE } from "./teacherPlatformFeeDefault";
+
+export { DEFAULT_TEACHER_PLATFORM_FEE };
 
 /**
- * Retrieves the current platform fee percentage for a teacher based on their active subscription.
- * Defaults to 30% if the teacher does not have an active subscription.
+ * Retrieves the current platform fee percentage for a teacher: an admin-set override
+ * first, then the fee of their active plan, else DEFAULT_TEACHER_PLATFORM_FEE.
  *
  * @param teacherId The ID of the teacher
  * @param trx Optional database transaction or connection
@@ -50,6 +53,5 @@ export async function getTeacherPlatformFee(
     }
   }
 
-  // Default free plan platform fee percentage
-  return 30;
+  return DEFAULT_TEACHER_PLATFORM_FEE;
 }

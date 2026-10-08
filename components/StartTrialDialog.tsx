@@ -82,7 +82,7 @@ export function StartTrialDialog({ open, onOpenChange }: StartTrialDialogProps) 
 
   const form = useForm({
     defaultValues: {
-      platformFeePercentage: 30,
+      platformFeePercentage: 28,
       durationDays: 30,
       note: "",
       retroactiveFromOrderItemId: undefined,
@@ -101,7 +101,7 @@ export function StartTrialDialog({ open, onOpenChange }: StartTrialDialogProps) 
     if (open) {
       form.setValues({
         teacherId: undefined as any,
-        platformFeePercentage: 30,
+        platformFeePercentage: 28,
         durationDays: 30,
         note: "",
         retroactiveFromOrderItemId: undefined,
