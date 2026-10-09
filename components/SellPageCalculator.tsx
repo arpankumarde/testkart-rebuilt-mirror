@@ -61,7 +61,7 @@ export const SellPageCalculator: React.FC = () => {
                 ₹{potentialEarnings.toLocaleString()}
               </span>
               <span className={styles.resultSub}>
-                Based on 85% revenue share
+                Based on {Math.round(commissionRate * 100)}% revenue share
               </span>
             </div>
           </div>

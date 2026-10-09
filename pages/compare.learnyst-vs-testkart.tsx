@@ -31,7 +31,7 @@ const FAQs = [
   },
   {
     question: "Does Testkart provide branded apps like Learnyst?",
-    answer: "Testkart uses a marketplace model instead of a white-label app builder. The massive advantage is you get access to millions of students without spending on marketing or app development."
+    answer: "Testkart uses a marketplace model instead of a white-label app builder. The massive advantage is you get access to thousands of students without spending on marketing or app development."
   },
   {
     question: "Which is better for mock tests?",
@@ -122,7 +122,7 @@ const CompareLearnystPage: React.FC = () => {
             <h3>TL;DR: The Bottom Line</h3>
             <p>
               <strong>Learnyst</strong> charges per-student monthly fees (starting ₹49/user/month) plus hidden costs for bandwidth and watermarking. Teachers must bring their own students and handle all marketing. <br /><br />
-              <strong>Testkart</strong> is 100% free to start with a built-in marketplace of millions of students. Small platform fee only on sales. You have zero financial risk and your costs don't grow when your student base does.
+              <strong>Testkart</strong> is 100% free to start with a built-in marketplace of thousands of students. Small platform fee only on sales. You have zero financial risk and your costs don't grow when your student base does.
             </p>
           </div>
         </section>
@@ -157,7 +157,7 @@ const CompareLearnystPage: React.FC = () => {
                 <tr>
                   <td><strong>Built-in Student Audience</strong></td>
                   <td><span className={styles.iconText}><XCircle size={18} color="var(--error)" /> Bring your own students</span></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Access millions of students</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Access thousands of students</span></td>
                 </tr>
                 <tr>
                   <td><strong>Branded Mobile App</strong></td>
@@ -244,7 +244,7 @@ const CompareLearnystPage: React.FC = () => {
             <div className={styles.featureCard}>
               <div className={styles.featureIcon}><Users size={28} /></div>
               <h3>Built-in Marketplace</h3>
-              <p>Don't struggle to find students. Access millions of active learners already on Testkart looking for quality content.</p>
+              <p>Don't struggle to find students. Access thousands of active learners already on Testkart looking for quality content.</p>
             </div>
             <div className={styles.featureCard}>
               <div className={styles.featureIcon}><Target size={28} /></div>

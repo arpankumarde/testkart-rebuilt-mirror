@@ -162,7 +162,7 @@ const CompareTagMangoPage: React.FC = () => {
                 <tr>
                   <td><strong>Built-in Student Audience</strong></td>
                   <td><span className={styles.iconText}><XCircle size={18} color="var(--error)" /> Bring your own audience</span></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Access millions of students</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Access thousands of students</span></td>
                 </tr>
                 <tr>
                   <td><strong>Community Features</strong></td>
@@ -244,7 +244,7 @@ const CompareTagMangoPage: React.FC = () => {
             <div className={styles.featureCard}>
               <div className={styles.featureIcon}><Users size={28} /></div>
               <h3>Built-in Marketplace</h3>
-              <p>TagMango requires you to bring your own audience. Testkart gives you access to millions of students actively looking to learn and practice.</p>
+              <p>TagMango requires you to bring your own audience. Testkart gives you access to thousands of students actively looking to learn and practice.</p>
             </div>
             <div className={styles.featureCard}>
               <div className={styles.featureIcon}><Target size={28} /></div>

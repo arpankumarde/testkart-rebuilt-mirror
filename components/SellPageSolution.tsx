@@ -36,7 +36,7 @@ export const SellPageSolution: React.FC = () => {
               <Globe size={28} />
             </div>
             <h3>Instant Reach</h3>
-            <p>Your tests are instantly available to millions of students preparing for competitive exams.</p>
+            <p>Your tests are instantly available to thousands of students preparing for competitive exams.</p>
           </div>
           <div
             className={`${styles.featureCard} ${styles.glassCard} ${solutionInView ? styles.animateUp : ""}`}

@@ -31,7 +31,7 @@ const FAQs = [
   },
   {
     question: "Does Testkart provide a branded app like Classplus?",
-    answer: "Testkart is a marketplace platform, not a white-label app builder. The advantage is you get access to millions of students without spending on marketing or app development."
+    answer: "Testkart is a marketplace platform, not a white-label app builder. The advantage is you get access to thousands of students without spending on marketing or app development."
   },
   {
     question: "Which platform is better for selling mock tests?",
@@ -157,7 +157,7 @@ const CompareClassplusPage: React.FC = () => {
                 <tr>
                   <td><strong>Built-in Student Audience</strong></td>
                   <td><span className={styles.iconText}><XCircle size={18} color="var(--error)" /> Bring your own students</span></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Access millions of students</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Access thousands of students</span></td>
                 </tr>
                 <tr>
                   <td><strong>Branded Mobile App</strong></td>

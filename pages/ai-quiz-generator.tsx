@@ -319,11 +319,12 @@ const AiQuizGeneratorPage: React.FC = () => {
               <h2>Trusted by Innovative Educators</h2>
               <p>Join a community that's making learning more effective and fun.</p>
             </div>
+            {/* Counted from the live database on 13-10-2026 and rounded down; AI logging began 09-08-2026. Update by hand as they grow. */}
             <div className={styles.statsGrid}>
-              <div className={styles.statCard}><h4>5 Million+</h4><p>Quizzes Generated</p></div>
-              <div className={styles.statCard}><h4>+40%</h4><p>Increase in Engagement</p></div>
-              <div className={styles.statCard}><h4>250,000+</h4><p>Hours Saved</p></div>
-              <div className={styles.statCard}><h4>99.2%</h4><p>AI Question Accuracy</p></div>
+              <div className={styles.statCard}><h4>33,000+</h4><p>AI Questions Generated</p></div>
+              <div className={styles.statCard}><h4>2,300+</h4><p>AI Question Sets Created</p></div>
+              <div className={styles.statCard}><h4>11,000+</h4><p>Educators on Testkart</p></div>
+              <div className={styles.statCard}><h4>1,300+</h4><p>Educators Using AI</p></div>
             </div>
           </div>
         </section>

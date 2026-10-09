@@ -354,28 +354,6 @@ const SellDigitalProductsPage: React.FC = () => {
           </div>
         </section>
 
-        {/* Stats Section */}
-        <section className={styles.statsSection}>
-          <div className={styles.statsGrid}>
-            <div className={styles.statItem}>
-              <h4>5,000+</h4>
-              <p>Notes Listed</p>
-            </div>
-            <div className={styles.statItem}>
-              <h4>₹50 Lakh+</h4>
-              <p>Paid to Educators</p>
-            </div>
-            <div className={styles.statItem}>
-              <h4>2 Lakh+</h4>
-              <p>Students Served</p>
-            </div>
-            <div className={styles.statItem}>
-              <h4>95%</h4>
-              <p>Satisfaction</p>
-            </div>
-          </div>
-        </section>
-
         {/* FAQ Section */}
         <section className={styles.section}>
           <div className={styles.sectionHeader}>

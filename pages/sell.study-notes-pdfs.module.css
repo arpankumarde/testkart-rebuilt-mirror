@@ -266,38 +266,6 @@
   flex-shrink: 0;
 }
 
-/* Stats Section */
-.statsSection {
-  background-color: var(--surface);
-  padding: var(--spacing-16) var(--spacing-4);
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-}
-
-.statsGrid {
-  max-width: 1000px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--spacing-8);
-  text-align: center;
-}
-
-.statItem h4 {
-  font-family: var(--font-family-heading);
-  font-size: 3rem;
-  font-weight: 800;
-  color: var(--foreground);
-  margin-bottom: var(--spacing-2);
-  line-height: 1;
-}
-
-.statItem p {
-  font-size: 1rem;
-  color: var(--foreground);
-  font-weight: 500;
-}
-
 /* FAQ Wrapper */
 .faqWrapper {
   max-width: 800px;
@@ -389,18 +357,10 @@
     grid-template-columns: 1fr;
   }
 
-  .statsGrid {
-    grid-template-columns: 1fr 1fr;
-  }
-  
   .finalCtaSection {
     margin: var(--spacing-4) auto var(--spacing-8);
     width: calc(100% - var(--spacing-4));
     padding: var(--spacing-12) var(--spacing-4);
-  }
-  
-  .statItem h4 {
-    font-size: 2.5rem;
   }
 }
 
@@ -408,9 +368,5 @@
   .heroActions {
     flex-direction: column;
     width: 100%;
-  }
-  
-  .statsGrid {
-    grid-template-columns: 1fr;
   }
 }

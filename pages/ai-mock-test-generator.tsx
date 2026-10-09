@@ -81,7 +81,7 @@ const AiMockTestGeneratorPage: React.FC = () => {
         <title>AI Mock Test Generator for Teachers and Coaching Institutes | Testkart</title>
         <meta
           name="description"
-          content="Save 90% of your time with Testkart's AI Mock Test Generator. Create high-quality, curriculum-aligned questions for any subject in seconds. Perfect for teachers and coaching institutes."
+          content="Save hours on every test with Testkart's AI Mock Test Generator. Create high-quality, curriculum-aligned questions for any subject in seconds. Perfect for teachers and coaching institutes."
         />
         <link rel="canonical" href="https://testkart.in/ai-mock-test-generator" />
         <meta property="og:title" content="AI Mock Test Generator for Teachers and Coaching Institutes | Testkart" />
@@ -143,7 +143,7 @@ const AiMockTestGeneratorPage: React.FC = () => {
           <div className={styles.benefitsGrid}>
             <div className={styles.benefitCard}>
               <div className={styles.benefitIcon}><Clock /></div>
-              <h3>Save 90% of Your Time</h3>
+              <h3>Save Hours on Every Test</h3>
               <p>Go from topic to a full-fledged mock test in under 60 seconds. Reclaim hours of your week from tedious manual work.</p>
             </div>
             <div className={styles.benefitCard}>
@@ -239,13 +239,14 @@ const AiMockTestGeneratorPage: React.FC = () => {
           <div className={styles.statsContent}>
             <div className={styles.statsHeader}>
               <h2>Join the Revolution in Education</h2>
-              <p>Thousands of educators are already saving time and enhancing their teaching with Testkart AI.</p>
+              <p>Educators are already saving time and enhancing their teaching with Testkart AI.</p>
             </div>
+            {/* Counted from the live database on 13-10-2026 and rounded down; AI logging began 09-08-2026. Update by hand as they grow. */}
             <div className={styles.statsGrid}>
-              <div className={styles.statCard}><h4>10 Million+</h4><p>AI Questions Generated</p></div>
-              <div className={styles.statCard}><h4>500,000+</h4><p>Hours Saved for Teachers</p></div>
-              <div className={styles.statCard}><h4>50,000+</h4><p>Educators on Platform</p></div>
-              <div className={styles.statCard}><h4>98%</h4><p>Satisfaction Rate</p></div>
+              <div className={styles.statCard}><h4>33,000+</h4><p>AI Questions Generated</p></div>
+              <div className={styles.statCard}><h4>2,300+</h4><p>AI Question Sets Created</p></div>
+              <div className={styles.statCard}><h4>11,000+</h4><p>Educators on Platform</p></div>
+              <div className={styles.statCard}><h4>1,300+</h4><p>Educators Using AI</p></div>
             </div>
           </div>
         </section>
@@ -364,7 +365,7 @@ const AiMockTestGeneratorPage: React.FC = () => {
         <section className={styles.finalCtaSection}>
           <div className={styles.finalCtaContent}>
             <h2>Ready to Automate Your Test Creation?</h2>
-            <p>Join 50,000+ educators who are building better tests in less time.</p>
+            <p>Join 11,000+ educators who are building better tests in less time.</p>
             <div className={styles.finalCtaActions}>
               <Button asChild size="lg" variant="primary">
                 <Link to="/teacher/signup">Start Generating for Free</Link>

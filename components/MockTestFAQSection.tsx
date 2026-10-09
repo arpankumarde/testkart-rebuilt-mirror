@@ -34,7 +34,7 @@ export const MockTestFAQSection: React.FC = () => {
         <AccordionItem value="faq-4">
           <AccordionTrigger>How much does it cost to sell mock tests?</AccordionTrigger>
           <AccordionContent>
-            It is completely free to create and publish your mock tests on Testkart! There are zero upfront costs or monthly fees. We operate on a revenue-share model, meaning we only make money when you make a sale. You keep up to 85% of your sales revenue.
+            It is completely free to create and publish your mock tests on Testkart! There are zero upfront costs or monthly fees. We operate on a revenue-share model, meaning we only make money when you make a sale. You keep 72% of your sales revenue after the flat 28% platform fee.
           </AccordionContent>
         </AccordionItem>
 

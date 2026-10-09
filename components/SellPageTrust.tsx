@@ -19,7 +19,7 @@ export const SellPageTrust: React.FC<SellPageTrustProps> = ({ className }) => {
           <div className={styles.trustItem}>
             <Users className={styles.trustIcon} />
             <h3>Trusted Community</h3>
-            <p>Join 50,000+ verified educators</p>
+            <p>Join 11,000+ educators</p>
           </div>
           <div className={styles.trustItem}>
             <CreditCard className={styles.trustIcon} />

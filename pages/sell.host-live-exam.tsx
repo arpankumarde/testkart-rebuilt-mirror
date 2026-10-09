@@ -153,7 +153,7 @@ const LiveMockTestPage: React.FC = () => {
               Host Live Mock Test Contests
             </h1>
             <p className={styles.heroSubheadline}>
-              Turn your mock tests into thrilling live events. Engage thousands of students with real-time competition, live leaderboards, and automated prize pools. Maximize your earnings and build a viral brand.
+              Turn your mock tests into thrilling live events. Engage students with real-time competition, live leaderboards, and automated prize pools. Maximize your earnings and build a viral brand.
             </p>
             <div className={styles.heroActions}>
               <Button asChild size="lg">
@@ -380,34 +380,6 @@ const LiveMockTestPage: React.FC = () => {
           </div>
         </section>
 
-        {/* Stats Section */}
-        <section className={styles.statsSection}>
-          <div className={styles.statsContent}>
-            <div className={styles.statsHeader}>
-              <h2>The Power of Live Competition</h2>
-              <p>The numbers speak for themselves. Live contests are a game-changer for educators.</p>
-            </div>
-            <div className={styles.statsGrid}>
-              <div className={styles.statCard}>
-                <h4>10,000+</h4>
-                <p>Live Tests Hosted</p>
-              </div>
-              <div className={styles.statCard}>
-                <h4>₹2 Cr+</h4>
-                <p>Prize Money Distributed</p>
-              </div>
-              <div className={styles.statCard}>
-                <h4>₹15,000</h4>
-                <p>Avg. Earnings Per Contest</p>
-              </div>
-              <div className={styles.statCard}>
-                <h4>500%</h4>
-                <p>Higher Student Engagement</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
         {/* FAQ Section */}
         <section className={styles.faqSection}>
           <div className={styles.sectionHeader}>
@@ -444,7 +416,7 @@ const LiveMockTestPage: React.FC = () => {
         <section className={styles.finalCtaSection}>
           <div className={styles.finalCtaContent}>
             <h2>Ready to Launch Your First Live Contest?</h2>
-            <p>Join thousands of educators transforming learning into an exciting, competitive event.</p>
+            <p>Join the educators turning learning into an exciting, competitive event.</p>
             <div className={styles.finalCtaActions}>
               <BookDemoButton size="lg" variant="outline" />
               <Button asChild size="lg" variant="primary">

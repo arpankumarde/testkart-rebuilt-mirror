@@ -167,7 +167,7 @@ const MockTestPage: React.FC = () => {
               </Button>
             </div>
             <div className={styles.heroTrust}>
-              <span>Join 50,000+ educators</span>
+              <span>Join 11,000+ educators</span>
               <span>&middot;</span>
               <span>Zero Investment</span>
               <span>&middot;</span>
@@ -217,7 +217,7 @@ const MockTestPage: React.FC = () => {
             <div className={styles.stepCard}>
               <div className={styles.stepNumber}>3</div>
               <h3>Publish & Earn</h3>
-              <p>Set your pricing, publish your test series, and reach millions of students. Get paid weekly for your sales.</p>
+              <p>Set your pricing, publish your test series, and reach thousands of students. Get paid weekly for your sales.</p>
             </div>
           </div>
         </section>
@@ -226,22 +226,23 @@ const MockTestPage: React.FC = () => {
         <MockTestFeaturesSection />
 
         {/* Stats Section */}
+        {/* Counted from the live database on 13-10-2026 and rounded down. Update by hand as they grow. */}
         <section className={styles.statsSection}>
           <div className={styles.statsGrid}>
             <div className={styles.statCard}>
-              <h4>₹15 Cr+</h4>
+              <h4>₹72,000+</h4>
               <p>Paid to Teachers</p>
             </div>
             <div className={styles.statCard}>
-              <h4>50,000+</h4>
-              <p>Active Educators</p>
+              <h4>11,000+</h4>
+              <p>Educators</p>
             </div>
             <div className={styles.statCard}>
-              <h4>5M+</h4>
-              <p>Student Enrollments</p>
+              <h4>2,200+</h4>
+              <p>Test Series Enrollments</p>
             </div>
             <div className={styles.statCard}>
-              <h4>2L+</h4>
+              <h4>1,500+</h4>
               <p>Test Series Created</p>
             </div>
           </div>

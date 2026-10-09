@@ -11,7 +11,7 @@ export const SellPageProducts: React.FC = () => {
       id: "mock-tests",
       title: "Mock Test Series",
       description: "Create unlimited tests with AI assistance. The core of your teaching business.",
-      stat: "70% of teacher earnings",
+      stat: "Over 60% of sales",
       icon: <FileText size={32} />,
       badge: "Most Popular",
       color: "var(--primary)",

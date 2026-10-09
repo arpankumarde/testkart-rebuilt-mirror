@@ -211,61 +211,6 @@
   font-size: 0.9375rem;
 }
 
-/* Stats Section */
-.statsSection {
-  background-color: var(--surface);
-  padding: var(--spacing-16) var(--spacing-4);
-}
-
-.statsContent {
-  max-width: 1200px;
-  margin: 0 auto;
-  text-align: center;
-}
-
-.statsHeader {
-  margin-bottom: var(--spacing-12);
-}
-
-.statsHeader h2 {
-  font-family: var(--font-family-heading);
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--foreground);
-  margin-bottom: var(--spacing-3);
-}
-
-.statsHeader p {
-  font-size: 1.125rem;
-  color: var(--muted-foreground);
-  max-width: 700px;
-  margin: 0 auto;
-}
-
-.statsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--spacing-8);
-}
-
-.statCard {
-  text-align: center;
-}
-
-.statCard h4 {
-  font-family: var(--font-family-heading);
-  font-size: 3rem;
-  font-weight: 800;
-  color: var(--foreground);
-  margin-bottom: var(--spacing-2);
-}
-
-.statCard p {
-  font-size: 1rem;
-  color: var(--muted-foreground);
-  font-weight: 500;
-}
-
 /* How It Works Section */
 .howItWorksSection {
   max-width: 1200px;
@@ -465,11 +410,8 @@
   .heroHeadline {
     font-size: 2.5rem;
   }
-  .sectionHeader h2, .statsHeader h2, .finalCtaContent h2 {
+  .sectionHeader h2, .finalCtaContent h2 {
     font-size: 2rem;
-  }
-  .statsGrid {
-    grid-template-columns: repeat(2, 1fr);
   }
   .benefitsGrid, .featuresGrid, .stepsGrid {
     grid-template-columns: 1fr;
@@ -489,12 +431,6 @@
   .heroActions {
     flex-direction: column;
     width: 100%;
-  }
-  .statsGrid {
-    grid-template-columns: 1fr;
-  }
-  .statCard h4 {
-    font-size: 2.5rem;
   }
   .finalCtaSection {
     border-radius: 0;

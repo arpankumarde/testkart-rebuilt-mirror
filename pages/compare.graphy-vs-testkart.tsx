@@ -39,7 +39,7 @@ const FAQs = [
   },
   {
     question: "What about Graphy's marketing tools?",
-    answer: "Graphy offers affiliate marketing and email tools for those who already have an audience. Testkart gives you built-in marketplace exposure to millions of students, which is far more valuable if you are looking to grow your reach."
+    answer: "Graphy offers affiliate marketing and email tools for those who already have an audience. Testkart gives you built-in marketplace exposure to thousands of students, which is far more valuable if you are looking to grow your reach."
   }
 ];
 
@@ -162,7 +162,7 @@ const CompareGraphyPage: React.FC = () => {
                 <tr>
                   <td><strong>Built-in Student Audience</strong></td>
                   <td><span className={styles.iconText}><XCircle size={18} color="var(--error)" /> Bring your own students</span></td>
-                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Access millions of students</span></td>
+                  <td><span className={styles.iconText}><CheckCircle2 size={18} color="var(--success-text)" /> Access thousands of students</span></td>
                 </tr>
                 <tr>
                   <td><strong>Branded Mobile App</strong></td>
@@ -249,7 +249,7 @@ const CompareGraphyPage: React.FC = () => {
             <div className={styles.featureCard}>
               <div className={styles.featureIcon}><Users size={28} /></div>
               <h3>Built-in Marketplace</h3>
-              <p>Graphy requires you to build your own audience. Testkart gives you access to millions of students searching for content.</p>
+              <p>Graphy requires you to build your own audience. Testkart gives you access to thousands of students searching for content.</p>
             </div>
             <div className={styles.featureCard}>
               <div className={styles.featureIcon}><Target size={28} /></div>

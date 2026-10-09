@@ -22,12 +22,12 @@ export const SellPageHero: React.FC = () => {
       >
         <h1 className={styles.heroHeadline}>
           Sell Your Courses, Tests, and Notes.{" "}
-          <span className={styles.gradientText}>Earn ₹1 Lakh+ Monthly</span>
+          <span className={styles.gradientText}>Keep 72% of Every Sale</span>
         </h1>
 
         <p className={styles.heroSubheadline}>
           Build a passive income stream by selling mock tests, courses, and
-          digital study notes to millions of students.
+          digital study notes to thousands of students.
         </p>
 
         <div className={styles.heroCtaGroup}>

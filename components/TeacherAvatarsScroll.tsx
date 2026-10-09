@@ -39,7 +39,7 @@ export const TeacherAvatarsScroll: React.FC = () => {
   if (isLoading) {
     return (
       <div className={styles.container}>
-        <div className={styles.label}>Join 50,000+ Educators</div>
+        <div className={styles.label}>Join 11,000+ Educators</div>
         <div className={styles.skeletonContainer}>
           {Array.from({ length: 10 }).map((_, i) => (
             <Skeleton key={i} className={styles.avatarSkeleton} />
@@ -61,7 +61,7 @@ export const TeacherAvatarsScroll: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      <div className={styles.label}>Join 50,000+ Educators</div>
+      <div className={styles.label}>Join 11,000+ Educators</div>
       
       <div className={styles.scrollMask}>
         <div className={styles.scrollTrack}>

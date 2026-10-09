@@ -44,7 +44,7 @@ const SellCoursesFAQ: React.FC = () => {
     {
       question: "How much can I earn by selling courses on Testkart?",
       answer:
-        "Your earning potential is unlimited. Top educators on Testkart earn over ₹10 lakh annually. You set your own course prices and keep up to 85% of every sale. We provide the tools and the audience; you bring the expertise."
+        "Your earnings depend on your price and how many students enrol. You set your own course prices and keep 72% of every sale after the flat 28% platform fee. We provide the tools and the audience; you bring the expertise."
     },
     {
       question: "Does Testkart host my video content?",
@@ -103,7 +103,7 @@ const SellOnlineCoursesPage: React.FC = () => {
     <>
       <SEOHead
         title="Create and Sell Online Video Courses | Testkart"
-        description="Join India's leading marketplace to create and sell online video courses. Get unlimited hosting, AI tools, and reach millions of students. Zero investment required."
+        description="Join India's leading marketplace to create and sell online video courses. Get unlimited hosting, AI tools, and reach thousands of students. Zero investment required."
         url="https://testkart.in/sell/courses"
       />
 
@@ -115,7 +115,7 @@ const SellOnlineCoursesPage: React.FC = () => {
               {
                 "@type": "WebPage",
                 "name": "Create and Sell Online Video Courses | Testkart",
-                "description": "Create and sell online video courses with Testkart's all-in-one platform. Reach millions of students, use AI-powered tools, and build a sustainable teaching business with zero upfront investment.",
+                "description": "Create and sell online video courses with Testkart's all-in-one platform. Reach thousands of students, use AI-powered tools, and build a sustainable teaching business with zero upfront investment.",
                 "url": "https://testkart.in/sell/courses"
               },
               {
@@ -164,7 +164,7 @@ const SellOnlineCoursesPage: React.FC = () => {
                     "name": "How much can I earn by selling courses on Testkart?",
                     "acceptedAnswer": {
                       "@type": "Answer",
-                      "text": "Your earning potential is unlimited. Top educators on Testkart earn over ₹10 lakh annually. You set your own course prices and keep up to 85% of every sale."
+                      "text": "Your earnings depend on your price and how many students enrol. You set your own course prices and keep 72% of every sale after the flat 28% platform fee."
                     }
                   },
                   {
@@ -212,7 +212,7 @@ const SellOnlineCoursesPage: React.FC = () => {
               </Button>
             </div>
             <div className={styles.heroBadges}>
-              <span>Join 50,000+ educators</span>
+              <span>Join 11,000+ educators</span>
               <span>&middot;</span>
               <span>Zero Investment</span>
               <span>&middot;</span>
@@ -423,23 +423,24 @@ const SellOnlineCoursesPage: React.FC = () => {
         </section>
 
         {/* 5. Stats Section */}
+        {/* Counted from the live database on 13-10-2026 and rounded down. Update by hand as they grow. */}
         <section className={styles.statsSection}>
           <div className={styles.statsContainer}>
             <div className={styles.statCard}>
-              <h4>50,000+</h4>
+              <h4>500+</h4>
               <p>Courses Created</p>
             </div>
             <div className={styles.statCard}>
-              <h4>₹15 Cr+</h4>
+              <h4>₹72,000+</h4>
               <p>Paid to Teachers</p>
             </div>
             <div className={styles.statCard}>
-              <h4>5M+</h4>
-              <p>Active Students</p>
+              <h4>6,800+</h4>
+              <p>Students</p>
             </div>
             <div className={styles.statCard}>
-              <h4>₹75,000+</h4>
-              <p>Avg. Monthly Earnings</p>
+              <h4>11,000+</h4>
+              <p>Educators</p>
             </div>
           </div>
         </section>
@@ -452,7 +453,7 @@ const SellOnlineCoursesPage: React.FC = () => {
           <div className={styles.finalCtaContent}>
             <h2>Ready to Share Your Knowledge?</h2>
             <p>
-              Turn your expertise into a thriving online business with Testkart today. Join thousands of successful educators.
+              Turn your expertise into a thriving online business with Testkart today. Join 11,000+ educators on Testkart.
             </p>
             <div className={styles.finalCtaActions}>
               <BookDemoButton size="lg" variant="outline" className={styles.ctaButton} />
