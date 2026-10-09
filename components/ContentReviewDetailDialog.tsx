@@ -1,5 +1,4 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import { getItemExamNames } from "../helpers/itemExams";
 import { useAdminAuth } from "../helpers/useAdminAuth";
 import { hasAdminModule } from "../helpers/adminPermissions";
@@ -471,7 +470,7 @@ export const ContentReviewOpenButton = ({
   );
 };
 
-/* Opens the admin editor in this tab, for admins who hold the item's section; Cancel and a finished save come back to the queue. */
+/* Opens the admin editor in a new tab, for admins who hold the item's section, so the queue stays where it was. */
 export const ContentReviewEditButton = ({
   review,
   size = "sm",
@@ -487,10 +486,10 @@ export const ContentReviewEditButton = ({
   if (!editPath) return null;
   return (
     <Button variant="outline" size={size} asChild>
-      <Link to={`${editPath}?from=reviews`}>
+      <a href={`${editPath}?from=reviews`} target="_blank" rel="noopener noreferrer">
         <Pencil size={14} />
         Edit
-      </Link>
+      </a>
     </Button>
   );
 };

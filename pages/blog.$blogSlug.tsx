@@ -3,7 +3,7 @@ import { useParams, Link, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { sanitizeHtml } from '../helpers/sanitizeHtml';
 import { z } from 'zod';
-import { ChevronRight, Clock, Calendar, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { ChevronRight, Clock, Calendar, ThumbsUp, ThumbsDown, List } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useBlogPostQuery, useBlogPostsQuery, useBlogCommentsQuery, useCreateBlogCommentMutation } from '../helpers/useBlogQuery';
@@ -85,8 +85,8 @@ const CommentForm = ({ postId, parentId, onCancel }: { postId: number, parentId?
           <FormMessage />
         </FormItem>
         <div className={styles.commentFormActions}>
-          {onCancel && <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>}
-          <Button type="submit" disabled={mutation.isPending}>
+          {onCancel && <Button type="button" variant="ghost" className={styles.ghostPill} onClick={onCancel}>Cancel</Button>}
+          <Button type="submit" className={styles.ctaPill} disabled={mutation.isPending}>
             {mutation.isPending ? "Posting..." : "Post Comment"}
           </Button>
         </div>
@@ -148,6 +148,7 @@ export default function BlogPostDetail() {
   const post = data?.post;
 
   const [activeHeadingId, setActiveHeadingId] = useState<string>('');
+  const [thumbnailFailed, setThumbnailFailed] = useState(false);
 
   // Sanitize once, then bake stable ids into the h2/h3 tags as part of the
   // same string — see extractHeadingsWithIds for why this replaced the old
@@ -223,9 +224,11 @@ export default function BlogPostDetail() {
     return (
       <div className={styles.pageWrapper}>
         <div className={styles.container}>
-          <Skeleton style={{ width: '100%', height: '400px', borderRadius: 'var(--radius-lg)', marginBottom: '2rem' }} />
-          <Skeleton style={{ width: '60%', height: '40px', marginBottom: '1rem' }} />
+          <Skeleton style={{ width: '9rem', height: '28px', borderRadius: 'var(--radius-full)', marginBottom: '1.25rem' }} />
+          <Skeleton style={{ width: '80%', height: '44px', marginBottom: '0.75rem' }} />
+          <Skeleton style={{ width: '55%', height: '44px', marginBottom: '1.75rem' }} />
           <Skeleton style={{ width: '40%', height: '20px', marginBottom: '2rem' }} />
+          <Skeleton style={{ width: '100%', maxWidth: '820px', aspectRatio: '1200 / 630', borderRadius: '1.5rem', marginBottom: '2rem' }} />
           <Skeleton style={{ width: '100%', height: '20px', marginBottom: '0.5rem' }} />
           <Skeleton style={{ width: '100%', height: '20px', marginBottom: '0.5rem' }} />
           <Skeleton style={{ width: '80%', height: '20px' }} />
@@ -241,7 +244,7 @@ export default function BlogPostDetail() {
           <div className={styles.stateContainer}>
             <h2>Article Not Found</h2>
             <p>The article you are looking for does not exist or has been removed.</p>
-            <Button asChild><Link to="/blog">Back to Blog</Link></Button>
+            <Button asChild className={styles.ctaPill}><Link to="/blog">Back to Blog</Link></Button>
           </div>
         </div>
       </div>
@@ -249,6 +252,8 @@ export default function BlogPostDetail() {
   }
 
   const canonicalUrl = `https://testkart.in/blog/${post.slug}`;
+  // ogImage first, as in SEOHead and the list endpoint: the editor only uploads the social image.
+  const thumbnailUrl = post.ogImage || post.featuredImage;
 
   const wordCount = Math.ceil((post.content?.replace(/<[^>]+>/g, '') || '').split(/\s+/).length);
   const commentCount = commentsData?.comments?.length || 0;
@@ -263,6 +268,22 @@ export default function BlogPostDetail() {
   } else {
     breadcrumbList.push({ "@type": "ListItem", "position": 3, "name": post.title, "item": canonicalUrl });
   }
+
+  const tocList = (
+    <ul className={styles.tocList}>
+      {headings.map(h => (
+        <li key={h.id} className={styles.tocItem} data-level={h.level}>
+          <a
+            href={`#${h.id}`}
+            onClick={e => scrollToHeading(e, h.id)}
+            aria-current={h.id === activeHeadingId ? 'location' : undefined}
+          >
+            {h.text}
+          </a>
+        </li>
+      ))}
+    </ul>
+  );
 
   return (
     <>
@@ -282,8 +303,8 @@ export default function BlogPostDetail() {
             "headline": post.title,
             "description": post.seoDescription || post.excerpt || '',
             "image": post.ogImage || post.featuredImage ? [post.ogImage || post.featuredImage] : undefined,
-            "datePublished": post.publishedAt?.toISOString(),
-            "dateModified": post.updatedAt?.toISOString(),
+            "datePublished": post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined,
+            "dateModified": post.updatedAt ? new Date(post.updatedAt).toISOString() : undefined,
             "author": [{
               "@type": "Person",
               "name": post.authorName || "Testkart Team"
@@ -317,15 +338,15 @@ export default function BlogPostDetail() {
         <div className={styles.container}>
           <nav className={styles.breadcrumb}>
             <Link to="/">Home</Link>
-            <ChevronRight size={16} />
+            <ChevronRight size={14} />
             <Link to="/blog">Blog</Link>
             {post.categoryName && (
               <>
-                <ChevronRight size={16} />
+                <ChevronRight size={14} />
                 <Link to={`/blog?category=${post.categorySlug}`}>{post.categoryName}</Link>
               </>
             )}
-            <ChevronRight size={16} />
+            <ChevronRight size={14} />
             <span className={styles.current}>{post.title}</span>
           </nav>
 
@@ -342,8 +363,8 @@ export default function BlogPostDetail() {
                 <div className={styles.authorDetails}>
                   <span className={styles.authorName}>{post.authorName || 'Testkart Team'}</span>
                   <div className={styles.postStats}>
-                    {post.publishedAt && <span><Calendar size={14} /> {formatDate(post.publishedAt)}</span>}
-                    <span><Clock size={14} /> {post.readingTimeMinutes} min read</span>
+                    {post.publishedAt && <span className={styles.statDate}><Calendar size={14} /> {formatDate(post.publishedAt)}</span>}
+                    <span className={styles.statRead}><Clock size={14} /> {post.readingTimeMinutes} min read</span>
                   </div>
                 </div>
               </div>
@@ -353,12 +374,42 @@ export default function BlogPostDetail() {
                 handle={post.slug}
                 title={post.title}
                 campaign={PUBLIC_PAGE_SHARE_CAMPAIGN}
+                className={styles.shareButton}
               />
             </div>
           </header>
 
-          <div className={styles.layoutGrid}>
+          <div className={`${styles.layoutGrid} ${headings.length === 0 ? styles.noToc : ''}`}>
             <main className={styles.mainContent}>
+              {thumbnailUrl && !thumbnailFailed && (
+                <figure className={styles.featuredMedia}>
+                  <img
+                    src={thumbnailUrl}
+                    alt={post.title}
+                    width={1200}
+                    height={630}
+                    className={styles.featuredImage}
+                    onError={() => setThumbnailFailed(true)}
+                  />
+                </figure>
+              )}
+
+              {headings.length > 0 && (
+                <div className={styles.mobileToc}>
+                  <Accordion type="single" collapsible>
+                    <AccordionItem value="toc" className={styles.mobileTocItem}>
+                      <AccordionTrigger className={styles.mobileTocTrigger}>
+                        <span className={styles.tocHeading}>
+                          <span className={styles.tocIcon}><List size={16} /></span>
+                          Table of Contents
+                        </span>
+                      </AccordionTrigger>
+                      <AccordionContent>{tocList}</AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                </div>
+              )}
+
               <article 
                 className={styles.articleContent}
                 dangerouslySetInnerHTML={{ __html: wrapContentTables(articleHtml) }}
@@ -370,6 +421,8 @@ export default function BlogPostDetail() {
                   <Button 
                     variant={reactionsData?.userReaction === 'like' ? 'primary' : 'outline'}
                     className={styles.reactionBtn}
+                    data-selected={reactionsData?.userReaction === 'like'}
+                    aria-pressed={reactionsData?.userReaction === 'like'}
                     onClick={() => handleReact('like')}
                     disabled={reactMutation.isPending}
                   >
@@ -379,6 +432,8 @@ export default function BlogPostDetail() {
                   <Button 
                     variant={reactionsData?.userReaction === 'dislike' ? 'primary' : 'outline'}
                     className={styles.reactionBtn}
+                    data-selected={reactionsData?.userReaction === 'dislike'}
+                    aria-pressed={reactionsData?.userReaction === 'dislike'}
                     onClick={() => handleReact('dislike')}
                     disabled={reactMutation.isPending}
                   >
@@ -400,7 +455,7 @@ export default function BlogPostDetail() {
                 ) : (
                   <div className={styles.loginPrompt}>
                     <p>Please log in to join the discussion.</p>
-                    <Button asChild>
+                    <Button asChild className={styles.ctaPill}>
                       <Link to={`/login?redirectTo=${encodeURIComponent(location.pathname)}`}>Log In to Comment</Link>
                     </Button>
                   </div>
@@ -418,48 +473,15 @@ export default function BlogPostDetail() {
 
             <aside className={styles.sidebar}>
               {headings.length > 0 && (
-                <>
-                  <div className={styles.desktopToc}>
-                    <div className={styles.tocSticky}>
-                      <h4>Table of Contents</h4>
-                      <ul className={styles.tocList}>
-                        {headings.map(h => (
-                          <li key={h.id} className={styles.tocItem} data-level={h.level}>
-                            <a 
-                              href={`#${h.id}`} 
-                              onClick={e => scrollToHeading(e, h.id)}
-                              style={h.id === activeHeadingId ? { color: 'var(--primary)', fontWeight: 500 } : undefined}
-                            >
-                              {h.text}
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                <nav className={styles.desktopToc} aria-label="Table of contents">
+                  <div className={styles.tocCard}>
+                    <h4 className={styles.tocHeading}>
+                      <span className={styles.tocIcon}><List size={16} /></span>
+                      Table of Contents
+                    </h4>
+                    {tocList}
                   </div>
-                  <div className={styles.mobileToc}>
-                    <Accordion type="single" collapsible>
-                      <AccordionItem value="toc">
-                        <AccordionTrigger>Table of Contents</AccordionTrigger>
-                        <AccordionContent>
-                          <ul className={styles.tocList}>
-                            {headings.map(h => (
-                              <li key={h.id} className={styles.tocItem} data-level={h.level}>
-                                <a 
-                                  href={`#${h.id}`} 
-                                  onClick={e => scrollToHeading(e, h.id)}
-                                  style={h.id === activeHeadingId ? { color: 'var(--primary)', fontWeight: 500 } : undefined}
-                                >
-                                  {h.text}
-                                </a>
-                              </li>
-                            ))}
-                          </ul>
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-                  </div>
-                </>
+                </nav>
               )}
             </aside>
           </div>
