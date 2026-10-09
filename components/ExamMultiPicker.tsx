@@ -89,19 +89,21 @@ export const ExamMultiPicker: React.FC<ExamMultiPickerProps> = ({
         <ul className={styles.chips} aria-label="Selected exams">
           {value.map((name, index) => (
             <li key={name} className={`${styles.chip} ${index === 0 ? styles.chipPrimary : ""}`}>
-              <span className={styles.chipName}>{name}</span>
-              {index === 0 && <span className={`${styles.tag} ${styles.tagPrimary}`}>Primary</span>}
-              {isCustom(name) && <span className={`${styles.tag} ${styles.tagCustom}`}>Not in exam list</span>}
-              {!disabled && index > 0 && (
-                <button
-                  type="button"
-                  className={styles.textButton}
-                  onClick={() => makePrimary(index)}
-                  aria-label={`Make ${name} the primary exam`}
-                >
-                  Make primary
-                </button>
-              )}
+              <span className={styles.chipBody}>
+                <span className={styles.chipName}>{name}</span>
+                {index === 0 && <span className={`${styles.tag} ${styles.tagPrimary}`}>Primary</span>}
+                {isCustom(name) && <span className={`${styles.tag} ${styles.tagCustom}`}>Not in exam list</span>}
+                {!disabled && index > 0 && (
+                  <button
+                    type="button"
+                    className={styles.textButton}
+                    onClick={() => makePrimary(index)}
+                    aria-label={`Make ${name} the primary exam`}
+                  >
+                    Make primary
+                  </button>
+                )}
+              </span>
               {!disabled && (
                 <button
                   type="button"

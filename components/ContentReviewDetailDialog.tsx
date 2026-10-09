@@ -1,5 +1,9 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { getItemExamNames } from "../helpers/itemExams";
+import { useAdminAuth } from "../helpers/useAdminAuth";
+import { hasAdminModule } from "../helpers/adminPermissions";
+import { ADMIN_EDIT_MODULES, adminEditPath, isAdminEditType } from "../helpers/adminContentEdit";
 import { adminPreviewPath } from "../helpers/useAdminContentPreview";
 import { reviewStatusBadgeVariant, reviewStatusLabel } from "../helpers/contentReviewStatus";
 import { PREVIEW_CONTENT_TYPES, PreviewContentType } from "../endpoints/admin/content-preview/details_GET.schema";
@@ -38,6 +42,7 @@ import {
   Zap,
   BarChart2,
   ExternalLink,
+  Pencil,
   Clock,
   Trophy,
   Layers,
@@ -466,6 +471,30 @@ export const ContentReviewOpenButton = ({
   );
 };
 
+/* Opens the admin editor in this tab, for admins who hold the item's section; Cancel and a finished save come back to the queue. */
+export const ContentReviewEditButton = ({
+  review,
+  size = "sm",
+}: {
+  review: ContentReviewAdminView;
+  size?: "sm" | "md";
+}) => {
+  const { authState } = useAdminAuth();
+  const permissions = authState.type === "authenticated" ? authState.admin.permissions ?? [] : [];
+  if (!isAdminEditType(review.contentType)) return null;
+  if (!hasAdminModule(permissions, [ADMIN_EDIT_MODULES[review.contentType]])) return null;
+  const editPath = adminEditPath(review.contentType, review.contentId);
+  if (!editPath) return null;
+  return (
+    <Button variant="outline" size={size} asChild>
+      <Link to={`${editPath}?from=reviews`}>
+        <Pencil size={14} />
+        Edit
+      </Link>
+    </Button>
+  );
+};
+
 export const ContentReviewDetailBody = ({ review }: { review: ContentReviewAdminView }) => {
   const type = previewType(review.contentType);
 
@@ -573,6 +602,7 @@ export const ContentReviewDetailDialog = ({
           {review && (
             <div className={styles.headerBadgeRow}>
               <ContentReviewBadges review={review} />
+              <ContentReviewEditButton review={review} />
               <ContentReviewOpenButton review={review} />
             </div>
           )}

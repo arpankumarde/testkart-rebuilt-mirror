@@ -31,9 +31,12 @@ export const AdminContentEditShell = ({ type, id, listHref, listLabel, narrow, c
   const queryClient = useQueryClient();
   const session = useAdminContentEditSession(type, id);
   const label = ADMIN_EDIT_LABELS[type];
+  const from = searchParams.get("from");
   const exit =
-    searchParams.get("from") === "preview" && id !== null
+    from === "preview" && id !== null
       ? { href: adminPreviewPath(type, id), label: "preview" }
+      : from === "reviews"
+      ? { href: "/admin/content-reviews", label: "content reviews" }
       : { href: listHref, label: listLabel };
 
   useEffect(() => () => dropAdminCatalogueCaches(queryClient), [queryClient]);

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
 import { SEOHead } from "../components/SEOHead";
@@ -129,22 +129,6 @@ const jsonLd = {
 };
 
 const SellDigitalProductsPage: React.FC = () => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (video) {
-      const playPromise = video.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(() => {
-          // Autoplay with sound failed, fallback to muted autoplay
-          video.muted = true;
-          video.play().catch(console.error);
-        });
-      }
-    }
-  }, []);
-
   return (
     <>
       <SEOHead
@@ -166,13 +150,13 @@ const SellDigitalProductsPage: React.FC = () => {
             <p className={styles.heroSubheadline}>
               Earn passive income from your educational content. Join thousands of Indian educators selling study notes online for UPSC, SSC, Banking, NEET, JEE, and other competitive exams. 
             </p>
-            <video
-              ref={videoRef}
+            <iframe
               className={styles.heroVideo}
-              src="https://cdn.testkart.in/marketing-assets/selling-notes-and-pdfs.mp4"
-              autoPlay
-              playsInline
-              controls
+              src="https://www.youtube-nocookie.com/embed/wNdJPaov77U?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1"
+              title="Free Website to Sell Your Notes & PDFs | Testkart"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
             />
             <div className={styles.heroActions}>
               <Button asChild size="lg">

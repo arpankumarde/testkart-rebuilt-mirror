@@ -8,8 +8,7 @@ import {
   FaTelegram,
   FaXTwitter,
 } from 'react-icons/fa6';
-import { useDarkModeObserver } from '../helpers/useDarkModeObserver';
-import { getBrandLogo } from '../helpers/brandAssets';
+import { BRAND_LOGO_DARK } from '../helpers/brandAssets';
 import { Button } from './Button';
 import styles from './Footer.module.css';
 
@@ -47,7 +46,6 @@ const SOCIAL_LINKS = [
 ];
 
 export const Footer: React.FC = () => {
-  const isDarkMode = useDarkModeObserver();
   return (
     <footer className={styles.footer}>
       <div className={styles.footerContent}>
@@ -55,7 +53,7 @@ export const Footer: React.FC = () => {
           <div className={styles.brand}>
             <Link to="/" className={styles.logo}>
               <img
-                src={getBrandLogo(isDarkMode)}
+                src={BRAND_LOGO_DARK}
                 alt="Testkart"
                 className={styles.logoImage}
               />

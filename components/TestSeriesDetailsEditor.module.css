@@ -216,11 +216,8 @@
   max-width: 28rem;
 }
 
-/* Rides the bottom of the viewport while the sheet scrolls, then settles under it. */
+/* Sits in the flow under the sheet, at the end of the form, instead of riding over the content. */
 .saveBar {
-  position: sticky;
-  bottom: var(--spacing-4);
-  z-index: var(--z-content);
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -230,7 +227,7 @@
   background-color: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow);
 }
 
 .saveNote {

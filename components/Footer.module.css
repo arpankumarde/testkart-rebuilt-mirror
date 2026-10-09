@@ -1,20 +1,29 @@
 /*
- * Layout follows a structured brand-row / CTA / link-columns / legal-line
- * pattern; colour is Testkart's own. The surface is the warm ivory used on the
- * exam pages and the accents are its pastel tints (peach, sage, blue,
- * lavender), each paired with its own ink, so every icon and label holds
- * contrast. All tokens are themed, so dark mode follows the site theme.
+ * A floating dark card: brand row with the teacher CTA, link columns, social
+ * icons and the legal line. The palette is a deep neutral charcoal with a
+ * faint cool tilt, so the coral accents are the only colour on it. Like the
+ * brand blocks it is fixed in both site themes: it is artwork, not a themed
+ * surface, so the logo is always the dark-theme file.
+ *   --ft-bg / --ft-border   the card and its hairlines
+ *   --ft-heading            titles, CTA copy (14:1 on the card)
+ *   --ft-text               links, tagline, legal line (9:1)
+ *   --ft-accent             coral for hover, focus and rings (9:1)
  */
 .footer {
-  --footer-gap: 24px;
+  --footer-gap: 18px;
+  --ft-bg: hsl(220 7% 15%);
+  --ft-border: hsl(220 6% 27%);
+  --ft-heading: hsl(0 0% 96%);
+  --ft-text: hsl(220 8% 79%);
+  --ft-accent: var(--tk-brand);
 
   width: calc(100% - 2 * var(--footer-gap));
   margin: var(--spacing-8) auto var(--footer-gap);
-  background-color: var(--exam-ivory);
-  border: 1px solid var(--exam-ivory-border);
+  background-color: var(--ft-bg);
+  border: 1px solid var(--ft-border);
   border-radius: 2rem;
-  box-shadow: 0 10px 28px -12px hsl(220 10% 15% / 0.18);
-  color: var(--muted-foreground);
+  box-shadow: 0 14px 32px -14px hsl(220 10% 8% / 0.5);
+  color: var(--ft-text);
   padding: var(--spacing-12) var(--spacing-6) var(--spacing-8);
 }
 
@@ -29,7 +38,7 @@
   justify-content: space-between;
   gap: var(--spacing-8);
   padding-bottom: var(--spacing-8);
-  border-bottom: 1px solid var(--exam-ivory-border);
+  border-bottom: 1px solid var(--ft-border);
 }
 
 .brand {
@@ -41,7 +50,7 @@
   align-items: center;
   margin-bottom: var(--spacing-4);
   text-decoration: none;
-  color: var(--foreground);
+  color: var(--ft-heading);
 }
 
 .logoImage {
@@ -70,14 +79,15 @@
   font-size: 1rem;
   font-weight: 600;
   line-height: 1.4;
-  color: var(--foreground);
+  color: var(--ft-heading);
 }
 
+/* Button's primary hover drops to the deep orange, which would sink into this
+   card; here it lifts to a lighter coral and keeps the ink label. */
 .cta .ctaButton {
   border-radius: var(--radius-full);
   padding: 0 var(--spacing-6);
   font-weight: 700;
-  box-shadow: 0 6px 16px -6px hsl(20 60% 35% / 0.45);
   transition:
     background-color var(--animation-duration-fast) ease,
     border-color var(--animation-duration-fast) ease,
@@ -85,8 +95,21 @@
     transform var(--animation-duration-fast) ease;
 }
 
+.cta .ctaButton:hover,
+.cta .ctaButton:active {
+  background-color: hsl(20 100% 80%);
+  border-color: hsl(20 100% 80%);
+  color: var(--tk-brand-ink);
+}
+
 .cta .ctaButton:hover {
   transform: translateY(-2px);
+}
+
+.cta .ctaButton:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--ft-bg),
+    0 0 0 4px var(--ft-accent);
 }
 
 .cta .ctaButton svg {
@@ -114,7 +137,7 @@
   font-family: var(--font-family-heading);
   font-size: 0.9375rem;
   font-weight: 700;
-  color: var(--foreground);
+  color: var(--ft-heading);
   margin: 0 0 var(--spacing-4);
 }
 
@@ -128,7 +151,7 @@
 }
 
 .footerLink {
-  color: var(--muted-foreground);
+  color: var(--ft-text);
   text-decoration: none;
   font-size: 0.875rem;
   line-height: 1.4;
@@ -136,7 +159,7 @@
 }
 
 .footerLink:hover {
-  color: var(--tk-brand-text);
+  color: var(--ft-accent);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -144,7 +167,7 @@
 .footerLink:focus-visible,
 .socialLink:focus-visible,
 .logo:focus-visible {
-  outline: 2px solid var(--tk-brand-text);
+  outline: 2px solid var(--ft-accent);
   outline-offset: 3px;
   border-radius: var(--radius-sm);
 }
@@ -165,57 +188,41 @@
   width: 2.75rem;
   height: 2.75rem;
   border-radius: var(--radius-full);
-  border: 1px solid transparent;
+  border: 2px solid transparent;
   text-decoration: none;
   transition:
     transform var(--animation-duration-fast) ease,
-    box-shadow var(--animation-duration-fast) ease,
     border-color var(--animation-duration-fast) ease;
 }
 
 .socialLink:hover {
   transform: translateY(-3px);
-  box-shadow: 0 6px 12px -4px hsl(220 10% 15% / 0.2);
+  border-color: var(--ft-accent);
 }
 
+/* Pastel chips on the dark card, each with its own deep ink (all >= 7:1). */
 .tonePeach {
-  background-color: var(--tk-brand-tint);
-  color: var(--tk-brand-text);
-}
-
-.tonePeach:hover {
-  border-color: var(--tk-brand-text);
+  background-color: hsl(20 100% 90%);
+  color: hsl(18 88% 30%);
 }
 
 .toneMint {
-  background-color: var(--exam-sage-tint);
-  color: var(--exam-sage-ink);
-}
-
-.toneMint:hover {
-  border-color: var(--exam-sage-ink);
+  background-color: hsl(140 24% 90%);
+  color: hsl(150 26% 22%);
 }
 
 .toneBlue {
-  background-color: var(--exam-blue-tint);
-  color: var(--exam-blue-ink);
-}
-
-.toneBlue:hover {
-  border-color: var(--exam-blue-ink);
+  background-color: hsl(210 42% 91%);
+  color: hsl(212 36% 26%);
 }
 
 .toneLavender {
-  background-color: var(--exam-lavender-tint);
-  color: var(--exam-lavender-ink);
-}
-
-.toneLavender:hover {
-  border-color: var(--exam-lavender-ink);
+  background-color: hsl(258 45% 92%);
+  color: hsl(258 24% 32%);
 }
 
 .footerBottom {
-  border-top: 1px solid var(--exam-ivory-border);
+  border-top: 1px solid var(--ft-border);
   padding-top: var(--spacing-6);
   text-align: center;
 }

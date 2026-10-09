@@ -16,16 +16,18 @@
     list-style: none;
   }
 
+  /* The label group wraps inside the chip; the remove button stays pinned and centred on the right,
+     so a narrow column never strands the X on its own line. The radius is the large step, not full,
+     so a two-line chip reads as a rounded card rather than a bent pill. */
   .chip {
     display: inline-flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: var(--spacing-1) var(--spacing-2);
+    gap: var(--spacing-1);
     max-width: 100%;
-    min-height: 2rem;
+    min-height: 2.5rem;
     padding: var(--spacing-1) var(--spacing-1) var(--spacing-1) var(--spacing-3);
     border: 1px solid var(--muted-foreground);
-    border-radius: var(--radius-full);
+    border-radius: var(--radius-lg);
     background: var(--card);
     color: var(--foreground);
     font-size: 0.875rem;
@@ -36,6 +38,15 @@
     border: 2px solid var(--tk-brand-text);
   }
 
+  .chipBody {
+    display: flex;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spacing-1) var(--spacing-2);
+    min-width: 0;
+  }
+
   .chipName {
     min-width: 0;
     font-weight: 600;
@@ -43,18 +54,26 @@
   }
 
   .tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem var(--spacing-2);
+    border-radius: var(--radius-full);
     font-size: 0.6875rem;
     font-weight: 700;
+    line-height: 1.3;
     letter-spacing: 0.03em;
     text-transform: uppercase;
+    white-space: nowrap;
   }
 
   .tagPrimary {
-    color: var(--tk-brand-text);
+    background: var(--tk-brand);
+    color: var(--tk-brand-ink);
   }
 
   .tagCustom {
-    color: var(--muted-foreground);
+    background: var(--muted);
+    color: var(--foreground);
   }
 
   .textButton {

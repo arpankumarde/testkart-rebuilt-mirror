@@ -22,6 +22,7 @@ import {
   ContentReviewBadges,
   ContentReviewDetailBody,
   ContentReviewDetailDialog,
+  ContentReviewEditButton,
   ContentReviewOpenButton,
 } from "../components/ContentReviewDetailDialog";
 import { FileText, CheckCircle, XCircle, AlertCircle, MousePointerClick, UserCheck, Undo2, Gift } from "lucide-react";
@@ -429,7 +430,10 @@ const AdminContentReviewsPage: React.FC = () => {
               <BonusFlag review={selectedReview} />
             </div>
           </div>
-          <ContentReviewOpenButton review={selectedReview} variant="outline" />
+          <div className={styles.paneActions}>
+            <ContentReviewEditButton review={selectedReview} />
+            <ContentReviewOpenButton review={selectedReview} variant="outline" />
+          </div>
         </header>
 
         <div className={styles.paneBody} key={selectedReview.id}>
