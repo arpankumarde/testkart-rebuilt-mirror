@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { sanitizeHtml } from '../helpers/sanitizeHtml';
 import { z } from 'zod';
-import { ChevronRight, Clock, Calendar, ThumbsUp, ThumbsDown, List } from 'lucide-react';
+import { ChevronRight, Clock, Calendar, ThumbsUp, ThumbsDown, List, Home, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useBlogPostQuery, useBlogPostsQuery, useBlogCommentsQuery, useCreateBlogCommentMutation } from '../helpers/useBlogQuery';
@@ -22,8 +22,8 @@ import { Skeleton } from '../components/Skeleton';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '../components/Accordion';
 import { Form, FormItem, FormControl, FormMessage, useForm } from '../components/Form';
 import { Textarea } from '../components/Textarea';
-import { BlogPostCard } from '../components/BlogPostCard';
 import { PublicCommentItem } from '../endpoints/blog/comments/list_GET.schema';
+import type { PublicPostListItem } from '../endpoints/blog/list_GET.schema';
 import { getSessionId } from '../helpers/getSessionId';
 import styles from './blog.$blogSlug.module.css';
 
@@ -142,6 +142,57 @@ const CommentItem = ({ comment, allComments, isRoot = true }: { comment: Comment
   );
 };
 
+const formatShortDate = (date: string | Date) => {
+  return new Intl.DateTimeFormat("en-IN", {
+    month: "short",
+    day: "numeric",
+    year: "numeric"
+  }).format(new Date(date));
+};
+
+const RelatedArticleCard = ({ post }: { post: PublicPostListItem }) => {
+  const [imageFailed, setImageFailed] = useState(false);
+  const showImage = !!post.featuredImage && !imageFailed;
+
+  return (
+    <Link to={`/blog/${post.slug}`} className={styles.relatedCard}>
+      <div className={styles.relatedThumb}>
+        {showImage && (
+          <img
+            src={post.featuredImage || undefined}
+            alt=""
+            width={1200}
+            height={675}
+            loading="lazy"
+            className={styles.relatedThumbImg}
+            onError={() => setImageFailed(true)}
+          />
+        )}
+      </div>
+      <div className={styles.relatedBody}>
+        {post.categoryName && <Badge className={styles.relatedBadge}>{post.categoryName}</Badge>}
+        <h3 className={styles.relatedTitle}>{post.title}</h3>
+        <p className={styles.relatedExcerpt}>{post.excerpt || 'Read more about this topic...'}</p>
+        <div className={styles.relatedFooter}>
+          <div className={styles.relatedAuthor}>
+            <Avatar className={styles.relatedAvatar}>
+              <AvatarImage src={post.authorAvatar || undefined} />
+              <AvatarFallback>{post.authorName?.[0] || 'T'}</AvatarFallback>
+            </Avatar>
+            <span className={styles.relatedAuthorName}>{post.authorName || 'Testkart Team'}</span>
+          </div>
+          <div className={styles.relatedMeta}>
+            <span className={styles.relatedMetaItem}><Clock size={14} aria-hidden="true" /> {post.readingTimeMinutes} min</span>
+            {post.publishedAt && (
+              <span className={styles.relatedMetaItem}><Calendar size={14} aria-hidden="true" /> {formatShortDate(post.publishedAt)}</span>
+            )}
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+};
+
 export default function BlogPostDetail() {
   const { blogSlug } = useParams<{ blogSlug: string }>();
   const { data, isFetching, error } = useBlogPostQuery(blogSlug);
@@ -149,6 +200,8 @@ export default function BlogPostDetail() {
 
   const [activeHeadingId, setActiveHeadingId] = useState<string>('');
   const [thumbnailFailed, setThumbnailFailed] = useState(false);
+  const tocScrollRef = useRef<HTMLDivElement>(null);
+  const pinnedHeadingRef = useRef<string | null>(null);
 
   // Sanitize once, then bake stable ids into the h2/h3 tags as part of the
   // same string — see extractHeadingsWithIds for why this replaced the old
@@ -159,30 +212,92 @@ export default function BlogPostDetail() {
     return extractHeadingsWithIds(sanitized);
   }, [post?.content]);
 
+  // Stable object so a re-render (e.g. the active TOC entry changing) does not
+  // rewrite the article and swap out the heading nodes the observer watches.
+  const articleMarkup = useMemo(() => ({ __html: wrapContentTables(articleHtml) }), [articleHtml]);
+
+  // The active heading is the last one whose top has reached the reading line
+  // (the heading's own scroll-margin, i.e. where a TOC click lands it). The
+  // observed region is everything above that line, so any crossing fires,
+  // including long jumps; the answer is recomputed from positions, so
+  // scrolling up reverts correctly. root: document keeps rootMargin working
+  // inside iframes. A TOC click pins its target until the reader scrolls by
+  // hand, so the smooth scroll (and a last section too short to reach the
+  // line) cannot flip the state.
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveHeadingId(entry.target.id);
-          }
-        });
-      },
-      { rootMargin: '-100px 0px -70% 0px' }
-    );
+    const els = headings
+      .map((h) => document.getElementById(h.id))
+      .filter((el): el is HTMLElement => !!el);
+    if (els.length === 0) return;
 
-    headings.forEach((h) => {
-      const el = document.getElementById(h.id);
-      if (el) observer.observe(el);
-    });
+    const line = (parseFloat(getComputedStyle(els[0]).scrollMarginTop) || 100) + 8;
 
-    return () => observer.disconnect();
+    const syncActive = () => {
+      if (pinnedHeadingRef.current) return;
+      let current = '';
+      for (const el of els) {
+        if (el.getBoundingClientRect().top <= line) current = el.id;
+        else break;
+      }
+      setActiveHeadingId(current);
+    };
+
+    const unpin = () => {
+      pinnedHeadingRef.current = null;
+    };
+
+    let observer: IntersectionObserver | null = null;
+    const observe = () => {
+      observer?.disconnect();
+      observer = new IntersectionObserver(syncActive, {
+        root: document,
+        rootMargin: `1000000px 0px ${line - window.innerHeight}px 0px`,
+      });
+      els.forEach((el) => observer!.observe(el));
+    };
+    observe();
+
+    const userScrollEvents = ['wheel', 'touchstart', 'keydown', 'pointerdown'] as const;
+    userScrollEvents.forEach((name) => window.addEventListener(name, unpin, { passive: true }));
+    window.addEventListener('resize', observe);
+    syncActive();
+
+    return () => {
+      observer?.disconnect();
+      userScrollEvents.forEach((name) => window.removeEventListener(name, unpin));
+      window.removeEventListener('resize', observe);
+    };
   }, [headings]);
+
+  // A subsection keeps its parent entry marked so the reader can see which section they are in.
+  const activeParentId = useMemo(() => {
+    const index = headings.findIndex((h) => h.id === activeHeadingId);
+    if (index < 0 || headings[index].level !== 3) return '';
+    for (let i = index - 1; i >= 0; i--) {
+      if (headings[i].level === 2) return headings[i].id;
+    }
+    return '';
+  }, [headings, activeHeadingId]);
+
+  // Keeps the active entry in view when the desktop contents list is taller than its card.
+  useEffect(() => {
+    const box = tocScrollRef.current;
+    if (!box || !activeHeadingId) return;
+    const link = box.querySelector<HTMLElement>(`a[href="#${CSS.escape(activeHeadingId)}"]`);
+    if (!link) return;
+    const boxRect = box.getBoundingClientRect();
+    const linkRect = link.getBoundingClientRect();
+    if (linkRect.top < boxRect.top || linkRect.bottom > boxRect.bottom) {
+      box.scrollTo({ top: box.scrollTop + linkRect.top - boxRect.top - box.clientHeight / 3, behavior: 'smooth' });
+    }
+  }, [activeHeadingId]);
 
   const scrollToHeading = (e: React.MouseEvent, id: string) => {
     e.preventDefault();
     const el = document.getElementById(id);
     if (el) {
+      pinnedHeadingRef.current = id;
+      setActiveHeadingId(id);
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
@@ -272,7 +387,12 @@ export default function BlogPostDetail() {
   const tocList = (
     <ul className={styles.tocList}>
       {headings.map(h => (
-        <li key={h.id} className={styles.tocItem} data-level={h.level}>
+        <li
+          key={h.id}
+          className={styles.tocItem}
+          data-level={h.level}
+          data-active-parent={h.id === activeParentId ? 'true' : undefined}
+        >
           <a
             href={`#${h.id}`}
             onClick={e => scrollToHeading(e, h.id)}
@@ -336,18 +456,18 @@ export default function BlogPostDetail() {
 
       <div className={styles.pageWrapper}>
         <div className={styles.container}>
-          <nav className={styles.breadcrumb}>
-            <Link to="/">Home</Link>
-            <ChevronRight size={14} />
+          <nav className={styles.breadcrumb} aria-label="Breadcrumb">
+            <Link to="/" className={styles.crumbHome}><Home size={14} aria-hidden="true" />Home</Link>
+            <ChevronRight size={14} aria-hidden="true" />
             <Link to="/blog">Blog</Link>
             {post.categoryName && (
               <>
-                <ChevronRight size={14} />
+                <ChevronRight size={14} aria-hidden="true" />
                 <Link to={`/blog?category=${post.categorySlug}`}>{post.categoryName}</Link>
               </>
             )}
-            <ChevronRight size={14} />
-            <span className={styles.current}>{post.title}</span>
+            <ChevronRight size={14} aria-hidden="true" />
+            <span className={styles.current} aria-current="page">{post.title}</span>
           </nav>
 
           <header className={styles.articleHeader}>
@@ -412,7 +532,7 @@ export default function BlogPostDetail() {
 
               <article 
                 className={styles.articleContent}
-                dangerouslySetInnerHTML={{ __html: wrapContentTables(articleHtml) }}
+                dangerouslySetInnerHTML={articleMarkup}
               />
 
               <div className={styles.reactionSection}>
@@ -446,7 +566,10 @@ export default function BlogPostDetail() {
               <hr className={styles.divider} />
 
               <section className={styles.commentsSection}>
-                <h3>Comments ({commentsData?.comments?.length || 0})</h3>
+                <h3 className={styles.sectionHeading}>
+                  <span className={styles.headingIcon} data-tone="sage"><MessageCircle size={16} /></span>
+                  Comments ({commentsData?.comments?.length || 0})
+                </h3>
                 
                 {authState.type === "authenticated" ? (
                   <div className={styles.mainCommentForm}>
@@ -479,7 +602,7 @@ export default function BlogPostDetail() {
                       <span className={styles.tocIcon}><List size={16} /></span>
                       Table of Contents
                     </h4>
-                    {tocList}
+                    <div ref={tocScrollRef} className={styles.tocScroll}>{tocList}</div>
                   </div>
                 </nav>
               )}
@@ -488,10 +611,10 @@ export default function BlogPostDetail() {
 
           {relatedPosts.length > 0 && (
             <section className={styles.relatedSection}>
-              <h2>Related Articles</h2>
+              <h2 className={styles.sectionHeading}>Related Articles</h2>
               <div className={styles.relatedGrid}>
                 {relatedPosts.map(rp => (
-                  <BlogPostCard key={rp.id} post={rp} />
+                  <RelatedArticleCard key={rp.id} post={rp} />
                 ))}
               </div>
             </section>

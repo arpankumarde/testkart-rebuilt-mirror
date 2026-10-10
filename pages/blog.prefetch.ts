@@ -9,9 +9,11 @@ export const prefetch: PagePrefetchFn = async (ctx) => {
       queryKey: ["public", "blog", "categories", { type: "blog" }],
       queryFn: () => fetchBlogCategoriesServer({ type: "blog" }),
     });
-    await qc.prefetchQuery({
-      queryKey: ["public", "blog", "posts", { type: "blog", page: 1, limit: 12 }],
-      queryFn: () => fetchBlogPostsListServer({ type: "blog", page: 1, limit: 12 }),
+    // Must match useBlogPostsInfiniteQuery's key for the unfiltered list.
+    await qc.prefetchInfiniteQuery({
+      queryKey: ["public", "blog", "posts", "infinite", { type: "blog", limit: 12 }],
+      queryFn: ({ pageParam }) => fetchBlogPostsListServer({ type: "blog", page: pageParam as number, limit: 12 }),
+      initialPageParam: 1,
     });
   } catch (error) {
     console.error("Error prefetching blog list:", error);

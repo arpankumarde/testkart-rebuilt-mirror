@@ -63,7 +63,13 @@ export async function handle(request: Request) {
       
     const total = Number(countResult?.total || 0);
 
-    const posts = await query
+    // Blogs read newest first. Help articles keep featured first, the curated
+    // order the help centre and teacher guides rely on.
+    const sorted = input.type === "blog"
+      ? query.orderBy(sql`"blog_posts"."published_at" desc nulls last`)
+      : query.orderBy("blogPosts.isFeatured", "desc").orderBy("blogPosts.publishedAt", "desc");
+
+    const posts = await sorted
       .select([
         "blogPosts.id",
         "blogPosts.title",
@@ -81,8 +87,7 @@ export async function handle(request: Request) {
         sql<string | null>`COALESCE(admins.full_name, users.display_name)`.as("authorName"),
         sql<string | null>`CASE WHEN admins.id IS NOT NULL THEN admins.avatar_url ELSE users.avatar_url END`.as("authorAvatar"),
       ])
-      .orderBy("blogPosts.isFeatured", "desc")
-      .orderBy("blogPosts.publishedAt", "desc")
+      .orderBy("blogPosts.id", "desc")
       .limit(input.limit)
       .offset((input.page - 1) * input.limit)
       .execute();

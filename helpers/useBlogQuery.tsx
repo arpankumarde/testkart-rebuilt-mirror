@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { parseErrorMessage } from "./parseErrorMessage";
 import { getBlogPostsList, InputType as PostsListInput } from "../endpoints/blog/list_GET.schema";
@@ -19,6 +19,21 @@ export const useBlogPostsQuery = (params: Omit<PostsListInput, "page"> & { page?
     queryFn: () => getBlogPostsList(queryParams),
     // Matches the SSR prefetch (fetchBlogPostsListServer) so hydrated data
     // isn't immediately treated as stale and re-fetched on mount.
+    staleTime: 60 * 1000,
+  });
+};
+
+// Pages of the same list endpoint, for infinite scrolling. Each filter/search
+// combination is its own key, so changing either starts a fresh list from
+// page 1 and never appends to the previous one. pages/blog.prefetch.ts seeds
+// the unfiltered key with page 1 for SSR.
+export const useBlogPostsInfiniteQuery = (params: Omit<PostsListInput, "page">) => {
+  return useInfiniteQuery({
+    queryKey: [...BLOG_POSTS_KEY, "infinite", params],
+    queryFn: ({ pageParam }) => getBlogPostsList({ ...params, page: pageParam }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, _allPages, lastPageParam) =>
+      lastPageParam < lastPage.totalPages ? lastPageParam + 1 : undefined,
     staleTime: 60 * 1000,
   });
 };

@@ -1,44 +1,125 @@
 /*
- * Blog article page in the pastel system: warm ivory page, white rounded cards
- * on ivory hairlines, and one pastel per role - peach for the brand and active
- * states, powder blue for the date, mint for reading time and the helpful card,
- * lavender for the contents icon, quotes and replies. Every tint and border is
- * solid, and each ink holds 4.5:1 on its own tint in both themes. Buttons wear
- * the peach CTA from TeachCtaButton, fixed in both themes like it is.
+ * Blog article page. A warm white page with white rounded cards and a spread
+ * of pastels, each with one job:
+ *   lavender  the contents card, table headers, Share, list markers, replies
+ *   mint      reading time
+ *   sage      quotes and the comments heading
+ *   blue      the date, links and the login prompt
+ *   butter    the helpful card and the thumbnail's offset block
+ *   peach     only the category badge and the solid CTA pills
+ * Headings take turns between lavender, sage, blue and butter bars.
+ *
+ * Every colour is solid. Each pastel has four steps:
+ *   -tint  the fill
+ *   -line  outline of a large panel, about 2:1 on the page
+ *   -edge  outline of a chip or control and the accent bars, 3:1 or more
+ *   -ink   text on the tint, 7:1 or more
+ * The dark block re-maps the same names, so nothing below branches on theme.
  */
 .pageWrapper {
+  --bd-page: hsl(42 45% 98%);
+  --bd-card: hsl(0 0% 100%);
+  --bd-zebra: hsl(40 40% 97.5%);
+  --bd-ink: hsl(224 28% 18%);
+  --bd-text: hsl(222 14% 26%);
+  --bd-line: hsl(36 14% 70%);
+  --bd-field: hsl(30 8% 55%);
+  --bd-shadow:
+    0 1px 2px hsl(30 20% 20% / 0.06),
+    0 14px 32px -24px hsl(30 25% 20% / 0.35);
+
   --bd-cta: #fdba91;
   --bd-cta-hover: #fca777;
   --bd-cta-active: #fb9a63;
   --bd-cta-ink: hsl(222 24% 17%);
-  --bd-coral: var(--tk-brand);
-  --bd-peach-tint: hsl(24 100% 95%);
-  --bd-peach-border: hsl(22 80% 84%);
-  --bd-mint-tint: hsl(158 44% 93%);
-  --bd-mint-ink: hsl(162 42% 22%);
-  --bd-mint-border: hsl(158 30% 78%);
-  --bd-lavender: hsl(258 42% 74%);
-  --bd-line: var(--exam-ivory-border);
-  --bd-card-shadow:
-    0 1px 2px hsl(220 10% 15% / 0.04),
-    0 16px 36px -26px hsl(220 20% 15% / 0.3);
+
+  --bd-peach-tint: hsl(24 100% 92%);
+  --bd-peach-edge: hsl(20 68% 52%);
+  --bd-peach-ink: var(--tk-brand-text);
+
+  --bd-lavender-tint: hsl(258 55% 94%);
+  --bd-lavender-line: hsl(258 30% 74%);
+  --bd-lavender-edge: hsl(258 35% 58%);
+  --bd-lavender-ink: hsl(258 32% 30%);
+
+  --bd-mint-tint: hsl(155 45% 90%);
+  --bd-mint-line: hsl(157 28% 64%);
+  --bd-mint-edge: hsl(158 38% 40%);
+  --bd-mint-ink: hsl(162 45% 20%);
+
+  --bd-sage-tint: hsl(95 25% 90%);
+  --bd-sage-line: hsl(95 18% 66%);
+  --bd-sage-edge: hsl(95 22% 42%);
+  --bd-sage-ink: hsl(100 28% 22%);
+
+  --bd-blue-tint: hsl(210 60% 93%);
+  --bd-blue-line: hsl(210 35% 70%);
+  --bd-blue-edge: hsl(210 40% 52%);
+  --bd-blue-ink: hsl(212 50% 30%);
+  --bd-link: hsl(212 62% 36%);
+
+  --bd-butter-tint: hsl(46 92% 89%);
+  --bd-butter-line: hsl(44 55% 64%);
+  --bd-butter-edge: hsl(42 60% 42%);
+  --bd-butter-ink: hsl(36 70% 22%);
+
   /* Past the 100px top inset of the page's heading observer, so a heading
      scrolled to from the TOC lands inside its band and lights its entry. */
   --bd-scroll-offset: calc(var(--header-height) + var(--site-notice-offset) + 2rem);
 
-  background-color: var(--exam-ivory);
+  /* The global muted grey and hairline wash out on this page; these also
+     reach the shared pieces inside it (related cards, tables, textarea). */
+  --muted-foreground: hsl(220 12% 36%);
+  --border: hsl(36 15% 80%);
+
   min-height: 100vh;
   padding-bottom: var(--spacing-16);
+  background-color: var(--bd-page);
+  color: var(--bd-text);
 }
 
+/* Dark: deep slate rather than black, tints become muted fills, inks go light. */
 :global(.dark) .pageWrapper {
+  --bd-page: hsl(222 20% 12%);
+  --bd-card: hsl(222 18% 16%);
+  --bd-zebra: hsl(222 16% 18.5%);
+  --bd-ink: hsl(220 20% 93%);
+  --bd-text: hsl(220 14% 82%);
+  --bd-line: hsl(222 14% 30%);
+  --bd-field: hsl(220 10% 46%);
+  --bd-shadow: 0 1px 2px hsl(0 0% 0% / 0.2);
+
   --bd-peach-tint: hsl(20 28% 19%);
-  --bd-peach-border: hsl(20 24% 32%);
-  --bd-mint-tint: hsl(160 18% 18%);
-  --bd-mint-ink: hsl(158 40% 78%);
-  --bd-mint-border: hsl(160 14% 30%);
-  --bd-lavender: hsl(258 30% 60%);
-  --bd-card-shadow: none;
+  --bd-peach-edge: hsl(20 60% 58%);
+
+  --bd-lavender-tint: hsl(258 20% 22%);
+  --bd-lavender-line: hsl(258 16% 35%);
+  --bd-lavender-edge: hsl(258 35% 66%);
+  --bd-lavender-ink: hsl(258 60% 87%);
+
+  --bd-mint-tint: hsl(160 20% 18%);
+  --bd-mint-line: hsl(160 15% 31%);
+  --bd-mint-edge: hsl(158 32% 50%);
+  --bd-mint-ink: hsl(158 45% 80%);
+
+  --bd-sage-tint: hsl(95 14% 19%);
+  --bd-sage-line: hsl(95 10% 32%);
+  --bd-sage-edge: hsl(95 20% 52%);
+  --bd-sage-ink: hsl(95 30% 82%);
+
+  --bd-blue-tint: hsl(212 24% 21%);
+  --bd-blue-line: hsl(212 20% 34%);
+  --bd-blue-edge: hsl(210 35% 58%);
+  --bd-blue-ink: hsl(210 60% 85%);
+  --bd-link: hsl(210 85% 77%);
+
+  --bd-butter-tint: hsl(42 28% 19%);
+  --bd-butter-line: hsl(42 22% 33%);
+  --bd-butter-edge: hsl(44 55% 55%);
+  --bd-butter-ink: hsl(45 80% 82%);
+
+  --muted-foreground: hsl(220 12% 68%);
+  --border: hsl(222 14% 26%);
 }
 
 .container {
@@ -55,12 +136,17 @@
 
 /* Breadcrumb */
 .breadcrumb {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 0.375rem;
+  max-width: 100%;
   margin-bottom: var(--spacing-6);
-  font-size: 0.875rem;
+  padding: 0.4375rem 0.875rem;
+  background-color: var(--bd-card);
+  border: 1px solid var(--bd-line);
+  border-radius: 1rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
 }
 
@@ -69,19 +155,34 @@
 }
 
 .breadcrumb a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
   color: var(--muted-foreground);
   font-weight: 500;
   text-decoration: none;
+  border-radius: 0.375rem;
   transition: color var(--animation-duration-fast) ease;
 }
 
 .breadcrumb a:hover {
-  color: var(--tk-brand-text);
+  color: var(--bd-lavender-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.breadcrumb a:focus-visible {
+  outline: 2px solid var(--bd-lavender-edge);
+  outline-offset: 2px;
+}
+
+.crumbHome svg {
+  color: var(--bd-lavender-edge);
 }
 
 .current {
   min-width: 0;
-  color: var(--foreground);
+  color: var(--bd-ink);
   font-weight: 600;
   display: -webkit-box;
   -webkit-line-clamp: 1;
@@ -91,35 +192,69 @@
 
 /* Header */
 .articleHeader {
+  position: relative;
   margin-bottom: var(--spacing-8);
   padding-bottom: var(--spacing-6);
   border-bottom: 1.5px dashed var(--bd-line);
 }
 
-.categoryBadge {
+/* Two solid pastel shapes in the empty top-right corner, desktop only. */
+@media (min-width: 992px) {
+  .articleHeader::before,
+  .articleHeader::after {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+  }
+
+  .articleHeader::before {
+    top: 0.25rem;
+    right: 3rem;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    background-color: var(--bd-lavender-tint);
+    border: 1.5px solid var(--bd-lavender-line);
+  }
+
+  .articleHeader::after {
+    top: 3rem;
+    right: 0.5rem;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 0.5rem;
+    background-color: var(--bd-butter-tint);
+    border: 1.5px solid var(--bd-butter-line);
+    transform: rotate(14deg);
+  }
+}
+
+.categoryBadge,
+.categoryBadge:hover {
   margin-bottom: var(--spacing-4);
   padding: 0.3125rem 0.875rem;
   background-color: var(--bd-peach-tint);
-  border: 1px solid var(--bd-peach-border);
-  color: var(--tk-brand-text);
+  border: 1px solid var(--bd-peach-edge);
+  color: var(--bd-peach-ink);
   font-size: 0.8125rem;
   font-weight: 700;
 }
 
-.categoryBadge:hover {
-  background-color: var(--bd-peach-tint);
-}
-
 .title {
-  max-width: 62rem;
   margin: 0 0 var(--spacing-6);
   font-family: var(--font-family-heading);
   font-size: clamp(1.75rem, 1.15rem + 2.4vw, 2.75rem);
   font-weight: 800;
   line-height: 1.18;
   letter-spacing: -0.025em;
-  color: var(--foreground);
+  color: var(--bd-ink);
   text-wrap: balance;
+}
+
+@media (min-width: 992px) {
+  .title {
+    max-width: calc(100% - 7rem);
+  }
 }
 
 .headerMeta {
@@ -137,13 +272,13 @@
   min-width: 0;
 }
 
-/* Peach ring outside a white gap, so the photo sits apart from the page. */
+/* Lavender ring outside a card-coloured gap, so the photo sits apart from the page. */
 .authorAvatar,
 .authorAvatar:hover {
   width: 52px;
   height: 52px;
-  border: 2px solid var(--surface);
-  box-shadow: 0 0 0 2px var(--bd-cta);
+  border: 2px solid var(--bd-card);
+  box-shadow: 0 0 0 2px var(--bd-lavender-edge);
   transform: none;
 }
 
@@ -158,7 +293,7 @@
   font-family: var(--font-family-heading);
   font-size: 1rem;
   font-weight: 700;
-  color: var(--foreground);
+  color: var(--bd-ink);
 }
 
 .postStats {
@@ -182,53 +317,41 @@
 }
 
 .statDate {
-  background-color: var(--exam-blue-tint);
-  border-color: var(--exam-blue-border);
-  color: var(--exam-blue-ink);
+  background-color: var(--bd-blue-tint);
+  border-color: var(--bd-blue-edge);
+  color: var(--bd-blue-ink);
 }
 
 .statRead {
   background-color: var(--bd-mint-tint);
-  border-color: var(--bd-mint-border);
+  border-color: var(--bd-mint-edge);
   color: var(--bd-mint-ink);
 }
 
-/* Peach CTA pills. Unlayered, so they outrank Button's @layer base variants. */
-.shareButton,
-.ctaPill {
+/* Share is a secondary action: a lavender outline pill, filling on hover.
+   Unlayered, so it outranks Button's @layer base variants. */
+.shareButton {
   height: 2.75rem;
-  padding: 0 1.375rem;
-  border-color: transparent;
+  padding: 0 1.25rem;
+  border: 1.5px solid var(--bd-lavender-edge);
   border-radius: var(--radius-full);
-  background-color: var(--bd-cta);
-  color: var(--bd-cta-ink);
+  background-color: var(--bd-card);
+  color: var(--bd-lavender-ink);
   font-family: var(--font-family-heading);
   font-size: 0.9375rem;
   font-weight: 700;
-  box-shadow:
-    0 1px 2px hsl(20 60% 30% / 0.12),
-    0 6px 16px -8px hsl(20 80% 45% / 0.45);
+  box-shadow: var(--bd-shadow);
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
 }
 
 .shareButton:hover,
-.ctaPill:hover {
-  border-color: transparent;
-  background-color: var(--bd-cta-hover);
-  color: var(--bd-cta-ink);
-}
-
-.shareButton:active,
-.ctaPill:active {
-  border-color: transparent;
-  background-color: var(--bd-cta-active);
-  color: var(--bd-cta-ink);
-}
-
-.shareButton:focus-visible,
-.ctaPill:focus-visible {
-  box-shadow:
-    0 0 0 2px var(--surface),
-    0 0 0 4px var(--tk-brand-text);
+.shareButton:active {
+  border-color: var(--bd-lavender-edge);
+  background-color: var(--bd-lavender-tint);
+  color: var(--bd-lavender-ink);
+  transform: translateY(-1px);
 }
 
 .shareButton svg {
@@ -236,12 +359,50 @@
   height: 1.125rem;
 }
 
+/* The solid peach CTA from TeachCtaButton, with an edge so the light fill
+   still reads as a control on the warm page. */
+.ctaPill {
+  height: 2.75rem;
+  padding: 0 1.375rem;
+  border: 1.5px solid var(--bd-peach-edge);
+  border-radius: var(--radius-full);
+  background-color: var(--bd-cta);
+  color: var(--bd-cta-ink);
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.ctaPill:hover {
+  border-color: var(--bd-peach-edge);
+  background-color: var(--bd-cta-hover);
+  color: var(--bd-cta-ink);
+}
+
+.ctaPill:active {
+  border-color: var(--bd-peach-edge);
+  background-color: var(--bd-cta-active);
+  color: var(--bd-cta-ink);
+}
+
+.shareButton:focus-visible,
+.ctaPill:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--bd-page),
+    0 0 0 4px var(--bd-lavender-ink);
+}
+
 .ghostPill {
   height: 2.75rem;
   padding: 0 1.25rem;
   border-radius: var(--radius-full);
-  color: var(--foreground);
+  color: var(--bd-ink);
   font-weight: 600;
+}
+
+.ghostPill:hover {
+  background-color: var(--bd-lavender-tint);
+  color: var(--bd-lavender-ink);
 }
 
 /* Layout */
@@ -253,8 +414,8 @@
 
 @media (min-width: 992px) {
   .layoutGrid {
-    grid-template-columns: minmax(0, 1fr) 280px;
-    gap: 3.5rem;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 4rem;
   }
 
   .layoutGrid.noToc {
@@ -267,22 +428,27 @@
 }
 
 .noToc .mainContent {
-  max-width: 52rem;
+  max-width: 50rem;
 }
 
 .mainContent {
   min-width: 0;
 }
 
-/* Featured image. Height follows the file, so nothing is cropped; the width
-   and height attributes reserve a 1200x630 box until it loads. */
+/* Featured image in a white frame with a butter block offset behind it. The
+   height follows the file, so nothing is cropped; the width and height
+   attributes reserve a 1200x630 box until it loads. */
 .featuredMedia {
-  margin: 0 0 var(--spacing-8);
+  --offset: 10px;
+
+  margin: 0 var(--offset) calc(var(--spacing-8) + var(--offset)) 0;
   padding: 0.5rem;
-  background-color: var(--surface);
+  background-color: var(--bd-card);
   border: 1px solid var(--bd-line);
   border-radius: 1.5rem;
-  box-shadow: var(--bd-card-shadow);
+  box-shadow:
+    var(--offset) var(--offset) 0 -1px var(--bd-butter-tint),
+    var(--offset) var(--offset) 0 0 var(--bd-butter-line);
 }
 
 .featuredImage {
@@ -292,12 +458,14 @@
   max-height: 36rem;
   object-fit: contain;
   border-radius: 1.125rem;
-  background-color: var(--exam-blue-tint);
+  background-color: var(--bd-blue-tint);
 }
 
 @media (max-width: 639px) {
   .featuredMedia {
-    margin-bottom: var(--spacing-6);
+    --offset: 6px;
+
+    margin-bottom: calc(var(--spacing-6) + var(--offset));
     padding: 0.375rem;
     border-radius: 1.125rem;
   }
@@ -333,28 +501,35 @@
 .tocCard {
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - var(--header-height) - var(--site-notice-offset) - 2.5rem);
-  padding: 1.25rem 1rem 1rem 1.25rem;
-  background-color: var(--surface);
+  max-height: calc(100vh - var(--header-height) - var(--site-notice-offset) - 3rem);
+  padding: 1.25rem 0.75rem 0.75rem 1rem;
+  background-color: var(--bd-card);
   border: 1px solid var(--bd-line);
   border-radius: 1.5rem;
-  box-shadow: var(--bd-card-shadow);
+  box-shadow: var(--bd-shadow);
+}
+
+.tocCard .tocHeading {
+  padding-left: 0.25rem;
+  padding-bottom: var(--spacing-3);
+  border-bottom: 1.5px dashed var(--bd-line);
 }
 
 .tocHeading {
   display: flex;
   align-items: center;
   gap: 0.625rem;
-  margin: 0 0 var(--spacing-4);
+  margin: 0 0 var(--spacing-3);
   font-family: var(--font-family-heading);
   font-size: 0.8125rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--foreground);
+  color: var(--bd-ink);
 }
 
-.tocIcon {
+.tocIcon,
+.headingIcon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -362,11 +537,32 @@
   width: 2rem;
   height: 2rem;
   border-radius: 46% 54% 52% 48% / 56% 44% 56% 44%;
-  background-color: var(--exam-lavender-tint);
-  border: 1px solid var(--exam-lavender-border);
-  color: var(--exam-lavender-ink);
+  border: 1px solid;
 }
 
+.tocIcon,
+.headingIcon[data-tone="lavender"] {
+  background-color: var(--bd-lavender-tint);
+  border-color: var(--bd-lavender-edge);
+  color: var(--bd-lavender-ink);
+}
+
+.headingIcon[data-tone="sage"] {
+  background-color: var(--bd-sage-tint);
+  border-color: var(--bd-sage-edge);
+  color: var(--bd-sage-ink);
+}
+
+.tocScroll {
+  min-height: 0;
+  margin-right: -0.25rem;
+  padding-right: 0.25rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bd-line) transparent;
+}
+
+/* h2 entries carry a numbered chip, h3 entries a small dot under it. */
 .tocList {
   display: flex;
   flex-direction: column;
@@ -374,14 +570,7 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  border-left: 2px solid var(--bd-line);
-}
-
-.tocCard .tocList {
-  min-height: 0;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--bd-line) transparent;
+  counter-reset: toc-section;
 }
 
 .tocItem {
@@ -389,51 +578,103 @@
   line-height: 1.4;
 }
 
+.tocItem[data-level="2"] {
+  counter-increment: toc-section;
+}
+
 .tocItem a {
-  display: block;
-  margin-left: -2px;
-  padding: 0.4375rem 0.75rem;
-  border-left: 2px solid transparent;
-  border-radius: 0 0.625rem 0.625rem 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding: 0.4375rem 0.5rem;
+  border-radius: 0.75rem;
   color: var(--muted-foreground);
   font-size: 0.875rem;
   font-weight: 500;
   text-decoration: none;
   transition:
     color var(--animation-duration-fast) ease,
+    background-color var(--animation-duration-fast) ease;
+}
+
+.tocItem[data-level="2"] a::before {
+  content: counter(toc-section, decimal-leading-zero);
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  height: 1.25rem;
+  margin-top: 0.0625rem;
+  padding: 0 0.375rem;
+  border-radius: var(--radius-full);
+  background-color: var(--bd-lavender-tint);
+  color: var(--bd-lavender-ink);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  transition:
     background-color var(--animation-duration-fast) ease,
-    border-color var(--animation-duration-fast) ease;
+    color var(--animation-duration-fast) ease;
 }
 
 .tocItem[data-level="3"] a {
-  padding-left: 1.5rem;
   font-size: 0.8125rem;
 }
 
-.tocItem a:hover {
-  color: var(--foreground);
-  border-left-color: var(--bd-peach-border);
+.tocItem[data-level="3"] a::before {
+  content: "";
+  flex: none;
+  width: 0.375rem;
+  height: 0.375rem;
+  margin: 0.4em 0.6875rem 0;
+  border-radius: 50%;
+  background-color: var(--bd-line);
 }
 
-.tocItem a[aria-current="location"] {
-  background-color: var(--bd-peach-tint);
-  border-left-color: var(--bd-coral);
-  color: var(--tk-brand-text);
+.tocItem a:hover {
+  background-color: var(--bd-page);
+  color: var(--bd-ink);
+}
+
+/* Active entry: lavender pill with a hairline ring; its number chip steps up
+   one lavender shade. The parent of an active subsection keeps that chip. */
+.tocItem a[aria-current="location"],
+.tocItem a[aria-current="location"]:hover {
+  background-color: var(--bd-lavender-tint);
+  box-shadow: inset 0 0 0 1px var(--bd-lavender-line);
+  color: var(--bd-lavender-ink);
   font-weight: 700;
 }
 
+.tocItem[data-level="2"] a[aria-current="location"]::before,
+.tocItem[data-active-parent="true"] a::before {
+  background-color: var(--bd-lavender-line);
+  color: var(--bd-lavender-ink);
+  font-weight: 800;
+}
+
+.tocItem[data-active-parent="true"] a {
+  color: var(--bd-ink);
+}
+
+.tocItem[data-level="3"] a[aria-current="location"]::before {
+  background-color: var(--bd-lavender-edge);
+}
+
 .tocItem a:focus-visible {
-  outline: 2px solid var(--tk-brand-text);
+  outline: 2px solid var(--bd-lavender-edge);
   outline-offset: -2px;
 }
 
 .mobileTocItem,
 .mobileTocItem:hover {
   margin-bottom: 0;
-  background-color: var(--surface);
+  background-color: var(--bd-card);
+  color: var(--bd-ink);
   border: 1px solid var(--bd-line);
   border-radius: 1.25rem;
-  box-shadow: var(--bd-card-shadow);
+  box-shadow: var(--bd-shadow);
 }
 
 .mobileTocTrigger {
@@ -449,7 +690,7 @@
   font-family: var(--font-family-base);
   font-size: 1.0625rem;
   line-height: 1.8;
-  color: var(--foreground);
+  color: var(--bd-text);
   overflow-wrap: break-word;
 }
 
@@ -465,8 +706,10 @@
 }
 
 .articleContent :global(h2) {
+  --bar: var(--bd-lavender-edge);
+
   position: relative;
-  margin-top: 2.75rem;
+  margin-top: 3rem;
   margin-bottom: 1rem;
   padding-left: 1rem;
   font-family: var(--font-family-heading);
@@ -474,8 +717,20 @@
   font-weight: 800;
   line-height: 1.3;
   letter-spacing: -0.015em;
-  color: var(--foreground);
+  color: var(--bd-ink);
   scroll-margin-top: var(--bd-scroll-offset);
+}
+
+.articleContent :global(h2:nth-of-type(4n + 2)) {
+  --bar: var(--bd-sage-edge);
+}
+
+.articleContent :global(h2:nth-of-type(4n + 3)) {
+  --bar: var(--bd-blue-edge);
+}
+
+.articleContent :global(h2:nth-of-type(4n + 4)) {
+  --bar: var(--bd-butter-edge);
 }
 
 .articleContent :global(h2)::before {
@@ -484,9 +739,9 @@
   left: 0;
   top: 0.15em;
   bottom: 0.15em;
-  width: 4px;
+  width: 5px;
   border-radius: var(--radius-full);
-  background-color: var(--bd-coral);
+  background-color: var(--bar);
 }
 
 .articleContent :global(h3) {
@@ -496,7 +751,7 @@
   font-size: 1.25rem;
   font-weight: 700;
   line-height: 1.35;
-  color: var(--foreground);
+  color: var(--bd-ink);
   scroll-margin-top: var(--bd-scroll-offset);
 }
 
@@ -506,7 +761,7 @@
   font-family: var(--font-family-heading);
   font-size: 1.0625rem;
   font-weight: 700;
-  color: var(--foreground);
+  color: var(--bd-ink);
 }
 
 .articleContent :global(p) {
@@ -515,7 +770,7 @@
 
 .articleContent :global(strong) {
   font-weight: 700;
-  color: var(--foreground);
+  color: var(--bd-ink);
 }
 
 .articleContent :global(img) {
@@ -570,22 +825,23 @@
 }
 
 .articleContent :global(ul > li)::marker {
-  color: var(--bd-coral);
+  color: var(--bd-lavender-edge);
 }
 
 .articleContent :global(ol > li)::marker {
-  color: var(--tk-brand-text);
+  color: var(--bd-lavender-ink);
   font-weight: 700;
 }
 
+/* Quotes read as a sage callout. */
 .articleContent :global(blockquote) {
   margin: 2rem 0;
   padding: 1rem 1.25rem;
-  background-color: var(--exam-lavender-tint);
-  border: 1px solid var(--exam-lavender-border);
-  border-left: 4px solid var(--bd-lavender);
-  border-radius: 0 1rem 1rem 0;
-  color: var(--exam-lavender-ink);
+  background-color: var(--bd-sage-tint);
+  border: 1px solid var(--bd-sage-line);
+  border-left: 5px solid var(--bd-sage-edge);
+  border-radius: 0.5rem 1rem 1rem 0.5rem;
+  color: var(--bd-sage-ink);
 }
 
 .articleContent :global(blockquote) > :last-child {
@@ -593,7 +849,7 @@
 }
 
 .articleContent :global(pre) {
-  background-color: var(--surface);
+  background-color: var(--bd-card);
   padding: 1.25rem 1.5rem;
   border-radius: 1rem;
   overflow-x: auto;
@@ -604,13 +860,15 @@
 .articleContent :global(code) {
   font-family: var(--font-family-monospace);
   font-size: 0.875em;
-  background-color: var(--muted);
+  background-color: var(--bd-lavender-tint);
+  color: var(--bd-lavender-ink);
   padding: 0.15em 0.4em;
   border-radius: var(--radius-sm);
 }
 
 .articleContent :global(pre code) {
   background: none;
+  color: inherit;
   padding: 0;
 }
 
@@ -632,21 +890,30 @@
   border-radius: 1rem;
   margin: 1.5rem 0;
   border: 1px solid var(--bd-line);
-  background-color: var(--foreground);
+  background-color: hsl(222 20% 10%);
 }
 
 .articleContent :global(a) {
-  color: var(--tk-brand-text);
-  font-weight: 500;
+  color: var(--bd-link);
+  font-weight: 600;
   text-decoration: underline;
-  text-decoration-color: var(--bd-coral);
+  text-decoration-color: var(--bd-blue-edge);
   text-decoration-thickness: 1.5px;
   text-underline-offset: 3px;
-  transition: text-decoration-color var(--animation-duration-fast) ease;
+  border-radius: 0.25rem;
+  transition:
+    text-decoration-color var(--animation-duration-fast) ease,
+    background-color var(--animation-duration-fast) ease;
 }
 
 .articleContent :global(a:hover) {
-  text-decoration-color: var(--tk-brand-text);
+  text-decoration-color: var(--bd-link);
+  background-color: var(--bd-blue-tint);
+}
+
+.articleContent :global(a:focus-visible) {
+  outline: 2px solid var(--bd-blue-edge);
+  outline-offset: 2px;
 }
 
 .articleContent :global(hr) {
@@ -655,9 +922,46 @@
   margin: 2.5rem 0;
 }
 
+/* Tables: base.css gives every rich-text table a coral header band. Here the
+   band is lavender, rows alternate with a warm white, and both follow the
+   theme. Selectors mirror base.css with this page's class in front. */
 .articleContent :global(.tk-content-table) {
+  background-color: var(--bd-card);
   border-color: var(--bd-line);
   border-radius: 1rem;
+  box-shadow: var(--bd-shadow);
+}
+
+.articleContent :global(.tk-content-table > table) {
+  color: var(--bd-text);
+}
+
+.articleContent :global(.tk-content-table > table > * > tr > :is(td, th)) {
+  background-color: var(--bd-card);
+  border-bottom-color: var(--border);
+}
+
+.articleContent :global(.tk-content-table > table > tbody > tr:nth-child(even) > td) {
+  background-color: var(--bd-zebra);
+}
+
+.articleContent :global(.tk-content-table > table > * > tr > td:first-child:not(:only-child)),
+.articleContent :global(.tk-content-table > table > tbody > tr:not(:first-child) > th:first-child:not(:only-child)) {
+  color: var(--bd-ink);
+}
+
+.articleContent :global(.tk-content-table > table > thead > tr > th),
+.articleContent :global(.tk-content-table > table > tbody > tr:first-child > th),
+.articleContent :global(.tk-content-table > table:not(:has(th)) > tbody > tr:first-child:has(> td + td):has(> td:first-child strong):has(> td:last-child strong) > td) {
+  background-color: var(--bd-lavender-tint);
+  color: var(--bd-lavender-ink);
+  border-bottom: 1.5px solid var(--bd-lavender-line);
+  border-right-color: var(--bd-lavender-line);
+}
+
+.articleContent :global(.tk-content-table > table > thead > tr > th strong),
+.articleContent :global(.tk-content-table > table > tbody > tr:first-child > :is(th, td) strong) {
+  color: inherit;
 }
 
 /* Product embed cards - inserted by the blog editor's "Insert Products"
@@ -770,12 +1074,12 @@
   margin: var(--spacing-12) 0;
 }
 
-/* Reactions */
+/* Reactions: a butter card. A chosen reaction takes the peach CTA fill. */
 .reactionSection {
   margin-top: var(--spacing-12);
   padding: var(--spacing-8) var(--spacing-6);
-  background-color: var(--bd-mint-tint);
-  border: 1px solid var(--bd-mint-border);
+  background-color: var(--bd-butter-tint);
+  border: 1px solid var(--bd-butter-line);
   border-radius: 1.5rem;
   text-align: center;
 }
@@ -791,7 +1095,7 @@
   font-family: var(--font-family-heading);
   font-size: 1.25rem;
   font-weight: 800;
-  color: var(--foreground);
+  color: var(--bd-butter-ink);
 }
 
 .reactionButtons {
@@ -809,29 +1113,44 @@
   min-width: 96px;
   height: 2.75rem;
   padding: 0 1.25rem;
-  border: 1.5px solid var(--bd-mint-border);
+  border: 1.5px solid var(--bd-butter-edge);
   border-radius: var(--radius-full);
-  background-color: var(--surface);
-  color: var(--foreground);
+  background-color: var(--bd-card);
+  color: var(--bd-ink);
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
 }
 
 .reactionBtn:hover,
 .reactionBtn:active {
-  background-color: var(--surface);
-  border-color: var(--bd-mint-ink);
-  color: var(--bd-mint-ink);
+  background-color: var(--bd-card);
+  border-color: var(--bd-butter-ink);
+  color: var(--bd-butter-ink);
+  transform: translateY(-1px);
 }
 
 .reactionBtn[data-selected="true"],
 .reactionBtn[data-selected="true"]:hover {
   background-color: var(--bd-cta);
-  border-color: var(--bd-cta);
+  border-color: var(--bd-peach-edge);
   color: var(--bd-cta-ink);
 }
 
 .reactionCount {
   font-weight: 700;
   font-size: 0.9375rem;
+}
+
+/* Section headings with a pastel icon blob */
+.sectionHeading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-family-heading);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--bd-ink);
 }
 
 /* Comments */
@@ -841,34 +1160,31 @@
 
 .commentsSection h3 {
   margin: 0 0 1.25rem;
-  font-family: var(--font-family-heading);
   font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--foreground);
 }
 
 .loginPrompt {
   margin-bottom: var(--spacing-8);
   padding: var(--spacing-6);
-  background-color: var(--exam-blue-tint);
-  border: 1px solid var(--exam-blue-border);
+  background-color: var(--bd-blue-tint);
+  border: 1px solid var(--bd-blue-line);
   border-radius: 1.25rem;
   text-align: center;
 }
 
 .loginPrompt p {
   margin-bottom: var(--spacing-4);
-  color: var(--exam-blue-ink);
+  color: var(--bd-blue-ink);
   font-weight: 500;
 }
 
 .mainCommentForm {
   margin-bottom: var(--spacing-8);
   padding: var(--spacing-4);
-  background-color: var(--surface);
+  background-color: var(--bd-card);
   border: 1px solid var(--bd-line);
   border-radius: 1.25rem;
-  box-shadow: var(--bd-card-shadow);
+  box-shadow: var(--bd-shadow);
 }
 
 .commentForm {
@@ -878,7 +1194,10 @@
 }
 
 .commentForm textarea {
+  background-color: var(--bd-card);
+  border-color: var(--bd-field);
   border-radius: 0.875rem;
+  color: var(--bd-ink);
 }
 
 .commentFormActions {
@@ -896,7 +1215,7 @@
 
 .noComments {
   padding: var(--spacing-8) var(--spacing-4);
-  background-color: var(--surface);
+  background-color: var(--bd-card);
   border: 1.5px dashed var(--bd-line);
   border-radius: 1.25rem;
   color: var(--muted-foreground);
@@ -905,7 +1224,7 @@
 
 .commentItem {
   padding: 1.25rem;
-  background-color: var(--surface);
+  background-color: var(--bd-card);
   border: 1px solid var(--bd-line);
   border-radius: 1.25rem;
 }
@@ -915,7 +1234,7 @@
   padding: 0 0 0 var(--spacing-4);
   background-color: transparent;
   border: none;
-  border-left: 2px solid var(--exam-lavender-border);
+  border-left: 2px solid var(--bd-lavender-line);
   border-radius: 0;
 }
 
@@ -939,7 +1258,7 @@
 .commentAuthor {
   font-weight: 600;
   font-size: 0.9375rem;
-  color: var(--foreground);
+  color: var(--bd-ink);
 }
 
 .commentDate {
@@ -948,7 +1267,7 @@
 }
 
 .commentBody {
-  color: var(--foreground);
+  color: var(--bd-text);
   line-height: 1.65;
   font-size: 0.9375rem;
 }
@@ -968,7 +1287,8 @@
 }
 
 .replyButton:hover {
-  color: var(--tk-brand-text);
+  background-color: var(--bd-lavender-tint);
+  color: var(--bd-lavender-ink);
 }
 
 .replyFormContainer {
@@ -989,12 +1309,9 @@
 }
 
 .relatedSection h2 {
+  justify-content: center;
   margin-bottom: var(--spacing-8);
-  font-family: var(--font-family-heading);
   font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--foreground);
   text-align: center;
 }
 
@@ -1004,17 +1321,176 @@
   gap: var(--spacing-6);
 }
 
-/* BlogPostCard is shared with the blog index; only these copies get the
-   page's corners and hairline. */
-.relatedGrid > a {
+.relatedCard {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bd-card);
+  border: 1px solid var(--bd-line);
   border-radius: 1.25rem;
-  border-color: var(--bd-line);
+  box-shadow: var(--bd-shadow);
+  color: inherit;
+  text-decoration: none;
+  transition: transform var(--animation-duration-normal) ease,
+              box-shadow var(--animation-duration-normal) ease,
+              border-color var(--animation-duration-normal) ease;
 }
 
-.relatedGrid > a:hover {
-  border-color: var(--bd-peach-border);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-3px);
+.relatedCard:hover {
+  transform: translateY(-4px);
+  border-color: var(--bd-lavender-edge);
+  box-shadow:
+    0 2px 4px hsl(30 20% 20% / 0.08),
+    0 20px 36px -22px hsl(30 25% 20% / 0.45);
+}
+
+:global(.dark) .relatedCard:hover {
+  box-shadow: 0 12px 28px -12px hsl(0 0% 0% / 0.6);
+}
+
+.relatedCard:focus-visible {
+  outline: 2px solid var(--bd-lavender-edge);
+  outline-offset: 3px;
+}
+
+.relatedThumb {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background-color: var(--bd-lavender-tint);
+  border-bottom: 1px solid var(--bd-line);
+}
+
+.relatedCard:nth-child(3n + 2) .relatedThumb {
+  background-color: var(--bd-butter-tint);
+}
+
+.relatedCard:nth-child(3n) .relatedThumb {
+  background-color: var(--bd-mint-tint);
+}
+
+.relatedThumbImg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.45s ease;
+}
+
+.relatedCard:hover .relatedThumbImg {
+  transform: scale(1.05);
+}
+
+.relatedBody {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  padding: 1.25rem 1.375rem 1.125rem;
+}
+
+.relatedBadge,
+.relatedBadge:hover {
+  align-self: flex-start;
+  margin-bottom: var(--spacing-3);
+  padding: 0.25rem 0.75rem;
+  background-color: var(--bd-peach-tint);
+  border: 1px solid var(--bd-peach-edge);
+  color: var(--bd-peach-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.relatedTitle {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0 0 var(--spacing-2);
+  font-family: var(--font-family-heading);
+  font-size: 1.1875rem;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--bd-ink);
+  overflow-wrap: anywhere;
+}
+
+.relatedExcerpt {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex-grow: 1;
+  margin: 0 0 var(--spacing-4);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--muted-foreground);
+  overflow-wrap: anywhere;
+}
+
+.relatedFooter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2) var(--spacing-3);
+  margin-top: auto;
+  padding-top: var(--spacing-3);
+  border-top: 1px solid var(--bd-line);
+}
+
+.relatedAuthor {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.relatedAvatar {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+}
+
+.relatedAuthorName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--bd-ink);
+}
+
+.relatedMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.relatedMetaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.relatedMetaItem svg {
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .relatedCard,
+  .relatedThumbImg {
+    transition: none;
+  }
+
+  .relatedCard:hover,
+  .relatedCard:hover .relatedThumbImg {
+    transform: none;
+  }
 }
 
 @media (min-width: 640px) {
@@ -1031,7 +1507,7 @@
 
 .stateContainer {
   padding: var(--spacing-16) var(--spacing-6);
-  background-color: var(--surface);
+  background-color: var(--bd-card);
   border: 1.5px dashed var(--bd-line);
   border-radius: 1.5rem;
   text-align: center;
@@ -1041,6 +1517,7 @@
   font-family: var(--font-family-heading);
   font-size: 2rem;
   font-weight: 800;
+  color: var(--bd-ink);
   margin-bottom: var(--spacing-4);
 }
 
