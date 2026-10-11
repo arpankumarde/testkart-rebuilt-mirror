@@ -28,7 +28,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "./Tooltip";
 import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext, PaginationLink } from "./Pagination";
 import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 import { ConsoleFilterNotice } from "./ConsoleFilterNotice";
-import { Search, Edit, Trash2, Plus, FileText, ExternalLink } from "lucide-react";
+import { Search, Edit, Trash2, Plus, FileText, ExternalLink, Image as ImageIcon } from "lucide-react";
 import styles from "./AdminBlogContentTab.module.css";
 
 interface AdminBlogContentTabProps {
@@ -73,9 +73,36 @@ const AuthorLine = ({ name, avatar }: { name: string | null; avatar: string | nu
   );
 };
 
+/* ogImage first, as on the public blog and help pages: the editor only uploads the social image. */
+const thumbnailOf = (post: AdminPostListItem): string | null => post.ogImage || post.featuredImage || null;
+
+/* Rendered with key={src} so a changed image gets a fresh load-failed state. */
+const PostThumb = ({ src }: { src: string | null }) => {
+  const [failed, setFailed] = useState(false);
+  if (!src || failed) {
+    return (
+      <span className={`${styles.thumb} ${styles.thumbEmpty}`} aria-hidden="true">
+        <ImageIcon size={16} />
+      </span>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt=""
+      width={52}
+      height={36}
+      loading="lazy"
+      className={styles.thumb}
+      onError={() => setFailed(true)}
+    />
+  );
+};
+
 /* Shared by the loading and loaded tables so the columns do not jump. */
 const TableColumns = () => (
   <colgroup>
+    <col className={styles.colThumb} />
     <col />
     <col className={styles.colAuthor} />
     <col className={styles.colStatus} />
@@ -88,6 +115,7 @@ const TableColumns = () => (
 
 const PostRowSkeleton = () => (
   <tr>
+    <td><Skeleton className={styles.thumb} /></td>
     <td>
       <div className={styles.stack}>
         <Skeleton style={{ height: "0.875rem", width: "60%" }} />
@@ -111,9 +139,12 @@ const PostRowSkeleton = () => (
 const PostCardSkeleton = () => (
   <div className={styles.card}>
     <div className={styles.cardHeader}>
-      <div className={styles.stack}>
-        <Skeleton style={{ height: "1rem", width: "12rem", maxWidth: "100%" }} />
-        <Skeleton style={{ height: "0.75rem", width: "6rem", maxWidth: "100%" }} />
+      <div className={styles.cardIdentity}>
+        <Skeleton className={styles.thumb} />
+        <div className={styles.stack}>
+          <Skeleton style={{ height: "1rem", width: "12rem", maxWidth: "100%" }} />
+          <Skeleton style={{ height: "0.75rem", width: "6rem", maxWidth: "100%" }} />
+        </div>
       </div>
       <Skeleton style={{ height: "2rem", width: "6rem", flexShrink: 0 }} />
     </div>
@@ -309,6 +340,7 @@ export const AdminBlogContentTab: React.FC<AdminBlogContentTabProps> = ({ type }
             <TableColumns />
             <thead>
               <tr>
+                <th><span className={styles.srOnly}>Image</span></th>
                 <SortableTh column="title" sort={sort}>Title</SortableTh>
                 <SortableTh column="author" sort={sort}>Author</SortableTh>
                 <SortableTh column="status" sort={sort}>Status</SortableTh>
@@ -321,6 +353,7 @@ export const AdminBlogContentTab: React.FC<AdminBlogContentTabProps> = ({ type }
             <tbody>
               {data.posts.map(post => (
                 <tr key={post.id}>
+                  <td><PostThumb key={thumbnailOf(post) ?? ""} src={thumbnailOf(post)} /></td>
                   <td>
                     <div className={styles.stack}>
                       <span className={styles.primaryLine} title={post.title}>{post.title}</span>
@@ -349,14 +382,17 @@ export const AdminBlogContentTab: React.FC<AdminBlogContentTabProps> = ({ type }
           {data.posts.map(post => (
             <article key={post.id} className={styles.card}>
               <div className={styles.cardHeader}>
-                <div className={styles.stack}>
-                  <span className={styles.cardTitleLine}>
-                    <span className={styles.truncate} title={post.title}>{post.title}</span>
-                    {renderStatusFlag(post)}
-                  </span>
-                  <span className={styles.secondaryLine} title={post.categoryName || undefined}>
-                    {post.categoryName || "Uncategorized"}
-                  </span>
+                <div className={styles.cardIdentity}>
+                  <PostThumb key={thumbnailOf(post) ?? ""} src={thumbnailOf(post)} />
+                  <div className={styles.stack}>
+                    <span className={styles.cardTitleLine}>
+                      <span className={styles.truncate} title={post.title}>{post.title}</span>
+                      {renderStatusFlag(post)}
+                    </span>
+                    <span className={styles.secondaryLine} title={post.categoryName || undefined}>
+                      {post.categoryName || "Uncategorized"}
+                    </span>
+                  </div>
                 </div>
                 {renderActions(post)}
               </div>

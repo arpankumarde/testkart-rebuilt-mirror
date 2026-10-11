@@ -1,22 +1,33 @@
+/*
+ * Plan cards in the spotlight/showcase language (see base.css --sp-* tokens):
+ * an ivory panel holding white, rounded, shadowed plan cards, a lavender chip
+ * for the section's badges, and a peach 3D pill for the primary CTA. Each
+ * plan gets a fixed accent (not fee-based) cycling lavender, sage, blue,
+ * peach - the same order HomepageUgcNetSpotlight uses for its credentials.
+ */
 .plansSection {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-6);
+  padding: var(--spacing-6) 1.25rem;
+  background-color: var(--sp-surface);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.5rem;
+  box-shadow: var(--sp-shadow);
 }
 
 .sectionTitle {
   margin: 0;
   font-family: var(--font-family-heading);
-  font-size: 1.125rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--foreground);
+  font-size: 1.375rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--sp-ink);
 }
 
 /*
- * Billing period as a segmented control in the console's toolbar band, with
- * the same active treatment as the status tabs on every list page: coral as a
- * block, --tk-brand-tint under --tk-brand-text.
+ * Billing period as a segmented control, same visual family as the spotlight
+ * chip: a pill, lavender when active.
  */
 .toolbar {
   display: flex;
@@ -25,10 +36,10 @@
   flex-wrap: wrap;
   gap: var(--spacing-3) var(--spacing-4);
   padding: var(--spacing-2) var(--spacing-3);
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: var(--radius-full);
+  box-shadow: var(--sp-shadow);
 }
 
 .billingToggle {
@@ -44,9 +55,9 @@
   height: 2rem;
   padding: 0 var(--spacing-3);
   border: none;
-  border-radius: var(--radius);
+  border-radius: var(--radius-full);
   background: none;
-  color: var(--muted-foreground);
+  color: var(--sp-muted);
   font-family: var(--font-family-base);
   font-size: 0.875rem;
   font-weight: 600;
@@ -56,8 +67,8 @@
 }
 
 .toggleBtn:hover {
-  background-color: var(--muted);
-  color: var(--foreground);
+  background-color: var(--sp-lavender-tint);
+  color: var(--sp-lavender-ink);
 }
 
 .toggleBtn:focus-visible {
@@ -66,22 +77,22 @@
 }
 
 .toggleBtn.active {
-  background-color: var(--tk-brand-tint);
-  color: var(--tk-brand-text);
+  background-color: var(--sp-lavender-tint);
+  color: var(--sp-lavender-ink);
 }
 
 .saveBadge {
   padding: 0.125rem 0.375rem;
   border-radius: var(--radius-full);
-  background-color: color-mix(in srgb, var(--success) 18%, transparent);
-  color: var(--success-text);
+  background-color: color-mix(in srgb, var(--sp-sage-edge) 20%, transparent);
+  color: var(--sp-sage-ink);
   font-size: 0.6875rem;
   font-weight: 700;
   line-height: 1.4;
 }
 
 .toggleBtn.active .saveBadge {
-  background-color: var(--tk-brand-deep);
+  background-color: var(--sp-lavender-edge);
   color: #fff;
 }
 
@@ -94,10 +105,10 @@
   flex-wrap: wrap;
   gap: var(--spacing-3) var(--spacing-6);
   padding: var(--spacing-4);
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.25rem;
+  box-shadow: var(--sp-shadow);
 }
 
 .walletInfo {
@@ -108,7 +119,7 @@
 }
 
 .walletLabel {
-  color: var(--muted-foreground);
+  color: var(--sp-muted);
 }
 
 .walletAmount {
@@ -116,7 +127,7 @@
   font-weight: 700;
   font-size: 1.125rem;
   letter-spacing: -0.01em;
-  color: var(--foreground);
+  color: var(--sp-ink);
   font-variant-numeric: tabular-nums;
 }
 
@@ -133,8 +144,8 @@
   margin-top: var(--spacing-3);
   padding: var(--spacing-2);
   border-radius: var(--radius-sm);
-  background-color: var(--muted);
-  color: var(--muted-foreground);
+  background-color: var(--sp-surface);
+  color: var(--sp-muted);
   font-size: 0.8125rem;
   line-height: 1.4;
   text-align: center;
@@ -142,69 +153,93 @@
 
 .walletCovers {
   font-weight: 600;
-  color: var(--success-text);
+  color: var(--sp-sage-ink);
 }
 
 /* Plans ----------------------------------------------------------------- */
 
 .plansGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--spacing-4);
   align-items: stretch;
 }
 
 /*
- * A pricing card, but in the console's card language: --radius-md on a
- * hairline border with the flat --shadow, and a hover that moves the border
- * rather than lifting the card by 4px.
+ * A pricing card in the credential-card language: white on the ivory panel,
+ * rounded, shadowed, with --accent-* set per card (cycling lavender, sage,
+ * blue, peach) driving its icon chip and corner dot.
  */
 .planCard {
+  --accent-tint: var(--sp-lavender-tint);
+  --accent-edge: var(--sp-lavender-edge);
+  --accent-ink: var(--sp-lavender-ink);
   position: relative;
   display: flex;
   flex-direction: column;
   min-width: 0;
   padding: var(--spacing-6) var(--spacing-4) var(--spacing-4);
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
-  transition: border-color var(--animation-duration-fast) ease;
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.25rem;
+  box-shadow: var(--sp-shadow);
+  color: var(--sp-text);
+  transition: transform var(--animation-duration-normal) ease,
+    box-shadow var(--animation-duration-normal) ease,
+    border-color var(--animation-duration-normal) ease;
 }
 
 .planCard:hover {
-  border-color: color-mix(in srgb, var(--foreground) 22%, var(--border));
+  transform: translateY(-4px);
+  border-color: var(--sp-lavender-edge);
+  box-shadow: var(--sp-shadow-hover);
 }
 
-/*
- * The recommended plan stands taller than the two beside it, which is what a
- * pricing table is for. The lift comes from negative block margins rather than
- * a transform, so the type stays crisp, and from a deeper shadow plus the
- * coral border and top bar.
- */
+.planCard:nth-child(2) {
+  --accent-tint: var(--sp-sage-tint);
+  --accent-edge: var(--sp-sage-edge);
+  --accent-ink: var(--sp-sage-ink);
+}
+
+.planCard:nth-child(3) {
+  --accent-tint: var(--sp-blue-tint);
+  --accent-edge: var(--sp-blue-edge);
+  --accent-ink: var(--sp-blue-ink);
+}
+
+.planCard:nth-child(4) {
+  --accent-tint: var(--sp-peach-tint);
+  --accent-edge: var(--sp-peach-edge);
+  --accent-ink: var(--sp-peach-ink);
+}
+
+/* The recommended plan stands taller than its siblings, lifted by negative
+   block margins so type stays crisp, with the coral/peach edge and a deeper shadow. */
 .mostPopular {
   position: relative;
   z-index: 1;
   margin-block: calc(var(--spacing-4) * -1);
   padding-block: var(--spacing-8);
-  border-color: var(--tk-brand-text);
-  box-shadow: var(--shadow-lg);
+  border-color: var(--accent-edge);
+  box-shadow: var(--sp-shadow-hover);
 }
 
 .mostPopular:hover {
-  border-color: var(--tk-brand-text);
+  border-color: var(--accent-edge);
 }
 
 .mostPopular .planName {
-  font-size: 1.25rem;
+  font-size: 1.375rem;
 }
 
 .mostPopular .planPrice {
   font-size: 2.25rem;
 }
 
-/* In the flow beside the plan name rather than pinned over it - an absolute
-   badge collided with the heading at every card width. */
+.currentPlanCard {
+  border-color: var(--sp-line-strong);
+}
+
 .planHeader {
   display: flex;
   align-items: center;
@@ -213,49 +248,49 @@
   margin-bottom: var(--spacing-1);
 }
 
+/* A small sticker-like pill, tilted a touch - same treatment as the
+   spotlight's "UGC NET spotlight" chip. */
 .popularBadge,
 .bestValueBadge {
   flex-shrink: 0;
-  padding: 0.1875rem 0.4375rem;
-  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1875rem 0.5rem;
+  border-radius: var(--radius-full);
   font-size: 0.6875rem;
   font-weight: 700;
-  line-height: 1;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
   white-space: nowrap;
+  transform: rotate(-2deg);
 }
 
-/* --tk-brand-ink on coral is 6.2:1, where white would be 2.1:1. */
 .popularBadge {
-  background-color: var(--tk-brand);
-  color: var(--tk-brand-ink);
+  background-color: var(--sp-peach-tint);
+  border: 1px solid var(--sp-peach-edge);
+  color: var(--sp-peach-ink);
 }
 
 .bestValueBadge {
-  background-color: var(--muted);
-  color: var(--foreground);
-}
-
-/* "You are on this one" - a definite darker hairline rather than the coral,
-   which is reserved for the recommended plan. Two coral borders in one row
-   left neither of them meaning anything. */
-.currentPlanCard {
-  border-color: color-mix(in srgb, var(--foreground) 35%, var(--border));
+  background-color: var(--accent-tint);
+  border: 1px solid var(--accent-edge);
+  color: var(--accent-ink);
 }
 
 .planName {
   margin: 0;
   min-width: 0;
   font-family: var(--font-family-heading);
-  font-size: 1.125rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--foreground);
+  font-size: 1.1875rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--sp-ink);
 }
 
 .planDescription {
   margin: 0;
   min-height: 2.8rem;
-  color: var(--muted-foreground);
+  color: var(--sp-muted);
   font-size: 0.875rem;
   line-height: 1.5;
 }
@@ -270,7 +305,7 @@
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1;
-  color: var(--foreground);
+  color: var(--sp-ink);
   font-variant-numeric: tabular-nums;
 }
 
@@ -278,14 +313,14 @@
   font-family: var(--font-family-base);
   font-size: 0.9375rem;
   font-weight: 500;
-  color: var(--muted-foreground);
+  color: var(--sp-muted);
 }
 
 .effectiveMonthlyPrice {
   margin-top: var(--spacing-2);
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--success-text);
+  color: var(--sp-sage-ink);
 }
 
 .effectiveMonthlyPricePlaceholder {
@@ -293,51 +328,62 @@
   margin-top: var(--spacing-2);
 }
 
+/* The platform-fee readout, restyled as one of the spotlight's credential
+   stat cards: an accent-tinted icon circle, a corner dot, a bold value. */
 .platformFeeBox {
+  position: relative;
   display: flex;
-  align-items: baseline;
-  gap: var(--spacing-2);
-  padding: var(--spacing-3);
-  border-radius: var(--radius);
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: 0.75rem 0.875rem;
+  border-radius: 1.125rem;
   margin-bottom: var(--spacing-4);
+  background-color: var(--sp-surface);
+  border: 1px solid var(--sp-line);
 }
 
-/* Sentence case, not tracked-out caps at 90% opacity. */
+.platformFeeBox::after {
+  content: "";
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 50%;
+  background-color: var(--accent-edge);
+}
+
+.feeIcon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background-color: var(--accent-tint);
+  color: var(--accent-ink);
+}
+
 .feeLabel {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 600;
+  color: var(--sp-muted);
 }
 
 .feeValue {
-  margin-left: auto;
   font-family: var(--font-family-heading);
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 800;
   letter-spacing: -0.01em;
-  line-height: 1;
+  line-height: 1.1;
+  color: var(--sp-ink);
   font-variant-numeric: tabular-nums;
-}
-
-/* All three ran the raw token as type on its own tint - coral on coral was
-   about 1.5:1 and green on green about 2.3:1. */
-.feeHigh {
-  background-color: var(--tk-brand-tint);
-  color: var(--tk-brand-text);
-}
-
-.feeMedium {
-  background-color: color-mix(in srgb, var(--warning) 18%, transparent);
-  color: var(--warning-text);
-}
-
-.feeLow {
-  background-color: color-mix(in srgb, var(--success) 15%, transparent);
-  color: var(--success-text);
 }
 
 .planDivider {
   border: 0;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--sp-line);
   margin: 0 0 var(--spacing-4) 0;
 }
 
@@ -355,24 +401,59 @@
   margin-bottom: var(--spacing-3);
   font-size: 0.875rem;
   line-height: 1.45;
+  color: var(--sp-text);
 }
 
 .planFeatures li svg {
   flex-shrink: 0;
   margin-top: 2px;
-  color: var(--success-text);
+  color: var(--accent-ink);
 }
 
 .aiFeature {
-  font-weight: 600;
+  font-weight: 700;
+  color: var(--sp-ink);
 }
 
 .planAction {
   margin-top: auto;
 }
 
+/* Primary CTA: the spotlight's peach pill with one tucked corner and a solid
+   ledge it lifts off on hover. A current/disabled plan falls back to a plain
+   outline rather than the bouncy peach treatment, which is reserved for a
+   forward action. */
 .subscribeButton {
   width: 100%;
+  min-height: 2.75rem;
+  border-radius: 1.375rem 1.375rem 1.375rem 0.5rem !important;
+  border: 1px solid var(--sp-peach-edge) !important;
+  background-color: var(--sp-cta) !important;
+  box-shadow: 0 3px 0 var(--sp-peach-edge) !important;
+  color: var(--sp-cta-ink) !important;
+  font-weight: 700 !important;
+  transition: background-color var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease !important;
+}
+
+.subscribeButton:hover:not(:disabled) {
+  background-color: var(--sp-cta-hover) !important;
+  box-shadow: 0 5px 0 var(--sp-peach-edge) !important;
+  transform: translateY(-2px);
+}
+
+.subscribeButton:active:not(:disabled) {
+  box-shadow: 0 1px 0 var(--sp-peach-edge) !important;
+  transform: translateY(2px);
+}
+
+.subscribeButton:disabled {
+  background-color: var(--sp-surface) !important;
+  border-color: var(--sp-line) !important;
+  box-shadow: none !important;
+  color: var(--sp-muted) !important;
+  cursor: default;
 }
 
 .spinner {
@@ -393,11 +474,10 @@
   align-items: flex-start;
   gap: var(--spacing-3);
   padding: var(--spacing-3) var(--spacing-4);
-  border-radius: var(--radius);
-  background-color: color-mix(in srgb, var(--info) 8%, transparent);
-  border: 1px solid color-mix(in srgb, var(--info) 25%, transparent);
-  /* Was a hardcoded #000000, which stayed black on a dark tint in dark mode. */
-  color: var(--foreground);
+  border-radius: 1.125rem;
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  color: var(--sp-text);
   font-size: 0.875rem;
   line-height: 1.5;
 }
@@ -405,7 +485,7 @@
 .note svg {
   flex-shrink: 0;
   margin-top: 2px;
-  color: var(--info-text);
+  color: var(--sp-lavender-edge);
 }
 
 .note p {
@@ -422,15 +502,24 @@
   color: var(--error-text);
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1100px) {
   .plansGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 768px) {
+  .plansSection {
+    padding: var(--spacing-4) var(--spacing-3);
+  }
+
   .plansGrid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mostPopular {
+    margin-block: 0;
+    padding-block: var(--spacing-4);
   }
 
   .walletCard {
@@ -441,8 +530,15 @@
 
 @media (prefers-reduced-motion: reduce) {
   .planCard,
-  .toggleBtn {
+  .toggleBtn,
+  .subscribeButton {
     transition: none;
+  }
+
+  .planCard:hover,
+  .subscribeButton:hover,
+  .subscribeButton:active {
+    transform: none;
   }
 
   .spinner {

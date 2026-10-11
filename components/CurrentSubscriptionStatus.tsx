@@ -1,6 +1,5 @@
 import React from "react";
 import { Button } from "./Button";
-import { Badge } from "./Badge";
 import { Skeleton } from "./Skeleton";
 import {
   AlertTriangle,
@@ -115,11 +114,7 @@ export const CurrentSubscriptionStatus: React.FC<
   const hasSpecialRate =
     subscription.platformFeeOverride !== null && subscription.platformFeeOverride !== undefined;
 
-  const feeColorClass = 
-    !subscription.planPrice || subscription.planPrice === 0 ? styles.feeDefault :
-    (statusQuery.data as any).platformFeePercentage >= 30 ? styles.feeHigh :
-    (statusQuery.data as any).platformFeePercentage >= 20 ? styles.feeMedium :
-    styles.feeLow;
+  const feeColorClass = isFree ? styles.feeDefault : "";
 
   return (
     <section>
@@ -135,15 +130,18 @@ export const CurrentSubscriptionStatus: React.FC<
             <h3 className={styles.planName}>
               {subscription.planName}
             </h3>
+            <svg className={styles.nameUnderline} viewBox="0 0 120 10" preserveAspectRatio="none" aria-hidden>
+              <path d="M2 6.5C20 2.5 38 8.5 58 5S98 2 118 5.5" />
+            </svg>
             {isActive && willRenew && (
-              <Badge variant="success">
-                <CheckCircle size={14} /> Active
-              </Badge>
+              <span className={styles.statusChip}>
+                <CheckCircle size={12} strokeWidth={2.25} aria-hidden /> Active
+              </span>
             )}
             {isActive && !willRenew && (
-              <Badge variant="warning">
-                <Clock size={14} /> Ends {endDate}
-              </Badge>
+              <span className={`${styles.statusChip} ${styles.warning}`}>
+                <Clock size={12} strokeWidth={2.25} aria-hidden /> Ends {endDate}
+              </span>
             )}
           </div>
           <div className={styles.planPrice}>

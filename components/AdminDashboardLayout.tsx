@@ -223,7 +223,7 @@ const AdminSidebar = ({
   const permissions = authState.type === "authenticated" ? authState.admin.permissions ?? [] : null;
   const groups = adminNavigation.visibleGroups(permissions);
 
-  const activeHref = adminNavigation.findByPath(location.pathname)?.href;
+  const activeHref = adminNavigation.findByPath(location.pathname, location.search)?.href;
   const activeGroupKey = groups.find((group) => group.items.some((item) => item.href === activeHref))?.key;
 
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() =>

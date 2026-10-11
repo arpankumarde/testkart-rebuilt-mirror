@@ -5,6 +5,7 @@ import { getServerUserSession } from '../../../helpers/getServerUserSession';
 import { z } from "zod";
 import { AiResponseSchema, GeneratedQuestionDraft, OutputType } from "./generate-ai_POST.schema";
 import { startAiGenerationLog, completeAiGenerationLog } from '../../../helpers/aiGenerationLog';
+import { checkAiQuestionQuota } from '../../../helpers/aiQuestionQuota';
 
 function convertLatexToTiptap(text: string): string {
   // Convert inline LaTeX \(...\) to Tiptap math spans
@@ -219,6 +220,20 @@ ${customPrompt ? `10. Follow this additional instruction: "${customPrompt}"` : '
 11. Your entire response MUST be a single valid JSON array of objects, with no other text before or after the array.
 12. Decide each answer BEFORE you write it. Never reason, re-derive or second-guess inside a field — no "wait", no "let me reconsider", no working-out. If unsure, discard that question and write a different one you are sure of.
 13. Keep every "explanation" under 60 words and every option under 25 words. Explanations are for the student, not a derivation log.`;
+
+    // Daily AI question cap, by plan. Checked before the AI call is made so a
+    // request that would exceed it never costs an API call.
+    const quota = await checkAiQuestionQuota(effectiveTeacherId, numberOfQuestions);
+    if (!quota.allowed) {
+      const limitMsg =
+        quota.limit !== null
+          ? `Your ${quota.planBaseName} plan allows ${quota.limit} AI-generated questions a day. You've used ${quota.usedToday} today, so ${quota.remainingToday} remain${quota.remainingToday === 1 ? "s" : ""} - try a smaller batch, or upgrade for a higher daily limit.`
+          : "Daily AI question limit reached.";
+      return new Response(
+        JSON.stringify({ error: limitMsg }),
+        { status: 429, headers: { "Content-Type": "application/json" } }
+      );
+    }
 
     aiLogStartedAt = Date.now();
     aiLogId = await startAiGenerationLog(effectiveTeacherId, "question_generation", {

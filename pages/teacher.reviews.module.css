@@ -1,59 +1,282 @@
 /* The console shell. No padding of its own - TeacherDashboardLayout's
-   .pageBody owns the gutter, and the old --spacing-8 here doubled it. */
+   .pageBody owns the gutter. Pastel tones follow TeacherCtaBanner's soft tone,
+   as solid fills so text on them keeps its contrast. */
 .page {
+  --rv-warm: hsl(30 70% 97%);
+  --rv-warm-border: hsl(30 38% 87%);
+  --rv-ink: hsl(224 38% 18%);
+  --rv-lavender-bg: hsl(258 45% 94%);
+  --rv-lavender-ink: hsl(258 30% 34%);
+  --rv-sage-bg: hsl(150 32% 91%);
+  --rv-sage-ink: hsl(150 34% 24%);
+  --rv-blue-bg: hsl(208 62% 93%);
+  --rv-blue-ink: hsl(208 48% 28%);
+  --rv-peach-bg: hsl(22 85% 92%);
+  --rv-peach-ink: hsl(18 70% 30%);
+  --rv-bar: hsl(18 80% 46%);
+  --rv-star-empty: hsl(220 14% 78%);
+
+  container: reviews / inline-size;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-6);
+  gap: var(--spacing-4);
   width: 100%;
   max-width: 1440px;
   margin: 0 auto;
   box-sizing: border-box;
 }
 
-.summary {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--spacing-4) var(--spacing-8);
-  padding: var(--spacing-4);
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
+:global(.dark) .page {
+  --rv-warm: hsl(24 22% 15%);
+  --rv-warm-border: var(--border);
+  --rv-ink: hsl(220 20% 94%);
+  --rv-lavender-bg: hsl(258 18% 24%);
+  --rv-lavender-ink: hsl(258 50% 88%);
+  --rv-sage-bg: hsl(150 16% 21%);
+  --rv-sage-ink: hsl(150 38% 82%);
+  --rv-blue-bg: hsl(208 24% 22%);
+  --rv-blue-ink: hsl(208 62% 85%);
+  --rv-peach-bg: hsl(22 26% 22%);
+  --rv-peach-ink: hsl(22 85% 84%);
+  --rv-bar: hsl(20 88% 64%);
+  --rv-star-empty: hsl(220 10% 36%);
 }
 
-.summaryScope {
+.toneLavender {
+  background-color: var(--rv-lavender-bg);
+  color: var(--rv-lavender-ink);
+}
+
+.toneSage {
+  background-color: var(--rv-sage-bg);
+  color: var(--rv-sage-ink);
+}
+
+.toneBlue {
+  background-color: var(--rv-blue-bg);
+  color: var(--rv-blue-ink);
+}
+
+.tonePeach {
+  background-color: var(--rv-peach-bg);
+  color: var(--rv-peach-ink);
+}
+
+/* Header: same title type as ConsolePageHeader, plus a subtitle. */
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-3) var(--spacing-4);
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
   min-width: 0;
-  margin-right: auto;
+}
+
+.title {
+  margin: 0;
   font-family: var(--font-family-heading);
-  font-size: 1.125rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
   color: var(--foreground);
 }
 
-.stat {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 5.5rem;
+.subtitle {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--muted-foreground);
 }
 
-.statValue {
+.control {
+  width: auto;
+  min-width: 10.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--surface);
+}
+
+.seriesControl {
+  min-width: 14rem;
+  max-width: 22rem;
+}
+
+/* Overview: rating card, breakdown and supporting stats. */
+.overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-3);
+}
+
+.ratingCard,
+.distribution,
+.stat {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background-color: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.ratingCard {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--spacing-1);
+  min-width: 0;
+  padding: var(--spacing-4) 1.25rem;
+  background-color: var(--rv-warm);
+  border-color: var(--rv-warm-border);
+  color: var(--rv-ink);
+}
+
+.scope {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.ratingValueRow {
+  display: flex;
+  align-items: baseline;
   gap: var(--spacing-2);
+}
+
+.ratingValue {
   font-family: var(--font-family-heading);
-  font-size: 1.125rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-size: 2.75rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+  color: var(--rv-ink);
+}
+
+.ratingOutOf {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.ratingStars {
+  margin: 2px 0;
+}
+
+.ratingBasis {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.distribution {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  min-width: 0;
+  padding: var(--spacing-4) 1.25rem;
+}
+
+.sectionLabel {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.barList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.barRow {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) 2rem;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.barLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--foreground);
   font-variant-numeric: tabular-nums;
 }
 
+.barTrack {
+  position: relative;
+  display: block;
+  height: 0.5rem;
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background-color: var(--muted);
+}
+
+.barFill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-full);
+  background-color: var(--rv-bar);
+  transition: width var(--animation-duration-normal, 0.3s) ease;
+}
+
+.barCount {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-2);
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  min-width: 0;
+  padding: var(--spacing-3);
+  border-radius: var(--radius-md);
+}
+
 .statIcon {
-  color: var(--tk-brand-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius);
+}
+
+.statText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.statValue {
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .statLabel {
@@ -61,52 +284,106 @@
   color: var(--muted-foreground);
 }
 
+/* Toolbar above the list. */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-2) var(--spacing-4);
+  margin-top: var(--spacing-2);
+}
+
+.toolbarCount {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.toolbarControls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+/* Review cards. Hover moves the border only, since a card is not a link. */
 .list {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-4);
+  gap: var(--spacing-3);
 }
 
-/*
- * The console's card: --radius-md on a hairline border with the flat --shadow.
- * Hover moves the border rather than lifting the card.
- */
 .card {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-3);
-  padding: var(--spacing-4);
+  padding: var(--spacing-4) 1.25rem;
   background-color: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
+  transition: border-color var(--animation-duration-fast, 0.15s) ease;
+}
+
+.card:hover {
+  border-color: var(--rv-warm-border);
+}
+
+:global(.dark) .card:hover {
+  border-color: var(--muted-foreground);
 }
 
 .cardHeader {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--spacing-2) var(--spacing-4);
+  gap: var(--spacing-3);
 }
 
-.reviewerLine {
+.reviewer {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: var(--spacing-2) var(--spacing-3);
+  gap: var(--spacing-3);
+  min-width: 0;
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.reviewerText {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
   min-width: 0;
 }
 
 .reviewerName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
   font-weight: 700;
-  font-size: 1rem;
   letter-spacing: -0.01em;
   color: var(--foreground);
 }
 
 .reviewDate {
+  flex-shrink: 0;
+  padding-top: 2px;
   font-size: 0.8125rem;
   color: var(--muted-foreground);
   white-space: nowrap;
@@ -114,8 +391,26 @@
 }
 
 .stars {
-  display: flex;
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  width: max-content;
+}
+
+.starRow {
+  display: inline-flex;
   gap: 2px;
+}
+
+.starFill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.starRow svg {
+  flex-shrink: 0;
 }
 
 /*
@@ -129,34 +424,131 @@
 }
 
 .emptyStar {
-  color: color-mix(in srgb, var(--muted-foreground) 40%, transparent);
+  color: var(--rv-star-empty);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-width: 0;
+  max-width: 100%;
+  width: fit-content;
+  padding: var(--spacing-1) var(--spacing-3) var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius);
+  background-color: var(--muted);
+  font-size: 0.8125rem;
+  color: var(--foreground);
+}
+
+.metaIcon {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+
+.metaTitle,
+.metaItem {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metaTitle {
+  font-weight: 500;
+}
+
+.metaItem {
+  color: var(--muted-foreground);
+}
+
+.metaItem::before {
+  content: "/";
+  margin-right: var(--spacing-2);
 }
 
 .reviewText {
   margin: 0;
-  max-width: 70ch;
+  max-width: 72ch;
   color: var(--foreground);
   font-size: 0.9375rem;
   line-height: 1.6;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
 }
 
 .noText {
+  margin: 0;
   color: var(--muted-foreground);
+  font-size: 0.875rem;
   font-style: italic;
 }
 
+/* Two columns once there is room: rating and breakdown side by side, stats in a row below. */
+@container reviews (min-width: 40rem) {
+  .overview {
+    grid-template-columns: minmax(14rem, 17rem) minmax(0, 1fr);
+  }
+
+  .stats {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Wide: stats move into a third column beside the breakdown. */
+@container reviews (min-width: 64rem) {
+  .overview {
+    grid-template-columns: 17rem minmax(0, 1fr) 15rem;
+  }
+
+  .stats {
+    grid-column: auto;
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 @media (max-width: 640px) {
-  .page {
-    gap: var(--spacing-4);
-  }
-
-  .summary {
-    align-items: flex-start;
+  .header {
+    align-items: stretch;
     flex-direction: column;
-    gap: var(--spacing-3);
   }
 
-  .summaryScope {
-    margin-right: 0;
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .subtitle {
+    font-size: 0.875rem;
+  }
+
+  .seriesControl {
+    max-width: none;
+    width: 100%;
+  }
+
+  .toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .toolbarControls .control {
+    flex: 1;
+    min-width: 8rem;
+  }
+
+  .card {
+    padding: var(--spacing-4);
+  }
+
+  .ratingValue {
+    font-size: 2.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .barFill,
+  .card {
+    transition: none;
   }
 }

@@ -144,6 +144,12 @@ export const CourseLessonEditor = forwardRef<CourseLessonEditorHandle, CourseLes
       return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     }, [isDirty, isUploading]);
 
+    const hasContentUrl = !!form.values.contentUrl;
+    useEffect(() => {
+      if (hasContentUrl) form.validateField('contentUrl');
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [hasContentUrl]);
+
     const requestClose = () => {
       if (isDirty || isUploading) {
         setLeaveConfirmOpen(true);
@@ -163,6 +169,15 @@ export const CourseLessonEditor = forwardRef<CourseLessonEditorHandle, CourseLes
         return;
       }
       const values = form.values;
+      if ((values.contentType === 'video' || values.contentType === 'pdf') && !values.contentUrl) {
+        const missingFile =
+          values.contentType === 'video'
+            ? 'Add the video before saving: upload one, paste a YouTube link, or choose one from your library. A lesson without a video shows students nothing to watch.'
+            : 'Add the PDF before saving: upload one or choose one from your library. A lesson without a file shows students nothing to read.';
+        form.setFieldError('contentUrl', missingFile);
+        toast.error(values.contentType === 'video' ? 'This lesson has no video yet.' : 'This lesson has no PDF yet.');
+        return;
+      }
       const handleError = (error: unknown, fallback: string) => {
         toast.error(error instanceof Error && error.message ? error.message : fallback);
       };

@@ -187,6 +187,58 @@
   --chart-color-3: hsl(38 90% 55%);
   --chart-color-4: hsl(340 80% 60%);
   --chart-color-5: hsl(260 75% 65%);
+
+  /*
+   * Spotlight/showcase card language - the ivory panel with pastel accent
+   * cards and a peach pill CTA first built for HomepageUgcNetSpotlight, now
+   * the shared language for any "premium feature" or "highlight" card:
+   * subscription plan cards, the active-subscription card, and future
+   * showcase UI. Reuse these tokens rather than inventing new ones.
+   *   lavender  chips/badges, the default accent, focus rings
+   *   sage      a secondary accent (e.g. 2nd item in a cycle)
+   *   blue      a tertiary accent
+   *   peach     the CTA pill, name/heading underline, a 4th accent
+   *   mint      decorative only (the blob behind a portrait)
+   * Every colour is solid. -tint is a fill, -line a large outline (~2:1),
+   * -edge a chip outline (3:1+), -ink text on the tint (7:1+).
+   */
+  --sp-surface: hsl(42 45% 98%);
+  --sp-card: hsl(0 0% 100%);
+  --sp-ink: hsl(224 28% 18%);
+  --sp-text: hsl(222 14% 28%);
+  --sp-muted: hsl(220 12% 38%);
+  --sp-line: hsl(36 14% 80%);
+  --sp-line-strong: hsl(36 14% 70%);
+  --sp-shadow:
+    0 1px 2px hsl(30 20% 20% / 0.06),
+    0 18px 40px -30px hsl(30 25% 20% / 0.4);
+  --sp-shadow-hover:
+    0 2px 4px hsl(30 20% 20% / 0.08),
+    0 18px 32px -20px hsl(30 25% 20% / 0.4);
+
+  --sp-cta: #fdba91;
+  --sp-cta-hover: #fca777;
+  --sp-cta-ink: hsl(222 24% 17%);
+
+  --sp-peach-tint: hsl(24 100% 92%);
+  --sp-peach-edge: hsl(20 68% 52%);
+  --sp-peach-ink: var(--tk-brand-text);
+
+  --sp-lavender-tint: hsl(258 55% 93%);
+  --sp-lavender-line: hsl(258 30% 80%);
+  --sp-lavender-edge: hsl(258 35% 58%);
+  --sp-lavender-ink: hsl(258 32% 30%);
+
+  --sp-sage-tint: hsl(95 30% 90%);
+  --sp-sage-edge: hsl(95 22% 42%);
+  --sp-sage-ink: hsl(100 28% 22%);
+
+  --sp-mint-tint: hsl(155 45% 88%);
+  --sp-mint-line: hsl(157 28% 64%);
+
+  --sp-blue-tint: hsl(210 60% 92%);
+  --sp-blue-edge: hsl(210 40% 52%);
+  --sp-blue-ink: hsl(212 50% 30%);
 }
 
 .dark {
@@ -265,6 +317,36 @@
   --chart-color-3: hsl(38 90% 60%);
   --chart-color-4: hsl(340 80% 65%);
   --chart-color-5: hsl(260 75% 70%);
+
+  /* Spotlight/showcase card language, dark mode. */
+  --sp-surface: hsl(222 20% 13%);
+  --sp-card: hsl(222 18% 16%);
+  --sp-ink: hsl(220 20% 93%);
+  --sp-text: hsl(220 14% 82%);
+  --sp-muted: hsl(220 12% 70%);
+  --sp-line: hsl(222 14% 27%);
+  --sp-line-strong: hsl(222 14% 34%);
+  --sp-shadow: 0 1px 2px hsl(0 0% 0% / 0.25);
+  --sp-shadow-hover: 0 12px 28px -12px hsl(0 0% 0% / 0.6);
+
+  --sp-peach-tint: hsl(20 28% 20%);
+  --sp-peach-edge: hsl(20 60% 58%);
+
+  --sp-lavender-tint: hsl(258 20% 24%);
+  --sp-lavender-line: hsl(258 16% 33%);
+  --sp-lavender-edge: hsl(258 35% 66%);
+  --sp-lavender-ink: hsl(258 60% 87%);
+
+  --sp-sage-tint: hsl(95 14% 21%);
+  --sp-sage-edge: hsl(95 20% 52%);
+  --sp-sage-ink: hsl(95 30% 82%);
+
+  --sp-mint-tint: hsl(160 20% 20%);
+  --sp-mint-line: hsl(160 18% 36%);
+
+  --sp-blue-tint: hsl(212 24% 23%);
+  --sp-blue-edge: hsl(210 35% 58%);
+  --sp-blue-ink: hsl(210 60% 85%);
 }
 
 /*

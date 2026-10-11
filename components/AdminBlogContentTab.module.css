@@ -113,6 +113,28 @@
   border-collapse: collapse;
 }
 
+.colThumb {
+  width: 5rem;
+}
+
+.thumb {
+  display: block;
+  flex-shrink: 0;
+  width: 3.25rem;
+  height: 2.25rem;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background-color: var(--muted);
+}
+
+.thumbEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted-foreground);
+}
+
 .colAuthor {
   width: 11rem;
 }
@@ -324,6 +346,18 @@
   margin: calc(-1 * var(--spacing-1)) calc(-1 * var(--spacing-2)) 0 0;
 }
 
+.cardIdentity {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex: 1;
+  min-width: 0;
+}
+
+.cardIdentity .stack {
+  flex: 1;
+}
+
 .cardTitleLine {
   display: flex;
   align-items: center;
@@ -423,7 +457,7 @@
   }
 }
 
-/* Six fixed columns take 40.25rem, plus 12rem for Title is 52.25rem, so the table shows from 59rem. */
+/* Seven fixed columns take 45.25rem, plus 12rem for Title is 57.25rem, so the table shows from 59rem. */
 @container results (min-width: 59rem) {
   .tableContainer {
     display: block;

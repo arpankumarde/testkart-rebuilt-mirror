@@ -10,17 +10,6 @@
   box-sizing: border-box;
 }
 
-.tabs {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4);
-}
-
-.tabsList {
-  align-self: flex-start;
-  max-width: 100%;
-}
-
 @media (max-width: 640px) {
   .page {
     padding: var(--spacing-4);

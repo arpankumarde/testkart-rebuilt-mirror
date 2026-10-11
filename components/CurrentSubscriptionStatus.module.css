@@ -1,54 +1,95 @@
-/* Panel heading scale, matching the sibling sections on Subscription. The
-   rule under it is gone - the panel's own border already separates them. */
+/*
+ * Active-subscription card in the spotlight/showcase language (base.css
+ * --sp-* tokens): an ivory panel, a lavender/sage status chip, bold heading
+ * type with a peach underline on the plan name, and credential-style white
+ * stat cards for the fee and renewal date. Kept in the same language as
+ * TeacherSubscriptionAvailablePlans.module.css - see that file's comment.
+ */
 .sectionHeading {
   margin: 0 0 var(--spacing-3);
   font-family: var(--font-family-heading);
-  font-size: 1.125rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--foreground);
+  font-size: 1.375rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--sp-ink);
 }
 
 .statusCard {
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-4);
-  box-shadow: var(--shadow);
+  background-color: var(--sp-surface);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.5rem;
+  padding: var(--spacing-6) var(--spacing-4);
+  box-shadow: var(--sp-shadow);
 }
 
-/* 1px like every other panel - a 2px border on the active state shifted the
-   card's contents by a pixel against its siblings. */
 .statusCard.active {
-  border-color: color-mix(in srgb, var(--success), black 15%);
+  border-color: var(--sp-sage-edge);
 }
 
 .statusHeader {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  flex-wrap: wrap;
   gap: var(--spacing-4);
-  margin-bottom: var(--spacing-3);
-  padding-bottom: var(--spacing-3);
-  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--spacing-4);
+}
+
+.statusChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.3125rem 0.75rem;
+  margin-top: var(--spacing-2);
+  background-color: var(--sp-sage-tint);
+  border: 1px solid var(--sp-sage-edge);
+  border-radius: var(--radius-full);
+  color: var(--sp-sage-ink);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.statusChip.warning {
+  background-color: var(--sp-peach-tint);
+  border-color: var(--sp-peach-edge);
+  color: var(--sp-peach-ink);
 }
 
 .planName {
   font-family: var(--font-family-heading);
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  margin-bottom: var(--spacing-1);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--sp-ink);
+  margin: 0 0 0.125rem;
 }
 
-/* --foreground, not the coral --primary, which sits at about 2.1:1 as type on
-   this white panel. */
+/* The small hand-drawn underline under the plan name, same stroke the
+   spotlight draws under the teacher's name. */
+.nameUnderline {
+  display: block;
+  width: 5.5rem;
+  height: 0.4375rem;
+  overflow: visible;
+}
+
+.nameUnderline path {
+  fill: none;
+  stroke: var(--sp-peach-edge);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
 .planPrice {
   font-family: var(--font-family-heading);
-  font-size: 1.125rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--foreground);
+  font-size: 1.375rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--sp-ink);
   font-variant-numeric: tabular-nums;
   text-align: right;
   white-space: nowrap;
@@ -57,70 +98,86 @@
 .pricePeriod {
   font-family: var(--font-family-base);
   font-size: 0.875rem;
-  font-weight: 400;
-  color: var(--muted-foreground);
+  font-weight: 500;
+  color: var(--sp-muted);
 }
 
 .freeBadge {
   font-family: var(--font-family-heading);
   font-size: 1.125rem;
-  font-weight: 700;
-  color: var(--foreground);
+  font-weight: 800;
+  color: var(--sp-ink);
 }
 
 .statusDetails {
   display: grid;
-  gap: var(--spacing-2);
-  margin-bottom: var(--spacing-3);
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
 }
 
+/* A credential-style stat card: white on the ivory panel, an accent icon
+   circle, a corner dot, a bold value. --accent-* defaults to peach (fee) and
+   is overridden to sage on the savings card below. */
 .platformFeeBox {
+  --accent-tint: var(--sp-peach-tint);
+  --accent-edge: var(--sp-peach-edge);
+  --accent-ink: var(--sp-peach-ink);
+  position: relative;
   display: flex;
-  align-items: baseline;
-  gap: var(--spacing-2);
-  padding: var(--spacing-2) var(--spacing-3);
-  border-radius: var(--radius);
-  font-weight: 600;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: 0.875rem 1rem;
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.125rem;
+  box-shadow: var(--sp-shadow);
+}
+
+.platformFeeBox::after {
+  content: "";
+  position: absolute;
+  top: 0.875rem;
+  right: 0.875rem;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 50%;
+  background-color: var(--accent-edge);
+}
+
+.platformFeeBox svg:first-child {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0.5rem;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background-color: var(--accent-tint);
+  color: var(--accent-ink);
 }
 
 .feeLabel {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
+  color: var(--sp-muted);
 }
 
 .feeValue {
-  margin-left: auto;
   font-family: var(--font-family-heading);
-  font-size: 1.25rem;
+  font-size: 1.375rem;
   font-weight: 800;
   letter-spacing: -0.01em;
+  color: var(--sp-ink);
   font-variant-numeric: tabular-nums;
 }
 
-/* Themed status text: the raw tokens ran at about 3.5:1 (--error) and 2.3:1
-   (--success) as type on their own 10% tint. */
-.feeHigh {
-  background-color: color-mix(in srgb, var(--error) 10%, transparent);
-  color: var(--error-text);
-  border: 1px solid color-mix(in srgb, var(--error) 25%, transparent);
-}
-
-.feeMedium {
-  background-color: color-mix(in srgb, var(--warning) 15%, transparent);
-  color: var(--warning-text);
-  border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent);
-}
-
-.feeLow {
-  background-color: color-mix(in srgb, var(--success) 12%, transparent);
-  color: var(--success-text);
-  border: 1px solid color-mix(in srgb, var(--success) 30%, transparent);
-}
-
 .feeDefault {
-  background-color: var(--muted);
-  color: var(--muted-foreground);
-  border: 1px solid var(--border);
+  --accent-tint: var(--sp-lavender-tint);
+  --accent-edge: var(--sp-lavender-edge);
+  --accent-ink: var(--sp-lavender-ink);
 }
 
 .detailRow {
@@ -129,57 +186,47 @@
   align-items: center;
   gap: var(--spacing-4);
   padding: var(--spacing-2) 0;
+  font-size: 0.875rem;
 }
 
 .detailLabel {
-  color: var(--muted-foreground);
-  font-size: 0.875rem;
+  color: var(--sp-muted);
 }
 
 .detailValue {
-  font-weight: 500;
-  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--sp-ink);
   text-align: right;
 }
 
-/* Both of these used to hardcode color: #000000, which stayed black on a dark
-   tint in dark mode. */
-.autoRenewBanner {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-3);
-  border-radius: var(--radius);
-  background-color: color-mix(in srgb, var(--secondary) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--secondary) 30%, transparent);
-  color: var(--foreground);
-  font-size: 0.875rem;
-}
-
+.autoRenewBanner,
 .savingsBanner {
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
   padding: var(--spacing-3);
-  border-radius: var(--radius);
-  background-color: color-mix(in srgb, var(--success) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--success) 28%, transparent);
-  color: var(--success-text);
+  border-radius: 1.125rem;
   font-size: 0.875rem;
 }
 
-.freeNote {
-  padding: var(--spacing-3);
-  border-radius: var(--radius);
-  background-color: color-mix(in srgb, var(--info) 8%, transparent);
-  border: 1px solid color-mix(in srgb, var(--info) 25%, transparent);
-  color: var(--foreground);
+.autoRenewBanner {
+  background-color: var(--sp-blue-tint);
+  border: 1px solid var(--sp-blue-edge);
+  color: var(--sp-blue-ink);
 }
 
-.freeNote p {
-  margin: 0;
-  font-size: 0.875rem;
-  line-height: 1.5;
+.autoRenewBanner svg {
+  color: var(--sp-blue-edge);
+}
+
+.savingsBanner {
+  background-color: var(--sp-sage-tint);
+  border: 1px solid var(--sp-sage-edge);
+  color: var(--sp-sage-ink);
+}
+
+.savingsBanner svg {
+  color: var(--sp-sage-edge);
 }
 
 .statusActions {
@@ -188,15 +235,27 @@
   flex-wrap: wrap;
 }
 
-.cancelledNote {
-  padding: var(--spacing-3);
-  border-radius: var(--radius);
-  background-color: var(--muted);
-  color: var(--muted-foreground);
-  font-size: 0.875rem;
+/* Destructive action kept as a plain, serious pill - the bouncy peach
+   treatment is reserved for a forward/positive CTA elsewhere in this language. */
+.statusActions button {
+  border-radius: var(--radius-full) !important;
 }
 
-/* A brand-tinted circle, not a warning glyph at half opacity. */
+.cancelledNote,
+.freeNote {
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: 1.125rem;
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  color: var(--sp-text);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.freeNote p {
+  margin: 0;
+}
+
 .noSubIcon {
   display: flex;
   align-items: center;
@@ -205,8 +264,8 @@
   height: 3.25rem;
   margin: 0 auto var(--spacing-4);
   border-radius: var(--radius-full);
-  background-color: var(--tk-brand-tint);
-  color: var(--tk-brand-text);
+  background-color: var(--sp-lavender-tint);
+  color: var(--sp-lavender-ink);
 }
 
 .noSubIcon svg {
@@ -218,15 +277,16 @@
   margin-bottom: var(--spacing-2);
   font-family: var(--font-family-heading);
   font-size: 1.125rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   text-align: center;
+  color: var(--sp-ink);
 }
 
 .statusCard > p {
   text-align: center;
   font-size: 0.875rem;
-  color: var(--muted-foreground);
+  color: var(--sp-muted);
 }
 
 .errorText {

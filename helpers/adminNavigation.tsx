@@ -32,8 +32,10 @@ import {
   Sparkles,
   Activity,
   Gift,
+  BookOpen,
 } from "lucide-react";
 import { ANY_ADMIN, EXTRA_PAGE_RULES, hasAdminModule, type AdminModule } from "./adminPermissions";
+import { ARTICLE_TABS } from "./adminContentSurfaces";
 import type { AttentionCounts } from "../endpoints/admin/dashboard/overview_GET.schema";
 
 export type AdminNavItem = {
@@ -129,7 +131,8 @@ const groups: AdminNavGroup[] = [
     items: [
       { href: "/admin/content", label: "Content dashboard", icon: LayoutDashboard, end: true, modules: ["content"], keywords: "site content seo blog guides pages editorial metadata" },
       { href: "/admin/exam-content", label: "Exam content", icon: Library, modules: ["exam_content"], keywords: "exams subjects categories" },
-      { href: "/admin/blog", label: "Blog posts", icon: Newspaper, modules: ["blog"], keywords: "articles seo categories" },
+      { href: `/admin/blog?tab=${ARTICLE_TABS.blog}`, label: "Blog posts", icon: Newspaper, modules: ["blog"], keywords: "articles seo categories" },
+      { href: `/admin/blog?tab=${ARTICLE_TABS.knowledge_base}`, label: "Help pages", icon: BookOpen, modules: ["blog"], keywords: "knowledge base guides articles support help centre categories" },
       { href: "/admin/blog/comments", label: "Comments", icon: MessageCircle, modules: ["blog_comments"], countKeys: ["blogCommentsPending"], keywords: "moderate blog" },
     ],
   },
@@ -181,15 +184,32 @@ const groupCount = (group: AdminNavGroup, attention: AttentionCounts | undefined
 /** An item's route without the query it may link with (the Support inbox opens on ?status=open). */
 const pathOf = (href: string): string => href.split("?")[0];
 
-/** The most specific item for a path, so /admin/teachers/earnings picks Teacher earnings, not Teachers. */
-const findByPath = (pathname: string): AdminNavItem | undefined => {
+/** Whether a location's query carries every param an item's href links with (Blog posts and Help pages share /admin/blog). */
+const queryMatches = (href: string, search: string): boolean => {
+  const wanted = [...new URLSearchParams(href.split("?")[1] ?? "")];
+  const actual = new URLSearchParams(search);
+  return wanted.length > 0 && wanted.every(([key, value]) => actual.get(key) === value);
+};
+
+/**
+ * The most specific item for a path, so /admin/teachers/earnings picks Teacher earnings, not Teachers.
+ * Items on the same path are told apart by the query in `search`; the first one wins when none match.
+ */
+const findByPath = (pathname: string, search = ""): AdminNavItem | undefined => {
   const path = pathOf(pathname);
   let match: AdminNavItem | undefined;
   for (const group of groups) {
     for (const item of group.items) {
       const itemPath = pathOf(item.href);
       const hit = item.end ? path === itemPath : path === itemPath || path.startsWith(`${itemPath}/`);
-      if (hit && (!match || itemPath.length > pathOf(match.href).length)) match = item;
+      if (!hit) continue;
+      const longer = !match || itemPath.length > pathOf(match.href).length;
+      const better =
+        !!match &&
+        itemPath.length === pathOf(match.href).length &&
+        queryMatches(item.href, search) &&
+        !queryMatches(match.href, search);
+      if (longer || better) match = item;
     }
   }
   return match;

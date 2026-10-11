@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Skeleton } from "./Skeleton";
 import { Switch } from "./Switch";
 import { Button } from "./Button";
-import { CheckCircle, Info, Loader2 } from "lucide-react";
+import { CheckCircle, Info, Loader2, Shield } from "lucide-react";
 import styles from "./TeacherSubscriptionAvailablePlans.module.css";
 import { useSubscriptionPlansQuery } from "../helpers/useTeacherSubscription";
 
@@ -74,6 +74,7 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
     if (lower.includes("free")) return "Free";
     if (lower.includes("starter")) return "Starter";
     if (lower.includes("individual")) return "Individual";
+    if (lower.includes("business")) return "Business";
     return null;
   };
 
@@ -81,6 +82,7 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
     Free: { monthly: null, yearly: null },
     Starter: { monthly: null, yearly: null },
     Individual: { monthly: null, yearly: null },
+    Business: { monthly: null, yearly: null },
   };
 
   if (plansQuery.data) {
@@ -105,6 +107,9 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
     plansByBaseName.Individual[isYearly ? "yearly" : "monthly"] ||
       plansByBaseName.Individual.monthly ||
       plansByBaseName.Individual.yearly,
+    plansByBaseName.Business[isYearly ? "yearly" : "monthly"] ||
+      plansByBaseName.Business.monthly ||
+      plansByBaseName.Business.yearly,
   ].filter(Boolean);
 
   // Once a teacher is on a paid plan, the grid below their active plan card
@@ -112,7 +117,7 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
   // page doesn't invite comparing down right next to "Choose a higher plan."
   // Cancelling (which does move them to Free) stays a clear, separate, visible
   // action on the Current Subscription card above - nothing about leaving is hidden.
-  const PLAN_RANK: Record<string, number> = { Free: 0, Starter: 1, Individual: 2 };
+  const PLAN_RANK: Record<string, number> = { Free: 0, Starter: 1, Individual: 2, Business: 3 };
   const currentPlanRecord = plansQuery.data?.find((plan) => plan.id === currentPlanId);
   const currentBaseName = currentPlanRecord ? getBaseName(currentPlanRecord.name) : null;
   const isPaidActive = hasActiveSub && !!currentPlanRecord && Number(currentPlanRecord.price) > 0;
@@ -204,16 +209,10 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
               const isFree = baseName === "Free";
               const isStarter = baseName === "Starter";
               const isIndividual = baseName === "Individual";
+              const isBusiness = baseName === "Business";
               const isCurrentPlan = currentPlanId === plan.id;
               const isYearlyPlan =
                 plan.billingCycle === "yearly" || plan.durationDays >= 360;
-
-              let feeColorClass = styles.feeLow;
-              if (plan.platformFeePercentage >= 25) {
-                feeColorClass = styles.feeHigh;
-              } else if (plan.platformFeePercentage >= 15) {
-                feeColorClass = styles.feeMedium;
-              }
 
               const showIntroOffer =
                 introOfferEligible && !isFree && !isCurrentPlan && introOfferAppliesTo(baseName, isYearlyPlan);
@@ -234,6 +233,9 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
                     ) : null}
                     {isIndividual && !showIntroOffer && (
                       <span className={styles.bestValueBadge}>Best value</span>
+                    )}
+                    {isBusiness && (
+                      <span className={styles.bestValueBadge}>For scale</span>
                     )}
                   </div>
                   <p className={styles.planDescription}>{plan.description}</p>
@@ -282,10 +284,14 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
                     )}
                   </div>
 
-                  <div className={`${styles.platformFeeBox} ${feeColorClass}`}>
-                    <span className={styles.feeLabel}>Platform fee</span>
-                    <span className={styles.feeValue}>
-                      {plan.platformFeePercentage}%
+                  <div className={styles.platformFeeBox}>
+                    <span className={styles.feeIcon} aria-hidden>
+                      <Shield size={16} strokeWidth={2} />
+                    </span>
+                    <span>
+                      <span className={styles.feeValue}>{plan.platformFeePercentage}%</span>
+                      <br />
+                      <span className={styles.feeLabel}>Platform fee</span>
                     </span>
                   </div>
 
