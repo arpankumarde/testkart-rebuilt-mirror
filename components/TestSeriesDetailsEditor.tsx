@@ -185,6 +185,8 @@ export const TestSeriesDetailsEditor = ({ testId }: { testId: number }) => {
   const isSeeded = seededTestId === testId;
   const isDirty = isSeeded && JSON.stringify(values) !== baseline;
   const isSaving = updateTestMutation.isPending;
+  // Saving mid-upload would store the series without the new thumbnail and leave the page.
+  const [isThumbnailUploading, setIsThumbnailUploading] = useState(false);
 
   useEffect(() => {
     if (!isDirty) return;
@@ -236,6 +238,10 @@ export const TestSeriesDetailsEditor = ({ testId }: { testId: number }) => {
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     if (isSaving) return;
+    if (isThumbnailUploading) {
+      toast.info("The thumbnail is still uploading. Save again once it finishes.");
+      return;
+    }
 
     const result = formSchema.safeParse(values);
     if (!result.success) {
@@ -710,6 +716,7 @@ export const TestSeriesDetailsEditor = ({ testId }: { testId: number }) => {
                             onChange={(url, fileId) =>
                               setValues((p) => ({ ...p, thumbnailUrl: url, thumbnailFileId: fileId || null }))
                             }
+                            onUploadingChange={setIsThumbnailUploading}
                             folder="test-thumbnails"
                           />
                         </FormControl>
@@ -732,8 +739,8 @@ export const TestSeriesDetailsEditor = ({ testId }: { testId: number }) => {
                   <Button type="button" variant="outline" onClick={leave} disabled={isSaving}>
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={isSaving}>
-                    {isSaving ? "Saving..." : "Save changes"}
+                  <Button type="submit" disabled={isSaving || isThumbnailUploading}>
+                    {isSaving ? "Saving..." : isThumbnailUploading ? "Uploading thumbnail..." : "Save changes"}
                   </Button>
                 </div>
               </div>
