@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Button } from "./Button";
 import { BookDemoButton } from "./BookDemoButton";
+import { PlayfulButton, playfulButtonClass } from "./PlayfulButton";
 import { useAuth } from "../helpers/useAuth";
 import { R2_PUBLIC_URL } from "../helpers/_publicConfigs";
 import styles from "./TeacherCtaBanner.module.css";
@@ -28,6 +29,11 @@ interface TeacherCtaBannerProps {
    * profile and is only worth making to a visitor with no account at all.
    */
   guestsOnly?: boolean;
+  /**
+   * "soft" swaps the coral brand block for a pastel card with playful pill
+   * buttons. Opt-in: every other page keeps the default coral block.
+   */
+  tone?: "default" | "soft";
 }
 
 /**
@@ -50,8 +56,10 @@ interface TeacherCtaBannerProps {
 export const TeacherCtaBanner = ({
   className,
   guestsOnly = false,
+  tone = "default",
 }: TeacherCtaBannerProps) => {
   const { authState } = useAuth();
+  const isSoft = tone === "soft";
 
   if (
     authState.type === "authenticated" &&
@@ -65,7 +73,7 @@ export const TeacherCtaBanner = ({
       className={`${styles.banner} ${className ?? ""}`.trim()}
       aria-label="Teach on Testkart"
     >
-      <div className={styles.card}>
+      <div className={`${styles.card} ${isSoft ? styles.soft : ""}`}>
         <div className={styles.content}>
           <span className={styles.chip}>For teachers</span>
 
@@ -77,24 +85,49 @@ export const TeacherCtaBanner = ({
           </p>
 
           <div className={styles.actions}>
-            <BookDemoButton
-              size="lg"
-              variant="primary"
-              className={styles.primaryCta}
-            >
-              Book a demo
-            </BookDemoButton>
+            {isSoft ? (
+              <>
+                <BookDemoButton
+                  size="lg"
+                  variant="ghost"
+                  className={playfulButtonClass("primary", "lg", styles.softCta)}
+                >
+                  Book a demo
+                </BookDemoButton>
 
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className={styles.secondaryCta}
-            >
-              <Link to="/teacher/signup">
-                Join as a teacher <ArrowRight size={18} />
-              </Link>
-            </Button>
+                <PlayfulButton
+                  asChild
+                  tone="soft"
+                  size="lg"
+                  className={styles.softCta}
+                >
+                  <Link to="/teacher/signup">
+                    Join as a teacher <ArrowRight size={18} />
+                  </Link>
+                </PlayfulButton>
+              </>
+            ) : (
+              <>
+                <BookDemoButton
+                  size="lg"
+                  variant="primary"
+                  className={styles.primaryCta}
+                >
+                  Book a demo
+                </BookDemoButton>
+
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className={styles.secondaryCta}
+                >
+                  <Link to="/teacher/signup">
+                    Join as a teacher <ArrowRight size={18} />
+                  </Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
 

@@ -368,10 +368,9 @@ const TeacherStudentsPage: React.FC = () => {
           <div className={styles.notice}>
             <Lock size={16} className={styles.noticeIcon} aria-hidden="true" />
             <span>Student email and phone numbers are hidden on your account.</span>
-            {/* Plans are no longer sold (13-10-2026), so there is nothing to upgrade to.
             <Button asChild variant="link" className={styles.noticeLink}>
               <Link to="/teacher/subscription">See plans</Link>
-            </Button> */}
+            </Button>
           </div>
         )}
 

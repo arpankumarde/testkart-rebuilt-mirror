@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { usePublicPromoCodesQuery } from "../helpers/usePublicPromoCodes";
 import type { PromoItemType } from "../helpers/promoCodeEligibility";
 import type { PublicPromoCode } from "../endpoints/promo-codes/public_GET.schema";
+import { playfulButtonClass } from "./PlayfulButton";
 import styles from "./PublicCouponsCard.module.css";
 
 interface PublicCouponsCardProps {
@@ -11,6 +12,8 @@ interface PublicCouponsCardProps {
   itemId: number | null | undefined;
   className?: string;
   spaced?: boolean;
+  /** Copy button wears the playful button skin (live competition page). */
+  playful?: boolean;
 }
 
 const formatRupees = (amount: number) => `₹${new Intl.NumberFormat("en-IN").format(amount)}`;
@@ -37,7 +40,7 @@ const getFinePrint = (promo: PublicPromoCode) => {
   return parts.join(" - ");
 };
 
-export const PublicCouponsCard: React.FC<PublicCouponsCardProps> = ({ itemType, itemId, className, spaced = true }) => {
+export const PublicCouponsCard: React.FC<PublicCouponsCardProps> = ({ itemType, itemId, className, spaced = true, playful = false }) => {
   const { data } = usePublicPromoCodesQuery(itemType, itemId);
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const resetTimer = useRef<number | null>(null);
@@ -82,7 +85,11 @@ export const PublicCouponsCard: React.FC<PublicCouponsCardProps> = ({ itemType, 
               </div>
               <button
                 type="button"
-                className={`${styles.copyButton} ${isCopied ? styles.copied : ""}`}
+                className={
+                  playful
+                    ? playfulButtonClass(isCopied ? "primary" : "soft", "sm")
+                    : `${styles.copyButton} ${isCopied ? styles.copied : ""}`
+                }
                 onClick={() => handleCopy(promo)}
                 aria-label={`Copy code ${promo.code}`}
               >

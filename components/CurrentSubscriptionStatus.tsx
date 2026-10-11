@@ -10,6 +10,7 @@ import {
   XCircle,
   Zap,
   Shield,
+  TrendingDown,
 } from "lucide-react";
 import { useSubscriptionStatusQuery } from "../helpers/useTeacherSubscription";
 import { useMandateStatusQuery } from "../helpers/useRecurringPayment";
@@ -68,17 +69,16 @@ export const CurrentSubscriptionStatus: React.FC<
     );
   }
 
-  // Plans are no longer sold (13-10-2026), so a teacher without one sees their fee only.
   if (!subscription) {
     return (
       <section>
         <h2 className={styles.sectionHeading}>Your platform fee</h2>
         <div className={styles.statusCard}>
-          {/* <div className={styles.noSubIcon}>
+          <div className={styles.noSubIcon}>
             <AlertTriangle size={48} />
           </div>
           <h3>No Active Subscription</h3>
-          <p>Choose a plan below to start monetizing your content!</p> */}
+          <p>Choose a plan below to start monetizing your content!</p>
           <div className={styles.statusDetails}>
             <div className={`${styles.platformFeeBox} ${styles.feeDefault}`}>
               <Shield size={18} />
@@ -174,6 +174,21 @@ export const CurrentSubscriptionStatus: React.FC<
             </div>
           )}
           
+          {!isFree && (statusQuery.data as any).platformFeePercentage !== undefined &&
+            (statusQuery.data as any).platformFeePercentage < DEFAULT_TEACHER_PLATFORM_FEE && (
+            <div className={styles.savingsBanner}>
+              <TrendingDown size={16} />
+              <span>
+                You keep{" "}
+                <strong>
+                  {(DEFAULT_TEACHER_PLATFORM_FEE - (statusQuery.data as any).platformFeePercentage).toFixed(0)}
+                  %
+                </strong>{" "}
+                more of every sale than on the Free plan.
+              </span>
+            </div>
+          )}
+
           {isFree && hasSpecialRate && (
             <div className={styles.detailRow}>
               <span className={styles.detailLabel}>Valid Until:</span>

@@ -1,0 +1,128 @@
+/*
+ * The rounded, playful button skin of the live competition page: coral for the
+ * one primary action, a warm surface with a hairline border for everything else.
+ * Rules here are unlayered on purpose, so they win over the kit Button's
+ * @layer base styles whichever Button variant sits underneath.
+ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 1rem;
+  font-family: var(--font-family-base);
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    border-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
+}
+
+.btn svg {
+  flex-shrink: 0;
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.xs {
+  height: 1.75rem;
+  padding: 0 0.75rem;
+  border-radius: 0.875rem;
+  font-size: 0.75rem;
+}
+
+.xs svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.sm {
+  height: 2.25rem;
+  padding: 0 1rem;
+  font-size: 0.8125rem;
+}
+
+.md {
+  height: 2.5rem;
+  padding: 0 1.25rem;
+  font-size: 0.875rem;
+}
+
+.lg {
+  height: 3rem;
+  padding: 0 1.5rem;
+  border-radius: 1.125rem;
+  font-size: 1rem;
+}
+
+.primary {
+  background-color: var(--tk-brand);
+  border-color: var(--tk-brand);
+  color: var(--tk-brand-ink);
+  box-shadow: 0 4px 12px -4px hsl(18 80% 45% / 0.4);
+}
+
+.primary:hover:not(:disabled) {
+  background-color: var(--tk-brand-hover);
+  border-color: var(--tk-brand-hover);
+  color: var(--tk-brand-hover-foreground);
+  box-shadow: 0 8px 18px -6px hsl(18 80% 40% / 0.45);
+  transform: translateY(-1px);
+}
+
+.soft {
+  background-color: var(--surface);
+  border-color: var(--exam-ivory-border);
+  color: var(--surface-foreground);
+  box-shadow: 0 1px 2px hsl(30 30% 20% / 0.06);
+}
+
+.soft:hover:not(:disabled) {
+  background-color: var(--surface);
+  border-color: var(--tk-brand-text);
+  color: var(--tk-brand-text);
+  box-shadow: 0 6px 14px -6px hsl(30 30% 20% / 0.2);
+  transform: translateY(-1px);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.btn:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--background),
+    0 0 0 4px var(--tk-brand-text);
+}
+
+/* Disabled reads as a flat status chip, not a faded button */
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  opacity: 1;
+  background-color: var(--muted);
+  border-color: var(--border);
+  color: var(--foreground);
+  box-shadow: none;
+  transform: none;
+  cursor: not-allowed;
+}
+
+.btn[aria-busy="true"] {
+  cursor: progress;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primary:hover:not(:disabled),
+  .soft:hover:not(:disabled) {
+    transform: none;
+  }
+}

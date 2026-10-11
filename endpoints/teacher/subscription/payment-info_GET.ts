@@ -4,6 +4,7 @@ import { getTeacherAvailableBalance } from "../../../helpers/getTeacherAvailable
 import superjson from "superjson";
 import { schema, OutputType } from "./payment-info_GET.schema";
 import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
+import { isEligibleForIntroOffer } from "../../../helpers/teacherIntroOffer";
 
 export async function handle(request: Request) {
   try {
@@ -26,10 +27,12 @@ export async function handle(request: Request) {
     const paymentMode = (setting?.settingValue === "recurring") ? "recurring" : "normal";
 
     const balanceInfo = await getTeacherAvailableBalance(effectiveTeacherId);
-    
+    const introOfferEligible = await isEligibleForIntroOffer(effectiveTeacherId);
+
     return new Response(superjson.stringify({
       paymentMode,
-      walletBalance: balanceInfo.availableBalance
+      walletBalance: balanceInfo.availableBalance,
+      introOfferEligible,
     } satisfies OutputType));
   } catch(error) {
      if (error instanceof NotAuthenticatedError) {

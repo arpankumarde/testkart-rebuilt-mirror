@@ -38,6 +38,8 @@ export interface AvailablePlansProps {
   walletBalance: number;
   useWalletBalance: boolean;
   setUseWalletBalance: (val: boolean) => void;
+  // True when a ₹1 first-cycle intro price applies to Starter/Individual monthly autopay sign-up.
+  introOfferEligible?: boolean;
   onSelectPlan: (plan: {
     id: number;
     name: string;
@@ -45,6 +47,10 @@ export interface AvailablePlansProps {
     durationDays: number;
   }) => void;
 }
+
+const INTRO_OFFER_PRICE = 1;
+const introOfferAppliesTo = (baseName: string, isYearlyPlan: boolean) =>
+  !isYearlyPlan && (baseName === "Starter" || baseName === "Individual");
 
 export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = ({
   plansQuery,
@@ -58,6 +64,7 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
   walletBalance,
   useWalletBalance,
   setUseWalletBalance,
+  introOfferEligible = false,
   onSelectPlan,
 }) => {
   const [isYearly, setIsYearly] = useState(false);
@@ -99,18 +106,50 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
       plansByBaseName.Individual.monthly ||
       plansByBaseName.Individual.yearly,
   ].filter(Boolean);
+
+  // Once a teacher is on a paid plan, the grid below their active plan card
+  // only offers upgrades: Free and their current tier are left out so the
+  // page doesn't invite comparing down right next to "Choose a higher plan."
+  // Cancelling (which does move them to Free) stays a clear, separate, visible
+  // action on the Current Subscription card above - nothing about leaving is hidden.
+  const PLAN_RANK: Record<string, number> = { Free: 0, Starter: 1, Individual: 2 };
+  const currentPlanRecord = plansQuery.data?.find((plan) => plan.id === currentPlanId);
+  const currentBaseName = currentPlanRecord ? getBaseName(currentPlanRecord.name) : null;
+  const isPaidActive = hasActiveSub && !!currentPlanRecord && Number(currentPlanRecord.price) > 0;
+  const upgradeOnlyPlansToDisplay = isPaidActive
+    ? allPlansToDisplay.filter((plan) => {
+        const baseName = getBaseName(plan.name) || "";
+        return (PLAN_RANK[baseName] ?? 0) > (PLAN_RANK[currentBaseName || ""] ?? 0);
+      })
+    : allPlansToDisplay;
+  const onTopTier = isPaidActive && upgradeOnlyPlansToDisplay.length === 0;
+
   const renewPlan =
     renewOnlyPlanId !== undefined
       ? plansQuery.data?.find((plan) => plan.id === renewOnlyPlanId)
       : undefined;
   const plansToDisplay =
-    renewOnlyPlanId !== undefined ? (renewPlan ? [renewPlan] : []) : allPlansToDisplay;
+    renewOnlyPlanId !== undefined ? (renewPlan ? [renewPlan] : []) : upgradeOnlyPlansToDisplay;
 
   return (
     <section className={styles.plansSection}>
-      <h2 className={styles.sectionTitle}>{renewOnlyPlanId !== undefined ? "Renew your plan" : "Plans"}</h2>
+      <h2 className={styles.sectionTitle}>
+        {renewOnlyPlanId !== undefined ? "Renew your plan" : isPaidActive ? "Upgrade your plan" : "Plans"}
+      </h2>
 
-      {renewOnlyPlanId === undefined && (
+      {onTopTier && (
+        <div className={styles.note}>
+          <Info size={18} />
+          <div>
+            <p>
+              You're on {currentBaseName}, our best plan here - the lowest platform fee and every
+              feature unlocked. Nothing higher to move to.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {!onTopTier && renewOnlyPlanId === undefined && (
       <div className={styles.toolbar} role="tablist" aria-label="Billing period">
         <div className={styles.billingToggle}>
           <button
@@ -176,6 +215,9 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
                 feeColorClass = styles.feeMedium;
               }
 
+              const showIntroOffer =
+                introOfferEligible && !isFree && !isCurrentPlan && introOfferAppliesTo(baseName, isYearlyPlan);
+
               return (
                 <div
                   key={plan.id}
@@ -185,10 +227,12 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
                 >
                   <div className={styles.planHeader}>
                     <h3 className={styles.planName}>{baseName}</h3>
-                    {isStarter && (
+                    {showIntroOffer ? (
+                      <span className={styles.popularBadge}>First month ₹{INTRO_OFFER_PRICE}</span>
+                    ) : isStarter ? (
                       <span className={styles.popularBadge}>Recommended</span>
-                    )}
-                    {isIndividual && (
+                    ) : null}
+                    {isIndividual && !showIntroOffer && (
                       <span className={styles.bestValueBadge}>Best value</span>
                     )}
                   </div>
@@ -197,6 +241,11 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
                   <div className={styles.planPriceContainer}>
                     {isFree ? (
                       <div className={styles.planPrice}>Free</div>
+                    ) : showIntroOffer ? (
+                      <div className={styles.planPrice}>
+                        ₹{INTRO_OFFER_PRICE}
+                        <span className={styles.pricePeriod}>/first month</span>
+                      </div>
                     ) : (
                       <div className={styles.planPrice}>
                         ₹{plan.price.toLocaleString("en-IN")}
@@ -205,7 +254,11 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
                         </span>
                       </div>
                     )}
-                    {isYearlyPlan && !isFree ? (
+                    {showIntroOffer ? (
+                      <div className={styles.effectiveMonthlyPrice}>
+                        then ₹{plan.price.toLocaleString("en-IN")}/mo from month 2
+                      </div>
+                    ) : isYearlyPlan && !isFree ? (
                       <div className={styles.effectiveMonthlyPrice}>
                         ₹{Math.round(plan.price / 12).toLocaleString("en-IN")}/mo equivalent
                       </div>
@@ -285,6 +338,8 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
                         "Current Plan"
                       ) : isFree ? (
                         "Start Free"
+                      ) : showIntroOffer ? (
+                        `Start for ₹${INTRO_OFFER_PRICE}`
                       ) : hasActiveSub ? (
                         "Switch Plan"
                       ) : (
@@ -296,6 +351,19 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
               );
             })}
           </div>
+
+          {introOfferEligible && (
+            <div className={styles.note}>
+              <Info size={18} />
+              <div>
+                <p>
+                  Starter and Individual (monthly) are ₹{INTRO_OFFER_PRICE} for the first month on autopay.
+                  Your UPI Autopay mandate is set up for the plan's full price, and renews automatically at
+                  that price from the second month unless you cancel first.
+                </p>
+              </div>
+            </div>
+          )}
 
           {renewOnlyPlanId === undefined && (
           <div className={styles.note}>

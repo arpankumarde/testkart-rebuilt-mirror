@@ -3,20 +3,30 @@ import { useParams, Link } from "react-router-dom";
 import { sanitizeHtml } from "../helpers/sanitizeHtml";
 import { stripHtmlClient } from "../helpers/stripHtmlClient";
 import { wrapContentTables } from "../helpers/contentTables";
-import { BookOpen, BarChart2, AlertTriangle, PlayCircle, FileText, Target, Trophy, Clock, AlertCircle, ShieldAlert, CreditCard, Award } from "lucide-react";
+import { BookOpen, BarChart2, AlertTriangle, PlayCircle, FileText, Target, Trophy, Clock, AlertCircle, ShieldAlert, CreditCard, Award, ListChecks } from "lucide-react";
+import { useAuth } from "../helpers/useAuth";
 import { SEOHead } from "../components/SEOHead";
 import { Placeholder } from "../helpers/placeholderImages";
 import { useLiveTestDetailsQuery } from "../helpers/useLiveTestDetailsQuery";
 import { LiveTestHero } from "../components/LiveTestHero";
 import { LiveTestLeaderboard } from "../components/LiveTestLeaderboard";
 import { Skeleton } from "../components/Skeleton";
-import { Button } from "../components/Button";
+import { PlayfulButton, playfulButtonClass } from "../components/PlayfulButton";
 import { TeacherProfileCard } from "../components/TeacherProfileCard";
 import { TeacherCtaBanner } from "../components/TeacherCtaBanner";
 import { PublicCouponsCard } from "../components/PublicCouponsCard";
 import { getLiveTestStatus } from "../helpers/useLiveTestHelpers";
 import { useTrackStorefrontView } from "../helpers/trackStorefrontEvent";
 import styles from "./mock-test.live.$liveTestId.module.css";
+
+type Tab = "about" | "leaderboard";
+
+interface RuleCardData {
+  title: string;
+  icon: React.ReactNode;
+  tone: "lavender" | "blue" | "sage" | "peach" | "yellow";
+  items: string[];
+}
 
 const LiveTestDetailsSkeleton: React.FC = () => (
   <div className={styles.skeletonContainer}>
@@ -39,7 +49,19 @@ const LiveTestDetailsPage: React.FC = () => {
   );
   useTrackStorefrontView("live_test", data?.id);
 
-  const [activeTab, setActiveTab] = useState<"about" | "leaderboard">("leaderboard");
+  const { authState } = useAuth();
+  const [selectedTab, setSelectedTab] = useState<Tab | null>(null);
+  // Until the visitor picks a tab, the default follows the session: Leaderboard
+  // when signed in, About otherwise. null while the session is still resolving,
+  // so the wrong tab never flashes. Once picked, the choice is never overridden.
+  const defaultTab: Tab | null =
+    authState.type === "loading"
+      ? null
+      : authState.type === "authenticated"
+        ? "leaderboard"
+        : "about";
+  const activeTab = selectedTab ?? defaultTab;
+  const setActiveTab = setSelectedTab;
 
   if (isFetching && !data) {
     return <LiveTestDetailsSkeleton />;
@@ -54,15 +76,91 @@ const LiveTestDetailsPage: React.FC = () => {
           The live test you are looking for does not exist or may have been
           removed.
         </p>
-        <Button asChild>
+        <PlayfulButton asChild tone="primary" size="lg">
           <Link to="/mock-test/live">Browse Live Tests</Link>
-        </Button>
+        </PlayfulButton>
       </div>
     );
   }
 
   const status = getLiveTestStatus(data);
   const formatCurrency = (amount: number) => `₹${amount.toLocaleString('en-IN')}`;
+
+  const ruleCards: RuleCardData[] = [
+    {
+      title: "Test Format",
+      icon: <FileText size={18} />,
+      tone: "lavender",
+      items: [
+        `Subject: ${data.mockTestDetails.subject || 'General'}`,
+        `Total Questions: ${data.mockTestDetails.totalQuestions}`,
+        `Duration: ${data.mockTestDetails.durationMinutes} minutes`,
+      ],
+    },
+    {
+      title: "Scoring Rules",
+      icon: <Target size={18} />,
+      tone: "blue",
+      items: [
+        "Each question carries positive marks. Negative marking may apply.",
+        "For multiple correct questions, partial marking may be available.",
+        "Final score = Sum of marks obtained across all questions.",
+      ],
+    },
+    {
+      title: "Ranking & Leaderboard",
+      icon: <BarChart2 size={18} />,
+      tone: "sage",
+      items: [
+        "Rank is determined by score first, then time taken (less time = higher rank).",
+        "Leaderboard updates in real-time during the test.",
+        "Final rankings are declared after the test ends.",
+      ],
+    },
+    ...(data.hasPrizes
+      ? [{
+          title: "Prizes",
+          icon: <Trophy size={18} />,
+          tone: "yellow" as const,
+          items: [
+            `1st Prize: ₹${data.firstPrize} | 2nd Prize: ₹${data.secondPrize} | 3rd Prize: ₹${data.thirdPrize}`,
+            "Prize money will be credited to the winner's Testkart wallet after the test ends.",
+            "Winners can withdraw prize money to their bank account.",
+          ],
+        }]
+      : []),
+    {
+      title: "Attempt Rules",
+      icon: <Clock size={18} />,
+      tone: "peach",
+      items: [
+        "Only one attempt is allowed per student.",
+        "Once you submit the test, you cannot re-attempt.",
+        "Test will auto-submit when the time expires.",
+        "You must be enrolled to attempt the test.",
+      ],
+    },
+    {
+      title: "Enrollment & Refund",
+      icon: <CreditCard size={18} />,
+      tone: "blue",
+      items: [
+        `Seats are limited (Max seats: ${data.maxSeats}).`,
+        "Registration closes at the deadline or when all seats are filled.",
+        "No refund once enrolled in the contest.",
+      ],
+    },
+    {
+      title: "Disclaimer",
+      icon: <ShieldAlert size={18} />,
+      tone: "lavender",
+      items: [
+        "Testkart does not proctor the test or verify student identity.",
+        "Quality and correctness of questions solely depends upon the teacher who hosts this live test.",
+        "By enrolling, you agree to the above rules and Testkart's Terms of Service.",
+      ],
+    },
+  ];
 
   // Teachers frequently re-run the same named live competition on a new
   // date (recurring editions), which otherwise all get the identical
@@ -88,24 +186,24 @@ const LiveTestDetailsPage: React.FC = () => {
 
         <div className={styles.contentContainer}>
           {!data.isEnrolled && data.price > 0 && (
-            <PublicCouponsCard itemType="live_test" itemId={data.id} />
+            <PublicCouponsCard itemType="live_test" itemId={data.id} playful />
           )}
-          <div className={styles.tabs}>
+          <div className={styles.tabs} role="group" aria-label="Competition sections">
             <button
-              className={`${styles.tabButton} ${
-                activeTab === "about" ? styles.activeTab : ""
-              }`}
+              type="button"
+              className={playfulButtonClass(activeTab === "about" ? "primary" : "soft", "md")}
+              aria-pressed={activeTab === "about"}
               onClick={() => setActiveTab("about")}
             >
-              <BookOpen size={16} /> About
+              <BookOpen /> About
             </button>
             <button
-              className={`${styles.tabButton} ${
-                activeTab === "leaderboard" ? styles.activeTab : ""
-              }`}
+              type="button"
+              className={playfulButtonClass(activeTab === "leaderboard" ? "primary" : "soft", "md")}
+              aria-pressed={activeTab === "leaderboard"}
               onClick={() => setActiveTab("leaderboard")}
             >
-              <BarChart2 size={16} /> Leaderboard
+              <BarChart2 /> Leaderboard
             </button>
           </div>
 
@@ -158,95 +256,29 @@ const LiveTestDetailsPage: React.FC = () => {
                   </div>
                 )}
                 
-                <h2>Comprehensive Rules & Information</h2>
-                <div className={styles.rulesGrid}>
-                  <div className={styles.ruleCard}>
-                    <div className={styles.ruleHeader}>
-                      <FileText className={styles.ruleIcon} size={20} />
-                      <h3>Test Format</h3>
-                    </div>
-                    <ul className={styles.ruleList}>
-                      <li>Subject: {data.mockTestDetails.subject || 'General'}</li>
-                      <li>Total Questions: {data.mockTestDetails.totalQuestions}</li>
-                      <li>Duration: {data.mockTestDetails.durationMinutes} minutes</li>
-                    </ul>
+                <section className={styles.rulesSection} aria-labelledby="live-rules-heading">
+                  <div className={styles.rulesHeader}>
+                    <span className={styles.rulesHeaderIcon}>
+                      <ListChecks size={20} aria-hidden="true" />
+                    </span>
+                    <h2 id="live-rules-heading" className={styles.rulesHeading}>Comprehensive Rules & Information</h2>
                   </div>
-
-                  <div className={styles.ruleCard}>
-                    <div className={styles.ruleHeader}>
-                      <Target className={styles.ruleIcon} size={20} />
-                      <h3>Scoring Rules</h3>
-                    </div>
-                    <ul className={styles.ruleList}>
-                      <li>Each question carries positive marks. Negative marking may apply.</li>
-                      <li>For multiple correct questions, partial marking may be available.</li>
-                      <li>Final score = Sum of marks obtained across all questions.</li>
-                    </ul>
+                  <div className={styles.rulesGrid}>
+                    {ruleCards.map((card) => (
+                      <article key={card.title} className={`${styles.ruleCard} ${styles[`tone_${card.tone}`]}`}>
+                        <header className={styles.ruleHeader}>
+                          <span className={styles.ruleIconTile}>{card.icon}</span>
+                          <h3 className={styles.ruleTitle}>{card.title}</h3>
+                        </header>
+                        <ul className={styles.ruleList}>
+                          {card.items.map((item, index) => (
+                            <li key={index}>{item}</li>
+                          ))}
+                        </ul>
+                      </article>
+                    ))}
                   </div>
-
-                  <div className={styles.ruleCard}>
-                    <div className={styles.ruleHeader}>
-                      <BarChart2 className={styles.ruleIcon} size={20} />
-                      <h3>Ranking & Leaderboard</h3>
-                    </div>
-                    <ul className={styles.ruleList}>
-                      <li>Rank is determined by score first, then time taken (less time = higher rank).</li>
-                      <li>Leaderboard updates in real-time during the test.</li>
-                      <li>Final rankings are declared after the test ends.</li>
-                    </ul>
-                  </div>
-
-                  {data.hasPrizes && (
-                    <div className={styles.ruleCard}>
-                      <div className={styles.ruleHeader}>
-                        <Trophy className={styles.ruleIcon} size={20} />
-                        <h3>Prizes</h3>
-                      </div>
-                      <ul className={styles.ruleList}>
-                        <li>1st Prize: ₹{data.firstPrize} | 2nd Prize: ₹{data.secondPrize} | 3rd Prize: ₹{data.thirdPrize}</li>
-                        <li>Prize money will be credited to the winner's Testkart wallet after the test ends.</li>
-                        <li>Winners can withdraw prize money to their bank account.</li>
-                      </ul>
-                    </div>
-                  )}
-
-                  <div className={styles.ruleCard}>
-                    <div className={styles.ruleHeader}>
-                      <Clock className={styles.ruleIcon} size={20} />
-                      <h3>Attempt Rules</h3>
-                    </div>
-                    <ul className={styles.ruleList}>
-                      <li>Only one attempt is allowed per student.</li>
-                      <li>Once you submit the test, you cannot re-attempt.</li>
-                      <li>Test will auto-submit when the time expires.</li>
-                      <li>You must be enrolled to attempt the test.</li>
-                    </ul>
-                  </div>
-
-                  <div className={styles.ruleCard}>
-                    <div className={styles.ruleHeader}>
-                      <CreditCard className={styles.ruleIcon} size={20} />
-                      <h3>Enrollment & Refund</h3>
-                    </div>
-                    <ul className={styles.ruleList}>
-                      <li>Seats are limited (Max seats: {data.maxSeats}).</li>
-                      <li>Registration closes at the deadline or when all seats are filled.</li>
-                      <li>No refund once enrolled in the contest.</li>
-                    </ul>
-                  </div>
-
-                  <div className={styles.ruleCard}>
-                    <div className={styles.ruleHeader}>
-                      <ShieldAlert className={styles.ruleIcon} size={20} />
-                      <h3>Disclaimer</h3>
-                    </div>
-                    <ul className={styles.ruleList}>
-                      <li>Testkart does not proctor the test or verify student identity.</li>
-                      <li>Quality and correctness of questions solely depends upon the teacher who hosts this live test.</li>
-                      <li>By enrolling, you agree to the above rules and Testkart's Terms of Service.</li>
-                    </ul>
-                  </div>
-                </div>
+                </section>
 
                 
 
@@ -254,6 +286,7 @@ const LiveTestDetailsPage: React.FC = () => {
                   <h2>About the Host</h2>
                                     <TeacherProfileCard 
                     variant="compact"
+                    tone="soft"
                     teacher={{
                       id: data.teacherProfile.id,
                       displayName: data.teacherProfile.name,
@@ -275,6 +308,13 @@ const LiveTestDetailsPage: React.FC = () => {
                 )}
               </div>
             )}
+            {activeTab === null && (
+              <div className={styles.tabLoading} aria-busy="true">
+                <Skeleton className={styles.skeletonText} />
+                <Skeleton className={styles.skeletonText} style={{ width: "80%" }} />
+                <Skeleton className={styles.skeletonText} style={{ width: "60%" }} />
+              </div>
+            )}
             {activeTab === "leaderboard" && (
                             <LiveTestLeaderboard 
                 liveTestId={data.id} 
@@ -283,7 +323,7 @@ const LiveTestDetailsPage: React.FC = () => {
             )}
           </div>
 
-          <TeacherCtaBanner className={styles.earnBanner} />
+          <TeacherCtaBanner className={styles.earnBanner} tone="soft" />
         </div>
       </div>
     </>

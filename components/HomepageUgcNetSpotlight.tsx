@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { ChevronRight, FileText } from "lucide-react";
+import { ArrowRight, Award, BookOpen, CalendarCheck, FileText, GraduationCap, Tag, Users, type LucideIcon } from "lucide-react";
 import { useTeacherPublicProfileQuery } from "../helpers/useTeacherPublicProfile";
 import { swmgPromoContent as content } from "../helpers/swmgPromoContent";
 import { bundlePriceProps, itemPriceProps, type ItemPriceProps } from "../helpers/homepageItemUtils";
@@ -18,6 +18,14 @@ const LEVEL_LABEL: Record<string, string> = {
   advanced: "Advanced",
 };
 
+// Keyed by credential value in swmgPromoContent; a credential without an entry renders without an icon.
+const CREDENTIAL_ICON: Record<string, LucideIcon> = {
+  "JRF": Award,
+  "Ph.D.": GraduationCap,
+  "10+ years": CalendarCheck,
+  "120K+": Users,
+};
+
 type SpotlightItem = ItemPriceProps & {
   key: string;
   kind: string;
@@ -31,10 +39,10 @@ type SpotlightItem = ItemPriceProps & {
 const joinMeta = (parts: (string | null | undefined)[]) => parts.filter(Boolean).join(" · ") || null;
 
 /**
- * UGC NET spotlight on Dr. Mukesh Goyal (teacher 15752): his profile on a coral
- * brand band above his published Testkart items, read from the same public
- * profile query as his promo pages (prefetched in pages/_index.prefetch.ts).
- * Hidden when he has nothing published.
+ * UGC NET spotlight on Dr. Mukesh Goyal (teacher 15752): his profile and
+ * credentials on an ivory panel above his published Testkart items, read from
+ * the same public profile query as his promo pages (prefetched in
+ * pages/_index.prefetch.ts). Hidden when he has nothing published.
  */
 export function HomepageUgcNetSpotlight() {
   const { data, isFetching } = useTeacherPublicProfileQuery(content.teacherSlug);
@@ -101,45 +109,66 @@ export function HomepageUgcNetSpotlight() {
     <section className={styles.section} aria-labelledby="ugc-net-spotlight-title">
       <div className={styles.block}>
         <div className={styles.profile}>
-          <span className={styles.chip}>UGC NET spotlight</span>
+          <div className={styles.profileMain}>
+            <span className={styles.chip}>
+              <BookOpen size={12} strokeWidth={2.25} aria-hidden />
+              UGC NET spotlight
+            </span>
 
-          <div className={styles.identity}>
-            <img
-              src={content.portrait.src600}
-              width={content.portrait.width}
-              height={content.portrait.height}
-              alt={`${content.name}, UGC NET educator`}
-              loading="lazy"
-              decoding="async"
-              className={styles.portrait}
-            />
-            <div className={styles.nameBlock}>
-              <h2 id="ugc-net-spotlight-title" className={styles.title}>
-                {content.name.replace(/^Dr\. /, `Dr.${NBSP}`)}
-              </h2>
-              <p className={styles.academy}>{content.academy}</p>
+            <div className={styles.identity}>
+              <span className={styles.portraitWrap}>
+                <img
+                  src={content.portrait.src600}
+                  width={content.portrait.width}
+                  height={content.portrait.height}
+                  alt={`${content.name}, UGC NET educator`}
+                  loading="lazy"
+                  decoding="async"
+                  className={styles.portrait}
+                />
+              </span>
+              <div className={styles.nameBlock}>
+                <h2 id="ugc-net-spotlight-title" className={styles.title}>
+                  {content.name.replace(/^Dr\. /, `Dr.${NBSP}`)}
+                </h2>
+                <svg className={styles.nameUnderline} viewBox="0 0 120 10" preserveAspectRatio="none" aria-hidden>
+                  <path d="M2 6.5C20 2.5 38 8.5 58 5S98 2 118 5.5" />
+                </svg>
+                <p className={styles.academy}>{content.academy}</p>
+              </div>
+            </div>
+
+            <p className={styles.lede}>
+              JRF and Ph.D. in Environmental Science, teaching UGC NET Paper 1 and Environmental Science for over 10
+              years. Study his complete courses and notes on Testkart.
+            </p>
+
+            <div className={styles.actions}>
+              <Link to={profileLink} className={styles.action}>
+                View profile
+                <ArrowRight size={16} aria-hidden className={styles.actionArrow} />
+              </Link>
             </div>
           </div>
 
-          <p className={styles.lede}>
-            JRF and Ph.D. in Environmental Science, teaching UGC NET Paper 1 and Environmental Science for over 10
-            years. Study his complete courses and notes on Testkart.
-          </p>
-
           <dl className={styles.credentials}>
-            {content.credentials.map((item) => (
-              <div key={item.label} className={styles.credential}>
-                <dt className={styles.credentialLabel}>{item.label}</dt>
-                <dd className={styles.credentialValue}>{item.value}</dd>
-              </div>
-            ))}
+            {content.credentials.map((item) => {
+              const Icon = CREDENTIAL_ICON[item.value];
+              return (
+                <div key={item.label} className={styles.credential}>
+                  <dt className={styles.credentialLabel}>{item.label}</dt>
+                  <dd className={styles.credentialValue}>
+                    {Icon && (
+                      <span className={styles.credentialIcon} aria-hidden>
+                        <Icon size={16} strokeWidth={2} />
+                      </span>
+                    )}
+                    {item.value}
+                  </dd>
+                </div>
+              );
+            })}
           </dl>
-
-          <div className={styles.actions}>
-            <Link to={profileLink} className={styles.action}>
-              View profile
-            </Link>
-          </div>
         </div>
 
         <div className={styles.catalog}>
@@ -155,10 +184,13 @@ export function HomepageUgcNetSpotlight() {
               ? Array.from({ length: 4 }).map((_, i) => (
                   <li key={i} className={styles.listItem} aria-hidden>
                     <div className={styles.row}>
-                      <Skeleton className={styles.skeletonThumb} />
+                      <span className={styles.thumbFrame}>
+                        <Skeleton className={styles.skeletonThumb} />
+                      </span>
                       <div className={styles.rowBody}>
                         <Skeleton className={styles.skeletonLine} />
                         <Skeleton className={styles.skeletonLineShort} />
+                        <Skeleton className={styles.skeletonPanel} />
                       </div>
                     </div>
                   </li>
@@ -178,32 +210,47 @@ export function HomepageUgcNetSpotlight() {
 function SpotlightRow({ item }: { item: SpotlightItem }) {
   return (
     <Link to={item.link} className={styles.row}>
-      {item.thumbnailUrl ? (
-        <img src={item.thumbnailUrl} alt="" loading="lazy" decoding="async" className={styles.thumb} />
-      ) : (
-        <NotesCover cover={item.notesCover} />
-      )}
+      <span className={styles.thumbFrame}>
+        {item.thumbnailUrl ? (
+          <img src={item.thumbnailUrl} alt="" loading="lazy" decoding="async" className={styles.thumb} />
+        ) : (
+          <NotesCover cover={item.notesCover} />
+        )}
+      </span>
 
       <div className={styles.rowBody}>
-        <span className={styles.kind}>{item.kind}</span>
-        <span className={styles.rowTitle}>{item.title}</span>
-        <span className={styles.rowFooter}>
-          {item.meta && <span className={styles.meta}>{item.meta}</span>}
+        <span className={styles.rowInfo}>
+          <span className={styles.kind}>{item.kind}</span>
+          <span className={styles.rowTitle}>{item.title}</span>
+          {item.meta && (
+            <span className={styles.meta}>
+              {item.kind === "Course" && <BookOpen size={14} aria-hidden className={styles.metaIcon} />}
+              {item.meta}
+            </span>
+          )}
+        </span>
+
+        <span className={styles.pricePanel}>
+          <svg className={styles.priceDoodle} viewBox="0 0 20 14" aria-hidden>
+            <path d="M4 11.5 8 3M12.5 12.5l3-6.5" />
+          </svg>
+          <span className={styles.priceLabel}>
+            <Tag size={14} aria-hidden />
+            Price
+          </span>
           <span className={styles.priceGroup}>
             {item.originalPriceLabel && <s className={styles.originalPrice}>{item.originalPriceLabel}</s>}
             <span className={item.isFree ? styles.priceFree : styles.price}>{item.priceLabel}</span>
           </span>
         </span>
       </div>
-
-      <ChevronRight size={18} aria-hidden className={styles.chevron} />
     </Link>
   );
 }
 
 /**
  * Study notes have no thumbnails (discontinued site-wide), so their slot shows
- * a typographic cover: page count, language and a document mark on brand ink.
+ * a typographic cover: page count, language and a document mark on a peach fill.
  */
 function NotesCover({ cover }: { cover?: SpotlightItem["notesCover"] }) {
   const pageCount = cover?.pageCount ?? null;

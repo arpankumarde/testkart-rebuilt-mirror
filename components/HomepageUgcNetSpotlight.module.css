@@ -1,76 +1,229 @@
 /*
- * UGC NET spotlight: a coral profile band in TeacherCtaBanner's colours
- * (fixed in both themes, --tk-brand-ink on --tk-brand at 6.2:1) above a
- * themed card surface listing his items. The section is the query container,
- * so the layout follows the homepage column rather than the viewport: compact
- * rows on phones, full cards (up to 4 across) from tablet width up.
+ * UGC NET spotlight: an ivory profile panel (identity left, four staggered
+ * credential cards right) above a white catalogue of his items. Pastels each
+ * have one job:
+ *   lavender  the spotlight chip, the portrait ring, item-type pills, hover
+ *   mint      the offset blob behind the portrait
+ *   sage, blue, peach  credential accents (one each, with lavender)
+ *   coral     only the View profile CTA, the name underline and View all
+ *   peach, mint, blue, butter  item price panels, cycling card by card
+ * Every colour is solid. -tint is a fill, -line a large outline (~2:1), -edge
+ * a chip outline (3:1+), -ink text on the tint (7:1+). The dark block re-maps
+ * the same names, so nothing below branches on theme.
  *
- * Edges are kept at 3:1 or better against their surface in both themes: the
- * block is framed in --tk-brand-text and cards use --spot-edge, a solid mix of
- * the card text colour into the card surface.
+ * The section is the query container, so the layout follows the homepage
+ * column rather than the viewport: item cards run 1, 2 and 4 across.
  */
 .section {
-  --spot-edge: color-mix(in srgb, var(--card-foreground) 50%, var(--card));
+  --sp-surface: hsl(42 45% 98%);
+  --sp-card: hsl(0 0% 100%);
+  --sp-ink: hsl(224 28% 18%);
+  --sp-text: hsl(222 14% 28%);
+  --sp-muted: hsl(220 12% 38%);
+  --sp-line: hsl(36 14% 80%);
+  --sp-line-strong: hsl(36 14% 70%);
+  --sp-shadow:
+    0 1px 2px hsl(30 20% 20% / 0.06),
+    0 18px 40px -30px hsl(30 25% 20% / 0.4);
+  --sp-shadow-hover:
+    0 2px 4px hsl(30 20% 20% / 0.08),
+    0 18px 32px -20px hsl(30 25% 20% / 0.4);
+
+  --sp-cta: #fdba91;
+  --sp-cta-hover: #fca777;
+  --sp-cta-ink: hsl(222 24% 17%);
+
+  --sp-peach-tint: hsl(24 100% 92%);
+  --sp-peach-edge: hsl(20 68% 52%);
+  --sp-peach-ink: var(--tk-brand-text);
+
+  --sp-lavender-tint: hsl(258 55% 93%);
+  --sp-lavender-line: hsl(258 30% 80%);
+  --sp-lavender-edge: hsl(258 35% 58%);
+  --sp-lavender-ink: hsl(258 32% 30%);
+
+  --sp-sage-tint: hsl(95 30% 90%);
+  --sp-sage-edge: hsl(95 22% 42%);
+  --sp-sage-ink: hsl(100 28% 22%);
+
+  --sp-mint-tint: hsl(155 45% 88%);
+  --sp-mint-line: hsl(157 28% 64%);
+
+  --sp-blue-tint: hsl(210 60% 92%);
+  --sp-blue-edge: hsl(210 40% 52%);
+  --sp-blue-ink: hsl(212 50% 30%);
+
+  /* Price panels: fill, hairline, doodle/icon edge. */
+  --sp-price-peach: #fff0e8;
+  --sp-price-peach-line: hsl(22 75% 85%);
+  --sp-price-peach-edge: hsl(20 68% 52%);
+  --sp-price-mint: #e8f7ef;
+  --sp-price-mint-line: hsl(150 38% 78%);
+  --sp-price-mint-edge: hsl(158 38% 38%);
+  --sp-price-blue: #eaf3ff;
+  --sp-price-blue-line: hsl(214 60% 84%);
+  --sp-price-blue-edge: hsl(212 45% 46%);
+  --sp-price-butter: #fff5df;
+  --sp-price-butter-line: hsl(42 75% 78%);
+  --sp-price-butter-edge: hsl(38 65% 38%);
+
   container-type: inline-size;
+}
+
+:global(.dark) .section {
+  --sp-surface: hsl(222 20% 13%);
+  --sp-card: hsl(222 18% 16%);
+  --sp-ink: hsl(220 20% 93%);
+  --sp-text: hsl(220 14% 82%);
+  --sp-muted: hsl(220 12% 70%);
+  --sp-line: hsl(222 14% 27%);
+  --sp-line-strong: hsl(222 14% 34%);
+  --sp-shadow: 0 1px 2px hsl(0 0% 0% / 0.25);
+  --sp-shadow-hover: 0 12px 28px -12px hsl(0 0% 0% / 0.6);
+
+  --sp-peach-tint: hsl(20 28% 20%);
+  --sp-peach-edge: hsl(20 60% 58%);
+
+  --sp-lavender-tint: hsl(258 20% 24%);
+  --sp-lavender-line: hsl(258 16% 33%);
+  --sp-lavender-edge: hsl(258 35% 66%);
+  --sp-lavender-ink: hsl(258 60% 87%);
+
+  --sp-sage-tint: hsl(95 14% 21%);
+  --sp-sage-edge: hsl(95 20% 52%);
+  --sp-sage-ink: hsl(95 30% 82%);
+
+  --sp-mint-tint: hsl(160 20% 20%);
+  --sp-mint-line: hsl(160 18% 36%);
+
+  --sp-blue-tint: hsl(212 24% 23%);
+  --sp-blue-edge: hsl(210 35% 58%);
+  --sp-blue-ink: hsl(210 60% 85%);
+
+  --sp-price-peach: hsl(20 28% 20%);
+  --sp-price-peach-line: hsl(20 22% 30%);
+  --sp-price-peach-edge: hsl(20 60% 64%);
+  --sp-price-mint: hsl(155 20% 18%);
+  --sp-price-mint-line: hsl(155 16% 29%);
+  --sp-price-mint-edge: hsl(155 38% 58%);
+  --sp-price-blue: hsl(212 26% 21%);
+  --sp-price-blue-line: hsl(212 20% 32%);
+  --sp-price-blue-edge: hsl(210 50% 68%);
+  --sp-price-butter: hsl(42 26% 18%);
+  --sp-price-butter-line: hsl(42 20% 29%);
+  --sp-price-butter-edge: hsl(44 60% 60%);
 }
 
 .block {
   display: flex;
   flex-direction: column;
-  background-color: var(--card);
-  color: var(--card-foreground);
-  border: 2px solid var(--tk-brand-text);
-  border-radius: var(--radius-lg);
+  background-color: var(--sp-card);
+  color: var(--sp-text);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.5rem;
+  box-shadow: var(--sp-shadow);
   overflow: hidden;
 }
 
+/* Profile */
 .profile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  padding: var(--spacing-6) 1.25rem;
+  background-color: var(--sp-surface);
+  border-bottom: 1px solid var(--sp-line);
+  min-width: 0;
+}
+
+.profileMain {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: var(--spacing-4);
-  padding: var(--spacing-6) 1.25rem;
-  background-color: var(--tk-brand);
-  color: var(--tk-brand-ink);
   min-width: 0;
 }
 
+/* A small sticker-like pill, tilted a touch. */
 .chip {
-  display: inline-block;
-  padding: 0.3125rem 0.5625rem;
-  background-color: #fff;
-  color: var(--tk-brand-deep);
-  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem 0.375rem 0.625rem;
+  background-color: var(--sp-lavender-tint);
+  border: 1px solid var(--sp-lavender-line);
+  border-radius: var(--radius-full);
+  color: var(--sp-lavender-ink);
   font-size: 0.6875rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   line-height: 1;
+  transform: rotate(-2deg);
 }
 
 .identity {
   display: flex;
   align-items: center;
-  gap: var(--spacing-4);
+  gap: 1.25rem;
   min-width: 0;
 }
 
-.portrait {
+/* Lavender-ringed portrait over a mint blob offset down and right. The build
+   drops negative z-index, so the photo is lifted (z-index 1) above the blob
+   rather than the blob being pushed under it. */
+.portraitWrap {
+  position: relative;
   flex: 0 0 auto;
+  display: inline-flex;
+  isolation: isolate;
+}
+
+.portraitWrap::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: var(--sp-mint-tint);
+  border: 1.5px solid var(--sp-mint-line);
+  border-radius: 58% 42% 50% 50% / 46% 56% 44% 54%;
+  transform: translate(0.5rem, 0.4375rem) rotate(-8deg);
+}
+
+.portrait {
+  position: relative;
+  z-index: 1;
+  display: block;
   width: 5.5rem;
   height: 5.5rem;
   object-fit: cover;
   object-position: center 15%;
-  border: 3px solid var(--tk-brand-ink);
+  border: 3px solid var(--sp-card);
   border-radius: 50%;
-  background-color: #eef1f5;
+  box-shadow: 0 0 0 2.5px var(--sp-lavender-line);
+  background-color: var(--sp-lavender-tint);
 }
 
 .nameBlock {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-1);
+  gap: 0.25rem;
   min-width: 0;
+}
+
+.nameUnderline {
+  display: block;
+  width: 7.5rem;
+  height: 0.5rem;
+  margin: 0.125rem 0 0.25rem;
+  overflow: visible;
+}
+
+.nameUnderline path {
+  fill: none;
+  stroke: var(--sp-peach-edge);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
 }
 
 .title {
@@ -78,107 +231,180 @@
   font-family: var(--font-family-heading);
   font-size: 1.75rem;
   font-weight: 800;
-  line-height: 1.05;
+  line-height: 1.08;
   letter-spacing: -0.02em;
-  color: var(--tk-brand-ink);
+  color: var(--sp-ink);
   text-wrap: balance;
 }
 
 .academy {
   margin: 0;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.9375rem;
+  font-weight: 600;
   line-height: 1.35;
-  color: var(--tk-brand-ink);
+  color: var(--sp-muted);
 }
 
 .lede {
   margin: 0;
-  max-width: 52ch;
+  max-width: 50ch;
   font-size: 0.9375rem;
-  font-weight: 500;
-  line-height: 1.55;
-  color: var(--tk-brand-ink);
-}
-
-.credentials {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  width: 100%;
-  margin: 0;
-  border-top: 2px solid var(--tk-brand-ink);
-}
-
-.credential {
-  display: flex;
-  flex-direction: column-reverse;
-  justify-content: flex-end;
-  gap: 0.125rem;
-  padding: var(--spacing-3) var(--spacing-3) 0 0;
-}
-
-.credential:nth-child(even) {
-  padding-left: var(--spacing-3);
-  border-left: 2px solid var(--tk-brand-ink);
-}
-
-.credentialValue {
-  margin: 0;
-  font-family: var(--font-family-heading);
-  font-size: 1.25rem;
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-}
-
-.credentialLabel {
-  font-size: 0.8125rem;
-  font-weight: 700;
-  line-height: 1.3;
+  line-height: 1.7;
+  color: var(--sp-text);
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-3);
-  margin-top: var(--spacing-2);
+  margin-top: var(--spacing-1);
 }
 
+/* Pill with one tucked corner and a solid peach ledge it lifts off on hover. */
 .action {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: var(--spacing-2);
   min-height: 2.75rem;
-  padding: 0 1.125rem;
-  border: 2px solid var(--tk-brand-ink);
-  border-radius: var(--radius-md);
-  background-color: var(--tk-brand-ink);
-  color: #fff;
+  padding: 0 1.25rem;
+  border: 1px solid var(--sp-peach-edge);
+  border-radius: 1.375rem 1.375rem 1.375rem 0.5rem;
+  background-color: var(--sp-cta);
+  box-shadow: 0 3px 0 var(--sp-peach-edge);
+  color: var(--sp-cta-ink);
   font-size: 0.9375rem;
   font-weight: 700;
   text-decoration: none;
   transition:
     background-color var(--animation-duration-fast) ease,
-    border-color var(--animation-duration-fast) ease;
+    box-shadow var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
 }
 
 .action:hover {
-  background-color: var(--tk-brand-ink-hover);
-  border-color: var(--tk-brand-ink-hover);
+  background-color: var(--sp-cta-hover);
+  box-shadow: 0 5px 0 var(--sp-peach-edge);
+  transform: translateY(-2px);
+}
+
+.action:active {
+  box-shadow: 0 1px 0 var(--sp-peach-edge);
+  transform: translateY(2px);
+}
+
+.actionArrow {
+  transition: transform var(--animation-duration-fast) ease;
+}
+
+.action:hover .actionArrow {
+  transform: translateX(2px);
 }
 
 .action:focus-visible {
-  outline: none;
-  box-shadow:
-    0 0 0 2px var(--tk-brand),
-    0 0 0 4px var(--tk-brand-ink);
+  outline: 2px solid var(--sp-lavender-edge);
+  outline-offset: 3px;
 }
 
+/* Credentials: four light cards in a 2x2 grid, each with one pastel accent
+   (its icon chip and a small corner dot). From tablet width the right column
+   drops half a step for a staggered, pinned-up feel. */
+.credentials {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-3);
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.credential {
+  --accent-tint: var(--sp-lavender-tint);
+  --accent-edge: var(--sp-lavender-edge);
+  --accent-ink: var(--sp-lavender-ink);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0.875rem 1rem 0.9375rem;
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.125rem;
+  box-shadow: var(--sp-shadow);
+}
+
+.credential::after {
+  content: "";
+  position: absolute;
+  top: 0.875rem;
+  right: 0.875rem;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 50%;
+  background-color: var(--accent-edge);
+}
+
+.credential:nth-child(2) {
+  --accent-tint: var(--sp-sage-tint);
+  --accent-edge: var(--sp-sage-edge);
+  --accent-ink: var(--sp-sage-ink);
+}
+
+.credential:nth-child(3) {
+  --accent-tint: var(--sp-blue-tint);
+  --accent-edge: var(--sp-blue-edge);
+  --accent-ink: var(--sp-blue-ink);
+}
+
+.credential:nth-child(4) {
+  --accent-tint: var(--sp-peach-tint);
+  --accent-edge: var(--sp-peach-edge);
+  --accent-ink: var(--sp-peach-ink);
+}
+
+.credentialValue {
+  order: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.625rem;
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.375rem;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--sp-ink);
+}
+
+.credentialLabel {
+  order: 2;
+  margin-top: var(--spacing-1);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--sp-muted);
+}
+
+.credentialIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background-color: var(--accent-tint);
+  color: var(--accent-ink);
+}
+
+/* Catalogue */
 .catalog {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-4);
-  padding: 1.25rem 1.25rem var(--spacing-6);
+  padding: var(--spacing-6) 1.25rem;
+  background-color: var(--sp-card);
   min-width: 0;
 }
 
@@ -193,9 +419,10 @@
   margin: 0;
   font-family: var(--font-family-heading);
   font-size: 1.125rem;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.3;
-  color: var(--card-foreground);
+  letter-spacing: -0.01em;
+  color: var(--sp-ink);
 }
 
 .viewAllLink {
@@ -203,19 +430,25 @@
   font-size: 0.875rem;
   font-weight: 700;
   color: var(--tk-brand-text);
-  text-decoration: underline;
+  text-decoration: none;
   text-underline-offset: 3px;
 }
 
 .viewAllLink:hover {
-  color: var(--tk-brand-hover);
-  text-decoration-thickness: 2px;
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+}
+
+.viewAllLink:focus-visible {
+  outline: 2px solid var(--sp-lavender-edge);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
 }
 
 .list {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--spacing-3);
+  gap: var(--spacing-4);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -225,65 +458,113 @@
   min-width: 0;
 }
 
-/* Phones: a compact row with a small thumbnail on the left. */
+/* Item card: thumbnail, info, then the price panel pinned to the bottom so
+   panels line up across a row whatever the title length. */
 .row {
+  --price-fill: var(--sp-price-peach);
+  --price-line: var(--sp-price-peach-line);
+  --price-edge: var(--sp-price-peach-edge);
   display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
+  flex-direction: column;
   height: 100%;
   box-sizing: border-box;
-  padding: var(--spacing-3);
-  border: 1px solid var(--spot-edge);
-  border-radius: var(--radius-md);
-  background-color: var(--card);
-  color: var(--card-foreground);
-  text-decoration: none;
   overflow: hidden;
-  transition: border-color var(--animation-duration-fast) ease;
+  border: 1px solid var(--sp-line);
+  border-radius: 1.25rem;
+  background-color: var(--sp-card);
+  box-shadow: var(--sp-shadow);
+  color: var(--sp-text);
+  text-decoration: none;
+  transition:
+    transform var(--animation-duration-normal) ease,
+    box-shadow var(--animation-duration-normal) ease,
+    border-color var(--animation-duration-normal) ease;
+}
+
+.listItem:nth-child(4n + 2) .row {
+  --price-fill: var(--sp-price-mint);
+  --price-line: var(--sp-price-mint-line);
+  --price-edge: var(--sp-price-mint-edge);
+}
+
+.listItem:nth-child(4n + 3) .row {
+  --price-fill: var(--sp-price-blue);
+  --price-line: var(--sp-price-blue-line);
+  --price-edge: var(--sp-price-blue-edge);
+}
+
+.listItem:nth-child(4n) .row {
+  --price-fill: var(--sp-price-butter);
+  --price-line: var(--sp-price-butter-line);
+  --price-edge: var(--sp-price-butter-edge);
 }
 
 a.row:hover {
-  border-color: var(--tk-brand-text);
-  box-shadow: inset 0 0 0 1px var(--tk-brand-text);
+  transform: translateY(-4px);
+  border-color: var(--sp-lavender-edge);
+  box-shadow: var(--sp-shadow-hover);
 }
 
 a.row:focus-visible {
-  outline: 2px solid var(--tk-brand-text);
+  outline: 2px solid var(--sp-lavender-edge);
   outline-offset: 2px;
 }
 
-.thumb,
-.cover,
-.skeletonThumb {
+.thumbFrame {
+  display: block;
   flex: 0 0 auto;
-  width: 6.5rem;
   aspect-ratio: 16 / 9;
-  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border-bottom: 1px solid var(--sp-line);
+  background-color: var(--sp-lavender-tint);
 }
 
 .thumb {
   display: block;
-  height: auto;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  background-color: var(--muted);
+  transition: transform 0.45s ease;
 }
 
-/* Study notes cover, on brand ink in both themes: white numbers (15:1),
-   coral unit and mark (6.2:1). */
+a.row:hover .thumb {
+  transform: scale(1.05);
+}
+
+.skeletonThumb {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+}
+
+/* Study notes have no thumbnail: a peach cover with the page count. */
 .cover {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   box-sizing: border-box;
-  padding: 0.375rem 0.5rem;
+  width: 100%;
+  height: 100%;
+  padding: var(--spacing-4);
   overflow: hidden;
-  background-color: var(--tk-brand-ink);
-  color: #fff;
+  background-color: var(--sp-peach-tint);
+  color: var(--sp-ink);
 }
 
 .coverChip {
-  display: none;
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  padding: 0.3125rem 0.5625rem;
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-peach-edge);
+  color: var(--sp-ink);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .coverCount {
@@ -298,102 +579,158 @@ a.row:focus-visible {
 
 .coverNumber {
   font-family: var(--font-family-heading);
-  font-size: 1.25rem;
+  font-size: 2.25rem;
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.02em;
-  color: #fff;
+  color: var(--sp-ink);
 }
 
 .coverUnit {
-  font-size: 0.6875rem;
+  font-size: 1rem;
   font-weight: 700;
   line-height: 1.2;
-  color: var(--tk-brand);
+  color: var(--sp-peach-ink);
 }
 
 .coverMark {
-  display: none;
+  position: absolute;
+  top: var(--spacing-4);
+  right: var(--spacing-4);
+  width: 2.5rem;
+  height: 2.5rem;
+  color: var(--sp-peach-edge);
 }
 
 .rowBody {
   display: flex;
   flex-direction: column;
-  gap: 0.1875rem;
   flex: 1;
+  gap: 0.875rem;
+  min-width: 0;
+  padding: 1rem 1.125rem 1.125rem;
+}
+
+.rowInfo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 0.5rem;
   min-width: 0;
 }
 
 .kind {
+  align-self: flex-start;
+  padding: 0.25rem 0.625rem;
+  background-color: var(--sp-lavender-tint);
+  border-radius: var(--radius-full);
   font-size: 0.6875rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   line-height: 1.3;
-  color: var(--tk-brand-text);
+  color: var(--sp-lavender-ink);
 }
 
 .rowTitle {
   font-family: var(--font-family-heading);
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 700;
   line-height: 1.35;
-  color: var(--card-foreground);
+  color: var(--sp-ink);
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-
-a.row:hover .rowTitle {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.rowFooter {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  column-gap: var(--spacing-3);
+  overflow-wrap: anywhere;
 }
 
 .meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--sp-muted);
+}
+
+.metaIcon {
+  flex-shrink: 0;
+}
+
+/* Price panel: the card's pastel, a hairline in the same hue, and two small
+   hand-drawn strokes breaking its top edge on the right. */
+.pricePanel {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem var(--spacing-3);
+  padding: 0.6875rem 1rem;
+  background-color: var(--price-fill);
+  border: 1px solid var(--price-line);
+  border-radius: 1rem;
+}
+
+.priceDoodle {
+  position: absolute;
+  top: -0.5rem;
+  right: 0.875rem;
+  width: 1.25rem;
+  height: 0.875rem;
+  overflow: visible;
+}
+
+.priceDoodle path {
+  fill: none;
+  stroke: var(--price-edge);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.priceLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--card-foreground);
+  color: var(--sp-text);
+}
+
+.priceLabel svg {
+  flex-shrink: 0;
+  color: var(--price-edge);
 }
 
 .priceGroup {
   display: inline-flex;
   align-items: baseline;
-  gap: var(--spacing-1);
+  gap: 0.375rem;
+  margin-left: auto;
   white-space: nowrap;
 }
 
 .originalPrice {
   font-size: 0.8125rem;
   font-weight: 500;
-  color: var(--card-foreground);
+  color: var(--sp-muted);
 }
 
 .price,
 .priceFree {
-  font-size: 0.9375rem;
+  font-size: 1.25rem;
   font-weight: 800;
+  letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
 }
 
 .price {
-  color: var(--tk-brand-text);
+  color: var(--sp-ink);
 }
 
 .priceFree {
-  color: color-mix(in srgb, var(--success), var(--foreground) 50%);
-}
-
-.chevron {
-  flex: 0 0 auto;
-  color: var(--card-foreground);
+  color: var(--sp-sage-ink);
 }
 
 .skeletonLine {
@@ -406,140 +743,48 @@ a.row:hover .rowTitle {
   width: 55%;
 }
 
-/* Tablet and up: each item becomes a full card with the thumbnail on top. */
-@container (min-width: 40rem) {
-  .list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--spacing-4);
-  }
-
-  .row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0;
-    padding: 0;
-  }
-
-  .thumb,
-  .cover,
-  .skeletonThumb {
-    width: 100%;
-    border-radius: 0;
-  }
-
-  .cover {
-    padding: var(--spacing-4);
-  }
-
-  .coverChip {
-    position: relative;
-    z-index: 1;
-    display: inline-block;
-    padding: 0.3125rem 0.5625rem;
-    background-color: #fff;
-    color: var(--tk-brand-ink);
-    border-radius: var(--radius-sm);
-    font-size: 0.75rem;
-    font-weight: 800;
-    line-height: 1;
-  }
-
-  .coverNumber {
-    font-size: 2.25rem;
-  }
-
-  .coverUnit {
-    font-size: 1rem;
-  }
-
-  .coverMark {
-    display: block;
-    position: absolute;
-    top: var(--spacing-4);
-    right: var(--spacing-4);
-    width: 2.5rem;
-    height: 2.5rem;
-    color: var(--tk-brand);
-  }
-
-  .rowBody {
-    gap: var(--spacing-2);
-    padding: var(--spacing-4);
-  }
-
-  .kind {
-    font-size: 0.75rem;
-  }
-
-  .rowTitle {
-    font-size: 1rem;
-    min-height: 2.7em;
-    -webkit-line-clamp: 3;
-  }
-
-  .rowFooter {
-    justify-content: space-between;
-    margin-top: auto;
-    padding-top: var(--spacing-2);
-  }
-
-  .meta {
-    font-size: 0.875rem;
-  }
-
-  .price,
-  .priceFree {
-    font-size: 1.125rem;
-  }
-
-  .chevron {
-    display: none;
-  }
+.skeletonPanel {
+  height: 2.75rem;
+  width: 100%;
+  margin-top: auto;
+  border-radius: 1rem;
 }
 
-/* Desktop: the profile becomes a wide band (copy left, credentials right) and
-   the cards run four across, the same size as the other homepage cards. */
-@container (min-width: 56rem) {
+/* Tablet and up: two cards across, the credential stagger kicks in. */
+@container (min-width: 40rem) {
   .profile {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(18rem, 26rem);
-    grid-template-areas:
-      "chip creds"
-      "identity creds"
-      "lede creds"
-      "actions creds";
-    column-gap: var(--spacing-12);
-    row-gap: var(--spacing-4);
-    align-items: start;
-    padding: var(--spacing-8);
-  }
-
-  .chip {
-    grid-area: chip;
-    justify-self: start;
-  }
-
-  .identity {
-    grid-area: identity;
-  }
-
-  .lede {
-    grid-area: lede;
-    font-size: 1rem;
-  }
-
-  .actions {
-    grid-area: actions;
-    margin-top: 0;
+    padding: 1.75rem var(--spacing-6);
   }
 
   .credentials {
-    grid-area: creds;
-    align-self: center;
+    padding-bottom: var(--spacing-3);
   }
 
-  .credentialValue {
-    font-size: 1.625rem;
+  .credential:nth-child(even) {
+    transform: translateY(var(--spacing-3));
+  }
+
+  .catalog {
+    padding: var(--spacing-6);
+  }
+
+  .list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Desktop: identity left, the credential cards right; catalogue four across. */
+@container (min-width: 56rem) {
+  .profile {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(20rem, 27rem);
+    align-items: center;
+    column-gap: var(--spacing-12);
+    padding: var(--spacing-8) var(--spacing-8) 1.75rem;
+  }
+
+  .lede {
+    font-size: 1rem;
   }
 
   .title {
@@ -551,8 +796,16 @@ a.row:hover .rowTitle {
     height: 6.5rem;
   }
 
+  .credential {
+    padding: 1rem 1.125rem 1.0625rem;
+  }
+
+  .credentialValue {
+    font-size: 1.625rem;
+  }
+
   .catalog {
-    padding: var(--spacing-6) var(--spacing-8) var(--spacing-8);
+    padding: var(--spacing-8);
   }
 
   .catalogTitle {
@@ -561,6 +814,7 @@ a.row:hover .rowTitle {
 
   .list {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.25rem;
   }
 }
 
@@ -577,7 +831,17 @@ a.row:hover .rowTitle {
 
 @media (prefers-reduced-motion: reduce) {
   .action,
-  .row {
+  .actionArrow,
+  .row,
+  .thumb {
     transition: none;
+  }
+
+  a.row:hover,
+  a.row:hover .thumb,
+  .action:hover,
+  .action:active,
+  .action:hover .actionArrow {
+    transform: none;
   }
 }

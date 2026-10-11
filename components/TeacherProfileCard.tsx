@@ -5,6 +5,7 @@ import {
   Globe,
   Award,
   ChevronRight,
+  ArrowRight,
   MapPin,
   Clock,
   Briefcase,
@@ -22,6 +23,7 @@ import { Button } from './Button';
 import { slugify } from '../helpers/slugify';
 import { TeacherPublicProfile } from '../helpers/teacherProfileTypes';
 import { VerifiedBadge } from "./VerifiedBadge";
+import { playfulButtonClass } from './PlayfulButton';
 import styles from './TeacherProfileCard.module.css';
 
 // Define the props for the component.
@@ -29,6 +31,8 @@ export interface TeacherProfileCardProps {
   teacher: TeacherPublicProfile;
   className?: string;
   variant?: 'default' | 'compact' | 'inline';
+  /** 'soft' restyles the compact variant (warm surface, pastel avatar, playful pill button); other variants ignore it. */
+  tone?: 'default' | 'soft';
   hideViewAllButton?: boolean;
   hideViewProfileButton?: boolean;
 }
@@ -42,7 +46,7 @@ const getInitials = (name: string) => {
   return (names[0][0] + names[names.length - 1][0]).toUpperCase();
 };
 
-export const TeacherProfileCard = ({ teacher, className, variant = 'default', hideViewAllButton = false, hideViewProfileButton = false }: TeacherProfileCardProps) => {
+export const TeacherProfileCard = ({ teacher, className, variant = 'default', tone = 'default', hideViewAllButton = false, hideViewProfileButton = false }: TeacherProfileCardProps) => {
     const {
     displayName,
     avatarUrl,
@@ -105,12 +109,13 @@ export const TeacherProfileCard = ({ teacher, className, variant = 'default', hi
 
   // Compact variant
   if (isCompact) {
+    const isSoft = tone === 'soft';
     return (
-      <div className={`${styles.card} ${styles.compact} ${className || ''}`}>
+      <div className={`${styles.card} ${styles.compact} ${isSoft ? styles.compactSoft : ''} ${className || ''}`}>
         <div className={styles.compactContent}>
           <Avatar className={styles.avatarCompact}>
             <AvatarImage src={avatarUrl || undefined} alt={`${displayName}'s avatar`} />
-            <AvatarFallback>{getInitials(displayName)}</AvatarFallback>
+            <AvatarFallback className={isSoft ? styles.avatarFallbackSoft : undefined}>{getInitials(displayName)}</AvatarFallback>
           </Avatar>
           <div className={styles.compactInfo}>
             <h3 className={styles.nameCompact}>{displayName} <VerifiedBadge isVerified={!!teacher.isVerified} size="sm" /></h3>
@@ -121,9 +126,12 @@ export const TeacherProfileCard = ({ teacher, className, variant = 'default', hi
             )}
             {bio && <p className={styles.bioCompact}>{bio}</p>}
           </div>
-          <Link to={`/expert/${teacher.slug || slugify(displayName)}`} className={styles.viewProfileButton}>
+          <Link
+            to={`/expert/${teacher.slug || slugify(displayName)}`}
+            className={isSoft ? playfulButtonClass('soft', 'md', styles.viewProfileSoft) : styles.viewProfileButton}
+          >
             View Profile
-            <ChevronRight size={16} />
+            {isSoft ? <ArrowRight size={16} /> : <ChevronRight size={16} />}
           </Link>
         </div>
       </div>

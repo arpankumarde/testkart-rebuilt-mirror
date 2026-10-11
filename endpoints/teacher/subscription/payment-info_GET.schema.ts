@@ -8,6 +8,9 @@ export type InputType = z.infer<typeof schema>;
 export type OutputType = {
   paymentMode: "normal" | "recurring";
   walletBalance: number;
+  // True if this teacher has never had a paid plan, so Starter/Individual
+  // monthly autopay sign-up still qualifies for the ₹1 first-cycle intro offer.
+  introOfferEligible: boolean;
 };
 
 export const getTeacherSubscriptionPaymentInfo = async (

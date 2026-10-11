@@ -205,12 +205,10 @@ const EMAILS = (ctx: OnboardingRenderContext): Record<OnboardingEmailKey, Onboar
     before: [
       { p: "Namaste," },
       { p: "When a student buys your test, notes or course, the money lands in your Testkart balance. To withdraw it, your bank account needs to be on file. Add it now so nothing waits when the first sale comes in. Open Earnings and click Bank account." },
-      // Plans stopped selling on 13-10-2026, so the plan table is no longer shown.
-      // ...(ctx.plans.length > 0
-      //   ? ([{ p: "What Testkart keeps from each sale depends on your plan:" }, { plans: true }] as Block[])
-      //   : []),
-      // { p: "Start on Free. Move up when your sales make the lower fee worth it. Starter also adds a verified teacher badge and AI question generation." },
-      { p: `Testkart keeps a flat ${DEFAULT_TEACHER_PLATFORM_FEE}% platform fee from each sale, and the rest is yours. There are no plans or monthly charges.` },
+      ...(ctx.plans.length > 0
+        ? ([{ p: "What Testkart keeps from each sale depends on your plan:" }, { plans: true }] as Block[])
+        : []),
+      { p: "Start on Free. Move up when your sales make the lower fee worth it. Starter also adds a verified teacher badge and AI question generation." },
     ],
     after: [
       { p: "How payouts and fees work:" },

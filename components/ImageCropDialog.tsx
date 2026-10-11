@@ -167,7 +167,7 @@ export const ImageCropDialog: React.FC<ImageCropDialogProps> = ({
             Cancel
           </Button>
           <Button onClick={handleConfirm} disabled={isCropping}>
-            {isCropping ? "Cropping..." : "Crop & Save"}
+            {isCropping ? "Cropping..." : "Crop & Upload"}
           </Button>
         </DialogFooter>
       </DialogContent>

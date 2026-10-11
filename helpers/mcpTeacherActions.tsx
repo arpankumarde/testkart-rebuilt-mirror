@@ -365,7 +365,7 @@ const ACTIONS: Record<string, TeacherAction> = {
   "subscription/history": read(subscriptionHistory, subscriptionHistorySchema, "Your subscription payment history."),
   "subscription/mandate/status": read(subscriptionMandateStatus, subscriptionMandateStatusSchema, "Status of your autopay mandate."),
   "subscription/payment-info": read(subscriptionPaymentInfo, subscriptionPaymentInfoSchema, "Payment details for your subscription."),
-  "subscription/plans": read(subscriptionPlans, subscriptionPlansSchema, "Subscription plans. New plans are no longer sold; a teacher with an active paid plan can only renew that plan."),
+  "subscription/plans": read(subscriptionPlans, subscriptionPlansSchema, "Subscription plans a teacher can subscribe to or switch between."),
   "subscription/status": read(subscriptionStatus, subscriptionStatusSchema, "Your current subscription."),
   "support/thread/messages": read(supportThreadMessages, supportThreadMessagesSchema, "Messages in one support thread."),
   "support/threads": read(supportThreads, supportThreadsSchema, "Your support threads with the Testkart team."),

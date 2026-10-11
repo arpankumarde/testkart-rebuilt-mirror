@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Zap, Calendar, Users, Trophy, IndianRupee, Clock, BookOpen } from 'lucide-react';
 import { Badge } from './Badge';
 import { Progress } from './Progress';
+import { VerifiedBadge } from './VerifiedBadge';
 import { useCountdownTimer } from '../helpers/useCountdownTimer';
 import { getLiveTestStatus } from '../helpers/useLiveTestHelpers';
 import { Placeholder } from '../helpers/placeholderImages';
@@ -80,7 +81,10 @@ export const LiveTestCard: React.FC<LiveTestCardProps> = ({ liveTest, className 
           </div>
 
           <h3 className={styles.title}>{liveTest.title}</h3>
-          <p className={styles.creator}>by {liveTest.teacherName}</p>
+          <p className={styles.creator}>
+            <span className={styles.creatorName}>by {liveTest.teacherName}</span>
+            <VerifiedBadge isVerified={liveTest.teacherIsVerified} size="sm" className={styles.verifiedBadge} />
+          </p>
 
           {status === 'upcoming' && liveTest.startTime && (
             <CountdownDisplay target={liveTest.startTime} label="Starts in" />

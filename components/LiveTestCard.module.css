@@ -86,9 +86,25 @@
 }
 
 .creator {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  min-width: 0;
   font-size: 0.875rem;
   color: var(--muted-foreground);
   margin: 0;
+}
+
+.creatorName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The row's gap already spaces it from the name. */
+.verifiedBadge {
+  margin-left: 0;
 }
 
 .infoGrid {

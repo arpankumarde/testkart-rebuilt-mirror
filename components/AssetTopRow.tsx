@@ -15,6 +15,8 @@ interface AssetTopRowProps {
   title: string;
   /** Hide the Share button at phone widths (the course page opts in). */
   hideShareOnMobile?: boolean;
+  /** Replaces the default Share button styling (a page with its own button skin). */
+  shareClassName?: string;
   className?: string;
 }
 
@@ -30,6 +32,7 @@ export const AssetTopRow: React.FC<AssetTopRowProps> = ({
   handle,
   title,
   hideShareOnMobile = false,
+  shareClassName,
   className,
 }) => {
   const [isShareOpen, setShareOpen] = useState(false);
@@ -39,7 +42,7 @@ export const AssetTopRow: React.FC<AssetTopRowProps> = ({
       {children}
       <button
         type="button"
-        className={`${styles.share} ${hideShareOnMobile ? styles.hideOnMobile : ""}`}
+        className={`${shareClassName ?? styles.share} ${hideShareOnMobile ? styles.hideOnMobile : ""}`}
         onClick={() => setShareOpen(true)}
       >
         <Share2 size={16} aria-hidden="true" />

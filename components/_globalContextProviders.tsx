@@ -15,9 +15,14 @@ import { BookDemoPopup } from "./BookDemoPopup";
 import { BookDemoDialogProvider } from "../helpers/useBookDemoDialog";
 import { restoreThemeMode } from "../helpers/themeMode";
 import { installLanguageVideoTabs } from "../helpers/languageVideo";
+import { chunkLoadRecovery } from "../helpers/chunkLoadRecovery";
+import { RouteErrorBoundary } from "./RouteErrorBoundary";
 
 // Module scope so the saved theme lands before the first client render on every route.
 restoreThemeMode();
+
+// A page script that 404s after a publish reloads once to pick up the current index.html.
+chunkLoadRecovery.install();
 
 // Language tabs on videos in editor content work on every route, including server-rendered pages.
 installLanguageVideoTabs();
@@ -51,7 +56,7 @@ export const GlobalContextProviders = ({
         <TooltipProvider>
           {/* Wraps children so BookDemoButtons inside pages share the one dialog. */}
           <BookDemoDialogProvider>
-            {children}
+            <RouteErrorBoundary>{children}</RouteErrorBoundary>
             <BookDemoPopup />
           </BookDemoDialogProvider>
           <SonnerToaster />

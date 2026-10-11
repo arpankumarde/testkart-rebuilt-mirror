@@ -173,7 +173,9 @@ export async function handle(request: Request) {
         const teacherEmail = teacher.userEmail ?? email;
         const teacherName = teacher.displayName;
         const planName = transaction.planName;
-        const amountNumber = parseFloat(transaction.planPrice);
+        // The actual amount charged today (may be a discounted intro price),
+        // not necessarily the plan's regular price.
+        const amountNumber = parseFloat(transaction.amount);
 
         if (oldPlanName) {
           await sendEmail({

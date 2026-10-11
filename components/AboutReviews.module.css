@@ -1,0 +1,556 @@
+/*
+ * Reviews on /about, set in a softly tinted neutral band. Cards sit on it as
+ * plain surfaces with hairline borders and no decoration: coral is spent on one
+ * short rule under the heading, the button, the stars and the bar fills;
+ * lavender, sage and blue appear only as review tags. Tokens are
+ * section-scoped and the dark theme only swaps values.
+ */
+.reviews {
+  --rv-band: hsl(30 26% 95%);
+  --rv-band-border: hsl(30 18% 88%);
+  --rv-card: var(--surface);
+  --rv-warm: hsl(22 78% 96%);
+  --rv-warm-border: hsl(22 60% 86%);
+  --rv-border: var(--exam-ivory-border);
+  --rv-ink: var(--foreground);
+  --rv-text: hsl(220 14% 30%);
+  --rv-star: var(--tk-brand);
+  --rv-star-off: hsl(220 12% 72%);
+  --rv-track: hsl(40 18% 90%);
+
+  padding: 2.5rem;
+  background-color: var(--rv-band);
+  border: 1px solid var(--rv-band-border);
+  border-radius: 1.75rem;
+}
+
+:global(.dark) .reviews {
+  --rv-band: var(--exam-ivory);
+  --rv-band-border: var(--border);
+  --rv-card: var(--surface);
+  --rv-warm: hsl(22 22% 17%);
+  --rv-warm-border: hsl(22 22% 28%);
+  --rv-text: hsl(220 10% 80%);
+  --rv-star-off: hsl(220 10% 38%);
+  --rv-track: hsl(220 12% 24%);
+}
+
+/* The employer badge is a picture with its own cream ground; it sits on a
+   white plate so it reads the same in both themes. */
+.badge {
+  display: block;
+  width: 100%;
+  max-width: 24rem;
+  height: auto;
+  border-radius: 1rem;
+  background-color: #fff;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.header {
+  margin-bottom: var(--spacing-8);
+}
+
+.accent {
+  display: block;
+  width: 2.5rem;
+  height: 4px;
+  margin-bottom: var(--spacing-4);
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand);
+}
+
+.heading {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: clamp(1.75rem, 3.2vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--rv-ink);
+}
+
+.subtitle {
+  margin: var(--spacing-3) 0 0;
+  max-width: 56ch;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+
+/* Overview: rating on the left, category bars on the right. */
+.overview {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 1.25rem;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: 1.75rem;
+  background-color: var(--rv-card);
+  border: 1px solid var(--rv-border);
+  border-radius: 1.25rem;
+}
+
+.panelWarm {
+  background-color: var(--rv-warm);
+  border-color: var(--rv-warm-border);
+}
+
+.panelLabel {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.ratingRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-3);
+}
+
+.ratingValue {
+  font-family: var(--font-family-heading);
+  font-size: 3.5rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--rv-ink);
+}
+
+.ratingOutOf {
+  font-size: 1rem;
+  color: var(--muted-foreground);
+}
+
+.ratingCount {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--rv-text);
+}
+
+.ratingStatement {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  color: var(--rv-ink);
+}
+
+.ratingStatement strong {
+  font-weight: 800;
+}
+
+.panelFoot {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  margin-top: auto;
+  padding-top: var(--spacing-4);
+}
+
+.attribution {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+/* Stars: an outline row with a clipped, filled row laid over it, so a 4.3
+   renders as 4.3 stars rather than rounding to 4. */
+.stars {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+  white-space: nowrap;
+}
+
+.starsBase,
+.starsFill {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.starsBase svg {
+  flex-shrink: 0;
+  color: var(--rv-star-off);
+  fill: none;
+}
+
+.starsFill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+}
+
+.starsFill svg {
+  flex-shrink: 0;
+  color: var(--rv-star);
+  fill: var(--rv-star);
+}
+
+/* Category bars: label, neutral track with a coral fill, then the score as text
+   so the value never depends on reading the bar. */
+.bars {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: 1 1 auto;
+  gap: var(--spacing-4);
+  margin: var(--spacing-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bar {
+  display: grid;
+  grid-template-columns: minmax(8rem, 11rem) minmax(0, 1fr) 2.25rem;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+.barLabel {
+  font-size: 0.9375rem;
+  color: var(--rv-ink);
+}
+
+.barTrack {
+  display: block;
+  height: 0.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--rv-track);
+  overflow: hidden;
+}
+
+.barFill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand);
+}
+
+.barValue {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--rv-ink);
+}
+
+/* Recent reviews: three equal-height cards on a plain grid. */
+.recent {
+  margin-top: 3rem;
+}
+
+.recentHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+}
+
+.recentHeading {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--rv-ink);
+}
+
+.textLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--tk-brand-text);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  transition: color var(--animation-duration-fast) ease;
+}
+
+.textLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.textLink:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 3px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: 1.25rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  min-width: 0;
+  padding: 1.5rem;
+  background-color: var(--rv-card);
+  border: 1px solid var(--rv-border);
+  border-radius: 1.25rem;
+  transition: border-color var(--animation-duration-fast) ease;
+}
+
+.card:hover {
+  border-color: var(--tk-brand-text);
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+}
+
+.reviewerLabel {
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--muted-foreground);
+}
+
+.cardRating {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid var(--rv-warm-border);
+  border-radius: var(--radius-full);
+  background-color: var(--rv-warm);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--rv-ink);
+}
+
+.cardRating svg {
+  color: var(--rv-star);
+  fill: var(--rv-star);
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--rv-ink);
+}
+
+.cardText {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: var(--rv-text);
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Tags cycle through the three supporting pastels so they stay quiet. */
+.tag {
+  padding: 0.125rem 0.625rem;
+  border: 1px solid var(--exam-lavender-border);
+  border-radius: var(--radius-full);
+  background-color: var(--exam-lavender-tint);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--exam-lavender-ink);
+}
+
+.tag:nth-child(3n + 2) {
+  border-color: var(--exam-sage-border);
+  background-color: var(--exam-sage-tint);
+  color: var(--exam-sage-ink);
+}
+
+.tag:nth-child(3n) {
+  border-color: var(--exam-blue-border);
+  background-color: var(--exam-blue-tint);
+  color: var(--exam-blue-ink);
+}
+
+.cardFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding-top: var(--spacing-3);
+  border-top: 1px solid var(--rv-border);
+}
+
+.reviewerMeta {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.cardLink {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-full);
+  color: var(--tk-brand-text);
+  text-decoration: none;
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.cardLink:hover {
+  background-color: var(--tk-brand-tint);
+}
+
+.cardLink:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+/* Loading, empty and error */
+.skeletonPanel {
+  height: 14rem;
+  border-radius: 1.25rem;
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-6);
+  padding: 1.75rem;
+  background-color: var(--rv-warm);
+  border: 1px solid var(--rv-warm-border);
+  border-radius: 1.25rem;
+}
+
+.noticeText {
+  flex: 1 1 22rem;
+  margin: 0;
+  max-width: 48ch;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: var(--rv-ink);
+}
+
+.noticeActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+}
+
+@media (max-width: 900px) {
+  .overview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .reviews {
+    padding: 1.25rem;
+    border-radius: 1.25rem;
+  }
+
+  .header {
+    margin-bottom: var(--spacing-6);
+  }
+
+  .panel,
+  .notice {
+    padding: 1.25rem;
+  }
+
+  .ratingValue {
+    font-size: 3rem;
+  }
+
+  .ratingStatement {
+    font-size: 1.25rem;
+  }
+
+  .bar {
+    grid-template-columns: minmax(0, 1fr) 2.25rem;
+    row-gap: var(--spacing-2);
+  }
+
+  .barLabel {
+    grid-column: 1;
+  }
+
+  .barValue {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .barTrack {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .recent {
+    margin-top: 2.5rem;
+  }
+
+  .cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .noticeActions {
+    width: 100%;
+  }
+
+  .noticeActions > * {
+    flex: 1 1 auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .cardLink,
+  .textLink {
+    transition: none;
+  }
+}

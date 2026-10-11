@@ -265,23 +265,20 @@ const SubscriptionPage: React.FC = () => {
           isCancelling={cancelMutation.isPending}
         />
 
-        {/* New plan purchases closed on 13-10-2026; a paid subscriber can only renew their own plan. */}
-        {hasPaidSub && canRenewCurrentPlan && (
-          <TeacherSubscriptionAvailablePlans
-            plansQuery={plansQuery}
-            hasActiveSub={hasActiveSub}
-            currentPlanId={statusQuery.data?.planId}
-            renewOnlyPlanId={currentSub?.planId}
-            canRenewCurrentPlan={canRenewCurrentPlan}
-            subscriptionStatus={statusQuery.data?.status}
-            isInitiatingPayment={isInitiatingPayment}
-            onSelectPlan={handleSelectPlan}
-            paymentMode={paymentMode}
-            walletBalance={walletBalance}
-            useWalletBalance={useWalletBalance}
-            setUseWalletBalance={setUseWalletBalance}
-          />
-        )}
+        <TeacherSubscriptionAvailablePlans
+          plansQuery={plansQuery}
+          hasActiveSub={hasActiveSub}
+          currentPlanId={statusQuery.data?.planId}
+          canRenewCurrentPlan={canRenewCurrentPlan}
+          subscriptionStatus={statusQuery.data?.status}
+          isInitiatingPayment={isInitiatingPayment}
+          onSelectPlan={handleSelectPlan}
+          paymentMode={paymentMode}
+          walletBalance={walletBalance}
+          useWalletBalance={useWalletBalance}
+          setUseWalletBalance={setUseWalletBalance}
+          introOfferEligible={paymentMode === "recurring" && !!paymentInfoQuery.data?.introOfferEligible}
+        />
 
           <TeacherSubscriptionTransactionHistory
             historyQuery={historyQuery}

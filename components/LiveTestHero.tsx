@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../helpers/useAuth';
-import { Clock, Users, Calendar, Zap, CheckCircle, XCircle, IndianRupee, PlayCircle, Info, ChevronRight, FileText, BookOpen, Trophy } from 'lucide-react';
+import { Clock, Users, Calendar, CalendarClock, CheckCircle, XCircle, IndianRupee, PlayCircle, Info, ChevronRight, FileText, BookOpen, Trophy, Medal, Hourglass } from 'lucide-react';
 import { useCountdownTimer } from '../helpers/useCountdownTimer';
 import { getLiveTestStatus } from '../helpers/useLiveTestHelpers';
 import { Placeholder } from '../helpers/placeholderImages';
 
 import { VerifiedBadge } from './VerifiedBadge';
-import { Button } from './Button';
+import { PlayfulButton, playfulButtonClass } from './PlayfulButton';
 import { Progress } from './Progress';
 import { Badge } from './Badge';
+import { Avatar, AvatarImage, AvatarFallback } from './Avatar';
 import type { OutputType as LiveTestDetails } from '../endpoints/live-tests/details_GET.schema';
 import { useLiveTestEnrollment } from '../helpers/useLiveTestEnrollment';
 import { postLiveTestsPurchase } from '../endpoints/live-tests/purchase_POST.schema';
@@ -28,6 +29,35 @@ interface LiveTestHeroProps {
   className?: string;
 }
 
+type Tone = 'peach' | 'lavender' | 'blue' | 'sage' | 'yellow';
+
+const TIMER_TONES: Tone[] = ['peach', 'lavender', 'blue', 'sage'];
+const VISIBLE_TOPICS = 4;
+
+const STATUS_LABELS: Record<ReturnType<typeof getLiveTestStatus>, string> = {
+  live: 'LIVE NOW',
+  upcoming: 'UPCOMING',
+  ended: 'ENDED',
+  registration_closed: 'REGISTRATION CLOSED',
+  seats_full: 'SEATS FULL',
+};
+
+const getInitials = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join('');
+
+const formatDay = (date: Date | string) =>
+  new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium' }).format(new Date(date));
+
+const formatTime = (date: Date | string) =>
+  new Intl.DateTimeFormat('en-IN', { timeStyle: 'short' }).format(new Date(date));
+
+const formatCurrency = (amount: number) => `₹${amount.toLocaleString('en-IN')}`;
+
 const CountdownTimer: React.FC<{ target: Date; label: string }> = ({ target, label }) => {
   const { days, hours, minutes, seconds, isComplete } = useCountdownTimer(target);
 
@@ -35,18 +65,64 @@ const CountdownTimer: React.FC<{ target: Date; label: string }> = ({ target, lab
     return null;
   }
 
+  const blocks = [
+    { value: days, unit: 'Days' },
+    { value: hours, unit: 'Hours' },
+    { value: minutes, unit: 'Mins' },
+    { value: seconds, unit: 'Secs' },
+  ];
+
   return (
     <div className={styles.countdown}>
       <div className={styles.countdownLabel}>{label}</div>
       <div className={styles.countdownTimer}>
-        <div className={styles.timerBlock}><span>{String(days).padStart(2, '0')}</span><small>Days</small></div>
-        <div className={styles.timerSeparator}>:</div>
-        <div className={styles.timerBlock}><span>{String(hours).padStart(2, '0')}</span><small>Hours</small></div>
-        <div className={styles.timerSeparator}>:</div>
-        <div className={styles.timerBlock}><span>{String(minutes).padStart(2, '0')}</span><small>Mins</small></div>
-        <div className={styles.timerSeparator}>:</div>
-        <div className={styles.timerBlock}><span>{String(seconds).padStart(2, '0')}</span><small>Secs</small></div>
+        {blocks.map((block, index) => (
+          <React.Fragment key={block.unit}>
+            {index > 0 && <div className={styles.timerSeparator} aria-hidden="true">:</div>}
+            <div className={`${styles.timerBlock} ${styles[`tone_${TIMER_TONES[index]}`]}`}>
+              <span>{String(block.value).padStart(2, '0')}</span>
+              <small>{block.unit}</small>
+            </div>
+          </React.Fragment>
+        ))}
       </div>
+    </div>
+  );
+};
+
+const DetailItem: React.FC<{
+  icon: React.ReactNode;
+  tone: Tone;
+  label: string;
+  value: React.ReactNode;
+  sub?: React.ReactNode;
+  wide?: boolean;
+}> = ({ icon, tone, label, value, sub, wide }) => (
+  <div className={`${styles.detailItem} ${wide ? styles.detailWide : ''}`}>
+    <span className={`${styles.iconTile} ${styles[`tone_${tone}`]}`}>{icon}</span>
+    <div className={styles.detailText}>
+      <span className={styles.detailLabel}>{label}</span>
+      <span className={styles.detailValue}>{value}</span>
+      {sub && <span className={styles.detailSub}>{sub}</span>}
+    </div>
+  </div>
+);
+
+const TopicChips: React.FC<{ topics: string[] }> = ({ topics }) => {
+  const [expanded, setExpanded] = useState(false);
+  const hiddenCount = topics.length - VISIBLE_TOPICS;
+  const shown = expanded || hiddenCount <= 1 ? topics : topics.slice(0, VISIBLE_TOPICS);
+
+  return (
+    <div className={styles.topicList}>
+      {shown.map((topic, index) => (
+        <span key={`${topic}-${index}`} className={styles.topicChip}>{topic}</span>
+      ))}
+      {!expanded && hiddenCount > 1 && (
+        <button type="button" className={playfulButtonClass('soft', 'xs')} onClick={() => setExpanded(true)}>
+          +{hiddenCount} more
+        </button>
+      )}
     </div>
   );
 };
@@ -54,7 +130,7 @@ const CountdownTimer: React.FC<{ target: Date; label: string }> = ({ target, lab
 export const LiveTestHero: React.FC<LiveTestHeroProps> = ({ liveTest, className }) => {
   const status = getLiveTestStatus(liveTest);
   const isFree = liveTest.price === 0;
-  const enrollmentPercentage = (liveTest.enrolledCount / liveTest.maxSeats) * 100;
+  const enrollmentPercentage = liveTest.maxSeats > 0 ? (liveTest.enrolledCount / liveTest.maxSeats) * 100 : 0;
   const enrollmentMutation = useLiveTestEnrollment();
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
@@ -169,71 +245,70 @@ export const LiveTestHero: React.FC<LiveTestHeroProps> = ({ liveTest, className 
 
     if (status === 'ended') {
       return (
-        <Button size="lg" className={styles.ctaButton} disabled>
+        <PlayfulButton size="lg" className={styles.ctaButton} disabled>
           <XCircle size={20} /> Test Ended
-        </Button>
+        </PlayfulButton>
       );
     }
-    
-        const now = new Date();
+
+    const now = new Date();
     const hasExpired = now > new Date(liveTest.endTime);
     
     if (status === 'live' && liveTest.isEnrolled) {
       if (liveTest.hasAttempted) {
         return (
-          <Button size="lg" className={styles.ctaButton} disabled>
+          <PlayfulButton size="lg" className={styles.ctaButton} disabled>
             <CheckCircle size={20} /> Already Attempted
-          </Button>
+          </PlayfulButton>
         );
       }
       if (hasExpired) {
         return (
-          <Button size="lg" className={styles.ctaButton} disabled>
+          <PlayfulButton size="lg" className={styles.ctaButton} disabled>
             <XCircle size={20} /> Test Ended
-          </Button>
+          </PlayfulButton>
         );
       }
       return (
-        <Button 
+        <PlayfulButton 
           size="lg" 
-          variant="primary"
           className={styles.ctaButton}
           onClick={() => navigate(`/live-portal/${liveTest.id}`)}
           disabled={enrollmentMutation.isPending}
         >
           <PlayCircle size={20} /> {enrollmentMutation.isPending ? 'Loading...' : 'Start Test'}
-        </Button>
+        </PlayfulButton>
       );
     }
     if (status === 'registration_closed' && liveTest.isEnrolled) {
       if (liveTest.startTime) {
         return (
-          <Button size="lg" className={styles.ctaButton} disabled>
+          <PlayfulButton size="lg" className={styles.ctaButton} disabled>
             <Clock size={20} /> Test starts in: {formatInlineCountdown(startCountdown)}
-          </Button>
+          </PlayfulButton>
         );
       }
       return (
-        <Button size="lg" className={styles.ctaButton} disabled>
+        <PlayfulButton size="lg" className={styles.ctaButton} disabled>
           <Clock size={20} /> Waiting for test to begin
-        </Button>
+        </PlayfulButton>
       );
     }
     if (liveTest.canEnroll) {
       if (isFree) {
         return (
-          <Button 
+          <PlayfulButton 
             size="lg" 
             className={styles.ctaButton}
             onClick={handleFreeEnroll}
             disabled={enrollmentMutation.isPending || isVerifyingPayment}
           >
             {enrollmentMutation.isPending ? 'Enrolling...' : isVerifyingPayment ? 'Verifying...' : 'Enroll for Free'}
-          </Button>
+          </PlayfulButton>
         );
       } else {
         return (
-          <Button 
+          <PlayfulButton 
             size="lg" 
             className={styles.ctaButton}
             onClick={handlePaidEnroll}
@@ -250,57 +325,86 @@ export const LiveTestHero: React.FC<LiveTestHeroProps> = ({ liveTest, className 
                   {liveTest.discountPrice !== null && (
                     <s className={styles.ctaOriginalPrice}>₹{liveTest.price}</s>
                   )}
-                  <IndianRupee size={18} strokeWidth={2.5} />
+                  <IndianRupee size={16} strokeWidth={2.5} />
                   {liveTest.discountPrice ?? liveTest.price}
                 </span>
               </>
             )}
-          </Button>
+          </PlayfulButton>
         );
       }
     }
     if (liveTest.isEnrolled) {
       if (hasExpired) {
-        return <Button size="lg" className={styles.ctaButton} disabled><XCircle size={20} /> Test Ended</Button>;
+        return <PlayfulButton size="lg" className={styles.ctaButton} disabled><XCircle size={20} /> Test Ended</PlayfulButton>;
       }
-      return <Button size="lg" className={styles.ctaButton} disabled><CheckCircle size={20} /> Enrolled</Button>;
+      return <PlayfulButton size="lg" className={styles.ctaButton} disabled><CheckCircle size={20} /> Enrolled</PlayfulButton>;
     }
-    return <Button size="lg" className={styles.ctaButton} disabled><XCircle size={20} /> Registration Closed</Button>;
+    return <PlayfulButton size="lg" className={styles.ctaButton} disabled><XCircle size={20} /> Registration Closed</PlayfulButton>;
   };
 
-  const formatDate = (date: Date | string) => new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(date));
-  const formatCurrency = (amount: number) => `₹${amount.toLocaleString('en-IN')}`;
+  const { totalQuestions, durationMinutes, subject, examName } = liveTest.mockTestDetails;
+  const topics = (subject ?? '')
+    .split(',')
+    .map((topic) => topic.trim())
+    .filter(Boolean);
 
-  const statusClassSuffix = status.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
-  const heroClass = `${styles.hero} ${styles[`status${statusClassSuffix}`] || ''} ${className || ''}`;
+  const metaItems: Omit<React.ComponentProps<typeof DetailItem>, 'wide'>[] = [];
+  if (totalQuestions > 0) {
+    metaItems.push({ icon: <FileText size={18} />, tone: 'lavender', label: 'Questions', value: totalQuestions });
+  }
+  if (durationMinutes > 0) {
+    metaItems.push({ icon: <Clock size={18} />, tone: 'blue', label: 'Duration', value: `${durationMinutes} mins` });
+  }
+  if (liveTest.startTime) {
+    metaItems.push({ icon: <CalendarClock size={18} />, tone: 'sage', label: 'Starts', value: formatDay(liveTest.startTime), sub: formatTime(liveTest.startTime) });
+  }
+  metaItems.push({ icon: <Calendar size={18} />, tone: 'peach', label: 'Ends', value: formatDay(liveTest.endTime), sub: formatTime(liveTest.endTime) });
+  if (liveTest.registrationDeadline) {
+    metaItems.push({ icon: <Hourglass size={18} />, tone: 'yellow', label: 'Register by', value: formatDay(liveTest.registrationDeadline), sub: formatTime(liveTest.registrationDeadline) });
+  }
+
+  const prizes = [liveTest.firstPrize, liveTest.secondPrize, liveTest.thirdPrize]
+    .map((amount, index) => ({ amount, rank: ['1st', '2nd', '3rd'][index] }))
+    .filter((prize) => prize.amount > 0);
+  const showPrizes = liveTest.hasPrizes && liveTest.totalPrizePool > 0;
+  const isTeacher = authState.type === 'authenticated' && authState.user.role === 'teacher';
 
   return (
-    <div className={heroClass}>
+    <div className={`${styles.hero} ${className || ''}`}>
       <div className={styles.heroInner}>
-        
-        {/* Left Column */}
+
         <div className={styles.leftColumn}>
-          <AssetTopRow kind="live-test" handle={liveTest.id} title={liveTest.title}>
-            <nav className={styles.breadcrumb}>
-              <Link to="/mock-test/live">Live Competitions</Link>
-              <ChevronRight size={14} />
-              <span>{liveTest.title}</span>
-            </nav>
-          </AssetTopRow>
-          
-          <div className={styles.badgesRow}>
-            {status === 'live' && <Badge variant="destructive" className={styles.liveBadge}><Zap size={14} /> LIVE NOW</Badge>}
-            {liveTest.mockTestDetails?.examName && <Badge variant="secondary">{liveTest.mockTestDetails.examName}</Badge>}
-          </div>
-          
-          <h1 className={styles.title}>{liveTest.title}</h1>
-          
-          <div className={styles.creatorViewsContainer}>
+          <div className={styles.head}>
+            <AssetTopRow kind="live-test" handle={liveTest.id} title={liveTest.title} className={styles.topRow} shareClassName={playfulButtonClass('soft', 'sm')}>
+              <nav className={styles.breadcrumb} aria-label="Breadcrumb">
+                <Link to="/mock-test/live" className={styles.breadcrumbRoot}>Live Competitions</Link>
+                <ChevronRight size={14} className={styles.breadcrumbChevron} aria-hidden="true" />
+                <span className={styles.breadcrumbCurrent} title={liveTest.title}>{liveTest.title}</span>
+              </nav>
+            </AssetTopRow>
+
+            <div className={styles.badgesRow}>
+              <Badge className={`${styles.statusPill} ${styles[`status_${status}`]}`}>
+                {status === 'live' && <span className={styles.liveDot} aria-hidden="true" />}
+                {STATUS_LABELS[status]}
+              </Badge>
+              {examName && <Badge className={styles.examBadge}>{examName}</Badge>}
+            </div>
+
+            <h1 className={styles.title}>{liveTest.title}</h1>
+
             <p className={styles.creator}>
-              By:{' '}
+              <span className={styles.creatorBy}>By</span>
+              <Avatar className={styles.creatorAvatar}>
+                {liveTest.teacherProfile.avatarUrl && (
+                  <AvatarImage src={liveTest.teacherProfile.avatarUrl} alt={liveTest.teacherProfile.name} />
+                )}
+                <AvatarFallback className={styles.creatorAvatarFallback}>{getInitials(liveTest.teacherProfile.name)}</AvatarFallback>
+              </Avatar>
               <Link to={`/expert/${liveTest.teacherSlug}`} className={styles.creatorLink}>
                 {liveTest.teacherProfile.name}
-              </Link>{' '}
+              </Link>
               <VerifiedBadge isVerified={liveTest.teacherIsVerified} size="sm" />
             </p>
           </div>
@@ -308,93 +412,98 @@ export const LiveTestHero: React.FC<LiveTestHeroProps> = ({ liveTest, className 
           {status === 'upcoming' && liveTest.startTime && <CountdownTimer target={liveTest.startTime} label="Test Starts In" />}
           {status === 'live' && <CountdownTimer target={liveTest.endTime} label="Test Ends In" />}
 
-          <div className={styles.metaPills}>
-            {liveTest.startTime && (
-              <div className={styles.metaPill}><Calendar size={16} /> <strong>Starts:</strong> {formatDate(liveTest.startTime)}</div>
-            )}
-            <div className={styles.metaPill}><Calendar size={16} /> <strong>Ends:</strong> {formatDate(liveTest.endTime)}</div>
-            {liveTest.registrationDeadline && (
-              <div className={styles.metaPill}><Clock size={16} /> <strong>Register by:</strong> {formatDate(liveTest.registrationDeadline)}</div>
-            )}
-          </div>
-
-          <div className={styles.enrollmentSection}>
-            <div className={styles.seats}>
-              <Users size={20} />
-              <span>{liveTest.enrolledCount.toLocaleString()} / {liveTest.maxSeats.toLocaleString()} seats filled</span>
-            </div>
-            <Progress value={enrollmentPercentage} className={styles.progressBar} />
-          </div>
-
-          {authState.type === 'authenticated' && authState.user.role === 'teacher' ? (
-            <div className={styles.teacherInfoBox}>
-              <Info size={20} />
-              <div className={styles.teacherInfoBoxContent}>
-                <strong>This live test is for students only.</strong>
-                <span>Teachers cannot participate in live tests.</span>
+          <div className={styles.actionBlock}>
+            {isTeacher ? (
+              <div className={styles.teacherInfoBox}>
+                <Info size={20} />
+                <div className={styles.teacherInfoBoxContent}>
+                  <strong>This live test is for students only.</strong>
+                  <span>Teachers cannot participate in live tests.</span>
+                </div>
               </div>
+            ) : (
+              <div className={styles.ctaContainer}>
+                {renderCTA()}
+              </div>
+            )}
+
+            <div className={styles.seats}>
+              <div className={styles.seatsText}>
+                <Users size={16} aria-hidden="true" />
+                <span>
+                  <strong>{liveTest.enrolledCount.toLocaleString()}</strong> / {liveTest.maxSeats.toLocaleString()} seats filled
+                </span>
+              </div>
+              <Progress value={enrollmentPercentage} className={styles.progressBar} />
             </div>
-          ) : (
-            <div className={styles.ctaContainer}>
-              {renderCTA()}
-            </div>
-          )}
+          </div>
         </div>
 
-        {/* Right Column */}
         <div className={styles.rightColumn}>
-          <div className={styles.thumbnailContainer}>
-            {liveTest.introVideoUrl ? (
-              <VideoPreview
-                videoUrl={liveTest.introVideoUrl}
-                thumbnailUrl={liveTest.thumbnailUrl}
-                title={liveTest.title}
-                className={styles.thumbnailMedia}
-                inlinePlayback={true}
-              />
-            ) : liveTest.thumbnailUrl ? (
-              <img 
-                src={liveTest.thumbnailUrl || undefined} 
-                alt={liveTest.title} 
-                className={styles.thumbnailImage} 
-              />
-            ) : (
-              <img
-                src={Placeholder.LIVE}
-                alt={liveTest.title}
-                className={styles.thumbnailImage}
-              />
-            )}
-          </div>
-
-          <div className={styles.quickStatsCard}>
-            <div className={styles.quickStat}>
-              <FileText size={20} /> 
-              <span><strong>{liveTest.mockTestDetails.totalQuestions}</strong> Qs</span>
-            </div>
-            <div className={styles.quickStat}>
-              <Clock size={20} /> 
-              <span><strong>{liveTest.mockTestDetails.durationMinutes}</strong> mins</span>
-            </div>
-            <div className={styles.quickStat}>
-              <BookOpen size={20} /> 
-              <span><strong>{liveTest.mockTestDetails.subject || 'General'}</strong></span>
+          <div className={styles.media}>
+            <div className={styles.thumbnailFrame}>
+              {liveTest.introVideoUrl ? (
+                <VideoPreview
+                  videoUrl={liveTest.introVideoUrl}
+                  thumbnailUrl={liveTest.thumbnailUrl}
+                  title={liveTest.title}
+                  className={styles.thumbnailMedia}
+                  inlinePlayback={true}
+                />
+              ) : (
+                <img
+                  src={liveTest.thumbnailUrl || Placeholder.LIVE}
+                  alt={liveTest.title}
+                  className={styles.thumbnailImage}
+                />
+              )}
             </div>
           </div>
 
-          {liveTest.hasPrizes && liveTest.totalPrizePool > 0 && (
-            <div className={styles.compactPrizeCard}>
-              <div className={styles.compactPrizeHeader}>
-                <Trophy size={18} className={styles.trophyIcon} />
-                <span>Prize Pool: <strong>{formatCurrency(liveTest.totalPrizePool)}</strong></span>
-              </div>
-              <div className={styles.compactPrizeList}>
-                <span className={styles.compactPrizeItem}>🥇 {formatCurrency(liveTest.firstPrize)}</span>
-                <span className={styles.compactPrizeItem}>🥈 {formatCurrency(liveTest.secondPrize)}</span>
-                <span className={styles.compactPrizeItem}>🥉 {formatCurrency(liveTest.thirdPrize)}</span>
-              </div>
+          <div className={styles.details}>
+            <div className={styles.detailsGrid}>
+              {metaItems.map((item, index) => {
+                const wide = index === metaItems.length - 1 && metaItems.length % 2 === 1;
+                return (
+                  <DetailItem
+                    key={item.label}
+                    {...item}
+                    value={wide && item.sub ? `${item.value}, ${item.sub}` : item.value}
+                    sub={wide ? undefined : item.sub}
+                    wide={wide}
+                  />
+                );
+              })}
+              {topics.length > 0 && (
+                <DetailItem
+                  icon={<BookOpen size={18} />}
+                  tone="sage"
+                  label={topics.length > 1 ? 'Topics' : 'Subject'}
+                  value={<TopicChips topics={topics} />}
+                  wide
+                />
+              )}
+              {showPrizes && (
+                <DetailItem
+                  icon={<Trophy size={18} />}
+                  tone="yellow"
+                  label="Prize pool"
+                  value={formatCurrency(liveTest.totalPrizePool)}
+                  sub={prizes.length > 0 && (
+                    <span className={styles.prizeList}>
+                      {prizes.map((prize) => (
+                        <span key={prize.rank} className={styles.prizeChip}>
+                          <Medal size={12} aria-hidden="true" />
+                          {prize.rank} {formatCurrency(prize.amount)}
+                        </span>
+                      ))}
+                    </span>
+                  )}
+                  wide
+                />
+              )}
             </div>
-          )}
+          </div>
         </div>
 
       </div>

@@ -3,8 +3,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { useLiveTestLeaderboardQuery } from '../helpers/useLiveTestLeaderboardQuery';
 import { useAuth } from '../helpers/useAuth';
 import { Skeleton } from './Skeleton';
-import { Button } from './Button';
-import { Trophy, User, BarChart2, Clock, AlertCircle, Lock, Info, CheckCircle2, RefreshCw } from 'lucide-react';
+import { PlayfulButton } from './PlayfulButton';
+import { Trophy, User, BarChart2, Clock, AlertCircle, Lock, Info, CheckCircle2, RefreshCw, LogIn, UserPlus } from 'lucide-react';
 import { getPrizeForRank } from '../helpers/liveTestPrizeTiers';
 import styles from './LiveTestLeaderboard.module.css';
 
@@ -53,12 +53,12 @@ export const LiveTestLeaderboard: React.FC<LiveTestLeaderboardProps> = ({
           <h3 className={styles.loginPromptHeadline}>🏆 Want to See the Live Rankings?</h3>
           <p className={styles.loginPromptSubtitle}>Login to view real-time leaderboard and compete for prizes!</p>
           <div className={styles.loginPromptButtons}>
-            <Button asChild>
-              <Link to={`/login?redirectTo=${encodeURIComponent(location.pathname)}`}>Login</Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link to={`/signup?redirectTo=${encodeURIComponent(location.pathname)}`}>Sign Up</Link>
-            </Button>
+            <PlayfulButton asChild tone="primary" size="lg">
+              <Link to={`/login?redirectTo=${encodeURIComponent(location.pathname)}`}><LogIn />Login</Link>
+            </PlayfulButton>
+            <PlayfulButton asChild tone="soft" size="lg">
+              <Link to={`/signup?redirectTo=${encodeURIComponent(location.pathname)}`}><UserPlus />Sign Up</Link>
+            </PlayfulButton>
           </div>
         </div>
       </div>
@@ -169,16 +169,17 @@ export const LiveTestLeaderboard: React.FC<LiveTestLeaderboardProps> = ({
       <div className={styles.header}>
         <h3 className={styles.title}>Live Leaderboard</h3>
         {autoRefresh && (
-          <Button
+          <PlayfulButton
             type="button"
-            variant="ghost"
+            tone="soft"
             size="sm"
             onClick={() => refetch()}
             disabled={isFetching}
+            aria-busy={isFetching}
           >
             <RefreshCw size={14} className={isFetching ? styles.spinning : undefined} />
             Refresh
-          </Button>
+          </PlayfulButton>
         )}
       </div>
       

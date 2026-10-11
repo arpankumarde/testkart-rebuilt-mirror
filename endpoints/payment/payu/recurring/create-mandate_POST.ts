@@ -6,7 +6,7 @@ import { createHash } from "crypto";
 import { PAYU_MODE } from "../../../../helpers/_publicConfigs";
 import { NotAuthenticatedError } from "../../../../helpers/getSetServerSession";
 import { newMandateTxnid } from "../../../../helpers/teacherMandate";
-import { assertPlanRenewable } from "../../../../helpers/teacherPlanRenewal";
+import { INTRO_OFFER_PRICE, planQualifiesForIntroOffer, isEligibleForIntroOffer } from "../../../../helpers/teacherIntroOffer";
 
 function formatDate(date: Date): string {
   const year = date.getFullYear();
@@ -55,8 +55,6 @@ export async function handle(request: Request) {
         throw new Error("The selected subscription plan is not available.");
       }
 
-      await assertPlanRenewable(user.id, plan.id, trx);
-
       await trx
         .updateTable("subscriptionTransactions")
         .set({ status: "failed" })
@@ -65,17 +63,26 @@ export async function handle(request: Request) {
         .execute();
 
       const txnid = newMandateTxnid();
-      const amount = parseFloat(plan.price).toFixed(2);
+      const fullPrice = parseFloat(plan.price).toFixed(2);
+
+      // First-ever paid autopay sign-up to Starter/Individual monthly is charged
+      // ₹1 for this cycle; the mandate is still authorized up to the full plan
+      // price, so the second cycle renews at the normal rate automatically.
+      const introOffer =
+        planQualifiesForIntroOffer(plan.name, plan.billingCycle) &&
+        (await isEligibleForIntroOffer(user.id, trx));
+      const amount = introOffer ? INTRO_OFFER_PRICE.toFixed(2) : fullPrice;
 
       await trx
         .insertInto("subscriptionTransactions")
         .values({
           teacherId: user.id,
           planId: plan.id,
-          amount: plan.price,
+          amount,
           status: "pending",
           paymentMethod: "payu_recurring",
           transactionId: txnid,
+          ...(introOffer ? { notes: `Intro offer: first cycle at ₹${amount}, renews at ₹${fullPrice}` } : {}),
         })
         .execute();
 
@@ -88,7 +95,9 @@ export async function handle(request: Request) {
       siEndDate.setFullYear(siEndDate.getFullYear() + 5); // 5 years for flexibility
 
       const siDetails = {
-        billingAmount: amount,
+        // Always the full plan price: this is what the mandate authorizes PayU
+        // to collect on later cycles, regardless of what today's charge is.
+        billingAmount: fullPrice,
         billingCycle: plan.durationDays > 31 ? "YEARLY" : "MONTHLY",
         billingInterval: 1,
         paymentStartDate: formatDate(siStartDate),

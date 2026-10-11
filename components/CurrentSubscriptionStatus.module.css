@@ -156,6 +156,18 @@
   font-size: 0.875rem;
 }
 
+.savingsBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  border-radius: var(--radius);
+  background-color: color-mix(in srgb, var(--success) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--success) 28%, transparent);
+  color: var(--success-text);
+  font-size: 0.875rem;
+}
+
 .freeNote {
   padding: var(--spacing-3);
   border-radius: var(--radius);
