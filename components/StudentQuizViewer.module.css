@@ -140,8 +140,9 @@
   background-color: var(--surface);
 }
 
-.retakeButton {
-  margin: 0 auto;
+.resultsActions {
+  justify-content: center;
+  gap: var(--spacing-3);
 }
 
 /* Submitted View */
@@ -305,5 +306,13 @@
 
   .questionText {
     font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .resultsActions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: var(--spacing-2);
   }
 }

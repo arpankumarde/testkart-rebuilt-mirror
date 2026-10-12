@@ -13,6 +13,7 @@ import { useSignedVideoUrl } from '../helpers/useSignedVideoUrl';
 import { useProtectedDocument } from '../helpers/useProtectedDocument';
 import { wrapContentTables } from '../helpers/contentTables';
 import { sanitizeHtml } from '../helpers/sanitizeHtml';
+import type { CourseReturnTarget } from '../helpers/courseReturnTarget';
 import type { OutputType as LessonsOutputType } from '../endpoints/student/course/lessons_GET.schema';
 import type { OutputType as ProgressOutputType } from '../endpoints/student/course/progress_GET.schema';
 
@@ -27,6 +28,7 @@ interface CoursePlayerProps {
   setActiveLesson: (lesson: Lesson) => void;
   onToggleComplete: (lessonId: number, isCompleted: boolean) => void;
   isCompleting: boolean;
+  returnTarget: CourseReturnTarget;
 }
 
 type IconComponent = React.ComponentType<{ size?: number; className?: string; 'aria-hidden'?: boolean }>;
@@ -61,7 +63,8 @@ const LessonContent: React.FC<{
   courseId: number;
   onVideoCompleted: () => void;
   onQuizCompleted: (score: number, total: number) => void;
-}> = ({ lesson, courseId, onVideoCompleted, onQuizCompleted }) => {
+  returnTarget: CourseReturnTarget;
+}> = ({ lesson, courseId, onVideoCompleted, onQuizCompleted, returnTarget }) => {
   const isVideoLesson = lesson.contentType === 'video';
   const isYouTube = isVideoLesson && !!lesson.contentUrl && isYouTubeUrl(lesson.contentUrl);
 
@@ -180,6 +183,7 @@ const LessonContent: React.FC<{
               quizData={lesson.textContent} 
               lessonTitle={lesson.title}
               onQuizCompleted={onQuizCompleted}
+              returnTarget={returnTarget}
             />
           </div>
         );
@@ -237,6 +241,7 @@ export const CoursePlayer: React.FC<CoursePlayerProps> = ({
   setActiveLesson,
   onToggleComplete,
   isCompleting,
+  returnTarget,
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(isDesktop);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -535,6 +540,7 @@ export const CoursePlayer: React.FC<CoursePlayerProps> = ({
                 courseId={courseData.course.id}
                 onVideoCompleted={() => completeFromContent(activeLesson.id)}
                 onQuizCompleted={() => completeFromContent(activeLesson.id)}
+                returnTarget={returnTarget}
               />
             </div>
 

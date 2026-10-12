@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Clock, ArrowLeft, ArrowRight, Lock, Eraser, Info, Flag } from 'lucide-react';
+import React, { useState, useRef, useEffect, useMemo, useId } from 'react';
+import { Clock, ArrowLeft, ArrowRight, Lock, Eraser, Info, Flag, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { Button } from './Button';
 import { Dialog, DialogTrigger } from './Dialog';
 import { Skeleton } from './Skeleton';
@@ -76,6 +76,9 @@ export const TestingInterface: React.FC<TestingInterfaceProps> = ({
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
   const [isSubjectSubmitDialogOpen, setIsSubjectSubmitDialogOpen] = useState(false);
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
+  // Desktop only: the side palette folds to a rail so the question gets the width.
+  const [isPaletteCollapsed, setIsPaletteCollapsed] = useState(false);
+  const paletteRegionId = useId();
   const isMobile = useIsMobile();
   const mobileButtonRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
@@ -626,23 +629,61 @@ export const TestingInterface: React.FC<TestingInterfaceProps> = ({
         </div>
 
         {!isMobile && (
-          <TestingInterfacePalette
-            variant="desktop"
-            subjectStats={subjectStats}
-            subjectGroups={subjectGroups}
-            selectedSubject={selectedSubject}
-            currentSubjectIndex={currentSubjectIndex}
-            currentQuestion={currentQuestion}
-            answeredIds={answeredIds}
-            markedForReview={markedForReview}
-            visitedQuestionIds={visitedQuestionIds}
-            onSubjectChange={handleSubjectChange}
-            onQuestionNavigateInSubject={handleQuestionNavigateInSubject}
-            subjectWiseTiming={subjectWiseTiming}
-            subjectTimerStates={subjectTimerStates}
-            questionWiseTiming={questionWiseTiming}
-            expiredQuestionIds={expiredQuestionIds}
-          />
+          <aside
+            className={`${styles.paletteDock} ${isPaletteCollapsed ? styles.paletteDockCollapsed : ''}`}
+            aria-label="Question palette"
+          >
+            {/* Stays mounted while collapsed, so counts and scroll position survive a toggle. */}
+            <div id={paletteRegionId} className={styles.paletteDockInner}>
+              <div className={styles.paletteDockBar}>
+                <span className={styles.paletteDockTitle}>Question palette</span>
+                <Button
+                  variant="outline"
+                  size="icon-sm"
+                  onClick={() => setIsPaletteCollapsed(true)}
+                  aria-expanded={true}
+                  aria-controls={paletteRegionId}
+                  aria-label="Hide question palette"
+                  title="Hide question palette"
+                >
+                  <PanelRightClose size={16} />
+                </Button>
+              </div>
+              <TestingInterfacePalette
+                variant="desktop"
+                subjectStats={subjectStats}
+                subjectGroups={subjectGroups}
+                selectedSubject={selectedSubject}
+                currentSubjectIndex={currentSubjectIndex}
+                currentQuestion={currentQuestion}
+                answeredIds={answeredIds}
+                markedForReview={markedForReview}
+                visitedQuestionIds={visitedQuestionIds}
+                onSubjectChange={handleSubjectChange}
+                onQuestionNavigateInSubject={handleQuestionNavigateInSubject}
+                subjectWiseTiming={subjectWiseTiming}
+                subjectTimerStates={subjectTimerStates}
+                questionWiseTiming={questionWiseTiming}
+                expiredQuestionIds={expiredQuestionIds}
+              />
+            </div>
+            {isPaletteCollapsed && (
+              <div className={styles.paletteRail}>
+                <button
+                  type="button"
+                  className={styles.paletteRailButton}
+                  onClick={() => setIsPaletteCollapsed(false)}
+                  aria-expanded={false}
+                  aria-controls={paletteRegionId}
+                  aria-label="Show question palette"
+                  title="Show question palette"
+                >
+                  <PanelRightOpen size={18} aria-hidden="true" />
+                  <span className={styles.paletteRailLabel} aria-hidden="true">Questions</span>
+                </button>
+              </div>
+            )}
+          </aside>
         )}
       </main>
 

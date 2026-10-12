@@ -564,8 +564,8 @@ export const BookDemoPopup = () => {
 
       <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
         <DialogContent className={styles.dialogContent} hideCloseButton>
-          {/* The teaser's orange block continues into the modal, so the two
-              surfaces read as one object opening rather than two components. */}
+          {/* Fixed peach header with the chip and close button; only the body
+              below it scrolls, so closing is always one tap away. */}
           <div className={styles.band}>
             <div className={styles.teaserTop}>
               <span className={styles.chip}>For teachers</span>

@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { CheckCircle2, XCircle, ArrowLeft, ArrowRight, RefreshCw } from 'lucide-react';
+import type { CourseReturnTarget } from '../helpers/courseReturnTarget';
 import { QuizData, QuizQuestion } from './QuizBuilder';
 import { Button } from './Button';
 import { Progress } from './Progress';
@@ -12,6 +14,7 @@ interface StudentQuizViewerProps {
   lessonTitle: string;
   className?: string;
   onQuizCompleted?: (score: number, totalQuestions: number) => void;
+  returnTarget?: CourseReturnTarget;
 }
 
 type QuizState = 'taking' | 'submitted';
@@ -22,6 +25,7 @@ export const StudentQuizViewer: React.FC<StudentQuizViewerProps> = ({
   lessonTitle,
   className,
   onQuizCompleted,
+  returnTarget,
 }) => {
   const [quizState, setQuizState] = useState<QuizState>('taking');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -223,10 +227,17 @@ export const StudentQuizViewer: React.FC<StudentQuizViewerProps> = ({
           })}
         </div>
       </div>
-      <div className={styles.navigation}>
-        <Button onClick={handleRetake} variant="outline" className={styles.retakeButton}>
+      <div className={`${styles.navigation} ${styles.resultsActions}`}>
+        <Button onClick={handleRetake} variant="outline">
           <RefreshCw size={16} /> Retake Quiz
         </Button>
+        {returnTarget && (
+          <Button asChild>
+            <Link to={returnTarget.to}>
+              <ArrowLeft size={16} /> {returnTarget.label}
+            </Link>
+          </Button>
+        )}
       </div>
     </>
   );

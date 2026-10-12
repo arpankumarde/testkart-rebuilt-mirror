@@ -288,6 +288,122 @@
   color: var(--muted-foreground);
 }
 
+/* Desktop question palette dock. Expanded it keeps the palette's old sizing
+   (flex 1, up to 300px); collapsed it narrows to a rail and the question area
+   takes the width. */
+.paletteDock {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  max-width: 300px;
+  min-height: 0;
+  overflow: hidden;
+  transition: max-width var(--animation-duration-normal) ease;
+}
+
+.paletteDockCollapsed {
+  max-width: 3.5rem;
+}
+
+.paletteDockInner {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity var(--animation-duration-fast) ease var(--animation-duration-fast),
+    visibility 0s linear 0s;
+}
+
+/* Hidden (and out of the tab order) once the fold finishes. */
+.paletteDockCollapsed .paletteDockInner {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--animation-duration-fast) ease,
+    visibility 0s linear var(--animation-duration-normal);
+}
+
+.paletteDockBar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3) var(--spacing-2) var(--spacing-4);
+  background-color: var(--surface);
+  border-left: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.paletteDockTitle {
+  font-family: var(--font-family-heading);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.paletteRail {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: var(--spacing-3);
+  background-color: var(--surface);
+  border-left: 1px solid var(--border);
+}
+
+.paletteRailButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-3);
+  width: 2.5rem;
+  padding: var(--spacing-3) 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  color: var(--foreground);
+  cursor: pointer;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    border-color var(--animation-duration-fast) ease;
+}
+
+.paletteRailButton:hover {
+  background-color: var(--muted);
+  border-color: var(--muted-foreground);
+}
+
+.paletteRailButton:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.paletteRailLabel {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: var(--font-family-heading);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .paletteDock,
+  .paletteDockInner,
+  .paletteDockCollapsed .paletteDockInner {
+    transition: none;
+  }
+}
+
 /* Skeleton-only helper classes */
 .paletteSkeletonWrap {
   flex: 1;
