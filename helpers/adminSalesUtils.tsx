@@ -2,6 +2,7 @@ import { SalesStage, CallDisposition } from "./schema";
 
 export const STAGE_OPTIONS: { value: SalesStage; label: string }[] = [
   { value: "new", label: "New" },
+  { value: "informed", label: "Informed" },
   { value: "follow_up", label: "Follow Up" },
   { value: "qualified", label: "Qualified" },
   { value: "converted", label: "Converted" },
@@ -19,9 +20,10 @@ export const DISPOSITION_OPTIONS: { value: CallDisposition; label: string }[] = 
   { value: "other", label: "Other" },
 ];
 
-export const getStageColor = (stage: SalesStage): "warning" | "secondary" | "success" | "destructive" | "default" | "outline" | undefined => {
+export const getStageColor = (stage: SalesStage): "warning" | "secondary" | "success" | "destructive" | "default" | "outline" | "lavender" | undefined => {
   switch (stage) {
     case "new": return "default";
+    case "informed": return "lavender";
     case "follow_up": return "warning";
     case "qualified": return "secondary";
     case "converted": return "success";

@@ -1,6 +1,7 @@
 import { db } from "./db";
 import { sql } from "kysely";
 import { sendOrderConfirmationEmails } from "./sendOrderConfirmationEmails";
+import { followTeachersForOrder } from "./ensureTeacherFollow";
 
 /**
  * Ensures all completion side effects (digital product purchases, course enrollments, live test enrollments) 
@@ -474,6 +475,11 @@ export async function ensureOrderCompletionSideEffects(orderId: number): Promise
         }
       }
     }
+
+    // Buying anything from a teacher is treated as following them - this
+    // covers every order completion path (PayU callback/redirect, wallet
+    // purchases, admin reconcile), not just the first-touch flows below.
+    await followTeachersForOrder(trx, orderId, effectiveBundleId, beneficiaryUserId);
 
     console.log(`[ensureOrderCompletionSideEffects] Completed side effects check for order ${orderId}`);
   });

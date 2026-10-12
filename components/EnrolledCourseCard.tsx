@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { PlayCircle, Star, CheckCircle } from 'lucide-react';
 import { Badge } from './Badge';
 import { Progress } from './Progress';
 import { ReviewDialog } from './ReviewDialog';
 import { VideoPreview } from './VideoPreview';
 import { Placeholder } from '../helpers/placeholderImages';
+import { courseReturnState } from '../helpers/courseReturnTarget';
 import type { EnrolledCourse } from '../endpoints/student/enrolled-courses_GET.schema';
 import styles from './EnrolledCourseCard.module.css';
 
@@ -29,6 +30,7 @@ const getCourseStatus = (
 export const EnrolledCourseCard: React.FC<EnrolledCourseCardProps> = ({ course, className }) => {
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const coursePlayerUrl = `/student/courses/${course.id}`;
+  const returnState = courseReturnState(useLocation());
   const courseStatus = getCourseStatus(course.completionPercentage);
 
   return (
@@ -36,7 +38,7 @@ export const EnrolledCourseCard: React.FC<EnrolledCourseCardProps> = ({ course, 
       className={`${styles.card} ${className || ''}`}
       style={{ '--card-accent': courseStatus.accentVar } as React.CSSProperties}
     >
-      <Link to={coursePlayerUrl} className={styles.cardLink}>
+      <Link to={coursePlayerUrl} state={returnState} className={styles.cardLink}>
         <div className={styles.thumbnailWrapper}>
           <VideoPreview
             videoUrl={course.introVideoUrl}
@@ -54,7 +56,7 @@ export const EnrolledCourseCard: React.FC<EnrolledCourseCardProps> = ({ course, 
 
       <div className={styles.cardContent}>
         <div className={styles.titleRow}>
-          <Link to={coursePlayerUrl} className={styles.cardLink}>
+          <Link to={coursePlayerUrl} state={returnState} className={styles.cardLink}>
             <h3 className={styles.title}>{course.title}</h3>
           </Link>
           {!course.hasReviewed ? (
@@ -88,7 +90,7 @@ export const EnrolledCourseCard: React.FC<EnrolledCourseCardProps> = ({ course, 
       </div>
 
       <div className={styles.cardFooter}>
-        <Link to={coursePlayerUrl} className={styles.continueButton}>
+        <Link to={coursePlayerUrl} state={returnState} className={styles.continueButton}>
           <PlayCircle size={18} />
           <span>Continue Learning</span>
         </Link>

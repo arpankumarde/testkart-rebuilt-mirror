@@ -11,11 +11,21 @@ export const REVIEWS_SOURCE = {
   url: "https://www.ambitionbox.com/overview/testkart-overview?utm_source=employer-dashboard&utm_campaign=testkart&utm_medium=badges",
 } as const;
 
-/** The ratings badge AmbitionBox issues to Testkart as an employer. It is a picture, shown as one. */
+/** The ratings badges AmbitionBox issues to Testkart as an employer. They are
+    pictures, shown as issued and linked to REVIEWS_SOURCE.url. The detailed one
+    is the main visual; the compact one replaces it on narrow screens. */
 export const REVIEWS_BADGE = {
   src: "https://employer.ambitionbox.com/api/badge/2108566?badge-type=ratings-detailed",
   width: 612,
   height: 272,
+  alt: "Testkart detailed ratings on AmbitionBox",
+} as const;
+
+export const REVIEWS_BADGE_COMPACT = {
+  src: "https://employer.ambitionbox.com/api/badge/2108566?badge-type=ratings",
+  width: 454,
+  height: 246,
+  alt: "Testkart ratings on AmbitionBox",
 } as const;
 
 export type ExternalReview = {

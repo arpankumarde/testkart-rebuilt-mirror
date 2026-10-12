@@ -390,38 +390,6 @@
   color: var(--muted-foreground);
 }
 
-.chipCloud {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-2);
-}
-
-.chip {
-  display: inline-flex;
-  align-items: center;
-  height: 2rem;
-  padding: 0 var(--spacing-4);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-full);
-  background-color: var(--surface);
-  color: var(--foreground);
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.chipSolid {
-  display: inline-flex;
-  align-items: center;
-  height: 2rem;
-  padding: 0 var(--spacing-4);
-  border: 1px solid transparent;
-  border-radius: var(--radius-full);
-  background-color: var(--tk-brand-tint);
-  color: var(--tk-brand-text);
-  font-size: 0.875rem;
-  font-weight: 700;
-}
-
 /* Courses, test series, live tests and notes stack one under another, each
    with its own heading and View more, instead of sharing one tabbed grid. */
 .groups {
@@ -917,28 +885,6 @@
   .statsCard {
     gap: var(--spacing-4);
     padding: var(--spacing-4);
-  }
-
-  /* One swipeable line instead of a wrapped cloud. A teacher covering eight
-     exams was stacking four rows of pills on a phone and pushing the catalogue
-     below the fold. The negative gutter lets the row bleed to the screen edge,
-     so a half-visible pill reads as "there is more" rather than as clipping. */
-  .chipCloud {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    margin: 0 calc(var(--spacing-4) * -1);
-    padding: 0 var(--spacing-4);
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .chipCloud::-webkit-scrollbar {
-    display: none;
-  }
-
-  .chip,
-  .chipSolid {
-    flex-shrink: 0;
   }
 
   .closingInner {

@@ -1,0 +1,176 @@
+/* No padding of its own - TeacherDashboardLayout's .pageBody already owns
+   the gutter (var(--spacing-8) desktop / var(--spacing-4) mobile). Padding
+   here on top of that doubled the inset and threw off alignment with every
+   other teacher console page. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 44rem;
+}
+
+.followerPill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-1) var(--spacing-3);
+  border-radius: var(--radius-full);
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.intro {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 0.9375rem;
+}
+
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background-color: var(--card);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 6rem;
+}
+
+.composerFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+}
+
+.composerLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.imageButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--animation-duration-fast) ease;
+}
+
+.imageButton:hover {
+  border-color: var(--tk-brand-deep);
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.charCount {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.imagePreview {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.imagePreview img {
+  max-width: 100%;
+  max-height: 16rem;
+  border-radius: var(--radius-md);
+  display: block;
+}
+
+.removeImage {
+  position: absolute;
+  top: var(--spacing-2);
+  right: var(--spacing-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: none;
+  border-radius: var(--radius-full);
+  background-color: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  cursor: pointer;
+}
+
+.formError {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--destructive);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.post {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4) 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background-color: var(--card);
+}
+
+.postBody p {
+  margin: 0;
+  white-space: pre-wrap;
+  color: var(--foreground);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.postImage {
+  margin-top: var(--spacing-3);
+  max-width: 100%;
+  max-height: 20rem;
+  border-radius: var(--radius-md);
+  display: block;
+}
+
+.postFooter {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+.postMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.deleteButton {
+  margin-left: auto;
+  color: var(--muted-foreground);
+}
+
+.deleteButton:hover {
+  color: var(--destructive);
+}

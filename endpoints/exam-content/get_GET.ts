@@ -1,8 +1,6 @@
-import { db } from "../../helpers/db";
-import { schema, OutputType, PublicExamContentPage } from "./get_GET.schema";
+import { schema, OutputType } from "./get_GET.schema";
 import superjson from "superjson";
-import { isExamContentPageType, type FaqItem } from "../../helpers/examContentTypes";
-import { examCustomPages } from "../../helpers/examCustomPages";
+import { fetchExamContentServer } from "../../helpers/fetchExamContentServer";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -12,81 +10,13 @@ export async function handle(request: Request): Promise<Response> {
       pageType: url.searchParams.get("pageType"),
     });
 
-    const exam = await db
-      .selectFrom("exams")
-      .innerJoin("examCategories", "exams.categoryId", "examCategories.id")
-      .select([
-        "exams.id",
-        "exams.examName",
-        "exams.fullName",
-        "exams.examSlug",
-        "examCategories.categoryName",
-      ])
-      .where("exams.examSlug", "=", validatedInput.examSlug)
-      .executeTakeFirst();
+    const result = await fetchExamContentServer(validatedInput.examSlug, validatedInput.pageType);
 
-    if (!exam) {
+    if (!result) {
       return new Response(superjson.stringify({ error: "Exam not found." }), { status: 404 });
     }
 
-    const [publishedRows, customPages] = await Promise.all([
-      db
-        .selectFrom("examContentPages")
-        .select([
-          "pageType",
-          "publishedTitle",
-          "publishedSeoTitle",
-          "publishedSeoDescription",
-          "publishedDescription",
-          "publishedContent",
-          "publishedFaqItems",
-          "publishedAt",
-        ])
-        .where("examId", "=", exam.id)
-        .where("status", "=", "published")
-        .execute(),
-      examCustomPages.list(exam.id),
-    ]);
-
-    // Only the 4 routable silo types belong in this list — "overview" is
-    // never a link target, it's folded straight into the hub page itself.
-    const publishedPageTypes = publishedRows
-      .map((row) => row.pageType)
-      .filter(isExamContentPageType);
-    const publishedTypeSet = new Set(publishedRows.map((row) => row.pageType));
-    const publishedCustomPages = customPages
-      .filter((customPage) => publishedTypeSet.has(customPage.pageType))
-      .map(({ slug, label }) => ({ slug, label }));
-    const matching = publishedRows.find((row) => row.pageType === validatedInput.pageType);
-
-    const page: PublicExamContentPage | null =
-      matching && matching.publishedAt
-        ? {
-            pageType: validatedInput.pageType,
-            title: matching.publishedTitle || `${exam.fullName || exam.examName}`,
-            seoTitle: matching.publishedSeoTitle,
-            seoDescription: matching.publishedSeoDescription,
-            description: matching.publishedDescription,
-            content: matching.publishedContent,
-            faqItems: (matching.publishedFaqItems as unknown as FaqItem[] | null) ?? null,
-            publishedAt: matching.publishedAt,
-          }
-        : null;
-
-    return new Response(
-      superjson.stringify({
-        exam: {
-          id: exam.id,
-          examName: exam.examName,
-          fullName: exam.fullName,
-          examSlug: exam.examSlug,
-          categoryName: exam.categoryName,
-        },
-        page,
-        publishedPageTypes,
-        publishedCustomPages,
-      } satisfies OutputType)
-    );
+    return new Response(superjson.stringify(result satisfies OutputType));
   } catch (error) {
     console.error("[exam-content/get_GET] Error:", error);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";

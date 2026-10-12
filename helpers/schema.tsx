@@ -89,7 +89,7 @@ export type SalesActivityType = "assignment_changed" | "call_logged" | "follow_u
 
 export type SalesContactSource = "demo_request" | "signup";
 
-export type SalesStage = "converted" | "follow_up" | "new" | "not_interested" | "qualified";
+export type SalesStage = "converted" | "follow_up" | "informed" | "new" | "not_interested" | "qualified";
 
 export type SubscriptionStatus = "active" | "cancelled" | "expired" | "pending";
 
@@ -1418,6 +1418,13 @@ export interface TeacherCampaigns {
   updatedAt: Generated<Timestamp>;
 }
 
+export interface TeacherFollows {
+  createdAt: Generated<Timestamp>;
+  id: Generated<number>;
+  studentId: number;
+  teacherId: number;
+}
+
 export interface TeacherInquiries {
   adminNotes: string | null;
   createdAt: Generated<Timestamp>;
@@ -1445,6 +1452,23 @@ export interface TeacherOnboardingEmails {
   reason: string | null;
   resendEmailId: string | null;
   status: string;
+  teacherId: number;
+  updatedAt: Generated<Timestamp>;
+}
+
+export interface TeacherPostLikes {
+  createdAt: Generated<Timestamp>;
+  id: Generated<number>;
+  postId: number;
+  studentId: number;
+}
+
+export interface TeacherPosts {
+  body: string;
+  createdAt: Generated<Timestamp>;
+  id: Generated<number>;
+  imageFileId: string | null;
+  imageUrl: string | null;
   teacherId: number;
   updatedAt: Generated<Timestamp>;
 }
@@ -1789,9 +1813,12 @@ export interface DB {
   teacherCampaignClaims: TeacherCampaignClaims;
   teacherCampaignExcludedContent: TeacherCampaignExcludedContent;
   teacherCampaigns: TeacherCampaigns;
+  teacherFollows: TeacherFollows;
   teacherInquiries: TeacherInquiries;
   teacherOnboarding: TeacherOnboarding;
   teacherOnboardingEmails: TeacherOnboardingEmails;
+  teacherPostLikes: TeacherPostLikes;
+  teacherPosts: TeacherPosts;
   teacherSponsoredEnrollments: TeacherSponsoredEnrollments;
   teacherSubscriptions: TeacherSubscriptions;
   teacherTeamMembers: TeacherTeamMembers;
@@ -1841,7 +1868,7 @@ export const QuestionTypeArrayValues: [QuestionType, ...QuestionType[]] = ["asse
 export const ReviewStatusArrayValues: [ReviewStatus, ...ReviewStatus[]] = ["approved","pending","rejected","senior_review"];
 export const SalesActivityTypeArrayValues: [SalesActivityType, ...SalesActivityType[]] = ["assignment_changed","call_logged","follow_up_changed","note_added","stage_changed"];
 export const SalesContactSourceArrayValues: [SalesContactSource, ...SalesContactSource[]] = ["demo_request","signup"];
-export const SalesStageArrayValues: [SalesStage, ...SalesStage[]] = ["converted","follow_up","new","not_interested","qualified"];
+export const SalesStageArrayValues: [SalesStage, ...SalesStage[]] = ["converted","follow_up","informed","new","not_interested","qualified"];
 export const SubscriptionStatusArrayValues: [SubscriptionStatus, ...SubscriptionStatus[]] = ["active","cancelled","expired","pending"];
 export const SupportMessageSenderTypeArrayValues: [SupportMessageSenderType, ...SupportMessageSenderType[]] = ["admin","teacher"];
 export const SupportThreadStatusArrayValues: [SupportThreadStatus, ...SupportThreadStatus[]] = ["closed","open","resolved"];

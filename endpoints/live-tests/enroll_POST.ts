@@ -3,6 +3,7 @@ import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { schema, OutputType } from "./enroll_POST.schema";
 import { emailTemplatesExtra } from "../../helpers/emailTemplatesExtra";
 import { sendEmail } from "../../helpers/sendEmail";
+import { followTeacher } from "../../helpers/ensureTeacherFollow";
 
 
 import superjson from "superjson";
@@ -131,7 +132,9 @@ export async function handle(request: Request) {
         .set({ enrolledCount: liveTest.enrolledCount + 1 })
         .where("id", "=", liveTestId)
         .execute();
-      
+
+      await followTeacher(trx, user.id, liveTest.teacherId);
+
       return { message: "Successfully enrolled in the live test." };
     });
 

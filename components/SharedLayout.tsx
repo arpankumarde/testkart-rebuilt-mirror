@@ -274,7 +274,7 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
             <SearchButton />
             <ShopButton />
             <CartButton />
-                        <div className={styles.themeSwitchDesktop}><ThemeModeSwitch /></div>
+                        <div className={styles.themeSwitch}><ThemeModeSwitch /></div>
             <AuthNav />
           </div>
         </div>

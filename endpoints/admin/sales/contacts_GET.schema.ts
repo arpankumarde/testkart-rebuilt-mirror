@@ -24,7 +24,7 @@ export const schema = z.object({
   limit: z.number().int().positive().optional(),
   signupDateFrom: z.string().optional(),
   signupDateTo: z.string().optional(),
-  /* Leads still in play (new, follow up, qualified) whose follow-up day is before today in IST. */
+  /* Leads still in play (new, informed, follow up, qualified) whose follow-up day is before today in IST. */
   openOverdue: z.boolean().optional(),
 });
 
@@ -87,6 +87,7 @@ export type OutputType = {
   stats: {
     total: number;
     new: number;
+    informed: number;
     followUp: number;
     qualified: number;
     converted: number;

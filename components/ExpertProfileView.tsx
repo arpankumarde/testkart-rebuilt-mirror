@@ -33,6 +33,8 @@ import { TeacherProductCard } from "./HomepageContentSection";
 import { ShareAssetDialog } from "./ShareAssetDialog";
 import { VerifiedBadge } from "./VerifiedBadge";
 import { TeacherCtaBanner } from "./TeacherCtaBanner";
+import { FollowTeacherButton } from "./FollowTeacherButton";
+import { TeacherPostsSection } from "./TeacherPostsSection";
 import styles from "./ExpertProfileView.module.css";
 
 type CatalogueFilter = "courses" | "tests" | "live" | "products" | "bundles";
@@ -170,21 +172,25 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
       : `https://${teacher.websiteUrl}`
     : null;
 
-  const expertiseAreas = (teacher.expertiseAreas ?? [])
-    .map((area) => (typeof area === "string" ? area : area.examName))
-    .filter((area) => !!area && area.trim().length > 0);
-
   // What the teacher has published leads, then the volume of work behind it,
   // then the audience it reached. Exams covered and years teaching sit last as
   // fallbacks - they only reach the visible five when a profile is sparse.
   // Labels are one word wherever the number already carries the meaning: five
   // of these sit two-up on a phone, and a two-word label wrapped every cell.
+  const followerCount = data.followerCount ?? 0;
+
   const headlineStats = [
     stats.catalogue > 0 && {
       key: "catalogue",
       icon: BookOpen,
       value: formatStatCount(stats.catalogue),
       label: "Resources",
+    },
+    followerCount > 0 && {
+      key: "followers",
+      icon: Users,
+      value: formatStatCount(followerCount),
+      label: followerCount === 1 ? "Follower" : "Followers",
     },
     stats.questions > 0 && {
       key: "questions",
@@ -426,6 +432,13 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
                   About {shortName}
                 </button>
               )}
+              {variant === "page" && teacher.slug && (
+                <FollowTeacherButton
+                  teacherId={teacher.id}
+                  teacherSlug={teacher.slug}
+                  isFollowing={!!data.isFollowing}
+                />
+              )}
             </div>
 
             {socialLinks.length > 0 && (
@@ -466,29 +479,6 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
         </div>
       )}
 
-      {(expertiseAreas.length > 0 || stats.exams.length > 0) && (
-        <section className={styles.section}>
-          <div className={styles.sectionHead}>
-            <h2 className={styles.sectionTitle}>What {shortName} teaches</h2>
-            <p className={styles.sectionText}>
-              Subjects and exams covered by the material on this page.
-            </p>
-          </div>
-          <div className={styles.chipCloud}>
-            {expertiseAreas.map((area) => (
-              <span key={`skill-${area}`} className={styles.chipSolid}>
-                {area}
-              </span>
-            ))}
-            {stats.exams.map((exam) => (
-              <span key={`exam-${exam}`} className={styles.chip}>
-                {exam}
-              </span>
-            ))}
-          </div>
-        </section>
-      )}
-
       <section className={styles.section} ref={catalogueRef}>
         <div className={styles.sectionHead}>
           <h2 className={styles.sectionTitle}>Learn with {shortName}</h2>
@@ -527,6 +517,10 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
           </div>
         )}
       </section>
+
+      {variant === "page" && teacher.slug && (
+        <TeacherPostsSection teacherSlug={teacher.slug} shortName={shortName} />
+      )}
 
       <section className={styles.section} ref={aboutRef}>
         <div className={styles.sectionHead}>

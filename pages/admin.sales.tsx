@@ -198,8 +198,10 @@ const AdminSalesPage: React.FC = () => {
   const renderStats = () => {
     if (isFetching && !data) {
       return (
-        <div className={styles.statsContainer}>
-          {Array.from({ length: 7 }).map((_, i) => <StatCardSkeleton key={i} />)}
+        <div className={styles.statsArea}>
+          <div className={styles.statsContainer}>
+            {Array.from({ length: 8 }).map((_, i) => <StatCardSkeleton key={i} />)}
+          </div>
         </div>
       );
     }
@@ -209,6 +211,7 @@ const AdminSalesPage: React.FC = () => {
     const stats = [
       { label: "All leads", value: data.stats.total, colorClass: styles.statTotal },
       { label: "New", value: data.stats.new, colorClass: styles.statNew },
+      { label: "Informed", value: data.stats.informed, colorClass: styles.statInformed },
       { label: "Follow up", value: data.stats.followUp, colorClass: styles.statFollowUp },
       { label: "Qualified", value: data.stats.qualified, colorClass: styles.statQualified },
       { label: "Converted", value: data.stats.converted, colorClass: styles.statConverted },
@@ -217,16 +220,18 @@ const AdminSalesPage: React.FC = () => {
     ];
 
     return (
-      <div className={styles.statsContainer}>
-        {stats.map((stat, i) => (
-          <div key={i} className={styles.statCard}>
-            <div className={styles.statHeader}>
-              <div className={`${styles.statDot} ${stat.colorClass}`} />
-              <span className={styles.statLabel}>{stat.label}</span>
+      <div className={styles.statsArea}>
+        <div className={styles.statsContainer}>
+          {stats.map((stat, i) => (
+            <div key={i} className={styles.statCard}>
+              <div className={styles.statHeader}>
+                <div className={`${styles.statDot} ${stat.colorClass}`} />
+                <span className={styles.statLabel}>{stat.label}</span>
+              </div>
+              <span className={styles.statValue}>{stat.value.toLocaleString('en-IN')}</span>
             </div>
-            <span className={styles.statValue}>{stat.value.toLocaleString('en-IN')}</span>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     );
   };
@@ -284,81 +289,84 @@ const AdminSalesPage: React.FC = () => {
             placeholder: "Search by name",
             label: "Search leads",
           }}
-        >
-          <div className={styles.filterGroup}>
-            <Select value={sourceFilter} onValueChange={(val) => write({ source: val === "__empty" ? null : val })}>
-              <SelectTrigger className={styles.filterTrigger}>
-                <SelectValue placeholder="All sources" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__empty">All sources</SelectItem>
-                <SelectItem value="demo_request">Demo requests</SelectItem>
-                <SelectItem value="signup">Signups</SelectItem>
-              </SelectContent>
-            </Select>
+          aside={
+            <div className={styles.filterPanel}>
+              <div className={styles.filterGrid}>
+                <Select value={sourceFilter} onValueChange={(val) => write({ source: val === "__empty" ? null : val })}>
+                  <SelectTrigger className={styles.filterTrigger}>
+                    <SelectValue placeholder="All sources" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__empty">All sources</SelectItem>
+                    <SelectItem value="demo_request">Demo requests</SelectItem>
+                    <SelectItem value="signup">Signups</SelectItem>
+                  </SelectContent>
+                </Select>
 
-            {!myLeads && (
-              <Select value={assignedToFilter} onValueChange={setAssignedToFilter}>
-                <SelectTrigger className={styles.filterTrigger}>
-                  <SelectValue placeholder="Anyone" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__empty">Anyone</SelectItem>
-                  <SelectItem value="__unassigned">Unassigned</SelectItem>
-                  {teamData?.team.map(member => (
-                    <SelectItem key={member.id} value={member.id.toString()}>
-                      {member.fullName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+                {!myLeads && (
+                  <Select value={assignedToFilter} onValueChange={setAssignedToFilter}>
+                    <SelectTrigger className={styles.filterTrigger}>
+                      <SelectValue placeholder="Anyone" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__empty">Anyone</SelectItem>
+                      <SelectItem value="__unassigned">Unassigned</SelectItem>
+                      {teamData?.team.map(member => (
+                        <SelectItem key={member.id} value={member.id.toString()}>
+                          {member.fullName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
 
-            <Select value={followUpFilter} onValueChange={(val) => setFollowUpFilter(val as any)}>
-              <SelectTrigger className={styles.filterTrigger}>
-                <SelectValue placeholder="Any follow-up" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__empty">Any follow-up</SelectItem>
-                <SelectItem value="today">Due today</SelectItem>
-                <SelectItem value="overdue">Overdue</SelectItem>
-                <SelectItem value="upcoming">Upcoming</SelectItem>
-                <SelectItem value="unscheduled">Not scheduled</SelectItem>
-              </SelectContent>
-            </Select>
+                <Select value={followUpFilter} onValueChange={(val) => setFollowUpFilter(val as any)}>
+                  <SelectTrigger className={styles.filterTrigger}>
+                    <SelectValue placeholder="Any follow-up" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__empty">Any follow-up</SelectItem>
+                    <SelectItem value="today">Due today</SelectItem>
+                    <SelectItem value="overdue">Overdue</SelectItem>
+                    <SelectItem value="upcoming">Upcoming</SelectItem>
+                    <SelectItem value="unscheduled">Not scheduled</SelectItem>
+                  </SelectContent>
+                </Select>
 
-            <Select value={sortFilter} onValueChange={(val) => chooseSort(val as SalesContactSort)}>
-              <SelectTrigger className={styles.filterTrigger}>
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="newest">Newest first</SelectItem>
-                <SelectItem value="name">Name</SelectItem>
-                <SelectItem value="stage">Stage</SelectItem>
-                <SelectItem value="follow_up_date">Follow-up date</SelectItem>
-                <SelectItem value="last_contacted">Last called</SelectItem>
-              </SelectContent>
-            </Select>
+                <Select value={sortFilter} onValueChange={(val) => chooseSort(val as SalesContactSort)}>
+                  <SelectTrigger className={styles.filterTrigger}>
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Newest first</SelectItem>
+                    <SelectItem value="name">Name</SelectItem>
+                    <SelectItem value="stage">Stage</SelectItem>
+                    <SelectItem value="follow_up_date">Follow-up date</SelectItem>
+                    <SelectItem value="last_contacted">Last called</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div className={styles.dateFilterGroup}>
-              <Input
-                type="date"
-                value={signupDateFrom}
-                onChange={(e) => setSignupDateFrom(e.target.value)}
-                className={styles.dateFilterInput}
-                aria-label="Signed up from"
-              />
-              <span className={styles.dateFilterSeparator}>to</span>
-              <Input
-                type="date"
-                value={signupDateTo}
-                onChange={(e) => setSignupDateTo(e.target.value)}
-                className={styles.dateFilterInput}
-                aria-label="Signed up to"
-              />
+              <div className={styles.dateFilterGroup}>
+                <Input
+                  type="date"
+                  value={signupDateFrom}
+                  onChange={(e) => setSignupDateFrom(e.target.value)}
+                  className={styles.dateFilterInput}
+                  aria-label="Signed up from"
+                />
+                <span className={styles.dateFilterSeparator}>to</span>
+                <Input
+                  type="date"
+                  value={signupDateTo}
+                  onChange={(e) => setSignupDateTo(e.target.value)}
+                  className={styles.dateFilterInput}
+                  aria-label="Signed up to"
+                />
+              </div>
             </div>
-          </div>
-        </ConsoleListToolbar>
+          }
+        />
 
         {renderStats()}
 

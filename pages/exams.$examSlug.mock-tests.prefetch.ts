@@ -2,6 +2,7 @@ import type { PagePrefetchFn } from "@floot/prefetch";
 import { fetchExamBySlugServer } from "../helpers/fetchExamBySlugServer";
 import { fetchTestsListServer } from "../helpers/fetchTestsListServer";
 import { fetchExamProductCountsServer } from "../helpers/fetchExamProductCountsServer";
+import { fetchExamContentServer } from "../helpers/fetchExamContentServer";
 
 // This route, along with the sibling .courses/.study-notes/.bundles routes,
 // shares the ExamProductListingPage component and previously had no SSR
@@ -36,10 +37,17 @@ export const prefetch: PagePrefetchFn = async (ctx) => {
     // ExamProductListingPage gates its ENTIRE render on
     // isExamFetching || isCountsFetching, so this must be prefetched too or
     // the page falls back to the top-level skeleton even with the list cached.
-    await qc.prefetchQuery({
-      queryKey: ["exam-products", "counts", examSlug],
-      queryFn: () => fetchExamProductCountsServer(examSlug),
-    });
+    await Promise.all([
+      qc.prefetchQuery({
+        queryKey: ["exam-products", "counts", examSlug],
+        queryFn: () => fetchExamProductCountsServer(examSlug),
+      }),
+      // Admin-written title/description overlay read by ExamSectionLayout.
+      qc.prefetchQuery({
+        queryKey: ["exam-content", examSlug, "mock_tests"],
+        queryFn: () => fetchExamContentServer(examSlug, "mock_tests"),
+      }),
+    ]);
   } catch (error) {
     console.error("Error prefetching exam mock tests:", error);
   }

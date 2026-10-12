@@ -106,6 +106,7 @@ export type TeacherRecentSale = {
  */
 export type TeacherOverviewTotals = {
   students: number;
+  followers: number;
   publishedTests: number;
   draftTests: number;
   publishedCourses: number;

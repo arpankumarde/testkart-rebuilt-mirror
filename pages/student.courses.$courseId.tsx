@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { useParams, useSearchParams, Link } from 'react-router-dom';
+import { useParams, useSearchParams, useLocation, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { toast } from 'sonner';
 import { AlertTriangle, ArrowLeft } from 'lucide-react';
@@ -8,6 +8,7 @@ import { useCourseEnrollment } from '../helpers/useCourseEnrollment';
 import { CoursePlayer } from '../components/CoursePlayer';
 import { CoursePlayerSkeleton } from '../components/CoursePlayerSkeleton';
 import { Button } from '../components/Button';
+import { resolveCourseReturnTarget } from '../helpers/courseReturnTarget';
 import type { OutputType as LessonsOutputType } from '../endpoints/student/course/lessons_GET.schema';
 import styles from './student.courses.$courseId.module.css';
 
@@ -37,6 +38,9 @@ const StudentCoursePlayerPage: React.FC = () => {
   const courseId = courseIdStr ? parseInt(courseIdStr, 10) : null;
   const [searchParams, setSearchParams] = useSearchParams();
   const lessonParam = Number(searchParams.get('lesson'));
+  // Lesson switches replace the URL, so they carry the entry state forward to keep the return target.
+  const location = useLocation();
+  const returnTarget = resolveCourseReturnTarget(location.state);
 
   const { data: lessonsData, isPending: isLessonsPending, error: lessonsError } = useStudentCourseLessonsQuery(courseId);
   const { data: progressData, isPending: isProgressPending, error: progressError } = useStudentCourseProgressQuery(courseId);
@@ -61,7 +65,7 @@ const StudentCoursePlayerPage: React.FC = () => {
   const setActiveLesson = (lesson: Lesson) => {
     const next = new URLSearchParams(searchParams);
     next.set('lesson', String(lesson.id));
-    setSearchParams(next, { replace: true });
+    setSearchParams(next, { replace: true, state: location.state });
   };
 
   useEffect(() => {
@@ -70,9 +74,9 @@ const StudentCoursePlayerPage: React.FC = () => {
     if (lessonParam !== activeLesson.id) {
       const next = new URLSearchParams(searchParams);
       next.set('lesson', String(activeLesson.id));
-      setSearchParams(next, { replace: true });
+      setSearchParams(next, { replace: true, state: location.state });
     }
-  }, [courseId, activeLesson, lessonParam, searchParams, setSearchParams]);
+  }, [courseId, activeLesson, lessonParam, searchParams, setSearchParams, location.state]);
 
   const handleToggleComplete = (lessonId: number, isCompleted: boolean) => {
     const mutation = isCompleted ? markIncompleteMutation : markCompleteMutation;
@@ -144,6 +148,7 @@ const StudentCoursePlayerPage: React.FC = () => {
           activeLesson={activeLesson}
           setActiveLesson={setActiveLesson}
           onToggleComplete={handleToggleComplete}
+          returnTarget={returnTarget}
           isCompleting={markCompleteMutation.isPending || markIncompleteMutation.isPending} />
 
       </div>

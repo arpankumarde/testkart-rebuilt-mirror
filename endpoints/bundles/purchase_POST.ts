@@ -7,6 +7,7 @@ import { PAYU_MODE } from "../../helpers/_publicConfigs";
 import { emailTemplatesExtra } from "../../helpers/emailTemplatesExtra";
 import { sendEmail } from "../../helpers/sendEmail";
 import { getTeacherPlatformFee } from "../../helpers/getTeacherPlatformFee";
+import { followTeacher } from "../../helpers/ensureTeacherFollow";
 
 export async function handle(request: Request): Promise<Response> {
   const PAYU_MERCHANT_KEY = process.env.PAYU_MERCHANT_KEY;
@@ -80,6 +81,8 @@ export async function handle(request: Request): Promise<Response> {
             orderId: order.id,
           })
           .execute();
+
+        await followTeacher(trx, user.id, bundle.teacherId);
       });
 
       // Email notifications

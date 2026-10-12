@@ -147,6 +147,10 @@ const TeacherDashboardPage: React.FC = () => {
                   <span className={styles.totalValue}>{adminFormat.count(totals.students)}</span>
                   <span className={styles.totalLabel}>students all time</span>
                 </div>
+                <div className={styles.total}>
+                  <span className={styles.totalValue}>{adminFormat.count(totals.followers)}</span>
+                  <span className={styles.totalLabel}>followers</span>
+                </div>
                 {showMoney && (
                   <div className={styles.total}>
                     <span className={styles.totalValue}>{adminFormat.inr(totals.lifetimeEarnings)}</span>

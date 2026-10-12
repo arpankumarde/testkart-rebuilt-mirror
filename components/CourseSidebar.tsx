@@ -11,6 +11,7 @@ import { PurchaseCardTeacher } from './PurchaseCardTeacher';
 import { ShareAssetDialog } from './ShareAssetDialog';
 import { PUBLIC_PAGE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
 import { courseDiscountPrice } from '../helpers/coursePricing';
+import { courseReturnState } from '../helpers/courseReturnTarget';
 import styles from './CourseSidebar.module.css';
 
 export type PublicCourseDetails = {
@@ -78,7 +79,7 @@ export const CourseSidebar: React.FC<CourseSidebarProps> = ({
 
     // 2. Handle enrolled user (should have been handled by UI state, but just in case)
     if (course.isEnrolled) {
-      navigate(`/student/courses/${course.id}`);
+      navigate(`/student/courses/${course.id}`, { state: courseReturnState(location) });
       return;
     }
 
@@ -87,7 +88,7 @@ export const CourseSidebar: React.FC<CourseSidebarProps> = ({
       try {
         await enrollFreeMutation.mutateAsync({ courseId: course.id });
         toast.success('Enrolled successfully!');
-        navigate(`/student/courses/${course.id}`);
+        navigate(`/student/courses/${course.id}`, { state: courseReturnState(location) });
       } catch (error) {
         console.error('Failed to enroll in free course:', error);
         toast.error('Failed to enroll. Please try again.');
@@ -165,7 +166,7 @@ export const CourseSidebar: React.FC<CourseSidebarProps> = ({
               <Button 
                 size="lg" 
                 className={styles.enrolledCta}
-                onClick={() => navigate(`/student/courses/${course.id}`)}
+                onClick={() => navigate(`/student/courses/${course.id}`, { state: courseReturnState(location) })}
               >
                 Go to My Courses
               </Button>

@@ -17,6 +17,7 @@
   gap: var(--spacing-2);
   flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-end;
 }
 
 .filtersGroup {
@@ -35,34 +36,58 @@
   border-left: none;
 }
 
-/* The secondary filters ride inside the toolbar band and wrap among
-   themselves, so the page still opens with one band rather than three. */
-.filterGroup {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
+/* The toolbar's aside panel: a 2 x 2 grid of selects with the signup date
+   range as a full-width row under it. The container queries below read the
+   toolbar band, so the panel re-flows when the band stacks. */
+.filterPanel {
+  display: grid;
   gap: var(--spacing-2);
-  justify-content: flex-end;
+}
+
+.filterGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 11rem);
+  gap: var(--spacing-2);
 }
 
 .filterTrigger {
-  min-width: 9.5rem;
-  width: auto;
-  flex-shrink: 0;
+  width: 100%;
+  min-width: 0;
   background-color: var(--surface);
 }
 
 .dateFilterGroup {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: var(--spacing-2);
 }
 
 .dateFilterInput {
-  height: 2.25rem;
-  font-size: 0.8125rem;
-  width: 8.5rem;
+  height: 2.5rem;
+  min-width: 0;
+  font-size: 0.875rem;
   background-color: var(--surface);
+}
+
+@container (max-width: 81rem) {
+  .filterGrid {
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  }
+
+  .dateFilterGroup {
+    max-width: 24rem;
+  }
+}
+
+@container (max-width: 40rem) {
+  .filterGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dateFilterGroup {
+    max-width: none;
+  }
 }
 
 .dateFilterSeparator {
@@ -84,16 +109,47 @@
   }
 }
 
+/* One row of eight on a wide console, two rows of four on laptops and
+   tablets, and a sideways-scrolling strip on phones so no label gets
+   squeezed. Measured against .statsArea, not the viewport. */
+.statsArea {
+  container-type: inline-size;
+}
+
 .statsContainer {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(8, minmax(0, 1fr));
   gap: var(--spacing-3);
+}
+
+@container (max-width: 74rem) {
+  .statsContainer {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@container (max-width: 38rem) {
+  .statsContainer {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: 9.5rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    padding-bottom: var(--spacing-1);
+    scrollbar-width: thin;
+  }
+
+  .statCard {
+    scroll-snap-align: start;
+  }
 }
 
 .statCard {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-2);
+  min-width: 0;
   background-color: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -105,6 +161,7 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
+  min-width: 0;
 }
 
 /* The dot is a marker, not type - it is the one place a stage colour appears. */
@@ -117,6 +174,7 @@
 
 .statTotal { background-color: var(--foreground); }
 .statNew { background-color: var(--info); }
+.statInformed { background-color: var(--sp-lavender-edge); }
 .statFollowUp { background-color: var(--warning); }
 .statQualified { background-color: var(--secondary); }
 .statConverted { background-color: var(--success); }
@@ -127,6 +185,9 @@
   font-size: 0.8125rem;
   color: var(--muted-foreground);
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .statValue {
@@ -183,10 +244,6 @@
 }
 
 @media (max-width: 1024px) {
-  .headerActions {
-    width: 100%;
-  }
-
   .bulkActionBar {
     width: 90%;
     border-radius: var(--radius-md);
@@ -202,13 +259,16 @@
     padding: var(--spacing-4) var(--spacing-4) 5rem;
   }
 
-  .filterGroup {
-    justify-content: stretch;
+  .filtersGroup {
+    flex: 1 1 100%;
   }
 
-  .filterTrigger {
+  .filtersGroup > * {
     flex: 1;
-    min-width: 8rem;
+  }
+
+  .syncBtn {
+    flex: 1 1 100%;
   }
 }
 

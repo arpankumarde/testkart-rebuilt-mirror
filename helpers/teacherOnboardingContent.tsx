@@ -151,7 +151,7 @@ const EMAILS = (ctx: OnboardingRenderContext): Record<OnboardingEmailKey, Onboar
     before: [
       { p: "Namaste," },
       { p: "A live test is a mock test with a start time. Every student sits the paper together, the way the real exam works." },
-      { p: "Live tests show up on the Testkart homepage under Live Competitive Mock Tests, with a countdown to the start. Some teachers add a prize pool to pull in more students." },
+      { p: "Live tests are listed on the Testkart live mock tests page, with a countdown to the start. Some teachers add a prize pool to pull in more students." },
       { p: "You build it the same way as a test series: subjects, sections, questions. Then you pick the date, the time and the entry fee." },
       {
         p: `Watch the full setup (6 min): [How to Create a Live Test in Testkart](${external("https://www.youtube.com/watch?v=Q4rLMYnTQAc", "e5_live_test_video")})`,

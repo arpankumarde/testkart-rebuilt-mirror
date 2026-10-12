@@ -1,9 +1,13 @@
 import React from "react";
 import { ArrowUpRight, ExternalLink, Star } from "lucide-react";
 import { useExternalReviewsQuery } from "../helpers/useExternalReviewsQuery";
-import { REVIEWS_SOURCE, type ExternalReview } from "../endpoints/reviews/external_GET.schema";
+import {
+  REVIEWS_BADGE,
+  REVIEWS_BADGE_COMPACT,
+  REVIEWS_SOURCE,
+  type ExternalReview,
+} from "../endpoints/reviews/external_GET.schema";
 import { PlayfulButton } from "./PlayfulButton";
-import { Skeleton } from "./Skeleton";
 import styles from "./AboutReviews.module.css";
 
 const VISIBLE_REVIEWS = 3;
@@ -11,24 +15,7 @@ const VISIBLE_REVIEWS = 3;
 const formatMonth = (date: Date | string) =>
   new Intl.DateTimeFormat("en-IN", { month: "short", year: "numeric" }).format(new Date(date));
 
-const formatMonthLong = (date: string) =>
-  new Intl.DateTimeFormat("en-IN", { month: "long", year: "numeric" }).format(new Date(date));
-
 const clampRating = (rating: number) => Math.max(0, Math.min(5, rating));
-
-const Stars: React.FC<{ rating: number; size?: number }> = ({ rating, size = 16 }) => {
-  const clamped = clampRating(rating);
-  const row = [0, 1, 2, 3, 4].map((index) => <Star key={index} size={size} aria-hidden="true" />);
-
-  return (
-    <span className={styles.stars} role="img" aria-label={`Rated ${clamped} out of 5`}>
-      <span className={styles.starsBase}>{row}</span>
-      <span className={styles.starsFill} style={{ width: `${(clamped / 5) * 100}%` }}>
-        {row}
-      </span>
-    </span>
-  );
-};
 
 const ReviewCard: React.FC<{ review: ExternalReview }> = ({ review }) => {
   const link = review.url ?? REVIEWS_SOURCE.url;
@@ -85,17 +72,40 @@ const SourceButton: React.FC<{ label: string }> = ({ label }) => (
   </PlayfulButton>
 );
 
+/* The official badge, embedded as AmbitionBox issues it: the image is never
+   cropped, recoloured or overlaid, only scaled to fit. CSS shows one of the two
+   links at a time, so the hidden one is skipped by assistive tech as well. */
+const BadgeLink: React.FC<{
+  badge: typeof REVIEWS_BADGE | typeof REVIEWS_BADGE_COMPACT;
+  className: string;
+  onError: () => void;
+}> = ({ badge, className, onError }) => (
+  <a
+    className={`${styles.badgeLink} ${className}`}
+    href={REVIEWS_SOURCE.url}
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <img
+      className={styles.badgeImage}
+      src={badge.src}
+      alt={badge.alt}
+      width={badge.width}
+      height={badge.height}
+      loading="lazy"
+      decoding="async"
+      onError={onError}
+    />
+    <span className={styles.srOnly}>(opens in a new tab)</span>
+  </a>
+);
+
 export const AboutReviews: React.FC<{ className?: string }> = ({ className }) => {
-  const { data, isLoading, isError, refetch, isFetching } = useExternalReviewsQuery();
+  const { data } = useExternalReviewsQuery();
+  const [badgeFailed, setBadgeFailed] = React.useState(false);
 
-  const summary = data?.summary ?? null;
-  const categories = data?.categories ?? [];
   const reviews = (data?.reviews ?? []).slice(0, VISIBLE_REVIEWS);
-  const asOf = data?.asOf ?? null;
-  const hasRatings = summary !== null || categories.length > 0;
-
-  const bestCategory = categories.reduce((best, c) => Math.max(best, clampRating(c.value)), 0);
-  const worstCategory = categories.reduce((worst, c) => Math.min(worst, clampRating(c.value)), 5);
+  const onBadgeError = () => setBadgeFailed(true);
 
   return (
     <section className={`${styles.reviews} ${className ?? ""}`} aria-labelledby="about-reviews-heading">
@@ -109,26 +119,7 @@ export const AboutReviews: React.FC<{ className?: string }> = ({ className }) =>
         </p>
       </div>
 
-      {isLoading && (
-        <div className={styles.loading} aria-busy="true" aria-label="Loading ratings">
-          <Skeleton className={styles.skeletonPanel} />
-          <Skeleton className={styles.skeletonPanel} />
-        </div>
-      )}
-
-      {isError && (
-        <div className={styles.notice} role="alert">
-          <p className={styles.noticeText}>The ratings could not be loaded just now.</p>
-          <div className={styles.noticeActions}>
-            <PlayfulButton tone="soft" size="md" onClick={() => refetch()} disabled={isFetching} aria-busy={isFetching}>
-              Try again
-            </PlayfulButton>
-            <SourceButton label={`Read them on ${REVIEWS_SOURCE.name}`} />
-          </div>
-        </div>
-      )}
-
-      {!isLoading && !isError && !hasRatings && (
+      {badgeFailed ? (
         <div className={styles.notice}>
           <p className={styles.noticeText}>
             Reviews of Testkart are published on {REVIEWS_SOURCE.name}. Read what people say there, in their own words.
@@ -137,73 +128,27 @@ export const AboutReviews: React.FC<{ className?: string }> = ({ className }) =>
             <SourceButton label={`Read reviews on ${REVIEWS_SOURCE.name}`} />
           </div>
         </div>
-      )}
-
-      {!isLoading && !isError && hasRatings && (
+      ) : (
         <div className={styles.overview}>
-          {/* The overall rating shows only when the source states one. Until
-              then the headline figure is the range of the published category
-              scores - nothing is averaged or estimated. */}
           <div className={styles.summary}>
             <p className={styles.kicker}>{REVIEWS_SOURCE.name} rating</p>
-            {summary ? (
-              <>
-                <p className={styles.score}>
-                  <span className={styles.scoreValue}>{clampRating(summary.rating).toFixed(1)}</span>
-                  <span className={styles.scoreSuffix}>out of 5</span>
-                </p>
-                <Stars rating={summary.rating} size={18} />
-                <p className={styles.scoreNote}>
-                  Based on {summary.reviewCount.toLocaleString("en-IN")} reviews
-                </p>
-              </>
-            ) : (
-              <>
-                <p className={styles.score}>
-                  <Star size={24} className={styles.scoreStar} aria-hidden="true" />
-                  <span className={styles.scoreValue}>{worstCategory.toFixed(1)}</span>
-                  {worstCategory !== bestCategory && (
-                    <>
-                      <span className={styles.scoreSuffix}>to</span>
-                      <span className={styles.scoreValue}>{bestCategory.toFixed(1)}</span>
-                    </>
-                  )}
-                </p>
-                <p className={styles.scoreNote}>
-                  Out of 5, as rated by employees across Testkart's top {categories.length} categories.
-                </p>
-              </>
-            )}
+            <p className={styles.summaryText}>
+              Employee ratings for Testkart, shown exactly as {REVIEWS_SOURCE.name} publishes them.
+            </p>
             <div className={styles.summaryFoot}>
               <SourceButton label={`Read reviews on ${REVIEWS_SOURCE.name}`} />
-              <p className={styles.attribution}>
-                Ratings published by {REVIEWS_SOURCE.name}
-                {asOf ? `, as of ${formatMonthLong(asOf)}` : ""}.
-              </p>
+              <p className={styles.attribution}>Badge issued by {REVIEWS_SOURCE.name}.</p>
             </div>
           </div>
 
-          {categories.length > 0 && (
-            <div className={styles.categories}>
-              <p className={styles.kicker}>Category ratings</p>
-              <ul className={styles.categoryList}>
-                {categories.map((category) => (
-                  <li key={category.label} className={styles.category}>
-                    <span className={styles.categoryLabel}>{category.label}</span>
-                    <span className={styles.categoryValue}>
-                      <Star size={15} className={styles.categoryStar} aria-hidden="true" />
-                      {clampRating(category.value).toFixed(1)}
-                      <span className={styles.srOnly}> out of 5</span>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <div className={styles.badgeStage}>
+            <BadgeLink badge={REVIEWS_BADGE} className={styles.badgeDetailed} onError={onBadgeError} />
+            <BadgeLink badge={REVIEWS_BADGE_COMPACT} className={styles.badgeCompact} onError={onBadgeError} />
+          </div>
         </div>
       )}
 
-      {!isLoading && !isError && reviews.length > 0 && (
+      {reviews.length > 0 && (
         <div className={styles.recent}>
           <div className={styles.recentHead}>
             <h3 className={styles.recentHeading}>Recent Reviews</h3>

@@ -2,6 +2,7 @@ import type { PagePrefetchFn } from "@floot/prefetch";
 import { fetchExamBySlugServer } from "../helpers/fetchExamBySlugServer";
 import { fetchCoursesListServer } from "../helpers/fetchCoursesListServer";
 import { fetchExamProductCountsServer } from "../helpers/fetchExamProductCountsServer";
+import { fetchExamContentServer } from "../helpers/fetchExamContentServer";
 
 // See exams.$examSlug.mock-tests.prefetch.ts for why this exists. Mirrors
 // the queryKey/filters used by CoursesBody in ExamProductListingPage.tsx.
@@ -30,10 +31,17 @@ export const prefetch: PagePrefetchFn = async (ctx) => {
     // ExamProductListingPage gates its ENTIRE render on
     // isExamFetching || isCountsFetching, so this must be prefetched too or
     // the page falls back to the top-level skeleton even with the list cached.
-    await qc.prefetchQuery({
-      queryKey: ["exam-products", "counts", examSlug],
-      queryFn: () => fetchExamProductCountsServer(examSlug),
-    });
+    await Promise.all([
+      qc.prefetchQuery({
+        queryKey: ["exam-products", "counts", examSlug],
+        queryFn: () => fetchExamProductCountsServer(examSlug),
+      }),
+      // Admin-written title/description overlay read by ExamSectionLayout.
+      qc.prefetchQuery({
+        queryKey: ["exam-content", examSlug, "courses"],
+        queryFn: () => fetchExamContentServer(examSlug, "courses"),
+      }),
+    ]);
   } catch (error) {
     console.error("Error prefetching exam courses:", error);
   }

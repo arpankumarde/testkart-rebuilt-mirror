@@ -56,6 +56,7 @@ export async function handle(request: Request): Promise<Response> {
     const stats = {
       total: 0,
       new: 0,
+      informed: 0,
       followUp: 0,
       qualified: 0,
       converted: 0,
@@ -67,6 +68,7 @@ export async function handle(request: Request): Promise<Response> {
       const count = parseInt(row.count, 10);
       stats.total += count;
       if (row.stage === "new") stats.new = count;
+      if (row.stage === "informed") stats.informed = count;
       if (row.stage === "follow_up") stats.followUp = count;
       if (row.stage === "qualified") stats.qualified = count;
       if (row.stage === "converted") stats.converted = count;
@@ -156,7 +158,7 @@ export async function handle(request: Request): Promise<Response> {
     // The Overview's overdue follow-ups tile uses this exact condition, so its link lands on the same rows.
     if (openOverdue) {
       baseQuery = baseQuery.where(
-        sql<boolean>`sales_contacts.stage IN ('new', 'follow_up', 'qualified') AND sales_contacts.follow_up_date < (now() AT TIME ZONE ${IST})::date`
+        sql<boolean>`sales_contacts.stage IN ('new', 'informed', 'follow_up', 'qualified') AND sales_contacts.follow_up_date < (now() AT TIME ZONE ${IST})::date`
       );
     }
 

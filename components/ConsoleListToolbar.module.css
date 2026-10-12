@@ -145,6 +145,65 @@
   }
 }
 
+/* Split band (aside passed): tabs and search on the left, the filter panel on
+   the right. Sized off the band, not the viewport, because the console sidebar
+   takes a varying share of the window. */
+.split {
+  display: block;
+  padding: 0;
+  container-type: inline-size;
+}
+
+.splitBody {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.main {
+  display: flex;
+  align-items: center;
+  align-content: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  min-width: 0;
+  padding: var(--spacing-3);
+}
+
+.main .filters {
+  flex: 1 1 14rem;
+  justify-content: flex-start;
+}
+
+.main .searchWrapper {
+  flex: 1 1 14rem;
+  min-width: 14rem;
+  max-width: 22rem;
+}
+
+.aside {
+  min-width: 0;
+  padding: var(--spacing-3);
+  border-left: 1px solid var(--border);
+}
+
+@container (max-width: 81rem) {
+  .splitBody {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .aside {
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
+}
+
+@container (max-width: 40rem) {
+  .main .searchWrapper {
+    min-width: 0;
+    max-width: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .tab {
     transition: none;

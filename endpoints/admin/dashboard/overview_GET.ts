@@ -168,7 +168,7 @@ export async function handle(request: Request): Promise<Response> {
             (SELECT count(*) FROM content_reviews WHERE status = 'senior_review') AS reviews_senior,
             (SELECT count(*) FROM sales_contacts WHERE stage = 'new' AND source = 'demo_request') AS demo_requests_new,
             (SELECT count(*) FROM sales_contacts
-               WHERE stage IN ('new', 'follow_up', 'qualified') AND follow_up_date < (now() AT TIME ZONE ${IST})::date) AS followups_overdue,
+               WHERE stage IN ('new', 'informed', 'follow_up', 'qualified') AND follow_up_date < (now() AT TIME ZONE ${IST})::date) AS followups_overdue,
             (SELECT count(*) FROM live_tests
                WHERE has_prizes = true AND prize_distribution_status = 'pending' AND end_time < now()) AS prizes_undistributed,
             (SELECT count(*) FROM teacher_subscriptions

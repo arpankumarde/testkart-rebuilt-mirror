@@ -1,0 +1,51 @@
+/* Matches .heroSecondary in ExpertProfileView.module.css - same hero action
+   row, so this button sits at the same height/weight as "About X" rather
+   than introducing a new button language next to it. */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  height: 2.75rem;
+  padding: 0 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  color: var(--foreground);
+  font-family: var(--font-family-base);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease,
+    background-color var(--animation-duration-fast) ease;
+}
+
+.button:hover {
+  border-color: var(--tk-brand-deep);
+  color: var(--tk-brand-text);
+}
+
+.button:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+/* Already following: filled, so the state reads at a glance without
+   depending on the label text alone. */
+.following {
+  border-color: var(--tk-brand-deep);
+  background-color: var(--tk-brand-deep);
+  color: #fff;
+}
+
+.following:hover {
+  background-color: var(--tk-brand-text);
+  border-color: var(--tk-brand-text);
+  color: #fff;
+}

@@ -28,6 +28,7 @@ import {
   Trophy,
   Headset,
   Gift,
+  Megaphone,
 } from 'lucide-react';
 import { useAuth } from '../helpers/useAuth';
 import { Button } from './Button';
@@ -121,6 +122,7 @@ const NAV_GROUPS: TeacherNavGroup[] = [
       { href: '/teacher/students/performance', label: 'Performance', icon: Trophy },
       { href: '/teacher/promo-codes', label: 'Promo Codes', icon: Tag },
       { href: '/teacher/reviews', label: 'Reviews', icon: Star },
+      { href: '/teacher/posts', label: 'Community Posts', icon: Megaphone },
     ],
   },
   {

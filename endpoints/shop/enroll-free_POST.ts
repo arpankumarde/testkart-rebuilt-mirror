@@ -6,6 +6,7 @@ import { Transaction, sql } from "kysely";
 import { DB } from "../../helpers/schema";
 import { sendEmail } from "../../helpers/sendEmail";
 import { emailTemplatesExtra } from "../../helpers/emailTemplatesExtra";
+import { followTeachersForOrder } from "../../helpers/ensureTeacherFollow";
 
 
 
@@ -82,6 +83,8 @@ async function enrollInFreeProduct(
     })
     .where("id", "=", digitalProductId)
     .execute();
+
+  await followTeachersForOrder(trx, newOrder.id, null, userId);
 
   return newOrder.id;
 }

@@ -4,9 +4,7 @@ import { SEOHead } from "../components/SEOHead";
 
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { getPublicExamCategories, type ExamCategoryWithExams } from "../endpoints/exams/list_GET.schema";
-import type { Selectable } from "kysely";
-import type { Exams } from "../helpers/schema";
+import { getExamDirectory, type DirectoryCategory, type DirectoryExam } from "../endpoints/exams/directory_GET.schema";
 import { Search, X, ArrowRight, ArrowLeft, ChevronRight } from "lucide-react";
 import { Skeleton } from "../components/Skeleton";
 import { Input } from "../components/Input";
@@ -21,7 +19,7 @@ const CANONICAL_URL = `${DOMAIN}/exams`;
 // of dumping all ~1,700 exams into one wall of cards.
 const PREVIEW_COUNT = 24;
 
-type ExamRow = Selectable<Exams>;
+type ExamRow = DirectoryExam;
 
 function sortByName(exams: ExamRow[]): ExamRow[] {
   return [...exams].sort((a, b) => a.examName.localeCompare(b.examName));
@@ -50,9 +48,10 @@ const ExamsPage: React.FC = () => {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search.trim(), 250);
 
+  // Prefetched for SSR in exams.prefetch.ts under the same key.
   const { data, isFetching, error } = useQuery({
-    queryKey: ["public-exam-categories"],
-    queryFn: () => getPublicExamCategories(),
+    queryKey: ["public-exam-directory"],
+    queryFn: () => getExamDirectory(),
   });
 
   const allExams = useMemo(() => {
@@ -136,7 +135,7 @@ const ExamsPage: React.FC = () => {
     };
   }, [allExams, data]);
 
-  const renderOverview = (categories: ExamCategoryWithExams[]) => (
+  const renderOverview = (categories: DirectoryCategory[]) => (
     <div className={styles.categorySections}>
       {categories.map((category) => {
         const exams = sortByName(category.exams);

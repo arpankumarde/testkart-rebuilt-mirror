@@ -5,6 +5,7 @@ import { fetchShopProductsListServer } from "../helpers/fetchShopProductsListSer
 import { fetchCoursesListServer } from "../helpers/fetchCoursesListServer";
 import { fetchBundlesListServer } from "../helpers/fetchBundlesListServer";
 import { fetchExamProductCountsServer } from "../helpers/fetchExamProductCountsServer";
+import { fetchExamContentServer } from "../helpers/fetchExamContentServer";
 
 // Must match PREVIEW_LIMIT in components/ExamProductsSection.tsx.
 const PREVIEW_LIMIT = 6;
@@ -24,6 +25,9 @@ export const prefetch: PagePrefetchFn = async (ctx) => {
       queryKey: ["exam-detail", examSlug],
       queryFn: () => fetchExamBySlugServer(examSlug),
     });
+
+    // The page renders "Exam Not Found"; crawlers get a real 404.
+    if (!exam) return { statusCode: 404, maxAge: 300 };
 
     if (exam) {
       // ExamProductsSection (the "Study Material" preview block rendered in
@@ -58,6 +62,12 @@ export const prefetch: PagePrefetchFn = async (ctx) => {
         qc.prefetchQuery({
           queryKey: ["exam-products", "counts", examSlug],
           queryFn: () => fetchExamProductCountsServer(examSlug),
+        }),
+        // Overview content, FAQs and the Important Links list (the page and
+        // ExamSectionLayout both read this key).
+        qc.prefetchQuery({
+          queryKey: ["exam-content", examSlug, "overview"],
+          queryFn: () => fetchExamContentServer(examSlug, "overview"),
         }),
       ]);
     }

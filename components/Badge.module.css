@@ -79,4 +79,14 @@
   .warning:hover {
     background-color: color-mix(in srgb, var(--warning) 25%, transparent);
   }
+
+  .lavender {
+    background-color: var(--sp-lavender-tint);
+    color: var(--sp-lavender-ink);
+    border: 1px solid var(--sp-lavender-line);
+  }
+
+  .lavender:hover {
+    background-color: color-mix(in srgb, var(--sp-lavender-edge) 25%, var(--sp-lavender-tint));
+  }
 }

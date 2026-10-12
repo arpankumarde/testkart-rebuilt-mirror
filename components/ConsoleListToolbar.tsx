@@ -28,6 +28,9 @@ interface ConsoleListToolbarProps {
   };
   /* Extra filter controls, rendered next to the search field. */
   children?: React.ReactNode;
+  /* A filter panel of its own, divided from the tabs and search. The band
+     splits into two sections and stacks them when it runs out of width. */
+  aside?: React.ReactNode;
   className?: string;
 }
 
@@ -70,13 +73,14 @@ export const ConsoleListToolbar: React.FC<ConsoleListToolbarProps> = ({
   panelId,
   search,
   children,
+  aside,
   className,
 }) => {
   const tabRefs = React.useRef<(HTMLButtonElement | null)[]>([]);
   const hasTabs = !!tabs && tabs.length > 0;
   const hasFilters = !!search || !!children;
 
-  if (!hasTabs && !hasFilters) return null;
+  if (!hasTabs && !hasFilters && !aside) return null;
 
   const selectedIndex = hasTabs ? Math.max(0, tabs.findIndex((tab) => tab.value === value)) : 0;
 
@@ -96,8 +100,8 @@ export const ConsoleListToolbar: React.FC<ConsoleListToolbarProps> = ({
     onValueChange?.(tabs[next].value);
   };
 
-  return (
-    <div className={`${styles.toolbar} ${className ?? ""}`}>
+  const content = (
+    <>
       {hasTabs && (
         <div className={styles.tabs} role="tablist" aria-label={tabsLabel}>
           {tabs.map((tab, index) => (
@@ -131,6 +135,19 @@ export const ConsoleListToolbar: React.FC<ConsoleListToolbarProps> = ({
           {children}
         </div>
       )}
-    </div>
+    </>
   );
+
+  if (aside) {
+    return (
+      <div className={`${styles.toolbar} ${styles.split} ${className ?? ""}`}>
+        <div className={styles.splitBody}>
+          <div className={styles.main}>{content}</div>
+          <div className={styles.aside}>{aside}</div>
+        </div>
+      </div>
+    );
+  }
+
+  return <div className={`${styles.toolbar} ${className ?? ""}`}>{content}</div>;
 };

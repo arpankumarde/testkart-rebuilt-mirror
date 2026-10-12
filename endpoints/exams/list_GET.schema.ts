@@ -1,14 +1,24 @@
 import { z } from "zod";
 import superjson from "superjson";
-import { type Selectable } from "kysely";
-import { type ExamCategories, type Exams } from "../../helpers/schema";
 
 export const schema = z.object({});
 
 export type InputType = z.infer<typeof schema>;
 
-export type ExamCategoryWithExams = Selectable<ExamCategories> & {
-  exams: Selectable<Exams>[];
+// Served for the shipped mobile app (live tests exam filter), which reads
+// category id/exams and exam id, examName, fullName, examSlug, so never drop
+// those. The web uses exams/directory and exams/by-slug instead.
+export type PublicExam = {
+  id: number;
+  examName: string;
+  fullName: string | null;
+  examSlug: string;
+};
+
+export type ExamCategoryWithExams = {
+  id: number;
+  categoryName: string;
+  exams: PublicExam[];
 };
 
 export type OutputType = {

@@ -220,6 +220,7 @@ export async function handle(request: Request): Promise<Response> {
              SELECT o.user_id FROM order_items oi JOIN orders o ON o.id = oi.order_id JOIN digital_products dp ON dp.id = oi.digital_product_id
                WHERE o.status = 'completed' AND dp.teacher_id = ${teacherId}
            ) all_students) AS students,
+          (SELECT count(*) FROM teacher_follows WHERE teacher_id = ${teacherId}) AS followers,
           ${buildTeacherNetEarningsSql(teacherId)} AS lifetime_earnings,
           ${buildTeacherAvailableBalanceSql(teacherId)} AS available_balance
       `.execute(db),
@@ -370,6 +371,7 @@ export async function handle(request: Request): Promise<Response> {
     const t = totalRows.rows[0] ?? {};
     const totals: TeacherOverviewTotals = {
       students: num(get(t, "students")),
+      followers: num(get(t, "followers")),
       publishedTests: num(get(t, "published_tests")),
       draftTests: num(get(t, "draft_tests")),
       publishedCourses: num(get(t, "published_courses")),

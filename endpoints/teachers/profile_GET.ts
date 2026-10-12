@@ -434,11 +434,24 @@ export async function handle(request: Request) {
       }
     }
 
-    const [courseExams, productExams, testExams, bundles] = await Promise.all([
+    const [courseExams, productExams, testExams, bundles, followerCountRow, followingRow] = await Promise.all([
       loadContentExams(db, "course", courses.map((course) => course.id)),
       loadContentExams(db, "digital_product", products.map((product) => product.id)),
       loadContentExams(db, "mock_test", tests.map((test) => test.id)),
       loadTeacherProfileBundles(teacher.id),
+      db
+        .selectFrom("teacherFollows")
+        .select((eb) => eb.fn.countAll<number>().as("count"))
+        .where("teacherId", "=", teacher.id)
+        .executeTakeFirst(),
+      userId !== null
+        ? db
+            .selectFrom("teacherFollows")
+            .select(["id"])
+            .where("teacherId", "=", teacher.id)
+            .where("studentId", "=", userId)
+            .executeTakeFirst()
+        : Promise.resolve(null),
     ]);
     const examNames = [
       ...new Set(
@@ -482,6 +495,8 @@ export async function handle(request: Request) {
       products: productsData,
       bundles,
       examNames,
+      followerCount: Number(followerCountRow?.count ?? 0),
+      isFollowing: !!followingRow,
     };
 
     return new Response(superjson.stringify(response));

@@ -6,21 +6,29 @@ export async function handle(request: Request): Promise<Response> {
   try {
     const categories = await db
       .selectFrom("examCategories")
-      .selectAll()
+      .select(["id", "categoryName"])
       .orderBy("orderIndex", "asc")
       .orderBy("categoryName", "asc")
       .execute();
 
     const exams = await db
       .selectFrom("exams")
-      .selectAll()
+      .select(["id", "categoryId", "examName", "fullName", "examSlug"])
       .orderBy("orderIndex", "asc")
       .orderBy("examName", "asc")
       .execute();
 
     const categoriesWithExams = categories.map((category) => ({
-      ...category,
-      exams: exams.filter((exam) => exam.categoryId === category.id),
+      id: category.id,
+      categoryName: category.categoryName,
+      exams: exams
+        .filter((exam) => exam.categoryId === category.id)
+        .map(({ id, examName, fullName, examSlug }) => ({
+          id,
+          examName,
+          fullName,
+          examSlug,
+        })),
     }));
 
     return new Response(

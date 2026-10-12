@@ -465,14 +465,30 @@ export const apiDocsTests: ApiEndpoint[] = [
     description: "List all exam categories with their exams",
     auth: "none",
     category: "Exams",
-    usedBy: ["web", "mobile"],
+    usedBy: ["mobile"],
     responseFields: [
-      { name: "categories", type: "array", description: "By orderIndex, then name: { id, categoryName, categorySlug, orderIndex, createdAt, exams: [{ id, categoryId, examName, fullName, examSlug, description, orderIndex, createdAt, updatedAt, ownerTag, contentDueDate, aiGenerationPrompt }] }" },
+      { name: "categories", type: "array", description: "By orderIndex, then name: { id, categoryName, exams: [{ id, examName, fullName, examSlug }] }" },
     ],
     notes: [
       "Takes no parameters and is not paged. There is no category or search filter.",
-      "Returns every exam column, including internal fields such as ownerTag, contentDueDate and aiGenerationPrompt.",
+      "Returns public fields only. The mobile app reads category id and exams, and exam id, examName, fullName and examSlug.",
+      "The web reads exams/directory (same shape) and exams/by-slug instead.",
     ],
+  },
+  {
+    method: "GET",
+    route: "/_api/exams/by-slug",
+    description: "Get one exam's public detail by its slug",
+    auth: "none",
+    category: "Exams",
+    usedBy: ["web"],
+    queryParams: [
+      { name: "examSlug", type: "string", required: true, description: "Exam slug, e.g. 'ssc-cgl'" },
+    ],
+    responseFields: [
+      { name: "exam", type: "object | null", description: "{ id, examName, fullName, examSlug, description, categoryName }, or null when no exam has that slug. categoryName is 'Uncategorized' for an exam without a category" },
+    ],
+    notes: ["A missing examSlug returns 500."],
   },
   {
     method: "GET",

@@ -1,0 +1,146 @@
+/* Mirrors .section / .sectionHead / .sectionTitle in ExpertProfileView so
+   this reads as one more section of that page, not a bolted-on widget. */
+.section {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-16) var(--spacing-6) 0;
+  box-sizing: border-box;
+}
+
+.sectionHead {
+  margin-bottom: var(--spacing-6);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--foreground);
+}
+
+.skeletonList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.lockedPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-12) var(--spacing-4);
+  text-align: center;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.lockedIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.lockedTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.lockedText {
+  margin: 0;
+  max-width: 28rem;
+  color: var(--muted-foreground);
+  font-size: 0.9375rem;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.post {
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--card);
+}
+
+.postBody {
+  margin: 0;
+  white-space: pre-wrap;
+  color: var(--foreground);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.postImage {
+  margin-top: var(--spacing-3);
+  max-width: 100%;
+  max-height: 24rem;
+  border-radius: var(--radius-md);
+  display: block;
+}
+
+.postFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-3);
+}
+
+.postDate {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.likeButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-1) var(--spacing-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background-color: var(--surface);
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease,
+    background-color var(--animation-duration-fast) ease;
+}
+
+.likeButton:hover {
+  border-color: var(--tk-brand-deep);
+  color: var(--tk-brand-text);
+}
+
+.likeButton.liked {
+  border-color: var(--tk-brand-deep);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.likeButton:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}

@@ -3,7 +3,6 @@ import { useHomepageData } from "../helpers/useHomepageData";
 import { SEOHead } from "../components/SEOHead";
 import { HomepageSearchHero } from "../components/HomepageSearchHero";
 import { HomepageTopExams } from "../components/HomepageTopExams";
-import { HomepageLiveSpotlight } from "../components/HomepageLiveSpotlight";
 import { HomepageFeaturedCourses } from "../components/HomepageFeaturedCourses";
 import { HomepageUgcNetSpotlight } from "../components/HomepageUgcNetSpotlight";
 import { HomepageTeacherSpotlight } from "../components/HomepageTeacherSpotlight";
@@ -72,7 +71,6 @@ const HomePage: React.FC = () => {
 
         <div className={styles.contentWrapper}>
           <HomepageTopExams productCounts={data?.topExamCounts} />
-          <HomepageLiveSpotlight spotlights={data?.liveTestSpotlight ?? []} />
           <HomepageUgcNetSpotlight />
 
           <HomepageContentSection

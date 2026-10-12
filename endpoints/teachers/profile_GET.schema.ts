@@ -25,6 +25,9 @@ export type OutputType = {
   bundles?: TeacherProfileBundle[];
   // Every exam the teacher's published items are listed under, primary and other.
   examNames?: string[];
+  // Follow feature: optional so a cached response from before this shipped still renders.
+  followerCount?: number;
+  isFollowing?: boolean;
 };
 
 export const getTeachersProfile = async (

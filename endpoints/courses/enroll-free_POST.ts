@@ -4,6 +4,7 @@ import { schema, OutputType } from "./enroll-free_POST.schema";
 import superjson from "superjson";
 import { sendEmail } from "../../helpers/sendEmail";
 import { emailTemplatesExtra } from "../../helpers/emailTemplatesExtra";
+import { followTeacher } from "../../helpers/ensureTeacherFollow";
 
 
 
@@ -20,7 +21,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const course = await db
       .selectFrom("courses")
-      .select(["id", "status", "price"])
+      .select(["id", "status", "price", "teacherId"])
       .where("id", "=", courseId)
       .executeTakeFirst();
 
@@ -51,6 +52,8 @@ export async function handle(request: Request): Promise<Response> {
       })
       .returningAll()
       .executeTakeFirstOrThrow();
+
+    await followTeacher(db, user.id, course.teacherId);
 
     // Send enrollment emails
     try {
