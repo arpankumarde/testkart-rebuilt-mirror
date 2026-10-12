@@ -1,7 +1,7 @@
 import React from "react";
 import { ArrowUpRight, ExternalLink, Star } from "lucide-react";
 import { useExternalReviewsQuery } from "../helpers/useExternalReviewsQuery";
-import { REVIEWS_BADGE, REVIEWS_SOURCE, type ExternalReview } from "../endpoints/reviews/external_GET.schema";
+import { REVIEWS_SOURCE, type ExternalReview } from "../endpoints/reviews/external_GET.schema";
 import { PlayfulButton } from "./PlayfulButton";
 import { Skeleton } from "./Skeleton";
 import styles from "./AboutReviews.module.css";
@@ -87,7 +87,6 @@ const SourceButton: React.FC<{ label: string }> = ({ label }) => (
 
 export const AboutReviews: React.FC<{ className?: string }> = ({ className }) => {
   const { data, isLoading, isError, refetch, isFetching } = useExternalReviewsQuery();
-  const [badgeFailed, setBadgeFailed] = React.useState(false);
 
   const summary = data?.summary ?? null;
   const categories = data?.categories ?? [];
@@ -95,8 +94,8 @@ export const AboutReviews: React.FC<{ className?: string }> = ({ className }) =>
   const asOf = data?.asOf ?? null;
   const hasRatings = summary !== null || categories.length > 0;
 
-  const bestCategory = categories.reduce((best, c) => Math.max(best, c.value), 0);
-  const worstCategory = categories.reduce((worst, c) => Math.min(worst, c.value), 5);
+  const bestCategory = categories.reduce((best, c) => Math.max(best, clampRating(c.value)), 0);
+  const worstCategory = categories.reduce((worst, c) => Math.min(worst, clampRating(c.value)), 5);
 
   return (
     <section className={`${styles.reviews} ${className ?? ""}`} aria-labelledby="about-reviews-heading">
@@ -111,7 +110,7 @@ export const AboutReviews: React.FC<{ className?: string }> = ({ className }) =>
       </div>
 
       {isLoading && (
-        <div className={styles.overview} aria-busy="true" aria-label="Loading ratings">
+        <div className={styles.loading} aria-busy="true" aria-label="Loading ratings">
           <Skeleton className={styles.skeletonPanel} />
           <Skeleton className={styles.skeletonPanel} />
         </div>
@@ -142,42 +141,40 @@ export const AboutReviews: React.FC<{ className?: string }> = ({ className }) =>
 
       {!isLoading && !isError && hasRatings && (
         <div className={styles.overview}>
-          <div className={`${styles.panel} ${styles.panelWarm}`}>
-            <p className={styles.panelLabel}>{REVIEWS_SOURCE.name} rating</p>
+          {/* The overall rating shows only when the source states one. Until
+              then the headline figure is the range of the published category
+              scores - nothing is averaged or estimated. */}
+          <div className={styles.summary}>
+            <p className={styles.kicker}>{REVIEWS_SOURCE.name} rating</p>
             {summary ? (
               <>
-                <div className={styles.ratingRow}>
-                  <span className={styles.ratingValue}>{clampRating(summary.rating).toFixed(1)}</span>
-                  <span className={styles.ratingOutOf}>out of 5</span>
-                </div>
-                <Stars rating={summary.rating} size={20} />
-                <p className={styles.ratingCount}>
+                <p className={styles.score}>
+                  <span className={styles.scoreValue}>{clampRating(summary.rating).toFixed(1)}</span>
+                  <span className={styles.scoreSuffix}>out of 5</span>
+                </p>
+                <Stars rating={summary.rating} size={18} />
+                <p className={styles.scoreNote}>
                   Based on {summary.reviewCount.toLocaleString("en-IN")} reviews
                 </p>
               </>
-            ) : !badgeFailed ? (
-              <img
-                className={styles.badge}
-                src={REVIEWS_BADGE.src}
-                width={REVIEWS_BADGE.width}
-                height={REVIEWS_BADGE.height}
-                alt={`${REVIEWS_SOURCE.name} top category ratings for Testkart`}
-                loading="lazy"
-                decoding="async"
-                onError={() => setBadgeFailed(true)}
-              />
             ) : (
-              <p className={styles.ratingStatement}>
-                Employees rate Testkart{" "}
-                <strong>
-                  {worstCategory === bestCategory
-                    ? bestCategory.toFixed(1)
-                    : `${worstCategory.toFixed(1)} to ${bestCategory.toFixed(1)}`}
-                </strong>{" "}
-                out of 5 across its top {categories.length} categories.
-              </p>
+              <>
+                <p className={styles.score}>
+                  <Star size={24} className={styles.scoreStar} aria-hidden="true" />
+                  <span className={styles.scoreValue}>{worstCategory.toFixed(1)}</span>
+                  {worstCategory !== bestCategory && (
+                    <>
+                      <span className={styles.scoreSuffix}>to</span>
+                      <span className={styles.scoreValue}>{bestCategory.toFixed(1)}</span>
+                    </>
+                  )}
+                </p>
+                <p className={styles.scoreNote}>
+                  Out of 5, as rated by employees across Testkart's top {categories.length} categories.
+                </p>
+              </>
             )}
-            <div className={styles.panelFoot}>
+            <div className={styles.summaryFoot}>
               <SourceButton label={`Read reviews on ${REVIEWS_SOURCE.name}`} />
               <p className={styles.attribution}>
                 Ratings published by {REVIEWS_SOURCE.name}
@@ -187,19 +184,14 @@ export const AboutReviews: React.FC<{ className?: string }> = ({ className }) =>
           </div>
 
           {categories.length > 0 && (
-            <div className={styles.panel}>
-              <p className={styles.panelLabel}>Top category ratings</p>
-              <ul className={styles.bars}>
+            <div className={styles.categories}>
+              <p className={styles.kicker}>Category ratings</p>
+              <ul className={styles.categoryList}>
                 {categories.map((category) => (
-                  <li key={category.label} className={styles.bar}>
-                    <span className={styles.barLabel}>{category.label}</span>
-                    <span className={styles.barTrack} aria-hidden="true">
-                      <span
-                        className={styles.barFill}
-                        style={{ width: `${(clampRating(category.value) / 5) * 100}%` }}
-                      />
-                    </span>
-                    <span className={styles.barValue}>
+                  <li key={category.label} className={styles.category}>
+                    <span className={styles.categoryLabel}>{category.label}</span>
+                    <span className={styles.categoryValue}>
+                      <Star size={15} className={styles.categoryStar} aria-hidden="true" />
                       {clampRating(category.value).toFixed(1)}
                       <span className={styles.srOnly}> out of 5</span>
                     </span>

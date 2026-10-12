@@ -41,6 +41,7 @@ export async function handle(request: Request): Promise<Response> {
         "testQuestions.positiveMarks",
         "testQuestions.negativeMarks",
         "testQuestions.isAiGenerated",
+        "testQuestions.creationSource",
         "testItemSubjects.subjectName",
       ])
       .where("testQuestions.testId", "=", parsed.data.testItemId)

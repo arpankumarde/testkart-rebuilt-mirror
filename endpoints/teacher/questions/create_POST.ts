@@ -79,6 +79,7 @@ export async function handle(request: Request): Promise<Response> {
       negativeMarks: input.negativeMarks,
       explanation: input.explanation,
       durationSeconds: input.durationSeconds ?? null,
+      creationSource: request.headers.get("x-tk-source") === "mcp" ? "mcp" : null,
     };
 
     if (input.questionType === "single_correct_mcq") {

@@ -26,6 +26,7 @@ export type PreviewQuestion = {
   positiveMarks: number | null;
   negativeMarks: number | null;
   isAiGenerated: boolean;
+  creationSource: string | null;
   subjectName: string | null;
 };
 

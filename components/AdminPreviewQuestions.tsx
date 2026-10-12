@@ -158,6 +158,7 @@ export const AdminPreviewQuestions = ({ testItemId }: { testItemId: number }) =>
                 <Badge variant="outline">{TYPE_LABELS[question.questionType] ?? question.questionType}</Badge>
                 <span className={styles.marks}>{formatMarks(question)}</span>
                 {question.isAiGenerated && <Badge variant="secondary">AI generated</Badge>}
+                {question.creationSource === "mcp" && <Badge variant="secondary">Added via MCP</Badge>}
               </header>
               <MathMLContent html={question.questionText} className={styles.questionText} />
               <Answer question={question} />

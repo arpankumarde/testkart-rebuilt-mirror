@@ -647,7 +647,7 @@ function buildRequest(
 ): Request {
   return new Request(`${SITE_ORIGIN}/_api/teacher/${path}`, {
     method: init.method,
-    headers: { ...headers, "Content-Type": "application/json" },
+    headers: { ...headers, "Content-Type": "application/json", "x-tk-source": "mcp" },
     ...(init.body === undefined ? {} : { body: init.body }),
   });
 }

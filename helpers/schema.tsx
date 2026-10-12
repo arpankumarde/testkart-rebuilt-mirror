@@ -1573,6 +1573,7 @@ export interface TestQuestions {
   correctOption: string | null;
   correctOptions: string[] | null;
   createdAt: Generated<Timestamp | null>;
+  creationSource: string | null;
   durationSeconds: number | null;
   explanation: string | null;
   id: Generated<number>;

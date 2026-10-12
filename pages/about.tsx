@@ -3,14 +3,8 @@ import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
 import {
   BadgeCheck,
-  BookOpen,
   Building2,
   CalendarDays,
-  Check,
-  ChevronRight,
-  Clock,
-  FileText,
-  GraduationCap,
   MapPin,
   PenLine,
   Receipt,
@@ -185,79 +179,27 @@ const initials = (name: string) =>
     .join("")
     .toUpperCase();
 
-/* Illustrative preview of a Testkart mock test, framed by the three things the
-   marketplace sells. Decorative, so it is hidden from assistive tech; the
-   sample question is a real polity question with its correct answer marked,
-   and nothing here is a statistic. */
-const HERO_OPTIONS: { letter: string; text: string; correct?: boolean }[] = [
-  { letter: "A", text: "Article 14" },
-  { letter: "B", text: "Article 17", correct: true },
-  { letter: "C", text: "Article 21" },
-  { letter: "D", text: "Article 32" },
+/* Typographic hero artwork: four words cascading from the teacher to the
+   student. Decorative, so it is hidden from assistive tech; the headline beside
+   it already says what the page is about. */
+const HERO_VERSE: { word: string; className: string }[] = [
+  { word: "Teach", className: styles.verseTeach },
+  { word: "Practice", className: styles.versePractice },
+  { word: "Learn", className: styles.verseLearn },
+  { word: "Grow", className: styles.verseGrow },
 ];
 
-const HERO_PRODUCTS: { label: string; icon: LucideIcon; tone: Tone }[] = [
-  { label: "Mock Tests", icon: FileText, tone: "peach" },
-  { label: "Courses", icon: GraduationCap, tone: "lavender" },
-  { label: "Study Notes", icon: BookOpen, tone: "sage" },
-];
-
-const HeroPreview: React.FC = () => (
-  <div className={styles.visual} aria-hidden="true">
-    <div className={styles.sheet}>
-      <div className={styles.sheetTop}>
-        <span className={`${styles.chip} ${styles.tone_lavender}`}>
-          <FileText size={13} />
-          Polity mock test
+const HeroVerse: React.FC = () => (
+  <div className={styles.verse} aria-hidden="true">
+    {HERO_VERSE.map((line, index) => (
+      <p key={line.word} className={`${styles.verseLine} ${line.className}`}>
+        <span className={styles.verseIndex}>{String(index + 1).padStart(2, "0")}</span>
+        <span className={styles.verseWord}>
+          {line.word}
+          <span className={styles.verseStop}>.</span>
         </span>
-        <span className={styles.timer}>
-          <Clock size={13} />
-          18:42
-        </span>
-      </div>
-
-      <div className={styles.sheetQuestion}>
-        <span className={styles.questionNo}>Question 4</span>
-        <p className={styles.questionText}>
-          Which article of the Constitution of India abolishes untouchability?
-        </p>
-      </div>
-
-      <div className={styles.sheetOptions}>
-        {HERO_OPTIONS.map((option) => (
-          <div
-            key={option.letter}
-            className={option.correct ? `${styles.option} ${styles.optionOn}` : styles.option}
-          >
-            <span className={styles.optionLetter}>{option.letter}</span>
-            <span className={styles.optionText}>{option.text}</span>
-            {option.correct && <Check size={15} className={styles.optionCheck} />}
-          </div>
-        ))}
-      </div>
-
-      <div className={styles.sheetFoot}>
-        <span className={`${styles.chip} ${styles.tone_sage}`}>
-          <BadgeCheck size={13} />
-          Written by teachers
-        </span>
-        <span className={styles.nextPill}>
-          Next
-          <ChevronRight size={14} />
-        </span>
-      </div>
-    </div>
-
-    <div className={styles.products}>
-      {HERO_PRODUCTS.map((product) => (
-        <div key={product.label} className={styles.product}>
-          <span className={`${styles.productIcon} ${styles[`tone_${product.tone}`]}`}>
-            <product.icon size={15} />
-          </span>
-          <span className={styles.productLabel}>{product.label}</span>
-        </div>
-      ))}
-    </div>
+      </p>
+    ))}
   </div>
 );
 
@@ -320,7 +262,7 @@ const AboutPage: React.FC = () => {
               material does not have to build a business around it first.
             </p>
           </div>
-          <HeroPreview />
+          <HeroVerse />
         </header>
 
         <dl className={styles.identity}>
@@ -330,7 +272,7 @@ const AboutPage: React.FC = () => {
                 className={`${styles.identityIcon} ${styles[`tone_${row.tone}`]}`}
                 aria-hidden="true"
               >
-                <row.icon size={18} />
+                <row.icon size={15} />
               </span>
               <div className={styles.identityText}>
                 <dt className={styles.identityLabel}>{row.label}</dt>

@@ -1,13 +1,15 @@
 /*
- * Reviews on /about, set in a softly tinted neutral band. Cards sit on it as
- * plain surfaces with hairline borders and no decoration: coral is spent on one
- * short rule under the heading, the button, the stars and the bar fills;
- * lavender, sage and blue appear only as review tags. Tokens are
+ * Reviews on /about, set in a softly tinted neutral band. The ratings overview
+ * sits straight on the band with no inner panels: a large headline figure on
+ * the left, a 2x2 grid of category scores on the right, split by hairline
+ * rules. Coral is spent on one short rule under the heading, the button and
+ * the stars; lavender, sage and blue appear only as review tags. Tokens are
  * section-scoped and the dark theme only swaps values.
  */
 .reviews {
   --rv-band: hsl(30 26% 95%);
   --rv-band-border: hsl(30 18% 88%);
+  --rv-rule: hsl(30 16% 84%);
   --rv-card: var(--surface);
   --rv-warm: hsl(22 78% 96%);
   --rv-warm-border: hsl(22 60% 86%);
@@ -16,7 +18,6 @@
   --rv-text: hsl(220 14% 30%);
   --rv-star: var(--tk-brand);
   --rv-star-off: hsl(220 12% 72%);
-  --rv-track: hsl(40 18% 90%);
 
   padding: 2.5rem;
   background-color: var(--rv-band);
@@ -27,23 +28,12 @@
 :global(.dark) .reviews {
   --rv-band: var(--exam-ivory);
   --rv-band-border: var(--border);
+  --rv-rule: var(--border);
   --rv-card: var(--surface);
   --rv-warm: hsl(22 22% 17%);
   --rv-warm-border: hsl(22 22% 28%);
   --rv-text: hsl(220 10% 80%);
   --rv-star-off: hsl(220 10% 38%);
-  --rv-track: hsl(220 12% 24%);
-}
-
-/* The employer badge is a picture with its own cream ground; it sits on a
-   white plate so it reads the same in both themes. */
-.badge {
-  display: block;
-  width: 100%;
-  max-width: 24rem;
-  height: auto;
-  border-radius: 1rem;
-  background-color: #fff;
 }
 
 .srOnly {
@@ -89,83 +79,78 @@
   color: var(--muted-foreground);
 }
 
-/* Overview: rating on the left, category bars on the right. */
+/* Overview: summary on the left, category grid on the right, one vertical
+   hairline between them. */
 .overview {
   display: grid;
   grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  gap: 1.25rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--rv-rule);
 }
 
-.panel {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-3);
-  padding: 1.75rem;
-  background-color: var(--rv-card);
-  border: 1px solid var(--rv-border);
-  border-radius: 1.25rem;
-}
-
-.panelWarm {
-  background-color: var(--rv-warm);
-  border-color: var(--rv-warm-border);
-}
-
-.panelLabel {
+.kicker {
   margin: 0;
-  font-size: 0.9375rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--muted-foreground);
 }
 
-.ratingRow {
+.summary {
   display: flex;
-  align-items: baseline;
-  gap: var(--spacing-3);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding-right: 3rem;
 }
 
-.ratingValue {
+.score {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  column-gap: 0.625rem;
+  margin: 0.25rem 0 0;
+}
+
+.scoreValue {
   font-family: var(--font-family-heading);
-  font-size: 3.5rem;
+  font-size: 4rem;
   font-weight: 800;
   line-height: 1;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
   color: var(--rv-ink);
 }
 
-.ratingOutOf {
-  font-size: 1rem;
+.scoreSuffix {
+  font-size: 1.0625rem;
+  font-weight: 600;
   color: var(--muted-foreground);
 }
 
-.ratingCount {
+.scoreStar {
+  align-self: center;
+  flex-shrink: 0;
+  color: var(--rv-star);
+  fill: var(--rv-star);
+}
+
+.scoreNote {
   margin: 0;
+  max-width: 32ch;
   font-size: 0.9375rem;
+  line-height: 1.55;
   color: var(--rv-text);
 }
 
-.ratingStatement {
-  margin: 0;
-  font-family: var(--font-family-heading);
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1.3;
-  letter-spacing: -0.02em;
-  color: var(--rv-ink);
-}
-
-.ratingStatement strong {
-  font-weight: 800;
-}
-
-.panelFoot {
+.summaryFoot {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: var(--spacing-3);
   margin-top: auto;
-  padding-top: var(--spacing-4);
+  padding-top: 1.25rem;
 }
 
 .attribution {
@@ -209,52 +194,72 @@
   fill: var(--rv-star);
 }
 
-/* Category bars: label, neutral track with a coral fill, then the score as text
-   so the value never depends on reading the bar. */
-.bars {
+/* Categories: a 2x2 grid split by hairlines, score above label. The score is
+   always printed, so nothing depends on reading a graphic. */
+.categories {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  gap: 1rem;
+  padding-left: 3rem;
+  border-left: 1px solid var(--rv-rule);
+}
+
+.categoryList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   flex: 1 1 auto;
-  gap: var(--spacing-4);
-  margin: var(--spacing-2) 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.bar {
-  display: grid;
-  grid-template-columns: minmax(8rem, 11rem) minmax(0, 1fr) 2.25rem;
+.category {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.375rem;
+  min-width: 0;
+  padding: 1.25rem 1.5rem;
+}
+
+.category:nth-child(odd) {
+  padding-left: 0;
+}
+
+.category:nth-child(even) {
+  padding-right: 0;
+  border-left: 1px solid var(--rv-rule);
+}
+
+.category:nth-child(n + 3) {
+  border-top: 1px solid var(--rv-rule);
+}
+
+.categoryValue {
+  order: -1;
+  display: inline-flex;
   align-items: center;
-  gap: var(--spacing-4);
-}
-
-.barLabel {
-  font-size: 0.9375rem;
-  color: var(--rv-ink);
-}
-
-.barTrack {
-  display: block;
-  height: 0.5rem;
-  border-radius: var(--radius-full);
-  background-color: var(--rv-track);
-  overflow: hidden;
-}
-
-.barFill {
-  display: block;
-  height: 100%;
-  border-radius: var(--radius-full);
-  background-color: var(--tk-brand);
-}
-
-.barValue {
-  font-size: 0.9375rem;
-  font-weight: 700;
+  gap: 0.375rem;
+  font-family: var(--font-family-heading);
+  font-size: 1.875rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
-  text-align: right;
   color: var(--rv-ink);
+}
+
+.categoryStar {
+  flex-shrink: 0;
+  color: var(--rv-star);
+  fill: var(--rv-star);
+}
+
+.categoryLabel {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--rv-text);
 }
 
 /* Recent reviews: three equal-height cards on a plain grid. */
@@ -450,6 +455,12 @@
 }
 
 /* Loading, empty and error */
+.loading {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 1.25rem;
+}
+
 .skeletonPanel {
   height: 14rem;
   border-radius: 1.25rem;
@@ -483,8 +494,21 @@
 }
 
 @media (max-width: 900px) {
-  .overview {
+  .overview,
+  .loading {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .summary {
+    padding-right: 0;
+  }
+
+  .categories {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    padding-left: 0;
+    border-top: 1px solid var(--rv-rule);
+    border-left: none;
   }
 }
 
@@ -498,36 +522,24 @@
     margin-bottom: var(--spacing-6);
   }
 
-  .panel,
+  .overview {
+    padding-top: 1.5rem;
+  }
+
   .notice {
     padding: 1.25rem;
   }
 
-  .ratingValue {
-    font-size: 3rem;
+  .scoreValue {
+    font-size: 3.25rem;
   }
 
-  .ratingStatement {
-    font-size: 1.25rem;
+  .category {
+    padding: 1rem;
   }
 
-  .bar {
-    grid-template-columns: minmax(0, 1fr) 2.25rem;
-    row-gap: var(--spacing-2);
-  }
-
-  .barLabel {
-    grid-column: 1;
-  }
-
-  .barValue {
-    grid-column: 2;
-    grid-row: 1;
-  }
-
-  .barTrack {
-    grid-column: 1 / -1;
-    grid-row: 2;
+  .categoryValue {
+    font-size: 1.5rem;
   }
 
   .recent {

@@ -66,8 +66,11 @@ export async function handle(request: Request): Promise<Response> {
       .executeTakeFirst();
     const startOrderIndex = Number(maxOrder?.maxOrderIndex ?? -1) + 1;
 
+    const creationSource = request.headers.get("x-tk-source") === "mcp" ? "mcp" : null;
+
     const questionsToInsert = input.questions.map((q, index) => {
             let questionData: any = {
+        creationSource,
         subjectId: input.subjectId,
         sectionId: input.sectionId ?? null,
         testId: subjectAndOwner.testItemId,
