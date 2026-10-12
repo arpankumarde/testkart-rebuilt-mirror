@@ -498,6 +498,7 @@ export interface DigitalProductPurchases {
 }
 
 export interface DigitalProducts {
+  allowDownload: Generated<boolean>;
   category: string | null;
   createdAt: Generated<Timestamp | null>;
   description: string | null;

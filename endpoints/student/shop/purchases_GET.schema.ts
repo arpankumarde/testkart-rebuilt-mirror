@@ -21,6 +21,8 @@ export type StudentPurchaseItem = {
   thumbnailUrl: string | null;
   category: string | null;
   teacherName: string;
+  /** The teacher lets buyers download this note's PDFs. */
+  allowDownload: boolean;
   fileCount: number;
   hasReviewed: boolean;
   reviewRating: number | null;

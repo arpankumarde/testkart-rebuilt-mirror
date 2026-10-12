@@ -329,6 +329,7 @@ export async function handle(request: Request): Promise<Response> {
             fact("Language", row.language),
             fact("Price", Number(row.price) > 0 ? rupees(row.price) : "Free"),
             fact("Free preview pages", row.previewPages),
+            fact("Student downloads", row.allowDownload ? "Allowed" : "Off"),
             fact("Tags", row.tags?.length ? row.tags.join(", ") : null),
             fact("Purchases", row.totalPurchases),
           ),

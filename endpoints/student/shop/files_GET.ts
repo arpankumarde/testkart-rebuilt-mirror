@@ -14,9 +14,10 @@ export async function handle(request: Request): Promise<Response> {
     // Verify purchase
     const purchase = await db
       .selectFrom("digitalProductPurchases")
-      .select("id")
-      .where("productId", "=", input.productId)
-      .where("studentId", "=", user.id)
+      .innerJoin("digitalProducts", "digitalProducts.id", "digitalProductPurchases.productId")
+      .select(["digitalProductPurchases.id", "digitalProducts.allowDownload"])
+      .where("digitalProductPurchases.productId", "=", input.productId)
+      .where("digitalProductPurchases.studentId", "=", user.id)
       .executeTakeFirst();
 
     if (!purchase) {
@@ -44,7 +45,7 @@ export async function handle(request: Request): Promise<Response> {
     }));
 
     return new Response(
-      superjson.stringify({ files: outputFiles } satisfies OutputType),
+      superjson.stringify({ files: outputFiles, allowDownload: purchase.allowDownload } satisfies OutputType),
       {
         status: 200,
         headers: { "Content-Type": "application/json" },

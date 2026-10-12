@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Eye, FileText, ChevronRight, Layers, Star } from 'lucide-react';
+import { Download, Eye, FileText, ChevronRight, Layers, Star } from 'lucide-react';
 import { Badge } from './Badge';
 import { ReviewDialog } from './ReviewDialog';
 import { StudentShopPdfViewer } from './StudentShopPdfViewer';
+import { useStudyNoteDownload } from '../helpers/useStudyNoteDownload';
 import type { StudentPurchaseItem } from '../endpoints/student/shop/purchases_GET.schema';
 import styles from './StudentProductCard.module.css';
 
@@ -16,6 +17,7 @@ export const StudentProductCard: React.FC<StudentProductCardProps> = ({ purchase
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const hasMultipleFiles = purchase.fileCount > 1;
+  const downloadMutation = useStudyNoteDownload();
 
   const lastViewed = purchase.lastDownloadedAt
     ? new Date(purchase.lastDownloadedAt).toLocaleDateString()
@@ -89,12 +91,9 @@ export const StudentProductCard: React.FC<StudentProductCardProps> = ({ purchase
             </div>
           </div>
 
-          {/* Single, unambiguous CTA per card. Multi-file bundles route to
-              a dedicated detail page (matching the mock-test package flow)
-              since there are multiple files to choose from; single-file
-              purchases open the in-app viewer directly — there's nothing
-              else to browse. Downloading is disabled site-wide to protect
-              against piracy: everything opens read-only inside Testkart. */}
+          {/* Multi-file notes route to a detail page with one row per file;
+              single-file notes open the watermarked reader directly. Download
+              shows only when the teacher opted this note in (allow_download). */}
           <div className={styles.footer}>
             {hasMultipleFiles ? (
               <Link to={`/student/shop/${purchase.productId}`} className={styles.actionButton}>
@@ -103,14 +102,27 @@ export const StudentProductCard: React.FC<StudentProductCardProps> = ({ purchase
                 <ChevronRight size={16} />
               </Link>
             ) : (
-              <button
-                type="button"
-                onClick={() => setIsViewerOpen(true)}
-                className={styles.actionButton}
-              >
-                <Eye size={16} />
-                View PDF
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => setIsViewerOpen(true)}
+                  className={styles.actionButton}
+                >
+                  <Eye size={16} />
+                  View PDF
+                </button>
+                {purchase.allowDownload && (
+                  <button
+                    type="button"
+                    onClick={() => downloadMutation.mutate({ productId: purchase.productId })}
+                    disabled={downloadMutation.isPending}
+                    className={styles.secondaryButton}
+                  >
+                    <Download size={16} />
+                    {downloadMutation.isPending ? 'Preparing...' : 'Download PDF'}
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>

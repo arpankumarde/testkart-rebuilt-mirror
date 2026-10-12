@@ -102,6 +102,7 @@ export async function handle(request: Request): Promise<Response> {
     // The form has no thumbnail uploader, so an omitted field leaves the stored value alone.
     if (input.thumbnailUrl !== undefined) updateSet.thumbnailUrl = input.thumbnailUrl;
     if (input.thumbnailFileId !== undefined) updateSet.thumbnailFileId = input.thumbnailFileId;
+    if (input.allowDownload !== undefined) updateSet.allowDownload = input.allowDownload;
 
     // Resolved before the transaction: the exam lookup uses the shared connection.
     const exams =

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { Link, useParams } from 'react-router-dom';
-import { AlertTriangle, ArrowLeft, Eye, FileText, Layers, Star } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Download, Eye, FileText, Layers, Star } from 'lucide-react';
 import { useStudentPurchasesQuery } from '../helpers/useShopQuery';
 import { useStudentShopFiles } from '../helpers/useStudentShopFiles';
+import { useStudyNoteDownload } from '../helpers/useStudyNoteDownload';
 import { ReviewDialog } from '../components/ReviewDialog';
 import { StudentShopPdfViewer } from '../components/StudentShopPdfViewer';
 import { Button } from '../components/Button';
@@ -22,6 +23,8 @@ export default function StudentShopProductDetailPage() {
   const [activeFile, setActiveFile] = useState<{ id: number; title: string } | null>(null);
 
   const { data: filesData, isFetching: isFilesFetching } = useStudentShopFiles(productId);
+  const downloadMutation = useStudyNoteDownload();
+  const canDownload = !!filesData?.allowDownload;
 
   const formatBytes = (bytes: number | null) => {
     if (!bytes) return null;
@@ -121,9 +124,8 @@ export default function StudentShopProductDetailPage() {
           </div>
         </div>
 
-        {/* Files open read-only inside Testkart's PDF viewer - downloading is
-            disabled to protect against piracy, so there is no bulk/individual
-            download action here anymore, only View. */}
+        {/* Files open in the watermarked reader. A Download action per file
+            appears only when the teacher opted this note in (allow_download). */}
         <div className={styles.fileList}>
           {isFilesFetching ? (
             <>
@@ -144,13 +146,28 @@ export default function StudentShopProductDetailPage() {
                     {file.fileSizeBytes && <span>{formatBytes(file.fileSizeBytes)}</span>}
                   </div>
                 </div>
-                <button
-                  className={styles.fileViewButton}
-                  onClick={() => setActiveFile({ id: file.id, title: file.title })}
-                >
-                  <Eye size={16} />
-                  Read
-                </button>
+                <div className={styles.fileActions}>
+                  {canDownload && (
+                    <button
+                      type="button"
+                      className={styles.fileDownloadButton}
+                      onClick={() => downloadMutation.mutate({ productId: purchase.productId, fileId: file.id })}
+                      disabled={downloadMutation.isPending}
+                    >
+                      <Download size={16} />
+                      {downloadMutation.isPending && downloadMutation.variables?.fileId === file.id
+                        ? 'Preparing...'
+                        : 'Download'}
+                    </button>
+                  )}
+                  <button
+                    className={styles.fileViewButton}
+                    onClick={() => setActiveFile({ id: file.id, title: file.title })}
+                  >
+                    <Eye size={16} />
+                    Read
+                  </button>
+                </div>
               </div>
             ))
           ) : (

@@ -417,7 +417,7 @@ export const apiDocsContent: ApiEndpoint[] = [
       { name: "limit", type: "number", required: false, description: "Items per page, default 20, no maximum" },
     ],
     responseFields: [
-      { name: "purchases", type: "array", description: "Newest first: { purchaseId, purchasedAt, downloadCount, lastDownloadedAt, productId, title, slug, thumbnailUrl, category, teacherName, fileCount, hasReviewed, reviewRating, reviewText }" },
+      { name: "purchases", type: "array", description: "Newest first: { purchaseId, purchasedAt, downloadCount, lastDownloadedAt, productId, title, slug, thumbnailUrl, category, teacherName, allowDownload, fileCount, hasReviewed, reviewRating, reviewText }. allowDownload is the teacher's opt-in for web downloads" },
       { name: "page", type: "number", description: "Page used" },
       { name: "limit", type: "number", description: "Page size used" },
     ],
@@ -439,6 +439,7 @@ export const apiDocsContent: ApiEndpoint[] = [
     ],
     responseFields: [
       { name: "files", type: "array", description: "By orderIndex: { id, title, fileSizeBytes, pageCount, orderIndex }. No storage links" },
+      { name: "allowDownload", type: "boolean", description: "The teacher lets buyers download these files on the web" },
     ],
     notes: [
       "Returns 403 when the caller has not bought the note and 400 for a bad productId.",
@@ -502,7 +503,7 @@ export const apiDocsContent: ApiEndpoint[] = [
     description: "Get a time-limited download link for a file of an owned study note",
     auth: "any",
     category: "Study notes",
-    usedBy: ["mobile"],
+    usedBy: ["web", "mobile"],
     bodyParams: [
       { name: "productId", type: "number", required: true, description: "Id of an owned study note" },
       { name: "fileId", type: "number", required: false, description: "One file of the note. The main file when omitted" },
@@ -512,8 +513,8 @@ export const apiDocsContent: ApiEndpoint[] = [
       { name: "expiresAt", type: "string", description: "ISO 8601 time when downloadUrl expires" },
     ],
     notes: [
-      "Bearer requests only. Without an Authorization bearer header (the web, or any cookie session) it returns 403 'Study notes open in the reader. Downloads are available in the Testkart app.' The web reads notes through /_api/reader/info and /_api/reader/page.",
-      "Returns 403 when the caller has not bought the note, and 404 when fileId is not part of it or no file is stored.",
+      "Bearer requests (the mobile app) need only the purchase. Cookie (web) requests also need the note's allow_download opt-in, otherwise 403 'Downloads are turned off for this note. Open it in the reader instead.' Web links are served as an attachment.",
+      "Returns 403 when the caller has not bought the note, and 404 when fileId is not part of it or no file is stored. A signed-out call returns 500 with details 'Not authenticated'.",
       "Increments downloadCount and sets lastDownloadedAt on the purchase.",
     ],
   },

@@ -24,6 +24,8 @@ export const schema = z.object({
   previewPages: z.number().int().min(0).optional().nullable(),
   pageCount: z.number().int().min(0).optional().nullable(),
   fileSizeBytes: z.number().int().min(0).optional().nullable(),
+  /** Omitted leaves the stored setting unchanged. */
+  allowDownload: z.boolean().optional(),
   language: z.string().optional().nullable(),
   category: z.string().optional().nullable(),
   tags: z.array(z.string()).optional().nullable(),

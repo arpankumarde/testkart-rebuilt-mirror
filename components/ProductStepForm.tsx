@@ -8,6 +8,7 @@ import { RichTextEditor } from './RichTextEditor';
 import { Button } from './Button';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './Select';
 import { Checkbox } from './Checkbox';
+import { Switch } from './Switch';
 import { Spinner } from './Spinner';
 import { FileUploader } from './FileUploader';
 import { ExamMultiPicker } from './ExamMultiPicker';
@@ -87,7 +88,7 @@ const FIELD_LABELS: Record<string, string> = {
   previewPages: 'Preview pages',
 };
 
-const FILES_TAB_FIELDS = new Set(['files', 'previewPages', 'pageCount']);
+const FILES_TAB_FIELDS = new Set(['files', 'previewPages', 'pageCount', 'allowDownload']);
 
 // What counts as an unsaved change. Page counts are left out because they
 // are filled in in the background after load.
@@ -102,6 +103,7 @@ const snapshotValues = (v: FormValues, isFree: boolean) =>
     v.examNames ?? [],
     v.previewPages || 0,
     v.tagsString || '',
+    !!v.allowDownload,
     (v.files || []).filter((f) => isRealFileUrl(f.fileUrl)).map((f) => [f.title, f.fileUrl]),
   ]);
 
@@ -175,6 +177,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
       examNames: [],
       previewPages: 0,
       pageCount: 0,
+      allowDownload: false,
       tagsString: '',
       // Create mode has no Files section; edit mode fills this once details load.
       files: [],
@@ -213,6 +216,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
         examNames: savedExamNames,
         previewPages: productDetails.previewPages || 0,
         pageCount: files.reduce((sum: number, f: any) => sum + (f.pageCount || 0), 0),
+        allowDownload: !!productDetails.allowDownload,
         tagsString: productDetails.tags ? productDetails.tags.join(', ') : '',
         files: files.map(f => ({
           clientKey: generateClientKey(),
@@ -483,6 +487,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
       files,
       pageCount: files.reduce((sum, f) => sum + (f.pageCount || 0), 0) || null,
       previewPages: form.values.previewPages || 0,
+      allowDownload: !!form.values.allowDownload,
     };
   }, [form.values, isFreeChecked]);
 
@@ -1088,6 +1093,22 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
                   <FormMessage />
                 </FormItem>
               </div>
+
+              <FormItem name="allowDownload" className={styles.downloadToggle}>
+                <div className={styles.downloadToggleRow}>
+                  <FormLabel>Allow students to download this note</FormLabel>
+                  <FormControl>
+                    <Switch
+                      className={styles.downloadSwitch}
+                      checked={!!form.values.allowDownload}
+                      onCheckedChange={(checked) => form.setValues(prev => ({ ...prev, allowDownload: checked }))}
+                    />
+                  </FormControl>
+                </div>
+                <FormDescription>
+                  Off by default. When on, students who bought this note can download every PDF in it from their dashboard. When off, they read it in the watermarked reader only.
+                </FormDescription>
+              </FormItem>
             </div>
             )}
           </div>

@@ -42,6 +42,7 @@ export type ShopProductDetails = Omit<
   | "isPublished"
   | "status"
   | "thumbnailFileId"
+  | "allowDownload"
 > & {
   price: number;
   rating: number | null;

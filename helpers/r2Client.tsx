@@ -70,13 +70,23 @@ export const getPresignedUploadUrl = async (
 };
 
 /**
- * Generates a presigned URL for downloads that must not go through the public domain
+ * Generates a presigned URL for downloads that must not go through the public domain.
+ * With downloadFilename, the file is served as an attachment under that name.
  */
-export const getSignedDownloadUrl = async (key: string, expiresIn: number = 3600): Promise<string> => {
+export const getSignedDownloadUrl = async (
+  key: string,
+  expiresIn: number = 3600,
+  downloadFilename?: string
+): Promise<string> => {
   const client = getR2Client();
   const command = new GetObjectCommand({
     Bucket: R2_BUCKET_NAME,
     Key: key,
+    ...(downloadFilename
+      ? {
+          ResponseContentDisposition: `attachment; filename="${downloadFilename.replace(/[^\x20-\x7e]|"/g, "_")}"; filename*=UTF-8''${encodeURIComponent(downloadFilename)}`,
+        }
+      : {}),
   });
 
   return getSignedUrl(client, command, { expiresIn });

@@ -8,16 +8,17 @@ import superjson from "superjson";
 
 const SIGNED_URL_EXPIRE_SECONDS = 3600; // 1 hour
 
+const pdfFilename = (title: string) => {
+  const base = title.replace(/[\\/:*?"<>|\u0000-\u001f]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 150);
+  return `${base || "study-note"}.pdf`;
+};
+
 export async function handle(request: Request): Promise<Response> {
   try {
-    // Whole-file links are for the mobile app only. The web opens purchased notes as watermarked pages
-    // (endpoints/reader), so a signed-in browser never gets a link to the file.
-    if (!isBearerRequest(request)) {
-      return new Response(
-        superjson.stringify({ error: "Study notes open in the reader. Downloads are available in the Testkart app." }),
-        { status: 403 }
-      );
-    }
+    // Bearer requests are the mobile app's file download and need only the purchase (app 4.9.6 and older
+    // still call this). Web (cookie) requests also need the teacher's allow_download opt-in; without it the
+    // note stays in the watermarked reader (endpoints/reader).
+    const isBearer = isBearerRequest(request);
     const { user } = await getServerUserSession(request);
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);
@@ -31,6 +32,7 @@ export async function handle(request: Request): Promise<Response> {
         "digitalProductPurchases.downloadCount",
         "digitalProducts.pdfUrl",
         "digitalProducts.title",
+        "digitalProducts.allowDownload",
       ])
       .where("digitalProductPurchases.productId", "=", input.productId)
       .where("digitalProductPurchases.studentId", "=", user.id)
@@ -43,7 +45,15 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
+    if (!isBearer && !purchase.allowDownload) {
+      return new Response(
+        superjson.stringify({ error: "Downloads are turned off for this note. Open it in the reader instead." }),
+        { status: 403 }
+      );
+    }
+
     let downloadFileUrl: string | null = null;
+    let downloadTitle = purchase.title;
 
     if (input.fileId) {
       // Fetch the specific file from digital_product_files
@@ -62,6 +72,7 @@ export async function handle(request: Request): Promise<Response> {
       }
 
       downloadFileUrl = file.fileUrl;
+      downloadTitle = file.title || purchase.title;
     } else {
       // Fallback to the product's main pdfUrl
       downloadFileUrl = purchase.pdfUrl;
@@ -84,9 +95,13 @@ export async function handle(request: Request): Promise<Response> {
       .where("id", "=", purchase.purchaseId)
       .execute();
 
-    // Generate a signed URL valid for 1 hour
+    // Generate a signed URL valid for 1 hour. Web downloads are served as an attachment.
     const r2Key = extractR2Key(downloadFileUrl);
-    const downloadUrl = await getSignedDownloadUrl(r2Key, SIGNED_URL_EXPIRE_SECONDS);
+    const downloadUrl = await getSignedDownloadUrl(
+      r2Key,
+      SIGNED_URL_EXPIRE_SECONDS,
+      isBearer ? undefined : pdfFilename(downloadTitle)
+    );
 
     const expiresAt = new Date(Date.now() + SIGNED_URL_EXPIRE_SECONDS * 1000).toISOString();
 

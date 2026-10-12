@@ -1,6 +1,6 @@
-/* --card-accent is set inline based on download status (Downloaded / Not
-   Downloaded) — same visual-differentiation pattern as EnrolledTestCard /
-   EnrolledCourseCard, so cards are distinguishable at a glance in a list. */
+/* --card-accent is set inline based on view status (Viewed / Not Viewed) -
+   same visual-differentiation pattern as EnrolledTestCard / EnrolledCourseCard,
+   so cards are distinguishable at a glance in a list. */
 .card {
   background-color: var(--surface);
   border-radius: var(--radius-md);
@@ -167,6 +167,8 @@
 
 .footer {
   margin-top: var(--spacing-2);
+  display: flex;
+  gap: var(--spacing-2);
 }
 
 .actionButton {
@@ -174,7 +176,8 @@
   align-items: center;
   justify-content: center;
   gap: var(--spacing-2);
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   height: 2.125rem;
   padding: 0 var(--spacing-3);
   border-radius: var(--radius);
@@ -201,6 +204,42 @@
 /* The muted pair rather than opacity, which faded the coral button's ink
    label under the contrast floor. */
 .actionButton:disabled {
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  flex: 1;
+  min-width: 0;
+  height: 2.125rem;
+  padding: 0 var(--spacing-3);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) ease, border-color var(--animation-duration-fast) ease;
+}
+
+.secondaryButton:hover:not(:disabled) {
+  background-color: var(--muted);
+  border-color: color-mix(in srgb, var(--border), var(--foreground) 25%);
+}
+
+.secondaryButton:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.secondaryButton:disabled {
   background-color: var(--muted);
   color: var(--muted-foreground);
   cursor: not-allowed;

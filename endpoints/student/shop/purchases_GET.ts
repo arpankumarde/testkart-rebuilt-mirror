@@ -28,6 +28,7 @@ export async function handle(request: Request): Promise<Response> {
         "digitalProducts.slug",
         "digitalProducts.thumbnailUrl",
         "digitalProducts.category",
+        "digitalProducts.allowDownload",
         "users.displayName as teacherName",
       ])
       .where("digitalProductPurchases.studentId", "=", user.id)

@@ -15,6 +15,8 @@ export type OutputType = {
     pageCount: number | null;
     orderIndex: number;
   }[];
+  /** The teacher lets buyers download these files. */
+  allowDownload: boolean;
 };
 
 export const getStudentShopFiles = async (

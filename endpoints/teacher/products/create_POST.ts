@@ -106,6 +106,7 @@ export async function handle(request: Request): Promise<Response> {
           previewPages: input.previewPages ?? null,
           pageCount: totalPages || null,
           fileSizeBytes: firstFile ? totalBytes.toString() : null,
+          allowDownload: input.allowDownload ?? false,
           language: input.language ?? null,
           category: input.category ?? null,
           tags: input.tags ?? null,

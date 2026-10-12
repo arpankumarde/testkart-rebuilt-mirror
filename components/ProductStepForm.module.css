@@ -45,6 +45,28 @@
   gap: var(--spacing-2);
 }
 
+/* Note-level download opt-in at the foot of the Files tab, set off by a hairline. */
+.downloadToggle {
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--border);
+}
+
+.downloadToggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+}
+
+/* The kit's off track (--muted) nearly vanishes on the white card, so the off state gets a firmer grey. */
+.downloadSwitch[role="switch"][data-state="unchecked"] {
+  background-color: var(--muted-foreground);
+}
+
+.downloadSwitch[role="switch"][data-state="unchecked"]:hover {
+  background-color: color-mix(in srgb, var(--muted-foreground), black 15%);
+}
+
 .stepTabs {
   display: flex;
   gap: var(--spacing-2);
