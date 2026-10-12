@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { getTestsDetails } from "../endpoints/tests/details_GET.schema";
+import { isNotFoundError } from "./isNotFoundError";
 
 export const useTestDetailsQuery = (slug: string | undefined) => {
   return useQuery({
@@ -7,5 +8,6 @@ export const useTestDetailsQuery = (slug: string | undefined) => {
     queryFn: () => getTestsDetails({ slug: slug! }),
     enabled: !!slug, // The query will not run until the slug is available
     staleTime: 10 * 60 * 1000,
+    retry: (failureCount, error) => !isNotFoundError(error) && failureCount < 3,
   });
 };

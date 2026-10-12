@@ -5,6 +5,7 @@ import { getRelatedCourses } from "../endpoints/courses/related_GET.schema";
 import { getStudentEnrolledCourses } from "../endpoints/student/enrolled-courses_GET.schema";
 import { getStudentCourseLessons } from "../endpoints/student/course/lessons_GET.schema";
 import { getStudentCourseProgress } from "../endpoints/student/course/progress_GET.schema";
+import { isNotFoundError } from "./isNotFoundError";
 
 // Public course browsing
 export const PUBLIC_COURSES_QUERY_KEY = ["public", "courses"];
@@ -29,6 +30,7 @@ export const usePublicCourseDetailsQuery = (slug: string | null) => {
     queryFn: () => getCoursesDetails({ slug: slug! }),
     enabled: !!slug,
     staleTime: 10 * 60 * 1000,
+    retry: (failureCount, error) => !isNotFoundError(error) && failureCount < 3,
     // refetchOnMount is off app-wide; without this a review saved in the course player stays hidden here.
     refetchOnMount: true,
   });

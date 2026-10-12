@@ -22,6 +22,8 @@ import { TeacherCtaBanner } from "../components/TeacherCtaBanner";
 import { BundleSuggestions } from "../components/BundleSuggestions";
 import { PublicCouponsCard } from "../components/PublicCouponsCard";
 import { useTrackStorefrontView } from "../helpers/trackStorefrontEvent";
+import { NotFoundState } from "../components/NotFoundState";
+import { isNotFoundError } from "../helpers/isNotFoundError";
 import styles from "./mock-test.$testSlug.module.css";
 
 const TestDetailsSkeleton: React.FC = () => (
@@ -207,7 +209,7 @@ const TestDetailsPage: React.FC = () => {
     return <TestDetailsSkeleton />;
   }
 
-  if (error) {
+  if (error && !isNotFoundError(error)) {
     return (
       <div className={styles.errorContainer}>
         <h2>Something went wrong</h2>
@@ -220,15 +222,7 @@ const TestDetailsPage: React.FC = () => {
   }
 
   if (!data?.package) {
-    return (
-      <div className={styles.errorContainer}>
-        <h2>Test not found</h2>
-        <p>The test package you are looking for does not exist or is not available.</p>
-        <Button asChild>
-          <Link to="/mock-test">Browse other tests</Link>
-        </Button>
-      </div>
-    );
+    return <NotFoundState kind="test" />;
   }
 
             const { package: testPackage, items } = data;

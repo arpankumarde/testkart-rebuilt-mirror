@@ -7,6 +7,8 @@ import { useTeacherPublicProfileQuery } from "../helpers/useTeacherPublicProfile
 import { ExpertProfileView } from "../components/ExpertProfileView";
 import { Skeleton } from "../components/Skeleton";
 import { useTrackStorefrontView } from "../helpers/trackStorefrontEvent";
+import { NotFoundState } from "../components/NotFoundState";
+import { isNotFoundError } from "../helpers/isNotFoundError";
 import styles from "./expert.$teacherSlug.module.css";
 
 const SITE_URL = "https://testkart.in";
@@ -68,17 +70,21 @@ const ExpertProfilePage = () => {
     );
   }
 
+  if (isError && isNotFoundError(error)) {
+    return <NotFoundState kind="teacher" />;
+  }
+
   if (isError) {
     return (
       <div className={styles.page}>
-        <SEOHead title="Expert not found" description="Expert profile not found" image={null} />
+        <SEOHead title="Expert profile unavailable" description="This expert profile could not be loaded." image={null} noIndex />
         <div className={styles.errorState} role="alert">
           <span className={styles.errorIcon} aria-hidden="true">
             <AlertTriangle size={26} />
           </span>
-          <h1 className={styles.errorTitle}>Expert not found</h1>
+          <h1 className={styles.errorTitle}>Could not load this profile</h1>
           <p className={styles.errorText}>
-            {error instanceof Error ? error.message : "We couldn't find a profile for this expert."}
+            Something went wrong on our side. Please try again in a moment.
           </p>
         </div>
       </div>
@@ -86,7 +92,7 @@ const ExpertProfilePage = () => {
   }
 
   if (!data) {
-    return null;
+    return <NotFoundState kind="teacher" />;
   }
 
   const { teacher, courses, tests, liveTests, products } = data;

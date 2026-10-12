@@ -1,6 +1,6 @@
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { R2_PUBLIC_URL } from "../../../helpers/_publicConfigs";
-import { PDF_PASSWORD_PROTECTED_MESSAGE, PDF_UNREADABLE_MESSAGE } from "../../../helpers/digitalProductRules";
+import { PDF_PASSWORD_PROTECTED_MESSAGE, PDF_UNREADABLE_MESSAGE, STUDY_NOTES_PDF_MAX_MB } from "../../../helpers/digitalProductRules";
 import { schema, OutputType } from "./pdf-page-count_POST.schema";
 import superjson from "superjson";
 import DOMMatrixPolyfill from "dommatrix";
@@ -56,7 +56,8 @@ if (typeof (globalThis as any).Path2D === "undefined") {
 // the fetch — page counts stayed null and the "Suggest details from PDF"
 // button never appeared. A server never enforces CORS on its own outbound
 // fetches, so doing this analysis here sidesteps the problem entirely.
-const MAX_BYTES = 60 * 1024 * 1024; // 60MB safety cap on analysis
+// Must match the upload ceiling: a PDF that can be uploaded but not counted can never be published.
+const MAX_BYTES = STUDY_NOTES_PDF_MAX_MB * 1024 * 1024;
 const MAX_TEXT_PAGES = 5;
 const MAX_TEXT_CHARS = 6000;
 

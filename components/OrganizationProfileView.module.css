@@ -1,0 +1,785 @@
+/* Spotlight/showcase card language (base.css --sp-*), same family as
+   ExpertProfileView / teacher.posts - ivory page, white rounded cards,
+   peach 3D pill CTA. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  width: min(72rem, 100%);
+  margin: 0 auto;
+  padding: var(--spacing-6) var(--spacing-4) 2.5rem;
+}
+
+.cover {
+  width: 100%;
+  height: 14rem;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  background-color: var(--sp-surface);
+}
+
+.cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Tab sub-nav ---------------------------------------------------------------
+   Sits below the hero and above the two-column layout. Same card language
+   (sp-card/sp-line) as the rest of the page, just a horizontal scroller of
+   pill links so it holds up on narrow screens without wrapping awkwardly. */
+
+.tabNav {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: 0.5rem;
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.25rem;
+  box-shadow: var(--sp-shadow);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabNav::-webkit-scrollbar {
+  display: none;
+}
+
+.tabLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.875rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--sp-muted);
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.tabLink:hover {
+  color: var(--sp-ink);
+  background-color: var(--sp-surface);
+}
+
+.tabLinkActive,
+.tabLinkActive:hover {
+  color: var(--sp-cta-ink);
+  background-color: var(--sp-cta);
+}
+
+/* Hero --------------------------------------------------------------------- */
+
+.hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.5rem;
+  box-shadow: var(--sp-shadow);
+  flex-wrap: wrap;
+}
+
+.logoAvatar {
+  width: 5rem;
+  height: 5rem;
+  flex-shrink: 0;
+  border: 3px solid var(--sp-card);
+  box-shadow: 0 0 0 1px var(--sp-line);
+}
+
+.heroInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.heroTitleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+}
+
+.orgName {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--sp-ink);
+}
+
+.orgDescription {
+  margin: 0;
+  color: var(--sp-text);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  max-width: 48rem;
+}
+
+.orgDescription p {
+  margin: 0 0 var(--spacing-3);
+}
+
+.orgDescription > :last-child {
+  margin-bottom: 0;
+}
+
+.orgDescription a {
+  color: var(--sp-accent, var(--sp-ink));
+  text-decoration: underline;
+}
+
+.orgDescription ul {
+  list-style-type: disc;
+  padding-left: 1.25rem;
+  margin: 0 0 var(--spacing-3);
+}
+
+.orgDescription ol {
+  list-style-type: decimal;
+  padding-left: 1.25rem;
+  margin: 0 0 var(--spacing-3);
+}
+
+.orgDescription li {
+  margin-bottom: var(--spacing-2);
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.galleryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+  gap: var(--spacing-3);
+}
+
+.galleryThumb {
+  position: relative;
+  padding: 0;
+  border: 1px solid var(--sp-line);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  background-color: var(--sp-bg);
+  cursor: pointer;
+}
+
+.galleryThumbMedia {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.galleryThumbPlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background-color: rgba(0, 0, 0, 0.25);
+}
+
+.galleryLightboxContent {
+  max-width: 48rem;
+  width: 100%;
+  padding: 0;
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.galleryLightboxMedia {
+  width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  display: block;
+  border-radius: 0.75rem;
+}
+
+.galleryLightboxIframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: none;
+  border-radius: 0.75rem;
+}
+
+.heroMeta {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--sp-muted);
+  text-decoration: none;
+}
+
+.metaItem:hover {
+  color: var(--sp-lavender-ink);
+}
+
+.specialtyRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.socialRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  margin-top: 0.25rem;
+}
+
+.socialLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--sp-line);
+  border-radius: var(--radius-full);
+  background-color: var(--sp-surface);
+  color: var(--sp-text);
+  transition: background-color var(--animation-duration-fast) ease,
+    border-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
+}
+
+.socialLink:hover {
+  background-color: var(--sp-lavender-tint);
+  border-color: var(--sp-lavender-edge);
+  color: var(--sp-lavender-ink);
+}
+
+/* Follow button - peach 3D pill CTA, same as .button in FollowTeacherButton.module.css */
+.followButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  height: 2.75rem;
+  padding: 0 1.25rem;
+  border-radius: 1.375rem 1.375rem 1.375rem 0.5rem;
+  border: 1px solid var(--sp-peach-edge);
+  background-color: var(--sp-cta);
+  box-shadow: 0 3px 0 var(--sp-peach-edge);
+  color: var(--sp-cta-ink);
+  font-family: var(--font-family-base);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
+}
+
+.followButton:hover:not(:disabled) {
+  background-color: var(--sp-cta-hover);
+  box-shadow: 0 5px 0 var(--sp-peach-edge);
+  transform: translateY(-2px);
+}
+
+.followButton:active:not(:disabled) {
+  box-shadow: 0 1px 0 var(--sp-peach-edge);
+  transform: translateY(2px);
+}
+
+.followButton:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.following {
+  border-radius: var(--radius-full);
+  border: 1px solid var(--sp-lavender-edge);
+  background-color: var(--sp-lavender-tint);
+  box-shadow: none;
+  color: var(--sp-lavender-ink);
+}
+
+.following:hover:not(:disabled) {
+  background-color: var(--sp-lavender-tint);
+  box-shadow: none;
+  transform: none;
+}
+
+/* Two-column layout below the hero - a wider informational main column and
+   a narrower "at a glance" facts sidebar, the same shape as teacher.posts.
+   Resources (the sellable catalogue) live at the very bottom of main,
+   after everything informational, since discovery/credibility is the
+   point of this page and selling is secondary. */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 19rem;
+  align-items: start;
+  gap: 1.75rem;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  min-width: 0;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  position: sticky;
+  top: var(--spacing-6);
+}
+
+/* Sections ------------------------------------------------------------------ */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--sp-ink);
+}
+
+/* Teachers -------------------------------------------------------------- */
+
+.teacherGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--spacing-3);
+}
+
+.teacherCard {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) 1rem;
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.125rem;
+  box-shadow: var(--sp-shadow);
+  text-decoration: none;
+  transition: box-shadow var(--animation-duration-fast) ease, transform var(--animation-duration-fast) ease;
+}
+
+.teacherCard:hover {
+  box-shadow: var(--sp-shadow-hover);
+  transform: translateY(-2px);
+}
+
+.teacherAvatar {
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
+}
+
+.teacherMeta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 0.125rem;
+}
+
+.teacherNameRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--sp-ink);
+}
+
+.teacherTagline {
+  font-size: 0.75rem;
+  color: var(--sp-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Catalogue - deliberately quieter than the rest of the page: a muted
+   heading instead of the bold section title, an explanatory line, and a
+   collapsed/"show more" list so it reads as a secondary, optional section
+   rather than the point of the page. */
+
+.sectionTitleMuted {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--sp-muted);
+}
+
+.catalogueSection {
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--sp-line);
+}
+
+.catalogueCount {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--sp-muted);
+}
+
+.catalogueHint {
+  margin: -0.5rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--sp-muted);
+}
+
+.catalogueGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--spacing-4);
+}
+
+.showMoreButton {
+  align-self: flex-start;
+}
+
+/* Posts ---------------------------------------------------------------------- */
+
+.postList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  align-items: start;
+  gap: var(--spacing-3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.postCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: 1.125rem;
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.25rem;
+  box-shadow: var(--sp-shadow);
+}
+
+.postHead {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.postAvatar {
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+}
+
+.postHeadMeta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.postTeacherName {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--sp-ink);
+}
+
+.postDate {
+  font-size: 0.75rem;
+  color: var(--sp-muted);
+}
+
+.postBody {
+  margin: 0;
+  white-space: pre-wrap;
+  color: var(--sp-text);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.postImage {
+  max-width: 100%;
+  max-height: 18rem;
+  border-radius: 1rem;
+  display: block;
+}
+
+.postFooter {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.postMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: 0.8125rem;
+  color: var(--sp-muted);
+}
+
+/* Reviews --------------------------------------------------------------------- */
+
+.ratingSummary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--sp-muted);
+}
+
+.starDisplay {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  color: var(--sp-peach-edge);
+}
+
+.starPicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  color: var(--sp-peach-edge);
+}
+
+.starButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-1);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+}
+
+.reviewForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: 1.25rem;
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.25rem;
+  box-shadow: var(--sp-shadow);
+}
+
+.reviewFormHint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--sp-muted);
+}
+
+.formError {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--error-text);
+}
+
+.ctaButton {
+  align-self: flex-start;
+  min-width: 7rem;
+  border-radius: 1.375rem 1.375rem 1.375rem 0.5rem !important;
+  border: 1px solid var(--sp-peach-edge) !important;
+  background-color: var(--sp-cta) !important;
+  box-shadow: 0 3px 0 var(--sp-peach-edge) !important;
+  color: var(--sp-cta-ink) !important;
+  font-weight: 700 !important;
+}
+
+.ctaButton:hover:not(:disabled) {
+  background-color: var(--sp-cta-hover) !important;
+  box-shadow: 0 5px 0 var(--sp-peach-edge) !important;
+  transform: translateY(-2px);
+}
+
+.loginPrompt {
+  align-self: flex-start;
+  padding: var(--spacing-2) var(--spacing-4);
+  background-color: var(--sp-lavender-tint);
+  border: 1px solid var(--sp-lavender-edge);
+  border-radius: var(--radius-full);
+  color: var(--sp-lavender-ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.emptyNote {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--sp-muted);
+}
+
+.reviewList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.reviewRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: 1rem 1.125rem;
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.125rem;
+  box-shadow: var(--sp-shadow);
+}
+
+.reviewRowHead {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.reviewDate {
+  font-size: 0.75rem;
+  color: var(--sp-muted);
+}
+
+.reviewText {
+  margin: 0;
+  color: var(--sp-text);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Sidebar cards --------------------------------------------------------------- */
+
+.factsCard,
+.socialCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: 1.25rem;
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.25rem;
+  box-shadow: var(--sp-shadow);
+}
+
+.factsTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--sp-ink);
+}
+
+.factsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  margin: 0;
+}
+
+.factRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.factLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--sp-muted);
+}
+
+.factValue {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--sp-ink);
+  word-break: break-word;
+}
+
+.factValue a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.factValue a:hover {
+  color: var(--sp-lavender-ink);
+  text-decoration: underline;
+}
+
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sidebar {
+    position: static;
+  }
+}
+
+@media (max-width: 720px) {
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .followButton {
+    width: 100%;
+  }
+}

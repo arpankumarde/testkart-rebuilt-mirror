@@ -25,6 +25,8 @@ import { Textarea } from '../components/Textarea';
 import { PublicCommentItem } from '../endpoints/blog/comments/list_GET.schema';
 import type { PublicPostListItem } from '../endpoints/blog/list_GET.schema';
 import { getSessionId } from '../helpers/getSessionId';
+import { NotFoundState } from '../components/NotFoundState';
+import { isNotFoundError } from '../helpers/isNotFoundError';
 import styles from './blog.$blogSlug.module.css';
 
 const formatDate = (date: string | Date) => {
@@ -352,18 +354,22 @@ export default function BlogPostDetail() {
     );
   }
 
-  if (error || !post) {
+  if (error && !isNotFoundError(error)) {
     return (
       <div className={styles.pageWrapper}>
         <div className={styles.container}>
           <div className={styles.stateContainer}>
-            <h2>Article Not Found</h2>
-            <p>The article you are looking for does not exist or has been removed.</p>
+            <h2>Could not load this article</h2>
+            <p>Something went wrong on our side. Please try again in a moment.</p>
             <Button asChild className={styles.ctaPill}><Link to="/blog">Back to Blog</Link></Button>
           </div>
         </div>
       </div>
     );
+  }
+
+  if (!post) {
+    return <NotFoundState kind="blog" />;
   }
 
   const canonicalUrl = `https://testkart.in/blog/${post.slug}`;

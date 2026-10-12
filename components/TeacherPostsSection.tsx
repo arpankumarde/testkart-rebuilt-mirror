@@ -47,33 +47,35 @@ export const TeacherPostsSection: React.FC<TeacherPostsSectionProps> = ({ teache
         <h2 className={styles.sectionTitle}>{shortName}'s Community Posts</h2>
       </div>
 
-      {isFetching && !data ? (
-        <div className={styles.skeletonList}>
-          <Skeleton style={{ height: "5rem", borderRadius: "var(--radius-md)" }} />
-        </div>
-      ) : (
-        <ul className={styles.list}>
-          {posts.map((post) => (
-            <li key={post.id} className={styles.post}>
-              <p className={styles.postBody}>{post.body}</p>
-              {post.imageUrl && <img src={post.imageUrl} alt="" className={styles.postImage} />}
-              <div className={styles.postFooter}>
-                <span className={styles.postDate}>{formatDate(post.createdAt)}</span>
-                <button
-                  type="button"
-                  className={`${styles.likeButton} ${post.likedByMe ? styles.liked : ""}`}
-                  onClick={() => handleLike(post.id)}
-                  disabled={likeMutation.isPending}
-                  aria-pressed={post.likedByMe}
-                >
-                  <Heart size={15} aria-hidden="true" fill={post.likedByMe ? "currentColor" : "none"} />
-                  {post.likeCount > 0 ? post.likeCount : "Like"}
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+      <div className={styles.panel}>
+        {isFetching && !data ? (
+          <div className={styles.skeletonList}>
+            <Skeleton style={{ height: "5rem", borderRadius: "1.25rem" }} />
+          </div>
+        ) : (
+          <ul className={styles.list}>
+            {posts.map((post) => (
+              <li key={post.id} className={styles.post}>
+                <p className={styles.postBody}>{post.body}</p>
+                {post.imageUrl && <img src={post.imageUrl} alt="" className={styles.postImage} />}
+                <div className={styles.postFooter}>
+                  <span className={styles.postDate}>{formatDate(post.createdAt)}</span>
+                  <button
+                    type="button"
+                    className={`${styles.likeButton} ${post.likedByMe ? styles.liked : ""}`}
+                    onClick={() => handleLike(post.id)}
+                    disabled={likeMutation.isPending}
+                    aria-pressed={post.likedByMe}
+                  >
+                    <Heart size={15} aria-hidden="true" fill={post.likedByMe ? "currentColor" : "none"} />
+                    {post.likeCount > 0 ? post.likeCount : "Like"}
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </section>
   );
 };

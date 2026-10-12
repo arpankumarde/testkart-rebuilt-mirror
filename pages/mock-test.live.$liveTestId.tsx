@@ -17,6 +17,8 @@ import { TeacherCtaBanner } from "../components/TeacherCtaBanner";
 import { PublicCouponsCard } from "../components/PublicCouponsCard";
 import { getLiveTestStatus } from "../helpers/useLiveTestHelpers";
 import { useTrackStorefrontView } from "../helpers/trackStorefrontEvent";
+import { NotFoundState } from "../components/NotFoundState";
+import { isNotFoundError } from "../helpers/isNotFoundError";
 import styles from "./mock-test.live.$liveTestId.module.css";
 
 type Tab = "about" | "leaderboard";
@@ -67,20 +69,21 @@ const LiveTestDetailsPage: React.FC = () => {
     return <LiveTestDetailsSkeleton />;
   }
 
-  if (error || !data) {
+  if (error && !isNotFoundError(error)) {
     return (
       <div className={styles.errorContainer}>
         <AlertTriangle size={48} />
-        <h1>Test Not Found</h1>
-        <p>
-          The live test you are looking for does not exist or may have been
-          removed.
-        </p>
+        <h1>Could not load this live test</h1>
+        <p>Something went wrong on our side. Please try again in a moment.</p>
         <PlayfulButton asChild tone="primary" size="lg">
           <Link to="/mock-test/live">Browse Live Tests</Link>
         </PlayfulButton>
       </div>
     );
+  }
+
+  if (!data) {
+    return <NotFoundState kind="live" />;
   }
 
   const status = getLiveTestStatus(data);

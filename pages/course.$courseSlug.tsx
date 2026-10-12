@@ -14,7 +14,7 @@ import { MobileStickyPurchaseBar } from '../components/MobileStickyPurchaseBar';
 import { PublicCouponsCard } from '../components/PublicCouponsCard';
 import { BundleSuggestions } from '../components/BundleSuggestions';
 import { CourseCard } from '../components/CourseCard';
-import { AlertCircle, BookOpen, FileText, Info, Sparkles, Star, User } from "lucide-react";
+import { AlertCircle, FileText, Info, Sparkles, Star, User } from "lucide-react";
 import { ReviewDialog } from '../components/ReviewDialog';
 import { useAuth } from '../helpers/useAuth';
 import { wrapContentTables } from '../helpers/contentTables';
@@ -22,6 +22,8 @@ import { sanitizeHtml } from '../helpers/sanitizeHtml';
 import { htmlToPlainText } from '../helpers/courseDraft';
 import { Avatar, AvatarImage, AvatarFallback } from '../components/Avatar';
 import { useTrackStorefrontView } from '../helpers/trackStorefrontEvent';
+import { NotFoundState } from '../components/NotFoundState';
+import { isNotFoundError } from '../helpers/isNotFoundError';
 import styles from "./course.$courseSlug.module.css";
 
 type SectionTone = 'peach' | 'mint' | 'lavender' | 'sky' | 'butter';
@@ -205,16 +207,7 @@ export default function CourseDetailsPage() {
   }, [course, courseSlug, reviews, metaDescription]);
 
   if (!courseSlug) {
-    return (
-      <div className={styles.errorContainer}>
-        <AlertCircle size={48} className={styles.errorIcon} />
-        <h2>Invalid Course</h2>
-        <p>The course URL is not valid.</p>
-        <Button asChild>
-          <Link to="/course">Browse Courses</Link>
-        </Button>
-      </div>
-    );
+    return <NotFoundState kind="course" />;
   }
 
   // Only before the first load; a refetch (e.g. after a review) keeps the page in place.
@@ -222,7 +215,7 @@ export default function CourseDetailsPage() {
     return <CourseDetailsSkeleton />;
   }
 
-  if (error) {
+  if (error && !isNotFoundError(error)) {
     return (
       <div className={styles.errorContainer}>
         <AlertCircle size={48} className={styles.errorIcon} />
@@ -236,16 +229,7 @@ export default function CourseDetailsPage() {
   }
 
   if (!course) {
-    return (
-      <div className={styles.errorContainer}>
-        <BookOpen size={48} />
-        <h2>Course Not Found</h2>
-        <p>The course you are looking for does not exist or is not available.</p>
-        <Button asChild>
-          <Link to="/course">Browse Courses</Link>
-        </Button>
-      </div>
-    );
+    return <NotFoundState kind="course" />;
   }
 
   const totalLessons = course.sections.reduce((sum, section) => sum + section.lessons.length, 0);

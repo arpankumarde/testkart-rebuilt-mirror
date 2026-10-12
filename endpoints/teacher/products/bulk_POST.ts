@@ -52,6 +52,8 @@ export async function handle(request: Request): Promise<Response> {
             .selectFrom("digitalProductFiles")
             .select(["productId", "title", "fileUrl", "pageCount"])
             .where("productId", "in", candidateIds)
+            .orderBy("orderIndex", "asc")
+            .orderBy("id", "asc")
             .execute()
         : [];
       const needsReview = user.role !== "admin";
@@ -72,6 +74,7 @@ export async function handle(request: Request): Promise<Response> {
           ...p,
           fileUrls: productFiles.map((f) => f.fileUrl),
           filePageCounts: productFiles.map((f) => f.pageCount),
+          fileTitles: productFiles.map((f) => f.title),
         });
         if (issues.length > 0) {
           failed.push({ id: p.id, title: p.title, reason: formatPublishIssues(issues) });

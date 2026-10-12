@@ -112,6 +112,14 @@ describe("getProductPublishIssues", () => {
     expect(getProductPublishIssues({ ...base, fileUrls: [PLACEHOLDER_PDF_URL, fileUrls[0]], filePageCounts: [null, 4] })).toEqual([]);
     expect(getProductPublishIssues({ ...base, fileUrls: [PLACEHOLDER_PDF_URL], filePageCounts: [null] })).toEqual(["upload at least one PDF file"]);
   });
+
+  it("names each unchecked file, by title or by position", () => {
+    const base = { title: "Physics notes", description: "Formulas", price: "0.00", pdfUrl: PLACEHOLDER_PDF_URL };
+    const fileUrls = ["https://cdn.testkart.in/a.pdf", "https://cdn.testkart.in/b.pdf", "https://cdn.testkart.in/c.pdf"];
+    const [issue] = getProductPublishIssues({ ...base, fileUrls, filePageCounts: [null, 5, null], fileTitles: ["Unit 1", "Unit 2", " "] });
+    expect(issue).toContain('"Unit 1", "File 3"');
+    expect(issue).not.toContain("Unit 2");
+  });
 });
 
 describe("planProductFileSync", () => {

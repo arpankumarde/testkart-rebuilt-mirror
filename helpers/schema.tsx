@@ -75,6 +75,10 @@ export type Numeric = ColumnType<string, number | string, number | string>;
 
 export type OrderStatus = "cancelled" | "completed" | "failed" | "pending" | "refunded";
 
+export type OrganizationMembershipStatus = "approved" | "pending" | "rejected";
+
+export type OrganizationType = "coaching" | "college" | "other" | "school" | "university";
+
 export type PrizeDistributionStatus = "distributed" | "not_applicable" | "pending";
 
 export type PrizeFundSource = "enrollment" | "teacher_wallet";
@@ -1025,6 +1029,67 @@ export interface Orders {
   userId: number;
 }
 
+export interface OrganizationFollows {
+  createdAt: Generated<Timestamp>;
+  id: Generated<number>;
+  organizationId: number;
+  studentId: number;
+}
+
+export interface OrganizationGalleryItems {
+  caption: string | null;
+  createdAt: Generated<Timestamp>;
+  fileId: string | null;
+  id: Generated<number>;
+  mediaType: string;
+  orderIndex: Generated<number>;
+  organizationId: number;
+  url: string;
+}
+
+export interface OrganizationReviews {
+  createdAt: Generated<Timestamp>;
+  id: Generated<number>;
+  organizationId: number;
+  rating: number;
+  reviewText: string | null;
+  studentId: number;
+  updatedAt: Generated<Timestamp>;
+}
+
+export interface Organizations {
+  coverImageFileId: string | null;
+  coverImageUrl: string | null;
+  createdAt: Generated<Timestamp>;
+  createdByTeacherId: number;
+  description: string | null;
+  foundedYear: number | null;
+  id: Generated<number>;
+  instituteSize: string | null;
+  isActive: Generated<boolean>;
+  location: string | null;
+  logoFileId: string | null;
+  logoUrl: string | null;
+  name: string;
+  orgType: Generated<OrganizationType>;
+  phoneNumber: string | null;
+  slug: string;
+  socialLinks: Json | null;
+  specialties: Json | null;
+  updatedAt: Generated<Timestamp>;
+  websiteUrl: string | null;
+}
+
+export interface OrganizationTeachers {
+  id: Generated<number>;
+  organizationId: number;
+  requestedAt: Generated<Timestamp>;
+  respondedAt: Timestamp | null;
+  respondedByTeacherId: number | null;
+  status: Generated<OrganizationMembershipStatus>;
+  teacherId: number;
+}
+
 export interface OtpVerifyFailures {
   createdAt: Generated<Timestamp>;
   id: Generated<number>;
@@ -1784,6 +1849,11 @@ export interface DB {
   oauthStates: OauthStates;
   orderItems: OrderItems;
   orders: Orders;
+  organizationFollows: OrganizationFollows;
+  organizationGalleryItems: OrganizationGalleryItems;
+  organizationReviews: OrganizationReviews;
+  organizations: Organizations;
+  organizationTeachers: OrganizationTeachers;
   otpVerifyFailures: OtpVerifyFailures;
   pdfPreviewPages: PdfPreviewPages;
   pdfRecoveryJobs: PdfRecoveryJobs;
@@ -1881,6 +1951,8 @@ export const GumletPushStatusArrayValues: [GumletPushStatus, ...GumletPushStatus
 export const TeacherAssetKindArrayValues: [TeacherAssetKind, ...TeacherAssetKind[]] = ["pdf","video"];
 export const MuxPushStatusArrayValues: [MuxPushStatus, ...MuxPushStatus[]] = ["failed","ready","submitted"];
 export const TeacherCampaignClaimStatusArrayValues: [TeacherCampaignClaimStatus, ...TeacherCampaignClaimStatus[]] = ["claimed","credited","declined","reversed","withdrawn"];
+export const OrganizationTypeArrayValues: [OrganizationType, ...OrganizationType[]] = ["coaching","college","other","school","university"];
+export const OrganizationMembershipStatusArrayValues: [OrganizationMembershipStatus, ...OrganizationMembershipStatus[]] = ["approved","pending","rejected"];
 // Table/column names whose snake_case spelling kysely's default CamelCasePlugin
 // cannot recover from the camelCase name used in code (an underscore directly
 // before a digit, e.g. reminder_48h_sent ⇄ reminder48hSent). The db helper's

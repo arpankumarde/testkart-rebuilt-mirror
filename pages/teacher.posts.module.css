@@ -1,46 +1,60 @@
+/*
+ * Spotlight/showcase card language (base.css --sp-*), same family as
+ * TeacherSubscriptionAvailablePlans and CurrentSubscriptionStatus: an ivory
+ * panel, white rounded cards, a peach 3D pill CTA. A two-column layout -
+ * feed + a stats/tips rail - so the page doesn't read as a narrow strip of
+ * content on a wide desktop viewport.
+ */
+
 /* No padding of its own - TeacherDashboardLayout's .pageBody already owns
-   the gutter (var(--spacing-8) desktop / var(--spacing-4) mobile). Padding
-   here on top of that doubled the inset and threw off alignment with every
-   other teacher console page. */
+   the gutter (var(--spacing-8) desktop / var(--spacing-4) mobile). */
 .page {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
   width: 100%;
-  max-width: 44rem;
 }
 
-.followerPill {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-1) var(--spacing-3);
-  border-radius: var(--radius-full);
-  background-color: var(--muted);
-  color: var(--muted-foreground);
-  font-size: 0.8125rem;
-  font-weight: 600;
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20rem;
+  align-items: start;
+  gap: 1.25rem;
 }
 
-.intro {
-  margin: 0;
-  color: var(--muted-foreground);
-  font-size: 0.9375rem;
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
 }
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  position: sticky;
+  top: var(--spacing-6);
+}
+
+/* Composer ---------------------------------------------------------------- */
 
 .composer {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-3);
   padding: 1.25rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background-color: var(--card);
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.25rem;
+  box-shadow: var(--sp-shadow);
 }
 
 .textarea {
   resize: vertical;
   min-height: 6rem;
+  background-color: var(--sp-surface);
+  border-color: var(--sp-line);
 }
 
 .composerFooter {
@@ -62,18 +76,22 @@
   align-items: center;
   gap: var(--spacing-2);
   padding: var(--spacing-2) var(--spacing-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background-color: var(--surface);
-  color: var(--foreground);
+  border: 1px solid var(--sp-line);
+  border-radius: var(--radius-full);
+  background-color: var(--sp-surface);
+  color: var(--sp-text);
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: border-color var(--animation-duration-fast) ease;
+  transition: border-color var(--animation-duration-fast) ease,
+    background-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
 }
 
 .imageButton:hover {
-  border-color: var(--tk-brand-deep);
+  border-color: var(--sp-lavender-edge);
+  background-color: var(--sp-lavender-tint);
+  color: var(--sp-lavender-ink);
 }
 
 .hiddenInput {
@@ -82,7 +100,40 @@
 
 .charCount {
   font-size: 0.75rem;
-  color: var(--muted-foreground);
+  color: var(--sp-muted);
+}
+
+/* The spotlight's peach 3D pill CTA - !important mirrors .subscribeButton,
+   needed to beat the shared Button component's own variant styles. */
+.postButton {
+  min-width: 6rem;
+  border-radius: 1.375rem 1.375rem 1.375rem 0.5rem !important;
+  border: 1px solid var(--sp-peach-edge) !important;
+  background-color: var(--sp-cta) !important;
+  box-shadow: 0 3px 0 var(--sp-peach-edge) !important;
+  color: var(--sp-cta-ink) !important;
+  font-weight: 700 !important;
+  transition: background-color var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease !important;
+}
+
+.postButton:hover:not(:disabled) {
+  background-color: var(--sp-cta-hover) !important;
+  box-shadow: 0 5px 0 var(--sp-peach-edge) !important;
+  transform: translateY(-2px);
+}
+
+.postButton:active:not(:disabled) {
+  box-shadow: 0 1px 0 var(--sp-peach-edge) !important;
+  transform: translateY(2px);
+}
+
+.postButton:disabled {
+  background-color: var(--sp-surface) !important;
+  border-color: var(--sp-line) !important;
+  box-shadow: none !important;
+  color: var(--sp-muted) !important;
 }
 
 .imagePreview {
@@ -94,7 +145,7 @@
 .imagePreview img {
   max-width: 100%;
   max-height: 16rem;
-  border-radius: var(--radius-md);
+  border-radius: 1rem;
   display: block;
 }
 
@@ -117,29 +168,68 @@
 .formError {
   margin: 0;
   font-size: 0.8125rem;
-  color: var(--destructive);
+  color: var(--error-text);
 }
 
+/* Post list ----------------------------------------------------------------- */
+
+/* A tiled grid rather than one card stretched across the whole column. */
 .list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  align-items: start;
   gap: var(--spacing-3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .post {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-3);
+  --accent-tint: var(--sp-lavender-tint);
+  --accent-edge: var(--sp-lavender-edge);
+  --accent-ink: var(--sp-lavender-ink);
+  position: relative;
   padding: var(--spacing-4) 1.25rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background-color: var(--card);
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.25rem;
+  box-shadow: var(--sp-shadow);
 }
 
-.postBody p {
+.post::before {
+  content: "";
+  position: absolute;
+  top: var(--spacing-4);
+  right: var(--spacing-4);
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 50%;
+  background-color: var(--accent-edge);
+}
+
+.list li:nth-child(2) {
+  --accent-tint: var(--sp-sage-tint);
+  --accent-edge: var(--sp-sage-edge);
+  --accent-ink: var(--sp-sage-ink);
+}
+
+.list li:nth-child(3) {
+  --accent-tint: var(--sp-blue-tint);
+  --accent-edge: var(--sp-blue-edge);
+  --accent-ink: var(--sp-blue-ink);
+}
+
+.list li:nth-child(4) {
+  --accent-tint: var(--sp-peach-tint);
+  --accent-edge: var(--sp-peach-edge);
+  --accent-ink: var(--sp-peach-ink);
+}
+
+.postBody {
   margin: 0;
+  padding-right: var(--spacing-4);
   white-space: pre-wrap;
-  color: var(--foreground);
+  color: var(--sp-text);
   font-size: 0.9375rem;
   line-height: 1.5;
 }
@@ -148,7 +238,7 @@
   margin-top: var(--spacing-3);
   max-width: 100%;
   max-height: 20rem;
-  border-radius: var(--radius-md);
+  border-radius: 1rem;
   display: block;
 }
 
@@ -156,6 +246,7 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-4);
+  margin-top: var(--spacing-3);
 }
 
 .postMeta {
@@ -163,14 +254,99 @@
   align-items: center;
   gap: var(--spacing-1);
   font-size: 0.8125rem;
-  color: var(--muted-foreground);
+  color: var(--sp-muted);
 }
 
 .deleteButton {
   margin-left: auto;
-  color: var(--muted-foreground);
+  color: var(--sp-muted);
 }
 
 .deleteButton:hover {
-  color: var(--destructive);
+  color: var(--error-text);
+}
+
+/* Sidebar ------------------------------------------------------------------- */
+
+.statCard {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: 1.25rem;
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.25rem;
+  box-shadow: var(--sp-shadow);
+}
+
+.statIcon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background-color: var(--sp-lavender-tint);
+  color: var(--sp-lavender-ink);
+}
+
+.statValue {
+  display: block;
+  font-family: var(--font-family-heading);
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--sp-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.statLabel {
+  display: block;
+  margin-top: 0.125rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--sp-muted);
+}
+
+.tipCard {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.125rem;
+  box-shadow: var(--sp-shadow);
+}
+
+.tipIcon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--sp-peach-edge);
+}
+
+.tipCard p {
+  margin: 0;
+  color: var(--sp-text);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sidebar {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .statCard,
+  .tipCard {
+    flex: 1 1 14rem;
+  }
 }

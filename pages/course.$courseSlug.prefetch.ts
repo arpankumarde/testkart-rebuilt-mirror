@@ -1,26 +1,22 @@
 import type { PagePrefetchFn } from "@floot/prefetch";
 import { fetchCourseDetailsServer } from "../helpers/fetchCourseDetailsServer";
+import { isNotFoundError } from "../helpers/isNotFoundError";
 
-export const prefetch: PagePrefetchFn = async (ctx) => {
-  const { qc, url } = ctx;
-  
+export const prefetch: PagePrefetchFn = async ({ qc, url }) => {
+  const courseSlug = new URL(url).pathname.split("/").filter(Boolean).pop();
+  if (!courseSlug) return { statusCode: 404, maxAge: 300 };
+
   try {
-    const urlObj = new URL(url);
-    const pathSegments = urlObj.pathname.split('/').filter(Boolean);
-    
-    // Extract courseSlug from the end of the path (e.g., /course/course-slug)
-    const courseSlug = pathSegments[pathSegments.length - 1];
-
-    if (courseSlug) {
-      await qc.prefetchQuery({
-        queryKey: ["public", "courses", "details", courseSlug],
-        queryFn: () => fetchCourseDetailsServer(courseSlug),
-      });
-    }
+    await qc.fetchQuery({
+      queryKey: ["public", "courses", "details", courseSlug],
+      queryFn: () => fetchCourseDetailsServer(courseSlug),
+    });
+    return { maxAge: 300 };
   } catch (error) {
+    // Missing, deleted and unpublished courses render NotFoundState; crawlers get a real 404.
+    if (isNotFoundError(error)) return { statusCode: 404, maxAge: 300 };
     console.error("Error prefetching course details:", error);
+    // Not cached, so a transient database failure is not served to every visitor for five minutes.
+    return { maxAge: 0 };
   }
-  
-  // Cache the page for 5 minutes
-  return { maxAge: 300 };
 };

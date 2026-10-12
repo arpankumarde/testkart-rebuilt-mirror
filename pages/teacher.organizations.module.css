@@ -1,0 +1,356 @@
+/* Spotlight/showcase card language (base.css --sp-*), matching
+   teacher.posts.module.css - an ivory panel, white rounded cards, a peach
+   3D pill CTA, two-column layout (list + join/tips rail). */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20rem;
+  align-items: start;
+  gap: 1.25rem;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  position: sticky;
+  top: var(--spacing-6);
+}
+
+/* CTA button, same peach 3D pill as .postButton / .subscribeButton. */
+.ctaButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-width: 6rem;
+  border-radius: 1.375rem 1.375rem 1.375rem 0.5rem !important;
+  border: 1px solid var(--sp-peach-edge) !important;
+  background-color: var(--sp-cta) !important;
+  box-shadow: 0 3px 0 var(--sp-peach-edge) !important;
+  color: var(--sp-cta-ink) !important;
+  font-weight: 700 !important;
+  transition: background-color var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease !important;
+}
+
+.ctaButton:hover:not(:disabled) {
+  background-color: var(--sp-cta-hover) !important;
+  box-shadow: 0 5px 0 var(--sp-peach-edge) !important;
+  transform: translateY(-2px);
+}
+
+.ctaButton:active:not(:disabled) {
+  box-shadow: 0 1px 0 var(--sp-peach-edge) !important;
+  transform: translateY(2px);
+}
+
+.ctaButton:disabled {
+  background-color: var(--sp-surface) !important;
+  border-color: var(--sp-line) !important;
+  box-shadow: none !important;
+  color: var(--sp-muted) !important;
+}
+
+/* Org list ------------------------------------------------------------- */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.orgCard {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: 1.25rem;
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.25rem;
+  box-shadow: var(--sp-shadow);
+}
+
+.orgAvatar {
+  flex-shrink: 0;
+  width: 3rem;
+  height: 3rem;
+}
+
+.orgMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.orgNameRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.orgName {
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--sp-ink);
+}
+
+.orgSub {
+  font-size: 0.8125rem;
+  color: var(--sp-muted);
+}
+
+.orgActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+}
+
+.leaveButton {
+  color: var(--sp-muted);
+}
+
+.leaveButton:hover {
+  color: var(--error-text);
+}
+
+/* Pending requests ------------------------------------------------------ */
+
+.requestsCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: 1.25rem;
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.25rem;
+  box-shadow: var(--sp-shadow);
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--sp-ink);
+}
+
+.requestsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.requestRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-2) 0;
+}
+
+.requestMeta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.requestName {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--sp-ink);
+}
+
+.requestSub {
+  font-size: 0.75rem;
+  color: var(--sp-muted);
+}
+
+.requestActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  flex-shrink: 0;
+}
+
+.smallAvatar {
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+}
+
+/* Join card -------------------------------------------------------------- */
+
+.joinCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: 1.25rem;
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.25rem;
+  box-shadow: var(--sp-shadow);
+}
+
+.searchRow {
+  display: flex;
+  gap: var(--spacing-2);
+}
+
+.searchInputWrap {
+  position: relative;
+  flex: 1;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--sp-muted);
+}
+
+.searchInput {
+  padding-left: 2.25rem;
+  background-color: var(--sp-surface);
+  border-color: var(--sp-line);
+}
+
+.emptyNote {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--sp-muted);
+}
+
+.searchResults {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.searchResultRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) 0;
+  border-top: 1px solid var(--sp-line);
+}
+
+.searchResultMeta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.searchResultName {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--sp-ink);
+}
+
+.searchResultSub {
+  font-size: 0.75rem;
+  color: var(--sp-muted);
+}
+
+/* Tip card ---------------------------------------------------------------- */
+
+.tipCard {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.125rem;
+  box-shadow: var(--sp-shadow);
+}
+
+.tipIcon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--sp-peach-edge);
+}
+
+.tipCard p {
+  margin: 0;
+  color: var(--sp-text);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+/* Create dialog form ------------------------------------------------------ */
+
+.dialogContent {
+  max-width: 32rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.fieldLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--sp-text);
+}
+
+.formError {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--error-text);
+}
+
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sidebar {
+    position: static;
+  }
+
+  .orgCard {
+    flex-wrap: wrap;
+  }
+}

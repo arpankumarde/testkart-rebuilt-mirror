@@ -19,6 +19,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '../components/Avatar';
 import { Skeleton } from '../components/Skeleton';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '../components/Accordion';
 import { BlogPostCard } from '../components/BlogPostCard';
+import { NotFoundState } from '../components/NotFoundState';
+import { isNotFoundError } from '../helpers/isNotFoundError';
 import styles from './help.$articleSlug.module.css';
 
 const formatDate = (date: string | Date) => {
@@ -104,18 +106,22 @@ export default function KnowledgeBaseArticleDetail() {
     );
   }
 
-  if (error || !post) {
+  if (error && !isNotFoundError(error)) {
     return (
       <div className={styles.pageWrapper}>
         <div className={styles.container}>
           <div className={styles.stateContainer}>
-            <h2>Article Not Found</h2>
-            <p>The knowledge base article you are looking for does not exist.</p>
+            <h2>Could not load this article</h2>
+            <p>Something went wrong on our side. Please try again in a moment.</p>
             <Button asChild><Link to="/help">Back to Knowledge Base</Link></Button>
           </div>
         </div>
       </div>
     );
+  }
+
+  if (!post) {
+    return <NotFoundState kind="help" />;
   }
 
   const canonicalUrl = `https://testkart.in/help/${post.slug}`;

@@ -10,6 +10,7 @@ import { TeacherProductCard } from "./HomepageContentSection";
 import { PublicBundleCard } from "./PublicBundleCard";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "./Accordion";
 import { useInExamSectionShell } from "./ExamSectionLayout";
+import { NotFoundState } from "./NotFoundState";
 import {
   Pagination,
   PaginationContent,
@@ -466,17 +467,7 @@ export const ExamProductListingPage: React.FC<ExamProductListingPageProps> = ({ 
   }
 
   if (!examDetail) {
-    return (
-      <div className={styles.pageContainer}>
-        <div className={styles.stateContainer}>
-          <h2>Exam Not Found</h2>
-          <p>We couldn't find the exam you're looking for.</p>
-          <Button asChild variant="primary">
-            <Link to="/exams">Browse All Exams</Link>
-          </Button>
-        </div>
-      </div>
-    );
+    return <NotFoundState kind="exam" />;
   }
 
   const hubUrl = `/exams/${examDetail.examSlug}`;

@@ -1,0 +1,484 @@
+/*
+ * Contextual 404 state in the spotlight card language (--sp-* tokens): an ivory
+ * hero with a pastel icon tile, one coral primary action, then a row of live
+ * recommendations. Every colour pairs a solid tint with its own ink.
+ */
+.page {
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: var(--spacing-8) var(--spacing-4) var(--spacing-16);
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--spacing-8);
+  align-items: start;
+  padding: 2.25rem 2.5rem;
+  background-color: var(--sp-surface);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.75rem;
+  box-shadow: var(--sp-shadow);
+}
+
+.iconTile {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: 1.5rem;
+  transform: rotate(-4deg);
+}
+
+.iconTile svg {
+  width: 2.5rem;
+  height: 2.5rem;
+  stroke-width: 1.75;
+}
+
+.codeTag {
+  position: absolute;
+  right: -0.875rem;
+  bottom: -0.625rem;
+  padding: 0.25rem 0.625rem;
+  font-family: var(--font-family-monospace);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--sp-ink);
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line-strong);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow);
+  transform: rotate(8deg);
+}
+
+.iconTile[data-tone="peach"],
+.quickIcon[data-tone="peach"] {
+  background-color: var(--sp-peach-tint);
+  color: var(--sp-peach-ink);
+}
+
+.iconTile[data-tone="lavender"],
+.quickIcon[data-tone="lavender"] {
+  background-color: var(--sp-lavender-tint);
+  color: var(--sp-lavender-ink);
+}
+
+.iconTile[data-tone="sage"],
+.quickIcon[data-tone="sage"] {
+  background-color: var(--sp-sage-tint);
+  color: var(--sp-sage-ink);
+}
+
+.iconTile[data-tone="blue"],
+.quickIcon[data-tone="blue"] {
+  background-color: var(--sp-blue-tint);
+  color: var(--sp-blue-ink);
+}
+
+.iconTile[data-tone="mint"],
+.quickIcon[data-tone="mint"] {
+  background-color: var(--sp-mint-tint);
+  color: var(--sp-sage-ink);
+}
+
+.heroBody {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  margin-bottom: var(--spacing-3);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--sp-lavender-ink);
+  background-color: var(--sp-lavender-tint);
+  border: 1px solid var(--sp-lavender-edge);
+  border-radius: var(--radius-full);
+}
+
+.title {
+  margin: 0 0 var(--spacing-3);
+  font-family: var(--font-family-heading);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--sp-ink);
+}
+
+.message {
+  max-width: 40rem;
+  margin: 0;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: var(--sp-text);
+}
+
+.path {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2);
+  max-width: 100%;
+  margin: var(--spacing-4) 0 0;
+  font-size: 0.8125rem;
+  color: var(--sp-muted);
+}
+
+.pathLabel {
+  font-weight: 600;
+}
+
+.pathValue {
+  max-width: 100%;
+  padding: 0.125rem 0.5rem;
+  font-family: var(--font-family-monospace);
+  font-size: 0.8125rem;
+  color: var(--sp-ink);
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: var(--radius);
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-6);
+}
+
+/*
+ * Pastel peach skin over PlayfulButton for these actions, in place of its
+ * coral fill and deep orange hover. The doubled class outranks PlayfulButton's
+ * unlayered rules whatever order the stylesheets load in. --sp-cta stays the
+ * same peach in both themes, like the other spotlight CTAs.
+ */
+.ctaPrimary.ctaPrimary {
+  background-color: var(--sp-cta);
+  border-color: var(--sp-cta);
+  color: var(--sp-cta-ink);
+  box-shadow: 0 1px 2px hsl(24 40% 30% / 0.12);
+}
+
+.ctaPrimary.ctaPrimary:hover:not(:disabled) {
+  background-color: var(--sp-cta-hover);
+  border-color: var(--sp-cta-hover);
+  color: var(--sp-cta-ink);
+  box-shadow: var(--sp-shadow-hover);
+}
+
+.ctaPrimary.ctaPrimary:active:not(:disabled) {
+  background-color: color-mix(in srgb, var(--sp-cta-hover) 90%, var(--sp-cta-ink));
+  border-color: color-mix(in srgb, var(--sp-cta-hover) 90%, var(--sp-cta-ink));
+  box-shadow: none;
+}
+
+.ctaSoft.ctaSoft:hover:not(:disabled) {
+  background-color: var(--sp-peach-tint);
+  border-color: var(--sp-peach-edge);
+  color: var(--sp-ink);
+  box-shadow: var(--sp-shadow-hover);
+}
+
+.ctaSoft.ctaSoft:active:not(:disabled) {
+  background-color: var(--sp-peach-tint);
+  border-color: var(--sp-peach-edge);
+  color: var(--sp-ink);
+  box-shadow: none;
+}
+
+.ctaPrimary.ctaPrimary:focus-visible,
+.ctaSoft.ctaSoft:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--background),
+    0 0 0 4px var(--sp-peach-edge);
+}
+
+.recs {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.recs + .recs {
+  margin-top: -0.5rem;
+}
+
+.recsHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+}
+
+.recsTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.recsIcon {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.875rem;
+  color: var(--sp-lavender-ink);
+  background-color: var(--sp-lavender-tint);
+}
+
+.recsIcon svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.viewAll,
+.noticeLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--tk-brand-text);
+  text-decoration: none;
+}
+
+.viewAll:hover,
+.noticeLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.viewAll:focus-visible,
+.noticeLink:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  gap: 1.25rem;
+}
+
+.compactGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+  gap: var(--spacing-3);
+}
+
+.skeletonCard {
+  height: 20rem;
+  border-radius: var(--radius-lg);
+}
+
+.skeletonCompact {
+  height: 4.25rem;
+  border-radius: var(--radius-lg);
+}
+
+.notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4) 1.25rem;
+  color: var(--sp-text);
+  background-color: var(--sp-surface);
+  border: 1px dashed var(--sp-line-strong);
+  border-radius: var(--radius-lg);
+}
+
+.notice p {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.teacherCard,
+.examChip,
+.quickLink {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  min-width: 0;
+  padding: 0.875rem var(--spacing-4);
+  color: var(--card-foreground);
+  text-decoration: none;
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--sp-shadow);
+  transition:
+    border-color var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
+}
+
+.teacherCard:hover,
+.quickLink:hover {
+  border-color: var(--sp-lavender-edge);
+  box-shadow: var(--sp-shadow-hover);
+  transform: translateY(-1px);
+}
+
+.examChip:hover {
+  border-color: var(--sp-sage-edge);
+  box-shadow: var(--sp-shadow-hover);
+  transform: translateY(-1px);
+}
+
+.teacherCard:focus-visible,
+.examChip:focus-visible,
+.quickLink:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.teacherAvatar {
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+.teacherFallback {
+  font-weight: 700;
+  color: var(--sp-lavender-ink);
+  background-color: var(--sp-lavender-tint);
+}
+
+.teacherBody,
+.quickText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.teacherName {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.teacherNameText,
+.examName,
+.quickLabel {
+  overflow: hidden;
+  font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--foreground);
+}
+
+.teacherMeta,
+.examCount,
+.quickHint {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.teacherArrow,
+.quickArrow {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+
+.examChip {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.125rem;
+}
+
+.examName {
+  max-width: 100%;
+}
+
+.quickGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+  gap: var(--spacing-3);
+}
+
+.quickIcon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.875rem;
+}
+
+.quickIcon svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding-top: var(--spacing-6);
+    gap: var(--spacing-8);
+  }
+
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--spacing-6);
+    padding: 1.75rem 1.25rem;
+    border-radius: 1.5rem;
+  }
+
+  .iconTile {
+    width: 4.25rem;
+    height: 4.25rem;
+    border-radius: 1.25rem;
+  }
+
+  .iconTile svg {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .message {
+    font-size: 1rem;
+  }
+
+  .actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .actions > * {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .teacherCard:hover,
+  .examChip:hover,
+  .quickLink:hover {
+    transform: none;
+  }
+}

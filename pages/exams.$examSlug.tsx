@@ -1,11 +1,10 @@
 import React from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { useQuery } from "@tanstack/react-query";
 
 import { SEOHead } from "../components/SEOHead";
 import { Skeleton } from "../components/Skeleton";
-import { Button } from "../components/Button";
 import { ExamProductsSection, ExamProductsSectionSkeleton } from "../components/ExamProductsSection";
 import { useInExamSectionShell } from "../components/ExamSectionLayout";
 
@@ -14,6 +13,7 @@ import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "..
 import { useExamDetailQuery } from "../helpers/useExamDetail";
 import { wrapContentTables } from "../helpers/contentTables";
 import { sanitizeHtml } from "../helpers/sanitizeHtml";
+import { NotFoundState } from "../components/NotFoundState";
 
 import styles from "./exams.$examSlug.module.css";
 
@@ -144,17 +144,7 @@ export default function ExamDetailPage() {
   }
 
   if (!examDetail) {
-    return (
-      <div className={styles.pageContainer}>
-        <div className={styles.stateContainer}>
-          <h2>Exam Not Found</h2>
-          <p>We couldn't find the exam you're looking for.</p>
-          <Button asChild variant="primary" className={styles.returnButton}>
-            <Link to="/exams">Browse All Exams</Link>
-          </Button>
-        </div>
-      </div>
-    );
+    return <NotFoundState kind="exam" />;
   }
 
   const pageTitle = `${examDetail.fullName || examDetail.examName} | Testkart`;

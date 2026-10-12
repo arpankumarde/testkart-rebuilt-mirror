@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { SEOHead } from '../components/SEOHead';
 import { Placeholder } from '../helpers/placeholderImages';
@@ -10,6 +10,8 @@ import { useBundleDetailsQuery } from '../helpers/useBundlesQuery';
 import { TeacherCtaBanner } from '../components/TeacherCtaBanner';
 import { useTrackStorefrontView } from '../helpers/trackStorefrontEvent';
 import { bundleDescriptionToPlainText } from '../helpers/bundleDescription';
+import { NotFoundState } from '../components/NotFoundState';
+import { isNotFoundError } from '../helpers/isNotFoundError';
 import styles from './bundles.$bundleSlug.module.css';
 
 const RelatedBundles: React.FC<{ teacherId: number; currentBundleId: number }> = ({ teacherId, currentBundleId }) => {
@@ -34,17 +36,12 @@ const RelatedBundles: React.FC<{ teacherId: number; currentBundleId: number }> =
 
 const BundleDetailsPage: React.FC = () => {
   const { bundleSlug } = useParams<{ bundleSlug: string }>();
-  const { data: bundle } = useBundleDetailsQuery(bundleSlug || '');
+  const { data: bundle, isFetching, error } = useBundleDetailsQuery(bundleSlug || '');
   useTrackStorefrontView("bundle", bundle?.id);
 
-  if (!bundleSlug) {
-    return (
-      <div className={styles.errorState}>
-        <h2>Invalid URL</h2>
-        <p>The bundle you are looking for could not be found.</p>
-        <Link to="/bundles">Browse Bundles</Link>
-      </div>
-    );
+  // Rendered here rather than inside BundleDetailsView so it sits outside this page's container.
+  if (!bundleSlug || (!bundle && !isFetching && (!error || isNotFoundError(error)))) {
+    return <NotFoundState kind="bundle" />;
   }
 
   const pageUrl = `${window.location.origin}/bundles/${bundleSlug}`;

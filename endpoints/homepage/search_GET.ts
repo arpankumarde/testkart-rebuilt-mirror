@@ -1,6 +1,6 @@
 import { db } from "../../helpers/db";
 import { sql } from "kysely";
-import { OutputType, SearchTeacherItem, schema } from "./search_GET.schema";
+import { OutputType, SearchTeacherItem, SearchOrganizationItem, schema } from "./search_GET.schema";
 import superjson from "superjson";
 import { courseDiscountPrice } from "../../helpers/coursePricing";
 
@@ -238,12 +238,50 @@ export async function handle(request: Request): Promise<Response> {
       .limit(5)
       .execute();
 
-    const [tests, courses, bundles, products, teachers] = await Promise.all([
+    // 6. Search Organisations (coaching/school/college/university pages)
+    const organizationsPromise = db
+      .selectFrom("organizations")
+      .select([
+        "organizations.id",
+        "organizations.name",
+        "organizations.slug",
+        "organizations.orgType",
+        "organizations.logoUrl",
+        "organizations.location",
+      ])
+      .select(() => [
+        sql<number>`(
+          SELECT COUNT(*) FROM organization_teachers
+          WHERE organization_teachers.organization_id = organizations.id
+          AND organization_teachers.status = 'approved'
+        )`.as("teacherCount"),
+        sql<number>`(
+          SELECT COUNT(*) FROM organization_follows
+          WHERE organization_follows.organization_id = organizations.id
+        )`.as("followerCount"),
+      ])
+      .where("organizations.isActive", "=", true)
+      .where((eb) =>
+        eb.or([
+          eb("organizations.name", "ilike", searchTerm),
+          eb("organizations.description", "ilike", searchTerm),
+          eb("organizations.location", "ilike", searchTerm),
+        ])
+      )
+      .orderBy(
+        sql`(SELECT COUNT(*) FROM organization_follows WHERE organization_follows.organization_id = organizations.id)`,
+        "desc"
+      )
+      .limit(limit)
+      .execute();
+
+    const [tests, courses, bundles, products, teachers, organizations] = await Promise.all([
       testsPromise,
       coursesPromise,
       bundlesPromise,
       productsPromise,
       teachersPromise,
+      organizationsPromise,
     ]);
 
     const formattedTests: OutputType["tests"] = tests.map((t) => ({
@@ -331,12 +369,24 @@ export async function handle(request: Request): Promise<Response> {
       studentCount: Number(t.studentCount ?? 0),
     }));
 
+    const formattedOrganizations: SearchOrganizationItem[] = organizations.map((o) => ({
+      id: o.id,
+      name: o.name,
+      slug: o.slug,
+      orgType: o.orgType,
+      logoUrl: o.logoUrl ?? null,
+      location: o.location ?? null,
+      teacherCount: Number(o.teacherCount ?? 0),
+      followerCount: Number(o.followerCount ?? 0),
+    }));
+
     const totalResults =
       formattedTests.length +
       formattedCourses.length +
       formattedBundles.length +
       formattedProducts.length +
-      formattedTeachers.length;
+      formattedTeachers.length +
+      formattedOrganizations.length;
 
     const output: OutputType = {
       tests: formattedTests,
@@ -344,6 +394,7 @@ export async function handle(request: Request): Promise<Response> {
       bundles: formattedBundles,
       products: formattedProducts,
       teachers: formattedTeachers,
+      organizations: formattedOrganizations,
       totalResults,
     };
 

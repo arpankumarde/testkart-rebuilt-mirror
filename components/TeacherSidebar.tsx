@@ -29,6 +29,7 @@ import {
   Headset,
   Gift,
   Megaphone,
+  Building2,
 } from 'lucide-react';
 import { useAuth } from '../helpers/useAuth';
 import { Button } from './Button';
@@ -131,6 +132,12 @@ const NAV_GROUPS: TeacherNavGroup[] = [
     items: [
       { href: '/teacher/earnings', label: 'Earnings', icon: BarChart3, ownerOnly: true },
       { href: '/teacher/edit-profile', label: 'Profile', icon: UserCog, ownerOnly: true },
+      {
+        href: '/teacher/organizations',
+        label: 'Organisations',
+        icon: Building2,
+        isActiveFor: (p) => p.startsWith('/teacher/organizations'),
+      },
       { href: '/teacher/settings', label: 'Settings', icon: Settings, ownerOnly: true },
       { href: '/teacher/subscription', label: 'Fees & billing', icon: CreditCard, ownerOnly: true },
       { href: '/teacher/support', label: 'Contact support', icon: Headset },

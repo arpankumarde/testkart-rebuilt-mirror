@@ -7,6 +7,7 @@ import {
   getBundlesDetails,
   InputType as DetailsInputType,
 } from "../endpoints/bundles/details_GET.schema";
+import { isNotFoundError } from "./isNotFoundError";
 
 export const PUBLIC_BUNDLES_QUERY_KEY = ["public", "bundles"];
 export const PUBLIC_BUNDLE_DETAILS_QUERY_KEY = (slug: string) => [
@@ -43,5 +44,6 @@ export const useBundleDetailsQuery = (slug: string | null) => {
     queryFn: () => getBundlesDetails({ slug: slug! }),
     enabled: !!slug,
     staleTime: 10 * 60 * 1000,
+    retry: (failureCount, error) => !isNotFoundError(error) && failureCount < 3,
   });
 };

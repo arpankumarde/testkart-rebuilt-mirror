@@ -43,6 +43,8 @@ import { toast } from "sonner";
 import { AssetTopRow } from "../components/AssetTopRow";
 import { useTrackStorefrontView } from "../helpers/trackStorefrontEvent";
 import { PublicCouponsCard } from "../components/PublicCouponsCard";
+import { NotFoundState } from "../components/NotFoundState";
+import { isNotFoundError } from "../helpers/isNotFoundError";
 import styles from "./study-notes.$noteSlug.module.css";
 
 const ProductDetailsPage: React.FC = () => {
@@ -65,7 +67,7 @@ const ProductDetailsPage: React.FC = () => {
   const isTeacher = authState.type === 'authenticated' && authState.user.role === 'teacher';
   
   // 3. Query hooks
-  const { data, isLoading, isError } = useShopProductDetails(noteSlug || null);
+  const { data, isLoading, isError, error } = useShopProductDetails(noteSlug || null);
   const { data: cartData } = useCartItemsQuery();
   const addToCartMutation = useAddToCartMutation();
   const queryClient = useQueryClient();
@@ -273,17 +275,21 @@ const ProductDetailsPage: React.FC = () => {
   }
 
   // 7. Early returns for Error/Not Found state
-  if (isError || !product) {
+  if (isError && !isNotFoundError(error)) {
     return (
       <div className={styles.errorContainer}>
         <AlertCircle size={48} className={styles.errorIcon} />
-        <h1>Product Not Found</h1>
-        <p>The product you are looking for does not exist or has been removed.</p>
+        <h1>Could not load these notes</h1>
+        <p>Something went wrong on our side. Please try again in a moment.</p>
         <Button asChild variant="outline" style={{ marginTop: "1rem" }}>
           <Link to="/study-notes">Back to Shop</Link>
         </Button>
       </div>
     );
+  }
+
+  if (!product) {
+    return <NotFoundState kind="notes" />;
   }
 
   // 8. Variables that depend on product being defined (after early returns)

@@ -59,12 +59,15 @@ export async function handle(request: Request): Promise<Response> {
       .selectFrom("digitalProductFiles")
       .select(["title", "fileUrl", "pageCount"])
       .where("productId", "=", input.id)
+      .orderBy("orderIndex", "asc")
+      .orderBy("id", "asc")
       .execute();
 
     const issues = getProductPublishIssues({
       ...product,
       fileUrls: files.map((f) => f.fileUrl),
       filePageCounts: files.map((f) => f.pageCount),
+      fileTitles: files.map((f) => f.title),
     });
     if (issues.length > 0) {
       return new Response(

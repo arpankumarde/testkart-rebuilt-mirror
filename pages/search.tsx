@@ -1,17 +1,55 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { Search as SearchIcon, ArrowRight, PackageOpen, BookOpen, ShoppingBag, Layers, User, FileText } from 'lucide-react';
+import { Search as SearchIcon, ArrowRight, PackageOpen, BookOpen, ShoppingBag, Layers, User, FileText, Building2 } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
 import { Button } from '../components/Button';
 import { Skeleton } from '../components/Skeleton';
 import { VerifiedBadge } from '../components/VerifiedBadge';
 import { useHomepageSearch } from '../helpers/useHomepageSearch';
 import { useDebounce } from '../helpers/useDebounce';
-import { SearchResultItem, SearchTeacherItem } from '../endpoints/homepage/search_GET.schema';
+import { SearchResultItem, SearchTeacherItem, SearchOrganizationItem } from '../endpoints/homepage/search_GET.schema';
 import { TeacherProductCard } from '../components/HomepageContentSection';
 import { Placeholder } from '../helpers/placeholderImages';
 import { bundlePriceProps, formatItemPrice, itemPriceProps } from '../helpers/homepageItemUtils';
+import { getOrganizationProfilePath } from '../helpers/organizationRoutes';
 import styles from './search.module.css';
+
+const ORG_TYPE_LABELS: Record<string, string> = {
+  coaching: 'Coaching institute',
+  school: 'School',
+  college: 'College',
+  university: 'University',
+  other: 'Organisation',
+};
+
+const OrganizationResultCard = ({ organization }: { organization: SearchOrganizationItem }) => {
+  return (
+    <Link
+      to={getOrganizationProfilePath(organization.orgType, organization.slug)}
+      className={styles.teacherCard}
+    >
+      <div className={styles.teacherAvatarWrapper}>
+        {organization.logoUrl ? (
+          <img src={organization.logoUrl} alt={organization.name} className={styles.teacherAvatar} />
+        ) : (
+          <div className={styles.teacherAvatarPlaceholder}>
+            <Building2 size={24} className={styles.placeholderIcon} />
+          </div>
+        )}
+      </div>
+      <div className={styles.teacherInfo}>
+        <div className={styles.teacherDisplayNameWrapper}>
+          <h3 className={styles.teacherDisplayName}>{organization.name}</h3>
+        </div>
+        <p className={styles.teacherStats}>
+          {ORG_TYPE_LABELS[organization.orgType] ?? 'Organisation'}
+          {organization.location ? ` • ${organization.location}` : ''} • {organization.teacherCount}{' '}
+          {organization.teacherCount === 1 ? 'teacher' : 'teachers'}
+        </p>
+      </div>
+    </Link>
+  );
+};
 
 const TeacherResultCard = ({ teacher }: { teacher: SearchTeacherItem }) => {
   return (
@@ -63,6 +101,7 @@ export default function SearchPage() {
   const { data, isFetching } = useHomepageSearch(debouncedQuery, 10);
 
   const displayTeachers = data?.teachers || [];
+  const displayOrganizations = data?.organizations || [];
   const displayTests = data?.tests || [];
   const displayCourses = data?.courses || [];
   const displayBundles = data?.bundles || [];
@@ -142,6 +181,36 @@ export default function SearchPage() {
                   ) : (
                     displayTeachers.map(teacher => (
                       <TeacherResultCard key={`teacher-${teacher.id}`} teacher={teacher} />
+                    ))
+                  )}
+                </div>
+              </section>
+            )}
+
+            {/* Organizations Section */}
+            {(isLoading || displayOrganizations.length > 0) && (
+              <section className={styles.section}>
+                <div className={styles.sectionHeader}>
+                  <div className={styles.sectionTitleWrapper}>
+                    <Building2 className={styles.sectionIcon} size={24} />
+                    <h2>Organisations <span className={styles.count}>({displayOrganizations.length})</span></h2>
+                  </div>
+                </div>
+
+                <div className={styles.grid}>
+                  {isLoading ? (
+                    Array(4).fill(0).map((_, i) => (
+                      <div key={i} className={styles.skeletonTeacherCard}>
+                        <Skeleton className={styles.skeletonAvatar} />
+                        <div className={styles.skeletonTeacherInfo}>
+                          <Skeleton className={styles.skeletonTitle} />
+                          <Skeleton className={styles.skeletonText} />
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    displayOrganizations.map(organization => (
+                      <OrganizationResultCard key={`organization-${organization.id}`} organization={organization} />
                     ))
                   )}
                 </div>

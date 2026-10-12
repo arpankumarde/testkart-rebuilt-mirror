@@ -39,6 +39,8 @@ import type { OutputType as BundleDetails } from '../endpoints/bundles/details_G
 import { MobileStickyPurchaseBar } from './MobileStickyPurchaseBar';
 import { AssetTopRow } from './AssetTopRow';
 import { PublicCouponsCard } from './PublicCouponsCard';
+import { NotFoundState } from './NotFoundState';
+import { isNotFoundError } from '../helpers/isNotFoundError';
 import styles from './BundleDetailsView.module.css';
 
 interface BundleDetailsViewProps {
@@ -403,17 +405,21 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
     return <BundleDetailsSkeleton />;
   }
 
-  if (error || !bundle) {
+  if (error && !isNotFoundError(error)) {
     return (
       <div className={styles.errorState}>
         <Info size={48} />
-        <h2>Bundle Not Found</h2>
-        <p>The bundle you are looking for does not exist or may have been removed.</p>
+        <h2>Could not load this bundle</h2>
+        <p>Something went wrong on our side. Please try again in a moment.</p>
         <Button asChild>
           <Link to="/bundles">Browse Bundles</Link>
         </Button>
       </div>
     );
+  }
+
+  if (!bundle) {
+    return <NotFoundState kind="bundle" />;
   }
 
   const finalPrice = Math.max(0, bundle.price - discountAmount);

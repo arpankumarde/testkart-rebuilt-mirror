@@ -22,7 +22,7 @@ import { useUploadLimits } from '../helpers/useUploadLimits';
 import { useUnsavedChangesGuard } from '../helpers/useUnsavedChangesGuard';
 import { uploadFileToR2, type UploadStatus } from '../helpers/useR2Upload';
 import { parseErrorMessage } from '../helpers/parseErrorMessage';
-import { DIGITAL_PRODUCT_CATEGORIES, isRealFileUrl, STUDY_NOTES_PDF_MAX_MB } from '../helpers/digitalProductRules';
+import { DIGITAL_PRODUCT_CATEGORIES, isRealFileUrl, PDF_UNREADABLE_MESSAGE, STUDY_NOTES_PDF_MAX_MB } from '../helpers/digitalProductRules';
 import { checkStudyNotesPdf } from '../helpers/studyNotesPdfCheck';
 import { schema as createSchema } from '../endpoints/teacher/products/create_POST.schema';
 import { postTeacherProductsPdfPageCount, PdfRejectedError } from '../endpoints/teacher/products/pdf-page-count_POST.schema';
@@ -457,13 +457,13 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
     };
   }, [form.values]);
 
-  const buildPayload = useCallback(() => {
+  const buildPayload = useCallback((rows: FileRow[] = form.values.files || []) => {
     const tags = form.values.tagsString
       ? form.values.tagsString.split(',').map(t => t.trim()).filter(Boolean)
       : [];
     // The server derives pdfUrl, size and page totals from this list, and
     // matches rows by id so saved files keep their ids.
-    const files = (form.values.files || [])
+    const files = rows
       .filter(f => isRealFileUrl(f.fileUrl))
       .map(f => ({
         id: f.id ?? null,
@@ -529,7 +529,37 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
     root?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus({ preventScroll: true });
   }, [errorFocusTick]);
 
-  const handleSave = (action: 'save' | 'publish') => {
+  // The server only publishes PDFs it has opened, shown by a page count. The
+  // count taken after upload or on load can fail quietly, so submitting
+  // checks any file still without one and stops on the first that fails.
+  const countUncheckedFiles = async (rows: FileRow[]): Promise<{ rows: FileRow[]; error: string | null }> => {
+    const outcomes = await Promise.all(rows.map(async (f, index): Promise<{ row: FileRow; error?: string }> => {
+      if (!isRealFileUrl(f.fileUrl) || f.pageCount) return { row: f };
+      const label = `"${f.title.trim() || `File ${index + 1}`}"`;
+      try {
+        const { pageCount } = await postTeacherProductsPdfPageCount({ fileUrl: f.fileUrl });
+        if (pageCount > 0) return { row: { ...f, pageCount } };
+        return { row: f, error: `${label}: ${PDF_UNREADABLE_MESSAGE}` };
+      } catch (err) {
+        if (err instanceof PdfRejectedError) {
+          return { row: f, error: `${label}: ${err.message} Use the replace button on this file, then submit again.` };
+        }
+        return {
+          row: f,
+          error: `${label} could not be checked (${parseErrorMessage(err) || 'network error'}). Nothing was saved or submitted. Try again, or replace this file if it keeps failing.`,
+        };
+      }
+    }));
+    const counts = new Map(outcomes.filter((o) => o.row.clientKey && o.row.pageCount).map((o) => [o.row.clientKey, o.row.pageCount]));
+    if (counts.size > 0) {
+      handleFilesChange((prevFiles) =>
+        prevFiles.map((f) => (!f.pageCount && f.clientKey && counts.has(f.clientKey) ? { ...f, pageCount: counts.get(f.clientKey) } : f))
+      );
+    }
+    return { rows: outcomes.map((o) => o.row), error: outcomes.find((o) => o.error)?.error ?? null };
+  };
+
+  const handleSave = async (action: 'save' | 'publish') => {
     if (!form.validateForm()) {
       revealFirstError();
       return;
@@ -539,7 +569,18 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
       return;
     }
     setIsSubmittingAction(action);
-    const payload = buildPayload();
+    let rows = form.values.files || [];
+    if (action === 'publish' && isEditMode && !isPublished && !isInReview && !adminEdit) {
+      const checked = await countUncheckedFiles(rows);
+      if (checked.error) {
+        setIsSubmittingAction(null);
+        setActiveStepTab('files');
+        toast.error(checked.error);
+        return;
+      }
+      rows = checked.rows;
+    }
+    const payload = buildPayload(rows);
     const leaveAfterSave = () => {
       markSaved();
       setIsSubmittingAction(null);

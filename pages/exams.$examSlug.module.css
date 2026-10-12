@@ -343,41 +343,9 @@
   line-height: 1.6;
 }
 
-/* Empty / Error States */
-.stateContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: var(--spacing-16) var(--spacing-4);
-  background-color: var(--surface);
-  border: 1px dashed var(--border);
-  border-radius: var(--radius-lg);
-  color: var(--muted-foreground);
-  min-height: 300px;
-}
-
-.stateContainer h2 {
-  font-family: var(--font-family-heading);
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--foreground);
-  margin-bottom: var(--spacing-4);
-}
-
-.stateContainer p {
-  margin: 0 0 var(--spacing-2) 0;
-  font-size: 1rem;
-}
-
 .errorText {
   color: var(--error-text);
   font-weight: 500;
-}
-
-.returnButton {
-  margin-top: var(--spacing-6);
 }
 
 /* Responsive adjustments */

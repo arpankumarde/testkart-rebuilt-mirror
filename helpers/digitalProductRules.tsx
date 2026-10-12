@@ -39,6 +39,7 @@ export type PublishCandidate = {
   // Page counts in the same order as fileUrls. A count is only stored once the
   // server has opened the file as a PDF, so a missing one means it was never checked.
   filePageCounts?: (number | null)[];
+  fileTitles?: (string | null)[];
 };
 
 // Kysely returns numeric columns as strings, so "0.00" is a valid free price
@@ -61,11 +62,14 @@ export function getProductPublishIssues(product: PublishCandidate): string[] {
       ? product.fileUrls.some(isRealFileUrl)
       : isRealFileUrl(product.pdfUrl);
   if (!hasRealFile) issues.push("upload at least one PDF file");
-  const uncheckedFiles = (product.filePageCounts ?? []).filter(
-    (count, i) => isRealFileUrl(product.fileUrls[i]) && !(count && count > 0)
-  );
+  const uncheckedFiles = (product.filePageCounts ?? [])
+    .map((count, i) => ({ count, i }))
+    .filter(({ count, i }) => isRealFileUrl(product.fileUrls[i]) && !(count && count > 0))
+    .map(({ i }) => `"${product.fileTitles?.[i]?.trim() || `File ${i + 1}`}"`);
   if (hasRealFile && uncheckedFiles.length > 0) {
-    issues.push("open the note and save it again so every PDF gets checked (replace any file it flags)");
+    issues.push(
+      `get ${uncheckedFiles.join(", ")} checked: open the note and click Save & submit for review, which checks every PDF (replace any file it flags)`
+    );
   }
   return issues;
 }

@@ -1,5 +1,8 @@
-/* Mirrors .section / .sectionHead / .sectionTitle in ExpertProfileView so
-   this reads as one more section of that page, not a bolted-on widget. */
+/*
+ * Spotlight/showcase card language (base.css --sp-*), same family as
+ * TeacherSubscriptionAvailablePlans: an ivory panel holding white,
+ * rounded, shadowed post cards and a peach-accented like pill.
+ */
 .section {
   width: 100%;
   max-width: 1200px;
@@ -22,80 +25,101 @@
   color: var(--foreground);
 }
 
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-6) 1.25rem;
+  background-color: var(--sp-surface);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.5rem;
+  box-shadow: var(--sp-shadow);
+}
+
 .skeletonList {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-3);
 }
 
-.lockedPanel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-3);
-  padding: var(--spacing-12) var(--spacing-4);
-  text-align: center;
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-}
-
-.lockedIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 3.25rem;
-  height: 3.25rem;
-  border-radius: var(--radius-full);
-  background-color: var(--tk-brand-tint);
-  color: var(--tk-brand-text);
-}
-
-.lockedTitle {
-  margin: 0;
-  font-family: var(--font-family-heading);
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: var(--foreground);
-}
-
-.lockedText {
-  margin: 0;
-  max-width: 28rem;
-  color: var(--muted-foreground);
-  font-size: 0.9375rem;
-}
-
+/* A tiled grid, not one card stretched edge to edge - each post keeps a
+   readable line length no matter how wide the viewport is. */
 .list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  align-items: start;
   gap: var(--spacing-4);
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
+/* Cycles lavender -> sage -> blue -> peach, same order as the plan cards
+   and the original spotlight credential cards. */
 .post {
+  --accent-tint: var(--sp-lavender-tint);
+  --accent-edge: var(--sp-lavender-edge);
+  --accent-ink: var(--sp-lavender-ink);
+  position: relative;
   padding: 1.25rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background-color: var(--card);
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.25rem;
+  box-shadow: var(--sp-shadow);
+  transition: transform var(--animation-duration-normal) ease,
+    box-shadow var(--animation-duration-normal) ease,
+    border-color var(--animation-duration-normal) ease;
+}
+
+.post:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-edge);
+  box-shadow: var(--sp-shadow-hover);
+}
+
+.post::before {
+  content: "";
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 50%;
+  background-color: var(--accent-edge);
+}
+
+.list li:nth-child(2) {
+  --accent-tint: var(--sp-sage-tint);
+  --accent-edge: var(--sp-sage-edge);
+  --accent-ink: var(--sp-sage-ink);
+}
+
+.list li:nth-child(3) {
+  --accent-tint: var(--sp-blue-tint);
+  --accent-edge: var(--sp-blue-edge);
+  --accent-ink: var(--sp-blue-ink);
+}
+
+.list li:nth-child(4) {
+  --accent-tint: var(--sp-peach-tint);
+  --accent-edge: var(--sp-peach-edge);
+  --accent-ink: var(--sp-peach-ink);
 }
 
 .postBody {
   margin: 0;
+  padding-right: var(--spacing-4);
   white-space: pre-wrap;
-  color: var(--foreground);
+  color: var(--sp-text);
   font-size: 0.9375rem;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 .postImage {
   margin-top: var(--spacing-3);
   max-width: 100%;
   max-height: 24rem;
-  border-radius: var(--radius-md);
+  border-radius: 1rem;
   display: block;
 }
 
@@ -104,12 +128,12 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-3);
-  margin-top: var(--spacing-3);
+  margin-top: var(--spacing-4);
 }
 
 .postDate {
   font-size: 0.8125rem;
-  color: var(--muted-foreground);
+  color: var(--sp-muted);
 }
 
 .likeButton {
@@ -117,12 +141,12 @@
   align-items: center;
   gap: var(--spacing-1);
   padding: var(--spacing-1) var(--spacing-3);
-  border: 1px solid var(--border);
+  border: 1px solid var(--sp-line);
   border-radius: var(--radius-full);
-  background-color: var(--surface);
-  color: var(--muted-foreground);
+  background-color: var(--sp-surface);
+  color: var(--sp-muted);
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: border-color var(--animation-duration-fast) ease,
     color var(--animation-duration-fast) ease,
@@ -130,17 +154,39 @@
 }
 
 .likeButton:hover {
-  border-color: var(--tk-brand-deep);
-  color: var(--tk-brand-text);
+  border-color: var(--accent-edge);
+  background-color: var(--accent-tint);
+  color: var(--accent-ink);
 }
 
 .likeButton.liked {
-  border-color: var(--tk-brand-deep);
-  background-color: var(--tk-brand-tint);
-  color: var(--tk-brand-text);
+  border-color: var(--accent-edge);
+  background-color: var(--accent-tint);
+  color: var(--accent-ink);
 }
 
 .likeButton:disabled {
   opacity: 0.7;
   cursor: wait;
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: 2.5rem var(--spacing-4) 0;
+  }
+
+  .panel {
+    padding: var(--spacing-4) var(--spacing-3);
+    border-radius: 1.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .post {
+    transition: none;
+  }
+
+  .post:hover {
+    transform: none;
+  }
 }

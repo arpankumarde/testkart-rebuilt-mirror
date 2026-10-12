@@ -123,6 +123,17 @@ export interface RichTextEditorProps {
   // (regardless of this flag) so any editor can still open and re-save
   // content that already contains an embed without losing it.
   enableProductEmbed?: boolean;
+  // Hides just the Heading 2 / Heading 3 toolbar buttons without touching
+  // anything else in the "full" toolbar. The heading extension itself stays
+  // registered, so existing content with headings still renders/edits fine -
+  // this only removes the ability to insert new ones. Defaults to false
+  // (unchanged everywhere else). Used by the organisation About editor, which
+  // wants rich text but no document-style heading hierarchy.
+  hideHeadingButtons?: boolean;
+  // Hides just the Link toolbar button, same rationale as hideHeadingButtons -
+  // the Link extension and any existing links keep working, new ones just
+  // can't be inserted from the toolbar. Defaults to false.
+  hideLinkButton?: boolean;
 }
 
 const CustomImage = Image.extend({
@@ -719,6 +730,8 @@ export const RichTextEditor = ({
   minHeight,
   toolbarVisibility = 'always',
   enableProductEmbed = false,
+  hideHeadingButtons = false,
+  hideLinkButton = false,
 }: RichTextEditorProps) => {
   const isMinimal = toolbarPreset === 'minimal';
   const isCollapsible = toolbarVisibility === 'collapsible';
@@ -1005,7 +1018,7 @@ export const RichTextEditor = ({
     <div className={`${styles.editorContainer} ${isCollapsible ? styles.editorContainerPlain : ''} ${className || ''}`} style={containerStyle}>
       {showToolbar && (
       <div className={styles.toolbar}>
-        {!isMinimal && (
+        {!isMinimal && !hideHeadingButtons && (
           <>
             <div className={styles.toolbarGroup}>
               <Button type="button" size="icon-sm" variant={editor.isActive('heading', { level: 2 }) ? 'primary' : 'ghost'} onClick={() => setHeading(2)} title="Heading 2"><Heading2 /></Button>
@@ -1044,7 +1057,9 @@ export const RichTextEditor = ({
             <div className={styles.toolbarDivider} />
 
             <div className={styles.toolbarGroup}>
-              <Button type="button" size="icon-sm" variant={editor.isActive('link') ? 'primary' : 'ghost'} onClick={toggleLink} title="Link"><Link2 /></Button>
+              {!hideLinkButton && (
+                <Button type="button" size="icon-sm" variant={editor.isActive('link') ? 'primary' : 'ghost'} onClick={toggleLink} title="Link"><Link2 /></Button>
+              )}
               <Button type="button" size="icon-sm" variant={editor.isActive('codeBlock') ? 'primary' : 'ghost'} onClick={() => editor.chain().focus().toggleCodeBlock().run()} title="Code Block"><Code2 /></Button>
               <Button type="button" size="icon-sm" variant="ghost" onClick={() => editor.chain().focus().setHorizontalRule().run()} title="Horizontal Rule"><Minus /></Button>
             </div>

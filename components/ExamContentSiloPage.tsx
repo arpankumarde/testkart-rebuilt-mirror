@@ -19,6 +19,7 @@ import { useInExamSectionShell } from "./ExamSectionLayout";
 import { renderMathInHtml } from "../helpers/renderMathInHtml";
 import { wrapContentTables } from "../helpers/contentTables";
 import { sanitizeHtml } from "../helpers/sanitizeHtml";
+import { NotFoundState } from "./NotFoundState";
 import "katex/dist/katex.min.css";
 import styles from "./ExamContentSiloPage.module.css";
 
@@ -84,17 +85,7 @@ export const ExamContentSiloPage: React.FC<ExamContentSiloPageProps> = ({ pageTy
   // Exam genuinely doesn't exist — this is the one case where a "not found"
   // state is legitimate (there's no hub page to redirect to either).
   if (!data) {
-    return (
-      <div className={styles.pageContainer}>
-        <div className={styles.emptyState}>
-          <h2>Exam Not Found</h2>
-          <p>We couldn't find the exam you're looking for.</p>
-          <Button asChild variant="primary">
-            <Link to="/exams">Browse All Exams</Link>
-          </Button>
-        </div>
-      </div>
-    );
+    return <NotFoundState kind="exam" />;
   }
 
   const hubUrl = `/exams/${data.exam.examSlug}`;

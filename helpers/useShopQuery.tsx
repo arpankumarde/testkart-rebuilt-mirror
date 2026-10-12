@@ -3,6 +3,7 @@ import { getShopProductsList, InputType as ShopListInput } from "../endpoints/sh
 import { getShopProductDetails } from "../endpoints/shop/details_GET.schema";
 import { getRelatedShopProducts } from "../endpoints/shop/related_GET.schema";
 import { getStudentPurchases, InputType as StudentPurchasesInput } from "../endpoints/student/shop/purchases_GET.schema";
+import { isNotFoundError } from "./isNotFoundError";
 
 export const SHOP_PRODUCTS_QUERY_KEY = ["shop", "products"];
 export const SHOP_PRODUCT_DETAILS_QUERY_KEY = (slug: string) => ["shop", "product", slug];
@@ -25,6 +26,7 @@ export const useShopProductDetails = (slug: string | null) => {
     queryFn: () => getShopProductDetails({ slug: slug! }),
     enabled: !!slug,
     staleTime: 10 * 60 * 1000,
+    retry: (failureCount, error) => !isNotFoundError(error) && failureCount < 3,
   });
 };
 

@@ -1,6 +1,6 @@
-/* Matches .heroSecondary in ExpertProfileView.module.css - same hero action
-   row, so this button sits at the same height/weight as "About X" rather
-   than introducing a new button language next to it. */
+/* Spotlight/showcase language (base.css --sp-*): the peach 3D pill CTA,
+   same treatment as .subscribeButton in TeacherSubscriptionAvailablePlans -
+   one shared "forward action" button across the app. */
 .button {
   display: inline-flex;
   align-items: center;
@@ -8,22 +8,29 @@
   gap: var(--spacing-2);
   height: 2.75rem;
   padding: 0 1.25rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background-color: var(--surface);
-  color: var(--foreground);
+  border-radius: 1.375rem 1.375rem 1.375rem 0.5rem;
+  border: 1px solid var(--sp-peach-edge);
+  background-color: var(--sp-cta);
+  box-shadow: 0 3px 0 var(--sp-peach-edge);
+  color: var(--sp-cta-ink);
   font-family: var(--font-family-base);
   font-size: 0.9375rem;
   font-weight: 700;
   cursor: pointer;
-  transition: border-color var(--animation-duration-fast) ease,
-    color var(--animation-duration-fast) ease,
-    background-color var(--animation-duration-fast) ease;
+  transition: background-color var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
 }
 
-.button:hover {
-  border-color: var(--tk-brand-deep);
-  color: var(--tk-brand-text);
+.button:hover:not(:disabled) {
+  background-color: var(--sp-cta-hover);
+  box-shadow: 0 5px 0 var(--sp-peach-edge);
+  transform: translateY(-2px);
+}
+
+.button:active:not(:disabled) {
+  box-shadow: 0 1px 0 var(--sp-peach-edge);
+  transform: translateY(2px);
 }
 
 .button:focus-visible {
@@ -36,16 +43,30 @@
   cursor: wait;
 }
 
-/* Already following: filled, so the state reads at a glance without
-   depending on the label text alone. */
+/* Already following: the lavender "active" pill (same family as the plan
+   toolbar's active toggle), not the peach forward-action treatment. */
 .following {
-  border-color: var(--tk-brand-deep);
-  background-color: var(--tk-brand-deep);
-  color: #fff;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--sp-lavender-edge);
+  background-color: var(--sp-lavender-tint);
+  box-shadow: none;
+  color: var(--sp-lavender-ink);
 }
 
-.following:hover {
-  background-color: var(--tk-brand-text);
-  border-color: var(--tk-brand-text);
-  color: #fff;
+.following:hover:not(:disabled) {
+  background-color: var(--sp-lavender-tint);
+  box-shadow: none;
+  transform: none;
+  border-color: var(--sp-lavender-edge);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+
+  .button:hover,
+  .button:active {
+    transform: none;
+  }
 }

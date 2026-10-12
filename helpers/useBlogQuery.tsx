@@ -6,6 +6,7 @@ import { getBlogPostDetail } from "../endpoints/blog/post_GET.schema";
 import { getBlogCategoriesList, InputType as CategoriesListInput } from "../endpoints/blog/categories_GET.schema";
 import { getBlogCommentsList, InputType as CommentsListInput } from "../endpoints/blog/comments/list_GET.schema";
 import { postCreateBlogComment, InputType as CreateCommentInput } from "../endpoints/blog/comments/create_POST.schema";
+import { isNotFoundError } from "./isNotFoundError";
 
 export const BLOG_POSTS_KEY = ["public", "blog", "posts"] as const;
 export const BLOG_POST_KEY = (slug: string) => ["public", "blog", "post", slug] as const;
@@ -50,6 +51,7 @@ export const useBlogPostQuery = (slug?: string) => {
     // do a redundant round trip. 10 minutes matches useTestDetailsQuery and
     // the other SSR-prefetched detail pages.
     staleTime: 10 * 60 * 1000,
+    retry: (failureCount, error) => !isNotFoundError(error) && failureCount < 3,
   });
 };
 
