@@ -1,4 +1,5 @@
 import React from "react";
+import { BarChart3 } from "lucide-react";
 import {
   ComposedChart,
   Bar,
@@ -48,6 +49,7 @@ const ChartTip = ({ active, payload }: TipProps) => {
 export const TeacherOverviewEarningsChart = ({ daily, days, isLoading, className }: Props) => {
   const data = daily.map((point) => ({ ...point, label: adminFormat.dayLabel(point.day) }));
   const showSkeleton = isLoading && daily.length === 0;
+  const hasActivity = daily.some((point) => point.earnings > 0 || point.sales > 0);
 
   return (
     <section className={`${styles.card} ${className ?? ""}`.trim()} aria-label="Earnings and sales by day">
@@ -70,49 +72,63 @@ export const TeacherOverviewEarningsChart = ({ daily, days, isLoading, className
 
       {showSkeleton ? (
         <Skeleton className={styles.skeleton} />
+      ) : !hasActivity ? (
+        <div className={styles.empty}>
+          <span className={styles.emptyIcon} aria-hidden="true">
+            <BarChart3 size={20} />
+          </span>
+          <p className={styles.emptyTitle}>No sales in the last {days} days</p>
+          <p className={styles.emptyText}>
+            {days < 90
+              ? "Your daily earnings and sales show here once students buy. Pick a longer period above to look further back."
+              : "Your daily earnings and sales show here once students buy."}
+          </p>
+        </div>
       ) : (
         <div className={styles.chart}>
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={data} margin={{ top: 8, right: 4, left: 0, bottom: 0 }} barCategoryGap="32%">
-              <CartesianGrid vertical={false} stroke="var(--border)" />
-              <XAxis
-                dataKey="label"
-                tickLine={false}
-                axisLine={false}
-                interval={days <= 7 ? 0 : "preserveStartEnd"}
-                minTickGap={18}
-                tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
-              />
-              <YAxis
-                yAxisId="left"
-                tickFormatter={adminFormat.inrCompact}
-                tickLine={false}
-                axisLine={false}
-                width={52}
-                tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
-              />
-              <YAxis
-                yAxisId="right"
-                orientation="right"
-                allowDecimals={false}
-                tickLine={false}
-                axisLine={false}
-                width={30}
-                tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
-              />
-              <Tooltip cursor={{ fill: "var(--muted)" }} content={<ChartTip />} />
-              <Bar yAxisId="left" dataKey="earnings" fill="var(--chart-color-1)" radius={[3, 3, 0, 0]} maxBarSize={28} />
-              <Line
-                yAxisId="right"
-                type="monotone"
-                dataKey="sales"
-                stroke="var(--foreground)"
-                strokeWidth={1.5}
-                dot={false}
-                activeDot={{ r: 3, strokeWidth: 0, fill: "var(--foreground)" }}
-              />
-            </ComposedChart>
-          </ResponsiveContainer>
+          <div className={styles.chartFill}>
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={data} margin={{ top: 8, right: 4, left: 0, bottom: 0 }} barCategoryGap="32%">
+                <CartesianGrid vertical={false} stroke="var(--border)" />
+                <XAxis
+                  dataKey="label"
+                  tickLine={false}
+                  axisLine={false}
+                  interval={days <= 7 ? 0 : "preserveStartEnd"}
+                  minTickGap={18}
+                  tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                />
+                <YAxis
+                  yAxisId="left"
+                  tickFormatter={adminFormat.inrCompact}
+                  tickLine={false}
+                  axisLine={false}
+                  width={52}
+                  tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  allowDecimals={false}
+                  tickLine={false}
+                  axisLine={false}
+                  width={30}
+                  tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                />
+                <Tooltip cursor={{ fill: "var(--muted)" }} content={<ChartTip />} />
+                <Bar yAxisId="left" dataKey="earnings" fill="var(--chart-color-1)" radius={[3, 3, 0, 0]} maxBarSize={28} />
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="sales"
+                  stroke="var(--foreground)"
+                  strokeWidth={1.5}
+                  dot={false}
+                  activeDot={{ r: 3, strokeWidth: 0, fill: "var(--foreground)" }}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       )}
     </section>

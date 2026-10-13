@@ -69,14 +69,62 @@
   background-color: var(--foreground);
 }
 
-/* Grows into whatever height the row's taller card sets, with 240px as the
-   floor for when this card is the taller one (or the row has collapsed to a
-   single column). */
+/* Grows with the card, 240px at least. Its height comes from flex and
+   min-height, which a child's height: 100% cannot resolve against, so
+   ResponsiveContainer measured 0 and drew nothing. The chart now fills an
+   absolutely positioned layer, whose 100% height is always definite. */
 .chart {
+  position: relative;
   width: 100%;
   min-width: 0;
   flex: 1;
   min-height: 240px;
+}
+
+.chartFill {
+  position: absolute;
+  inset: 0;
+}
+
+.empty {
+  flex: 1;
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-6) var(--spacing-4);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.emptyIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-bottom: var(--spacing-1);
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.emptyText {
+  margin: 0;
+  max-width: 40ch;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
 }
 
 .skeleton {
