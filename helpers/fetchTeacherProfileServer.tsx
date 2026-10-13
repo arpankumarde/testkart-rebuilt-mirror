@@ -14,6 +14,7 @@ import type { SocialLinks, AwardCertificate, WorkExperience } from "./teacherPro
 import { getLiveTestStatus } from "./liveTestStatus";
 import { loadContentExams } from "./contentExams";
 import { loadTeacherProfileBundles } from "./loadTeacherProfileBundles";
+import { loadTeacherOrganization } from "./loadTeacherOrganization";
 
 export class TeacherNotFoundError extends Error {
   constructor() {
@@ -382,11 +383,12 @@ export async function fetchTeacherProfileServer(teacherSlug: string): Promise<Ou
     }
   }
 
-  const [courseExams, productExams, testExams, bundles] = await Promise.all([
+  const [courseExams, productExams, testExams, bundles, organization] = await Promise.all([
     loadContentExams(db, "course", courses.map((course) => course.id)),
     loadContentExams(db, "digital_product", products.map((product) => product.id)),
     loadContentExams(db, "mock_test", tests.map((test) => test.id)),
     loadTeacherProfileBundles(teacher.id),
+    loadTeacherOrganization(teacher.id),
   ]);
   const examNames = [
     ...new Set(
@@ -426,5 +428,6 @@ export async function fetchTeacherProfileServer(teacherSlug: string): Promise<Ou
     products: productsData,
     bundles,
     examNames,
+    organization,
   };
 }

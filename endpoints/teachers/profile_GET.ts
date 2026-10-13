@@ -11,6 +11,7 @@ import { SocialLinks, AwardCertificate, WorkExperience } from "../../helpers/tea
 import { getLiveTestStatus } from "../../helpers/liveTestStatus";
 import { loadContentExams } from "../../helpers/contentExams";
 import { loadTeacherProfileBundles } from "../../helpers/loadTeacherProfileBundles";
+import { loadTeacherOrganization } from "../../helpers/loadTeacherOrganization";
 
 export async function handle(request: Request) {
   const url = new URL(request.url);
@@ -434,11 +435,12 @@ export async function handle(request: Request) {
       }
     }
 
-    const [courseExams, productExams, testExams, bundles, followerCountRow, followingRow] = await Promise.all([
+    const [courseExams, productExams, testExams, bundles, organization, followerCountRow, followingRow] = await Promise.all([
       loadContentExams(db, "course", courses.map((course) => course.id)),
       loadContentExams(db, "digital_product", products.map((product) => product.id)),
       loadContentExams(db, "mock_test", tests.map((test) => test.id)),
       loadTeacherProfileBundles(teacher.id),
+      loadTeacherOrganization(teacher.id),
       db
         .selectFrom("teacherFollows")
         .select((eb) => eb.fn.countAll<number>().as("count"))
@@ -495,6 +497,7 @@ export async function handle(request: Request) {
       products: productsData,
       bundles,
       examNames,
+      organization,
       followerCount: Number(followerCountRow?.count ?? 0),
       isFollowing: !!followingRow,
     };

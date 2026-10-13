@@ -64,30 +64,40 @@ export async function handle(request: Request): Promise<Response> {
     let teachersQuery = baseQuery
       .selectAll("users")
       .select([
+        // Content counts are live items only, by the same rule as
+        // loadContentState in helpers/contentReviewQueue.tsx. Drafts, items in
+        // review, unpublished and trashed items are left out. A live test's
+        // shadow mock_tests row stays unpublished, so it is not double counted.
         sql<string>`(
           SELECT COUNT(*) 
           FROM mock_tests 
           WHERE mock_tests.teacher_id = users.id
+            AND mock_tests.is_published = true
+            AND mock_tests.deleted_at IS NULL
         )`.as("testsCount"),
         sql<string>`(
           SELECT COUNT(*)
           FROM course_bundles
           WHERE course_bundles.teacher_id = users.id
+            AND course_bundles.is_published = true
         )`.as("bundlesCount"),
         sql<string>`(
           SELECT COUNT(*)
           FROM courses
           WHERE courses.teacher_id = users.id
+            AND courses.status = 'published'
         )`.as("coursesCount"),
         sql<string>`(
           SELECT COUNT(*)
           FROM live_tests
           WHERE live_tests.teacher_id = users.id
+            AND live_tests.is_active = true
         )`.as("liveTestsCount"),
         sql<string>`(
           SELECT COUNT(*)
           FROM digital_products
           WHERE digital_products.teacher_id = users.id
+            AND digital_products.status = 'published'
         )`.as("productsCount"),
         // Net teacher earnings (gross minus discount, minus platform fee at time of sale) across
         // ALL product types, built from the single shared formula in helpers/teacherEarningsSql.tsx.
@@ -101,6 +111,10 @@ export async function handle(request: Request): Promise<Response> {
         )`.as("relationshipManagerName"),
       ])
       .orderBy(getSortExpression(sortBy), sortOrder)
+      // Most teachers tie on counts (often 0), and Postgres may order tied rows
+      // differently per page, which repeated teachers across pages. The id
+      // tie-breaker makes the order total, so every page is a stable slice.
+      .orderBy("users.id", sortOrder)
       .limit(limit)
       .offset(offset);
 

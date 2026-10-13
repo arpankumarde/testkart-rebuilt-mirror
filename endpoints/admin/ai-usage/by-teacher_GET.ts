@@ -64,6 +64,7 @@ export async function handle(request: Request): Promise<Response> {
         sql<Date>`max("ai_generation_logs"."created_at")`.as("lastUsedAt"),
       ])
       .orderBy(sql`count(*)`, "desc")
+      .orderBy("users.id", "desc")
       .limit(pageSize)
       .offset(offset)
       .execute();

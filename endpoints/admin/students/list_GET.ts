@@ -53,6 +53,8 @@ export async function handle(request: Request): Promise<Response> {
         )`.as("totalSpent"),
       ])
       .orderBy(getStudentSortExpression(sortBy), sortOrder)
+      // Id tie-breaker so tied rows (e.g. 0 tests, 0 spent) never repeat across pages.
+      .orderBy("users.id", sortOrder)
       .limit(limit)
       .offset(offset);
 

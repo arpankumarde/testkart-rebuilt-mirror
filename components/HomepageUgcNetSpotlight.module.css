@@ -1,6 +1,6 @@
 /*
  * UGC NET spotlight: an ivory profile panel (identity left, four staggered
- * credential cards right) above a white catalogue of his items. Pastels each
+ * credential cards right) above a white catalogue of his courses. Pastels each
  * have one job:
  *   lavender  the spotlight chip, the portrait ring, item-type pills, hover
  *   mint      the offset blob behind the portrait
@@ -538,70 +538,6 @@ a.row:hover .thumb {
   border-radius: 0;
 }
 
-/* Study notes have no thumbnail: a peach cover with the page count. */
-.cover {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  box-sizing: border-box;
-  width: 100%;
-  height: 100%;
-  padding: var(--spacing-4);
-  overflow: hidden;
-  background-color: var(--sp-peach-tint);
-  color: var(--sp-ink);
-}
-
-.coverChip {
-  position: relative;
-  z-index: 1;
-  display: inline-block;
-  padding: 0.3125rem 0.5625rem;
-  background-color: var(--sp-card);
-  border: 1px solid var(--sp-peach-edge);
-  color: var(--sp-ink);
-  border-radius: var(--radius-full);
-  font-size: 0.75rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.coverCount {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  column-gap: 0.25rem;
-  margin-top: auto;
-}
-
-.coverNumber {
-  font-family: var(--font-family-heading);
-  font-size: 2.25rem;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.02em;
-  color: var(--sp-ink);
-}
-
-.coverUnit {
-  font-size: 1rem;
-  font-weight: 700;
-  line-height: 1.2;
-  color: var(--sp-peach-ink);
-}
-
-.coverMark {
-  position: absolute;
-  top: var(--spacing-4);
-  right: var(--spacing-4);
-  width: 2.5rem;
-  height: 2.5rem;
-  color: var(--sp-peach-edge);
-}
-
 .rowBody {
   display: flex;
   flex-direction: column;
@@ -815,17 +751,6 @@ a.row:hover .thumb {
   .list {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 1.25rem;
-  }
-}
-
-@container (min-width: 72rem) {
-  .coverNumber {
-    font-size: 2.75rem;
-  }
-
-  .coverMark {
-    width: 3.5rem;
-    height: 3.5rem;
   }
 }
 

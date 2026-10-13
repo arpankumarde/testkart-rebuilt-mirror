@@ -629,6 +629,7 @@ export const apiDocsContent: ApiEndpoint[] = [
       { name: "products", type: "array", description: "Published study notes, same item shape as /_api/shop/list plus language" },
       { name: "bundles", type: "array", description: "{ id, slug, title, thumbnailUrl, price, originalPrice, itemCount }" },
       { name: "examNames", type: "array", description: "Every exam the teacher's published items are listed under" },
+      { name: "organization", type: "object | null", description: "{ name, slug, orgType } of the teacher's earliest approved membership in an active organisation" },
     ],
     notes: [
       "Returns 400 when teacherSlug is missing and 404 when no active teacher has that slug.",

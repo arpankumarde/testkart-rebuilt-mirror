@@ -6,6 +6,7 @@ import { CourseListItem } from "../courses/list_GET.schema";
 import { ShopProductListItem } from "../shop/list_GET.schema";
 import { TeacherPublicProfile, WorkExperience } from "../../helpers/teacherProfileTypes";
 import type { TeacherProfileBundle } from "../../helpers/loadTeacherProfileBundles";
+import type { TeacherOrganization } from "../../helpers/loadTeacherOrganization";
 
 export const schema = z.object({
   teacherSlug: z.string(),
@@ -13,7 +14,7 @@ export const schema = z.object({
 
 export type InputType = z.infer<typeof schema>;
 
-export type { TeacherPublicProfile, WorkExperience, TestListItem, LiveTestListItem, CourseListItem, ShopProductListItem, TeacherProfileBundle };
+export type { TeacherPublicProfile, WorkExperience, TestListItem, LiveTestListItem, CourseListItem, ShopProductListItem, TeacherProfileBundle, TeacherOrganization };
 
 export type OutputType = {
   teacher: TeacherPublicProfile;
@@ -28,6 +29,9 @@ export type OutputType = {
   // Follow feature: optional so a cached response from before this shipped still renders.
   followerCount?: number;
   isFollowing?: boolean;
+  // The approved, active organisation the teacher belongs to. Optional for the
+  // same cached-response reason; the mobile app does not read it.
+  organization?: TeacherOrganization | null;
 };
 
 export const getTeachersProfile = async (

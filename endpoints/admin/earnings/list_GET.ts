@@ -83,6 +83,9 @@ export async function handle(request: Request): Promise<Response> {
         asScalar(buildTeacherSalesCountSql(teacherIdRef)).as("transactionsCount"),
       ])
       .orderBy(getEarningsSortExpression(sortBy), sortOrder)
+      // Id tie-breaker: most teachers tie on money columns (often 0), and
+      // without it tied rows can land on more than one page.
+      .orderBy("users.id", sortOrder)
       .limit(limit)
       .offset(offset);
 

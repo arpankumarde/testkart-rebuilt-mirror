@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Award,
   BookOpen,
   Briefcase,
+  Building2,
   ClipboardList,
   GraduationCap,
   Globe,
@@ -11,7 +13,6 @@ import {
   MessageSquare,
   Share2,
   ShoppingBag,
-  Sparkles,
   Star,
   Target,
   User,
@@ -26,6 +27,7 @@ import {
 } from "react-icons/fa6";
 import type { OutputType } from "../endpoints/teachers/profile_GET.schema";
 import { computeTeacherProfileStats, formatStatCount } from "../helpers/teacherProfileStats";
+import { getOrganizationProfilePath } from "../helpers/organizationRoutes";
 import { bundlePriceProps, formatItemPrice, itemPriceProps } from "../helpers/homepageItemUtils";
 import { Placeholder } from "../helpers/placeholderImages";
 import { EXPERT_PROFILE_SHARE_CAMPAIGN } from "../helpers/shareLinks";
@@ -142,6 +144,7 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
 }) => {
   const { teacher, courses, tests, liveTests, products } = data;
   const bundles = data.bundles ?? [];
+  const organization = data.organization ?? null;
   const stats = useMemo(() => computeTeacherProfileStats(data), [data]);
 
   const catalogueRef = useRef<HTMLElement | null>(null);
@@ -374,10 +377,30 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
           </div>
 
           <div className={styles.heroText}>
-            <span className={styles.eyebrow}>
-              <Sparkles size={14} aria-hidden="true" />
-              {teacher.academyName ? teacher.academyName : "Educator on Testkart"}
-            </span>
+            {organization ? (
+              <Link
+                to={getOrganizationProfilePath(organization.orgType, organization.slug)}
+                className={`${styles.orgLabel} ${styles.orgLabelLink}`}
+              >
+                <Building2 size={14} aria-hidden="true" />
+                <span className={styles.orgLabelText}>
+                  Educator at <strong>{organization.name}</strong>
+                </span>
+              </Link>
+            ) : (
+              <span className={styles.orgLabel}>
+                <Building2 size={14} aria-hidden="true" />
+                <span className={styles.orgLabelText}>
+                  {teacher.academyName ? (
+                    <>
+                      Educator at <strong>{teacher.academyName}</strong>
+                    </>
+                  ) : (
+                    "Educator on Testkart"
+                  )}
+                </span>
+              </span>
+            )}
 
             <h1 className={styles.name}>
               {teacher.displayName}

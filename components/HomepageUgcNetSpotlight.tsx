@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Award, BookOpen, CalendarCheck, FileText, GraduationCap, Tag, Users, type LucideIcon } from "lucide-react";
+import { ArrowRight, Award, BookOpen, CalendarCheck, GraduationCap, Tag, Users, type LucideIcon } from "lucide-react";
 import { useTeacherPublicProfileQuery } from "../helpers/useTeacherPublicProfile";
 import { swmgPromoContent as content } from "../helpers/swmgPromoContent";
-import { bundlePriceProps, itemPriceProps, type ItemPriceProps } from "../helpers/homepageItemUtils";
+import { itemPriceProps, type ItemPriceProps } from "../helpers/homepageItemUtils";
 import { Placeholder } from "../helpers/placeholderImages";
 import { Skeleton } from "./Skeleton";
 import styles from "./HomepageUgcNetSpotlight.module.css";
@@ -32,72 +32,33 @@ type SpotlightItem = ItemPriceProps & {
   title: string;
   link: string;
   meta: string | null;
-  thumbnailUrl: string | null;
-  notesCover?: { pageCount: number | null; language: string | null };
+  thumbnailUrl: string;
 };
 
 const joinMeta = (parts: (string | null | undefined)[]) => parts.filter(Boolean).join(" · ") || null;
 
 /**
  * UGC NET spotlight on Dr. Mukesh Goyal (teacher 15752): his profile and
- * credentials on an ivory panel above his published Testkart items, read from
+ * credentials on an ivory panel above his published Testkart courses, read from
  * the same public profile query as his promo pages (prefetched in
- * pages/_index.prefetch.ts). Hidden when he has nothing published.
+ * pages/_index.prefetch.ts). Only courses are listed; his test series, live
+ * tests, study notes and bundles stay on his profile. Hidden when he has no
+ * published course.
  */
 export function HomepageUgcNetSpotlight() {
   const { data, isFetching } = useTeacherPublicProfileQuery(content.teacherSlug);
 
   const items = useMemo((): SpotlightItem[] => {
     if (!data) return [];
-    const { courses, tests, liveTests, products, bundles = [] } = data;
-    return [
-      ...courses.map((course) => ({
-        key: `course-${course.id}`,
-        kind: "Course",
-        title: course.title,
-        link: `/course/${course.slug}`,
-        meta: joinMeta([course.language, course.level ? LEVEL_LABEL[course.level] : null]),
-        ...itemPriceProps(course.price, course.discountPrice),
-        thumbnailUrl: course.thumbnailImageUrl ?? Placeholder.COURSE,
-      })),
-      ...bundles.map((bundle) => ({
-        key: `bundle-${bundle.id}`,
-        kind: "Bundle",
-        title: bundle.title,
-        link: `/bundles/${bundle.slug}`,
-        meta: `${bundle.itemCount} ${bundle.itemCount === 1 ? "item" : "items"}`,
-        ...bundlePriceProps(bundle.price, bundle.originalPrice),
-        thumbnailUrl: bundle.thumbnailUrl ?? Placeholder.COURSE,
-      })),
-      ...tests.map((test) => ({
-        key: `test-${test.id}`,
-        kind: "Test series",
-        title: test.title,
-        link: `/mock-test/${test.slug}`,
-        meta: test.examName ?? null,
-        ...itemPriceProps(test.price, test.discountPrice),
-        thumbnailUrl: test.thumbnailUrl ?? Placeholder.TEST,
-      })),
-      ...liveTests.map((liveTest) => ({
-        key: `live-${liveTest.id}`,
-        kind: "Live test",
-        title: liveTest.title,
-        link: `/mock-test/live/${liveTest.id}`,
-        meta: liveTest.examName ?? null,
-        ...itemPriceProps(liveTest.price, liveTest.discountPrice),
-        thumbnailUrl: liveTest.thumbnailUrl ?? Placeholder.LIVE,
-      })),
-      ...products.map((product) => ({
-        key: `product-${product.id}`,
-        kind: "Study notes",
-        title: product.title,
-        link: `/study-notes/${product.slug}`,
-        meta: product.fileCount ? `${product.fileCount} ${product.fileCount === 1 ? "file" : "files"}` : null,
-        ...itemPriceProps(product.price),
-        thumbnailUrl: null,
-        notesCover: { pageCount: product.pageCount ?? null, language: product.language ?? null },
-      })),
-    ].slice(0, MAX_ITEMS);
+    return data.courses.slice(0, MAX_ITEMS).map((course) => ({
+      key: `course-${course.id}`,
+      kind: "Course",
+      title: course.title,
+      link: `/course/${course.slug}`,
+      meta: joinMeta([course.language, course.level ? LEVEL_LABEL[course.level] : null]),
+      ...itemPriceProps(course.price, course.discountPrice),
+      thumbnailUrl: course.thumbnailImageUrl ?? Placeholder.COURSE,
+    }));
   }, [data]);
 
   const isLoading = !data && isFetching;
@@ -173,7 +134,7 @@ export function HomepageUgcNetSpotlight() {
 
         <div className={styles.catalog}>
           <div className={styles.catalogHead}>
-            <h3 className={styles.catalogTitle}>His UGC NET courses, bundles and notes</h3>
+            <h3 className={styles.catalogTitle}>His UGC NET courses</h3>
             <Link to={profileLink} className={styles.viewAllLink}>
               View all
             </Link>
@@ -211,11 +172,7 @@ function SpotlightRow({ item }: { item: SpotlightItem }) {
   return (
     <Link to={item.link} className={styles.row}>
       <span className={styles.thumbFrame}>
-        {item.thumbnailUrl ? (
-          <img src={item.thumbnailUrl} alt="" loading="lazy" decoding="async" className={styles.thumb} />
-        ) : (
-          <NotesCover cover={item.notesCover} />
-        )}
+        <img src={item.thumbnailUrl} alt="" loading="lazy" decoding="async" className={styles.thumb} />
       </span>
 
       <div className={styles.rowBody}>
@@ -224,7 +181,7 @@ function SpotlightRow({ item }: { item: SpotlightItem }) {
           <span className={styles.rowTitle}>{item.title}</span>
           {item.meta && (
             <span className={styles.meta}>
-              {item.kind === "Course" && <BookOpen size={14} aria-hidden className={styles.metaIcon} />}
+              <BookOpen size={14} aria-hidden className={styles.metaIcon} />
               {item.meta}
             </span>
           )}
@@ -245,31 +202,5 @@ function SpotlightRow({ item }: { item: SpotlightItem }) {
         </span>
       </div>
     </Link>
-  );
-}
-
-/**
- * Study notes have no thumbnails (discontinued site-wide), so their slot shows
- * a typographic cover: page count, language and a document mark on a peach fill.
- */
-function NotesCover({ cover }: { cover?: SpotlightItem["notesCover"] }) {
-  const pageCount = cover?.pageCount ?? null;
-  const language = cover?.language?.trim() || null;
-
-  return (
-    <span className={styles.cover}>
-      {language && <span className={styles.coverChip}>{language}</span>}
-      {pageCount ? (
-        <span className={styles.coverCount}>
-          <span className={styles.coverNumber}>{pageCount.toLocaleString("en-IN")}</span>
-          <span className={styles.coverUnit}>pages</span>
-        </span>
-      ) : (
-        <span className={styles.coverCount}>
-          <span className={styles.coverUnit}>Study notes</span>
-        </span>
-      )}
-      <FileText aria-hidden strokeWidth={1.5} className={styles.coverMark} />
-    </span>
   );
 }
