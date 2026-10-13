@@ -18,6 +18,12 @@ export type OrganizationTeacherCard = {
   tagline: string | null;
   isVerified: boolean;
   yearsOfExperience: number | null;
+  // From the teacher's profile expertise areas.
+  subjects: string[];
+  // Average and count of student reviews across the teacher's own courses,
+  // study notes and mock tests; null when nothing has been reviewed.
+  rating: number | null;
+  ratingCount: number;
 };
 
 export type OrgCatalogueKind = "course" | "test" | "live_test" | "product" | "bundle";
@@ -28,6 +34,7 @@ export type OrgCatalogueItem = {
   slug: string;
   title: string;
   examName: string | null;
+  // List price. discountPrice, when set, is the lower price actually charged.
   price: number;
   discountPrice: number | null;
   thumbnailUrl: string | null;

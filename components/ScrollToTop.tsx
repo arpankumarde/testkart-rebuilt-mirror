@@ -25,8 +25,8 @@ export const ScrollToTop = () => {
         behavior: "smooth",
         inline: "nearest",
       });
-    } else {
-      // Scroll to top if no hash
+    } else if (!(location.state as { preserveScroll?: boolean } | null)?.preserveScroll) {
+      // Scroll to top if no hash, unless the link passed state.preserveScroll (in-page tabs)
       window.scrollTo(0, 0);
     }
   }, [hashElement, location.pathname]);

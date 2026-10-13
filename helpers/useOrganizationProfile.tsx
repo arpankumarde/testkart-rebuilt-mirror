@@ -3,6 +3,7 @@ import { getOrganizationsProfile } from "../endpoints/organizations/profile_GET.
 import { postOrganizationsFollow } from "../endpoints/organizations/follow_POST.schema";
 import { getOrganizationsReviews, InputType as ReviewsInput } from "../endpoints/organizations/reviews_GET.schema";
 import { postOrganizationsReviews, InputType as SubmitReviewInput } from "../endpoints/organizations/reviews_POST.schema";
+import { postTeachersPostsLike } from "../endpoints/teachers/posts/like_POST.schema";
 
 export const useOrganizationProfileQuery = (orgSlug: string) =>
   useQuery({
@@ -42,6 +43,17 @@ export const useSubmitOrganizationReviewMutation = (organizationId: number) => {
     mutationFn: (input: SubmitReviewInput) => postOrganizationsReviews(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["organizationReviews", organizationId] });
+    },
+  });
+};
+
+export const useLikeOrganizationPostMutation = (orgSlug: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (postId: number) => postTeachersPostsLike({ postId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["organizationProfile", orgSlug] });
+      queryClient.invalidateQueries({ queryKey: ["teacherPublicPosts"] });
     },
   });
 };

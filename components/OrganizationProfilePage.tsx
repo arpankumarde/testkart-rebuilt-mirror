@@ -51,9 +51,10 @@ interface OrganizationProfilePageProps {
 /**
  * Shared body for every organisation public route - /school/:slug,
  * /college/:slug, /coaching/:slug, /university/:slug and
- * /organisation/:slug (for "other") all render this same component via
- * their own thin pages/*.tsx file, so the loading/error states, SEO and
- * canonical URL logic live in exactly one place.
+ * /organisation/:slug (for "other"), plus their /:tab variants. It is
+ * rendered by OrganizationProfileLayout, the persistent page layout those
+ * routes share, so the loading/error states, SEO and canonical URL logic
+ * live in exactly one place and survive section switches.
  *
  * This page's job is to be found and read, not to sell: people reach it
  * from organic search looking for facts about an institute, so the meta

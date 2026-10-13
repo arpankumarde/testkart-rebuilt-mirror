@@ -13,6 +13,7 @@ import { useCartItemsQuery } from "../helpers/useCartQuery";
 import { MobileBottomNav } from "./MobileBottomNav";
 import { useDarkModeObserver } from "../helpers/useDarkModeObserver";
 import { BRAND_FAVICON, getBrandLogo } from "../helpers/brandAssets";
+import { ORGANIZATION_PATH_PATTERN } from "../helpers/organizationRoutes";
 import styles from "./SharedLayout.module.css";
 
 
@@ -141,6 +142,8 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
   const pathname = location.pathname;
 
   const isMobileNavVisible = !pathname.includes('/portal/') && !pathname.includes('/live-portal/') && !pathname.endsWith('/results');
+  // Organisation pages use a slimmer header on phones; tablet and desktop are unchanged.
+  const isCompactHeader = ORGANIZATION_PATH_PATTERN.test(pathname);
 
   // Scroll detection for mobile header hide/show (mobile only)
   const [isHeaderHidden, setIsHeaderHidden] = useState(false);
@@ -218,7 +221,9 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
         <link rel="shortcut icon" href={BRAND_FAVICON} />
       </Helmet>
       <div className={styles.layoutContainer}>
-      <header className={`${styles.header} ${isHeaderHidden ? styles.headerHidden : ''}`}>
+      <header
+        className={`${styles.header} ${isCompactHeader ? styles.headerCompact : ''} ${isHeaderHidden ? styles.headerHidden : ''}`}
+      >
         <div className={styles.headerContent}>
           <Link to="/" className={styles.logo}>
             <img 
@@ -279,7 +284,11 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
           </div>
         </div>
       </header>
-      <main className={`${styles.main} ${isMobileNavVisible ? styles.mainWithMobileNav : ''}`}>{children}</main>
+      <main
+        className={`${styles.main} ${isMobileNavVisible ? styles.mainWithMobileNav : ''} ${isCompactHeader ? styles.mainCompactHeader : ''}`}
+      >
+        {children}
+      </main>
       <Footer />
       <MobileBottomNav />
       </div>

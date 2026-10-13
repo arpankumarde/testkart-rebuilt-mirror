@@ -1,10 +1,5 @@
-import React from "react";
-import { useParams } from "react-router-dom";
-import { OrganizationProfilePage } from "../components/OrganizationProfilePage";
-
-const OrganisationRoutePage = () => {
-  const { orgSlug } = useParams<{ orgSlug: string }>();
-  return <OrganizationProfilePage orgSlug={orgSlug || ""} />;
-};
+// Rendered by OrganizationProfileLayout (see the .pageLayout.tsx), which stays
+// mounted across all of this organisation's sections.
+const OrganisationRoutePage = () => null;
 
 export default OrganisationRoutePage;

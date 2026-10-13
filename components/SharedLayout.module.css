@@ -443,3 +443,145 @@
     height: 44px;
   }
 }
+
+/* Compact phone header for organisation pages. Scoped below the tablet
+   breakpoint so tablet and desktop keep the standard header. */
+@media (max-width: 767px) {
+  .mainWithMobileNav.mainCompactHeader {
+    padding-top: 49px;
+  }
+
+  .headerCompact {
+    border-bottom: 1px solid color-mix(in srgb, var(--tk-brand) 40%, var(--surface));
+    box-shadow: none;
+  }
+
+  .headerCompact .headerContent {
+    height: 48px;
+    padding: 0 var(--spacing-3);
+    gap: var(--spacing-2);
+  }
+
+  .headerCompact .logo {
+    flex-shrink: 0;
+  }
+
+  .headerCompact .logoImage {
+    height: 28px;
+  }
+
+  .headerCompact .headerActions {
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .headerCompact .headerActions .searchButton,
+  .headerCompact .headerActions .cartButton,
+  .headerCompact .themeSwitch button {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    padding: 0;
+    border-radius: var(--radius-full);
+    background-color: color-mix(in srgb, var(--tk-brand) 16%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--tk-brand) 45%, var(--surface));
+    color: var(--tk-brand-text);
+    box-shadow: 0 2px 0 color-mix(in srgb, var(--tk-brand) 45%, var(--surface));
+    transition: transform var(--animation-duration-fast) ease,
+                box-shadow var(--animation-duration-fast) ease;
+  }
+
+  .headerCompact .headerActions .searchButton:hover,
+  .headerCompact .headerActions .cartButton:hover,
+  .headerCompact .themeSwitch button:hover {
+    background-color: color-mix(in srgb, var(--tk-brand) 28%, var(--surface));
+    color: var(--tk-brand-text);
+    transform: rotate(-8deg);
+  }
+
+  .headerCompact .headerActions .searchButton:active,
+  .headerCompact .headerActions .cartButton:active,
+  .headerCompact .themeSwitch button:active {
+    transform: translateY(2px);
+    box-shadow: none;
+  }
+
+  .headerCompact .headerActions .searchButton svg,
+  .headerCompact .headerActions .cartButton svg,
+  .headerCompact .themeSwitch button svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .headerCompact .cartBadge {
+    top: -9px;
+    right: -9px;
+    font-size: 0.625rem;
+    padding: 0.1875rem 0.3125rem;
+    min-width: 1.125rem;
+  }
+
+  .headerCompact .headerActions .loginButton {
+    height: 36px;
+    min-height: 36px;
+    min-width: 0;
+    padding: 0 var(--spacing-3);
+    border-radius: var(--radius-full);
+    background-color: var(--tk-brand);
+    color: var(--tk-brand-ink);
+    font-size: 0.875rem;
+    font-weight: 700;
+    white-space: nowrap;
+    box-shadow: 0 2px 0 var(--tk-brand-deep);
+    transition: transform var(--animation-duration-fast) ease,
+                box-shadow var(--animation-duration-fast) ease,
+                background-color var(--animation-duration-fast) ease;
+  }
+
+  .headerCompact .headerActions .loginButton:hover {
+    background-color: var(--tk-brand-hover);
+    color: var(--tk-brand-hover-foreground);
+  }
+
+  .headerCompact .headerActions .loginButton:active {
+    transform: translateY(2px);
+    box-shadow: none;
+  }
+
+  .headerCompact .headerActions .searchButton:focus-visible,
+  .headerCompact .headerActions .cartButton:focus-visible,
+  .headerCompact .themeSwitch button:focus-visible,
+  .headerCompact .headerActions .loginButton:focus-visible {
+    outline: 2px solid var(--tk-brand-text);
+    outline-offset: 2px;
+  }
+
+  .headerCompact .authLoading {
+    gap: 6px;
+  }
+
+  /* The account avatar is hidden below 968px, so its placeholder is too. */
+  .headerCompact .authLoading > :last-child {
+    display: none;
+  }
+}
+
+@media (max-width: 360px) {
+  .headerCompact .headerContent {
+    padding: 0 var(--spacing-2);
+  }
+
+  .headerCompact .logoImage {
+    height: 24px;
+  }
+
+  .headerCompact .headerActions {
+    gap: var(--spacing-1);
+  }
+
+  .headerCompact .headerActions .loginButton {
+    padding: 0 10px;
+    font-size: 0.8125rem;
+  }
+}

@@ -1,10 +1,5 @@
-import React from "react";
-import { useParams } from "react-router-dom";
-import { OrganizationProfilePage } from "../components/OrganizationProfilePage";
-
-const UniversityTabRoutePage = () => {
-  const { orgSlug, tab } = useParams<{ orgSlug: string; tab: string }>();
-  return <OrganizationProfilePage orgSlug={orgSlug || ""} tab={tab} />;
-};
+// Rendered by OrganizationProfileLayout (see the .pageLayout.tsx), which stays
+// mounted across all of this organisation's sections.
+const UniversityTabRoutePage = () => null;
 
 export default UniversityTabRoutePage;

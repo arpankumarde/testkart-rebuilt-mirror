@@ -8,6 +8,8 @@ import {
   OrganizationPost,
 } from "./profile_GET.schema";
 import superjson from "superjson";
+import { sql } from "kysely";
+import { courseDiscountPrice } from "../../helpers/coursePricing";
 
 const CATALOGUE_LIMIT_PER_KIND = 24;
 const POSTS_LIMIT = 20;
@@ -47,22 +49,50 @@ export async function handle(request: Request) {
         "users.tagline",
         "users.isVerified",
         "users.yearsOfExperience",
+        "users.expertiseAreas",
       ])
       .where("organizationTeachers.organizationId", "=", org.id)
       .where("organizationTeachers.status", "=", "approved")
       .orderBy("users.displayName", "asc")
       .execute();
 
-    const teachers: OrganizationTeacherCard[] = teacherRows.map((t) => ({
-      id: t.id,
-      slug: t.slug,
-      displayName: t.displayName,
-      avatarUrl: t.avatarUrl,
-      tagline: t.tagline,
-      isVerified: !!t.isVerified,
-      yearsOfExperience: t.yearsOfExperience,
-    }));
-    const teacherIds = teachers.map((t) => t.id);
+    const teacherIds = teacherRows.map((t) => t.id);
+
+    const teacherRatingRows =
+      teacherIds.length > 0
+        ? (
+            await sql<{ teacherId: number; avgRating: number | null; ratingCount: number }>`
+              SELECT COALESCE(c.teacher_id, dp.teacher_id, mt.teacher_id) AS "teacherId",
+                     AVG(r.rating) AS "avgRating",
+                     COUNT(*) AS "ratingCount"
+              FROM reviews r
+              LEFT JOIN courses c ON c.id = r.course_id
+              LEFT JOIN digital_products dp ON dp.id = r.digital_product_id
+              LEFT JOIN mock_tests mt ON mt.id = r.mock_test_id
+              WHERE COALESCE(c.teacher_id, dp.teacher_id, mt.teacher_id) IN (${sql.join(teacherIds)})
+              GROUP BY 1
+            `.execute(db)
+          ).rows
+        : [];
+    const ratingByTeacher = new Map(teacherRatingRows.map((row) => [Number(row.teacherId), row]));
+
+    const teachers: OrganizationTeacherCard[] = teacherRows.map((t) => {
+      const ratingRow = ratingByTeacher.get(t.id);
+      return {
+        id: t.id,
+        slug: t.slug,
+        displayName: t.displayName,
+        avatarUrl: t.avatarUrl,
+        tagline: t.tagline,
+        isVerified: !!t.isVerified,
+        yearsOfExperience: t.yearsOfExperience,
+        subjects: Array.isArray(t.expertiseAreas)
+          ? (t.expertiseAreas as unknown[]).filter((s): s is string => typeof s === "string" && s.trim() !== "")
+          : [],
+        rating: ratingRow?.avgRating != null ? Number(ratingRow.avgRating) : null,
+        ratingCount: Number(ratingRow?.ratingCount ?? 0),
+      };
+    });
 
     const catalogue: OrgCatalogueItem[] = [];
 
@@ -150,6 +180,7 @@ export async function handle(request: Request) {
             "digitalProducts.price",
             "digitalProducts.pageCount",
             "digitalProducts.rating",
+            "digitalProducts.thumbnailUrl",
             "users.displayName as teacherName",
             "users.slug as teacherSlug",
             "users.avatarUrl as teacherAvatarUrl",
@@ -194,7 +225,7 @@ export async function handle(request: Request) {
           title: c.title,
           examName: c.examName,
           price: Number(c.price),
-          discountPrice: c.discountPrice !== null ? Number(c.discountPrice) : null,
+          discountPrice: courseDiscountPrice(c.price, c.discountPrice),
           thumbnailUrl: c.thumbnailImageUrl,
           pageCount: null,
           rating: c.rating !== null ? Number(c.rating) : null,
@@ -214,7 +245,7 @@ export async function handle(request: Request) {
           title: t.title,
           examName: t.examName,
           price: Number(t.price),
-          discountPrice: t.discountPrice !== null ? Number(t.discountPrice) : null,
+          discountPrice: courseDiscountPrice(t.price, t.discountPrice),
           thumbnailUrl: t.thumbnailUrl,
           pageCount: null,
           rating: t.rating !== null ? Number(t.rating) : null,
@@ -234,7 +265,7 @@ export async function handle(request: Request) {
           title: lt.title,
           examName: null,
           price: Number(lt.price),
-          discountPrice: lt.discountPrice !== null ? Number(lt.discountPrice) : null,
+          discountPrice: courseDiscountPrice(lt.price, lt.discountPrice),
           thumbnailUrl: lt.thumbnailUrl,
           pageCount: null,
           rating: null,
@@ -255,7 +286,7 @@ export async function handle(request: Request) {
           examName: p.examName,
           price: Number(p.price),
           discountPrice: null,
-          thumbnailUrl: null,
+          thumbnailUrl: p.thumbnailUrl,
           pageCount: p.pageCount,
           rating: p.rating !== null ? Number(p.rating) : null,
           teacherName: p.teacherName,
@@ -273,7 +304,7 @@ export async function handle(request: Request) {
           slug: b.slug,
           title: b.title,
           examName: null,
-          price: Number(b.price),
+          price: Math.max(Number(b.price), Number(b.originalPrice) || 0),
           discountPrice: Number(b.originalPrice) > Number(b.price) ? Number(b.price) : null,
           thumbnailUrl: b.thumbnailUrl,
           pageCount: null,
