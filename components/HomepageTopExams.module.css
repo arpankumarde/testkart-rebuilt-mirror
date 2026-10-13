@@ -153,6 +153,109 @@
   margin-top: 2.25rem;
 }
 
+/* Explore All Exams: the last card, at the exam cards' size and shape, in a
+   soft sage wash (the --sp-sage family, themed in base.css) with a tilted
+   chip, sage ink title and a round ink arrow, and a sage strip underneath. */
+.allCard {
+  position: relative;
+  display: block;
+  height: 100%;
+  border-radius: 1.875rem;
+  color: var(--sp-sage-ink);
+  text-decoration: none;
+  transition: transform 220ms ease;
+}
+
+.allAccent {
+  position: absolute;
+  inset-inline: 1.5rem;
+  bottom: -8px;
+  height: 2rem;
+  border-radius: 0 0 1.5rem 1.5rem;
+  background-color: color-mix(in srgb, var(--sp-sage-edge) 55%, var(--sp-sage-tint));
+}
+
+.allBody {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 11.5rem;
+  box-sizing: border-box;
+  padding: 1.375rem 1.5rem 1.25rem;
+  background-color: var(--sp-sage-tint);
+  border: 1px solid color-mix(in srgb, var(--sp-sage-edge) 40%, var(--sp-sage-tint));
+  border-radius: 1.875rem;
+  box-shadow:
+    0 1px 2px hsl(220 10% 15% / 0.03),
+    0 8px 22px -14px hsl(220 10% 15% / 0.12);
+  transition: box-shadow 220ms ease;
+}
+
+.allHeading {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.625rem;
+}
+
+.allChip {
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-full);
+  background-color: var(--card);
+  border: 1px solid color-mix(in srgb, var(--sp-sage-edge) 40%, var(--sp-sage-tint));
+  color: var(--sp-sage-ink);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transform: rotate(-3deg);
+}
+
+.allTitle {
+  font-family: "Plus Jakarta Sans ExtraBold", var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--sp-sage-ink);
+}
+
+.allArrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-end;
+  width: 2.875rem;
+  height: 2.875rem;
+  border-radius: 50%;
+  background-color: var(--sp-sage-ink);
+  color: var(--sp-sage-tint);
+  transition: transform 220ms ease;
+}
+
+.allCard:hover,
+.allCard:focus-visible {
+  transform: translateY(-4px);
+}
+
+.allCard:hover .allBody,
+.allCard:focus-visible .allBody {
+  box-shadow:
+    0 2px 4px hsl(220 10% 15% / 0.04),
+    0 16px 30px -16px hsl(220 10% 15% / 0.2);
+}
+
+.allCard:hover .allArrow,
+.allCard:focus-visible .allArrow {
+  transform: translateX(3px) rotate(-8deg);
+}
+
+.allCard:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 4px;
+}
+
 /* 16rem cards with a 1.25rem gap: five fit the 1400px homepage column. */
 @media (min-width: 768px) {
   .header {
@@ -243,9 +346,47 @@
     margin-top: 0;
   }
 
-  /* Phones show the first eight (four rows); the rest stay on larger screens. */
-  .item:nth-child(n + 9) {
+  /* Phones show the first eight exams (four rows); the rest stay on larger
+     screens. Explore All Exams always shows, as a full-width row. */
+  .item:nth-child(n + 9):not(.allItem) {
     display: none;
+  }
+
+  .allItem {
+    grid-column: 1 / -1;
+  }
+
+  .allCard {
+    border-radius: 1.75rem;
+  }
+
+  .allAccent {
+    inset-inline: 1.125rem;
+    border-radius: 0 0 1.375rem 1.375rem;
+  }
+
+  .allBody {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-4);
+    height: auto;
+    padding: 1rem 1rem 1rem 1.25rem;
+    border-radius: 1.75rem;
+  }
+
+  .allHeading {
+    gap: 0.5rem;
+  }
+
+  .allTitle {
+    font-size: 1.1875rem;
+  }
+
+  .allArrow {
+    align-self: center;
+    flex-shrink: 0;
+    width: 2.5rem;
+    height: 2.5rem;
   }
 }
 
@@ -257,5 +398,17 @@
   .navButton:hover,
   .navButton:active {
     scale: none;
+  }
+
+  .allCard,
+  .allArrow {
+    transition: none;
+  }
+
+  .allCard:hover,
+  .allCard:focus-visible,
+  .allCard:hover .allArrow,
+  .allCard:focus-visible .allArrow {
+    transform: none;
   }
 }

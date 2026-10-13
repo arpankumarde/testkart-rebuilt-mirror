@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import { Link } from "react-router-dom";
 import {
   ArrowLeft,
   ArrowRight,
@@ -80,7 +81,8 @@ function fitCards(available: number, baseWidth: number, gap: number): number | n
  * is past the homepage column towards the viewport edge (never beyond it) the
  * way the reference does; on tablets it is the column edge. Arrows sit over
  * the row and fade in only while the pointer is over it. Phones get a static
- * two-column grid (CSS only).
+ * two-column grid (CSS only). The row ends with an Explore All Exams card
+ * linking to /exams (a full-width row under the grid on phones).
  *
  * `productCounts` (exam slug -> products on sale) comes from homepage/data;
  * a card without a count just shows its name.
@@ -211,6 +213,20 @@ export function HomepageTopExams({ productCounts }: { productCounts?: Record<str
               <ExamCategoryCard exam={exam} productCount={productCounts?.[exam.slug]} />
             </li>
           ))}
+          <li className={`${styles.item} ${styles.allItem}`}>
+            <Link to="/exams" className={styles.allCard}>
+              <span className={styles.allAccent} aria-hidden />
+              <span className={styles.allBody}>
+                <span className={styles.allHeading}>
+                  <span className={styles.allChip}>Can't find yours?</span>
+                  <span className={styles.allTitle}>Explore All Exams</span>
+                </span>
+                <span className={styles.allArrow} aria-hidden>
+                  <ArrowRight size={20} strokeWidth={2.25} />
+                </span>
+              </span>
+            </Link>
+          </li>
         </ul>
       </div>
     </section>
