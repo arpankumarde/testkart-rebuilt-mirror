@@ -5,6 +5,10 @@
   padding-top: var(--spacing-1);
 }
 
+.iconBadge {
+  gap: var(--spacing-1);
+}
+
 .metaSection {
   display: flex;
   flex-direction: column;

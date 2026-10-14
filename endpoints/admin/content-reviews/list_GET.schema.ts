@@ -66,6 +66,8 @@ export type DigitalProductMeta = {
   rating: string | null;
   reviewsCount: number;
   previewPages: number | null;
+  /** The teacher lets buyers download the note's PDFs. */
+  allowDownload: boolean;
 };
 
 export type CourseBundleMeta = {

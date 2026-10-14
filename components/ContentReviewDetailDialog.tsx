@@ -45,6 +45,8 @@ import {
   Clock,
   Trophy,
   Layers,
+  Download,
+  Lock,
 } from "lucide-react";
 import styles from "./ContentReviewDetailDialog.module.css";
 
@@ -252,9 +254,28 @@ const MockTestDetails = ({ meta }: { meta: MockTestMeta }) => {
   );
 };
 
+/* Whether buyers can save the note's PDFs or only read them in the viewer. */
+const DownloadBadge = ({ allowDownload }: { allowDownload: boolean }) =>
+  allowDownload ? (
+    <Badge variant="success" className={styles.iconBadge}>
+      <Download size={14} aria-hidden="true" />
+      Downloads on
+    </Badge>
+  ) : (
+    <Badge variant="outline" className={styles.iconBadge}>
+      <Lock size={14} aria-hidden="true" />
+      Downloads off
+    </Badge>
+  );
+
 const DigitalProductDetails = ({ meta }: { meta: DigitalProductMeta }) => (
   <div className={styles.metaSection}>
     <div className={styles.grid}>
+      <GridItem
+        label="Student downloads"
+        value={meta.allowDownload ? "Allowed - buyers can save the PDFs" : "Off - buyers read in the viewer only"}
+        icon={<Download size={12} />}
+      />
       <GridItem
         label="Category"
         value={meta.category ?? "-"}
@@ -445,6 +466,9 @@ export const ContentReviewBadges = ({ review }: { review: ContentReviewAdminView
     <Badge variant={reviewStatusBadgeVariant(review.status)}>
       {reviewStatusLabel(review.status)}
     </Badge>
+    {review.contentMeta?.type === "digital_product" && (
+      <DownloadBadge allowDownload={review.contentMeta.allowDownload} />
+    )}
   </>
 );
 

@@ -265,98 +265,134 @@ import Page_130 from "./pages/teacher.create-live-test.tsx";
 import PageLayout_130 from "./pages/teacher.create-live-test.pageLayout.tsx";
 import Page_131 from "./pages/admin.contact-submissions.tsx";
 import PageLayout_131 from "./pages/admin.contact-submissions.pageLayout.tsx";
-import Page_132 from "./pages/news-and-events.$newsSlug.tsx";
-import PageLayout_132 from "./pages/news-and-events.$newsSlug.pageLayout.tsx";
-import Page_133 from "./pages/student.courses.$courseId.tsx";
-import PageLayout_133 from "./pages/student.courses.$courseId.pageLayout.tsx";
-import Page_134 from "./pages/teacher.test.$testId.edit.tsx";
-import PageLayout_134 from "./pages/teacher.test.$testId.edit.pageLayout.tsx";
-import Page_135 from "./pages/admin.exam-content.$examId.tsx";
-import PageLayout_135 from "./pages/admin.exam-content.$examId.pageLayout.tsx";
-import Page_136 from "./pages/admin.students.withdrawals.tsx";
-import PageLayout_136 from "./pages/admin.students.withdrawals.pageLayout.tsx";
-import Page_137 from "./pages/admin.teachers.withdrawals.tsx";
-import PageLayout_137 from "./pages/admin.teachers.withdrawals.pageLayout.tsx";
-import Page_138 from "./pages/compare.graphy-vs-testkart.tsx";
-import PageLayout_138 from "./pages/compare.graphy-vs-testkart.pageLayout.tsx";
-import Page_139 from "./pages/exams.$examSlug.mock-tests.tsx";
-import PageLayout_139 from "./pages/exams.$examSlug.mock-tests.pageLayout.tsx";
-import Page_140 from "./pages/mock-test.live.$liveTestId.tsx";
-import PageLayout_140 from "./pages/mock-test.live.$liveTestId.pageLayout.tsx";
-import Page_141 from "./pages/portal.$testItemId.results.tsx";
-import PageLayout_141 from "./pages/portal.$testItemId.results.pageLayout.tsx";
-import Page_142 from "./pages/admin.notes.$productId.edit.tsx";
-import PageLayout_142 from "./pages/admin.notes.$productId.edit.pageLayout.tsx";
-import Page_143 from "./pages/admin.students.bank-details.tsx";
-import PageLayout_143 from "./pages/admin.students.bank-details.pageLayout.tsx";
-import Page_144 from "./pages/admin.teachers.bank-details.tsx";
-import PageLayout_144 from "./pages/admin.teachers.bank-details.pageLayout.tsx";
-import Page_145 from "./pages/certificates.$certificateId.tsx";
-import PageLayout_145 from "./pages/certificates.$certificateId.pageLayout.tsx";
-import Page_146 from "./pages/exams.$examSlug.eligibility.tsx";
-import PageLayout_146 from "./pages/exams.$examSlug.eligibility.pageLayout.tsx";
-import Page_147 from "./pages/exams.$examSlug.study-notes.tsx";
-import PageLayout_147 from "./pages/exams.$examSlug.study-notes.pageLayout.tsx";
-import Page_148 from "./pages/admin.bundles.$bundleId.edit.tsx";
-import PageLayout_148 from "./pages/admin.bundles.$bundleId.edit.pageLayout.tsx";
-import Page_149 from "./pages/admin.courses.$courseId.edit.tsx";
-import PageLayout_149 from "./pages/admin.courses.$courseId.edit.pageLayout.tsx";
-import Page_150 from "./pages/compare.learnyst-vs-testkart.tsx";
-import PageLayout_150 from "./pages/compare.learnyst-vs-testkart.pageLayout.tsx";
-import Page_151 from "./pages/compare.tagmango-vs-testkart.tsx";
-import PageLayout_151 from "./pages/compare.tagmango-vs-testkart.pageLayout.tsx";
-import Page_152 from "./pages/exams.$examSlug.exam-pattern.tsx";
-import PageLayout_152 from "./pages/exams.$examSlug.exam-pattern.pageLayout.tsx";
-import Page_153 from "./pages/student.shop.$productId.read.tsx";
-import PageLayout_153 from "./pages/student.shop.$productId.read.pageLayout.tsx";
-import Page_154 from "./pages/teachers.sell-online-courses.tsx";
-import PageLayout_154 from "./pages/teachers.sell-online-courses.pageLayout.tsx";
-import Page_155 from "./pages/compare.classplus-vs-testkart.tsx";
-import PageLayout_155 from "./pages/compare.classplus-vs-testkart.pageLayout.tsx";
-import Page_156 from "./pages/student.tests.$enrolledTestId.tsx";
-import PageLayout_156 from "./pages/student.tests.$enrolledTestId.pageLayout.tsx";
-import Page_157 from "./pages/admin.test-series.$testId.edit.tsx";
-import PageLayout_157 from "./pages/admin.test-series.$testId.edit.pageLayout.tsx";
-import Page_158 from "./pages/teacher.bundles.$bundleId.edit.tsx";
-import PageLayout_158 from "./pages/teacher.bundles.$bundleId.edit.pageLayout.tsx";
-import Page_159 from "./pages/teacher.courses.$courseId.edit.tsx";
-import PageLayout_159 from "./pages/teacher.courses.$courseId.edit.pageLayout.tsx";
-import Page_160 from "./pages/teacher.create-test.basic-info.tsx";
-import PageLayout_160 from "./pages/teacher.create-test.basic-info.pageLayout.tsx";
-import Page_161 from "./pages/teachers.sell-digital-products.tsx";
-import PageLayout_161 from "./pages/teachers.sell-digital-products.pageLayout.tsx";
-import Page_162 from "./pages/teacher.products.$productId.edit.tsx";
-import PageLayout_162 from "./pages/teacher.products.$productId.edit.pageLayout.tsx";
-import Page_163 from "./pages/admin.live-tests.$liveTestId.edit.tsx";
-import PageLayout_163 from "./pages/admin.live-tests.$liveTestId.edit.pageLayout.tsx";
-import Page_164 from "./pages/teacher.create-test.$testId.review.tsx";
-import PageLayout_164 from "./pages/teacher.create-test.$testId.review.pageLayout.tsx";
-import Page_165 from "./pages/teacher.live-test.$liveTestId.edit.tsx";
-import PageLayout_165 from "./pages/teacher.live-test.$liveTestId.edit.pageLayout.tsx";
-import Page_166 from "./pages/teacher.create-test.$testId.test-items.tsx";
-import PageLayout_166 from "./pages/teacher.create-test.$testId.test-items.pageLayout.tsx";
-import Page_167 from "./pages/ugc-net-swmg-success-with-mukesh-goyal.tsx";
-import PageLayout_167 from "./pages/ugc-net-swmg-success-with-mukesh-goyal.pageLayout.tsx";
-import Page_168 from "./pages/teacher.live-test.$liveTestId.questions.tsx";
-import PageLayout_168 from "./pages/teacher.live-test.$liveTestId.questions.pageLayout.tsx";
-import Page_169 from "./pages/student.courses.$courseId.read.$lessonId.tsx";
-import PageLayout_169 from "./pages/student.courses.$courseId.read.$lessonId.pageLayout.tsx";
-import Page_170 from "./pages/teacher.courses.$courseId.lessons.$lessonId.tsx";
-import PageLayout_170 from "./pages/teacher.courses.$courseId.lessons.$lessonId.pageLayout.tsx";
-import Page_171 from "./pages/ugc-net-swmg-success-with-mukesh-goyal.reviews.tsx";
-import PageLayout_171 from "./pages/ugc-net-swmg-success-with-mukesh-goyal.reviews.pageLayout.tsx";
-import Page_172 from "./pages/admin.test-series.$testId.items.$itemId.questions.tsx";
-import PageLayout_172 from "./pages/admin.test-series.$testId.items.$itemId.questions.pageLayout.tsx";
-import Page_173 from "./pages/teacher.create-test.$testId.test-items.$itemId.preview.tsx";
-import PageLayout_173 from "./pages/teacher.create-test.$testId.test-items.$itemId.preview.pageLayout.tsx";
-import Page_174 from "./pages/teacher.create-test.$testId.test-items.$itemId.questions.tsx";
-import PageLayout_174 from "./pages/teacher.create-test.$testId.test-items.$itemId.questions.pageLayout.tsx";
-import Page_175 from "./pages/teacher.create-test.$testId.test-items.$itemId.questions.new.tsx";
-import PageLayout_175 from "./pages/teacher.create-test.$testId.test-items.$itemId.questions.new.pageLayout.tsx";
-import Page_176 from "./pages/teacher.create-test.$testId.test-items.$itemId.questions.$questionId.edit.tsx";
-import PageLayout_176 from "./pages/teacher.create-test.$testId.test-items.$itemId.questions.$questionId.edit.pageLayout.tsx";
-import Page_177 from "./pages/teacher.students.performance.tsx";
-import PageLayout_177 from "./pages/teacher.students.performance.pageLayout.tsx";
+import Page_132 from "./pages/exams.$examSlug.$pageSlug.tsx";
+import PageLayout_132 from "./pages/exams.$examSlug.$pageSlug.pageLayout.tsx";
+import Page_133 from "./pages/news-and-events.$newsSlug.tsx";
+import PageLayout_133 from "./pages/news-and-events.$newsSlug.pageLayout.tsx";
+import Page_134 from "./pages/student.courses.$courseId.tsx";
+import PageLayout_134 from "./pages/student.courses.$courseId.pageLayout.tsx";
+import Page_135 from "./pages/teacher.test.$testId.edit.tsx";
+import PageLayout_135 from "./pages/teacher.test.$testId.edit.pageLayout.tsx";
+import Page_136 from "./pages/admin.exam-content.$examId.tsx";
+import PageLayout_136 from "./pages/admin.exam-content.$examId.pageLayout.tsx";
+import Page_137 from "./pages/admin.students.withdrawals.tsx";
+import PageLayout_137 from "./pages/admin.students.withdrawals.pageLayout.tsx";
+import Page_138 from "./pages/admin.teachers.withdrawals.tsx";
+import PageLayout_138 from "./pages/admin.teachers.withdrawals.pageLayout.tsx";
+import Page_139 from "./pages/compare.graphy-vs-testkart.tsx";
+import PageLayout_139 from "./pages/compare.graphy-vs-testkart.pageLayout.tsx";
+import Page_140 from "./pages/exams.$examSlug.mock-tests.tsx";
+import PageLayout_140 from "./pages/exams.$examSlug.mock-tests.pageLayout.tsx";
+import Page_141 from "./pages/mock-test.live.$liveTestId.tsx";
+import PageLayout_141 from "./pages/mock-test.live.$liveTestId.pageLayout.tsx";
+import Page_142 from "./pages/portal.$testItemId.results.tsx";
+import PageLayout_142 from "./pages/portal.$testItemId.results.pageLayout.tsx";
+import Page_143 from "./pages/admin.notes.$productId.edit.tsx";
+import PageLayout_143 from "./pages/admin.notes.$productId.edit.pageLayout.tsx";
+import Page_144 from "./pages/admin.students.bank-details.tsx";
+import PageLayout_144 from "./pages/admin.students.bank-details.pageLayout.tsx";
+import Page_145 from "./pages/admin.teachers.bank-details.tsx";
+import PageLayout_145 from "./pages/admin.teachers.bank-details.pageLayout.tsx";
+import Page_146 from "./pages/certificates.$certificateId.tsx";
+import PageLayout_146 from "./pages/certificates.$certificateId.pageLayout.tsx";
+import Page_147 from "./pages/exams.$examSlug.eligibility.tsx";
+import PageLayout_147 from "./pages/exams.$examSlug.eligibility.pageLayout.tsx";
+import Page_148 from "./pages/exams.$examSlug.study-notes.tsx";
+import PageLayout_148 from "./pages/exams.$examSlug.study-notes.pageLayout.tsx";
+import Page_149 from "./pages/admin.bundles.$bundleId.edit.tsx";
+import PageLayout_149 from "./pages/admin.bundles.$bundleId.edit.pageLayout.tsx";
+import Page_150 from "./pages/admin.courses.$courseId.edit.tsx";
+import PageLayout_150 from "./pages/admin.courses.$courseId.edit.pageLayout.tsx";
+import Page_151 from "./pages/compare.learnyst-vs-testkart.tsx";
+import PageLayout_151 from "./pages/compare.learnyst-vs-testkart.pageLayout.tsx";
+import Page_152 from "./pages/compare.tagmango-vs-testkart.tsx";
+import PageLayout_152 from "./pages/compare.tagmango-vs-testkart.pageLayout.tsx";
+import Page_153 from "./pages/exams.$examSlug.exam-pattern.tsx";
+import PageLayout_153 from "./pages/exams.$examSlug.exam-pattern.pageLayout.tsx";
+import Page_154 from "./pages/student.shop.$productId.read.tsx";
+import PageLayout_154 from "./pages/student.shop.$productId.read.pageLayout.tsx";
+import Page_155 from "./pages/teacher.students.performance.tsx";
+import PageLayout_155 from "./pages/teacher.students.performance.pageLayout.tsx";
+import Page_156 from "./pages/teachers.sell-online-courses.tsx";
+import PageLayout_156 from "./pages/teachers.sell-online-courses.pageLayout.tsx";
+import Page_157 from "./pages/compare.classplus-vs-testkart.tsx";
+import PageLayout_157 from "./pages/compare.classplus-vs-testkart.pageLayout.tsx";
+import Page_158 from "./pages/student.tests.$enrolledTestId.tsx";
+import PageLayout_158 from "./pages/student.tests.$enrolledTestId.pageLayout.tsx";
+import Page_159 from "./pages/admin.test-series.$testId.edit.tsx";
+import PageLayout_159 from "./pages/admin.test-series.$testId.edit.pageLayout.tsx";
+import Page_160 from "./pages/teacher.bundles.$bundleId.edit.tsx";
+import PageLayout_160 from "./pages/teacher.bundles.$bundleId.edit.pageLayout.tsx";
+import Page_161 from "./pages/teacher.courses.$courseId.edit.tsx";
+import PageLayout_161 from "./pages/teacher.courses.$courseId.edit.pageLayout.tsx";
+import Page_162 from "./pages/teacher.create-test.basic-info.tsx";
+import PageLayout_162 from "./pages/teacher.create-test.basic-info.pageLayout.tsx";
+import Page_163 from "./pages/teachers.sell-digital-products.tsx";
+import PageLayout_163 from "./pages/teachers.sell-digital-products.pageLayout.tsx";
+import Page_164 from "./pages/teacher.products.$productId.edit.tsx";
+import PageLayout_164 from "./pages/teacher.products.$productId.edit.pageLayout.tsx";
+import Page_165 from "./pages/admin.live-tests.$liveTestId.edit.tsx";
+import PageLayout_165 from "./pages/admin.live-tests.$liveTestId.edit.pageLayout.tsx";
+import Page_166 from "./pages/teacher.create-test.$testId.review.tsx";
+import PageLayout_166 from "./pages/teacher.create-test.$testId.review.pageLayout.tsx";
+import Page_167 from "./pages/teacher.live-test.$liveTestId.edit.tsx";
+import PageLayout_167 from "./pages/teacher.live-test.$liveTestId.edit.pageLayout.tsx";
+import Page_168 from "./pages/teacher.create-test.$testId.test-items.tsx";
+import PageLayout_168 from "./pages/teacher.create-test.$testId.test-items.pageLayout.tsx";
+import Page_169 from "./pages/ugc-net-swmg-success-with-mukesh-goyal.tsx";
+import PageLayout_169 from "./pages/ugc-net-swmg-success-with-mukesh-goyal.pageLayout.tsx";
+import Page_170 from "./pages/teacher.live-test.$liveTestId.questions.tsx";
+import PageLayout_170 from "./pages/teacher.live-test.$liveTestId.questions.pageLayout.tsx";
+import Page_171 from "./pages/student.courses.$courseId.read.$lessonId.tsx";
+import PageLayout_171 from "./pages/student.courses.$courseId.read.$lessonId.pageLayout.tsx";
+import Page_172 from "./pages/teacher.courses.$courseId.lessons.$lessonId.tsx";
+import PageLayout_172 from "./pages/teacher.courses.$courseId.lessons.$lessonId.pageLayout.tsx";
+import Page_173 from "./pages/ugc-net-swmg-success-with-mukesh-goyal.reviews.tsx";
+import PageLayout_173 from "./pages/ugc-net-swmg-success-with-mukesh-goyal.reviews.pageLayout.tsx";
+import Page_174 from "./pages/admin.test-series.$testId.items.$itemId.questions.tsx";
+import PageLayout_174 from "./pages/admin.test-series.$testId.items.$itemId.questions.pageLayout.tsx";
+import Page_175 from "./pages/teacher.create-test.$testId.test-items.$itemId.preview.tsx";
+import PageLayout_175 from "./pages/teacher.create-test.$testId.test-items.$itemId.preview.pageLayout.tsx";
+import Page_176 from "./pages/teacher.create-test.$testId.test-items.$itemId.questions.tsx";
+import PageLayout_176 from "./pages/teacher.create-test.$testId.test-items.$itemId.questions.pageLayout.tsx";
+import Page_177 from "./pages/teacher.create-test.$testId.test-items.$itemId.questions.new.tsx";
+import PageLayout_177 from "./pages/teacher.create-test.$testId.test-items.$itemId.questions.new.pageLayout.tsx";
+import Page_178 from "./pages/teacher.create-test.$testId.test-items.$itemId.questions.$questionId.edit.tsx";
+import PageLayout_178 from "./pages/teacher.create-test.$testId.test-items.$itemId.questions.$questionId.edit.pageLayout.tsx";
+import Page_179 from "./pages/admin.content-reviews.bonus-claims.tsx";
+import PageLayout_179 from "./pages/admin.content-reviews.bonus-claims.pageLayout.tsx";
+import Page_180 from "./pages/teacher.creator-bonus.tsx";
+import PageLayout_180 from "./pages/teacher.creator-bonus.pageLayout.tsx";
+import Page_181 from "./pages/teacher.posts.tsx";
+import PageLayout_181 from "./pages/teacher.posts.pageLayout.tsx";
+import Page_182 from "./pages/teacher.organizations.tsx";
+import PageLayout_182 from "./pages/teacher.organizations.pageLayout.tsx";
+import Page_183 from "./pages/organisation.$orgSlug.tsx";
+import PageLayout_183 from "./pages/organisation.$orgSlug.pageLayout.tsx";
+import Page_184 from "./pages/school.$orgSlug.tsx";
+import PageLayout_184 from "./pages/school.$orgSlug.pageLayout.tsx";
+import Page_185 from "./pages/college.$orgSlug.tsx";
+import PageLayout_185 from "./pages/college.$orgSlug.pageLayout.tsx";
+import Page_186 from "./pages/coaching.$orgSlug.tsx";
+import PageLayout_186 from "./pages/coaching.$orgSlug.pageLayout.tsx";
+import Page_187 from "./pages/university.$orgSlug.tsx";
+import PageLayout_187 from "./pages/university.$orgSlug.pageLayout.tsx";
+import Page_188 from "./pages/teacher.organizations.$organizationId.edit.tsx";
+import PageLayout_188 from "./pages/teacher.organizations.$organizationId.edit.pageLayout.tsx";
+import Page_189 from "./pages/school.$orgSlug.$tab.tsx";
+import PageLayout_189 from "./pages/school.$orgSlug.$tab.pageLayout.tsx";
+import Page_190 from "./pages/college.$orgSlug.$tab.tsx";
+import PageLayout_190 from "./pages/college.$orgSlug.$tab.pageLayout.tsx";
+import Page_191 from "./pages/coaching.$orgSlug.$tab.tsx";
+import PageLayout_191 from "./pages/coaching.$orgSlug.$tab.pageLayout.tsx";
+import Page_192 from "./pages/university.$orgSlug.$tab.tsx";
+import PageLayout_192 from "./pages/university.$orgSlug.$tab.pageLayout.tsx";
+import Page_193 from "./pages/organisation.$orgSlug.$tab.tsx";
+import PageLayout_193 from "./pages/organisation.$orgSlug.$tab.pageLayout.tsx";
+import Page_194 from "./pages/admin.organizations.tsx";
+import PageLayout_194 from "./pages/admin.organizations.pageLayout.tsx";
+import Page_195 from "./pages/admin.organizations.$organizationId.tsx";
+import PageLayout_195 from "./pages/admin.organizations.$organizationId.pageLayout.tsx";
 
 if (!window.requestIdleCallback) {
   window.requestIdleCallback = (cb) => {
@@ -366,7 +402,7 @@ if (!window.requestIdleCallback) {
 
 import "./base.css";
 
-const fileNameToRoute = new Map([["./pages/$.tsx","/*"],["./pages/blog.tsx","/blog"],["./pages/cart.tsx","/cart"],["./pages/demo.tsx","/demo"],["./pages/help.tsx","/help"],["./pages/sell.tsx","/sell"],["./pages/about.tsx","/about"],["./pages/admin.tsx","/admin"],["./pages/exams.tsx","/exams"],["./pages/login.tsx","/login"],["./pages/teach.tsx","/teach"],["./pages/terms.tsx","/terms"],["./pages/_index.tsx","/"],["./pages/course.tsx","/course"],["./pages/refund.tsx","/refund"],["./pages/search.tsx","/search"],["./pages/signup.tsx","/signup"],["./pages/bundles.tsx","/bundles"],["./pages/careers.tsx","/careers"],["./pages/contact.tsx","/contact"],["./pages/privacy.tsx","/privacy"],["./pages/teachers.tsx","/teachers"],["./pages/mock-test.tsx","/mock-test"],["./pages/admin.blog.tsx","/admin/blog"],["./pages/admin.news.tsx","/admin/news"],["./pages/admin.login.tsx","/admin/login"],["./pages/admin.notes.tsx","/admin/notes"],["./pages/admin.sales.tsx","/admin/sales"],["./pages/study-notes.tsx","/study-notes"],["./pages/sell.courses.tsx","/sell/courses"],["./pages/student.live.tsx","/student/live"],["./pages/student.shop.tsx","/student/shop"],["./pages/admin.bundles.tsx","/admin/bundles"],["./pages/admin.careers.tsx","/admin/careers"],["./pages/admin.content.tsx","/admin/content"],["./pages/admin.courses.tsx","/admin/courses"],["./pages/admin.finance.tsx","/admin/finance"],["./pages/admin.profile.tsx","/admin/profile"],["./pages/admin.support.tsx","/admin/support"],["./pages/app-turnstile.tsx","/app-turnstile"],["./pages/close-account.tsx","/close-account"],["./pages/student.tests.tsx","/student/tests"],["./pages/teacher.login.tsx","/teacher/login"],["./pages/teacher.trash.tsx","/teacher/trash"],["./pages/verify-mobile.tsx","/verify-mobile"],["./pages/admin.ai-usage.tsx","/admin/ai-usage"],["./pages/admin.api-docs.tsx","/admin/api-docs"],["./pages/admin.settings.tsx","/admin/settings"],["./pages/admin.students.tsx","/admin/students"],["./pages/admin.teachers.tsx","/admin/teachers"],["./pages/blog.$blogSlug.tsx","/blog/:blogSlug"],["./pages/mock-test.live.tsx","/mock-test/live"],["./pages/order.$orderId.tsx","/order/:orderId"],["./pages/sell.mock-test.tsx","/sell/mock-test"],["./pages/student.orders.tsx","/student/orders"],["./pages/student.wallet.tsx","/student/wallet"],["./pages/teacher.assets.tsx","/teacher/assets"],["./pages/teacher.signup.tsx","/teacher/signup"],["./pages/admin.catalogue.tsx","/admin/catalogue"],["./pages/admin.dashboard.tsx","/admin/dashboard"],["./pages/exams.$examSlug.tsx","/exams/:examSlug"],["./pages/news-and-events.tsx","/news-and-events"],["./pages/student.courses.tsx","/student/courses"],["./pages/student.profile.tsx","/student/profile"],["./pages/teacher.bundles.tsx","/teacher/bundles"],["./pages/teacher.courses.tsx","/teacher/courses"],["./pages/teacher.reviews.tsx","/teacher/reviews"],["./pages/teacher.support.tsx","/teacher/support"],["./pages/admin.blog.e.$id.tsx","/admin/blog/e/:id"],["./pages/admin.live-tests.tsx","/admin/live-tests"],["./pages/admin.news.e.$id.tsx","/admin/news/e/:id"],["./pages/payment.callback.tsx","/payment/callback"],["./pages/teacher.earnings.tsx","/teacher/earnings"],["./pages/teacher.products.tsx","/teacher/products"],["./pages/teacher.settings.tsx","/teacher/settings"],["./pages/teacher.students.tsx","/teacher/students"],["./pages/admin.test-series.tsx","/admin/test-series"],["./pages/ai-quiz-generator.tsx","/ai-quiz-generator"],["./pages/courses.$courseId.tsx","/courses/:courseId"],["./pages/email.unsubscribe.tsx","/email/unsubscribe"],["./pages/help.$articleSlug.tsx","/help/:articleSlug"],["./pages/student.dashboard.tsx","/student/dashboard"],["./pages/teacher.analytics.tsx","/teacher/analytics"],["./pages/teacher.dashboard.tsx","/teacher/dashboard"],["./pages/admin.ai-questions.tsx","/admin/ai-questions"],["./pages/admin.exam-content.tsx","/admin/exam-content"],["./pages/admin.static-pages.tsx","/admin/static-pages"],["./pages/admin.transactions.tsx","/admin/transactions"],["./pages/course.$courseSlug.tsx","/course/:courseSlug"],["./pages/portal.$testItemId.tsx","/portal/:testItemId"],["./pages/teacher.live-tests.tsx","/teacher/live-tests"],["./pages/teacher.onboarding.tsx","/teacher/onboarding"],["./pages/admin.blog.category.tsx","/admin/blog/category"],["./pages/admin.blog.comments.tsx","/admin/blog/comments"],["./pages/admin.dashboard.old.tsx","/admin/dashboard/old"],["./pages/admin.subscriptions.tsx","/admin/subscriptions"],["./pages/bundles.$bundleSlug.tsx","/bundles/:bundleSlug"],["./pages/careers.$careerSlug.tsx","/careers/:careerSlug"],["./pages/expert.$teacherSlug.tsx","/expert/:teacherSlug"],["./pages/mock-test.$testSlug.tsx","/mock-test/:testSlug"],["./pages/sell.host-live-exam.tsx","/sell/host-live-exam"],["./pages/teacher.create-test.tsx","/teacher/create-test"],["./pages/teacher.promo-codes.tsx","/teacher/promo-codes"],["./pages/teacher.test-series.tsx","/teacher/test-series"],["./pages/admin.reset-password.tsx","/admin/reset-password"],["./pages/student.certificates.tsx","/student/certificates"],["./pages/teacher.edit-profile.tsx","/teacher/edit-profile"],["./pages/teacher.subscription.tsx","/teacher/subscription"],["./pages/admin.content-reviews.tsx","/admin/content-reviews"],["./pages/admin.email-templates.tsx","/admin/email-templates"],["./pages/admin.forgot-password.tsx","/admin/forgot-password"],["./pages/sell.study-notes-pdfs.tsx","/sell/study-notes-pdfs"],["./pages/study-notes.$noteSlug.tsx","/study-notes/:noteSlug"],["./pages/teacher.dashboard-old.tsx","/teacher/dashboard-old"],["./pages/teacher.question-bank.tsx","/teacher/question-bank"],["./pages/admin.deleted-accounts.tsx","/admin/deleted-accounts"],["./pages/ai-mock-test-generator.tsx","/ai-mock-test-generator"],["./pages/exams.$examSlug.cutoff.tsx","/exams/:examSlug/cutoff"],["./pages/teacher.bundles.create.tsx","/teacher/bundles/create"],["./pages/teacher.courses.create.tsx","/teacher/courses/create"],["./pages/admin.preview.$type.$id.tsx","/admin/preview/:type/:id"],["./pages/admin.teachers.earnings.tsx","/admin/teachers/earnings"],["./pages/exams.$examSlug.bundles.tsx","/exams/:examSlug/bundles"],["./pages/exams.$examSlug.courses.tsx","/exams/:examSlug/courses"],["./pages/live-portal.$liveTestId.tsx","/live-portal/:liveTestId"],["./pages/student.shop.$productId.tsx","/student/shop/:productId"],["./pages/teacher.products.create.tsx","/teacher/products/create"],["./pages/teachers.live-mock-test.tsx","/teachers/live-mock-test"],["./pages/admin.teachers.inquiries.tsx","/admin/teachers/inquiries"],["./pages/exams.$examSlug.syllabus.tsx","/exams/:examSlug/syllabus"],["./pages/teacher.create-live-test.tsx","/teacher/create-live-test"],["./pages/admin.contact-submissions.tsx","/admin/contact-submissions"],["./pages/news-and-events.$newsSlug.tsx","/news-and-events/:newsSlug"],["./pages/student.courses.$courseId.tsx","/student/courses/:courseId"],["./pages/teacher.test.$testId.edit.tsx","/teacher/test/:testId/edit"],["./pages/admin.exam-content.$examId.tsx","/admin/exam-content/:examId"],["./pages/admin.students.withdrawals.tsx","/admin/students/withdrawals"],["./pages/admin.teachers.withdrawals.tsx","/admin/teachers/withdrawals"],["./pages/compare.graphy-vs-testkart.tsx","/compare/graphy-vs-testkart"],["./pages/exams.$examSlug.mock-tests.tsx","/exams/:examSlug/mock-tests"],["./pages/mock-test.live.$liveTestId.tsx","/mock-test/live/:liveTestId"],["./pages/portal.$testItemId.results.tsx","/portal/:testItemId/results"],["./pages/admin.notes.$productId.edit.tsx","/admin/notes/:productId/edit"],["./pages/admin.students.bank-details.tsx","/admin/students/bank-details"],["./pages/admin.teachers.bank-details.tsx","/admin/teachers/bank-details"],["./pages/certificates.$certificateId.tsx","/certificates/:certificateId"],["./pages/exams.$examSlug.eligibility.tsx","/exams/:examSlug/eligibility"],["./pages/exams.$examSlug.study-notes.tsx","/exams/:examSlug/study-notes"],["./pages/admin.bundles.$bundleId.edit.tsx","/admin/bundles/:bundleId/edit"],["./pages/admin.courses.$courseId.edit.tsx","/admin/courses/:courseId/edit"],["./pages/compare.learnyst-vs-testkart.tsx","/compare/learnyst-vs-testkart"],["./pages/compare.tagmango-vs-testkart.tsx","/compare/tagmango-vs-testkart"],["./pages/exams.$examSlug.exam-pattern.tsx","/exams/:examSlug/exam-pattern"],["./pages/student.shop.$productId.read.tsx","/student/shop/:productId/read"],["./pages/teachers.sell-online-courses.tsx","/teachers/sell-online-courses"],["./pages/compare.classplus-vs-testkart.tsx","/compare/classplus-vs-testkart"],["./pages/student.tests.$enrolledTestId.tsx","/student/tests/:enrolledTestId"],["./pages/admin.test-series.$testId.edit.tsx","/admin/test-series/:testId/edit"],["./pages/teacher.bundles.$bundleId.edit.tsx","/teacher/bundles/:bundleId/edit"],["./pages/teacher.courses.$courseId.edit.tsx","/teacher/courses/:courseId/edit"],["./pages/teacher.create-test.basic-info.tsx","/teacher/create-test/basic-info"],["./pages/teachers.sell-digital-products.tsx","/teachers/sell-digital-products"],["./pages/teacher.products.$productId.edit.tsx","/teacher/products/:productId/edit"],["./pages/admin.live-tests.$liveTestId.edit.tsx","/admin/live-tests/:liveTestId/edit"],["./pages/teacher.create-test.$testId.review.tsx","/teacher/create-test/:testId/review"],["./pages/teacher.live-test.$liveTestId.edit.tsx","/teacher/live-test/:liveTestId/edit"],["./pages/teacher.create-test.$testId.test-items.tsx","/teacher/create-test/:testId/test-items"],["./pages/ugc-net-swmg-success-with-mukesh-goyal.tsx","/ugc-net-swmg-success-with-mukesh-goyal"],["./pages/teacher.live-test.$liveTestId.questions.tsx","/teacher/live-test/:liveTestId/questions"],["./pages/student.courses.$courseId.read.$lessonId.tsx","/student/courses/:courseId/read/:lessonId"],["./pages/teacher.courses.$courseId.lessons.$lessonId.tsx","/teacher/courses/:courseId/lessons/:lessonId"],["./pages/ugc-net-swmg-success-with-mukesh-goyal.reviews.tsx","/ugc-net-swmg-success-with-mukesh-goyal/reviews"],["./pages/admin.test-series.$testId.items.$itemId.questions.tsx","/admin/test-series/:testId/items/:itemId/questions"],["./pages/teacher.create-test.$testId.test-items.$itemId.preview.tsx","/teacher/create-test/:testId/test-items/:itemId/preview"],["./pages/teacher.create-test.$testId.test-items.$itemId.questions.tsx","/teacher/create-test/:testId/test-items/:itemId/questions"],["./pages/teacher.create-test.$testId.test-items.$itemId.questions.new.tsx","/teacher/create-test/:testId/test-items/:itemId/questions/new"],["./pages/teacher.create-test.$testId.test-items.$itemId.questions.$questionId.edit.tsx","/teacher/create-test/:testId/test-items/:itemId/questions/:questionId/edit"],["./pages/teacher.students.performance.tsx","/teacher/students/performance"]]);
+const fileNameToRoute = new Map([["./pages/$.tsx","/*"],["./pages/blog.tsx","/blog"],["./pages/cart.tsx","/cart"],["./pages/demo.tsx","/demo"],["./pages/help.tsx","/help"],["./pages/sell.tsx","/sell"],["./pages/about.tsx","/about"],["./pages/admin.tsx","/admin"],["./pages/exams.tsx","/exams"],["./pages/login.tsx","/login"],["./pages/teach.tsx","/teach"],["./pages/terms.tsx","/terms"],["./pages/_index.tsx","/"],["./pages/course.tsx","/course"],["./pages/refund.tsx","/refund"],["./pages/search.tsx","/search"],["./pages/signup.tsx","/signup"],["./pages/bundles.tsx","/bundles"],["./pages/careers.tsx","/careers"],["./pages/contact.tsx","/contact"],["./pages/privacy.tsx","/privacy"],["./pages/teachers.tsx","/teachers"],["./pages/mock-test.tsx","/mock-test"],["./pages/admin.blog.tsx","/admin/blog"],["./pages/admin.news.tsx","/admin/news"],["./pages/admin.login.tsx","/admin/login"],["./pages/admin.notes.tsx","/admin/notes"],["./pages/admin.sales.tsx","/admin/sales"],["./pages/study-notes.tsx","/study-notes"],["./pages/sell.courses.tsx","/sell/courses"],["./pages/student.live.tsx","/student/live"],["./pages/student.shop.tsx","/student/shop"],["./pages/admin.bundles.tsx","/admin/bundles"],["./pages/admin.careers.tsx","/admin/careers"],["./pages/admin.content.tsx","/admin/content"],["./pages/admin.courses.tsx","/admin/courses"],["./pages/admin.finance.tsx","/admin/finance"],["./pages/admin.profile.tsx","/admin/profile"],["./pages/admin.support.tsx","/admin/support"],["./pages/app-turnstile.tsx","/app-turnstile"],["./pages/close-account.tsx","/close-account"],["./pages/student.tests.tsx","/student/tests"],["./pages/teacher.login.tsx","/teacher/login"],["./pages/teacher.trash.tsx","/teacher/trash"],["./pages/verify-mobile.tsx","/verify-mobile"],["./pages/admin.ai-usage.tsx","/admin/ai-usage"],["./pages/admin.api-docs.tsx","/admin/api-docs"],["./pages/admin.settings.tsx","/admin/settings"],["./pages/admin.students.tsx","/admin/students"],["./pages/admin.teachers.tsx","/admin/teachers"],["./pages/blog.$blogSlug.tsx","/blog/:blogSlug"],["./pages/mock-test.live.tsx","/mock-test/live"],["./pages/order.$orderId.tsx","/order/:orderId"],["./pages/sell.mock-test.tsx","/sell/mock-test"],["./pages/student.orders.tsx","/student/orders"],["./pages/student.wallet.tsx","/student/wallet"],["./pages/teacher.assets.tsx","/teacher/assets"],["./pages/teacher.signup.tsx","/teacher/signup"],["./pages/admin.catalogue.tsx","/admin/catalogue"],["./pages/admin.dashboard.tsx","/admin/dashboard"],["./pages/exams.$examSlug.tsx","/exams/:examSlug"],["./pages/news-and-events.tsx","/news-and-events"],["./pages/student.courses.tsx","/student/courses"],["./pages/student.profile.tsx","/student/profile"],["./pages/teacher.bundles.tsx","/teacher/bundles"],["./pages/teacher.courses.tsx","/teacher/courses"],["./pages/teacher.reviews.tsx","/teacher/reviews"],["./pages/teacher.support.tsx","/teacher/support"],["./pages/admin.blog.e.$id.tsx","/admin/blog/e/:id"],["./pages/admin.live-tests.tsx","/admin/live-tests"],["./pages/admin.news.e.$id.tsx","/admin/news/e/:id"],["./pages/payment.callback.tsx","/payment/callback"],["./pages/teacher.earnings.tsx","/teacher/earnings"],["./pages/teacher.products.tsx","/teacher/products"],["./pages/teacher.settings.tsx","/teacher/settings"],["./pages/teacher.students.tsx","/teacher/students"],["./pages/admin.test-series.tsx","/admin/test-series"],["./pages/ai-quiz-generator.tsx","/ai-quiz-generator"],["./pages/courses.$courseId.tsx","/courses/:courseId"],["./pages/email.unsubscribe.tsx","/email/unsubscribe"],["./pages/help.$articleSlug.tsx","/help/:articleSlug"],["./pages/student.dashboard.tsx","/student/dashboard"],["./pages/teacher.analytics.tsx","/teacher/analytics"],["./pages/teacher.dashboard.tsx","/teacher/dashboard"],["./pages/admin.ai-questions.tsx","/admin/ai-questions"],["./pages/admin.exam-content.tsx","/admin/exam-content"],["./pages/admin.static-pages.tsx","/admin/static-pages"],["./pages/admin.transactions.tsx","/admin/transactions"],["./pages/course.$courseSlug.tsx","/course/:courseSlug"],["./pages/portal.$testItemId.tsx","/portal/:testItemId"],["./pages/teacher.live-tests.tsx","/teacher/live-tests"],["./pages/teacher.onboarding.tsx","/teacher/onboarding"],["./pages/admin.blog.category.tsx","/admin/blog/category"],["./pages/admin.blog.comments.tsx","/admin/blog/comments"],["./pages/admin.dashboard.old.tsx","/admin/dashboard/old"],["./pages/admin.subscriptions.tsx","/admin/subscriptions"],["./pages/bundles.$bundleSlug.tsx","/bundles/:bundleSlug"],["./pages/careers.$careerSlug.tsx","/careers/:careerSlug"],["./pages/expert.$teacherSlug.tsx","/expert/:teacherSlug"],["./pages/mock-test.$testSlug.tsx","/mock-test/:testSlug"],["./pages/sell.host-live-exam.tsx","/sell/host-live-exam"],["./pages/teacher.create-test.tsx","/teacher/create-test"],["./pages/teacher.promo-codes.tsx","/teacher/promo-codes"],["./pages/teacher.test-series.tsx","/teacher/test-series"],["./pages/admin.reset-password.tsx","/admin/reset-password"],["./pages/student.certificates.tsx","/student/certificates"],["./pages/teacher.edit-profile.tsx","/teacher/edit-profile"],["./pages/teacher.subscription.tsx","/teacher/subscription"],["./pages/admin.content-reviews.tsx","/admin/content-reviews"],["./pages/admin.email-templates.tsx","/admin/email-templates"],["./pages/admin.forgot-password.tsx","/admin/forgot-password"],["./pages/sell.study-notes-pdfs.tsx","/sell/study-notes-pdfs"],["./pages/study-notes.$noteSlug.tsx","/study-notes/:noteSlug"],["./pages/teacher.dashboard-old.tsx","/teacher/dashboard-old"],["./pages/teacher.question-bank.tsx","/teacher/question-bank"],["./pages/admin.deleted-accounts.tsx","/admin/deleted-accounts"],["./pages/ai-mock-test-generator.tsx","/ai-mock-test-generator"],["./pages/exams.$examSlug.cutoff.tsx","/exams/:examSlug/cutoff"],["./pages/teacher.bundles.create.tsx","/teacher/bundles/create"],["./pages/teacher.courses.create.tsx","/teacher/courses/create"],["./pages/admin.preview.$type.$id.tsx","/admin/preview/:type/:id"],["./pages/admin.teachers.earnings.tsx","/admin/teachers/earnings"],["./pages/exams.$examSlug.bundles.tsx","/exams/:examSlug/bundles"],["./pages/exams.$examSlug.courses.tsx","/exams/:examSlug/courses"],["./pages/live-portal.$liveTestId.tsx","/live-portal/:liveTestId"],["./pages/student.shop.$productId.tsx","/student/shop/:productId"],["./pages/teacher.products.create.tsx","/teacher/products/create"],["./pages/teachers.live-mock-test.tsx","/teachers/live-mock-test"],["./pages/admin.teachers.inquiries.tsx","/admin/teachers/inquiries"],["./pages/exams.$examSlug.syllabus.tsx","/exams/:examSlug/syllabus"],["./pages/teacher.create-live-test.tsx","/teacher/create-live-test"],["./pages/admin.contact-submissions.tsx","/admin/contact-submissions"],["./pages/exams.$examSlug.$pageSlug.tsx","/exams/:examSlug/:pageSlug"],["./pages/news-and-events.$newsSlug.tsx","/news-and-events/:newsSlug"],["./pages/student.courses.$courseId.tsx","/student/courses/:courseId"],["./pages/teacher.test.$testId.edit.tsx","/teacher/test/:testId/edit"],["./pages/admin.exam-content.$examId.tsx","/admin/exam-content/:examId"],["./pages/admin.students.withdrawals.tsx","/admin/students/withdrawals"],["./pages/admin.teachers.withdrawals.tsx","/admin/teachers/withdrawals"],["./pages/compare.graphy-vs-testkart.tsx","/compare/graphy-vs-testkart"],["./pages/exams.$examSlug.mock-tests.tsx","/exams/:examSlug/mock-tests"],["./pages/mock-test.live.$liveTestId.tsx","/mock-test/live/:liveTestId"],["./pages/portal.$testItemId.results.tsx","/portal/:testItemId/results"],["./pages/admin.notes.$productId.edit.tsx","/admin/notes/:productId/edit"],["./pages/admin.students.bank-details.tsx","/admin/students/bank-details"],["./pages/admin.teachers.bank-details.tsx","/admin/teachers/bank-details"],["./pages/certificates.$certificateId.tsx","/certificates/:certificateId"],["./pages/exams.$examSlug.eligibility.tsx","/exams/:examSlug/eligibility"],["./pages/exams.$examSlug.study-notes.tsx","/exams/:examSlug/study-notes"],["./pages/admin.bundles.$bundleId.edit.tsx","/admin/bundles/:bundleId/edit"],["./pages/admin.courses.$courseId.edit.tsx","/admin/courses/:courseId/edit"],["./pages/compare.learnyst-vs-testkart.tsx","/compare/learnyst-vs-testkart"],["./pages/compare.tagmango-vs-testkart.tsx","/compare/tagmango-vs-testkart"],["./pages/exams.$examSlug.exam-pattern.tsx","/exams/:examSlug/exam-pattern"],["./pages/student.shop.$productId.read.tsx","/student/shop/:productId/read"],["./pages/teacher.students.performance.tsx","/teacher/students/performance"],["./pages/teachers.sell-online-courses.tsx","/teachers/sell-online-courses"],["./pages/compare.classplus-vs-testkart.tsx","/compare/classplus-vs-testkart"],["./pages/student.tests.$enrolledTestId.tsx","/student/tests/:enrolledTestId"],["./pages/admin.test-series.$testId.edit.tsx","/admin/test-series/:testId/edit"],["./pages/teacher.bundles.$bundleId.edit.tsx","/teacher/bundles/:bundleId/edit"],["./pages/teacher.courses.$courseId.edit.tsx","/teacher/courses/:courseId/edit"],["./pages/teacher.create-test.basic-info.tsx","/teacher/create-test/basic-info"],["./pages/teachers.sell-digital-products.tsx","/teachers/sell-digital-products"],["./pages/teacher.products.$productId.edit.tsx","/teacher/products/:productId/edit"],["./pages/admin.live-tests.$liveTestId.edit.tsx","/admin/live-tests/:liveTestId/edit"],["./pages/teacher.create-test.$testId.review.tsx","/teacher/create-test/:testId/review"],["./pages/teacher.live-test.$liveTestId.edit.tsx","/teacher/live-test/:liveTestId/edit"],["./pages/teacher.create-test.$testId.test-items.tsx","/teacher/create-test/:testId/test-items"],["./pages/ugc-net-swmg-success-with-mukesh-goyal.tsx","/ugc-net-swmg-success-with-mukesh-goyal"],["./pages/teacher.live-test.$liveTestId.questions.tsx","/teacher/live-test/:liveTestId/questions"],["./pages/student.courses.$courseId.read.$lessonId.tsx","/student/courses/:courseId/read/:lessonId"],["./pages/teacher.courses.$courseId.lessons.$lessonId.tsx","/teacher/courses/:courseId/lessons/:lessonId"],["./pages/ugc-net-swmg-success-with-mukesh-goyal.reviews.tsx","/ugc-net-swmg-success-with-mukesh-goyal/reviews"],["./pages/admin.test-series.$testId.items.$itemId.questions.tsx","/admin/test-series/:testId/items/:itemId/questions"],["./pages/teacher.create-test.$testId.test-items.$itemId.preview.tsx","/teacher/create-test/:testId/test-items/:itemId/preview"],["./pages/teacher.create-test.$testId.test-items.$itemId.questions.tsx","/teacher/create-test/:testId/test-items/:itemId/questions"],["./pages/teacher.create-test.$testId.test-items.$itemId.questions.new.tsx","/teacher/create-test/:testId/test-items/:itemId/questions/new"],["./pages/teacher.create-test.$testId.test-items.$itemId.questions.$questionId.edit.tsx","/teacher/create-test/:testId/test-items/:itemId/questions/:questionId/edit"],["./pages/admin.content-reviews.bonus-claims.tsx","/admin/content-reviews/bonus-claims"],["./pages/teacher.creator-bonus.tsx","/teacher/creator-bonus"],["./pages/teacher.posts.tsx","/teacher/posts"],["./pages/teacher.organizations.tsx","/teacher/organizations"],["./pages/organisation.$orgSlug.tsx","/organisation/:orgSlug"],["./pages/school.$orgSlug.tsx","/school/:orgSlug"],["./pages/college.$orgSlug.tsx","/college/:orgSlug"],["./pages/coaching.$orgSlug.tsx","/coaching/:orgSlug"],["./pages/university.$orgSlug.tsx","/university/:orgSlug"],["./pages/teacher.organizations.$organizationId.edit.tsx","/teacher/organizations/:organizationId/edit"],["./pages/school.$orgSlug.$tab.tsx","/school/:orgSlug/:tab"],["./pages/college.$orgSlug.$tab.tsx","/college/:orgSlug/:tab"],["./pages/coaching.$orgSlug.$tab.tsx","/coaching/:orgSlug/:tab"],["./pages/university.$orgSlug.$tab.tsx","/university/:orgSlug/:tab"],["./pages/organisation.$orgSlug.$tab.tsx","/organisation/:orgSlug/:tab"],["./pages/admin.organizations.tsx","/admin/organizations"],["./pages/admin.organizations.$organizationId.tsx","/admin/organizations/:organizationId"]]);
 const fileNameToComponent = new Map([
     ["./pages/$.tsx", Page_0],
 ["./pages/blog.tsx", Page_1],
@@ -500,52 +536,70 @@ const fileNameToComponent = new Map([
 ["./pages/exams.$examSlug.syllabus.tsx", Page_129],
 ["./pages/teacher.create-live-test.tsx", Page_130],
 ["./pages/admin.contact-submissions.tsx", Page_131],
-["./pages/news-and-events.$newsSlug.tsx", Page_132],
-["./pages/student.courses.$courseId.tsx", Page_133],
-["./pages/teacher.test.$testId.edit.tsx", Page_134],
-["./pages/admin.exam-content.$examId.tsx", Page_135],
-["./pages/admin.students.withdrawals.tsx", Page_136],
-["./pages/admin.teachers.withdrawals.tsx", Page_137],
-["./pages/compare.graphy-vs-testkart.tsx", Page_138],
-["./pages/exams.$examSlug.mock-tests.tsx", Page_139],
-["./pages/mock-test.live.$liveTestId.tsx", Page_140],
-["./pages/portal.$testItemId.results.tsx", Page_141],
-["./pages/admin.notes.$productId.edit.tsx", Page_142],
-["./pages/admin.students.bank-details.tsx", Page_143],
-["./pages/admin.teachers.bank-details.tsx", Page_144],
-["./pages/certificates.$certificateId.tsx", Page_145],
-["./pages/exams.$examSlug.eligibility.tsx", Page_146],
-["./pages/exams.$examSlug.study-notes.tsx", Page_147],
-["./pages/admin.bundles.$bundleId.edit.tsx", Page_148],
-["./pages/admin.courses.$courseId.edit.tsx", Page_149],
-["./pages/compare.learnyst-vs-testkart.tsx", Page_150],
-["./pages/compare.tagmango-vs-testkart.tsx", Page_151],
-["./pages/exams.$examSlug.exam-pattern.tsx", Page_152],
-["./pages/student.shop.$productId.read.tsx", Page_153],
-["./pages/teachers.sell-online-courses.tsx", Page_154],
-["./pages/compare.classplus-vs-testkart.tsx", Page_155],
-["./pages/student.tests.$enrolledTestId.tsx", Page_156],
-["./pages/admin.test-series.$testId.edit.tsx", Page_157],
-["./pages/teacher.bundles.$bundleId.edit.tsx", Page_158],
-["./pages/teacher.courses.$courseId.edit.tsx", Page_159],
-["./pages/teacher.create-test.basic-info.tsx", Page_160],
-["./pages/teachers.sell-digital-products.tsx", Page_161],
-["./pages/teacher.products.$productId.edit.tsx", Page_162],
-["./pages/admin.live-tests.$liveTestId.edit.tsx", Page_163],
-["./pages/teacher.create-test.$testId.review.tsx", Page_164],
-["./pages/teacher.live-test.$liveTestId.edit.tsx", Page_165],
-["./pages/teacher.create-test.$testId.test-items.tsx", Page_166],
-["./pages/ugc-net-swmg-success-with-mukesh-goyal.tsx", Page_167],
-["./pages/teacher.live-test.$liveTestId.questions.tsx", Page_168],
-["./pages/student.courses.$courseId.read.$lessonId.tsx", Page_169],
-["./pages/teacher.courses.$courseId.lessons.$lessonId.tsx", Page_170],
-["./pages/ugc-net-swmg-success-with-mukesh-goyal.reviews.tsx", Page_171],
-["./pages/admin.test-series.$testId.items.$itemId.questions.tsx", Page_172],
-["./pages/teacher.create-test.$testId.test-items.$itemId.preview.tsx", Page_173],
-["./pages/teacher.create-test.$testId.test-items.$itemId.questions.tsx", Page_174],
-["./pages/teacher.create-test.$testId.test-items.$itemId.questions.new.tsx", Page_175],
-["./pages/teacher.create-test.$testId.test-items.$itemId.questions.$questionId.edit.tsx", Page_176],
-["./pages/teacher.students.performance.tsx", Page_177],
+["./pages/exams.$examSlug.$pageSlug.tsx", Page_132],
+["./pages/news-and-events.$newsSlug.tsx", Page_133],
+["./pages/student.courses.$courseId.tsx", Page_134],
+["./pages/teacher.test.$testId.edit.tsx", Page_135],
+["./pages/admin.exam-content.$examId.tsx", Page_136],
+["./pages/admin.students.withdrawals.tsx", Page_137],
+["./pages/admin.teachers.withdrawals.tsx", Page_138],
+["./pages/compare.graphy-vs-testkart.tsx", Page_139],
+["./pages/exams.$examSlug.mock-tests.tsx", Page_140],
+["./pages/mock-test.live.$liveTestId.tsx", Page_141],
+["./pages/portal.$testItemId.results.tsx", Page_142],
+["./pages/admin.notes.$productId.edit.tsx", Page_143],
+["./pages/admin.students.bank-details.tsx", Page_144],
+["./pages/admin.teachers.bank-details.tsx", Page_145],
+["./pages/certificates.$certificateId.tsx", Page_146],
+["./pages/exams.$examSlug.eligibility.tsx", Page_147],
+["./pages/exams.$examSlug.study-notes.tsx", Page_148],
+["./pages/admin.bundles.$bundleId.edit.tsx", Page_149],
+["./pages/admin.courses.$courseId.edit.tsx", Page_150],
+["./pages/compare.learnyst-vs-testkart.tsx", Page_151],
+["./pages/compare.tagmango-vs-testkart.tsx", Page_152],
+["./pages/exams.$examSlug.exam-pattern.tsx", Page_153],
+["./pages/student.shop.$productId.read.tsx", Page_154],
+["./pages/teacher.students.performance.tsx", Page_155],
+["./pages/teachers.sell-online-courses.tsx", Page_156],
+["./pages/compare.classplus-vs-testkart.tsx", Page_157],
+["./pages/student.tests.$enrolledTestId.tsx", Page_158],
+["./pages/admin.test-series.$testId.edit.tsx", Page_159],
+["./pages/teacher.bundles.$bundleId.edit.tsx", Page_160],
+["./pages/teacher.courses.$courseId.edit.tsx", Page_161],
+["./pages/teacher.create-test.basic-info.tsx", Page_162],
+["./pages/teachers.sell-digital-products.tsx", Page_163],
+["./pages/teacher.products.$productId.edit.tsx", Page_164],
+["./pages/admin.live-tests.$liveTestId.edit.tsx", Page_165],
+["./pages/teacher.create-test.$testId.review.tsx", Page_166],
+["./pages/teacher.live-test.$liveTestId.edit.tsx", Page_167],
+["./pages/teacher.create-test.$testId.test-items.tsx", Page_168],
+["./pages/ugc-net-swmg-success-with-mukesh-goyal.tsx", Page_169],
+["./pages/teacher.live-test.$liveTestId.questions.tsx", Page_170],
+["./pages/student.courses.$courseId.read.$lessonId.tsx", Page_171],
+["./pages/teacher.courses.$courseId.lessons.$lessonId.tsx", Page_172],
+["./pages/ugc-net-swmg-success-with-mukesh-goyal.reviews.tsx", Page_173],
+["./pages/admin.test-series.$testId.items.$itemId.questions.tsx", Page_174],
+["./pages/teacher.create-test.$testId.test-items.$itemId.preview.tsx", Page_175],
+["./pages/teacher.create-test.$testId.test-items.$itemId.questions.tsx", Page_176],
+["./pages/teacher.create-test.$testId.test-items.$itemId.questions.new.tsx", Page_177],
+["./pages/teacher.create-test.$testId.test-items.$itemId.questions.$questionId.edit.tsx", Page_178],
+["./pages/admin.content-reviews.bonus-claims.tsx", Page_179],
+["./pages/teacher.creator-bonus.tsx", Page_180],
+["./pages/teacher.posts.tsx", Page_181],
+["./pages/teacher.organizations.tsx", Page_182],
+["./pages/organisation.$orgSlug.tsx", Page_183],
+["./pages/school.$orgSlug.tsx", Page_184],
+["./pages/college.$orgSlug.tsx", Page_185],
+["./pages/coaching.$orgSlug.tsx", Page_186],
+["./pages/university.$orgSlug.tsx", Page_187],
+["./pages/teacher.organizations.$organizationId.edit.tsx", Page_188],
+["./pages/school.$orgSlug.$tab.tsx", Page_189],
+["./pages/college.$orgSlug.$tab.tsx", Page_190],
+["./pages/coaching.$orgSlug.$tab.tsx", Page_191],
+["./pages/university.$orgSlug.$tab.tsx", Page_192],
+["./pages/organisation.$orgSlug.$tab.tsx", Page_193],
+["./pages/admin.organizations.tsx", Page_194],
+["./pages/admin.organizations.$organizationId.tsx", Page_195],
   ]);
 
 function makePageRoute(filename: string) {
@@ -778,52 +832,70 @@ export function App() {
 "./pages/exams.$examSlug.syllabus.tsx": PageLayout_129,
 "./pages/teacher.create-live-test.tsx": PageLayout_130,
 "./pages/admin.contact-submissions.tsx": PageLayout_131,
-"./pages/news-and-events.$newsSlug.tsx": PageLayout_132,
-"./pages/student.courses.$courseId.tsx": PageLayout_133,
-"./pages/teacher.test.$testId.edit.tsx": PageLayout_134,
-"./pages/admin.exam-content.$examId.tsx": PageLayout_135,
-"./pages/admin.students.withdrawals.tsx": PageLayout_136,
-"./pages/admin.teachers.withdrawals.tsx": PageLayout_137,
-"./pages/compare.graphy-vs-testkart.tsx": PageLayout_138,
-"./pages/exams.$examSlug.mock-tests.tsx": PageLayout_139,
-"./pages/mock-test.live.$liveTestId.tsx": PageLayout_140,
-"./pages/portal.$testItemId.results.tsx": PageLayout_141,
-"./pages/admin.notes.$productId.edit.tsx": PageLayout_142,
-"./pages/admin.students.bank-details.tsx": PageLayout_143,
-"./pages/admin.teachers.bank-details.tsx": PageLayout_144,
-"./pages/certificates.$certificateId.tsx": PageLayout_145,
-"./pages/exams.$examSlug.eligibility.tsx": PageLayout_146,
-"./pages/exams.$examSlug.study-notes.tsx": PageLayout_147,
-"./pages/admin.bundles.$bundleId.edit.tsx": PageLayout_148,
-"./pages/admin.courses.$courseId.edit.tsx": PageLayout_149,
-"./pages/compare.learnyst-vs-testkart.tsx": PageLayout_150,
-"./pages/compare.tagmango-vs-testkart.tsx": PageLayout_151,
-"./pages/exams.$examSlug.exam-pattern.tsx": PageLayout_152,
-"./pages/student.shop.$productId.read.tsx": PageLayout_153,
-"./pages/teachers.sell-online-courses.tsx": PageLayout_154,
-"./pages/compare.classplus-vs-testkart.tsx": PageLayout_155,
-"./pages/student.tests.$enrolledTestId.tsx": PageLayout_156,
-"./pages/admin.test-series.$testId.edit.tsx": PageLayout_157,
-"./pages/teacher.bundles.$bundleId.edit.tsx": PageLayout_158,
-"./pages/teacher.courses.$courseId.edit.tsx": PageLayout_159,
-"./pages/teacher.create-test.basic-info.tsx": PageLayout_160,
-"./pages/teachers.sell-digital-products.tsx": PageLayout_161,
-"./pages/teacher.products.$productId.edit.tsx": PageLayout_162,
-"./pages/admin.live-tests.$liveTestId.edit.tsx": PageLayout_163,
-"./pages/teacher.create-test.$testId.review.tsx": PageLayout_164,
-"./pages/teacher.live-test.$liveTestId.edit.tsx": PageLayout_165,
-"./pages/teacher.create-test.$testId.test-items.tsx": PageLayout_166,
-"./pages/ugc-net-swmg-success-with-mukesh-goyal.tsx": PageLayout_167,
-"./pages/teacher.live-test.$liveTestId.questions.tsx": PageLayout_168,
-"./pages/student.courses.$courseId.read.$lessonId.tsx": PageLayout_169,
-"./pages/teacher.courses.$courseId.lessons.$lessonId.tsx": PageLayout_170,
-"./pages/ugc-net-swmg-success-with-mukesh-goyal.reviews.tsx": PageLayout_171,
-"./pages/admin.test-series.$testId.items.$itemId.questions.tsx": PageLayout_172,
-"./pages/teacher.create-test.$testId.test-items.$itemId.preview.tsx": PageLayout_173,
-"./pages/teacher.create-test.$testId.test-items.$itemId.questions.tsx": PageLayout_174,
-"./pages/teacher.create-test.$testId.test-items.$itemId.questions.new.tsx": PageLayout_175,
-"./pages/teacher.create-test.$testId.test-items.$itemId.questions.$questionId.edit.tsx": PageLayout_176,
-"./pages/teacher.students.performance.tsx": PageLayout_177,
+"./pages/exams.$examSlug.$pageSlug.tsx": PageLayout_132,
+"./pages/news-and-events.$newsSlug.tsx": PageLayout_133,
+"./pages/student.courses.$courseId.tsx": PageLayout_134,
+"./pages/teacher.test.$testId.edit.tsx": PageLayout_135,
+"./pages/admin.exam-content.$examId.tsx": PageLayout_136,
+"./pages/admin.students.withdrawals.tsx": PageLayout_137,
+"./pages/admin.teachers.withdrawals.tsx": PageLayout_138,
+"./pages/compare.graphy-vs-testkart.tsx": PageLayout_139,
+"./pages/exams.$examSlug.mock-tests.tsx": PageLayout_140,
+"./pages/mock-test.live.$liveTestId.tsx": PageLayout_141,
+"./pages/portal.$testItemId.results.tsx": PageLayout_142,
+"./pages/admin.notes.$productId.edit.tsx": PageLayout_143,
+"./pages/admin.students.bank-details.tsx": PageLayout_144,
+"./pages/admin.teachers.bank-details.tsx": PageLayout_145,
+"./pages/certificates.$certificateId.tsx": PageLayout_146,
+"./pages/exams.$examSlug.eligibility.tsx": PageLayout_147,
+"./pages/exams.$examSlug.study-notes.tsx": PageLayout_148,
+"./pages/admin.bundles.$bundleId.edit.tsx": PageLayout_149,
+"./pages/admin.courses.$courseId.edit.tsx": PageLayout_150,
+"./pages/compare.learnyst-vs-testkart.tsx": PageLayout_151,
+"./pages/compare.tagmango-vs-testkart.tsx": PageLayout_152,
+"./pages/exams.$examSlug.exam-pattern.tsx": PageLayout_153,
+"./pages/student.shop.$productId.read.tsx": PageLayout_154,
+"./pages/teacher.students.performance.tsx": PageLayout_155,
+"./pages/teachers.sell-online-courses.tsx": PageLayout_156,
+"./pages/compare.classplus-vs-testkart.tsx": PageLayout_157,
+"./pages/student.tests.$enrolledTestId.tsx": PageLayout_158,
+"./pages/admin.test-series.$testId.edit.tsx": PageLayout_159,
+"./pages/teacher.bundles.$bundleId.edit.tsx": PageLayout_160,
+"./pages/teacher.courses.$courseId.edit.tsx": PageLayout_161,
+"./pages/teacher.create-test.basic-info.tsx": PageLayout_162,
+"./pages/teachers.sell-digital-products.tsx": PageLayout_163,
+"./pages/teacher.products.$productId.edit.tsx": PageLayout_164,
+"./pages/admin.live-tests.$liveTestId.edit.tsx": PageLayout_165,
+"./pages/teacher.create-test.$testId.review.tsx": PageLayout_166,
+"./pages/teacher.live-test.$liveTestId.edit.tsx": PageLayout_167,
+"./pages/teacher.create-test.$testId.test-items.tsx": PageLayout_168,
+"./pages/ugc-net-swmg-success-with-mukesh-goyal.tsx": PageLayout_169,
+"./pages/teacher.live-test.$liveTestId.questions.tsx": PageLayout_170,
+"./pages/student.courses.$courseId.read.$lessonId.tsx": PageLayout_171,
+"./pages/teacher.courses.$courseId.lessons.$lessonId.tsx": PageLayout_172,
+"./pages/ugc-net-swmg-success-with-mukesh-goyal.reviews.tsx": PageLayout_173,
+"./pages/admin.test-series.$testId.items.$itemId.questions.tsx": PageLayout_174,
+"./pages/teacher.create-test.$testId.test-items.$itemId.preview.tsx": PageLayout_175,
+"./pages/teacher.create-test.$testId.test-items.$itemId.questions.tsx": PageLayout_176,
+"./pages/teacher.create-test.$testId.test-items.$itemId.questions.new.tsx": PageLayout_177,
+"./pages/teacher.create-test.$testId.test-items.$itemId.questions.$questionId.edit.tsx": PageLayout_178,
+"./pages/admin.content-reviews.bonus-claims.tsx": PageLayout_179,
+"./pages/teacher.creator-bonus.tsx": PageLayout_180,
+"./pages/teacher.posts.tsx": PageLayout_181,
+"./pages/teacher.organizations.tsx": PageLayout_182,
+"./pages/organisation.$orgSlug.tsx": PageLayout_183,
+"./pages/school.$orgSlug.tsx": PageLayout_184,
+"./pages/college.$orgSlug.tsx": PageLayout_185,
+"./pages/coaching.$orgSlug.tsx": PageLayout_186,
+"./pages/university.$orgSlug.tsx": PageLayout_187,
+"./pages/teacher.organizations.$organizationId.edit.tsx": PageLayout_188,
+"./pages/school.$orgSlug.$tab.tsx": PageLayout_189,
+"./pages/college.$orgSlug.$tab.tsx": PageLayout_190,
+"./pages/coaching.$orgSlug.$tab.tsx": PageLayout_191,
+"./pages/university.$orgSlug.$tab.tsx": PageLayout_192,
+"./pages/organisation.$orgSlug.$tab.tsx": PageLayout_193,
+"./pages/admin.organizations.tsx": PageLayout_194,
+"./pages/admin.organizations.$organizationId.tsx": PageLayout_195,
 }), fileNameToRoute, makePageRoute })} 
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -197,6 +197,7 @@ async function fetchDigitalProductMeta(
       "rating",
       "reviewsCount",
       "previewPages",
+      "allowDownload",
     ])
     .where("id", "in", ids)
     .execute();
@@ -217,6 +218,7 @@ async function fetchDigitalProductMeta(
       rating: row.rating ?? null,
       reviewsCount: row.reviewsCount ?? 0,
       previewPages: row.previewPages ?? null,
+      allowDownload: row.allowDownload,
     });
   }
   return result;
