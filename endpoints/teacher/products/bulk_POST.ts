@@ -5,7 +5,6 @@ import superjson from "superjson";
 import { getProductPublishIssues, formatPublishIssues } from "../../../helpers/digitalProductRules";
 import { findStudyNoteFileProblem } from "../../../helpers/studyNoteFileCheck";
 import { pendingReviewIds, queueContentReview } from "../../../helpers/contentReviewQueue";
-import { sendReviewChatAlert, type QueuedReview } from "../../../helpers/reviewChatAlert";
 import {
   bundleConfirmationResponse,
   findPublishedBundlesContaining,
@@ -91,12 +90,9 @@ export async function handle(request: Request): Promise<Response> {
         succeeded.push(p.id);
       }
       if (succeeded.length > 0 && needsReview) {
-        const queued: QueuedReview[] = [];
         for (const p of products.filter((row) => succeeded.includes(row.id))) {
-          const review: QueuedReview = { contentType: "digital_product", contentId: p.id, teacherId: p.teacherId };
-          if (await queueContentReview(db, review)) queued.push(review);
+          await queueContentReview(db, { contentType: "digital_product", contentId: p.id, teacherId: p.teacherId });
         }
-        await sendReviewChatAlert(queued);
       } else if (succeeded.length > 0) {
         await db
           .updateTable("digitalProducts")

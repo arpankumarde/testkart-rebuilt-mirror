@@ -30,7 +30,7 @@ export const ADMIN_MODULES = [
   { key: "teacher_bank_details", label: "Teacher bank details", group: "Finance", hint: "Bank and KYC verification" },
   { key: "student_withdrawals", label: "Student withdrawals", group: "Finance", hint: "Prize payout requests" },
   { key: "student_bank_details", label: "Student bank details", group: "Finance", hint: "Bank and KYC verification" },
-  { key: "teachers", label: "Teachers", group: "Users", hint: "Teacher accounts, verification, DRM and sign-in as" },
+  { key: "teachers", label: "Teachers", group: "Users", hint: "Teacher accounts and their organisations, verification, DRM and sign-in as" },
   { key: "students", label: "Students", group: "Users", hint: "Student accounts and sign-in as" },
   { key: "teacher_inquiries", label: "Teacher inquiries", group: "Users", hint: "Institute and teacher leads" },
   { key: "contact_submissions", label: "Contact submissions", group: "Users", hint: "Contact form messages" },
@@ -134,6 +134,8 @@ const API_RULES: Record<string, ApiRule> = {
   "admin/student-bank-details": ["student_bank_details"],
 
   "admin/teachers": ["teachers"],
+  // Organisations are created and run by teacher accounts, so the Teachers module covers them.
+  "admin/organizations": ["teachers"],
   "admin/user/toggle-verified": ["teachers"],
   "admin/user/toggle-status": ["teachers", "students"],
   "admin/impersonate": ["teachers", "students"],

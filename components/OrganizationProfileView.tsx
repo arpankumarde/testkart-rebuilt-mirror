@@ -1384,38 +1384,48 @@ export const OrganizationProfileView: React.FC<OrganizationProfileViewProps> = (
                       to={teacher.slug ? `/expert/${teacher.slug}` : "#"}
                       className={styles.teacherCard}
                     >
-                      <div className={styles.teacherTop}>
+                      <span className={styles.teacherBand} aria-hidden="true">
+                        <span className={styles.teacherBlob} />
+                        <span className={styles.teacherDot} />
+                      </span>
+                      <div className={styles.teacherBody}>
                         <Avatar className={styles.teacherAvatar}>
                           <AvatarImage src={teacher.avatarUrl ?? undefined} alt="" />
                           <AvatarFallback>{teacher.displayName.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className={styles.teacherMeta}>
                           <span className={styles.teacherNameRow}>
-                            {teacher.displayName}
+                            <span className={styles.teacherName}>{teacher.displayName}</span>
                             <VerifiedBadge isVerified={teacher.isVerified} size="sm" />
                           </span>
-                          {teacher.tagline && <span className={styles.teacherTagline}>{teacher.tagline}</span>}
-                        </div>
-                      </div>
-                      {teacher.subjects.length > 0 && (
-                        <div className={styles.teacherSubjects}>
-                          {teacher.subjects.slice(0, 4).map((subject) => (
-                            <span key={subject} className={styles.teacherSubject}>
-                              {subject}
+                          {teacher.tagline && (
+                            <span className={styles.teacherTagline} title={teacher.tagline}>
+                              {teacher.tagline}
                             </span>
-                          ))}
+                          )}
                         </div>
-                      )}
+                        {teacher.subjects.length > 0 && (
+                          <div className={styles.teacherSubjects}>
+                            {teacher.subjects.slice(0, 4).map((subject) => (
+                              <span key={subject} className={styles.teacherSubject}>
+                                {subject}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                       <div className={styles.teacherFooter}>
                         <span className={styles.teacherStats}>
                           {teacher.rating !== null ? (
-                            <span className={styles.teacherRating}>
-                              <Star size={14} fill="currentColor" aria-hidden="true" />
-                              {teacher.rating.toFixed(1)}
-                              <span className={styles.teacherRatingCount}>
-                                ({teacher.ratingCount} {teacher.ratingCount === 1 ? "review" : "reviews"})
+                            <>
+                              <span className={styles.teacherRating}>
+                                <Star size={14} fill="currentColor" aria-hidden="true" />
+                                {teacher.rating.toFixed(1)}
                               </span>
-                            </span>
+                              <span className={styles.teacherRatingCount}>
+                                {teacher.ratingCount} {teacher.ratingCount === 1 ? "review" : "reviews"}
+                              </span>
+                            </>
                           ) : (
                             <span className={styles.teacherRatingCount}>No ratings yet</span>
                           )}

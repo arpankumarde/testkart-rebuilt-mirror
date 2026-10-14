@@ -6,7 +6,6 @@ import {
   hasPendingReview,
   queueContentReview,
 } from "../../../helpers/contentReviewQueue";
-import { sendReviewChatAlert } from "../../../helpers/reviewChatAlert";
 import { hasCourseDescription } from "../../../helpers/courseDraft";
 import { submitForReview } from "../../../helpers/teacherCampaignSubmit";
 import { schema, OutputType } from "./publish_POST.schema";
@@ -105,7 +104,6 @@ export async function handle(request: Request): Promise<Response> {
         return new Response(superjson.stringify({ error: submitted.error }), { status: 400 });
       }
       console.log(`Course ${courseId} submitted for review by teacher ${course.teacherId}`);
-      await sendReviewChatAlert([{ contentType: "course", contentId: courseId, teacherId: course.teacherId }]);
       const output: OutputType = {
         success: true,
         message: `Your course has been submitted for review.${submitted.bonusNote} ${REVIEW_QUEUED_NOTE}`,

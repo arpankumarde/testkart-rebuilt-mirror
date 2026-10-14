@@ -23,7 +23,7 @@ export async function handle(request: Request) {
 
     const offset = (input.page - 1) * PAGE_SIZE;
 
-    const [rows, statsRow, myReviewRow] = await Promise.all([
+    const [rows, statsRow, myReviewRow, distributionRows] = await Promise.all([
       db
         .selectFrom("organizationReviews")
         .select(["id", "rating", "reviewText", "createdAt", "studentId"])
@@ -48,6 +48,12 @@ export async function handle(request: Request) {
             .where("studentId", "=", userId)
             .executeTakeFirst()
         : Promise.resolve(null),
+      db
+        .selectFrom("organizationReviews")
+        .select((eb) => ["rating", eb.fn.countAll<number>().as("count")])
+        .where("organizationId", "=", input.organizationId)
+        .groupBy("rating")
+        .execute(),
     ]);
 
     const reviews: OrganizationReviewItem[] = rows.map((r) => ({
@@ -59,6 +65,7 @@ export async function handle(request: Request) {
     }));
 
     const totalCount = Number(statsRow?.count ?? 0);
+    const countByStars = new Map(distributionRows.map((row) => [Number(row.rating), Number(row.count)]));
 
     const response: OutputType = {
       reviews,
@@ -76,6 +83,7 @@ export async function handle(request: Request) {
             isMine: true,
           }
         : null,
+      distribution: [5, 4, 3, 2, 1].map((stars) => ({ stars, count: countByStars.get(stars) ?? 0 })),
     };
 
     return new Response(superjson.stringify(response));

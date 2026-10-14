@@ -33,6 +33,7 @@ import {
   Activity,
   Gift,
   BookOpen,
+  Building2,
 } from "lucide-react";
 import { ANY_ADMIN, EXTRA_PAGE_RULES, hasAdminModule, type AdminModule } from "./adminPermissions";
 import { ARTICLE_TABS } from "./adminContentSurfaces";
@@ -105,6 +106,13 @@ const groups: AdminNavGroup[] = [
     items: [
       { href: "/admin/teachers", label: "Teachers", icon: GraduationCap, modules: ["teachers"], keywords: "impersonate verify" },
       { href: "/admin/students", label: "Students", icon: Users, modules: ["students"], keywords: "learners" },
+      {
+        href: "/admin/organizations",
+        label: "Organizations",
+        icon: Building2,
+        modules: ["teachers"],
+        keywords: "organisations institutes coaching schools colleges universities",
+      },
       { href: "/admin/teachers/inquiries", label: "Teacher inquiries", icon: MessageSquare, modules: ["teacher_inquiries"], countKeys: ["inquiriesPending"], keywords: "institute leads" },
       { href: "/admin/contact-submissions", label: "Contact submissions", icon: Inbox, modules: ["contact_submissions"], countKeys: ["contactNew"], keywords: "messages contact form" },
       { href: "/admin/deleted-accounts", label: "Deleted accounts", icon: UserX, modules: ["deleted_accounts"] },

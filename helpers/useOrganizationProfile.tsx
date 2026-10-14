@@ -1,7 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getOrganizationsProfile } from "../endpoints/organizations/profile_GET.schema";
 import { postOrganizationsFollow } from "../endpoints/organizations/follow_POST.schema";
-import { getOrganizationsReviews, InputType as ReviewsInput } from "../endpoints/organizations/reviews_GET.schema";
+import { getOrganizationsReviews } from "../endpoints/organizations/reviews_GET.schema";
 import { postOrganizationsReviews, InputType as SubmitReviewInput } from "../endpoints/organizations/reviews_POST.schema";
 import { postTeachersPostsLike } from "../endpoints/teachers/posts/like_POST.schema";
 
@@ -29,10 +29,14 @@ export const useFollowOrganizationMutation = (orgSlug: string) => {
   });
 };
 
-export const useOrganizationReviewsQuery = (input: ReviewsInput, enabled: boolean) =>
-  useQuery({
-    queryKey: ["organizationReviews", input.organizationId, input.page],
-    queryFn: () => getOrganizationsReviews(input),
+// Pages accumulate, so "Load more" appends older reviews instead of
+// replacing the visible ones.
+export const useOrganizationReviewsQuery = (organizationId: number, enabled: boolean) =>
+  useInfiniteQuery({
+    queryKey: ["organizationReviews", organizationId],
+    queryFn: ({ pageParam }) => getOrganizationsReviews({ organizationId, page: pageParam }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.page + 1 : undefined),
     enabled,
     staleTime: 60 * 1000,
   });

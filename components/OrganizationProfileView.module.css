@@ -1064,32 +1064,35 @@
   color: var(--sp-ink);
 }
 
-/* Teachers -------------------------------------------------------------- */
+/* Teachers --------------------------------------------------------------
+   Card: a mint band with a wobbly blob, the photo lifted half over it, name
+   with a two-line tagline, pastel subject pills, then rating and a lavender
+   View profile pill under a dashed rule. Equal heights across a row. */
 
 .teacherGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
   gap: 1rem;
 }
 
 .teacherCard {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  padding: 1rem;
+  min-width: 0;
+  overflow: hidden;
   background-color: var(--sp-card);
   border: 1px solid var(--sp-line);
-  border-radius: 1.25rem;
+  border-radius: 1.5rem;
   box-shadow: var(--sp-shadow);
+  color: inherit;
   text-decoration: none;
-  transition: box-shadow var(--animation-duration-fast) ease, transform var(--animation-duration-fast) ease,
-    border-color var(--animation-duration-fast) ease;
+  transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
 }
 
 .teacherCard:hover {
-  border-color: var(--sp-sage-edge);
+  border-color: var(--sp-mint-line);
   box-shadow: var(--sp-shadow-hover);
-  transform: translateY(-2px);
+  transform: translateY(-3px);
 }
 
 .teacherCard:focus-visible {
@@ -1097,43 +1100,102 @@
   outline-offset: 2px;
 }
 
-.teacherTop {
+.teacherBand {
+  position: relative;
+  display: block;
+  height: 4.25rem;
+  flex-shrink: 0;
+  overflow: hidden;
+  background-color: var(--sp-mint-tint);
+}
+
+.teacherBlob {
+  position: absolute;
+  top: -1.5rem;
+  right: -0.75rem;
+  width: 5.75rem;
+  height: 5.25rem;
+  border-radius: 64% 36% 58% 42% / 44% 62% 38% 56%;
+  background-color: var(--sp-mint-line);
+  transform: rotate(-12deg);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.teacherDot {
+  position: absolute;
+  top: 0.875rem;
+  right: 5.75rem;
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: 56% 44% 32% 68% / 42% 60% 40% 58%;
+  background-color: var(--sp-lavender-tint);
+  border: 1px solid var(--sp-lavender-line);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.teacherCard:hover .teacherBlob {
+  transform: rotate(8deg) scale(1.06);
+}
+
+.teacherCard:hover .teacherDot {
+  transform: translate(-4px, 4px) rotate(20deg);
+}
+
+.teacherBody {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  flex: 1;
   gap: 0.75rem;
   min-width: 0;
+  padding: 0 1.125rem;
 }
 
 .teacherAvatar {
-  width: 3.25rem;
-  height: 3.25rem;
+  position: relative;
+  width: 4.5rem;
+  height: 4.5rem;
   flex-shrink: 0;
-  border: 2px solid var(--sp-card);
-  box-shadow: 0 0 0 3px var(--sp-sage-tint);
+  margin-top: -2.25rem;
+  border: 3px solid var(--sp-card);
+  box-shadow: 0 0 0 2px var(--sp-mint-line), var(--sp-shadow);
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
 }
 
 .teacherMeta {
   display: flex;
   flex-direction: column;
+  gap: 0.25rem;
   min-width: 0;
-  gap: 0.125rem;
 }
 
 .teacherNameRow {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  font-size: 0.9375rem;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.teacherName {
+  min-width: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
   font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
   color: var(--sp-ink);
+  overflow-wrap: anywhere;
 }
 
 .teacherTagline {
-  font-size: 0.8125rem;
-  color: var(--sp-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--sp-muted);
 }
 
 .teacherSubjects {
@@ -1142,14 +1204,34 @@
   gap: 0.375rem;
 }
 
+/* Subjects cycle sage, lavender, sky and peach so neighbours never match. */
 .teacherSubject {
-  padding: 0.1875rem 0.625rem;
+  padding: 0.25rem 0.6875rem;
   border-radius: 999px;
   background-color: var(--sp-sage-tint);
-  border: 1px solid var(--sp-sage-edge);
+  border: 1px solid color-mix(in srgb, var(--sp-sage-edge) 45%, var(--sp-sage-tint));
   color: var(--sp-sage-ink);
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.teacherSubject:nth-child(4n + 2) {
+  background-color: var(--sp-lavender-tint);
+  border-color: var(--sp-lavender-line);
+  color: var(--sp-lavender-ink);
+}
+
+.teacherSubject:nth-child(4n + 3) {
+  background-color: var(--sp-blue-tint);
+  border-color: color-mix(in srgb, var(--sp-blue-edge) 45%, var(--sp-blue-tint));
+  color: var(--sp-blue-ink);
+}
+
+.teacherSubject:nth-child(4n + 4) {
+  background-color: var(--sp-peach-tint);
+  border-color: color-mix(in srgb, var(--sp-peach-edge) 45%, var(--sp-peach-tint));
+  color: var(--sp-peach-ink);
 }
 
 .teacherFooter {
@@ -1157,9 +1239,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  margin-top: auto;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--sp-line);
+  margin: 1rem 1.125rem 0;
+  padding: 0.75rem 0 1rem;
+  border-top: 1.5px dashed var(--sp-line);
 }
 
 .teacherStats {
@@ -1172,14 +1254,14 @@
 .teacherRating {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  font-size: 0.8125rem;
+  gap: 0.3125rem;
+  font-size: 0.9375rem;
   font-weight: 800;
   color: var(--sp-ink);
 }
 
 .teacherRating svg {
-  color: var(--sp-peach-edge);
+  color: hsl(42 88% 48%);
 }
 
 .teacherRatingCount {
@@ -1193,9 +1275,46 @@
   align-items: center;
   gap: 0.25rem;
   flex-shrink: 0;
+  padding: 0.375rem 0.75rem;
+  border: 1px solid var(--sp-lavender-line);
+  border-radius: 999px;
+  background-color: var(--sp-lavender-tint);
+  color: var(--sp-lavender-ink);
   font-size: 0.8125rem;
   font-weight: 700;
-  color: var(--sp-lavender-ink);
+  white-space: nowrap;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.teacherCta svg {
+  transition: transform 0.2s ease;
+}
+
+.teacherCard:hover .teacherCta {
+  border-color: var(--sp-lavender-edge);
+}
+
+.teacherCard:hover .teacherCta svg {
+  transform: translateX(3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .teacherCard,
+  .teacherBlob,
+  .teacherDot,
+  .teacherCta svg {
+    transition: none;
+  }
+
+  .teacherCard:hover,
+  .teacherCard:hover .teacherDot,
+  .teacherCard:hover .teacherCta svg {
+    transform: none;
+  }
+
+  .teacherCard:hover .teacherBlob {
+    transform: rotate(-12deg);
+  }
 }
 
 /* Learning resources --------------------------------------------------------
@@ -2156,8 +2275,35 @@
     width: 100%;
   }
 
+  /* Details sit two to a row on phones (Founded beside Phone); columns size
+     to their content so a short year leaves room for a full phone number, and
+     an odd last item takes the full row. */
+  .aboutInfoList {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, auto));
+    gap: 0.5rem;
+  }
+
+  .aboutInfoItem:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
   .aboutInfoItem {
-    flex: 1 1 10rem;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem 0.25rem 0.25rem;
+  }
+
+  .aboutInfoIcon {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+
+  .aboutInfoValue {
+    font-size: 0.8125rem;
+    overflow-wrap: normal;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .page {
@@ -2250,5 +2396,22 @@
 
   .resourceTab svg {
     display: none;
+  }
+}
+
+@media (max-width: 360px) {
+  .aboutInfoItem {
+    gap: 0.375rem;
+    padding-right: 0.625rem;
+  }
+
+  .aboutInfoIcon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .aboutInfoIcon svg {
+    width: 13px;
+    height: 13px;
   }
 }

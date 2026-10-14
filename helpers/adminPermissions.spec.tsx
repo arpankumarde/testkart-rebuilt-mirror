@@ -38,6 +38,9 @@ describe("adminPermissions", () => {
     expect(canCallAdminApi(["courses"], "/_api/admin/content-preview/details")).toBe(true);
     expect(canCallAdminApi(["blog"], "/_api/admin/admins/update-permissions")).toBe(false);
     expect(canCallAdminApi(["admins"], "/_api/admin/admins/update-permissions")).toBe(true);
+    expect(canCallAdminApi(["teachers"], "/_api/admin/organizations/list")).toBe(true);
+    expect(canCallAdminApi(["teachers"], "/_api/admin/organizations/set-active")).toBe(true);
+    expect(canCallAdminApi(["students"], "/_api/admin/organizations/list")).toBe(false);
   });
 
   it("drops unknown keys and keeps catalogue order", () => {
@@ -71,6 +74,8 @@ describe("adminPermissions", () => {
   it("routes pages by module and sends admins without access home", () => {
     expect(adminNavigation.canOpen("/admin/teachers/earnings", ["teachers"])).toBe(false);
     expect(adminNavigation.canOpen("/admin/teachers/earnings", ["teacher_earnings"])).toBe(true);
+    expect(adminNavigation.canOpen("/admin/organizations/12", ["teachers"])).toBe(true);
+    expect(adminNavigation.canOpen("/admin/organizations", ["students"])).toBe(false);
     expect(adminNavigation.canOpen("/admin/profile", [])).toBe(true);
     expect(adminNavigation.canOpen("/admin/settings", ["admins"])).toBe(true);
     expect(adminNavigation.canOpen("/admin/settings", ["blog"])).toBe(true);

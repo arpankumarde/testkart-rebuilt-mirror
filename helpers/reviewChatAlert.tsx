@@ -3,11 +3,12 @@ import type { ContentType } from "./schema";
 import { CONTENT_NOUNS } from "./contentReviewStatus";
 
 /*
- * Posts to the admin team's Google Chat space when teacher content is queued
- * for review. Best effort: a missing webhook or a Chat outage never fails the
- * teacher's submit. Call it after the review row is committed and outside any
- * transaction, since it reads through the global db connection. Await it so the
- * request is sent before the endpoint returns.
+ * Posts to the admin team's Google Chat space when a teacher's live test is
+ * queued for review. Other content types are dropped here, so the space only
+ * hears about live tests. Best effort: a missing webhook or a Chat outage never
+ * fails the teacher's submit. Call it after the review row is committed and
+ * outside any transaction, since it reads through the global db connection.
+ * Await it so the request is sent before the endpoint returns.
  */
 
 const SITE_URL = "https://testkart.in";
@@ -40,7 +41,8 @@ const plain = (value: string | null | undefined, fallback: string): string => {
 const reviewLink = (review: QueuedReview) =>
   `${SITE_URL}/admin/preview/${review.contentType}/${review.contentId}?from=reviews`;
 
-export async function sendReviewChatAlert(reviews: QueuedReview[]): Promise<void> {
+export async function sendReviewChatAlert(queued: QueuedReview[]): Promise<void> {
+  const reviews = queued.filter((r) => r.contentType === "live_test");
   if (reviews.length === 0) return;
   const webhookUrl = process.env.GOOGLE_CHAT_REVIEW_WEBHOOK_URL;
   if (!webhookUrl) {

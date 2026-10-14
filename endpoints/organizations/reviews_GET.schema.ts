@@ -24,6 +24,8 @@ export type OutputType = {
   pageSize: number;
   hasMore: boolean;
   myReview: OrganizationReviewItem | null;
+  // Review count per star value, always five entries from 5 down to 1.
+  distribution: { stars: number; count: number }[];
 };
 
 export const getOrganizationsReviews = async (
