@@ -253,7 +253,7 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
               Test Series
             </NavLink>
             <NavLink
-              to="/mock-test/live"
+              to="/live-test"
               className={({ isActive }) =>
                 `${styles.navLink} ${styles.liveTestsLink} ${isActive ? styles.active : ""}`
               }

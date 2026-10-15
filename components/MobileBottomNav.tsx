@@ -9,7 +9,7 @@ import styles from './MobileBottomNav.module.css';
 const navItems = [
   { path: '/course', label: 'Courses', icon: GraduationCap },
   { path: '/mock-test', label: 'Tests', icon: FileText },
-  { path: '/mock-test/live', label: 'Live', icon: Radio },
+  { path: '/live-test', label: 'Live', icon: Radio },
   { path: '/study-notes', label: 'Notes', icon: ShoppingBag },
   { path: '/profile', label: 'Profile', icon: User },
 ];
@@ -37,7 +37,7 @@ export const MobileBottomNav: React.FC = () => {
     if (authState.type === 'authenticated' && authState.user.role === 'student') {
       return '/student/live';
     }
-    return '/mock-test/live';
+    return '/live-test';
   };
 
     const isActive = (path: string) => {
@@ -47,11 +47,8 @@ export const MobileBottomNav: React.FC = () => {
     if (path === '/profile') {
         return pathname.startsWith('/student/') || pathname.startsWith('/teacher/');
     }
-    if (path === '/mock-test') {
-      return pathname.startsWith('/mock-test') && !pathname.startsWith('/mock-test/live');
-    }
-    if (path === '/mock-test/live') {
-      return pathname.startsWith('/mock-test/live') || pathname.startsWith('/student/live');
+    if (path === '/live-test') {
+      return pathname.startsWith('/live-test') || pathname.startsWith('/student/live');
     }
     return pathname.startsWith(path);
   };
@@ -61,7 +58,7 @@ export const MobileBottomNav: React.FC = () => {
       <nav className={styles.navContainer}>
         <div className={styles.navContent}>
           {navItems.map((item) => {
-            const path = item.path === '/profile' ? getProfilePath() : item.path === '/mock-test/live' ? getLivePath() : item.path;
+            const path = item.path === '/profile' ? getProfilePath() : item.path === '/live-test' ? getLivePath() : item.path;
             const active = isActive(item.path);
             let Icon = item.icon;
             let label = item.label;

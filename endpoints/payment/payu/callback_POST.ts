@@ -11,6 +11,8 @@ import { emailTemplatesExtra } from "../../../helpers/emailTemplatesExtra";
 import { serializeForInlineScript } from "../../../helpers/serializeForInlineScript";
 import { extractPayUFailure, isPayUCancellation, type PaymentFailureColumns } from "../../../helpers/extractPayUFailure";
 import { paymentFailureReason } from "../../../helpers/paymentFailureReason";
+import { findLiveTestSlug } from "../../../helpers/findLiveTestSlug";
+import { liveTestPath } from "../../../helpers/liveTestRoutes";
 
 function isDeepLink(url: string): boolean {
   return url.includes("://") && !url.startsWith("http://") && !url.startsWith("https://");
@@ -537,10 +539,12 @@ export async function handle(request: Request) {
 
       // Priority 1: Live tests - enrollment is now done server-side, redirect with params for UI feedback
       if (liveTestId) {
+        const liveTestSlug = await findLiveTestSlug(liveTestId).catch(() => null);
+        const liveTestUrl = liveTestSlug ? liveTestPath(liveTestSlug) : `/mock-test/live/${liveTestId}`;
         return createHtmlResponse({
           status: 'success',
           txnid,
-          redirectUrl: `${baseUrl}/mock-test/live/${liveTestId}?status=success&order_id=${claimedOrder.id}&txnid=${txnid}`,
+          redirectUrl: `${baseUrl}${liveTestUrl}?status=success&order_id=${claimedOrder.id}&txnid=${txnid}`,
           session: userSession ?? undefined,
         });
       }

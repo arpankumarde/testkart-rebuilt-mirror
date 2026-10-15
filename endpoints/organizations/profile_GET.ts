@@ -150,8 +150,10 @@ export async function handle(request: Request) {
         db
           .selectFrom("liveTests")
           .innerJoin("users", "users.id", "liveTests.teacherId")
+          .innerJoin("mockTests", "mockTests.id", "liveTests.mockTestId")
           .select([
             "liveTests.id",
+            "mockTests.slug",
             "liveTests.title",
             "liveTests.price",
             "liveTests.discountPrice",
@@ -261,7 +263,7 @@ export async function handle(request: Request) {
         catalogue.push({
           kind: "live_test",
           id: lt.id,
-          slug: String(lt.id),
+          slug: lt.slug,
           title: lt.title,
           examName: null,
           price: Number(lt.price),

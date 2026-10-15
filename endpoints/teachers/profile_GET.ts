@@ -362,6 +362,7 @@ export async function handle(request: Request) {
 
         liveTestsData.push({
           id: test.liveTestId!,
+          slug: test.slug,
           title: test.title,
           description: test.description,
           examName: test.examName,

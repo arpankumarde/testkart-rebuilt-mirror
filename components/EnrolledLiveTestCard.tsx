@@ -4,6 +4,7 @@ import { Trophy, CalendarDays } from 'lucide-react';
 import { Badge } from './Badge';
 import { Button } from './Button';
 import { Placeholder } from '../helpers/placeholderImages';
+import { liveTestPath } from '../helpers/liveTestRoutes';
 import type { EnrolledLiveTestItem } from '../endpoints/student/enrolled-live-tests_GET.schema';
 import styles from './EnrolledLiveTestCard.module.css';
 
@@ -73,7 +74,7 @@ export const EnrolledLiveTestCard: React.FC<LiveTestCardProps> = ({ test, classN
 
       <div className={styles.actions}>
         <Button asChild variant={buttonVariant} className={styles.actionButton}>
-          <Link to={`/mock-test/live/${test.id}`}>
+          <Link to={liveTestPath(test.slug)}>
             {isEnded ? 'View Results & Leaderboard' : 'View Details'}
           </Link>
         </Button>

@@ -27,6 +27,7 @@ export async function handle(request: Request): Promise<Response> {
         "users.displayName as teacherName",
         "users.id as teacherId",
         "mockTests.title as mockTestTitle",
+        "mockTests.slug",
       ])
       .orderBy("liveTests.createdAt", "desc")
       .execute();

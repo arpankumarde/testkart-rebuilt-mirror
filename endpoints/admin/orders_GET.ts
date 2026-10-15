@@ -48,15 +48,18 @@ export async function handle(request: Request) {
 
     // Batch-query live test titles for all discovered live test IDs
     const liveTestIdToTitle = new Map<number, string>();
+    const liveTestIdToSlug = new Map<number, string>();
     const uniqueLiveTestIds = [...new Set(liveTestOrderMap.values())];
     if (uniqueLiveTestIds.length > 0) {
       const liveTests = await db
         .selectFrom("liveTests")
-        .select(["id", "title"])
-        .where("id", "in", uniqueLiveTestIds)
+        .innerJoin("mockTests", "mockTests.id", "liveTests.mockTestId")
+        .select(["liveTests.id", "liveTests.title", "mockTests.slug"])
+        .where("liveTests.id", "in", uniqueLiveTestIds)
         .execute();
       for (const lt of liveTests) {
         liveTestIdToTitle.set(lt.id, lt.title);
+        liveTestIdToSlug.set(lt.id, lt.slug);
       }
     }
 
@@ -153,7 +156,7 @@ export async function handle(request: Request) {
     for (const [orderId, title] of orderIdToLiveTestTitle.entries()) {
       orderItemsMap.set(orderId, [title]);
       const liveTestId = liveTestOrderMap.get(orderId)!;
-      purchasedItemDetailsMap.set(orderId, [{ title, type: 'live_test', url: `/mock-test/live/${liveTestId}` }]);
+      purchasedItemDetailsMap.set(orderId, [{ title, type: 'live_test', url: `/live-test/${liveTestIdToSlug.get(liveTestId)}` }]);
     }
 
     // Add mock test (test series) titles — skip if this order is a live test order

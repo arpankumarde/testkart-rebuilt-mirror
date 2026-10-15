@@ -165,7 +165,7 @@ export const liveTestEnrollment = (
     bodyHtml: `<p style="margin:0;">You are registered for the live test <strong>"${testName}"</strong>. Please make sure to log in 10 minutes before the start time.</p>`,
     table: [{ label: "Scheduled Time", value: formattedDate, emphasize: true }],
     ctaLabel: "View Live Tests",
-    ctaUrl: "https://testkart.in/mock-test/live",
+    ctaUrl: "https://testkart.in/live-test",
   });
 
   return {

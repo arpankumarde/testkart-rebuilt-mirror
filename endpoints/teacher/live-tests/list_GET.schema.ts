@@ -41,6 +41,8 @@ export type TeacherLiveTestItem = Omit<Selectable<LiveTests>, "price" | "totalPr
   secondPrize: number;
   thirdPrize: number;
   actualTotalDistributed: number;
+  /** Public URL slug, /live-test/:slug. */
+  slug: string;
   actualRevenue: number;
   durationMinutes: number;
   firstTestItemId: number | null;

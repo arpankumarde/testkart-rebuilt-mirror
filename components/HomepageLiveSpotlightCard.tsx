@@ -4,6 +4,7 @@ import type { HomepageLiveTestSpotlight } from "../endpoints/homepage/data_GET.s
 import { Avatar, AvatarImage, AvatarFallback } from "./Avatar";
 import { VerifiedBadge } from "./VerifiedBadge";
 import { useLiveCountdown } from "../helpers/useLiveCountdown";
+import { liveTestPath } from "../helpers/liveTestRoutes";
 import styles from "./HomepageLiveSpotlightCard.module.css";
 
 interface HomepageLiveSpotlightCardProps {
@@ -36,7 +37,7 @@ export function HomepageLiveSpotlightCard({ spotlight }: HomepageLiveSpotlightCa
   const isFree = spotlight.price === 0;
 
   return (
-    <Link to={`/mock-test/live/${spotlight.id}`} className={styles.cardLink}>
+    <Link to={liveTestPath(spotlight.slug)} className={styles.cardLink}>
       <article className={`${styles.card} ${isLive ? styles.live : styles.upcoming}`}>
         <div className={styles.statusStrip}>
           <span className={styles.status}>

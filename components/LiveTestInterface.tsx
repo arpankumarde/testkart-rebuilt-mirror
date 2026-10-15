@@ -16,12 +16,14 @@ import { MathMLContent } from './MathMLContent';
 import { QuestionAnswer, convertAnswerForSubmission } from '../helpers/questionAnswerTypes';
 import { castToExtendedQuestions, buildSubjectGroups, isQuestionLocked } from '../helpers/testingInterfaceTypes';
 import { QuestionRenderer } from './QuestionRenderer';
+import { liveTestPath } from '../helpers/liveTestRoutes';
 import styles from './LiveTestInterface.module.css';
 
 type Stage = 'pre-test' | 'testing' | 'results';
 
 interface LiveTestInterfaceProps {
   liveTestId: number;
+  liveTestSlug: string;
   liveTestTitle: string;
   testItemId: number;
   durationMinutes: number;
@@ -32,6 +34,7 @@ interface LiveTestInterfaceProps {
 
 export const LiveTestInterface: React.FC<LiveTestInterfaceProps> = ({
   liveTestId,
+  liveTestSlug,
   liveTestTitle,
   testItemId,
   durationMinutes,
@@ -480,7 +483,7 @@ export const LiveTestInterface: React.FC<LiveTestInterfaceProps> = ({
         <div className={styles.resultsHeader}>
           <h1>Test Results</h1>
           <Button variant="outline" asChild>
-            <Link to={`/mock-test/live/${liveTestId}`}>Back to Test Details</Link>
+            <Link to={liveTestPath(liveTestSlug)}>Back to Test Details</Link>
           </Button>
         </div>
         <div className={styles.scoreCard}>

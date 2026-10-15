@@ -106,7 +106,8 @@ export async function handle(request: Request): Promise<Response> {
         db
           .selectFrom("liveTests")
           .innerJoin("users", "users.id", "liveTests.teacherId")
-          .select(["liveTests.id", "liveTests.title", "liveTests.price", "liveTests.discountPrice", "liveTests.createdAt", "users.displayName as teacherName"])
+          .innerJoin("mockTests", "mockTests.id", "liveTests.mockTestId")
+          .select(["liveTests.id", "mockTests.slug", "liveTests.title", "liveTests.price", "liveTests.discountPrice", "liveTests.createdAt", "users.displayName as teacherName"])
           .where("liveTests.isActive", "=", true)
           .where("liveTests.endTime", ">", new Date())
           .where("liveTests.teacherId", "in", approvedIds)
@@ -159,7 +160,7 @@ export async function handle(request: Request): Promise<Response> {
           kind: "live_test" as const,
           id: l.id,
           title: l.title,
-          slug: null,
+          slug: l.slug,
           price: Number(l.price),
           discountPrice: courseDiscountPrice(l.price, l.discountPrice),
           teacherName: l.teacherName,

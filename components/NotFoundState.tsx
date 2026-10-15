@@ -110,7 +110,7 @@ const KINDS: Record<NotFoundKind, KindConfig> = {
       "This live competition has been removed or the link is incorrect. Join one that is running now or coming up next.",
     icon: Trophy,
     tone: "lavender",
-    primary: { label: "See all live tests", to: "/mock-test/live", icon: Trophy },
+    primary: { label: "See all live tests", to: "/live-test", icon: Trophy },
     secondary: { label: "Browse test series", to: "/mock-test", icon: FileText },
   },
   notes: {
@@ -177,7 +177,7 @@ const KINDS: Record<NotFoundKind, KindConfig> = {
 
 const QUICK_LINKS: (LinkAction & { hint: string; tone: Tone })[] = [
   { label: "Mock tests", hint: "Practise with test series", to: "/mock-test", icon: FileText, tone: "blue" },
-  { label: "Live tests", hint: "Compete in real time", to: "/mock-test/live", icon: Trophy, tone: "lavender" },
+  { label: "Live tests", hint: "Compete in real time", to: "/live-test", icon: Trophy, tone: "lavender" },
   { label: "Courses", hint: "Learn from educators", to: "/course", icon: GraduationCap, tone: "peach" },
   { label: "Study notes", hint: "Notes and PDFs", to: "/study-notes", icon: BookOpen, tone: "mint" },
   { label: "Exams", hint: "Find your exam", to: "/exams", icon: Compass, tone: "sage" },
@@ -423,7 +423,7 @@ const LiveRecs: React.FC = () => {
       id="not-found-live"
       title="Live now and coming up"
       icon={CalendarClock}
-      viewAll={{ label: "All live tests", to: "/mock-test/live" }}
+      viewAll={{ label: "All live tests", to: "/live-test" }}
       isLoading={isLoading}
       isError={isError}
       isEmpty={!isLoading && !isError && tests.length === 0}

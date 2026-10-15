@@ -80,6 +80,8 @@ export type HomepageNoteItem = {
 
 export type HomepageLiveTestSpotlight = {
   id: number;
+  /** Public URL slug, /live-test/:slug. */
+  slug: string;
   title: string;
   examName: string | null;
   price: number;

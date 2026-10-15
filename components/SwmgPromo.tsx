@@ -9,6 +9,7 @@ import { useTeacherPublicProfileQuery } from "../helpers/useTeacherPublicProfile
 import { computeTeacherProfileStats } from "../helpers/teacherProfileStats";
 import { formatItemPrice, itemPriceProps } from "../helpers/homepageItemUtils";
 import { Placeholder } from "../helpers/placeholderImages";
+import { liveTestPath } from "../helpers/liveTestRoutes";
 import { swmgPromoContent, type SwmgFaqItem, type SwmgVideo } from "../helpers/swmgPromoContent";
 import styles from "./SwmgPromo.module.css";
 
@@ -253,7 +254,7 @@ export const SwmgCatalogSections = ({ emptyTitle, emptyText }: CatalogProps) => 
           <TeacherProductCard
             key={`live-${liveTest.id}`}
             {...teacherProps}
-            link={`/mock-test/live/${liveTest.id}`}
+            link={liveTestPath(liveTest.slug)}
             productTitle={liveTest.title}
             examName={liveTest.examName}
             stats="Live test"

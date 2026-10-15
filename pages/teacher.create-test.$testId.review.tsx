@@ -284,7 +284,8 @@ const Page = () => {
   const longDescription = testPackage.longDescription?.trim() ? testPackage.longDescription : null;
 
   const doneLink = isLiveTest ? "/teacher/live-tests" : "/teacher/test-series";
-  const listingLink = isLiveTest && liveTest ? `/mock-test/live/${liveTest.id}` : `/mock-test/${testPackage.slug}`;
+  // A live test's public slug is its package's slug.
+  const listingLink = isLiveTest && liveTest ? `/live-test/${testPackage.slug}` : `/mock-test/${testPackage.slug}`;
 
   return (
     <>

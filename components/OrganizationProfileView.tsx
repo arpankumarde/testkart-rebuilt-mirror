@@ -87,7 +87,7 @@ const catalogueLink = (item: OrgCatalogueItem): string => {
     case "test":
       return `/mock-test/${item.slug}`;
     case "live_test":
-      return `/mock-test/live/${item.id}`;
+      return `/live-test/${item.slug}`;
     case "product":
       return `/study-notes/${item.slug}`;
     case "bundle":

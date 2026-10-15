@@ -7,6 +7,7 @@ import { VerifiedBadge } from './VerifiedBadge';
 import { useCountdownTimer } from '../helpers/useCountdownTimer';
 import { getLiveTestStatus } from '../helpers/useLiveTestHelpers';
 import { Placeholder } from '../helpers/placeholderImages';
+import { liveTestPath } from '../helpers/liveTestRoutes';
 import type { LiveTestListItem } from '../endpoints/live-tests/list_GET.schema';
 import styles from './LiveTestCard.module.css';
 
@@ -58,7 +59,7 @@ export const LiveTestCard: React.FC<LiveTestCardProps> = ({ liveTest, className 
         : 'Join Now';
 
   return (
-    <Link to={`/mock-test/live/${liveTest.id}`} className={`${styles.cardWrapper} ${className || ''}`}>
+    <Link to={liveTestPath(liveTest.slug)} className={`${styles.cardWrapper} ${className || ''}`}>
       <div className={styles.card}>
         <div className={styles.thumbnail}>
           <img

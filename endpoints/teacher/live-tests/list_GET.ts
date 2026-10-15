@@ -73,9 +73,11 @@ export async function handle(request: Request) {
 
     const allTests = await db
       .selectFrom("liveTests")
-      .where("teacherId", "=", effectiveTeacherId)
-      .selectAll()
-      .orderBy("startTime", "desc")
+      .innerJoin("mockTests", "mockTests.id", "liveTests.mockTestId")
+      .where("liveTests.teacherId", "=", effectiveTeacherId)
+      .selectAll("liveTests")
+      .select("mockTests.slug")
+      .orderBy("liveTests.startTime", "desc")
       .execute();
 
     // Fetch actual revenue per live test in a single query:

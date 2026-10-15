@@ -25,6 +25,8 @@ export type AdminLiveTestListItem = Pick<
   teacherName: Selectable<Users>["displayName"];
   teacherId: Selectable<Users>["id"];
   mockTestTitle: Selectable<MockTests>["title"];
+  /** Public URL slug, /live-test/:slug. */
+  slug: Selectable<MockTests>["slug"];
 };
 
 export type OutputType = AdminLiveTestListItem[];

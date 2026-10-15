@@ -48,7 +48,7 @@ export const MobileNav: React.FC = () => {
                 Test Series
               </NavLink>
               <NavLink
-                to="/mock-test/live"
+                to="/live-test"
                 className={({ isActive }) =>
                   `${styles.mobileNavLink} ${styles.liveTestsLink} ${isActive ? styles.active : ""}`
                 }

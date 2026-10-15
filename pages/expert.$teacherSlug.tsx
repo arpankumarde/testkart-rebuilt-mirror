@@ -217,7 +217,7 @@ const ExpertProfilePage = () => {
                 ...liveTests.map((test, index) => ({
                   "@type": "ListItem",
                   position: courses.length + tests.length + index + 1,
-                  url: `${SITE_URL}/mock-test/live/${test.id}`,
+                  url: `${SITE_URL}/live-test/${test.slug}`,
                   name: test.title,
                 })),
                 ...products.map((product, index) => ({

@@ -36,7 +36,7 @@ const publicUrl = (data: OutputType): string | null => {
     case "mock_test":
       return data.slug ? `/mock-test/${data.slug}` : null;
     case "live_test":
-      return `/mock-test/live/${data.id}`;
+      return data.slug ? `/live-test/${data.slug}` : null;
   }
 };
 

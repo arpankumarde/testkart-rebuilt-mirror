@@ -316,6 +316,7 @@ export async function fetchTeacherProfileServer(teacherSlug: string): Promise<Ou
 
       liveTestsData.push({
         id: test.liveTestId!,
+        slug: test.slug,
         title: test.title,
         description: test.description,
         examName: test.examName,

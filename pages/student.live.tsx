@@ -51,7 +51,7 @@ export default function StudentLivePage() {
           description="Live tests run to a schedule and rank every entrant. Join one and it shows up here."
         >
           <Button asChild>
-            <Link to="/mock-test/live">Browse live tests</Link>
+            <Link to="/live-test">Browse live tests</Link>
           </Button>
         </ConsoleListEmpty>
       );
@@ -118,7 +118,7 @@ export default function StudentLivePage() {
       <div className={styles.page}>
         <ConsolePageHeader title="Live mock tests">
           <Button asChild variant="outline">
-            <Link to="/mock-test/live">Browse live tests</Link>
+            <Link to="/live-test">Browse live tests</Link>
           </Button>
         </ConsolePageHeader>
 

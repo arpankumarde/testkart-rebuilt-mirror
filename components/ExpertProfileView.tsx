@@ -30,6 +30,7 @@ import { computeTeacherProfileStats, formatStatCount } from "../helpers/teacherP
 import { getOrganizationProfilePath } from "../helpers/organizationRoutes";
 import { bundlePriceProps, formatItemPrice, itemPriceProps } from "../helpers/homepageItemUtils";
 import { Placeholder } from "../helpers/placeholderImages";
+import { liveTestPath } from "../helpers/liveTestRoutes";
 import { EXPERT_PROFILE_SHARE_CAMPAIGN } from "../helpers/shareLinks";
 import { TeacherProductCard } from "./HomepageContentSection";
 import { ShareAssetDialog } from "./ShareAssetDialog";
@@ -256,7 +257,7 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
     <TeacherProductCard
       key={`live-${liveTest.id}`}
       {...teacherCardProps}
-      link={`/mock-test/live/${liveTest.id}`}
+      link={liveTestPath(liveTest.slug)}
       productTitle={liveTest.title}
       examName={liveTest.examName}
       stats={liveTest.status.replace(/_/g, " ")}

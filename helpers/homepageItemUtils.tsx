@@ -1,4 +1,5 @@
 import type { HomepageMixedItem } from "../endpoints/homepage/data_GET.schema";
+import { liveTestPath } from "./liveTestRoutes";
 
 export function getProductLink(item: HomepageMixedItem): string {
   switch (item.type) {
@@ -11,7 +12,7 @@ export function getProductLink(item: HomepageMixedItem): string {
     case "product":
       return `/study-notes/${item.slug}`;
     case "liveTest":
-      return `/mock-test/live/${item.id}`;
+      return liveTestPath(item.slug);
     default:
       return "#";
   }

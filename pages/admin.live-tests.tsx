@@ -242,7 +242,6 @@ const AdminLiveTestsPage: React.FC = () => {
     }).format(new Date(date));
   };
 
-  const getLiveTestUrl = (id: number): string => `/mock-test/live/${id}`;
 
   const handleDeactivateClick = (liveTestId: number, liveTestTitle: string) => {
     setSelectedLiveTest({ id: liveTestId, title: liveTestTitle });
@@ -270,7 +269,7 @@ const AdminLiveTestsPage: React.FC = () => {
   const renderIdentity = (liveTest: AdminLiveTestListItem) => (
     <span className={styles.primaryLine}>
       <a
-        href={liveTest.isActive ? getLiveTestUrl(liveTest.id) : adminPreviewPath("live_test", liveTest.id)}
+        href={liveTest.isActive ? `/live-test/${liveTest.slug}` : adminPreviewPath("live_test", liveTest.id)}
         target="_blank"
         rel="noopener noreferrer"
         className={`${styles.titleLink} ${styles.truncate}`}

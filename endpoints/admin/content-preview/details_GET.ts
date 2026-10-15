@@ -415,13 +415,19 @@ export async function handle(request: Request): Promise<Response> {
       }
 
       case "live_test": {
-        const row = await db.selectFrom("liveTests").selectAll().where("id", "=", id).executeTakeFirst();
+        const row = await db
+          .selectFrom("liveTests")
+          .innerJoin("mockTests", "mockTests.id", "liveTests.mockTestId")
+          .selectAll("liveTests")
+          .select("mockTests.slug as publicSlug")
+          .where("liveTests.id", "=", id)
+          .executeTakeFirst();
         if (!row) return notFound();
         output = {
           type,
           id: row.id,
           title: row.title,
-          slug: null,
+          slug: row.publicSlug,
           status: row.isActive ? "published" : "draft",
           inReview,
           teacher: await loadTeacher(row.teacherId),

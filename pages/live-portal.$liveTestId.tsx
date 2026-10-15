@@ -4,6 +4,7 @@ import { SEOHead } from '../components/SEOHead';
 import { useQuery } from '@tanstack/react-query';
 import { getLiveTestsDetails } from '../endpoints/live-tests/details_GET.schema';
 import { getLiveTestStatus } from '../helpers/useLiveTestHelpers';
+import { liveTestPath } from '../helpers/liveTestRoutes';
 import { LiveTestInterface } from '../components/LiveTestInterface';
 import { Button } from '../components/Button';
 import { AlertTriangle, Frown, Clock, Lock } from 'lucide-react';
@@ -32,7 +33,7 @@ const LivePortalPage: React.FC = () => {
           <h2>Invalid Live Test ID</h2>
           <p>The live test ID in the URL is not valid. Please check the link and try again.</p>
           <Button asChild>
-            <Link to="/mock-test/live">View Live Tests</Link>
+            <Link to="/live-test">View Live Tests</Link>
           </Button>
         </div>
       </div>
@@ -67,7 +68,7 @@ const LivePortalPage: React.FC = () => {
           <h2>Could Not Load Live Test</h2>
           <p>There was an error fetching the test details, or the test does not exist. Please try again later.</p>
           <Button asChild>
-            <Link to="/mock-test/live">View Live Tests</Link>
+            <Link to="/live-test">View Live Tests</Link>
           </Button>
         </div>
       </div>
@@ -86,7 +87,7 @@ const LivePortalPage: React.FC = () => {
           <h2>Not Enrolled</h2>
           <p>You must be enrolled in this live test to participate.</p>
           <Button asChild>
-            <Link to={`/mock-test/live/${liveTestId}`}>View Test Details</Link>
+            <Link to={liveTestPath(liveTestDetails.slug)}>View Test Details</Link>
           </Button>
         </div>
       </div>
@@ -111,7 +112,7 @@ const LivePortalPage: React.FC = () => {
           <h2>Test Not Active</h2>
           <p>{message}</p>
           <Button asChild>
-            <Link to="/mock-test/live">View Other Live Tests</Link>
+            <Link to="/live-test">View Other Live Tests</Link>
           </Button>
         </div>
       </div>
@@ -127,6 +128,7 @@ const LivePortalPage: React.FC = () => {
       />
       <LiveTestInterface
         liveTestId={liveTestId}
+        liveTestSlug={liveTestDetails.slug}
         liveTestTitle={liveTestDetails.title}
         testItemId={liveTestDetails.mockTestDetails.firstTestItemId}
         durationMinutes={liveTestDetails.mockTestDetails.durationMinutes}

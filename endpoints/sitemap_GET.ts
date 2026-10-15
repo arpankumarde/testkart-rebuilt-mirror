@@ -53,7 +53,7 @@ export async function handle(request: Request) {
       { loc: `${BASE_URL}/teachers`, changefreq: "weekly", priority: 0.9 },
       { loc: `${BASE_URL}/exams`, changefreq: "weekly", priority: 0.9 },
       { loc: `${BASE_URL}/mock-test`, changefreq: "daily", priority: 0.9 },
-      { loc: `${BASE_URL}/mock-test/live`, changefreq: "daily", priority: 0.9 },
+      { loc: `${BASE_URL}/live-test`, changefreq: "daily", priority: 0.9 },
       { loc: `${BASE_URL}/course`, changefreq: "weekly", priority: 0.9 },
       { loc: `${BASE_URL}/study-notes`, changefreq: "weekly", priority: 0.9 },
       { loc: `${BASE_URL}/bundles`, changefreq: "weekly", priority: 0.8 },
@@ -93,8 +93,9 @@ export async function handle(request: Request) {
         .execute(),
       db
         .selectFrom("liveTests")
-        .where("isActive", "=", true)
-        .select(["id", "updatedAt"])
+        .innerJoin("mockTests", "mockTests.id", "liveTests.mockTestId")
+        .where("liveTests.isActive", "=", true)
+        .select(["mockTests.slug", "liveTests.updatedAt"])
         .execute(),
       db
         .selectFrom("exams")
@@ -296,7 +297,7 @@ export async function handle(request: Request) {
     // Add live test pages
     for (const liveTest of liveTests) {
       xml += generateUrlEntry({
-        loc: `${BASE_URL}/mock-test/live/${liveTest.id}`,
+        loc: `${BASE_URL}/live-test/${liveTest.slug}`,
         lastmod: toW3CDate(liveTest.updatedAt),
         changefreq: "daily",
         priority: 0.7,

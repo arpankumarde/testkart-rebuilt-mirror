@@ -53,7 +53,7 @@ export function HomepageLiveSpotlight({ spotlights }: HomepageLiveSpotlightProps
     <div className={styles.sectionWrapper}>
       <div className={styles.header}>
         <h2 className={styles.title}>Live Competitive Mock Tests</h2>
-        <Link to="/mock-test/live" className={styles.viewAllLink}>
+        <Link to="/live-test" className={styles.viewAllLink}>
           View all →
         </Link>
       </div>

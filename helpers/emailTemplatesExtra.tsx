@@ -130,13 +130,13 @@ export const emailTemplatesExtra = {
       subheading: `Hi ${studentName}`,
       bodyHtml: `<p style="margin:0;">You're registered for the live test <strong>"${testName}"</strong> on <strong>${formattedDate}</strong>. Please log in 10 minutes early to ensure you're ready when the test starts.</p>`,
       ctaLabel: "View Live Tests",
-      ctaUrl: "https://testkart.in/mock-test/live",
+      ctaUrl: "https://testkart.in/live-test",
     });
 
     return {
       subject,
       html,
-      text: `Hi ${studentName}, you're registered for live test "${testName}" on ${formattedDate}. Log in 10 minutes early. https://testkart.in/mock-test/live`,
+      text: `Hi ${studentName}, you're registered for live test "${testName}" on ${formattedDate}. Log in 10 minutes early. https://testkart.in/live-test`,
     };
   },
 
