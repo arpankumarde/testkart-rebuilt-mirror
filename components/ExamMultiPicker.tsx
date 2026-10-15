@@ -83,13 +83,21 @@ export const ExamMultiPicker: React.FC<ExamMultiPickerProps> = ({
   const isCustom = (name: string) =>
     !isLoading && officialKeys.size > 0 && !officialKeys.has(name.toLowerCase());
 
+  // A click on the box's empty space goes to the input, as in a single text field.
+  const focusInput = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) return;
+    inputAreaRef.current?.querySelector<HTMLInputElement>("input:not([disabled])")?.focus();
+  };
+
+  // Chips and the input share one box the height of a normal input; it grows a
+  // line at a time as chips wrap.
   return (
     <div className={styles.container}>
-      {value.length > 0 && (
-        <ul className={styles.chips} aria-label="Selected exams">
-          {value.map((name, index) => (
-            <li key={name} className={`${styles.chip} ${index === 0 ? styles.chipPrimary : ""}`}>
-              <span className={styles.chipBody}>
+      <div className={`${styles.field} ${disabled ? styles.fieldDisabled : ""}`} onClick={focusInput}>
+        {value.length > 0 && (
+          <ul className={styles.chips} role="list" aria-label="Selected exams">
+            {value.map((name, index) => (
+              <li key={name} className={`${styles.chip} ${index === 0 ? styles.chipPrimary : ""}`}>
                 <span className={styles.chipName}>{name}</span>
                 {index === 0 && <span className={`${styles.tag} ${styles.tagPrimary}`}>Primary</span>}
                 {isCustom(name) && <span className={`${styles.tag} ${styles.tagCustom}`}>Not in exam list</span>}
@@ -103,39 +111,39 @@ export const ExamMultiPicker: React.FC<ExamMultiPickerProps> = ({
                     Make primary
                   </button>
                 )}
-              </span>
-              {!disabled && (
-                <button
-                  type="button"
-                  className={styles.removeButton}
-                  onClick={() => removeAt(index)}
-                  aria-label={`Remove ${name}`}
-                >
-                  <X size={14} aria-hidden="true" />
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
+                {!disabled && (
+                  <button
+                    type="button"
+                    className={styles.removeButton}
+                    onClick={() => removeAt(index)}
+                    aria-label={`Remove ${name}`}
+                  >
+                    <X size={12} aria-hidden="true" />
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
 
-      {!disabled && (
-        <div ref={inputAreaRef} className={styles.inputArea} onKeyDown={handleKeyDown}>
-          <AutoComplete
-            key={inputKey}
-            options={options}
-            onValueChange={(option) => addExam(option.displayText || option.value)}
-            inputValue={query}
-            onInputValueChange={setQuery}
-            isLoading={isLoading}
-            disabled={atMax}
-            placeholder={
-              atMax ? `Up to ${max} exams` : value.length === 0 ? "Search exams (optional)" : "Add another exam"
-            }
-            emptyMessage="No matching exam found."
-          />
-        </div>
-      )}
+        {!disabled && (
+          <div ref={inputAreaRef} className={styles.inputArea} onKeyDown={handleKeyDown}>
+            <AutoComplete
+              key={inputKey}
+              options={options}
+              onValueChange={(option) => addExam(option.displayText || option.value)}
+              inputValue={query}
+              onInputValueChange={setQuery}
+              isLoading={isLoading}
+              disabled={atMax}
+              placeholder={
+                atMax ? `Up to ${max} exams` : value.length === 0 ? "Search exams (optional)" : "Add another exam"
+              }
+              emptyMessage="No matching exam found."
+            />
+          </div>
+        )}
+      </div>
 
       {!disabled && atMax && <p className={styles.limit}>Up to {max} exams</p>}
       {disabled && value.length === 0 && <p className={styles.empty}>No exam selected</p>}

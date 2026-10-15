@@ -2,6 +2,7 @@ import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
 import { MockTests } from "../../../helpers/schema";
+import { MAX_ITEM_LANGUAGES, MAX_LANGUAGE_LENGTH } from "../../../helpers/itemLanguages";
 
 // Every optional field is written only when the request carries it (see
 // buildMockTestUpdateSet), so no field here may take a default value.
@@ -21,6 +22,12 @@ export const schema = z.object({
   introVideoUrl: z.string().url("Must be a valid URL.").optional().nullable(),
   introVideoFileId: z.string().optional().nullable(),
   language: z.string().min(1, "Language is required.").optional(),
+  // Takes precedence over language; the legacy column then stores the list's summary.
+  languages: z
+    .array(z.string().trim().min(1).max(MAX_LANGUAGE_LENGTH))
+    .min(1, "Pick at least one language.")
+    .max(MAX_ITEM_LANGUAGES, `Pick up to ${MAX_ITEM_LANGUAGES} languages.`)
+    .optional(),
   whatYouLearn: z.array(z.string().min(1)).optional().nullable(),
   requirements: z.array(z.string().min(1)).optional().nullable(),
   longDescription: z.string().optional().nullable(),

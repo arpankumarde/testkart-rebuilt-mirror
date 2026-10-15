@@ -12,6 +12,8 @@ import { Switch } from './Switch';
 import { Spinner } from './Spinner';
 import { FileUploader } from './FileUploader';
 import { ExamMultiPicker } from './ExamMultiPicker';
+import { LanguageMultiPicker } from './LanguageMultiPicker';
+import { itemLanguages } from '../helpers/itemLanguages';
 import { useExamNameSuggestions } from '../helpers/useExamNameSuggestions';
 import { addSuggestedExam, getItemExamNames, MAX_ITEM_EXAMS } from '../helpers/itemExams';
 import { Skeleton } from './Skeleton';
@@ -82,6 +84,7 @@ const FIELD_LABELS: Record<string, string> = {
   price: 'Price',
   category: 'Category',
   language: 'Language',
+  languages: 'Languages',
   examName: 'Exam name',
   examNames: 'Exams',
   tagsString: 'Tags',
@@ -99,21 +102,13 @@ const snapshotValues = (v: FormValues, isFree: boolean) =>
     v.shortDescription || '',
     isFree ? 0 : v.price,
     v.category || '',
-    v.language || '',
+    v.languages ?? [],
     v.examNames ?? [],
     v.previewPages || 0,
     v.tagsString || '',
     !!v.allowDownload,
     (v.files || []).filter((f) => isRealFileUrl(f.fileUrl)).map((f) => [f.title, f.fileUrl]),
   ]);
-
-const LANGUAGES = [
-  "English", "Hindi", "Bengali", "Telugu", "Marathi", "Tamil",
-  "Gujarati", "Kannada", "Malayalam", "Odia", "Punjabi",
-  "Assamese", "Urdu", "Sanskrit", "Konkani", "Dogri",
-  "Bodo", "Maithili", "Santali", "Kashmiri", "Nepali",
-  "Sindhi", "Manipuri", "Multiple Languages",
-];
 
 // Uploads finish out of order, so results are matched to rows by this key
 // rather than by array position.
@@ -172,7 +167,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
       shortDescription: '',
       price: 0,
       category: '',
-      language: '',
+      languages: [],
       examName: '',
       examNames: [],
       previewPages: 0,
@@ -211,7 +206,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
         shortDescription: productDetails.shortDescription || '',
         price: productDetails.price,
         category: productDetails.category || '',
-        language: productDetails.language || '',
+        languages: itemLanguages(productDetails),
         examName: savedExamNames[0] ?? '',
         examNames: savedExamNames,
         previewPages: productDetails.previewPages || 0,
@@ -241,7 +236,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
           shortDescription: aiInitialValues.shortDescription || prev.shortDescription,
           price: suggestedPrice > 0 ? suggestedPrice : prev.price,
           category: aiInitialValues.category || prev.category,
-          language: aiInitialValues.language || prev.language,
+          languages: aiInitialValues.language ? itemLanguages({ language: aiInitialValues.language }) : prev.languages,
           examName: examNames[0] ?? prev.examName,
           examNames,
           tagsString: aiInitialValues.tags ? aiInitialValues.tags.join(', ') : prev.tagsString,
@@ -390,7 +385,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
   const getRewriteContext = () => ({
     examName: form.values.examName || undefined,
     category: form.values.category || undefined,
-    language: form.values.language || undefined,
+    language: form.values.languages?.join(', ') || undefined,
     tags: form.values.tagsString ? form.values.tagsString.split(',').map(t => t.trim()).filter(Boolean) : undefined,
     fileTitles: form.values.files ? form.values.files.map(f => f.title).filter(Boolean) : undefined,
   });
@@ -442,7 +437,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
       recommended.push("Add a short description - it's what students see on the card.");
     }
     if (!form.values.category) recommended.push("Pick a category so students can filter for it.");
-    if (!form.values.language) recommended.push("Set the language.");
+    if (!form.values.languages?.length) recommended.push("Set the languages.");
     if (!form.values.examNames?.length) recommended.push("Tag the exams this is for, to help students find it.");
     if (!form.values.tagsString || form.values.tagsString.trim().length === 0) {
       recommended.push("Add a few tags to improve search visibility.");
@@ -480,7 +475,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
       shortDescription: form.values.shortDescription || null,
       price: isFreeChecked ? 0 : form.values.price,
       category: form.values.category || null,
-      language: form.values.language || null,
+      languages: form.values.languages ?? [],
       examName: form.values.examNames?.[0] ?? null,
       examNames: form.values.examNames ?? [],
       tags,
@@ -783,8 +778,8 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
                       onValueChange={(val) => {
                         // Radix's Select fires a spurious onValueChange("") right after
                         // mount when the controlled value is set programmatically before
-                        // the user has ever opened it (seen right after loading saved
-                        // category/language into the edit form). None of our category
+                        // the user has ever opened it (seen right after loading the saved
+                        // category into the edit form). None of our category
                         // options are an empty string, so a real user selection can never
                         // produce "" — safe to ignore it here.
                         if (!val) return;
@@ -804,29 +799,14 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
                   <FormMessage />
                 </FormItem>
 
-                <FormItem name="language">
-                  <FormLabel>Language</FormLabel>
+                <FormItem name="languages">
+                  <FormLabel>Languages</FormLabel>
                   <FormControl>
-                    <Select
-                      value={form.values.language || undefined}
-                      onValueChange={(val) => {
-                        // See the matching guard on the category Select above — Radix
-                        // fires a spurious onValueChange("") right after mount when the
-                        // value is set programmatically, and no real language option is
-                        // an empty string, so ignoring falsy values here is safe.
-                        if (!val) return;
-                        form.setValues(prev => ({ ...prev, language: val }));
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select language" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {LANGUAGES.map(lang => (
-                          <SelectItem key={lang} value={lang}>{lang}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <LanguageMultiPicker
+                      value={form.values.languages ?? []}
+                      onChange={(languages) => form.setValues(prev => ({ ...prev, languages }))}
+                      placeholder="e.g., English, Hindi"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -1147,7 +1127,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
                   </FormControl>
                 </div>
                 <FormDescription>
-                  Off by default. When on, students who bought this note can download every PDF in it from their dashboard. When off, they read it in the watermarked reader only.
+                  Off by default. When on, students who bought this note can download every PDF in it from their dashboard. When off, they read it in the reader only.
                 </FormDescription>
               </FormItem>
             </div>

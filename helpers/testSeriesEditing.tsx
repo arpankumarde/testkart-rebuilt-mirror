@@ -1,6 +1,7 @@
 import type { Updateable } from "kysely";
 import type { MockTests } from "./schema";
 import { sanitizeHtml } from "./sanitizeHtml";
+import { languagesSummary, normalizeLanguages } from "./itemLanguages";
 
 /*
  * Pure pieces of the teacher test series editor, shared by the pages and the
@@ -19,6 +20,7 @@ export type SeriesUpdateInput = {
   introVideoUrl?: string | null;
   introVideoFileId?: string | null;
   language?: string;
+  languages?: string[];
   whatYouLearn?: string[] | null;
   requirements?: string[] | null;
   longDescription?: string | null;
@@ -55,7 +57,13 @@ export function buildMockTestUpdateSet(
   if (input.thumbnailFileId !== undefined) set.thumbnailFileId = input.thumbnailFileId || null;
   if (input.introVideoUrl !== undefined) set.introVideoUrl = input.introVideoUrl || null;
   if (input.introVideoFileId !== undefined) set.introVideoFileId = input.introVideoFileId || null;
-  if (input.language !== undefined) set.language = input.language;
+  // The list wins when both arrive; the legacy column then stores its summary.
+  if (input.languages !== undefined) {
+    set.languages = normalizeLanguages(input.languages);
+    set.language = languagesSummary(input.languages);
+  } else if (input.language !== undefined) {
+    set.language = input.language;
+  }
   if (input.whatYouLearn !== undefined) {
     set.whatYouLearn = input.whatYouLearn ? JSON.stringify(input.whatYouLearn) : null;
   }

@@ -102,10 +102,12 @@
   gap: var(--spacing-2);
 }
 
+/* minmax(0, 1fr) keeps a long chip list from widening its column; start keeps both labels on one line. */
 .grid2 {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--spacing-4);
+  align-items: start;
 }
 
 .fileList {
@@ -549,6 +551,6 @@
   }
 
   .grid2 {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }

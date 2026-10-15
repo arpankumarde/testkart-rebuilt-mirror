@@ -77,7 +77,7 @@ const LessonContent: React.FC<{
   });
 
   const isPdfLesson = lesson.contentType === 'pdf';
-  // The web never receives a PDF lesson's file link; its pages come rendered and watermarked from the server.
+  // The web never receives a PDF lesson's file link; its pages come rendered from the server.
   const { source: pdfSource, isLoading: isLoadingPdf, error: pdfError, refetch: refetchPdf } = useProtectedDocument(
     isPdfLesson ? { type: 'lesson', courseId, lessonId: lesson.id } : null,
   );

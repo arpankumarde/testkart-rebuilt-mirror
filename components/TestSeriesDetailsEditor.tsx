@@ -4,8 +4,8 @@ import { Helmet } from "react-helmet";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Plus, X } from "lucide-react";
-import { AutoComplete, type Option } from "./AutoComplete";
 import { ExamMultiPicker } from "./ExamMultiPicker";
+import { LanguageMultiPicker } from "./LanguageMultiPicker";
 import {
   Form,
   FormControl,
@@ -30,6 +30,7 @@ import { useTeacherTestItemsQuery, useTeacherTestsQuery } from "../helpers/useTe
 import { useTeacherTestMutations } from "../helpers/useTeacherTestMutations";
 import { useAdminContentEdit } from "../helpers/useAdminContentEdit";
 import { getItemExamNames, MAX_ITEM_EXAMS } from "../helpers/itemExams";
+import { itemLanguages, MAX_ITEM_LANGUAGES } from "../helpers/itemLanguages";
 import { buildPublicAssetUrl } from "../helpers/shareLinks";
 import {
   dropBlankEntries,
@@ -40,13 +41,6 @@ import {
 import type { TeacherTest } from "../endpoints/teacher/tests/list_GET.schema";
 import styles from "./TestSeriesDetailsEditor.module.css";
 
-const languageOptions: Option[] = [
-  "Assamese", "Bengali", "Bodo", "Dogri", "English", "Gujarati", "Hindi",
-  "Kannada", "Kashmiri", "Konkani", "Maithili", "Malayalam", "Manipuri",
-  "Marathi", "Multilingual", "Nepali", "Odia", "Punjabi", "Sanskrit",
-  "Santali", "Sindhi", "Tamil", "Telugu", "Urdu",
-].map((lang) => ({ value: lang, label: lang, displayText: lang }));
-
 const SHORT_BIO_MAX = 200;
 
 // List rows may be blank while the teacher is still typing. Blank rows are
@@ -55,7 +49,10 @@ const formSchema = z
   .object({
     title: z.string().trim().min(3, "Use at least 3 characters."),
     examNames: z.array(z.string()).max(MAX_ITEM_EXAMS, `Pick up to ${MAX_ITEM_EXAMS} exams.`),
-    language: z.string().trim().min(1, "Pick a language or type your own."),
+    languages: z
+      .array(z.string())
+      .min(1, "Pick at least one language, or type your own.")
+      .max(MAX_ITEM_LANGUAGES, `Pick up to ${MAX_ITEM_LANGUAGES} languages.`),
     description: z
       .string()
       .trim()
@@ -87,7 +84,7 @@ type FormValues = z.infer<typeof formSchema>;
 const EMPTY_VALUES: FormValues = {
   title: "",
   examNames: [],
-  language: "",
+  languages: [],
   description: "",
   isFree: false,
   price: 0,
@@ -100,14 +97,14 @@ const EMPTY_VALUES: FormValues = {
 };
 
 const FIELD_ORDER = [
-  "title", "examNames", "language", "description", "price", "discountPrice", "isFree",
+  "title", "examNames", "languages", "description", "price", "discountPrice", "isFree",
   "whatYouLearn", "requirements", "longDescription", "thumbnailUrl",
 ];
 
 const FIELD_LABELS: Record<string, string> = {
   title: "Title",
   examNames: "Exams",
-  language: "Language",
+  languages: "Languages",
   description: "Short bio",
   price: "Price",
   discountPrice: "Discounted price",
@@ -123,7 +120,7 @@ type ListField = "whatYouLearn" | "requirements";
 const toFormValues = (series: TeacherTest): FormValues => ({
   title: series.title ?? "",
   examNames: getItemExamNames(series),
-  language: series.language ?? "",
+  languages: itemLanguages(series),
   description: series.description ?? "",
   isFree: !!series.isFree,
   price: series.isFree ? 0 : Number(series.price) || 0,
@@ -263,7 +260,7 @@ export const TestSeriesDetailsEditor = ({ testId }: { testId: number }) => {
         description: v.description,
         examName: v.examNames[0] ?? null,
         examNames: v.examNames,
-        language: v.language,
+        languages: v.languages,
         isFree: v.isFree,
         price: v.isFree ? 0 : v.price,
         discountPrice: v.isFree ? null : v.discountPrice,
@@ -373,11 +370,12 @@ export const TestSeriesDetailsEditor = ({ testId }: { testId: number }) => {
   const highlights = dropBlankEntries(values.whatYouLearn)?.length ?? 0;
   const requirementCount = dropBlankEntries(values.requirements)?.length ?? 0;
   const primaryExam = values.examNames[0] ?? "";
+  const languageText = values.languages.join(", ");
 
   const checklist = [
     { field: "title", label: "Title", done: values.title.trim().length >= 3 },
     { field: "examNames", label: "Exam", done: values.examNames.length > 0 },
-    { field: "language", label: "Language", done: values.language.trim() !== "" },
+    { field: "languages", label: "Language", done: values.languages.length > 0 },
     { field: "description", label: "Short bio", done: values.description.trim().length >= 10 },
     { field: "whatYouLearn", label: "What students will master", done: highlights > 0 },
     { field: "requirements", label: "Requirements", done: requirementCount > 0 },
@@ -465,7 +463,7 @@ export const TestSeriesDetailsEditor = ({ testId }: { testId: number }) => {
                             field="title"
                             contentType="test"
                             currentValue={values.title}
-                            context={{ examName: primaryExam || undefined, language: values.language || undefined }}
+                            context={{ examName: primaryExam || undefined, language: languageText || undefined }}
                             onAccept={(suggestion) => setValues((p) => ({ ...p, title: suggestion }))}
                           />
                         </div>
@@ -491,17 +489,13 @@ export const TestSeriesDetailsEditor = ({ testId }: { testId: number }) => {
                           <FormMessage />
                         </FormItem>
 
-                        <FormItem name="language" data-field="language">
-                          <FormLabel>Language</FormLabel>
+                        <FormItem name="languages" data-field="languages">
+                          <FormLabel>Languages</FormLabel>
                           <FormControl>
-                            <AutoComplete
-                              options={languageOptions}
-                              emptyMessage="No languages found"
-                              placeholder="e.g., English, Hindi, Tamil"
-                              inputValue={values.language}
-                              onInputValueChange={(language) => setValues((p) => ({ ...p, language: language || "" }))}
-                              onValueChange={(option) => setValues((p) => ({ ...p, language: option.value || "" }))}
-                              allowFreeForm
+                            <LanguageMultiPicker
+                              value={values.languages}
+                              onChange={(languages) => setValues((p) => ({ ...p, languages }))}
+                              placeholder="e.g., English, Hindi"
                             />
                           </FormControl>
                           <FormMessage />
@@ -518,7 +512,7 @@ export const TestSeriesDetailsEditor = ({ testId }: { testId: number }) => {
                             allowEmpty
                             context={{
                               examName: primaryExam || undefined,
-                              language: values.language || undefined,
+                              language: languageText || undefined,
                               title: values.title || undefined,
                               subjects: aiSubjects,
                             }}
@@ -689,7 +683,7 @@ export const TestSeriesDetailsEditor = ({ testId }: { testId: number }) => {
                             allowEmpty
                             context={{
                               examName: primaryExam || undefined,
-                              language: values.language || undefined,
+                              language: languageText || undefined,
                               title: values.title || undefined,
                               subjects: aiSubjects,
                             }}
@@ -749,7 +743,7 @@ export const TestSeriesDetailsEditor = ({ testId }: { testId: number }) => {
                 <TestSeriesCardPreview
                   title={values.title}
                   examName={primaryExam}
-                  language={values.language}
+                  languages={values.languages}
                   thumbnailUrl={values.thumbnailUrl}
                   creatorName={testPackage?.creatorName ?? null}
                   isFree={values.isFree}

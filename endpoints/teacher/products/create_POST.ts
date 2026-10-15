@@ -5,6 +5,7 @@ import { schema, OutputType } from "./create_POST.schema";
 import superjson from "superjson";
 import { sanitizeOptionalHtml } from "../../../helpers/sanitizeHtml";
 import { DigitalProductFileItem } from "../../../helpers/digitalProductFileTypes";
+import { languagesSummary, normalizeLanguages } from "../../../helpers/itemLanguages";
 import { isRealFileUrl, PLACEHOLDER_PDF_URL, ProductRuleError } from "../../../helpers/digitalProductRules";
 import { assertStudyNoteFilesArePdfs } from "../../../helpers/studyNoteFileCheck";
 import {
@@ -107,7 +108,9 @@ export async function handle(request: Request): Promise<Response> {
           pageCount: totalPages || null,
           fileSizeBytes: firstFile ? totalBytes.toString() : null,
           allowDownload: input.allowDownload ?? false,
-          language: input.language ?? null,
+          ...(input.languages?.length
+            ? { languages: normalizeLanguages(input.languages), language: languagesSummary(input.languages) }
+            : { language: input.language ?? null }),
           category: input.category ?? null,
           tags: input.tags ?? null,
           ...primaryExamFields(exams),

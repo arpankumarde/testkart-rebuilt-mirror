@@ -4,6 +4,7 @@ import { Selectable } from "kysely";
 import { DigitalProducts } from "../../../helpers/schema";
 import { DigitalProductFileItem } from "../../../helpers/digitalProductFileTypes";
 import { fileEntrySchemaRef } from "./create_POST.schema";
+import { MAX_ITEM_LANGUAGES, MAX_LANGUAGE_LENGTH } from "../../../helpers/itemLanguages";
 
 // id is the digital_product_files row the entry came from. Sending it back
 // lets the server update that row in place so students keep the same file id.
@@ -27,6 +28,11 @@ export const schema = z.object({
   /** Omitted leaves the stored setting unchanged. */
   allowDownload: z.boolean().optional(),
   language: z.string().optional().nullable(),
+  /** Takes precedence over language; an empty list clears it. The legacy column stores the list's summary. */
+  languages: z
+    .array(z.string().trim().min(1).max(MAX_LANGUAGE_LENGTH))
+    .max(MAX_ITEM_LANGUAGES, `Pick up to ${MAX_ITEM_LANGUAGES} languages.`)
+    .optional(),
   category: z.string().optional().nullable(),
   tags: z.array(z.string()).optional().nullable(),
   examName: z.string().optional().nullable(),

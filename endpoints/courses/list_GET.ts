@@ -4,6 +4,7 @@ import superjson from "superjson";
 import { sql } from "kysely";
 import { slugify } from "../../helpers/slugify";
 import { contentInExam } from "../../helpers/contentExams";
+import { matchesAnyLanguage } from "../../helpers/languageFilter";
 import { pinnedTeacherFirst, sortPinsTeachers } from "../../helpers/pinnedTeachers";
 import { courseDiscountPrice, courseEffectivePriceSql } from "../../helpers/coursePricing";
 
@@ -38,6 +39,7 @@ export async function handle(request: Request): Promise<Response> {
         "courses.discountPrice",
         "courses.level",
         "courses.language",
+        "courses.languages",
         "courses.status",
         "courses.publishedAt",
         "courses.views",
@@ -93,10 +95,7 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     if (language) {
-      const languages = language.split(",").map((l) => l.trim());
-      query = query.where((eb) =>
-        eb.or(languages.map((lang) => eb("courses.language", "=", lang)))
-      );
+      query = query.where(matchesAnyLanguage("courses", language.split(",")));
     }
 
     if (priceType === "free") {

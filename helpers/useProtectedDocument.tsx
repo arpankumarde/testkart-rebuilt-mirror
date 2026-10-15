@@ -4,7 +4,7 @@ import type { PdfReaderSource } from "../components/PdfReader";
 import { getReaderInfo } from "../endpoints/reader/info_GET.schema";
 import { readerPageUrl, type ReaderDocumentRef } from "./readerDocumentRef";
 
-// Opens a paid or preview document as watermarked page images rendered on the server, so neither the file nor
+// Opens a paid or preview document as page images rendered on the server, so neither the file nor
 // a link to it ever reaches the browser.
 export const useProtectedDocument = (ref: ReaderDocumentRef | null, enabled = true) => {
   const refKey = ref ? JSON.stringify(ref) : null;

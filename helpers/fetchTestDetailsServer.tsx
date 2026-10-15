@@ -226,6 +226,7 @@ export async function fetchTestDetailsServer(slug: string): Promise<OutputType> 
     updatedAt: test.updatedAt,
     isEnrolled: false,
     language: test.language,
+    languages: test.languages,
     teacherIsVerified: !!test.teacherIsVerified,
     teacherSlug: test.teacherSlugCol || slugify(test.teacherName),
     whatYouLearn: (typeof test.whatYouLearn === 'string' ? (() => { try { return JSON.parse(test.whatYouLearn); } catch { return null; } })() : test.whatYouLearn) as string[] | null,

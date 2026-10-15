@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { LiveTestFormValues } from '../helpers/liveTestCreationFormSchema';
 import { ExamMultiPicker } from './ExamMultiPicker';
+import { LanguageMultiPicker } from './LanguageMultiPicker';
 import { FormItem, FormLabel, FormControl, FormDescription, FormMessage } from './Form';
 import { Input } from './Input';
 import { RichTextEditor } from './RichTextEditor';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './Select';
 import { Checkbox } from './Checkbox';
 import { ThumbnailUploader } from './ThumbnailUploader';
 import { VideoUploader } from './VideoUploader';
@@ -39,13 +39,7 @@ export const LiveTestBasicInfoStep: React.FC<LiveTestBasicInfoStepProps> = ({
   const [localStorefrontOpen, setLocalStorefrontOpen] = useState(false);
   const isStorefrontOpen = storefrontOpen ?? localStorefrontOpen;
   const setIsStorefrontOpen = onStorefrontOpenChange ?? setLocalStorefrontOpen;
-  const languageOptions = [
-    "English", "Hindi", "Bengali", "Telugu", "Marathi", "Tamil",
-    "Gujarati", "Kannada", "Malayalam", "Odia", "Punjabi",
-    "Assamese", "Urdu", "Sanskrit", "Konkani", "Dogri",
-    "Bodo", "Maithili", "Santali", "Kashmiri", "Nepali",
-    "Sindhi", "Manipuri", "Multiple Languages",
-  ];
+  const languageText = values.languages?.join(', ') || undefined;
 
   return (
     <div className={styles.stepContainer}>
@@ -62,7 +56,7 @@ export const LiveTestBasicInfoStep: React.FC<LiveTestBasicInfoStepProps> = ({
                 field="title"
                 contentType="liveTest"
                 currentValue={values.title}
-                context={{ examName: values.examName || undefined, language: values.language || undefined, duration: values.durationMinutes, price: values.price }}
+                context={{ examName: values.examName || undefined, language: languageText, duration: values.durationMinutes, price: values.price }}
                 onAccept={(suggestion) => setValues(p => ({...p, title: suggestion}))}
               />
             </div>
@@ -84,7 +78,7 @@ export const LiveTestBasicInfoStep: React.FC<LiveTestBasicInfoStepProps> = ({
                 field="description"
                 contentType="liveTest"
                 currentValue={values.description ?? ''}
-                context={{ examName: values.examName || undefined, language: values.language || undefined, duration: values.durationMinutes, price: values.price, title: values.title }}
+                context={{ examName: values.examName || undefined, language: languageText, duration: values.durationMinutes, price: values.price, title: values.title }}
                 onAccept={(suggestion) => setValues(p => ({...p, description: suggestion}))}
               />
             </div>
@@ -113,28 +107,16 @@ export const LiveTestBasicInfoStep: React.FC<LiveTestBasicInfoStepProps> = ({
               <FormMessage />
             </FormItem>
 
-            <FormItem name="language">
-              <FormLabel>Language</FormLabel>
+            <FormItem name="languages">
+              <FormLabel>Languages</FormLabel>
               <FormControl>
-                <Select
-                  value={values.language || '__empty'}
-                  onValueChange={(val) => setValues(prev => ({ 
-                    ...prev, 
-                    language: val === '__empty' ? undefined : (val as NonNullable<LiveTestFormValues["language"]>)
-                  }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select language" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__empty">Select language</SelectItem>
-                    {languageOptions.map((lang) => (
-                      <SelectItem key={lang} value={lang}>{lang}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <LanguageMultiPicker
+                  value={values.languages ?? []}
+                  onChange={(languages) => setValues(prev => ({ ...prev, languages }))}
+                  placeholder="e.g., English, Hindi"
+                />
               </FormControl>
-              <FormDescription>Language in which the test will be conducted.</FormDescription>
+              <FormDescription>Every language the test is conducted in.</FormDescription>
               <FormMessage />
             </FormItem>
           </div>

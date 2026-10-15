@@ -5,6 +5,7 @@ import { primaryExamFields, resolveExamSelection, saveContentExams } from "../..
 import { schema, OutputType } from "./create_POST.schema";
 import superjson from "superjson";
 import { sanitizeHtml } from "../../../helpers/sanitizeHtml";
+import { languagesSummary, normalizeLanguages } from "../../../helpers/itemLanguages";
 import { customAlphabet } from "nanoid";
  
 async function generateUniqueSlug(baseTitle: string): Promise<string> {
@@ -69,7 +70,9 @@ export async function handle(request: Request): Promise<Response> {
         thumbnailFileId: input.thumbnailFileId || null,
         introVideoUrl: input.introVideoUrl ?? null,
         introVideoFileId: input.introVideoFileId ?? null,
-        language: input.language,
+        ...(input.languages?.length
+          ? { languages: normalizeLanguages(input.languages), language: languagesSummary(input.languages) }
+          : { language: input.language }),
         whatYouLearn: input.whatYouLearn ? JSON.stringify(input.whatYouLearn) : null,
         requirements: input.requirements ? JSON.stringify(input.requirements) : null,
         longDescription: input.longDescription ? sanitizeHtml(input.longDescription) : null,

@@ -2047,6 +2047,55 @@
   font-weight: 700 !important;
 }
 
+.claimButton {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.claimStepBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.claimHelpText {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--sp-muted);
+  line-height: 1.5;
+}
+
+.claimOptionList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.claimOptionButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--sp-line);
+  border-radius: 0.75rem;
+  background-color: var(--sp-card);
+  color: var(--sp-ink);
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.claimOptionButton:hover {
+  border-color: var(--sp-peach-edge);
+}
+
+.claimOptionButtonSelected {
+  border-color: var(--sp-cta);
+  background-color: var(--sp-tint);
+}
+
 .ctaButton:hover:not(:disabled) {
   background-color: var(--sp-cta-hover) !important;
   box-shadow: 0 5px 0 var(--sp-peach-edge) !important;

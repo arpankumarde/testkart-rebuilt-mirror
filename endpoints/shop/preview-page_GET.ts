@@ -6,7 +6,7 @@ import { schema, OutputType } from "./preview-page_GET.schema";
 import superjson from "superjson";
 
 // Preview pages are served as rendered images, never as the PDF itself, so only the first previewPages pages
-// of a paid file ever leave the server. The mobile app reads this; the web uses the watermarked
+// of a paid file ever leave the server. The mobile app reads this; the web uses the
 // endpoints/reader pages instead.
 function toOutput(stored: StoredPage, page: number, previewPages: number): OutputType {
   return {

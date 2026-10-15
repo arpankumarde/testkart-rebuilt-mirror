@@ -3,6 +3,7 @@ import { sql } from "kysely";
 import type { InputType, OutputType } from "../endpoints/courses/list_GET.schema";
 import { slugify } from "./slugify";
 import { contentInExam } from "./contentExams";
+import { matchesAnyLanguage } from "./languageFilter";
 import { pinnedTeacherFirst, sortPinsTeachers } from "./pinnedTeachers";
 import { courseDiscountPrice, courseEffectivePriceSql } from "./coursePricing";
 
@@ -40,6 +41,7 @@ export async function fetchCoursesListServer(filters: InputType = {}): Promise<O
       "courses.discountPrice",
       "courses.level",
       "courses.language",
+      "courses.languages",
       "courses.status",
       "courses.publishedAt",
       "courses.views",
@@ -85,8 +87,7 @@ export async function fetchCoursesListServer(filters: InputType = {}): Promise<O
   if (level) query = query.where("courses.level", "=", level as "beginner" | "intermediate" | "advanced");
 
   if (language) {
-    const languages = language.split(",").map((l) => l.trim());
-    query = query.where((eb) => eb.or(languages.map((lang) => eb("courses.language", "=", lang))));
+    query = query.where(matchesAnyLanguage("courses", language.split(",")));
   }
 
   if (priceType === "free") {

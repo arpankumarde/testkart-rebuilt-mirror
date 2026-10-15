@@ -3,6 +3,7 @@ import { sql } from "kysely";
 import { schema, InputType, OutputType } from "../endpoints/shop/list_GET.schema";
 import { slugify } from "./slugify";
 import { contentInExam } from "./contentExams";
+import { matchesAnyLanguage } from "./languageFilter";
 import { pinnedTeacherFirst, sortPinsTeachers } from "./pinnedTeachers";
 
 /**
@@ -84,7 +85,7 @@ export async function fetchShopProductsListServer(rawInput: Partial<InputType> =
   }
   if (input.priceMin !== undefined) query = query.where("digitalProducts.price", ">=", input.priceMin.toString());
   if (input.priceMax !== undefined) query = query.where("digitalProducts.price", "<=", input.priceMax.toString());
-  if (input.language) query = query.where("digitalProducts.language", "=", input.language);
+  if (input.language) query = query.where(matchesAnyLanguage("digitalProducts", [input.language]));
 
   if (input.search) {
     const searchTerm = `%${input.search.toLowerCase()}%`;

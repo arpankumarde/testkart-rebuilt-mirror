@@ -5,6 +5,7 @@ import superjson from "superjson";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { slugify } from "../../helpers/slugify";
 import { contentInExam } from "../../helpers/contentExams";
+import { matchesAnyLanguage } from "../../helpers/languageFilter";
 
 export async function handle(request: Request) {
   try {
@@ -54,6 +55,7 @@ export async function handle(request: Request) {
         "mockTests.reviewsCount",
         "mockTests.examName",
         "mockTests.language",
+        "mockTests.languages",
         "mockTests.views",
         "users.displayName as teacherName",
         "users.isVerified as teacherIsVerified",
@@ -134,10 +136,7 @@ export async function handle(request: Request) {
     }
 
     if (language) {
-      const languages = language.split(',').map(l => l.trim());
-      query = query.where((eb) => 
-        eb.or(languages.map(lang => eb("mockTests.language", "=", lang)))
-      );
+      query = query.where(matchesAnyLanguage("mockTests", language.split(',')));
     }
 
     if (priceType === 'free') {

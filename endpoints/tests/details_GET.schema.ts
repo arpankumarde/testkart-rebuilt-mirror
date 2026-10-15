@@ -53,6 +53,8 @@ export type PackageDetails = {
   updatedAt: Date | null;
   isEnrolled: boolean;
   language: string | null;
+  /** Every language of the series; language keeps the readable summary. */
+  languages?: string[];
   teacherSlug: string;
   teacherIsVerified: boolean;
   whatYouLearn: string[] | null;

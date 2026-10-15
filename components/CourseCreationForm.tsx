@@ -4,10 +4,11 @@ import { toast } from 'sonner';
 import { useForm, Form, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from './Form';
 import { Input } from './Input';
 import { RichTextEditor } from './RichTextEditor';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './Select';
 import { SegmentedControl } from './SegmentedControl';
 import { ExamMultiPicker } from './ExamMultiPicker';
+import { LanguageMultiPicker } from './LanguageMultiPicker';
 import { getItemExamNames, MAX_ITEM_EXAMS } from '../helpers/itemExams';
+import { itemLanguages } from '../helpers/itemLanguages';
 import { Button } from './Button';
 import { Spinner } from './Spinner';
 import { CourseThumbnailVideo } from './CourseThumbnailVideo';
@@ -48,14 +49,6 @@ interface CourseCreationFormProps {
 
 type PriceMode = 'free' | 'paid';
 
-const LANGUAGES = [
-  "English", "Hindi", "Bengali", "Telugu", "Marathi", "Tamil",
-  "Gujarati", "Kannada", "Malayalam", "Odia", "Punjabi",
-  "Assamese", "Urdu", "Sanskrit", "Konkani", "Dogri",
-  "Bodo", "Maithili", "Santali", "Kashmiri", "Nepali",
-  "Sindhi", "Manipuri", "Multiple Languages",
-];
-
 const LEVEL_OPTIONS = [
   { value: 'beginner', label: 'Beginner' },
   { value: 'intermediate', label: 'Intermediate' },
@@ -79,7 +72,7 @@ const toFormValues = (course: Omit<TeacherCourseListItem, 'rejection'>): CourseD
   thumbnailImageUrl: course.thumbnailImageUrl,
   introVideoFileId: course.introVideoFileId || null,
   thumbnailImageFileId: course.thumbnailImageFileId || null,
-  language: course.language || null,
+  languages: itemLanguages(course),
   examName: examNames[0] ?? '',
   examNames,
   };
@@ -87,7 +80,7 @@ const toFormValues = (course: Omit<TeacherCourseListItem, 'rejection'>): CourseD
 
 const FIELD_KEYS: (keyof CourseDetailsValues)[] = [
   'title', 'description', 'level', 'price', 'discountPrice', 'introVideoUrl', 'thumbnailImageUrl',
-  'introVideoFileId', 'thumbnailImageFileId', 'language', 'examName', 'examNames',
+  'introVideoFileId', 'thumbnailImageFileId', 'languages', 'examName', 'examNames',
 ];
 
 const normalize = (value: unknown) =>
@@ -206,7 +199,7 @@ export const CourseCreationForm = forwardRef<CourseDetailsFormHandle, CourseCrea
     const aiContext = {
       title: form.values.title,
       level: form.values.level,
-      language: form.values.language || undefined,
+      language: form.values.languages?.join(', ') || undefined,
       examName: form.values.examName || undefined,
       subjects: chapterTitles.length > 0 ? chapterTitles.slice(0, 30) : undefined,
     };
@@ -401,25 +394,14 @@ export const CourseCreationForm = forwardRef<CourseDetailsFormHandle, CourseCrea
                   />
                 </div>
 
-                <FormItem name="language" className={styles.field}>
-                  <FormLabel>Language</FormLabel>
+                <FormItem name="languages" className={`${styles.field} ${styles.wide}`}>
+                  <FormLabel>Languages</FormLabel>
                   <FormControl>
-                    <Select
-                      value={form.values.language || '__empty'}
-                      onValueChange={(value) => setField('language', value === '__empty' ? null : value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose a language" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__empty">Not set</SelectItem>
-                        {LANGUAGES.map((lang) => (
-                          <SelectItem key={lang} value={lang}>
-                            {lang}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <LanguageMultiPicker
+                      value={form.values.languages ?? []}
+                      onChange={(languages) => setField('languages', languages)}
+                      placeholder="e.g., English, Hindi"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

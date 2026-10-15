@@ -15,6 +15,7 @@ import type { Updateable } from "kysely";
 import { ZodError } from "zod";
 import { sanitizeHtml } from "../../../helpers/sanitizeHtml";
 import { courseDiscountError } from "../../../helpers/coursePricing";
+import { languagesSummary, normalizeLanguages } from "../../../helpers/itemLanguages";
 
 async function generateUniqueSlug(baseTitle: string, excludeCourseId: number): Promise<string> {
   const baseSlug = slugify(baseTitle);
@@ -111,6 +112,11 @@ export async function handle(request: Request): Promise<Response> {
       }
     }
     if (price !== undefined) changes.price = price.toString();
+    // The list wins when both arrive; the legacy column then stores its summary.
+    if (fields.languages !== undefined) {
+      changes.languages = normalizeLanguages(fields.languages);
+      changes.language = languagesSummary(fields.languages);
+    }
 
     // Discounted price: an omitted value keeps the stored one, but it is
     // re-checked against the (possibly new) price. Making a course free

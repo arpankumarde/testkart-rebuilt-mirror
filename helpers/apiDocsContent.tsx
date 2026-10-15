@@ -475,7 +475,7 @@ export const apiDocsContent: ApiEndpoint[] = [
   {
     method: "GET",
     route: "/_api/reader/page",
-    description: "Get one page of a study note or lesson PDF as a watermarked image",
+    description: "Get one page of a study note or lesson PDF as an image",
     auth: "optional",
     category: "Study notes",
     usedBy: ["web"],
@@ -493,7 +493,7 @@ export const apiDocsContent: ApiEndpoint[] = [
     notes: [
       "Same access rules and errors as /_api/reader/info. A page past a preview's limit returns 404.",
       "Rate limited: signed-in users 120 pages a minute and 3000 a day, signed-out viewers 60 a minute and 600 a day per IP. Over the limit returns 429.",
-      "Signed-in viewers get a watermark with their own name, email and mobile number. Previews get a preview watermark. Every served page is logged.",
+      "Pages are served as stored, with no watermark. Every served page is logged.",
       "Sent with Cache-Control private, max-age=1800. Errors are JSON { error }.",
     ],
   },
@@ -525,7 +525,7 @@ export const apiDocsContent: ApiEndpoint[] = [
     auth: "none",
     category: "Study notes",
     usedBy: ["mobile"],
-    deprecated: "Use /_api/reader/info and /_api/reader/page with type=notePreview instead. The web has moved to those watermarked pages, and only the shipped mobile app still calls this route.",
+    deprecated: "Use /_api/reader/info and /_api/reader/page with type=notePreview instead. The web has moved to those pages, and only the shipped mobile app still calls this route.",
     queryParams: [
       { name: "productId", type: "number", required: true, description: "Id of a published study note" },
       { name: "fileId", type: "number", required: false, description: "One file of a multi-file note. The main file when omitted" },
@@ -539,7 +539,7 @@ export const apiDocsContent: ApiEndpoint[] = [
       { name: "height", type: "number", description: "Image height in pixels" },
     ],
     notes: [
-      "Only pages up to the note's previewPages are served, as images. The image is not watermarked.",
+      "Only pages up to the note's previewPages are served, as images.",
       "Returns 400 for bad parameters, 404 for an unknown note or file or a page past the preview, and 422 when the file cannot be rendered.",
       "The first request for a page renders it, so it can take a few seconds.",
     ],

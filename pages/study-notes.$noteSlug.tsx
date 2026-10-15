@@ -24,6 +24,7 @@ import { useCartItemsQuery, useAddToCartMutation, CART_QUERY_KEY } from "../help
 import { postShopEnrollFree } from "../endpoints/shop/enroll-free_POST.schema";
 import { useAuth } from "../helpers/useAuth";
 import { Placeholder } from "../helpers/placeholderImages";
+import { formatLanguages } from "../helpers/itemLanguages";
 import { wrapContentTables } from "../helpers/contentTables";
 import { sanitizeHtml } from "../helpers/sanitizeHtml";
 import { Button } from "../components/Button";
@@ -706,12 +707,12 @@ const ProductDetailsPage: React.FC = () => {
                         <span>{(product.fileSizeBytes / (1024 * 1024)).toFixed(2)} MB PDF</span>
                       </li>
                     )}
-                    {product.language && (
+                    {formatLanguages(product) && (
                       <li>
                         <span className={`${styles.includesIcon} ${styles.toneSage}`} aria-hidden="true">
                           <Globe size={15} />
                         </span>
-                        <span>{product.language}</span>
+                        <span>{formatLanguages(product)}</span>
                       </li>
                     )}
                   </ul>

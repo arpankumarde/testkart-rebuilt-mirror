@@ -17,7 +17,7 @@ export async function handle(request: Request): Promise<Response> {
   try {
     // Bearer requests are the mobile app's file download and need only the purchase (app 4.9.6 and older
     // still call this). Web (cookie) requests also need the teacher's allow_download opt-in; without it the
-    // note stays in the watermarked reader (endpoints/reader).
+    // note stays in the reader (endpoints/reader).
     const isBearer = isBearerRequest(request);
     const { user } = await getServerUserSession(request);
     const json = superjson.parse(await request.text());

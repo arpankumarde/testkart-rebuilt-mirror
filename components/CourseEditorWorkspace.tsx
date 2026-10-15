@@ -16,6 +16,7 @@ import {
   sumLessonMinutes,
   type CourseReadinessKey,
 } from "../helpers/courseDraft";
+import { itemLanguages } from "../helpers/itemLanguages";
 import { CourseCreationForm, type CourseDetailsFormHandle, type CourseDetailsValues } from "./CourseCreationForm";
 import { CourseSectionBuilder } from "./CourseSectionBuilder";
 import { CourseCardPreview } from "./CourseCardPreview";
@@ -146,7 +147,7 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
     level: course.level,
     price: course.price,
     discountPrice: course.discountPrice,
-    language: course.language,
+    languages: itemLanguages(course),
     examName: course.examName ?? "",
     thumbnailImageUrl: course.thumbnailImageUrl,
     introVideoUrl: course.introVideoUrl,
@@ -333,7 +334,7 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
           <aside className={styles.aside} aria-label="Course summary">
             <CourseCardPreview
               title={live.title}
-              language={live.language}
+              language={live.languages?.join(", ")}
               level={live.level}
               thumbnailUrl={live.thumbnailImageUrl ?? null}
               hasIntroVideo={!!live.introVideoUrl}
@@ -414,7 +415,7 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
             aiContext={{
               title: live.title,
               level: live.level,
-              language: live.language || undefined,
+              language: live.languages?.join(", ") || undefined,
               examName: live.examName || undefined,
               chapterTitles: course.sections.map((section) => section.title),
             }}

@@ -47,6 +47,8 @@ export type CourseListItem = Pick<
   teacherAvatarUrl: string | null;
   teacherTagline: string | null;
   teacherYearsOfExperience: number | null;
+  /** Every language of the course; language keeps the readable summary. Absent from older builders. */
+  languages?: string[];
 };
 
 export type OutputType = {

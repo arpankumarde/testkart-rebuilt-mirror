@@ -280,6 +280,7 @@ export async function handle(request: Request) {
       updatedAt: test.updatedAt,
       isEnrolled: isEnrolled,
       language: test.language,
+      languages: test.languages,
       teacherSlug: test.teacherSlug || slugify(test.teacherName),
       teacherIsVerified: !!test.teacherIsVerified,
             whatYouLearn: (typeof test.whatYouLearn === 'string' ? (() => { try { return JSON.parse(test.whatYouLearn); } catch { return null; } })() : test.whatYouLearn) as string[] | null,

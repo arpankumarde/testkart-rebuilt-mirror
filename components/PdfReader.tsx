@@ -274,7 +274,7 @@ export const PdfReader: React.FC<PdfReaderProps> = ({
   }, []);
 
   // Deterrents only: they stop the browser's save and print shortcuts and blank the clipboard after a
-  // PrintScreen, but cannot stop a determined screenshot. The server-side watermark covers that.
+  // PrintScreen, but cannot stop a determined screenshot.
   useEffect(() => {
     if (!restricted) return;
     const handleKeyDown = (event: KeyboardEvent) => {

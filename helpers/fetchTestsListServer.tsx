@@ -3,6 +3,7 @@ import { sql } from "kysely";
 import type { InputType, OutputType } from "../endpoints/tests/list_GET.schema";
 import { slugify } from "./slugify";
 import { contentInExam } from "./contentExams";
+import { matchesAnyLanguage } from "./languageFilter";
 
 /**
  * Direct-DB counterpart to endpoints/tests/list_GET.ts, for use ONLY from
@@ -51,6 +52,7 @@ export async function fetchTestsListServer(filters: InputType = {}): Promise<Out
       "mockTests.reviewsCount",
       "mockTests.examName",
       "mockTests.language",
+      "mockTests.languages",
       "mockTests.views",
       "users.displayName as teacherName",
       "users.isVerified as teacherIsVerified",
@@ -125,8 +127,7 @@ export async function fetchTestsListServer(filters: InputType = {}): Promise<Out
   }
 
   if (language) {
-    const languages = language.split(",").map((l) => l.trim());
-    query = query.where((eb) => eb.or(languages.map((lang) => eb("mockTests.language", "=", lang))));
+    query = query.where(matchesAnyLanguage("mockTests", language.split(",")));
   }
 
   if (priceType === "free") {

@@ -92,7 +92,7 @@ export const StudentProductCard: React.FC<StudentProductCardProps> = ({ purchase
           </div>
 
           {/* Multi-file notes route to a detail page with one row per file;
-              single-file notes open the watermarked reader directly. Download
+              single-file notes open the reader directly. Download
               shows only when the teacher opted this note in (allow_download). */}
           <div className={styles.footer}>
             {hasMultipleFiles ? (

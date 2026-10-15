@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { usePublicCourseDetailsQuery, useRelatedCoursesQuery } from '../helpers/useStudentCoursesQuery';
 import { SEOHead } from '../components/SEOHead';
 import { Placeholder } from '../helpers/placeholderImages';
+import { itemLanguages } from '../helpers/itemLanguages';
 import { Button } from '../components/Button';
 import { Skeleton } from '../components/Skeleton';
 import { CourseHero } from '../components/CourseHero';
@@ -148,6 +149,7 @@ export default function CourseDetailsPage() {
     const avgRating = reviews.length > 0
       ? reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviews.length
       : null;
+    const courseLanguages = itemLanguages(course);
 
     const courseSchema: any = {
       "@type": "Course",
@@ -170,7 +172,9 @@ export default function CourseDetailsPage() {
       "hasCourseInstance": {
         "@type": "CourseInstance",
         "courseMode": "online",
-        ...(course.language && { "inLanguage": course.language }),
+        ...(courseLanguages.length > 0 && {
+          "inLanguage": courseLanguages.length === 1 ? courseLanguages[0] : courseLanguages,
+        }),
       },
     };
 

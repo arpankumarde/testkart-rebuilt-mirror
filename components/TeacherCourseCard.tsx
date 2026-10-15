@@ -15,6 +15,7 @@ import {
 import { VideoPreview } from './VideoPreview';
 import { ShareAssetDialog } from './ShareAssetDialog';
 import { TEACHER_CONSOLE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
+import { formatLanguages } from '../helpers/itemLanguages';
 import { TeacherCourseListItem } from '../endpoints/teacher/courses/list_GET.schema';
 import { useTeacherCourseMutations } from '../helpers/useTeacherCoursesQuery';
 import { useBundleUnpublishGuard } from '../helpers/useBundleUnpublishGuard';
@@ -126,10 +127,10 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
             <Eye size={14} />
             <span>{course.views ?? 0} views</span>
           </div>
-          {course.language && (
+          {formatLanguages(course) && (
             <div className={styles.stat}>
               <Globe size={14} />
-              <span>{course.language}</span>
+              <span>{formatLanguages(course)}</span>
             </div>
           )}
         </div>

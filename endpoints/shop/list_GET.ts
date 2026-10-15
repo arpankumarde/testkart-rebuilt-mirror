@@ -4,6 +4,7 @@ import { schema, OutputType } from "./list_GET.schema";
 import superjson from "superjson";
 import { slugify } from "../../helpers/slugify";
 import { contentInExam } from "../../helpers/contentExams";
+import { matchesAnyLanguage } from "../../helpers/languageFilter";
 import { pinnedTeacherFirst, sortPinsTeachers } from "../../helpers/pinnedTeachers";
 
 export async function handle(request: Request): Promise<Response> {
@@ -108,7 +109,7 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     if (input.language) {
-      query = query.where("digitalProducts.language", "=", input.language);
+      query = query.where(matchesAnyLanguage("digitalProducts", [input.language]));
     }
 
     if (input.search) {

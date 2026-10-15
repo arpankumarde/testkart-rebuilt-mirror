@@ -124,7 +124,7 @@ export default function StudentShopProductDetailPage() {
           </div>
         </div>
 
-        {/* Files open in the watermarked reader. A Download action per file
+        {/* Files open in the reader. A Download action per file
             appears only when the teacher opted this note in (allow_download). */}
         <div className={styles.fileList}>
           {isFilesFetching ? (

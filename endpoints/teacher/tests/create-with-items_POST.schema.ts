@@ -2,6 +2,7 @@ import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
 import { MockTests } from "../../../helpers/schema";
+import { MAX_ITEM_LANGUAGES, MAX_LANGUAGE_LENGTH } from "../../../helpers/itemLanguages";
 
 export const schema = z
   .object({
@@ -15,6 +16,11 @@ export const schema = z
       .optional()
       .describe("Official exam names, up to 5, first is the primary"),
     language: z.string().optional(),
+    // Takes precedence over language; the legacy column then stores the list's summary.
+    languages: z
+      .array(z.string().trim().min(1).max(MAX_LANGUAGE_LENGTH))
+      .max(MAX_ITEM_LANGUAGES, `Pick up to ${MAX_ITEM_LANGUAGES} languages.`)
+      .optional(),
     price: z.number().min(0).optional(),
     isFree: z.boolean().optional(),
     discountPrice: z.number().min(0).optional().nullable(),

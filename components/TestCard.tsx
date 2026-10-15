@@ -9,7 +9,11 @@ import { useAuth } from "../helpers/useAuth";
 import { VerifiedBadge } from "./VerifiedBadge";
 import { Placeholder } from "../helpers/placeholderImages";
 import { VideoPreview } from "./VideoPreview";
+import { itemLanguages } from "../helpers/itemLanguages";
 import styles from "./TestCard.module.css";
+
+/* Two language badges fit beside the exam; the rest collapse into a +N badge. */
+const MAX_LANGUAGE_BADGES = 2;
 
 interface TestCardProps {
   test: TestListItem;
@@ -87,17 +91,23 @@ export const TestCard: React.FC<TestCardProps> = ({ test, className }) => {
 
   const hasStudentsEnrolled = test.studentsEnrolled > 0;
 
+  const languages = itemLanguages(test);
+  const hiddenLanguages = languages.slice(MAX_LANGUAGE_BADGES);
+
   return (
             <Link to={detailsUrl} className={`${styles.cardLink} ${className || ""}`}>
       <div className={styles.card}>
         {/* Top Badges */}
-        {(test.examName || test.language) && (
+        {(test.examName || languages.length > 0) && (
           <div className={styles.badgeContainer}>
             {test.examName && (
               <Badge variant="default">{test.examName}</Badge>
             )}
-            {test.language && (
-              <Badge variant="secondary">{test.language}</Badge>
+            {languages.slice(0, MAX_LANGUAGE_BADGES).map((language) => (
+              <Badge key={language} variant="secondary">{language}</Badge>
+            ))}
+            {hiddenLanguages.length > 0 && (
+              <Badge variant="secondary" title={hiddenLanguages.join(", ")}>+{hiddenLanguages.length}</Badge>
             )}
           </div>
         )}

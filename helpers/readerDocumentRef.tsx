@@ -39,7 +39,7 @@ export const parseReaderDocumentRef = (params: URLSearchParams) => {
   });
 };
 
-// The image URL of one watermarked page. It needs the viewer's session, so it is useless to anyone else.
+// The image URL of one page. It needs the viewer's session, so it is useless to anyone else.
 export const readerPageUrl = (ref: ReaderDocumentRef, page: number): string => {
   const query = readerDocumentQuery(ref);
   query.set("page", String(page));

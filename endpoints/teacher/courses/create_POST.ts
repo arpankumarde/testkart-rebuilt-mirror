@@ -11,6 +11,7 @@ import { schema, OutputType } from "./create_POST.schema";
 import superjson from "superjson";
 import { sanitizeHtml } from "../../../helpers/sanitizeHtml";
 import { courseDiscountError } from "../../../helpers/coursePricing";
+import { languagesSummary, normalizeLanguages } from "../../../helpers/itemLanguages";
 
 async function generateUniqueSlug(baseTitle: string): Promise<string> {
   const baseSlug = slugify(baseTitle);
@@ -83,7 +84,9 @@ export async function handle(request: Request): Promise<Response> {
         thumbnailImageFileId: input.thumbnailImageFileId ?? null,
         introVideoUrl: input.introVideoUrl ?? null,
         introVideoFileId: input.introVideoFileId ?? null,
-        language: input.language ?? null,
+        ...(input.languages?.length
+          ? { languages: normalizeLanguages(input.languages), language: languagesSummary(input.languages) }
+          : { language: input.language ?? null }),
         ...primaryExamFields(exams),
         status: "draft", // Always created as a draft
       })

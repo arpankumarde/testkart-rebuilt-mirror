@@ -101,6 +101,21 @@ describe("buildMockTestUpdateSet", () => {
     expect(set.examId).toBeNull();
     expect("isFree" in set).toBe(false);
   });
+
+  it("stores a language list with its summary in the legacy column", () => {
+    const set = buildMockTestUpdateSet(
+      { title: "T", description: "D", price: 0, language: "Tamil", languages: [" English", "Hindi", "english", ""] },
+      { now }
+    );
+    expect(set.languages).toEqual(["English", "Hindi"]);
+    expect(set.language).toBe("English, Hindi");
+  });
+
+  it("leaves the list to the database when only the legacy language arrives", () => {
+    const set = buildMockTestUpdateSet({ title: "T", description: "D", price: 0, language: "Hindi" }, { now });
+    expect(set.language).toBe("Hindi");
+    expect("languages" in set).toBe(false);
+  });
 });
 
 describe("basic info list helpers", () => {

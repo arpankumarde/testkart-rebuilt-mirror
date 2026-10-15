@@ -1,12 +1,16 @@
 import React from "react";
 import { Clock, ExternalLink, FileText, ListChecks } from "lucide-react";
 import { Placeholder } from "../helpers/placeholderImages";
+import { normalizeLanguages } from "../helpers/itemLanguages";
 import styles from "./TestSeriesCardPreview.module.css";
+
+/* Store cards fit two language chips beside the exam; the rest collapse into a +N chip. */
+const MAX_LANGUAGE_CHIPS = 2;
 
 interface TestSeriesCardPreviewProps {
   title: string;
   examName: string;
-  language: string;
+  languages: string[];
   thumbnailUrl: string;
   creatorName: string | null;
   isFree: boolean;
@@ -37,7 +41,7 @@ const formatCount = (value: number, word: string) =>
 export const TestSeriesCardPreview: React.FC<TestSeriesCardPreviewProps> = ({
   title,
   examName,
-  language,
+  languages,
   thumbnailUrl,
   creatorName,
   isFree,
@@ -53,7 +57,9 @@ export const TestSeriesCardPreview: React.FC<TestSeriesCardPreviewProps> = ({
   const headingId = React.useId();
   const shownTitle = title.trim();
   const exam = examName.trim();
-  const lang = language.trim();
+  const langs = normalizeLanguages(languages);
+  const shownLangs = langs.slice(0, MAX_LANGUAGE_CHIPS);
+  const hiddenLangs = langs.slice(MAX_LANGUAGE_CHIPS);
   const listPrice = Number.isFinite(price) ? price : 0;
   const free = isFree || listPrice === 0;
   const salePrice =
@@ -75,10 +81,17 @@ export const TestSeriesCardPreview: React.FC<TestSeriesCardPreviewProps> = ({
       </div>
 
       <div className={styles.card}>
-        {exam || lang ? (
+        {exam || langs.length > 0 ? (
           <div className={styles.chips}>
             {exam ? <span className={styles.examChip}>{exam}</span> : null}
-            {lang ? <span className={styles.languageChip}>{lang}</span> : null}
+            {shownLangs.map((lang) => (
+              <span key={lang} className={styles.languageChip}>{lang}</span>
+            ))}
+            {hiddenLangs.length > 0 ? (
+              <span className={styles.languageChip} title={hiddenLangs.join(", ")}>
+                +{hiddenLangs.length}
+              </span>
+            ) : null}
           </div>
         ) : null}
 

@@ -8,8 +8,9 @@ import { Button } from "../components/Button";
 import { Input } from "../components/Input";
 import { Textarea } from "../components/Textarea";
 import { Checkbox } from "../components/Checkbox";
-import { AutoComplete, type Option } from "../components/AutoComplete";
 import { ExamMultiPicker } from "../components/ExamMultiPicker";
+import { LanguageMultiPicker } from "../components/LanguageMultiPicker";
+import { itemLanguages } from "../helpers/itemLanguages";
 import { useExamNameSuggestions } from "../helpers/useExamNameSuggestions";
 import { addSuggestedExam } from "../helpers/itemExams";
 import { ThumbnailUploader } from "../components/ThumbnailUploader";
@@ -40,7 +41,7 @@ export default function CreateTestPage() {
   const [showAIPrompt, setShowAIPrompt] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [aiData, setAiData] = useState<any>(null);
-  const [languageInput, setLanguageInput] = useState("");
+  const [languages, setLanguages] = useState<string[]>([]);
   const [isStorefrontOpen, setIsStorefrontOpen] = useState(false);
   const [examNames, setExamNames] = useState<string[]>([]);
   const { officialExams } = useExamNameSuggestions();
@@ -82,7 +83,7 @@ export default function CreateTestPage() {
         longDescription: aiData.description || prev.longDescription,
       }));
       if (aiData.language) {
-        setLanguageInput(aiData.language);
+        setLanguages(itemLanguages({ language: aiData.language }));
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -92,20 +93,9 @@ export default function CreateTestPage() {
     form.setValues((p) => ({ ...p, thumbnailUrl: url, thumbnailFileId: fileId || null }));
   }, [form.setValues]);
 
-  const languageOptions: Option[] = [
-    "Assamese", "Bengali", "Bodo", "Dogri", "English", "Gujarati", "Hindi",
-    "Kannada", "Kashmiri", "Konkani", "Maithili", "Malayalam", "Manipuri",
-    "Marathi", "Multilingual", "Nepali", "Odia", "Punjabi", "Sanskrit",
-    "Santali", "Sindhi", "Tamil", "Telugu", "Urdu"
-  ].map((lang) => ({
-    value: lang,
-    label: lang,
-    displayText: lang
-  }));
-
   const getAIContext = () => ({
     examName: form.values.examName || undefined,
-    language: form.values.language || languageInput || undefined,
+    language: languages.join(", ") || form.values.language || undefined,
     price: form.values.price,
     title: form.values.title,
     description: form.values.description,
@@ -117,7 +107,7 @@ export default function CreateTestPage() {
 
     const finalValues = {
       ...values,
-      language: languageInput || values.language,
+      languages,
       examName: examNames[0] ?? null,
       examNames,
       whatYouLearn: filteredWhatYouLearn.length > 0 ? filteredWhatYouLearn : null,
@@ -228,26 +218,16 @@ export default function CreateTestPage() {
                   <FormMessage />
                 </FormItem>
 
-                <FormItem name="language">
-                  <FormLabel>Language</FormLabel>
+                <FormItem name="languages">
+                  <FormLabel>Languages</FormLabel>
                   <FormControl>
-                    <AutoComplete
-                      options={languageOptions}
-                      emptyMessage="No languages found"
-                      placeholder="e.g., English, Hindi, Tamil"
-                      inputValue={languageInput}
-                      onInputValueChange={(value) => {
-                        setLanguageInput(value);
-                        form.setValues((p) => ({ ...p, language: value || "" }));
-                      }}
-                      onValueChange={(option) => {
-                        setLanguageInput(option.value);
-                        form.setValues((p) => ({ ...p, language: option.value || "" }));
-                      }}
-                      allowFreeForm={true}
+                    <LanguageMultiPicker
+                      value={languages}
+                      onChange={setLanguages}
+                      placeholder="e.g., English, Hindi"
                     />
                   </FormControl>
-                  <FormDescription>Pick one from the list or type your own.</FormDescription>
+                  <FormDescription>Pick every language the tests are in, or type your own.</FormDescription>
                   <FormMessage />
                 </FormItem>
               </div>

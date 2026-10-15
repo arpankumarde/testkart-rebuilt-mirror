@@ -75,6 +75,12 @@ export type Numeric = ColumnType<string, number | string, number | string>;
 
 export type OrderStatus = "cancelled" | "completed" | "failed" | "pending" | "refunded";
 
+export type OrganizationClaimMethod = "email" | "phone";
+
+export type OrganizationClaimRequestStatus = "expired" | "pending" | "rejected" | "verified";
+
+export type OrganizationClaimStatus = "claimed" | "pending_verification" | "unclaimed";
+
 export type OrganizationMembershipStatus = "approved" | "pending" | "rejected";
 
 export type OrganizationType = "coaching" | "college" | "other" | "school" | "university";
@@ -417,6 +423,7 @@ export interface Courses {
   introVideoFileId: string | null;
   introVideoUrl: string | null;
   language: string | null;
+  languages: Generated<string[]>;
   level: Generated<CourseLevel>;
   price: Generated<Numeric>;
   publishedAt: Timestamp | null;
@@ -512,6 +519,7 @@ export interface DigitalProducts {
   id: Generated<number>;
   isPublished: Generated<boolean | null>;
   language: string | null;
+  languages: Generated<string[]>;
   pageCount: number | null;
   pdfFileId: string | null;
   pdfUrl: string;
@@ -928,6 +936,7 @@ export interface MockTests {
   isFree: Generated<boolean>;
   isPublished: Generated<boolean>;
   language: string | null;
+  languages: Generated<string[]>;
   longDescription: string | null;
   price: Generated<Numeric>;
   rating: Numeric | null;
@@ -1029,6 +1038,21 @@ export interface Orders {
   userId: number;
 }
 
+export interface OrganizationClaimRequests {
+  attempts: Generated<number>;
+  contactValue: string;
+  createdAt: Generated<Timestamp>;
+  expiresAt: Timestamp;
+  id: Generated<number>;
+  ipAddress: string | null;
+  method: OrganizationClaimMethod;
+  organizationId: number;
+  otpCode: string;
+  status: Generated<OrganizationClaimRequestStatus>;
+  teacherId: number;
+  verifiedAt: Timestamp | null;
+}
+
 export interface OrganizationFollows {
   createdAt: Generated<Timestamp>;
   id: Generated<number>;
@@ -1058,13 +1082,16 @@ export interface OrganizationReviews {
 }
 
 export interface Organizations {
+  claimStatus: Generated<OrganizationClaimStatus>;
+  contactEmails: Json | null;
   coverImageFileId: string | null;
   coverImageUrl: string | null;
   createdAt: Generated<Timestamp>;
-  createdByTeacherId: number;
+  createdByTeacherId: number | null;
   description: string | null;
   foundedYear: number | null;
   id: Generated<number>;
+  importedAt: Timestamp | null;
   instituteSize: string | null;
   isActive: Generated<boolean>;
   location: string | null;
@@ -1075,6 +1102,9 @@ export interface Organizations {
   phoneNumber: string | null;
   slug: string;
   socialLinks: Json | null;
+  source: string | null;
+  sourcePlaceId: string | null;
+  sourceSearchTerm: string | null;
   specialties: Json | null;
   updatedAt: Generated<Timestamp>;
   websiteUrl: string | null;
@@ -1849,6 +1879,7 @@ export interface DB {
   oauthStates: OauthStates;
   orderItems: OrderItems;
   orders: Orders;
+  organizationClaimRequests: OrganizationClaimRequests;
   organizationFollows: OrganizationFollows;
   organizationGalleryItems: OrganizationGalleryItems;
   organizationReviews: OrganizationReviews;
@@ -1953,6 +1984,9 @@ export const MuxPushStatusArrayValues: [MuxPushStatus, ...MuxPushStatus[]] = ["f
 export const TeacherCampaignClaimStatusArrayValues: [TeacherCampaignClaimStatus, ...TeacherCampaignClaimStatus[]] = ["claimed","credited","declined","reversed","withdrawn"];
 export const OrganizationTypeArrayValues: [OrganizationType, ...OrganizationType[]] = ["coaching","college","other","school","university"];
 export const OrganizationMembershipStatusArrayValues: [OrganizationMembershipStatus, ...OrganizationMembershipStatus[]] = ["approved","pending","rejected"];
+export const OrganizationClaimStatusArrayValues: [OrganizationClaimStatus, ...OrganizationClaimStatus[]] = ["claimed","pending_verification","unclaimed"];
+export const OrganizationClaimRequestStatusArrayValues: [OrganizationClaimRequestStatus, ...OrganizationClaimRequestStatus[]] = ["expired","pending","rejected","verified"];
+export const OrganizationClaimMethodArrayValues: [OrganizationClaimMethod, ...OrganizationClaimMethod[]] = ["email","phone"];
 // Table/column names whose snake_case spelling kysely's default CamelCasePlugin
 // cannot recover from the camelCase name used in code (an underscore directly
 // before a digit, e.g. reminder_48h_sent ⇄ reminder48hSent). The db helper's

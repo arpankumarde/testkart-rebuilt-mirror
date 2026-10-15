@@ -2,6 +2,7 @@ import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
 import { MockTests } from "../../../helpers/schema";
+import { MAX_ITEM_LANGUAGES, MAX_LANGUAGE_LENGTH } from "../../../helpers/itemLanguages";
 
 export const schema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters long."),
@@ -17,7 +18,12 @@ export const schema = z.object({
   thumbnailFileId: z.string().optional().nullable(),
   introVideoUrl: z.string().url("Must be a valid URL.").optional().nullable(),
   introVideoFileId: z.string().optional().nullable(),
-  language: z.string().min(1, "Language is required."),
+  language: z.string().min(1, "Language is required.").optional(),
+  // Takes precedence over language; the legacy column then stores the list's summary.
+  languages: z
+    .array(z.string().trim().min(1).max(MAX_LANGUAGE_LENGTH))
+    .max(MAX_ITEM_LANGUAGES, `Pick up to ${MAX_ITEM_LANGUAGES} languages.`)
+    .optional(),
   whatYouLearn: z.array(z.string().min(1)).optional().nullable(),
   requirements: z.array(z.string().min(1)).optional().nullable(),
   longDescription: z.string().optional().nullable(),
@@ -27,6 +33,9 @@ export const schema = z.object({
     .max(5)
     .optional()
     .describe("Official exam names, up to 5, first is the primary"),
+}).refine((data) => (data.languages?.length ?? 0) > 0 || !!data.language?.trim(), {
+  message: "Language is required.",
+  path: ["languages"],
 }).refine(
   (data) => {
     if (data.isFree) {

@@ -5,6 +5,7 @@ import { schema, OutputType } from "./update_POST.schema";
 import superjson from "superjson";
 import { sanitizeOptionalHtml } from "../../../helpers/sanitizeHtml";
 import { DigitalProductFileItem } from "../../../helpers/digitalProductFileTypes";
+import { languagesSummary, normalizeLanguages } from "../../../helpers/itemLanguages";
 import {
   isRealFileUrl,
   listProductFiles,
@@ -103,6 +104,10 @@ export async function handle(request: Request): Promise<Response> {
     if (input.thumbnailUrl !== undefined) updateSet.thumbnailUrl = input.thumbnailUrl;
     if (input.thumbnailFileId !== undefined) updateSet.thumbnailFileId = input.thumbnailFileId;
     if (input.allowDownload !== undefined) updateSet.allowDownload = input.allowDownload;
+    if (input.languages !== undefined) {
+      updateSet.languages = normalizeLanguages(input.languages);
+      updateSet.language = languagesSummary(input.languages);
+    }
 
     // Resolved before the transaction: the exam lookup uses the shared connection.
     const exams =

@@ -9,6 +9,7 @@ import { VideoPreview } from './VideoPreview';
 import { VerifiedBadge } from "./VerifiedBadge";
 import { Placeholder } from '../helpers/placeholderImages';
 import { courseDiscountPrice } from '../helpers/coursePricing';
+import { formatLanguages } from '../helpers/itemLanguages';
 import styles from './CourseCard.module.css';
 
 interface CourseCardProps {
@@ -127,10 +128,10 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, className }) => 
               <div className={styles.infoIcon}><Users size={16} /></div>
               <span>{course.enrollmentCount.toLocaleString()} Students</span>
             </div>}
-            {course.language && (
+            {formatLanguages(course) && (
               <div className={styles.infoItem}>
                 <div className={styles.infoIcon}><Globe size={16} /></div>
-                <span>{course.language}</span>
+                <span>{formatLanguages(course)}</span>
               </div>
             )}
           </div>

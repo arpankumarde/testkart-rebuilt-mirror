@@ -5,6 +5,7 @@ import { Badge } from './Badge';
 import { VerifiedBadge } from './VerifiedBadge';
 import type { PackageDetails } from '../endpoints/tests/details_GET.schema';
 import { VideoPreview } from "./VideoPreview";
+import { formatLanguages } from '../helpers/itemLanguages';
 import styles from './TestPackageHero.module.css';
 
 const StarRating: React.FC<{ rating: number; reviewsCount: number }> = ({ rating, reviewsCount }) => {
@@ -134,7 +135,7 @@ export const TestPackageHero: React.FC<TestPackageHeroProps> = ({ className, tes
               )}
               <div className={styles.infoItem}>
                 <Globe size={14} />
-                <span>{testPackage.language || 'English'}</span>
+                <span>{formatLanguages(testPackage) || 'English'}</span>
               </div>
             </div>
             

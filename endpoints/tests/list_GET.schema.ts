@@ -55,6 +55,8 @@ export type TestListItem = Omit<
   teacherTagline: string | null;
   teacherYearsOfExperience: number | null;
   teacherSlug: string | null;
+  /** Every language of the series; language keeps the readable summary. Absent from older builders. */
+  languages?: string[];
 };
 
 export type OutputType = {

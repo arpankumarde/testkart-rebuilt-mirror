@@ -11,9 +11,8 @@ interface StudentShopPdfViewerProps {
 }
 
 /**
- * Opens a purchased study-notes file in the shared reader. Pages arrive as images rendered and watermarked
- * on the server for this student, so the browser never holds the file or a link to it. Like any web
- * content it cannot stop screenshots; the watermark ties them back to the buyer.
+ * Opens a purchased study-notes file in the shared reader. Pages arrive as images rendered on the server,
+ * so the browser never holds the file or a link to it. Like any web content it cannot stop screenshots.
  */
 export const StudentShopPdfViewer: React.FC<StudentShopPdfViewerProps> = ({
   isOpen,

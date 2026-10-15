@@ -42,12 +42,16 @@ import { VerifiedBadge } from "./VerifiedBadge";
 import { Badge } from "./Badge";
 import { Button } from "./Button";
 import { Textarea } from "./Textarea";
+import { Input } from "./Input";
 import { Skeleton } from "./Skeleton";
 import {
   useFollowOrganizationMutation,
   useLikeOrganizationPostMutation,
   useOrganizationReviewsQuery,
   useSubmitOrganizationReviewMutation,
+  useOrganizationClaimOptionsQuery,
+  useStartOrganizationClaimMutation,
+  useVerifyOrganizationClaimMutation,
 } from "../helpers/useOrganizationProfile";
 import type {
   OutputType,
@@ -156,6 +160,157 @@ const FollowOrgButton: React.FC<{ organizationId: number; orgSlug: string; isFol
       {isFollowing ? <Check size={16} aria-hidden="true" /> : <UserPlus size={16} aria-hidden="true" />}
       {isFollowing ? "Following" : "Follow"}
     </button>
+  );
+};
+
+/**
+ * Self-serve claim flow for an auto-imported ("unclaimed") organisation. A
+ * teacher picks one of the listing's OWN scraped contact methods (never a
+ * value they type themselves), we send a one-time code to it, and entering
+ * it correctly proves they actually control that phone/inbox - no human
+ * review needed on our end.
+ */
+const ClaimOrganizationButton: React.FC<{
+  organizationId: number;
+  orgSlug: string;
+  claimStatus: "unclaimed" | "pending_verification" | "claimed";
+}> = ({ organizationId, orgSlug, claimStatus }) => {
+  const { authState } = useAuth();
+  const [open, setOpen] = useState(false);
+  const [step, setStep] = useState<"choose" | "code" | "done">("choose");
+  const [selected, setSelected] = useState<{ method: "phone" | "email"; value: string; masked: string } | null>(null);
+  const [code, setCode] = useState("");
+  const [maskedDestination, setMaskedDestination] = useState("");
+
+  const optionsQuery = useOrganizationClaimOptionsQuery(organizationId, open);
+  const startMutation = useStartOrganizationClaimMutation();
+  const verifyMutation = useVerifyOrganizationClaimMutation(orgSlug);
+
+  const isTeacher = authState.type === "authenticated" && authState.user.role === "teacher";
+  if (!isTeacher || claimStatus === "claimed") return null;
+
+  const resetAndClose = () => {
+    setOpen(false);
+    setStep("choose");
+    setSelected(null);
+    setCode("");
+    startMutation.reset();
+    verifyMutation.reset();
+  };
+
+  const handleSendCode = () => {
+    if (!selected) return;
+    startMutation.mutate(
+      { organizationId, method: selected.method, contactValue: selected.value },
+      {
+        onSuccess: (data) => {
+          setMaskedDestination(data.maskedDestination);
+          setStep("code");
+        },
+      }
+    );
+  };
+
+  const handleVerify = () => {
+    if (!code.trim()) return;
+    verifyMutation.mutate(
+      { organizationId, code: code.trim() },
+      { onSuccess: () => setStep("done") }
+    );
+  };
+
+  return (
+    <>
+      <Button type="button" variant="outline" className={styles.claimButton} onClick={() => setOpen(true)}>
+        Claim this profile
+      </Button>
+      <Dialog open={open} onOpenChange={(next) => (next ? setOpen(true) : resetAndClose())}>
+        <DialogContent className={styles.modalContent}>
+          <DialogTitle>Claim this organisation</DialogTitle>
+
+          {step === "choose" && (
+            <div className={styles.claimStepBody}>
+              <p className={styles.claimHelpText}>
+                This profile was created automatically from public listing data and has no owner yet. To
+                manage it, verify that you control one of its own listed contact details below.
+              </p>
+              {optionsQuery.isLoading && <p className={styles.claimHelpText}>Loading contact options…</p>}
+              {optionsQuery.data && optionsQuery.data.options.length === 0 && (
+                <p className={styles.formError} role="alert">
+                  This listing has no phone or email on file, so it can't be verified automatically. Please
+                  contact support to claim it manually.
+                </p>
+              )}
+              {optionsQuery.data && optionsQuery.data.options.length > 0 && (
+                <div className={styles.claimOptionList}>
+                  {optionsQuery.data.options.map((opt) => (
+                    <button
+                      key={`${opt.method}-${opt.value}`}
+                      type="button"
+                      className={`${styles.claimOptionButton} ${selected?.value === opt.value ? styles.claimOptionButtonSelected : ""}`}
+                      onClick={() => setSelected(opt)}
+                    >
+                      {opt.method === "phone" ? <Phone size={16} aria-hidden="true" /> : <MessageSquareText size={16} aria-hidden="true" />}
+                      Send code to {opt.masked}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {startMutation.isError && (
+                <p className={styles.formError} role="alert">
+                  {startMutation.error instanceof Error ? startMutation.error.message : "Could not send the code."}
+                </p>
+              )}
+              <Button
+                type="button"
+                onClick={handleSendCode}
+                disabled={!selected || startMutation.isPending}
+              >
+                {startMutation.isPending ? "Sending…" : "Send verification code"}
+              </Button>
+            </div>
+          )}
+
+          {step === "code" && (
+            <div className={styles.claimStepBody}>
+              <p className={styles.claimHelpText}>
+                We sent a verification code to <strong>{maskedDestination}</strong>. It expires in 10 minutes.
+              </p>
+              <Input
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                placeholder="Enter code"
+                inputMode="numeric"
+                maxLength={6}
+                autoFocus
+              />
+              {verifyMutation.isError && (
+                <p className={styles.formError} role="alert">
+                  {verifyMutation.error instanceof Error ? verifyMutation.error.message : "Could not verify the code."}
+                </p>
+              )}
+              <Button type="button" onClick={handleVerify} disabled={!code.trim() || verifyMutation.isPending}>
+                {verifyMutation.isPending ? "Verifying…" : "Verify and claim"}
+              </Button>
+              <Button type="button" variant="ghost" onClick={() => setStep("choose")}>
+                Use a different contact
+              </Button>
+            </div>
+          )}
+
+          {step === "done" && (
+            <div className={styles.claimStepBody}>
+              <p className={styles.claimHelpText}>
+                You now own this organisation's profile. You can edit its details from your teacher dashboard.
+              </p>
+              <Button type="button" onClick={resetAndClose}>
+                Done
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
@@ -1242,6 +1397,7 @@ export const OrganizationProfileView: React.FC<OrganizationProfileViewProps> = (
             <div className={styles.heroTitleRow}>
               <h1 className={styles.orgName}>{organization.name}</h1>
               <Badge variant="lavender">{ORG_TYPE_LABELS[organization.orgType] ?? "Organisation"}</Badge>
+              {organization.claimStatus !== "claimed" && <Badge variant="warning">Unclaimed</Badge>}
             </div>
 
             <div className={styles.heroMeta}>
@@ -1262,6 +1418,11 @@ export const OrganizationProfileView: React.FC<OrganizationProfileViewProps> = (
           </div>
 
           <FollowOrgButton organizationId={organization.id} orgSlug={orgSlug} isFollowing={isFollowing} />
+          <ClaimOrganizationButton
+            organizationId={organization.id}
+            orgSlug={orgSlug}
+            claimStatus={organization.claimStatus}
+          />
         </div>
       </header>
 
