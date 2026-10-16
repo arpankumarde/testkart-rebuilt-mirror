@@ -51,8 +51,9 @@ async function resolveEntity(
         WHERE ${byKey("mock_tests.id", "mock_tests.slug")} AND is_published = true AND deleted_at IS NULL LIMIT 1`;
       break;
     case "live_test":
-      query = sql<Row>`SELECT id, teacher_id FROM live_tests
-        WHERE ${byKey("live_tests.id", null)} AND is_active = true LIMIT 1`;
+      query = sql<Row>`SELECT live_tests.id, live_tests.teacher_id FROM live_tests
+        INNER JOIN mock_tests ON mock_tests.id = live_tests.mock_test_id
+        WHERE ${byKey("live_tests.id", "mock_tests.slug")} AND live_tests.is_active = true LIMIT 1`;
       break;
     case "course":
       query = sql<Row>`SELECT id, teacher_id FROM courses

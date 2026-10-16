@@ -3,6 +3,7 @@ import { liveTestCreationFormSchema, isEmptyRichText, type LiveTestFormValues } 
 import { resolveLiveTestPrizeTiers, sortPrizeTiers } from './liveTestPrizeTiers';
 import { LIVE_TEST_FIELD_LABELS, isLiveTestFieldLocked } from './liveTestLocks';
 import { getItemExamNames, normalizeExamNames } from './itemExams';
+import { itemLanguages, normalizeLanguages } from './itemLanguages';
 
 export type LiveTestStep = 'info' | 'schedule' | 'prizes' | 'review';
 export type LiveTestEditableStep = Exclude<LiveTestStep, 'review'>;
@@ -17,7 +18,7 @@ const FIELD_LAYOUT: { field: LiveTestFormField; step: LiveTestEditableStep; stor
   { field: 'description', step: 'info' },
   { field: 'examName', step: 'info' },
   { field: 'examNames', step: 'info' },
-  { field: 'language', step: 'info' },
+  { field: 'languages', step: 'info' },
   { field: 'durationMinutes', step: 'info' },
   { field: 'calculatorEnabled', step: 'info' },
   { field: 'subjectWiseTiming', step: 'info' },
@@ -50,7 +51,7 @@ const UPDATE_GROUPS: LiveTestFormField[][] = [
   ['title'],
   ['description'],
   ['examName', 'examNames'],
-  ['language'],
+  ['languages'],
   ['durationMinutes', 'subjectWiseTiming', 'questionWiseTiming'],
   ['calculatorEnabled'],
   ['price', 'discountPrice', 'isFree'],
@@ -99,7 +100,7 @@ export const buildLiveTestEditValues = (liveTest: LiveTestDetails): LiveTestForm
   description: liveTest.description,
   examName: examNames[0] ?? null,
   examNames,
-  language: liveTest.mockTest?.language ?? undefined,
+  languages: liveTest.mockTest ? itemLanguages(liveTest.mockTest) : [],
   durationMinutes: liveTest.mockTestItem?.durationMinutes ?? 60,
   calculatorEnabled: liveTest.mockTestItem?.calculatorEnabled ?? false,
   subjectWiseTiming: liveTest.mockTestItem?.subjectWiseTiming ?? false,
@@ -140,7 +141,7 @@ export const normalizeLiveTestFormValues = (values: LiveTestFormValues): LiveTes
     description: isEmptyRichText(values.description) ? null : values.description,
     examName: examNames[0] ?? null,
     examNames,
-    language: values.language || undefined,
+    languages: normalizeLanguages(values.languages),
     durationMinutes: timedPerSection ? 0 : values.durationMinutes,
     discountPrice: values.discountPrice ?? null,
     whatYouLearn: cleanList(values.whatYouLearn),

@@ -11,31 +11,36 @@ import { liveTestDiscountPrice } from "../../helpers/liveTestPricing";
 
 
 
-const inputSchema = z.object({
-  id: z.coerce.number().int().positive(),
-});
+// Looked up by id (the shipped mobile app) or by slug (the /live-test/:slug page).
+const inputSchema = z.union([
+  z.object({ id: z.coerce.number().int().positive() }),
+  z.object({ slug: z.string().trim().min(1) }),
+]);
 
 export async function handle(request: Request) {
   try {
     const url = new URL(request.url);
     const id = url.searchParams.get("id");
+    const slug = url.searchParams.get("slug");
 
-    const validationResult = inputSchema.safeParse({ id });
+    const validationResult = inputSchema.safeParse(id !== null ? { id } : { slug });
     if (!validationResult.success) {
       return new Response(
-        superjson.stringify({ error: "A valid live test ID is required." }),
+        superjson.stringify({ error: "A valid live test ID or slug is required." }),
         { status: 400 }
       );
     }
 
-    const liveTestId = validationResult.data.id;
+    const lookup = validationResult.data;
 
     const liveTest = await db
       .selectFrom("liveTests")
       .innerJoin("users", "users.id", "liveTests.teacherId")
       .innerJoin("mockTests", "mockTests.id", "liveTests.mockTestId")
       .leftJoin("exams", "exams.examName", "mockTests.examName")
-      .where("liveTests.id", "=", liveTestId)
+      .where((eb) =>
+        "id" in lookup ? eb("liveTests.id", "=", lookup.id) : eb("mockTests.slug", "=", lookup.slug)
+      )
       .where("liveTests.isActive", "=", true)
       .selectAll("liveTests")
       .select([
@@ -66,7 +71,9 @@ export async function handle(request: Request) {
       );
     }
 
-        await db.updateTable("liveTests")
+    const liveTestId = liveTest.id;
+
+    await db.updateTable("liveTests")
       .set({ viewCount: sql`view_count + 1` })
       .where("id", "=", liveTestId)
       .execute()

@@ -35,7 +35,7 @@ const details = (overrides: Record<string, unknown> = {}): any => ({
   secondPrize: "100.00",
   thirdPrize: "100.00",
   isActive: false,
-  mockTest: { examName: "SSC CGL", language: "Hindi", whatYouLearn: '["Point one"]', requirements: null },
+  mockTest: { examName: "SSC CGL", language: "Hindi", languages: ["Hindi"], whatYouLearn: '["Point one"]', requirements: null },
   mockTestItem: { durationMinutes: 60, calculatorEnabled: false, subjectWiseTiming: false, questionWiseTiming: false },
   subjects: [],
   ...overrides,
@@ -72,7 +72,7 @@ describe("stored value parsing", () => {
 });
 
 describe("buildLiveTestEditValues", () => {
-  it("keeps ranged tiers, the storefront list and the language of the stored test", () => {
+  it("keeps ranged tiers, the storefront list and the languages of the stored test", () => {
     const values = buildLiveTestEditValues(details());
     expect(values.prizeTiers).toEqual([
       { rankFrom: 1, rankTo: 1, amountPerRank: 500 },
@@ -80,7 +80,12 @@ describe("buildLiveTestEditValues", () => {
     ]);
     expect(getTotalPrizePool(values.prizeTiers)).toBe(900);
     expect(values.whatYouLearn).toEqual(["Point one"]);
-    expect(values.language).toBe("Hindi");
+    expect(values.languages).toEqual(["Hindi"]);
+  });
+
+  it("falls back to the legacy language text when the stored test has no list", () => {
+    const values = buildLiveTestEditValues(details({ mockTest: { language: "Bilingual", languages: [] } }));
+    expect(values.languages).toEqual(["Bilingual"]);
   });
 });
 
@@ -95,9 +100,15 @@ describe("buildLiveTestChanges", () => {
     expect(buildLiveTestChanges(saved, edit(saved, { title: "Mock B" }), false)).toEqual({ title: "Mock B" });
   });
 
-  it("sends a language change, and null when it is cleared", () => {
-    expect(buildLiveTestChanges(saved, edit(saved, { language: "English" }), false)).toEqual({ language: "English" });
-    expect(buildLiveTestChanges(saved, edit(saved, { language: undefined }), false)).toEqual({ language: null });
+  it("sends the whole language list when it changes, and an empty list when it is cleared", () => {
+    expect(buildLiveTestChanges(saved, edit(saved, { languages: ["Hindi", "English"] }), false)).toEqual({
+      languages: ["Hindi", "English"],
+    });
+    expect(buildLiveTestChanges(saved, edit(saved, { languages: [] }), false)).toEqual({ languages: [] });
+  });
+
+  it("keeps the language list editable on a published test", () => {
+    expect(buildLiveTestChanges(saved, edit(saved, { languages: ["English"] }), true)).toEqual({ languages: ["English"] });
   });
 
   it("drops locked fields of a published test", () => {

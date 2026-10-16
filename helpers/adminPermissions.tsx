@@ -47,6 +47,7 @@ export const ADMIN_MODULES = [
   { key: "exam_content", label: "Exam content", group: "Content", hint: "Exams, categories, subjects and exam pages" },
   { key: "blog", label: "Blog posts", group: "Content", hint: "Blog and help articles, categories" },
   { key: "blog_comments", label: "Blog comments", group: "Content", hint: "Comment moderation" },
+  { key: "current_affairs", label: "Current affairs", group: "Content", hint: "Daily digests, editorials and quizzes" },
   { key: "careers", label: "Careers", group: "Site", hint: "Job postings and applications" },
   { key: "news", label: "News and events", group: "Site", hint: "Press coverage" },
   { key: "static_pages", label: "Static pages", group: "Site", hint: "Terms, privacy, about" },
@@ -165,6 +166,7 @@ const API_RULES: Record<string, ApiRule> = {
   "admin/custom-exam-names": ["exam_content"],
   "admin/blog/comments": ["blog_comments"],
   "admin/blog": ["blog"],
+  "admin/current-affairs": ["current_affairs"],
 
   "admin/careers": ["careers"],
   "admin/news": ["news"],

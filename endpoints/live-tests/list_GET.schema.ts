@@ -40,6 +40,8 @@ export type LiveTestListItem = Pick<
   | "hasPrizes"
   | "viewCount"
 > & {
+  /** Public URL slug, /live-test/:slug. */
+  slug: string;
   examName: string | null;
   price: number;
   /** The valid discounted price students pay, or null when the list price applies. */

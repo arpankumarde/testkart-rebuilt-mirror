@@ -424,6 +424,7 @@ export async function handle(request: Request) {
         instituteSize: (org.instituteSize as OutputType["organization"]["instituteSize"]) ?? null,
         specialties: Array.isArray(org.specialties) ? (org.specialties as string[]) : [],
         socialLinks: (org.socialLinks as OutputType["organization"]["socialLinks"]) ?? null,
+        claimStatus: org.claimStatus,
       },
       teachers,
       catalogue,

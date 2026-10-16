@@ -33,6 +33,7 @@ export const LIVE_TEST_FIELD_LABELS: Record<string, string> = {
   examName: "Exam",
   examNames: "Exam",
   language: "Language",
+  languages: "Languages",
   durationMinutes: "Duration",
   calculatorEnabled: "Calculator",
   subjectWiseTiming: "Subject-wise timing",

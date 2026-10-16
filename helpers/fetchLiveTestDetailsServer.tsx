@@ -1,18 +1,20 @@
 import { db } from "./db";
-import type { OutputType } from "../endpoints/live-tests/details_GET.schema";
+import type { InputType, OutputType } from "../endpoints/live-tests/details_GET.schema";
 import { sql } from "kysely";
 import { slugify } from "./slugify";
 import type { SocialLinks, AwardCertificate } from "./teacherProfileTypes";
 import { PRODUCT_DISCLAIMER } from "./productDisclaimer";
 import { liveTestDiscountPrice } from "./liveTestPricing";
 
-export async function fetchLiveTestDetailsServer(liveTestId: number): Promise<OutputType> {
+export async function fetchLiveTestDetailsServer(lookup: InputType): Promise<OutputType> {
   const liveTest = await db
     .selectFrom("liveTests")
     .innerJoin("users", "users.id", "liveTests.teacherId")
     .innerJoin("mockTests", "mockTests.id", "liveTests.mockTestId")
     .leftJoin("exams", "exams.examName", "mockTests.examName")
-    .where("liveTests.id", "=", liveTestId)
+    .where((eb) =>
+      "id" in lookup ? eb("liveTests.id", "=", lookup.id) : eb("mockTests.slug", "=", lookup.slug)
+    )
     .where("liveTests.isActive", "=", true)
     .selectAll("liveTests")
     .select([

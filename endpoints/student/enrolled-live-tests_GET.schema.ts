@@ -8,6 +8,8 @@ export type InputType = z.infer<typeof schema>;
 
 export type EnrolledLiveTestItem = {
   id: number;
+  /** Public URL slug, /live-test/:slug. */
+  slug: string;
   title: string;
   description: string | null;
   thumbnailUrl: string | null;

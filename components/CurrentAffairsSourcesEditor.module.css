@@ -1,0 +1,47 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(8rem, 14rem) minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--spacing-2);
+}
+
+.nameField,
+.urlField {
+  min-width: 0;
+}
+
+.remove {
+  color: var(--error-text);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+}
+
+@media (max-width: 640px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .urlField {
+    grid-column: 1 / 2;
+  }
+}

@@ -109,7 +109,8 @@ export async function handle(request: Request) {
         "liveTests.thirdPrize",
         "liveTests.mockTestId",
         "liveTests.viewCount",
-       "mockTests.examName",
+        "mockTests.examName",
+        "mockTests.slug",
         "users.displayName as teacherName",
         "users.isVerified as teacherIsVerified",
         (eb) => eb.selectFrom('mockTestItems')

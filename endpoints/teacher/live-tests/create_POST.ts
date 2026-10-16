@@ -9,6 +9,7 @@ import { DB, PrizeDistributionStatus, PrizeFundSource } from "../../../helpers/s
 import { getTotalPrizePool, sortPrizeTiers, tiersToLegacyPrizes } from "../../../helpers/liveTestPrizeTiers";
 import { jsonbParam } from "../../../helpers/jsonbParam";
 import { sanitizeHtml } from "../../../helpers/sanitizeHtml";
+import { languagesSummary, normalizeLanguages } from "../../../helpers/itemLanguages";
 
 async function generateUniqueSlug(baseTitle: string, trx: Transaction<DB>): Promise<string> {
   const baseSlug = slugify(baseTitle);
@@ -93,7 +94,9 @@ export async function handle(request: Request) {
           slug: slug,
           description,
           ...primaryExamFields(exams),
-          language: input.language || null,
+          ...(input.languages?.length
+            ? { languages: normalizeLanguages(input.languages), language: languagesSummary(input.languages) }
+            : { language: input.language || null }),
           thumbnailUrl: input.thumbnailUrl || null,
           introVideoUrl: input.introVideoUrl || null,
           introVideoFileId: input.introVideoFileId || null,

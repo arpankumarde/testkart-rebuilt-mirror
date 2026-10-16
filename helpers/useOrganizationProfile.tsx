@@ -4,6 +4,15 @@ import { postOrganizationsFollow } from "../endpoints/organizations/follow_POST.
 import { getOrganizationsReviews } from "../endpoints/organizations/reviews_GET.schema";
 import { postOrganizationsReviews, InputType as SubmitReviewInput } from "../endpoints/organizations/reviews_POST.schema";
 import { postTeachersPostsLike } from "../endpoints/teachers/posts/like_POST.schema";
+import { getTeacherOrganizationsClaimOptions } from "../endpoints/teacher/organizations/claim/options_GET.schema";
+import {
+  postTeacherOrganizationsClaimStart,
+  InputType as ClaimStartInput,
+} from "../endpoints/teacher/organizations/claim/start_POST.schema";
+import {
+  postTeacherOrganizationsClaimVerify,
+  InputType as ClaimVerifyInput,
+} from "../endpoints/teacher/organizations/claim/verify_POST.schema";
 
 export const useOrganizationProfileQuery = (orgSlug: string) =>
   useQuery({
@@ -47,6 +56,29 @@ export const useSubmitOrganizationReviewMutation = (organizationId: number) => {
     mutationFn: (input: SubmitReviewInput) => postOrganizationsReviews(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["organizationReviews", organizationId] });
+    },
+  });
+};
+
+export const useOrganizationClaimOptionsQuery = (organizationId: number, enabled: boolean) =>
+  useQuery({
+    queryKey: ["organizationClaimOptions", organizationId],
+    queryFn: () => getTeacherOrganizationsClaimOptions({ organizationId }),
+    enabled,
+    staleTime: 0,
+  });
+
+export const useStartOrganizationClaimMutation = () =>
+  useMutation({
+    mutationFn: (input: ClaimStartInput) => postTeacherOrganizationsClaimStart(input),
+  });
+
+export const useVerifyOrganizationClaimMutation = (orgSlug: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: ClaimVerifyInput) => postTeacherOrganizationsClaimVerify(input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["organizationProfile", orgSlug] });
     },
   });
 };

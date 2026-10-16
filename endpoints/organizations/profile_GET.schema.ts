@@ -77,6 +77,7 @@ export type OutputType = {
     instituteSize: InstituteSizeValue | null;
     specialties: string[];
     socialLinks: OrganizationSocialLinks | null;
+    claimStatus: "unclaimed" | "pending_verification" | "claimed";
   };
   teachers: OrganizationTeacherCard[];
   catalogue: OrgCatalogueItem[];

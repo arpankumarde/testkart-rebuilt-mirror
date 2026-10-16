@@ -1,0 +1,260 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.counter {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.countPill {
+  display: inline-flex;
+  align-items: center;
+  height: 1.625rem;
+  padding: 0 var(--spacing-3);
+  border-radius: var(--radius-full);
+  background-color: var(--muted);
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.countGood {
+  background-color: color-mix(in srgb, var(--success) 18%, var(--surface));
+  color: var(--success-text);
+}
+
+.countHint {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  position: relative;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.itemInvalid {
+  border-color: var(--error);
+}
+
+.dragging {
+  z-index: 5;
+  box-shadow: var(--shadow-lg, var(--shadow));
+}
+
+.itemHead {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-2) var(--spacing-2) var(--spacing-1);
+}
+
+.handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--muted-foreground);
+  cursor: grab;
+  touch-action: none;
+}
+
+.handle:hover {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.handle:focus-visible,
+.headButton:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand);
+  color: var(--tk-brand-ink);
+  font-size: 0.8125rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.headButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+  min-width: 0;
+  gap: var(--spacing-3);
+  padding: var(--spacing-1) var(--spacing-2);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--foreground);
+  font-family: var(--font-family-base);
+  text-align: left;
+  cursor: pointer;
+}
+
+.headline {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.headlineEmpty {
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+
+.headMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.issueBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px var(--spacing-2);
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--error) 14%, var(--surface));
+  color: var(--error-text);
+  font-weight: 700;
+}
+
+.chevron {
+  transition: transform var(--animation-duration-fast) ease;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.itemActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.danger {
+  color: var(--error-text);
+}
+
+.itemBody {
+  padding: var(--spacing-4);
+  border-top: 1px solid var(--border);
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.subsection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding-top: var(--spacing-4);
+  border-top: 1px dashed var(--border);
+}
+
+.subsectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+}
+
+.subsectionTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.imageGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 18rem) minmax(0, 1fr);
+  gap: var(--spacing-4);
+  align-items: start;
+}
+
+.imageMeta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.addImage {
+  align-self: flex-start;
+}
+
+.addItem {
+  align-self: flex-start;
+}
+
+@media (max-width: 640px) {
+  .imageGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .itemHead {
+    flex-wrap: wrap;
+  }
+
+  .itemActions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron {
+    transition: none;
+  }
+}

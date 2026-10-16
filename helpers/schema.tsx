@@ -31,6 +31,14 @@ export type CourseStatus = "archived" | "draft" | "published";
 
 export type CourseTransactionStatus = "completed" | "failed" | "pending" | "refunded";
 
+export type CurrentAffairsContentType = "daily_digest" | "editorial_analysis" | "individual_item" | "monthly_digest" | "weekly_digest";
+
+export type CurrentAffairsLanguage = "en" | "hi";
+
+export type CurrentAffairsStatus = "archived" | "draft" | "published" | "scheduled";
+
+export type CurrentAffairsTagKind = "exam" | "syllabus" | "topic";
+
 export type DigitalProductStatus = "archived" | "draft" | "published";
 
 export type DiscountType = "fixed" | "percentage";
@@ -463,6 +471,119 @@ export interface CourseTransactions {
   promoCodeId: number | null;
   status: Generated<CourseTransactionStatus>;
   studentId: number;
+}
+
+export interface CurrentAffairsCorrections {
+  correctedOn: Timestamp;
+  id: Generated<number>;
+  note: string;
+  position: Generated<number>;
+  postId: number;
+}
+
+export interface CurrentAffairsItems {
+  anchorSlug: Generated<string>;
+  background: Generated<string>;
+  createdAt: Generated<Timestamp>;
+  headline: Generated<string>;
+  id: Generated<number>;
+  imageAlt: string | null;
+  imageCredit: string | null;
+  imageFileId: string | null;
+  imageUrl: string | null;
+  keyPoints: Generated<string>;
+  position: Generated<number>;
+  postId: number;
+  updatedAt: Generated<Timestamp>;
+  whyInNews: Generated<string>;
+}
+
+export interface CurrentAffairsPosts {
+  archivedAt: Timestamp | null;
+  authorId: number | null;
+  body: Generated<string>;
+  contentType: CurrentAffairsContentType;
+  coverImageAlt: string | null;
+  coverImageCredit: string | null;
+  coverImageFileId: string | null;
+  coverImageUrl: string | null;
+  createdAt: Generated<Timestamp>;
+  createdBy: number | null;
+  digestDate: Timestamp | null;
+  firstPublishedAt: Timestamp | null;
+  glancePoints: Generated<string[]>;
+  id: Generated<number>;
+  language: Generated<CurrentAffairsLanguage>;
+  ogImageFileId: string | null;
+  ogImageUrl: string | null;
+  previousSlugs: Generated<string[]>;
+  publishAt: Timestamp | null;
+  publishedAt: Timestamp | null;
+  readingTimeIsManual: Generated<boolean>;
+  readingTimeMinutes: Generated<number>;
+  seoDescription: string | null;
+  seoTitle: string | null;
+  slug: string;
+  status: Generated<CurrentAffairsStatus>;
+  summary: string | null;
+  title: string;
+  updatedAt: Generated<Timestamp>;
+  updatedBy: number | null;
+}
+
+export interface CurrentAffairsQuizQuestions {
+  correctOption: number | null;
+  explanation: Generated<string>;
+  id: Generated<number>;
+  options: Generated<string[]>;
+  position: Generated<number>;
+  question: Generated<string>;
+  quizId: number;
+}
+
+export interface CurrentAffairsQuizzes {
+  createdAt: Generated<Timestamp>;
+  id: Generated<number>;
+  isPublished: Generated<boolean>;
+  postId: number;
+  questionCount: Generated<number>;
+  title: Generated<string>;
+  updatedAt: Generated<Timestamp>;
+}
+
+export interface CurrentAffairsRelated {
+  position: Generated<number>;
+  postId: number;
+  relatedPostId: number;
+}
+
+export interface CurrentAffairsSources {
+  id: Generated<number>;
+  itemId: number | null;
+  name: string;
+  position: Generated<number>;
+  postId: number;
+  url: string;
+}
+
+export interface CurrentAffairsTagLinks {
+  id: Generated<number>;
+  itemId: number | null;
+  postId: number;
+  questionId: number | null;
+  tagId: number;
+}
+
+export interface CurrentAffairsTags {
+  createdAt: Generated<Timestamp>;
+  createdBy: number | null;
+  examId: number | null;
+  id: Generated<number>;
+  isPredefined: Generated<boolean>;
+  kind: CurrentAffairsTagKind;
+  name: string;
+  slug: string;
+  sortOrder: Generated<number>;
 }
 
 export interface DeletedAccounts {
@@ -1838,6 +1959,15 @@ export interface DB {
   courses: Courses;
   courseSections: CourseSections;
   courseTransactions: CourseTransactions;
+  currentAffairsCorrections: CurrentAffairsCorrections;
+  currentAffairsItems: CurrentAffairsItems;
+  currentAffairsPosts: CurrentAffairsPosts;
+  currentAffairsQuizQuestions: CurrentAffairsQuizQuestions;
+  currentAffairsQuizzes: CurrentAffairsQuizzes;
+  currentAffairsRelated: CurrentAffairsRelated;
+  currentAffairsSources: CurrentAffairsSources;
+  currentAffairsTagLinks: CurrentAffairsTagLinks;
+  currentAffairsTags: CurrentAffairsTags;
   deletedAccounts: DeletedAccounts;
   digitalProductExams: DigitalProductExams;
   digitalProductFiles: DigitalProductFiles;
@@ -1987,6 +2117,10 @@ export const OrganizationMembershipStatusArrayValues: [OrganizationMembershipSta
 export const OrganizationClaimStatusArrayValues: [OrganizationClaimStatus, ...OrganizationClaimStatus[]] = ["claimed","pending_verification","unclaimed"];
 export const OrganizationClaimRequestStatusArrayValues: [OrganizationClaimRequestStatus, ...OrganizationClaimRequestStatus[]] = ["expired","pending","rejected","verified"];
 export const OrganizationClaimMethodArrayValues: [OrganizationClaimMethod, ...OrganizationClaimMethod[]] = ["email","phone"];
+export const CurrentAffairsContentTypeArrayValues: [CurrentAffairsContentType, ...CurrentAffairsContentType[]] = ["daily_digest","editorial_analysis","individual_item","monthly_digest","weekly_digest"];
+export const CurrentAffairsStatusArrayValues: [CurrentAffairsStatus, ...CurrentAffairsStatus[]] = ["archived","draft","published","scheduled"];
+export const CurrentAffairsLanguageArrayValues: [CurrentAffairsLanguage, ...CurrentAffairsLanguage[]] = ["en","hi"];
+export const CurrentAffairsTagKindArrayValues: [CurrentAffairsTagKind, ...CurrentAffairsTagKind[]] = ["exam","syllabus","topic"];
 // Table/column names whose snake_case spelling kysely's default CamelCasePlugin
 // cannot recover from the camelCase name used in code (an underscore directly
 // before a digit, e.g. reminder_48h_sent ⇄ reminder48hSent). The db helper's

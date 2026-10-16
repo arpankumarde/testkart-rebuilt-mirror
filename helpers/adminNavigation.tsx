@@ -34,6 +34,7 @@ import {
   Gift,
   BookOpen,
   Building2,
+  CalendarDays,
 } from "lucide-react";
 import { ANY_ADMIN, EXTRA_PAGE_RULES, hasAdminModule, type AdminModule } from "./adminPermissions";
 import { ARTICLE_TABS } from "./adminContentSurfaces";
@@ -142,6 +143,13 @@ const groups: AdminNavGroup[] = [
       { href: `/admin/blog?tab=${ARTICLE_TABS.blog}`, label: "Blog posts", icon: Newspaper, modules: ["blog"], keywords: "articles seo categories" },
       { href: `/admin/blog?tab=${ARTICLE_TABS.knowledge_base}`, label: "Help pages", icon: BookOpen, modules: ["blog"], keywords: "knowledge base guides articles support help centre categories" },
       { href: "/admin/blog/comments", label: "Comments", icon: MessageCircle, modules: ["blog_comments"], countKeys: ["blogCommentsPending"], keywords: "moderate blog" },
+      {
+        href: "/admin/current-affairs",
+        label: "Current Affairs",
+        icon: CalendarDays,
+        modules: ["current_affairs"],
+        keywords: "daily digest editorial analysis weekly monthly quiz gk upsc",
+      },
     ],
   },
   {

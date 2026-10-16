@@ -18,6 +18,7 @@ import { postPaymentPayuRedirect } from '../endpoints/payment/payu/redirect_POST
 import { postPaymentPayuVerifyAndComplete } from '../endpoints/payment/payu/verify-and-complete_POST.schema';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
+import { LIVE_TESTS_PATH } from '../helpers/liveTestRoutes';
 import { LIVE_TEST_DETAILS_QUERY_KEY_PREFIX } from '../helpers/useLiveTestDetailsQuery';
 import { LIVE_TESTS_QUERY_KEY } from '../helpers/useLiveTestsQuery';
 import { AssetTopRow } from './AssetTopRow';
@@ -216,10 +217,7 @@ export const LiveTestHero: React.FC<LiveTestHeroProps> = ({ liveTest, className 
           if (result.success && result.orderStatus === 'completed') {
             toast.success("Payment successful! You are now enrolled.");
             queryClient.invalidateQueries({ queryKey: LIVE_TESTS_QUERY_KEY });
-            queryClient.invalidateQueries({
-              queryKey: [LIVE_TEST_DETAILS_QUERY_KEY_PREFIX, liveTest.id],
-              exact: false,
-            });
+            queryClient.invalidateQueries({ queryKey: [LIVE_TEST_DETAILS_QUERY_KEY_PREFIX] });
           } else if (result.orderStatus === 'pending') {
             toast.warning("Payment is still pending. Please wait a moment and refresh the page.");
           } else {
@@ -376,9 +374,9 @@ export const LiveTestHero: React.FC<LiveTestHeroProps> = ({ liveTest, className 
 
         <div className={styles.leftColumn}>
           <div className={styles.head}>
-            <AssetTopRow kind="live-test" handle={liveTest.id} title={liveTest.title} className={styles.topRow} shareClassName={playfulButtonClass('soft', 'sm')}>
+            <AssetTopRow kind="live-test" handle={liveTest.slug} title={liveTest.title} className={styles.topRow} shareClassName={playfulButtonClass('soft', 'sm')}>
               <nav className={styles.breadcrumb} aria-label="Breadcrumb">
-                <Link to="/mock-test/live" className={styles.breadcrumbRoot}>Live Competitions</Link>
+                <Link to={LIVE_TESTS_PATH} className={styles.breadcrumbRoot}>Live Competitions</Link>
                 <ChevronRight size={14} className={styles.breadcrumbChevron} aria-hidden="true" />
                 <span className={styles.breadcrumbCurrent} title={liveTest.title}>{liveTest.title}</span>
               </nav>

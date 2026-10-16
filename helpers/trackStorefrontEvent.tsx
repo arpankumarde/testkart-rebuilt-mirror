@@ -104,7 +104,7 @@ const SHARE_ENTITIES: Partial<Record<ShareAssetKind, StorefrontEntity>> = {
 export function trackShare(kind: ShareAssetKind, handle: string | number, platform: SharePlatformId, campaign: string) {
   const entity = SHARE_ENTITIES[kind];
   if (!entity) return;
-  const numeric = typeof handle === "number" ? handle : /^\d+$/.test(handle) && kind === "live-test" ? Number(handle) : null;
+  const numeric = typeof handle === "number" ? handle : null;
   trackStorefrontEvent(
     "share",
     numeric !== null ? { entity, id: numeric } : { entity, slug: String(handle) },

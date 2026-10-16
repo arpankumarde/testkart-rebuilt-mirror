@@ -19,8 +19,10 @@ export async function handle(request: Request) {
       .selectFrom("liveTestEnrollments")
       .innerJoin("liveTests", "liveTests.id", "liveTestEnrollments.liveTestId")
       .innerJoin("users as teacher", "teacher.id", "liveTests.teacherId")
+      .innerJoin("mockTests", "mockTests.id", "liveTests.mockTestId")
       .select(({ eb }) => [
         "liveTests.id",
+        "mockTests.slug",
         "liveTests.title",
         "liveTests.description",
         "liveTests.thumbnailUrl",
@@ -87,6 +89,7 @@ export async function handle(request: Request) {
 
       return {
         id: test.id,
+        slug: test.slug,
         title: test.title,
         description: test.description,
         thumbnailUrl: test.thumbnailUrl,

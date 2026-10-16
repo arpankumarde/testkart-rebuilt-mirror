@@ -32,6 +32,7 @@ export async function homepageFetchLiveSpotlight(): Promise<HomepageLiveTestSpot
       "liveTests.startTime",
       "liveTests.endTime",
       "mockTests.examName",
+      "mockTests.slug",
       "users.displayName as teacherName",
       "users.slug as teacherSlug",
       "users.avatarUrl as teacherAvatarUrl",
@@ -59,6 +60,7 @@ export async function homepageFetchLiveSpotlight(): Promise<HomepageLiveTestSpot
     ...upcoming.slice(0, upcomingCount).map((test) => ({ test, isLive: false })),
   ].map(({ test, isLive }) => ({
     id: test.id,
+    slug: test.slug,
     title: test.title,
     examName: test.examName,
     price: Number(test.price),

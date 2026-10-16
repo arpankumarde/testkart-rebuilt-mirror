@@ -19,6 +19,7 @@ import {
   DialogClose,
 } from './Dialog';
 import { liveTestCreationFormSchema } from '../helpers/liveTestCreationFormSchema';
+import { itemLanguages } from '../helpers/itemLanguages';
 import {
   LIVE_TEST_FORM_FIELDS,
   LIVE_TEST_STEPS,
@@ -64,7 +65,7 @@ export const LiveTestCreationForm: React.FC<LiveTestCreationFormProps> = ({ clas
       description: initialValues?.description || null,
       examName: initialValues?.examName || null,
       examNames: initialValues?.examName ? [initialValues.examName] : [],
-      language: initialValues?.language || undefined,
+      languages: initialValues?.language ? itemLanguages({ language: initialValues.language }) : [],
       durationMinutes: initialValues?.durationMinutes || 60,
       calculatorEnabled: false,
       subjectWiseTiming: false,
@@ -135,7 +136,7 @@ export const LiveTestCreationForm: React.FC<LiveTestCreationFormProps> = ({ clas
     const data = normalizeLiveTestFormValues(values);
     const payload: CreateLiveTestInput = {
       ...data,
-      language: data.language ?? null,
+      languages: data.languages ?? [],
       calculatorEnabled: data.calculatorEnabled ?? false,
       subjectWiseTiming: data.subjectWiseTiming ?? false,
       questionWiseTiming: data.questionWiseTiming ?? false,

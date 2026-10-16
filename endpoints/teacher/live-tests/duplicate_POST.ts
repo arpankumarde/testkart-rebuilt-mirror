@@ -108,6 +108,7 @@ export async function handle(request: Request) {
           examName: sourceMockTest.examName,
           subject: sourceMockTest.subject,
           language: sourceMockTest.language,
+          languages: sourceMockTest.languages,
           requirements: sourceMockTest.requirements,
           whatYouLearn: sourceMockTest.whatYouLearn,
           thumbnailUrl: sourceMockTest.thumbnailUrl,

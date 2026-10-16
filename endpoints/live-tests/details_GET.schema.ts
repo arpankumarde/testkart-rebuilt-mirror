@@ -4,9 +4,11 @@ import { Selectable } from "kysely";
 import { LiveTests, Users, MockTests } from "../../helpers/schema";
 import { SocialLinks, AwardCertificate } from "../../helpers/teacherProfileTypes";
 
-export const schema = z.object({
-  id: z.number().int().positive(),
-});
+// The shipped mobile app looks a live test up by id; the web page uses its slug.
+export const schema = z.union([
+  z.object({ id: z.number().int().positive() }),
+  z.object({ slug: z.string().min(1) }),
+]);
 
 export type InputType = z.infer<typeof schema>;
 
@@ -46,8 +48,9 @@ export type OutputType = Omit<Selectable<LiveTests>, "price" | "discountPrice" |
   canEnroll: boolean;
   hasAttempted: boolean;
   examSlug: string | null;
+  /** The live test's public URL slug, /live-test/:slug (stored on its own mock test package). */
   slug: string;
-    teacherIsVerified: boolean;
+  teacherIsVerified: boolean;
   teacherSlug: string;
   teacherProfile: TeacherProfile;
   mockTestDetails: MockTestInfo;
@@ -59,9 +62,9 @@ export const getLiveTestsDetails = async (
   init?: RequestInit
 ): Promise<OutputType> => {
   const validatedParams = schema.parse(params);
-  const searchParams = new URLSearchParams({
-    id: validatedParams.id.toString(),
-  });
+  const searchParams = new URLSearchParams(
+    "id" in validatedParams ? { id: validatedParams.id.toString() } : { slug: validatedParams.slug }
+  );
 
   const result = await fetch(
     `/_api/live-tests/details?${searchParams.toString()}`,

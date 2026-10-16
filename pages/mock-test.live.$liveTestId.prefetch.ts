@@ -1,23 +1,18 @@
 import type { PagePrefetchFn } from "@floot/prefetch";
-import { fetchLiveTestDetailsServer } from "../helpers/fetchLiveTestDetailsServer";
-import { isNotFoundError } from "../helpers/isNotFoundError";
+import { findLiveTestSlug } from "../helpers/findLiveTestSlug";
+import { liveTestPath } from "../helpers/liveTestRoutes";
 
-export const prefetch: PagePrefetchFn = async ({ qc, url }) => {
-  const liveTestIdStr = new URL(url).pathname.split("/").filter(Boolean).pop();
-  const numericId = liveTestIdStr ? parseInt(liveTestIdStr, 10) : NaN;
-  // The page treats a non-numeric id as a missing test, so the status matches.
-  if (!numericId || isNaN(numericId)) return { statusCode: 404, maxAge: 300 };
+/* Old /mock-test/live/:id links (shares, emails, the mobile app's share text) move to /live-test/:slug. */
+export const prefetch: PagePrefetchFn = async ({ url }) => {
+  const segment = new URL(url).pathname.split("/").filter(Boolean).pop();
+  if (!segment) return { statusCode: 404, maxAge: 300 };
 
   try {
-    await qc.fetchQuery({
-      queryKey: ["liveTest", numericId, "guest"],
-      queryFn: () => fetchLiveTestDetailsServer(numericId),
-    });
-    return { maxAge: 300 };
+    const slug = await findLiveTestSlug(decodeURIComponent(segment));
+    if (!slug) return { statusCode: 404, maxAge: 300 };
+    return { redirect: { to: liveTestPath(slug) } };
   } catch (error) {
-    if (isNotFoundError(error)) return { statusCode: 404, maxAge: 300 };
-    console.error("Error prefetching live test details:", error);
-    // Not cached, so a transient database failure is not served to every visitor for five minutes.
+    console.error("Error resolving legacy live test URL:", error);
     return { maxAge: 0 };
   }
 };

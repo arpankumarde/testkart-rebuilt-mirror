@@ -16,7 +16,9 @@ describe("buildPublicAssetUrl", () => {
     expect(buildPublicAssetUrl("test-series", "ssc-cgl-2026")).toBe(
       `${SITE_ORIGIN}/mock-test/ssc-cgl-2026`
     );
-    expect(buildPublicAssetUrl("live-test", 412)).toBe(`${SITE_ORIGIN}/mock-test/live/412`);
+    expect(buildPublicAssetUrl("live-test", "mole-concept-live-test")).toBe(
+      `${SITE_ORIGIN}/live-test/mole-concept-live-test`
+    );
     expect(buildPublicAssetUrl("course", "physics-101")).toBe(`${SITE_ORIGIN}/course/physics-101`);
     expect(buildPublicAssetUrl("bundle", "gate-combo")).toBe(`${SITE_ORIGIN}/bundles/gate-combo`);
     expect(buildPublicAssetUrl("study-note", "thermo-notes")).toBe(

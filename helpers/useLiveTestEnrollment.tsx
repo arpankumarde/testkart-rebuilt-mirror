@@ -24,12 +24,8 @@ export const useLiveTestEnrollment = () => {
       toast.success("Successfully enrolled in the live test!");
       // Invalidate the main list of live tests to update enrollment status there
       queryClient.invalidateQueries({ queryKey: LIVE_TESTS_QUERY_KEY });
-      // Invalidate the specific test details to update the 'isEnrolled' and 'canEnroll' flags
-      // Using prefix matching to invalidate all query keys for this test regardless of user ID
-      queryClient.invalidateQueries({
-        queryKey: [LIVE_TEST_DETAILS_QUERY_KEY_PREFIX, variables.liveTestId],
-        exact: false,
-      });
+      // Refreshes 'isEnrolled' and 'canEnroll' on every cached details entry, whether cached by id or by slug
+      queryClient.invalidateQueries({ queryKey: [LIVE_TEST_DETAILS_QUERY_KEY_PREFIX] });
     },
     onError: (error) => {
       if (error instanceof Error) {

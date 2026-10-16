@@ -4,6 +4,7 @@ import { Selectable } from "kysely";
 import { LiveTests } from "../../../helpers/schema";
 import { validatePrizeTiers, PrizeTier } from "../../../helpers/liveTestPrizeTiers";
 import { isEmptyRichText } from "../../../helpers/liveTestCreationFormSchema";
+import { MAX_ITEM_LANGUAGES, MAX_LANGUAGE_LENGTH } from "../../../helpers/itemLanguages";
 
 const prizeTierSchema = z.object({
   rankFrom: z.number().int().min(1),
@@ -31,6 +32,11 @@ export const schema = z
       .optional()
       .describe("Official exam names, up to 5, first is the primary"),
     language: z.string().max(100).optional().nullable(),
+    // Takes precedence over language; an empty list clears it. Stored on the backing mock test.
+    languages: z
+      .array(z.string().trim().min(1).max(MAX_LANGUAGE_LENGTH))
+      .max(MAX_ITEM_LANGUAGES, `Pick up to ${MAX_ITEM_LANGUAGES} languages.`)
+      .optional(),
     price: z.number().min(0).optional(),
     discountPrice: z.number().min(0).optional().nullable(),
     isFree: z.boolean().optional(),

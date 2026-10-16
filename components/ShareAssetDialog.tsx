@@ -20,7 +20,7 @@ interface ShareAssetDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   kind: ShareAssetKind;
-  /** Slug, except for live tests (id) and certificates (certificate number). */
+  /** Slug, except for certificates (certificate number). */
   handle: string | number;
   title: string;
   /**

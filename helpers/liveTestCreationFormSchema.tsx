@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { validatePrizeTiers } from './liveTestPrizeTiers';
+import { MAX_ITEM_LANGUAGES } from './itemLanguages';
 
 const prizeTierSchema = z.object({
   rankFrom: z.number().int().min(1),
@@ -29,7 +30,7 @@ export const liveTestCreationFormSchema = z
       emptyRichTextToNull,
       z.string().max(2000, 'Description must be 2000 characters or fewer, including formatting.').nullable().optional()
     ),
-    language: z.string().optional(),
+    languages: z.array(z.string()).max(MAX_ITEM_LANGUAGES, `Pick up to ${MAX_ITEM_LANGUAGES} languages.`).optional().default([]),
     durationMinutes: z.number().int().min(0, "Duration must be 0 or more."),
     calculatorEnabled: z.boolean().optional().default(false),
     subjectWiseTiming: z.boolean().optional().default(false),

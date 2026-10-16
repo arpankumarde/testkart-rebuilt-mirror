@@ -59,7 +59,7 @@ function getLiveTestStatus(
 
 /**
  * Direct-DB counterpart to endpoints/live-tests/list_GET.ts, for use ONLY
- * from page prefetch (pages/mock-test.live.prefetch.ts) — see
+ * from page prefetch (pages/live-test.prefetch.ts) — see
  * helpers/fetchBlogPostDetailServer.tsx for why the network endpoint can't
  * be called from within the SSR pass. Keep in sync with
  * endpoints/live-tests/list_GET.ts.
@@ -105,6 +105,7 @@ export async function fetchLiveTestsListServer(
       "liveTests.mockTestId",
       "liveTests.viewCount",
       "mockTests.examName",
+      "mockTests.slug",
       "users.displayName as teacherName",
       "users.isVerified as teacherIsVerified",
       (eb) =>

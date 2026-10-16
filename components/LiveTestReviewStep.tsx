@@ -176,7 +176,7 @@ export const LiveTestReviewStep: React.FC<LiveTestReviewStepProps> = ({
         <strong>{(values.examNames?.length ?? 0) > 1 ? 'Exams:' : 'Exam:'}</strong>{' '}
         {values.examNames && values.examNames.length > 0 ? values.examNames.join(', ') : values.examName || 'Not selected'}
       </p>
-      <p><strong>Language:</strong> {values.language || 'Not specified'}</p>
+      <p><strong>{(values.languages?.length ?? 0) > 1 ? 'Languages' : 'Language'}:</strong> {values.languages?.join(', ') || 'Not specified'}</p>
       <p><strong>Duration:</strong> {timingSummary}</p>
       <p>
         <strong>Price:</strong>{' '}

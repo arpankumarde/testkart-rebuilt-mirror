@@ -182,6 +182,14 @@ describe("applyLiveTestUpdate", () => {
     expect(mockTestWrite?.parameters).toContain("English");
   });
 
+  it("stores a language list on the mock test with its summary in the legacy column", async () => {
+    const { db, writes } = fakeDb(storedLiveTest({ is_active: true }));
+    await applyLiveTestUpdate(db, 75001, { id: 75010, languages: ["Hindi", "English"] }, makeDeps());
+    const mockTestWrite = writes().find((s) => s.sql.startsWith('update "mock_tests"'));
+    expect(mockTestWrite?.sql).toContain('"languages"');
+    expect(mockTestWrite?.parameters).toContain("Hindi, English");
+  });
+
   it("resolves the exams only when examName or examNames is sent, and saves the list", async () => {
     const calls: ExamSelection[] = [];
     await applyLiveTestUpdate(fakeDb(storedLiveTest()).db, 75001, { id: 75010, title: "Mock B" }, makeDeps(calls));

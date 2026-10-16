@@ -47,9 +47,8 @@ export const SHARE_ASSET_LABELS: Record<ShareAssetKind, string> = {
   career: "job",
 };
 
-/** `handle` is the slug for everything except live tests, which are routed by
-    id, certificates, which are routed by certificate number, and exam pages,
-    which take "<examSlug>/<section slug>". */
+/** `handle` is the slug for everything except certificates, which are routed by
+    certificate number, and exam pages, which take "<examSlug>/<section slug>". */
 export const buildPublicAssetUrl = (kind: ShareAssetKind, handle: string | number): string => {
   const segment = encodeURIComponent(String(handle));
   switch (kind) {
@@ -58,7 +57,7 @@ export const buildPublicAssetUrl = (kind: ShareAssetKind, handle: string | numbe
     case "test-series":
       return `${SITE_ORIGIN}/mock-test/${segment}`;
     case "live-test":
-      return `${SITE_ORIGIN}/mock-test/live/${segment}`;
+      return `${SITE_ORIGIN}/live-test/${segment}`;
     case "course":
       return `${SITE_ORIGIN}/course/${segment}`;
     case "bundle":

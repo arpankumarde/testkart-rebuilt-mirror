@@ -1,0 +1,352 @@
+/* Console page shell, same measure as News & Events. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  width: 100%;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: var(--spacing-4) var(--spacing-6) var(--spacing-8);
+  box-sizing: border-box;
+}
+
+/* No page title on screen: the sidebar already names the page. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Same 2.5rem height as the search, type and create controls beside it. */
+.refresh {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+/* The band: same surface, border and radius as ConsoleListToolbar, which here
+   only supplies the tabs. */
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-2) var(--spacing-4);
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+/* Two classes so the nested toolbar drops its own frame. */
+.bar .tabsBand {
+  flex: 0 1 auto;
+  min-width: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  box-shadow: none;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-2);
+  flex: 1 1 38rem;
+  min-width: 0;
+}
+
+.searchWrapper {
+  position: relative;
+  flex: 1 1 12rem;
+  min-width: 10rem;
+  max-width: 20rem;
+}
+
+.searchIcon {
+  position: absolute;
+  left: var(--spacing-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted-foreground);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding-left: var(--spacing-8);
+}
+
+.create {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.typeFilter {
+  display: flex;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error {
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid var(--error);
+  border-radius: var(--radius);
+  background-color: color-mix(in srgb, var(--error) 10%, var(--surface));
+  color: var(--error-text);
+  font-size: 0.875rem;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+/* Two classes so it outranks the shared panel's own padding. */
+.content .emptyCompact {
+  gap: var(--spacing-2);
+  padding: 2.5rem var(--spacing-4);
+}
+
+.emptyCreate {
+  margin-top: var(--spacing-2);
+  box-shadow: var(--shadow);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.thumb {
+  display: block;
+  width: 112px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.thumbEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: color-mix(in srgb, var(--tk-brand) 16%, var(--surface));
+  color: var(--tk-brand-text);
+}
+
+.rowBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.rowTitleLine {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.rowTitle {
+  margin-right: var(--spacing-1);
+  font-weight: 700;
+  color: var(--foreground);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+
+.rowTitle:hover {
+  text-decoration: underline;
+}
+
+.rowTitle:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.rowMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-1) var(--spacing-4);
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.quizMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.rowFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.slugPath {
+  margin-right: var(--spacing-2);
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  word-break: break-all;
+}
+
+/* Opaque pastel chips with full-strength text, one hue per tag kind. */
+.tagChip {
+  display: inline-flex;
+  align-items: center;
+  height: 1.375rem;
+  padding: 0 var(--spacing-2);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tag_topic {
+  background-color: color-mix(in srgb, var(--tk-brand) 18%, var(--surface));
+  color: var(--tk-brand-text);
+}
+
+.tag_exam {
+  background-color: color-mix(in srgb, var(--info) 16%, var(--surface));
+  color: var(--info-text);
+}
+
+.tag_syllabus {
+  background-color: color-mix(in srgb, var(--success) 16%, var(--surface));
+  color: var(--success-text);
+}
+
+.tagMore {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.deleteItem {
+  color: var(--error-text);
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-4);
+  padding-top: var(--spacing-2);
+}
+
+.pagerLabel {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 768px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+
+  .thumb {
+    width: 100%;
+  }
+
+  .actions {
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: var(--spacing-3) var(--spacing-4) var(--spacing-6);
+  }
+
+  /* Phones: search on its own line, then type and the actions sharing the next. */
+  .bar {
+    align-items: stretch;
+  }
+
+  .controls {
+    flex-wrap: wrap;
+    justify-content: stretch;
+  }
+
+  .searchWrapper {
+    flex: 1 1 100%;
+    max-width: none;
+  }
+
+  .typeFilter {
+    flex: 1 1 8rem;
+  }
+
+  .typeFilter > button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .actions {
+    margin-left: auto;
+  }
+
+  .content .emptyCompact {
+    padding: var(--spacing-8) var(--spacing-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+}

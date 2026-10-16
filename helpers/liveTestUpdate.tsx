@@ -13,6 +13,7 @@ import { LIVE_TEST_FIELD_LABELS, LIVE_TEST_PUBLISHED_LOCKED_FIELDS } from "./liv
 import { jsonbParam } from "./jsonbParam";
 import { sanitizeHtml } from "./sanitizeHtml";
 import { saveContentExams, type ContentExam } from "./contentExams";
+import { languagesSummary, normalizeLanguages } from "./itemLanguages";
 
 export class LiveTestUpdateError extends Error {
   constructor(message: string, readonly status: number) {
@@ -224,7 +225,13 @@ export async function applyLiveTestUpdate(
   if (input.introVideoFileId !== undefined) mockTestSet.introVideoFileId = input.introVideoFileId;
   else if (input.introVideoUrl === null) mockTestSet.introVideoFileId = null;
   if (input.isFree !== undefined) mockTestSet.isFree = input.isFree;
-  if (input.language !== undefined) mockTestSet.language = input.language;
+  // The list wins when both arrive; the legacy column then stores its summary.
+  if (input.languages !== undefined) {
+    mockTestSet.languages = normalizeLanguages(input.languages);
+    mockTestSet.language = languagesSummary(input.languages);
+  } else if (input.language !== undefined) {
+    mockTestSet.language = input.language;
+  }
   if (input.whatYouLearn !== undefined) {
     mockTestSet.whatYouLearn = input.whatYouLearn ? JSON.stringify(input.whatYouLearn) : null;
   }
