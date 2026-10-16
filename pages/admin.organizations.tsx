@@ -197,6 +197,7 @@ const AdminOrganizationsPage: React.FC = () => {
         <span className={styles.primaryLine}>
           <span className={styles.truncate} title={org.name}>{org.name}</span>
           {!org.isActive && <Badge variant="warning" className={styles.flag}>Hidden</Badge>}
+          {org.claimStatus !== "claimed" && <Badge variant="outline" className={styles.flag}>Unclaimed</Badge>}
         </span>
         <span className={styles.secondaryLine} title={subtitle(org) || undefined}>
           {subtitle(org) || "No location or phone"}
@@ -255,14 +256,18 @@ const AdminOrganizationsPage: React.FC = () => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem
-            className={styles.menuItem}
-            disabled={impersonateMutation.isPending}
-            onSelect={() => impersonateMutation.mutate({ userId: org.ownerId })}
-          >
-            <LogIn size={16} /> Log in as owner
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
+          {org.ownerId != null && (
+            <>
+              <DropdownMenuItem
+                className={styles.menuItem}
+                disabled={impersonateMutation.isPending}
+                onSelect={() => impersonateMutation.mutate({ userId: org.ownerId as number })}
+              >
+                <LogIn size={16} /> Log in as owner
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
           <DropdownMenuItem
             className={`${styles.menuItem} ${org.isActive ? styles.menuItemDanger : ""}`}
             disabled={setActiveMutation.isPending}
@@ -364,7 +369,9 @@ const AdminOrganizationsPage: React.FC = () => {
                   <td><Badge variant="outline" className={styles.typeBadge}>{ORG_TYPE_LABELS[org.orgType]}</Badge></td>
                   <td>
                     <div className={styles.stack}>
-                      <span className={styles.valueLine} title={org.ownerName ?? undefined}>{org.ownerName ?? "Deleted teacher"}</span>
+                      <span className={styles.valueLine} title={org.ownerName ?? undefined}>
+                        {org.ownerName ?? (org.claimStatus === "claimed" ? "Deleted teacher" : "Unclaimed")}
+                      </span>
                       <span className={styles.secondaryLine} title={org.ownerEmail ?? undefined}>{org.ownerEmail ?? "No email"}</span>
                     </div>
                   </td>
@@ -398,7 +405,9 @@ const AdminOrganizationsPage: React.FC = () => {
                 </div>
                 <div className={styles.cardStat}>
                   <dt>Owner</dt>
-                  <dd title={org.ownerEmail ?? undefined}>{org.ownerName ?? "Deleted teacher"}</dd>
+                  <dd title={org.ownerEmail ?? undefined}>
+                    {org.ownerName ?? (org.claimStatus === "claimed" ? "Deleted teacher" : "Unclaimed")}
+                  </dd>
                 </div>
                 {COUNT_FIELDS.map((field) => (
                   <div key={field.key} className={styles.cardStat}>

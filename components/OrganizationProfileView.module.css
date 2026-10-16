@@ -2093,7 +2093,7 @@
 
 .claimOptionButtonSelected {
   border-color: var(--sp-cta);
-  background-color: var(--sp-tint);
+  background-color: var(--sp-surface);
 }
 
 .ctaButton:hover:not(:disabled) {

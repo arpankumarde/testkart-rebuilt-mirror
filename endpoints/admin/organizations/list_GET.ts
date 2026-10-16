@@ -71,9 +71,11 @@ export async function handle(request: Request): Promise<Response> {
 
     // Search and status apply to everything; the type filter is applied after
     // the per-type counts so the tabs show what each type would return.
+    // left join: auto-imported ("unclaimed") organisations have no owner yet
+    // (createdByTeacherId is null) and must still show up in this list.
     let filtered = db
       .selectFrom("organizations")
-      .innerJoin("users as owner", "owner.id", "organizations.createdByTeacherId");
+      .leftJoin("users as owner", "owner.id", "organizations.createdByTeacherId");
 
     if (status === "active") filtered = filtered.where("organizations.isActive", "=", true);
     if (status === "hidden") filtered = filtered.where("organizations.isActive", "=", false);
@@ -108,6 +110,7 @@ export async function handle(request: Request): Promise<Response> {
           "organizations.isActive",
           "organizations.createdAt",
           "organizations.createdByTeacherId",
+          "organizations.claimStatus",
           "owner.displayName as ownerName",
           "owner.email as ownerEmail",
           // camelCase aliases: the db's CamelCasePlugin maps them to the
@@ -150,6 +153,7 @@ export async function handle(request: Request): Promise<Response> {
       isActive: row.isActive,
       createdAt: row.createdAt,
       ownerId: row.createdByTeacherId,
+      claimStatus: row.claimStatus,
       ownerName: row.ownerName,
       ownerEmail: row.ownerEmail,
       teachersCount: Number(row.teachersCount ?? 0),

@@ -36,7 +36,8 @@ export type AdminOrganizationRow = {
   websiteUrl: string | null;
   isActive: boolean;
   createdAt: Date;
-  ownerId: number;
+  ownerId: number | null;
+  claimStatus: "unclaimed" | "pending_verification" | "claimed";
   ownerName: string | null;
   ownerEmail: string | null;
   // Approved members; pendingCount is join requests still waiting.
