@@ -12,6 +12,7 @@ import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, v
 import { CSS } from "@dnd-kit/utilities";
 import {
   AlertCircle,
+  AlignLeft,
   ArrowDown,
   ArrowUp,
   ChevronDown,
@@ -83,12 +84,17 @@ const ItemFields: React.FC<{
 }> = ({ index, item, update, tagOptions, postTags }) => {
   const base = `items.${index}`;
   const [showImage, setShowImage] = useState(!!item.imageUrl);
+  // Why in news and background are optional extras; they open on their own when an older item has them.
+  const [showContext, setShowContext] = useState(!!(item.whyInNews.trim() || currentAffairsMeta.stripHtml(item.background)));
   const canCopyTags = postTags.length > 0 && postTags.some((t) => !item.tags.some((own) => own.kind === t.kind && own.name === t.name));
+  const tagKinds = (["topic", "exam", "syllabus"] as const).filter(
+    (kind) => kind === "topic" || item.tags.some((t) => t.kind === kind)
+  );
 
   return (
     <div className={styles.fields}>
       <FormItem name={`${base}.headline`}>
-        <FormLabel>Headline</FormLabel>
+        <FormLabel>Title</FormLabel>
         <FormControl>
           <Input
             value={item.headline}
@@ -99,26 +105,13 @@ const ItemFields: React.FC<{
         <FormMessage />
       </FormItem>
 
-      <FormItem name={`${base}.whyInNews`}>
-        <FormLabel>Why it is in the news</FormLabel>
-        <FormControl>
-          <Textarea
-            rows={2}
-            value={item.whyInNews}
-            placeholder="One or two lines on what happened and when."
-            onChange={(e) => update({ whyInNews: e.target.value })}
-          />
-        </FormControl>
-        <FormMessage />
-      </FormItem>
-
       <FormItem name={`${base}.keyPoints`}>
-        <FormLabel>Key points</FormLabel>
+        <FormLabel>Summary</FormLabel>
         <FormControl>
           <RichTextEditor
             value={item.keyPoints}
             onChange={(keyPoints) => update({ keyPoints })}
-            placeholder="Use the bullet list button for one fact per line."
+            placeholder="What happened and why it matters. Use bullets for the key facts."
             toolbarPreset="minimal"
             disableMediaUpload
             minHeight={140}
@@ -127,52 +120,45 @@ const ItemFields: React.FC<{
         <FormMessage />
       </FormItem>
 
-      <FormItem name={`${base}.background`}>
-        <FormLabel>Background and context (optional)</FormLabel>
-        <FormControl>
-          <RichTextEditor
-            value={item.background}
-            onChange={(background) => update({ background })}
-            placeholder="History, constitutional provisions, earlier decisions..."
-            toolbarPreset="minimal"
-            disableMediaUpload
-            minHeight={110}
+      <div className={styles.metaGrid}>
+        <section className={styles.subsection}>
+          <div className={styles.subsectionHead}>
+            <h4 className={styles.subsectionTitle}>Topic tags</h4>
+            {canCopyTags && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  const merged = [...item.tags];
+                  for (const tag of postTags) {
+                    if (!merged.some((t) => t.kind === tag.kind && t.name === tag.name)) merged.push(tag);
+                  }
+                  update({ tags: merged });
+                }}
+              >
+                <Tags size={14} /> Use digest tags
+              </Button>
+            )}
+          </div>
+          <CurrentAffairsTagPicker
+            value={item.tags}
+            onChange={(tags) => update({ tags })}
+            options={tagOptions}
+            kinds={[...tagKinds]}
+            variant="compact"
+            hideLabels={tagKinds.length === 1}
           />
-        </FormControl>
-        <FormMessage />
-      </FormItem>
+        </section>
 
-      <section className={styles.subsection}>
-        <div className={styles.subsectionHead}>
-          <h4 className={styles.subsectionTitle}>Tags</h4>
-          {canCopyTags && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                const merged = [...item.tags];
-                for (const tag of postTags) {
-                  if (!merged.some((t) => t.kind === tag.kind && t.name === tag.name)) merged.push(tag);
-                }
-                update({ tags: merged });
-              }}
-            >
-              <Tags size={14} /> Use post tags
-            </Button>
-          )}
-        </div>
-        <CurrentAffairsTagPicker value={item.tags} onChange={(tags) => update({ tags })} options={tagOptions} variant="compact" />
-      </section>
+        <section className={styles.subsection}>
+          <h4 className={styles.subsectionTitle}>Source link</h4>
+          <CurrentAffairsSourcesEditor name={`${base}.sources`} value={item.sources} onChange={(sources) => update({ sources })} />
+        </section>
+      </div>
 
-      <section className={styles.subsection}>
-        <h4 className={styles.subsectionTitle}>Sources</h4>
-        <CurrentAffairsSourcesEditor name={`${base}.sources`} value={item.sources} onChange={(sources) => update({ sources })} />
-      </section>
-
-      <section className={styles.subsection}>
-        {showImage ? (
-          <>
-            <h4 className={styles.subsectionTitle}>Image (optional)</h4>
+      {showImage && (
+        <section className={styles.subsection}>
+          <h4 className={styles.subsectionTitle}>Image (optional)</h4>
             <div className={styles.imageGrid}>
               <ImageUploader
                 folder="current-affairs"
@@ -207,13 +193,55 @@ const ItemFields: React.FC<{
                 </FormItem>
               </div>
             </div>
-          </>
-        ) : (
+        </section>
+      )}
+
+      {showContext && (
+        <section className={styles.subsection}>
+          <h4 className={styles.subsectionTitle}>Extra context (optional)</h4>
+          <FormItem name={`${base}.whyInNews`}>
+            <FormLabel>Why it is in the news</FormLabel>
+            <FormControl>
+              <Textarea
+                rows={2}
+                value={item.whyInNews}
+                placeholder="One line on what triggered the story."
+                onChange={(e) => update({ whyInNews: e.target.value })}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+          <FormItem name={`${base}.background`}>
+            <FormLabel>Background</FormLabel>
+            <FormControl>
+              <RichTextEditor
+                value={item.background}
+                onChange={(background) => update({ background })}
+                placeholder="History, earlier decisions, constitutional provisions..."
+                toolbarPreset="minimal"
+                disableMediaUpload
+                minHeight={100}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </section>
+      )}
+
+      {(!showImage || !showContext) && (
+        <div className={styles.extras}>
+          {!showImage && (
           <Button variant="outline" size="sm" onClick={() => setShowImage(true)} className={styles.addImage}>
             <ImagePlus size={14} /> Add an image
           </Button>
-        )}
-      </section>
+          )}
+          {!showContext && (
+            <Button variant="outline" size="sm" onClick={() => setShowContext(true)}>
+              <AlignLeft size={14} /> Add context
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   );
 };

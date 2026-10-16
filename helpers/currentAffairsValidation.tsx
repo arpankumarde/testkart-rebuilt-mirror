@@ -37,16 +37,16 @@ const checkSources = (
       issues.push({ path: `${base}.${index}.url`, message: "Enter a full link starting with https://" });
     }
     if (strict && !url) issues.push({ path: `${base}.${index}.url`, message: "Add the source link" });
-    if (strict && !name) issues.push({ path: `${base}.${index}.name`, message: "Name the source, e.g. PIB" });
   });
   if (strict && requireOne && filled === 0) {
-    issues.push({ path: requireOne, message: "Add at least one source" });
+    issues.push({ path: requireOne, message: "Add a source link" });
   }
 };
 
 /**
  * Field-level checks keyed by the editor's form paths. A draft only needs a title and well-formed
- * values; scheduling or publishing needs everything the public page renders.
+ * values; scheduling or publishing needs a title, period, author and complete items. A source's
+ * name is optional: the server falls back to the link's site name.
  * List-wide messages use their own keys (itemCount, quiz.questionCount) so they never collide with
  * the per-row paths beneath a list.
  */
@@ -80,9 +80,8 @@ export function validateCurrentAffairs(input: InputType, now: Date = new Date())
     const base = `items.${index}`;
     checkSources(item.sources, `${base}.sources`, strict, issues, strict ? `${base}.sources` : null);
     if (!strict) return;
-    if (!item.headline.trim()) add(`${base}.headline`, "Add a headline");
-    if (isBlank(item.whyInNews)) add(`${base}.whyInNews`, "Say why this is in the news");
-    if (isBlank(item.keyPoints)) add(`${base}.keyPoints`, "Add the key points");
+    if (!item.headline.trim()) add(`${base}.headline`, "Add a title");
+    if (isBlank(item.keyPoints)) add(`${base}.keyPoints`, "Write the summary");
     if (item.imageUrl && !item.imageAlt.trim()) add(`${base}.imageAlt`, "Describe the image for screen readers");
   });
 
@@ -93,20 +92,18 @@ export function validateCurrentAffairs(input: InputType, now: Date = new Date())
   });
 
   if (strict) {
-    if (!input.summary.trim()) add("summary", "Add a short summary");
-    if (!input.coverImageUrl) add("coverImageUrl", "Upload a cover image");
     if (input.coverImageUrl && !input.coverImageAlt.trim()) add("coverImageAlt", "Describe the image for screen readers");
     if (!input.authorId) add("authorId", "Choose an author");
 
     switch (input.contentType) {
       case "daily_digest":
         if (!input.digestDate) add("digestDate", "Choose the day this digest covers");
-        if (input.items.length === 0) add("itemCount", "Add at least one item");
+        if (input.items.length === 0) add("itemCount", "Add at least one news item");
         break;
       case "weekly_digest":
       case "monthly_digest":
-        if (!input.digestDate) add("digestDate", "Choose the period this digest starts on");
-        if (input.items.length === 0 && isBlank(input.body)) add("itemCount", "Add items or an overview");
+        if (!input.digestDate) add("digestDate", "Choose the period this digest covers");
+        if (input.items.length === 0 && isBlank(input.body)) add("itemCount", "Add at least one news item");
         break;
       case "editorial_analysis":
         if (isBlank(input.body)) add("body", "Write the analysis");

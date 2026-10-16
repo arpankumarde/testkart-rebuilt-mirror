@@ -145,138 +145,334 @@
   box-shadow: var(--shadow);
 }
 
-.row {
+/* Listing card: thumbnail, body, actions. Each digest type carries its own pastel
+   (--type-bg / --type-ink) for the thumbnail fallback and the type pill. */
+.card {
+  --type-bg: color-mix(in srgb, var(--tk-brand) 16%, var(--surface));
+  --type-ink: var(--tk-brand-text);
   display: grid;
-  grid-template-columns: 112px minmax(0, 1fr) auto;
+  grid-template-columns: 8.5rem minmax(0, 1fr) auto;
+  grid-template-areas: "thumb body actions";
   align-items: center;
   gap: var(--spacing-4);
-  padding: var(--spacing-3) var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-3) var(--spacing-3) var(--spacing-3);
   background-color: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
+  transition: border-color var(--animation-duration-fast) ease, box-shadow var(--animation-duration-fast) ease;
+}
+
+.card:hover {
+  border-color: color-mix(in srgb, var(--tk-brand) 45%, var(--border));
+}
+
+.type_weekly_digest {
+  --type-bg: color-mix(in srgb, var(--chart-color-2) 16%, var(--surface));
+  --type-ink: var(--secondary-text);
+}
+
+.type_monthly_digest {
+  --type-bg: color-mix(in srgb, var(--chart-color-5) 18%, var(--surface));
+  --type-ink: var(--foreground);
 }
 
 .thumb {
+  grid-area: thumb;
   display: block;
-  width: 112px;
+  width: 100%;
   aspect-ratio: 16 / 9;
   object-fit: cover;
   background-color: var(--muted);
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
 }
 
 .thumbEmpty {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: color-mix(in srgb, var(--tk-brand) 16%, var(--surface));
-  color: var(--tk-brand-text);
+  gap: var(--spacing-1);
+  background-color: var(--type-bg);
+  color: var(--type-ink);
 }
 
-.rowBody {
+.thumbLabel {
+  font-family: var(--font-family-heading);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-align: center;
+  line-height: 1.2;
+  padding: 0 var(--spacing-1);
+}
+
+.cardBody {
+  grid-area: body;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-2);
   min-width: 0;
 }
 
-.rowTitleLine {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--spacing-2);
+.cardTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
 }
 
-.rowTitle {
-  margin-right: var(--spacing-1);
-  font-weight: 700;
+.titleLink {
   color: var(--foreground);
   text-decoration: none;
   border-radius: var(--radius-sm);
 }
 
-.rowTitle:hover {
-  text-decoration: underline;
+.titleLink:hover {
+  color: var(--tk-brand-text);
 }
 
-.rowTitle:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus);
+.titleLink:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
 }
 
-.rowMeta {
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-1) var(--spacing-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Opaque pastel pills with full-strength text. */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 1.5rem;
+  padding: 0 var(--spacing-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status_published {
+  background-color: color-mix(in srgb, var(--success) 16%, var(--surface));
+  color: var(--success-text);
+}
+
+.status_scheduled {
+  background-color: color-mix(in srgb, var(--warning) 16%, var(--surface));
+  color: var(--warning-text);
+}
+
+.status_draft {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.status_archived {
+  border-color: var(--border);
+  background-color: var(--surface);
+  color: var(--muted-foreground);
+}
+
+.typePill {
+  background-color: var(--type-bg);
+  color: var(--type-ink);
+}
+
+.neutralPill {
+  border-color: var(--border);
+  background-color: var(--surface);
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.tag_topic {
+  background-color: color-mix(in srgb, var(--tk-brand) 12%, var(--surface));
+  color: var(--tk-brand-text);
+  font-weight: 600;
+}
+
+.tag_exam {
+  background-color: color-mix(in srgb, var(--info) 12%, var(--surface));
+  color: var(--info-text);
+  font-weight: 600;
+}
+
+.meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--spacing-1) var(--spacing-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
   font-size: 0.8125rem;
   color: var(--muted-foreground);
   font-variant-numeric: tabular-nums;
 }
 
-.quizMeta {
+.meta li {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-1);
-}
-
-.rowFoot {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--spacing-2);
-}
-
-.slugPath {
-  margin-right: var(--spacing-2);
-  font-size: 0.75rem;
-  color: var(--muted-foreground);
-  word-break: break-all;
-}
-
-/* Opaque pastel chips with full-strength text, one hue per tag kind. */
-.tagChip {
-  display: inline-flex;
-  align-items: center;
-  height: 1.375rem;
-  padding: 0 var(--spacing-2);
-  border-radius: var(--radius-full);
-  font-size: 0.75rem;
-  font-weight: 600;
+  gap: 6px;
   white-space: nowrap;
 }
 
-.tag_topic {
-  background-color: color-mix(in srgb, var(--tk-brand) 18%, var(--surface));
+.urlLink,
+.urlMuted {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  margin: 0;
+  font-size: 0.8125rem;
+}
+
+.urlLink {
+  align-self: flex-start;
+  padding: 2px var(--spacing-2) 2px 6px;
+  margin-left: -6px;
+  border-radius: var(--radius-sm);
   color: var(--tk-brand-text);
-}
-
-.tag_exam {
-  background-color: color-mix(in srgb, var(--info) 16%, var(--surface));
-  color: var(--info-text);
-}
-
-.tag_syllabus {
-  background-color: color-mix(in srgb, var(--success) 16%, var(--surface));
-  color: var(--success-text);
-}
-
-.tagMore {
-  font-size: 0.75rem;
   font-weight: 600;
-  color: var(--foreground);
+  text-decoration: none;
+  transition: background-color var(--animation-duration-fast) ease;
 }
 
-.actions {
+.urlLink:hover {
+  background-color: color-mix(in srgb, var(--tk-brand) 12%, var(--surface));
+  text-decoration: underline;
+}
+
+.urlLink:focus-visible,
+.urlPreview:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.urlMuted {
+  color: var(--muted-foreground);
+}
+
+.urlText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.urlNote {
+  flex-shrink: 0;
+  padding: 0 6px;
+  border-radius: var(--radius-full);
+  background-color: var(--muted);
+  color: var(--foreground);
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+.urlPreview {
+  flex-shrink: 0;
+  color: var(--tk-brand-text);
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+
+.urlPreview:hover {
+  text-decoration: underline;
+}
+
+.rowActions {
+  grid-area: actions;
   display: flex;
   align-items: center;
   gap: var(--spacing-1);
 }
 
-.deleteItem {
+/* 40px targets; coral wash on hover like the console's ghost buttons. */
+.actionButton {
+  width: 2.5rem;
+  height: 2.5rem;
+  color: var(--foreground);
+}
+
+.actionButton:hover {
+  background-color: color-mix(in srgb, var(--tk-brand) 14%, var(--surface));
+  color: var(--tk-brand-text);
+}
+
+/* Card "More" menu. The kit's menu styles sit in @layer base, so these win without
+   touching other admin menus: icon and label spaced apart, a coral wash on hover
+   instead of a solid fill, and Delete in red. */
+.menu {
+  min-width: 12rem;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+  box-shadow: var(--shadow-md);
+}
+
+.menuItem {
+  gap: var(--spacing-3);
+  min-height: 2.375rem;
+  padding: 0 var(--spacing-3);
+  border-radius: var(--radius-sm);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.menuIcon {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+  transition: color var(--animation-duration-fast);
+}
+
+.menuItem:hover,
+.menuItem:focus-visible,
+.menuItem[data-highlighted] {
+  background-color: color-mix(in srgb, var(--tk-brand) 14%, var(--surface));
+  color: var(--tk-brand-text);
+}
+
+.menuItem:hover .menuIcon,
+.menuItem:focus-visible .menuIcon,
+.menuItem[data-highlighted] .menuIcon {
+  color: var(--tk-brand-text);
+}
+
+.menuDanger,
+.menuDanger .menuIcon {
   color: var(--error-text);
+}
+
+.menuDanger:hover,
+.menuDanger:focus-visible,
+.menuDanger[data-highlighted] {
+  background-color: color-mix(in srgb, var(--error) 12%, var(--surface));
+  color: var(--error-text);
+}
+
+.menuDanger:hover .menuIcon,
+.menuDanger:focus-visible .menuIcon,
+.menuDanger[data-highlighted] .menuIcon {
+  color: var(--error-text);
+}
+
+.menuSeparator {
+  margin: 4px var(--spacing-1);
 }
 
 .pager {
@@ -293,17 +489,35 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Narrow: thumbnail beside the body, actions on their own line along the bottom. */
 @media (max-width: 768px) {
-  .row {
-    grid-template-columns: 1fr;
+  .card {
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    grid-template-areas:
+      "thumb body"
+      "actions actions";
+    align-items: start;
   }
 
-  .thumb {
-    width: 100%;
-  }
-
-  .actions {
+  .rowActions {
     justify-content: flex-end;
+    padding-top: var(--spacing-2);
+    border-top: 1px solid var(--border);
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    gap: var(--spacing-3);
+  }
+
+  .thumbLabel {
+    display: none;
+  }
+
+  .meta {
+    gap: var(--spacing-1) var(--spacing-3);
   }
 }
 
@@ -348,5 +562,10 @@
 @media (prefers-reduced-motion: reduce) {
   .spin {
     animation: none;
+  }
+
+  .card,
+  .urlLink {
+    transition: none;
   }
 }

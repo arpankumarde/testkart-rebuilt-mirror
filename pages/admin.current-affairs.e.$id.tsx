@@ -8,19 +8,15 @@ import {
   Archive,
   ArchiveRestore,
   ArrowLeft,
+  Calendar,
   CalendarDays,
+  CalendarRange,
+  Check,
   CheckCircle2,
+  ChevronDown,
   Eye,
-  FileText,
-  Link2,
-  ListChecks,
   Loader2,
-  Plus,
-  Search,
-  Tags,
   Trash2,
-  LayoutList,
-  X,
 } from "lucide-react";
 import {
   schema as saveSchema,
@@ -28,7 +24,7 @@ import {
   type InputType,
   type ValidationIssue,
 } from "../endpoints/admin/current-affairs/save_POST.schema";
-import type { CurrentAffairsPostDetail, CurrentAffairsRelatedSummary } from "../endpoints/admin/current-affairs/get_GET.schema";
+import type { CurrentAffairsPostDetail } from "../endpoints/admin/current-affairs/get_GET.schema";
 import { getAdminCurrentAffairsSlugCheck } from "../endpoints/admin/current-affairs/slug-check_GET.schema";
 import {
   useAdminCurrentAffairsPost,
@@ -44,11 +40,10 @@ import { currentAffairsMeta } from "../helpers/currentAffairsMeta";
 import { validateCurrentAffairs } from "../helpers/currentAffairsValidation";
 import { parseErrorMessage } from "../helpers/parseErrorMessage";
 import { slugify } from "../helpers/slugify";
-import type { CurrentAffairsContentType, CurrentAffairsStatus } from "../helpers/schema";
+import type { CurrentAffairsContentType } from "../helpers/schema";
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
 import { Textarea } from "../components/Textarea";
-import { Switch } from "../components/Switch";
 import { Skeleton } from "../components/Skeleton";
 import { RadioGroup, RadioGroupItem } from "../components/RadioGroup";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/Select";
@@ -61,83 +56,74 @@ import { ImageUploader } from "../components/ImageUploader";
 import { RichTextEditor } from "../components/RichTextEditor";
 import { CurrentAffairsStatusBadge } from "../components/CurrentAffairsStatusBadge";
 import { CurrentAffairsTagPicker } from "../components/CurrentAffairsTagPicker";
-import { CurrentAffairsSourcesEditor } from "../components/CurrentAffairsSourcesEditor";
 import { CurrentAffairsItemsEditor, emptyCurrentAffairsItem } from "../components/CurrentAffairsItemsEditor";
 import { CurrentAffairsQuizEditor } from "../components/CurrentAffairsQuizEditor";
-import { CurrentAffairsRelatedPicker } from "../components/CurrentAffairsRelatedPicker";
 import { CurrentAffairsPreview } from "../components/CurrentAffairsPreview";
 import { Form, FormControl, FormItem, FormLabel, FormMessage, useForm } from "../components/Form";
 import styles from "./admin.current-affairs.e.$id.module.css";
 
-type SectionKey = "basics" | "tags" | "content" | "supporting" | "quiz" | "seo";
 type PublishMode = "now" | "schedule";
 type ErrorTree = { [key: string]: string | ErrorTree };
 type SavedMeta = Pick<
   CurrentAffairsPostDetail,
-  "status" | "publishedAt" | "firstPublishedAt" | "updatedAt" | "createdAt" | "createdByName" | "updatedByName" | "previousSlugs"
+  "status" | "publishedAt" | "firstPublishedAt" | "updatedAt" | "createdAt" | "createdByName" | "updatedByName" | "previousSlugs" | "related"
 >;
 
 const SEO_TITLE_TARGET = 60;
 const SEO_DESCRIPTION_TARGET = 160;
-const GLANCE_MAX = 5;
 
-const sectionOf = (path: string): SectionKey => {
-  const root = path.split(".")[0];
-  if (["tags"].includes(root)) return "tags";
-  if (["items", "itemCount", "atAGlance", "body"].includes(root)) return "content";
-  if (["sources", "relatedIds", "corrections", "readingTimeMinutes"].includes(root)) return "supporting";
-  if (root === "quiz") return "quiz";
-  if (["seoTitle", "seoDescription", "ogImageUrl"].includes(root)) return "seo";
-  return "basics";
-};
+const DIGEST_ICONS = {
+  daily_digest: CalendarDays,
+  weekly_digest: CalendarRange,
+  monthly_digest: Calendar,
+} as const;
 
-const flattenErrors = (tree: ErrorTree, prefix = ""): string[] =>
-  Object.entries(tree).flatMap(([key, value]) =>
-    typeof value === "string" ? [`${prefix}${key}`] : flattenErrors(value, `${prefix}${key}.`)
-  );
+/** Fields that live under Advanced settings, so an error there opens it. */
+const ADVANCED_ROOTS = ["summary", "coverImageUrl", "coverImageAlt", "coverImageCredit", "slug", "seoTitle", "seoDescription", "ogImageUrl", "quiz"];
 
-const contentLabel = (type: CurrentAffairsContentType) =>
-  type === "editorial_analysis" ? "Analysis" : type === "individual_item" ? "Story" : "Digest items";
+const rootOf = (path: string) => path.split(".")[0];
 
-const dailyTitle = (day: string) => `Current Affairs: ${currentAffairsMeta.formatDay(day)}`;
+const isContentType = (value: string | null): value is CurrentAffairsContentType =>
+  currentAffairsMeta.CONTENT_TYPES.some((t) => t.value === value);
 
 const tomorrowSevenIst = () => {
   const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
   return `${currentAffairsMeta.toIstInput(tomorrow).slice(0, 10)}T07:00`;
 };
 
-const isContentType = (value: string | null): value is CurrentAffairsContentType =>
-  currentAffairsMeta.CONTENT_TYPES.some((t) => t.value === value);
-
-const emptyValues = (contentType: CurrentAffairsContentType, authorId: number | null): InputType => ({
-  contentType,
-  title: contentType === "daily_digest" ? dailyTitle(currentAffairsMeta.istToday()) : "",
-  slug: contentType === "daily_digest" ? slugify(dailyTitle(currentAffairsMeta.istToday())) : "",
-  summary: "",
-  coverImageUrl: "",
-  coverImageFileId: "",
-  coverImageAlt: "",
-  coverImageCredit: "",
-  authorId,
-  language: "en",
-  status: "draft",
-  publishAt: "",
-  digestDate: currentAffairsMeta.isDigest(contentType) ? currentAffairsMeta.istToday() : "",
-  atAGlance: [],
-  body: "",
-  readingTimeMinutes: 1,
-  readingTimeIsManual: false,
-  seoTitle: "",
-  seoDescription: "",
-  ogImageUrl: "",
-  ogImageFileId: "",
-  tags: [],
-  sources: [],
-  items: contentType === "individual_item" ? [emptyCurrentAffairsItem()] : [],
-  relatedIds: [],
-  corrections: [],
-  quiz: null,
-});
+const emptyValues = (contentType: CurrentAffairsContentType, authorId: number | null): InputType => {
+  const digestDate = currentAffairsMeta.periodStart(contentType, currentAffairsMeta.istToday());
+  const title = currentAffairsMeta.autoTitle(contentType, digestDate);
+  return {
+    contentType,
+    title,
+    slug: slugify(title),
+    summary: "",
+    coverImageUrl: "",
+    coverImageFileId: "",
+    coverImageAlt: "",
+    coverImageCredit: "",
+    authorId,
+    language: "en",
+    status: "draft",
+    publishAt: "",
+    digestDate,
+    atAGlance: [],
+    body: "",
+    readingTimeMinutes: 1,
+    readingTimeIsManual: false,
+    seoTitle: "",
+    seoDescription: "",
+    ogImageUrl: "",
+    ogImageFileId: "",
+    tags: [],
+    sources: [],
+    items: [emptyCurrentAffairsItem()],
+    relatedIds: [],
+    corrections: [],
+    quiz: null,
+  };
+};
 
 const toFormValues = (post: CurrentAffairsPostDetail): InputType => {
   const values = saveSchema.parse({ ...post, status: post.status === "archived" ? "draft" : post.status });
@@ -153,6 +139,7 @@ const toMeta = (post: CurrentAffairsPostDetail): SavedMeta => ({
   createdByName: post.createdByName,
   updatedByName: post.updatedByName,
   previousSlugs: post.previousSlugs,
+  related: post.related,
 });
 
 const SUCCESS_COPY: Record<InputType["status"], string> = {
@@ -160,6 +147,9 @@ const SUCCESS_COPY: Record<InputType["status"], string> = {
   scheduled: "Scheduled",
   published: "Published",
 };
+
+const periodFieldLabel = (type: CurrentAffairsContentType) =>
+  type === "weekly_digest" ? "Week starting (Monday)" : type === "monthly_digest" ? "Month" : "Date";
 
 const AdminCurrentAffairsEditorPage: React.FC = () => {
   const { id: idSegment } = useParams<{ id: string }>();
@@ -180,7 +170,7 @@ const AdminCurrentAffairsEditorPage: React.FC = () => {
 
   const [initialValues] = useState(() => {
     const type = searchParams.get("type");
-    return emptyValues(isContentType(type) ? type : "daily_digest", currentAdminId);
+    return emptyValues(isContentType(type) && currentAffairsMeta.isDigest(type) ? type : "daily_digest", currentAdminId);
   });
   const form = useForm({ schema: saveSchema, defaultValues: initialValues });
   const values = form.values as InputType;
@@ -188,13 +178,12 @@ const AdminCurrentAffairsEditorPage: React.FC = () => {
 
   const [saved, setSaved] = useState<InputType | null>(isNewRoute ? initialValues : null);
   const [meta, setMeta] = useState<SavedMeta | null>(null);
-  const [section, setSection] = useState<SectionKey>("basics");
   const [publishMode, setPublishMode] = useState<PublishMode>("now");
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [confirmUnpublish, setConfirmUnpublish] = useState(false);
   const [confirmArchive, setConfirmArchive] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [related, setRelated] = useState<Record<number, CurrentAffairsRelatedSummary>>({});
 
   const { setHeaderHidden } = useAdminLayout();
   useEffect(() => {
@@ -222,7 +211,6 @@ const AdminCurrentAffairsEditorPage: React.FC = () => {
     setSaved(next);
     setMeta(toMeta(loadedPost));
     setPublishMode(loadedPost.status === "scheduled" ? "schedule" : "now");
-    setRelated(Object.fromEntries(loadedPost.related.map((r) => [r.id, r])));
   }, [saved, loadedPost, form.setValues]);
 
   const isDirty = !!saved && JSON.stringify(values) !== JSON.stringify(saved);
@@ -250,19 +238,7 @@ const AdminCurrentAffairsEditorPage: React.FC = () => {
     staleTime: 10_000,
   });
 
-  const errorPaths = useMemo(() => flattenErrors(form.errors as ErrorTree), [form.errors]);
-  const sectionErrors = useMemo(() => {
-    const counts: Partial<Record<SectionKey, number>> = {};
-    for (const path of errorPaths) counts[sectionOf(path)] = (counts[sectionOf(path)] ?? 0) + 1;
-    return counts;
-  }, [errorPaths]);
-
-  const readiness = useMemo(() => {
-    const issues = validateCurrentAffairs({ ...values, status: "published", publishAt: "" });
-    const counts: Partial<Record<SectionKey, number>> = {};
-    for (const issue of issues) counts[sectionOf(issue.path)] = (counts[sectionOf(issue.path)] ?? 0) + 1;
-    return { total: issues.length, counts };
-  }, [values]);
+  const readinessIssues = useMemo(() => validateCurrentAffairs({ ...values, status: "published", publishAt: "" }), [values]);
 
   const tagOptions = tagsQuery.data?.tags ?? [];
   const admins = (adminsQuery.data?.admins ?? []).filter((a) => a.isActive || a.id === values.authorId);
@@ -270,17 +246,19 @@ const AdminCurrentAffairsEditorPage: React.FC = () => {
 
   const set = <K extends keyof InputType>(key: K, value: InputType[K]) => setValues((prev) => ({ ...prev, [key]: value }));
 
-  const applyIssues = (issues: ValidationIssue[], headline?: string) => {
-    form.validateForm();
-    for (const issue of issues) form.setFieldError(issue.path, issue.message);
-    const first = issues[0];
-    if (first) setSection(sectionOf(first.path));
-    toast.error(headline ?? `${issues.length} field${issues.length === 1 ? " needs" : "s need"} attention`, {
-      description: first?.message,
-    });
+  const scrollToFirstError = () =>
     setTimeout(() => {
       document.querySelector('[aria-invalid="true"]')?.scrollIntoView({ block: "center", behavior: "smooth" });
     }, 150);
+
+  const applyIssues = (issues: ValidationIssue[], headline?: string) => {
+    form.validateForm();
+    for (const issue of issues) form.setFieldError(issue.path, issue.message);
+    if (issues.some((issue) => ADVANCED_ROOTS.includes(rootOf(issue.path)))) setAdvancedOpen(true);
+    toast.error(headline ?? `${issues.length} field${issues.length === 1 ? " needs" : "s need"} attention`, {
+      description: issues[0]?.message,
+    });
+    scrollToFirstError();
   };
 
   const isLive = meta?.status === "published";
@@ -309,6 +287,7 @@ const AdminCurrentAffairsEditorPage: React.FC = () => {
           slug: settled.slug,
           status: settled.status,
           publishAt: settled.publishAt,
+          digestDate: settled.digestDate,
           readingTimeMinutes: settled.readingTimeMinutes,
         };
         setSaved({ ...payload, ...patch });
@@ -343,22 +322,18 @@ const AdminCurrentAffairsEditorPage: React.FC = () => {
     );
   };
 
-  const changeContentType = (contentType: CurrentAffairsContentType) =>
+  // Type and period drive the headline until the admin writes their own; the slug follows the
+  // headline while it has never been hand-edited and the post has never gone live.
+  const setPeriod = (contentType: CurrentAffairsContentType, day: string) =>
     setValues((prev) => {
-      const next: InputType = { ...prev, contentType };
-      if (contentType === "individual_item" && prev.items.length === 0) next.items = [emptyCurrentAffairsItem()];
-      if (currentAffairsMeta.isDigest(contentType) && !prev.digestDate) next.digestDate = currentAffairsMeta.istToday();
-      return next;
-    });
-
-  const changeDigestDate = (digestDate: string) =>
-    setValues((prev) => {
-      const next: InputType = { ...prev, digestDate };
-      const autoTitle = prev.digestDate ? dailyTitle(prev.digestDate) : "";
-      if (prev.contentType === "daily_digest" && digestDate && (!prev.title || prev.title === autoTitle)) {
-        next.title = dailyTitle(digestDate);
+      const digestDate = day ? currentAffairsMeta.periodStart(contentType, day) : "";
+      const next: InputType = { ...prev, contentType, digestDate };
+      const previousAuto = prev.digestDate ? currentAffairsMeta.autoTitle(prev.contentType, prev.digestDate) : "";
+      if (digestDate && (!prev.title.trim() || prev.title === previousAuto)) {
+        next.title = currentAffairsMeta.autoTitle(contentType, digestDate);
         if (!meta?.firstPublishedAt && prev.slug === slugify(prev.title)) next.slug = slugify(next.title);
       }
+      if (next.items.length === 0) next.items = [emptyCurrentAffairsItem()];
       return next;
     });
 
@@ -370,7 +345,7 @@ const AdminCurrentAffairsEditorPage: React.FC = () => {
           <ConsoleListEmpty
             tone="error"
             icon={<AlertCircle size={24} />}
-            title="Could not load this post"
+            title="Could not load this digest"
             description={parseErrorMessage(detailQuery.error)}
           >
             <Button variant="outline" onClick={() => detailQuery.refetch()}>
@@ -384,11 +359,11 @@ const AdminCurrentAffairsEditorPage: React.FC = () => {
       return (
         <div className={styles.notFound}>
           <Helmet>
-            <title>Post not found - Testkart Admin</title>
+            <title>Digest not found - Testkart Admin</title>
           </Helmet>
           <ConsoleListEmpty
             icon={<CalendarDays size={24} />}
-            title="Post not found"
+            title="Digest not found"
             description="It may have been deleted, or the link is wrong."
           >
             <Button asChild variant="outline">
@@ -404,7 +379,7 @@ const AdminCurrentAffairsEditorPage: React.FC = () => {
         <div className={styles.contentArea}>
           <div className={styles.layout}>
             <Skeleton style={{ height: "560px", borderRadius: "var(--radius-md)" }} />
-            <Skeleton style={{ height: "420px", borderRadius: "var(--radius-md)" }} />
+            <Skeleton style={{ height: "320px", borderRadius: "var(--radius-md)" }} />
           </div>
         </div>
       </div>
@@ -412,23 +387,17 @@ const AdminCurrentAffairsEditorPage: React.FC = () => {
   }
 
   const isSaved = !!values.id;
+  const isDigestType = currentAffairsMeta.isDigest(values.contentType);
   const slugChanged = !!meta?.firstPublishedAt && !!saved.slug && saved.slug !== slugToCheck;
   const slugTaken = slugCheck.data && slugCheck.data.slug === slugToCheck && !slugCheck.data.available ? slugCheck.data.usedBy : null;
-  const isDigest = currentAffairsMeta.isDigest(values.contentType);
-  const quizDefaultTitle = values.digestDate ? `Daily quiz: ${currentAffairsMeta.formatDay(values.digestDate)}` : "Daily quiz";
+  const period = currentAffairsMeta.periodLabel(values.contentType, values.digestDate);
+  const quizDefaultTitle = period
+    ? `${currentAffairsMeta.contentTypeShort(values.contentType)} quiz: ${period}`
+    : "Current affairs quiz";
 
   const primaryLabel =
     publishMode === "schedule" && !isLive ? (isScheduled ? "Update schedule" : "Schedule") : isLive ? "Update" : "Publish";
   const primaryTarget: InputType["status"] = publishMode === "schedule" && !isLive ? "scheduled" : "published";
-
-  const sections: { key: SectionKey; label: string; icon: React.ReactNode }[] = [
-    { key: "basics", label: "Basics", icon: <FileText size={15} /> },
-    { key: "tags", label: "Tags", icon: <Tags size={15} /> },
-    { key: "content", label: contentLabel(values.contentType), icon: <LayoutList size={15} /> },
-    { key: "supporting", label: "Sources & related", icon: <Link2 size={15} /> },
-    { key: "quiz", label: "Quiz", icon: <ListChecks size={15} /> },
-    { key: "seo", label: "SEO & sharing", icon: <Search size={15} /> },
-  ];
 
   const statusLine = (() => {
     if (!meta) return "Not saved yet";
@@ -438,524 +407,88 @@ const AdminCurrentAffairsEditorPage: React.FC = () => {
     return "Draft - not on the site";
   })();
 
-  const renderBasics = () => (
-    <div className={styles.sectionBody}>
-      <FormItem name="title">
+  const issueCount = (match: (root: string, path: string) => boolean) =>
+    readinessIssues.filter((issue) => match(rootOf(issue.path), issue.path)).length;
+  const itemIssueCount = issueCount((root) => root === "items");
+  const advancedIssueCount = issueCount((root) => ADVANCED_ROOTS.includes(root));
+  const checklist: { label: string; ok: boolean; detail?: string; target: string }[] = [
+    { label: "Title", ok: issueCount((root) => root === "title") === 0, target: "ca-details" },
+    {
+      label: values.contentType === "weekly_digest" ? "Week" : values.contentType === "monthly_digest" ? "Month" : "Date",
+      ok: issueCount((root) => root === "digestDate") === 0,
+      target: "ca-details",
+    },
+    { label: "Author", ok: issueCount((root) => root === "authorId") === 0, target: "ca-details" },
+    {
+      label: "News items",
+      ok: issueCount((root) => root === "itemCount") === 0 && itemIssueCount === 0,
+      detail: values.items.length === 0 ? "None yet" : itemIssueCount > 0 ? `${itemIssueCount} to fix` : `${values.items.length} ready`,
+      target: "ca-items",
+    },
+    ...(advancedIssueCount > 0
+      ? [{ label: "Advanced settings", ok: false, detail: `${advancedIssueCount} to fix`, target: "ca-advanced" }]
+      : []),
+  ];
+  const readyCount = checklist.filter((row) => row.ok).length;
+
+  const goTo = (id: string) => {
+    if (id === "ca-advanced") setAdvancedOpen(true);
+    setTimeout(() => document.getElementById(id)?.scrollIntoView({ block: "start", behavior: "smooth" }), 50);
+  };
+
+  const renderPeriodField = () => {
+    if (!isDigestType) return null;
+    return (
+      <FormItem name="digestDate">
+        <FormLabel>{periodFieldLabel(values.contentType)}</FormLabel>
         <FormControl>
-          <input
-            className={styles.titleInput}
-            placeholder="Headline"
-            aria-label="Title"
-            value={values.title}
-            onChange={(e) => {
-              const title = e.target.value;
-              setValues((prev) => ({
-                ...prev,
-                title,
-                // The slug follows the title until it is hand-edited or the post has gone live once.
-                slug: !meta?.firstPublishedAt && prev.slug === slugify(prev.title) ? slugify(title) : prev.slug,
-              }));
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") e.preventDefault();
-            }}
-          />
+          {values.contentType === "monthly_digest" ? (
+            <Input
+              type="month"
+              value={values.digestDate.slice(0, 7)}
+              onChange={(e) => setPeriod(values.contentType, e.target.value ? `${e.target.value}-01` : "")}
+            />
+          ) : (
+            <Input type="date" value={values.digestDate} onChange={(e) => setPeriod(values.contentType, e.target.value)} />
+          )}
         </FormControl>
+        {values.contentType === "weekly_digest" && period && <p className={styles.hint}>Covers {period}</p>}
         <FormMessage />
       </FormItem>
-
-      <div className={styles.grid2}>
-        <FormItem name="contentType">
-          <FormLabel>Content type</FormLabel>
-          <Select value={values.contentType} onValueChange={(v) => changeContentType(v as CurrentAffairsContentType)}>
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              {currentAffairsMeta.CONTENT_TYPES.map((t) => (
-                <SelectItem key={t.value} value={t.value}>
-                  {t.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <FormMessage />
-        </FormItem>
-
-        <FormItem name="language">
-          <FormLabel>Language</FormLabel>
-          <Select value={values.language} onValueChange={(v) => set("language", v as InputType["language"])}>
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              {currentAffairsMeta.LANGUAGES.map((l) => (
-                <SelectItem key={l.value} value={l.value}>
-                  {l.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <FormMessage />
-        </FormItem>
-
-        {isDigest && (
-          <FormItem name="digestDate">
-            <FormLabel>
-              {values.contentType === "daily_digest" ? "Digest date" : values.contentType === "weekly_digest" ? "Week starting" : "Month starting"}
-            </FormLabel>
-            <FormControl>
-              <Input type="date" value={values.digestDate} onChange={(e) => changeDigestDate(e.target.value)} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-
-        <FormItem name="authorId">
-          <FormLabel>Author</FormLabel>
-          <Select
-            value={values.authorId ? String(values.authorId) : "__none"}
-            onValueChange={(v) => set("authorId", v === "__none" ? null : Number(v))}
-          >
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder="Choose an author" />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              <SelectItem value="__none">No author</SelectItem>
-              {admins.map((a) => (
-                <SelectItem key={a.id} value={String(a.id)}>
-                  {a.fullName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <FormMessage />
-        </FormItem>
-      </div>
-
-      <FormItem name="slug">
-        <FormLabel>URL slug</FormLabel>
-        <FormControl>
-          <Input
-            value={values.slug}
-            placeholder="current-affairs-23-october-2026"
-            onChange={(e) => set("slug", e.target.value)}
-            onBlur={() => setValues((prev) => ({ ...prev, slug: slugify(prev.slug) }))}
-          />
-        </FormControl>
-        <p className={styles.urlPreview}>
-          testkart.in/current-affairs/<strong>{slugToCheck || "..."}</strong>
-        </p>
-        {slugTaken ? (
-          <p className={styles.fieldError} role="alert">
-            Already used by "{slugTaken.title}". Pick another slug before saving.
-          </p>
-        ) : slugCheck.data?.available && slugCheck.data.slug === slugToCheck && slugToCheck !== saved.slug ? (
-          <p className={styles.fieldOk}>
-            <CheckCircle2 size={13} aria-hidden="true" /> Available
-          </p>
-        ) : null}
-        {slugChanged && (
-          <p className={styles.warning}>The old URL /current-affairs/{saved.slug} keeps redirecting to the new one.</p>
-        )}
-        <FormMessage />
-      </FormItem>
-
-      <FormItem name="summary">
-        <FormLabel>Summary</FormLabel>
-        <FormControl>
-          <Textarea
-            rows={3}
-            value={values.summary}
-            placeholder="One or two lines under the headline: what this digest or article covers."
-            onChange={(e) => set("summary", e.target.value)}
-          />
-        </FormControl>
-        <p className={styles.hint}>{values.summary.length} / 600 - aim for under 200 characters.</p>
-        <FormMessage />
-      </FormItem>
-
-      <div className={styles.coverBlock}>
-        <FormItem name="coverImageUrl" className={styles.coverUpload}>
-          <FormLabel>Cover image</FormLabel>
-          <ImageUploader
-            folder="current-affairs"
-            currentImageUrl={values.coverImageUrl || undefined}
-            currentFileId={values.coverImageFileId || undefined}
-            aspectRatio="16 / 9"
-            label="Upload cover image"
-            onSuccess={({ url, fileId }) => setValues((prev) => ({ ...prev, coverImageUrl: url, coverImageFileId: fileId }))}
-          />
-          <p className={styles.hint}>16:9, 1200x675 or larger.</p>
-          <FormMessage />
-        </FormItem>
-        <div className={styles.coverMeta}>
-          <FormItem name="coverImageAlt">
-            <FormLabel>Alt text</FormLabel>
-            <FormControl>
-              <Textarea
-                rows={2}
-                value={values.coverImageAlt}
-                placeholder="What the image shows, for screen readers"
-                onChange={(e) => set("coverImageAlt", e.target.value)}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-          <FormItem name="coverImageCredit">
-            <FormLabel>Image credit (optional)</FormLabel>
-            <FormControl>
-              <Input value={values.coverImageCredit} placeholder="e.g. PIB" onChange={(e) => set("coverImageCredit", e.target.value)} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderGlance = () => (
-    <section className={styles.subCard}>
-      <div className={styles.subHead}>
-        <h3 className={styles.subTitle}>At a glance</h3>
-        {values.items.some((i) => i.headline.trim()) && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() =>
-              set(
-                "atAGlance",
-                values.items
-                  .map((i) => i.headline.trim())
-                  .filter(Boolean)
-                  .slice(0, GLANCE_MAX)
-              )
-            }
-          >
-            Fill from item headlines
-          </Button>
-        )}
-      </div>
-      <p className={styles.hint}>Up to {GLANCE_MAX} one-line summaries shown above the items.</p>
-      {values.atAGlance.map((line, index) => (
-        <div key={index} className={styles.inlineRow}>
-          <Input
-            value={line}
-            aria-label={`At a glance line ${index + 1}`}
-            onChange={(e) => set("atAGlance", values.atAGlance.map((l, i) => (i === index ? e.target.value : l)))}
-          />
-          <Button
-            variant="ghost"
-            size="icon-md"
-            className={styles.danger}
-            onClick={() => set("atAGlance", values.atAGlance.filter((_, i) => i !== index))}
-            aria-label={`Remove line ${index + 1}`}
-          >
-            <X size={16} />
-          </Button>
-        </div>
-      ))}
-      {values.atAGlance.length < GLANCE_MAX && (
-        <Button variant="outline" size="sm" className={styles.selfStart} onClick={() => set("atAGlance", [...values.atAGlance, ""])}>
-          <Plus size={14} /> Add line
-        </Button>
-      )}
-    </section>
-  );
+    );
+  };
 
   const renderContent = () => {
+    // Editorials and single items can no longer be created; older ones stay editable here.
     if (values.contentType === "editorial_analysis") {
       return (
-        <div className={styles.sectionBody}>
-          <FormItem name="body">
-            <FormLabel>Analysis</FormLabel>
-            <FormControl>
-              <RichTextEditor
-                className={styles.editor}
-                value={values.body}
-                onChange={(body) => set("body", body)}
-                placeholder="Write the editorial analysis..."
-                minHeight={420}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        </div>
+        <FormItem name="body">
+          <FormControl>
+            <RichTextEditor value={values.body} onChange={(body) => set("body", body)} placeholder="Analysis..." minHeight={360} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
       );
     }
-
-    if (values.contentType === "individual_item") {
-      return (
-        <div className={styles.sectionBody}>
-          {values.items.length > 1 && (
-            <div className={styles.warning}>
-              This post still holds {values.items.length} items from when it was a digest. A single item shows only one.
-              <Button variant="outline" size="sm" onClick={() => set("items", values.items.slice(0, 1))}>
-                Keep only the first
-              </Button>
-            </div>
-          )}
-          <FormItem name="itemCount">
-            <FormMessage />
-          </FormItem>
-          <CurrentAffairsItemsEditor
-            mode="single"
-            items={values.items}
-            onChange={(items) => set("items", items)}
-            tagOptions={tagOptions}
-            postTags={values.tags}
-            errors={form.errors as ErrorTree}
-          />
-        </div>
-      );
-    }
-
     return (
-      <div className={styles.sectionBody}>
-        {renderGlance()}
-        <CurrentAffairsItemsEditor
-          items={values.items}
-          onChange={(items) => set("items", items)}
-          tagOptions={tagOptions}
-          postTags={values.tags}
-          errors={form.errors as ErrorTree}
-        />
-        {values.contentType !== "daily_digest" && (
-          <FormItem name="body">
-            <FormLabel>Overview (optional)</FormLabel>
-            <FormControl>
-              <RichTextEditor
-                value={values.body}
-                onChange={(body) => set("body", body)}
-                placeholder="An introduction to the week or month..."
-                minHeight={200}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      </div>
+      <CurrentAffairsItemsEditor
+        mode={values.contentType === "individual_item" ? "single" : "list"}
+        items={values.items}
+        onChange={(items) => set("items", items)}
+        tagOptions={tagOptions}
+        postTags={values.tags}
+        errors={form.errors as ErrorTree}
+      />
     );
   };
 
-  const renderSupporting = () => (
-    <div className={styles.sectionBody}>
-      <section className={styles.subCard}>
-        <h3 className={styles.subTitle}>Sources</h3>
-        <p className={styles.hint}>
-          {values.contentType === "editorial_analysis"
-            ? "The articles and reports this analysis draws on. At least one is needed to publish."
-            : "Post-wide references. Each digest item keeps its own sources too."}
-        </p>
-        <CurrentAffairsSourcesEditor name="sources" value={values.sources} onChange={(sources) => set("sources", sources)} />
-      </section>
-
-      <section className={styles.subCard}>
-        <h3 className={styles.subTitle}>Related current affairs</h3>
-        <CurrentAffairsRelatedPicker
-          value={values.relatedIds}
-          onChange={(ids) => set("relatedIds", ids)}
-          known={related}
-          onKnown={(summary) => setRelated((prev) => ({ ...prev, [summary.id]: summary }))}
-          excludeId={values.id}
-        />
-      </section>
-
-      <section className={styles.subCard}>
-        <h3 className={styles.subTitle}>Corrections</h3>
-        <p className={styles.hint}>Dated notes shown at the end of the post, only when there is one.</p>
-        {values.corrections.map((correction, index) => (
-          <div key={correction.key} className={styles.correctionRow}>
-            <FormItem name={`corrections.${index}.date`}>
-              <FormControl>
-                <Input
-                  type="date"
-                  aria-label={`Correction ${index + 1} date`}
-                  value={correction.date}
-                  onChange={(e) =>
-                    set("corrections", values.corrections.map((c, i) => (i === index ? { ...c, date: e.target.value } : c)))
-                  }
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-            <FormItem name={`corrections.${index}.note`}>
-              <FormControl>
-                <Textarea
-                  rows={2}
-                  aria-label={`Correction ${index + 1} note`}
-                  placeholder="What was wrong and what it now says"
-                  value={correction.note}
-                  onChange={(e) =>
-                    set("corrections", values.corrections.map((c, i) => (i === index ? { ...c, note: e.target.value } : c)))
-                  }
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-            <Button
-              variant="ghost"
-              size="icon-md"
-              className={styles.danger}
-              onClick={() => set("corrections", values.corrections.filter((_, i) => i !== index))}
-              aria-label={`Remove correction ${index + 1}`}
-            >
-              <Trash2 size={16} />
-            </Button>
-          </div>
-        ))}
-        <Button
-          variant="outline"
-          size="sm"
-          className={styles.selfStart}
-          onClick={() =>
-            set("corrections", [
-              ...values.corrections,
-              { key: `c-${Date.now()}`, date: currentAffairsMeta.istToday(), note: "" },
-            ])
-          }
-        >
-          <Plus size={14} /> Add correction
-        </Button>
-      </section>
-
-      <section className={styles.subCard}>
-        <h3 className={styles.subTitle}>Reading time</h3>
-        <div className={styles.switchRow}>
-          <span className={styles.switchLabel}>
-            {values.readingTimeIsManual
-              ? "Set by hand"
-              : `Worked out from the text: ${currentAffairsMeta.readingMinutes([
-                  values.summary,
-                  values.body,
-                  ...values.atAGlance,
-                  ...values.items.flatMap((i) => [i.headline, i.whyInNews, i.keyPoints, i.background]),
-                ])} min`}
-          </span>
-          <Switch
-            checked={values.readingTimeIsManual}
-            onCheckedChange={(manual) => set("readingTimeIsManual", manual)}
-            aria-label="Set reading time by hand"
-          />
-        </div>
-        {values.readingTimeIsManual && (
-          <FormItem name="readingTimeMinutes" className={styles.narrowField}>
-            <FormLabel>Minutes</FormLabel>
-            <FormControl>
-              <Input
-                type="number"
-                min={1}
-                max={240}
-                value={values.readingTimeMinutes}
-                onChange={(e) => set("readingTimeMinutes", Math.min(240, Math.max(1, Number(e.target.value) || 1)))}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      </section>
-    </div>
-  );
-
-  const renderSeo = () => {
-    const seoTitle = values.seoTitle || values.title;
-    const seoDescription = values.seoDescription || values.summary;
-    return (
-      <div className={styles.sectionBody}>
-        <FormItem name="seoTitle">
-          <FormLabel>SEO title</FormLabel>
-          <FormControl>
-            <Input value={values.seoTitle} placeholder={values.title} onChange={(e) => set("seoTitle", e.target.value)} />
-          </FormControl>
-          <p className={`${styles.hint} ${seoTitle.length > SEO_TITLE_TARGET ? styles.over : ""}`}>
-            {seoTitle.length} / {SEO_TITLE_TARGET}. Left blank, the headline is used.
-          </p>
-          <FormMessage />
-        </FormItem>
-        <FormItem name="seoDescription">
-          <FormLabel>Meta description</FormLabel>
-          <FormControl>
-            <Textarea
-              rows={3}
-              value={values.seoDescription}
-              placeholder={values.summary}
-              onChange={(e) => set("seoDescription", e.target.value)}
-            />
-          </FormControl>
-          <p className={`${styles.hint} ${seoDescription.length > SEO_DESCRIPTION_TARGET ? styles.over : ""}`}>
-            {seoDescription.length} / {SEO_DESCRIPTION_TARGET}. Left blank, the summary is used.
-          </p>
-          <FormMessage />
-        </FormItem>
-
-        <div className={styles.snippet} aria-label="Search result preview">
-          <span className={styles.snippetUrl}>testkart.in - current-affairs - {slugToCheck || "..."}</span>
-          <span className={styles.snippetTitle}>{seoTitle || "Headline"}</span>
-          <span className={styles.snippetText}>{seoDescription || "Summary"}</span>
-        </div>
-
-        <FormItem name="ogImageUrl" className={styles.ogField}>
-          <FormLabel>Social sharing image (optional)</FormLabel>
-          <ImageUploader
-            folder="current-affairs"
-            currentImageUrl={values.ogImageUrl || undefined}
-            currentFileId={values.ogImageFileId || undefined}
-            aspectRatio="1200 / 630"
-            label="Upload sharing image"
-            onSuccess={({ url, fileId }) => setValues((prev) => ({ ...prev, ogImageUrl: url, ogImageFileId: fileId }))}
-          />
-          <p className={styles.hint}>1200x630. Left blank, the cover image is shared.</p>
-          <FormMessage />
-        </FormItem>
-      </div>
-    );
-  };
-
-  const renderSection = () => {
-    switch (section) {
-      case "basics":
-        return renderBasics();
-      case "tags":
-        return (
-          <div className={styles.sectionBody}>
-            <p className={styles.hint}>
-              Post-level tags feed the topic pages and exam filters. Click a suggestion to add it, or type to add a custom tag.
-              Existing tags are suggested as you type, so the same tag is never created twice.
-            </p>
-            <CurrentAffairsTagPicker value={values.tags} onChange={(tags) => set("tags", tags)} options={tagOptions} />
-          </div>
-        );
-      case "content":
-        return renderContent();
-      case "supporting":
-        return renderSupporting();
-      case "quiz":
-        return (
-          <div className={styles.sectionBody}>
-            <CurrentAffairsQuizEditor
-              quiz={values.quiz}
-              onChange={(quiz) => set("quiz", quiz)}
-              tagOptions={tagOptions}
-              postTags={values.tags}
-              defaultTitle={quizDefaultTitle}
-            />
-          </div>
-        );
-      case "seo":
-        return renderSeo();
-    }
-  };
+  const seoTitle = values.seoTitle || values.title;
+  const seoDescription = values.seoDescription || values.summary;
 
   return (
     <>
       <Helmet>
-        <title>{`${isSaved ? "Edit" : "New"} current affairs - Testkart Admin`}</title>
+        <title>{`${isSaved ? "Edit" : "New"} digest - Testkart Admin`}</title>
       </Helmet>
 
       <Form {...form}>
@@ -963,6 +496,9 @@ const AdminCurrentAffairsEditorPage: React.FC = () => {
           className={styles.pageContainer}
           onSubmit={(e) => {
             e.preventDefault();
+            // React passes submits up through portals, so a confirm dialog's own form (delete item,
+            // remove quiz) would otherwise land here and publish.
+            if (e.target !== e.currentTarget) return;
             submit(primaryTarget);
           }}
           noValidate
@@ -976,7 +512,7 @@ const AdminCurrentAffairsEditorPage: React.FC = () => {
                 </Link>
               </Button>
               <div className={styles.headingBlock}>
-                <h1 className={styles.heading}>{isSaved ? "Edit current affairs" : "New current affairs"}</h1>
+                <h1 className={styles.heading}>{isSaved ? "Edit digest" : "New digest"}</h1>
                 <div className={styles.saveStatus} aria-live="polite">
                   {saveMutation.isPending ? (
                     <>
@@ -1019,43 +555,316 @@ const AdminCurrentAffairsEditorPage: React.FC = () => {
           <div className={styles.contentArea}>
             <div className={styles.layout}>
               <div className={styles.mainColumn}>
-                <nav className={styles.sectionNav} aria-label="Form sections">
-                  {sections.map((s) => {
-                    const errorCount = sectionErrors[s.key] ?? 0;
-                    return (
-                      <button
-                        key={s.key}
-                        type="button"
-                        className={`${styles.sectionTab} ${section === s.key ? styles.sectionTabActive : ""}`}
-                        aria-current={section === s.key ? "step" : undefined}
-                        onClick={() => setSection(s.key)}
-                      >
-                        {s.icon}
-                        {s.label}
-                        {s.key === "content" && isDigest && <span className={styles.tabCount}>{values.items.length}</span>}
-                        {errorCount > 0 && (
-                          <span className={styles.tabError} aria-label={`${errorCount} to fix`}>
-                            {errorCount}
+                <section className={styles.card} aria-labelledby="ca-type-heading">
+                  <h2 id="ca-type-heading" className={styles.cardTitle}>
+                    Digest type
+                  </h2>
+                  <div role="radiogroup" aria-labelledby="ca-type-heading" className={styles.typeCards}>
+                    {currentAffairsMeta.DIGEST_OPTIONS.map((option) => {
+                      const Icon = DIGEST_ICONS[option.value];
+                      const selected = values.contentType === option.value;
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          role="radio"
+                          aria-checked={selected}
+                          className={`${styles.typeCard} ${styles[`type_${option.value}`]} ${selected ? styles.typeCardOn : ""}`}
+                          onClick={() => {
+                            // Start from today while the current period still covers it, so switching
+                            // types back and forth never drifts to the start of a month or week.
+                            const today = currentAffairsMeta.istToday();
+                            const keep =
+                              values.digestDate && !currentAffairsMeta.periodContains(values.contentType, values.digestDate, today);
+                            setPeriod(option.value, keep ? values.digestDate : today);
+                          }}
+                        >
+                          <span className={styles.typeIcon} aria-hidden="true">
+                            <Icon size={20} />
                           </span>
+                          <span className={styles.typeText}>
+                            <span className={styles.typeLabel}>{option.label}</span>
+                            <span className={styles.typeHint}>{option.hint}</span>
+                          </span>
+                          {selected && (
+                            <span className={styles.typeCheck} aria-hidden="true">
+                              <Check size={14} />
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {!isDigestType && (
+                    <p className={styles.warning}>
+                      This is an older {currentAffairsMeta.contentTypeLabel(values.contentType)} post. It stays as it is
+                      unless you pick a digest type above.
+                    </p>
+                  )}
+                </section>
+
+                <section id="ca-details" className={styles.card}>
+                  <h2 className={styles.cardTitle}>Details</h2>
+                  <FormItem name="title">
+                    <FormLabel>Title</FormLabel>
+                    <FormControl>
+                      <Input
+                        className={styles.titleInput}
+                        value={values.title}
+                        placeholder="Current Affairs: 23 October 2026"
+                        onChange={(e) => {
+                          const title = e.target.value;
+                          setValues((prev) => ({
+                            ...prev,
+                            title,
+                            slug: !meta?.firstPublishedAt && prev.slug === slugify(prev.title) ? slugify(title) : prev.slug,
+                          }));
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") e.preventDefault();
+                        }}
+                      />
+                    </FormControl>
+                    <p className={styles.hint}>
+                      testkart.in/current-affairs/<strong>{slugToCheck || "..."}</strong>
+                      {slugTaken && <span className={styles.inlineError}> - already used by "{slugTaken.title}"</span>}
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+
+                  <div className={styles.grid3}>
+                    {renderPeriodField()}
+
+                    <FormItem name="language">
+                      <FormLabel>Language</FormLabel>
+                      <Select value={values.language} onValueChange={(v) => set("language", v as InputType["language"])}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {currentAffairsMeta.LANGUAGES.map((l) => (
+                            <SelectItem key={l.value} value={l.value}>
+                              {l.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+
+                    <FormItem name="authorId">
+                      <FormLabel>Author</FormLabel>
+                      <Select
+                        value={values.authorId ? String(values.authorId) : "__none"}
+                        onValueChange={(v) => set("authorId", v === "__none" ? null : Number(v))}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose an author" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="__none">No author</SelectItem>
+                          {admins.map((a) => (
+                            <SelectItem key={a.id} value={String(a.id)}>
+                              {a.fullName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  </div>
+                </section>
+
+                <section className={`${styles.card} ${styles.tagsCard}`}>
+                  <div className={styles.cardHead}>
+                    <h2 className={styles.cardTitle}>Tags</h2>
+                    <span className={`${styles.cardHint} ${styles.subtleHint}`}>Power topic pages and exam filters</span>
+                  </div>
+                  <CurrentAffairsTagPicker value={values.tags} onChange={(tags) => set("tags", tags)} options={tagOptions} variant="compact" />
+                </section>
+
+                <section id="ca-items" className={styles.card}>
+                  <div className={styles.cardHead}>
+                    <h2 className={styles.cardTitle}>{values.contentType === "editorial_analysis" ? "Analysis" : "News items"}</h2>
+                    {period && <span className={styles.cardHint}>{period}</span>}
+                  </div>
+                  {renderContent()}
+                </section>
+
+                <section id="ca-advanced" className={`${styles.card} ${styles.advanced}`}>
+                  <button
+                    type="button"
+                    className={styles.advancedToggle}
+                    aria-expanded={advancedOpen}
+                    aria-controls="ca-advanced-body"
+                    onClick={() => setAdvancedOpen((open) => !open)}
+                  >
+                    <span className={styles.cardTitle}>Advanced settings</span>
+                    <span className={styles.cardHint}>
+                      Summary, cover image, URL, SEO and quiz - all optional
+                      {advancedIssueCount > 0 && <span className={styles.inlineError}> - {advancedIssueCount} to fix</span>}
+                    </span>
+                    <ChevronDown size={18} className={`${styles.chevron} ${advancedOpen ? styles.chevronOpen : ""}`} aria-hidden="true" />
+                  </button>
+
+                  {advancedOpen && (
+                    <div id="ca-advanced-body" className={styles.advancedBody}>
+                      <FormItem name="summary">
+                        <FormLabel>Summary</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            rows={2}
+                            value={values.summary}
+                            placeholder="One or two lines shown under the title and in listings."
+                            onChange={(e) => set("summary", e.target.value)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+
+                      <div className={styles.coverBlock}>
+                        <FormItem name="coverImageUrl" className={styles.coverUpload}>
+                          <FormLabel>Cover image</FormLabel>
+                          <ImageUploader
+                            folder="current-affairs"
+                            currentImageUrl={values.coverImageUrl || undefined}
+                            currentFileId={values.coverImageFileId || undefined}
+                            aspectRatio="16 / 9"
+                            label="Upload cover image"
+                            onSuccess={({ url, fileId }) =>
+                              setValues((prev) => ({ ...prev, coverImageUrl: url, coverImageFileId: fileId }))
+                            }
+                          />
+                          <FormMessage />
+                        </FormItem>
+                        <div className={styles.coverMeta}>
+                          <FormItem name="coverImageAlt">
+                            <FormLabel>Alt text</FormLabel>
+                            <FormControl>
+                              <Input
+                                value={values.coverImageAlt}
+                                placeholder="What the image shows"
+                                onChange={(e) => set("coverImageAlt", e.target.value)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                          <FormItem name="coverImageCredit">
+                            <FormLabel>Image credit</FormLabel>
+                            <FormControl>
+                              <Input
+                                value={values.coverImageCredit}
+                                placeholder="e.g. PIB"
+                                onChange={(e) => set("coverImageCredit", e.target.value)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        </div>
+                      </div>
+
+                      <FormItem name="slug">
+                        <FormLabel>URL slug</FormLabel>
+                        <FormControl>
+                          <Input
+                            value={values.slug}
+                            onChange={(e) => set("slug", e.target.value)}
+                            onBlur={() => setValues((prev) => ({ ...prev, slug: slugify(prev.slug) }))}
+                          />
+                        </FormControl>
+                        {slugTaken ? (
+                          <p className={styles.inlineError} role="alert">
+                            Already used by "{slugTaken.title}". Pick another slug before saving.
+                          </p>
+                        ) : (
+                          <p className={styles.hint}>Made from the title. Change it only if you need a different link.</p>
                         )}
-                      </button>
-                    );
-                  })}
-                </nav>
-                <div className={styles.sectionCard}>{renderSection()}</div>
+                        {slugChanged && (
+                          <p className={styles.warning}>The old URL /current-affairs/{saved.slug} keeps redirecting to the new one.</p>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+
+                      <div className={styles.grid2}>
+                        <FormItem name="seoTitle">
+                          <FormLabel>SEO title</FormLabel>
+                          <FormControl>
+                            <Input value={values.seoTitle} placeholder={values.title} onChange={(e) => set("seoTitle", e.target.value)} />
+                          </FormControl>
+                          <p className={`${styles.hint} ${seoTitle.length > SEO_TITLE_TARGET ? styles.over : ""}`}>
+                            {seoTitle.length} / {SEO_TITLE_TARGET}
+                          </p>
+                          <FormMessage />
+                        </FormItem>
+                        <FormItem name="seoDescription">
+                          <FormLabel>Meta description</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              rows={2}
+                              value={values.seoDescription}
+                              placeholder={values.summary || "Shown under the title in search results"}
+                              onChange={(e) => set("seoDescription", e.target.value)}
+                            />
+                          </FormControl>
+                          <p className={`${styles.hint} ${seoDescription.length > SEO_DESCRIPTION_TARGET ? styles.over : ""}`}>
+                            {seoDescription.length} / {SEO_DESCRIPTION_TARGET}
+                          </p>
+                          <FormMessage />
+                        </FormItem>
+                      </div>
+
+                      <FormItem name="ogImageUrl" className={styles.ogField}>
+                        <FormLabel>Social sharing image</FormLabel>
+                        <ImageUploader
+                          folder="current-affairs"
+                          currentImageUrl={values.ogImageUrl || undefined}
+                          currentFileId={values.ogImageFileId || undefined}
+                          aspectRatio="1200 / 630"
+                          label="Upload sharing image"
+                          onSuccess={({ url, fileId }) => setValues((prev) => ({ ...prev, ogImageUrl: url, ogImageFileId: fileId }))}
+                        />
+                        <p className={styles.hint}>1200x630. Left blank, the cover image is shared.</p>
+                        <FormMessage />
+                      </FormItem>
+
+                      <div className={styles.quizBlock}>
+                        <h3 className={styles.subTitle}>Quiz</h3>
+                        <CurrentAffairsQuizEditor
+                          quiz={values.quiz}
+                          onChange={(quiz) => set("quiz", quiz)}
+                          tagOptions={tagOptions}
+                          postTags={values.tags}
+                          defaultTitle={quizDefaultTitle}
+                          digest={{
+                            title: values.title,
+                            contentType: values.contentType,
+                            digestDate: values.digestDate,
+                            summary: values.summary,
+                            body: values.body,
+                            items: values.items,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </section>
               </div>
 
               <aside className={styles.sidebar}>
-                <section className={styles.card}>
-                  <div className={styles.cardHead}>
-                    <h2 className={styles.sectionTitle}>Publication</h2>
+                <section className={styles.sideCard}>
+                  <div className={styles.sideHead}>
+                    <h2 className={styles.sideTitle}>Publication</h2>
                     {meta && <CurrentAffairsStatusBadge status={meta.status} />}
                   </div>
                   <p className={styles.statusLine}>{statusLine}</p>
 
                   {isArchived && (
-                    <Button variant="outline" onClick={() => runStatus("restore")} disabled={statusMutation.isPending}>
-                      <ArchiveRestore size={16} /> Restore as draft
+                    <Button variant="outline" size="sm" onClick={() => runStatus("restore")} disabled={statusMutation.isPending}>
+                      <ArchiveRestore size={14} /> Restore as draft
                     </Button>
                   )}
 
@@ -1084,62 +893,41 @@ const AdminCurrentAffairsEditorPage: React.FC = () => {
                       <FormControl>
                         <Input type="datetime-local" value={values.publishAt} onChange={(e) => set("publishAt", e.target.value)} />
                       </FormControl>
-                      <p className={styles.hint}>India Standard Time. Scheduled posts go live on their own.</p>
                       <FormMessage />
                     </FormItem>
                   )}
                 </section>
 
-                <section className={styles.card}>
-                  <div className={styles.cardHead}>
-                    <h2 className={styles.sectionTitle}>Ready to publish</h2>
-                    {readiness.total === 0 ? (
-                      <CheckCircle2 size={18} className={styles.readyIcon} aria-label="Ready" />
-                    ) : (
-                      <span className={styles.readyCount}>{readiness.total} left</span>
-                    )}
+                <section className={styles.sideCard}>
+                  <div className={styles.sideHead}>
+                    <h2 className={styles.sideTitle}>Checklist</h2>
+                    <span className={readyCount === checklist.length ? styles.readyAll : styles.readyCount}>
+                      {readyCount}/{checklist.length}
+                    </span>
                   </div>
                   <ul className={styles.checklist}>
-                    {sections.map((s) => {
-                      const left = readiness.counts[s.key] ?? 0;
-                      return (
-                        <li key={s.key}>
-                          <button type="button" className={styles.checkRow} onClick={() => setSection(s.key)}>
-                            {left === 0 ? (
-                              <CheckCircle2 size={15} className={styles.readyIcon} aria-hidden="true" />
-                            ) : (
-                              <AlertCircle size={15} className={styles.notReadyIcon} aria-hidden="true" />
-                            )}
-                            <span>{s.label}</span>
-                            {left > 0 && <span className={styles.checkLeft}>{left} to do</span>}
-                          </button>
-                        </li>
-                      );
-                    })}
+                    {checklist.map((row) => (
+                      <li key={row.label}>
+                        <button type="button" className={styles.checkRow} onClick={() => goTo(row.target)}>
+                          {row.ok ? (
+                            <CheckCircle2 size={15} className={styles.readyIcon} aria-hidden="true" />
+                          ) : (
+                            <AlertCircle size={15} className={styles.notReadyIcon} aria-hidden="true" />
+                          )}
+                          <span>{row.label}</span>
+                          {row.detail && <span className={styles.checkDetail}>{row.detail}</span>}
+                        </button>
+                      </li>
+                    ))}
                   </ul>
                 </section>
 
                 {meta && (
-                  <section className={styles.card}>
-                    <h2 className={styles.sectionTitle}>Record</h2>
-                    <dl className={styles.record}>
-                      <dt>Created</dt>
-                      <dd>
-                        {currentAffairsMeta.formatIst(meta.createdAt)}
-                        {meta.createdByName && ` by ${meta.createdByName}`}
-                      </dd>
-                      <dt>Last saved</dt>
-                      <dd>
-                        {currentAffairsMeta.formatIst(meta.updatedAt)}
-                        {meta.updatedByName && ` by ${meta.updatedByName}`}
-                      </dd>
-                      {meta.previousSlugs.length > 0 && (
-                        <>
-                          <dt>Old URLs</dt>
-                          <dd>{meta.previousSlugs.length} redirecting</dd>
-                        </>
-                      )}
-                    </dl>
+                  <section className={styles.sideCard}>
+                    <p className={styles.recordLine}>
+                      Last saved {currentAffairsMeta.formatIst(meta.updatedAt)}
+                      {meta.updatedByName && ` by ${meta.updatedByName}`}
+                    </p>
                     <div className={styles.recordActions}>
                       {!isArchived && (
                         <Button variant="ghost" size="sm" onClick={() => setConfirmArchive(true)}>
@@ -1169,7 +957,7 @@ const AdminCurrentAffairsEditorPage: React.FC = () => {
               authorName={authorName}
               publishedAt={isLive ? meta?.publishedAt : null}
               updatedAt={meta?.updatedAt}
-              related={values.relatedIds.map((id) => ({ id, title: related[id]?.title ?? `Post #${id}` }))}
+              related={(meta?.related ?? []).filter((r) => values.relatedIds.includes(r.id))}
             />
           </ConsoleDialogBody>
         </ConsoleDialogContent>
@@ -1179,7 +967,7 @@ const AdminCurrentAffairsEditorPage: React.FC = () => {
         open={confirmUnpublish}
         onOpenChange={setConfirmUnpublish}
         title="Unpublish and save as draft?"
-        description="The post comes off the site and your current edits are saved with it as a draft."
+        description="The digest comes off the site and your current edits are saved with it as a draft."
         confirmLabel="Unpublish"
         isPending={saveMutation.isPending}
         onConfirm={() => {
@@ -1194,7 +982,7 @@ const AdminCurrentAffairsEditorPage: React.FC = () => {
         onOpenChange={setConfirmArchive}
         tone="destructive"
         icon={<Archive size={20} />}
-        title="Archive this post?"
+        title="Archive this digest?"
         description={
           isDirty
             ? "It is hidden from the site. Unsaved edits stay in this editor only - save a draft first to keep them."
@@ -1220,7 +1008,7 @@ const AdminCurrentAffairsEditorPage: React.FC = () => {
         }}
         isPending={deleteMutation.isPending}
         itemName={values.title}
-        itemType="current affairs post"
+        itemType="digest"
       />
     </>
   );

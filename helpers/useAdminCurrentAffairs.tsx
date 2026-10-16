@@ -16,6 +16,10 @@ import {
 } from "../endpoints/admin/current-affairs/status_POST.schema";
 import { postAdminCurrentAffairsDuplicate } from "../endpoints/admin/current-affairs/duplicate_POST.schema";
 import { postAdminCurrentAffairsDelete } from "../endpoints/admin/current-affairs/delete_POST.schema";
+import {
+  postAdminCurrentAffairsGenerateQuiz,
+  InputType as GenerateQuizInput,
+} from "../endpoints/admin/current-affairs/generate-quiz_POST.schema";
 import { parseErrorMessage } from "./parseErrorMessage";
 
 export const ADMIN_CURRENT_AFFAIRS_QUERY_KEY = ["admin", "current-affairs"] as const;
@@ -98,3 +102,9 @@ export const useDeleteCurrentAffairsMutation = () => {
     onError: (error) => toast.error(parseErrorMessage(error) || "Could not delete this post"),
   });
 };
+
+/** Errors are shown by the quiz editor next to the form that asked. */
+export const useGenerateCurrentAffairsQuizMutation = () =>
+  useMutation({
+    mutationFn: (data: GenerateQuizInput) => postAdminCurrentAffairsGenerateQuiz(data),
+  });

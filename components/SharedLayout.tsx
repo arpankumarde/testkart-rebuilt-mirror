@@ -264,7 +264,7 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
                 <Radio size={20} className={styles.liveIcon} />
                 <span className={styles.liveDot}></span>
               </div>
-              <span>Live Competitions</span>
+              <span className={styles.liveLabel}>Live Competitions</span>
             </NavLink>
             <NavLink
               to="/study-notes"
@@ -273,6 +273,14 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
               }
             >
               Study Notes
+            </NavLink>
+            <NavLink
+              to="/current-affairs"
+              className={({ isActive }) =>
+                `${styles.navLink} ${isActive ? styles.active : ""}`
+              }
+            >
+              Current Affairs
             </NavLink>
           </nav>
           <div className={styles.headerActions}>

@@ -62,15 +62,16 @@
 
 .nav {
   display: flex;
-  gap: var(--spacing-8);
+  gap: clamp(var(--spacing-4), 1.6vw, var(--spacing-6));
   align-items: center;
 }
 
 .navLink {
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--muted-foreground);
   text-decoration: none;
+  white-space: nowrap;
   transition: color var(--animation-duration-fast) ease,
               transform var(--animation-duration-fast) ease;
   padding: var(--spacing-2) var(--spacing-1);
@@ -114,6 +115,28 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
+}
+
+/* Five links fit the 1200px header. Narrower, Live Competitions drops to its icon (it keeps its
+   aria-label and title) and the gaps tighten, down to the 968px mobile header. */
+@media (max-width: 1180px) {
+  .liveLabel {
+    display: none;
+  }
+}
+
+@media (max-width: 1080px) {
+  .nav {
+    gap: var(--spacing-3);
+  }
+
+  .headerActions {
+    gap: var(--spacing-2);
+  }
+
+  .logoImage {
+    height: 38px;
+  }
 }
 
 .liveIndicatorWrapper {

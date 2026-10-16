@@ -6,9 +6,9 @@ import { useAdminCurrentAffairsPost } from "../helpers/useAdminCurrentAffairs";
 import { parseErrorMessage } from "../helpers/parseErrorMessage";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
-import { ConsolePageHeader } from "../components/ConsolePageHeader";
 import { ConsoleListEmpty } from "../components/ConsoleListEmpty";
 import { CurrentAffairsPreview } from "../components/CurrentAffairsPreview";
+import { CurrentAffairsStatusBadge } from "../components/CurrentAffairsStatusBadge";
 import styles from "./admin.current-affairs.preview.$id.module.css";
 
 /** The saved version of a post, laid out like the public page. Unsaved edits preview from the editor. */
@@ -24,31 +24,39 @@ const AdminCurrentAffairsPreviewPage: React.FC = () => {
         <title>{`Preview${post ? `: ${post.title}` : ""} - Testkart Admin`}</title>
       </Helmet>
       <div className={styles.page}>
-        <ConsolePageHeader title="Preview">
-          <Button asChild variant="outline">
-            <Link to="/admin/current-affairs">
-              <ArrowLeft size={16} /> Current Affairs
+        <div className={styles.bar}>
+          <Button asChild variant="ghost" size="sm" className={styles.back}>
+            <Link to="/admin/current-affairs" aria-label="Back to Current Affairs">
+              <ArrowLeft size={16} /> <span className={styles.backLabel}>Current Affairs</span>
             </Link>
           </Button>
+          <span className={styles.divider} aria-hidden="true" />
+          <h1 className={styles.heading}>Preview</h1>
+          {post && <CurrentAffairsStatusBadge status={post.status} />}
           {post && (
-            <Button asChild>
+            <Button asChild size="sm" className={styles.edit}>
               <Link to={`/admin/current-affairs/e/${post.id}`}>
-                <Edit size={16} /> Edit
+                <Edit size={15} /> Edit
               </Link>
             </Button>
           )}
-        </ConsolePageHeader>
+        </div>
 
         {id === null ? (
-          <ConsoleListEmpty icon={<CalendarDays size={24} />} title="Post not found" description="The link is wrong." />
+          <ConsoleListEmpty icon={<CalendarDays size={24} />} title="Digest not found" description="The link is wrong." />
         ) : isError && !post ? (
-          <ConsoleListEmpty tone="error" icon={<AlertCircle size={24} />} title="Could not load this post" description={parseErrorMessage(error)}>
+          <ConsoleListEmpty
+            tone="error"
+            icon={<AlertCircle size={24} />}
+            title="Could not load this digest"
+            description={parseErrorMessage(error)}
+          >
             <Button variant="outline" onClick={() => refetch()}>
               Try again
             </Button>
           </ConsoleListEmpty>
         ) : !post || (isFetching && !data) ? (
-          <Skeleton style={{ height: "40rem", borderRadius: "var(--radius-md)" }} />
+          <Skeleton style={{ height: "40rem", borderRadius: "var(--radius-lg)" }} />
         ) : (
           <div className={styles.sheet}>
             <CurrentAffairsPreview

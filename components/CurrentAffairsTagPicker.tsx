@@ -15,6 +15,8 @@ interface CurrentAffairsTagPickerProps {
   kinds?: CurrentAffairsTagKind[];
   /* Full shows every predefined tag as a toggle; compact shows only the chosen ones plus a search. */
   variant?: "full" | "compact";
+  /* Drops the per-kind label when the surrounding field already names it. */
+  hideLabels?: boolean;
 }
 
 const MAX_SUGGESTIONS = 8;
@@ -28,7 +30,8 @@ const KindRow: React.FC<{
   onChange: (value: CurrentAffairsTagRef[]) => void;
   options: CurrentAffairsTagOption[];
   variant: "full" | "compact";
-}> = ({ kind, value, onChange, options, variant }) => {
+  hideLabel: boolean;
+}> = ({ kind, value, onChange, options, variant, hideLabel }) => {
   const inputId = useId();
   const listId = useId();
   const [query, setQuery] = useState("");
@@ -42,11 +45,14 @@ const KindRow: React.FC<{
   const isChosen = (slug: string) => chosen.some((tag) => slugify(tag.name) === slug);
 
   const querySlug = slugify(query);
+  // With nothing typed, the compact picker offers the suggested tags so they are one click away.
   const suggestions = querySlug
     ? kindOptions
         .filter((o) => !isChosen(o.slug) && (o.slug.includes(querySlug) || o.name.toLowerCase().includes(query.trim().toLowerCase())))
         .slice(0, MAX_SUGGESTIONS)
-    : [];
+    : variant === "compact"
+      ? predefined.filter((o) => !isChosen(o.slug))
+      : [];
   const exact = kindOptions.find((o) => o.slug === querySlug);
   const canCreate = !!querySlug && !exact && !isChosen(querySlug);
   const entries = [
@@ -91,11 +97,13 @@ const KindRow: React.FC<{
   };
 
   return (
-    <div className={styles.kindRow}>
-      <div className={styles.kindLabel}>
-        <label htmlFor={inputId}>{meta.plural}</label>
-        {chosen.length > 0 && <span className={styles.count}>{chosen.length} selected</span>}
-      </div>
+    <div className={`${styles.kindRow} ${styles[`kind_${kind}`]}`}>
+      {!hideLabel && (
+        <div className={styles.kindLabel}>
+          <label htmlFor={inputId}>{meta.plural}</label>
+          {chosen.length > 0 && <span className={styles.count}>{chosen.length} selected</span>}
+        </div>
+      )}
 
       {variant === "full" && predefined.length > 0 && (
         <div className={styles.toggles} role="group" aria-label={`Suggested ${meta.plural.toLowerCase()}`}>
@@ -129,7 +137,7 @@ const KindRow: React.FC<{
                 onClick={() => remove(slugify(tag.name))}
                 aria-label={`Remove ${tag.name}`}
               >
-                <X size={12} />
+                <X size={10} strokeWidth={2.5} aria-hidden="true" />
               </button>
             </li>
           ))}
@@ -150,6 +158,7 @@ const KindRow: React.FC<{
           onBlur={() => setTimeout(() => setOpen(false), 120)}
           onKeyDown={onKeyDown}
           role="combobox"
+          aria-label={hideLabel ? meta.plural : undefined}
           aria-expanded={open && entries.length > 0}
           aria-controls={listId}
           aria-autocomplete="list"
@@ -169,7 +178,10 @@ const KindRow: React.FC<{
                 }}
                 onMouseEnter={() => setActive(index)}
               >
-                <span>{entry.key === "new" ? <>Add "{entry.label}"</> : entry.label}</span>
+                <span className={styles.optionLabel}>
+                  <span className={styles.optionDot} aria-hidden="true" />
+                  {entry.key === "new" ? <>Add "{entry.label}"</> : entry.label}
+                </span>
                 <span className={styles.optionHint}>{entry.hint}</span>
               </li>
             ))}
@@ -183,6 +195,8 @@ const KindRow: React.FC<{
 /*
  * Topic, exam and syllabus chips. Custom tags stay local until the post is saved, so removing one
  * before saving leaves nothing behind; on save the server matches names by slug to reuse tags.
+ * The compact variant lays the groups out side by side, sized off its own width so it stacks
+ * wherever it is narrow (the editor column, an item card, a quiz question).
  */
 export const CurrentAffairsTagPicker: React.FC<CurrentAffairsTagPickerProps> = ({
   value,
@@ -190,10 +204,24 @@ export const CurrentAffairsTagPicker: React.FC<CurrentAffairsTagPickerProps> = (
   options,
   kinds = ["topic", "exam", "syllabus"],
   variant = "full",
+  hideLabels = false,
 }) => (
-  <div className={`${styles.picker} ${variant === "compact" ? styles.compact : ""}`}>
-    {kinds.map((kind) => (
-      <KindRow key={kind} kind={kind} value={value} onChange={onChange} options={options} variant={variant} />
-    ))}
+  <div className={styles.frame}>
+    <div
+      className={`${styles.picker} ${variant === "compact" ? styles.compact : ""}`}
+      style={{ "--kind-count": kinds.length } as React.CSSProperties}
+    >
+      {kinds.map((kind) => (
+        <KindRow
+          key={kind}
+          kind={kind}
+          value={value}
+          onChange={onChange}
+          options={options}
+          variant={variant}
+          hideLabel={hideLabels}
+        />
+      ))}
+    </div>
   </div>
 );

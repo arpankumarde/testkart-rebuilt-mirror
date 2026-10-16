@@ -42,9 +42,18 @@ async function promoteDue(): Promise<void> {
     .execute();
 }
 
+const siteName = (url: string): string => {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+};
+
+/** Blank rows are dropped; a source with only a link is named after its site. */
 const sourceRows = (sources: { name: string; url: string }[]) =>
   sources
-    .map((s) => ({ name: s.name.trim(), url: s.url.trim() }))
+    .map((s) => ({ name: s.name.trim() || siteName(s.url.trim()), url: s.url.trim() }))
     .filter((s) => s.name || s.url);
 
 async function findSlugOwner(
@@ -174,6 +183,7 @@ async function save(input: InputType, adminId: number, options: { autoSlug?: boo
     if (input.id && !existing) throw new Error("Current affairs post not found");
 
     const issues: ValidationIssue[] = [];
+    const digestDate = input.digestDate ? currentAffairsMeta.periodStart(input.contentType, input.digestDate) : "";
     let slug = slugify(input.slug || input.title);
     if (!slug) issues.push({ path: "slug", message: "Add a slug" });
     if (slug && options.autoSlug) {
@@ -183,20 +193,23 @@ async function save(input: InputType, adminId: number, options: { autoSlug?: boo
       if (owner) issues.push({ path: "slug", message: `Already used by "${owner.title}"` });
     }
 
-    if (input.contentType === "daily_digest" && input.digestDate && input.status !== "draft") {
+    // One live digest per type, language and period.
+    if (currentAffairsMeta.isDigest(input.contentType) && digestDate && input.status !== "draft") {
       let clash = trx
         .selectFrom("currentAffairsPosts")
         .select(["id", "title"])
-        .where("contentType", "=", "daily_digest")
+        .where("contentType", "=", input.contentType)
         .where("language", "=", input.language)
-        .where(sql<boolean>`digest_date = ${input.digestDate}::date`)
+        .where(sql<boolean>`digest_date = ${digestDate}::date`)
         .where("status", "in", ["scheduled", "published"]);
       if (existing) clash = clash.where("id", "!=", existing.id);
       const other = await clash.executeTakeFirst();
       if (other) {
         issues.push({
           path: "digestDate",
-          message: `"${other.title}" is already the ${currentAffairsMeta.languageLabel(input.language)} digest for this day`,
+          message: `"${other.title}" is already the ${currentAffairsMeta.languageLabel(input.language)} ${currentAffairsMeta
+            .contentTypeShort(input.contentType)
+            .toLowerCase()} digest for this period`,
         });
       }
     }
@@ -225,7 +238,7 @@ async function save(input: InputType, adminId: number, options: { autoSlug?: boo
       coverImageCredit: input.coverImageCredit.trim() || null,
       authorId: input.authorId,
       language: input.language,
-      digestDate: input.digestDate || null,
+      digestDate: digestDate || null,
       glancePoints: input.atAGlance.map((line) => line.trim()).filter(Boolean),
       body: sanitizeHtml(input.body),
       readingTimeMinutes: computeReadingTime(input),

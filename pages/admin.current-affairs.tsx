@@ -6,10 +6,17 @@ import {
   AlertCircle,
   Archive,
   ArchiveRestore,
+  Calendar,
+  CalendarCheck,
   CalendarDays,
+  CalendarRange,
+  Clock,
   Copy,
   Edit,
+  ExternalLink,
   Eye,
+  LayoutList,
+  Link2,
   ListChecks,
   MoreHorizontal,
   Plus,
@@ -18,6 +25,7 @@ import {
   Search,
   Trash2,
   Undo2,
+  UserRound,
 } from "lucide-react";
 import {
   useAdminCurrentAffairsList,
@@ -32,15 +40,14 @@ import { useDebouncedInput } from "../helpers/useDebouncedInput";
 import type { CurrentAffairsListRow, InputType as ListInput } from "../endpoints/admin/current-affairs/list_GET.schema";
 import type { InputType as StatusInput } from "../endpoints/admin/current-affairs/status_POST.schema";
 import { Button } from "../components/Button";
-import { Badge } from "../components/Badge";
 import { Input } from "../components/Input";
 import { Skeleton } from "../components/Skeleton";
 import { ConsoleListEmpty } from "../components/ConsoleListEmpty";
 import { ConsoleListToolbar, consoleToolbarControlClass } from "../components/ConsoleListToolbar";
 import { DeleteConfirmationDialog } from "../components/DeleteConfirmationDialog";
 import { ConsoleConfirmDialog } from "../components/ConsoleConfirmDialog";
-import { CurrentAffairsStatusBadge } from "../components/CurrentAffairsStatusBadge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/Select";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../components/Tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,7 +60,15 @@ import styles from "./admin.current-affairs.module.css";
 const NEW_HREF = "/admin/current-affairs/e/new";
 const ALL = "__all";
 const PAGE_SIZE = 20;
-const VISIBLE_TAGS = 4;
+const VISIBLE_TAGS = 3;
+
+const TYPE_ICONS = {
+  daily_digest: CalendarDays,
+  weekly_digest: CalendarRange,
+  monthly_digest: Calendar,
+  editorial_analysis: CalendarDays,
+  individual_item: CalendarDays,
+} as const;
 
 type StatusAction = StatusInput["action"];
 
@@ -68,6 +83,14 @@ const timingLine = (row: CurrentAffairsListRow): string => {
   if (row.status === "scheduled" && row.publishAt) return `Goes live ${currentAffairsMeta.formatIst(row.publishAt)}`;
   return `Created ${currentAffairsMeta.formatIst(row.createdAt)}`;
 };
+
+/** An icon button with a tooltip; the label doubles as its accessible name. */
+const IconAction: React.FC<{ label: string; children: React.ReactElement }> = ({ label, children }) => (
+  <Tooltip>
+    <TooltipTrigger asChild>{children}</TooltipTrigger>
+    <TooltipContent>{label}</TooltipContent>
+  </Tooltip>
+);
 
 const CONFIRM_COPY: Record<StatusAction, { title: string; body: string; confirm: string }> = {
   publish: {
@@ -168,110 +191,179 @@ const AdminCurrentAffairsPage: React.FC = () => {
 
   const renderRow = (row: CurrentAffairsListRow) => {
     const editHref = `/admin/current-affairs/e/${row.id}`;
+    const previewHref = `/admin/current-affairs/preview/${row.id}`;
     const canDelete = row.status === "draft" || row.status === "archived";
-    const extraTags = row.tags.length - VISIBLE_TAGS;
+    // Topics first, then exams; syllabus tags stay in the editor to keep the card short.
+    const pillTags = [...row.tags.filter((t) => t.kind === "topic"), ...row.tags.filter((t) => t.kind === "exam")];
+    const extraTags = pillTags.length - VISIBLE_TAGS;
+    const TypeIcon = TYPE_ICONS[row.contentType];
+    const period = row.digestDate ? currentAffairsMeta.periodLabel(row.contentType, row.digestDate) : "";
+    const path = currentAffairsMeta.publicPath(row.slug);
 
     return (
-      <div key={row.id} className={styles.row}>
+      <article key={row.id} className={`${styles.card} ${styles[`type_${row.contentType}`] ?? ""}`}>
         {row.coverImageUrl ? (
-          <img src={row.coverImageUrl} alt="" className={styles.thumb} />
+          <img src={row.coverImageUrl} alt="" className={styles.thumb} loading="lazy" />
         ) : (
           <div className={`${styles.thumb} ${styles.thumbEmpty}`} aria-hidden="true">
-            <CalendarDays size={20} />
+            <TypeIcon size={20} />
+            {row.digestDate && (
+              <span className={styles.thumbLabel}>{currentAffairsMeta.periodShort(row.contentType, row.digestDate)}</span>
+            )}
           </div>
         )}
 
-        <div className={styles.rowBody}>
-          <div className={styles.rowTitleLine}>
-            <Link to={editHref} className={styles.rowTitle}>
+        <div className={styles.cardBody}>
+          <h3 className={styles.cardTitle}>
+            <Link to={editHref} className={styles.titleLink}>
               {row.title || "Untitled"}
             </Link>
-            <CurrentAffairsStatusBadge status={row.status} />
-            <Badge variant="lavender">{currentAffairsMeta.contentTypeShort(row.contentType)}</Badge>
-            {row.language === "hi" && <Badge variant="outline">Hindi</Badge>}
-          </div>
+          </h3>
 
-          <div className={styles.rowMeta}>
-            <span>{row.authorName ?? "No author"}</span>
-            <span>{timingLine(row)}</span>
-            {row.digestDate && <span>Covers {currentAffairsMeta.formatDay(row.digestDate)}</span>}
-            {row.itemCount > 0 && (
-              <span>
-                {row.itemCount} item{row.itemCount === 1 ? "" : "s"}
-              </span>
-            )}
+          <ul className={styles.pills} aria-label="Status and tags">
+            <li className={`${styles.pill} ${styles[`status_${row.status}`]}`}>
+              {currentAffairsMeta.statusLabel(row.status)}
+            </li>
+            <li className={`${styles.pill} ${styles.typePill}`}>
+              <TypeIcon size={12} aria-hidden="true" />
+              {currentAffairsMeta.contentTypeShort(row.contentType)}
+            </li>
+            {row.language === "hi" && <li className={`${styles.pill} ${styles.neutralPill}`}>Hindi</li>}
             {row.quiz && (
-              <span className={styles.quizMeta}>
-                <ListChecks size={13} aria-hidden="true" />
-                Quiz {row.quiz.questionCount} Qs{row.quiz.isPublished ? "" : " (draft)"}
-              </span>
+              <li className={`${styles.pill} ${styles.neutralPill}`}>
+                <ListChecks size={12} aria-hidden="true" />
+                Quiz {row.quiz.questionCount}
+                {row.quiz.isPublished ? "" : " (hidden)"}
+              </li>
             )}
-            <span>Updated {adminFormat.relativeTime(row.updatedAt, now)}</span>
-          </div>
-
-          <div className={styles.rowFoot}>
-            <span className={styles.slugPath}>/current-affairs/{row.slug}</span>
-            {row.tags.slice(0, VISIBLE_TAGS).map((tag) => (
-              <span key={`${tag.kind}-${tag.name}`} className={`${styles.tagChip} ${styles[`tag_${tag.kind}`]}`}>
+            {pillTags.slice(0, VISIBLE_TAGS).map((tag) => (
+              <li key={`${tag.kind}-${tag.name}`} className={`${styles.pill} ${styles[`tag_${tag.kind}`]}`}>
                 {tag.name}
-              </span>
+              </li>
             ))}
-            {extraTags > 0 && <span className={styles.tagMore}>+{extraTags}</span>}
-          </div>
+            {extraTags > 0 && (
+              <li className={`${styles.pill} ${styles.neutralPill}`} title={pillTags.slice(VISIBLE_TAGS).map((t) => t.name).join(", ")}>
+                +{extraTags}
+              </li>
+            )}
+          </ul>
+
+          <ul className={styles.meta}>
+            <li>
+              <UserRound size={14} aria-hidden="true" />
+              {row.authorName ?? "No author"}
+            </li>
+            <li>
+              <CalendarCheck size={14} aria-hidden="true" />
+              {timingLine(row)}
+            </li>
+            {period && (
+              <li>
+                <CalendarRange size={14} aria-hidden="true" />
+                Covers {period}
+              </li>
+            )}
+            <li>
+              <LayoutList size={14} aria-hidden="true" />
+              {row.itemCount} item{row.itemCount === 1 ? "" : "s"}
+            </li>
+            <li>
+              <Clock size={14} aria-hidden="true" />
+              Updated {adminFormat.relativeTime(row.updatedAt, now)}
+            </li>
+          </ul>
+
+          {row.status === "published" ? (
+            <a
+              href={currentAffairsMeta.openHref(row)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.urlLink}
+              onClick={(e) => e.stopPropagation()}
+              title="Open the public page in a new tab"
+            >
+              <Link2 size={14} aria-hidden="true" />
+              <span className={styles.urlText}>{path}</span>
+              <ExternalLink size={12} aria-hidden="true" />
+            </a>
+          ) : (
+            <p className={styles.urlMuted}>
+              <Link2 size={14} aria-hidden="true" />
+              <span className={styles.urlText}>{path}</span>
+              <span className={styles.urlNote}>not live</span>
+              <Link to={previewHref} className={styles.urlPreview} onClick={(e) => e.stopPropagation()}>
+                Preview
+              </Link>
+            </p>
+          )}
         </div>
 
-        <div className={styles.actions}>
-          <Button asChild variant="ghost" size="icon-md" aria-label={`Preview ${row.title}`}>
-            <Link to={`/admin/current-affairs/preview/${row.id}`} title="Preview">
-              <Eye size={16} />
-            </Link>
-          </Button>
-          <Button asChild variant="ghost" size="icon-md" aria-label={`Edit ${row.title}`}>
-            <Link to={editHref} title="Edit">
-              <Edit size={16} />
-            </Link>
-          </Button>
+        <div className={styles.rowActions}>
+          <IconAction label="View">
+            <Button asChild variant="ghost" size="icon-md" className={styles.actionButton} aria-label={`View ${row.title}`}>
+              <Link to={previewHref}>
+                <Eye size={17} />
+              </Link>
+            </Button>
+          </IconAction>
+          <IconAction label="Edit">
+            <Button asChild variant="ghost" size="icon-md" className={styles.actionButton} aria-label={`Edit ${row.title}`}>
+              <Link to={editHref}>
+                <Edit size={17} />
+              </Link>
+            </Button>
+          </IconAction>
           <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon-md" aria-label={`More actions for ${row.title}`} title="More">
-                <MoreHorizontal size={16} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <IconAction label="More">
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon-md" className={styles.actionButton} aria-label={`More actions for ${row.title}`}>
+                  <MoreHorizontal size={17} />
+                </Button>
+              </DropdownMenuTrigger>
+            </IconAction>
+            <DropdownMenuContent align="end" sideOffset={6} className={styles.menu}>
               {(row.status === "draft" || row.status === "scheduled") && (
-                <DropdownMenuItem onSelect={() => setPendingAction({ row, action: "publish" })}>
-                  <Rocket size={14} /> Publish now
+                <DropdownMenuItem className={styles.menuItem} onSelect={() => setPendingAction({ row, action: "publish" })}>
+                  <Rocket size={16} className={styles.menuIcon} aria-hidden="true" />
+                  Publish now
                 </DropdownMenuItem>
               )}
               {(row.status === "published" || row.status === "scheduled") && (
-                <DropdownMenuItem onSelect={() => setPendingAction({ row, action: "unpublish" })}>
-                  <Undo2 size={14} /> Unpublish
+                <DropdownMenuItem className={styles.menuItem} onSelect={() => setPendingAction({ row, action: "unpublish" })}>
+                  <Undo2 size={16} className={styles.menuIcon} aria-hidden="true" />
+                  Unpublish
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem onSelect={() => duplicateMutation.mutate(row.id)} disabled={duplicateMutation.isPending}>
-                <Copy size={14} /> Duplicate
+              <DropdownMenuItem
+                className={styles.menuItem}
+                onSelect={() => duplicateMutation.mutate(row.id)}
+                disabled={duplicateMutation.isPending}
+              >
+                <Copy size={16} className={styles.menuIcon} aria-hidden="true" />
+                Duplicate
               </DropdownMenuItem>
+              <DropdownMenuSeparator className={styles.menuSeparator} />
               {row.status === "archived" ? (
-                <DropdownMenuItem onSelect={() => setPendingAction({ row, action: "restore" })}>
-                  <ArchiveRestore size={14} /> Restore
+                <DropdownMenuItem className={styles.menuItem} onSelect={() => setPendingAction({ row, action: "restore" })}>
+                  <ArchiveRestore size={16} className={styles.menuIcon} aria-hidden="true" />
+                  Restore
                 </DropdownMenuItem>
               ) : (
-                <DropdownMenuItem onSelect={() => setPendingAction({ row, action: "archive" })}>
-                  <Archive size={14} /> Archive
+                <DropdownMenuItem className={styles.menuItem} onSelect={() => setPendingAction({ row, action: "archive" })}>
+                  <Archive size={16} className={styles.menuIcon} aria-hidden="true" />
+                  Archive
                 </DropdownMenuItem>
               )}
               {canDelete && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className={styles.deleteItem} onSelect={() => setToDelete(row)}>
-                    <Trash2 size={14} /> Delete
-                  </DropdownMenuItem>
-                </>
+                <DropdownMenuItem className={`${styles.menuItem} ${styles.menuDanger}`} onSelect={() => setToDelete(row)}>
+                  <Trash2 size={16} className={styles.menuIcon} aria-hidden="true" />
+                  Delete
+                </DropdownMenuItem>
               )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </div>
+      </article>
     );
   };
 
@@ -408,7 +500,7 @@ const AdminCurrentAffairsPage: React.FC = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>All types</SelectItem>
-                {currentAffairsMeta.CONTENT_TYPES.map((t) => (
+                {currentAffairsMeta.DIGEST_OPTIONS.map((t) => (
                   <SelectItem key={t.value} value={t.value}>
                     {t.label}
                   </SelectItem>

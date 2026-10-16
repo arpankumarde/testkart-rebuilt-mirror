@@ -1,7 +1,20 @@
-import React, { useState } from "react";
-import { CheckCircle2, ChevronRight, ExternalLink, Image as ImageIcon, XCircle } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  CalendarCheck,
+  CalendarRange,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  ExternalLink,
+  EyeOff,
+  Image as ImageIcon,
+  ListChecks,
+  UserRound,
+  XCircle,
+} from "lucide-react";
 import { Button } from "./Button";
-import { CurrentAffairsStatusBadge } from "./CurrentAffairsStatusBadge";
 import { currentAffairsMeta } from "../helpers/currentAffairsMeta";
 import { sanitizeHtml } from "../helpers/sanitizeHtml";
 import { slugify } from "../helpers/slugify";
@@ -17,10 +30,26 @@ interface CurrentAffairsPreviewProps {
   /* When it went or goes live; falls back to the form's publish time. */
   publishedAt?: Date | null;
   updatedAt?: Date | null;
-  related?: { id: number; title: string }[];
+  /* href turns a related post into a link (the public page passes one; the admin preview does not). */
+  related?: { id: number; title: string; href?: string }[];
+  /* The public page: it draws its own linked breadcrumb, and a missing cover is simply left out
+     rather than flagged the way the admin preview flags it. */
+  publicView?: boolean;
 }
 
 const LETTERS = ["A", "B", "C", "D"];
+
+/* A section counts as the one being read once its top passes this far below the sticky
+   contents list's own top (or the viewport top, when the list is not sticky). */
+const ACTIVE_SLACK = 56;
+const FALLBACK_OFFSET = 140;
+
+const NOTICE: Record<CurrentAffairsStatus, string | null> = {
+  draft: "Draft preview - not visible on the site",
+  scheduled: "Scheduled - not visible on the site yet",
+  archived: "Archived - hidden from the site",
+  published: null,
+};
 
 const Html: React.FC<{ html: string; className?: string }> = ({ html, className }) => (
   <div className={`${styles.prose} ${className ?? ""}`} dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }} />
@@ -28,11 +57,11 @@ const Html: React.FC<{ html: string; className?: string }> = ({ html, className 
 
 const hasText = (html: string) => currentAffairsMeta.stripHtml(html).length > 0;
 
-const Chips: React.FC<{ tags: CurrentAffairsTagRef[] }> = ({ tags }) =>
+const Pills: React.FC<{ tags: CurrentAffairsTagRef[] }> = ({ tags }) =>
   tags.length === 0 ? null : (
-    <ul className={styles.chips}>
+    <ul className={styles.pills} aria-label="Tags">
       {tags.map((tag) => (
-        <li key={`${tag.kind}-${tag.name}`} className={`${styles.chip} ${styles[`chip_${tag.kind}`]}`}>
+        <li key={`${tag.kind}-${tag.name}`} className={`${styles.pill} ${styles[`pill_${tag.kind}`]}`}>
           {tag.name}
         </li>
       ))}
@@ -44,16 +73,17 @@ const SourceLine: React.FC<{ sources: { name: string; url: string }[] }> = ({ so
   if (filled.length === 0) return null;
   return (
     <p className={styles.sourceLine}>
-      <span className={styles.sourceLabel}>Source:</span>{" "}
+      <span className={styles.sourceLabel}>Source</span>
       {filled.map((source, index) => (
         <React.Fragment key={index}>
-          {index > 0 && " - "}
+          {index > 0 && <span aria-hidden="true">,</span>}
           {source.url ? (
             <a href={source.url} target="_blank" rel="noopener noreferrer" className={styles.link}>
-              {source.name || source.url} <ExternalLink size={11} aria-hidden="true" />
+              {source.name || source.url}
+              <ExternalLink size={11} aria-hidden="true" />
             </a>
           ) : (
-            source.name
+            <span>{source.name}</span>
           )}
         </React.Fragment>
       ))}
@@ -61,24 +91,31 @@ const SourceLine: React.FC<{ sources: { name: string; url: string }[] }> = ({ so
   );
 };
 
-const QuizPreview: React.FC<{ quiz: NonNullable<InputType["quiz"]> }> = ({ quiz }) => {
+const QuizPreview: React.FC<{ quiz: NonNullable<InputType["quiz"]>; id: string }> = ({ quiz, id }) => {
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [submitted, setSubmitted] = useState(false);
   const score = quiz.questions.filter((q, i) => answers[i] !== undefined && answers[i] === q.correctOption).length;
 
   return (
-    <section id="quiz" className={styles.quiz}>
-      <div className={styles.quizHead}>
-        <h2 className={styles.h2}>{quiz.title || "Daily quiz"}</h2>
-        <span className={styles.quizMeta}>
-          {quiz.questions.length} MCQs - no login needed{quiz.isPublished ? "" : " - hidden on the site"}
+    <section id={id} className={styles.quiz} data-toc-section>
+      <header className={styles.quizHead}>
+        <span className={styles.quizIcon} aria-hidden="true">
+          <ListChecks size={18} />
         </span>
-      </div>
+        <div>
+          <h2 className={styles.quizTitle}>{quiz.title || "Quiz"}</h2>
+          <p className={styles.quizMeta}>
+            {quiz.questions.length} questions - no login needed
+            {quiz.isPublished ? "" : " - hidden on the site"}
+          </p>
+        </div>
+      </header>
       <ol className={styles.quizList}>
         {quiz.questions.map((question, index) => (
           <li key={question.key} className={styles.quizQuestion}>
             <p className={styles.quizText}>
-              {index + 1}. {question.question || <em className={styles.missing}>Question not written yet</em>}
+              <span className={styles.quizNumber}>{index + 1}.</span>
+              {question.question || <em className={styles.missing}>Question not written yet</em>}
             </p>
             <div className={styles.quizOptions}>
               {question.options.map((option, optionIndex) => {
@@ -95,7 +132,7 @@ const QuizPreview: React.FC<{ quiz: NonNullable<InputType["quiz"]> }> = ({ quiz 
                     onClick={() => setAnswers((prev) => ({ ...prev, [index]: optionIndex }))}
                   >
                     <span className={styles.optLetter}>{LETTERS[optionIndex]}</span>
-                    <span>{option || <em className={styles.missing}>Empty option</em>}</span>
+                    <span className={styles.optText}>{option || <em className={styles.missing}>Empty option</em>}</span>
                     {submitted && correct && <CheckCircle2 size={16} className={styles.optIcon} aria-label="Correct answer" />}
                     {submitted && picked && !correct && <XCircle size={16} className={styles.optIcon} aria-label="Your answer" />}
                   </button>
@@ -110,10 +147,11 @@ const QuizPreview: React.FC<{ quiz: NonNullable<InputType["quiz"]> }> = ({ quiz 
         {submitted ? (
           <>
             <span className={styles.score}>
-              Score: {score} / {quiz.questions.length}
+              You scored {score} / {quiz.questions.length}
             </span>
             <Button
               variant="outline"
+              size="sm"
               onClick={() => {
                 setAnswers({});
                 setSubmitted(false);
@@ -123,7 +161,7 @@ const QuizPreview: React.FC<{ quiz: NonNullable<InputType["quiz"]> }> = ({ quiz 
             </Button>
           </>
         ) : (
-          <Button onClick={() => setSubmitted(true)} disabled={Object.keys(answers).length === 0}>
+          <Button size="sm" onClick={() => setSubmitted(true)} disabled={Object.keys(answers).length === 0}>
             Submit answers
           </Button>
         )}
@@ -133,8 +171,9 @@ const QuizPreview: React.FC<{ quiz: NonNullable<InputType["quiz"]> }> = ({ quiz 
 };
 
 /*
- * Renders a post roughly the way the planned public Current Affairs page will: hero, byline, at a
- * glance, a table of contents, every item, the quiz and sources. Works from unsaved editor state.
+ * Renders a post the way the planned public Current Affairs page will: header, cover, a sticky
+ * table of contents beside the items, the quiz and sources. Works from unsaved editor state, so
+ * the editor's preview dialog and the saved-version preview page share it.
  */
 export const CurrentAffairsPreview: React.FC<CurrentAffairsPreviewProps> = ({
   post,
@@ -142,11 +181,18 @@ export const CurrentAffairsPreview: React.FC<CurrentAffairsPreviewProps> = ({
   publishedAt,
   updatedAt,
   related = [],
+  publicView = false,
 }) => {
-  const isEditorial = post.contentType === "editorial_analysis";
+  const rootRef = useRef<HTMLElement | null>(null);
+  const tocRef = useRef<HTMLElement | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [tocOpen, setTocOpen] = useState(false);
+
   const isSingle = post.contentType === "individual_item";
   const items = post.items;
-  const anchors = items.map((item, index) => `item-${slugify(item.headline) || index + 1}`);
+  const anchors = items.map((item, index) => `item-${index + 1}-${slugify(item.headline).slice(0, 40) || "untitled"}`);
+  const quizId = "quiz";
+  const hasQuiz = !!post.quiz && post.quiz.questions.length > 0;
   const when = publishedAt ?? (post.publishAt ? currentAffairsMeta.fromIstInput(post.publishAt) : null);
   const minutes = post.readingTimeIsManual
     ? post.readingTimeMinutes
@@ -156,78 +202,152 @@ export const CurrentAffairsPreview: React.FC<CurrentAffairsPreviewProps> = ({
         ...post.atAGlance,
         ...items.flatMap((i) => [i.headline, i.whyInNews, i.keyPoints, i.background]),
       ]);
+  const period = post.digestDate ? currentAffairsMeta.periodLabel(post.contentType, post.digestDate) : "";
   const glance = post.atAGlance.filter((line) => line.trim());
   const postSources = post.sources.filter((s) => s.name.trim() || s.url.trim());
   const corrections = post.corrections.filter((c) => c.date && c.note.trim());
-  const showToc = !isSingle && items.length > 1;
+  const toc = [
+    ...items.map((item, index) => ({ id: anchors[index], label: item.headline || `Item ${index + 1}` })),
+    ...(hasQuiz ? [{ id: quizId, label: post.quiz?.title || "Quiz" }] : []),
+  ];
+  const showToc = !isSingle && toc.length > 1;
+  const notice = NOTICE[post.status];
+
+  // Scroll events do not bubble, so listen in the capture phase: the page may scroll inside the
+  // admin main area or a dialog body rather than the window.
+  useEffect(() => {
+    if (!showToc) return;
+    const update = () => {
+      const sections = Array.from(rootRef.current?.querySelectorAll<HTMLElement>("[data-toc-section]") ?? []);
+      if (sections.length === 0) return;
+      // The sticky offset is relative to whatever scrolls, so measure where the list really sits.
+      const toc = tocRef.current;
+      const threshold =
+        toc && getComputedStyle(toc).position === "sticky" ? toc.getBoundingClientRect().top + ACTIVE_SLACK : FALLBACK_OFFSET;
+      let current: string | null = sections[0]?.id ?? null;
+      for (const section of sections) {
+        if (section.getBoundingClientRect().top <= threshold) current = section.id;
+      }
+      // A short last section may never reach the line; at the end of the article it wins.
+      const last = sections[sections.length - 1];
+      const articleBottom = rootRef.current?.getBoundingClientRect().bottom ?? Infinity;
+      if (articleBottom <= window.innerHeight + 4 && last.getBoundingClientRect().top < window.innerHeight) {
+        current = last.id;
+      }
+      setActiveId(current);
+    };
+    update();
+    document.addEventListener("scroll", update, { capture: true, passive: true });
+    return () => document.removeEventListener("scroll", update, { capture: true });
+  }, [showToc, toc.length]);
+
+  const jumpTo = (event: React.MouseEvent, id: string) => {
+    event.preventDefault();
+    const target = rootRef.current?.querySelector<HTMLElement>(`#${CSS.escape(id)}`);
+    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setActiveId(id);
+    setTocOpen(false);
+  };
 
   return (
-    <article className={styles.root} lang={post.language}>
-      <div className={styles.previewBar}>
-        <span>Preview - how the public page will lay this out</span>
-        <CurrentAffairsStatusBadge status={post.status} />
-      </div>
-
-      <nav className={styles.crumbs} aria-label="Breadcrumb">
-        Home <ChevronRight size={12} aria-hidden="true" /> Current Affairs <ChevronRight size={12} aria-hidden="true" />{" "}
-        {currentAffairsMeta.contentTypeShort(post.contentType)}
-      </nav>
+    <article ref={rootRef} className={styles.root} lang={post.language}>
+      {notice && (
+        <p className={styles.notice}>
+          <EyeOff size={14} aria-hidden="true" />
+          {notice}
+        </p>
+      )}
 
       <header className={styles.hero}>
+        {!publicView && (
+          <nav className={styles.crumbs} aria-label="Breadcrumb">
+            <span>Home</span>
+            <ChevronRight size={12} aria-hidden="true" />
+            <span>Current Affairs</span>
+            <ChevronRight size={12} aria-hidden="true" />
+            <span>{currentAffairsMeta.contentTypeShort(post.contentType)}</span>
+          </nav>
+        )}
+
         <h1 className={styles.title}>{post.title || <span className={styles.missing}>Untitled</span>}</h1>
         {post.summary && <p className={styles.standfirst}>{post.summary}</p>}
-        <p className={styles.byline}>
-          By <strong>{authorName ?? "No author"}</strong>
-          {when && <> - Published {currentAffairsMeta.formatIst(when)}</>}
-          {updatedAt && when && updatedAt.getTime() - when.getTime() > 60_000 && (
-            <> - Updated {currentAffairsMeta.formatIst(updatedAt)}</>
+
+        <ul className={styles.byline}>
+          <li>
+            <UserRound size={14} aria-hidden="true" />
+            By <strong>{authorName ?? "No author"}</strong>
+          </li>
+          {when && (
+            <li>
+              <CalendarCheck size={14} aria-hidden="true" />
+              {currentAffairsMeta.formatIst(when)}
+            </li>
           )}
-          {" - "}
-          {minutes} min read
-          {post.digestDate && <> - Covers {currentAffairsMeta.formatDay(post.digestDate)}</>}
-        </p>
-        <Chips tags={post.tags} />
+          {updatedAt && when && updatedAt.getTime() - when.getTime() > 60_000 && (
+            <li>Updated {currentAffairsMeta.formatIst(updatedAt)}</li>
+          )}
+          <li>
+            <Clock size={14} aria-hidden="true" />
+            {minutes} min read
+          </li>
+          {period && (
+            <li>
+              <CalendarRange size={14} aria-hidden="true" />
+              Covers {period}
+            </li>
+          )}
+        </ul>
+
+        <Pills tags={post.tags} />
       </header>
 
-      <figure className={styles.cover}>
-        {post.coverImageUrl ? (
+      {post.coverImageUrl ? (
+        <figure className={styles.cover}>
           <img src={post.coverImageUrl} alt={post.coverImageAlt} className={styles.coverImage} />
-        ) : (
-          <div className={styles.coverEmpty}>
-            <ImageIcon size={28} aria-hidden="true" /> No cover image yet
-          </div>
-        )}
-        {post.coverImageCredit && <figcaption className={styles.credit}>Image: {post.coverImageCredit}</figcaption>}
-      </figure>
+          {post.coverImageCredit && <figcaption className={styles.credit}>Image: {post.coverImageCredit}</figcaption>}
+        </figure>
+      ) : publicView ? null : (
+        <div className={styles.coverEmpty}>
+          <ImageIcon size={18} aria-hidden="true" /> No cover image
+        </div>
+      )}
 
       <div className={`${styles.layout} ${showToc ? "" : styles.layoutSingle}`}>
         {showToc && (
-          <aside className={styles.toc}>
+          <nav ref={tocRef} className={styles.toc} aria-label="On this page">
+            <button
+              type="button"
+              className={styles.tocToggle}
+              aria-expanded={tocOpen}
+              onClick={() => setTocOpen((open) => !open)}
+            >
+              On this page <span className={styles.tocCount}>{toc.length}</span>
+              <ChevronDown size={16} className={`${styles.tocChevron} ${tocOpen ? styles.tocChevronOpen : ""}`} aria-hidden="true" />
+            </button>
             <p className={styles.tocTitle}>On this page</p>
-            <ol className={styles.tocList}>
-              {items.map((item, index) => (
-                <li key={item.key}>
-                  <a href={`#${anchors[index]}`} className={styles.tocLink}>
-                    {item.headline || `Item ${index + 1}`}
+            <ol className={`${styles.tocList} ${tocOpen ? styles.tocListOpen : ""}`}>
+              {toc.map((entry, index) => (
+                <li key={entry.id}>
+                  <a
+                    href={`#${entry.id}`}
+                    className={`${styles.tocLink} ${activeId === entry.id ? styles.tocLinkActive : ""}`}
+                    aria-current={activeId === entry.id ? "location" : undefined}
+                    onClick={(event) => jumpTo(event, entry.id)}
+                  >
+                    <span className={styles.tocNumber}>{entry.id === quizId ? "Q" : index + 1}</span>
+                    <span className={styles.tocLabel}>{entry.label}</span>
                   </a>
                 </li>
               ))}
-              {post.quiz && (
-                <li>
-                  <a href="#quiz" className={styles.tocLink}>
-                    Quiz
-                  </a>
-                </li>
-              )}
             </ol>
-          </aside>
+          </nav>
         )}
 
         <div className={styles.main}>
           {glance.length > 0 && (
             <section className={styles.glance}>
               <h2 className={styles.label}>At a glance</h2>
-              <ul>
+              <ul className={styles.list}>
                 {glance.map((line, index) => (
                   <li key={index}>{line}</li>
                 ))}
@@ -235,11 +355,16 @@ export const CurrentAffairsPreview: React.FC<CurrentAffairsPreviewProps> = ({
             </section>
           )}
 
-          {hasText(post.body) && <Html html={post.body} className={isEditorial ? styles.editorial : undefined} />}
+          {hasText(post.body) && <Html html={post.body} />}
 
           {items.map((item, index) => (
-            <section key={item.key} id={anchors[index]} className={styles.item}>
-              {!isSingle && <h2 className={styles.h2}>{item.headline || <span className={styles.missing}>Item {index + 1}</span>}</h2>}
+            <section key={item.key} id={anchors[index]} className={styles.item} data-toc-section>
+              {!isSingle && (
+                <h2 className={styles.itemTitle}>
+                  <span className={styles.itemNumber}>{String(index + 1).padStart(2, "0")}</span>
+                  <span>{item.headline || <span className={styles.missing}>Item {index + 1}</span>}</span>
+                </h2>
+              )}
               {item.imageUrl && (
                 <figure className={styles.itemFigure}>
                   <img src={item.imageUrl} alt={item.imageAlt} className={styles.itemImage} />
@@ -247,39 +372,44 @@ export const CurrentAffairsPreview: React.FC<CurrentAffairsPreviewProps> = ({
                 </figure>
               )}
               {item.whyInNews && (
-                <>
+                <div className={styles.why}>
                   <h3 className={styles.label}>Why in news</h3>
                   <p className={styles.para}>{item.whyInNews}</p>
-                </>
+                </div>
               )}
               {hasText(item.keyPoints) && (
-                <>
-                  <h3 className={styles.label}>Key points</h3>
+                <div className={styles.block}>
+                  {item.whyInNews && <h3 className={styles.label}>Key points</h3>}
                   <Html html={item.keyPoints} />
-                </>
+                </div>
               )}
               {hasText(item.background) && (
-                <>
+                <div className={styles.block}>
                   <h3 className={styles.label}>Background</h3>
                   <Html html={item.background} />
-                </>
+                </div>
               )}
-              <Chips tags={item.tags} />
-              <SourceLine sources={item.sources} />
+              {(item.tags.length > 0 || item.sources.some((s) => s.url.trim() || s.name.trim())) && (
+                <footer className={styles.itemFoot}>
+                  <Pills tags={item.tags} />
+                  <SourceLine sources={item.sources} />
+                </footer>
+              )}
             </section>
           ))}
 
-          {post.quiz && post.quiz.questions.length > 0 && <QuizPreview quiz={post.quiz} />}
+          {hasQuiz && post.quiz && <QuizPreview quiz={post.quiz} id={quizId} />}
 
           {postSources.length > 0 && (
-            <section className={styles.boxed}>
+            <section className={styles.panel}>
               <h2 className={styles.label}>Sources</h2>
-              <ul className={styles.sourceList}>
+              <ul className={styles.list}>
                 {postSources.map((source, index) => (
                   <li key={index}>
                     {source.url ? (
                       <a href={source.url} target="_blank" rel="noopener noreferrer" className={styles.link}>
-                        {source.name || source.url} <ExternalLink size={11} aria-hidden="true" />
+                        {source.name || source.url}
+                        <ExternalLink size={11} aria-hidden="true" />
                       </a>
                     ) : (
                       source.name
@@ -291,7 +421,7 @@ export const CurrentAffairsPreview: React.FC<CurrentAffairsPreviewProps> = ({
           )}
 
           {corrections.length > 0 && (
-            <section className={styles.corrections}>
+            <section className={`${styles.panel} ${styles.corrections}`}>
               <h2 className={styles.label}>Corrections</h2>
               {corrections.map((correction) => (
                 <p key={correction.key} className={styles.para}>
@@ -302,11 +432,19 @@ export const CurrentAffairsPreview: React.FC<CurrentAffairsPreviewProps> = ({
           )}
 
           {related.length > 0 && (
-            <section className={styles.boxed}>
+            <section className={styles.panel}>
               <h2 className={styles.label}>Related</h2>
-              <ul className={styles.sourceList}>
+              <ul className={styles.list}>
                 {related.map((r) => (
-                  <li key={r.id}>{r.title}</li>
+                  <li key={r.id}>
+                    {r.href ? (
+                      <Link to={r.href} className={styles.link}>
+                        {r.title}
+                      </Link>
+                    ) : (
+                      r.title
+                    )}
+                  </li>
                 ))}
               </ul>
             </section>

@@ -173,21 +173,20 @@ const FollowOrgButton: React.FC<{ organizationId: number; orgSlug: string; isFol
 const ClaimOrganizationButton: React.FC<{
   organizationId: number;
   orgSlug: string;
-  claimStatus: "unclaimed" | "pending_verification" | "claimed";
-}> = ({ organizationId, orgSlug, claimStatus }) => {
+}> = ({ organizationId, orgSlug }) => {
   const { authState } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"choose" | "code" | "done">("choose");
   const [selected, setSelected] = useState<{ method: "phone" | "email"; value: string; masked: string } | null>(null);
   const [code, setCode] = useState("");
   const [maskedDestination, setMaskedDestination] = useState("");
 
-  const optionsQuery = useOrganizationClaimOptionsQuery(organizationId, open);
+  const isTeacher = authState.type === "authenticated" && authState.user.role === "teacher";
+  const optionsQuery = useOrganizationClaimOptionsQuery(organizationId, open && isTeacher);
   const startMutation = useStartOrganizationClaimMutation();
   const verifyMutation = useVerifyOrganizationClaimMutation(orgSlug);
-
-  const isTeacher = authState.type === "authenticated" && authState.user.role === "teacher";
-  if (!isTeacher || claimStatus === "claimed") return null;
 
   const resetAndClose = () => {
     setOpen(false);
@@ -196,6 +195,15 @@ const ClaimOrganizationButton: React.FC<{
     setCode("");
     startMutation.reset();
     verifyMutation.reset();
+  };
+
+  const handleClick = () => {
+    if (authState.type !== "authenticated") {
+      const currentPath = location.pathname + location.search;
+      navigate(`/login?redirectTo=${encodeURIComponent(currentPath)}`);
+      return;
+    }
+    setOpen(true);
   };
 
   const handleSendCode = () => {
@@ -221,27 +229,41 @@ const ClaimOrganizationButton: React.FC<{
 
   return (
     <>
-      <Button type="button" variant="outline" className={styles.claimButton} onClick={() => setOpen(true)}>
+      <Button type="button" variant="outline" className={styles.claimButton} onClick={handleClick}>
         Claim this profile
       </Button>
       <Dialog open={open} onOpenChange={(next) => (next ? setOpen(true) : resetAndClose())}>
         <DialogContent className={styles.modalContent}>
           <DialogTitle>Claim this organisation</DialogTitle>
 
-          {step === "choose" && (
+          {!isTeacher && (
             <div className={styles.claimStepBody}>
               <p className={styles.claimHelpText}>
-                This profile was created automatically from public listing data and has no owner yet. To
-                manage it, verify that you control one of its own listed contact details below.
+                Only teacher accounts can claim an organisation profile. Sign in with a teacher account to
+                continue.
               </p>
+            </div>
+          )}
+
+          {isTeacher && step === "choose" && (
+            <div className={styles.claimStepBody}>
               {optionsQuery.isLoading && <p className={styles.claimHelpText}>Loading contact options…</p>}
-              {optionsQuery.data && optionsQuery.data.options.length === 0 && (
+              {optionsQuery.data && optionsQuery.data.claimStatus === "claimed" && (
+                <p className={styles.claimHelpText}>This organisation has already been claimed by its owner.</p>
+              )}
+              {optionsQuery.data && optionsQuery.data.claimStatus !== "claimed" && (
+                <p className={styles.claimHelpText}>
+                  This profile was created automatically from public listing data and has no owner yet. To
+                  manage it, verify that you control one of its own listed contact details below.
+                </p>
+              )}
+              {optionsQuery.data && optionsQuery.data.claimStatus !== "claimed" && optionsQuery.data.options.length === 0 && (
                 <p className={styles.formError} role="alert">
                   This listing has no phone or email on file, so it can't be verified automatically. Please
                   contact support to claim it manually.
                 </p>
               )}
-              {optionsQuery.data && optionsQuery.data.options.length > 0 && (
+              {optionsQuery.data && optionsQuery.data.claimStatus !== "claimed" && optionsQuery.data.options.length > 0 && (
                 <div className={styles.claimOptionList}>
                   {optionsQuery.data.options.map((opt) => (
                     <button
@@ -256,18 +278,22 @@ const ClaimOrganizationButton: React.FC<{
                   ))}
                 </div>
               )}
-              {startMutation.isError && (
-                <p className={styles.formError} role="alert">
-                  {startMutation.error instanceof Error ? startMutation.error.message : "Could not send the code."}
-                </p>
+              {optionsQuery.data && optionsQuery.data.claimStatus !== "claimed" && optionsQuery.data.options.length > 0 && (
+                <>
+                  {startMutation.isError && (
+                    <p className={styles.formError} role="alert">
+                      {startMutation.error instanceof Error ? startMutation.error.message : "Could not send the code."}
+                    </p>
+                  )}
+                  <Button
+                    type="button"
+                    onClick={handleSendCode}
+                    disabled={!selected || startMutation.isPending}
+                  >
+                    {startMutation.isPending ? "Sending…" : "Send verification code"}
+                  </Button>
+                </>
               )}
-              <Button
-                type="button"
-                onClick={handleSendCode}
-                disabled={!selected || startMutation.isPending}
-              >
-                {startMutation.isPending ? "Sending…" : "Send verification code"}
-              </Button>
             </div>
           )}
 
@@ -1324,6 +1350,8 @@ const useKeepSectionScroll = (tab: OrganizationTabValue, shellRef: React.RefObje
 export const OrganizationProfileView: React.FC<OrganizationProfileViewProps> = ({ data, orgSlug, tab = "about" }) => {
   const { organization, teachers, catalogue, posts, followerCount, isFollowing, reviewCount, averageRating } = data;
   const shellRef = useRef<HTMLDivElement>(null);
+  const { authState } = useAuth();
+  const isSignedIn = authState.type === "authenticated";
 
   useKeepSectionScroll(tab, shellRef);
 
@@ -1356,7 +1384,7 @@ export const OrganizationProfileView: React.FC<OrganizationProfileViewProps> = (
       label: "Size",
       content: INSTITUTE_SIZE_LABELS[organization.instituteSize] ?? organization.instituteSize,
     },
-    organization.websiteUrl && {
+    isSignedIn && organization.websiteUrl && {
       key: "website",
       icon: Globe,
       tone: styles.infoIconSky,
@@ -1364,7 +1392,7 @@ export const OrganizationProfileView: React.FC<OrganizationProfileViewProps> = (
       content: organization.websiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, ""),
       href: organization.websiteUrl,
     },
-    organization.phoneNumber && {
+    isSignedIn && organization.phoneNumber && {
       key: "phone",
       icon: Phone,
       tone: styles.infoIconPeach,
@@ -1397,7 +1425,6 @@ export const OrganizationProfileView: React.FC<OrganizationProfileViewProps> = (
             <div className={styles.heroTitleRow}>
               <h1 className={styles.orgName}>{organization.name}</h1>
               <Badge variant="lavender">{ORG_TYPE_LABELS[organization.orgType] ?? "Organisation"}</Badge>
-              {organization.claimStatus !== "claimed" && <Badge variant="warning">Unclaimed</Badge>}
             </div>
 
             <div className={styles.heroMeta}>
@@ -1418,11 +1445,7 @@ export const OrganizationProfileView: React.FC<OrganizationProfileViewProps> = (
           </div>
 
           <FollowOrgButton organizationId={organization.id} orgSlug={orgSlug} isFollowing={isFollowing} />
-          <ClaimOrganizationButton
-            organizationId={organization.id}
-            orgSlug={orgSlug}
-            claimStatus={organization.claimStatus}
-          />
+          <ClaimOrganizationButton organizationId={organization.id} orgSlug={orgSlug} />
         </div>
       </header>
 

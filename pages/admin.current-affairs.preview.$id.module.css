@@ -1,28 +1,78 @@
 .page {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-4);
+  gap: var(--spacing-3);
   width: 100%;
-  max-width: 64rem;
+  max-width: 68rem;
   margin: 0 auto;
-  padding: var(--spacing-6) var(--spacing-6) var(--spacing-8);
+  padding: var(--spacing-4) var(--spacing-6) var(--spacing-8);
   box-sizing: border-box;
 }
 
+/* One slim row: back, a small Preview label with the status, and Edit on the right. */
+.bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2) var(--spacing-3);
+}
+
+.back {
+  margin-left: calc(-1 * var(--spacing-2));
+}
+
+.divider {
+  width: 1px;
+  height: 1.25rem;
+  background-color: var(--border);
+}
+
+.heading {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.edit {
+  margin-left: auto;
+}
+
+/* The article sheet. The admin main area scrolls below its own top bar, so the contents
+   list only needs a small gap from the top of that area. */
 .sheet {
-  padding: var(--spacing-6);
+  --ca-toc-top: var(--spacing-4);
+  padding: var(--spacing-6) var(--spacing-8) var(--spacing-8);
   background-color: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
+}
+
+@media (max-width: 900px) {
+  .sheet {
+    padding: var(--spacing-6);
+  }
 }
 
 @media (max-width: 640px) {
   .page {
-    padding: var(--spacing-4);
+    padding: var(--spacing-3) var(--spacing-3) var(--spacing-6);
   }
 
   .sheet {
     padding: var(--spacing-4);
+  }
+
+  .divider {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .backLabel {
+    display: none;
   }
 }

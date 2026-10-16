@@ -31,6 +31,12 @@
   min-width: 14rem;
 }
 
+.emptyActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
 .emptyTitle {
   margin: 0;
   font-weight: 700;
@@ -163,9 +169,246 @@
   gap: var(--spacing-2);
 }
 
+/* Count, readiness and the regenerate action in one slim row above the settings. */
+.toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2) var(--spacing-3);
+}
+
+.countPill {
+  display: inline-flex;
+  align-items: center;
+  height: 1.625rem;
+  padding: 0 var(--spacing-3);
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--chart-color-5) 16%, var(--surface));
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.toolbarAction {
+  margin-left: auto;
+}
+
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius-md);
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.notice > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.noticeSuccess {
+  background-color: color-mix(in srgb, var(--success) 12%, var(--surface));
+}
+
+.noticeSuccess > svg {
+  color: var(--success-text);
+}
+
+.noticeWarning {
+  background-color: color-mix(in srgb, var(--warning) 16%, var(--surface));
+}
+
+.noticeWarning > svg {
+  color: var(--warning-text);
+}
+
+.noticeClose {
+  margin-left: auto;
+  padding: 0 4px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--muted-foreground);
+  font-size: 1.125rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.noticeClose:hover {
+  color: var(--foreground);
+}
+
+.questionBusy {
+  border-color: color-mix(in srgb, var(--chart-color-5) 60%, var(--border));
+  background-color: color-mix(in srgb, var(--chart-color-5) 6%, var(--surface));
+}
+
+.regenOne {
+  gap: 6px;
+  color: var(--foreground);
+}
+
+.spin {
+  animation: quizSpin 1s linear infinite;
+}
+
+@keyframes quizSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Generator dialog */
+.aiBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.aiField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.aiLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.aiCount {
+  max-width: 7rem;
+}
+
+.aiFieldError {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--error-text);
+}
+
+.aiFixed {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius-md);
+  background-color: var(--muted);
+  font-size: 0.8125rem;
+  color: var(--foreground);
+}
+
+.difficulty {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-2);
+}
+
+.difficultyOption {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+  cursor: pointer;
+  transition: border-color var(--animation-duration-fast) ease, background-color var(--animation-duration-fast) ease;
+}
+
+.difficultyOption:hover {
+  border-color: var(--tk-brand-text);
+}
+
+.difficultyOption:focus-within {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.difficultyOn {
+  border-color: var(--tk-brand-text);
+  background-color: color-mix(in srgb, var(--tk-brand) 14%, var(--surface));
+}
+
+/* The radio stays focusable for keyboards; the whole card shows the state. */
+.srRadio {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+}
+
+.difficultyLabel {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.difficultyHint {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.aiReplaceNote,
+.aiLoading,
+.aiError {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.aiReplaceNote {
+  background-color: color-mix(in srgb, var(--warning) 14%, var(--surface));
+  color: var(--foreground);
+}
+
+.aiLoading {
+  background-color: color-mix(in srgb, var(--chart-color-5) 12%, var(--surface));
+  color: var(--foreground);
+}
+
+.aiError {
+  background-color: color-mix(in srgb, var(--error) 10%, var(--surface));
+  color: var(--error-text);
+}
+
+.aiLoading > svg,
+.aiError > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
 @media (max-width: 640px) {
   .settings,
   .options {
     grid-template-columns: 1fr;
+  }
+
+  .regenLabel {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+
+  .difficultyOption {
+    transition: none;
   }
 }
