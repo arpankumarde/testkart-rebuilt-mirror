@@ -16,10 +16,68 @@
   }
 }
 
+/* The post-test prompt takes over the whole screen on phones instead of floating as a card. */
+@media (max-width: 640px) {
+  .dialogContent.postTest {
+    inset: 0;
+    top: 0;
+    left: 0;
+    transform: none;
+    width: 100vw;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: var(--spacing-12) 1.25rem calc(var(--spacing-6) + env(safe-area-inset-bottom));
+    text-align: center;
+  }
+
+  .postTest .starIcon {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .postTest .stars {
+    gap: var(--spacing-3);
+  }
+
+  .postTest .textarea {
+    font-size: 1rem;
+  }
+
+  .postTest .footer {
+    flex-direction: column-reverse;
+    gap: var(--spacing-3);
+  }
+
+  .postTest .footer > * {
+    width: 100%;
+    min-height: 48px;
+  }
+}
+
 .ratingContainer {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-2);
   margin: var(--spacing-6) 0;
+}
+
+.ratingLabel {
+  margin: 0;
+  min-height: 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.footer {
+  flex-wrap: wrap;
 }
 
 .stars {

@@ -117,7 +117,7 @@
   gap: var(--spacing-2);
 }
 
-/* Five links fit the 1200px header. Narrower, Live Competitions drops to its icon (it keeps its
+/* The links fit the 1200px header. Narrower, Live Competitions drops to its icon (it keeps its
    aria-label and title) and the gaps tighten, down to the 968px mobile header. */
 @media (max-width: 1180px) {
   .liveLabel {

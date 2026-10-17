@@ -173,11 +173,14 @@ const FollowOrgButton: React.FC<{ organizationId: number; orgSlug: string; isFol
 const ClaimOrganizationButton: React.FC<{
   organizationId: number;
   orgSlug: string;
-}> = ({ organizationId, orgSlug }) => {
+  claimStatus: "unclaimed" | "pending_verification" | "claimed";
+}> = ({ organizationId, orgSlug, claimStatus }) => {
   const { authState } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [open, setOpen] = useState(false);
+
+  if (claimStatus === "claimed") return null;
   const [step, setStep] = useState<"choose" | "code" | "done">("choose");
   const [selected, setSelected] = useState<{ method: "phone" | "email"; value: string; masked: string } | null>(null);
   const [code, setCode] = useState("");
@@ -1445,7 +1448,11 @@ export const OrganizationProfileView: React.FC<OrganizationProfileViewProps> = (
           </div>
 
           <FollowOrgButton organizationId={organization.id} orgSlug={orgSlug} isFollowing={isFollowing} />
-          <ClaimOrganizationButton organizationId={organization.id} orgSlug={orgSlug} />
+          <ClaimOrganizationButton
+            organizationId={organization.id}
+            orgSlug={orgSlug}
+            claimStatus={organization.claimStatus}
+          />
         </div>
       </header>
 

@@ -51,6 +51,10 @@ export type OutputType = {
   completedAt: Selectable<TestAttempts>["completedAt"];
   mockTestId: number;
   testPackageTitle: string;
+  // The student's own review of the series; false for live test papers, which are not rated.
+  canReview: boolean;
+  myRating: number | null;
+  myReviewText: string | null;
   results: ResultItem[];
 };
 

@@ -274,14 +274,6 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
             >
               Study Notes
             </NavLink>
-            <NavLink
-              to="/current-affairs"
-              className={({ isActive }) =>
-                `${styles.navLink} ${isActive ? styles.active : ""}`
-              }
-            >
-              Current Affairs
-            </NavLink>
           </nav>
           <div className={styles.headerActions}>
             <SearchButton />

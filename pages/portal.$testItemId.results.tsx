@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { useTestResultsQuery } from "../helpers/useTestResultsQuery";
-import { useEnrolledTestsQuery } from "../helpers/useEnrolledTestsQuery";
 import { Button } from "../components/Button";
 import { TestResultsDisplay } from "../components/TestResultsDisplay";
 import { Skeleton } from "../components/Skeleton";
@@ -15,14 +14,12 @@ export default function TestResultsPage() {
   const navigate = useNavigate();
   const testItemId = testItemIdStr ? parseInt(testItemIdStr, 10) : undefined;
 
-  const { data, isFetching, error } = useTestResultsQuery(testItemId);
-  const { data: enrolledData } = useEnrolledTestsQuery();
-  const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+  const location = useLocation();
+  const justSubmitted = (location.state as { justSubmitted?: boolean } | null)?.justSubmitted === true;
 
-  const enrolledPackage = enrolledData?.enrolledTests.find(pkg => 
-    pkg.testItems.some(item => item.id === testItemId)
-  );
-  const testItem = enrolledPackage?.testItems.find(item => item.id === testItemId);
+  const { data, isFetching, error } = useTestResultsQuery(testItemId);
+  const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+  const reviewPromptHandled = useRef(false);
 
   useEffect(() => {
     if (error?.message.includes("No completed attempts")) {
@@ -35,14 +32,16 @@ export default function TestResultsPage() {
     }
   }, [error, testItemId, navigate]);
 
-  // Show review dialog when results are successfully loaded
+  // Right after a submit, ask for a series review if there is none yet, or ask again while it is below 4 stars.
+  // Revisiting results later never prompts; the state is cleared so a refresh does not either.
   useEffect(() => {
-    if (data && !isFetching && !error && enrolledData) {
-            if (enrolledPackage && !enrolledPackage.hasReviewed) {
-        setIsReviewDialogOpen(true);
-      }
+    if (!justSubmitted || reviewPromptHandled.current || !data || isFetching || error) return;
+    reviewPromptHandled.current = true;
+    if (data.canReview && (data.myRating === null || data.myRating < 4)) {
+      setIsReviewDialogOpen(true);
     }
-  }, [data, isFetching, error, enrolledData, enrolledPackage]);
+    navigate(location.pathname, { replace: true, state: null });
+  }, [justSubmitted, data, isFetching, error, navigate, location.pathname]);
 
   const formatTime = (seconds: number) => {
     if (isNaN(seconds) || seconds < 0) return "0m 0s";
@@ -110,7 +109,10 @@ export default function TestResultsPage() {
           isOpen={isReviewDialogOpen}
           onClose={() => setIsReviewDialogOpen(false)}
           mockTestId={data.mockTestId}
-          testPackageTitle={testItem?.title || data.testPackageTitle}
+          testPackageTitle={data.testPackageTitle}
+          initialRating={data.myRating}
+          initialReviewText={data.myReviewText}
+          postTest
         />
       )}
       <Helmet>

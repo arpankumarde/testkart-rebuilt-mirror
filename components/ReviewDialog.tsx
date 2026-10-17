@@ -23,7 +23,11 @@ interface ReviewDialogProps {
   className?: string;
   initialRating?: number | null;
   initialReviewText?: string | null;
+  // Shown right after a test: covers the whole screen on phones and, when a rating exists, asks to reconsider it.
+  postTest?: boolean;
 }
+
+const RATING_LABELS = ['', 'Poor', 'Fair', 'Good', 'Very good', 'Excellent'];
 
 export const ReviewDialog: React.FC<ReviewDialogProps> = ({
   isOpen,
@@ -36,6 +40,7 @@ export const ReviewDialog: React.FC<ReviewDialogProps> = ({
   className,
   initialRating,
   initialReviewText,
+  postTest = false,
 }) => {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
@@ -102,14 +107,24 @@ export const ReviewDialog: React.FC<ReviewDialogProps> = ({
 
   const isDigitalProduct = !!digitalProductId;
   const isCourse = !!courseId;
+  const isReconsider = postTest && isEditMode;
+  const shownRating = hoverRating || rating;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className={`${styles.dialogContent} ${className ?? ''}`}>
+      <DialogContent className={`${styles.dialogContent} ${postTest ? styles.postTest : ''} ${className ?? ''}`}>
         <DialogHeader>
-          <DialogTitle>{isEditMode ? `Edit your review of "${testPackageTitle}"` : `How was "${testPackageTitle}"?`}</DialogTitle>
+          <DialogTitle>
+            {isReconsider
+              ? `Changed your mind about "${testPackageTitle}"?`
+              : isEditMode
+              ? `Edit your review of "${testPackageTitle}"`
+              : `How was "${testPackageTitle}"?`}
+          </DialogTitle>
           <DialogDescription>
-            {isEditMode 
+            {isReconsider
+              ? `You rated this series ${initialRating} out of 5 earlier. If this test changed how you feel about it, update your rating.`
+              : isEditMode
               ? "Update your rating and feedback."
               : isCourse
               ? "You can rate this course at any point, whether or not you have finished it. Your feedback helps other students and the instructor."
@@ -135,12 +150,15 @@ export const ReviewDialog: React.FC<ReviewDialogProps> = ({
               >
                 <Star
                   className={`${styles.starIcon} ${
-                    (hoverRating || rating) >= star ? styles.filled : ''
+                    shownRating >= star ? styles.filled : ''
                   }`}
                 />
               </button>
             ))}
           </div>
+          <p className={styles.ratingLabel} aria-live="polite">
+            {shownRating > 0 ? RATING_LABELS[shownRating] : 'Tap a star to rate'}
+          </p>
         </div>
 
         <textarea
@@ -153,13 +171,13 @@ export const ReviewDialog: React.FC<ReviewDialogProps> = ({
           disabled={submitReviewMutation.isPending}
         />
 
-        <DialogFooter>
+        <DialogFooter className={styles.footer}>
           <Button
             variant="secondary"
             onClick={handleClose}
             disabled={submitReviewMutation.isPending}
           >
-            Skip
+            {isReconsider ? 'Keep my rating' : 'Skip'}
           </Button>
           <Button
             onClick={handleSubmit}

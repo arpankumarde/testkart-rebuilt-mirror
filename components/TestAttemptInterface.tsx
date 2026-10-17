@@ -253,7 +253,7 @@ export const TestAttemptInterface: React.FC<TestAttemptInterfaceProps> = ({
         queryClient.invalidateQueries({ queryKey: ENROLLED_TESTS_QUERY_KEY });
         // Results are cached for 5 minutes; drop them so the page cannot show an earlier attempt.
         queryClient.removeQueries({ queryKey: [TEST_RESULTS_QUERY_KEY, testItemId] });
-        navigate(`/portal/${testItemId}/results`, { replace: true });
+        navigate(`/portal/${testItemId}/results`, { replace: true, state: { justSubmitted: true } });
       },
       onError: (error) => {
         console.error('[handleSubmit] Error submitting attempt:', error);

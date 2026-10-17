@@ -86,6 +86,16 @@ export async function handle(request: Request): Promise<Response> {
       testPackageTitle: testItemInfo.testPackageTitle,
     };
 
+    // Live test papers are not a series students rate; everything else drives the post-test review prompt.
+    const myReview = liveTestPaper
+      ? undefined
+      : await db
+          .selectFrom("reviews")
+          .select(["rating", "reviewText"])
+          .where("mockTestId", "=", testItemInfo.mockTestId)
+          .where("userId", "=", user.id)
+          .executeTakeFirst();
+
     // 2. Get the latest completed attempt for this test item
     const latestAttempt = await db
       .selectFrom("testAttempts")
@@ -237,6 +247,9 @@ export async function handle(request: Request): Promise<Response> {
       completedAt: latestAttempt.completedAt,
       mockTestId: enrollmentCheck.mockTestId,
       testPackageTitle: enrollmentCheck.testPackageTitle,
+      canReview: liveTestPaper === null,
+      myRating: myReview?.rating ?? null,
+      myReviewText: myReview?.reviewText ?? null,
       results: visibleResults,
     };
 
