@@ -172,7 +172,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
       examNames: [],
       previewPages: 0,
       pageCount: 0,
-      allowDownload: false,
+      allowDownload: true,
       tagsString: '',
       // Create mode has no Files section; edit mode fills this once details load.
       files: [],
@@ -1127,7 +1127,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
                   </FormControl>
                 </div>
                 <FormDescription>
-                  Off by default. When on, students who bought this note can download every PDF in it from their dashboard. When off, they read it in the reader only.
+                  On by default. When on, students who bought this note can download every PDF in it from their dashboard. Turn it off to let them read it in the reader only.
                 </FormDescription>
               </FormItem>
             </div>

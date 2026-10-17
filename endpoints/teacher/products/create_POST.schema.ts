@@ -30,7 +30,7 @@ export const schema = z.object({
   previewPages: z.number().int().min(0).optional().nullable(),
   pageCount: z.number().int().min(0).optional().nullable(),
   fileSizeBytes: z.number().int().min(0).optional().nullable(),
-  /** Lets buyers download every PDF of the note. Off unless the teacher turns it on. */
+  /** Lets buyers download every PDF of the note. On unless the teacher turns it off. */
   allowDownload: z.boolean().optional(),
   language: z.string().optional().nullable(),
   /** Takes precedence over language; the legacy column stores the list's summary. */

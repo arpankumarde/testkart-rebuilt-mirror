@@ -107,7 +107,7 @@ export async function handle(request: Request): Promise<Response> {
           previewPages: input.previewPages ?? null,
           pageCount: totalPages || null,
           fileSizeBytes: firstFile ? totalBytes.toString() : null,
-          allowDownload: input.allowDownload ?? false,
+          allowDownload: input.allowDownload ?? true,
           ...(input.languages?.length
             ? { languages: normalizeLanguages(input.languages), language: languagesSummary(input.languages) }
             : { language: input.language ?? null }),
