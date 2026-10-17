@@ -49,7 +49,7 @@ export const useSearchOrganizationsQuery = (query: SearchOrgInput, enabled: bool
 export const useJoinRequestMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (organizationId: number) => postTeacherOrganizationsJoinRequest({ organizationId }),
+    mutationFn: (organizationId: string) => postTeacherOrganizationsJoinRequest({ organizationId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: MINE_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: ["teacherOrganizationsSearch"] });
@@ -70,7 +70,7 @@ export const useRespondRequestMutation = () => {
 export const useLeaveOrganizationMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (organizationId: number) => postTeacherOrganizationsLeave({ organizationId }),
+    mutationFn: (organizationId: string) => postTeacherOrganizationsLeave({ organizationId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: MINE_QUERY_KEY });
     },

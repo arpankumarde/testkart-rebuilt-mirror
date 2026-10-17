@@ -45,6 +45,10 @@ export type DiscountType = "fixed" | "percentage";
 
 export type EmploymentType = "contract" | "full_time" | "internship" | "part_time";
 
+export type ExamNewsStatus = "archived" | "draft" | "published" | "scheduled";
+
+export type ExamNewsType = "admit_card" | "answer_key" | "cut_off" | "date_change" | "notification" | "result" | "syllabus";
+
 export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
@@ -175,6 +179,21 @@ export interface AiGenerationLogs {
   requestMeta: Json | null;
   status: Generated<string>;
   teacherId: number;
+}
+
+export interface AisheCollegeStaging {
+  collegeCode: string | null;
+  collegeName: string | null;
+  collegeType: string | null;
+  district: string | null;
+  locationType: string | null;
+  management: string | null;
+  state: string | null;
+  univCode: string | null;
+  univName: string | null;
+  univType: string | null;
+  website: string | null;
+  yearEstablished: string | null;
 }
 
 export interface BlogCategories {
@@ -750,6 +769,68 @@ export interface ExamCustomPages {
   sortOrder: Generated<number>;
 }
 
+export interface ExamNewsCorrections {
+  correctedOn: Timestamp;
+  id: Generated<number>;
+  note: string;
+  position: Generated<number>;
+  postId: number;
+}
+
+export interface ExamNewsKeyDates {
+  endDate: Timestamp | null;
+  eventName: Generated<string>;
+  examDate: Timestamp | null;
+  id: Generated<number>;
+  note: string | null;
+  position: Generated<number>;
+  postId: number;
+  resultDate: Timestamp | null;
+  startDate: Timestamp | null;
+}
+
+export interface ExamNewsPosts {
+  archivedAt: Timestamp | null;
+  authorId: number | null;
+  body: Generated<string>;
+  canonicalUrl: string | null;
+  createdAt: Generated<Timestamp>;
+  createdBy: number | null;
+  examId: number | null;
+  firstPublishedAt: Timestamp | null;
+  heroImageAlt: string | null;
+  heroImageCredit: string | null;
+  heroImageFileId: string | null;
+  heroImageUrl: string | null;
+  id: Generated<number>;
+  newsType: Generated<ExamNewsType>;
+  officialSourceName: string | null;
+  officialSourceUrl: string | null;
+  ogDescription: string | null;
+  ogImageFileId: string | null;
+  ogImageUrl: string | null;
+  ogTitle: string | null;
+  previousSlugs: Generated<string[]>;
+  publishAt: Timestamp | null;
+  publishedAt: Timestamp | null;
+  seoDescription: string | null;
+  seoTitle: string | null;
+  slug: string;
+  status: Generated<ExamNewsStatus>;
+  summary: string | null;
+  title: string;
+  updatedAt: Generated<Timestamp>;
+  updatedBy: number | null;
+}
+
+export interface ExamNewsSources {
+  id: Generated<number>;
+  name: Generated<string>;
+  position: Generated<number>;
+  postId: number;
+  url: string;
+}
+
 export interface Exams {
   aiGenerationPrompt: string | null;
   categoryId: number;
@@ -1167,7 +1248,7 @@ export interface OrganizationClaimRequests {
   id: Generated<number>;
   ipAddress: string | null;
   method: OrganizationClaimMethod;
-  organizationId: number;
+  organizationId: string;
   otpCode: string;
   status: Generated<OrganizationClaimRequestStatus>;
   teacherId: number;
@@ -1177,7 +1258,7 @@ export interface OrganizationClaimRequests {
 export interface OrganizationFollows {
   createdAt: Generated<Timestamp>;
   id: Generated<number>;
-  organizationId: number;
+  organizationId: string;
   studentId: number;
 }
 
@@ -1188,14 +1269,14 @@ export interface OrganizationGalleryItems {
   id: Generated<number>;
   mediaType: string;
   orderIndex: Generated<number>;
-  organizationId: number;
+  organizationId: string;
   url: string;
 }
 
 export interface OrganizationReviews {
   createdAt: Generated<Timestamp>;
   id: Generated<number>;
-  organizationId: number;
+  organizationId: string;
   rating: number;
   reviewText: string | null;
   studentId: number;
@@ -1203,6 +1284,7 @@ export interface OrganizationReviews {
 }
 
 export interface Organizations {
+  affiliatedUniversityId: string | null;
   claimStatus: Generated<OrganizationClaimStatus>;
   contactEmails: Json | null;
   coverImageFileId: string | null;
@@ -1211,7 +1293,7 @@ export interface Organizations {
   createdByTeacherId: number | null;
   description: string | null;
   foundedYear: number | null;
-  id: Generated<number>;
+  id: Generated<string>;
   importedAt: Timestamp | null;
   instituteSize: string | null;
   isActive: Generated<boolean>;
@@ -1233,7 +1315,7 @@ export interface Organizations {
 
 export interface OrganizationTeachers {
   id: Generated<number>;
-  organizationId: number;
+  organizationId: string;
   requestedAt: Generated<Timestamp>;
   respondedAt: Timestamp | null;
   respondedByTeacherId: number | null;
@@ -1936,6 +2018,7 @@ export interface DB {
   adminPasswordResets: AdminPasswordResets;
   admins: Admins;
   aiGenerationLogs: AiGenerationLogs;
+  aisheCollegeStaging: AisheCollegeStaging;
   blogCategories: BlogCategories;
   blogComments: BlogComments;
   blogPostReactions: BlogPostReactions;
@@ -1980,6 +2063,10 @@ export interface DB {
   examCategories: ExamCategories;
   examContentPages: ExamContentPages;
   examCustomPages: ExamCustomPages;
+  examNewsCorrections: ExamNewsCorrections;
+  examNewsKeyDates: ExamNewsKeyDates;
+  examNewsPosts: ExamNewsPosts;
+  examNewsSources: ExamNewsSources;
   exams: Exams;
   examSubjects: ExamSubjects;
   gumletFolders: GumletFolders;
@@ -2121,6 +2208,8 @@ export const CurrentAffairsContentTypeArrayValues: [CurrentAffairsContentType, .
 export const CurrentAffairsStatusArrayValues: [CurrentAffairsStatus, ...CurrentAffairsStatus[]] = ["archived","draft","published","scheduled"];
 export const CurrentAffairsLanguageArrayValues: [CurrentAffairsLanguage, ...CurrentAffairsLanguage[]] = ["en","hi"];
 export const CurrentAffairsTagKindArrayValues: [CurrentAffairsTagKind, ...CurrentAffairsTagKind[]] = ["exam","syllabus","topic"];
+export const ExamNewsStatusArrayValues: [ExamNewsStatus, ...ExamNewsStatus[]] = ["archived","draft","published","scheduled"];
+export const ExamNewsTypeArrayValues: [ExamNewsType, ...ExamNewsType[]] = ["admit_card","answer_key","cut_off","date_change","notification","result","syllabus"];
 // Table/column names whose snake_case spelling kysely's default CamelCasePlugin
 // cannot recover from the camelCase name used in code (an underscore directly
 // before a digit, e.g. reminder_48h_sent ⇄ reminder48hSent). The db helper's

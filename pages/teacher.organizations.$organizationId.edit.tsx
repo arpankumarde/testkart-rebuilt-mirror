@@ -48,7 +48,7 @@ const INSTITUTE_SIZE_LABELS: Record<InstituteSizeValue, string> = {
 
 const EditOrganizationPage: React.FC = () => {
   const { organizationId } = useParams<{ organizationId: string }>();
-  const parsedOrgId = organizationId ? Number(organizationId) : NaN;
+  const parsedOrgId = organizationId ?? "";
   const navigate = useNavigate();
 
   const { data: mineData, isFetching: isMineFetching } = useTeacherOrganizationsMineQuery();
@@ -57,7 +57,7 @@ const EditOrganizationPage: React.FC = () => {
   const { data, isFetching: isProfileFetching } = useOrganizationProfileQuery(myOrg?.slug ?? "");
   const updateMutation = useUpdateOrganizationMutation();
 
-  const validOrgId = Number.isFinite(parsedOrgId) ? parsedOrgId : undefined;
+  const validOrgId = parsedOrgId || undefined;
   const { data: galleryData, isFetching: isGalleryFetching } = useOrganizationGalleryQuery(validOrgId);
   const addGalleryItemMutation = useAddOrganizationGalleryItemMutation(validOrgId);
   const deleteGalleryItemMutation = useDeleteOrganizationGalleryItemMutation(validOrgId);

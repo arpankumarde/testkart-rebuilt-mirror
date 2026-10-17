@@ -26,7 +26,7 @@ export const schema = z.object({
 export type InputType = z.infer<typeof schema>;
 
 export type AdminOrganizationRow = {
-  id: number;
+  id: string;
   name: string;
   slug: string;
   orgType: OrganizationTypeValue;

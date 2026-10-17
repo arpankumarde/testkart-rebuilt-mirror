@@ -1,121 +1,193 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { z } from "zod";
-import { Selectable } from "kysely";
 import { toast } from "sonner";
-import { AlertCircle, ArrowLeft, Eye, Loader2, Newspaper, Trash2 } from "lucide-react";
-import { NewsCoverage } from "../helpers/schema";
+import { useQuery } from "@tanstack/react-query";
 import {
-  useAdminNewsQuery,
-  useUpsertNewsMutation,
-  useDeleteNewsMutation,
-} from "../helpers/useAdminNews";
+  AlertCircle,
+  Archive,
+  ArchiveRestore,
+  ArrowLeft,
+  BellRing,
+  CheckCircle2,
+  ChevronDown,
+  Circle,
+  Eye,
+  Loader2,
+  Trash2,
+} from "lucide-react";
+import {
+  schema as saveSchema,
+  ExamNewsValidationError,
+  type InputType,
+  type ValidationIssue,
+} from "../endpoints/admin/exam-news/save_POST.schema";
+import type { ExamNewsDetail } from "../endpoints/admin/exam-news/get_GET.schema";
+import { getAdminExamNewsSlugCheck } from "../endpoints/admin/exam-news/slug-check_GET.schema";
+import {
+  useAdminExamNewsPost,
+  useDeleteExamNewsMutation,
+  useExamNewsStatusMutation,
+  useSaveExamNewsMutation,
+} from "../helpers/useAdminExamNews";
+import { useAdminOptionsQuery } from "../helpers/useAdminOptions";
+import { useAdminAuth } from "../helpers/useAdminAuth";
 import { useAdminLayout } from "../helpers/useAdminLayout";
+import { examNewsMeta } from "../helpers/examNewsMeta";
+import { EXAM_NEWS_TYPE_ICONS } from "../helpers/examNewsIcons";
+import { validateExamNews } from "../helpers/examNewsValidation";
+import { parseErrorMessage } from "../helpers/parseErrorMessage";
 import { slugify } from "../helpers/slugify";
-import { writeupToHtml, writeupToPlainText } from "../helpers/newsWriteup";
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
 import { Textarea } from "../components/Textarea";
-import { Switch } from "../components/Switch";
-import { Badge } from "../components/Badge";
 import { Skeleton } from "../components/Skeleton";
-import { ImageUploader } from "../components/ImageUploader";
-import { RichTextEditor } from "../components/RichTextEditor";
+import { RadioGroup, RadioGroupItem } from "../components/RadioGroup";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/Select";
+import { Dialog } from "../components/Dialog";
+import { ConsoleDialogBody, ConsoleDialogContent, ConsoleDialogHeader } from "../components/ConsoleDialog";
+import { ConsoleConfirmDialog } from "../components/ConsoleConfirmDialog";
 import { ConsoleListEmpty } from "../components/ConsoleListEmpty";
 import { DeleteConfirmationDialog } from "../components/DeleteConfirmationDialog";
-import {
-  Form,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-  useForm,
-} from "../components/Form";
+import { ImageUploader } from "../components/ImageUploader";
+import { RichTextEditor } from "../components/RichTextEditor";
+import { CurrentAffairsStatusBadge } from "../components/CurrentAffairsStatusBadge";
+import { CurrentAffairsSourcesEditor } from "../components/CurrentAffairsSourcesEditor";
+import { ExamNewsExamPicker, type ExamNewsExamChoice } from "../components/ExamNewsExamPicker";
+import { ExamNewsKeyDatesEditor } from "../components/ExamNewsKeyDatesEditor";
+import { ExamNewsCorrectionsEditor } from "../components/ExamNewsCorrectionsEditor";
+import { ExamNewsPreview } from "../components/ExamNewsPreview";
+import { Form, FormControl, FormItem, FormLabel, FormMessage, useForm } from "../components/Form";
 import styles from "./admin.news.e.$id.module.css";
 
-/** The live site, so "View article" opens the real page rather than the preview. */
-const PUBLIC_ORIGIN = "https://testkart.in";
+type PublishMode = "now" | "schedule";
+type ErrorTree = { [key: string]: string | ErrorTree };
+type SavedMeta = Pick<
+  ExamNewsDetail,
+  "status" | "publishedAt" | "firstPublishedAt" | "updatedAt" | "createdAt" | "createdByName" | "updatedByName" | "previousSlugs"
+>;
+type SectionId = "en-basics" | "en-story" | "en-dates" | "en-sources" | "en-corrections" | "en-seo";
 
-const newsFormSchema = z.object({
-  id: z.number().int().positive().optional(),
-  title: z.string().min(1, "Title is required"),
-  slug: z.string().min(1, "Slug is required"),
-  publicationName: z.string(),
-  imageUrl: z.string().min(1, "A banner photo is required"),
-  imageFileId: z.string(),
-  excerpt: z.string().max(500, "Keep the excerpt under 500 characters"),
-  writeup: z.string().refine((value) => writeupToPlainText(value).length > 0, {
-    message: "Writeup is required",
-  }),
-  coverageUrl: z
-    .string()
-    .refine((v) => v === "" || z.string().url().safeParse(v).success, {
-      message: "Enter a full URL, including https://",
-    }),
-  keywords: z.string().max(500, "Keep keywords under 500 characters"),
-  publishedAt: z.string().min(1, "Published date is required"),
-  isPublished: z.boolean(),
-});
+const SEO_TITLE_TARGET = 60;
+const SEO_DESCRIPTION_TARGET = 160;
 
-type NewsFormValues = z.infer<typeof newsFormSchema>;
+const SOURCE_SUGGESTIONS = ["NTA", "UPSC", "SSC", "IBPS", "CBSE", "UGC", "NMC", "Press Information Bureau", "Official website"];
 
-const FIELDS = Object.keys(newsFormSchema.shape) as (keyof NewsFormValues)[];
+/** Which editor section each form path lives in, so errors and checklist rows can jump there. */
+const SECTION_OF: Record<string, SectionId> = {
+  title: "en-basics",
+  slug: "en-basics",
+  summary: "en-basics",
+  newsType: "en-basics",
+  examId: "en-basics",
+  authorId: "en-basics",
+  body: "en-story",
+  heroImageUrl: "en-story",
+  heroImageAlt: "en-story",
+  heroImageCredit: "en-story",
+  keyDates: "en-dates",
+  officialSourceName: "en-sources",
+  officialSourceUrl: "en-sources",
+  sources: "en-sources",
+  corrections: "en-corrections",
+  seoTitle: "en-seo",
+  seoDescription: "en-seo",
+  ogTitle: "en-seo",
+  ogDescription: "en-seo",
+  ogImageUrl: "en-seo",
+  canonicalUrl: "en-seo",
+};
 
-const sameValues = (a: NewsFormValues, b: NewsFormValues) =>
-  FIELDS.every((field) => a[field] === b[field]);
+const rootOf = (path: string) => path.split(".")[0];
+const sectionOf = (path: string): SectionId | undefined => SECTION_OF[rootOf(path)];
 
-const today = () => new Date().toISOString().slice(0, 10);
+const tomorrowNineIst = () => {
+  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  return `${examNewsMeta.toIstInput(tomorrow).slice(0, 10)}T09:00`;
+};
 
-const emptyValues = (): NewsFormValues => ({
+const emptyValues = (authorId: number | null): InputType => ({
   title: "",
   slug: "",
-  publicationName: "",
-  imageUrl: "",
-  imageFileId: "",
-  excerpt: "",
-  writeup: "",
-  coverageUrl: "",
-  keywords: "",
-  publishedAt: today(),
-  isPublished: true,
+  summary: "",
+  newsType: "notification",
+  examId: null,
+  authorId,
+  status: "draft",
+  publishAt: "",
+  body: "",
+  heroImageUrl: "",
+  heroImageFileId: "",
+  heroImageAlt: "",
+  heroImageCredit: "",
+  keyDates: [],
+  officialSourceName: "",
+  officialSourceUrl: "",
+  sources: [],
+  corrections: [],
+  seoTitle: "",
+  seoDescription: "",
+  ogTitle: "",
+  ogDescription: "",
+  ogImageUrl: "",
+  ogImageFileId: "",
+  canonicalUrl: "",
 });
 
-const toFormValues = (item: Selectable<NewsCoverage>): NewsFormValues => ({
-  id: item.id,
-  title: item.title,
-  slug: item.slug,
-  publicationName: item.publicationName ?? "",
-  imageUrl: item.imageUrl,
-  imageFileId: item.imageFileId ?? "",
-  excerpt: item.excerpt ?? "",
-  writeup: writeupToHtml(item.writeup),
-  coverageUrl: item.coverageUrl ?? "",
-  keywords: item.keywords ?? "",
-  publishedAt: new Date(item.publishedAt).toISOString().slice(0, 10),
-  isPublished: item.isPublished,
+const toFormValues = (post: ExamNewsDetail): InputType => {
+  const values = saveSchema.parse({ ...post, status: post.status === "archived" ? "draft" : post.status });
+  return { ...values, id: post.id };
+};
+
+const toMeta = (post: ExamNewsDetail): SavedMeta => ({
+  status: post.status,
+  publishedAt: post.publishedAt,
+  firstPublishedAt: post.firstPublishedAt,
+  updatedAt: post.updatedAt,
+  createdAt: post.createdAt,
+  createdByName: post.createdByName,
+  updatedByName: post.updatedByName,
+  previousSlugs: post.previousSlugs,
 });
 
-const AdminNewsEditorPage: React.FC = () => {
+const SUCCESS_COPY: Record<InputType["status"], string> = {
+  draft: "Draft saved",
+  scheduled: "Scheduled",
+  published: "Published",
+};
+
+const AdminExamNewsEditorPage: React.FC = () => {
   const { id: idSegment } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isNewRoute = idSegment === "new";
   const routeId = idSegment && /^\d+$/.test(idSegment) ? Number(idSegment) : null;
 
-  const { data, isError, error, refetch, isFetchedAfterMount } = useAdminNewsQuery({
-    refetchOnMount: "always",
-  });
-  const upsertMutation = useUpsertNewsMutation();
-  const deleteMutation = useDeleteNewsMutation();
+  const { authState } = useAdminAuth();
+  const currentAdminId = authState.type === "authenticated" ? authState.admin.id : null;
 
-  const [initialValues] = useState(emptyValues);
-  const form = useForm({ schema: newsFormSchema, defaultValues: initialValues });
-  // The last saved state; null until an existing entry has loaded.
-  const [saved, setSaved] = useState<NewsFormValues | null>(isNewRoute ? initialValues : null);
+  const detailQuery = useAdminExamNewsPost(routeId);
+  const adminsQuery = useAdminOptionsQuery();
+  const saveMutation = useSaveExamNewsMutation();
+  const statusMutation = useExamNewsStatusMutation();
+  const deleteMutation = useDeleteExamNewsMutation();
+
+  const [initialValues] = useState(() => emptyValues(currentAdminId));
+  const form = useForm({ schema: saveSchema, defaultValues: initialValues });
+  const values = form.values as InputType;
+  const setValues = form.setValues as React.Dispatch<React.SetStateAction<InputType>>;
+  const errors = form.errors as ErrorTree;
+
+  const [saved, setSaved] = useState<InputType | null>(isNewRoute ? initialValues : null);
+  const [meta, setMeta] = useState<SavedMeta | null>(null);
+  const [examChoice, setExamChoice] = useState<ExamNewsExamChoice | null>(null);
+  const [publishMode, setPublishMode] = useState<PublishMode>("now");
+  const [seoOpen, setSeoOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [confirmUnpublish, setConfirmUnpublish] = useState(false);
+  const [confirmArchive, setConfirmArchive] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const { setHeaderHidden } = useAdminLayout();
-
   useEffect(() => {
     setHeaderHidden(true);
     return () => setHeaderHidden(false);
@@ -132,17 +204,26 @@ const AdminNewsEditorPage: React.FC = () => {
     headerObserverRef.current = observer;
   }, []);
 
-  const item = routeId !== null ? data?.items.find((entry) => entry.id === routeId) : undefined;
-
-  // Load once, from a fetch made by this page, so edits are never overwritten by a refetch.
+  // The new-story form starts before the session has loaded, so pick up the author once it has.
   useEffect(() => {
-    if (saved || !item || !isFetchedAfterMount) return;
-    const values = toFormValues(item);
-    form.setValues(values);
-    setSaved(values);
-  }, [saved, item, isFetchedAfterMount, form.setValues]);
+    if (!isNewRoute || !currentAdminId) return;
+    setValues((prev) => (prev.authorId ? prev : { ...prev, authorId: currentAdminId }));
+    setSaved((prev) => (prev && !prev.authorId ? { ...prev, authorId: currentAdminId } : prev));
+  }, [isNewRoute, currentAdminId, setValues]);
 
-  const isDirty = !!saved && !sameValues(form.values, saved);
+  // Load once, from a fetch made by this page, so later refetches never overwrite edits.
+  const loadedPost = detailQuery.isFetchedAfterMount ? detailQuery.data?.post : undefined;
+  useEffect(() => {
+    if (saved || !loadedPost) return;
+    const next = toFormValues(loadedPost);
+    form.setValues(next);
+    setSaved(next);
+    setMeta(toMeta(loadedPost));
+    setExamChoice(loadedPost.examId ? { id: loadedPost.examId, name: loadedPost.examName ?? "Exam" } : null);
+    setPublishMode(loadedPost.status === "scheduled" ? "schedule" : "now");
+  }, [saved, loadedPost, form.setValues]);
+
+  const isDirty = !!saved && JSON.stringify(values) !== JSON.stringify(saved);
 
   useEffect(() => {
     if (!isDirty) return;
@@ -154,165 +235,251 @@ const AdminNewsEditorPage: React.FC = () => {
     return () => window.removeEventListener("beforeunload", warn);
   }, [isDirty]);
 
-  const handleSave = (event: React.FormEvent) => {
-    event.preventDefault();
-    if (upsertMutation.isPending) return;
-    if (!form.validateForm()) {
-      toast.error("Some fields need attention before this can be saved.");
-      return;
-    }
+  const slugToCheck = slugify(values.slug || values.title);
+  const [debouncedSlug, setDebouncedSlug] = useState(slugToCheck);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSlug(slugToCheck), 400);
+    return () => clearTimeout(timer);
+  }, [slugToCheck]);
+  const slugCheck = useQuery({
+    queryKey: ["admin", "exam-news", "slug-check", debouncedSlug, values.id ?? null],
+    queryFn: () => getAdminExamNewsSlugCheck({ slug: debouncedSlug, excludeId: values.id }),
+    enabled: !!debouncedSlug,
+    staleTime: 10_000,
+  });
 
-    const values = form.values;
-    upsertMutation.mutate(
-      {
-        id: values.id,
-        title: values.title,
-        slug: values.slug,
-        publicationName: values.publicationName || null,
-        imageUrl: values.imageUrl,
-        imageFileId: values.imageFileId || null,
-        excerpt: values.excerpt || null,
-        writeup: values.writeup,
-        coverageUrl: values.coverageUrl || null,
-        keywords: values.keywords || null,
-        publishedAt: new Date(values.publishedAt),
-        isPublished: values.isPublished,
-      },
-      {
-        onSuccess: ({ item: savedItem }) => {
-          const next = toFormValues(savedItem);
-          setSaved(next);
-          // The server settles the slug and keywords; anything typed during the save stays.
-          form.setValues((prev) => ({
-            ...prev,
-            id: savedItem.id,
-            slug: next.slug,
-            keywords: next.keywords,
-          }));
-          if (!values.id) {
-            navigate(`/admin/news/e/${savedItem.id}`, { replace: true });
-          }
-        },
-      }
-    );
+  const readinessIssues = useMemo(() => validateExamNews({ ...values, status: "published", publishAt: "" }), [values]);
+
+  const admins = (adminsQuery.data?.admins ?? []).filter((a) => a.isActive || a.id === values.authorId);
+  const authorName = admins.find((a) => a.id === values.authorId)?.fullName ?? null;
+
+  const set = <K extends keyof InputType>(key: K, value: InputType[K]) => setValues((prev) => ({ ...prev, [key]: value }));
+
+  const scrollToFirstError = () =>
+    setTimeout(() => {
+      document.querySelector('[aria-invalid="true"]')?.scrollIntoView({ block: "center", behavior: "smooth" });
+    }, 150);
+
+  const applyIssues = (issues: ValidationIssue[], headline?: string) => {
+    form.validateForm();
+    for (const issue of issues) form.setFieldError(issue.path, issue.message);
+    if (issues.some((issue) => sectionOf(issue.path) === "en-seo")) setSeoOpen(true);
+    toast.error(headline ?? `${issues.length} field${issues.length === 1 ? " needs" : "s need"} attention`, {
+      description: issues[0]?.message,
+    });
+    scrollToFirstError();
   };
 
-  const handleDelete = () => {
-    if (!form.values.id) return;
-    deleteMutation.mutate(
-      { id: form.values.id },
+  const isLive = meta?.status === "published";
+  const isScheduled = meta?.status === "scheduled";
+  const isArchived = meta?.status === "archived";
+
+  const submit = (target: InputType["status"]) => {
+    if (saveMutation.isPending) return;
+    const payload: InputType = {
+      ...values,
+      slug: slugify(values.slug || values.title),
+      status: target,
+      publishAt: target === "published" && publishMode === "now" && !isLive ? "" : values.publishAt,
+    };
+    const issues = validateExamNews(payload);
+    if (issues.length > 0) {
+      applyIssues(issues, target === "draft" ? undefined : `Not ready to ${target === "scheduled" ? "schedule" : "publish"}`);
+      return;
+    }
+    form.validateForm();
+
+    saveMutation.mutate(payload, {
+      onSuccess: ({ post }) => {
+        const settled = toFormValues(post);
+        const patch = { id: post.id, slug: settled.slug, status: settled.status, publishAt: settled.publishAt };
+        setSaved({ ...payload, ...patch });
+        setValues((prev) => ({ ...prev, ...patch }));
+        setMeta(toMeta(post));
+        setPublishMode(post.status === "scheduled" ? "schedule" : "now");
+        toast.success(
+          post.status === "scheduled"
+            ? `Scheduled for ${examNewsMeta.formatIst(examNewsMeta.fromIstInput(post.publishAt))}`
+            : SUCCESS_COPY[target]
+        );
+        if (!values.id) navigate(examNewsMeta.editPath(post.id), { replace: true });
+      },
+      onError: (error) => {
+        if (error instanceof ExamNewsValidationError) applyIssues(error.issues, error.message);
+        else toast.error(parseErrorMessage(error) || "Could not save");
+      },
+    });
+  };
+
+  const runStatus = (action: "archive" | "restore") => {
+    if (!values.id) return;
+    statusMutation.mutate(
+      { id: values.id, action },
       {
-        onSuccess: () => {
-          setConfirmDelete(false);
-          navigate("/admin/news");
+        onSuccess: ({ status }) => {
+          setMeta((prev) => (prev ? { ...prev, status, publishedAt: status === "archived" ? null : prev.publishedAt } : prev));
+          setConfirmArchive(false);
         },
+        onError: (error) => toast.error(parseErrorMessage(error)),
       }
     );
   };
 
   if (!saved) {
-    const notFound = routeId === null || (isFetchedAfterMount && !!data && !item);
-
-    if (isError && !data) {
+    const notFound = routeId === null || (detailQuery.isError && /not found/i.test(String(detailQuery.error)));
+    if (detailQuery.isError && !notFound) {
       return (
         <div className={styles.notFound}>
           <ConsoleListEmpty
             tone="error"
             icon={<AlertCircle size={24} />}
-            title="Could not load this coverage"
-            description={
-              error instanceof Error
-                ? error.message
-                : "The request did not come back. Check your connection and try again."
-            }
+            title="Could not load this story"
+            description={parseErrorMessage(detailQuery.error)}
           >
-            <Button variant="outline" onClick={() => refetch()}>
+            <Button variant="outline" onClick={() => detailQuery.refetch()}>
               Try again
             </Button>
           </ConsoleListEmpty>
         </div>
       );
     }
-
     if (notFound) {
       return (
         <div className={styles.notFound}>
           <Helmet>
-            <title>Coverage not found - Testkart Admin</title>
+            <title>Story not found - Testkart Admin</title>
           </Helmet>
-          <ConsoleListEmpty
-            icon={<Newspaper size={24} />}
-            title="Coverage not found"
-            description="This entry may have been deleted, or the link is wrong."
-          >
+          <ConsoleListEmpty icon={<BellRing size={24} />} title="Story not found" description="It may have been deleted, or the link is wrong.">
             <Button asChild variant="outline">
-              <Link to="/admin/news">Back to news and events</Link>
+              <Link to="/admin/news">Back to News</Link>
             </Button>
           </ConsoleListEmpty>
         </div>
       );
     }
-
     return (
       <div className={styles.pageContainer} aria-busy="true">
         <Skeleton style={{ height: "64px", borderRadius: 0 }} />
         <div className={styles.contentArea}>
           <div className={styles.layout}>
-            <Skeleton style={{ height: "520px", borderRadius: "var(--radius-md)" }} />
-            <Skeleton style={{ height: "520px", borderRadius: "var(--radius-md)" }} />
+            <Skeleton style={{ height: "560px", borderRadius: "var(--radius-md)" }} />
+            <Skeleton style={{ height: "320px", borderRadius: "var(--radius-md)" }} />
           </div>
         </div>
       </div>
     );
   }
 
-  const isSaved = !!form.values.id;
-  const slugPreview = slugify(form.values.slug);
-  const originalSlug = saved.id ? saved.slug : null;
-  const slugChanged = !!originalSlug && originalSlug !== slugPreview;
-  const keywordCount = new Set(
-    form.values.keywords
-      .split(",")
-      .map((keyword) => keyword.trim())
-      .filter(Boolean)
-  ).size;
+  const isSaved = !!values.id;
+  const slugChanged = !!meta?.firstPublishedAt && !!saved.slug && saved.slug !== slugToCheck;
+  const slugTaken =
+    slugCheck.data && slugCheck.data.slug === slugToCheck && !slugCheck.data.available ? slugCheck.data.usedBy : null;
+
+  const primaryLabel =
+    publishMode === "schedule" && !isLive ? (isScheduled ? "Update schedule" : "Schedule") : isLive ? "Update" : "Publish";
+  const primaryTarget: InputType["status"] = publishMode === "schedule" && !isLive ? "scheduled" : "published";
+
+  const statusLine = (() => {
+    if (!meta) return "Not saved yet";
+    if (meta.status === "published" && meta.publishedAt) return `Live since ${examNewsMeta.formatIst(meta.publishedAt)}`;
+    if (meta.status === "scheduled") return `Goes live ${examNewsMeta.formatIst(examNewsMeta.fromIstInput(saved.publishAt))}`;
+    if (meta.status === "archived") return "Archived - hidden from the site";
+    return "Draft - not on the site";
+  })();
+
+  const issuesIn = (match: (path: string) => boolean) => readinessIssues.filter((issue) => match(issue.path)).length;
+  const rootIssues = (...roots: string[]) => issuesIn((path) => roots.includes(rootOf(path)));
+  const filledDates = values.keyDates.filter((row) => row.eventName.trim()).length;
+  const filledSources = values.sources.filter((s) => s.url.trim()).length;
+  const corrections = values.corrections.filter((c) => c.note.trim()).length;
+  const seoIssues = issuesIn((path) => sectionOf(path) === "en-seo");
+
+  type CheckRow = { label: string; state: "ok" | "todo" | "optional"; detail?: string; target: SectionId };
+  const checklist: CheckRow[] = [
+    { label: "Headline and URL", state: rootIssues("title", "slug") === 0 && !slugTaken ? "ok" : "todo", target: "en-basics" },
+    { label: "Standfirst", state: rootIssues("summary") === 0 ? "ok" : "todo", target: "en-basics" },
+    {
+      label: "Exam",
+      state: rootIssues("examId") === 0 ? "ok" : "todo",
+      detail: examChoice?.name,
+      target: "en-basics",
+    },
+    { label: "Author", state: rootIssues("authorId") === 0 ? "ok" : "todo", target: "en-basics" },
+    { label: "Story", state: rootIssues("body", "heroImageAlt") === 0 ? "ok" : "todo", target: "en-story" },
+    {
+      label: "Hero image",
+      state: values.heroImageUrl ? "ok" : "optional",
+      detail: values.heroImageUrl ? undefined : "Optional",
+      target: "en-story",
+    },
+    {
+      label: "Key dates",
+      state: rootIssues("keyDates") > 0 ? "todo" : filledDates > 0 ? "ok" : "optional",
+      detail: rootIssues("keyDates") > 0 ? `${rootIssues("keyDates")} to fix` : filledDates > 0 ? `${filledDates} added` : "Optional",
+      target: "en-dates",
+    },
+    {
+      label: "Official source",
+      state: rootIssues("officialSourceName", "officialSourceUrl", "sources") > 0 ? "todo" : values.officialSourceUrl.trim() ? "ok" : "optional",
+      detail: values.officialSourceUrl.trim() ? (filledSources > 0 ? `+${filledSources} more` : undefined) : "Recommended",
+      target: "en-sources",
+    },
+    ...(rootIssues("corrections") > 0
+      ? [{ label: "Corrections", state: "todo" as const, detail: `${rootIssues("corrections")} to fix`, target: "en-corrections" as const }]
+      : []),
+    ...(seoIssues > 0 ? [{ label: "SEO & sharing", state: "todo" as const, detail: `${seoIssues} to fix`, target: "en-seo" as const }] : []),
+  ];
+  const required = checklist.filter((row) => row.state !== "optional");
+  const readyCount = required.filter((row) => row.state === "ok").length;
+
+  const goTo = (id: SectionId) => {
+    if (id === "en-seo") setSeoOpen(true);
+    setTimeout(() => document.getElementById(id)?.scrollIntoView({ block: "start", behavior: "smooth" }), 50);
+  };
+
+  const seoTitle = values.seoTitle || values.title;
+  const seoDescription = values.seoDescription || values.summary;
+  const TypeIcon = EXAM_NEWS_TYPE_ICONS[values.newsType];
 
   return (
     <>
       <Helmet>
-        <title>{`${isSaved ? "Edit coverage" : "New coverage"} - Testkart Admin`}</title>
+        <title>{`${isSaved ? "Edit" : "New"} news story - Testkart Admin`}</title>
       </Helmet>
 
       <Form {...form}>
         <form
           className={styles.pageContainer}
-          onSubmit={handleSave}
+          onSubmit={(e) => {
+            e.preventDefault();
+            // React passes submits up through portals; only this form's own submit publishes.
+            if (e.target !== e.currentTarget) return;
+            submit(primaryTarget);
+          }}
           noValidate
-          style={{ "--rte-toolbar-top": `${headerHeight}px` } as React.CSSProperties}
+          style={{ "--rte-toolbar-top": `${headerHeight}px`, "--editor-header": `${headerHeight}px` } as React.CSSProperties}
         >
           <header ref={headerRef} className={styles.header}>
             <div className={styles.headerLeft}>
               <Button variant="ghost" size="icon-md" asChild>
-                <Link to="/admin/news" aria-label="Back to news and events">
+                <Link to="/admin/news" aria-label="Back to News">
                   <ArrowLeft size={18} />
                 </Link>
               </Button>
               <div className={styles.headingBlock}>
-                <h1 className={styles.heading}>{isSaved ? "Edit coverage" : "New coverage"}</h1>
+                <h1 className={styles.heading}>{isSaved ? "Edit news story" : "New news story"}</h1>
                 <div className={styles.saveStatus} aria-live="polite">
-                  {upsertMutation.isPending ? (
+                  {saveMutation.isPending ? (
                     <>
                       <Loader2 size={14} className={styles.spinIcon} /> Saving...
                     </>
                   ) : isDirty ? (
                     <>
-                      <span className={`${styles.statusDot} ${styles.statusDotYellow}`} /> Unsaved
-                      changes
+                      <span className={`${styles.statusDot} ${styles.statusDotYellow}`} /> Unsaved changes
                     </>
                   ) : isSaved ? (
                     <>
-                      <span className={`${styles.statusDot} ${styles.statusDotGreen}`} /> All
-                      changes saved
+                      <span className={`${styles.statusDot} ${styles.statusDotGreen}`} /> All changes saved
                     </>
                   ) : (
                     "Not saved yet"
@@ -322,272 +489,575 @@ const AdminNewsEditorPage: React.FC = () => {
             </div>
 
             <div className={styles.headerRight}>
-              {saved.id && (
-                <>
-                  <Badge variant={saved.isPublished ? "success" : "secondary"}>
-                    {saved.isPublished ? "Published" : "Hidden"}
-                  </Badge>
-                  <Button
-                    asChild
-                    variant="ghost"
-                    size="icon-md"
-                    aria-label="View article on the site"
-                  >
-                    <a
-                      href={`${PUBLIC_ORIGIN}/news-and-events/${saved.slug}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title="View article"
-                    >
-                      <Eye size={16} />
-                    </a>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-md"
-                    className={styles.deleteAction}
-                    onClick={() => setConfirmDelete(true)}
-                    aria-label="Delete coverage"
-                    title="Delete"
-                  >
-                    <Trash2 size={16} />
-                  </Button>
-                </>
+              <Button variant="outline" onClick={() => setPreviewOpen(true)}>
+                <Eye size={16} /> <span className={styles.hideSmall}>Preview</span>
+              </Button>
+              {isLive || isScheduled ? (
+                <Button variant="outline" onClick={() => setConfirmUnpublish(true)} disabled={saveMutation.isPending}>
+                  Unpublish
+                </Button>
+              ) : (
+                <Button variant="outline" onClick={() => submit("draft")} disabled={saveMutation.isPending}>
+                  Save draft
+                </Button>
               )}
-              <Button type="submit" disabled={upsertMutation.isPending}>
-                {upsertMutation.isPending
-                  ? "Saving..."
-                  : isSaved
-                    ? "Save changes"
-                    : "Create coverage"}
+              <Button type="submit" disabled={saveMutation.isPending}>
+                {saveMutation.isPending ? "Saving..." : primaryLabel}
               </Button>
             </div>
           </header>
 
           <div className={styles.contentArea}>
             <div className={styles.layout}>
-              <div className={styles.writingSurface}>
-                <FormItem name="title">
-                  <FormControl>
-                    <input
-                      className={styles.titleInput}
-                      placeholder="Coverage title"
-                      aria-label="Title"
-                      value={form.values.title}
-                      onChange={(e) => {
-                        const title = e.target.value;
-                        form.setValues((prev) => ({
-                          ...prev,
-                          title,
-                          // Only track the title while the slug has never been
-                          // hand-edited and the entry has no live URL yet.
-                          slug:
-                            !prev.id && prev.slug === slugify(prev.title)
-                              ? slugify(title)
-                              : prev.slug,
-                        }));
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") e.preventDefault();
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+              <div className={styles.mainColumn}>
+                <section id="en-basics" className={styles.card} aria-labelledby="en-basics-title">
+                  <div className={styles.cardHead}>
+                    <h2 id="en-basics-title" className={styles.cardTitle}>
+                      <span className={styles.step}>1</span> Basic information
+                    </h2>
+                  </div>
 
-                <FormItem name="writeup">
-                  <FormControl>
-                    <RichTextEditor
-                      className={styles.editor}
-                      value={form.values.writeup}
-                      onChange={(writeup) => form.setValues((prev) => ({ ...prev, writeup }))}
-                      placeholder="Write about the coverage or event..."
-                      minHeight={420}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              </div>
-
-              <aside className={styles.sidebar}>
-                <section className={styles.card}>
-                  <h2 className={styles.sectionTitle}>Publishing</h2>
-
-                  <FormItem name="isPublished">
-                    <div className={styles.switchRow}>
-                      <FormLabel>Visible on the public page</FormLabel>
-                      <FormControl>
-                        <Switch
-                          checked={form.values.isPublished}
-                          onCheckedChange={(checked) =>
-                            form.setValues((prev) => ({ ...prev, isPublished: checked }))
-                          }
-                        />
-                      </FormControl>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-
-                  <FormItem name="publishedAt">
-                    <FormLabel>Published date</FormLabel>
+                  <FormItem name="title">
+                    <FormLabel>Headline</FormLabel>
                     <FormControl>
                       <Input
-                        type="date"
-                        value={form.values.publishedAt}
-                        onChange={(e) =>
-                          form.setValues((prev) => ({ ...prev, publishedAt: e.target.value }))
-                        }
+                        className={styles.titleInput}
+                        value={values.title}
+                        placeholder="e.g. NEET UG 2026 result declared at neet.nta.nic.in"
+                        onChange={(e) => {
+                          const title = e.target.value;
+                          setValues((prev) => ({
+                            ...prev,
+                            title,
+                            slug:
+                              !meta?.firstPublishedAt && (prev.slug === "" || prev.slug === slugify(prev.title))
+                                ? slugify(title)
+                                : prev.slug,
+                          }));
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") e.preventDefault();
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
-
-                  <FormItem name="publicationName">
-                    <FormLabel>Publication (optional)</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="e.g. The Hindu"
-                        value={form.values.publicationName}
-                        onChange={(e) =>
-                          form.setValues((prev) => ({ ...prev, publicationName: e.target.value }))
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                </section>
-
-                <section className={styles.card}>
-                  <h2 className={styles.sectionTitle}>Banner photo</h2>
-                  <FormItem name="imageUrl">
-                    {/* Not wrapped in FormControl: that slots props onto its
-                        child, and ImageUploader is not a DOM-forwarding input. */}
-                    <ImageUploader
-                      folder="news-coverage"
-                      currentImageUrl={form.values.imageUrl || undefined}
-                      currentFileId={form.values.imageFileId || undefined}
-                      aspectRatio="16 / 9"
-                      label="Upload banner photo"
-                      onSuccess={({ url, fileId }) =>
-                        form.setValues((prev) => ({
-                          ...prev,
-                          imageUrl: url,
-                          imageFileId: fileId,
-                        }))
-                      }
-                    />
-                    <p className={styles.hint}>
-                      Always 16:9 - 1200x675 or larger. Shown uncropped, so anything off-ratio
-                      letterboxes. Doubles as the social share image.
-                    </p>
-                    <FormMessage />
-                  </FormItem>
-                </section>
-
-                <section className={styles.card}>
-                  <h2 className={styles.sectionTitle}>URL and search</h2>
 
                   <FormItem name="slug">
                     <FormLabel>URL slug</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="testkart-featured-in-the-hindu"
-                        value={form.values.slug}
-                        onChange={(e) =>
-                          form.setValues((prev) => ({ ...prev, slug: e.target.value }))
-                        }
-                        onBlur={() =>
-                          form.setValues((prev) => ({ ...prev, slug: slugify(prev.slug) }))
-                        }
-                      />
-                    </FormControl>
-                    <p className={styles.urlPreview}>
-                      testkart.in/news-and-events/<strong>{slugPreview || "..."}</strong>
-                    </p>
-                    {slugChanged && (
-                      <p className={styles.warning}>
-                        The old URL /news-and-events/{originalSlug} will 301 to the new one, so
-                        existing links keep working.
+                    <div className={styles.slugRow}>
+                      <span className={styles.slugPrefix}>testkart.in/news/</span>
+                      <FormControl>
+                        <Input
+                          className={styles.slugInput}
+                          value={values.slug}
+                          placeholder="made-from-the-headline"
+                          onChange={(e) => set("slug", e.target.value)}
+                          onBlur={() => setValues((prev) => ({ ...prev, slug: slugify(prev.slug) }))}
+                        />
+                      </FormControl>
+                    </div>
+                    {slugTaken ? (
+                      <p className={styles.inlineError} role="alert">
+                        Already used by "{slugTaken.title}". Pick another slug before saving.
                       </p>
+                    ) : (
+                      <p className={styles.hint}>Follows the headline until you edit it.</p>
                     )}
+                    {slugChanged && <p className={styles.warning}>The old URL /news/{saved.slug} keeps redirecting to the new one.</p>}
                     <FormMessage />
                   </FormItem>
 
-                  <FormItem name="excerpt">
-                    <FormLabel>Excerpt (optional)</FormLabel>
+                  <FormItem name="summary">
+                    <FormLabel>Standfirst</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="One or two lines shown under the title in the list."
-                        rows={3}
-                        value={form.values.excerpt}
-                        onChange={(e) =>
-                          form.setValues((prev) => ({ ...prev, excerpt: e.target.value }))
-                        }
+                        rows={2}
+                        value={values.summary}
+                        placeholder="One or two lines summarising the update, shown under the headline and in listings."
+                        onChange={(e) => set("summary", e.target.value)}
                       />
                     </FormControl>
-                    <p className={styles.hint}>
-                      Also the search and social description. Left blank, the start of the
-                      writeup is used.
-                    </p>
+                    <p className={`${styles.hint} ${values.summary.length > 280 ? styles.over : ""}`}>{values.summary.length} / 280</p>
                     <FormMessage />
                   </FormItem>
 
-                  <FormItem name="keywords">
-                    <FormLabel>Keywords (optional)</FormLabel>
+                  <div className={styles.grid3}>
+                    <FormItem name="newsType">
+                      <FormLabel>News type</FormLabel>
+                      <Select value={values.newsType} onValueChange={(v) => set("newsType", v as InputType["newsType"])}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <span className={styles.typeValue}>
+                              <TypeIcon size={15} aria-hidden="true" />
+                              <SelectValue />
+                            </span>
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {examNewsMeta.NEWS_TYPES.map((t) => (
+                            <SelectItem key={t.value} value={t.value}>
+                              {t.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+
+                    <FormItem name="examId">
+                      <FormLabel>Exam</FormLabel>
+                      <ExamNewsExamPicker
+                        value={examChoice}
+                        invalid={typeof errors.examId === "string"}
+                        onChange={(choice) => {
+                          setExamChoice(choice);
+                          set("examId", choice?.id ?? null);
+                        }}
+                      />
+                      <FormMessage />
+                    </FormItem>
+
+                    <FormItem name="authorId">
+                      <FormLabel>Author</FormLabel>
+                      <Select
+                        value={values.authorId ? String(values.authorId) : "__none"}
+                        onValueChange={(v) => set("authorId", v === "__none" ? null : Number(v))}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose an author" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="__none">No author</SelectItem>
+                          {admins.map((a) => (
+                            <SelectItem key={a.id} value={String(a.id)}>
+                              {a.fullName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  </div>
+                </section>
+
+                <section id="en-story" className={styles.card} aria-labelledby="en-story-title">
+                  <div className={styles.cardHead}>
+                    <h2 id="en-story-title" className={styles.cardTitle}>
+                      <span className={styles.step}>2</span> Story
+                    </h2>
+                    <span className={styles.cardHint}>Use Heading 2 and 3 for subheads</span>
+                  </div>
+
+                  <div className={styles.coverBlock}>
+                    <FormItem name="heroImageUrl" className={styles.coverUpload}>
+                      <FormLabel>Hero image</FormLabel>
+                      <ImageUploader
+                        folder="exam-news"
+                        currentImageUrl={values.heroImageUrl || undefined}
+                        currentFileId={values.heroImageFileId || undefined}
+                        aspectRatio="16 / 9"
+                        label="Upload hero image"
+                        onSuccess={({ url, fileId }) => setValues((prev) => ({ ...prev, heroImageUrl: url, heroImageFileId: fileId }))}
+                      />
+                      <FormMessage />
+                    </FormItem>
+                    <div className={styles.coverMeta}>
+                      <FormItem name="heroImageAlt">
+                        <FormLabel>Alt text</FormLabel>
+                        <FormControl>
+                          <Input
+                            value={values.heroImageAlt}
+                            placeholder="What the image shows"
+                            onChange={(e) => set("heroImageAlt", e.target.value)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                      <FormItem name="heroImageCredit">
+                        <FormLabel>Credit / caption</FormLabel>
+                        <FormControl>
+                          <Input
+                            value={values.heroImageCredit}
+                            placeholder="e.g. Photo: NTA"
+                            onChange={(e) => set("heroImageCredit", e.target.value)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    </div>
+                  </div>
+
+                  <FormItem name="body">
+                    <FormLabel>Article</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="ssc exams, mock tests, edtech funding"
-                        value={form.values.keywords}
-                        onChange={(e) =>
-                          form.setValues((prev) => ({ ...prev, keywords: e.target.value }))
-                        }
+                      <RichTextEditor
+                        value={values.body}
+                        onChange={(body) => set("body", body)}
+                        placeholder="What changed, who it affects, and what students should do next..."
+                        minHeight={340}
                       />
                     </FormControl>
-                    <p className={styles.hint}>
-                      Comma separated. Blanks and duplicates are dropped on save.
-                      {keywordCount > 0 &&
-                        ` ${keywordCount} keyword${keywordCount === 1 ? "" : "s"}.`}
-                    </p>
                     <FormMessage />
                   </FormItem>
                 </section>
 
-                <section className={styles.card}>
-                  <h2 className={styles.sectionTitle}>Original coverage</h2>
-                  <FormItem name="coverageUrl">
-                    <FormLabel>Coverage page URL (optional)</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="https://example.com/article"
-                        value={form.values.coverageUrl}
-                        onChange={(e) =>
-                          form.setValues((prev) => ({ ...prev, coverageUrl: e.target.value }))
-                        }
-                      />
-                    </FormControl>
-                    <p className={styles.hint}>
-                      Shown as an "Open coverage page" button under the writeup.
-                    </p>
-                    <FormMessage />
-                  </FormItem>
+                <section id="en-dates" className={styles.card} aria-labelledby="en-dates-title">
+                  <div className={styles.cardHead}>
+                    <h2 id="en-dates-title" className={styles.cardTitle}>
+                      <span className={styles.step}>3</span> Key dates
+                      <span className={styles.optional}>Optional</span>
+                    </h2>
+                    <span className={styles.cardHint}>Shown as a table on the story and feeds upcoming dates</span>
+                  </div>
+                  <ExamNewsKeyDatesEditor value={values.keyDates} onChange={(keyDates) => set("keyDates", keyDates)} />
                 </section>
+
+                <section id="en-sources" className={styles.card} aria-labelledby="en-sources-title">
+                  <div className={styles.cardHead}>
+                    <h2 id="en-sources-title" className={styles.cardTitle}>
+                      <span className={styles.step}>4</span> Official sources
+                      <span className={styles.optional}>Recommended</span>
+                    </h2>
+                  </div>
+                  <div className={styles.sourceGrid}>
+                    <FormItem name="officialSourceName">
+                      <FormLabel>Source name</FormLabel>
+                      <FormControl>
+                        <Input
+                          value={values.officialSourceName}
+                          placeholder="e.g. NTA public notice"
+                          onChange={(e) => set("officialSourceName", e.target.value)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                    <FormItem name="officialSourceUrl">
+                      <FormLabel>Official notice URL</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="url"
+                          inputMode="url"
+                          value={values.officialSourceUrl}
+                          placeholder="https://"
+                          onChange={(e) => set("officialSourceUrl", e.target.value)}
+                          onBlur={(e) => {
+                            const url = e.target.value.trim();
+                            if (url && !/^https?:\/\//i.test(url) && /^[\w-]+\.[\w.-]+/.test(url)) set("officialSourceUrl", `https://${url}`);
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </div>
+                  <div className={styles.subBlock}>
+                    <h3 className={styles.subTitle}>Additional links</h3>
+                    <CurrentAffairsSourcesEditor
+                      name="sources"
+                      value={values.sources}
+                      onChange={(sources) => set("sources", sources)}
+                      suggestions={SOURCE_SUGGESTIONS}
+                      addLabel="Add link"
+                    />
+                  </div>
+                </section>
+
+                <section id="en-corrections" className={styles.card} aria-labelledby="en-corrections-title">
+                  <div className={styles.cardHead}>
+                    <h2 id="en-corrections-title" className={styles.cardTitle}>
+                      <span className={styles.step}>5</span> Corrections
+                      <span className={styles.optional}>Optional</span>
+                    </h2>
+                    <span className={styles.cardHint}>Shown on the story only when there is one</span>
+                  </div>
+                  <ExamNewsCorrectionsEditor value={values.corrections} onChange={(next) => set("corrections", next)} />
+                </section>
+
+                <section id="en-seo" className={`${styles.card} ${styles.collapsible}`}>
+                  <button
+                    type="button"
+                    className={styles.collapseToggle}
+                    aria-expanded={seoOpen}
+                    aria-controls="en-seo-body"
+                    onClick={() => setSeoOpen((open) => !open)}
+                  >
+                    <span className={styles.cardTitle}>
+                      <span className={styles.step}>6</span> SEO & sharing
+                    </span>
+                    <span className={styles.cardHint}>
+                      Falls back to the headline, standfirst and hero image
+                      {seoIssues > 0 && <span className={styles.inlineError}> - {seoIssues} to fix</span>}
+                    </span>
+                    <ChevronDown size={18} className={`${styles.chevron} ${seoOpen ? styles.chevronOpen : ""}`} aria-hidden="true" />
+                  </button>
+
+                  {seoOpen && (
+                    <div id="en-seo-body" className={styles.collapseBody}>
+                      <div className={styles.snippet} aria-label="Search result preview">
+                        <span className={styles.snippetUrl}>testkart.in/news/{slugToCheck || "..."}</span>
+                        <span className={styles.snippetTitle}>{seoTitle || "SEO title"}</span>
+                        <span className={styles.snippetText}>{seoDescription || "The meta description shows here."}</span>
+                      </div>
+
+                      <div className={styles.grid2}>
+                        <FormItem name="seoTitle">
+                          <FormLabel>SEO title</FormLabel>
+                          <FormControl>
+                            <Input value={values.seoTitle} placeholder={values.title} onChange={(e) => set("seoTitle", e.target.value)} />
+                          </FormControl>
+                          <p className={`${styles.hint} ${seoTitle.length > SEO_TITLE_TARGET ? styles.over : ""}`}>
+                            {seoTitle.length} / {SEO_TITLE_TARGET}
+                          </p>
+                          <FormMessage />
+                        </FormItem>
+                        <FormItem name="seoDescription">
+                          <FormLabel>Meta description</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              rows={2}
+                              value={values.seoDescription}
+                              placeholder={values.summary || "Shown under the title in search results"}
+                              onChange={(e) => set("seoDescription", e.target.value)}
+                            />
+                          </FormControl>
+                          <p className={`${styles.hint} ${seoDescription.length > SEO_DESCRIPTION_TARGET ? styles.over : ""}`}>
+                            {seoDescription.length} / {SEO_DESCRIPTION_TARGET}
+                          </p>
+                          <FormMessage />
+                        </FormItem>
+                      </div>
+
+                      <h3 className={styles.subTitle}>Social sharing</h3>
+                      <div className={styles.shareBlock}>
+                        <FormItem name="ogImageUrl" className={styles.ogField}>
+                          <FormLabel>Sharing image</FormLabel>
+                          <ImageUploader
+                            folder="exam-news"
+                            currentImageUrl={values.ogImageUrl || undefined}
+                            currentFileId={values.ogImageFileId || undefined}
+                            aspectRatio="1200 / 630"
+                            label="Upload sharing image"
+                            onSuccess={({ url, fileId }) => setValues((prev) => ({ ...prev, ogImageUrl: url, ogImageFileId: fileId }))}
+                          />
+                          <p className={styles.hint}>1200x630. Left blank, the hero image is shared.</p>
+                          <FormMessage />
+                        </FormItem>
+                        <div className={styles.coverMeta}>
+                          <FormItem name="ogTitle">
+                            <FormLabel>Sharing title</FormLabel>
+                            <FormControl>
+                              <Input value={values.ogTitle} placeholder={seoTitle} onChange={(e) => set("ogTitle", e.target.value)} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                          <FormItem name="ogDescription">
+                            <FormLabel>Sharing description</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                rows={2}
+                                value={values.ogDescription}
+                                placeholder={seoDescription || "Shown in WhatsApp, Telegram and social previews"}
+                                onChange={(e) => set("ogDescription", e.target.value)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        </div>
+                      </div>
+
+                      <FormItem name="canonicalUrl">
+                        <FormLabel>Canonical URL</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="url"
+                            inputMode="url"
+                            value={values.canonicalUrl}
+                            placeholder={`https://testkart.in/news/${slugToCheck || "..."}`}
+                            onChange={(e) => set("canonicalUrl", e.target.value)}
+                          />
+                        </FormControl>
+                        <p className={styles.hint}>Leave blank unless this story is a copy of a page that should rank instead.</p>
+                        <FormMessage />
+                      </FormItem>
+                    </div>
+                  )}
+                </section>
+              </div>
+
+              <aside className={styles.sidebar}>
+                <section className={styles.sideCard}>
+                  <div className={styles.sideHead}>
+                    <h2 className={styles.sideTitle}>Publication</h2>
+                    {meta && <CurrentAffairsStatusBadge status={meta.status} />}
+                  </div>
+                  <p className={styles.statusLine}>{statusLine}</p>
+
+                  {isArchived && (
+                    <Button variant="outline" size="sm" onClick={() => runStatus("restore")} disabled={statusMutation.isPending}>
+                      <ArchiveRestore size={14} /> Restore as draft
+                    </Button>
+                  )}
+
+                  {!isLive && (
+                    <RadioGroup
+                      value={publishMode}
+                      onValueChange={(mode) => {
+                        setPublishMode(mode as PublishMode);
+                        if (mode === "schedule" && !values.publishAt) set("publishAt", tomorrowNineIst());
+                      }}
+                      className={styles.modeGroup}
+                      aria-label="When to publish"
+                    >
+                      <label className={styles.modeOption}>
+                        <RadioGroupItem value="now" /> Publish immediately
+                      </label>
+                      <label className={styles.modeOption}>
+                        <RadioGroupItem value="schedule" /> Schedule for later
+                      </label>
+                    </RadioGroup>
+                  )}
+
+                  {(publishMode === "schedule" || isLive) && (
+                    <FormItem name="publishAt">
+                      <FormLabel>{isLive ? "Published at (IST)" : "Goes live at (IST)"}</FormLabel>
+                      <FormControl>
+                        <Input type="datetime-local" value={values.publishAt} onChange={(e) => set("publishAt", e.target.value)} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                </section>
+
+                <section className={styles.sideCard}>
+                  <div className={styles.sideHead}>
+                    <h2 className={styles.sideTitle}>Ready to publish</h2>
+                    <span className={readyCount === required.length ? styles.readyAll : styles.readyCount}>
+                      {readyCount}/{required.length}
+                    </span>
+                  </div>
+                  <ul className={styles.checklist}>
+                    {checklist.map((row) => (
+                      <li key={row.label}>
+                        <button type="button" className={styles.checkRow} onClick={() => goTo(row.target)}>
+                          {row.state === "ok" ? (
+                            <CheckCircle2 size={15} className={styles.readyIcon} aria-label="Done" />
+                          ) : row.state === "todo" ? (
+                            <AlertCircle size={15} className={styles.notReadyIcon} aria-label="Needs attention" />
+                          ) : (
+                            <Circle size={15} className={styles.optionalIcon} aria-label="Optional" />
+                          )}
+                          <span className={styles.checkLabel}>{row.label}</span>
+                          {row.detail && <span className={styles.checkDetail}>{row.detail}</span>}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  {corrections > 0 && (
+                    <p className={styles.recordLine}>
+                      {corrections} correction{corrections === 1 ? "" : "s"} will show on the story.
+                    </p>
+                  )}
+                </section>
+
+                {meta && (
+                  <section className={styles.sideCard}>
+                    <p className={styles.recordLine}>
+                      Last saved {examNewsMeta.formatIst(meta.updatedAt)}
+                      {meta.updatedByName && ` by ${meta.updatedByName}`}
+                    </p>
+                    <div className={styles.recordActions}>
+                      {values.id && (
+                        <Button asChild variant="ghost" size="sm">
+                          <Link to={examNewsMeta.previewPath(values.id)} target="_blank" rel="noopener noreferrer">
+                            <Eye size={14} /> Saved version
+                          </Link>
+                        </Button>
+                      )}
+                      {!isArchived && (
+                        <Button variant="ghost" size="sm" onClick={() => setConfirmArchive(true)}>
+                          <Archive size={14} /> Archive
+                        </Button>
+                      )}
+                      {(meta.status === "draft" || isArchived) && (
+                        <Button variant="ghost" size="sm" className={styles.danger} onClick={() => setConfirmDelete(true)}>
+                          <Trash2 size={14} /> Delete
+                        </Button>
+                      )}
+                    </div>
+                  </section>
+                )}
               </aside>
             </div>
           </div>
         </form>
       </Form>
 
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <ConsoleDialogContent size="xl">
+          <ConsoleDialogHeader title="Preview" description="Built from what is in the editor now, saved or not." />
+          <ConsoleDialogBody>
+            <ExamNewsPreview
+              post={{ ...values, status: meta?.status ?? "draft" }}
+              examName={examChoice?.name ?? null}
+              authorName={authorName}
+              publishedAt={isLive ? meta?.publishedAt : null}
+              updatedAt={meta?.updatedAt}
+            />
+          </ConsoleDialogBody>
+        </ConsoleDialogContent>
+      </Dialog>
+
+      <ConsoleConfirmDialog
+        open={confirmUnpublish}
+        onOpenChange={setConfirmUnpublish}
+        title="Unpublish and save as draft?"
+        description="The story comes off the site and your current edits are saved with it as a draft."
+        confirmLabel="Unpublish"
+        isPending={saveMutation.isPending}
+        onConfirm={() => {
+          setConfirmUnpublish(false);
+          setPublishMode("now");
+          submit("draft");
+        }}
+      />
+
+      <ConsoleConfirmDialog
+        open={confirmArchive}
+        onOpenChange={setConfirmArchive}
+        tone="destructive"
+        icon={<Archive size={20} />}
+        title="Archive this story?"
+        description={
+          isDirty
+            ? "It is hidden from the site. Unsaved edits stay in this editor only - save a draft first to keep them."
+            : "It is hidden from the site and the default list. You can restore it later."
+        }
+        confirmLabel="Archive"
+        isPending={statusMutation.isPending}
+        onConfirm={() => runStatus("archive")}
+      />
+
       <DeleteConfirmationDialog
         isOpen={confirmDelete}
         onClose={() => setConfirmDelete(false)}
-        onConfirm={handleDelete}
+        onConfirm={() => {
+          if (!values.id) return;
+          deleteMutation.mutate(values.id, {
+            onSuccess: () => {
+              setConfirmDelete(false);
+              setSaved(null);
+              navigate("/admin/news");
+            },
+          });
+        }}
         isPending={deleteMutation.isPending}
-        itemName={form.values.title}
-        itemType="news coverage"
+        itemName={values.title}
+        itemType="news story"
       />
     </>
   );
 };
 
-export default AdminNewsEditorPage;
+export default AdminExamNewsEditorPage;

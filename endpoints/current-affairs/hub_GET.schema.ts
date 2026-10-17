@@ -18,6 +18,8 @@ export type PublicDigestCard = {
   summary: string | null;
   coverImageUrl: string | null;
   coverImageAlt: string | null;
+  /** The cover, else the share image, else the first news item's image; null when the digest has none. */
+  thumbnailUrl: string | null;
   digestDate: string | null;
   publishedAt: Date | null;
   readingTimeMinutes: number;

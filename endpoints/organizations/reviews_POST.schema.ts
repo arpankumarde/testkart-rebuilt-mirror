@@ -3,7 +3,7 @@ import superjson from "superjson";
 import type { OrganizationReviewItem } from "./reviews_GET.schema";
 
 export const schema = z.object({
-  organizationId: z.number().int().positive(),
+  organizationId: z.string().uuid(),
   rating: z.number().int().min(1).max(5),
   reviewText: z.string().trim().max(2000).optional().nullable(),
 });

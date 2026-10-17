@@ -2,7 +2,7 @@ import superjson from "superjson";
 import type { OrganizationTypeValue } from "./create_POST.schema";
 
 export type MyOrganization = {
-  id: number;
+  id: string;
   name: string;
   slug: string;
   orgType: OrganizationTypeValue;
@@ -15,7 +15,7 @@ export type MyOrganization = {
 
 export type PendingRequest = {
   membershipId: number;
-  organizationId: number;
+  organizationId: string;
   organizationName: string;
   teacherId: number;
   teacherName: string;

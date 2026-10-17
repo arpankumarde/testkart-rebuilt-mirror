@@ -3,7 +3,7 @@ import superjson from "superjson";
 import type { OrganizationTypeValue } from "../../teacher/organizations/create_POST.schema";
 
 export const schema = z.object({
-  id: z.coerce.number().int().positive(),
+  id: z.string().uuid(),
 });
 
 export type InputType = z.infer<typeof schema>;
@@ -62,7 +62,7 @@ export type AdminOrganizationGalleryItem = {
 
 export type OutputType = {
   organization: {
-    id: number;
+    id: string;
     name: string;
     slug: string;
     orgType: OrganizationTypeValue;

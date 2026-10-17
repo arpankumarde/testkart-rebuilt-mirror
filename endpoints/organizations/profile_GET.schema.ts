@@ -62,7 +62,7 @@ export type OrganizationPost = {
 
 export type OutputType = {
   organization: {
-    id: number;
+    id: string;
     name: string;
     slug: string;
     orgType: OrganizationTypeValue;

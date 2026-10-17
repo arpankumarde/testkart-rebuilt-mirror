@@ -31,7 +31,7 @@ export const useOrganizationProfileQuery = (orgSlug: string) =>
 export const useFollowOrganizationMutation = (orgSlug: string) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (organizationId: number) => postOrganizationsFollow({ organizationId }),
+    mutationFn: (organizationId: string) => postOrganizationsFollow({ organizationId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["organizationProfile", orgSlug] });
     },
@@ -40,7 +40,7 @@ export const useFollowOrganizationMutation = (orgSlug: string) => {
 
 // Pages accumulate, so "Load more" appends older reviews instead of
 // replacing the visible ones.
-export const useOrganizationReviewsQuery = (organizationId: number, enabled: boolean) =>
+export const useOrganizationReviewsQuery = (organizationId: string, enabled: boolean) =>
   useInfiniteQuery({
     queryKey: ["organizationReviews", organizationId],
     queryFn: ({ pageParam }) => getOrganizationsReviews({ organizationId, page: pageParam }),
@@ -50,7 +50,7 @@ export const useOrganizationReviewsQuery = (organizationId: number, enabled: boo
     staleTime: 60 * 1000,
   });
 
-export const useSubmitOrganizationReviewMutation = (organizationId: number) => {
+export const useSubmitOrganizationReviewMutation = (organizationId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: SubmitReviewInput) => postOrganizationsReviews(input),
@@ -60,7 +60,7 @@ export const useSubmitOrganizationReviewMutation = (organizationId: number) => {
   });
 };
 
-export const useOrganizationClaimOptionsQuery = (organizationId: number, enabled: boolean) =>
+export const useOrganizationClaimOptionsQuery = (organizationId: string, enabled: boolean) =>
   useQuery({
     queryKey: ["organizationClaimOptions", organizationId],
     queryFn: () => getTeacherOrganizationsClaimOptions({ organizationId }),

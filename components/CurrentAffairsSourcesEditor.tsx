@@ -13,9 +13,18 @@ interface CurrentAffairsSourcesEditorProps {
   name: string;
   value: CurrentAffairsSourceInput[];
   onChange: (value: CurrentAffairsSourceInput[]) => void;
+  /* Names offered as you type; defaults to the usual current affairs sources. */
+  suggestions?: string[];
+  addLabel?: string;
 }
 
-export const CurrentAffairsSourcesEditor: React.FC<CurrentAffairsSourcesEditorProps> = ({ name, value, onChange }) => {
+export const CurrentAffairsSourcesEditor: React.FC<CurrentAffairsSourcesEditorProps> = ({
+  name,
+  value,
+  onChange,
+  suggestions = COMMON_SOURCES,
+  addLabel = "Add source",
+}) => {
   const listId = useId();
   const update = (index: number, patch: Partial<CurrentAffairsSourceInput>) =>
     onChange(value.map((source, i) => (i === index ? { ...source, ...patch } : source)));
@@ -23,7 +32,7 @@ export const CurrentAffairsSourcesEditor: React.FC<CurrentAffairsSourcesEditorPr
   return (
     <FormItem name={name} className={styles.root}>
       <datalist id={listId}>
-        {COMMON_SOURCES.map((source) => (
+        {suggestions.map((source) => (
           <option key={source} value={source} />
         ))}
       </datalist>
@@ -76,7 +85,7 @@ export const CurrentAffairsSourcesEditor: React.FC<CurrentAffairsSourcesEditorPr
       )}
       <div className={styles.footer}>
         <Button variant="outline" size="sm" onClick={() => onChange([...value, { name: "", url: "" }])}>
-          {value.length === 0 ? <Link2 size={14} /> : <Plus size={14} />} Add source
+          {value.length === 0 ? <Link2 size={14} /> : <Plus size={14} />} {addLabel}
         </Button>
         <FormMessage />
       </div>

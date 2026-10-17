@@ -4,13 +4,22 @@ import { currentAffairsPublicServer } from "../helpers/currentAffairsPublicServe
 export const prefetch: PagePrefetchFn = async (ctx) => {
   const { qc } = ctx;
   try {
-    // Must match currentAffairsPublicKeys.hub({}) in helpers/useCurrentAffairsPublic.
-    await qc.prefetchQuery({
-      queryKey: ["current-affairs", "hub", "all"],
-      queryFn: () => currentAffairsPublicServer.fetchHub(),
-    });
+    // Keys must match currentAffairsPublicKeys.hub({}) and .feed({ type }) in helpers/useCurrentAffairsPublic.
+    await Promise.all([
+      qc.prefetchQuery({
+        queryKey: ["current-affairs", "hub", "all"],
+        queryFn: () => currentAffairsPublicServer.fetchHub(),
+      }),
+      ...(["daily", "monthly"] as const).map((type) =>
+        qc.prefetchInfiniteQuery({
+          queryKey: ["current-affairs", "feed", type, "all"],
+          queryFn: () => currentAffairsPublicServer.fetchList({ type, page: 1 }),
+          initialPageParam: 1,
+        })
+      ),
+    ]);
   } catch (error) {
-    console.error("Error prefetching current affairs hub:", error);
+    console.error("Error prefetching current affairs:", error);
   }
   return { maxAge: 300 };
 };

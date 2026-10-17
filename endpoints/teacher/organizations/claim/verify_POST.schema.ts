@@ -2,7 +2,7 @@ import { z } from "zod";
 import superjson from "superjson";
 
 export const schema = z.object({
-  organizationId: z.number().int().positive(),
+  organizationId: z.string().uuid(),
   code: z.string().trim().min(4).max(10),
 });
 

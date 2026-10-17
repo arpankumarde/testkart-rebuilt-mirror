@@ -127,7 +127,7 @@ const StarDisplay: React.FC<{ value: number; size?: number }> = ({ value, size =
   </span>
 );
 
-const FollowOrgButton: React.FC<{ organizationId: number; orgSlug: string; isFollowing: boolean }> = ({
+const FollowOrgButton: React.FC<{ organizationId: string; orgSlug: string; isFollowing: boolean }> = ({
   organizationId,
   orgSlug,
   isFollowing,
@@ -171,7 +171,7 @@ const FollowOrgButton: React.FC<{ organizationId: number; orgSlug: string; isFol
  * review needed on our end.
  */
 const ClaimOrganizationButton: React.FC<{
-  organizationId: number;
+  organizationId: string;
   orgSlug: string;
   claimStatus: "unclaimed" | "pending_verification" | "claimed";
 }> = ({ organizationId, orgSlug, claimStatus }) => {
@@ -792,7 +792,7 @@ const CommunityPostsSection: React.FC<{ posts: OrganizationPost[]; orgSlug: stri
   );
 };
 
-const ReviewsSection: React.FC<{ organizationId: number; reviewCount: number; averageRating: number | null }> = ({
+const ReviewsSection: React.FC<{ organizationId: string; reviewCount: number; averageRating: number | null }> = ({
   organizationId,
   reviewCount,
   averageRating,

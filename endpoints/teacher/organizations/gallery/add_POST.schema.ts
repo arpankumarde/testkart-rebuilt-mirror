@@ -3,7 +3,7 @@ import superjson from "superjson";
 import type { OrganizationGalleryItem } from "./list_GET.schema";
 
 export const schema = z.object({
-  organizationId: z.number().int().positive(),
+  organizationId: z.string().uuid(),
   mediaType: z.enum(["photo", "video"]),
   url: z.string().trim().min(1).max(2000),
   fileId: z.string().trim().max(500).nullable().optional(),

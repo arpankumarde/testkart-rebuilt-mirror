@@ -83,7 +83,13 @@ const CurrentAffairsDigestPage: React.FC = () => {
           {typeLabel && post && (
             <>
               <ChevronRight size={14} aria-hidden="true" />
-              <Link to={`/current-affairs?type=${post.contentType === "editorial_analysis" ? "editorials" : post.contentType.replace("_digest", "")}`}>
+              <Link
+                to={
+                  post.contentType === "weekly_digest" || post.contentType === "monthly_digest"
+                    ? `/current-affairs?type=${post.contentType.replace("_digest", "")}`
+                    : "/current-affairs"
+                }
+              >
                 {typeLabel}
               </Link>
             </>

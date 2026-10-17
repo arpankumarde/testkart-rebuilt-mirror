@@ -410,7 +410,7 @@ const GalleryTab: React.FC<{ data: OutputType }> = ({ data }) => {
 
 const AdminOrganizationDetailPage: React.FC = () => {
   const { organizationId } = useParams<{ organizationId: string }>();
-  const id = organizationId && /^\d+$/.test(organizationId) ? Number(organizationId) : null;
+  const id = organizationId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(organizationId) ? organizationId : null;
   const [tab, setTab] = useState<DetailTab>("overview");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const { data, isPending, isError, error, refetch } = useAdminOrganizationQuery(id);

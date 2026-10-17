@@ -16,7 +16,7 @@ export type InputType = z.infer<typeof schema>;
 
 export type OutputType = {
   organization: {
-    id: number;
+    id: string;
     name: string;
     slug: string;
     orgType: OrganizationTypeValue;

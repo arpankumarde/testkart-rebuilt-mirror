@@ -1,32 +1,13 @@
 import React, { useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link, useSearchParams } from "react-router-dom";
-import {
-  AlertCircle,
-  ArrowRight,
-  Calendar,
-  CalendarDays,
-  CalendarRange,
-  ChevronRight,
-  Clock,
-  FlaskConical,
-  Globe2,
-  Landmark,
-  LayoutList,
-  Leaf,
-  ListChecks,
-  Newspaper,
-  TrendingUp,
-  X,
-} from "lucide-react";
+import { AlertCircle, ArrowRight, Calendar, CalendarDays, CalendarRange, Newspaper } from "lucide-react";
 import { FaTelegram } from "react-icons/fa6";
 import { SEOHead } from "../components/SEOHead";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
 import { CurrentAffairsTeacherPicks } from "../components/CurrentAffairsTeacherPicks";
-import { useCurrentAffairsHub, useCurrentAffairsList } from "../helpers/useCurrentAffairsPublic";
-import { currentAffairsMeta } from "../helpers/currentAffairsMeta";
-import { PUBLIC_LIST_TYPES, type PublicListType } from "../endpoints/current-affairs/list_GET.schema";
+import { useCurrentAffairsFeed, useCurrentAffairsHub } from "../helpers/useCurrentAffairsPublic";
 import type { PublicDigestCard } from "../endpoints/current-affairs/hub_GET.schema";
 import type { CurrentAffairsContentType } from "../helpers/schema";
 import styles from "./current-affairs.module.css";
@@ -35,53 +16,33 @@ const SITE_ORIGIN = "https://testkart.in";
 const CANONICAL_URL = `${SITE_ORIGIN}/current-affairs`;
 const PAGE_TITLE = "Current Affairs";
 const PAGE_DESCRIPTION =
-  "Daily, weekly and monthly current affairs digests with quizzes for UPSC, SSC, banking and other competitive exams.";
+  "Daily, weekly and monthly current affairs digests for UPSC, SSC, banking and other competitive exams.";
+const ROW_TAGS = 3;
+const SIDEBAR_MONTHS = 3;
 const TELEGRAM_URL = "https://t.me/testkart_in";
-const GRID_LIMIT = 9;
-const CARD_TAGS = 2;
 
-const TYPE_TABS: { value: PublicListType | null; label: string }[] = [
-  { value: null, label: "All" },
-  { value: "daily", label: "Daily" },
-  { value: "editorials", label: "Editorials" },
-  { value: "weekly", label: "Weekly" },
-  { value: "monthly", label: "Monthly" },
-  { value: "quiz", label: "Quiz" },
+/* Public sections of the site, named as the header and footer name them. */
+const EXPLORE_LINKS = [
+  { to: "/course", label: "Courses" },
+  { to: "/mock-test", label: "Test Series" },
+  { to: "/live-test", label: "Live Competitions" },
+  { to: "/study-notes", label: "Study Notes" },
+  { to: "/bundles", label: "Course Bundles" },
+  { to: "/exams", label: "Exams" },
+  { to: "/blog", label: "Blog" },
+  { to: "/teach", label: "Teach on Testkart" },
 ];
 
-const TYPE_HEADINGS: Record<PublicListType, string> = {
-  daily: "Daily digests",
-  editorials: "Editorial analysis",
-  weekly: "Weekly digests",
-  monthly: "Monthly digests",
-  quiz: "Digests with a quiz",
-};
+type FeedType = "daily" | "weekly" | "monthly";
 
-/* Slugs match the predefined tags seeded for Current Affairs. */
-const TOPICS = [
-  { slug: "polity", name: "Polity", icon: Landmark },
-  { slug: "economy", name: "Economy", icon: TrendingUp },
-  { slug: "environment", name: "Environment", icon: Leaf },
-  { slug: "international-relations", name: "International Relations", icon: Globe2 },
-  { slug: "science-technology", name: "Science & Technology", icon: FlaskConical },
-];
-
-const EXAMS = [
-  { slug: "upsc-cse", name: "UPSC CSE" },
-  { slug: "ssc-cgl", name: "SSC CGL" },
-  { slug: "neet-ug", name: "NEET UG" },
-  { slug: "ugc-net", name: "UGC NET" },
-  { slug: "jee-main", name: "JEE Main" },
-];
-
-const LANGUAGES: { value: "en" | "hi" | null; label: string }[] = [
-  { value: null, label: "All" },
-  { value: "en", label: "English" },
-  { value: "hi", label: "हिंदी" },
+const TABS: { value: FeedType; label: string; noun: [string, string]; icon: typeof CalendarDays }[] = [
+  { value: "daily", label: "Daily", noun: ["daily digest", "daily digests"], icon: CalendarDays },
+  { value: "weekly", label: "Weekly", noun: ["weekly roundup", "weekly roundups"], icon: CalendarRange },
+  { value: "monthly", label: "Monthly", noun: ["monthly digest", "monthly digests"], icon: Calendar },
 ];
 
 const TYPE_ICONS: Record<CurrentAffairsContentType, typeof CalendarDays> = {
-  daily_digest: CalendarDays,
+  daily_digest: Newspaper,
   weekly_digest: CalendarRange,
   monthly_digest: Calendar,
   editorial_analysis: Newspaper,
@@ -89,118 +50,183 @@ const TYPE_ICONS: Record<CurrentAffairsContentType, typeof CalendarDays> = {
 };
 
 const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTHS_LONG = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const digestHref = (card: PublicDigestCard) => `/current-affairs/${card.slug}`;
-const quizHref = (card: PublicDigestCard) => `/current-affairs/${card.slug}#quiz`;
 const toneClass = (type: CurrentAffairsContentType) => styles[`tone_${type}`] ?? "";
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+const typeLabel = (type: CurrentAffairsContentType) =>
+  type === "weekly_digest" ? "Weekly" : type === "monthly_digest" ? "Monthly" : "Daily";
 
-const periodOf = (card: PublicDigestCard) =>
-  card.digestDate ? currentAffairsMeta.periodLabel(card.contentType, card.digestDate) : "";
+/** The digest's own image as the API resolves it (cover, share image, first item image). */
+const imageOf = (card: PublicDigestCard) => card.thumbnailUrl ?? card.coverImageUrl ?? null;
 
-const publishedDay = (card: PublicDigestCard) => {
-  if (!card.publishedAt) return "";
-  return new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", year: "numeric" }).format(
-    new Date(card.publishedAt)
-  );
+/** The day the digest covers, else its publish day in IST, as YYYY-MM-DD. */
+const coverDay = (card: PublicDigestCard): string | null => {
+  if (card.digestDate) return card.digestDate;
+  if (!card.publishedAt) return null;
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date(card.publishedAt));
 };
 
-/** Day and month for the calendar badge: the period the digest covers, else its publish date. */
-const badgeParts = (card: PublicDigestCard): { top: string; big: string } | null => {
-  if (card.digestDate) {
-    const [y, m, d] = card.digestDate.split("-").map(Number);
-    return card.contentType === "monthly_digest" ? { top: String(y), big: MONTHS_SHORT[m - 1] } : { top: MONTHS_SHORT[m - 1], big: String(d) };
+type Period = { y: number; m: number; d: number; endY: number; endM: number; endD: number; weekday: number };
+
+const periodParts = (card: PublicDigestCard): Period | null => {
+  const day = coverDay(card);
+  if (!day) return null;
+  const [y, m, d] = day.split("-").map(Number);
+  const start = new Date(Date.UTC(y, m - 1, d));
+  const end = new Date(Date.UTC(y, m - 1, d + 6));
+  return { y, m, d, endY: end.getUTCFullYear(), endM: end.getUTCMonth() + 1, endD: end.getUTCDate(), weekday: start.getUTCDay() };
+};
+
+/** "Fri, 23 Oct 2026", "19-25 Oct 2026", "August 2023". */
+const periodText = (card: PublicDigestCard): string => {
+  const p = periodParts(card);
+  if (!p) return "";
+  if (card.contentType === "monthly_digest") return `${MONTHS_LONG[p.m - 1]} ${p.y}`;
+  if (card.contentType === "weekly_digest") {
+    if (p.endM === p.m) return `${p.d}-${p.endD} ${MONTHS_SHORT[p.m - 1]} ${p.endY}`;
+    return `${p.d} ${MONTHS_SHORT[p.m - 1]} - ${p.endD} ${MONTHS_SHORT[p.endM - 1]} ${p.endY}`;
   }
-  if (!card.publishedAt) return null;
-  const parts = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short" }).formatToParts(
-    new Date(card.publishedAt)
-  );
-  return { top: parts.find((p) => p.type === "month")?.value ?? "", big: parts.find((p) => p.type === "day")?.value ?? "" };
+  return `${WEEKDAYS[p.weekday]}, ${p.d} ${MONTHS_SHORT[p.m - 1]} ${p.y}`;
+};
+
+/** The large and small lines a fallback thumbnail prints. */
+const fallbackLines = (card: PublicDigestCard, feature: boolean): { big: string; small: string } => {
+  const p = periodParts(card);
+  if (!p) return { big: "Digest", small: "" };
+  if (card.contentType === "monthly_digest") return { big: feature ? MONTHS_LONG[p.m - 1] : MONTHS_SHORT[p.m - 1], small: String(p.y) };
+  if (card.contentType === "weekly_digest") {
+    const months = p.endM === p.m ? MONTHS_SHORT[p.m - 1] : `${MONTHS_SHORT[p.m - 1]} - ${MONTHS_SHORT[p.endM - 1]}`;
+    return { big: `${p.d}-${p.endD}`, small: `${months} ${p.endY}` };
+  }
+  return { big: String(p.d), small: `${MONTHS_SHORT[p.m - 1]} ${p.y}` };
+};
+
+const rowTags = (card: PublicDigestCard) =>
+  [...card.tags.filter((t) => t.kind === "topic"), ...card.tags.filter((t) => t.kind === "exam")].slice(0, ROW_TAGS);
+
+/** Tracks whether the digest's image is usable, so callers can fall back once it fails to load. */
+const useImage = (card: PublicDigestCard) => {
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const src = imageOf(card);
+  const usable = !!src && src !== failedSrc;
+  return { src: usable ? src : null, onError: () => setFailedSrc(src) };
 };
 
 /**
- * The cover, or a designed stand-in on the type's pastel when there is none or it fails to load,
- * so a broken image never shows.
+ * The digest's own image (cover, share image or first item image, resolved by the API), or a
+ * designed stand-in printed with the digest's period when it has none or the image fails.
  */
-const Cover: React.FC<{ card: PublicDigestCard; size?: "card" | "feature" }> = ({ card, size = "card" }) => {
-  const [failed, setFailed] = useState(false);
-  const Icon = TYPE_ICONS[card.contentType];
-  if (card.coverImageUrl && !failed) {
-    return (
-      <img
-        src={card.coverImageUrl}
-        alt={card.coverImageAlt ?? ""}
-        className={`${styles.cover} ${size === "feature" ? styles.coverFeature : ""}`}
-        loading={size === "feature" ? "eager" : "lazy"}
-        onError={() => setFailed(true)}
-      />
-    );
+const Thumb: React.FC<{ card: PublicDigestCard; feature?: boolean }> = ({ card, feature = false }) => {
+  const image = useImage(card);
+  if (image.src) {
+    return <img src={image.src} alt="" className={styles.thumbImage} loading="lazy" onError={image.onError} />;
   }
+  const Icon = TYPE_ICONS[card.contentType];
+  const lines = fallbackLines(card, feature);
   return (
-    <span
-      className={`${styles.cover} ${styles.coverDesigned} ${size === "feature" ? styles.coverFeature : ""} ${toneClass(card.contentType)}`}
-      aria-hidden="true"
-    >
-      <span className={styles.coverIcon}>
-        <Icon size={size === "feature" ? 20 : 16} />
+    <span className={`${styles.thumbFallback} ${toneClass(card.contentType)}`} aria-hidden="true">
+      <span className={styles.thumbIcon}>
+        <Icon size={14} />
       </span>
-      <span className={styles.coverText}>
-        <span className={styles.coverPeriod}>{periodOf(card) || currentAffairsMeta.contentTypeShort(card.contentType)}</span>
-        {/* The featured headline sits right beside its cover, so the cover names the type instead. */}
-        <span className={styles.coverTitle}>
-          {size === "feature" ? currentAffairsMeta.contentTypeLabel(card.contentType) : card.title}
-        </span>
+      <span className={styles.thumbRules}>
+        <span />
+        <span />
+        <span />
+      </span>
+      <span className={styles.thumbDate}>
+        <span className={styles.thumbBig}>{lines.big}</span>
+        {lines.small && <span className={styles.thumbSmall}>{lines.small}</span>}
       </span>
     </span>
   );
 };
 
-/** A digest in the grid. The whole card opens the digest. */
-const DigestCard: React.FC<{ card: PublicDigestCard }> = ({ card }) => {
-  const tags = card.tags.filter((t) => t.kind !== "syllabus").slice(0, CARD_TAGS);
+const DigestRow: React.FC<{ card: PublicDigestCard }> = ({ card }) => {
+  const tags = rowTags(card);
+  const badge = periodText(card);
   return (
-    <li className={styles.cardItem}>
-      <Link to={digestHref(card)} className={styles.card}>
-        <span className={styles.cardMedia}>
-          <Cover card={card} />
+    <li>
+      <Link to={digestHref(card)} className={styles.row}>
+        <span className={styles.thumb}>
+          <Thumb card={card} />
         </span>
-        <span className={styles.cardBody}>
-          <span className={styles.cardEyebrow}>
-            <span className={`${styles.typeDot} ${toneClass(card.contentType)}`} aria-hidden="true" />
-            {currentAffairsMeta.contentTypeShort(card.contentType)}
-            {publishedDay(card) && <span className={styles.cardDate}>{publishedDay(card)}</span>}
-            {card.language === "hi" && <span className={styles.langTag}>हिंदी</span>}
+        <span className={styles.rowBody}>
+          <span className={styles.rowTop}>
+            {badge && (
+              <time className={`${styles.dateBadge} ${toneClass(card.contentType)}`} dateTime={coverDay(card) ?? undefined}>
+                {badge}
+              </time>
+            )}
+            <span className={styles.rowType}>{typeLabel(card.contentType)}</span>
+            {card.itemCount > 0 && <span className={styles.rowStat}>{plural(card.itemCount, "story", "stories")}</span>}
+            {card.language === "hi" && <span className={styles.rowStat}>हिंदी</span>}
           </span>
-          <span className={styles.cardTitle}>{card.title}</span>
-          {card.summary && <span className={styles.cardSummary}>{card.summary}</span>}
-          {tags.length > 0 && (
-            <span className={styles.cardTags}>
-              {tags.map((t) => (
-                <span key={`${t.kind}-${t.slug}`} className={`${styles.cardTag} ${styles[`tag_${t.kind}`] ?? ""}`}>
-                  {t.name}
-                </span>
-              ))}
-            </span>
-          )}
-          <span className={styles.cardFoot}>
-            <span className={styles.cardMeta}>
-              {card.itemCount > 0 && (
-                <span>
-                  <LayoutList size={13} aria-hidden="true" />
-                  {card.itemCount}
-                </span>
-              )}
-              <span>
-                <Clock size={13} aria-hidden="true" />
-                {card.readingTimeMinutes} min
+          <span className={styles.rowTitle}>{card.title}</span>
+          {card.summary && <span className={styles.rowSummary}>{card.summary}</span>}
+          <span className={styles.rowMeta}>
+            {tags.map((t) => (
+              <span key={`${t.kind}-${t.slug}`} className={`${styles.tag} ${t.kind === "exam" ? styles.tagExam : ""}`}>
+                {t.name}
               </span>
-              {card.quizQuestionCount && (
-                <span>
-                  <ListChecks size={13} aria-hidden="true" />
-                  Quiz
-                </span>
-              )}
-            </span>
-            <span className={styles.cardRead}>
+            ))}
+            <span className={styles.rowStat}>{card.readingTimeMinutes} min read</span>
+          </span>
+        </span>
+        <span className={styles.rowAction}>
+          Read digest <ArrowRight size={15} aria-hidden="true" />
+        </span>
+      </Link>
+    </li>
+  );
+};
+
+const ListSkeleton: React.FC = () => (
+  <ul className={styles.list} aria-busy="true" aria-label="Loading digests">
+    {[0, 1, 2].map((n) => (
+      <li key={n} className={styles.skeletonRow}>
+        <Skeleton className={styles.skeletonThumb} />
+        <span className={styles.skeletonLines}>
+          <Skeleton style={{ width: "8rem", height: "1.25rem", borderRadius: "999px" }} />
+          <Skeleton style={{ width: "75%", height: "1.15rem" }} />
+          <Skeleton style={{ width: "95%", height: "0.85rem" }} />
+          <Skeleton style={{ width: "45%", height: "0.85rem" }} />
+        </span>
+      </li>
+    ))}
+  </ul>
+);
+
+/** A monthly digest in the sidebar: its cover on top, or the dated editorial stand-in when it has none. */
+const MonthCard: React.FC<{ card: PublicDigestCard }> = ({ card }) => {
+  return (
+    <li>
+      <Link to={digestHref(card)} className={styles.monthCard}>
+        <span className={styles.monthMedia}>
+          <Thumb card={card} feature />
+        </span>
+        <span className={styles.monthBody}>
+          <span className={styles.monthPeriod}>{periodText(card)}</span>
+          <span className={styles.monthTitle}>{card.title}</span>
+          {card.summary && <span className={styles.monthSummary}>{card.summary}</span>}
+          <span className={styles.monthFoot}>
+            {card.itemCount > 0 && <span className={styles.rowStat}>{plural(card.itemCount, "story", "stories")}</span>}
+            <span className={styles.monthAction}>
               Read digest <ArrowRight size={14} aria-hidden="true" />
             </span>
           </span>
@@ -210,234 +236,116 @@ const DigestCard: React.FC<{ card: PublicDigestCard }> = ({ card }) => {
   );
 };
 
-const CardGrid: React.FC<{ cards: PublicDigestCard[]; busy?: boolean }> = ({ cards, busy }) => (
-  <ul className={styles.grid} aria-busy={busy}>
-    {cards.map((card) => (
-      <DigestCard key={card.id} card={card} />
-    ))}
-  </ul>
+const WeeklyCard: React.FC<{ card: PublicDigestCard }> = ({ card }) => (
+  <section className={styles.sideSection} aria-labelledby="ca-weekly-title">
+    <h2 id="ca-weekly-title" className={styles.sideHeading}>
+      Latest weekly roundup
+    </h2>
+    <Link to={digestHref(card)} className={styles.weekCard}>
+      <span className={styles.monthPeriod}>{periodText(card)}</span>
+      <span className={styles.monthTitle}>{card.title}</span>
+      <span className={styles.monthAction}>
+        Read digest <ArrowRight size={14} aria-hidden="true" />
+      </span>
+    </Link>
+  </section>
 );
-
-const GridSkeleton: React.FC = () => (
-  <div className={styles.grid} aria-busy="true">
-    {[0, 1, 2].map((n) => (
-      <Skeleton key={n} style={{ height: "21rem", borderRadius: "var(--radius-lg)" }} />
-    ))}
-  </div>
-);
-
-const Featured: React.FC<{ card: PublicDigestCard }> = ({ card }) => {
-  const isDaily = card.contentType === "daily_digest";
-  const badge = badgeParts(card);
-  return (
-    <section className={`${styles.featured} ${toneClass(card.contentType)}`} aria-labelledby="ca-featured-title">
-      <div className={styles.featuredText}>
-        <div className={styles.featuredTop}>
-          {badge && (
-            <span className={styles.dateBadge} aria-hidden="true">
-              <span className={styles.dateBadgeTop}>{badge.top}</span>
-              <span className={styles.dateBadgeBig}>{badge.big}</span>
-            </span>
-          )}
-          <span className={styles.featuredLabel}>
-            <span>{isDaily ? "Today's digest" : `Latest ${currentAffairsMeta.contentTypeShort(card.contentType).toLowerCase()} digest`}</span>
-            {periodOf(card) && <span className={styles.featuredPeriod}>{periodOf(card)}</span>}
-          </span>
-        </div>
-        <h2 id="ca-featured-title" className={styles.featuredTitle}>
-          <Link to={digestHref(card)}>{card.title}</Link>
-        </h2>
-        {card.summary && <p className={styles.featuredSummary}>{card.summary}</p>}
-        <ul className={styles.featuredMeta}>
-          {card.itemCount > 0 && (
-            <li>
-              <LayoutList size={14} aria-hidden="true" />
-              {card.itemCount} news item{card.itemCount === 1 ? "" : "s"}
-            </li>
-          )}
-          <li>
-            <Clock size={14} aria-hidden="true" />
-            {card.readingTimeMinutes} min read
-          </li>
-          {card.publishedAt && <li>{currentAffairsMeta.formatIst(card.publishedAt)}</li>}
-        </ul>
-        <div className={styles.featuredActions}>
-          <Button asChild>
-            <Link to={digestHref(card)}>
-              Read digest <ArrowRight size={16} />
-            </Link>
-          </Button>
-          {card.quizQuestionCount && (
-            <Button asChild variant="outline">
-              <Link to={quizHref(card)}>
-                <ListChecks size={16} /> {isDaily ? "Take today's quiz" : "Take the quiz"}
-              </Link>
-            </Button>
-          )}
-        </div>
-      </div>
-      <Link to={digestHref(card)} className={styles.featuredMedia} tabIndex={-1} aria-hidden="true">
-        <Cover card={card} size="feature" />
-      </Link>
-    </section>
-  );
-};
 
 const CurrentAffairsPage: React.FC = () => {
   const [params] = useSearchParams();
   const typeParam = params.get("type");
-  const type = (PUBLIC_LIST_TYPES as readonly string[]).includes(typeParam ?? "") ? (typeParam as PublicListType) : null;
-  const topic = params.get("topic") || null;
-  const exam = params.get("exam") || null;
+  const type: FeedType = typeParam === "weekly" || typeParam === "monthly" ? typeParam : "daily";
   const langParam = params.get("lang");
-  const lang = langParam === "en" || langParam === "hi" ? langParam : null;
-  const page = Math.max(1, Number(params.get("page")) || 1);
-  const isFiltered = !!(type || topic || exam);
+  const lang = langParam === "en" || langParam === "hi" ? langParam : undefined;
+  const tab = TABS.find((t) => t.value === type)!;
 
-  const hub = useCurrentAffairsHub({ lang: lang ?? undefined });
-  const list = useCurrentAffairsList(
-    { type: type ?? undefined, topic: topic ?? undefined, exam: exam ?? undefined, lang: lang ?? undefined, page },
-    isFiltered
-  );
+  const hub = useCurrentAffairsHub({ lang });
+  const feed = useCurrentAffairsFeed({ type, lang });
+  const months = useCurrentAffairsFeed({ type: "monthly", lang });
 
-  /** A link to this page with some query values changed; the page number resets unless set. */
-  const withParams = (changes: Record<string, string | null>) => {
-    const next = new URLSearchParams(params);
-    for (const [key, value] of Object.entries(changes)) {
-      if (value) next.set(key, value);
-      else next.delete(key);
-    }
-    if (!("page" in changes)) next.delete("page");
+  const rows = feed.data?.pages.flatMap((p) => p.rows) ?? [];
+  const total = feed.data?.pages[0]?.total ?? 0;
+  const monthCards = (months.data?.pages[0]?.rows ?? []).slice(0, SIDEBAR_MONTHS);
+  const monthTotal = months.data?.pages[0]?.total ?? 0;
+  const weekly = hub.data?.weekly ?? null;
+  const pickExamId = hub.data?.latestDaily?.tags.find((t) => t.kind === "exam" && t.examId)?.examId ?? null;
+
+  const lastPublished = (hub.data?.latest ?? [])
+    .map((c) => (c.publishedAt ? new Date(c.publishedAt).getTime() : 0))
+    .reduce((a, b) => Math.max(a, b), 0);
+  const updatedLabel = lastPublished
+    ? new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", year: "numeric" }).format(
+        new Date(lastPublished)
+      )
+    : null;
+
+  const tabHref = (value: FeedType) => {
+    const next = new URLSearchParams();
+    if (value !== "daily") next.set("type", value);
+    if (lang) next.set("lang", lang);
     const query = next.toString();
     return `/current-affairs${query ? `?${query}` : ""}`;
   };
 
-  const data = hub.data;
-  const featured = data?.latestDaily ?? data?.latest[0] ?? null;
-  const latest = (data?.latest ?? []).filter((card) => card.id !== featured?.id).slice(0, GRID_LIMIT);
-  const featuredExamId = featured?.tags.find((t) => t.kind === "exam" && t.examId)?.examId ?? null;
+  const tabLinkProps = { replace: true, preventScrollReset: true, state: { preserveScroll: true } };
 
-  const filterLabel = [
-    type ? TYPE_HEADINGS[type] : null,
-    topic ? list.data?.topicName ?? TOPICS.find((t) => t.slug === topic)?.name ?? topic : null,
-    exam ? list.data?.examName ?? EXAMS.find((e) => e.slug === exam)?.name ?? exam : null,
-  ]
-    .filter(Boolean)
-    .join(" - ");
-
-  const telegramButton = (
-    <Button asChild variant="outline" size="sm">
-      <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer">
-        <FaTelegram aria-hidden="true" /> Get updates on Telegram
-      </a>
-    </Button>
-  );
-
-  const renderFiltered = () => {
-    if (list.isFetching && !list.data) return <GridSkeleton />;
-    if (list.isError) {
+  const renderList = () => {
+    if (feed.isPending) return <ListSkeleton />;
+    if (feed.isError && rows.length === 0) {
       return (
         <div className={styles.state} role="alert">
-          <AlertCircle size={22} aria-hidden="true" />
-          <p>These digests could not be loaded. Check your connection and try again.</p>
-          <Button variant="outline" size="sm" onClick={() => list.refetch()}>
+          <span className={styles.stateIcon} aria-hidden="true">
+            <AlertCircle size={20} />
+          </span>
+          <p className={styles.stateTitle}>These digests could not be loaded</p>
+          <p>Check your connection and try again.</p>
+          <Button variant="outline" size="sm" onClick={() => feed.refetch()}>
             Try again
           </Button>
         </div>
       );
     }
-    const rows = list.data?.rows ?? [];
     if (rows.length === 0) {
+      const Icon = tab.icon;
       return (
-        <div className={styles.state}>
+        <div className={`${styles.state} ${styles[`state_${type}`] ?? ""}`}>
           <span className={styles.stateIcon} aria-hidden="true">
-            <Newspaper size={20} />
+            <Icon size={20} />
           </span>
-          <p className={styles.stateTitle}>Nothing here yet</p>
-          <p>No published digests match these filters. New ones go up regularly.</p>
-          <Button asChild variant="outline" size="sm">
-            <Link to={withParams({ type: null, topic: null, exam: null })}>See all current affairs</Link>
-          </Button>
+          <p className={styles.stateTitle}>No {tab.noun[1]} yet</p>
+          <p>New {tab.noun[1]} appear here as soon as they are published.</p>
+          {type !== "daily" && (
+            <Link to={tabHref("daily")} {...tabLinkProps} className={styles.stateLink}>
+              Browse daily digests <ArrowRight size={14} aria-hidden="true" />
+            </Link>
+          )}
         </div>
       );
     }
     return (
       <>
-        <CardGrid cards={rows} busy={list.isFetching} />
-        {list.data && list.data.totalPages > 1 && (
-          <nav className={styles.pager} aria-label="Pages">
-            {page > 1 ? (
-              <Button asChild variant="outline" size="sm">
-                <Link to={withParams({ page: String(page - 1) })}>Previous</Link>
-              </Button>
-            ) : (
-              <span />
-            )}
-            <span className={styles.pagerLabel}>
-              Page {page} of {list.data.totalPages}
+        <ul className={styles.list} aria-busy={feed.isFetchingNextPage}>
+          {rows.map((card) => (
+            <DigestRow key={card.id} card={card} />
+          ))}
+        </ul>
+        {feed.hasNextPage && (
+          <div className={styles.more}>
+            <Button variant="outline" onClick={() => feed.fetchNextPage()} disabled={feed.isFetchingNextPage}>
+              {feed.isFetchingNextPage ? "Loading..." : "Load more"}
+            </Button>
+            <span className={styles.moreCount}>
+              Showing {rows.length} of {total}
             </span>
-            {page < list.data.totalPages ? (
-              <Button asChild variant="outline" size="sm">
-                <Link to={withParams({ page: String(page + 1) })}>Next</Link>
-              </Button>
-            ) : (
-              <span />
-            )}
-          </nav>
+          </div>
         )}
       </>
     );
   };
 
-  const renderLatest = () => {
-    if (hub.isFetching && !data) return <GridSkeleton />;
-    if (hub.isError && !data) {
-      return (
-        <div className={styles.state} role="alert">
-          <AlertCircle size={22} aria-hidden="true" />
-          <p>Current affairs could not be loaded right now.</p>
-          <Button variant="outline" size="sm" onClick={() => hub.refetch()}>
-            Try again
-          </Button>
-        </div>
-      );
-    }
-    if (!featured) {
-      return (
-        <div className={`${styles.state} ${styles.stateLarge}`}>
-          <span className={styles.stateIcon} aria-hidden="true">
-            <CalendarDays size={22} />
-          </span>
-          <p className={styles.stateTitle}>{lang ? `No ${lang === "hi" ? "Hindi" : "English"} digests yet` : "The first digest is on its way"}</p>
-          <p>Daily current affairs, weekly round-ups and quizzes will appear here as soon as they are published.</p>
-          {lang ? (
-            <Button asChild variant="outline" size="sm">
-              <Link to={withParams({ lang: null })}>Show all languages</Link>
-            </Button>
-          ) : (
-            telegramButton
-          )}
-        </div>
-      );
-    }
-    if (latest.length === 0) {
-      return (
-        <div className={styles.state}>
-          <span className={styles.stateIcon} aria-hidden="true">
-            <CalendarDays size={20} />
-          </span>
-          <p className={styles.stateTitle}>You are all caught up</p>
-          <p>Earlier digests will be listed here as more are published.</p>
-          {telegramButton}
-        </div>
-      );
-    }
-    return <CardGrid cards={latest} />;
-  };
-
   return (
     <>
-      <SEOHead title={PAGE_TITLE} description={PAGE_DESCRIPTION} url={CANONICAL_URL} image={featured?.coverImageUrl ?? undefined} />
+      <SEOHead title={PAGE_TITLE} description={PAGE_DESCRIPTION} url={CANONICAL_URL} />
       <Helmet>
         <script type="application/ld+json">
           {JSON.stringify({
@@ -454,154 +362,119 @@ const CurrentAffairsPage: React.FC = () => {
       <div className={styles.page}>
         <header className={styles.intro}>
           <div className={styles.introText}>
-            <nav className={styles.breadcrumb} aria-label="Breadcrumb">
-              <Link to="/">Home</Link>
-              <ChevronRight size={13} aria-hidden="true" />
-              <span aria-current="page">Current Affairs</span>
-            </nav>
-            <h1 className={styles.pageTitle}>Current Affairs</h1>
-            <p className={styles.pageSubtitle}>Daily digests, weekly round-ups and quizzes for UPSC, SSC and other exams.</p>
+            <span className={styles.introEyebrow}>
+              <span className={styles.accentBar} aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </span>
+              Exam-ready news, every day
+            </span>
+            <h1 className={styles.title}>Current Affairs</h1>
+            <p className={styles.subtitle}>Daily, weekly and monthly digests for UPSC, SSC and other competitive exams.</p>
           </div>
-          <div className={styles.langSwitch} role="group" aria-label="Language">
-            {LANGUAGES.map((option) => (
-              <Link
-                key={option.label}
-                to={withParams({ lang: option.value })}
-                className={`${styles.langOption} ${lang === option.value ? styles.langOptionOn : ""}`}
-                aria-current={lang === option.value ? "true" : undefined}
-              >
-                {option.label}
-              </Link>
-            ))}
-          </div>
+          {updatedLabel && (
+            <p className={styles.updated}>
+              <span className={styles.updatedDot} aria-hidden="true" />
+              Updated {updatedLabel}
+            </p>
+          )}
         </header>
 
-        {!isFiltered &&
-          (hub.isFetching && !data ? (
-            <Skeleton style={{ height: "18rem", borderRadius: "var(--radius-lg)" }} />
-          ) : featured ? (
-            <Featured card={featured} />
-          ) : null)}
-
-        <nav className={styles.navBar} aria-label="Browse current affairs">
-          <ul className={styles.tabs}>
-            {TYPE_TABS.map((tab) => {
-              const active = tab.value === null ? !type && !topic && !exam : type === tab.value;
-              return (
-                <li key={tab.label}>
-                  <Link
-                    to={tab.value ? withParams({ type: tab.value }) : withParams({ type: null, topic: null, exam: null })}
-                    className={`${styles.tab} ${active ? styles.tabOn : ""}`}
-                    aria-current={active ? "page" : undefined}
-                  >
-                    {tab.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-          <div className={styles.examRow}>
-            <span className={styles.examLabel}>Exams</span>
-            <ul className={styles.examChips}>
-              {EXAMS.map((e) => (
-                <li key={e.slug}>
-                  <Link
-                    to={withParams({ exam: exam === e.slug ? null : e.slug })}
-                    className={`${styles.examChip} ${exam === e.slug ? styles.examChipOn : ""}`}
-                    aria-current={exam === e.slug ? "true" : undefined}
-                  >
-                    {e.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </nav>
-
         <div className={styles.layout}>
-          <div className={styles.main}>
-            <section className={styles.section} aria-labelledby="ca-list-title">
-              <div className={styles.sectionHead}>
-                <h2 id="ca-list-title" className={styles.sectionTitle}>
-                  {isFiltered ? filterLabel : "Latest digests"}
-                  {isFiltered && list.data && <span className={styles.count}>{list.data.total}</span>}
-                </h2>
-                {isFiltered ? (
-                  <Link to={withParams({ type: null, topic: null, exam: null })} className={styles.sectionLink}>
-                    <X size={14} aria-hidden="true" /> Clear filters
-                  </Link>
-                ) : (
-                  <Link to={withParams({ type: "daily" })} className={styles.sectionLink}>
-                    Daily archive <ChevronRight size={14} aria-hidden="true" />
-                  </Link>
-                )}
-              </div>
-              {isFiltered ? renderFiltered() : renderLatest()}
-            </section>
+          <div className={styles.tabBar}>
+            <nav aria-label="Digest type">
+              <ul className={styles.tabs}>
+                {TABS.map((t) => (
+                  <li key={t.value}>
+                    <Link
+                      to={tabHref(t.value)}
+                      {...tabLinkProps}
+                      className={`${styles.tab} ${t.value === type ? styles.tabOn : ""}`}
+                      aria-current={t.value === type ? "page" : undefined}
+                    >
+                      {t.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
           </div>
 
-          <aside className={styles.sidebar} aria-label="More current affairs">
-            <section className={styles.sideCard}>
-              <h2 className={styles.sideTitle}>Explore topics</h2>
-              <ul className={styles.topicGrid}>
-                {TOPICS.map((t) => {
-                  const Icon = t.icon;
-                  const active = topic === t.slug;
-                  return (
-                    <li key={t.slug}>
-                      <Link
-                        to={withParams({ topic: active ? null : t.slug })}
-                        className={`${styles.topicCard} ${active ? styles.topicCardOn : ""}`}
-                        aria-current={active ? "true" : undefined}
-                      >
-                        <span className={styles.topicIcon} aria-hidden="true">
-                          <Icon size={15} />
-                        </span>
-                        {t.name}
-                      </Link>
-                    </li>
-                  );
-                })}
+          <section className={styles.main} aria-labelledby="ca-list-title">
+            <h2 id="ca-list-title" className={styles.srOnly}>
+              {tab.label} current affairs
+            </h2>
+            {renderList()}
+          </section>
+
+          <aside className={styles.sidebar} aria-label="More from Testkart">
+            <section className={styles.sideSection} aria-labelledby="ca-explore-title">
+              <h2 id="ca-explore-title" className={styles.sideHeading}>
+                Explore Testkart
+              </h2>
+              <ul className={`${styles.sideCard} ${styles.exploreList}`}>
+                {EXPLORE_LINKS.map((item) => (
+                  <li key={item.to}>
+                    <Link to={item.to} className={styles.exploreLink}>
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </section>
 
-            {data?.quiz && (
-              <section className={`${styles.sideCard} ${styles.quizCard}`}>
-                <div className={styles.quizHead}>
-                  <span className={styles.quizIcon} aria-hidden="true">
-                    <ListChecks size={18} />
-                  </span>
-                  <div>
-                    <h2 className={styles.quizTitle}>
-                      {data.quiz.contentType === "daily_digest" ? "Daily quiz" : `${currentAffairsMeta.contentTypeShort(data.quiz.contentType)} quiz`}
-                    </h2>
-                    <p className={styles.quizMeta}>
-                      {data.quiz.quizQuestionCount} MCQs - no login needed
-                    </p>
-                  </div>
-                </div>
-                {periodOf(data.quiz) && <p className={styles.quizPeriod}>{periodOf(data.quiz)}</p>}
-                <Button asChild size="sm" className={styles.quizButton}>
-                  <Link to={quizHref(data.quiz)}>
-                    Start quiz <ArrowRight size={14} />
+            <section className={styles.sideSection} aria-labelledby="ca-months-title">
+              <div className={styles.sideHead}>
+                <h2 id="ca-months-title" className={styles.sideHeading}>
+                  Monthly Current Affairs
+                </h2>
+                {monthTotal > monthCards.length && (
+                  <Link to={tabHref("monthly")} {...tabLinkProps} className={styles.sideMore}>
+                    View all
                   </Link>
-                </Button>
-              </section>
-            )}
-
-            <section className={styles.sideCard}>
-              <h2 className={styles.sideTitle}>From teachers on Testkart</h2>
-              <CurrentAffairsTeacherPicks examId={featuredExamId} />
+                )}
+              </div>
+              {months.isPending ? (
+                <Skeleton style={{ height: "17rem", borderRadius: "var(--radius-lg)" }} />
+              ) : monthCards.length > 0 ? (
+                <ul className={styles.monthList}>
+                  {monthCards.map((card) => (
+                    <MonthCard key={card.id} card={card} />
+                  ))}
+                </ul>
+              ) : (
+                <p className={`${styles.sideCard} ${styles.sideEmpty}`}>Monthly digests appear here once published.</p>
+              )}
             </section>
 
-            <section className={`${styles.sideCard} ${styles.updatesCard}`}>
-              <h2 className={styles.sideTitle}>Get it daily</h2>
-              <p className={styles.muted}>New digests and quizzes, straight to your phone.</p>
-              <Button asChild variant="outline" size="sm">
-                <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer">
-                  <FaTelegram aria-hidden="true" /> Join on Telegram
-                </a>
-              </Button>
+            {weekly && <WeeklyCard card={weekly} />}
+
+            <section className={styles.sideSection} aria-labelledby="ca-teachers-title">
+              <h2 id="ca-teachers-title" className={styles.sideHeading}>
+                From teachers on Testkart
+              </h2>
+              <div className={`${styles.sideCard} ${styles.teacherCard}`}>
+                {hub.isPending ? (
+                  <Skeleton style={{ height: "10rem", borderRadius: "var(--radius-md)" }} />
+                ) : (
+                  <CurrentAffairsTeacherPicks examId={pickExamId} />
+                )}
+              </div>
+            </section>
+
+            <section className={styles.sideSection} aria-labelledby="ca-daily-title">
+              <h2 id="ca-daily-title" className={styles.sideHeading}>
+                Get it daily
+              </h2>
+              <div className={`${styles.sideCard} ${styles.dailyCard}`}>
+                <p className={styles.sideText}>Follow Testkart on Telegram for new digests and exam updates.</p>
+                <Button asChild size="sm" className={styles.telegramButton}>
+                  <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer">
+                    <FaTelegram aria-hidden="true" /> Join on Telegram
+                  </a>
+                </Button>
+              </div>
             </section>
           </aside>
         </div>

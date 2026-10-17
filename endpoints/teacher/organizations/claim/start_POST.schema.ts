@@ -2,7 +2,7 @@ import { z } from "zod";
 import superjson from "superjson";
 
 export const schema = z.object({
-  organizationId: z.number().int().positive(),
+  organizationId: z.string().uuid(),
   method: z.enum(["phone", "email"]),
   // The exact masked-option value from claim/options - never a value the
   // teacher typed themselves. The server re-checks it against the

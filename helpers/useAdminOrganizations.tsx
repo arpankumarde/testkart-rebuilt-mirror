@@ -15,10 +15,10 @@ export const useAdminOrganizationsQuery = (params: ListInput) =>
     staleTime: 60 * 1000,
   });
 
-export const useAdminOrganizationQuery = (id: number | null) =>
+export const useAdminOrganizationQuery = (id: string | null) =>
   useQuery({
     queryKey: [ADMIN_ORGANIZATION_QUERY_KEY, id],
-    queryFn: () => getAdminOrganization({ id: id as number }),
+    queryFn: () => getAdminOrganization({ id: id as string }),
     enabled: id !== null,
     retry: (failureCount, error) => !/not found|404/i.test(error.message) && failureCount < 2,
     staleTime: 60 * 1000,

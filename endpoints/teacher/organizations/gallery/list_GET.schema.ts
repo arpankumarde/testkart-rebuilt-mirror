@@ -2,7 +2,7 @@ import { z } from "zod";
 import superjson from "superjson";
 
 export const schema = z.object({
-  organizationId: z.coerce.number().int().positive(),
+  organizationId: z.string().uuid(),
 });
 
 export type InputType = z.infer<typeof schema>;
@@ -27,7 +27,7 @@ export const getTeacherOrganizationsGalleryList = async (
   init?: RequestInit
 ): Promise<OutputType> => {
   const validatedInput = schema.parse(query);
-  const params = new URLSearchParams({ organizationId: String(validatedInput.organizationId) });
+  const params = new URLSearchParams({ organizationId: validatedInput.organizationId });
   const result = await fetch(`/_api/teacher/organizations/gallery/list?${params.toString()}`, {
     method: "GET",
     ...init,

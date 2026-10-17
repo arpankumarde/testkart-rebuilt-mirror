@@ -78,6 +78,13 @@ async function selectCards(filters: Filters, limit: number, offset = 0): Promise
       "q.questionCount as quizQuestionCount",
       sql<string | null>`to_char(p.digest_date, 'YYYY-MM-DD')`.as("digestDate"),
       sql<number>`(select count(*)::int from current_affairs_items i where i.post_id = p.id)`.as("itemCount"),
+      sql<string | null>`coalesce(
+        nullif(p.cover_image_url, ''),
+        nullif(p.og_image_url, ''),
+        (select i.image_url from current_affairs_items i
+          where i.post_id = p.id and coalesce(i.image_url, '') <> ''
+          order by i.position, i.id limit 1)
+      )`.as("thumbnailUrl"),
     ])
     // Newest period first; posts without a period sort by publish time.
     .orderBy(sql`coalesce(p.digest_date, (p.published_at at time zone 'Asia/Kolkata')::date)`, "desc")

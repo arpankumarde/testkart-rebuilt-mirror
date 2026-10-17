@@ -12,35 +12,35 @@ import {
   InputType as GalleryDeleteInput,
 } from "../endpoints/teacher/organizations/gallery/delete_POST.schema";
 
-export const organizationGalleryQueryKey = (organizationId: number) =>
+export const organizationGalleryQueryKey = (organizationId: string) =>
   ["teacherOrganizationsGallery", organizationId] as const;
 
-export const useOrganizationGalleryQuery = (organizationId: number | undefined) =>
+export const useOrganizationGalleryQuery = (organizationId: string | undefined) =>
   useQuery({
-    queryKey: organizationGalleryQueryKey(organizationId ?? 0),
-    queryFn: () => getTeacherOrganizationsGalleryList({ organizationId: organizationId as number }),
-    enabled: typeof organizationId === "number" && organizationId > 0,
+    queryKey: organizationGalleryQueryKey(organizationId ?? ""),
+    queryFn: () => getTeacherOrganizationsGalleryList({ organizationId: organizationId as string }),
+    enabled: Boolean(organizationId),
     staleTime: 15 * 1000,
   });
 
-export const useAddOrganizationGalleryItemMutation = (organizationId: number | undefined) => {
+export const useAddOrganizationGalleryItemMutation = (organizationId: string | undefined) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: GalleryAddInput) => postTeacherOrganizationsGalleryAdd(input),
     onSuccess: () => {
-      if (typeof organizationId === "number") {
+      if (organizationId) {
         queryClient.invalidateQueries({ queryKey: organizationGalleryQueryKey(organizationId) });
       }
     },
   });
 };
 
-export const useDeleteOrganizationGalleryItemMutation = (organizationId: number | undefined) => {
+export const useDeleteOrganizationGalleryItemMutation = (organizationId: string | undefined) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: GalleryDeleteInput) => postTeacherOrganizationsGalleryDelete(input),
     onSuccess: () => {
-      if (typeof organizationId === "number") {
+      if (organizationId) {
         queryClient.invalidateQueries({ queryKey: organizationGalleryQueryKey(organizationId) });
       }
     },

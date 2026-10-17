@@ -16,7 +16,7 @@ export const InstituteSizeValues = ["1-10", "11-50", "51-200", "201-500", "501-1
 export type InstituteSizeValue = (typeof InstituteSizeValues)[number];
 
 export const schema = z.object({
-  organizationId: z.number().int().positive(),
+  organizationId: z.string().uuid(),
   name: z.string().trim().min(2).max(120).optional(),
   orgType: z.enum(OrganizationTypeValues).optional(),
   // Rich HTML from the organisation About editor (RichTextEditor). Bumped

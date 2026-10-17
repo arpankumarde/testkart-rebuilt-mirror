@@ -78,6 +78,11 @@
   gap: var(--spacing-2);
 }
 
+.previewButton {
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
 .deleteButton {
   color: var(--error-text);
 }
@@ -122,15 +127,20 @@
 
   .subjectActions {
     width: 100%;
+    flex-wrap: nowrap;
+    gap: var(--spacing-1);
   }
 
-  .subjectActions > a {
-    flex: 1 1 100%;
+  .subjectActions > .manageButton {
+    flex: 1 1 auto;
     justify-content: center;
     min-height: 2.75rem;
+    padding-inline: var(--spacing-2);
+    white-space: nowrap;
   }
 
-  .subjectActions > button {
+  .subjectActions > button,
+  .subjectActions > .previewButton {
     min-height: 2.75rem;
     min-width: 2.75rem;
   }

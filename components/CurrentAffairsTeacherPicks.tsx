@@ -21,7 +21,7 @@ type Pick = {
 
 /*
  * "From teachers on Testkart": popular mock tests and courses for the exam the latest digest is
- * tagged with, or across all exams when it has none. Hidden entirely when nothing comes back.
+ * tagged with, or across all exams when it has none. Shows a short note when nothing comes back.
  */
 export const CurrentAffairsTeacherPicks: React.FC<{ examId: number | null }> = ({ examId }) => {
   const filter = examId ? { examId: String(examId) } : {};
@@ -59,7 +59,13 @@ export const CurrentAffairsTeacherPicks: React.FC<{ examId: number | null }> = (
     })),
   ].slice(0, MAX_PICKS);
 
-  if (picks.length === 0) return null;
+  if (picks.length === 0) {
+    return (
+      <p className={styles.empty}>
+        No teacher picks right now. <Link to="/course">Browse courses</Link>
+      </p>
+    );
+  }
 
   return (
     <ul className={styles.list}>
@@ -79,8 +85,8 @@ export const CurrentAffairsTeacherPicks: React.FC<{ examId: number | null }> = (
                 {pick.kind}
                 {pick.teacherName && <> - {pick.teacherName}</>}
               </span>
+              <span className={styles.price}>{pick.price}</span>
             </span>
-            <span className={styles.price}>{pick.price}</span>
           </Link>
         </li>
       ))}

@@ -3,6 +3,7 @@ import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { OPEN_REVIEW_STATUSES } from "../../../helpers/contentReviewStatus";
 import { loadContentExamList, type ContentExam } from "../../../helpers/contentExams";
+import { loadEffectiveDurations } from "../../../helpers/testItemEffectiveDuration";
 import {
   schema,
   PreviewContentType,
@@ -96,6 +97,8 @@ async function loadTestItems(packageId: number): Promise<PreviewTestItem[]> {
       "isFree",
       "scheduledDate",
       "orderIndex",
+      "subjectWiseTiming",
+      "questionWiseTiming",
     ])
     .select((eb) =>
       eb
@@ -121,12 +124,13 @@ async function loadTestItems(packageId: number): Promise<PreviewTestItem[]> {
     )
     .orderBy("orderIndex", "asc")
     .execute();
+  const durations = await loadEffectiveDurations(items);
 
   return items.map((item) => ({
     id: item.id,
     title: item.title,
     description: item.description,
-    durationMinutes: item.durationMinutes,
+    durationMinutes: durations.get(item.id) ?? item.durationMinutes,
     isFree: item.isFree,
     scheduledDate: item.scheduledDate,
     questionCount: Number(item.questionCount ?? 0),

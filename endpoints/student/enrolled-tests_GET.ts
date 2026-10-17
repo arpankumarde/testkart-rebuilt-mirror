@@ -3,6 +3,7 @@ import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { OutputType, EnrolledTest } from "./enrolled-tests_GET.schema";
 import superjson from "superjson";
 import { slugify } from "../../helpers/slugify";
+import { loadEffectiveDurations } from "../../helpers/testItemEffectiveDuration";
 
 type EnrolledTestRow = {
   id: number;
@@ -112,6 +113,8 @@ export async function handle(request: Request) {
         "mockTestItems.isFree",
         "mockTestItems.orderIndex",
         "mockTestItems.scheduledDate",
+        "mockTestItems.subjectWiseTiming",
+        "mockTestItems.questionWiseTiming",
       ])
       .select((eb) => [
         eb
@@ -162,6 +165,10 @@ export async function handle(request: Request) {
       testItemsByPackage.set(item.packageId, items);
     }
 
+    const effectiveDurations = await loadEffectiveDurations(
+      [...testItemsByPackage.values()].flat()
+    );
+
     // Build progress data from grouped items
     const enrolledTestsWithProgress: EnrolledTest[] = enrolledTests.map((test) => {
       const items = testItemsByPackage.get(test.id) || [];
@@ -171,7 +178,7 @@ export async function handle(request: Request) {
         title: item.title,
         description: item.description,
         subject: item.subject,
-        durationMinutes: item.durationMinutes,
+        durationMinutes: effectiveDurations.get(item.id) ?? item.durationMinutes,
         totalQuestions: Number(item.actualTotalQuestions ?? 0),
         isFree: item.isFree,
         orderIndex: item.orderIndex,

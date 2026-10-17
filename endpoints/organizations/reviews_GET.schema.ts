@@ -2,7 +2,7 @@ import { z } from "zod";
 import superjson from "superjson";
 
 export const schema = z.object({
-  organizationId: z.coerce.number().int().positive(),
+  organizationId: z.string().uuid(),
   page: z.coerce.number().int().positive().optional().default(1),
 });
 
@@ -34,7 +34,7 @@ export const getOrganizationsReviews = async (
 ): Promise<OutputType> => {
   const validatedInput = schema.parse(body);
   const params = new URLSearchParams({
-    organizationId: String(validatedInput.organizationId),
+    organizationId: validatedInput.organizationId,
     page: String(validatedInput.page),
   });
   const result = await fetch(`/_api/organizations/reviews?${params.toString()}`, {

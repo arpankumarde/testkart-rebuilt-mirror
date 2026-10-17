@@ -42,7 +42,7 @@ export type SearchTeacherItem = {
 };
 
 export type SearchOrganizationItem = {
-  id: number;
+  id: string;
   name: string;
   slug: string;
   orgType: OrganizationTypeValue;

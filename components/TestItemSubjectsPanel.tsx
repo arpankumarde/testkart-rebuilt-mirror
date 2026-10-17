@@ -1,9 +1,10 @@
 import React, { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { Trash2, FileText, Clock } from "lucide-react";
+import { Trash2, FileText, Clock, Eye } from "lucide-react";
 import { Button } from "./Button";
 import { Skeleton } from "./Skeleton";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./Tooltip";
 import { SubjectManagementDialog } from "./SubjectManagementDialog";
 import {
   useTestItemSubjectsQuery,
@@ -28,6 +29,9 @@ export const TestItemSubjectsPanel = ({
     adminEdit
       ? `/admin/test-series/${packageId}/items/${itemId}/questions?subjectId=${subjectId}`
       : `/teacher/create-test/${packageId}/test-items/${itemId}/questions?subjectId=${subjectId}`;
+  // The read-only preview page is teacher-only, so admins editing a teacher's content get no shortcut.
+  const previewHref = (subjectId: number) =>
+    `/teacher/create-test/${packageId}/test-items/${itemId}/preview?subjectId=${subjectId}`;
   const {
     data: subjects,
     isFetching: isSubjectsFetching,
@@ -139,7 +143,34 @@ export const TestItemSubjectsPanel = ({
                 </div>
               </div>
               <div className={styles.subjectActions}>
-                <Button asChild variant="outline" size="sm">
+                {!adminEdit && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="icon-sm"
+                        className={styles.previewButton}
+                      >
+                        <Link
+                          to={previewHref(subject.id)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`Preview ${subject.subjectName} questions`}
+                        >
+                          <Eye size={16} />
+                        </Link>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Preview Questions</TooltipContent>
+                  </Tooltip>
+                )}
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className={styles.manageButton}
+                >
                   <Link to={questionsHref(subject.id)}>
                     Manage Questions
                   </Link>

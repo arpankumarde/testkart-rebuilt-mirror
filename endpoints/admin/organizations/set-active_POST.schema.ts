@@ -2,14 +2,14 @@ import { z } from "zod";
 import superjson from "superjson";
 
 export const schema = z.object({
-  organizationId: z.number().int().positive(),
+  organizationId: z.string().uuid(),
   isActive: z.boolean(),
 });
 
 export type InputType = z.infer<typeof schema>;
 
 export type OutputType = {
-  organizationId: number;
+  organizationId: string;
   isActive: boolean;
 };
 
