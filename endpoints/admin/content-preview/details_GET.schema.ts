@@ -19,7 +19,6 @@ export type PreviewTestItem = {
   description: string | null;
   durationMinutes: number;
   isFree: boolean;
-  isTrashed: boolean;
   scheduledDate: Date | null;
   questionCount: number;
   subjects: string[];

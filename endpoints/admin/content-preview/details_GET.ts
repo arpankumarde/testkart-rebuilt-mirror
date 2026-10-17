@@ -94,7 +94,6 @@ async function loadTestItems(packageId: number): Promise<PreviewTestItem[]> {
       "description",
       "durationMinutes",
       "isFree",
-      "deletedAt",
       "scheduledDate",
       "orderIndex",
     ])
@@ -106,6 +105,7 @@ async function loadTestItems(packageId: number): Promise<PreviewTestItem[]> {
         .as("questionCount")
     )
     .where("packageId", "=", packageId)
+    .where("deletedAt", "is", null)
     .orderBy("orderIndex", "asc")
     .orderBy("id", "asc")
     .execute();
@@ -128,7 +128,6 @@ async function loadTestItems(packageId: number): Promise<PreviewTestItem[]> {
     description: item.description,
     durationMinutes: item.durationMinutes,
     isFree: item.isFree,
-    isTrashed: item.deletedAt !== null,
     scheduledDate: item.scheduledDate,
     questionCount: Number(item.questionCount ?? 0),
     subjects: subjects.filter((s) => s.testItemId === item.id).map((s) => s.subjectName),

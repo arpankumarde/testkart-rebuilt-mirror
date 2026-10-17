@@ -28,7 +28,9 @@ async function fetchMockTestMeta(
 
   const rows = await db
     .selectFrom("mockTests as mt")
-    .leftJoin("mockTestItems as mti", "mti.packageId", "mt.id")
+    .leftJoin("mockTestItems as mti", (join) =>
+      join.onRef("mti.packageId", "=", "mt.id").on("mti.deletedAt", "is", null)
+    )
     .leftJoin("testQuestions as tq", "tq.testId", "mti.id")
     .select([
       "mt.id",

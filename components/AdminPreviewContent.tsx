@@ -127,11 +127,10 @@ const useToggleSet = () => {
 
 const TestsSection = ({ tests }: { tests: PreviewTestItem[] }) => {
   const { open, toggle } = useToggleSet();
-  const liveCount = tests.filter((t) => !t.isTrashed).length;
   return (
     <section className={styles.section}>
       <SectionTitle>
-        Tests <span className={styles.count}>{liveCount}</span>
+        Tests <span className={styles.count}>{tests.length}</span>
       </SectionTitle>
       {tests.length === 0 ? (
         <p className={styles.muted}>No tests have been added yet.</p>
@@ -155,7 +154,6 @@ const TestsSection = ({ tests }: { tests: PreviewTestItem[] }) => {
               badges={
                 <>
                   {test.isFree && <Badge variant="secondary">Free</Badge>}
-                  {test.isTrashed && <Badge variant="destructive">In trash</Badge>}
                   {test.questionCount === 0 && <Badge variant="warning">No questions</Badge>}
                 </>
               }
