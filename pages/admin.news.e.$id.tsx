@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   ChevronDown,
   Circle,
+  ExternalLink,
   Eye,
   Loader2,
   Trash2,
@@ -546,7 +547,7 @@ const AdminExamNewsEditorPage: React.FC = () => {
                   <FormItem name="slug">
                     <FormLabel>URL slug</FormLabel>
                     <div className={styles.slugRow}>
-                      <span className={styles.slugPrefix}>testkart.in/news/</span>
+                      <span className={styles.slugPrefix}>testkart.in/exam-news/</span>
                       <FormControl>
                         <Input
                           className={styles.slugInput}
@@ -564,7 +565,7 @@ const AdminExamNewsEditorPage: React.FC = () => {
                     ) : (
                       <p className={styles.hint}>Follows the headline until you edit it.</p>
                     )}
-                    {slugChanged && <p className={styles.warning}>The old URL /news/{saved.slug} keeps redirecting to the new one.</p>}
+                    {slugChanged && <p className={styles.warning}>The old URL /exam-news/{saved.slug} keeps redirecting to the new one.</p>}
                     <FormMessage />
                   </FormItem>
 
@@ -796,7 +797,7 @@ const AdminExamNewsEditorPage: React.FC = () => {
                   {seoOpen && (
                     <div id="en-seo-body" className={styles.collapseBody}>
                       <div className={styles.snippet} aria-label="Search result preview">
-                        <span className={styles.snippetUrl}>testkart.in/news/{slugToCheck || "..."}</span>
+                        <span className={styles.snippetUrl}>testkart.in/exam-news/{slugToCheck || "..."}</span>
                         <span className={styles.snippetTitle}>{seoTitle || "SEO title"}</span>
                         <span className={styles.snippetText}>{seoDescription || "The meta description shows here."}</span>
                       </div>
@@ -874,7 +875,7 @@ const AdminExamNewsEditorPage: React.FC = () => {
                             type="url"
                             inputMode="url"
                             value={values.canonicalUrl}
-                            placeholder={`https://testkart.in/news/${slugToCheck || "..."}`}
+                            placeholder={`https://testkart.in/exam-news/${slugToCheck || "..."}`}
                             onChange={(e) => set("canonicalUrl", e.target.value)}
                           />
                         </FormControl>
@@ -968,6 +969,13 @@ const AdminExamNewsEditorPage: React.FC = () => {
                       {meta.updatedByName && ` by ${meta.updatedByName}`}
                     </p>
                     <div className={styles.recordActions}>
+                      {isLive && (
+                        <Button asChild variant="ghost" size="sm">
+                          <a href={examNewsMeta.publicPath(saved.slug)} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink size={14} /> Live page
+                          </a>
+                        </Button>
+                      )}
                       {values.id && (
                         <Button asChild variant="ghost" size="sm">
                           <Link to={examNewsMeta.previewPath(values.id)} target="_blank" rel="noopener noreferrer">

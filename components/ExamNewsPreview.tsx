@@ -32,7 +32,7 @@ const DATE_LABELS = [
 
 const hasText = (html: string) => examNewsMeta.stripHtml(html).length > 0;
 
-/* A story laid out like the planned /news/{slug} page (wireframe page 4), for the admin preview. */
+/* A story laid out like its public /exam-news/{slug} page (wireframe page 4), for the admin preview. */
 export const ExamNewsPreview: React.FC<ExamNewsPreviewProps> = ({ post, examName, authorName, publishedAt, updatedAt }) => {
   const notice = NOTICE[post.status];
   const keyDates = post.keyDates.filter((row) => row.eventName.trim() || DATE_LABELS.some((d) => row[d.key]));

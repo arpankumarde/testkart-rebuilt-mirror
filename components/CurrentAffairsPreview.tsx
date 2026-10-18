@@ -7,14 +7,15 @@ import {
   ChevronDown,
   ChevronRight,
   Clock,
-  ExternalLink,
   EyeOff,
   Image as ImageIcon,
   ListChecks,
+  Tag,
   UserRound,
   XCircle,
 } from "lucide-react";
 import { Button } from "./Button";
+import { CurrentAffairsSourceLinks } from "./CurrentAffairsSourceLinks";
 import { currentAffairsMeta } from "../helpers/currentAffairsMeta";
 import { sanitizeHtml } from "../helpers/sanitizeHtml";
 import { slugify } from "../helpers/slugify";
@@ -28,8 +29,8 @@ interface CurrentAffairsPreviewProps {
   post: CurrentAffairsPreviewDoc;
   authorName: string | null;
   /* When it went or goes live; falls back to the form's publish time. */
-  publishedAt?: Date | null;
-  updatedAt?: Date | null;
+  publishedAt?: Date | string | null;
+  updatedAt?: Date | string | null;
   /* href turns a related post into a link (the public page passes one; the admin preview does not). */
   related?: { id: number; title: string; href?: string }[];
   /* The public page: it draws its own linked breadcrumb, and a missing cover is simply left out
@@ -57,39 +58,36 @@ const Html: React.FC<{ html: string; className?: string }> = ({ html, className 
 
 const hasText = (html: string) => currentAffairsMeta.stripHtml(html).length > 0;
 
-const Pills: React.FC<{ tags: CurrentAffairsTagRef[] }> = ({ tags }) =>
+/* Server-rendered pages hand dates over as JSON strings; accept either form. */
+const toDate = (value: Date | string | null | undefined): Date | null => {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isFinite(date.getTime()) ? date : null;
+};
+
+/* On the public page a topic pill opens the Current Affairs list filtered to that topic. */
+const Pills: React.FC<{ tags: CurrentAffairsTagRef[]; linkTopics?: boolean }> = ({ tags, linkTopics = false }) =>
   tags.length === 0 ? null : (
     <ul className={styles.pills} aria-label="Tags">
       {tags.map((tag) => (
-        <li key={`${tag.kind}-${tag.name}`} className={`${styles.pill} ${styles[`pill_${tag.kind}`]}`}>
-          {tag.name}
+        <li key={`${tag.kind}-${tag.name}`}>
+          {linkTopics && tag.kind === "topic" ? (
+            <Link
+              to={`${currentAffairsMeta.HUB_PATH}?topic=${slugify(tag.name)}`}
+              className={`${styles.pill} ${styles[`pill_${tag.kind}`]} ${styles.pillLink}`}
+              title={`More stories on ${tag.name}`}
+            >
+              {tag.name}
+            </Link>
+          ) : (
+            <span className={`${styles.pill} ${styles[`pill_${tag.kind}`]}`}>{tag.name}</span>
+          )}
         </li>
       ))}
     </ul>
   );
 
-const SourceLine: React.FC<{ sources: { name: string; url: string }[] }> = ({ sources }) => {
-  const filled = sources.filter((s) => s.name.trim() || s.url.trim());
-  if (filled.length === 0) return null;
-  return (
-    <p className={styles.sourceLine}>
-      <span className={styles.sourceLabel}>Source</span>
-      {filled.map((source, index) => (
-        <React.Fragment key={index}>
-          {index > 0 && <span aria-hidden="true">,</span>}
-          {source.url ? (
-            <a href={source.url} target="_blank" rel="noopener noreferrer" className={styles.link}>
-              {source.name || source.url}
-              <ExternalLink size={11} aria-hidden="true" />
-            </a>
-          ) : (
-            <span>{source.name}</span>
-          )}
-        </React.Fragment>
-      ))}
-    </p>
-  );
-};
+const hasSource = (sources: { name: string; url: string }[]) => sources.some((s) => s.name.trim() || s.url.trim());
 
 const QuizPreview: React.FC<{ quiz: NonNullable<InputType["quiz"]>; id: string }> = ({ quiz, id }) => {
   const [answers, setAnswers] = useState<Record<number, number>>({});
@@ -190,10 +188,12 @@ export const CurrentAffairsPreview: React.FC<CurrentAffairsPreviewProps> = ({
 
   const isSingle = post.contentType === "individual_item";
   const items = post.items;
-  const anchors = items.map((item, index) => currentAffairsMeta.itemAnchor(index, item.headline));
+  // The same ids the server saves as anchor_slug, so story links from the listing land here.
+  const anchors = currentAffairsMeta.itemAnchors(items.map((item) => item.headline));
   const quizId = "quiz";
   const hasQuiz = !!post.quiz && post.quiz.questions.length > 0;
-  const when = publishedAt ?? (post.publishAt ? currentAffairsMeta.fromIstInput(post.publishAt) : null);
+  const when = toDate(publishedAt) ?? (post.publishAt ? currentAffairsMeta.fromIstInput(post.publishAt) : null);
+  const updated = toDate(updatedAt);
   const minutes = post.readingTimeIsManual
     ? post.readingTimeMinutes
     : currentAffairsMeta.readingMinutes([
@@ -283,8 +283,8 @@ export const CurrentAffairsPreview: React.FC<CurrentAffairsPreviewProps> = ({
               {currentAffairsMeta.formatIst(when)}
             </li>
           )}
-          {updatedAt && when && updatedAt.getTime() - when.getTime() > 60_000 && (
-            <li>Updated {currentAffairsMeta.formatIst(updatedAt)}</li>
+          {updated && when && updated.getTime() - when.getTime() > 60_000 && (
+            <li>Updated {currentAffairsMeta.formatIst(updated)}</li>
           )}
           <li>
             <Clock size={14} aria-hidden="true" />
@@ -371,7 +371,7 @@ export const CurrentAffairsPreview: React.FC<CurrentAffairsPreviewProps> = ({
                   {item.imageCredit && <figcaption className={styles.credit}>Image: {item.imageCredit}</figcaption>}
                 </figure>
               )}
-              {item.whyInNews && (
+              {item.whyInNews.trim() && (
                 <div className={styles.why}>
                   <h3 className={styles.label}>Why in news</h3>
                   <p className={styles.para}>{item.whyInNews}</p>
@@ -379,20 +379,28 @@ export const CurrentAffairsPreview: React.FC<CurrentAffairsPreviewProps> = ({
               )}
               {hasText(item.keyPoints) && (
                 <div className={styles.block}>
-                  {item.whyInNews && <h3 className={styles.label}>Key points</h3>}
+                  <h3 className={styles.label}>Key points</h3>
                   <Html html={item.keyPoints} />
                 </div>
               )}
               {hasText(item.background) && (
                 <div className={styles.block}>
                   <h3 className={styles.label}>Background</h3>
-                  <Html html={item.background} />
+                  <Html html={item.background} className={styles.proseQuiet} />
                 </div>
               )}
-              {(item.tags.length > 0 || item.sources.some((s) => s.url.trim() || s.name.trim())) && (
+              {(item.tags.length > 0 || hasSource(item.sources)) && (
                 <footer className={styles.itemFoot}>
-                  <Pills tags={item.tags} />
-                  <SourceLine sources={item.sources} />
+                  {item.tags.length > 0 && (
+                    <div className={styles.footGroup}>
+                      <h3 className={styles.footLabel}>
+                        <Tag size={13} aria-hidden="true" />
+                        Topics
+                      </h3>
+                      <Pills tags={item.tags} linkTopics={publicView} />
+                    </div>
+                  )}
+                  <CurrentAffairsSourceLinks sources={item.sources} />
                 </footer>
               )}
             </section>
@@ -401,23 +409,9 @@ export const CurrentAffairsPreview: React.FC<CurrentAffairsPreviewProps> = ({
           {hasQuiz && post.quiz && <QuizPreview quiz={post.quiz} id={quizId} />}
 
           {postSources.length > 0 && (
-            <section className={styles.panel}>
-              <h2 className={styles.label}>Sources</h2>
-              <ul className={styles.list}>
-                {postSources.map((source, index) => (
-                  <li key={index}>
-                    {source.url ? (
-                      <a href={source.url} target="_blank" rel="noopener noreferrer" className={styles.link}>
-                        {source.name || source.url}
-                        <ExternalLink size={11} aria-hidden="true" />
-                      </a>
-                    ) : (
-                      source.name
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </section>
+            <div className={styles.panel}>
+              <CurrentAffairsSourceLinks sources={postSources} headingLevel={2} />
+            </div>
           )}
 
           {corrections.length > 0 && (

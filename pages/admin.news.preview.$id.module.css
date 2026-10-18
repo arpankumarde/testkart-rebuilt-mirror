@@ -45,6 +45,16 @@
   white-space: nowrap;
 }
 
+.pathLink {
+  color: var(--tk-brand-text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.pathLink:hover {
+  text-decoration: underline;
+}
+
 .edit {
   margin-left: auto;
 }

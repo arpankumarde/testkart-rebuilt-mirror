@@ -34,11 +34,22 @@ const AdminExamNewsPreviewPage: React.FC = () => {
           <span className={styles.divider} aria-hidden="true" />
           <h1 className={styles.heading}>Preview</h1>
           {post && <CurrentAffairsStatusBadge status={post.status} />}
-          {post && (
-            <span className={styles.path} title="Where the story will live once the public pages are built">
-              {examNewsMeta.publicPath(post.slug)}
-            </span>
-          )}
+          {post &&
+            (post.status === "published" ? (
+              <a
+                href={examNewsMeta.publicPath(post.slug)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${styles.path} ${styles.pathLink}`}
+                title="Open the public page in a new tab"
+              >
+                {examNewsMeta.publicPath(post.slug)}
+              </a>
+            ) : (
+              <span className={styles.path} title="The story goes live at this URL once it is published">
+                {examNewsMeta.publicPath(post.slug)}
+              </span>
+            ))}
           {post && (
             <Button asChild size="sm" className={styles.edit}>
               <Link to={examNewsMeta.editPath(post.id)}>

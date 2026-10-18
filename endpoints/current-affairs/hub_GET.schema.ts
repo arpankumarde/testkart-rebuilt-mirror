@@ -42,6 +42,8 @@ export type OutputType = {
   monthly: PublicDigestCard | null;
   /** The newest post with a live quiz, daily first. */
   quiz: PublicDigestCard | null;
+  /** Every topic tag, in the admin's order, for the topic filter. */
+  topics: { name: string; slug: string }[];
 };
 
 export const getCurrentAffairsHub = async (input: InputType = {}, init?: RequestInit): Promise<OutputType> => {

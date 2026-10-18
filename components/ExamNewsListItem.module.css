@@ -1,0 +1,309 @@
+/* Type badges: one pastel per news type, full-strength text on it. */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 1.375rem;
+  padding: 0 var(--spacing-2);
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--tk-brand) 18%, var(--surface));
+  color: var(--tk-brand-text);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.badgeLink:hover {
+  text-decoration: underline;
+}
+
+.type_result,
+.type_cut_off {
+  background-color: color-mix(in srgb, var(--success) 18%, var(--surface));
+  color: var(--success-text);
+}
+
+.type_admit_card,
+.type_answer_key {
+  background-color: color-mix(in srgb, var(--info) 16%, var(--surface));
+  color: var(--info-text);
+}
+
+.type_syllabus {
+  background-color: color-mix(in srgb, var(--chart-color-5) 22%, var(--surface));
+  color: var(--foreground);
+}
+
+.type_date_change {
+  background-color: color-mix(in srgb, var(--warning) 22%, var(--surface));
+  color: var(--warning-text);
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 10rem minmax(0, 1fr);
+  gap: var(--spacing-4);
+  padding: var(--spacing-4) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.item:first-child {
+  padding-top: 0;
+}
+
+.item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.thumbLink {
+  display: block;
+  align-self: start;
+}
+
+.thumb {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--muted);
+}
+
+/* No image: a pastel tile in the type's colour, the same 16:10 box as a thumbnail. */
+.thumbTile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border: 1px solid color-mix(in srgb, var(--tk-brand) 30%, var(--border));
+  border-radius: var(--radius-md);
+  background-color: color-mix(in srgb, var(--tk-brand) 16%, var(--surface));
+  color: var(--tk-brand-text);
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.tileIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-full);
+  background-color: var(--surface);
+}
+
+.tileLabel {
+  font-family: var(--font-family-heading);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.tile_result,
+.tile_cut_off {
+  border-color: color-mix(in srgb, var(--success) 35%, var(--border));
+  background-color: color-mix(in srgb, var(--success) 16%, var(--surface));
+  color: var(--success-text);
+}
+
+.tile_admit_card,
+.tile_answer_key {
+  border-color: color-mix(in srgb, var(--info) 35%, var(--border));
+  background-color: color-mix(in srgb, var(--info) 14%, var(--surface));
+  color: var(--info-text);
+}
+
+.tile_syllabus {
+  border-color: color-mix(in srgb, var(--chart-color-5) 40%, var(--border));
+  background-color: color-mix(in srgb, var(--chart-color-5) 20%, var(--surface));
+  color: var(--foreground);
+}
+
+.tile_date_change {
+  border-color: color-mix(in srgb, var(--warning) 45%, var(--border));
+  background-color: color-mix(in srgb, var(--warning) 20%, var(--surface));
+  color: var(--warning-text);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.examLink {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+.examLink:hover {
+  color: var(--tk-brand-text);
+  text-decoration: underline;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+}
+
+.title a {
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+.title a:hover {
+  color: var(--tk-brand-text);
+}
+
+.title a:focus-visible,
+.readLink:focus-visible,
+.compactTitle a:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.summary {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--muted-foreground);
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-2) var(--spacing-4);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-1) var(--spacing-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.meta li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.readLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--tk-brand-text);
+  text-decoration: none;
+}
+
+.readLink:hover {
+  text-decoration: underline;
+}
+
+.compact {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--spacing-3) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.compact:first-child {
+  padding-top: 0;
+}
+
+.compact:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.compactTop {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.compactExam {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--muted-foreground);
+}
+
+.compactTitle {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.compactTitle a {
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+.compactTitle a:hover {
+  color: var(--tk-brand-text);
+  text-decoration: underline;
+}
+
+.compactDate {
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 640px) {
+  .item {
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    gap: var(--spacing-3);
+  }
+
+  .tileIcon {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .tileLabel {
+    display: none;
+  }
+
+  .title {
+    font-size: 1rem;
+  }
+}

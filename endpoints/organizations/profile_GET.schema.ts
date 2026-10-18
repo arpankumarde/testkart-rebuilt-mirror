@@ -78,6 +78,12 @@ export type OutputType = {
     specialties: string[];
     socialLinks: OrganizationSocialLinks | null;
     claimStatus: "unclaimed" | "pending_verification" | "claimed";
+    affiliatedUniversity: {
+      id: string;
+      name: string;
+      slug: string;
+      logoUrl: string | null;
+    } | null;
   };
   teachers: OrganizationTeacherCard[];
   catalogue: OrgCatalogueItem[];

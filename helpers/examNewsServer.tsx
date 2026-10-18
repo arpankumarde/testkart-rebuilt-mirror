@@ -6,6 +6,7 @@ import type { DB, ExamNewsStatus } from "./schema";
 import { slugify } from "./slugify";
 import { sanitizeHtml } from "./sanitizeHtml";
 import { examNewsMeta } from "./examNewsMeta";
+import { RESERVED_SLUGS } from "./examNewsPublicMeta";
 import type { InputType, ValidationIssue } from "../endpoints/admin/exam-news/save_POST.schema";
 import type { ExamNewsDetail } from "../endpoints/admin/exam-news/get_GET.schema";
 
@@ -110,7 +111,9 @@ async function save(input: InputType, adminId: number): Promise<number> {
     const issues: ValidationIssue[] = [];
     const slug = slugify(input.slug || input.title);
     if (!slug) issues.push({ path: "slug", message: "Add a slug" });
-    else {
+    else if ((RESERVED_SLUGS as readonly string[]).includes(slug)) {
+      issues.push({ path: "slug", message: `"${slug}" is part of the Exam News URLs - choose another slug` });
+    } else {
       const owner = await findSlugOwner(trx, slug, existing?.id);
       if (owner) issues.push({ path: "slug", message: `Already used by "${owner.title}"` });
     }

@@ -8,6 +8,7 @@ export async function handle(request: Request) {
     const page = Number(params.get("page"));
     const input = schema.parse({
       lang: params.get("lang") || undefined,
+      topic: params.get("topic") || undefined,
       page: Number.isFinite(page) && page > 0 ? page : undefined,
     });
     const result = await currentAffairsPublicServer.fetchDailyStories(input);

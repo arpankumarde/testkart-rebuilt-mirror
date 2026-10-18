@@ -109,17 +109,6 @@ async function resolveTags(trx: Trx, refs: CurrentAffairsTagRef[], adminId: numb
 
 const tagKey = (ref: CurrentAffairsTagRef) => `${ref.kind}:${slugify(ref.name)}`;
 
-function uniqueAnchors(headlines: string[]): string[] {
-  const used = new Set<string>();
-  return headlines.map((headline, index) => {
-    const base = slugify(headline).slice(0, 80) || `item-${index + 1}`;
-    let anchor = base;
-    for (let n = 2; used.has(anchor); n++) anchor = `${base}-${n}`;
-    used.add(anchor);
-    return anchor;
-  });
-}
-
 function computeReadingTime(input: InputType): number {
   if (input.readingTimeIsManual) return input.readingTimeMinutes;
   return currentAffairsMeta.readingMinutes([
@@ -298,7 +287,7 @@ async function save(input: InputType, adminId: number, options: { autoSlug?: boo
     }
 
     if (input.items.length > 0) {
-      const anchors = uniqueAnchors(input.items.map((item) => item.headline));
+      const anchors = currentAffairsMeta.itemAnchors(input.items.map((item) => item.headline));
       const itemRows = await trx
         .insertInto("currentAffairsItems")
         .values(

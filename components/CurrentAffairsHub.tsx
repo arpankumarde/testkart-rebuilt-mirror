@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
-import { AlertCircle, ArrowRight, Calendar, CalendarDays, CalendarRange, ChevronLeft, ChevronRight, Newspaper } from "lucide-react";
+import { AlertCircle, ArrowRight, Calendar, CalendarDays, CalendarRange, Check, ChevronLeft, ChevronRight, Newspaper, X } from "lucide-react";
 import { FaTelegram } from "react-icons/fa6";
 import { SEOHead } from "./SEOHead";
 import { Button } from "./Button";
@@ -19,17 +19,22 @@ const ROW_TAGS = 3;
 const SIDEBAR_MONTHS = 3;
 const TELEGRAM_URL = "https://t.me/testkart_in";
 
-/* Public sections of the site, named as the header and footer name them. */
-const EXPLORE_LINKS = [
-  { to: "/course", label: "Courses" },
-  { to: "/mock-test", label: "Test Series" },
-  { to: "/live-test", label: "Live Competitions" },
-  { to: "/study-notes", label: "Study Notes" },
-  { to: "/bundles", label: "Course Bundles" },
-  { to: "/exams", label: "Exams" },
-  { to: "/blog", label: "Blog" },
-  { to: "/teach", label: "Teach on Testkart" },
+/* Topic slugs shown first in the filter, in this order; any other topic tags follow under "View all". */
+const LEAD_TOPICS = [
+  "polity",
+  "economy",
+  "science-technology",
+  "international-relations",
+  "environment",
+  "history",
+  "geography",
+  "defence",
+  "sports",
+  "awards-honours",
+  "government-schemes",
+  "important-appointments",
 ];
+const TOPIC_TONES = ["topicCoral", "topicTeal", "topicLavender", "topicMint", "topicBlue"] as const;
 
 const TABS: { value: ArchiveType; label: string; noun: [string, string]; icon: typeof CalendarDays }[] = [
   { value: "daily", label: "Daily", noun: ["daily story", "daily stories"], icon: CalendarDays },
@@ -338,13 +343,15 @@ export const CurrentAffairsHub: React.FC<{ archive?: ArchiveType; className?: st
   const lang = langParam === "en" || langParam === "hi" ? langParam : undefined;
   const tab = TABS.find((t) => t.value === type)!;
   const legacyType = archive ? null : params.get("type");
+  const topic = type === "daily" ? params.get("topic") || undefined : undefined;
+  const [showAllTopics, setShowAllTopics] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
   const shownPage = useRef(page);
 
   const hub = useCurrentAffairsHub({ lang });
   const isDaily = type === "daily";
   const list = useCurrentAffairsList({ type, lang, page }, !isDaily);
-  const stories = useCurrentAffairsStories({ lang, page }, isDaily);
+  const stories = useCurrentAffairsStories({ lang, page, topic }, isDaily);
   const months = useCurrentAffairsList({ type: "monthly", lang, page: 1 }, true);
 
   // A page from the previous tab is not a preview of this one; show the skeleton instead.
@@ -378,8 +385,29 @@ export const CurrentAffairsHub: React.FC<{ archive?: ArchiveType; className?: st
       )
     : null;
 
-  const withLang = (path: string) => (lang ? `${path}${path.includes("?") ? "&" : "?"}lang=${lang}` : path);
+  /** A path with the reader's language, and any extra values, as query parameters. */
+  const withParams = (path: string, extra: Record<string, string | undefined> = {}) => {
+    const [base, query = ""] = path.split("?");
+    const next = new URLSearchParams(query);
+    for (const [key, value] of Object.entries({ ...extra, lang })) {
+      if (value) next.set(key, value);
+    }
+    const search = next.toString();
+    return `${base}${search ? `?${search}` : ""}`;
+  };
+  const withLang = (path: string) => withParams(path);
   const tabLinkProps = { preventScrollReset: true, state: { preserveScroll: true } };
+
+  // Topics filter the daily stories; from weekly or monthly they lead to the daily archive.
+  const allTopics = hub.data?.topics ?? [];
+  const leadTopics = LEAD_TOPICS.map((slug) => allTopics.find((t) => t.slug === slug)).filter((t): t is { name: string; slug: string } => !!t);
+  const orderedTopics = [...leadTopics, ...allTopics.filter((t) => !LEAD_TOPICS.includes(t.slug))];
+  const visibleCount = Math.max(leadTopics.length, Math.min(LEAD_TOPICS.length, orderedTopics.length));
+  const selectedIndex = orderedTopics.findIndex((t) => t.slug === topic);
+  const visibleTopics = showAllTopics || selectedIndex >= visibleCount ? orderedTopics : orderedTopics.slice(0, visibleCount);
+  const selectedTopic = selectedIndex >= 0 ? orderedTopics[selectedIndex] : null;
+  const topicBase = isDaily && !archive ? currentAffairsMeta.HUB_PATH : currentAffairsMeta.archivePath("daily");
+  const topicHref = (slug: string | null) => withParams(topicBase, { topic: slug ?? undefined });
 
   // The old ?type= tabs now live at their own archive URLs.
   if (legacyType) {
@@ -398,7 +426,7 @@ export const CurrentAffairsHub: React.FC<{ archive?: ArchiveType; className?: st
 
   const renderPager = () => {
     if (totalPages <= 1 || shownCount === 0) return null;
-    const href = (n: number) => withLang(currentAffairsMeta.archivePath(type, n));
+    const href = (n: number) => withParams(currentAffairsMeta.archivePath(type, n), { topic });
     return (
       <nav className={styles.pager} aria-label={`${tab.label} digest pages`}>
         {page > 1 ? (
@@ -462,6 +490,20 @@ export const CurrentAffairsHub: React.FC<{ archive?: ArchiveType; className?: st
     if (shownCount === 0) {
       const Icon = tab.icon;
       const pastEnd = page > 1 && total > 0;
+      if (topic && !pastEnd) {
+        return (
+          <div className={`${styles.state} ${styles.state_daily}`}>
+            <span className={styles.stateIcon} aria-hidden="true">
+              <Icon size={20} />
+            </span>
+            <p className={styles.stateTitle}>No stories tagged {selectedTopic?.name ?? topic} yet</p>
+            <p>Stories on this topic appear here as soon as a daily digest covers it.</p>
+            <Link to={topicHref(null)} {...tabLinkProps} className={styles.stateLink}>
+              Show all daily stories <ArrowRight size={14} aria-hidden="true" />
+            </Link>
+          </div>
+        );
+      }
       return (
         <div className={`${styles.state} ${styles[`state_${type}`] ?? ""}`}>
           <span className={styles.stateIcon} aria-hidden="true">
@@ -470,7 +512,7 @@ export const CurrentAffairsHub: React.FC<{ archive?: ArchiveType; className?: st
           <p className={styles.stateTitle}>{pastEnd ? "This page is empty" : `No ${tab.noun[1]} yet`}</p>
           <p>{pastEnd ? `There are fewer ${tab.noun[1]} than that.` : `New ${tab.noun[1]} appear here as soon as they are published.`}</p>
           {pastEnd ? (
-            <Link to={withLang(currentAffairsMeta.archivePath(type))} className={styles.stateLink}>
+              <Link to={withParams(currentAffairsMeta.archivePath(type), { topic })} className={styles.stateLink}>
               Newest {tab.noun[1]} <ArrowRight size={14} aria-hidden="true" />
             </Link>
           ) : (
@@ -577,25 +619,68 @@ export const CurrentAffairsHub: React.FC<{ archive?: ArchiveType; className?: st
 
           <section ref={mainRef} className={styles.main} aria-labelledby="ca-list-title">
             <h2 id="ca-list-title" className={styles.srOnly}>
-              {tab.label} current affairs
+              {tab.label} current affairs{selectedTopic ? `: ${selectedTopic.name}` : ""}
             </h2>
+            {topic && (
+              <div className={styles.filterNotice} role="status">
+                <span>
+                  Showing stories on <strong>{selectedTopic?.name ?? topic}</strong>
+                  {stories.data && !stories.isPlaceholderData ? ` (${total})` : ""}
+                </span>
+                <Link to={topicHref(null)} {...tabLinkProps} className={styles.filterClear}>
+                  <X size={14} aria-hidden="true" /> Clear filter
+                </Link>
+              </div>
+            )}
             {renderList()}
           </section>
 
           <aside className={styles.sidebar} aria-label="More from Testkart">
-            <section className={styles.sideSection} aria-labelledby="ca-explore-title">
-              <h2 id="ca-explore-title" className={styles.sideHeading}>
-                Explore Testkart
-              </h2>
-              <ul className={`${styles.sideCard} ${styles.exploreList}`}>
-                {EXPLORE_LINKS.map((item) => (
-                  <li key={item.to}>
-                    <Link to={item.to} className={styles.exploreLink}>
-                      {item.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+            <section className={styles.sideSection} aria-labelledby="ca-topics-title">
+              <div className={styles.sideHead}>
+                <h2 id="ca-topics-title" className={styles.sideHeading}>
+                  Explore Topics
+                </h2>
+                {topic && (
+                  <Link to={topicHref(null)} {...tabLinkProps} className={styles.sideMore}>
+                    Clear filters
+                  </Link>
+                )}
+              </div>
+              <div className={`${styles.sideCard} ${styles.topicCard}`}>
+                {hub.isPending ? (
+                  <Skeleton style={{ height: "7.5rem", borderRadius: "var(--radius-md)" }} />
+                ) : orderedTopics.length === 0 ? (
+                  <p className={styles.sideEmpty}>Topics appear here once stories are tagged.</p>
+                ) : (
+                  <>
+                    <ul className={styles.topicList}>
+                      {visibleTopics.map((t, index) => {
+                        const active = t.slug === topic;
+                        return (
+                          <li key={t.slug}>
+                            <Link
+                              to={topicHref(active ? null : t.slug)}
+                              {...tabLinkProps}
+                              className={`${styles.topicChip} ${styles[TOPIC_TONES[index % TOPIC_TONES.length]]} ${active ? styles.topicChipOn : ""}`}
+                              aria-current={active ? "true" : undefined}
+                              title={active ? `Remove the ${t.name} filter` : `Show stories on ${t.name}`}
+                            >
+                              {active && <Check size={13} aria-hidden="true" />}
+                              {t.name}
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    {orderedTopics.length > visibleCount && selectedIndex < visibleCount && (
+                      <button type="button" className={styles.topicMore} onClick={() => setShowAllTopics((open) => !open)} aria-expanded={showAllTopics}>
+                        {showAllTopics ? "Show fewer topics" : `View all topics (${orderedTopics.length})`}
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
             </section>
 
             <section className={styles.sideSection} aria-labelledby="ca-months-title">

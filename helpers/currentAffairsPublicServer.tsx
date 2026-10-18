@@ -120,7 +120,7 @@ async function selectCards(filters: Filters, limit: number, offset = 0): Promise
 
 async function fetchHub(language?: CurrentAffairsLanguage): Promise<HubOutput> {
   await currentAffairsServer.promoteDue();
-  const [daily, latest, editorials, weekly, monthly, dailyQuiz, anyQuiz] = await Promise.all([
+  const [daily, latest, editorials, weekly, monthly, dailyQuiz, anyQuiz, topics] = await Promise.all([
     selectCards({ contentType: "daily_digest", language }, DAILY_LIST + 1),
     selectCards({ language }, LATEST_LIST),
     selectCards({ contentType: "editorial_analysis", language }, EDITORIALS),
@@ -128,6 +128,13 @@ async function fetchHub(language?: CurrentAffairsLanguage): Promise<HubOutput> {
     selectCards({ contentType: "monthly_digest", language }, 1),
     selectCards({ contentType: "daily_digest", withQuiz: true, language }, 1),
     selectCards({ withQuiz: true, language }, 1),
+    db
+      .selectFrom("currentAffairsTags")
+      .select(["name", "slug"])
+      .where("kind", "=", "topic")
+      .orderBy("sortOrder")
+      .orderBy("name")
+      .execute(),
   ]);
   return {
     latestDaily: daily[0] ?? null,
@@ -137,6 +144,7 @@ async function fetchHub(language?: CurrentAffairsLanguage): Promise<HubOutput> {
     weekly: weekly[0] ?? null,
     monthly: monthly[0] ?? null,
     quiz: dailyQuiz[0] ?? anyQuiz[0] ?? null,
+    topics,
   };
 }
 
@@ -273,6 +281,20 @@ async function fetchDailyStories(input: StoriesInput): Promise<StoriesOutput> {
     .where("p.status", "=", "published")
     .where("p.contentType", "=", "daily_digest");
   if (input.lang) base = base.where("p.language", "=", input.lang);
+  if (input.topic) {
+    const topic = input.topic;
+    base = base.where((eb) =>
+      eb.exists(
+        eb
+          .selectFrom("currentAffairsTagLinks as l")
+          .innerJoin("currentAffairsTags as t", "t.id", "l.tagId")
+          .select("l.id")
+          .whereRef("l.itemId", "=", "i.id")
+          .where("t.kind", "=", "topic")
+          .where("t.slug", "=", topic)
+      )
+    );
+  }
 
   const [countRow, rows] = await Promise.all([
     base.select((eb) => eb.fn.countAll<string>().as("total")).executeTakeFirst(),
@@ -280,6 +302,7 @@ async function fetchDailyStories(input: StoriesInput): Promise<StoriesOutput> {
       .select([
         "i.id",
         "i.headline",
+        "i.anchorSlug",
         "i.whyInNews",
         "i.keyPoints",
         "i.imageUrl",
@@ -290,8 +313,6 @@ async function fetchDailyStories(input: StoriesInput): Promise<StoriesOutput> {
         "p.publishedAt",
         sql<string | null>`coalesce(nullif(p.cover_image_url, ''), nullif(p.og_image_url, ''))`.as("digestImageUrl"),
         sql<string | null>`to_char(p.digest_date, 'YYYY-MM-DD')`.as("digestDate"),
-        // The story's place in its digest, as the article page numbers its sections.
-        sql<number>`(select count(*)::int from current_affairs_items x where x.post_id = i.post_id and x.position < i.position)`.as("indexInDigest"),
       ])
       .orderBy(sql`coalesce(p.digest_date, (p.published_at at time zone 'Asia/Kolkata')::date)`, "desc")
       .orderBy("p.publishedAt", "desc")
@@ -326,7 +347,7 @@ async function fetchDailyStories(input: StoriesInput): Promise<StoriesOutput> {
         digestDate: row.digestDate,
         publishedAt: row.publishedAt,
         language: row.language,
-        href: `${currentAffairsMeta.canonicalPath(row)}#${currentAffairsMeta.itemAnchor(row.indexInDigest, row.headline)}`,
+        href: `${currentAffairsMeta.canonicalPath(row)}${row.anchorSlug ? `#${row.anchorSlug}` : ""}`,
         tags: tags.filter((t) => t.itemId === row.id).map(({ name, slug }) => ({ name, slug })),
       };
     }),

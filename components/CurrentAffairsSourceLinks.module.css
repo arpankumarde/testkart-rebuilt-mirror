@@ -1,0 +1,113 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-family: var(--font-family-base);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.heading svg {
+  color: var(--tk-brand-text);
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.entry {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.source {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 0.3125rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--foreground) 3%, var(--surface));
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-decoration: none;
+  transition: border-color var(--animation-duration-fast) ease, background-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
+}
+
+a.source:hover {
+  border-color: color-mix(in srgb, var(--tk-brand) 45%, var(--surface));
+  background-color: color-mix(in srgb, var(--tk-brand) 10%, var(--surface));
+  color: var(--tk-brand-text);
+}
+
+a.source:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.icon {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+  transition: color var(--animation-duration-fast) ease;
+}
+
+a.source:hover .icon {
+  color: var(--tk-brand-text);
+}
+
+.plain {
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.empty {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .source,
+  .icon {
+    transition: none;
+  }
+}

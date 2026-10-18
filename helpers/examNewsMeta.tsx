@@ -1,5 +1,6 @@
 import type { ExamNewsStatus, ExamNewsType } from "./schema";
 import { currentAffairsMeta } from "./currentAffairsMeta";
+import { examNewsPublicMeta } from "./examNewsPublicMeta";
 
 const NEWS_TYPES: { value: ExamNewsType; label: string }[] = [
   { value: "notification", label: "Notification" },
@@ -18,15 +19,16 @@ const STATUSES: { value: ExamNewsStatus; label: string }[] = [
   { value: "archived", label: "Archived" },
 ];
 
-/** The URL a story will live at once the public News pages exist. */
-const publicPath = (slug: string) => `/news/${slug}`;
+/** The story's public URL, /exam-news/{slug}. */
+const publicPath = examNewsPublicMeta.storyPath;
 
 const previewPath = (id: number) => `/admin/news/preview/${id}`;
 
 const editPath = (id: number | "new") => `/admin/news/e/${id}`;
 
-/** The public pages are not built yet, so every story opens in the admin preview. */
-const openHref = (post: { id: number }) => previewPath(post.id);
+/** A published story opens its public page; anything not live opens the admin preview. */
+const openHref = (post: { id: number; slug: string; status: ExamNewsStatus }) =>
+  post.status === "published" ? publicPath(post.slug) : previewPath(post.id);
 
 const newsTypeLabel = (value: ExamNewsType) => NEWS_TYPES.find((t) => t.value === value)?.label ?? value;
 

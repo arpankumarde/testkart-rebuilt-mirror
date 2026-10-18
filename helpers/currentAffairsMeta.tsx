@@ -276,8 +276,21 @@ const canonicalPath = (post: { contentType: CurrentAffairsContentType; digestDat
 /** Where a published post opens: its public page, relative so it works on preview and live hosts. */
 const openHref = canonicalPath;
 
-/** The id of a story's section in the digest article; `index` is its 0-based place in the digest. */
-const itemAnchor = (index: number, headline: string) => `item-${index + 1}-${slugify(headline).slice(0, 40) || "untitled"}`;
+/**
+ * Section ids for a digest's stories, from their headlines in order: "parliament-moves-into-its-new-building",
+ * with -2, -3 on repeats. Saved with each item as anchor_slug and used as the #hash of story links.
+ * "quiz" is taken by the quiz section.
+ */
+const itemAnchors = (headlines: string[]): string[] => {
+  const used = new Set<string>(["quiz"]);
+  return headlines.map((headline, index) => {
+    const base = slugify(headline).slice(0, 80) || `item-${index + 1}`;
+    let anchor = base;
+    for (let n = 2; used.has(anchor); n++) anchor = `${base}-${n}`;
+    used.add(anchor);
+    return anchor;
+  });
+};
 
 export const currentAffairsMeta = {
   CONTENT_TYPES,
@@ -315,7 +328,7 @@ export const currentAffairsMeta = {
   periodFromSegment,
   canonicalPath,
   openHref,
-  itemAnchor,
+  itemAnchors,
 };
 
 export type { ArchiveType };

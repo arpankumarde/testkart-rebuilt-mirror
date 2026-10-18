@@ -257,11 +257,11 @@ const AdminExamNewsPage: React.FC = () => {
             target="_blank"
             rel="noopener noreferrer"
             className={styles.urlLink}
-            title="Open the preview in a new tab"
+            title={row.status === "published" ? "Open the public page in a new tab" : "Open the preview in a new tab"}
           >
             <Link2 size={14} aria-hidden="true" />
             <span className={styles.urlText}>{path}</span>
-            <span className={styles.urlNote}>{row.status === "published" ? "public page pending" : "not live"}</span>
+            {row.status !== "published" && <span className={styles.urlNote}>not live - opens preview</span>}
             <ExternalLink size={12} aria-hidden="true" />
           </a>
         </div>

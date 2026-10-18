@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { useTeacherQuestionBankQuery, useDeleteBankQuestionsMutation } from '../helpers/useTeacherQuestionBank';
 import { useTeacherTestsQuery, useTeacherTestItemsQuery } from '../helpers/useTeacherTestsQuery';
 import { useDebounce } from '../helpers/useDebounce';
+import { getMatchAnswerRows } from '../helpers/testScoringLogic';
 import { QuestionBank } from '../helpers/schema';
 import { Selectable } from 'kysely';
 
@@ -99,41 +100,73 @@ const TeacherQuestionBankPage: React.FC = () => {
   };
 
   const renderOptions = (q: Selectable<QuestionBank>) => {
+    const noAnswer = <p className={styles.noAnswer}>No correct answer is saved for this question.</p>;
+
     if (q.questionType === 'numerical') {
+      if (q.numericalAnswer === null || q.numericalAnswer === undefined || String(q.numericalAnswer).trim() === '') {
+        return noAnswer;
+      }
+      const tolerance = Math.abs(Number(q.numericalTolerance ?? 0));
       return (
         <div className={styles.numericalAnswer}>
           <span className={styles.answerLabel}>Correct answer: </span>
           {q.numericalAnswer}
+          {tolerance > 0 && <span className={styles.answerLabel}> (± {tolerance})</span>}
         </div>
       );
     }
 
+    if (q.questionType === 'match_the_following') {
+      const pairs = getMatchAnswerRows(q.matchData, null).filter(row => row.correctRightIndex !== null);
+      if (pairs.length === 0) return noAnswer;
+      return (
+        <>
+          {pairs.map(row => (
+            <div key={row.leftIndex} className={`${styles.option} ${styles.correct}`}>
+              <span className={styles.optionLabel}>{row.leftIndex + 1}</span>
+              <span className={styles.matchPair}>
+                {row.leftText} <span aria-hidden="true">→</span>{' '}
+                <strong>{String.fromCharCode(65 + (row.correctRightIndex as number))}.</strong> {row.correctText}
+              </span>
+            </div>
+          ))}
+        </>
+      );
+    }
+
+    // Stored as "A"-"E"; normalised so legacy lowercase or padded values still match.
+    const normalize = (value: unknown) => String(value ?? '').trim().toUpperCase();
+    const correctKeys = new Set(
+      q.questionType === 'multiple_correct_mcq'
+        ? (Array.isArray(q.correctOptions) ? q.correctOptions : []).map(normalize)
+        : [normalize(q.correctOption)]
+    );
+
     const options = [
-      { key: 'a', label: 'A', text: q.optionA },
-      { key: 'b', label: 'B', text: q.optionB },
-      { key: 'c', label: 'C', text: q.optionC },
-      { key: 'd', label: 'D', text: q.optionD },
-    ];
+      { key: 'A', text: q.optionA },
+      { key: 'B', text: q.optionB },
+      { key: 'C', text: q.optionC },
+      { key: 'D', text: q.optionD },
+      { key: 'E', text: q.optionE },
+    ].filter(opt => opt.text);
+
+    const hasAnswer = options.some(opt => correctKeys.has(opt.key));
 
     return (
       <>
         {options.map(opt => {
-          if (!opt.text) return null;
-          let isCorrect = false;
-          if (q.questionType === 'single_correct_mcq') {
-            isCorrect = q.correctOption === opt.key;
-          } else if (q.questionType === 'multiple_correct_mcq') {
-            isCorrect = Array.isArray(q.correctOptions)
-              ? q.correctOptions.includes(opt.key)
-              : typeof q.correctOptions === 'string' && (q.correctOptions as string).includes(opt.key);
-          }
+          const isCorrect = correctKeys.has(opt.key);
           return (
             <div key={opt.key} className={`${styles.option} ${isCorrect ? styles.correct : ''}`}>
-              <span className={styles.optionLabel}>{opt.label}</span>
-              <MathMLContent html={opt.text} />
+              <span className={styles.optionLabel}>{opt.key}</span>
+              <div className={styles.optionText}>
+                <MathMLContent html={opt.text as string} />
+              </div>
+              {isCorrect && <span className={styles.correctTag}>Correct</span>}
             </div>
           );
         })}
+        {!hasAnswer && noAnswer}
       </>
     );
   };
@@ -142,6 +175,10 @@ const TeacherQuestionBankPage: React.FC = () => {
     if (!type) return "Unknown";
     return type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   };
+
+  // The editor saves an emptied field as markup such as "<p></p>", so check for text.
+  const hasExplanation = (html?: string | null) =>
+    !!html && html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim().length > 0;
 
   const handleAddClick = () => {
     setQuestionToEdit(null);
@@ -264,7 +301,15 @@ const TeacherQuestionBankPage: React.FC = () => {
               </div>
 
               {expandedOptions.has(q.id) && (
-                <div className={styles.options}>{renderOptions(q)}</div>
+                <>
+                  <div className={styles.options}>{renderOptions(q)}</div>
+                  {hasExplanation(q.explanation) && (
+                    <div className={styles.explanation}>
+                      <span className={styles.explanationLabel}>Explanation</span>
+                      <MathMLContent html={q.explanation as string} />
+                    </div>
+                  )}
+                </>
               )}
 
               <div className={styles.cardFooter}>

@@ -37,6 +37,7 @@ import { useImpersonateMutation } from "../helpers/useImpersonation";
 import { getOrganizationProfilePath } from "../helpers/organizationRoutes";
 import { ADMIN_ORG_TYPE_LABELS as ORG_TYPE_LABELS, formatAdminDate } from "../helpers/adminOrganizationLabels";
 import type { AdminOrganizationRow, AdminOrganizationSort } from "../endpoints/admin/organizations/list_GET.schema";
+import { BulkOrganizationUpload } from "../components/BulkOrganizationUpload";
 import styles from "./admin.organizations.module.css";
 
 type TypeFilter = "all" | AdminOrganizationRow["orgType"];
@@ -151,6 +152,10 @@ const AdminOrganizationsPage: React.FC = () => {
   });
   const setActiveMutation = useSetOrganizationActiveMutation();
   const impersonateMutation = useImpersonateMutation();
+
+  const handleBulkUploadSuccess = () => {
+    refetch();
+  };
 
   useEffect(() => {
     setPage(1);
@@ -451,7 +456,9 @@ const AdminOrganizationsPage: React.FC = () => {
         <meta name="description" content="Coaching institutes, schools and colleges on the Testkart platform." />
       </Helmet>
       <div className={styles.page}>
-        <ConsolePageHeader title="Organizations" />
+        <ConsolePageHeader title="Organizations">
+          <BulkOrganizationUpload onSuccess={handleBulkUploadSuccess} />
+        </ConsolePageHeader>
 
         <ConsoleListToolbar
           tabs={tabs}

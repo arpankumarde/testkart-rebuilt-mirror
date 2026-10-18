@@ -3,6 +3,8 @@ import superjson from "superjson";
 
 export const schema = z.object({
   lang: z.enum(["en", "hi"]).optional(),
+  /** A topic tag slug; only stories tagged with it are listed. */
+  topic: z.string().max(120).optional(),
   page: z.number().int().min(1).max(500).default(1),
 });
 

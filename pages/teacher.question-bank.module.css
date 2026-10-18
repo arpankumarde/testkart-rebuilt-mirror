@@ -125,8 +125,8 @@
 }
 
 .correct {
-  border-color: color-mix(in srgb, var(--success) 55%, var(--border));
-  background-color: color-mix(in srgb, var(--success) 10%, var(--surface));
+  border-color: var(--success-text);
+  background-color: color-mix(in srgb, var(--success) 14%, var(--surface));
 }
 
 .optionLabel {
@@ -144,8 +144,37 @@
 }
 
 .correct .optionLabel {
-  background-color: color-mix(in srgb, var(--success) 22%, transparent);
-  color: var(--success-text);
+  background-color: var(--success-text);
+  color: var(--surface);
+}
+
+.optionText {
+  flex: 1;
+  min-width: 0;
+}
+
+.correctTag {
+  flex-shrink: 0;
+  align-self: center;
+  padding: 0.125rem var(--spacing-2);
+  border-radius: var(--radius-sm);
+  background-color: var(--success-text);
+  color: var(--surface);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.matchPair {
+  flex: 1;
+  min-width: 0;
+}
+
+.noAnswer {
+  margin: 0;
+  padding: var(--spacing-3);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--error-text);
 }
 
 .numericalAnswer {
@@ -155,6 +184,27 @@
 
 .answerLabel {
   color: var(--muted-foreground);
+}
+
+.explanation {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--tk-brand-text);
+  border-radius: var(--radius);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+.explanationLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--tk-brand-text);
 }
 
 .cardFooter {

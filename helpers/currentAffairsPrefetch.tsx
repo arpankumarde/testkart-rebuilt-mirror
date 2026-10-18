@@ -4,13 +4,15 @@ import { currentAffairsMeta, type ArchiveType } from "./currentAffairsMeta";
 
 /*
  * SSR data for the Current Affairs hub and its archives. Query keys must match
- * currentAffairsPublicKeys.hub({}) and .list({ type, page }) in helpers/useCurrentAffairsPublic.
+ * currentAffairsPublicKeys.hub({}), .list({ type, page }) and .stories({ page }) in
+ * helpers/useCurrentAffairsPublic. The daily views list stories; weekly and monthly list digests.
  */
 export async function prefetchCurrentAffairsListing(ctx: PageServerContext, archive?: ArchiveType): Promise<PrefetchResult> {
   const { qc } = ctx;
   const url = new URL(ctx.url, "https://testkart.in");
   const lang = url.searchParams.get("lang");
   const page = archive ? Math.max(1, Math.floor(Number(url.searchParams.get("page"))) || 1) : 1;
+  const topic = (archive ?? "daily") === "daily" ? url.searchParams.get("topic") || undefined : undefined;
 
   // The hub's old ?type= tabs moved to their own archive URLs: one 301 straight there.
   const legacyType = archive ? null : url.searchParams.get("type");
@@ -26,12 +28,17 @@ export async function prefetchCurrentAffairsListing(ctx: PageServerContext, arch
 
   try {
     const type = archive ?? "daily";
-    const [, list] = await Promise.all([
+    const [, main] = await Promise.all([
       qc.fetchQuery({ queryKey: ["current-affairs", "hub", "all"], queryFn: () => currentAffairsPublicServer.fetchHub() }),
-      qc.fetchQuery({
-        queryKey: ["current-affairs", "list", { type, page }],
-        queryFn: () => currentAffairsPublicServer.fetchList({ type, page }),
-      }),
+      type === "daily"
+        ? qc.fetchQuery({
+            queryKey: ["current-affairs", "stories", { page, topic }],
+            queryFn: () => currentAffairsPublicServer.fetchDailyStories({ page, topic }),
+          })
+        : qc.fetchQuery({
+            queryKey: ["current-affairs", "list", { type, page }],
+            queryFn: () => currentAffairsPublicServer.fetchList({ type, page }),
+          }),
       type === "monthly" && page === 1
         ? Promise.resolve()
         : qc.prefetchQuery({
@@ -40,7 +47,7 @@ export async function prefetchCurrentAffairsListing(ctx: PageServerContext, arch
           }),
     ]);
     // A page past the end of the archive does not exist.
-    if (archive && page > 1 && page > list.totalPages) return { statusCode: 404, maxAge: 300 };
+    if (archive && page > 1 && page > main.totalPages) return { statusCode: 404, maxAge: 300 };
   } catch (error) {
     console.error("Error prefetching current affairs:", error);
     return { maxAge: 60 };

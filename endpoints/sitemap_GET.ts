@@ -15,6 +15,7 @@ import {
 } from "../helpers/fetchIndexableUgcIds";
 import { currentAffairsPublicServer } from "../helpers/currentAffairsPublicServer";
 import { currentAffairsMeta } from "../helpers/currentAffairsMeta";
+import { examNewsPublicServer } from "../helpers/examNewsPublicServer";
 
 const BASE_URL = "https://testkart.in";
 
@@ -417,6 +418,18 @@ export async function handle(request: Request) {
         lastmod: toW3CDate(entry.updatedAt),
         changefreq: "monthly",
         priority: 0.6,
+      });
+    }
+
+    // Exam News: the hub, the type and exam listings that have stories, and each story.
+    // Search and filter query URLs and /page/{n} pages are left out.
+    for (const entry of await examNewsPublicServer.fetchSitemapEntries()) {
+      xml += generateUrlEntry({
+        loc: `${BASE_URL}${entry.path}`,
+        lastmod: toW3CDate(entry.updatedAt),
+        // "/exam-news/{slug}" is a story; the hub and the listings change more often.
+        changefreq: entry.path.split("/").length === 3 ? "weekly" : "daily",
+        priority: entry.path === "/exam-news" ? 0.8 : 0.6,
       });
     }
 

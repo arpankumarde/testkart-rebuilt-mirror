@@ -91,17 +91,18 @@
 .pill {
   display: inline-flex;
   align-items: center;
-  height: 1.375rem;
-  padding: 0 var(--spacing-2);
+  height: 1.5rem;
+  padding: 0 0.625rem;
   border-radius: var(--radius-full);
   font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
+  text-decoration: none;
 }
 
 .pill_topic {
-  background-color: color-mix(in srgb, var(--tk-brand) 14%, var(--surface));
-  color: var(--tk-brand-text);
+  background-color: color-mix(in srgb, var(--chart-color-2) 13%, var(--surface));
+  color: color-mix(in srgb, var(--chart-color-2) 40%, var(--foreground));
 }
 
 .pill_exam {
@@ -112,6 +113,19 @@
 .pill_syllabus {
   background-color: color-mix(in srgb, var(--success) 13%, var(--surface));
   color: var(--success-text);
+}
+
+.pillLink {
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.pillLink:hover {
+  background-color: color-mix(in srgb, var(--chart-color-2) 24%, var(--surface));
+}
+
+.pillLink:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
 }
 
 .cover {
@@ -163,8 +177,8 @@
   top: var(--ca-toc-top, var(--spacing-4));
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-2);
-  padding: var(--spacing-3);
+  gap: 0.625rem;
+  padding: 0.875rem 0.75rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background-color: var(--surface);
@@ -172,7 +186,7 @@
 
 .tocTitle {
   margin: 0;
-  padding: 0 var(--spacing-1);
+  padding: 0 0.5rem;
   font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -187,7 +201,7 @@
 .tocList {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -196,18 +210,18 @@
 .tocLink {
   display: flex;
   align-items: flex-start;
-  gap: var(--spacing-2);
-  padding: 6px var(--spacing-2);
-  border-radius: var(--radius-sm);
+  gap: 0.5rem;
+  padding: 0.4375rem 0.5rem;
+  border-radius: var(--radius-md);
   color: var(--foreground);
   font-size: 0.8125rem;
-  line-height: 1.35;
+  line-height: 1.4;
   text-decoration: none;
   transition: background-color var(--animation-duration-fast) ease, color var(--animation-duration-fast) ease;
 }
 
 .tocLink:hover {
-  background-color: var(--muted);
+  background-color: color-mix(in srgb, var(--foreground) 5%, var(--surface));
 }
 
 .tocLink:focus-visible {
@@ -217,7 +231,8 @@
 
 .tocLinkActive,
 .tocLinkActive:hover {
-  background-color: color-mix(in srgb, var(--tk-brand) 14%, var(--surface));
+  background-color: color-mix(in srgb, var(--tk-brand) 12%, var(--surface));
+  box-shadow: inset 3px 0 0 var(--tk-brand);
   color: var(--tk-brand-text);
   font-weight: 600;
 }
@@ -227,8 +242,8 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 1.375rem;
+  height: 1.375rem;
   border-radius: var(--radius-full);
   background-color: var(--muted);
   color: var(--foreground);
@@ -262,7 +277,7 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
-  margin: 0 0 var(--spacing-2);
+  margin: 0 0 0.625rem;
   font-family: var(--font-family-base);
   font-size: 0.6875rem;
   font-weight: 700;
@@ -282,13 +297,18 @@
 .para {
   margin: 0;
   font-size: 1rem;
-  line-height: 1.7;
+  line-height: 1.75;
 }
 
 .prose {
   font-size: 1rem;
-  line-height: 1.7;
+  line-height: 1.75;
   word-break: break-word;
+}
+
+/* Background is supporting context: a step quieter than the key points, still well above contrast minimums. */
+.proseQuiet {
+  color: color-mix(in srgb, var(--foreground) 82%, var(--surface));
 }
 
 .prose :global(p) {
@@ -318,9 +338,9 @@
 
 .prose :global(li),
 .list li {
-  margin: 0 0 6px;
+  margin: 0 0 0.5rem;
   padding-left: 4px;
-  line-height: 1.65;
+  line-height: 1.7;
 }
 
 .prose :global(li)::marker,
@@ -356,12 +376,31 @@
 .item {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-4);
+  gap: 1.375rem;
   scroll-margin-top: calc(var(--ca-toc-top, var(--spacing-4)) + var(--spacing-2));
 }
 
+/* A story opened from a link is lit up briefly so the reader sees which one it is. */
+.item[data-ca-highlight] {
+  border-radius: var(--radius-md);
+  animation: storyHighlight 2.4s ease-out;
+}
+
+@keyframes storyHighlight {
+  0%,
+  40% {
+    background-color: color-mix(in srgb, var(--tk-brand) 10%, var(--surface));
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--tk-brand) 10%, var(--surface)),
+      0 0 0 12px color-mix(in srgb, var(--tk-brand) 45%, var(--surface));
+  }
+  100% {
+    background-color: var(--surface);
+    box-shadow: 0 0 0 10px var(--surface), 0 0 0 12px var(--surface);
+  }
+}
+
 .item + .item {
-  padding-top: var(--spacing-8);
+  padding-top: 2.5rem;
   border-top: 1px solid var(--border);
 }
 
@@ -402,11 +441,12 @@
   background-color: var(--muted);
 }
 
-/* The one highlighted block per item: a butter-yellow wash, no border. */
+/* The one highlighted block per item: a warm wash with a coral edge. */
 .why {
-  padding: var(--spacing-3) var(--spacing-4);
+  padding: 0.875rem 1.125rem;
+  border-left: 3px solid var(--tk-brand);
   border-radius: var(--radius-md);
-  background-color: color-mix(in srgb, var(--warning) 10%, var(--surface));
+  background-color: color-mix(in srgb, var(--tk-brand) 8%, var(--surface));
 }
 
 .block {
@@ -414,25 +454,36 @@
   flex-direction: column;
 }
 
+/* Topics and sources sit below the story, set off by a hairline. */
 .itemFoot {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-2);
+  gap: 1rem;
+  padding-top: 1.125rem;
+  border-top: 1px solid var(--border);
 }
 
-.sourceLine {
+.footGroup {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.footLabel {
+  display: inline-flex;
   align-items: center;
-  gap: 4px var(--spacing-2);
+  gap: 6px;
   margin: 0;
-  font-size: 0.8125rem;
+  font-family: var(--font-family-base);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--muted-foreground);
 }
 
-.sourceLabel {
-  font-weight: 600;
-  color: var(--foreground);
+.footLabel svg {
+  color: color-mix(in srgb, var(--chart-color-2) 40%, var(--foreground));
 }
 
 .link {
@@ -719,14 +770,23 @@
   }
 
   .item + .item {
-    padding-top: var(--spacing-6);
+    padding-top: 1.75rem;
+  }
+
+  .item {
+    gap: 1.125rem;
+  }
+
+  .why {
+    padding: 0.75rem 0.875rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .tocLink,
   .quizOption,
-  .tocChevron {
+  .tocChevron,
+  .pillLink {
     transition: none;
   }
 }

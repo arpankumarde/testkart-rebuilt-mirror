@@ -30,6 +30,7 @@ import {
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "./Dialog";
 import {
   getOrganizationTabPath,
+  getOrganizationProfilePath,
   ORGANIZATION_TAB_LABELS,
   type OrganizationTabValue,
 } from "../helpers/organizationRoutes";
@@ -1380,6 +1381,14 @@ export const OrganizationProfileView: React.FC<OrganizationProfileViewProps> = (
       label: "Founded",
       content: String(organization.foundedYear),
     },
+    organization.affiliatedUniversity && {
+      key: "affiliatedUniversity",
+      icon: GraduationCap,
+      tone: styles.infoIconLavender,
+      label: "Affiliated University",
+      content: organization.affiliatedUniversity.name,
+      href: getOrganizationProfilePath("university", organization.affiliatedUniversity.slug),
+    },
     organization.instituteSize && {
       key: "size",
       icon: Users,
@@ -1510,13 +1519,17 @@ export const OrganizationProfileView: React.FC<OrganizationProfileViewProps> = (
                                 <dt className={styles.aboutInfoLabel}>{item.label}</dt>
                                 <dd className={styles.aboutInfoValue}>
                                   {item.href ? (
-                                    <a
-                                      href={item.href}
-                                      target={item.href.startsWith("tel:") ? undefined : "_blank"}
-                                      rel="noreferrer"
-                                    >
-                                      {item.content}
-                                    </a>
+                                    item.href.startsWith("/") ? (
+                                      <Link to={item.href}>{item.content}</Link>
+                                    ) : (
+                                      <a
+                                        href={item.href}
+                                        target={item.href.startsWith("tel:") ? undefined : "_blank"}
+                                        rel="noreferrer"
+                                      >
+                                        {item.content}
+                                      </a>
+                                    )
                                   ) : (
                                     item.content
                                   )}

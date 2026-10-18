@@ -407,6 +407,15 @@ export async function handle(request: Request) {
         .executeTakeFirst(),
     ]);
 
+    const affiliatedUniversity = org.affiliatedUniversityId
+      ? await db
+          .selectFrom("organizations")
+          .select(["id", "name", "slug", "logoUrl"])
+          .where("id", "=", org.affiliatedUniversityId)
+          .where("isActive", "=", true)
+          .executeTakeFirst()
+      : null;
+
     const response: OutputType = {
       organization: {
         id: org.id,
@@ -425,6 +434,14 @@ export async function handle(request: Request) {
         specialties: Array.isArray(org.specialties) ? (org.specialties as string[]) : [],
         socialLinks: (org.socialLinks as OutputType["organization"]["socialLinks"]) ?? null,
         claimStatus: org.claimStatus,
+        affiliatedUniversity: affiliatedUniversity
+          ? {
+              id: affiliatedUniversity.id,
+              name: affiliatedUniversity.name,
+              slug: affiliatedUniversity.slug,
+              logoUrl: affiliatedUniversity.logoUrl,
+            }
+          : null,
       },
       teachers,
       catalogue,
