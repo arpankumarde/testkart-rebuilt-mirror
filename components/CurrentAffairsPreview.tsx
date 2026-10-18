@@ -190,7 +190,7 @@ export const CurrentAffairsPreview: React.FC<CurrentAffairsPreviewProps> = ({
 
   const isSingle = post.contentType === "individual_item";
   const items = post.items;
-  const anchors = items.map((item, index) => `item-${index + 1}-${slugify(item.headline).slice(0, 40) || "untitled"}`);
+  const anchors = items.map((item, index) => currentAffairsMeta.itemAnchor(index, item.headline));
   const quizId = "quiz";
   const hasQuiz = !!post.quiz && post.quiz.questions.length > 0;
   const when = publishedAt ?? (post.publishAt ? currentAffairsMeta.fromIstInput(post.publishAt) : null);

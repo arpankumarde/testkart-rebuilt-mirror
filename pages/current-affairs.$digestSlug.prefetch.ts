@@ -3,16 +3,17 @@ import { currentAffairsPublicServer } from "../helpers/currentAffairsPublicServe
 
 export const prefetch: PagePrefetchFn = async (ctx) => {
   const { qc } = ctx;
-  const slug = (ctx as any).params?.digestSlug as string | undefined;
+  const url = new URL(ctx.url, "https://testkart.in");
+  const slug = decodeURIComponent(url.pathname.split("/")[2] ?? "");
   if (!slug) return { statusCode: 404 };
 
   try {
     const result = await currentAffairsPublicServer.fetchDetail(slug);
     if (!result) return { statusCode: 404 };
-    // A renamed digest answers on its retired slug; send readers and crawlers to the current one.
-    if (result.canonicalSlug !== slug) return { redirect: { to: `/current-affairs/${result.canonicalSlug}` } };
-    // Must match currentAffairsPublicKeys.details(slug) in helpers/useCurrentAffairsPublic.
-    qc.setQueryData(["current-affairs", "details", slug], { post: result.post });
+    // Dated digests moved to their period URL and renamed posts to their current slug: 301 straight there.
+    if (result.canonicalPath !== url.pathname) return { redirect: { to: `${result.canonicalPath}${url.search}`, permanent: true } };
+    // Must match currentAffairsPublicKeys.details({ slug }) in helpers/useCurrentAffairsPublic.
+    qc.setQueryData(["current-affairs", "details", `slug:${slug}`], { post: result.post, canonicalPath: result.canonicalPath });
     return { maxAge: 300 };
   } catch (error) {
     console.error("Error prefetching current affairs digest:", error);

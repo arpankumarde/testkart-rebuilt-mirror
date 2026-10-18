@@ -161,8 +161,21 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--spacing-4);
+}
+
+/* Teacher and organisation cards are horizontal rows with nowrap names, so
+   their columns are sized by a minimum card width rather than a fixed count. */
+.profileGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: var(--spacing-4);
+}
+
+.grid > *,
+.profileGrid > * {
+  min-width: 0;
 }
 
 /* Skeleton Styles */
@@ -210,6 +223,8 @@
   color: inherit;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   height: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .teacherCard:hover {
@@ -245,12 +260,15 @@
   flex-direction: column;
   gap: var(--spacing-1);
   overflow: hidden;
+  flex: 1;
+  min-width: 0;
 }
 
 .teacherDisplayNameWrapper {
   display: flex;
   align-items: center;
   gap: var(--spacing-1);
+  min-width: 0;
 }
 
 .teacherDisplayName {
@@ -297,6 +315,7 @@
   flex-direction: column;
   gap: var(--spacing-2);
   flex-grow: 1;
+  min-width: 0;
 }
 
 /* Search Result Card Styles */
@@ -404,13 +423,13 @@
 /* Responsive Breakpoints */
 @media (min-width: 768px) {
   .grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 @media (min-width: 1024px) {
   .grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 

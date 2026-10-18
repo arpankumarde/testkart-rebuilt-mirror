@@ -13,6 +13,8 @@ import {
   getIndexableCourseIds,
   getIndexableBundleIds,
 } from "../helpers/fetchIndexableUgcIds";
+import { currentAffairsPublicServer } from "../helpers/currentAffairsPublicServer";
+import { currentAffairsMeta } from "../helpers/currentAffairsMeta";
 
 const BASE_URL = "https://testkart.in";
 
@@ -62,6 +64,12 @@ export async function handle(request: Request) {
       { loc: `${BASE_URL}/about`, changefreq: "monthly", priority: 0.6 },
       { loc: `${BASE_URL}/careers`, changefreq: "weekly", priority: 0.6 },
       { loc: `${BASE_URL}/news-and-events`, changefreq: "weekly", priority: 0.6 },
+      { loc: `${BASE_URL}${currentAffairsMeta.HUB_PATH}`, changefreq: "daily", priority: 0.8 },
+      ...currentAffairsMeta.ARCHIVE_TYPES.map((type): UrlEntry => ({
+        loc: `${BASE_URL}${currentAffairsMeta.archivePath(type)}`,
+        changefreq: type === "daily" ? "daily" : "weekly",
+        priority: 0.7,
+      })),
       { loc: `${BASE_URL}/sell`, changefreq: "monthly", priority: 0.6 },
       { loc: `${BASE_URL}/ai-mock-test-generator`, changefreq: "monthly", priority: 0.6 },
       { loc: `${BASE_URL}/ai-quiz-generator`, changefreq: "monthly", priority: 0.6 },
@@ -399,6 +407,16 @@ export async function handle(request: Request) {
         lastmod: toW3CDate(item.updatedAt),
         changefreq: "monthly",
         priority: 0.5,
+      });
+    }
+
+    // Current affairs posts, each at its canonical (period) URL
+    for (const entry of await currentAffairsPublicServer.fetchSitemapEntries()) {
+      xml += generateUrlEntry({
+        loc: `${BASE_URL}${entry.path}`,
+        lastmod: toW3CDate(entry.updatedAt),
+        changefreq: "monthly",
+        priority: 0.6,
       });
     }
 

@@ -151,7 +151,7 @@ const ItemFields: React.FC<{
         </section>
 
         <section className={styles.subsection}>
-          <h4 className={styles.subsectionTitle}>Source link</h4>
+          <h4 className={styles.subsectionTitle}>Sources</h4>
           <CurrentAffairsSourcesEditor name={`${base}.sources`} value={item.sources} onChange={(sources) => update({ sources })} />
         </section>
       </div>
@@ -391,7 +391,15 @@ export const CurrentAffairsItemsEditor: React.FC<CurrentAffairsItemsEditorProps>
   };
 
   const duplicate = (index: number) => {
-    const copy = { ...items[index], key: newKey(), headline: `${items[index].headline} (copy)`.trim() };
+    const original = items[index];
+    // Fresh arrays, so editing the copy's sources or tags never touches the original.
+    const copy = {
+      ...original,
+      key: newKey(),
+      headline: `${original.headline} (copy)`.trim(),
+      sources: original.sources.map((s) => ({ ...s })),
+      tags: original.tags.map((t) => ({ ...t })),
+    };
     const next = [...items];
     next.splice(index + 1, 0, copy);
     onChange(next);

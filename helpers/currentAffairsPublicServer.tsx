@@ -1,10 +1,12 @@
 import { sql } from "kysely";
 import { db } from "./db";
 import { currentAffairsServer } from "./currentAffairsServer";
+import { currentAffairsMeta, type ArchiveType } from "./currentAffairsMeta";
 import type { CurrentAffairsContentType, CurrentAffairsLanguage } from "./schema";
 import type { OutputType as HubOutput, PublicDigestCard } from "../endpoints/current-affairs/hub_GET.schema";
 import type { InputType as ListInput, OutputType as ListOutput, PublicListType } from "../endpoints/current-affairs/list_GET.schema";
 import type { PublicDigestDetail } from "../endpoints/current-affairs/details_GET.schema";
+import type { InputType as StoriesInput, OutputType as StoriesOutput } from "../endpoints/current-affairs/stories_GET.schema";
 
 /*
  * Public reads for the Current Affairs pages, shared by the /_api/current-affairs/* endpoints and
@@ -13,6 +15,8 @@ import type { PublicDigestDetail } from "../endpoints/current-affairs/details_GE
  */
 
 const PAGE_SIZE = 12;
+const STORY_PAGE_SIZE = 15;
+const STORY_SUMMARY_CHARS = 220;
 const DAILY_LIST = 7;
 const LATEST_LIST = 10;
 const EDITORIALS = 3;
@@ -172,42 +176,170 @@ async function fetchList(input: ListInput): Promise<ListOutput> {
   };
 }
 
-/**
- * A published post by its slug. Returns the canonical slug too, so a request on a retired slug can
- * redirect; null when nothing published answers to it.
- */
-async function fetchDetail(slug: string): Promise<{ post: PublicDigestDetail; canonicalSlug: string } | null> {
-  await currentAffairsServer.promoteDue();
-  const match = await db
-    .selectFrom("currentAffairsPosts")
-    .select(["id", "slug"])
-    .where("status", "=", "published")
-    .where((eb) => eb.or([eb("slug", "=", slug), sql<boolean>`previous_slugs @> ARRAY[${slug}]::text[]`]))
-    .orderBy(sql`slug = ${slug}`, "desc")
-    .executeTakeFirst();
-  if (!match) return null;
+type PublicDetailResult = { post: PublicDigestDetail; canonicalSlug: string; canonicalPath: string };
 
-  const detail = await currentAffairsServer.loadDetail(match.id);
+/** A published post in its public shape, with the path it lives at and live related posts only. */
+async function publicDetail(id: number): Promise<PublicDetailResult | null> {
+  const detail = await currentAffairsServer.loadDetail(id);
   if (!detail || detail.status !== "published") return null;
 
   const relatedIds = detail.related.map((r) => r.id);
   const live = relatedIds.length
     ? await db
         .selectFrom("currentAffairsPosts")
-        .select("id")
+        .select(["id", "contentType", "slug", sql<string | null>`to_char(digest_date, 'YYYY-MM-DD')`.as("digestDate")])
         .where("id", "in", relatedIds)
         .where("status", "=", "published")
         .execute()
     : [];
-  const liveIds = new Set(live.map((r) => r.id));
+  const livePaths = new Map(live.map((r) => [r.id, currentAffairsMeta.canonicalPath(r)]));
 
   const { createdByName: _c, updatedByName: _u, previousSlugs: _p, firstPublishedAt: _f, archivedAt: _a, createdAt: _cr, ...rest } = detail;
   const post: PublicDigestDetail = {
     ...rest,
     quiz: detail.quiz && detail.quiz.isPublished ? detail.quiz : null,
-    related: detail.related.filter((r) => liveIds.has(r.id)).map(({ id, title, slug: relatedSlug }) => ({ id, title, slug: relatedSlug })),
+    related: detail.related
+      .filter((r) => livePaths.has(r.id))
+      .map(({ id, title, slug }) => ({ id, title, slug, path: livePaths.get(id)! })),
   };
-  return { post, canonicalSlug: match.slug };
+  return { post, canonicalSlug: detail.slug, canonicalPath: currentAffairsMeta.canonicalPath(detail) };
 }
 
-export const currentAffairsPublicServer = { fetchHub, fetchList, fetchDetail };
+/**
+ * A published post by its slug, current or retired, for the old /current-affairs/{slug} URLs; the
+ * result carries the path the post now lives at so the page can redirect. Null when nothing matches.
+ */
+async function fetchDetail(slug: string): Promise<PublicDetailResult | null> {
+  await currentAffairsServer.promoteDue();
+  const match = await db
+    .selectFrom("currentAffairsPosts")
+    .select(["id"])
+    .where("status", "=", "published")
+    .where((eb) => eb.or([eb("slug", "=", slug), sql<boolean>`previous_slugs @> ARRAY[${slug}]::text[]`]))
+    .orderBy(sql`slug = ${slug}`, "desc")
+    .executeTakeFirst();
+  return match ? publicDetail(match.id) : null;
+}
+
+/**
+ * The published digest for a period URL such as daily/2026-10-23, weekly/2026-w43 or monthly/2023-08.
+ * The URL carries no language, so the English edition answers when both exist.
+ */
+async function fetchDetailByPeriod(type: ArchiveType, segment: string): Promise<PublicDetailResult | null> {
+  const digestDate = currentAffairsMeta.periodFromSegment(type, segment);
+  if (!digestDate) return null;
+  await currentAffairsServer.promoteDue();
+  const match = await db
+    .selectFrom("currentAffairsPosts")
+    .select(["id"])
+    .where("status", "=", "published")
+    .where("contentType", "=", currentAffairsMeta.ARCHIVE_CONTENT_TYPE[type])
+    .where(sql<boolean>`digest_date = ${digestDate}::date`)
+    .orderBy(sql`language = 'en'`, "desc")
+    .orderBy("publishedAt", "desc")
+    .executeTakeFirst();
+  return match ? publicDetail(match.id) : null;
+}
+
+/** Every published post's public path and last edit, for the sitemap. */
+async function fetchSitemapEntries(): Promise<{ path: string; updatedAt: Date }[]> {
+  const rows = await db
+    .selectFrom("currentAffairsPosts")
+    .select(["contentType", "slug", "updatedAt", sql<string | null>`to_char(digest_date, 'YYYY-MM-DD')`.as("digestDate")])
+    .where("status", "=", "published")
+    .orderBy("publishedAt", "desc")
+    .execute();
+  const seen = new Set<string>();
+  return rows.flatMap((row) => {
+    const path = currentAffairsMeta.canonicalPath(row);
+    if (seen.has(path)) return [];
+    seen.add(path);
+    return [{ path, updatedAt: row.updatedAt }];
+  });
+}
+
+const shorten = (text: string, max: number) => (text.length <= max ? text : `${text.slice(0, max).replace(/\s+\S*$/, "")}...`);
+
+/**
+ * The news items of published daily digests, one row each: newest digest first, then in the order
+ * the digest lists them. Each links to its section of the digest page.
+ */
+async function fetchDailyStories(input: StoriesInput): Promise<StoriesOutput> {
+  await currentAffairsServer.promoteDue();
+  const page = input.page ?? 1;
+  let base = db
+    .selectFrom("currentAffairsItems as i")
+    .innerJoin("currentAffairsPosts as p", "p.id", "i.postId")
+    .where("p.status", "=", "published")
+    .where("p.contentType", "=", "daily_digest");
+  if (input.lang) base = base.where("p.language", "=", input.lang);
+
+  const [countRow, rows] = await Promise.all([
+    base.select((eb) => eb.fn.countAll<string>().as("total")).executeTakeFirst(),
+    base
+      .select([
+        "i.id",
+        "i.headline",
+        "i.whyInNews",
+        "i.keyPoints",
+        "i.imageUrl",
+        "p.title as digestTitle",
+        "p.slug",
+        "p.contentType",
+        "p.language",
+        "p.publishedAt",
+        sql<string | null>`coalesce(nullif(p.cover_image_url, ''), nullif(p.og_image_url, ''))`.as("digestImageUrl"),
+        sql<string | null>`to_char(p.digest_date, 'YYYY-MM-DD')`.as("digestDate"),
+        // The story's place in its digest, as the article page numbers its sections.
+        sql<number>`(select count(*)::int from current_affairs_items x where x.post_id = i.post_id and x.position < i.position)`.as("indexInDigest"),
+      ])
+      .orderBy(sql`coalesce(p.digest_date, (p.published_at at time zone 'Asia/Kolkata')::date)`, "desc")
+      .orderBy("p.publishedAt", "desc")
+      .orderBy("p.id", "desc")
+      .orderBy("i.position", "asc")
+      .limit(STORY_PAGE_SIZE)
+      .offset((page - 1) * STORY_PAGE_SIZE)
+      .execute(),
+  ]);
+
+  const tags = rows.length
+    ? await db
+        .selectFrom("currentAffairsTagLinks as l")
+        .innerJoin("currentAffairsTags as t", "t.id", "l.tagId")
+        .select(["l.itemId", "t.name", "t.slug", "t.sortOrder"])
+        .where("l.itemId", "in", rows.map((r) => r.id))
+        .where("t.kind", "=", "topic")
+        .orderBy("t.sortOrder")
+        .execute()
+    : [];
+
+  const total = Number(countRow?.total ?? 0);
+  return {
+    rows: rows.map((row) => {
+      const plain = row.whyInNews.trim() || currentAffairsMeta.stripHtml(row.keyPoints);
+      return {
+        id: row.id,
+        headline: row.headline,
+        summary: shorten(plain, STORY_SUMMARY_CHARS),
+        thumbnailUrl: row.imageUrl || row.digestImageUrl || null,
+        digestTitle: row.digestTitle,
+        digestDate: row.digestDate,
+        publishedAt: row.publishedAt,
+        language: row.language,
+        href: `${currentAffairsMeta.canonicalPath(row)}#${currentAffairsMeta.itemAnchor(row.indexInDigest, row.headline)}`,
+        tags: tags.filter((t) => t.itemId === row.id).map(({ name, slug }) => ({ name, slug })),
+      };
+    }),
+    total,
+    totalPages: Math.max(1, Math.ceil(total / STORY_PAGE_SIZE)),
+  };
+}
+
+export const currentAffairsPublicServer = {
+  fetchHub,
+  fetchList,
+  fetchDetail,
+  fetchDetailByPeriod,
+  fetchSitemapEntries,
+  fetchDailyStories,
+};

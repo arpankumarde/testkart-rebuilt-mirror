@@ -388,6 +388,12 @@ const AdminCurrentAffairsEditorPage: React.FC = () => {
 
   const isSaved = !!values.id;
   const isDigestType = currentAffairsMeta.isDigest(values.contentType);
+  // Digests live at their period URL; the slug only names older post types and keeps old links working.
+  const archive = currentAffairsMeta.archiveOf(values.contentType);
+  const periodPart = currentAffairsMeta.periodSegment(values.contentType, values.digestDate);
+  const publicUrl = archive
+    ? `${currentAffairsMeta.archivePath(archive)}/${periodPart ?? "..."}`
+    : `${currentAffairsMeta.HUB_PATH}/${slugToCheck || "..."}`;
   const slugChanged = !!meta?.firstPublishedAt && !!saved.slug && saved.slug !== slugToCheck;
   const slugTaken = slugCheck.data && slugCheck.data.slug === slugToCheck && !slugCheck.data.available ? slugCheck.data.usedBy : null;
   const period = currentAffairsMeta.periodLabel(values.contentType, values.digestDate);
@@ -626,7 +632,7 @@ const AdminCurrentAffairsEditorPage: React.FC = () => {
                       />
                     </FormControl>
                     <p className={styles.hint}>
-                      testkart.in/current-affairs/<strong>{slugToCheck || "..."}</strong>
+                      testkart.in<strong>{publicUrl}</strong>
                       {slugTaken && <span className={styles.inlineError}> - already used by "{slugTaken.title}"</span>}
                     </p>
                     <FormMessage />
@@ -781,9 +787,13 @@ const AdminCurrentAffairsEditorPage: React.FC = () => {
                             Already used by "{slugTaken.title}". Pick another slug before saving.
                           </p>
                         ) : (
-                          <p className={styles.hint}>Made from the title. Change it only if you need a different link.</p>
+                          <p className={styles.hint}>
+                            {archive
+                              ? `Made from the title. This digest opens at ${publicUrl}; old links using the slug redirect there.`
+                              : "Made from the title. Change it only if you need a different link."}
+                          </p>
                         )}
-                        {slugChanged && (
+                        {slugChanged && !archive && (
                           <p className={styles.warning}>The old URL /current-affairs/{saved.slug} keeps redirecting to the new one.</p>
                         )}
                         <FormMessage />

@@ -4,6 +4,7 @@ import type {
   CurrentAffairsStatus,
   CurrentAffairsTagKind,
 } from "./schema";
+import { slugify } from "./slugify";
 
 const CONTENT_TYPES: { value: CurrentAffairsContentType; label: string; short: string }[] = [
   { value: "daily_digest", label: "Daily Digest", short: "Daily" },
@@ -48,11 +49,6 @@ const DIGEST_TARGET = { min: 8, max: 12 } as const;
 const WORDS_PER_MINUTE = 200;
 
 const IST_OFFSET_MS = 330 * 60 * 1000;
-
-const publicPath = (slug: string) => `/current-affairs/${slug}`;
-
-/** Where a published post opens: its public page, relative so it works on preview and live hosts. */
-const openHref = (post: { slug: string }) => publicPath(post.slug);
 
 const contentTypeLabel = (value: CurrentAffairsContentType) =>
   CONTENT_TYPES.find((t) => t.value === value)?.label ?? value;
@@ -201,14 +197,94 @@ const wordCount = (texts: string[]): number =>
 
 const readingMinutes = (texts: string[]): number => Math.max(1, Math.round(wordCount(texts) / WORDS_PER_MINUTE));
 
+/*
+ * Public URLs, per the Current Affairs SOP: /current-affairs, /current-affairs/{daily|weekly|monthly}
+ * and one digest per period at /current-affairs/daily/2026-10-23, /weekly/2026-w43 (ISO week) or
+ * /monthly/2023-08. Lowercase, no trailing slash. Older post types keep /current-affairs/{slug}.
+ */
+type ArchiveType = "daily" | "weekly" | "monthly";
+
+const HUB_PATH = "/current-affairs";
+const ARCHIVE_TYPES: readonly ArchiveType[] = ["daily", "weekly", "monthly"];
+
+const ARCHIVE_CONTENT_TYPE: Record<ArchiveType, DigestType> = {
+  daily: "daily_digest",
+  weekly: "weekly_digest",
+  monthly: "monthly_digest",
+};
+
+const isArchiveType = (value: string): value is ArchiveType => (ARCHIVE_TYPES as readonly string[]).includes(value);
+
+const archiveOf = (type: CurrentAffairsContentType): ArchiveType | null =>
+  type === "daily_digest" ? "daily" : type === "weekly_digest" ? "weekly" : type === "monthly_digest" ? "monthly" : null;
+
+/** An archive's path, with ?page= for every page after the first. */
+const archivePath = (type: ArchiveType, page = 1) => `${HUB_PATH}/${type}${page > 1 ? `?page=${page}` : ""}`;
+
+const pad2 = (n: number) => String(n).padStart(2, "0");
+
+const isRealDay = (isoDay: string) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(isoDay)) return false;
+  const { y, m, d } = dayParts(isoDay);
+  return new Date(Date.UTC(y, m - 1, d)).toISOString().slice(0, 10) === isoDay;
+};
+
+/** The ISO 8601 week of a day: the year owning that week's Thursday, and the week number in it. */
+const isoWeek = (isoDay: string): { year: number; week: number } => {
+  const thursday = shiftDay(weekStart(isoDay), 3);
+  const year = dayParts(thursday).y;
+  const firstThursday = shiftDay(weekStart(`${year}-01-04`), 3);
+  const days = (Date.parse(`${thursday}T00:00:00Z`) - Date.parse(`${firstThursday}T00:00:00Z`)) / 86400000;
+  return { year, week: days / 7 + 1 };
+};
+
+/** The URL segment for the period a digest covers: "2026-10-23", "2026-w43" or "2023-08". */
+const periodSegment = (type: CurrentAffairsContentType, isoDay: string): string | null => {
+  if (!isRealDay(isoDay)) return null;
+  const start = periodStart(type, isoDay);
+  if (type === "daily_digest") return start;
+  if (type === "weekly_digest") {
+    const { year, week } = isoWeek(start);
+    return `${year}-w${pad2(week)}`;
+  }
+  if (type === "monthly_digest") return start.slice(0, 7);
+  return null;
+};
+
+/** The first day of the period a URL segment names, or null when the segment is not a valid one. */
+const periodFromSegment = (type: ArchiveType, segment: string): string | null => {
+  if (type === "daily") return isRealDay(segment) ? segment : null;
+  if (type === "monthly") {
+    const day = `${segment}-01`;
+    return /^\d{4}-\d{2}$/.test(segment) && isRealDay(day) ? day : null;
+  }
+  const match = /^(\d{4})-w(\d{2})$/.exec(segment);
+  if (!match) return null;
+  const [year, week] = [Number(match[1]), Number(match[2])];
+  const monday = shiftDay(weekStart(`${year}-01-04`), (week - 1) * 7);
+  const check = isoWeek(monday);
+  return week >= 1 && check.year === year && check.week === week ? monday : null;
+};
+
+/** A post's public path: the period URL for a dated digest, else the slug URL older post types use. */
+const canonicalPath = (post: { contentType: CurrentAffairsContentType; digestDate?: string | null; slug: string }): string => {
+  const archive = archiveOf(post.contentType);
+  const segment = archive && post.digestDate ? periodSegment(post.contentType, post.digestDate) : null;
+  return archive && segment ? `${archivePath(archive)}/${segment}` : `${HUB_PATH}/${post.slug}`;
+};
+
+/** Where a published post opens: its public page, relative so it works on preview and live hosts. */
+const openHref = canonicalPath;
+
+/** The id of a story's section in the digest article; `index` is its 0-based place in the digest. */
+const itemAnchor = (index: number, headline: string) => `item-${index + 1}-${slugify(headline).slice(0, 40) || "untitled"}`;
+
 export const currentAffairsMeta = {
   CONTENT_TYPES,
   STATUSES,
   LANGUAGES,
   TAG_KINDS,
   DIGEST_OPTIONS,
-  publicPath,
-  openHref,
   DEFAULT_QUIZ_QUESTIONS,
   OPTIONS_PER_QUESTION,
   DIGEST_TARGET,
@@ -229,4 +305,17 @@ export const currentAffairsMeta = {
   autoTitle,
   stripHtml,
   readingMinutes,
+  HUB_PATH,
+  ARCHIVE_TYPES,
+  ARCHIVE_CONTENT_TYPE,
+  isArchiveType,
+  archiveOf,
+  archivePath,
+  periodSegment,
+  periodFromSegment,
+  canonicalPath,
+  openHref,
+  itemAnchor,
 };
+
+export type { ArchiveType };

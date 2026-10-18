@@ -539,7 +539,11 @@
   color: inherit;
 }
 
+/* The page's scroller. Positioned so absolutely positioned descendants, such as
+   the .srOnly table headings, are contained and clipped here; without it they
+   resolve against <html>, stretch the document and add a second scrollbar. */
 .pageContainer {
+  position: relative;
   flex-grow: 1;
   min-width: 0;
   overflow-y: auto;

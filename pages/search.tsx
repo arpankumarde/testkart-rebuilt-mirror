@@ -167,7 +167,7 @@ export default function SearchPage() {
                   </div>
                 </div>
 
-                <div className={styles.grid}>
+                <div className={styles.profileGrid}>
                   {isLoading ? (
                     Array(4).fill(0).map((_, i) => (
                       <div key={i} className={styles.skeletonTeacherCard}>
@@ -197,7 +197,7 @@ export default function SearchPage() {
                   </div>
                 </div>
 
-                <div className={styles.grid}>
+                <div className={styles.profileGrid}>
                   {isLoading ? (
                     Array(4).fill(0).map((_, i) => (
                       <div key={i} className={styles.skeletonTeacherCard}>

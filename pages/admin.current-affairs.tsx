@@ -198,7 +198,7 @@ const AdminCurrentAffairsPage: React.FC = () => {
     const extraTags = pillTags.length - VISIBLE_TAGS;
     const TypeIcon = TYPE_ICONS[row.contentType];
     const period = row.digestDate ? currentAffairsMeta.periodLabel(row.contentType, row.digestDate) : "";
-    const path = currentAffairsMeta.publicPath(row.slug);
+    const path = currentAffairsMeta.canonicalPath(row);
 
     return (
       <article key={row.id} className={`${styles.card} ${styles[`type_${row.contentType}`] ?? ""}`}>
