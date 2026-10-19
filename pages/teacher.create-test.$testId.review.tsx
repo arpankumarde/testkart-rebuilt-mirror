@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet";
 import { Button } from '../components/Button';
 import { useTeacherTestsQuery, useTeacherTestItemsQuery } from '../helpers/useTeacherTestsQuery';
 import { useTeacherTestMutations } from '../helpers/useTeacherTestMutations';
+import { usePublishesWithoutReview } from '../helpers/usePublishesWithoutReview';
 import { useTeacherLiveTestsQuery } from '../helpers/useTeacherLiveTestsQuery';
 import { Skeleton } from '../components/Skeleton';
 import { Badge } from '../components/Badge';
@@ -114,6 +115,7 @@ const Page = () => {
   const publishMutation = usePublishTestMutation();
   const publishLiveMutation = usePublishLiveTestMutation();
   const [claimBonus, setClaimBonus] = useState(false);
+  const publishesDirectly = usePublishesWithoutReview();
 
   const testPackage = tests?.find((t) => t.id === packageId);
   const liveTest = liveTestsData?.tests.find((lt) => lt.mockTestId === packageId);
@@ -268,6 +270,8 @@ const Page = () => {
   const isInReview = isLiveTest && liveTest ? liveTest.inReview : testPackage.inReview;
   const kindLabel = isLiveTest ? "live test" : "test series";
   const isPublishing = publishMutation.isPending || publishLiveMutation.isPending;
+  // A Creator Bonus claim always goes through review, even for a verified teacher.
+  const goesLiveNow = publishesDirectly && !(claimBonus && !isLiveTest);
   const verdict = isAlreadyLive ? "live" : isInReview ? "inReview" : isReadyToPublish ? "ready" : "blocked";
 
   const totalQuestions = orderedItems.reduce((sum, item) => sum + item.questionsCount, 0);
@@ -361,14 +365,23 @@ const Page = () => {
                 )}
                 {verdict === "ready" && (
                   <>
-                    <h2 id="review-verdict" className={styles.verdictTitle}>Ready to submit</h2>
+                    <h2 id="review-verdict" className={styles.verdictTitle}>
+                      {goesLiveNow ? "Ready to publish" : "Ready to submit"}
+                    </h2>
                     <p className={styles.verdictBody}>
                       {plural(orderedItems.length, "test")} and {plural(totalQuestions, "question")} pass every
-                      required check. Our team reviews it before students can find it.
+                      required check.{" "}
+                      {goesLiveNow
+                        ? "Your account is verified, so it goes live as soon as you publish."
+                        : publishesDirectly
+                          ? "Claiming the Creator Bonus sends it to our team for review before students can find it."
+                          : "Our team reviews it before students can find it."}
                     </p>
                     <div className={styles.verdictActions}>
                       <Button size="lg" onClick={handlePublish} disabled={isPublishing}>
-                        {isPublishing ? "Submitting..." : "Submit for review"}
+                        {goesLiveNow
+                          ? (isPublishing ? "Publishing..." : "Publish")
+                          : (isPublishing ? "Submitting..." : "Submit for review")}
                       </Button>
                     </div>
                     {!isLiveTest && (
@@ -389,7 +402,7 @@ const Page = () => {
                       {plural(failCount, "check")} to fix
                     </h2>
                     <p className={styles.verdictBody}>
-                      You can submit for review once every required check below passes.
+                      You can {publishesDirectly ? "publish" : "submit for review"} once every required check below passes.
                     </p>
                   </>
                 )}

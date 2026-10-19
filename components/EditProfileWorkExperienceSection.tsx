@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { format } from "date-fns";
 import {
   useWorkExperiencesQuery,
   useCreateWorkExperienceMutation,
@@ -25,6 +24,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Selectable } from "kysely";
 import { TeacherWorkExperiences } from "../helpers/schema";
+import { calendarDateToLocal, formatCalendarMonthYear, localToCalendarDate } from "../helpers/calendarDate";
 import styles from "./EditProfileWorkExperienceSection.module.css";
 
 // Schema for the form, matching the endpoint schema but adapted for UI
@@ -50,6 +50,15 @@ const workExperienceFormSchema = z.object({
 });
 
 type WorkExperienceFormValues = z.infer<typeof workExperienceFormSchema>;
+
+// The form works in local dates; the API carries calendar dates as UTC midnight.
+const toPayloadDates = (values: WorkExperienceFormValues) => ({
+  ...values,
+  startDate: localToCalendarDate(values.startDate),
+  endDate: values.isCurrent || !values.endDate ? null : localToCalendarDate(values.endDate),
+  description: values.description || null,
+  location: values.location || null,
+});
 
 export const EditProfileWorkExperienceSection: React.FC = () => {
   const { data: workExperiences, isLoading, error } = useWorkExperiencesQuery();
@@ -108,8 +117,8 @@ export const EditProfileWorkExperienceSection: React.FC = () => {
                 initialValues={{
                   companyName: experience.companyName,
                   position: experience.position,
-                  startDate: new Date(experience.startDate),
-                  endDate: experience.endDate ? new Date(experience.endDate) : null,
+                  startDate: calendarDateToLocal(experience.startDate),
+                  endDate: experience.endDate ? calendarDateToLocal(experience.endDate) : null,
                   isCurrent: experience.isCurrent ?? false,
                   description: experience.description ?? "",
                   location: experience.location ?? "",
@@ -118,9 +127,7 @@ export const EditProfileWorkExperienceSection: React.FC = () => {
                   try {
                     await updateMutation.mutateAsync({
                       id: experience.id,
-                      ...values,
-                      description: values.description || null,
-                      location: values.location || null,
+                      ...toPayloadDates(values),
                     });
                     toast.success("Work experience updated");
                     setEditingId(null);
@@ -149,11 +156,7 @@ export const EditProfileWorkExperienceSection: React.FC = () => {
             <WorkExperienceForm
               onSubmit={async (values) => {
                 try {
-                  await createMutation.mutateAsync({
-                    ...values,
-                    description: values.description || null,
-                    location: values.location || null,
-                  });
+                  await createMutation.mutateAsync(toPayloadDates(values));
                   toast.success("Work experience added");
                   setIsCreating(false);
                 } catch (err) {
@@ -186,12 +189,10 @@ const WorkExperienceDisplay: React.FC<{
   onEdit: () => void;
   onDelete: () => void;
 }> = ({ experience, onEdit, onDelete }) => {
-  const startDate = format(new Date(experience.startDate), "MMM yyyy");
+  const startDate = formatCalendarMonthYear(experience.startDate);
   const endDate = experience.isCurrent
     ? "Present"
-    : experience.endDate
-    ? format(new Date(experience.endDate), "MMM yyyy")
-    : "";
+    : formatCalendarMonthYear(experience.endDate);
 
   return (
     <div className={styles.displayItem}>

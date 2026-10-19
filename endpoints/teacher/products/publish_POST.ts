@@ -8,6 +8,7 @@ import {
   REVIEW_QUEUED_NOTE,
   alreadyInReviewMessage,
   hasPendingReview,
+  publishesWithoutReview,
   queueContentReview,
 } from "../../../helpers/contentReviewQueue";
 
@@ -46,8 +47,8 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
-    const needsReview = user.role !== "admin";
-    if (needsReview && (await hasPendingReview(db, "digital_product", input.id))) {
+    const needsReview = !(await publishesWithoutReview(db, user.role, product.teacherId));
+    if (user.role !== "admin" && (await hasPendingReview(db, "digital_product", input.id))) {
       return new Response(
         superjson.stringify({ error: alreadyInReviewMessage("study note") }),
         { status: 400 }
@@ -84,6 +85,7 @@ export async function handle(request: Request): Promise<Response> {
       console.log(`Digital product ${input.id} submitted for review by teacher ${product.teacherId}`);
       const output: OutputType = {
         success: true,
+        published: false,
         message: `Your study note has been submitted for review. ${REVIEW_QUEUED_NOTE}`,
       };
       return new Response(superjson.stringify(output));
@@ -99,11 +101,12 @@ export async function handle(request: Request): Promise<Response> {
       .where("id", "=", input.id)
       .execute();
 
-    console.log(`Digital product ${input.id} published by admin ${user.id}`);
+    console.log(`Digital product ${input.id} published without review by ${user.role} ${user.id}`);
 
     const output: OutputType = {
       success: true,
-      message: "Your product has been published successfully.",
+      published: true,
+      message: "Your study note is live. Students can find and buy it now.",
     };
 
     return new Response(superjson.stringify(output));

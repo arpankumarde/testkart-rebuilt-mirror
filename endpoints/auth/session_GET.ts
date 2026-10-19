@@ -6,6 +6,7 @@ import { User } from "../../helpers/User";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { db } from "../../helpers/db";
 import { isExamFocusPromptDue, loadExamFocus } from "../../helpers/examFocus";
+import { publishesWithoutReview } from "../../helpers/contentReviewQueue";
 import superjson from "superjson";
 import { OutputType } from "./session_GET.schema";
 
@@ -13,7 +14,7 @@ export async function handle(request: Request) {
   try {
     // Get session and basic user info
     // This also validates the session
-    const { user, session, impersonatorAdminId } = await getServerUserSession(
+    const { user, session, impersonatorAdminId, effectiveTeacherId } = await getServerUserSession(
       request
     );
 
@@ -86,6 +87,9 @@ export async function handle(request: Request) {
      signupSource: userProfile?.signupSource,
      examFocus,
     };
+    if (user.role === "teacher" || user.role === "admin") {
+      fullUser.publishesWithoutReview = await publishesWithoutReview(db, user.role, effectiveTeacherId);
+    }
     fullUser.examFocusPromptDue = isExamFocusPromptDue({
       user: fullUser,
       focusCount: examFocus.length,

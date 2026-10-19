@@ -70,6 +70,8 @@
     display: flex;
     align-items: center;
     margin-bottom: var(--spacing-2);
+    /* Keeps the month and year controls clear of the absolute nav buttons. */
+    padding-right: 4.5rem;
   }
 
   .caption_label {
@@ -200,38 +202,65 @@
     display: flex;
   }
 
-  /* Dropdown styles */
-  .caption_dropdowns {
+  /* Month and year dropdowns. react-day-picker v9 renders each as a native
+     select next to a caption_label that echoes its value; the select sits
+     invisibly over the label so the label is what shows and the select still
+     opens and takes keyboard input. */
+  .dropdowns {
     display: flex;
-    gap: var(--spacing-2);
     align-items: center;
-    justify-content: center;
-    padding-left: var(--spacing-2);
+    gap: var(--spacing-2);
+    min-width: 0;
+  }
+
+  .dropdown_root {
+    position: relative;
+    display: inline-flex;
   }
 
   .dropdown {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    opacity: 0;
+    cursor: pointer;
+    appearance: none;
+    font: inherit;
+  }
+
+  .dropdown_root .caption_label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-1);
     height: 2rem;
     padding: 0 var(--spacing-2);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     background-color: var(--card);
-    color: var(--card-foreground);
-    font-size: 0.9rem;
-    font-family: inherit;
-    cursor: pointer;
-    outline: none;
-    appearance: none; /* remove default arrow to style consistently if needed, but keeping default is safer */
+    font-size: 0.875rem;
+    white-space: nowrap;
+    transition: border-color var(--animation-duration-fast) ease;
   }
 
-  .dropdown:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 2px var(--primary-foreground), 0 0 0 4px var(--primary);
+  .dropdown_root .caption_label svg {
+    width: 1rem;
+    height: 1rem;
+    fill: currentColor;
+    color: var(--muted-foreground);
   }
-  
-  /* Hide the caption label when using dropdowns if both are rendered, 
-     though usually react-day-picker handles this by replacing label with dropdowns */
-  .caption_dropdowns + .caption_label {
-    display: none;
+
+  .dropdown_root:hover .caption_label {
+    border-color: var(--tk-brand-text);
+  }
+
+  .dropdown_root:focus-within .caption_label {
+    border-color: var(--tk-brand-text);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tk-brand) 35%, transparent);
   }
 
   /* Dark mode adjustments */

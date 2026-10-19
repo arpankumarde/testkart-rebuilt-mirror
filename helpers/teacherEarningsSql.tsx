@@ -156,11 +156,13 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
       )
     UNION ALL
     -- Bundle earnings: use the fee captured at time of sale (orders.platform_fee_percentage)
-    -- when available; only fall back to that bundle's teacher's current live fee for legacy
-    -- orders that predate that column. Correlates to cb.teacher_id (the bundle's own teacher)
-    -- rather than the outer teacherIdExpr, so this stays correct for the global (unfiltered) case.
+    -- when available; only fall back to that bundle's teacher's current live fee (account
+    -- override, then subscription) for legacy orders that predate that column. Correlates to
+    -- cb.teacher_id (the bundle's own teacher) rather than the outer teacherIdExpr, so this
+    -- stays correct for the global (unfiltered) case.
     SELECT o.total_amount::numeric * (1 - COALESCE(
       o.platform_fee_percentage,
+      (SELECT fee_user.platform_fee_override FROM users fee_user WHERE fee_user.id = cb.teacher_id),
       (SELECT COALESCE(ts.platform_fee_override, sp.platform_fee_percentage)
        FROM teacher_subscriptions ts
        JOIN subscription_plans sp ON ts.plan_id = sp.id

@@ -12,6 +12,7 @@ export type OutputType = Selectable<TeacherSubscriptions> & {
   planPrice: number;
   planDurationDays: number;
   platformFeePercentage: number;
+  hasAccountFeeOverride: boolean;
 };
 
 export type SubscriptionStatusDetails = OutputType | null;

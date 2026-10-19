@@ -11,7 +11,10 @@ type Executor = Kysely<DB> | Transaction<DB>;
  * Teacher content goes live only after an admin approves it. A teacher's
  * publish action queues a pending contentReviews row; admin/content-reviews
  * approves it (publishApprovedContent) or rejects it with a note. Admin users
- * publish directly. Bundles skip review: they publish at once, but only when
+ * and verified teachers publish directly (publishesWithoutReview), except that
+ * a Creator Bonus claim always goes through review, since crediting needs an
+ * approved review. An item already waiting for review stays in the queue: it
+ * cannot be published around it. Bundles skip review: they publish at once, but only when
  * every item in them is already published. The admin preview page can also make
  * any item live, move it back to draft or reject it after it went live
  * (takeDownContent).
@@ -41,6 +44,25 @@ export class ContentGoneError extends Error {
 
 export const contentGoneMessage = (contentType: ContentType) =>
   `The teacher deleted this ${CONTENT_NOUNS[contentType]}, so it was removed from the review queue. No email was sent.`;
+
+/**
+ * Whether a publish by this user goes live at once. The badge checked is the
+ * owning teacher's, so a team manager publishes under the owner's verification.
+ * isVerified is the paid-subscription badge, also set by admins.
+ */
+export async function publishesWithoutReview(
+  executor: Executor,
+  role: string,
+  teacherId: number
+): Promise<boolean> {
+  if (role === "admin") return true;
+  const owner = await executor
+    .selectFrom("users")
+    .select("isVerified")
+    .where("id", "=", teacherId)
+    .executeTakeFirst();
+  return owner?.isVerified === true;
+}
 
 /** Queues content for admin review. Returns the new review's id, or null when it is already waiting. */
 export async function queueContentReview(

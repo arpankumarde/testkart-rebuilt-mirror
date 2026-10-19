@@ -60,4 +60,6 @@ export interface User {
   // Filled by auth/session only. Login responses leave them out.
   examFocus?: ExamFocusItem[];
   examFocusPromptDue?: boolean;
+  /** Teachers and admins: publishing goes live at once (admin, or the owning teacher is verified). */
+  publishesWithoutReview?: boolean;
 }

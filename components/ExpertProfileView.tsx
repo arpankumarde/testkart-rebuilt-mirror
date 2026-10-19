@@ -30,6 +30,7 @@ import { computeTeacherProfileStats, formatStatCount } from "../helpers/teacherP
 import { getOrganizationProfilePath } from "../helpers/organizationRoutes";
 import { bundlePriceProps, formatItemPrice, itemPriceProps } from "../helpers/homepageItemUtils";
 import { Placeholder } from "../helpers/placeholderImages";
+import { formatCalendarMonthYear } from "../helpers/calendarDate";
 import { liveTestPath } from "../helpers/liveTestRoutes";
 import { EXPERT_PROFILE_SHARE_CAMPAIGN } from "../helpers/shareLinks";
 import { TeacherProductCard } from "./HomepageContentSection";
@@ -121,13 +122,6 @@ const CatalogueGroup: React.FC<CatalogueGroupProps> = ({ title, cards, groupRef 
       )}
     </section>
   );
-};
-
-const formatMonthYear = (value: Date | string | null) => {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat("en-IN", { month: "short", year: "numeric" }).format(date);
 };
 
 const formatYear = (value: Date | string | null | undefined) => {
@@ -581,8 +575,8 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
                         {entry.location ? ` · ${entry.location}` : ""}
                       </p>
                       <p className={styles.timelineDate}>
-                        {formatMonthYear(entry.startDate)} -{" "}
-                        {entry.isCurrent ? "Present" : formatMonthYear(entry.endDate)}
+                        {formatCalendarMonthYear(entry.startDate)} -{" "}
+                        {entry.isCurrent ? "Present" : formatCalendarMonthYear(entry.endDate)}
                       </p>
                       {entry.description && <p className={styles.timelineDesc}>{entry.description}</p>}
                     </li>

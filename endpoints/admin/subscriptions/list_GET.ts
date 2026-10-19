@@ -139,9 +139,9 @@ END
       END
     `.as("effectiveStatus");
 
-    // Effective platform fee: override if present, else plan's fee
+    // Effective platform fee: account override, then subscription override, else plan's fee
     const effectivePlatformFeeColumn = sql<number>`
-      COALESCE(ts.platform_fee_override, sp.platform_fee_percentage)
+      COALESCE(u.platform_fee_override, ts.platform_fee_override, sp.platform_fee_percentage)
     `.as("platformFeePercentage");
 
     const unorderedQuery = basePaidQuery

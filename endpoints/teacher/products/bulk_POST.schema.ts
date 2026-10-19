@@ -17,6 +17,8 @@ export type OutputType = {
   succeeded: number[];
   failed: { id: number; title?: string; reason: string }[];
   unpublishedBundles: AffectedBundle[];
+  /** For publish: true when the succeeded items went live at once, false when they were queued for review. */
+  published: boolean;
 };
 
 export const postTeacherProductsBulk = async (

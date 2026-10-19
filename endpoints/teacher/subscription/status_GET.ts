@@ -48,20 +48,28 @@ export async function handle(request: Request): Promise<Response> {
       return new Response(superjson.stringify(null));
     }
 
-    // An admin-granted custom trial stores its fee on
-    // teacherSubscriptions.platformFeeOverride, not on the plan — this used
-    // to always show the plan's default fee here, so a teacher on a custom
-    // trial (e.g. a 15% override on the free plan) would see the free
-    // plan's normal 30% on their own dashboard instead of their real rate.
+    const account = await db
+      .selectFrom("users")
+      .select("platformFeeOverride")
+      .where("id", "=", effectiveTeacherId)
+      .executeTakeFirst();
+    const accountFeeOverride = account?.platformFeeOverride ?? null;
+
+    // Same order as getTeacherPlatformFee: a standing account rate on users,
+    // then an admin-granted trial fee on teacherSubscriptions.platformFeeOverride,
+    // then the plan's own fee.
     const effectivePlatformFeePercentage =
-      subscription.platformFeeOverride !== null && subscription.platformFeeOverride !== undefined
-        ? Number(subscription.platformFeeOverride)
-        : Number(subscription.planPlatformFeePercentage);
+      accountFeeOverride !== null
+        ? Number(accountFeeOverride)
+        : subscription.platformFeeOverride !== null && subscription.platformFeeOverride !== undefined
+          ? Number(subscription.platformFeeOverride)
+          : Number(subscription.planPlatformFeePercentage);
 
     const output: OutputType = {
       ...subscription,
       planPrice: Number(subscription.planPrice),
       platformFeePercentage: effectivePlatformFeePercentage,
+      hasAccountFeeOverride: accountFeeOverride !== null,
     };
 
     return new Response(superjson.stringify(output));

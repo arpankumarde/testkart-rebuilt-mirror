@@ -23,6 +23,7 @@ import {
 import { useTeacherProductsQuery, useTeacherProductMutations } from '../helpers/useTeacherProductsQuery';
 import { useBundleUnpublishGuard } from '../helpers/useBundleUnpublishGuard';
 import { useListUrlParams } from '../helpers/useListUrlParams';
+import { usePublishesWithoutReview } from '../helpers/usePublishesWithoutReview';
 import { useRefetchOnLinkArrival } from '../helpers/useRefetchOnLinkArrival';
 import { Button } from './Button';
 import { Checkbox } from './Checkbox';
@@ -146,6 +147,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
   const state = rowStateOf(product);
   const meta = STATE_META[state];
   const StateIcon = meta.icon;
+  const publishesDirectly = usePublishesWithoutReview();
   const editPath = `/teacher/products/${product.id}/edit`;
   const sales = product.totalPurchases ?? 0;
   const views = product.views ?? 0;
@@ -212,7 +214,9 @@ const ProductRow: React.FC<ProductRowProps> = ({
             onClick={onSubmit}
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Submitting...' : 'Submit for review'}
+            {publishesDirectly
+              ? (isSubmitting ? 'Publishing...' : 'Publish')
+              : (isSubmitting ? 'Submitting...' : 'Submit for review')}
             <span className={styles.visuallyHidden}>: {product.title}</span>
           </button>
         )}
@@ -326,6 +330,7 @@ export const TeacherProductManager: React.FC = () => {
   // filters it was set under, so changing the status, category or search
   // starts again from page 1.
   const { read, write, searchParams } = useListUrlParams();
+  const publishesDirectly = usePublishesWithoutReview();
   const statusFilter = read<StatusTab>('status', STATUS_VALUES, 'all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -544,7 +549,7 @@ export const TeacherProductManager: React.FC = () => {
                   disabled={bulkPending}
                 >
                   <Upload size={15} aria-hidden="true" />
-                  Submit for review
+                  {publishesDirectly ? 'Publish' : 'Submit for review'}
                 </button>
                 <button
                   type="button"

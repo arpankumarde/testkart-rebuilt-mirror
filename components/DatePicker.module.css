@@ -1,18 +1,53 @@
-.datePickerTrigger {
+/* The trigger is an outline Button, which fills with the brand colour on hover
+   and left the date and placeholder unreadable. It is a form field, so it takes
+   the Input look in every state instead. Button's rules sit in @layer base, so
+   these unlayered ones win. */
+.datePickerTrigger,
+.datePickerTrigger:hover,
+.datePickerTrigger:active,
+.datePickerTrigger[data-state="open"] {
   width: 100%;
   justify-content: space-between;
   font-weight: 400;
   color: var(--foreground);
+  background-color: var(--card);
+  border-color: var(--border);
+}
+
+.datePickerTrigger:hover {
+  border-color: var(--tk-brand-text);
+}
+
+.datePickerTrigger:focus-visible,
+.datePickerTrigger[data-state="open"] {
+  border-color: var(--tk-brand-text);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tk-brand) 35%, transparent);
+}
+
+.datePickerTrigger:disabled {
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+  border-color: var(--border);
+}
+
+.datePickerTrigger svg {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
 }
 
 .placeholder {
   color: var(--muted-foreground);
 }
 
+/* Short viewports can fit the calendar on neither side of the field; scroll
+   inside the popover rather than run off screen. */
 .datePickerContent {
   display: flex;
   flex-direction: column;
   gap: 0;
+  max-height: var(--radix-popover-content-available-height);
+  overflow-y: auto;
+  border-radius: var(--radius);
 }
 
 .timeSection {

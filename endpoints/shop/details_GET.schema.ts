@@ -44,6 +44,8 @@ export type ShopProductDetails = Omit<
   | "thumbnailFileId"
   | "allowDownload"
 > & {
+  /** The teacher lets buyers download this note's PDFs. A flag only, never a link. */
+  allowDownload: boolean;
   price: number;
   rating: number | null;
   totalPurchases: number;

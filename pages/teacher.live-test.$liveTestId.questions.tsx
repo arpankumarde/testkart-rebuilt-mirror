@@ -35,6 +35,7 @@ import { useTestItemSubjectsQuery } from "../helpers/useTestItemSubjectsQuery";
 import { WithdrawReviewButton } from "../components/WithdrawReviewButton";
 import { TeacherRejectionBanner } from "../components/TeacherRejectionBanner";
 import { useDownloadTestPdf } from "../helpers/useDownloadTestPdf";
+import { usePublishesWithoutReview } from "../helpers/usePublishesWithoutReview";
 import styles from "./teacher.live-test.$liveTestId.questions.module.css";
 
 const Page = () => {
@@ -47,6 +48,7 @@ const Page = () => {
     isFetching: isDetailsFetching,
   } = useLiveTestDetailsQuery(id);
   const publishMutation = usePublishLiveTestMutation();
+  const publishesDirectly = usePublishesWithoutReview();
 
   const testItemId = liveTestDetails?.mockTestItem?.id ?? null;
 
@@ -61,15 +63,15 @@ const Page = () => {
     toast.promise(
       publishMutation.mutateAsync({ liveTestId: liveTestDetails.id }),
       {
-        loading: "Submitting live test for review...",
+        loading: publishesDirectly ? "Publishing live test..." : "Submitting live test for review...",
         success: (data) => {
           navigate("/teacher/live-tests");
-          return data.message || "Your live test has been submitted for review.";
+          return data.message || (data.published ? "Your live test is live." : "Your live test has been submitted for review.");
         },
         error: (err) =>
           err instanceof Error
             ? err.message
-            : "Failed to submit live test for review",
+            : publishesDirectly ? "Failed to publish live test" : "Failed to submit live test for review",
       }
     );
     setIsPublishDialogOpen(false);
@@ -135,7 +137,7 @@ const Page = () => {
                 ) : (
                   <CheckCircle size={16} />
                 )}
-                Submit for review
+                {publishesDirectly ? "Publish" : "Submit for review"}
               </Button>
             )}
           </div>
@@ -147,17 +149,28 @@ const Page = () => {
         >
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Submit this live test for review?</DialogTitle>
+              <DialogTitle>
+                {publishesDirectly ? "Publish this live test?" : "Submit this live test for review?"}
+              </DialogTitle>
               <DialogDescription className={styles.publishConfirmWarning}>
                 <AlertTriangle size={20} className={styles.warningIcon} />
-                <span>
-                  <strong>Heads up:</strong> Our team reviews your live test
-                  before students can see it and register, and we will email you
-                  once it is approved or needs changes. Leave time for the review
-                  before registration closes, and check that all details -
-                  including questions, schedule, prize pool, and settings - are
-                  correct.
-                </span>
+                {publishesDirectly ? (
+                  <span>
+                    <strong>Heads up:</strong> Your account is verified, so the
+                    live test goes live straight away and students can see it and
+                    register. Check that all details - including questions,
+                    schedule, prize pool, and settings - are correct.
+                  </span>
+                ) : (
+                  <span>
+                    <strong>Heads up:</strong> Our team reviews your live test
+                    before students can see it and register, and we will email you
+                    once it is approved or needs changes. Leave time for the review
+                    before registration closes, and check that all details -
+                    including questions, schedule, prize pool, and settings - are
+                    correct.
+                  </span>
+                )}
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
@@ -168,9 +181,9 @@ const Page = () => {
                 onClick={handlePublish}
                 disabled={publishMutation.isPending}
               >
-                {publishMutation.isPending
-                  ? "Submitting..."
-                  : "Submit for review"}
+                {publishesDirectly
+                  ? (publishMutation.isPending ? "Publishing..." : "Publish")
+                  : (publishMutation.isPending ? "Submitting..." : "Submit for review")}
               </Button>
             </DialogFooter>
           </DialogContent>

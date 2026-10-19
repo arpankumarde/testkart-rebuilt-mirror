@@ -7,6 +7,7 @@ import {
   REVIEW_QUEUED_NOTE,
   alreadyInReviewMessage,
   hasPendingReview,
+  publishesWithoutReview,
   queueContentReview,
 } from "../../../helpers/contentReviewQueue";
 import { sendReviewChatAlert } from "../../../helpers/reviewChatAlert";
@@ -47,8 +48,8 @@ export async function handle(request: Request) {
       return new Response(superjson.stringify({ error: "This live test is already published." }), { status: 400 });
     }
 
-    const needsReview = user.role !== "admin";
-    if (needsReview && (await hasPendingReview(db, "live_test", liveTest.id))) {
+    const needsReview = !(await publishesWithoutReview(db, user.role, liveTest.teacherId));
+    if (user.role !== "admin" && (await hasPendingReview(db, "live_test", liveTest.id))) {
       return new Response(superjson.stringify({ error: alreadyInReviewMessage("live test") }), { status: 400 });
     }
 
@@ -105,7 +106,7 @@ export async function handle(request: Request) {
     });
 
     console.log(
-      `Live test ${liveTest.id} ${needsReview ? `submitted for review by teacher ${liveTest.teacherId}` : `published by admin ${user.id}`}`
+      `Live test ${liveTest.id} ${needsReview ? `submitted for review by teacher ${liveTest.teacherId}` : `published without review by ${user.role} ${user.id}`}`
     );
 
     if (needsReview) {
@@ -114,9 +115,10 @@ export async function handle(request: Request) {
 
     const output: OutputType = {
       success: true,
+      published: !needsReview,
       message: needsReview
         ? `Your live test has been submitted for review. ${REVIEW_QUEUED_NOTE}`
-        : "Your live test has been published successfully.",
+        : "Your live test is live. Students can find it and register now.",
     };
 
     return new Response(superjson.stringify(output));

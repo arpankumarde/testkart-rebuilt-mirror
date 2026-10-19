@@ -1986,6 +1986,7 @@ export interface Users {
   mobileNumber: string | null;
   mobileVerified: Generated<boolean>;
   onboardingCompleted: Generated<boolean>;
+  platformFeeOverride: Numeric | null;
   productInterest: Json | null;
   publicEmail: string | null;
   publicPhone: string | null;

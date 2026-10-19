@@ -4,6 +4,7 @@ import {
   REVIEW_QUEUED_NOTE,
   alreadyInReviewMessage,
   hasPendingReview,
+  publishesWithoutReview,
   queueContentReview,
 } from "../../../helpers/contentReviewQueue";
 import { hasCourseDescription } from "../../../helpers/courseDraft";
@@ -52,8 +53,9 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
-    const needsReview = user.role !== "admin";
-    if (needsReview && (await hasPendingReview(db, "course", courseId))) {
+    const needsReview =
+      claimCreatorBonus === true || !(await publishesWithoutReview(db, user.role, course.teacherId));
+    if (user.role !== "admin" && (await hasPendingReview(db, "course", courseId))) {
       return new Response(
         superjson.stringify({ error: alreadyInReviewMessage("course") }),
         { status: 400 }
@@ -106,6 +108,7 @@ export async function handle(request: Request): Promise<Response> {
       console.log(`Course ${courseId} submitted for review by teacher ${course.teacherId}`);
       const output: OutputType = {
         success: true,
+        published: false,
         message: `Your course has been submitted for review.${submitted.bonusNote} ${REVIEW_QUEUED_NOTE}`,
       };
       return new Response(superjson.stringify(output));
@@ -120,11 +123,12 @@ export async function handle(request: Request): Promise<Response> {
       .where("id", "=", courseId)
       .execute();
 
-    console.log(`Course ${courseId} published by admin ${user.id}`);
+    console.log(`Course ${courseId} published without review by ${user.role} ${user.id}`);
 
     const output: OutputType = {
       success: true,
-      message: "Your course has been published successfully.",
+      published: true,
+      message: "Your course is live. Students can find and buy it now.",
     };
 
     return new Response(superjson.stringify(output));

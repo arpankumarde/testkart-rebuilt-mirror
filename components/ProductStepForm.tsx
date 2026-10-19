@@ -18,6 +18,7 @@ import { useExamNameSuggestions } from '../helpers/useExamNameSuggestions';
 import { addSuggestedExam, getItemExamNames, MAX_ITEM_EXAMS } from '../helpers/itemExams';
 import { Skeleton } from './Skeleton';
 import { useTeacherProductMutations } from '../helpers/useTeacherProductsQuery';
+import { usePublishesWithoutReview } from '../helpers/usePublishesWithoutReview';
 import { useTeacherProductDetailsQuery } from '../helpers/useTeacherProductDetailsQuery';
 import { useTeacherProductAnalyzePdf } from '../helpers/useTeacherProductAnalyzePdf';
 import { useUploadLimits } from '../helpers/useUploadLimits';
@@ -145,6 +146,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
   const baselineRef = useRef<string | null>(null);
 
   const { createProductMutation, updateProductMutation, publishProductMutation } = useTeacherProductMutations({ silent: true });
+  const publishesDirectly = usePublishesWithoutReview();
   const analyzePdfMutation = useTeacherProductAnalyzePdf();
   const limits = useUploadLimits();
   const pdfMaxMb = Math.min(limits.digitalProductPdfMaxMb, STUDY_NOTES_PDF_MAX_MB);
@@ -596,14 +598,18 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
           // queued, so for those saving is the whole job.
           if (action === 'publish' && !isPublished && !isInReview && !adminEdit) {
             publishProductMutation.mutate({ id: productId }, {
-              onSuccess: () => {
-                toast.success('Saved and submitted for review. We will email you once it is approved or needs changes.');
+              onSuccess: (result) => {
+                toast.success(
+                  result.published
+                    ? 'Saved and published. Students can find and buy it now.'
+                    : 'Saved and submitted for review. We will email you once it is approved or needs changes.'
+                );
                 leaveAfterSave();
               },
               onError: (error) => {
                 markSaved();
                 setIsSubmittingAction(null);
-                toast.error(`Your changes are saved, but the product was not submitted for review. ${parseErrorMessage(error)}`);
+                toast.error(`Your changes are saved, but the product was not ${publishesDirectly ? 'published' : 'submitted for review'}. ${parseErrorMessage(error)}`);
               },
             });
           } else {
@@ -1221,7 +1227,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
                     title={readiness.fileIssue || undefined}
                   >
                     {isSubmittingAction === 'publish' && <Spinner size="sm" />}
-                    Save &amp; submit for review
+                    {publishesDirectly ? <>Save &amp; publish</> : <>Save &amp; submit for review</>}
                   </Button>
                 </>
               )}

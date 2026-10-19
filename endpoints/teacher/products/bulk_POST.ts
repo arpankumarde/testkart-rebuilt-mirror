@@ -4,7 +4,7 @@ import { schema, OutputType } from "./bulk_POST.schema";
 import superjson from "superjson";
 import { getProductPublishIssues, formatPublishIssues } from "../../../helpers/digitalProductRules";
 import { findStudyNoteFileProblem } from "../../../helpers/studyNoteFileCheck";
-import { pendingReviewIds, queueContentReview } from "../../../helpers/contentReviewQueue";
+import { pendingReviewIds, publishesWithoutReview, queueContentReview } from "../../../helpers/contentReviewQueue";
 import {
   bundleConfirmationResponse,
   findPublishedBundlesContaining,
@@ -37,6 +37,7 @@ export async function handle(request: Request): Promise<Response> {
     const succeeded: number[] = [];
     const failed: OutputType["failed"] = [];
     let unpublishedBundles: AffectedBundle[] = [];
+    let needsReview = true;
 
     for (const id of input.ids) {
       if (!foundIds.has(id)) {
@@ -55,8 +56,8 @@ export async function handle(request: Request): Promise<Response> {
             .orderBy("id", "asc")
             .execute()
         : [];
-      const needsReview = user.role !== "admin";
-      const alreadyInReview = needsReview
+      needsReview = !(await publishesWithoutReview(db, user.role, effectiveTeacherId));
+      const alreadyInReview = user.role !== "admin"
         ? await pendingReviewIds(db, "digital_product", candidateIds)
         : new Set<number>();
       for (const p of products) {
@@ -144,7 +145,12 @@ export async function handle(request: Request): Promise<Response> {
       }
     }
 
-    const output: OutputType = { succeeded, failed, unpublishedBundles };
+    const output: OutputType = {
+      succeeded,
+      failed,
+      unpublishedBundles,
+      published: input.action === "publish" && !needsReview,
+    };
 
     return new Response(superjson.stringify(output));
   } catch (error) {

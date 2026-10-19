@@ -68,7 +68,7 @@ export function getProductPublishIssues(product: PublishCandidate): string[] {
     .map(({ i }) => `"${product.fileTitles?.[i]?.trim() || `File ${i + 1}`}"`);
   if (hasRealFile && uncheckedFiles.length > 0) {
     issues.push(
-      `get ${uncheckedFiles.join(", ")} checked: open the note and click Save & submit for review, which checks every PDF (replace any file it flags)`
+      `get ${uncheckedFiles.join(", ")} checked: open the note and click Save & submit for review (Save & publish on verified accounts), which checks every PDF (replace any file it flags)`
     );
   }
   return issues;

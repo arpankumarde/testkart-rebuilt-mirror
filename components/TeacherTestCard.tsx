@@ -21,6 +21,7 @@ import { TeacherCardInsights } from './TeacherCardInsights';
 import { TeacherRejectionNote } from './TeacherRejectionNote';
 import { performanceHref } from '../helpers/teacherPerformanceFormat';
 import { useTeacherTestMutations } from '../helpers/useTeacherTestMutations';
+import { usePublishesWithoutReview } from '../helpers/usePublishesWithoutReview';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -57,8 +58,9 @@ export const TeacherTestCard: React.FC<TeacherTestCardProps> = ({
 }) => {
   const [isShareOpen, setShareOpen] = React.useState(false);
   // Toasts its own success and error and refreshes the list, so the card
-  // moves to In review once it lands.
+  // moves to In review (or Live, for a verified teacher) once it lands.
   const publishMutation = useTeacherTestMutations().usePublishTestMutation();
+  const publishesDirectly = usePublishesWithoutReview();
   const testUrl = buildPublicAssetUrl('test-series', test.slug);
 
   const isPublished = test.isPublished;
@@ -198,7 +200,11 @@ export const TeacherTestCard: React.FC<TeacherTestCardProps> = ({
                   className={styles.menuItem}
                 >
                   <Upload size={16} />
-                  <span>{publishMutation.isPending ? 'Submitting...' : 'Submit for review'}</span>
+                  <span>
+                    {publishesDirectly
+                      ? (publishMutation.isPending ? 'Publishing...' : 'Publish')
+                      : (publishMutation.isPending ? 'Submitting...' : 'Submit for review')}
+                  </span>
                 </DropdownMenuItem>
               )}
               {canDelete && (

@@ -16,6 +16,7 @@ import { parseErrorMessage } from "./parseErrorMessage";
 import { CUSTOM_EXAM_NAMES_QUERY_KEY } from "./useExamNameSuggestions";
 import { TEACHER_PRODUCT_DETAILS_QUERY_KEY } from "./useTeacherProductDetailsQuery";
 import { TEACHER_DASHBOARD_STATS_QUERY_KEY } from "./useTeacherDashboardStats";
+import { SHOP_PRODUCT_DETAILS_QUERY_KEY } from "./useShopQuery";
 import { invalidateTeacherBundles } from "./invalidateTeacherBundles";
 import { bundleCascadeNote } from "./bundleCascadeNote";
 
@@ -101,6 +102,9 @@ export const useTeacherProductMutations = ({ silent = false }: MutationOptions =
         [...TEACHER_PRODUCT_DETAILS_QUERY_KEY, data.id],
         (previous: object | undefined) => ({ ...(previous ?? {}), ...data })
       );
+      // Removed rather than invalidated: refetchOnMount is off app-wide, so a stale
+      // public page cache would otherwise survive the next visit in this tab.
+      queryClient.removeQueries({ queryKey: SHOP_PRODUCT_DETAILS_QUERY_KEY(data.slug) });
     },
     onError: (error) => notifyError(error, "Failed to update product"),
   });
@@ -121,7 +125,7 @@ export const useTeacherProductMutations = ({ silent = false }: MutationOptions =
       invalidateList();
       queryClient.invalidateQueries({ queryKey: [...TEACHER_PRODUCT_DETAILS_QUERY_KEY, variables.id] });
     },
-    onError: (error) => notifyError(error, "Failed to submit product for review"),
+    onError: (error) => notifyError(error, "Failed to publish product"),
   });
 
   const unpublishProductMutation = useMutation({
@@ -140,7 +144,8 @@ export const useTeacherProductMutations = ({ silent = false }: MutationOptions =
     onSuccess: (data, variables) => {
       invalidateList();
       if (data.unpublishedBundles.length > 0) invalidateTeacherBundles(queryClient);
-      const verb = BULK_VERBS[variables.action];
+      const verb = data.published ? "Published" : BULK_VERBS[variables.action];
+      const publishWord = data.published ? "published" : "submitted for review";
       const done = data.succeeded.length;
       const plural = (n: number) => `${n} product${n === 1 ? "" : "s"}`;
       const bundleNote = bundleCascadeNote(data.unpublishedBundles.length);
@@ -156,7 +161,7 @@ export const useTeacherProductMutations = ({ silent = false }: MutationOptions =
         )
       );
       const headline = done === 0
-        ? `Nothing was ${variables.action === "publish" ? "submitted for review" : verb.toLowerCase()}. ${plural(data.failed.length)} skipped:`
+        ? `Nothing was ${variables.action === "publish" ? publishWord : verb.toLowerCase()}. ${plural(data.failed.length)} skipped:`
         : `${verb} ${plural(done)}.${bundleNote} ${plural(data.failed.length)} skipped:`;
       (done === 0 ? toast.error : toast.warning)(headline, { description, duration: 12000 });
     },

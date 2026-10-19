@@ -11,6 +11,8 @@ export type InputType = z.infer<typeof schema>;
 
 export type OutputType = {
   success: boolean;
+  /** True when it went live at once; false when it was queued for admin review. */
+  published: boolean;
   message: string;
 };
 

@@ -14,7 +14,8 @@ import {
   Eye,
   ChevronRight,
   Files,
-  Info
+  Info,
+  Download
 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useShopProductDetails, useRelatedProductsQuery, SHOP_PRODUCT_DETAILS_QUERY_KEY } from "../helpers/useShopQuery";
@@ -351,6 +352,12 @@ const ProductDetailsPage: React.FC = () => {
               )}
               {product.examName && (
                 <Badge variant="default" className={styles.categoryBadge}>{product.examName}</Badge>
+              )}
+              {product.allowDownload === true && (
+                <Badge variant="success" className={`${styles.categoryBadge} ${styles.downloadBadge}`}>
+                  <Download size={12} aria-hidden="true" />
+                  Downloadable
+                </Badge>
               )}
             </div>
             <h1 className={styles.title}>{product.title}</h1>

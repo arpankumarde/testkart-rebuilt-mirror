@@ -111,8 +111,10 @@ export const CurrentSubscriptionStatus: React.FC<
     : "N/A";
   
   const isFree = subscription.planPrice === 0;
-  const hasSpecialRate =
+  const hasTrialRate =
     subscription.platformFeeOverride !== null && subscription.platformFeeOverride !== undefined;
+  const hasSpecialRate =
+    subscription.hasAccountFeeOverride || hasTrialRate;
 
   const feeColorClass = isFree ? styles.feeDefault : "";
 
@@ -187,7 +189,7 @@ export const CurrentSubscriptionStatus: React.FC<
             </div>
           )}
 
-          {isFree && hasSpecialRate && (
+          {isFree && hasTrialRate && !subscription.hasAccountFeeOverride && (
             <div className={styles.detailRow}>
               <span className={styles.detailLabel}>Valid Until:</span>
               <span className={styles.detailValue}>{endDate}</span>

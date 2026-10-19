@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { format } from 'date-fns';
 import {
   Globe,
   Award,
@@ -21,6 +20,7 @@ import { Avatar, AvatarImage, AvatarFallback } from './Avatar';
 import { Badge } from './Badge';
 import { Button } from './Button';
 import { slugify } from '../helpers/slugify';
+import { formatCalendarMonthYear } from '../helpers/calendarDate';
 import { TeacherPublicProfile } from '../helpers/teacherProfileTypes';
 import { VerifiedBadge } from "./VerifiedBadge";
 import { playfulButtonClass } from './PlayfulButton';
@@ -77,7 +77,7 @@ export const TeacherProfileCard = ({ teacher, className, variant = 'default', to
   const formatWorkExperienceDate = (date: Date | null, isCurrent: boolean) => {
     if (isCurrent) return 'Present';
     if (!date) return '';
-    return format(new Date(date), 'MMM yyyy');
+    return formatCalendarMonthYear(date);
   };
 
   // Get current position

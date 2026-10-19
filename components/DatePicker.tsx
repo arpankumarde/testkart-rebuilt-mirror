@@ -102,11 +102,12 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, showTim
           <CalendarIcon size={16} />
         </Button>
       </PopoverTrigger>
-      <PopoverContent removeBackgroundAndPadding>
+      <PopoverContent removeBackgroundAndPadding align="start" collisionPadding={8}>
         <div className={styles.datePickerContent}>
           <Calendar 
             mode="single" 
             selected={value} 
+            defaultMonth={value}
             onSelect={handleDateChange} 
             showDropdowns 
             // When selecting dates far in the past (e.g. birth date, work history), 

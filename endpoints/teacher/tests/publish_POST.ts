@@ -5,6 +5,7 @@ import {
   REVIEW_QUEUED_NOTE,
   alreadyInReviewMessage,
   hasPendingReview,
+  publishesWithoutReview,
   queueContentReview,
 } from "../../../helpers/contentReviewQueue";
 import { submitForReview } from "../../../helpers/teacherCampaignSubmit";
@@ -60,8 +61,9 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
-    const needsReview = user.role !== "admin";
-    if (needsReview && (await hasPendingReview(db, "mock_test", input.testId))) {
+    const needsReview =
+      input.claimCreatorBonus === true || !(await publishesWithoutReview(db, user.role, test.teacherId));
+    if (user.role !== "admin" && (await hasPendingReview(db, "mock_test", input.testId))) {
       return new Response(
         superjson.stringify({ error: alreadyInReviewMessage("test series") }),
         { status: 400 }
@@ -128,6 +130,7 @@ export async function handle(request: Request): Promise<Response> {
       console.log(`Mock test ${input.testId} submitted for review by teacher ${test.teacherId}`);
       const output: OutputType = {
         success: true,
+        published: false,
         message: `Your test series has been submitted for review.${submitted.bonusNote} ${REVIEW_QUEUED_NOTE}`,
       };
       return new Response(superjson.stringify(output));
@@ -142,11 +145,12 @@ export async function handle(request: Request): Promise<Response> {
       .where("id", "=", input.testId)
       .execute();
 
-    console.log(`Mock test ${input.testId} published by admin ${user.id}`);
+    console.log(`Mock test ${input.testId} published without review by ${user.role} ${user.id}`);
 
     const output: OutputType = {
       success: true,
-      message: "Your test has been published successfully.",
+      published: true,
+      message: "Your test series is live. Students can find and buy it now.",
     };
 
     return new Response(superjson.stringify(output));

@@ -4,6 +4,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { AlertCircle, ArrowLeft, CheckCircle2, Circle, ExternalLink, EyeOff, MoreHorizontal, Send } from "lucide-react";
 import { useTeacherCourseDetailsQuery, useTeacherCourseMutations } from "../helpers/useTeacherCoursesQuery";
 import { useAuth } from "../helpers/useAuth";
+import { usePublishesWithoutReview } from "../helpers/usePublishesWithoutReview";
 import { useBundleUnpublishGuard } from "../helpers/useBundleUnpublishGuard";
 import { useAdminContentEdit } from "../helpers/useAdminContentEdit";
 import { useContentRejection } from "../helpers/useContentRejection";
@@ -59,6 +60,7 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
   const filledByAi = searchParams.get("from") === "ai";
 
   const { authState } = useAuth();
+  const publishesDirectly = usePublishesWithoutReview();
   const teacherName = adminEdit
     ? adminEdit.teacherName
     : authState.type === "authenticated"
@@ -282,7 +284,9 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
               ) : (
                 <Button onClick={startSubmit} disabled={publishCourseMutation.isPending || detailsUploading}>
                   <Send size={16} />
-                  {publishCourseMutation.isPending ? "Submitting..." : "Submit for review"}
+                  {publishesDirectly
+                    ? (publishCourseMutation.isPending ? "Publishing..." : "Publish")
+                    : (publishCourseMutation.isPending ? "Submitting..." : "Submit for review")}
                 </Button>
               )}
             </div>

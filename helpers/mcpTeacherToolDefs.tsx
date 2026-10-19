@@ -33,7 +33,10 @@ Publishing goes through review. A publish action submits the content to the Test
 goes live only once an admin approves it; the teacher is emailed when it is approved or needs
 changes. List actions return inReview: true while it waits, and publishing it again is refused.
 When the latest review was rejected, list actions return rejection with the admin's reason; fix
-that before submitting again. Submit only when the teacher asks. Unpublishing takes live content off sale.
+that before submitting again. Verified teachers skip review: their publish puts the content live at
+once, unless it claims the Creator Bonus, which still goes to review. Publish results carry
+published: true when the content went live and false when it was queued. Submit or publish only
+when the teacher asks. Unpublishing takes live content off sale.
 Bundles are the exception: they skip review and go live at once, and only when every item in them
 is already published.
 

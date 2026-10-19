@@ -8,6 +8,7 @@ import { Spinner } from './Spinner';
 import { AiRewriteError, postTeacherAIRewrite } from '../endpoints/teacher/ai/rewrite_POST.schema';
 import { hasCourseDescription, type CourseReadinessItem, type CourseReadinessKey } from '../helpers/courseDraft';
 import { sanitizeHtml } from '../helpers/sanitizeHtml';
+import { usePublishesWithoutReview } from '../helpers/usePublishesWithoutReview';
 import styles from './CourseSubmitDialog.module.css';
 
 export type CourseAiContext = {
@@ -48,8 +49,8 @@ const aiErrorMessage = (error: unknown) =>
     : 'AI could not write a description this time. Try again, or write it yourself.';
 
 /*
- * What Submit for review opens when the course is not ready to go straight
- * to the review queue. A missing description gets its own step: AI drafts one
+ * What Submit for review (Publish, for a verified teacher) opens when the course
+ * is not ready to submit straight away. A missing description gets its own step: AI drafts one
  * from the title and chapters, the teacher reads it, and one button saves it
  * and submits the course.
  */
@@ -71,6 +72,7 @@ export const CourseSubmitDialog: React.FC<CourseSubmitDialogProps> = ({
   // the new description makes the checklist complete.
   const [lockedStep, setLockedStep] = useState<Step | null>(null);
   const aiMutation = useMutation({ mutationFn: postTeacherAIRewrite });
+  const publishesDirectly = usePublishesWithoutReview();
 
   useEffect(() => {
     if (open) return;
@@ -134,7 +136,9 @@ export const CourseSubmitDialog: React.FC<CourseSubmitDialogProps> = ({
 
   if (step === 'save') {
     title = 'Save your changes and submit?';
-    description = 'Your unsaved edits in Details are saved first. Then the course goes to our team for review.';
+    description = publishesDirectly
+      ? 'Your unsaved edits in Details are saved first. Then the course is published, or sent for review if you claimed the Creator Bonus.'
+      : 'Your unsaved edits in Details are saved first. Then the course goes to our team for review.';
     body = null;
     footer = (
       <>

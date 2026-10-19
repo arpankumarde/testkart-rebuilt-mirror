@@ -1,6 +1,7 @@
 import { schema, OutputType } from "./update_POST.schema";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { db } from "../../../helpers/db";
+import { toDateOnlyString } from "../../../helpers/calendarDate";
 import superjson from "superjson";
 
 export async function handle(request: Request) {
@@ -32,14 +33,14 @@ export async function handle(request: Request) {
     }
 
     // If isCurrent is true, ensure endDate is null
-    const endDate = input.isCurrent ? null : input.endDate;
+    const endDate = input.isCurrent || !input.endDate ? null : toDateOnlyString(input.endDate);
 
     const result = await db
       .updateTable("teacherWorkExperiences")
       .set({
         companyName: input.companyName,
         position: input.position,
-        startDate: input.startDate,
+        startDate: toDateOnlyString(input.startDate),
         endDate: endDate,
         isCurrent: input.isCurrent,
         description: input.description,

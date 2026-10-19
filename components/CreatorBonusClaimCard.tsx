@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Gift, Sparkles } from "lucide-react";
 import { useCreatorBonusCheck } from "../helpers/useCreatorBonus";
+import { usePublishesWithoutReview } from "../helpers/usePublishesWithoutReview";
 import { formatRupees, videoReasonText, type CampaignContentType } from "../helpers/teacherCampaignRules";
 import styles from "./CreatorBonusClaimCard.module.css";
 
@@ -19,7 +20,8 @@ interface CreatorBonusClaimCardProps {
 }
 
 /*
- * The Creator Bonus opt-in shown next to "Submit for review". When the item
+ * The Creator Bonus opt-in shown next to "Submit for review" (or "Publish"). A
+ * claim always goes through review, even for a verified teacher. When the item
  * qualifies the teacher ticks it to claim the bonus with this submission; when it
  * does not yet, it shows how far the item has to go. Renders nothing while no
  * campaign is running.
@@ -34,6 +36,7 @@ export const CreatorBonusClaimCard: React.FC<CreatorBonusClaimCardProps> = ({
   className,
 }) => {
   const { data } = useCreatorBonusCheck(type, id);
+  const publishesDirectly = usePublishesWithoutReview();
   if (!data || !data.active) return null;
   const amount = formatRupees(data.amount);
 
@@ -50,6 +53,8 @@ export const CreatorBonusClaimCard: React.FC<CreatorBonusClaimCardProps> = ({
           <span className={styles.text}>
             This qualifies. Tick to claim it with this submission. Approval and the bonus are separate: our team
             credits it only for high quality work.
+            {publishesDirectly &&
+              " Claiming sends it to our team for review first; without the claim it goes live straight away."}
           </span>
           <span className={styles.tick}>
             <input
