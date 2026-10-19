@@ -129,6 +129,7 @@ const API_RULES: Record<string, ApiRule> = {
   "admin/subscription-transactions": ["subscriptions"],
   "admin/subscription-plans": ["subscriptions"],
   "admin/settings/subscription": ["subscriptions"],
+  "admin/promo-codes": ["subscriptions"],
   "admin/earnings": ["teacher_earnings"],
   "admin/withdrawals": ["teacher_withdrawals"],
   "admin/bank-details": ["teacher_bank_details"],

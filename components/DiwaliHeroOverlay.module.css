@@ -60,6 +60,26 @@
   }
 }
 
+/* Tablets, including iPad, and zoomed-in laptops (768-1099px): the heading's first line spans almost the full width,
+   but below it the second line and the subtitle are narrow (under about 470px). A whole 110px mandala sits in that
+   free side space, vertically centred between the first heading line and the search bar, and horizontally centred
+   in the gap beside the subtitle. */
+@media (min-width: 768px) and (max-width: 1099px) {
+  .mandala {
+    --mandala-size: 110px;
+    top: 50%;
+    display: block;
+  }
+
+  .mandala.left {
+    left: clamp(16px, calc((50% - 345px) / 2), 120px);
+  }
+
+  .mandala.right {
+    right: clamp(16px, calc((50% - 345px) / 2), 120px);
+  }
+}
+
 /* Hanging ornaments at the outer top corners, clear of the mandala */
 .hangers {
   position: absolute;
