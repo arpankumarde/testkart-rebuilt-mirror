@@ -1,6 +1,7 @@
 import { Transaction } from "kysely";
 import { DB } from "./schema";
 import { checkMandateStatus } from "./payuSIApi";
+import { recordPromoRedemption } from "./subscriptionPromoCodes";
 
 /**
  * Whether a successful autopay sign-up registered a PayU standing instruction.
@@ -46,13 +47,15 @@ export async function activatePaidSubscription(
 ): Promise<{ subscriptionId: number; startDate: Date; endDate: Date } | null> {
   const locked = await trx
     .selectFrom("subscriptionTransactions")
-    .select("status")
+    .select(["status", "promoCodeId", "discountAmount"])
     .where("id", "=", params.transactionId)
     .forUpdate()
     .executeTakeFirst();
   if (locked?.status !== "pending") {
     return null;
   }
+  const promoCodeId = locked.promoCodeId;
+  const promoDiscountAmount = locked.discountAmount;
 
   const current = await trx
     .selectFrom("teacherSubscriptions")
@@ -106,6 +109,15 @@ export async function activatePaidSubscription(
             nextChargeDate: endDate,
           } as const
         : {}),
+      ...(promoCodeId
+        ? {
+            promoCodeId,
+            promoDiscountAmount,
+            // The duration flag is re-read from the promo code itself at
+            // renewal time via subscriptionPromoDuration below, not stored
+            // redundantly here beyond what effectiveRenewalAmount needs.
+          }
+        : {}),
     })
     .returning("id")
     .execute();
@@ -121,6 +133,24 @@ export async function activatePaidSubscription(
     .set({ isVerified: true })
     .where("id", "=", params.teacherId)
     .execute();
+
+  if (promoCodeId) {
+    const promo = await trx
+      .selectFrom("promoCodes")
+      .select("recurringScope")
+      .where("id", "=", promoCodeId)
+      .executeTakeFirst();
+    await trx
+      .updateTable("teacherSubscriptions")
+      .set({ promoDuration: promo?.recurringScope ?? "first_month" })
+      .where("id", "=", newSubscription.id)
+      .execute();
+    await recordPromoRedemption(trx, {
+      promoCodeId,
+      teacherId: params.teacherId,
+      discountAmount: Number(promoDiscountAmount ?? 0),
+    });
+  }
 
   return { subscriptionId: newSubscription.id, startDate, endDate };
 }

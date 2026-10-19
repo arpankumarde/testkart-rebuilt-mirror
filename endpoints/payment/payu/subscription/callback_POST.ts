@@ -12,6 +12,7 @@ import { refundOrphanedWalletSubscriptionPayment } from "../../../../helpers/ref
 import { serializeForInlineScript } from "../../../../helpers/serializeForInlineScript";
 import { extractPayUFailure } from "../../../../helpers/extractPayUFailure";
 import { paymentFailureReason } from "../../../../helpers/paymentFailureReason";
+import { recordPromoRedemption } from "../../../../helpers/subscriptionPromoCodes";
 
 export async function handle(request: Request): Promise<Response> {
   const baseUrl = "https://testkart.in";
@@ -153,6 +154,12 @@ export async function handle(request: Request): Promise<Response> {
             endDate,
             paymentMethod: "payu",
             autoRenew: true,
+            ...(transaction.promoCodeId
+              ? {
+                  promoCodeId: transaction.promoCodeId,
+                  promoDiscountAmount: transaction.discountAmount,
+                }
+              : {}),
           })
           .returning("id")
           .execute();
@@ -194,6 +201,24 @@ export async function handle(request: Request): Promise<Response> {
           .set({ isVerified: true })
           .where("id", "=", transaction.teacherId)
           .execute();
+
+        if (transaction.promoCodeId) {
+          const promo = await trx
+            .selectFrom("promoCodes")
+            .select("recurringScope")
+            .where("id", "=", transaction.promoCodeId)
+            .executeTakeFirst();
+          await trx
+            .updateTable("teacherSubscriptions")
+            .set({ promoDuration: promo?.recurringScope ?? "first_month" })
+            .where("id", "=", newSubscription.id)
+            .execute();
+          await recordPromoRedemption(trx, {
+            promoCodeId: transaction.promoCodeId,
+            teacherId: transaction.teacherId,
+            discountAmount: Number(transaction.discountAmount ?? 0),
+          });
+        }
       });
 
       // Email notification after transaction commits

@@ -34,6 +34,7 @@ import { useAdminEndTrial } from "../helpers/adminSubscriptionsHooks";
 import { StartTrialDialog } from "../components/StartTrialDialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/Tabs";
 import { AdminSubscriptionPlansManager } from "../components/AdminSubscriptionPlansManager";
+import { AdminPromoCodesManager } from "../components/AdminPromoCodesManager";
 import { SubscriptionAdminView, SubscriptionSortColumn } from "../endpoints/admin/subscriptions/list_GET.schema";
 import styles from "./admin.subscriptions.module.css";
 
@@ -443,6 +444,7 @@ const AdminSubscriptionsPage: React.FC = () => {
           <TabsList className={styles.tabsList}>
             <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
             <TabsTrigger value="settings">Plans</TabsTrigger>
+            <TabsTrigger value="promo-codes">Promo Codes</TabsTrigger>
           </TabsList>
 
           <TabsContent value="subscriptions" className={styles.tabContent}>
@@ -520,6 +522,10 @@ const AdminSubscriptionsPage: React.FC = () => {
 
           <TabsContent value="settings" className={styles.tabContent}>
             <AdminSubscriptionPlansManager />
+          </TabsContent>
+
+          <TabsContent value="promo-codes" className={styles.tabContent}>
+            <AdminPromoCodesManager />
           </TabsContent>
         </Tabs>
       </div>

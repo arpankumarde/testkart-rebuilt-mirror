@@ -210,18 +210,20 @@
 .tocLink {
   display: flex;
   align-items: flex-start;
-  gap: 0.5rem;
-  padding: 0.4375rem 0.5rem;
+  gap: 0.625rem;
+  padding: 0.5rem 0.5rem;
+  border: 1px solid transparent;
   border-radius: var(--radius-md);
   color: var(--foreground);
   font-size: 0.8125rem;
-  line-height: 1.4;
+  line-height: 1.45;
   text-decoration: none;
-  transition: background-color var(--animation-duration-fast) ease, color var(--animation-duration-fast) ease;
+  transition: background-color var(--animation-duration-fast) ease, border-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
 }
 
 .tocLink:hover {
-  background-color: color-mix(in srgb, var(--foreground) 5%, var(--surface));
+  background-color: color-mix(in srgb, var(--foreground) 4%, var(--surface));
 }
 
 .tocLink:focus-visible {
@@ -229,10 +231,11 @@
   outline-offset: -2px;
 }
 
+/* Active: a peach wash with a hairline of the same hue, no edge bar. */
 .tocLinkActive,
 .tocLinkActive:hover {
-  background-color: color-mix(in srgb, var(--tk-brand) 12%, var(--surface));
-  box-shadow: inset 3px 0 0 var(--tk-brand);
+  background-color: color-mix(in srgb, var(--tk-brand) 10%, var(--surface));
+  border-color: color-mix(in srgb, var(--tk-brand) 30%, var(--surface));
   color: var(--tk-brand-text);
   font-weight: 600;
 }
@@ -250,15 +253,18 @@
   font-size: 0.6875rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  transition: background-color var(--animation-duration-fast) ease, color var(--animation-duration-fast) ease;
 }
 
 .tocLinkActive .tocNumber {
-  background-color: var(--tk-brand);
-  color: var(--tk-brand-ink);
+  background-color: color-mix(in srgb, var(--tk-brand) 26%, var(--surface));
+  color: var(--tk-brand-text);
 }
 
+/* Nudged so the first line sits centred on the badge. */
 .tocLabel {
   min-width: 0;
+  padding-top: 0.125rem;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -441,12 +447,59 @@
   background-color: var(--muted);
 }
 
-/* The one highlighted block per item: a warm wash with a coral edge. */
+/* The one highlighted block per item: a pale peach card with a hairline border. */
 .why {
-  padding: 0.875rem 1.125rem;
-  border-left: 3px solid var(--tk-brand);
-  border-radius: var(--radius-md);
-  background-color: color-mix(in srgb, var(--tk-brand) 8%, var(--surface));
+  padding: 1rem 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--tk-brand) 22%, var(--border));
+  border-radius: var(--radius-lg);
+  background-color: color-mix(in srgb, var(--tk-brand) 6%, var(--surface));
+  box-shadow: 0 1px 2px hsl(20 40% 20% / 0.05);
+}
+
+/* A label that carries its own icon instead of the dot. */
+.labelIcon::before {
+  display: none;
+}
+
+.labelIcon svg {
+  flex-shrink: 0;
+  color: var(--tk-brand-text);
+}
+
+/* Key points: a small check in a peach disc, centred on each item's first line. */
+.keyPoints > :global(ul) {
+  padding-left: 0;
+  list-style: none;
+}
+
+.keyPoints > :global(ul) > :global(li) {
+  position: relative;
+  margin-bottom: 0.625rem;
+  padding-left: 1.875rem;
+}
+
+.keyPoints > :global(ul) > :global(li)::before,
+.keyPoints > :global(ul) > :global(li)::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: calc((1.7em - 1.125rem) / 2);
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.keyPoints > :global(ul) > :global(li)::before {
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--tk-brand) 16%, var(--surface));
+}
+
+/* lucide "check", drawn as a mask so it takes the themed brand text colour. */
+.keyPoints > :global(ul) > :global(li)::after {
+  background-color: var(--tk-brand-text);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E")
+    center / 0.6875rem no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E")
+    center / 0.6875rem no-repeat;
 }
 
 .block {
@@ -515,20 +568,143 @@
   background-color: color-mix(in srgb, var(--warning) 12%, var(--surface));
 }
 
-.quiz {
+/* The quiz preview card: a peach wash with a coral edge, the whole card opens the quiz. */
+.quizCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  border: 1px solid color-mix(in srgb, var(--tk-brand) 45%, var(--surface));
+  border-radius: var(--radius-lg);
+  background-color: color-mix(in srgb, var(--tk-brand) 11%, var(--surface));
+  box-shadow: 0 1px 2px hsl(20 40% 20% / 0.06), 0 10px 24px -14px hsl(20 60% 30% / 0.35);
+  cursor: pointer;
+  scroll-margin-top: calc(var(--ca-toc-top, var(--spacing-4)) + var(--spacing-2));
+  transition: border-color var(--animation-duration-fast) ease, box-shadow var(--animation-duration-fast) ease;
+}
+
+.quizCard:hover {
+  border-color: var(--tk-brand);
+  box-shadow: 0 1px 2px hsl(20 40% 20% / 0.08), 0 14px 30px -14px hsl(20 60% 30% / 0.45);
+}
+
+.quizArt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 4rem;
+  height: 4rem;
+  border-radius: var(--radius-lg);
+  background-color: var(--tk-brand);
+  color: var(--tk-brand-ink);
+  box-shadow: 0 6px 14px -6px hsl(20 70% 35% / 0.55);
+}
+
+.quizCardBody {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-5, 1.25rem);
-  padding: var(--spacing-5, 1.25rem);
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.quizEyebrow {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tk-brand-text);
+}
+
+.quizCardTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.375rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+.quizBlurb {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--foreground);
+}
+
+.quizFacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.quizFacts li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 1.75rem;
+  padding: 0 0.625rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background-color: var(--surface);
+  color: var(--foreground);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.quizFacts li svg {
+  color: var(--tk-brand-text);
+}
+
+.quizFacts .quizHidden {
+  background-color: var(--muted);
+}
+
+.quizCardActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-2);
+}
+
+.quizCta {
+  font-weight: 700;
+}
+
+.quizStatus {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The quiz itself, opened from the card. Full screen on phones. */
+.quizDialog {
+  display: flex;
+  flex-direction: column;
+  width: min(48rem, calc(100vw - 2rem));
+  max-width: none;
+  max-height: min(90vh, 56rem);
+  padding: 0;
+  overflow: hidden;
   border-radius: var(--radius-lg);
-  background-color: color-mix(in srgb, var(--chart-color-5) 11%, var(--surface));
-  scroll-margin-top: calc(var(--ca-toc-top, var(--spacing-4)) + var(--spacing-2));
+  background-color: var(--surface);
+  color: var(--foreground);
 }
 
 .quizHead {
   display: flex;
   align-items: center;
   gap: var(--spacing-3);
+  padding: 1.25rem 3.75rem 1rem 1.5rem;
 }
 
 .quizIcon {
@@ -539,8 +715,8 @@
   width: 2.25rem;
   height: 2.25rem;
   border-radius: var(--radius-md);
-  background-color: var(--surface);
-  color: var(--foreground);
+  background-color: var(--tk-brand);
+  color: var(--tk-brand-ink);
 }
 
 .quizTitle {
@@ -548,12 +724,38 @@
   font-family: var(--font-family-heading);
   font-size: 1.125rem;
   font-weight: 800;
+  line-height: 1.3;
+  color: var(--foreground);
 }
 
 .quizMeta {
   margin: 2px 0 0;
   font-size: 0.8125rem;
   color: var(--muted-foreground);
+}
+
+.quizProgress {
+  flex-shrink: 0;
+  height: 4px;
+  background-color: var(--muted);
+}
+
+.quizProgress span {
+  display: block;
+  height: 100%;
+  background-color: var(--tk-brand);
+  transition: width var(--animation-duration-normal) ease;
+}
+
+/* Its own query container: the dialog is portalled out of .root, so the narrow-width rules
+   for the options grid measure this instead. */
+.quizBody {
+  container-type: inline-size;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1.25rem 1.5rem 1.5rem;
 }
 
 .quizList {
@@ -671,8 +873,23 @@
 
 .quizFoot {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--spacing-3);
+  padding: 0.875rem 1.5rem;
+  border-top: 1px solid var(--border);
+  background-color: var(--surface);
+}
+
+.quizFootEnd {
+  margin-left: auto;
+}
+
+.quizCount {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
 }
 
 .score {
@@ -761,6 +978,29 @@
     grid-template-columns: 1fr;
   }
 
+  .quizCard {
+    flex-direction: column;
+    gap: var(--spacing-4);
+    padding: 1.25rem;
+  }
+
+  .quizArt {
+    width: 3.25rem;
+    height: 3.25rem;
+  }
+
+  .quizCardTitle {
+    font-size: 1.1875rem;
+  }
+
+  .quizCardActions {
+    width: 100%;
+  }
+
+  .quizCta {
+    flex: 1 1 100%;
+  }
+
   .itemTitle {
     font-size: 1.1875rem;
   }
@@ -778,15 +1018,42 @@
   }
 
   .why {
-    padding: 0.75rem 0.875rem;
+    padding: 0.875rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .quizDialog {
+    top: 0;
+    left: 0;
+    transform: none;
+    width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+
+  .quizHead {
+    padding: 1rem 3.25rem 0.875rem 1rem;
+  }
+
+  .quizBody {
+    padding: 1rem;
+  }
+
+  .quizFoot {
+    padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .tocLink,
+  .tocNumber,
   .quizOption,
   .tocChevron,
-  .pillLink {
+  .pillLink,
+  .quizCard,
+  .quizProgress span {
     transition: none;
   }
 }

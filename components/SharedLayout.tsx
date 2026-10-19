@@ -11,6 +11,7 @@ import { ShoppingCart, ShoppingBag, Radio, Users, Search } from "lucide-react";
 import { Footer } from "./Footer";
 import { useCartItemsQuery } from "../helpers/useCartQuery";
 import { MobileBottomNav } from "./MobileBottomNav";
+import { DiwaliSiteLayer } from "./DiwaliSiteLayer";
 import { useDarkModeObserver } from "../helpers/useDarkModeObserver";
 import { BRAND_FAVICON, getBrandLogo } from "../helpers/brandAssets";
 import { ORGANIZATION_PATH_PATTERN } from "../helpers/organizationRoutes";
@@ -221,6 +222,7 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
         <link rel="shortcut icon" href={BRAND_FAVICON} />
       </Helmet>
       <div className={styles.layoutContainer}>
+      <DiwaliSiteLayer />
       <header
         className={`${styles.header} ${isCompactHeader ? styles.headerCompact : ''} ${isHeaderHidden ? styles.headerHidden : ''}`}
       >

@@ -150,7 +150,7 @@ const PEOPLE: Person[] = [
   },
   {
     name: "Meet Tomar",
-    role: "Market Research Intern",
+    role: "Associate Product Manager",
     photo: "https://cdn.testkart.in/team/meet-tomar.jpg",
   },
   {

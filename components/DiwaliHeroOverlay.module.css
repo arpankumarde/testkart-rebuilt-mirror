@@ -1,0 +1,164 @@
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+.left {
+  left: 0;
+}
+
+.right {
+  right: 0;
+}
+
+/* Mandalas: one whole mandala per side, its inner edge 24px clear of the 800px content column */
+.mandala {
+  --mandala-size: min(240px, calc(50% - 540px));
+  position: absolute;
+  top: calc(50% - 12px);
+  width: var(--mandala-size);
+  height: auto;
+  transform: translateY(-50%);
+  display: none;
+}
+
+.mandala.left {
+  left: calc(50% - 424px - var(--mandala-size));
+}
+
+.mandala.right {
+  right: calc(50% - 424px - var(--mandala-size));
+}
+
+@media (min-width: 1290px) {
+  .mandala {
+    display: block;
+  }
+}
+
+/* Laptops (1280/1366 screens, and scaled displays reporting about 1100-1394px): the side space is too narrow to
+   also clear the hangers horizontally, so a 150px-max mandala is centred in the gap beside the content. It stays
+   24px or more from the content column and sits below the hangers and above the diyas. From 1395px the rule
+   above takes over at the same 150px size, so the size never jumps. */
+@media (min-width: 1100px) and (max-width: 1394px) {
+  .mandala {
+    --mandala-size: min(150px, calc(50% - 448px));
+    top: 50%;
+    display: block;
+  }
+
+  .mandala.left {
+    left: calc((50% - 400px - var(--mandala-size)) / 2);
+  }
+
+  .mandala.right {
+    right: calc((50% - 400px - var(--mandala-size)) / 2);
+  }
+}
+
+/* Hanging ornaments at the outer top corners, clear of the mandala */
+.hangers {
+  position: absolute;
+  top: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(16px, 2vw, 28px);
+  padding: 0 clamp(14px, 2vw, 32px);
+}
+
+.hangers.right {
+  flex-direction: row-reverse;
+}
+
+/* Diyas in the bottom corners */
+.diyas {
+  position: absolute;
+  bottom: clamp(6px, 1.6vw, 22px);
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 0 clamp(12px, 2vw, 32px);
+}
+
+.diyas.right {
+  flex-direction: row-reverse;
+}
+
+.diya {
+  width: clamp(40px, 4.6vw, 68px);
+}
+
+.diyaSmall {
+  width: clamp(28px, 3vw, 44px);
+}
+
+/* Tablet: trim to one short ornament per side and one sparkle */
+@media (max-width: 1099px) {
+  .hangers {
+    --dw-len-scale: 0.4;
+  }
+
+  .hanger:not(:first-child) {
+    display: none;
+  }
+
+  .lg {
+    display: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  .diyaSmall {
+    display: none;
+  }
+}
+
+/* Phone-only lantern and small mandala per side; both end inside the hero's 48px top padding, clear of the headline */
+.mobileLantern,
+.mobileMandala {
+  display: none;
+}
+
+.mobileMandala {
+  position: absolute;
+  top: 4px;
+  width: 40px;
+  height: auto;
+}
+
+.mobileMandala.left {
+  left: 34px;
+}
+
+.mobileMandala.right {
+  right: 34px;
+}
+
+/* Mobile: a lantern and small mandala in each top corner, and the two corner diyas */
+@media (max-width: 767px) {
+  .hangers {
+    --dw-len-scale: 1;
+    padding: 0 10px;
+  }
+
+  .mobileMandala {
+    display: block;
+  }
+
+  .hanger,
+  .md {
+    display: none;
+  }
+
+  .mobileLantern {
+    display: flex;
+  }
+
+  .mobileLantern svg {
+    width: 18px;
+  }
+}

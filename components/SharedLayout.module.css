@@ -1,4 +1,6 @@
 .layoutContainer {
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   min-height: calc(100vh - var(--site-notice-offset));

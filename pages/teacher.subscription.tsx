@@ -8,6 +8,7 @@ import {
   useSubscriptionHistoryQuery,
   useCancelSubscriptionMutation,
   useSubscribeToPlanMutation,
+  useValidatePromoCodeMutation,
 } from "../helpers/useTeacherSubscription";
 import {
   useMandateStatusQuery,
@@ -16,6 +17,8 @@ import {
 import { useTeacherSubscriptionPaymentInfoQuery, useTeacherWalletSubscribeMutation } from "../helpers/useTeacherWalletSubscriptionHooks";
 import { Button } from "../components/Button";
 import { Switch } from "../components/Switch";
+import { Input } from "../components/Input";
+import { Tag, X as XIcon, CheckCircle2 } from "lucide-react";
 import { postPaymentPayuRecurringCreateMandate } from "../endpoints/payment/payu/recurring/create-mandate_POST.schema";
 import { postPaymentPayuRedirect } from "../endpoints/payment/payu/redirect_POST.schema";
 import { CurrentSubscriptionStatus } from "../components/CurrentSubscriptionStatus";
@@ -44,6 +47,16 @@ const SubscriptionPage: React.FC = () => {
   const [pendingPlan, setPendingPlan] = useState<{id: number; name: string; price: number; durationDays: number} | null>(null);
   const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
+
+  const [promoCodeInput, setPromoCodeInput] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState<{
+    code: string;
+    discountAmount: number;
+    finalPrice: number;
+    recurringScope: "first_month" | "every_month";
+  } | null>(null);
+  const [promoError, setPromoError] = useState<string | null>(null);
+  const validatePromoMutation = useValidatePromoCodeMutation();
 
   const paymentInfoQuery = useTeacherSubscriptionPaymentInfoQuery();
   const paymentMode = paymentInfoQuery.data?.paymentMode || "normal";
@@ -166,16 +179,52 @@ const SubscriptionPage: React.FC = () => {
       return;
     }
 
+    // Both payment modes now confirm through the same dialog below, so a
+    // promo code has one place to be entered before either flow redirects.
+    setPromoCodeInput("");
+    setAppliedPromo(null);
+    setPromoError(null);
+    setPendingPlan(plan);
+  };
+
+  const handleApplyPromoCode = async () => {
+    if (!pendingPlan || !promoCodeInput.trim()) return;
+    setPromoError(null);
+    try {
+      const result = await validatePromoMutation.mutateAsync({
+        code: promoCodeInput.trim(),
+        planId: pendingPlan.id,
+      });
+      setAppliedPromo({
+        code: result.code,
+        discountAmount: result.discountAmount,
+        finalPrice: result.finalPrice,
+        recurringScope: result.recurringScope,
+      });
+    } catch (error) {
+      setAppliedPromo(null);
+      setPromoError(error instanceof Error ? error.message : "Could not apply this code.");
+    }
+  };
+
+  const handleRemovePromoCode = () => {
+    setAppliedPromo(null);
+    setPromoError(null);
+    setPromoCodeInput("");
+  };
+
+  const handleConfirmSubscription = async () => {
+    if (!pendingPlan) return;
+    setIsInitiatingPayment(true);
+    const loadingToast = toast.loading("Processing payment...");
+
     if (paymentMode === "recurring") {
-      setIsInitiatingPayment(true);
-      const loadingToast = toast.loading("Setting up autopay...");
       try {
         const paymentData = await postPaymentPayuRecurringCreateMandate({
-          planId: plan.id,
+          planId: pendingPlan.id,
+          promoCode: appliedPromo?.code,
         });
-
         toast.success("Redirecting to payment gateway...", { id: loadingToast });
-
         setTimeout(() => {
           postPaymentPayuRedirect(paymentData);
         }, 500);
@@ -186,19 +235,14 @@ const SubscriptionPage: React.FC = () => {
           { id: loadingToast }
         );
       }
-    } else {
-      setPendingPlan(plan);
+      return;
     }
-  };
 
-  const handleConfirmSubscription = async () => {
-    if (!pendingPlan) return;
-    setIsInitiatingPayment(true);
-    const loadingToast = toast.loading("Processing payment...");
     try {
       const result = await walletSubscribeMutation.mutateAsync({
         planId: pendingPlan.id,
-        useWallet: useWalletBalance
+        useWallet: useWalletBalance,
+        promoCode: appliedPromo?.code,
       });
       
       if (result.status === "completed") {
@@ -325,12 +369,61 @@ const SubscriptionPage: React.FC = () => {
 
           {pendingPlan && (
             <div className={styles.paymentBreakdown}>
-              <div className={styles.breakdownRow}>
-                <span>Total Price:</span>
-                <strong>₹{pendingPlan.price.toLocaleString("en-IN")}</strong>
+              <div className={styles.promoRow}>
+                {appliedPromo ? (
+                  <div className={styles.promoApplied}>
+                    <CheckCircle2 size={16} className={styles.successText} />
+                    <span>
+                      Code <strong>{appliedPromo.code}</strong> applied: -₹{appliedPromo.discountAmount.toLocaleString("en-IN")}
+                      {appliedPromo.recurringScope === "every_month" ? " every renewal" : " this cycle"}
+                    </span>
+                    <button
+                      type="button"
+                      className={styles.promoRemoveButton}
+                      onClick={handleRemovePromoCode}
+                      aria-label="Remove promo code"
+                    >
+                      <XIcon size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <div className={styles.promoInputRow}>
+                    <Tag size={16} />
+                    <input
+                      type="text"
+                      className={styles.promoInput}
+                      placeholder="Have a promo code?"
+                      value={promoCodeInput}
+                      onChange={(e) => setPromoCodeInput(e.target.value.toUpperCase())}
+                      disabled={isInitiatingPayment}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleApplyPromoCode}
+                      disabled={!promoCodeInput.trim() || validatePromoMutation.isPending || isInitiatingPayment}
+                    >
+                      {validatePromoMutation.isPending ? "Checking..." : "Apply"}
+                    </Button>
+                  </div>
+                )}
+                {promoError && <p className={styles.formError}>{promoError}</p>}
               </div>
 
-              {walletBalance > 0 && (
+              <div className={styles.breakdownRow}>
+                <span>Plan Price:</span>
+                {appliedPromo ? (
+                  <strong>
+                    <span className={styles.strikethrough}>₹{pendingPlan.price.toLocaleString("en-IN")}</span>{" "}
+                    ₹{appliedPromo.finalPrice.toLocaleString("en-IN")}
+                  </strong>
+                ) : (
+                  <strong>₹{pendingPlan.price.toLocaleString("en-IN")}</strong>
+                )}
+              </div>
+
+              {paymentMode === "normal" && walletBalance > 0 && (
                 <div className={styles.walletToggleRow}>
                   <label htmlFor="dialog-use-wallet">Use Wallet Balance (Available: ₹{walletBalance.toLocaleString("en-IN")})</label>
                   <Switch 
@@ -341,31 +434,42 @@ const SubscriptionPage: React.FC = () => {
                 </div>
               )}
 
-              {useWalletBalance && walletBalance > 0 ? (
+              {paymentMode === "recurring" ? (
+                <p className={styles.warningNote}>
+                  You'll set up autopay and be charged ₹{(appliedPromo?.finalPrice ?? pendingPlan.price).toLocaleString("en-IN")} now
+                  {appliedPromo?.recurringScope === "every_month"
+                    ? `. Future renewals are discounted the same way, for ₹${Math.max(1, pendingPlan.price - appliedPromo.discountAmount).toLocaleString("en-IN")} each.`
+                    : `. Renewals after this cycle are charged the full ₹${pendingPlan.price.toLocaleString("en-IN")}.`}
+                </p>
+              ) : useWalletBalance && walletBalance > 0 ? (
                 <>
                   <div className={styles.breakdownRow}>
                     <span>Wallet Deduction:</span>
-                    <strong className={styles.successText}>-₹{Math.min(walletBalance, pendingPlan.price).toLocaleString("en-IN")}</strong>
+                    <strong className={styles.successText}>
+                      -₹{Math.min(walletBalance, appliedPromo?.finalPrice ?? pendingPlan.price).toLocaleString("en-IN")}
+                    </strong>
                   </div>
                   <div className={styles.breakdownRow}>
                     <span>To Pay via PayU:</span>
-                    {walletBalance >= pendingPlan.price ? (
+                    {walletBalance >= (appliedPromo?.finalPrice ?? pendingPlan.price) ? (
                       <strong className={styles.successText}>No additional payment needed</strong>
                     ) : (
-                      <strong>₹{(pendingPlan.price - walletBalance).toLocaleString("en-IN")}</strong>
+                      <strong>₹{((appliedPromo?.finalPrice ?? pendingPlan.price) - walletBalance).toLocaleString("en-IN")}</strong>
                     )}
                   </div>
                 </>
               ) : (
                 <div className={styles.breakdownRow}>
                   <span>Full payment via PayU:</span>
-                  <strong>₹{pendingPlan.price.toLocaleString("en-IN")}</strong>
+                  <strong>₹{(appliedPromo?.finalPrice ?? pendingPlan.price).toLocaleString("en-IN")}</strong>
                 </div>
               )}
 
-              <p className={styles.warningNote}>
-                Wallet deductions are non-refundable and will be reflected in your transaction history.
-              </p>
+              {paymentMode === "normal" && (
+                <p className={styles.warningNote}>
+                  Wallet deductions are non-refundable and will be reflected in your transaction history.
+                </p>
+              )}
             </div>
           )}
 

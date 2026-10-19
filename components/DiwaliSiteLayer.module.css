@@ -1,0 +1,269 @@
+/* Back layer: sits under all page content inside the isolated layout container */
+.back {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Fixed columns covering only the side margins beside page content (12px edge strip on narrow screens).
+   Pages use a 1200px container with 24px padding, so content spans the middle 1152px. */
+.gutter {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: max(12px, calc((100% - 1152px) / 2));
+  overflow: hidden;
+}
+
+.gutter.left {
+  left: 0;
+}
+
+.gutter.right {
+  right: 0;
+}
+
+@media (max-width: 1099px) {
+  .desktop {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .tablet {
+    display: none;
+  }
+}
+
+/* Edge layer: pinned to the viewport above page backgrounds (so full-width page wrappers cannot hide it) and
+   confined to the empty side margin beside the 1152px of page content (never less than the 24px page padding).
+   Its bottom edge stops at the footer's top once the footer scrolls in, which clips the corner glow there and
+   keeps the decoration resting on the footer. */
+.edge {
+  /* vw (minus up to 16px of scrollbar) keeps the value the same wherever it is used; a % would resolve per element */
+  --dw-margin: max(24px, calc((100vw - 1152px) / 2 - 8px));
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: var(--dw-footer-lift, 0px);
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Bottom corner: warm glow, fine flourish and a floating mini diya, flush in the screen corner and scaled to the margin */
+.corner {
+  position: absolute;
+  bottom: 0;
+  width: min(112px, calc(var(--dw-margin) - 8px));
+  aspect-ratio: 1;
+  display: none;
+}
+
+.corner.left {
+  left: 0;
+}
+
+.corner.right {
+  right: 0;
+}
+
+.cornerGlow {
+  bottom: -110px;
+}
+
+.left .cornerGlow {
+  left: -110px;
+}
+
+.right .cornerGlow {
+  right: -110px;
+}
+
+.cornerFlourish {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+}
+
+.right .cornerFlourish {
+  transform: scaleX(-1);
+}
+
+.cornerDiya {
+  position: absolute;
+  bottom: 8%;
+  width: 26%;
+}
+
+.left .cornerDiya {
+  left: 10%;
+}
+
+.right .cornerDiya {
+  right: 10%;
+}
+
+/* Top corner flourish below the navbar */
+.topFlourish {
+  position: absolute;
+  top: calc(var(--site-notice-offset) + var(--header-height) + 10px);
+  width: min(84px, calc(var(--dw-margin) - 8px));
+  display: none;
+}
+
+.topFlourish.left {
+  left: 0;
+  transform: scaleY(-1);
+}
+
+.topFlourish.right {
+  right: 0;
+  transform: scale(-1, -1);
+}
+
+/* From 1280px (laptops included) the margin is at least 56px, enough for a 48px corner group; it grows to full size
+   as the margin widens. Narrower desktops keep the hanging ornaments and sparkles. */
+@media (min-width: 1280px) {
+  .corner,
+  .topFlourish {
+    display: block;
+  }
+}
+
+/* Front layer: small ornaments hanging from the navbar into the side margin, at every desktop width */
+.front {
+  --dw-margin: max(24px, calc((100vw - 1152px) / 2 - 8px));
+  position: absolute;
+  top: calc(var(--header-height) + 1px);
+  left: 0;
+  right: 0;
+  z-index: 0;
+  height: 110px;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* The first ornament is centred in the margin while it is narrow; ornaments shrink to fit a 24px margin */
+.hangers {
+  position: absolute;
+  top: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 0 clamp(4px, calc((var(--dw-margin) - 26px) / 2), 24px);
+}
+
+.hangers svg {
+  max-width: calc(var(--dw-margin) - 8px);
+}
+
+.hangers.left {
+  left: 0;
+}
+
+.hangers.right {
+  right: 0;
+  flex-direction: row-reverse;
+}
+
+/* A second ornament needs about 102px of margin (24px inset, two ornaments, 18px gap) */
+@media (max-width: 1379px) {
+  .hanger:not(:first-child) {
+    display: none;
+  }
+}
+
+/* Phones and tablets (968px and below, where the header is fixed and pages keep a 16px side padding):
+   a small lantern hangs at the very screen edge, inside that padding, so it never reaches text. */
+.mobileLantern {
+  position: absolute;
+  top: 0;
+  display: none;
+}
+
+.mobileLantern.left {
+  left: 2px;
+}
+
+.mobileLantern.right {
+  right: 2px;
+}
+
+.mobileLantern svg {
+  width: 14px;
+}
+
+/* Page end: the corner group sits in the 72px bottom-nav clearance that SharedLayout keeps above the footer */
+.pageEnd {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--dw-footer-offset, 0px);
+  z-index: 0;
+  height: 72px;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  display: none;
+}
+
+.pageEndCorner {
+  position: absolute;
+  bottom: 0;
+  width: 64px;
+  aspect-ratio: 1;
+}
+
+.pageEndCorner.left {
+  left: 0;
+}
+
+.pageEndCorner.right {
+  right: 0;
+}
+
+.pageEndDiya {
+  position: absolute;
+  bottom: 6px;
+  width: 18px;
+}
+
+.left .pageEndDiya {
+  left: 8px;
+}
+
+.right .pageEndDiya {
+  right: 8px;
+}
+
+@media (max-width: 968px) {
+  .front {
+    display: block;
+    top: 64px;
+  }
+
+  .hangers {
+    display: none;
+  }
+
+  .mobileLantern {
+    display: flex;
+  }
+
+  .pageEnd {
+    display: block;
+  }
+}
+
+/* Matches SharedLayout's 56px mobile header below 480px */
+@media (max-width: 480px) {
+  .front {
+    top: 56px;
+  }
+}

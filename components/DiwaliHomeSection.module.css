@@ -1,0 +1,236 @@
+.band {
+  --band-ext-top: 16px;
+  --band-ext-bottom: 16px;
+  --dw-ivory-band: #fcf6eb;
+  --dw-hairline: #ead9b6;
+  position: relative;
+  isolation: isolate;
+}
+
+:global(.dark) .band {
+  --dw-ivory-band: hsl(32 20% 13%);
+  --dw-hairline: hsl(38 30% 26%);
+}
+
+/* Bands meet halfway across the 32px column gap; the first sits on the hero edge, the last on the footer */
+.first {
+  --band-ext-top: 0px;
+}
+
+.last {
+  --band-ext-bottom: 0px;
+}
+
+/* Sections with their own opaque background read these to match the band */
+.ivory {
+  --dw-section-bg: var(--dw-ivory-band);
+  --dw-section-rim: #f4e8d3;
+}
+
+:global(.dark) .ivory {
+  --dw-section-rim: hsl(32 18% 17%);
+}
+
+.back,
+.front {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Full-width warm ivory band with gold hairlines; the page container clips the scrollbar overhang */
+.wash {
+  position: absolute;
+  top: calc(-1 * var(--band-ext-top));
+  bottom: calc(-1 * var(--band-ext-bottom));
+  left: calc(50% - 50vw);
+  width: 100vw;
+  background-color: var(--dw-ivory-band);
+  border-top: 1px solid var(--dw-hairline);
+  border-bottom: 1px solid var(--dw-hairline);
+}
+
+.first .wash {
+  border-top: none;
+}
+
+.last .wash {
+  border-bottom: none;
+}
+
+.stroke,
+.stroke * {
+  fill: none;
+  stroke: var(--dw-line);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+
+.fill {
+  fill: var(--dw-gold);
+}
+
+/* Ornamental divider centred on the boundary above the section */
+.divider {
+  position: absolute;
+  top: calc(-1 * var(--band-ext-top));
+  left: 50%;
+  width: min(260px, 64%);
+  transform: translate(-50%, -50%);
+}
+
+.dividerSvg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.dividerDiya {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 30px;
+  transform: translate(-50%, -62%);
+}
+
+.dividerGlow {
+  left: 50%;
+  top: calc(-1 * var(--band-ext-top));
+  width: 200px;
+  transform: translate(-50%, -50%);
+}
+
+/* Gold rule and diya in the empty right side of a section header */
+.headerOrnament {
+  position: absolute;
+  top: 54px;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ruleSvg {
+  display: block;
+  width: 150px;
+  height: auto;
+}
+
+.headerDiya {
+  width: 28px;
+}
+
+.headerSparkleA {
+  right: 46px;
+  top: -14px;
+}
+
+.headerSparkleB {
+  right: 120px;
+  top: -6px;
+}
+
+/* Short ornaments hanging into the empty top margin of a section */
+.topHanger {
+  position: absolute;
+  top: calc(-1 * var(--band-ext-top));
+}
+
+.topHanger.left {
+  left: 8px;
+}
+
+.topHanger.right {
+  right: 8px;
+}
+
+/* Floating diyas in the empty bottom margin under a card grid */
+.cornerDiyas {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.cornerDiya {
+  width: 30px;
+}
+
+/* Sparkles in the outer page margins beside the 1400px column */
+.gs1 {
+  left: calc(50% - 50vw + 28px);
+  top: 18%;
+}
+
+.gs2 {
+  left: calc(50% - 50vw + 44px);
+  top: 64%;
+}
+
+.gs3 {
+  right: calc(50% - 50vw + 36px);
+  top: 30%;
+}
+
+.gs4 {
+  right: calc(50% - 50vw + 22px);
+  top: 78%;
+}
+
+/* A row of diyas in the empty bottom padding of the closing section */
+.diyaRow {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  transform: translateX(-50%);
+}
+
+.rowDiya {
+  width: 34px;
+}
+
+.rowDiyaSmall {
+  width: 24px;
+}
+
+@media (max-width: 1439px) {
+  .gutterSparkle {
+    display: none;
+  }
+}
+
+/* Phones: Join Testkart's bottom padding shrinks to 24-40px, too little for the row, so it sits just below
+   the section in the homepage's bottom-nav clearance (main's 72px bottom padding) instead */
+@media (max-width: 640px) {
+  .diyaRow {
+    top: calc(100% + 10px);
+    bottom: auto;
+  }
+
+  .rowDiya {
+    width: 30px;
+  }
+
+  .rowDiyaSmall {
+    width: 22px;
+  }
+}
+
+@media (max-width: 767px) {
+  .headerOrnament,
+  .topHanger,
+  .cornerDiyas {
+    display: none;
+  }
+
+  .divider {
+    width: min(200px, 60%);
+  }
+}

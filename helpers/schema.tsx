@@ -101,7 +101,7 @@ export type PrizeDistributionStatus = "distributed" | "not_applicable" | "pendin
 
 export type PrizeFundSource = "enrollment" | "teacher_wallet";
 
-export type PromoCodeAppliesTo = "all" | "bundles" | "courses" | "digital_products" | "live_tests" | "tests";
+export type PromoCodeAppliesTo = "all" | "bundles" | "courses" | "digital_products" | "live_tests" | "subscription" | "tests";
 
 export type QuestionType = "assertion_reason" | "comprehension" | "match_the_following" | "multiple_correct_mcq" | "numerical" | "single_correct_mcq";
 
@@ -1377,6 +1377,7 @@ export interface PromoCodes {
   createdAt: Generated<Timestamp>;
   createdByAdminId: number | null;
   createdByTeacherId: number | null;
+  description: string | null;
   discountType: DiscountType;
   discountValue: Numeric;
   id: Generated<number>;
@@ -1385,6 +1386,7 @@ export interface PromoCodes {
   maxDiscountAmount: Generated<Numeric | null>;
   minPurchaseAmount: Generated<Numeric | null>;
   perUserLimit: number | null;
+  recurringScope: string | null;
   targetItemIds: number[] | null;
   updatedAt: Generated<Timestamp>;
   usageCount: Generated<number>;
@@ -1589,6 +1591,7 @@ export interface SubscriptionPlans {
 export interface SubscriptionTransactions {
   amount: Numeric;
   createdAt: Generated<Timestamp | null>;
+  discountAmount: Numeric | null;
   id: Generated<number>;
   invoiceEmailSentAt: Timestamp | null;
   invoiceNumber: string | null;
@@ -1599,6 +1602,7 @@ export interface SubscriptionTransactions {
   paymentGatewayStatus: string | null;
   paymentMethod: string | null;
   planId: number;
+  promoCodeId: number | null;
   status: Generated<TransactionStatus>;
   subscriptionId: number | null;
   teacherId: number;
@@ -1813,6 +1817,9 @@ export interface TeacherSubscriptions {
   planId: number;
   platformFeeOverride: Generated<Numeric | null>;
   preDebitSentAt: Timestamp | null;
+  promoCodeId: number | null;
+  promoDiscountAmount: Numeric | null;
+  promoDuration: string | null;
   startDate: Timestamp | null;
   status: Generated<SubscriptionStatus>;
   teacherId: number;
@@ -2182,7 +2189,7 @@ export const MentorshipSubscriptionStatusArrayValues: [MentorshipSubscriptionSta
 export const OrderStatusArrayValues: [OrderStatus, ...OrderStatus[]] = ["cancelled","completed","failed","pending","refunded"];
 export const PrizeDistributionStatusArrayValues: [PrizeDistributionStatus, ...PrizeDistributionStatus[]] = ["distributed","not_applicable","pending"];
 export const PrizeFundSourceArrayValues: [PrizeFundSource, ...PrizeFundSource[]] = ["enrollment","teacher_wallet"];
-export const PromoCodeAppliesToArrayValues: [PromoCodeAppliesTo, ...PromoCodeAppliesTo[]] = ["all","bundles","courses","digital_products","live_tests","tests"];
+export const PromoCodeAppliesToArrayValues: [PromoCodeAppliesTo, ...PromoCodeAppliesTo[]] = ["all","bundles","courses","digital_products","live_tests","subscription","tests"];
 export const QuestionTypeArrayValues: [QuestionType, ...QuestionType[]] = ["assertion_reason","comprehension","match_the_following","multiple_correct_mcq","numerical","single_correct_mcq"];
 export const ReviewStatusArrayValues: [ReviewStatus, ...ReviewStatus[]] = ["approved","pending","rejected","senior_review"];
 export const SalesActivityTypeArrayValues: [SalesActivityType, ...SalesActivityType[]] = ["assignment_changed","call_logged","follow_up_changed","note_added","stage_changed"];

@@ -4,6 +4,7 @@ import { getTeacherSubscriptionPlans } from "../endpoints/teacher/subscription/p
 import { getTeacherSubscriptionHistory } from "../endpoints/teacher/subscription/history_GET.schema";
 import { postTeacherSubscriptionCancel } from "../endpoints/teacher/subscription/cancel_POST.schema";
 import { postTeacherSubscriptionSubscribe } from "../endpoints/teacher/subscription/subscribe_POST.schema";
+import { postTeacherSubscriptionValidatePromo } from "../endpoints/teacher/subscription/validate-promo_POST.schema";
 import { toast } from "sonner";
 import { parseErrorMessage } from "./parseErrorMessage";
 
@@ -97,5 +98,17 @@ export const useSubscribeToPlanMutation = () => {
         description: parseErrorMessage(error) ||  "An unknown error occurred",
       });
     },
+  });
+};
+
+/**
+ * Validates a promo code against a plan and returns the discount preview,
+ * without applying it to anything yet - applying happens as part of the
+ * actual checkout call (create-mandate or wallet-subscribe).
+ */
+export const useValidatePromoCodeMutation = () => {
+  return useMutation({
+    mutationFn: (params: { code: string; planId: number }) =>
+      postTeacherSubscriptionValidatePromo(params),
   });
 };

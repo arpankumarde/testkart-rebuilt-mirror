@@ -1,0 +1,354 @@
+.palette {
+  --dw-line: #d6a957;
+  --dw-gold: #c8922f;
+  --dw-ivory: #fff6e3;
+  --dw-saffron: #e7792b;
+  --dw-clay: #b8572b;
+  --dw-clay-dark: #6b2d12;
+  --dw-flame: #f6b436;
+  --dw-flame-core: #fff5d8;
+  --dw-glow: rgba(246, 180, 54, 0.75);
+  --dw-halo-core: rgba(255, 196, 92, 0.55);
+  --dw-halo-edge: rgba(246, 160, 54, 0.2);
+  --dw-warm-core: rgba(246, 184, 84, 0.18);
+  --dw-warm-edge: rgba(246, 184, 84, 0.07);
+  --dw-sway: 2.2deg;
+  --dw-bob: -3px;
+  --dw-len-scale: 1;
+}
+
+:global(.dark) .palette {
+  --dw-line: #a9853f;
+  --dw-gold: #d9a646;
+  --dw-ivory: #f4e2bb;
+  --dw-clay: #a24c25;
+  --dw-clay-dark: #3d1a0a;
+  --dw-glow: rgba(246, 180, 54, 0.6);
+  --dw-halo-core: rgba(255, 186, 72, 0.45);
+  --dw-halo-edge: rgba(246, 150, 40, 0.16);
+  --dw-warm-core: rgba(246, 170, 64, 0.12);
+  --dw-warm-edge: rgba(246, 170, 64, 0.04);
+}
+
+/* Mandala */
+.line {
+  fill: none;
+  stroke: var(--dw-line);
+  stroke-width: 1px;
+}
+
+.line * {
+  vector-effect: non-scaling-stroke;
+}
+
+.dotted {
+  stroke-dasharray: 1 4;
+  stroke-linecap: round;
+}
+
+.dots {
+  fill: var(--dw-line);
+}
+
+.spin {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* Shared fills */
+.gold {
+  fill: var(--dw-gold);
+}
+
+.saffron {
+  fill: var(--dw-saffron);
+}
+
+.ring {
+  fill: none;
+  stroke: var(--dw-gold);
+  stroke-width: 1.2;
+}
+
+.lanternBody {
+  fill: var(--dw-ivory);
+  stroke: var(--dw-gold);
+  stroke-width: 1;
+}
+
+.ribs {
+  fill: none;
+  stroke: var(--dw-gold);
+  stroke-width: 0.7;
+}
+
+.flame {
+  filter: drop-shadow(0 0 3px var(--dw-glow)) drop-shadow(0 0 8px var(--dw-glow));
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+.flameOuter {
+  fill: var(--dw-flame);
+}
+
+.flameCore {
+  fill: var(--dw-flame-core);
+}
+
+.wick {
+  stroke: var(--dw-clay-dark);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+}
+
+.oil {
+  fill: var(--dw-clay-dark);
+}
+
+.clay {
+  fill: var(--dw-clay);
+  stroke: var(--dw-gold);
+  stroke-width: 1.2;
+}
+
+.band {
+  fill: none;
+  stroke: var(--dw-gold);
+  stroke-width: 1.2;
+}
+
+/* Hanging ornaments: the hanger sways from its top, the ornament bobs on the string */
+.hanger {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform-origin: 50% 0;
+}
+
+.string {
+  display: block;
+  width: 1px;
+  height: calc(var(--len) * var(--dw-len-scale) + 4px);
+  background-color: var(--dw-gold);
+}
+
+.bob {
+  display: block;
+  margin-top: -4px;
+}
+
+.ornament {
+  display: block;
+  width: 22px;
+  height: auto;
+  filter: drop-shadow(0 2px 6px var(--dw-glow));
+}
+
+.ornamentWide {
+  width: 26px;
+}
+
+/* Floor diya with a breathing halo */
+.diyaWrap {
+  position: relative;
+  display: block;
+}
+
+.glow {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 62%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--dw-halo-core) 0%, var(--dw-halo-edge) 40%, transparent 70%);
+  transform: translate(-50%, -18%);
+}
+
+.diyaSvg {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Corner flourish and warm glow for inner pages */
+.flourish {
+  display: block;
+  height: auto;
+}
+
+.warmGlow {
+  position: absolute;
+  display: block;
+  width: 220px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--dw-warm-core) 0%, var(--dw-warm-edge) 45%, transparent 70%);
+}
+
+/* Sparkles */
+.sparkle {
+  position: absolute;
+  display: block;
+  color: var(--dw-gold);
+  filter: drop-shadow(0 0 4px var(--dw-glow));
+}
+
+.sparkleSvg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .spin {
+    animation: dw-spin var(--dw-dur, 240s) linear infinite;
+  }
+
+  .reverse {
+    animation-direction: reverse;
+  }
+
+  .hanger {
+    animation: dw-sway var(--dw-dur, 6s) ease-in-out calc(-1 * var(--dw-delay, 0s)) infinite alternate;
+  }
+
+  .bob {
+    animation: dw-bob calc(var(--dw-dur, 6s) * 0.62) ease-in-out calc(-1 * var(--dw-delay, 0s)) infinite alternate;
+  }
+
+  .flame {
+    animation: dw-flicker 2.8s ease-in-out calc(-1 * var(--dw-delay, 0s)) infinite;
+  }
+
+  .ember {
+    animation: dw-ember 3.2s ease-in-out calc(-1 * var(--dw-delay, 0s)) infinite alternate;
+  }
+
+  .glow {
+    animation: dw-breathe 3.6s ease-in-out calc(-1 * var(--dw-delay, 0s)) infinite alternate;
+  }
+
+  .glowBreathe {
+    animation: dw-glow-breathe 7s ease-in-out infinite alternate;
+  }
+
+  .float {
+    animation: dw-float 5.2s ease-in-out calc(-1 * var(--dw-delay, 0s)) infinite alternate;
+  }
+
+  .twinkle {
+    animation: dw-twinkle var(--dw-dur, 3.6s) ease-in-out calc(-1 * var(--dw-delay, 0s)) infinite;
+  }
+
+  .drift {
+    animation: dw-drift var(--dw-dur, 16s) ease-in-out calc(-1 * var(--dw-delay, 0s)) infinite;
+  }
+}
+
+@keyframes dw-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dw-sway {
+  from {
+    transform: rotate(calc(-1 * var(--dw-sway)));
+  }
+  to {
+    transform: rotate(var(--dw-sway));
+  }
+}
+
+@keyframes dw-bob {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(var(--dw-bob));
+  }
+}
+
+@keyframes dw-glow-breathe {
+  from {
+    opacity: 0.6;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dw-float {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes dw-flicker {
+  0%,
+  100% {
+    transform: scale(1, 1);
+  }
+  35% {
+    transform: scale(0.96, 1.06);
+  }
+  70% {
+    transform: scale(1.03, 0.96);
+  }
+}
+
+@keyframes dw-ember {
+  from {
+    opacity: 0.7;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dw-breathe {
+  from {
+    opacity: 0.55;
+    transform: translate(-50%, -18%) scale(0.88);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -18%) scale(1.08);
+  }
+}
+
+@keyframes dw-twinkle {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.72) rotate(20deg);
+  }
+}
+
+@keyframes dw-drift {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.6);
+  }
+  18% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dw-dx), var(--dw-dy)) scale(0.9);
+  }
+}

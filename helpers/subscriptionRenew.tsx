@@ -15,6 +15,7 @@ import {
   revokeLeftoverMandates,
   revokeSubscriptionMandate,
 } from "./teacherMandate";
+import { effectiveRenewalAmount } from "./subscriptionPromoCodes";
 
 export async function subscriptionRenew(): Promise<void> {
   console.log("[subscriptionRenew] Starting scheduled job...");
@@ -104,6 +105,8 @@ export async function subscriptionRenew(): Promise<void> {
           "teacherSubscriptions.mandateId",
           "teacherSubscriptions.mandateStatus",
           "teacherSubscriptions.mandatePaymentMode",
+          "teacherSubscriptions.promoDuration",
+          "teacherSubscriptions.promoDiscountAmount",
           "subscriptionPlans.price",
         ])
         .where("teacherSubscriptions.status", "=", "active")
@@ -146,7 +149,7 @@ export async function subscriptionRenew(): Promise<void> {
 
           const result = await sendPreDebitNotification({
             authPayuId: sub.mandateId,
-            amount: sub.price,
+            amount: String(effectiveRenewalAmount(sub)),
           });
 
           if (result.success) {
@@ -188,6 +191,8 @@ export async function subscriptionRenew(): Promise<void> {
           "teacherSubscriptions.teacherId",
           "teacherSubscriptions.planId",
           "teacherSubscriptions.endDate",
+          "teacherSubscriptions.promoDuration",
+          "teacherSubscriptions.promoDiscountAmount",
           "subscriptionPlans.name as planName",
           "subscriptionPlans.price",
           "subscriptionPlans.durationDays",
@@ -230,11 +235,13 @@ export async function subscriptionRenew(): Promise<void> {
         let transactionId: number | undefined;
 
         try {
+          const chargeAmount = effectiveRenewalAmount(sub);
+
           // Create pending transaction record
           const insertedTx = await db
             .insertInto("subscriptionTransactions")
             .values({
-              amount: sub.price,
+              amount: String(chargeAmount),
               teacherId: sub.teacherId,
               planId: sub.planId,
               subscriptionId: sub.id,
@@ -248,7 +255,7 @@ export async function subscriptionRenew(): Promise<void> {
           if (!insertedTx) continue;
           transactionId = insertedTx.id;
 
-          const amountStr = parseFloat(String(sub.price)).toFixed(2);
+          const amountStr = chargeAmount.toFixed(2);
 
           // Execute payment intent
           const result = await executeSITransaction({
@@ -296,7 +303,7 @@ export async function subscriptionRenew(): Promise<void> {
             const template = subscriptionRenewed(
               sub.displayName,
               sub.planName,
-              Number(sub.price),
+              chargeAmount,
               newEndDate
             );
             await sendEmail({
@@ -444,6 +451,8 @@ export async function subscriptionRenew(): Promise<void> {
           "teacherSubscriptions.teacherId",
           "teacherSubscriptions.planId",
           "teacherSubscriptions.endDate",
+          "teacherSubscriptions.promoDuration",
+          "teacherSubscriptions.promoDiscountAmount",
           "subscriptionPlans.name as planName",
           "subscriptionPlans.price",
           "subscriptionPlans.durationDays",
@@ -465,7 +474,7 @@ export async function subscriptionRenew(): Promise<void> {
         
         try {
           const balance = await getTeacherAvailableBalance(sub.teacherId);
-          const price = Number(sub.price);
+          const price = effectiveRenewalAmount(sub);
           
           if (balance.availableBalance >= price) {
             const currentEndDate = sub.endDate ? new Date(sub.endDate) : now;

@@ -9,6 +9,12 @@ import { createHash, randomUUID } from "crypto";
 import { PAYU_MODE } from "../../../helpers/_publicConfigs";
 import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
 import { assertPlanRenewable } from "../../../helpers/teacherPlanRenewal";
+import {
+  validatePromoCodeForPlan,
+  computePromoDiscountAmount,
+  applyPromoDiscount,
+  recordPromoRedemption,
+} from "../../../helpers/subscriptionPromoCodes";
 
 export async function handle(request: Request) {
   try {
@@ -23,7 +29,7 @@ export async function handle(request: Request) {
     }
 
     const json = superjson.parse(await request.text());
-    const { planId, useWallet } = schema.parse(json);
+    const { planId, useWallet, promoCode } = schema.parse(json);
 
     // a. Query platform_settings
     const setting = await db
@@ -48,12 +54,21 @@ export async function handle(request: Request) {
       throw new Error("Invalid or inactive subscription plan.");
     }
 
-    const planPrice = Number(plan.price);
-    const isFree = planPrice === 0;
+    const rawPlanPrice = Number(plan.price);
+    const isFree = rawPlanPrice === 0;
 
     if (!isFree) {
       await assertPlanRenewable(effectiveTeacherId, plan.id);
     }
+
+    // A promo code on a free plan has nothing to discount; only resolve one
+    // when there is a real price to apply it to.
+    const promo =
+      !isFree && promoCode
+        ? await validatePromoCodeForPlan(db, promoCode, plan.id, effectiveTeacherId)
+        : null;
+    const promoDiscountAmount = promo ? computePromoDiscountAmount(rawPlanPrice, promo) : 0;
+    const planPrice = promo ? applyPromoDiscount(rawPlanPrice, promo) : rawPlanPrice;
 
     // c. Free plan
     if (isFree) {
@@ -124,6 +139,9 @@ export async function handle(request: Request) {
             endDate,
             paymentMethod: "wallet",
             autoRenew: false,
+            ...(promo
+              ? { promoCodeId: promo.id, promoDiscountAmount: promoDiscountAmount, promoDuration: promo.recurringScope }
+              : {}),
           })
           .returningAll()
           .execute();
@@ -137,6 +155,7 @@ export async function handle(request: Request) {
             planId: plan.id,
             subscriptionId: newSubscription.id,
             amount: plan.price,
+            ...(promo ? { promoCodeId: promo.id, discountAmount: String(promoDiscountAmount) } : {}),
             status: "completed",
             paymentMethod: "wallet",
             transactionId: txnid,
@@ -148,6 +167,14 @@ export async function handle(request: Request) {
           .set({ isVerified: true })
           .where("id", "=", effectiveTeacherId)
           .execute();
+
+        if (promo) {
+          await recordPromoRedemption(trx, {
+            promoCodeId: promo.id,
+            teacherId: effectiveTeacherId,
+            discountAmount: promoDiscountAmount,
+          });
+        }
 
         return { kind: "completed" as const };
       }
@@ -221,6 +248,7 @@ export async function handle(request: Request) {
           status: "pending",
           paymentMethod: "payu",
           transactionId: payuTxnId,
+          ...(promo ? { promoCodeId: promo.id, discountAmount: String(promoDiscountAmount) } : {}),
         })
         .execute();
 

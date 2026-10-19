@@ -3,6 +3,7 @@ import superjson from "superjson";
 
 export const schema = z.object({
   planId: z.number().int().positive(),
+  promoCode: z.string().optional(),
 });
 
 export type InputType = z.infer<typeof schema>;

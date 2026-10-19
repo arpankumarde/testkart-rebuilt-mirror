@@ -2,12 +2,13 @@
   position: relative;
   width: 100%;
   padding: clamp(3rem, 8vw, 4rem) clamp(1.25rem, 4vw, 2.5rem);
-  background-color: #F7F8F8;
+  background-color: var(--dw-section-bg, #F7F8F8);
   overflow-x: hidden;
 }
 
-.dark .section {
-  background-color: hsl(220 20% 10%);
+/* --dw-section-bg / --dw-section-rim come from DiwaliHomeSection while the festive theme is on. */
+:global(.dark) .section {
+  background-color: var(--dw-section-bg, hsl(220 20% 10%));
 }
 
 .container {
@@ -24,14 +25,14 @@
   z-index: 0;
   inset: 10px -8px;
   border-radius: 34px;
-  background-color: #F0F1F2;
+  background-color: var(--dw-section-rim, #F0F1F2);
   box-shadow: 0 12px 35px rgba(40, 45, 50, 0.06);
   pointer-events: none;
 }
 
-.dark .container::before {
-  background-color: rgba(50, 60, 70, 0.6);
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+:global(.dark) .container::before {
+  background-color: var(--dw-section-rim, hsl(24 8% 15%));
+  box-shadow: 0 12px 35px hsl(0 0% 0% / 0.35);
 }
 
 /* Decorative floating elements */
@@ -87,10 +88,10 @@
   border: 1px solid var(--border);
 }
 
-.dark .iconWrapper {
-  background-color: hsl(220 20% 15%);
-  box-shadow: 0 2px 8px hsl(0 0% 0% / 0.15);
-  border-color: hsl(220 15% 30%);
+:global(.dark) .iconWrapper {
+  background-color: hsl(30 12% 17%);
+  box-shadow: 0 2px 8px hsl(0 0% 0% / 0.35);
+  border-color: hsl(32 14% 27%);
 }
 
 /* Main content card */
@@ -105,10 +106,13 @@
   box-shadow: 0 12px 35px rgba(40, 45, 50, 0.06);
 }
 
-.dark .card {
-  background-color: hsl(220 20% 13%);
-  border: 1px solid hsl(220 15% 30%);
-  box-shadow: 0 12px 35px hsl(0 0% 0% / 0.2);
+/* Dark: a warm neutral card one step above the section, lifted by its border and shadow. */
+:global(.dark) .card {
+  background-color: hsl(30 14% 16%);
+  border: 1px solid hsl(32 16% 25%);
+  box-shadow:
+    0 2px 4px hsl(0 0% 0% / 0.3),
+    0 22px 48px -20px hsl(0 0% 0% / 0.7);
 }
 
 .content {
@@ -419,32 +423,63 @@
   }
 }
 
-/* Dark mode specific enhancements */
-.dark .headline {
-  color: hsl(220 10% 95%);
+/* Dark mode: warm light text on the warm card */
+:global(.dark) .headline {
+  color: hsl(36 33% 95%);
 }
 
-.dark .description {
-  color: hsl(220 10% 70%);
+:global(.dark) .description {
+  color: hsl(32 12% 74%);
 }
 
-.dark .subtext {
-  color: hsl(220 10% 60%);
+:global(.dark) .descriptionStrong {
+  color: hsl(34 16% 84%);
 }
 
-.dark .cta {
-  background-color: #F9B38D;
-  color: #2D2D2D;
+:global(.dark) .subtext {
+  color: hsl(32 10% 64%);
 }
 
-.dark .cta:hover {
-  background-color: #F5A078;
+/* Student CTA: the brand coral with --tk-brand-ink on it (6.2:1); hover follows --tk-brand-hover. */
+:global(.dark) .cta {
+  background-color: var(--tk-brand);
+  color: var(--tk-brand-ink);
+  border: 1px solid hsl(20 90% 62%);
+  box-shadow: 0 8px 20px -10px hsl(20 100% 60% / 0.55);
 }
 
-.dark .ctaTeacher {
-  background-color: #D3C6F7;
+:global(.dark) .cta:hover {
+  background-color: var(--tk-brand-hover);
+  color: var(--tk-brand-hover-foreground);
+  box-shadow: 0 10px 24px -10px hsl(20 100% 60% / 0.65);
 }
 
-.dark .ctaTeacher:hover {
-  background-color: #C2B1F3;
+:global(.dark) .cta:active {
+  box-shadow: 0 4px 10px -6px hsl(20 100% 60% / 0.5);
+}
+
+:global(.dark) .cta:focus-visible {
+  outline-color: var(--tk-brand-text);
+}
+
+/* Teacher CTA: a deeper lavender than the light-mode pastel, so it doesn't glare on the dark card. Ink holds 8:1. */
+:global(.dark) .ctaTeacher {
+  background-color: hsl(256 62% 80%);
+  color: hsl(258 45% 16%);
+  border-color: hsl(256 45% 68%);
+  box-shadow: 0 8px 20px -10px hsl(256 70% 65% / 0.55);
+}
+
+:global(.dark) .ctaTeacher:hover {
+  background-color: hsl(256 72% 86%);
+  color: hsl(258 45% 16%);
+  box-shadow: 0 10px 24px -10px hsl(256 70% 65% / 0.65);
+}
+
+:global(.dark) .ctaTeacher:active {
+  box-shadow: 0 4px 10px -6px hsl(256 70% 65% / 0.5);
+}
+
+:global(.dark) .ctaTeacher:focus-visible {
+  outline-color: hsl(256 70% 82%);
 }

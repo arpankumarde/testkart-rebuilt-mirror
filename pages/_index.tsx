@@ -8,6 +8,7 @@ import { HomepageUgcNetSpotlight } from "../components/HomepageUgcNetSpotlight";
 import { HomepageTeacherSpotlight } from "../components/HomepageTeacherSpotlight";
 import { HomepageContentSection, TeacherProductCard } from "../components/HomepageContentSection";
 import { JoinTestkart } from "../components/JoinTestkart";
+import { DiwaliHomeSection } from "../components/DiwaliHomeSection";
 import type { HomepageTestItem, HomepageCourseItem, HomepageNoteItem } from "../endpoints/homepage/data_GET.schema";
 import { formatItemPrice, itemPriceProps } from "../helpers/homepageItemUtils";
 import { Placeholder } from "../helpers/placeholderImages";
@@ -70,9 +71,14 @@ const HomePage: React.FC = () => {
         <HomepageSearchHero />
 
         <div className={styles.contentWrapper}>
-          <HomepageTopExams productCounts={data?.topExamCounts} />
-          <HomepageUgcNetSpotlight />
+          <DiwaliHomeSection tone="ivory" edge="first" accents={["headerOrnament"]}>
+            <HomepageTopExams productCounts={data?.topExamCounts} />
+          </DiwaliHomeSection>
+          <DiwaliHomeSection>
+            <HomepageUgcNetSpotlight />
+          </DiwaliHomeSection>
 
+          <DiwaliHomeSection tone="ivory" accents={["lotusDivider", "topHangers"]}>
           <HomepageContentSection
             title="Top mock tests this week"
             viewAllLink="/mock-test"
@@ -103,11 +109,14 @@ const HomePage: React.FC = () => {
               );
             }}
           />
+          </DiwaliHomeSection>
 
-          <HomepageFeaturedCourses
-            courses={data?.featuredCourses ?? []}
-            isLoading={isFetching}
-          />
+          <DiwaliHomeSection accents={["gutterSparkles"]}>
+            <HomepageFeaturedCourses
+              courses={data?.featuredCourses ?? []}
+              isLoading={isFetching}
+            />
+          </DiwaliHomeSection>
 
           {/* Popular courses hidden for now: Featured courses covers it. homepage/data still returns popularCourses.
           <HomepageContentSection
@@ -134,6 +143,7 @@ const HomePage: React.FC = () => {
           />
           */}
 
+          <DiwaliHomeSection tone="ivory" accents={["cornerDiyas"]}>
           <HomepageContentSection
             title="Popular study notes"
             viewAllLink="/study-notes"
@@ -160,13 +170,18 @@ const HomePage: React.FC = () => {
               />
             )}
           />
+          </DiwaliHomeSection>
 
-          <HomepageTeacherSpotlight
-            teachers={data?.popularTeachers ?? []}
-            isLoading={isFetching}
-          />
+          <DiwaliHomeSection>
+            <HomepageTeacherSpotlight
+              teachers={data?.popularTeachers ?? []}
+              isLoading={isFetching}
+            />
+          </DiwaliHomeSection>
 
-          <JoinTestkart />
+          <DiwaliHomeSection tone="ivory" edge="last" accents={["diyaDivider", "diyaRow"]}>
+            <JoinTestkart />
+          </DiwaliHomeSection>
         </div>
       </div>
     </>

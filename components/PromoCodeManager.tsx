@@ -117,6 +117,10 @@ const KIND_LABELS: Record<Exclude<PromoCodeAppliesTo, 'all'>, [string, string]> 
   live_tests: ['live test', 'live tests'],
   bundles: ['bundle', 'bundles'],
   digital_products: ['note or PDF', 'notes and PDFs'],
+  // Teachers never create or see subscription-targeted codes - those are
+  // admin-only (see components/AdminPromoCodesManager.tsx) - but the Record
+  // must stay exhaustive over every PromoCodeAppliesTo value.
+  subscription: ['subscription plan', 'subscription plans'],
 };
 
 /* What a student needs to know before the code works for them, in the order

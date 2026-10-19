@@ -9,6 +9,7 @@ import { subscriptionActivated } from "../../../../helpers/emailTemplates";
 import { extractPayUFailure } from "../../../../helpers/extractPayUFailure";
 import { paymentFailureReason } from "../../../../helpers/paymentFailureReason";
 import { payuLogFields } from "../../../../helpers/payuLogFields";
+import { recordPromoRedemption } from "../../../../helpers/subscriptionPromoCodes";
 
 // Type definition for the expected structure of PayU's verify payment API response
 type PayUVerifyResponse = {
@@ -35,6 +36,8 @@ async function completeSubscriptionTransaction(
     teacherId: number;
     planId: number;
     durationDays: number;
+    promoCodeId: number | null;
+    discountAmount: string | null;
   },
   trx: Transaction<DB>
 ) {
@@ -52,6 +55,9 @@ async function completeSubscriptionTransaction(
       endDate,
       paymentMethod: "payu",
       autoRenew: true, // Defaulting to true as per callback logic
+      ...(transaction.promoCodeId
+        ? { promoCodeId: transaction.promoCodeId, promoDiscountAmount: transaction.discountAmount }
+        : {}),
     })
     .returning("id")
     .execute();
@@ -71,6 +77,24 @@ async function completeSubscriptionTransaction(
     .set({ isVerified: true })
     .where("id", "=", transaction.teacherId)
     .execute();
+
+  if (transaction.promoCodeId) {
+    const promo = await trx
+      .selectFrom("promoCodes")
+      .select("recurringScope")
+      .where("id", "=", transaction.promoCodeId)
+      .executeTakeFirst();
+    await trx
+      .updateTable("teacherSubscriptions")
+      .set({ promoDuration: promo?.recurringScope ?? "first_month" })
+      .where("id", "=", newSubscription.id)
+      .execute();
+    await recordPromoRedemption(trx, {
+      promoCodeId: transaction.promoCodeId,
+      teacherId: transaction.teacherId,
+      discountAmount: Number(transaction.discountAmount ?? 0),
+    });
+  }
   
   return { subscriptionId: newSubscription.id, startDate, endDate };
 }

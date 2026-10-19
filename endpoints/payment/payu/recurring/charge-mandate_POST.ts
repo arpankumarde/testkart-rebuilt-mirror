@@ -9,6 +9,7 @@ import { subscriptionRenewed } from "../../../../helpers/emailTemplates";
 import { executeSITransaction } from "../../../../helpers/payuSIApi";
 import { extractPayUFailure } from "../../../../helpers/extractPayUFailure";
 import { CHARGE_TXNID_PATTERNS, newChargeTxnid } from "../../../../helpers/teacherMandate";
+import { effectiveRenewalAmount } from "../../../../helpers/subscriptionPromoCodes";
 
 export async function handle(request: Request) {
   try {
@@ -60,6 +61,8 @@ export async function handle(request: Request) {
           "teacherSubscriptions.mandateStatus",
           "teacherSubscriptions.nextChargeDate",
           "teacherSubscriptions.preDebitSentAt",
+          "teacherSubscriptions.promoDuration",
+          "teacherSubscriptions.promoDiscountAmount",
           "subscriptionPlans.durationDays",
           "subscriptionPlans.price",
           "subscriptionPlans.name as planName",
@@ -94,13 +97,14 @@ export async function handle(request: Request) {
       }
 
       const txnid = newChargeTxnid();
+      const chargeAmount = effectiveRenewalAmount(subscription);
       await trx
         .insertInto("subscriptionTransactions")
         .values({
           teacherId: subscription.teacherId,
           planId: subscription.planId,
           subscriptionId: subscription.id,
-          amount: subscription.price,
+          amount: String(chargeAmount),
           status: "pending",
           paymentMethod: "payu_recurring",
           transactionId: txnid,
@@ -112,7 +116,7 @@ export async function handle(request: Request) {
       const chargeResponse = await executeSITransaction({
         authPayuId: subscription.mandateId!,
         txnid,
-        amount: parseFloat(subscription.price).toFixed(2),
+        amount: chargeAmount.toFixed(2),
         email: teacherEmail,
         phone: subscription.mobileNumber || "0000000000",
         firstname: subscription.displayName,
@@ -154,7 +158,7 @@ export async function handle(request: Request) {
           teacherEmail,
           teacherDisplayName: subscription.displayName,
           planName: subscription.planName,
-          amountNumber: parseFloat(subscription.price),
+          amountNumber: chargeAmount,
           newEndDate,
           sendRenewalEmail: true,
         };
@@ -166,7 +170,7 @@ export async function handle(request: Request) {
           teacherEmail,
           teacherDisplayName: subscription.displayName,
           planName: subscription.planName,
-          amountNumber: parseFloat(subscription.price),
+          amountNumber: chargeAmount,
           newEndDate: null,
           sendRenewalEmail: false,
         };

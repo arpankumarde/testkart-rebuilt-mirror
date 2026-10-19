@@ -7,6 +7,7 @@ import { PAYU_MODE } from "../../../../helpers/_publicConfigs";
 import { NotAuthenticatedError } from "../../../../helpers/getSetServerSession";
 import { newMandateTxnid } from "../../../../helpers/teacherMandate";
 import { INTRO_OFFER_PRICE, planQualifiesForIntroOffer, isEligibleForIntroOffer } from "../../../../helpers/teacherIntroOffer";
+import { validatePromoCodeForPlan, applyPromoDiscount, computePromoDiscountAmount } from "../../../../helpers/subscriptionPromoCodes";
 
 function formatDate(date: Date): string {
   const year = date.getFullYear();
@@ -33,7 +34,7 @@ export async function handle(request: Request) {
     }
 
     const json = superjson.parse(await request.text());
-    const { planId } = schema.parse(json);
+    const { planId, promoCode } = schema.parse(json);
 
     const PAYU_MERCHANT_KEY = process.env.PAYU_MERCHANT_KEY;
     const PAYU_MERCHANT_SALT = process.env.PAYU_MERCHANT_SALT;
@@ -64,6 +65,75 @@ export async function handle(request: Request) {
 
       const txnid = newMandateTxnid();
       const fullPrice = parseFloat(plan.price).toFixed(2);
+
+      // A promo code, when given, always wins over the generic intro offer -
+      // a teacher who has a code gets exactly what it promises.
+      const promo = promoCode
+        ? await validatePromoCodeForPlan(trx, promoCode, plan.id, user.id)
+        : null;
+
+      if (promo) {
+        const discountAmount = computePromoDiscountAmount(Number(plan.price), promo);
+        const discountedAmount = applyPromoDiscount(Number(plan.price), promo).toFixed(2);
+
+        await trx
+          .insertInto("subscriptionTransactions")
+          .values({
+            teacherId: user.id,
+            planId: plan.id,
+            amount: discountedAmount,
+            status: "pending",
+            paymentMethod: "payu_recurring",
+            transactionId: txnid,
+            promoCodeId: promo.id,
+            discountAmount: String(discountAmount),
+            notes: `Promo ${promo.code}: ₹${discountAmount} off this cycle${promo.recurringScope === "every_month" ? ", every renewal" : ""}`,
+          })
+          .execute();
+
+        const productInfo = `Mandate for ${plan.name}`.substring(0, 100).replace(/\|/g, " ");
+        const firstname = (user.displayName || "Teacher").replace(/\|/g, " ");
+        const email = user.email || `${user.mobileNumber}@mail.testkart.in`;
+
+        const siStartDate = new Date();
+        const siEndDate = new Date();
+        siEndDate.setFullYear(siEndDate.getFullYear() + 5);
+
+        const siDetails = {
+          billingAmount: fullPrice,
+          billingCycle: plan.durationDays > 31 ? "YEARLY" : "MONTHLY",
+          billingInterval: 1,
+          paymentStartDate: formatDate(siStartDate),
+          paymentEndDate: formatDate(siEndDate),
+          billingCurrency: "INR",
+        };
+        const siDetailsJson = JSON.stringify(siDetails);
+
+        const hashString = `${PAYU_MERCHANT_KEY}|${txnid}|${discountedAmount}|${productInfo}|${firstname}|${email}|||||||||||${siDetailsJson}|${PAYU_MERCHANT_SALT}`;
+        const hash = createHash("sha512").update(hashString).digest("hex");
+
+        const payuUrl =
+          PAYU_MODE !== "production"
+            ? "https://test.payu.in/_payment"
+            : "https://secure.payu.in/_payment";
+
+        return {
+          key: PAYU_MERCHANT_KEY,
+          txnid,
+          amount: discountedAmount,
+          productinfo: productInfo,
+          firstname,
+          email,
+          phone: user.mobileNumber || "9999999999",
+          surl: `${baseUrl}/_api/payment/payu/recurring/mandate-callback`,
+          furl: `${baseUrl}/_api/payment/payu/recurring/mandate-callback`,
+          hash,
+          payuUrl,
+          si: "1",
+          si_details: siDetailsJson,
+          api_version: "7",
+        } satisfies OutputType;
+      }
 
       // First-ever paid autopay sign-up to Starter/Individual monthly is charged
       // ₹1 for this cycle; the mandate is still authorized up to the full plan

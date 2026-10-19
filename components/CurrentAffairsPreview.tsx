@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
+  ArrowRight,
+  CalendarDays,
   CalendarCheck,
   CalendarRange,
   CheckCircle2,
@@ -8,13 +10,17 @@ import {
   ChevronRight,
   Clock,
   EyeOff,
+  HelpCircle,
   Image as ImageIcon,
   ListChecks,
+  LockOpen,
+  Newspaper,
   Tag,
   UserRound,
   XCircle,
 } from "lucide-react";
 import { Button } from "./Button";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "./Dialog";
 import { CurrentAffairsSourceLinks } from "./CurrentAffairsSourceLinks";
 import { currentAffairsMeta } from "../helpers/currentAffairsMeta";
 import { sanitizeHtml } from "../helpers/sanitizeHtml";
@@ -89,81 +95,206 @@ const Pills: React.FC<{ tags: CurrentAffairsTagRef[]; linkTopics?: boolean }> = 
 
 const hasSource = (sources: { name: string; url: string }[]) => sources.some((s) => s.name.trim() || s.url.trim());
 
-const QuizPreview: React.FC<{ quiz: NonNullable<InputType["quiz"]>; id: string }> = ({ quiz, id }) => {
+type Quiz = NonNullable<InputType["quiz"]>;
+
+const QUIZ_BLURB: Record<"daily" | "weekly" | "monthly", string> = {
+  daily: "Test your knowledge of the day's current affairs.",
+  weekly: "Test your knowledge of the week's current affairs.",
+  monthly: "Test your knowledge of the month's current affairs.",
+};
+
+const QuizQuestions: React.FC<{
+  quiz: Quiz;
+  answers: Record<number, number>;
+  submitted: boolean;
+  onPick: (question: number, option: number) => void;
+}> = ({ quiz, answers, submitted, onPick }) => (
+  <ol className={styles.quizList}>
+    {quiz.questions.map((question, index) => (
+      <li key={question.key} className={styles.quizQuestion}>
+        <p className={styles.quizText}>
+          <span className={styles.quizNumber}>{index + 1}.</span>
+          {question.question || <em className={styles.missing}>Question not written yet</em>}
+        </p>
+        <div className={styles.quizOptions}>
+          {question.options.map((option, optionIndex) => {
+            const picked = answers[index] === optionIndex;
+            const correct = question.correctOption === optionIndex;
+            const state = submitted ? (correct ? styles.optRight : picked ? styles.optWrong : "") : picked ? styles.optPicked : "";
+            return (
+              <button
+                key={optionIndex}
+                type="button"
+                disabled={submitted}
+                aria-pressed={picked}
+                className={`${styles.quizOption} ${state}`}
+                onClick={() => onPick(index, optionIndex)}
+              >
+                <span className={styles.optLetter}>{LETTERS[optionIndex]}</span>
+                <span className={styles.optText}>{option || <em className={styles.missing}>Empty option</em>}</span>
+                {submitted && correct && <CheckCircle2 size={16} className={styles.optIcon} aria-label="Correct answer" />}
+                {submitted && picked && !correct && <XCircle size={16} className={styles.optIcon} aria-label="Your answer" />}
+              </button>
+            );
+          })}
+        </div>
+        {submitted && question.explanation && <p className={styles.explanation}>{question.explanation}</p>}
+      </li>
+    ))}
+  </ol>
+);
+
+/*
+ * The quiz sits in the article as a preview card; the questions open in a dialog. Answers live
+ * here rather than in the dialog, so closing it and coming back resumes where the reader left off.
+ */
+const QuizSection: React.FC<{ quiz: Quiz; id: string; period: string; blurb: string }> = ({ quiz, id, period, blurb }) => {
+  const [open, setOpen] = useState(false);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [submitted, setSubmitted] = useState(false);
+  const bodyRef = useRef<HTMLDivElement | null>(null);
+
+  const total = quiz.questions.length;
+  const answered = Object.keys(answers).length;
   const score = quiz.questions.filter((q, i) => answers[i] !== undefined && answers[i] === q.correctOption).length;
+  const title = quiz.title || "Quiz";
+  const showDate = !!period && !title.includes(period);
+  const minutes = Math.max(1, Math.ceil(total / 2));
+  const questionsLabel = `${total} ${total === 1 ? "question" : "questions"}`;
+  const cta = submitted ? "Review Answers" : answered > 0 ? "Resume Quiz" : "Start Quiz";
+  const titleId = `${id}-title`;
+
+  const toTop = () => bodyRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  const submit = () => {
+    setSubmitted(true);
+    toTop();
+  };
+  const reset = () => {
+    setAnswers({});
+    setSubmitted(false);
+    toTop();
+  };
 
   return (
-    <section id={id} className={styles.quiz} data-toc-section>
-      <header className={styles.quizHead}>
-        <span className={styles.quizIcon} aria-hidden="true">
-          <ListChecks size={18} />
-        </span>
-        <div>
-          <h2 className={styles.quizTitle}>{quiz.title || "Quiz"}</h2>
-          <p className={styles.quizMeta}>
-            {quiz.questions.length} questions - no login needed
-            {quiz.isPublished ? "" : " - hidden on the site"}
-          </p>
-        </div>
-      </header>
-      <ol className={styles.quizList}>
-        {quiz.questions.map((question, index) => (
-          <li key={question.key} className={styles.quizQuestion}>
-            <p className={styles.quizText}>
-              <span className={styles.quizNumber}>{index + 1}.</span>
-              {question.question || <em className={styles.missing}>Question not written yet</em>}
-            </p>
-            <div className={styles.quizOptions}>
-              {question.options.map((option, optionIndex) => {
-                const picked = answers[index] === optionIndex;
-                const correct = question.correctOption === optionIndex;
-                const state = submitted ? (correct ? styles.optRight : picked ? styles.optWrong : "") : picked ? styles.optPicked : "";
-                return (
-                  <button
-                    key={optionIndex}
-                    type="button"
-                    disabled={submitted}
-                    aria-pressed={picked}
-                    className={`${styles.quizOption} ${state}`}
-                    onClick={() => setAnswers((prev) => ({ ...prev, [index]: optionIndex }))}
-                  >
-                    <span className={styles.optLetter}>{LETTERS[optionIndex]}</span>
-                    <span className={styles.optText}>{option || <em className={styles.missing}>Empty option</em>}</span>
-                    {submitted && correct && <CheckCircle2 size={16} className={styles.optIcon} aria-label="Correct answer" />}
-                    {submitted && picked && !correct && <XCircle size={16} className={styles.optIcon} aria-label="Your answer" />}
-                  </button>
-                );
-              })}
-            </div>
-            {submitted && question.explanation && <p className={styles.explanation}>{question.explanation}</p>}
+    <section id={id} className={styles.quizCard} data-toc-section aria-labelledby={titleId} onClick={() => setOpen(true)}>
+      <span className={styles.quizArt} aria-hidden="true">
+        <ListChecks size={30} strokeWidth={2.25} />
+      </span>
+      <div className={styles.quizCardBody}>
+        <p className={styles.quizEyebrow}>Current affairs quiz</p>
+        <h2 id={titleId} className={styles.quizCardTitle}>
+          {title}
+        </h2>
+        <p className={styles.quizBlurb}>{blurb}</p>
+        <ul className={styles.quizFacts}>
+          {showDate && (
+            <li>
+              <CalendarDays size={14} aria-hidden="true" />
+              {period}
+            </li>
+          )}
+          <li>
+            <HelpCircle size={14} aria-hidden="true" />
+            {questionsLabel}
           </li>
-        ))}
-      </ol>
-      <div className={styles.quizFoot}>
-        {submitted ? (
-          <>
-            <span className={styles.score}>
-              You scored {score} / {quiz.questions.length}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setAnswers({});
-                setSubmitted(false);
-              }}
-            >
-              Try again
-            </Button>
-          </>
-        ) : (
-          <Button size="sm" onClick={() => setSubmitted(true)} disabled={Object.keys(answers).length === 0}>
-            Submit answers
+          <li>
+            <Clock size={14} aria-hidden="true" />
+            About {minutes} min
+          </li>
+          <li>
+            <LockOpen size={14} aria-hidden="true" />
+            No login needed
+          </li>
+          {!quiz.isPublished && (
+            <li className={styles.quizHidden}>
+              <EyeOff size={14} aria-hidden="true" />
+              Hidden on the site
+            </li>
+          )}
+        </ul>
+        <div className={styles.quizCardActions}>
+          <Button
+            size="lg"
+            className={styles.quizCta}
+            aria-haspopup="dialog"
+            onClick={(event) => {
+              event.stopPropagation();
+              setOpen(true);
+            }}
+          >
+            {cta}
+            <ArrowRight size={18} aria-hidden="true" />
           </Button>
-        )}
+          {submitted ? (
+            <span className={styles.quizStatus}>
+              You scored {score} / {total}
+            </span>
+          ) : answered > 0 ? (
+            <span className={styles.quizStatus}>
+              {answered} of {total} answered
+            </span>
+          ) : null}
+        </div>
       </div>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className={styles.quizDialog} onClick={(event) => event.stopPropagation()}>
+          <header className={styles.quizHead}>
+            <span className={styles.quizIcon} aria-hidden="true">
+              <ListChecks size={18} />
+            </span>
+            <div>
+              <DialogTitle className={styles.quizTitle}>{title}</DialogTitle>
+              <DialogDescription className={styles.quizMeta}>
+                {questionsLabel} - no login needed
+                {quiz.isPublished ? "" : " - hidden on the site"}
+              </DialogDescription>
+            </div>
+          </header>
+          <div
+            className={styles.quizProgress}
+            role="progressbar"
+            aria-label="Questions answered"
+            aria-valuemin={0}
+            aria-valuemax={total}
+            aria-valuenow={answered}
+          >
+            <span style={{ width: `${total ? (answered / total) * 100 : 0}%` }} />
+          </div>
+          <div ref={bodyRef} className={styles.quizBody}>
+            <QuizQuestions
+              quiz={quiz}
+              answers={answers}
+              submitted={submitted}
+              onPick={(question, option) => setAnswers((prev) => ({ ...prev, [question]: option }))}
+            />
+          </div>
+          <footer className={styles.quizFoot}>
+            {submitted ? (
+              <>
+                <span className={styles.score}>
+                  You scored {score} / {total}
+                </span>
+                <Button variant="outline" size="sm" className={styles.quizFootEnd} onClick={reset}>
+                  Try again
+                </Button>
+                <Button size="sm" onClick={() => setOpen(false)}>
+                  Done
+                </Button>
+              </>
+            ) : (
+              <>
+                <span className={styles.quizCount}>
+                  {answered} of {total} answered
+                </span>
+                <Button size="sm" className={styles.quizFootEnd} onClick={submit} disabled={answered === 0}>
+                  Submit answers
+                </Button>
+              </>
+            )}
+          </footer>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
@@ -203,6 +334,8 @@ export const CurrentAffairsPreview: React.FC<CurrentAffairsPreviewProps> = ({
         ...items.flatMap((i) => [i.headline, i.whyInNews, i.keyPoints, i.background]),
       ]);
   const period = post.digestDate ? currentAffairsMeta.periodLabel(post.contentType, post.digestDate) : "";
+  const archive = currentAffairsMeta.archiveOf(post.contentType);
+  const quizBlurb = archive ? QUIZ_BLURB[archive] : "Test your knowledge of the stories above.";
   const glance = post.atAGlance.filter((line) => line.trim());
   const postSources = post.sources.filter((s) => s.name.trim() || s.url.trim());
   const corrections = post.corrections.filter((c) => c.date && c.note.trim());
@@ -373,14 +506,17 @@ export const CurrentAffairsPreview: React.FC<CurrentAffairsPreviewProps> = ({
               )}
               {item.whyInNews.trim() && (
                 <div className={styles.why}>
-                  <h3 className={styles.label}>Why in news</h3>
+                  <h3 className={`${styles.label} ${styles.labelIcon}`}>
+                    <Newspaper size={14} aria-hidden="true" />
+                    Why in news
+                  </h3>
                   <p className={styles.para}>{item.whyInNews}</p>
                 </div>
               )}
               {hasText(item.keyPoints) && (
                 <div className={styles.block}>
                   <h3 className={styles.label}>Key points</h3>
-                  <Html html={item.keyPoints} />
+                  <Html html={item.keyPoints} className={styles.keyPoints} />
                 </div>
               )}
               {hasText(item.background) && (
@@ -406,7 +542,7 @@ export const CurrentAffairsPreview: React.FC<CurrentAffairsPreviewProps> = ({
             </section>
           ))}
 
-          {hasQuiz && post.quiz && <QuizPreview quiz={post.quiz} id={quizId} />}
+          {hasQuiz && post.quiz && <QuizSection quiz={post.quiz} id={quizId} period={period} blurb={quizBlurb} />}
 
           {postSources.length > 0 && (
             <div className={styles.panel}>
