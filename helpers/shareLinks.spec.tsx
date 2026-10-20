@@ -40,7 +40,7 @@ describe("buildPublicAssetUrl", () => {
       `${SITE_ORIGIN}/exams/ssc-cgl/exam-pattern`
     );
     expect(buildPublicAssetUrl("news", "holistic-assessment")).toBe(
-      `${SITE_ORIGIN}/news-and-events/holistic-assessment`
+      `${SITE_ORIGIN}/press/holistic-assessment`
     );
     expect(buildPublicAssetUrl("career", "content-writer")).toBe(
       `${SITE_ORIGIN}/careers/content-writer`

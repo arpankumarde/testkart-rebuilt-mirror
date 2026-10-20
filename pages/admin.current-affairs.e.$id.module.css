@@ -1,4 +1,4 @@
-/* One-page digest form with its own sticky action bar, as on the News & Events editor.
+/* One-page digest form with its own sticky action bar, as on the Press editor.
    Positioned so the hidden absolute inputs Radix Switch and RadioGroup render stay inside the
    admin scroll area instead of stretching the document and adding a second scrollbar. */
 .pageContainer {

@@ -64,7 +64,7 @@ export async function handle(request: Request) {
       { loc: `${BASE_URL}/help`, changefreq: "weekly", priority: 0.8 },
       { loc: `${BASE_URL}/about`, changefreq: "monthly", priority: 0.6 },
       { loc: `${BASE_URL}/careers`, changefreq: "weekly", priority: 0.6 },
-      { loc: `${BASE_URL}/news-and-events`, changefreq: "weekly", priority: 0.6 },
+      { loc: `${BASE_URL}/press`, changefreq: "weekly", priority: 0.6 },
       { loc: `${BASE_URL}${currentAffairsMeta.HUB_PATH}`, changefreq: "daily", priority: 0.8 },
       ...currentAffairsMeta.ARCHIVE_TYPES.map((type): UrlEntry => ({
         loc: `${BASE_URL}${currentAffairsMeta.archivePath(type)}`,
@@ -401,10 +401,10 @@ export async function handle(request: Request) {
       });
     }
 
-    // Add news coverage pages
+    // Add press coverage pages
     for (const item of newsCoverage) {
       xml += generateUrlEntry({
-        loc: `${BASE_URL}/news-and-events/${item.slug}`,
+        loc: `${BASE_URL}/press/${item.slug}`,
         lastmod: toW3CDate(item.updatedAt),
         changefreq: "monthly",
         priority: 0.5,

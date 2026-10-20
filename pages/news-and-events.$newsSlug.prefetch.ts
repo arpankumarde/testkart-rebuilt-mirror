@@ -1,27 +1,22 @@
 import type { PagePrefetchFn } from "@floot/prefetch";
 import { fetchNewsDetailServer } from "../helpers/fetchNewsDetailServer";
 
-export const prefetch: PagePrefetchFn = async (ctx) => {
-  const { qc } = ctx;
-  const slug = (ctx as any).params?.newsSlug;
+/*
+ * Old /news-and-events/:slug links (shares, press mentions, search results)
+ * move to /press/:slug in one 301, landing on the current slug when the
+ * requested one was renamed. The query string (utm tags) is kept.
+ */
+export const prefetch: PagePrefetchFn = async ({ url }) => {
+  const parsed = new URL(url, "https://testkart.in");
+  const segment = parsed.pathname.split("/").filter(Boolean).pop();
+  if (!segment) return { redirect: { to: `/press${parsed.search}`, permanent: true } };
 
-  if (!slug) return { statusCode: 404 };
-
+  const requested = decodeURIComponent(segment);
+  let slug = requested;
   try {
-    const data = await qc.fetchQuery({
-      queryKey: ["news", "details", slug],
-      queryFn: () => fetchNewsDetailServer(slug),
-    });
-
-    // The slug was renamed and this request came in on a retired one - send
-    // crawlers and readers to the canonical URL instead of serving the same
-    // article under two addresses.
-    if (data.item.slug !== slug) {
-      return { redirect: { to: `/news-and-events/${data.item.slug}` } };
-    }
-
-    return { maxAge: 300 };
-  } catch (error) {
-    return { statusCode: 404 };
+    slug = (await fetchNewsDetailServer(requested)).item.slug;
+  } catch {
+    // Unknown or unpublished: /press/:slug answers with its own 404.
   }
+  return { redirect: { to: `/press/${encodeURIComponent(slug)}${parsed.search}`, permanent: true } };
 };

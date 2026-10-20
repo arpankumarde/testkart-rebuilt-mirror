@@ -3,7 +3,7 @@ import type { OutputType } from "../endpoints/news/list_GET.schema";
 
 /**
  * Shared query behind endpoints/news/list_GET.ts and the SSR prefetch in
- * pages/news-and-events.prefetch.ts. A prefetch cannot call the app's own
+ * pages/press.prefetch.ts. A prefetch cannot call the app's own
  * /_api route during the SSR pass (see helpers/fetchBlogPostDetailServer.tsx),
  * so both paths run this directly against the DB. Ordered newest-first.
  */

@@ -73,7 +73,7 @@ export const buildPublicAssetUrl = (kind: ShareAssetKind, handle: string | numbe
     case "certificate":
       return `${SITE_ORIGIN}/certificates/${segment}`;
     case "news":
-      return `${SITE_ORIGIN}/news-and-events/${segment}`;
+      return `${SITE_ORIGIN}/press/${segment}`;
     case "career":
       return `${SITE_ORIGIN}/careers/${segment}`;
   }

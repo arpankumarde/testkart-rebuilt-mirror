@@ -165,7 +165,7 @@ const groups: AdminNavGroup[] = [
     label: "Site",
     items: [
       { href: "/admin/careers", label: "Careers", icon: Briefcase, modules: ["careers"], keywords: "jobs applications" },
-      { href: "/admin/news-and-events", label: "News & Events", icon: Newspaper, modules: ["news"], keywords: "press coverage media mentions" },
+      { href: "/admin/press", label: "Press", icon: Newspaper, modules: ["news"], keywords: "press coverage media mentions news events" },
       { href: "/admin/static-pages", label: "Static pages", icon: Layout, modules: ["static_pages"], keywords: "terms privacy about" },
       { href: "/admin/email-templates", label: "Email templates", icon: Mail, modules: ["email_templates"], keywords: "resend notifications" },
       { href: "/admin/api-docs", label: "API docs", icon: FileCode2, modules: ["api_docs"], keywords: "endpoints reference" },

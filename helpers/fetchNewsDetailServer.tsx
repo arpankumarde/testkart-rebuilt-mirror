@@ -4,7 +4,7 @@ import type { OutputType } from "../endpoints/news/details_GET.schema";
 
 /**
  * Shared query behind endpoints/news/details_GET.ts and the SSR prefetch in
- * pages/news-and-events.$newsSlug.prefetch.ts. Throws "Not found" when the
+ * pages/press.$newsSlug.prefetch.ts. Throws "Not found" when the
  * slug does not resolve to a published item; both callers turn that into a 404.
  *
  * An exact slug match always wins. Only when there is none does this fall back
