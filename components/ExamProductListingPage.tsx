@@ -38,6 +38,7 @@ import { Placeholder } from "../helpers/placeholderImages";
 import { formatItemPrice, itemPriceProps } from "../helpers/homepageItemUtils";
 import { wrapContentTables } from "../helpers/contentTables";
 import { sanitizeHtml } from "../helpers/sanitizeHtml";
+import { linkContentToc, useContentToc } from "../helpers/contentToc";
 import { getPublicExamContent } from "../endpoints/exam-content/get_GET.schema";
 import { examProductPageMeta, type ExamProductType } from "../helpers/examProductPageMeta";
 import type { InputType as TestsInputType } from "../endpoints/tests/list_GET.schema";
@@ -440,6 +441,12 @@ export const ExamProductListingPage: React.FC<ExamProductListingPageProps> = ({ 
     staleTime: 5 * 60 * 1000,
   });
   const pageContent = contentData?.page ?? null;
+  const contentHtml = useMemo(
+    () => (pageContent?.content?.trim() ? wrapContentTables(linkContentToc(sanitizeHtml(pageContent.content))) : ""),
+    [pageContent?.content]
+  );
+  const [contentEl, setContentEl] = useState<HTMLElement | null>(null);
+  useContentToc(contentEl, contentHtml);
 
   const isLoading = isExamFetching || isCountsFetching;
 
@@ -539,11 +546,8 @@ export const ExamProductListingPage: React.FC<ExamProductListingPageProps> = ({ 
         {productType === "bundles" && <BundlesBody examId={examDetail.id} examName={examDetail.examName} />}
       </main>
 
-      {pageContent?.content && pageContent.content.trim().length > 0 && (
-        <section
-          className={styles.additionalContent}
-          dangerouslySetInnerHTML={{ __html: wrapContentTables(sanitizeHtml(pageContent.content)) }}
-        />
+      {contentHtml && (
+        <section ref={setContentEl} className={styles.additionalContent} dangerouslySetInnerHTML={{ __html: contentHtml }} />
       )}
 
       {pageFaqItems.length > 0 && (

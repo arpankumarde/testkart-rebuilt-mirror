@@ -350,6 +350,48 @@
 }
 
 /*
+ * Tables of contents in rendered rich text (exam content pages), linked by
+ * helpers/contentToc. Items keep the list's own type and colour; the link
+ * shows on hover and focus, and the section in view is set in brand text.
+ * Headings land below the sticky header (and the site notice when shown).
+ */
+.tk-toc-target {
+  scroll-margin-top: calc(var(--site-notice-offset) + var(--header-height) + 1rem);
+}
+
+/* Inline-block with matching negative margins: a taller tap target on phones
+   without moving the list. */
+.tk-toc a.tk-toc-link {
+  display: inline-block;
+  padding-block: 0.25rem;
+  margin-block: -0.25rem;
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+
+.tk-toc a.tk-toc-link:hover {
+  color: var(--tk-brand-text);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.tk-toc a.tk-toc-link:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.tk-toc a.tk-toc-link[aria-current="location"] {
+  color: var(--tk-brand-text);
+  font-weight: 600;
+}
+
+.tk-toc li:has(> a.tk-toc-link[aria-current="location"])::marker,
+.tk-toc li:has(> p > a.tk-toc-link[aria-current="location"])::marker {
+  color: var(--tk-brand-text);
+}
+
+/*
  * Tables in rendered rich text (articles, exam content, product and lesson
  * descriptions, static pages), wrapped by helpers/contentTables. Coral is the
  * header band only, set in brand ink. The first column holds row labels and

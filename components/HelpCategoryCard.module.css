@@ -1,0 +1,403 @@
+/* Each tone sets a solid tint (icon tile, row hover, explore pill), an ink
+   for text on that tint (7:1+) and an edge for the hover border. Peach,
+   lavender, sage, blue and mint come from the --sp-* tokens in base.css;
+   butter has no shared token yet, so it is defined here for both themes.
+
+   Three sizes, picked from the article count by helpCardVariant:
+   featured (5+) is a full-width card with a tinted side panel, medium (3-4)
+   a standard card, compact (1-2) a tighter one. Every card is a size
+   container, so its list goes two-up only where the card itself has room. */
+.card {
+  --hc-tint: var(--sp-peach-tint);
+  --hc-ink: var(--tk-brand-text);
+  --hc-edge: var(--sp-peach-edge);
+
+  container-type: inline-size;
+  height: 100%;
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.5rem;
+  box-shadow: var(--sp-shadow);
+  box-sizing: border-box;
+  transition:
+    transform var(--animation-duration-fast) ease,
+    border-color var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  border-color: var(--hc-edge);
+  box-shadow: var(--sp-shadow-hover);
+}
+
+.lavender {
+  --hc-tint: var(--sp-lavender-tint);
+  --hc-ink: var(--sp-lavender-ink);
+  --hc-edge: var(--sp-lavender-edge);
+}
+
+.sage {
+  --hc-tint: var(--sp-sage-tint);
+  --hc-ink: var(--sp-sage-ink);
+  --hc-edge: var(--sp-sage-edge);
+}
+
+.blue {
+  --hc-tint: var(--sp-blue-tint);
+  --hc-ink: var(--sp-blue-ink);
+  --hc-edge: var(--sp-blue-edge);
+}
+
+.butter {
+  --hc-tint: hsl(46 90% 89%);
+  --hc-ink: hsl(36 80% 22%);
+  --hc-edge: hsl(42 70% 45%);
+}
+
+.mint {
+  --hc-tint: var(--sp-mint-tint);
+  --hc-ink: hsl(160 45% 20%);
+  --hc-edge: hsl(160 35% 40%);
+}
+
+:global(.dark) .butter {
+  --hc-tint: hsl(42 28% 20%);
+  --hc-ink: hsl(45 85% 78%);
+  --hc-edge: hsl(44 55% 55%);
+}
+
+:global(.dark) .mint {
+  --hc-ink: hsl(155 45% 80%);
+  --hc-edge: hsl(158 30% 52%);
+}
+
+/* Medium and compact: heading, divider, list, then the CTA pinned to the
+   bottom so CTAs line up across a row. */
+.stackInner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  height: 100%;
+  padding: 1.25rem;
+  box-sizing: border-box;
+}
+
+.compact .stackInner {
+  gap: 0.75rem;
+  padding: 1rem 1.125rem 1.125rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.iconTile {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 1rem;
+  background-color: var(--hc-tint);
+  color: var(--hc-ink);
+  transition: transform var(--animation-duration-normal) ease;
+}
+
+.compact .iconTile {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.875rem;
+}
+
+.card:hover .iconTile {
+  transform: rotate(-8deg) scale(1.05);
+}
+
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.name {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--sp-ink);
+  overflow-wrap: anywhere;
+}
+
+.compact .name {
+  font-size: 1rem;
+}
+
+.count {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--sp-muted);
+}
+
+.description {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--sp-text);
+}
+
+.compact .description {
+  -webkit-line-clamp: 2;
+}
+
+.list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 0.125rem 1rem;
+  margin: 0;
+  padding: 0.75rem 0 0;
+  list-style: none;
+  border-top: 1px dashed var(--sp-line-strong);
+}
+
+.compact .list {
+  padding-top: 0.5rem;
+}
+
+.article {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.625rem;
+  margin: 0 -0.625rem;
+  padding: 0.5rem 0.625rem;
+  border-radius: 0.75rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--sp-text);
+  text-decoration: none;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
+}
+
+.compact .article {
+  padding: 0.4375rem 0.625rem;
+  font-size: 0.875rem;
+}
+
+.article:hover {
+  background-color: var(--hc-tint);
+  color: var(--hc-ink);
+}
+
+.article:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 1px;
+}
+
+.articleIcon,
+.articleArrow {
+  margin-top: 0.1875rem;
+}
+
+.articleIcon {
+  color: var(--hc-ink);
+}
+
+.articleTitle {
+  overflow-wrap: anywhere;
+}
+
+.articleArrow {
+  opacity: 0;
+  transform: translateX(-4px);
+  transition:
+    opacity var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
+}
+
+.article:hover .articleArrow,
+.article:focus-visible .articleArrow {
+  opacity: 1;
+  transform: none;
+}
+
+.explore {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 0.375rem;
+  margin-top: auto;
+  padding: 0.5rem 0.875rem;
+  border-radius: var(--radius-full);
+  background-color: var(--hc-tint);
+  color: var(--hc-ink);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
+}
+
+.compact .explore {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.explore svg {
+  transition: transform var(--animation-duration-fast) ease;
+}
+
+.explore:hover {
+  background-color: var(--hc-ink);
+  color: var(--sp-card);
+}
+
+.explore:hover svg {
+  transform: translateX(3px);
+}
+
+.explore:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+/* A medium card given a full row (it is alone in its tier) lists two-up
+   rather than leaving a long empty right side. */
+@container (min-width: 40rem) {
+  .stackInner .list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Featured: a tinted side panel holding the heading and CTA, the article
+   list beside it. Stacks on narrow cards. */
+.featuredInner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.625rem;
+}
+
+.aside {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.875rem;
+  padding: 1.25rem;
+  border-radius: 1.125rem;
+  background-color: var(--hc-tint);
+}
+
+/* One solid ring hanging off the panel corner, the hero's playful shape. */
+.aside::after {
+  content: "";
+  position: absolute;
+  right: -2.25rem;
+  bottom: -2.25rem;
+  width: 6.5rem;
+  height: 6.5rem;
+  border: 2px solid var(--hc-edge);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.aside > * {
+  position: relative;
+  z-index: 1;
+}
+
+.featured .iconTile {
+  background-color: var(--sp-card);
+}
+
+.featured .name {
+  font-size: 1.25rem;
+}
+
+.featured .count {
+  color: var(--hc-ink);
+}
+
+.featured .description {
+  color: var(--sp-ink);
+}
+
+.featured .explore {
+  margin-top: auto;
+  background-color: var(--hc-ink);
+  color: var(--sp-card);
+}
+
+.featured .explore:hover {
+  background-color: var(--sp-ink);
+  color: var(--sp-card);
+}
+
+.featured .list {
+  padding: 0.25rem 0.875rem 0.5rem;
+  border-top: 0;
+}
+
+@container (min-width: 44rem) {
+  .featuredInner {
+    display: grid;
+    grid-template-columns: minmax(14rem, 19rem) minmax(0, 1fr);
+    align-items: stretch;
+    gap: 1.25rem;
+  }
+
+  .aside {
+    padding: 1.5rem;
+  }
+
+  .featured .list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: center;
+    padding: 0.75rem 0.75rem 0.75rem 0;
+  }
+
+  .featured .article {
+    margin: 0;
+  }
+}
+
+@media (max-width: 479px) {
+  .card {
+    border-radius: 1.25rem;
+  }
+
+  .stackInner {
+    padding: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .iconTile,
+  .articleArrow,
+  .explore svg {
+    transition: none;
+  }
+
+  .card:hover,
+  .card:hover .iconTile,
+  .explore:hover svg {
+    transform: none;
+  }
+}

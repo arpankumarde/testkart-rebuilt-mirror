@@ -1,4 +1,4 @@
-import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { parseErrorMessage } from "./parseErrorMessage";
 import { getBlogPostsList, InputType as PostsListInput } from "../endpoints/blog/list_GET.schema";
@@ -13,7 +13,10 @@ export const BLOG_POST_KEY = (slug: string) => ["public", "blog", "post", slug] 
 export const BLOG_CATEGORIES_KEY = ["public", "blog", "categories"] as const;
 export const BLOG_COMMENTS_KEY = (postId: number) => ["public", "blog", "comments", postId] as const;
 
-export const useBlogPostsQuery = (params: Omit<PostsListInput, "page"> & { page?: number }) => {
+export const useBlogPostsQuery = (
+  params: Omit<PostsListInput, "page"> & { page?: number },
+  options?: { enabled?: boolean; keepPrevious?: boolean },
+) => {
   const queryParams = { ...params, page: params.page ?? 1 };
   return useQuery({
     queryKey: [...BLOG_POSTS_KEY, queryParams],
@@ -21,6 +24,10 @@ export const useBlogPostsQuery = (params: Omit<PostsListInput, "page"> & { page?
     // Matches the SSR prefetch (fetchBlogPostsListServer) so hydrated data
     // isn't immediately treated as stale and re-fetched on mount.
     staleTime: 60 * 1000,
+    enabled: options?.enabled ?? true,
+    // Keeps the last results on screen while the next search or filter loads,
+    // instead of flashing a skeleton on every keystroke.
+    placeholderData: options?.keepPrevious ? keepPreviousData : undefined,
   });
 };
 

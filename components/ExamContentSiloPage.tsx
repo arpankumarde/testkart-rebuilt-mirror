@@ -19,6 +19,7 @@ import { useInExamSectionShell } from "./ExamSectionLayout";
 import { renderMathInHtml } from "../helpers/renderMathInHtml";
 import { wrapContentTables } from "../helpers/contentTables";
 import { sanitizeHtml } from "../helpers/sanitizeHtml";
+import { linkContentToc, useContentToc } from "../helpers/contentToc";
 import { NotFoundState } from "./NotFoundState";
 import "katex/dist/katex.min.css";
 import styles from "./ExamContentSiloPage.module.css";
@@ -68,6 +69,16 @@ export const ExamContentSiloPage: React.FC<ExamContentSiloPageProps> = ({ pageTy
     enabled: !!examSlug,
     staleTime: 5 * 60 * 1000,
   });
+
+  // Headings get ids and the article's own table of contents becomes jump
+  // links before math is rendered, so KaTeX markup never reaches the matcher.
+  const pageContent = data?.page?.content;
+  const contentHtml = React.useMemo(
+    () => (pageContent ? wrapContentTables(renderMathInHtml(linkContentToc(sanitizeHtml(pageContent)))) : ""),
+    [pageContent]
+  );
+  const [contentEl, setContentEl] = React.useState<HTMLDivElement | null>(null);
+  useContentToc(contentEl, contentHtml);
 
   if (isFetching && !data) {
     if (inShell) return <SectionContentSkeleton />;
@@ -155,7 +166,7 @@ export const ExamContentSiloPage: React.FC<ExamContentSiloPageProps> = ({ pageTy
         <script type="application/ld+json">{JSON.stringify(pageStructuredData)}</script>
       </Helmet>
 
-      <div className={styles.content} dangerouslySetInnerHTML={{ __html: wrapContentTables(renderMathInHtml(sanitizeHtml(data.page.content))) }} />
+      <div ref={setContentEl} className={styles.content} dangerouslySetInnerHTML={{ __html: contentHtml }} />
 
       {faqItems.length > 0 && (
         <div className={styles.faqSection}>

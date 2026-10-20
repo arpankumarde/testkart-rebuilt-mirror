@@ -13,6 +13,7 @@ import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "..
 import { useExamDetailQuery } from "../helpers/useExamDetail";
 import { wrapContentTables } from "../helpers/contentTables";
 import { sanitizeHtml } from "../helpers/sanitizeHtml";
+import { linkContentToc, useContentToc } from "../helpers/contentToc";
 import { NotFoundState } from "../components/NotFoundState";
 
 import styles from "./exams.$examSlug.module.css";
@@ -41,6 +42,12 @@ export default function ExamDetailPage() {
   });
   const overviewContent = contentSiloData?.page?.content ?? null;
   const overviewFaqItems = contentSiloData?.page?.faqItems ?? [];
+  const overviewHtml = React.useMemo(
+    () => (overviewContent?.trim() ? wrapContentTables(linkContentToc(sanitizeHtml(overviewContent))) : ""),
+    [overviewContent]
+  );
+  const [overviewEl, setOverviewEl] = React.useState<HTMLElement | null>(null);
+  useContentToc(overviewEl, overviewHtml);
 
   const canonicalUrl = `https://testkart.in/exams/${examSlug}`;
 
@@ -173,11 +180,8 @@ export default function ExamDetailPage() {
         examName={examDetail.examName}
       />
 
-      {overviewContent && overviewContent.trim().length > 0 && (
-        <section
-          className={styles.additionalContent}
-          dangerouslySetInnerHTML={{ __html: wrapContentTables(sanitizeHtml(overviewContent)) }}
-        />
+      {overviewHtml && (
+        <section ref={setOverviewEl} className={styles.additionalContent} dangerouslySetInnerHTML={{ __html: overviewHtml }} />
       )}
 
       {overviewFaqItems.length > 0 && (
