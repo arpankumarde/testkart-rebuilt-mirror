@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { z } from 'zod';
 import { useForm, Form, FormItem, FormLabel, FormControl, FormMessage } from '../components/Form';
@@ -7,36 +7,49 @@ import { Textarea } from '../components/Textarea';
 import { Button } from '../components/Button';
 import { Spinner } from '../components/Spinner';
 import { useContactFormMutation } from '../helpers/useContactForm';
+import { parseErrorMessage } from '../helpers/parseErrorMessage';
 import { schema as contactFormSchema } from '../endpoints/contact/submit_POST.schema';
-import { Mail, MapPin, Phone } from 'lucide-react';
+import { AlertCircle, CheckCircle2, ExternalLink, Mail, MapPin, Phone, Send } from 'lucide-react';
 import { WhatsAppBubble } from '../components/WhatsAppBubble';
 import styles from './contact.module.css';
 
 type ContactFormValues = z.infer<typeof contactFormSchema>;
 
-const OFFICE_ADDRESS = '1st Floor, C-16, Block C, Sector 6, Noida, Uttar Pradesh 201301';
+const PHONE_DISPLAY = '+91 96545 48384';
+const PHONE_HREF = 'tel:+919654548384';
+const EMAIL = 'hello@testkart.in';
+const OFFICE_ADDRESS_LINES = ['1st Floor, C-16, Block C, Sector 6,', 'Noida, Uttar Pradesh 201301'];
 const OFFICE_MAP_URL = 'https://maps.app.goo.gl/N8WRNcAgkLkmeghj7';
+const MESSAGE_MAX = 5000;
+
+const EMPTY_VALUES: ContactFormValues = { name: '', email: '', subject: '', message: '' };
 
 const ContactPage: React.FC = () => {
   const form = useForm({
     schema: contactFormSchema,
-    defaultValues: {
-      name: '',
-      email: '',
-      subject: '',
-      message: '',
-    },
+    defaultValues: EMPTY_VALUES,
   });
 
   const contactMutation = useContactFormMutation();
+  const [sentTo, setSentTo] = useState<{ name: string; email: string } | null>(null);
+  const isSending = contactMutation.isPending;
+
+  // Editing after a result clears the success or error banner.
+  const update = (field: keyof ContactFormValues, value: string) => {
+    if (contactMutation.isSuccess || contactMutation.isError) contactMutation.reset();
+    form.setValues((prev) => ({ ...prev, [field]: value }));
+  };
 
   const onSubmit = (values: ContactFormValues) => {
     contactMutation.mutate(values, {
       onSuccess: () => {
-        form.setValues({ name: '', email: '', subject: '', message: '' });
+        setSentTo({ name: values.name.trim(), email: values.email.trim() });
+        form.setValues(EMPTY_VALUES);
       },
     });
   };
+
+  const firstName = sentTo?.name.split(/\s+/)[0];
 
   return (
     <>
@@ -47,90 +60,179 @@ const ContactPage: React.FC = () => {
       </Helmet>
       <div className={styles.pageWrapper}>
         <div className={styles.container}>
-          <div className={styles.infoPanel}>
-            <h1 className={styles.title}>Get in Touch</h1>
+          <section className={styles.infoPanel} aria-labelledby="contact-title">
+            <span className={styles.eyebrow}>Contact us</span>
+            <h1 id="contact-title" className={styles.title}>Get in Touch</h1>
             <p className={styles.subtitle}>
-              Have a question or feedback? Fill out the form and we'll get back to you as soon as possible.
+              Have a question or feedback? We'd love to hear from you.
             </p>
-            <div className={styles.contactDetails}>
-              <a className={styles.contactItem} href="tel:+919654548384">
-                <Phone size={20} />
-                <span>+91 96545 48384</span>
-              </a>
-              <a className={styles.contactItem} href="mailto:hello@testkart.in">
-                <Mail size={20} />
-                <span>hello@testkart.in</span>
-              </a>
-              <a
-                className={`${styles.contactItem} ${styles.addressItem}`}
-                href={OFFICE_MAP_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <MapPin size={20} />
-                <span>Communication Address: {OFFICE_ADDRESS}</span>
-              </a>
+
+            <ul className={styles.contactList}>
+              <li>
+                <a className={`${styles.contactItem} ${styles.toneBlue}`} href={PHONE_HREF}>
+                  <span className={styles.contactIcon} aria-hidden="true"><Phone size={20} /></span>
+                  <span className={styles.contactText}>
+                    <span className={styles.contactLabel}>Call us</span>
+                    <span className={styles.contactValue}>{PHONE_DISPLAY}</span>
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a className={`${styles.contactItem} ${styles.toneLavender}`} href={`mailto:${EMAIL}`}>
+                  <span className={styles.contactIcon} aria-hidden="true"><Mail size={20} /></span>
+                  <span className={styles.contactText}>
+                    <span className={styles.contactLabel}>Email us</span>
+                    <span className={styles.contactValue}>{EMAIL}</span>
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a
+                  className={`${styles.contactItem} ${styles.toneSage}`}
+                  href={OFFICE_MAP_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span className={styles.contactIcon} aria-hidden="true"><MapPin size={20} /></span>
+                  <span className={styles.contactText}>
+                    <span className={styles.contactLabel}>Communication address</span>
+                    <span className={styles.contactAddress}>
+                      {OFFICE_ADDRESS_LINES.map((line) => (
+                        <span key={line}>{line}</span>
+                      ))}
+                    </span>
+                    <span className={styles.mapHint}>
+                      Open in Google Maps <ExternalLink size={13} aria-hidden="true" />
+                      <span className={styles.srOnly}> (opens in a new tab)</span>
+                    </span>
+                  </span>
+                </a>
+              </li>
+            </ul>
+          </section>
+
+          <section className={styles.formCard} aria-labelledby="contact-form-title">
+            <div className={styles.formHead}>
+              <h2 id="contact-form-title" className={styles.formTitle}>Send us a message</h2>
+              <p className={styles.formIntro}>Fill in the form and our team will reply by email.</p>
             </div>
-          </div>
-          <div className={styles.formPanel}>
+
+            {contactMutation.isSuccess && sentTo && (
+              <div className={`${styles.notice} ${styles.noticeSuccess}`} role="status">
+                <CheckCircle2 size={20} aria-hidden="true" />
+                <div>
+                  <p className={styles.noticeTitle}>Message sent</p>
+                  <p className={styles.noticeText}>
+                    Thanks{firstName ? `, ${firstName}` : ''}! We'll get back to you at <strong>{sentTo.email}</strong> soon.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {contactMutation.isError && (
+              <div className={`${styles.notice} ${styles.noticeError}`} role="alert">
+                <AlertCircle size={20} aria-hidden="true" />
+                <div>
+                  <p className={styles.noticeTitle}>Your message could not be sent</p>
+                  <p className={styles.noticeText}>
+                    {parseErrorMessage(contactMutation.error) || 'Something went wrong.'} Please try again, or email us at{' '}
+                    <a href={`mailto:${EMAIL}`}>{EMAIL}</a>.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className={styles.form}>
-                <FormItem name="name">
-                  <FormLabel>Full Name</FormLabel>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className={styles.form}
+                aria-busy={isSending}
+                noValidate
+              >
+                <div className={styles.fieldRow}>
+                  <FormItem name="name" className={styles.field}>
+                    <FormLabel>Full name</FormLabel>
+                    <FormControl>
+                      <Input
+                        className={styles.input}
+                        placeholder="e.g. Riya Sharma"
+                        autoComplete="name"
+                        value={form.values.name}
+                        onChange={(e) => update('name', e.target.value)}
+                        disabled={isSending}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                  <FormItem name="email" className={styles.field}>
+                    <FormLabel>Email address</FormLabel>
+                    <FormControl>
+                      <Input
+                        className={styles.input}
+                        type="email"
+                        inputMode="email"
+                        placeholder="you@example.com"
+                        autoComplete="email"
+                        value={form.values.email}
+                        onChange={(e) => update('email', e.target.value)}
+                        disabled={isSending}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                </div>
+
+                <FormItem name="subject" className={styles.field}>
+                  <FormLabel>
+                    Subject <span className={styles.optional}>(optional)</span>
+                  </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="John Doe"
-                      value={form.values.name}
-                      onChange={(e) => form.setValues((prev) => ({ ...prev, name: e.target.value }))}
-                      disabled={contactMutation.isPending}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-                <FormItem name="email">
-                  <FormLabel>Email Address</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="john.doe@example.com"
-                      value={form.values.email}
-                      onChange={(e) => form.setValues((prev) => ({ ...prev, email: e.target.value }))}
-                      disabled={contactMutation.isPending}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-                <FormItem name="subject">
-                  <FormLabel>Subject (Optional)</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="e.g., Question about a test series"
+                      className={styles.input}
+                      placeholder="e.g. Question about a test series"
                       value={form.values.subject}
-                      onChange={(e) => form.setValues((prev) => ({ ...prev, subject: e.target.value }))}
-                      disabled={contactMutation.isPending}
+                      onChange={(e) => update('subject', e.target.value)}
+                      disabled={isSending}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
-                <FormItem name="message">
+
+                <FormItem name="message" className={styles.field}>
                   <FormLabel>Message</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Your message here..."
-                      rows={5}
+                      className={styles.textarea}
+                      placeholder="Tell us how we can help..."
+                      rows={6}
+                      maxLength={MESSAGE_MAX}
                       value={form.values.message}
-                      onChange={(e) => form.setValues((prev) => ({ ...prev, message: e.target.value }))}
-                      disabled={contactMutation.isPending}
+                      onChange={(e) => update('message', e.target.value)}
+                      disabled={isSending}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <div className={styles.messageMeta}>
+                    <FormMessage />
+                    <span className={styles.counter} aria-hidden="true">
+                      {form.values.message.length} / {MESSAGE_MAX}
+                    </span>
+                  </div>
                 </FormItem>
-                <Button type="submit" size="lg" className={styles.submitButton} disabled={contactMutation.isPending}>
-                  {contactMutation.isPending ? <Spinner size="sm" /> : 'Send Message'}
+
+                <Button type="submit" size="lg" className={styles.submitButton} disabled={isSending}>
+                  {isSending ? (
+                    <>
+                      <Spinner size="sm" /> Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send size={18} aria-hidden="true" /> Send Message
+                    </>
+                  )}
                 </Button>
               </form>
             </Form>
-          </div>
+          </section>
         </div>
         <WhatsAppBubble />
       </div>

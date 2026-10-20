@@ -1,0 +1,237 @@
+/* Help article table of contents: a sticky white card on desktop, an
+   "On this page" disclosure on narrow screens. Active entry is a peach
+   wash with brand text, no heavy edge bar. */
+.card {
+  --toc-thumb: hsl(30 16% 86%);
+  --toc-thumb-active: hsl(22 58% 80%);
+
+  position: sticky;
+  top: calc(var(--site-notice-offset) + var(--header-height) + 1.25rem);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - var(--site-notice-offset) - var(--header-height) - 2.5rem);
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.25rem;
+  box-shadow: var(--sp-shadow);
+  box-sizing: border-box;
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 1rem 1.125rem 0.75rem;
+  border-bottom: 1px dashed var(--sp-line-strong);
+}
+
+.badge {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 1.875rem;
+  height: 1.875rem;
+  border-radius: 0.625rem;
+  background-color: var(--sp-peach-tint);
+  color: var(--tk-brand-text);
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--sp-ink);
+}
+
+.scroller {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0.5rem 0.5rem 0.75rem;
+  overscroll-behavior: contain;
+}
+
+/* Slim, quiet scrollbars for long tables of contents: a pale warm thumb on
+   no track at rest, light peach while the list is hovered or focused. The
+   standard properties cover Chrome, Edge and Firefox; the -webkit- rules
+   are the fallback for Safari. */
+.scroller,
+.collapsibleBody {
+  scrollbar-width: thin;
+  scrollbar-color: var(--toc-thumb) transparent;
+}
+
+.scroller:hover,
+.scroller:focus-within,
+.collapsibleBody:hover,
+.collapsibleBody:focus-within {
+  scrollbar-color: var(--toc-thumb-active) transparent;
+}
+
+@supports not (scrollbar-color: auto) {
+  .scroller::-webkit-scrollbar,
+  .collapsibleBody::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scroller::-webkit-scrollbar-track,
+  .collapsibleBody::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scroller::-webkit-scrollbar-thumb,
+  .collapsibleBody::-webkit-scrollbar-thumb {
+    border-radius: var(--radius-full);
+    background-color: var(--toc-thumb);
+  }
+
+  .scroller:hover::-webkit-scrollbar-thumb,
+  .collapsibleBody:hover::-webkit-scrollbar-thumb {
+    background-color: var(--toc-thumb-active);
+  }
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.link {
+  position: relative;
+  display: block;
+  padding: 0.4375rem 0.625rem 0.4375rem 1.25rem;
+  border-radius: 0.625rem;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  color: var(--sp-text);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
+}
+
+/* A small dot marks each entry; it fills with coral on the active one. */
+.link::before {
+  content: "";
+  position: absolute;
+  left: 0.5rem;
+  top: 0.9375rem;
+  width: 0.3125rem;
+  height: 0.3125rem;
+  border-radius: 50%;
+  background-color: var(--sp-line-strong);
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+[data-level="3"] > .link {
+  padding-left: 2rem;
+  font-size: 0.8125rem;
+  color: var(--sp-muted);
+}
+
+[data-level="3"] > .link::before {
+  left: 1.25rem;
+  top: 0.875rem;
+  width: 0.25rem;
+  height: 0.25rem;
+}
+
+.link:hover {
+  background-color: var(--muted);
+  color: var(--sp-ink);
+}
+
+.link[aria-current="location"] {
+  background-color: var(--sp-peach-tint);
+  color: var(--tk-brand-text);
+  font-weight: 600;
+}
+
+.link[aria-current="location"]::before {
+  background-color: var(--tk-brand-text);
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 1px;
+}
+
+/* Narrow screens */
+.collapsible {
+  --toc-thumb: hsl(30 16% 86%);
+  --toc-thumb-active: hsl(22 58% 80%);
+
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.125rem;
+  box-shadow: var(--sp-shadow);
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  list-style: none;
+  border-radius: 1.125rem;
+}
+
+.summary::-webkit-details-marker {
+  display: none;
+}
+
+.summary:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.summaryText {
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--sp-ink);
+}
+
+.summaryCount {
+  margin-left: auto;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--sp-muted);
+}
+
+.chevron {
+  flex-shrink: 0;
+  color: var(--sp-muted);
+  transition: transform var(--animation-duration-fast) ease;
+}
+
+.collapsible[open] .chevron {
+  transform: rotate(180deg);
+}
+
+.collapsibleBody {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 0.5rem 0.5rem 0.75rem;
+  border-top: 1px dashed var(--sp-line-strong);
+}
+
+:global(.dark) .card,
+:global(.dark) .collapsible {
+  --toc-thumb: hsl(222 14% 30%);
+  --toc-thumb-active: hsl(20 32% 44%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .link,
+  .link::before,
+  .chevron {
+    transition: none;
+  }
+}

@@ -1,128 +1,480 @@
+/* Contact page: an information column on the page background beside a
+   white form card. Colours come from the --sp-* spotlight tokens in
+   base.css plus the soft form palette on .formCard, so both themes are
+   covered. Coral stays a small accent: the eyebrow and a peach button. */
 .pageWrapper {
-  padding: var(--spacing-12) var(--spacing-6);
+  padding: var(--spacing-12) var(--spacing-6) var(--spacing-16);
   background-color: var(--background);
 }
 
 .container {
-  max-width: 1100px;
-  margin: 0 auto;
   display: grid;
-  grid-template-columns: 1fr 1.2fr;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.15fr);
+  align-items: start;
   gap: var(--spacing-12);
-  background-color: var(--surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  overflow: hidden;
+  max-width: 1120px;
+  margin: 0 auto;
 }
 
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Information column */
 .infoPanel {
-  padding: var(--spacing-12);
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  background-color: color-mix(in srgb, var(--primary) 5%, var(--surface));
+  align-items: flex-start;
+  min-width: 0;
+  padding-top: var(--spacing-4);
+}
+
+.eyebrow {
+  display: inline-block;
+  padding: 0.3125rem 0.75rem;
+  border-radius: var(--radius-full);
+  background-color: var(--sp-peach-tint);
+  color: var(--tk-brand-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .title {
+  margin: var(--spacing-4) 0 0;
   font-family: var(--font-family-heading);
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--surface-foreground);
-  margin-bottom: var(--spacing-4);
+  font-size: clamp(2rem, 1.5rem + 1.6vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: var(--sp-ink);
 }
 
 .subtitle {
-  font-size: 1rem;
+  max-width: 30rem;
+  margin: var(--spacing-3) 0 0;
+  font-size: 1.0625rem;
   line-height: 1.6;
-  color: var(--muted-foreground);
-  margin-bottom: var(--spacing-8);
+  color: var(--sp-text);
+  text-wrap: pretty;
 }
 
-.contactDetails {
+.contactList {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-4);
+  gap: var(--spacing-3);
+  width: 100%;
+  max-width: 30rem;
+  margin: var(--spacing-8) 0 0;
+  padding: 0;
+  list-style: none;
 }
 
 .contactItem {
+  --ci-tint: var(--sp-peach-tint);
+  --ci-ink: hsl(18 45% 34%);
+  --ci-edge: var(--sp-peach-edge);
+
   display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
-  font-size: 0.9375rem;
-  color: var(--surface-foreground);
+  align-items: flex-start;
+  gap: 0.875rem;
+  padding: 0.875rem 1rem;
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.125rem;
+  box-shadow: var(--sp-shadow);
+  color: var(--sp-ink);
   text-decoration: none;
-  width: fit-content;
-  border-radius: var(--radius-sm);
-  transition: color 0.15s ease;
+  transition:
+    border-color var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
+}
+
+.toneLavender {
+  --ci-tint: var(--sp-lavender-tint);
+  --ci-ink: var(--sp-lavender-ink);
+  --ci-edge: var(--sp-lavender-edge);
+}
+
+.toneBlue {
+  --ci-tint: var(--sp-blue-tint);
+  --ci-ink: var(--sp-blue-ink);
+  --ci-edge: var(--sp-blue-edge);
+}
+
+.toneSage {
+  --ci-tint: var(--sp-sage-tint);
+  --ci-ink: var(--sp-sage-ink);
+  --ci-edge: var(--sp-sage-edge);
 }
 
 .contactItem:hover {
-  color: var(--primary);
+  border-color: var(--ci-edge);
+  box-shadow: var(--sp-shadow-hover);
+  transform: translateY(-1px);
+}
+
+.contactItem:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 3px;
+}
+
+.contactIcon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.875rem;
+  background-color: var(--ci-tint);
+  color: var(--ci-ink);
+}
+
+.contactText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+  padding-top: 0.125rem;
+}
+
+.contactLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--sp-muted);
+}
+
+.contactValue {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--sp-ink);
+  overflow-wrap: anywhere;
+}
+
+.contactAddress {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--sp-ink);
+}
+
+.mapHint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ci-ink);
+}
+
+.contactItem:hover .contactValue,
+.contactItem:hover .mapHint {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 
-.contactItem:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 3px;
+/* Form card */
+.formCard {
+  /* Soft form palette. --error and --error-text are re-pointed here so the
+     shared Form label, message and error outline turn muted rose inside
+     this card only. The rose text holds about 7:1 on white. */
+  --cf-field-border: hsl(30 18% 85%);
+  --cf-field-hover: hsl(28 22% 74%);
+  --cf-focus-edge: hsl(20 48% 60%);
+  --cf-focus-ring: hsl(24 90% 93%);
+  --cf-error-edge: hsl(354 46% 64%);
+  --cf-error-ring: hsl(354 70% 95%);
+  --cf-button: hsl(24 88% 85%);
+  --cf-button-hover: hsl(22 82% 80%);
+  --cf-button-active: hsl(22 72% 76%);
+  --cf-button-ink: hsl(20 70% 20%);
+  --cf-button-disabled: hsl(28 45% 91%);
+  --cf-button-disabled-ink: hsl(20 25% 42%);
+  --cf-button-shadow: 0 8px 18px -10px hsl(20 55% 40% / 0.45);
+  --error: var(--cf-error-edge);
+  --error-text: hsl(352 42% 38%);
+
+  container-type: inline-size;
+  min-width: 0;
+  padding: 2rem;
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.5rem;
+  box-shadow: var(--sp-shadow);
+  box-sizing: border-box;
 }
 
-.contactItem svg {
-  color: var(--primary);
-  flex-shrink: 0;
+:global(.dark) .formCard {
+  --cf-field-border: var(--border);
+  --cf-field-hover: hsl(220 12% 36%);
+  --cf-focus-edge: hsl(22 60% 70%);
+  --cf-focus-ring: hsl(22 30% 24%);
+  --cf-error-edge: hsl(354 52% 68%);
+  --cf-error-ring: hsl(354 24% 22%);
+  --cf-button: hsl(24 70% 76%);
+  --cf-button-hover: hsl(24 78% 82%);
+  --cf-button-active: hsl(22 62% 70%);
+  --cf-button-ink: hsl(20 70% 14%);
+  --cf-button-disabled: hsl(24 16% 26%);
+  --cf-button-disabled-ink: hsl(24 20% 70%);
+  --cf-button-shadow: none;
+  --error-text: hsl(354 70% 82%);
 }
 
-.addressItem {
-  align-items: flex-start;
+.formHead {
+  margin-bottom: 1.25rem;
 }
 
-.addressItem svg {
-  margin-top: 2px;
+.formTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.375rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--sp-ink);
 }
 
-.formPanel {
-  padding: var(--spacing-12);
+.formIntro {
+  margin: 0.25rem 0 0;
+  font-size: 0.9375rem;
+  color: var(--sp-muted);
 }
 
 .form {
   width: 100%;
 }
 
-.submitButton {
-  width: 100%;
-  margin-top: var(--spacing-4);
+.fieldRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: var(--spacing-4);
 }
 
-@media (max-width: 992px) {
+@container (min-width: 30rem) {
+  .fieldRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.field {
+  gap: 0.375rem;
+  margin-bottom: 1.125rem;
+}
+
+.optional {
+  font-weight: 400;
+  color: var(--sp-muted);
+}
+
+/* Fields: warm neutral border at rest, a muted peach edge and wash on
+   focus, muted rose when invalid. The shared Input and Textarea styles sit
+   in @layer base, so these unlayered rules take over without !important. */
+.input {
+  height: 2.875rem;
+  padding-inline: 0.875rem;
+  border-radius: 0.75rem;
+}
+
+.textarea {
+  min-height: 9.5rem;
+  padding: 0.75rem 0.875rem;
+  border-radius: 0.75rem;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.input,
+.textarea {
+  border-color: var(--cf-field-border);
+  box-shadow: none;
+}
+
+.input:hover:not(:disabled),
+.textarea:hover:not(:disabled) {
+  border-color: var(--cf-field-hover);
+  box-shadow: none;
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: var(--cf-focus-edge);
+  box-shadow: 0 0 0 3px var(--cf-focus-ring);
+}
+
+.input[aria-invalid="true"],
+.textarea[aria-invalid="true"] {
+  border-color: var(--cf-error-edge);
+  box-shadow: 0 0 0 3px var(--cf-error-ring);
+}
+
+.messageMeta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+}
+
+.messageMeta > p {
+  margin-top: 0;
+}
+
+.counter {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--sp-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.submitButton {
+  width: 100%;
+  margin-top: var(--spacing-2);
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  border: 0;
+  background-color: var(--cf-button);
+  color: var(--cf-button-ink);
+  box-shadow: var(--cf-button-shadow);
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease;
+}
+
+.submitButton:hover:not(:disabled) {
+  background-color: var(--cf-button-hover);
+  color: var(--cf-button-ink);
+}
+
+.submitButton:active:not(:disabled) {
+  background-color: var(--cf-button-active);
+  box-shadow: none;
+}
+
+.submitButton:focus-visible {
+  outline: 2px solid var(--cf-focus-edge);
+  outline-offset: 3px;
+  box-shadow: var(--cf-button-shadow);
+}
+
+.submitButton:disabled {
+  background-color: var(--cf-button-disabled);
+  color: var(--cf-button-disabled-ink);
+  box-shadow: none;
+  opacity: 1;
+  cursor: progress;
+}
+
+.submitButton svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+/* Result banners */
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding: 0.875rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid;
+}
+
+.notice > svg {
+  flex-shrink: 0;
+  margin-top: 0.0625rem;
+}
+
+.noticeSuccess {
+  background-color: var(--sp-sage-tint);
+  border-color: var(--sp-sage-edge);
+  color: var(--sp-sage-ink);
+}
+
+.noticeError {
+  background-color: color-mix(in srgb, var(--error) 10%, var(--sp-card));
+  border-color: color-mix(in srgb, var(--error) 45%, var(--sp-card));
+  color: var(--error-text);
+}
+
+.noticeTitle {
+  margin: 0;
+  font-weight: 700;
+  font-size: 0.9375rem;
+}
+
+.noticeText {
+  margin: 0.125rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--sp-ink);
+  overflow-wrap: anywhere;
+}
+
+.noticeText a {
+  color: inherit;
+  font-weight: 600;
+  text-underline-offset: 2px;
+}
+
+@media (max-width: 1023px) {
   .container {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.2fr);
+    gap: var(--spacing-8);
+  }
+
+  .formCard {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 819px) {
+  .pageWrapper {
+    padding: var(--spacing-8) var(--spacing-4) var(--spacing-12);
+  }
+
+  .container {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--spacing-8);
   }
 
   .infoPanel {
-    padding: var(--spacing-8);
-    text-align: center;
+    padding-top: 0;
   }
 
-  .contactDetails {
-    align-items: center;
-  }
-
-  .formPanel {
-    padding: var(--spacing-8);
+  .contactList {
+    max-width: none;
+    margin-top: var(--spacing-6);
   }
 }
 
-@media (max-width: 576px) {
-  .pageWrapper {
-    padding: var(--spacing-8) var(--spacing-4);
+@media (max-width: 479px) {
+  .formCard {
+    padding: 1.25rem;
+    border-radius: 1.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contactItem {
+    transition: none;
   }
 
-  .infoPanel,
-  .formPanel {
-    padding: var(--spacing-6);
-  }
-
-  .title {
-    font-size: 2rem;
+  .contactItem:hover {
+    transform: none;
   }
 }

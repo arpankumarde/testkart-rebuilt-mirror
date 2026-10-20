@@ -1,0 +1,431 @@
+/* Legal pages (/terms, /privacy, /refund): an ivory header band like the
+   help pages, then the policy on a white card beside a sticky TOC. Each
+   policy gets one pastel tone for its icon tile; coral is kept to links
+   and the current policy pill. */
+.pageWrapper {
+  --lg-tint: var(--sp-lavender-tint);
+  --lg-ink: var(--sp-lavender-ink);
+
+  min-height: 100vh;
+  padding-bottom: var(--spacing-16);
+  background-color: var(--background);
+}
+
+.lavender {
+  --lg-tint: var(--sp-lavender-tint);
+  --lg-ink: var(--sp-lavender-ink);
+}
+
+.sage {
+  --lg-tint: var(--sp-sage-tint);
+  --lg-ink: var(--sp-sage-ink);
+}
+
+.peach {
+  --lg-tint: var(--sp-peach-tint);
+  --lg-ink: var(--tk-brand-text);
+}
+
+/* Header */
+.header {
+  background-color: var(--sp-surface);
+  border-bottom: 1px solid var(--sp-line);
+}
+
+.headerInner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 1.5rem var(--spacing-6) 1.75rem;
+  box-sizing: border-box;
+}
+
+.policyNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  margin-bottom: 1.5rem;
+}
+
+.policyLink {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4375rem 0.875rem;
+  border: 1px solid var(--sp-line-strong);
+  border-radius: var(--radius-full);
+  background-color: var(--sp-card);
+  color: var(--sp-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    border-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
+}
+
+.policyLink:hover {
+  border-color: var(--sp-peach-edge);
+  color: var(--tk-brand-text);
+}
+
+.policyLink[aria-current="page"] {
+  background-color: var(--sp-ink);
+  border-color: var(--sp-ink);
+  color: var(--sp-card);
+}
+
+.policyLink:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.iconTile {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 1rem;
+  background-color: var(--lg-tint);
+  color: var(--lg-ink);
+}
+
+.titleText {
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: clamp(1.75rem, 1.3rem + 1.5vw, 2.375rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--sp-ink);
+}
+
+.intro {
+  max-width: 40rem;
+  margin: 0.5rem 0 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--sp-text);
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  margin-top: 1.25rem;
+}
+
+.metaChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.3125rem 0.75rem;
+  border: 1px solid var(--sp-line);
+  border-radius: var(--radius-full);
+  background-color: var(--sp-card);
+  color: var(--sp-text);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.metaVersion {
+  border-color: transparent;
+  background-color: var(--lg-tint);
+  color: var(--lg-ink);
+  font-weight: 700;
+}
+
+/* Body */
+.body {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: var(--spacing-8) var(--spacing-6) 0;
+  box-sizing: border-box;
+}
+
+.mobileToc {
+  margin-bottom: 1.25rem;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: var(--spacing-8);
+}
+
+.sidebar {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .mobileToc {
+    display: none;
+  }
+
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 15rem;
+    gap: 1.75rem;
+  }
+
+  /* Stretches to the card's height so the sticky TOC inside can travel. */
+  .sidebar {
+    display: block;
+    align-self: stretch;
+  }
+
+  .layout.layoutSingle {
+    grid-template-columns: minmax(0, 52rem);
+  }
+}
+
+@media (min-width: 1200px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 17rem;
+    gap: 2.5rem;
+  }
+}
+
+.card {
+  min-width: 0;
+  padding: 2.25rem 2.5rem 2.5rem;
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.5rem;
+  box-shadow: var(--sp-shadow);
+  box-sizing: border-box;
+}
+
+/* Policy text. The HTML comes from the admin editor, so rules reach into it
+   with :global. The measure is capped so lines stay readable on wide screens. */
+.content {
+  max-width: 46rem;
+  font-family: var(--font-family-base);
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--sp-text);
+  overflow-wrap: break-word;
+}
+
+.content > :first-child {
+  margin-top: 0;
+}
+
+.content :global(h2),
+.content :global(h3),
+.content :global(h4) {
+  font-family: var(--font-family-heading);
+  color: var(--sp-ink);
+  scroll-margin-top: calc(var(--site-notice-offset) + var(--header-height) + 1.5rem);
+}
+
+/* Each numbered section starts below a light dashed rule. */
+.content :global(h2) {
+  margin: 2rem 0 0.75rem;
+  padding-top: 2rem;
+  border-top: 1px dashed var(--sp-line-strong);
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.content > :global(h2:first-child) {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.content :global(h3) {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.content :global(h4) {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.content :global(h2 strong),
+.content :global(h3 strong) {
+  font-weight: inherit;
+}
+
+.content :global([tabindex="-1"]:focus) {
+  outline: none;
+}
+
+.content :global(p) {
+  margin: 0 0 1rem;
+}
+
+.content :global(strong) {
+  font-weight: 700;
+  color: var(--sp-ink);
+}
+
+.content :global(ul),
+.content :global(ol) {
+  margin: 0 0 1.125rem;
+  padding-left: 1.375rem;
+}
+
+.content :global(ul) {
+  list-style-type: disc;
+}
+
+.content :global(ol) {
+  list-style-type: decimal;
+}
+
+.content :global(ul ul) {
+  list-style-type: circle;
+}
+
+.content :global(li) {
+  margin: 0.375rem 0;
+  padding-left: 0.25rem;
+}
+
+.content :global(li)::marker {
+  color: var(--tk-brand-text);
+}
+
+.content :global(li > p) {
+  margin: 0;
+}
+
+.content :global(li > p + p) {
+  margin-top: 0.5rem;
+}
+
+.content :global(a) {
+  color: var(--tk-brand-text);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: var(--sp-peach-edge);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+  transition: text-decoration-color var(--animation-duration-fast) ease;
+}
+
+.content :global(a:hover) {
+  text-decoration-color: var(--tk-brand-text);
+  text-decoration-thickness: 2px;
+}
+
+.content :global(a:focus-visible) {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.content :global(blockquote) {
+  margin: 1.25rem 0;
+  padding: 0.875rem 1.125rem;
+  background-color: var(--sp-blue-tint);
+  border: 1px solid var(--exam-blue-border);
+  border-radius: 1rem;
+  color: var(--sp-ink);
+}
+
+.content :global(blockquote > :last-child) {
+  margin-bottom: 0;
+}
+
+.content :global(hr) {
+  margin: 2rem 0;
+  border: 0;
+  border-top: 1px dashed var(--sp-line-strong);
+}
+
+/* Tables keep the global .tk-content-table look; only spacing and font size here. */
+.content :global(.tk-content-table) {
+  margin: 1.25rem 0 1.5rem;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+.stateTitle {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--sp-ink);
+}
+
+.stateText {
+  margin: 0;
+  color: var(--sp-text);
+}
+
+.errorMessage {
+  margin: 1rem 0 0;
+  padding: var(--spacing-3);
+  border-radius: var(--radius);
+  background-color: var(--muted);
+  color: var(--error-text);
+  font-family: var(--font-family-monospace);
+  font-size: 0.875rem;
+}
+
+@media (max-width: 899px) {
+  .card {
+    padding: 1.75rem;
+  }
+}
+
+@media (max-width: 639px) {
+  .headerInner {
+    padding: 1rem var(--spacing-4) 1.25rem;
+  }
+
+  .policyNav {
+    margin-bottom: 1.25rem;
+  }
+
+  .policyLink {
+    padding: 0.4375rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  .iconTile {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 0.875rem;
+  }
+
+  .body {
+    padding: 1.25rem var(--spacing-4) 0;
+  }
+
+  .card {
+    padding: 1.375rem 1.125rem 1.5rem;
+    border-radius: 1.25rem;
+  }
+
+  .content :global(h2) {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    font-size: 1.125rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .policyLink,
+  .content :global(a) {
+    transition: none;
+  }
+}
