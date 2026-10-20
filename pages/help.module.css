@@ -413,10 +413,11 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
 }
 
-/* auto-fill: compact cards keep one width, four across on desktop, even
-   when the last row is short. */
+/* auto-fill: compact cards keep one width, three across on desktop, even
+   when the last row is short. Three rather than four keeps most titles to
+   one or two lines, so cards in a row end up close in height. */
 .compactTier {
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16.5rem), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
   gap: var(--spacing-4);
 }
 

@@ -1,24 +1,27 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { sanitizeHtml } from '../helpers/sanitizeHtml';
-import { ChevronRight, Clock, Calendar, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CalendarDays, ChevronRight, Clock, LifeBuoy, ThumbsDown, ThumbsUp } from 'lucide-react';
 
 import { useBlogPostQuery, useBlogPostsQuery } from '../helpers/useBlogQuery';
 import { useBlogReactions, useBlogReactMutation } from '../helpers/useBlogReactions';
 import { getSessionId } from '../helpers/getSessionId';
 import { ShareButton } from '../components/ShareButton';
 import { PUBLIC_PAGE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
-import { extractHeadingsWithIds } from '../helpers/extractHeadingsWithIds';
+import { extractHeadingsWithIds, type ExtractedHeading } from '../helpers/extractHeadingsWithIds';
 import { wrapContentTables } from '../helpers/contentTables';
+import { tagCallouts } from '../helpers/tagCallouts';
+import { wrapZoomableImages } from '../helpers/zoomableImages';
+import { useHeadingScrollSpy } from '../helpers/useHeadingScrollSpy';
 import { SEOHead } from '../components/SEOHead';
 import { BRAND_APP_ICON } from '../helpers/brandAssets';
 import { Button } from '../components/Button';
-import { Badge } from '../components/Badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/Avatar';
 import { Skeleton } from '../components/Skeleton';
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '../components/Accordion';
-import { BlogPostCard } from '../components/BlogPostCard';
+import { HelpArticleCard } from '../components/HelpArticleCard';
+import { HelpArticleToc } from '../components/HelpArticleToc';
+import { ImageLightbox, useImageLightbox } from '../components/ImageLightbox';
 import { NotFoundState } from '../components/NotFoundState';
 import { isNotFoundError } from '../helpers/isNotFoundError';
 import styles from './help.$articleSlug.module.css';
@@ -35,12 +38,12 @@ export default function KnowledgeBaseArticleDetail() {
   const { articleSlug } = useParams<{ articleSlug: string }>();
   const { data, isFetching, error } = useBlogPostQuery(articleSlug);
   const post = data?.post;
-
-  const [activeHeadingId, setActiveHeadingId] = useState<string>('');
+  const articleRef = useRef<HTMLDivElement>(null);
 
   const sessionId = useMemo(() => getSessionId(), []);
   const { data: reactionsData } = useBlogReactions(post?.id || 0, sessionId);
   const reactMutation = useBlogReactMutation();
+  const userReaction = reactionsData?.userReaction;
 
   const handleReact = (reaction: 'like' | 'dislike') => {
     if (!post) return;
@@ -48,49 +51,32 @@ export default function KnowledgeBaseArticleDetail() {
   };
 
   // Sanitize once, then bake stable ids into the h2/h3 tags as part of the
-  // same string — see extractHeadingsWithIds for why this replaced the old
+  // same string - see extractHeadingsWithIds for why this replaced the old
   // "mutate el.id in a useEffect" approach (those ids never survived).
+  // Callout tagging, zoomable images and table wrapping are string passes on
+  // the same output.
   const { html: articleHtml, headings } = useMemo(() => {
-    if (!post?.content) return { html: '', headings: [] as { id: string, text: string, level: number }[] };
-    const sanitized = sanitizeHtml(post.content);
-    return extractHeadingsWithIds(sanitized);
+    if (!post?.content) return { html: '', headings: [] as ExtractedHeading[] };
+    const { html, headings } = extractHeadingsWithIds(sanitizeHtml(post.content));
+    return { html: wrapContentTables(wrapZoomableImages(tagCallouts(html))), headings };
   }, [post?.content]);
 
-  useEffect(() => {
-    if (!headings.length) return;
-    
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          setActiveHeadingId(entry.target.id);
-        }
-      });
-    }, { rootMargin: "-100px 0px -70% 0px" });
+  // One stable object: React re-applies innerHTML whenever this prop's
+  // identity changes, even for the same string, which would rebuild the
+  // article on every render and drop focus moved into it by the TOC or the
+  // lightbox.
+  const articleMarkup = useMemo(() => ({ __html: articleHtml }), [articleHtml]);
 
-    headings.forEach((h) => {
-      const el = document.getElementById(h.id);
-      if (el) observer.observe(el);
-    });
+  const headingIds = useMemo(() => headings.map(h => h.id), [headings]);
+  const { activeId, scrollTo } = useHeadingScrollSpy(articleRef, headingIds);
+  const { image: lightboxImage, close: closeLightbox } = useImageLightbox(articleRef);
 
-    return () => {
-      observer.disconnect();
-    };
-  }, [headings]);
-
-  const scrollToHeading = (e: React.MouseEvent, id: string) => {
-    e.preventDefault();
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
-
-  const { data: relatedData } = useBlogPostsQuery({ 
-    type: "knowledge_base", 
-    categorySlug: post?.categorySlug || undefined, 
-    limit: 4 
+  const { data: relatedData } = useBlogPostsQuery({
+    type: "knowledge_base",
+    categorySlug: post?.categorySlug || undefined,
+    limit: 4
   });
-  
+
   const relatedPosts = useMemo(() => {
     return relatedData?.posts.filter(p => p.id !== post?.id).slice(0, 3) || [];
   }, [relatedData, post?.id]);
@@ -98,9 +84,15 @@ export default function KnowledgeBaseArticleDetail() {
   if (isFetching && !post) {
     return (
       <div className={styles.pageWrapper}>
-        <div className={styles.container}>
-          <Skeleton style={{ width: '100%', height: '400px', borderRadius: 'var(--radius-lg)', marginBottom: '2rem' }} />
-          <Skeleton style={{ width: '60%', height: '40px', marginBottom: '1rem' }} />
+        <div className={styles.header}>
+          <div className={styles.headerInner}>
+            <Skeleton style={{ width: '40%', height: '1rem', marginBottom: '1.5rem' }} />
+            <Skeleton style={{ width: '75%', height: '2.5rem', marginBottom: '1.25rem' }} />
+            <Skeleton style={{ width: '30%', height: '2.75rem' }} />
+          </div>
+        </div>
+        <div className={styles.body}>
+          <Skeleton style={{ width: '100%', height: '480px', borderRadius: '1.5rem' }} />
         </div>
       </div>
     );
@@ -109,7 +101,7 @@ export default function KnowledgeBaseArticleDetail() {
   if (error && !isNotFoundError(error)) {
     return (
       <div className={styles.pageWrapper}>
-        <div className={styles.container}>
+        <div className={styles.body}>
           <div className={styles.stateContainer}>
             <h2>Could not load this article</h2>
             <p>Something went wrong on our side. Please try again in a moment.</p>
@@ -125,9 +117,11 @@ export default function KnowledgeBaseArticleDetail() {
   }
 
   const canonicalUrl = `https://testkart.in/help/${post.slug}`;
+  const lastUpdated = post.updatedAt ?? post.publishedAt;
+  const hasToc = headings.length > 0;
 
   const wordCount = Math.ceil((post.content?.replace(/<[^>]+>/g, '') || '').split(/\s+/).length);
-  
+
   const articleSchema = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -137,13 +131,13 @@ export default function KnowledgeBaseArticleDetail() {
     "datePublished": post.publishedAt?.toISOString(),
     "dateModified": post.updatedAt ? new Date(post.updatedAt).toISOString() : post.publishedAt?.toISOString(),
     "author": { "@type": "Person", "name": post.authorName || "Testkart Team" },
-    "publisher": { 
-      "@type": "Organization", 
-      "name": "Testkart", 
-      "logo": { 
-        "@type": "ImageObject", 
-        "url": BRAND_APP_ICON 
-      } 
+    "publisher": {
+      "@type": "Organization",
+      "name": "Testkart",
+      "logo": {
+        "@type": "ImageObject",
+        "url": BRAND_APP_ICON
+      }
     },
     "mainEntityOfPage": { "@type": "WebPage", "@id": canonicalUrl },
     "wordCount": wordCount
@@ -153,24 +147,24 @@ export default function KnowledgeBaseArticleDetail() {
     { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://testkart.in" },
     { "@type": "ListItem", "position": 2, "name": "Knowledge Base", "item": "https://testkart.in/help" }
   ];
-  
+
   if (post.categoryName) {
-    breadcrumbItems.push({ 
-      "@type": "ListItem", 
-      "position": 3, 
-      "name": post.categoryName, 
-      "item": `https://testkart.in/help?category=${post.categorySlug}` 
+    breadcrumbItems.push({
+      "@type": "ListItem",
+      "position": 3,
+      "name": post.categoryName,
+      "item": `https://testkart.in/help?category=${post.categorySlug}`
     });
-    breadcrumbItems.push({ 
-      "@type": "ListItem", 
-      "position": 4, 
+    breadcrumbItems.push({
+      "@type": "ListItem",
+      "position": 4,
       "name": post.title,
       "item": canonicalUrl
     });
   } else {
-    breadcrumbItems.push({ 
-      "@type": "ListItem", 
-      "position": 3, 
+    breadcrumbItems.push({
+      "@type": "ListItem",
+      "position": 3,
       "name": post.title,
       "item": canonicalUrl
     });
@@ -182,9 +176,15 @@ export default function KnowledgeBaseArticleDetail() {
     "itemListElement": breadcrumbItems
   };
 
+  const feedbackHint = userReaction === 'like'
+    ? 'Thanks! Glad this guide helped.'
+    : userReaction === 'dislike'
+      ? 'Thanks for telling us. Our support team can help with anything this guide missed.'
+      : 'Your answer helps us improve these guides.';
+
   return (
     <>
-      <SEOHead 
+      <SEOHead
         title={`${post.title} | Knowledge Base`}
         description={post.seoDescription || post.excerpt || ''}
         image={post.ogImage || post.featuredImage || undefined}
@@ -202,138 +202,150 @@ export default function KnowledgeBaseArticleDetail() {
       </Helmet>
 
       <div className={styles.pageWrapper}>
-        <div className={styles.container}>
-          <nav className={styles.breadcrumb}>
-            <Link to="/">Home</Link>
-            <ChevronRight size={16} />
-            <Link to="/help">Knowledge Base</Link>
-            {post.categoryName && (
-              <>
-                <ChevronRight size={16} />
-                <Link to={`/help?category=${post.categorySlug}`}>{post.categoryName}</Link>
-              </>
-            )}
-            <ChevronRight size={16} />
-            <span className={styles.current}>{post.title}</span>
-          </nav>
+        <header className={styles.header}>
+          <span className={styles.shapeRing} aria-hidden="true" />
+          <span className={styles.shapeDot} aria-hidden="true" />
+          <div className={styles.headerInner}>
+            <nav aria-label="Breadcrumb">
+              <ol className={styles.breadcrumb}>
+                <li><Link to="/">Home</Link></li>
+                <li><ChevronRight size={14} aria-hidden="true" /><Link to="/help">Knowledge Base</Link></li>
+                {post.categoryName && (
+                  <li>
+                    <ChevronRight size={14} aria-hidden="true" />
+                    <Link to={`/help?category=${post.categorySlug}`}>{post.categoryName}</Link>
+                  </li>
+                )}
+                <li className={styles.crumbCurrent}>
+                  <ChevronRight size={14} aria-hidden="true" />
+                  <span aria-current="page">{post.title.trim()}</span>
+                </li>
+              </ol>
+            </nav>
 
-          <header className={styles.articleHeader}>
-            <h1 className={styles.title}>{post.title}</h1>
-            
-            <div className={styles.headerMeta}>
-              <div className={styles.authorInfo}>
+            <h1 className={styles.title}>{post.title.trim()}</h1>
+
+            <div className={styles.meta}>
+              <div className={styles.author}>
                 <Avatar className={styles.authorAvatar}>
-                  <AvatarImage src={post.authorAvatar || undefined} />
+                  <AvatarImage src={post.authorAvatar || undefined} alt="" />
                   <AvatarFallback>{post.authorName?.[0] || 'T'}</AvatarFallback>
                 </Avatar>
                 <div className={styles.authorDetails}>
                   <span className={styles.authorName}>{post.authorName || 'Testkart Team'}</span>
-                  <div className={styles.postStats}>
-                    {post.publishedAt && <span><Calendar size={14} /> Updated on {formatDate(post.publishedAt)}</span>}
-                    <span><Clock size={14} /> {post.readingTimeMinutes} min read</span>
-                  </div>
+                  <span className={styles.stats}>
+                    {lastUpdated && (
+                      <span className={styles.stat}>
+                        <CalendarDays size={14} aria-hidden="true" />
+                        Updated <time dateTime={new Date(lastUpdated).toISOString()}>{formatDate(lastUpdated)}</time>
+                      </span>
+                    )}
+                    <span className={styles.stat}>
+                      <Clock size={14} aria-hidden="true" />
+                      {post.readingTimeMinutes} min read
+                    </span>
+                  </span>
                 </div>
               </div>
-              
+
               <ShareButton
                 kind="help-article"
                 handle={post.slug}
                 title={post.title}
                 campaign={PUBLIC_PAGE_SHARE_CAMPAIGN}
+                variant="primary"
+                size="sm"
+                className={styles.share}
               />
             </div>
-          </header>
+          </div>
+        </header>
 
-          <div className={styles.layoutGrid}>
-            
-            <main className={styles.mainContent}>
-              <article 
-                className={styles.articleContent}
-                itemScope 
-                itemType="https://schema.org/Article"
-                dangerouslySetInnerHTML={{ __html: wrapContentTables(articleHtml) }}
-              />
+        <div className={styles.body}>
+          {hasToc && (
+            <div className={styles.mobileToc}>
+              <HelpArticleToc variant="collapsible" headings={headings} activeId={activeId} onSelect={scrollTo} />
+            </div>
+          )}
 
-              <div className={styles.feedbackSection}>
-                <h3>Was this article helpful?</h3>
-                <div className={styles.feedbackButtons}>
-                  <Button 
-                    variant={reactionsData?.userReaction === 'like' ? 'primary' : 'outline'} 
-                    onClick={() => handleReact('like')} 
-                    className={styles.feedbackBtn}
-                    disabled={reactMutation.isPending}
-                  >
-                    <ThumbsUp size={16} /> {reactionsData?.likes || 0} Yes
-                  </Button>
-                  <Button 
-                    variant={reactionsData?.userReaction === 'dislike' ? 'primary' : 'outline'} 
-                    onClick={() => handleReact('dislike')} 
-                    className={styles.feedbackBtn}
-                    disabled={reactMutation.isPending}
-                  >
-                    <ThumbsDown size={16} /> {reactionsData?.dislikes || 0} No
-                  </Button>
+          <div className={`${styles.layout} ${hasToc ? '' : styles.layoutSingle}`}>
+            <main className={styles.main}>
+              <article className={styles.articleCard} itemScope itemType="https://schema.org/Article">
+                <div
+                  ref={articleRef}
+                  className={styles.articleContent}
+                  dangerouslySetInnerHTML={articleMarkup}
+                />
+              </article>
+
+              <section className={styles.feedback} aria-labelledby="help-feedback-title">
+                <div className={styles.feedbackRow}>
+                  <div className={styles.feedbackText}>
+                    <h2 id="help-feedback-title" className={styles.feedbackTitle}>Was this article helpful?</h2>
+                    <p className={styles.feedbackHint} aria-live="polite">{feedbackHint}</p>
+                  </div>
+                  <div className={styles.feedbackButtons}>
+                    <button
+                      type="button"
+                      className={styles.feedbackBtn}
+                      aria-pressed={userReaction === 'like'}
+                      onClick={() => handleReact('like')}
+                      disabled={reactMutation.isPending}
+                    >
+                      <ThumbsUp size={16} aria-hidden="true" /> Yes
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.feedbackBtn}
+                      aria-pressed={userReaction === 'dislike'}
+                      onClick={() => handleReact('dislike')}
+                      disabled={reactMutation.isPending}
+                    >
+                      <ThumbsDown size={16} aria-hidden="true" /> No
+                    </button>
+                  </div>
                 </div>
-              </div>
+                <div className={styles.feedbackLinks}>
+                  <Link to="/contact" className={styles.feedbackLink}>
+                    <LifeBuoy size={16} aria-hidden="true" /> Contact support
+                  </Link>
+                  <Link to="/help" className={styles.feedbackLink}>
+                    <ArrowLeft size={16} aria-hidden="true" /> Back to Knowledge Base
+                  </Link>
+                </div>
+              </section>
             </main>
 
-            <aside className={styles.sidebar}>
-              {headings.length > 0 && (
-                <>
-                  <div className={styles.desktopToc}>
-                    <div className={styles.tocSticky}>
-                      <h4>In this article</h4>
-                      <ul className={styles.tocList}>
-                        {headings.map(h => (
-                          <li 
-                            key={h.id} 
-                            className={`${styles.tocItem} ${activeHeadingId === h.id ? styles.tocItemActive : ''}`} 
-                            data-level={h.level}
-                          >
-                            <a href={`#${h.id}`} onClick={e => scrollToHeading(e, h.id)}>{h.text}</a>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                  <div className={styles.mobileToc}>
-                    <Accordion type="single" collapsible>
-                      <AccordionItem value="toc">
-                        <AccordionTrigger>In this article</AccordionTrigger>
-                        <AccordionContent>
-                          <ul className={styles.tocList}>
-                            {headings.map(h => (
-                              <li 
-                                key={h.id} 
-                                className={`${styles.tocItem} ${activeHeadingId === h.id ? styles.tocItemActive : ''}`} 
-                                data-level={h.level}
-                              >
-                                <a href={`#${h.id}`} onClick={e => scrollToHeading(e, h.id)}>{h.text}</a>
-                              </li>
-                            ))}
-                          </ul>
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-                  </div>
-                </>
-              )}
-            </aside>
-            
+            {hasToc && (
+              <aside className={styles.sidebar}>
+                <HelpArticleToc variant="sidebar" headings={headings} activeId={activeId} onSelect={scrollTo} />
+              </aside>
+            )}
           </div>
 
           {relatedPosts.length > 0 && (
-            <section className={styles.relatedSection}>
-              <h2>Related Articles</h2>
+            <section className={styles.related} aria-labelledby="help-related-title">
+              <div className={styles.relatedHead}>
+                <h2 id="help-related-title" className={styles.relatedTitle}>
+                  {post.categoryName ? `More in ${post.categoryName}` : 'More guides'}
+                </h2>
+                {post.categorySlug && (
+                  <Link to={`/help?category=${post.categorySlug}`} className={styles.relatedAll}>
+                    View all <ArrowRight size={16} aria-hidden="true" />
+                  </Link>
+                )}
+              </div>
               <div className={styles.relatedGrid}>
                 {relatedPosts.map(rp => (
-                  <BlogPostCard key={rp.id} post={rp} prefix="/help" />
+                  <HelpArticleCard key={rp.id} post={rp} layout="feature" />
                 ))}
               </div>
             </section>
           )}
         </div>
       </div>
+
+      <ImageLightbox image={lightboxImage} onClose={closeLightbox} />
     </>
   );
 }
