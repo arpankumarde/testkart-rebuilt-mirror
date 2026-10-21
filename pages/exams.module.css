@@ -1,53 +1,222 @@
+/*
+ * /exams directory in the spotlight card language (--sp-* tokens): an ivory
+ * hero, white section cards, and one pastel accent per category carried by
+ * --acc-tint (fill), --acc-edge (outline, dot) and --acc-ink (text on the
+ * tint, 7:1+). Coral is kept for the active filter and focus states.
+ */
 .pageContainer {
-  max-width: 1400px;
+  --acc-tint: var(--sp-peach-tint);
+  --acc-edge: var(--sp-peach-edge);
+  --acc-ink: var(--sp-peach-ink);
+
+  max-width: 1280px;
   margin: 0 auto;
-  padding: var(--spacing-8) var(--spacing-6);
+  padding: var(--spacing-8) var(--spacing-6) var(--spacing-16);
 }
 
+.accentPeach {
+  --acc-tint: var(--sp-peach-tint);
+  --acc-edge: var(--sp-peach-edge);
+  --acc-ink: var(--sp-peach-ink);
+}
+
+.accentLavender {
+  --acc-tint: var(--sp-lavender-tint);
+  --acc-edge: var(--sp-lavender-edge);
+  --acc-ink: var(--sp-lavender-ink);
+}
+
+.accentSage {
+  --acc-tint: var(--sp-sage-tint);
+  --acc-edge: var(--sp-sage-edge);
+  --acc-ink: var(--sp-sage-ink);
+}
+
+.accentBlue {
+  --acc-tint: var(--sp-blue-tint);
+  --acc-edge: var(--sp-blue-edge);
+  --acc-ink: var(--sp-blue-ink);
+}
+
+.accentButter {
+  --acc-tint: var(--fc-butter-tint);
+  --acc-edge: var(--fc-butter-edge);
+  --acc-ink: var(--fc-butter-ink);
+}
+
+.accentMint {
+  --acc-tint: var(--fc-mint-tint);
+  --acc-edge: var(--fc-mint-edge);
+  --acc-ink: var(--fc-mint-ink);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Hero */
 .hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-8);
+  padding: 2.75rem var(--spacing-8) 2.5rem;
   text-align: center;
-  margin-bottom: var(--spacing-12);
+  background-color: var(--sp-surface);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.75rem;
+  box-shadow: var(--sp-shadow);
 }
 
-.hero h1 {
+/* One buttery dot top right, one lavender ring bottom left. */
+.hero::before,
+.hero::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.hero::before {
+  top: 2rem;
+  right: 2.5rem;
+  width: 0.75rem;
+  height: 0.75rem;
+  background-color: hsl(43 85% 58%);
+}
+
+.hero::after {
+  bottom: -2.5rem;
+  left: -2rem;
+  width: 8rem;
+  height: 8rem;
+  border: 2px solid var(--sp-lavender-line);
+}
+
+.hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.heroChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem 0.875rem;
+  border-radius: var(--radius-full);
+  background-color: var(--sp-lavender-tint);
+  border: 1px solid var(--sp-lavender-line);
+  color: var(--sp-lavender-ink);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.heroTitle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin: 0;
   font-family: var(--font-family-heading);
-  font-size: 3rem;
-  font-weight: 700;
-  color: var(--foreground);
-  margin-bottom: var(--spacing-2);
+  color: var(--sp-ink);
+  text-wrap: balance;
 }
 
-.hero p {
-  font-size: 1.25rem;
-  color: var(--muted-foreground);
-  max-width: 650px;
-  margin: 0 auto;
+.heroTitleMain {
+  font-size: clamp(2.25rem, 1.6rem + 2.4vw, 3.25rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
 }
 
+.heroHighlight {
+  text-decoration: underline;
+  text-decoration-color: var(--sp-cta);
+  text-decoration-thickness: 0.14em;
+  text-underline-offset: 0.12em;
+  text-decoration-skip-ink: none;
+}
 
+.heroTitleSub {
+  font-size: clamp(1.0625rem, 0.95rem + 0.6vw, 1.375rem);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--sp-text);
+}
 
-/* Search bar */
+.heroSubtitle {
+  margin: 0;
+  max-width: 42rem;
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  color: var(--sp-muted);
+}
+
+/* Search */
 .searchBar {
   position: relative;
   display: flex;
   align-items: center;
-  max-width: 560px;
-  margin: 0 auto var(--spacing-8);
+  width: 100%;
+  max-width: 40rem;
+  margin-top: var(--spacing-4);
 }
 
 .searchIcon {
   position: absolute;
-  left: var(--spacing-4);
-  color: var(--muted-foreground);
+  left: 1.25rem;
+  z-index: 1;
+  color: var(--sp-muted);
   pointer-events: none;
+  transition: color var(--animation-duration-fast) ease;
 }
 
-.searchInput {
-  padding-left: calc(var(--spacing-4) * 2 + 18px);
-  padding-right: 2.5rem;
-  height: 48px;
+/* Unlayered, so these win over Input's @layer base rules - which is why the
+   hover and focus states are restated here too. */
+.searchBar .searchInput {
+  height: 3.5rem;
+  padding-left: 3.25rem;
+  padding-right: 3.25rem;
   font-size: 1rem;
   border-radius: var(--radius-full);
+  background-color: var(--surface);
+  border: 1px solid var(--sp-line-strong);
+  box-shadow:
+    0 1px 2px hsl(30 20% 20% / 0.06),
+    0 10px 24px -16px hsl(30 25% 20% / 0.35);
+}
+
+.searchBar .searchInput:hover {
+  border-color: var(--tk-brand-text);
+  background-color: var(--surface);
+}
+
+.searchBar .searchInput:focus,
+.searchActive .searchInput {
+  border-color: var(--tk-brand-text);
+  background-color: var(--surface);
+}
+
+.searchBar .searchInput:focus {
+  box-shadow:
+    0 0 0 3px var(--fc-peach-line),
+    0 10px 24px -16px hsl(30 25% 20% / 0.35);
+}
+
+.searchBar:focus-within .searchIcon,
+.searchActive .searchIcon {
+  color: var(--tk-brand-text);
 }
 
 /* type="search" draws a native clear button in Chrome, Edge and Safari;
@@ -59,194 +228,231 @@
 
 .searchClear {
   position: absolute;
-  right: var(--spacing-3);
+  right: 0.75rem;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 2rem;
+  height: 2rem;
   border-radius: 50%;
   border: none;
   background-color: var(--muted);
-  color: var(--muted-foreground);
+  color: var(--foreground);
   cursor: pointer;
-  transition: all var(--animation-duration-fast) ease;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
 }
 
 .searchClear:hover {
-  background-color: var(--border);
-  color: var(--foreground);
+  background-color: var(--sp-peach-tint);
+  color: var(--tk-brand-text);
 }
 
+.searchClear:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+/* Category pills - they wrap instead of scrolling sideways. */
 .filterNav {
   margin-bottom: var(--spacing-8);
-  border-bottom: 1px solid var(--border);
+  scroll-margin-top: calc(var(--site-notice-offset) + var(--header-height) + 1rem);
 }
 
-.filterContainer {
+.pillList {
   display: flex;
-  gap: var(--spacing-3);
-  overflow-x: auto;
-  padding-bottom: var(--spacing-4);
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.625rem;
 }
 
-.filterContainer::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, and Opera */
-}
-
-.filterPill {
-  flex-shrink: 0;
-  padding: var(--spacing-2) var(--spacing-4);
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 100%;
+  min-height: 2.5rem;
+  padding: 0.375rem 0.4375rem 0.375rem 0.875rem;
   border-radius: var(--radius-full);
-  font-size: 0.9375rem;
-  font-weight: 500;
+  border: 1px solid var(--sp-line);
+  background-color: var(--surface);
+  color: var(--sp-text);
+  font-family: var(--font-family-base);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: left;
   cursor: pointer;
-  transition: all var(--animation-duration-fast) ease;
-  border: 1px solid var(--border);
-  background-color: transparent;
-  color: var(--muted-foreground);
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    border-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease;
 }
 
-.filterPill:hover {
+.pillDot {
+  flex-shrink: 0;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background-color: var(--acc-edge);
+}
+
+.pillLabel {
+  min-width: 0;
+}
+
+.pillCount {
+  flex-shrink: 0;
+  min-width: 1.75rem;
+  padding: 0.1875rem 0.5rem;
+  border-radius: var(--radius-full);
   background-color: var(--muted);
   color: var(--foreground);
-  border-color: color-mix(in srgb, var(--border) 50%, var(--foreground));
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
-.filterPill.active {
-  background-color: var(--primary);
-  color: var(--primary-foreground);
-  border-color: var(--primary);
+.pill:hover {
+  border-color: var(--acc-edge);
+  background-color: var(--acc-tint);
+  color: var(--acc-ink);
 }
 
-.filterPill.active:hover {
-  background-color: color-mix(in srgb, var(--primary), black 10%);
-  border-color: color-mix(in srgb, var(--primary), black 10%);
+.pill:hover .pillCount {
+  background-color: var(--surface);
+  color: var(--acc-ink);
 }
 
-.filterPillCount {
-  margin-left: var(--spacing-2);
-  font-size: 0.8125rem;
-  opacity: 0.7;
-  font-weight: 400;
+.pill.pillActive,
+.pill.pillActive:hover {
+  border-color: var(--tk-brand);
+  background-color: var(--tk-brand);
+  color: var(--tk-brand-ink);
+  box-shadow: 0 4px 12px -4px hsl(18 80% 45% / 0.4);
 }
 
-/* Category overview — grouped sections instead of one giant flat grid */
-.categorySections {
+.pill.pillActive .pillCount {
+  background-color: var(--tk-brand-ink);
+  color: #fff;
+}
+
+.pill.pillActive .pillDot {
+  background-color: var(--tk-brand-ink);
+}
+
+.pill:focus-visible,
+.pillToggle:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.pillExtra {
+  display: none;
+}
+
+.pillToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 2.5rem;
+  padding: 0.375rem 0.875rem 0.375rem 1rem;
+  border-radius: var(--radius-full);
+  border: 1px dashed var(--sp-line-strong);
+  background-color: transparent;
+  color: var(--tk-brand-text);
+  font-family: var(--font-family-base);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    border-color var(--animation-duration-fast) ease;
+}
+
+.pillToggle:hover {
+  border-style: solid;
+  border-color: var(--tk-brand-text);
+  background-color: var(--sp-peach-tint);
+}
+
+.pillToggleIcon {
+  transition: transform var(--animation-duration-fast) ease;
+}
+
+.pillToggleIconOpen {
+  transform: rotate(180deg);
+}
+
+/* Section cards */
+.sections {
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
+  gap: var(--spacing-6);
 }
 
 .categorySection {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4);
+  padding: var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1.5rem;
+  box-shadow: var(--sp-shadow);
 }
 
-.categorySectionHeader {
+.sectionHeader {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
   gap: var(--spacing-3);
-  padding-bottom: var(--spacing-3);
-  border-bottom: 1px solid var(--border);
+  margin-bottom: 1.25rem;
 }
 
-.categorySectionTitle {
-  font-family: var(--font-family-heading);
-  font-size: 1.375rem;
-  font-weight: 700;
-  color: var(--foreground);
-  margin: 0;
-}
-
-.categorySectionCount {
-  font-size: 0.875rem;
-  color: var(--muted-foreground);
-  white-space: nowrap;
-}
-
-.viewAllButton {
+.categoryMark {
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-2);
-  align-self: center;
-  padding: var(--spacing-2) 1.25rem;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border);
-  background-color: transparent;
-  color: var(--primary);
-  font-size: 0.9375rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--animation-duration-fast) ease;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.875rem;
+  background-color: var(--acc-tint);
+  color: var(--acc-ink);
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 800;
+  line-height: 1;
 }
 
-.viewAllButton:hover {
-  background-color: color-mix(in srgb, var(--primary) 8%, transparent);
-  border-color: var(--primary);
-}
-
-/* Search results / single-category view */
-.resultsSummary {
-  font-size: 0.9375rem;
-  color: var(--muted-foreground);
-  margin: 0 0 var(--spacing-6);
-}
-
-.categoryHeaderBar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--spacing-3);
-  margin-bottom: var(--spacing-6);
-}
-
-.categoryHeaderBar .resultsSummary {
+.sectionTitle {
+  min-width: 0;
   margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--sp-ink);
 }
 
-.backButton {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-2) var(--spacing-4);
+.countChip {
+  padding: 0.25rem 0.625rem;
   border-radius: var(--radius-full);
-  border: 1px solid var(--border);
-  background-color: transparent;
-  color: var(--foreground);
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--animation-duration-fast) ease;
+  background-color: var(--acc-tint);
+  color: var(--acc-ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
-.backButton:hover {
-  background-color: var(--muted);
-}
-
-.emptyState {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-4);
-  padding: var(--spacing-12) var(--spacing-4);
-  text-align: center;
-  color: var(--muted-foreground);
-}
-
-/* Dense text-link list — no icon, no card chrome. At ~1,700 exams a boxy
-   icon-card grid is far too heavy; a slim scannable row (like a directory
-   or index page) packs many more exams per screen and reads faster. */
+/* Exam tiles */
 .examsGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0 var(--spacing-6);
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: 0.625rem;
 }
 
 .examCard {
@@ -254,230 +460,382 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-2);
-  padding: var(--spacing-3) var(--spacing-2);
-  border-radius: var(--radius-sm);
-  text-decoration: none;
-  color: var(--foreground);
-  border-bottom: 1px solid var(--border);
   min-width: 0;
+  min-height: 3.25rem;
+  padding: 0.625rem 0.75rem 0.625rem 1rem;
+  border-radius: 0.875rem;
+  background-color: var(--sp-surface);
+  border: 1px solid var(--exam-ivory-border);
+  color: var(--sp-ink);
+  text-decoration: none;
   transition:
     background-color var(--animation-duration-fast) ease,
-    color var(--animation-duration-fast) ease;
+    border-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
 }
 
 .examCard:hover {
-  background-color: var(--muted);
-  color: var(--primary);
+  background-color: var(--acc-tint);
+  border-color: var(--acc-edge);
+  color: var(--acc-ink);
+  box-shadow: var(--sp-shadow-hover);
+  transform: translateY(-1px);
+}
+
+.examCard:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.cardText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
 }
 
 .cardName {
-  font-weight: 500;
-  font-size: 0.9375rem;
-  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.cardCategory {
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--sp-muted);
+}
+
+.examCard:hover .cardCategory {
+  color: var(--acc-ink);
 }
 
 .cardChevron {
   flex-shrink: 0;
-  color: var(--muted-foreground);
-  opacity: 0;
+  color: var(--sp-line-strong);
   transition:
-    opacity var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease,
     transform var(--animation-duration-fast) ease;
 }
 
 .examCard:hover .cardChevron {
-  opacity: 1;
+  color: var(--acc-ink);
   transform: translateX(2px);
-  color: var(--primary);
 }
 
+.sectionFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  margin-top: 1.25rem;
+  padding-top: var(--spacing-4);
+  border-top: 1px dashed var(--border);
+}
+
+.sectionFooterNote {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.viewAllButton,
+.backButton,
+.clearButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  min-height: 2.5rem;
+  padding: 0 1.125rem;
+  border-radius: 1rem;
+  background-color: var(--surface);
+  font-family: var(--font-family-base);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    border-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
+}
+
+.viewAllButton {
+  border: 1px solid var(--acc-edge);
+  color: var(--acc-ink);
+}
+
+.viewAllButton:hover {
+  background-color: var(--acc-tint);
+  transform: translateY(-1px);
+}
+
+.backButton,
+.clearButton {
+  border: 1px solid var(--sp-line-strong);
+  color: var(--sp-ink);
+}
+
+.backButton {
+  margin-left: auto;
+}
+
+.backButton:hover,
+.clearButton:hover {
+  border-color: var(--tk-brand-text);
+  color: var(--tk-brand-text);
+  transform: translateY(-1px);
+}
+
+.viewAllButton:focus-visible,
+.backButton:focus-visible,
+.clearButton:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+/* Search results */
+.resultsBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+  padding: 0.75rem 0.75rem 0.75rem 1.25rem;
+  background-color: var(--sp-peach-tint);
+  border: 1px solid var(--fc-peach-line);
+  border-radius: 1rem;
+}
+
+.resultsSummary {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: var(--sp-ink);
+}
+
+.resultsSummary strong {
+  font-weight: 700;
+  color: var(--tk-brand-text);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-12) var(--spacing-6);
+  text-align: center;
+  color: var(--sp-muted);
+}
+
+.emptyState p {
+  margin: 0;
+}
+
+.emptyState .emptyTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--sp-ink);
+}
+
+.emptyInline {
+  margin: 0;
+  color: var(--sp-muted);
+}
+
+/* Loading */
 .loadingContainer {
-  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
 }
 
 .examCardSkeleton {
   display: flex;
   align-items: center;
-  padding: var(--spacing-3) var(--spacing-2);
-  border-bottom: 1px solid var(--border);
+  min-height: 3.25rem;
+  padding: 0 1rem;
+  border-radius: 0.875rem;
+  background-color: var(--sp-surface);
+  border: 1px solid var(--exam-ivory-border);
 }
 
-.errorContainer {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: var(--spacing-12) var(--spacing-4);
-}
-
-.errorMessage {
-  font-size: 1.125rem;
-  color: var(--muted-foreground);
-  text-align: center;
-}
-
-/* Responsive adjustments */
-@media (max-width: 1200px) {
-  .examsGrid {
-    grid-template-columns: repeat(3, 1fr);
+@media (min-width: 641px) {
+  .mobileOnly {
+    display: none;
   }
 }
 
-@media (max-width: 768px) {
-  
+@media (max-width: 1024px) {
+  .hero {
+    padding: 2.5rem var(--spacing-6) 2.25rem;
+  }
+}
 
+@media (max-width: 640px) {
   .pageContainer {
-    padding: var(--spacing-4) 0;
+    padding: var(--spacing-4) var(--spacing-4) var(--spacing-12);
   }
 
   .hero {
+    gap: var(--spacing-3);
     margin-bottom: var(--spacing-6);
-    padding: 0 var(--spacing-4);
+    padding: var(--spacing-8) 1.25rem 1.75rem;
+    border-radius: 1.25rem;
   }
 
-  .hero h1 {
-    font-size: 2rem;
-    line-height: 1.2;
+  .hero::before {
+    top: 1.25rem;
+    right: 1.25rem;
+    width: 0.5rem;
+    height: 0.5rem;
   }
-  
-  .hero p {
+
+  .hero::after {
+    width: 5rem;
+    height: 5rem;
+    bottom: -2rem;
+    left: -1.75rem;
+  }
+
+  .heroChip {
+    font-size: 0.75rem;
+  }
+
+  .heroSubtitle {
     font-size: 0.9375rem;
-    line-height: 1.5;
   }
 
   .searchBar {
-    margin: 0 var(--spacing-4) var(--spacing-6);
+    margin-top: var(--spacing-2);
   }
 
-  .searchInput {
-    height: 44px;
+  .searchBar .searchInput {
+    height: 3.25rem;
+    padding-left: 3rem;
   }
 
-  .categorySections {
-    gap: var(--spacing-8);
-    padding: 0 var(--spacing-4);
-  }
-
-  /* examsGrid already gets side padding at this breakpoint for its
-     standalone (search/single-category) uses — avoid doubling it up when
-     nested inside categorySections, which has its own side padding. */
-  .categorySection .examsGrid {
-    padding: 0;
-  }
-
-  .categorySectionTitle {
-    font-size: 1.125rem;
-  }
-
-  .categoryHeaderBar {
-    padding: 0 var(--spacing-4);
+  .searchIcon {
+    left: 1.125rem;
   }
 
   .filterNav {
-    margin-bottom: var(--spacing-4);
-    padding: 0 var(--spacing-4);
+    margin-bottom: var(--spacing-6);
   }
 
-  .filterContainer {
+  .pillList {
+    justify-content: flex-start;
     gap: var(--spacing-2);
-    padding-bottom: var(--spacing-3);
   }
 
-  .filterPill {
-    padding: var(--spacing-2) var(--spacing-3);
-    font-size: 0.875rem;
-    min-height: 44px;
+  .pill,
+  .pillToggle {
+    min-height: 2.75rem;
+    font-size: 0.8125rem;
+  }
+
+  .pillExtraMobile {
+    display: none;
+  }
+
+  .sections {
+    gap: var(--spacing-4);
+  }
+
+  .categorySection {
+    padding: var(--spacing-4);
+    border-radius: 1.25rem;
+  }
+
+  .sectionHeader {
+    gap: 0.625rem;
+    margin-bottom: var(--spacing-4);
+  }
+
+  .categoryMark {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.75rem;
+    font-size: 1rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.0625rem;
+  }
+
+  .countChip {
+    font-size: 0.75rem;
   }
 
   .examsGrid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0 var(--spacing-4);
-    padding: 0 var(--spacing-4);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--spacing-2);
   }
 
   .examCard {
-    padding: var(--spacing-3) var(--spacing-1);
+    min-height: 3rem;
+    padding: 0.625rem 0.5rem 0.625rem 0.75rem;
+    border-radius: 0.75rem;
   }
 
   .cardName {
+    font-size: 0.8125rem;
+  }
+
+  .cardCategory {
+    font-size: 0.6875rem;
+  }
+
+  .sectionFooter {
+    margin-top: var(--spacing-4);
+  }
+
+  .viewAllButton {
+    width: 100%;
+    min-height: 2.75rem;
+  }
+
+  .backButton,
+  .clearButton {
+    min-height: 2.75rem;
+  }
+
+  .resultsBar {
+    padding: var(--spacing-3) var(--spacing-3) var(--spacing-3) var(--spacing-4);
+  }
+
+  .resultsSummary {
     font-size: 0.875rem;
-    line-height: 1.3;
   }
 }
 
-@media (max-width: 480px) {
-  .pageContainer {
-    padding: var(--spacing-3) 0;
-  }
-
-  .hero {
-    margin-bottom: var(--spacing-4);
-    padding: 0 var(--spacing-3);
-  }
-
-  .hero h1 {
-    font-size: 1.625rem;
-    line-height: 1.2;
-    margin-bottom: var(--spacing-2);
-  }
-
-  .hero p {
-    font-size: 0.875rem;
-    line-height: 1.5;
-  }
-
-  .searchBar {
-    margin: 0 var(--spacing-3) var(--spacing-4);
-  }
-
-  .categorySections {
-    padding: 0 var(--spacing-3);
-    gap: var(--spacing-6);
-  }
-
-  .categorySection .examsGrid {
-    padding: 0;
-  }
-
-  .categoryHeaderBar {
-    padding: 0 var(--spacing-3);
-  }
-
-  .filterNav {
-    padding: 0 var(--spacing-3);
-    margin-bottom: var(--spacing-3);
-  }
-
-  .filterContainer {
-    gap: var(--spacing-2);
-    padding-bottom: var(--spacing-2);
-  }
-
-  .filterPill {
-    font-size: 0.8125rem;
-    padding: var(--spacing-2) var(--spacing-3);
-    min-height: 44px;
-  }
-
+@media (max-width: 360px) {
   .examsGrid {
-    grid-template-columns: 1fr;
-    gap: 0;
-    padding: 0 var(--spacing-3);
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .examCard:hover,
+  .viewAllButton:hover,
+  .backButton:hover,
+  .clearButton:hover {
+    transform: none;
   }
 
-  .examCard {
-    padding: var(--spacing-3) var(--spacing-1);
-  }
-
-  .cardChevron {
-    opacity: 1;
-  }
-
-  .cardName {
-    font-size: 0.875rem;
-    line-height: 1.3;
+  .examCard:hover .cardChevron {
+    transform: none;
   }
 }

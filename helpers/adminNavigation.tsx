@@ -36,6 +36,7 @@ import {
   Building2,
   CalendarDays,
   BellRing,
+  Video,
 } from "lucide-react";
 import { ANY_ADMIN, EXTRA_PAGE_RULES, hasAdminModule, type AdminModule } from "./adminPermissions";
 import { ARTICLE_TABS } from "./adminContentSurfaces";
@@ -85,6 +86,13 @@ const groups: AdminNavGroup[] = [
         modules: ["sales"],
         countKeys: ["demoRequestsNew", "followupsOverdue"],
         keywords: "leads demo requests follow-ups crm",
+      },
+      {
+        href: "/admin/masterclasses",
+        label: "Masterclasses",
+        icon: Video,
+        modules: ["masterclasses"],
+        keywords: "webinar events registrations reminders training teachers",
       },
     ],
   },

@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet';
 import { Menu, HelpCircle, Headset, BookOpen, LogOut, UserCircle } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { TeacherSidebar } from './TeacherSidebar';
+import { TeacherMasterclassBanner } from './TeacherMasterclassBanner';
 import { Button } from './Button';
 import { MissingContactInfoDialog } from './MissingContactInfoDialog';
 import { LogoutConfirmDialog } from './LogoutConfirmDialog';
@@ -162,6 +163,7 @@ export const TeacherDashboardLayout: React.FC<TeacherDashboardLayoutProps> = ({ 
         defaultCollapsed={effectiveSidebarDefaultCollapsed}
       />
       <main className={styles.mainContent}>
+        {!effectiveHideSupportBar && <TeacherMasterclassBanner />}
         {!effectiveHideSupportBar && (
           <div className={styles.supportBar}>
             <span className={styles.supportText}>

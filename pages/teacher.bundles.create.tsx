@@ -55,18 +55,18 @@ export default function CreateBundlePage() {
             subtitle="Sell test series, courses and notes together at one price."
           />
 
+          <ContentVisibilityPicker
+            value={visibility}
+            onChange={setVisibility}
+            disabled={createBundleMutation.isPending}
+            footnote={
+              visibility === 'public'
+                ? 'A public bundle can only go live with public, published items.'
+                : 'An unlisted bundle can hold public and unlisted items.'
+            }
+          />
+
           <div className={styles.content}>
-            <ContentVisibilityPicker
-              value={visibility}
-              onChange={setVisibility}
-              disabled={createBundleMutation.isPending}
-              className={styles.visibility}
-              footnote={
-                visibility === 'public'
-                  ? 'A public bundle can only go live with public, published items.'
-                  : 'An unlisted bundle can hold public and unlisted items.'
-              }
-            />
             <BundleForm
               initialValues={aiInitialValues ? {
                 title: aiInitialValues.title,

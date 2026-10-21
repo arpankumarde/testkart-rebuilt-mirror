@@ -33,6 +33,7 @@ export async function loadTeacherProfileBundles(teacherId: number): Promise<Teac
     ])
     .where("courseBundles.teacherId", "=", teacherId)
     .where("courseBundles.isPublished", "=", true)
+    .where("courseBundles.visibility", "=", "public")
     .orderBy("courseBundles.createdAt", "desc")
     .execute();
 

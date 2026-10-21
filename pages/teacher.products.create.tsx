@@ -41,7 +41,7 @@ const TeacherCreateProductPage: React.FC = () => {
             title="Create a note or PDF"
             subtitle="Add the details and save a draft. You upload the PDF files on the next step."
           />
-          <ContentVisibilityPicker value={visibility} onChange={setVisibility} className={styles.visibility} />
+          <ContentVisibilityPicker value={visibility} onChange={setVisibility} />
           <ProductStepForm aiInitialValues={aiGeneratedValues} visibility={visibility} />
         </div>
       )}

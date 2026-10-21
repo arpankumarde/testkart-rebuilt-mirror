@@ -1,0 +1,222 @@
+.page {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 2.5rem var(--spacing-4) var(--spacing-16);
+}
+
+.notFound {
+  max-width: 32rem;
+  margin: var(--spacing-16) auto;
+  padding: var(--spacing-8);
+  text-align: center;
+  color: var(--muted-foreground);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-8);
+}
+
+@media (min-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.cover {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-lg);
+  object-fit: cover;
+  background-color: var(--muted);
+}
+
+.coverPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--tk-brand-tint), var(--muted));
+  color: var(--tk-brand-text);
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
+  margin: 1.25rem 0 var(--spacing-2);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.title {
+  margin: 0 0 var(--spacing-3);
+  font-family: var(--font-family-heading);
+  font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+
+.subtitle {
+  margin: 0 0 1.25rem;
+  font-size: 1.0625rem;
+  color: var(--muted-foreground);
+}
+
+.hostRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-6);
+  padding: var(--spacing-4);
+  background-color: var(--muted);
+  border-radius: var(--radius-md);
+}
+
+.hostAvatar {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  flex-shrink: 0;
+  background-color: var(--surface);
+}
+
+.hostAvatarPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-full);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+  flex-shrink: 0;
+}
+
+.hostName {
+  margin: 0;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--foreground);
+}
+
+.hostTitle {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.description {
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  color: var(--foreground);
+  white-space: pre-wrap;
+}
+
+.sidebarCard {
+  position: sticky;
+  top: var(--spacing-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-6);
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.sidebarTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.successState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4) 0;
+  text-align: center;
+}
+
+.successIcon {
+  color: var(--success-text);
+}
+
+.successTitle {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.0625rem;
+  color: var(--foreground);
+}
+
+.successNote {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-1);
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+  text-align: left;
+}
+
+.successNoteIcon {
+  flex-shrink: 0;
+  margin-top: 0.1875rem;
+  color: var(--tk-brand-text);
+}
+
+.calendarActions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  width: 100%;
+}
+
+.noticeBox {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  font-size: 0.8125rem;
+  border-radius: var(--radius);
+}
+
+.noticeWarning {
+  color: var(--warning-text);
+  background-color: color-mix(in srgb, var(--warning) 12%, transparent);
+}
+
+.noticeDanger {
+  color: var(--error-text);
+  background-color: color-mix(in srgb, var(--error) 12%, transparent);
+}
+
+.formError {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--error-text);
+}

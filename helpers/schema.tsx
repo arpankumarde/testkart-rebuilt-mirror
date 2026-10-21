@@ -951,6 +951,42 @@ export interface LoginAttempts {
   success: Generated<boolean | null>;
 }
 
+export interface Masterclasses {
+  capacity: number | null;
+  coverImageFileId: string | null;
+  coverImageUrl: string | null;
+  createdAt: Generated<Timestamp | null>;
+  createdByAdminId: number | null;
+  description: string | null;
+  durationMinutes: Generated<number | null>;
+  hostImageUrl: string | null;
+  hostName: string | null;
+  hostTitle: string | null;
+  id: Generated<number>;
+  joinUrl: string | null;
+  platformLabel: string | null;
+  slug: string;
+  startTime: Timestamp;
+  status: Generated<string>;
+  subtitle: string | null;
+  title: string;
+  updatedAt: Generated<Timestamp | null>;
+}
+
+export interface MasterclassRegistrations {
+  attended: boolean | null;
+  confirmationSentAt: Timestamp | null;
+  email: string;
+  id: Generated<number>;
+  masterclassId: number;
+  name: string;
+  phone: string | null;
+  registeredAt: Generated<Timestamp | null>;
+  reminder1DaySentAt: Timestamp | null;
+  reminder1HourSentAt: Timestamp | null;
+  userId: number | null;
+}
+
 export interface McpOauthClients {
   clientId: string;
   clientName: string;
@@ -2091,6 +2127,8 @@ export interface DB {
   liveTestPrizeDistributions: LiveTestPrizeDistributions;
   liveTests: LiveTests;
   loginAttempts: LoginAttempts;
+  masterclasses: Masterclasses;
+  masterclassRegistrations: MasterclassRegistrations;
   mcpOauthClients: McpOauthClients;
   mcpOauthCodes: McpOauthCodes;
   mcpOauthTokens: McpOauthTokens;
@@ -2231,6 +2269,14 @@ export const ContentVisibilityArrayValues: [ContentVisibility, ...ContentVisibil
 // before a digit, e.g. reminder_48h_sent ⇄ reminder48hSent). The db helper's
 // CamelCasePlugin subclass consults this map so those identifiers work in
 // queries. Regenerated on every schema pull.
-export const kyselyIdentifierOverrides: Record<string, string> = {};
+// If the db helper still creates a bare `new CamelCasePlugin()`, replace it with:
+//   class FlootCamelCasePlugin extends CamelCasePlugin {
+//     protected override snakeCase(str: string): string {
+//       return kyselyIdentifierOverrides[str] ?? super.snakeCase(str)
+//     }
+//   }
+// and pass `new FlootCamelCasePlugin()` in plugins, otherwise queries on these
+// columns fail with "column does not exist".
+export const kyselyIdentifierOverrides: Record<string, string> = {"reminder1DaySentAt":"reminder_1_day_sent_at","reminder1HourSentAt":"reminder_1_hour_sent_at"};
 
 // Note: kysely maps the table/column/enum names from snake_case to camelCase and PascalCase. When running SQL statements, make sure to use snake_case, but TypeScript code should use camelCase or PascalCase.

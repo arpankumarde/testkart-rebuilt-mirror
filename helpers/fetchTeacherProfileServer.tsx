@@ -113,6 +113,7 @@ export async function fetchTeacherProfileServer(teacherSlug: string): Promise<Ou
       )`.as("ratingsCount"),
     ])
     .where("courses.status", "=", "published")
+    .where("courses.visibility", "=", "public")
     .where("courses.teacherId", "=", teacher.id)
     .orderBy("courses.createdAt", "desc")
     .execute();
@@ -182,6 +183,7 @@ export async function fetchTeacherProfileServer(teacherSlug: string): Promise<Ou
       )`.as("fileCount"),
     ])
     .where("digitalProducts.status", "=", "published")
+    .where("digitalProducts.visibility", "=", "public")
     .where("digitalProducts.teacherId", "=", teacher.id)
     .orderBy("digitalProducts.createdAt", "desc")
     .execute();
@@ -290,6 +292,8 @@ export async function fetchTeacherProfileServer(teacherSlug: string): Promise<Ou
     ])
     .where("mockTests.isPublished", "=", true)
     .where("mockTests.deletedAt", "is", null)
+    .where("mockTests.visibility", "=", "public")
+    .where((eb) => eb.or([eb("liveTests.id", "is", null), eb("liveTests.visibility", "=", "public")]))
     .where("mockTests.teacherId", "=", teacher.id)
     .orderBy("mockTests.createdAt", "desc")
     .execute();

@@ -13,13 +13,22 @@ import { useExamNameSuggestions } from "../helpers/useExamNameSuggestions";
 import { addSuggestedExam } from "../helpers/itemExams";
 import { CourseCardPreview } from "../components/CourseCardPreview";
 import { AIContentPrompt } from "../components/AIContentPrompt";
+import { ContentVisibilityPicker } from "../components/ContentVisibilityPicker";
+import { DEFAULT_CONTENT_VISIBILITY } from "../helpers/contentVisibility";
+import type { ContentVisibility } from "../helpers/schema";
 import { useAuth } from "../helpers/useAuth";
 import styles from "./teacher.courses.create.module.css";
 
 type Mode = "ai" | "manual" | "creating";
 type PriceMode = "free" | "paid";
 type CourseCreateRequest = CreateCourseInput & { examNames?: string[] };
-type StartValues = { title: string; examName: string | null; examNames: string[]; price: number };
+type StartValues = {
+  title: string;
+  examName: string | null;
+  examNames: string[];
+  price: number;
+  visibility: ContentVisibility;
+};
 
 const PRICE_OPTIONS = [
   { value: "free", label: "Free" },
@@ -50,6 +59,7 @@ const StartForm: React.FC<{
   const [examNames, setExamNames] = useState<string[]>([]);
   const [priceMode, setPriceMode] = useState<PriceMode>("free");
   const [price, setPrice] = useState("");
+  const [visibility, setVisibility] = useState<ContentVisibility>(DEFAULT_CONTENT_VISIBILITY);
   const [errors, setErrors] = useState<{ title?: string; price?: string }>({});
 
   const priceValue = priceMode === "paid" ? Number(price) : 0;
@@ -61,7 +71,7 @@ const StartForm: React.FC<{
     if (priceMode === "paid" && !(priceValue > 0)) nextErrors.price = "Enter a price, or choose Free.";
     setErrors(nextErrors);
     if (nextErrors.title || nextErrors.price) return;
-    onCreate({ title: title.trim(), examName: examNames[0] ?? null, examNames, price: priceValue });
+    onCreate({ title: title.trim(), examName: examNames[0] ?? null, examNames, price: priceValue, visibility });
   };
 
   return (
@@ -152,6 +162,8 @@ const StartForm: React.FC<{
                 </p>
               ) : null}
             </div>
+
+            <ContentVisibilityPicker value={visibility} onChange={setVisibility} disabled={isPending} />
 
             <Button type="submit" size="lg" disabled={isPending} className={styles.submit}>
               {isPending ? <Spinner size="sm" /> : null}

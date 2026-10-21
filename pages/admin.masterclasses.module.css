@@ -1,0 +1,70 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: var(--spacing-6) var(--spacing-6) var(--spacing-8);
+  box-sizing: border-box;
+}
+
+.dialogFields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.formRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+@media (min-width: 600px) {
+  .formRow {
+    flex-direction: row;
+  }
+}
+
+.flex1 {
+  flex: 1;
+  min-width: 0;
+}
+
+.registrantRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.registrantRow:last-child {
+  border-bottom: none;
+}
+
+.registrantInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.registrantName {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+
+.registrantMeta {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.registrantBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-1);
+}

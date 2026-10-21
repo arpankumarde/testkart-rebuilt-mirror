@@ -104,6 +104,7 @@ export async function handle(request: Request) {
         .selectFrom("liveTests")
         .innerJoin("mockTests", "mockTests.id", "liveTests.mockTestId")
         .where("liveTests.isActive", "=", true)
+        .where("liveTests.visibility", "=", "public")
         .select(["mockTests.slug", "liveTests.updatedAt"])
         .execute(),
       db
@@ -115,6 +116,7 @@ export async function handle(request: Request) {
               .where(listedUnderExam("mockTests", "mock_test_exams", "mock_test_id"))
               .where("mockTests.isPublished", "=", true)
               .where("mockTests.deletedAt", "is", null)
+              .where("mockTests.visibility", "=", "public")
               .select("mockTests.id")
           )
         )
@@ -144,6 +146,7 @@ export async function handle(request: Request) {
               .selectFrom("courses")
               .where(listedUnderExam("courses", "course_exams", "course_id"))
               .where("courses.status", "=", "published")
+              .where("courses.visibility", "=", "public")
               .select("courses.id")
           )
         )
@@ -159,6 +162,7 @@ export async function handle(request: Request) {
               .where(listedUnderExam("digitalProducts", "digital_product_exams", "digital_product_id"))
               .where("digitalProducts.status", "=", "published")
               .where("digitalProducts.isPublished", "=", true)
+              .where("digitalProducts.visibility", "=", "public")
               .select("digitalProducts.id")
           )
         )
@@ -176,6 +180,7 @@ export async function handle(request: Request) {
               .leftJoin("digitalProducts", "digitalProducts.id", "courseBundleItems.digitalProductId")
               .leftJoin("courses", "courses.id", "courseBundleItems.courseId")
               .where("courseBundles.isPublished", "=", true)
+              .where("courseBundles.visibility", "=", "public")
               .where(
                 sql<boolean>`(${listedUnderExam("mockTests", "mock_test_exams", "mock_test_id")}
                   OR ${listedUnderExam("digitalProducts", "digital_product_exams", "digital_product_id")}

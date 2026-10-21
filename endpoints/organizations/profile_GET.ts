@@ -118,6 +118,7 @@ export async function handle(request: Request) {
             "users.isVerified as teacherIsVerified",
           ])
           .where("courses.status", "=", "published")
+          .where("courses.visibility", "=", "public")
           .where("courses.teacherId", "in", teacherIds)
           .orderBy("courses.createdAt", "desc")
           .limit(CATALOGUE_LIMIT_PER_KIND)
@@ -143,6 +144,7 @@ export async function handle(request: Request) {
           ])
           .where("mockTests.isPublished", "=", true)
           .where("mockTests.deletedAt", "is", null)
+          .where("mockTests.visibility", "=", "public")
           .where("mockTests.teacherId", "in", teacherIds)
           .orderBy("mockTests.createdAt", "desc")
           .limit(CATALOGUE_LIMIT_PER_KIND)
@@ -166,6 +168,7 @@ export async function handle(request: Request) {
             "users.isVerified as teacherIsVerified",
           ])
           .where("liveTests.isActive", "=", true)
+          .where("liveTests.visibility", "=", "public")
           .where("liveTests.endTime", ">", new Date())
           .where("liveTests.teacherId", "in", teacherIds)
           .orderBy("liveTests.createdAt", "desc")
@@ -191,6 +194,7 @@ export async function handle(request: Request) {
             "users.isVerified as teacherIsVerified",
           ])
           .where("digitalProducts.status", "=", "published")
+          .where("digitalProducts.visibility", "=", "public")
           .where("digitalProducts.teacherId", "in", teacherIds)
           .orderBy("digitalProducts.createdAt", "desc")
           .limit(CATALOGUE_LIMIT_PER_KIND)
@@ -213,6 +217,7 @@ export async function handle(request: Request) {
             "users.isVerified as teacherIsVerified",
           ])
           .where("courseBundles.isPublished", "=", true)
+          .where("courseBundles.visibility", "=", "public")
           .where("courseBundles.teacherId", "in", teacherIds)
           .orderBy("courseBundles.createdAt", "desc")
           .limit(CATALOGUE_LIMIT_PER_KIND)
