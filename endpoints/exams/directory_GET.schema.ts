@@ -22,6 +22,9 @@ export type DirectoryCategory = {
 // the whole list in the served HTML.
 export type OutputType = {
   categories: DirectoryCategory[];
+  // Exams with a published Exam News story in the last HOT_NEWS_DAYS days
+  // (helpers/fetchExamDirectoryServer); /exams marks them "Hot".
+  hotExamIds: number[];
 };
 
 export const getExamDirectory = async (init?: RequestInit): Promise<OutputType> => {

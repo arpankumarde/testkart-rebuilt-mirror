@@ -472,7 +472,7 @@ export const apiDocsTests: ApiEndpoint[] = [
     notes: [
       "Takes no parameters and is not paged. There is no category or search filter.",
       "Returns public fields only. The mobile app reads category id and exams, and exam id, examName, fullName and examSlug.",
-      "The web reads exams/directory (same shape) and exams/by-slug instead.",
+      "The web reads exams/directory (same shape, plus hotExamIds for exams with Exam News in the last 30 days) and exams/by-slug instead.",
     ],
   },
   {

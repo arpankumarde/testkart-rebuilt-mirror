@@ -5,7 +5,7 @@ import { SEOHead } from "../components/SEOHead";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getExamDirectory, type DirectoryExam } from "../endpoints/exams/directory_GET.schema";
-import { Search, X, ArrowRight, ArrowLeft, ChevronRight, ChevronDown } from "lucide-react";
+import { Search, X, ArrowRight, ArrowLeft, ChevronRight, ChevronDown, Flame } from "lucide-react";
 import { Skeleton } from "../components/Skeleton";
 import { Input } from "../components/Input";
 import { useDebounce } from "../helpers/useDebounce";
@@ -23,6 +23,12 @@ const PREVIEW_COUNT = 24;
 // (see .pillExtraMobile) so the filter does not push the list off screen.
 const PILLS_COLLAPSED = 12;
 const PILLS_COLLAPSED_MOBILE = 6;
+
+// Categories moved to the end: their pill always sits behind "More
+// categories" and their section closes the overview.
+const MORE_ONLY_CATEGORIES = new Set(["campus placements"]);
+
+const isMoreOnly = (categoryName: string) => MORE_ONLY_CATEGORIES.has(categoryName.trim().toLowerCase());
 
 // One pastel accent per category, cycled in directory order.
 const ACCENT_CLASSES = [
@@ -56,6 +62,12 @@ function sortByName(exams: ExamRow[]): ExamRow[] {
   return [...exams].sort((a, b) => a.examName.localeCompare(b.examName));
 }
 
+// Overview previews lead with Hot exams so none hides past the first 24.
+function sortForPreview(exams: ExamRow[], hotIds: Set<number>): ExamRow[] {
+  const sorted = sortByName(exams);
+  return [...sorted.filter((exam) => hotIds.has(exam.id)), ...sorted.filter((exam) => !hotIds.has(exam.id))];
+}
+
 function matchesSearch(exam: ExamRow, query: string): boolean {
   const q = query.toLowerCase();
   return (
@@ -67,9 +79,10 @@ function matchesSearch(exam: ExamRow, query: string): boolean {
 const plural = (count: number, word: string, many = `${word}s`) =>
   `${count.toLocaleString("en-IN")} ${count === 1 ? word : many}`;
 
-const ExamCard: React.FC<{ exam: ExamRow; accent: string; categoryName?: string }> = ({
+const ExamCard: React.FC<{ exam: ExamRow; accent: string; hot: boolean; categoryName?: string }> = ({
   exam,
   accent,
+  hot,
   categoryName,
 }) => (
   <Link
@@ -78,7 +91,16 @@ const ExamCard: React.FC<{ exam: ExamRow; accent: string; categoryName?: string 
     title={exam.fullName || exam.examName}
   >
     <span className={styles.cardText}>
-      <span className={styles.cardName}>{exam.examName}</span>
+      <span className={styles.cardTitleRow}>
+        <span className={styles.cardName}>{exam.examName}</span>
+        {hot && (
+          <span className={styles.hotBadge}>
+            <Flame size={12} aria-hidden="true" />
+            Hot
+            <span className={styles.srOnly}> - recent exam news</span>
+          </span>
+        )}
+      </span>
       {categoryName && <span className={styles.cardCategory}>{categoryName}</span>}
     </span>
     <ChevronRight size={16} className={styles.cardChevron} aria-hidden="true" />
@@ -106,13 +128,20 @@ const ExamsPage: React.FC = () => {
 
   const categories = useMemo<CategoryView[]>(() => {
     if (!data) return [];
-    return data.categories.map((category, index) => ({
+    const views = data.categories.map((category, index) => ({
       id: category.id,
       categoryName: category.categoryName,
       accent: accentFor(index),
       exams: category.exams,
     }));
+    return [
+      ...views.filter((category) => !isMoreOnly(category.categoryName)),
+      ...views.filter((category) => isMoreOnly(category.categoryName)),
+    ];
   }, [data]);
+
+  // Missing on a directory response cached before the field existed.
+  const hotIds = useMemo(() => new Set(data?.hotExamIds ?? []), [data]);
 
   const allExams = useMemo(() => categories.flatMap((category) => category.exams), [categories]);
 
@@ -224,12 +253,13 @@ const ExamsPage: React.FC = () => {
 
   const renderPills = () => {
     const pills = [
-      { key: "all", name: "All", count: allExams.length, accent: "" },
+      { key: "all", name: "All", count: allExams.length, accent: "", moreOnly: false },
       ...categories.map((category) => ({
         key: String(category.id),
         name: category.categoryName,
         count: category.exams.length,
         accent: category.accent,
+        moreOnly: isMoreOnly(category.categoryName),
       })),
     ];
 
@@ -239,7 +269,7 @@ const ExamsPage: React.FC = () => {
           const isActive = activeCategory === pill.name;
           let collapseClass = "";
           if (!pillsExpanded && !isActive) {
-            if (index >= PILLS_COLLAPSED) collapseClass = styles.pillExtra;
+            if (pill.moreOnly || index >= PILLS_COLLAPSED) collapseClass = styles.pillExtra;
             else if (index >= PILLS_COLLAPSED_MOBILE) collapseClass = styles.pillExtraMobile;
           }
           return (
@@ -279,7 +309,7 @@ const ExamsPage: React.FC = () => {
   const renderOverview = () => (
     <div className={styles.sections}>
       {categories.map((category) => {
-        const exams = sortByName(category.exams);
+        const exams = sortForPreview(category.exams, hotIds);
         if (exams.length === 0) return null;
         const preview = exams.slice(0, PREVIEW_COUNT);
         const remaining = exams.length - preview.length;
@@ -299,7 +329,7 @@ const ExamsPage: React.FC = () => {
             </div>
             <div className={styles.examsGrid}>
               {preview.map((exam) => (
-                <ExamCard key={exam.id} exam={exam} accent={category.accent} />
+                <ExamCard key={exam.id} exam={exam} accent={category.accent} hot={hotIds.has(exam.id)} />
               ))}
             </div>
             {remaining > 0 && (
@@ -347,7 +377,13 @@ const ExamsPage: React.FC = () => {
         <section className={styles.categorySection} aria-label="Search results">
           <div className={styles.examsGrid}>
             {searchResults.map((row) => (
-              <ExamCard key={row.key} exam={row.exam} accent={row.accent} categoryName={row.categoryName} />
+              <ExamCard
+                key={row.key}
+                exam={row.exam}
+                accent={row.accent}
+                hot={hotIds.has(row.exam.id)}
+                categoryName={row.categoryName}
+              />
             ))}
           </div>
         </section>
@@ -381,7 +417,7 @@ const ExamsPage: React.FC = () => {
         {activeCategoryView.exams.length > 0 ? (
           <div className={styles.examsGrid}>
             {activeCategoryView.exams.map((exam) => (
-              <ExamCard key={exam.id} exam={exam} accent={activeCategoryView.accent} />
+              <ExamCard key={exam.id} exam={exam} accent={activeCategoryView.accent} hot={hotIds.has(exam.id)} />
             ))}
           </div>
         ) : (

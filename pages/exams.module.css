@@ -507,6 +507,47 @@
   line-height: 1.35;
 }
 
+/* Name and Hot badge share a line when they fit; a long name pushes the
+   badge onto its own line instead of squeezing. */
+.cardTitleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  min-width: 0;
+}
+
+.cardTitleRow .cardName {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.hotBadge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1875rem;
+  padding: 0.125rem 0.4375rem 0.125rem 0.3125rem;
+  border-radius: var(--radius-full);
+  background-color: var(--sp-peach-tint);
+  border: 1px solid var(--fc-peach-line);
+  color: var(--tk-brand-text);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.hotBadge svg {
+  flex-shrink: 0;
+}
+
+/* The peach tile's hover tint is the badge's own fill, so lift it to white. */
+.examCard:hover .hotBadge {
+  background-color: var(--surface);
+}
+
 .cardCategory {
   font-size: 0.75rem;
   font-weight: 500;
