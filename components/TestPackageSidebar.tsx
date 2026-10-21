@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle, Share2, Info } from 'lucide-react';
+import { CheckCircle, Share2, Info, FileText, Gift, BookOpen, Languages } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../helpers/useAuth';
 import { useAddToCartMutation, useCartItemsQuery } from '../helpers/useCartQuery';
@@ -12,14 +12,16 @@ import { Placeholder } from '../helpers/placeholderImages';
 import { VideoPreview } from './VideoPreview';
 import { PurchaseCardTeacher } from './PurchaseCardTeacher';
 import type { PackageDetails } from '../endpoints/tests/details_GET.schema';
+import { formatLanguages } from '../helpers/itemLanguages';
 import styles from './TestPackageSidebar.module.css';
 
 interface TestPackageSidebarProps {
   className?: string;
   testPackage: PackageDetails;
+  totalQuestions?: number;
 }
 
-export const TestPackageSidebar: React.FC<TestPackageSidebarProps> = ({ className, testPackage }) => {
+export const TestPackageSidebar: React.FC<TestPackageSidebarProps> = ({ className, testPackage, totalQuestions }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { authState } = useAuth();
@@ -120,26 +122,46 @@ export const TestPackageSidebar: React.FC<TestPackageSidebarProps> = ({ classNam
     ? Math.round(((testPackage.price - testPackage.discountPrice!) / testPackage.price) * 100)
     : 0;
 
+  const includes: Array<{ icon: React.ReactNode; label: string }> = [];
+  if (testPackage.totalTests > 0) {
+    includes.push({
+      icon: <FileText size={16} />,
+      label: `${testPackage.totalTests} ${testPackage.totalTests === 1 ? 'mock test' : 'mock tests'}`,
+    });
+  }
+  if (testPackage.freeTestsCount > 0 && !isFree) {
+    includes.push({
+      icon: <Gift size={16} />,
+      label: `${testPackage.freeTestsCount} free ${testPackage.freeTestsCount === 1 ? 'test' : 'tests'}`,
+    });
+  }
+  if (totalQuestions && totalQuestions > 0) {
+    includes.push({ icon: <BookOpen size={16} />, label: `${totalQuestions} questions` });
+  }
+  includes.push({ icon: <Languages size={16} />, label: formatLanguages(testPackage) || 'English' });
+
   return (
     <div className={`${styles.sidebar} ${className || ''}`}>
       <div className={styles.sidebarCard}>
-                    <div className={styles.preview}>
-            {testPackage.introVideoUrl ? (
-              <VideoPreview
-                videoUrl={testPackage.introVideoUrl}
-                thumbnailUrl={testPackage.thumbnailUrl}
-                title={testPackage.title}
-                inlinePlayback={true}
-              />
-            ) : testPackage.thumbnailUrl ? (
-              <img src={testPackage.thumbnailUrl} alt={testPackage.title} className={styles.previewImage} />
-            ) : (
-              <img
-                src={Placeholder.TEST}
-                alt={testPackage.title}
-                className={styles.previewImage}
-              />
-            )}
+          <div className={styles.media}>
+            <div className={styles.mediaFrame}>
+              {testPackage.introVideoUrl ? (
+                <VideoPreview
+                  videoUrl={testPackage.introVideoUrl}
+                  thumbnailUrl={testPackage.thumbnailUrl}
+                  title={testPackage.title}
+                  inlinePlayback={true}
+                />
+              ) : (
+                <div className={styles.preview}>
+                  <img
+                    src={testPackage.thumbnailUrl || Placeholder.TEST}
+                    alt={testPackage.title}
+                    className={styles.previewImage}
+                  />
+                </div>
+              )}
+            </div>
           </div>
 
           <div className={styles.pricingContent}>
@@ -175,58 +197,78 @@ export const TestPackageSidebar: React.FC<TestPackageSidebarProps> = ({ classNam
             ) : (
               <>
                 <div className={styles.pricing}>
-                <div className={styles.priceRow}>
-                  <span className={styles.currentPrice}>{formattedPrice}</span>
-                  {formattedOriginalPrice && (
-                    <>
-                      <span className={styles.originalPrice}>{formattedOriginalPrice}</span>
-                      <span className={styles.discount}>{discountPercentage}% off</span>
-                    </>
-                  )}
-                </div>
+                  <div className={styles.priceRow}>
+                    <span className={styles.currentPrice}>{formattedPrice}</span>
+                    {formattedOriginalPrice && (
+                      <>
+                        <span className={styles.originalPrice}>{formattedOriginalPrice}</span>
+                        <span className={styles.discount}>{discountPercentage}% off</span>
+                      </>
+                    )}
+                  </div>
+                  {isFree && <p className={styles.priceNote}>Every test in this series is free to attempt.</p>}
                 </div>
 
                 <div className={styles.ctaButtons}>
-                <Button 
-                  size="lg" 
-                  className={styles.primaryCta}
-                  onClick={handleAddToCart}
-                  disabled={isFree ? freeEnrollmentMutation.isPending : (isInCart ? false : addToCartMutation.isPending)}
-                >
-                  {isFree 
-                    ? (freeEnrollmentMutation.isPending ? 'Enrolling...' : 'Enroll Free')
-                    : isInCart
-                      ? 'Go to Cart'
-                      : (addToCartMutation.isPending ? 'Adding...' : 'Add to cart')
-                  }
-                </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className={styles.secondaryCta}
-                  onClick={handleBuyNow}
-                  disabled={isFree ? freeEnrollmentMutation.isPending : (isInCart ? false : addToCartMutation.isPending)}
-                >
-                  {isFree 
-                    ? (freeEnrollmentMutation.isPending ? 'Starting...' : 'Start Free')
-                    : isInCart
-                      ? 'Checkout'
-                      : (addToCartMutation.isPending ? 'Processing...' : 'Buy now')
-                  }
-                </Button>
+                  {isFree ? (
+                    <Button
+                      size="lg"
+                      className={styles.primaryCta}
+                      onClick={handleAddToCart}
+                      disabled={freeEnrollmentMutation.isPending}
+                    >
+                      {freeEnrollmentMutation.isPending ? 'Enrolling...' : 'Enroll Now'}
+                    </Button>
+                  ) : (
+                    <>
+                      <Button
+                        size="lg"
+                        className={styles.primaryCta}
+                        onClick={handleAddToCart}
+                        disabled={isInCart ? false : addToCartMutation.isPending}
+                      >
+                        {isInCart ? 'Go to Cart' : (addToCartMutation.isPending ? 'Adding...' : 'Add to cart')}
+                      </Button>
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        className={styles.secondaryCta}
+                        onClick={handleBuyNow}
+                        disabled={isInCart ? false : addToCartMutation.isPending}
+                      >
+                        {isInCart ? 'Checkout' : (addToCartMutation.isPending ? 'Processing...' : 'Buy now')}
+                      </Button>
+                    </>
+                  )}
                 </div>
               </>
             )}
+
+            {includes.length > 0 && (
+              <div className={styles.includes}>
+                <h3 className={styles.includesTitle}>This test series includes</h3>
+                <ul className={styles.includesList}>
+                  {includes.map((item) => (
+                    <li key={item.label} className={styles.includesItem}>
+                      <span className={styles.includesIcon} aria-hidden="true">{item.icon}</span>
+                      {item.label}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
-          <PurchaseCardTeacher
-            label="Created by"
-            name={testPackage.teacherName}
-            avatarUrl={testPackage.teacherAvatarUrl}
-            slug={testPackage.teacherSlug}
-            isVerified={testPackage.teacherIsVerified}
-            academyName={testPackage.teacherAcademyName}
-          />
+          <div className={styles.hostedBy}>
+            <PurchaseCardTeacher
+              label="Created by"
+              name={testPackage.teacherName}
+              avatarUrl={testPackage.teacherAvatarUrl}
+              slug={testPackage.teacherSlug}
+              isVerified={testPackage.teacherIsVerified}
+              academyName={testPackage.teacherAcademyName}
+            />
+          </div>
 
           <button
             type="button"

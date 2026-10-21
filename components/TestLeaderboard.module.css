@@ -1,22 +1,6 @@
+/* Sits inside the detail page's section card, which supplies the heading. */
 .container {
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-6);
-  box-shadow: var(--shadow);
-}
-
-.header {
-  margin-bottom: var(--spacing-4);
-  padding-bottom: var(--spacing-4);
-  border-bottom: 1px solid var(--border);
-}
-
-.title {
-  font-family: var(--font-family-heading);
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin: 0;
+  min-width: 0;
 }
 
 .table {
@@ -49,13 +33,13 @@
   gap: var(--spacing-3);
   align-items: center;
   padding: 0.625rem var(--spacing-4);
-  border-radius: var(--radius);
+  border-radius: 0.875rem;
   transition: background-color var(--animation-duration-fast);
   font-size: 0.875rem;
 }
 
 .tableRow:nth-child(even) {
-  background-color: color-mix(in srgb, var(--muted) 30%, transparent);
+  background-color: var(--exam-ivory);
 }
 
 .tableRow:hover {
@@ -124,7 +108,11 @@
   padding-top: var(--spacing-4);
   display: flex;
   justify-content: center;
-  border-top: 1px solid var(--border);
+  border-top: 1.5px dashed var(--exam-ivory-border);
+}
+
+.footer button {
+  border-radius: var(--radius-full);
 }
 
 .tabsList {
@@ -161,6 +149,13 @@
   color: var(--muted-foreground);
 }
 
+.emptyState,
+.loginPrompt {
+  background-color: var(--exam-ivory);
+  border: 1.5px dashed var(--exam-ivory-border);
+  border-radius: 1.25rem;
+}
+
 .emptyState svg { 
   margin: 0 auto var(--spacing-4); 
   color: var(--muted-foreground);
@@ -179,7 +174,7 @@
 /* Login Prompt */
 .loginPrompt {
   text-align: center;
-  padding: var(--spacing-12);
+  padding: var(--spacing-8) var(--spacing-6);
   color: var(--foreground);
   display: flex;
   flex-direction: column;
@@ -188,22 +183,21 @@
 }
 
 .loginPromptIcon {
-  color: var(--primary);
-  margin-bottom: var(--spacing-2);
+  color: hsl(42 96% 46%);
 }
 
 .loginPromptHeadline {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--foreground);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--surface-foreground);
   margin: 0;
   font-family: var(--font-family-heading);
 }
 
 .loginPromptSubtitle {
-  font-size: 1rem;
+  font-size: 0.9375rem;
   color: var(--muted-foreground);
-  margin: 0 0 var(--spacing-4);
+  margin: 0 0 var(--spacing-2);
   max-width: 400px;
 }
 
@@ -214,14 +208,18 @@
   align-items: center;
 }
 
+.loginPromptButtons > * {
+  border-radius: var(--radius-full);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .loginPrompt {
-    padding: var(--spacing-8) var(--spacing-4);
+    padding: var(--spacing-6) var(--spacing-4);
   }
 
   .loginPromptHeadline {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
   }
 
   .loginPromptSubtitle {
@@ -238,7 +236,6 @@
   }
 
   .container {
-    padding: var(--spacing-3);
     overflow-x: auto;
   }
 

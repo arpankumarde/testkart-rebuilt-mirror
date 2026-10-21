@@ -79,8 +79,8 @@ export const TestLeaderboard: React.FC<TestLeaderboardProps> = ({
     if (authState.type !== 'authenticated') {
       return (
         <div className={styles.loginPrompt}>
-          <Trophy size={48} className={styles.loginPromptIcon} />
-          <h3 className={styles.loginPromptHeadline}>🏆 Want to See Who's on Top?</h3>
+          <Trophy size={40} className={styles.loginPromptIcon} aria-hidden="true" />
+          <h3 className={styles.loginPromptHeadline}>Want to see who's on top?</h3>
           <p className={styles.loginPromptSubtitle}>Login to view rankings and compete with students across India!</p>
           <div className={styles.loginPromptButtons}>
             <Button asChild>
@@ -177,10 +177,6 @@ export const TestLeaderboard: React.FC<TestLeaderboardProps> = ({
 
   return (
     <div className={`${styles.container} ${className || ''}`}>
-      <div className={styles.header}>
-        <h3 className={styles.title}>Leaderboard</h3>
-      </div>
-
       {testItems.length === 1 ? (
         <div className={styles.contentWrapper}>{renderContent()}</div>
       ) : (

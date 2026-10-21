@@ -1,6 +1,35 @@
-/* Hero Skeleton */
+/*
+ * Test series detail page, in the same pastel language as the course page:
+ * white section cards with a warm ivory hairline and 1.5rem corners, dashed
+ * seams under section titles, and wobbly duotone icon blobs. The pastels are
+ * the exam artwork hexes (fixed in both themes); anything mixed into a
+ * surface follows the theme through the --exam-* tokens.
+ *
+ * Hero and content share one positioned box so the purchase card can start
+ * at the top of the hero and stay sticky to the end.
+ */
+.layout {
+  --tp-peach: #f9b99a;
+  --tp-mint: #a9dcc8;
+  --tp-lavender: #c8b6f2;
+  --tp-sky: #aed3f2;
+  --tp-butter: #f4dfa3;
+  --tp-ink: hsl(220 30% 12%);
+  --tp-wash: 14%;
+  --tp-card-shadow:
+    0 1px 2px hsl(220 10% 15% / 0.03),
+    0 8px 22px -14px hsl(220 10% 15% / 0.14);
+
+  position: relative;
+}
+
+:global(.dark) .layout {
+  --tp-wash: 7%;
+}
+
 .heroSkeleton {
-  background: var(--muted);
+  background: var(--exam-ivory);
+  border-bottom: 1px solid var(--exam-ivory-border);
   padding: var(--spacing-12) var(--spacing-6) var(--spacing-8);
 }
 
@@ -9,65 +38,6 @@
   margin: 0 auto;
 }
 
-/* Hero, stats band and content share one positioned box so the purchase
-   card can start at the top of the hero and stay sticky to the end. */
-.layout {
-  position: relative;
-}
-
-/* Stats Card */
-.statsCard {
-  background-color: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: var(--spacing-4) var(--spacing-6);
-}
-
-.statsContent {
-  max-width: 1152px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-4);
-  flex-wrap: wrap;
-}
-
-.statsLeft {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
-}
-
-.statsIcon {
-  color: var(--success-text);
-  flex-shrink: 0;
-}
-
-.statsTitle {
-  font-weight: 600;
-  font-size: 0.9375rem;
-  color: var(--surface-foreground);
-}
-
-.statsSubtitle {
-  font-size: 0.875rem;
-  color: var(--muted-foreground);
-  margin-top: var(--spacing-1);
-}
-
-.statsLink {
-  font-size: 0.9375rem;
-  color: var(--tk-brand-text);
-  font-weight: 600;
-  text-decoration: none;
-  transition: color var(--animation-duration-fast);
-}
-
-.statsLink:hover {
-  color: var(--tk-brand-hover);
-  text-decoration: underline;
-}
-
-/* Content Wrapper */
 .contentWrapper {
   max-width: 1200px;
   margin: 0 auto;
@@ -84,92 +54,250 @@
   }
 }
 
-/* Main Column */
 .mainColumn {
   min-width: 0;
 }
 
 .section {
-  margin-bottom: var(--spacing-12);
-  padding-bottom: var(--spacing-12);
-  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--spacing-6);
+  padding: var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--exam-ivory-border);
+  border-radius: 1.5rem;
+  box-shadow: var(--tp-card-shadow);
 }
 
-.section:last-child {
-  border-bottom: none;
+.sectionHeading {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  margin-bottom: 1.25rem;
+  padding-bottom: var(--spacing-4);
+  border-bottom: 1.5px dashed var(--exam-ivory-border);
+}
+
+.sectionIcon {
+  --tone: var(--tp-sky);
+  --blob: 62% 38% 52% 48% / 52% 44% 56% 48%;
+  --tilt: 10deg;
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  color: color-mix(in srgb, var(--tone), var(--tp-ink) 72%);
+}
+
+.sectionIcon[data-tone="peach"] {
+  --tone: var(--tp-peach);
+  --blob: 64% 36% 58% 42% / 44% 62% 38% 56%;
+  --tilt: -10deg;
+}
+
+.sectionIcon[data-tone="mint"] {
+  --tone: var(--tp-mint);
+  --blob: 38% 62% 44% 56% / 60% 40% 64% 36%;
+  --tilt: 8deg;
+}
+
+.sectionIcon[data-tone="lavender"] {
+  --tone: var(--tp-lavender);
+  --blob: 56% 44% 32% 68% / 42% 60% 40% 58%;
+  --tilt: -5deg;
+}
+
+.sectionIcon[data-tone="butter"] {
+  --tone: var(--tp-butter);
+  --blob: 40% 60% 66% 34% / 64% 44% 56% 36%;
+  --tilt: -13deg;
+}
+
+.sectionBlob {
+  position: absolute;
+  inset: 0.125rem 0.0625rem 0 0.1875rem;
+  border-radius: var(--blob);
+  background-color: var(--tone);
+  transform: rotate(var(--tilt));
+}
+
+.sectionIcon svg {
+  position: relative;
+  width: 1.125rem;
+  height: 1.125rem;
+  stroke-width: 1.9;
 }
 
 .sectionTitle {
+  margin: 0;
   font-family: var(--font-family-heading);
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin: 0 0 var(--spacing-6);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
   color: var(--surface-foreground);
+}
+
+/* PublicCouponsCard is shared; this restyles only this page's copy.
+   Two classes outweigh the component's single-class rules. */
+.mainColumn .couponsCard {
+  margin-bottom: var(--spacing-6);
+  padding: var(--spacing-6);
+  background-color: color-mix(in srgb, var(--tp-peach) var(--tp-wash), var(--surface));
+  border-color: color-mix(in srgb, var(--tp-peach) 55%, var(--exam-ivory-border));
+  border-radius: 1.5rem;
+  box-shadow: var(--tp-card-shadow);
+}
+
+.mainColumn .couponsCard h2 {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.mainColumn .couponsCard li {
+  background-color: var(--surface);
+  border: 1.5px dashed color-mix(in srgb, var(--tp-peach) 70%, var(--exam-ivory-border));
+  border-radius: 1rem;
+}
+
+.mainColumn .couponsCard li > span:first-child {
+  border-radius: 0.625rem;
+}
+
+.mainColumn .couponsCard button {
+  border-radius: var(--radius-full);
+}
+
+.updatedLine {
+  display: flex;
+  align-items: center;
+  gap: 0.4375rem;
+  margin: 1.25rem 0 0;
+  padding-top: var(--spacing-4);
+  border-top: 1.5px dashed var(--exam-ivory-border);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.updatedLine svg {
+  flex-shrink: 0;
+  color: color-mix(in srgb, var(--tp-lavender), var(--tp-ink) 60%);
+}
+
+:global(.dark) .updatedLine svg {
+  color: var(--tp-lavender);
 }
 
 .benefitsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: var(--spacing-4);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  gap: var(--spacing-3);
 }
 
 .benefitItem {
   display: flex;
   align-items: flex-start;
   gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: color-mix(in srgb, var(--tp-mint) var(--tp-wash), var(--surface));
+  border: 1px solid color-mix(in srgb, var(--tp-mint) 45%, var(--exam-ivory-border));
+  border-radius: 1rem;
 }
 
 .checkIcon {
-  color: var(--success-text);
   flex-shrink: 0;
   margin-top: 2px;
+  color: var(--exam-sage-ink);
 }
 
 .benefitItem span {
   font-size: 0.9375rem;
+  line-height: 1.55;
   color: var(--surface-foreground);
-  line-height: 1.5;
-}
-
-.contentStats {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
-  font-size: 0.875rem;
-  color: var(--muted-foreground);
-  margin-bottom: var(--spacing-4);
+  overflow-wrap: anywhere;
 }
 
 .requirementsList {
-  list-style: none;
-  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
   margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .requirementsList li {
-  padding-left: var(--spacing-6);
   position: relative;
-  margin-bottom: var(--spacing-3);
+  padding-left: 1.5rem;
   font-size: 0.9375rem;
   line-height: 1.6;
   color: var(--surface-foreground);
+  overflow-wrap: anywhere;
 }
 
 .requirementsList li::before {
-  content: "•";
+  content: "";
   position: absolute;
-  left: var(--spacing-3);
-  color: var(--muted-foreground);
+  top: 0.5rem;
+  left: 0.25rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 58% 42% 55% 45% / 48% 58% 42% 52%;
+  background-color: color-mix(in srgb, var(--tp-sky), var(--tp-ink) 30%);
+  transform: rotate(-12deg);
+}
+
+:global(.dark) .requirementsList li::before {
+  background-color: var(--tp-sky);
 }
 
 .description {
   font-size: 0.9375rem;
-  line-height: 1.7;
+  line-height: 1.75;
   color: var(--surface-foreground);
+  overflow-wrap: anywhere;
 }
 
 .description p {
   margin: 0 0 var(--spacing-4);
+}
+
+.description > :first-child {
+  margin-top: 0;
+}
+
+.description > :last-child {
+  margin-bottom: 0;
+}
+
+.description h2,
+.description h3,
+.description h4 {
+  margin: var(--spacing-6) 0 var(--spacing-3);
+  font-family: var(--font-family-heading);
+  font-weight: 800;
+  line-height: 1.3;
+  color: var(--surface-foreground);
+}
+
+.description h2 {
+  font-size: 1.1875rem;
+}
+
+.description h3 {
+  font-size: 1.0625rem;
+}
+
+.description h4 {
+  font-size: 1rem;
+}
+
+.description a {
+  color: var(--tk-brand-text);
+  font-weight: 600;
 }
 
 .description ul {
@@ -188,11 +316,95 @@
   margin-bottom: var(--spacing-2);
 }
 
+.description li::marker {
+  color: color-mix(in srgb, var(--tp-peach), var(--tp-ink) 40%);
+}
 
+/* The whole row is the profile link; the negative margin lets the hover wash
+   reach past the avatar while the content stays aligned with the heading. */
+.instructorRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  margin: calc(var(--spacing-3) * -1);
+  padding: var(--spacing-3);
+  border-radius: 1.25rem;
+  color: var(--surface-foreground);
+  text-decoration: none;
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.instructorRow:hover {
+  background-color: color-mix(in srgb, var(--tp-sky) var(--tp-wash), var(--exam-ivory));
+}
+
+.instructorRow:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.instructorAvatar {
+  flex-shrink: 0;
+  width: 3.5rem;
+  height: 3.5rem;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tp-sky) 55%, var(--surface));
+}
+
+/* Name and badge travel together so the badge sits right after the name. */
+.instructorNameRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.instructorVerified {
+  flex-shrink: 0;
+  margin-left: 0;
+}
+
+.instructorName {
+  min-width: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.instructorRow:hover .instructorName {
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 4px;
+}
+
+.disclaimerSection {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  margin: var(--spacing-6) 0;
+  padding: var(--spacing-4) 1.25rem;
+  background-color: var(--exam-blue-tint);
+  border: 1px solid var(--exam-blue-border);
+  border-radius: 1.25rem;
+  color: var(--exam-blue-ink);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.disclaimerIcon {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.disclaimerText {
+  min-width: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 
 @media (min-width: 992px) {
-  .heroSkeleton .heroContent,
-  .statsContent {
+  .heroSkeleton .heroContent {
     padding-right: calc(380px + var(--spacing-12));
   }
 
@@ -210,64 +422,38 @@
   }
 }
 
-/* Error Container */
 .errorContainer {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  padding: var(--spacing-16) var(--spacing-6);
   gap: var(--spacing-4);
+  min-height: 60vh;
+  padding: var(--spacing-16) var(--spacing-6);
+  text-align: center;
 }
 
 .errorContainer h2 {
+  margin: 0;
   font-family: var(--font-family-heading);
   font-size: 2rem;
-  font-weight: 600;
-  margin: 0;
+  font-weight: 700;
 }
 
 .errorContainer p {
-  color: var(--muted-foreground);
   max-width: 400px;
   margin: 0;
-}
-
-.disclaimerSection {
-  margin-top: var(--spacing-8);
-  margin-bottom: var(--spacing-8);
-  padding: var(--spacing-6);
-  background-color: var(--muted);
-  border-radius: var(--radius-lg);
-  font-size: 0.875rem;
   color: var(--muted-foreground);
-  white-space: pre-line;
-  line-height: 1.6;
 }
 
-
-
-/* Mobile Responsiveness */
 @media (max-width: 991px) {
   .sidebarColumn {
     order: -1;
   }
 
-  .benefitsGrid {
-    grid-template-columns: 1fr;
-  }
-
   .contentWrapper {
     padding: var(--spacing-6) var(--spacing-4);
   }
-
-  .section {
-    margin-bottom: var(--spacing-8);
-    padding-bottom: var(--spacing-8);
-  }
-
-
 }
 
 @media (max-width: 768px) {
@@ -275,80 +461,39 @@
     padding: var(--spacing-6) var(--spacing-4) var(--spacing-4);
   }
 
-  .statsCard {
-    padding: var(--spacing-3) var(--spacing-4);
-  }
-
-  .statsTitle {
-    font-size: 0.875rem;
-  }
-
-  .statsSubtitle {
-    font-size: 0.8125rem;
-    line-height: 1.4;
-  }
-
   .contentWrapper {
+    gap: var(--spacing-6);
     padding: var(--spacing-4);
-    gap: var(--spacing-4);
+  }
+
+  .section,
+  .mainColumn .couponsCard {
+    margin-bottom: var(--spacing-4);
+    padding: 1.25rem;
+    border-radius: 1.25rem;
+  }
+
+  .sectionHeading {
+    margin-bottom: var(--spacing-4);
+    padding-bottom: var(--spacing-3);
   }
 
   .sectionTitle {
     font-size: 1.125rem;
-    margin-bottom: var(--spacing-3);
   }
 
-  .benefitsGrid {
-    gap: var(--spacing-2);
-  }
-
-  .benefitItem {
-    gap: var(--spacing-2);
-  }
-
-  .benefitItem span {
-    font-size: 0.875rem;
-    line-height: 1.5;
-  }
-
-  .contentStats {
-    font-size: 0.8125rem;
-    gap: var(--spacing-2);
-    flex-wrap: wrap;
-  }
-
+  .benefitItem span,
   .requirementsList li {
     font-size: 0.875rem;
-    line-height: 1.5;
-    margin-bottom: var(--spacing-2);
   }
 
   .description {
     font-size: 0.875rem;
-    line-height: 1.6;
+    line-height: 1.7;
   }
 
   .description p {
     margin-bottom: var(--spacing-3);
-  }
-
-
-
-  .section {
-    margin-bottom: var(--spacing-4);
-    padding-bottom: var(--spacing-4);
-  }
-}
-
-@media (max-width: 576px) {
-  .statsContent {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--spacing-3);
-  }
-
-  .statsLeft {
-    gap: var(--spacing-2);
   }
 }
 
@@ -357,94 +502,14 @@
     padding: var(--spacing-4) var(--spacing-3) var(--spacing-3);
   }
 
-  .statsCard {
-    padding: var(--spacing-2) var(--spacing-3);
+  .section,
+  .mainColumn .couponsCard {
+    padding: var(--spacing-4);
   }
 
-  .statsLeft {
-    gap: var(--spacing-2);
-  }
-
-  .statsIcon {
-    width: 18px;
-    height: 18px;
-  }
-
-  .statsTitle {
-    font-size: 0.8125rem;
-  }
-
-  .statsSubtitle {
-    font-size: 0.75rem;
-    line-height: 1.4;
-  }
-
-  .contentWrapper {
-    padding: var(--spacing-3);
-    gap: var(--spacing-3);
-  }
-
-  .sectionTitle {
-    font-size: 1rem;
-    margin-bottom: var(--spacing-2);
-  }
-
-  .benefitsGrid {
-    gap: var(--spacing-2);
-  }
-
-  .benefitItem {
-    gap: var(--spacing-2);
-  }
-
-  .benefitItem span {
-    font-size: 0.8125rem;
-    line-height: 1.5;
-  }
-
-  .checkIcon {
-    width: 18px;
-    height: 18px;
-  }
-
-  .contentStats {
-    font-size: 0.75rem;
-  }
-
-  .requirementsList li {
-    font-size: 0.8125rem;
+  .description ul,
+  .description ol {
     padding-left: var(--spacing-4);
-    margin-bottom: var(--spacing-2);
-  }
-
-  .requirementsList li::before {
-    left: var(--spacing-2);
-  }
-
-  .description {
-    font-size: 0.8125rem;
-    line-height: 1.6;
-  }
-
-  .description p {
-    margin-bottom: var(--spacing-2);
-  }
-
-  .description ul {
-    margin: var(--spacing-2) 0;
-    padding-left: var(--spacing-4);
-  }
-
-  .description li {
-    margin-bottom: var(--spacing-1);
-    font-size: 0.8125rem;
-  }
-
-
-
-  .section {
-    margin-bottom: var(--spacing-3);
-    padding-bottom: var(--spacing-3);
   }
 
   .errorContainer {

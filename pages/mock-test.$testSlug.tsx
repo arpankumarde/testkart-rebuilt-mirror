@@ -6,10 +6,11 @@ import { Placeholder } from "../helpers/placeholderImages";
 import { slugify } from "../helpers/slugify";
 import { wrapContentTables } from "../helpers/contentTables";
 import { sanitizeHtml } from "../helpers/sanitizeHtml";
-import { CheckCircle, Star, Users, BookOpen } from "lucide-react";
+import { CheckCircle, Star, FileText, Info, ListChecks, ClipboardList, Trophy, User, CalendarCheck } from "lucide-react";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/Avatar";
+import { VerifiedBadge } from "../components/VerifiedBadge";
 import { TestPackageHero } from "../components/TestPackageHero";
 import { TestPackageSidebar } from "../components/TestPackageSidebar";
 import { MobileStickyPurchaseBar } from "../components/MobileStickyPurchaseBar";
@@ -17,7 +18,6 @@ import { TestItemsList } from "../components/TestItemsList";
 import { TestLeaderboard } from "../components/TestLeaderboard";
 import { TestLeaderboardDialog } from "../components/TestLeaderboardDialog";
 import { TestReviews } from "../components/TestReviews";
-import { TeacherProfileCard } from "../components/TeacherProfileCard";
 import { TeacherCtaBanner } from "../components/TeacherCtaBanner";
 import { BundleSuggestions } from "../components/BundleSuggestions";
 import { PublicCouponsCard } from "../components/PublicCouponsCard";
@@ -25,6 +25,23 @@ import { useTrackStorefrontView } from "../helpers/trackStorefrontEvent";
 import { NotFoundState } from "../components/NotFoundState";
 import { isNotFoundError } from "../helpers/isNotFoundError";
 import styles from "./mock-test.$testSlug.module.css";
+
+type SectionTone = "peach" | "mint" | "lavender" | "sky" | "butter";
+
+/* Section title with a wobbly duotone icon blob, as on the course page. */
+const SectionHeading: React.FC<{ icon: React.ReactNode; tone: SectionTone; children: React.ReactNode }> = ({
+  icon,
+  tone,
+  children,
+}) => (
+  <div className={styles.sectionHeading}>
+    <span className={styles.sectionIcon} data-tone={tone} aria-hidden="true">
+      <span className={styles.sectionBlob} />
+      {icon}
+    </span>
+    <h2 className={styles.sectionTitle}>{children}</h2>
+  </div>
+);
 
 const TestDetailsSkeleton: React.FC = () => (
   <div className={styles.layout}>
@@ -205,7 +222,8 @@ const TestDetailsPage: React.FC = () => {
     };
   }, [data]);
 
-  if (isFetching) {
+  // Only before the first load; a refetch (e.g. after enrolling) keeps the page in place.
+  if (isFetching && !data) {
     return <TestDetailsSkeleton />;
   }
 
@@ -225,9 +243,8 @@ const TestDetailsPage: React.FC = () => {
     return <NotFoundState kind="test" />;
   }
 
-            const { package: testPackage, items } = data;
+  const { package: testPackage, items } = data;
   const totalQuestions = items.reduce((sum, item) => sum + item.totalQuestions, 0);
-  const totalDurationMinutes = items.reduce((sum, item) => sum + item.durationMinutes, 0);
 
   // Ensure whatYouLearn and requirements are arrays (may come as JSON strings from DB)
   const whatYouLearn = Array.isArray(testPackage.whatYouLearn)
@@ -237,12 +254,22 @@ const TestDetailsPage: React.FC = () => {
     ? testPackage.requirements
     : (() => { try { const parsed = JSON.parse(testPackage.requirements as any); return Array.isArray(parsed) ? parsed : []; } catch { return []; } })();
 
-  const teacherFallback =
+  // Closes the Description section, or the test list when there is no long description.
+  const updatedLine = testPackage.updatedAt ? (
+    <p className={styles.updatedLine}>
+      <CalendarCheck size={15} aria-hidden="true" />
+      Last updated {new Date(testPackage.updatedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+    </p>
+  ) : null;
+
+  const teacherInitials =
     testPackage.teacherName
-      ?.split(" ")
-      .map((n: string) => n[0])
+      .split(" ")
+      .filter(Boolean)
+      .map((part) => part[0])
       .join("")
-      .substring(0, 2) || "T";
+      .substring(0, 2)
+      .toUpperCase() || "T";
 
   return (
     <>
@@ -262,67 +289,27 @@ const TestDetailsPage: React.FC = () => {
       <div className={styles.layout}>
       <TestPackageHero 
         testPackage={testPackage} 
-        totalQuestions={totalQuestions}
-        totalDurationMinutes={totalDurationMinutes}
       />
 
-      {/* Key Stats Card */}
-      <div className={styles.statsCard}>
-        <div className={styles.statsContent}>
-          <div className={styles.statsLeft}>
-            <CheckCircle size={20} className={styles.statsIcon} />
-            <div>
-              <div className={styles.statsTitle}>Test Package</div>
-              <div className={styles.statsSubtitle}>
-                Access this test package with {testPackage.totalTests} full-length mock tests
-                {testPackage.freeTestsCount > 0 && ` (${testPackage.freeTestsCount} free tests included)`}
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      {/* Main Content */}
       <div className={styles.contentWrapper}>
         <main className={styles.mainColumn}>
           {!testPackage.isEnrolled && testPackage.price > 0 && (
-            <PublicCouponsCard itemType="test" itemId={testPackage.id} />
+            <PublicCouponsCard itemType="test" itemId={testPackage.id} className={styles.couponsCard} />
           )}
-          {/* Test Series Content */}
+
           <section className={styles.section}>
-            <h2 className={styles.sectionTitle}>Test series content</h2>
-            <div className={styles.contentStats}>
-              <span>{testPackage.totalTests} tests</span>
-              <span>•</span>
-              <span>{items.reduce((sum, item) => sum + item.totalQuestions, 0)} total questions</span>
-              {testPackage.freeTestsCount > 0 && (
-                <>
-                  <span>•</span>
-                  <span>{testPackage.freeTestsCount} free tests</span>
-                </>
-              )}
-            </div>
+            <SectionHeading tone="peach" icon={<ClipboardList />}>Tests in this series</SectionHeading>
             <TestItemsList items={items} isEnrolled={testPackage.isEnrolled} packageId={testPackage.id} />
+            {!testPackage.longDescription && updatedLine}
           </section>
 
-          {/* Top Performers */}
-          <section className={styles.section}>
-            <h2 className={styles.sectionTitle}>Top performers</h2>
-            <TestLeaderboard 
-              testItems={items.map(item => ({ id: item.id, title: item.title }))}
-              onViewFull={() => setIsLeaderboardDialogOpen(true)}
-            />
-          </section>
-
-          {/* What You'll Learn */}
           {whatYouLearn.length > 0 && (
             <section className={styles.section}>
-              <h2 className={styles.sectionTitle}>What you'll master</h2>
+              <SectionHeading tone="mint" icon={<ListChecks />}>What you'll master</SectionHeading>
               <div className={styles.benefitsGrid}>
                 {whatYouLearn.map((item, index) => (
                   <div key={index} className={styles.benefitItem}>
-                    <CheckCircle size={20} className={styles.checkIcon} />
+                    <CheckCircle size={18} className={styles.checkIcon} aria-hidden="true" />
                     <span>{item}</span>
                   </div>
                 ))}
@@ -330,10 +317,9 @@ const TestDetailsPage: React.FC = () => {
             </section>
           )}
 
-          {/* Requirements */}
           {requirements.length > 0 && (
             <section className={styles.section}>
-              <h2 className={styles.sectionTitle}>Requirements</h2>
+              <SectionHeading tone="sky" icon={<Info />}>Requirements</SectionHeading>
               <ul className={styles.requirementsList}>
                 {requirements.map((item, index) => (
                   <li key={index}>{item}</li>
@@ -342,45 +328,56 @@ const TestDetailsPage: React.FC = () => {
             </section>
           )}
 
-          {/* Description */}
           {testPackage.longDescription && (
             <section className={styles.section}>
-              <h2 className={styles.sectionTitle}>Description</h2>
-                            <div className={styles.description} dangerouslySetInnerHTML={{ __html: wrapContentTables(sanitizeHtml(testPackage.longDescription)) }} />
+              <SectionHeading tone="lavender" icon={<FileText />}>Description</SectionHeading>
+              <div className={styles.description} dangerouslySetInnerHTML={{ __html: wrapContentTables(sanitizeHtml(testPackage.longDescription)) }} />
+              {updatedLine}
             </section>
           )}
 
-          {testPackage.disclaimer && (
-            <div className={styles.disclaimerSection} style={{ whiteSpace: 'pre-wrap' }}>
-              {testPackage.disclaimer}
-            </div>
-          )}
-
-          {/* About the Teacher */}
-          <section id="teacher-profile" className={styles.section}>
-            <h2 className={styles.sectionTitle}>Meet your instructor</h2>
-            <TeacherProfileCard
-              teacher={{
-                id: testPackage.teacherId,
-                slug: testPackage.teacherSlug,
-                displayName: testPackage.teacherName,
-                avatarUrl: testPackage.teacherAvatarUrl,
-                bio: testPackage.teacherBio,
-                websiteUrl: testPackage.teacherWebsiteUrl,
-                isVerified: testPackage.teacherIsVerified,
-                socialLinks: testPackage.teacherSocialLinks,
-                awardsCertificates: testPackage.teacherAwardsCertificates,
-              }}
-              variant="inline"
+          <section className={styles.section}>
+            <SectionHeading tone="butter" icon={<Trophy />}>Top performers</SectionHeading>
+            <TestLeaderboard 
+              testItems={items.map(item => ({ id: item.id, title: item.title }))}
+              onViewFull={() => setIsLeaderboardDialogOpen(true)}
             />
           </section>
 
-          {/* Student Reviews */}
-          <section id="reviews" className={styles.section}>
-            <TestReviews mockTestId={testPackage.id} />
+          <section id="teacher-profile" className={styles.section}>
+            <SectionHeading tone="sky" icon={<User />}>Meet your instructor</SectionHeading>
+            <Link
+              to={`/expert/${testPackage.teacherSlug || slugify(testPackage.teacherName)}`}
+              className={styles.instructorRow}
+              aria-label={`${testPackage.teacherName} - view instructor profile`}
+            >
+              <Avatar className={styles.instructorAvatar}>
+                <AvatarImage src={testPackage.teacherAvatarUrl || undefined} alt="" />
+                <AvatarFallback>{teacherInitials}</AvatarFallback>
+              </Avatar>
+              <span className={styles.instructorNameRow}>
+                <span className={styles.instructorName}>{testPackage.teacherName}</span>
+                <VerifiedBadge isVerified={testPackage.teacherIsVerified} size="sm" className={styles.instructorVerified} />
+              </span>
+            </Link>
           </section>
 
-          {/* Bundle Suggestions */}
+          <section id="reviews" className={styles.section}>
+            <SectionHeading tone="butter" icon={<Star />}>Student reviews</SectionHeading>
+            <TestReviews
+              mockTestId={testPackage.id}
+              rating={testPackage.rating}
+              reviewsCount={testPackage.reviewsCount}
+            />
+          </section>
+
+          {testPackage.disclaimer && (
+            <div className={styles.disclaimerSection}>
+              <Info size={18} className={styles.disclaimerIcon} aria-hidden="true" />
+              <div className={styles.disclaimerText}>{testPackage.disclaimer}</div>
+            </div>
+          )}
+
           <BundleSuggestions
             teacherId={testPackage.teacherId}
             variant="test"
@@ -390,7 +387,10 @@ const TestDetailsPage: React.FC = () => {
         </main>
 
         <div ref={sidebarRef} className={styles.sidebarColumn}>
-          <TestPackageSidebar testPackage={testPackage} />
+          <TestPackageSidebar
+            testPackage={testPackage}
+            totalQuestions={totalQuestions}
+          />
         </div>
       </div>
       </div>

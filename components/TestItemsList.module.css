@@ -1,26 +1,36 @@
+/*
+ * Test papers inside the detail page's section card: ivory rows with 1rem
+ * corners, a peach icon tile, pastel status pills and pill buttons.
+ */
 .container {
+  --tl-peach: #f9b99a;
+  --tl-ink: hsl(220 30% 12%);
+
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-4);
+  gap: var(--spacing-3);
   width: 100%;
 }
 
 .item {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  background-color: var(--surface);
+  border: 1px solid var(--exam-ivory-border);
+  border-radius: 1rem;
   overflow: hidden;
-  transition: box-shadow var(--animation-duration-normal);
+  transition:
+    border-color var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-normal) ease;
 }
 
 .item:hover {
-  box-shadow: var(--shadow-md);
+  border-color: color-mix(in srgb, var(--tl-peach) 60%, var(--exam-ivory-border));
+  box-shadow: 0 8px 20px -16px hsl(220 20% 15% / 0.35);
 }
 
 .itemHeader {
   display: flex;
   flex-direction: column;
-  padding: var(--spacing-4) var(--spacing-6);
+  padding: var(--spacing-4) 1.25rem;
   cursor: pointer;
   user-select: none;
   gap: var(--spacing-3);
@@ -28,12 +38,13 @@
 }
 
 .itemHeader:hover {
-  background-color: color-mix(in srgb, var(--muted) 30%, transparent);
+  background-color: var(--exam-ivory);
 }
 
 .itemHeader:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: -2px;
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: -3px;
+  border-radius: 1rem;
 }
 
 .itemHeaderTop {
@@ -52,23 +63,34 @@
 }
 
 .icon {
-  color: var(--primary);
   flex-shrink: 0;
+  box-sizing: content-box;
+  padding: 0.4375rem;
+  border-radius: 0.625rem;
+  background-color: color-mix(in srgb, var(--tl-peach) 40%, var(--surface));
+  color: color-mix(in srgb, var(--tl-peach), var(--tl-ink) 75%);
+}
+
+:global(.dark) .icon {
+  background-color: color-mix(in srgb, var(--tl-peach) 18%, var(--surface));
+  color: var(--tl-peach);
 }
 
 .itemTitle {
   font-size: 1rem;
-  font-weight: 600;
-  color: var(--card-foreground);
+  font-weight: 700;
+  color: var(--surface-foreground);
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.45;
   flex: 1;
   min-width: 0;
+  overflow-wrap: break-word;
 }
 
 .freeBadge {
   flex-shrink: 0;
   font-size: 0.8125rem;
+  border-radius: var(--radius-full);
 }
 
 .metadata {
@@ -93,21 +115,27 @@
 }
 
 .metadataItem.scheduledBadge {
-  color: var(--warning-text);
-  background-color: color-mix(in srgb, var(--warning) 15%, transparent);
-  padding: 2px var(--spacing-2);
-  border-radius: var(--radius-sm);
-  font-weight: 500;
-  border: 1px solid color-mix(in srgb, var(--warning) 20%, transparent);
+  color: color-mix(in srgb, #f4dfa3, var(--tl-ink) 80%);
+  background-color: color-mix(in srgb, #f4dfa3 45%, var(--surface));
+  padding: 0.125rem 0.625rem;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  border: 1px solid color-mix(in srgb, #f4dfa3 85%, var(--exam-ivory-border));
+}
+
+:global(.dark) .metadataItem.scheduledBadge {
+  color: #f4dfa3;
+  background-color: color-mix(in srgb, #f4dfa3 14%, var(--surface));
+  border-color: color-mix(in srgb, #f4dfa3 40%, var(--border));
 }
 
 .metadataItem.availableBadge {
-  color: var(--success-text);
-  background-color: color-mix(in srgb, var(--success) 15%, transparent);
-  padding: 2px var(--spacing-2);
-  border-radius: var(--radius-sm);
-  font-weight: 500;
-  border: 1px solid color-mix(in srgb, var(--success) 20%, transparent);
+  color: var(--exam-sage-ink);
+  background-color: var(--exam-sage-tint);
+  padding: 0.125rem 0.625rem;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  border: 1px solid var(--exam-sage-border);
 }
 
 .difficultyBadge {
@@ -122,8 +150,9 @@
 }
 
 .itemContent {
-  padding: var(--spacing-4) var(--spacing-6) var(--spacing-6) var(--spacing-6);
-  border-top: 1px solid var(--border);
+  padding: var(--spacing-4) 1.25rem 1.25rem;
+  border-top: 1.5px dashed var(--exam-ivory-border);
+  background-color: var(--exam-ivory);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-4);
@@ -142,11 +171,12 @@
 }
 
 .description {
-  margin: var(--spacing-4) 0 0 0;
+  margin: 0;
   padding: 0;
   font-size: 0.9375rem;
   line-height: 1.6;
   color: var(--muted-foreground);
+  overflow-wrap: anywhere;
 }
 
 .subjectsSection {
@@ -156,12 +186,12 @@
 }
 
 .subjectsHeading {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--card-foreground);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--surface-foreground);
   margin: 0;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
 .subjectsGrid {
@@ -173,12 +203,17 @@
 .subjectBadge {
   font-size: 0.8125rem;
   padding: var(--spacing-1) var(--spacing-3);
+  border-radius: var(--radius-full);
 }
 
 .actions {
   display: flex;
   justify-content: flex-start;
-  padding-top: var(--spacing-2);
+  padding-top: var(--spacing-1);
+}
+
+.actions > * {
+  border-radius: var(--radius-full);
 }
 
 /* Responsive adjustments */
@@ -190,13 +225,13 @@
   .itemContent {
     padding: var(--spacing-4);
   }
-
-  .description {
-    margin-top: var(--spacing-3);
-  }
 }
 
 @media (max-width: 480px) {
+  .icon {
+    display: none;
+  }
+
   .metadata {
     gap: var(--spacing-2);
   }

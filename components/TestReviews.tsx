@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Star, MessageSquare } from 'lucide-react';
 import { useReviewsQuery } from '../helpers/useReviewsQuery';
 import { Skeleton } from './Skeleton';
@@ -26,14 +26,15 @@ const formatTimeAgo = (date: Date): string => {
   return `${Math.floor(seconds)} seconds ago`;
 };
 
-const StarRating: React.FC<{ rating: number; className?: string }> = ({ rating, className }) => {
+const StarRating: React.FC<{ rating: number; size?: number; className?: string }> = ({ rating, size = 14, className }) => {
   return (
     <div className={`${styles.starRating} ${className ?? ''}`}>
       {[...Array(5)].map((_, index) => (
         <Star
           key={index}
-          className={index < rating ? styles.filledStar : styles.emptyStar}
-          size={14}
+          className={index < Math.round(rating) ? styles.filledStar : styles.emptyStar}
+          fill={index < Math.round(rating) ? 'currentColor' : 'none'}
+          size={size}
         />
       ))}
     </div>
@@ -49,22 +50,43 @@ const ReviewSkeleton: React.FC = () => (
         <Skeleton style={{ width: '80px', height: '0.8rem' }} />
       </div>
     </div>
-    <Skeleton style={{ width: '100px', height: '1rem', marginTop: 'var(--spacing-2)' }} />
     <div className={styles.reviewBody}>
       <Skeleton style={{ width: '100%', height: '1rem' }} />
-      <Skeleton style={{ width: '80%', height: '1rem' }} />
+      <Skeleton style={{ width: '80%', height: '1rem', marginTop: 'var(--spacing-2)' }} />
     </div>
   </div>
 );
 
-export const TestReviews: React.FC<{ mockTestId: number; className?: string }> = ({ mockTestId, className }) => {
+interface TestReviewsProps {
+  mockTestId: number;
+  /** Package average and count from the details payload, for the summary. */
+  rating?: number | null;
+  reviewsCount?: number;
+  className?: string;
+}
+
+/** Review list for a test series. The page section supplies the heading. */
+export const TestReviews: React.FC<TestReviewsProps> = ({ mockTestId, rating, reviewsCount, className }) => {
   const { data, isFetching, error } = useReviewsQuery(mockTestId);
+  const reviews = data?.reviews ?? [];
+
+  const ratingCounts = useMemo(() => {
+    const counts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    reviews.forEach((r) => {
+      if (r.rating >= 1 && r.rating <= 5) {
+        counts[Math.floor(r.rating) as keyof typeof counts]++;
+      }
+    });
+    return counts;
+  }, [reviews]);
+
+  const averageRating = rating ? Number(rating) : null;
+  const showSummary = averageRating !== null && reviews.length > 0;
 
   const renderContent = () => {
-    if (isFetching) {
+    if (isFetching && !data) {
       return (
         <>
-          <ReviewSkeleton />
           <ReviewSkeleton />
           <ReviewSkeleton />
         </>
@@ -75,33 +97,31 @@ export const TestReviews: React.FC<{ mockTestId: number; className?: string }> =
       return <p className={styles.message}>Error loading reviews. Please try again later.</p>;
     }
 
-    if (!data || data.reviews.length === 0) {
+    if (reviews.length === 0) {
       return (
         <div className={styles.message}>
-          <MessageSquare size={48} className={styles.messageIcon} />
+          <MessageSquare size={40} className={styles.messageIcon} aria-hidden="true" />
           <h3>No reviews yet</h3>
           <p>Be the first to share your thoughts on this test!</p>
         </div>
       );
     }
 
-    return data.reviews.map((review) => (
+    return reviews.map((review) => (
       <div key={review.id} className={styles.reviewCard}>
         <div className={styles.reviewHeader}>
-          <div className={styles.avatar}>
+          <div className={styles.avatar} aria-hidden="true">
             {review.reviewerName.charAt(0).toUpperCase()}
           </div>
           <div className={styles.reviewerInfo}>
             <span className={styles.reviewerName}>{review.reviewerName}</span>
-                        <span className={styles.reviewDate}>{review.createdAt ? formatTimeAgo(new Date(review.createdAt)) : 'Recently'}</span>
+            <span className={styles.reviewDate}>{review.createdAt ? formatTimeAgo(new Date(review.createdAt)) : 'Recently'}</span>
           </div>
+          <StarRating rating={review.rating} />
         </div>
-        <div className={styles.reviewMeta}>
-          <StarRating rating={review.rating} className={styles.rating} />
-          <span className={styles.testItemBadge}>
-            {review.testItemTitle ? `Test: ${review.testItemTitle}` : 'Overall Package Review'}
-          </span>
-        </div>
+        <span className={styles.testItemBadge}>
+          {review.testItemTitle ? `Test: ${review.testItemTitle}` : 'Overall Package Review'}
+        </span>
         {review.reviewText && <p className={styles.reviewBody}>{review.reviewText}</p>}
       </div>
     ));
@@ -109,7 +129,32 @@ export const TestReviews: React.FC<{ mockTestId: number; className?: string }> =
 
   return (
     <div className={`${styles.reviewsContainer} ${className ?? ''}`}>
-      <h2 className={styles.title}>Student Reviews</h2>
+      {showSummary && (
+        <div className={styles.ratingSummary}>
+          <div className={styles.averageRating}>
+            <span className={styles.bigRating}>{averageRating.toFixed(1)}</span>
+            <StarRating rating={averageRating} size={20} />
+            <span className={styles.totalReviews}>{(reviewsCount ?? reviews.length).toLocaleString()} reviews</span>
+          </div>
+          <div className={styles.ratingBars}>
+            {[5, 4, 3, 2, 1].map((stars) => {
+              const count = ratingCounts[stars as keyof typeof ratingCounts];
+              const percentage = (count / reviews.length) * 100;
+              return (
+                <div key={stars} className={styles.ratingBarRow}>
+                  <span className={styles.starLabel}>
+                    {stars} <Star size={12} fill="currentColor" className={styles.filledStar} aria-hidden="true" />
+                  </span>
+                  <div className={styles.barContainer}>
+                    <div className={styles.barFill} style={{ width: `${percentage}%` }} />
+                  </div>
+                  <span className={styles.barCount}>{count}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
       <div className={styles.reviewsList}>
         {renderContent()}
       </div>
