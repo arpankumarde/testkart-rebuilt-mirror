@@ -4,6 +4,7 @@ export type CalloutKind = "note" | "tip" | "warning";
    a leading "(" is dropped. Anything unmatched is a note. */
 const CALLOUT_RULES: [RegExp, CalloutKind][] = [
   [/^(warning|caution|important|heads up|careful)\b/i, "warning"],
+  [/^[\s\S]{0,120}\b(permanent|permanently|cannot be undone|can't be undone)\b/i, "warning"],
   [/^(tip|pro tip|good to know|quick tip)\b/i, "tip"],
 ];
 

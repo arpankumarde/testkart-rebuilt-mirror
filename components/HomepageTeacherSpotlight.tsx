@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Library, Users } from "lucide-react";
 import type { HomepageTeacher } from "../endpoints/homepage/data_GET.schema";
 import { Avatar, AvatarImage, AvatarFallback } from "./Avatar";
 import { VerifiedBadge } from "./VerifiedBadge";
@@ -20,15 +20,7 @@ function describeTeacher(teacher: HomepageTeacher): string | null {
   return exams.length > 0 ? `Teaches ${exams.slice(0, 2).join(", ")}` : null;
 }
 
-function describeCatalog(teacher: HomepageTeacher): string {
-  return [
-    teacher.testCount > 0 ? plural(teacher.testCount, "test series", "test series") : null,
-    teacher.courseCount > 0 ? plural(teacher.courseCount, "course", "courses") : null,
-    teacher.productCount > 0 ? plural(teacher.productCount, "study note", "study notes") : null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
-}
+const resourceCount = (teacher: HomepageTeacher) => teacher.testCount + teacher.courseCount + teacher.productCount;
 
 interface HomepageTeacherSpotlightProps {
   teachers: HomepageTeacher[];
@@ -38,13 +30,11 @@ interface HomepageTeacherSpotlightProps {
 /**
  * Top 5 teachers from homepage/data popularTeachers (ranked by the last
  * year of sales and enrolments). Teachers with nothing published are skipped,
- * so every card leads to a profile with something to buy. Coral block in
- * TeacherCtaBanner's colours; hidden when no teacher qualifies.
+ * so every card leads to a profile with something to buy. Pine showcase panel
+ * shared with HomepageFeaturedCourses; hidden when no teacher qualifies.
  */
 export function HomepageTeacherSpotlight({ teachers, isLoading = false }: HomepageTeacherSpotlightProps) {
-  const spotlight = teachers
-    .filter((t) => t.testCount + t.courseCount + t.productCount > 0)
-    .slice(0, SPOTLIGHT_SIZE);
+  const spotlight = teachers.filter((t) => resourceCount(t) > 0).slice(0, SPOTLIGHT_SIZE);
   const showSkeleton = isLoading && spotlight.length === 0;
 
   if (!showSkeleton && spotlight.length === 0) return null;
@@ -52,11 +42,23 @@ export function HomepageTeacherSpotlight({ teachers, isLoading = false }: Homepa
   return (
     <section className={styles.section} aria-labelledby="teacher-spotlight-title">
       <div className={styles.block}>
+        <span className={styles.blobPeach} aria-hidden />
+        <span className={styles.blobButter} aria-hidden />
         <div className={styles.head}>
-          <span className={styles.chip}>Teacher spotlight</span>
-          <h2 id="teacher-spotlight-title" className={styles.title}>
-            Top teachers on Testkart
-          </h2>
+          <span className={styles.illustration} aria-hidden>
+            <Users size={22} strokeWidth={2} />
+            <svg className={styles.sparkle} viewBox="0 0 16 16">
+              <path d="M8 1.5c.5 3.2 1.3 4 4.5 4.5-3.2.5-4 1.3-4.5 4.5-.5-3.2-1.3-4-4.5-4.5 3.2-.5 4-1.3 4.5-4.5Z" />
+            </svg>
+          </span>
+          <div className={styles.titleGroup}>
+            <h2 id="teacher-spotlight-title" className={styles.title}>
+              Top teachers on Testkart
+            </h2>
+            <svg className={styles.titleUnderline} viewBox="0 0 120 10" preserveAspectRatio="none" aria-hidden>
+              <path d="M2 6.5C20 2.5 38 8.5 58 5S98 2 118 5.5" />
+            </svg>
+          </div>
         </div>
 
         <ol className={styles.list} aria-busy={showSkeleton || undefined}>
@@ -85,7 +87,7 @@ export function HomepageTeacherSpotlight({ teachers, isLoading = false }: Homepa
 
 function TeacherCard({ teacher, rank }: { teacher: HomepageTeacher; rank: number }) {
   const description = describeTeacher(teacher);
-  const catalog = describeCatalog(teacher);
+  const resources = plural(resourceCount(teacher), "Learning Resource", "Learning Resources");
   const name = teacher.displayName.trim();
 
   return (
@@ -102,16 +104,20 @@ function TeacherCard({ teacher, rank }: { teacher: HomepageTeacher; rank: number
       <div className={styles.body}>
         <span className={styles.nameRow}>
           <span className={styles.name}>{name}</span>
-          <VerifiedBadge isVerified={teacher.isVerified} size="sm" />
+          <VerifiedBadge isVerified={teacher.isVerified} size="sm" className={styles.verified} />
         </span>
         {description && <span className={styles.tagline}>{description}</span>}
-        <span className={styles.stats}>
-          {catalog && <span className={styles.catalog}>{catalog}</span>}
+        <span className={styles.resources}>
+          <Library size={15} aria-hidden className={styles.resourcesIcon} />
+          {resources}
         </span>
       </div>
 
       <span className={styles.cta}>
-        View profile <ArrowRight size={16} aria-hidden />
+        View profile
+        <span className={styles.ctaArrow} aria-hidden>
+          <ArrowRight size={16} />
+        </span>
       </span>
     </Link>
   );

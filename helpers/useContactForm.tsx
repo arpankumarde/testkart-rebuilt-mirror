@@ -1,6 +1,4 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { parseErrorMessage } from "./parseErrorMessage";
 import {
   postContactSubmit,
   InputType as ContactFormInput,
@@ -11,8 +9,9 @@ import { ADMIN_CONTACT_SUBMISSIONS_QUERY_KEY_PREFIX } from "./useAdminContactSub
  * A React Query mutation hook for submitting the public contact form.
  *
  * This hook calls the `/_api/contact/submit` endpoint. On success, it
- * displays a success toast and invalidates the admin-side submissions query
- * to ensure the admin panel reflects the new entry.
+ * invalidates the admin-side submissions query so the admin panel reflects
+ * the new entry. The contact page shows the success or failure inline from
+ * the mutation state, so there are no toasts here.
  *
  * @returns The result of the `useMutation` hook.
  */
@@ -22,17 +21,12 @@ export const useContactFormMutation = () => {
   return useMutation({
     mutationFn: (data: ContactFormInput) => postContactSubmit(data),
     onSuccess: () => {
-      toast.success("Your message has been sent successfully! We will get back to you shortly.");
-      // Invalidate the admin query for contact submissions so the list is updated.
       queryClient.invalidateQueries({
         queryKey: [ADMIN_CONTACT_SUBMISSIONS_QUERY_KEY_PREFIX],
       });
     },
     onError: (error) => {
       console.error("Failed to submit contact form:", error);
-      toast.error(
-        parseErrorMessage(error) ||  "An unknown error occurred while sending your message."
-      );
     },
   });
 };

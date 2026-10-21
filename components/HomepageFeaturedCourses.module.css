@@ -1,7 +1,17 @@
 /*
- * Featured courses: one flat brand coral block in TeacherCtaBanner's colours,
- * fixed in both themes. Everything sitting on the coral is --tk-brand-ink
- * (6.2:1); white would be 2.1:1. The cards are themed --card surfaces.
+ * Featured courses: a deep pine panel, fixed in both themes like the brand
+ * blocks, so the section stands out from the light page around it. Type on
+ * the panel is ivory (--fc-panel-*), the blobs are dark tones of the pastels,
+ * and the cards are spotlight-language surfaces (--sp-* tokens in base.css)
+ * with the homepage showcase accents (--fc-* in base.css, shared with
+ * HomepageTeacherSpotlight).
+ *   mint, blue, peach, butter  the four tonal blobs in the panel's corners
+ *   sage      the arrows and the sparkle
+ *   peach     the illustration tile, the title underline, the browse pill
+ *   sage, blue, peach, butter  per-card accents (badge, border, icons,
+ *             arrow, hover border), cycling card by card
+ * Prices are deep teal. Every colour is solid, and nothing below branches on
+ * theme.
  *
  * The section is the query container, so the split follows the width the
  * homepage column actually gives it rather than the viewport.
@@ -11,48 +21,163 @@
   margin: var(--spacing-12) 0;
 }
 
+/* The build drops negative z-index, so the blobs sit on the panel and the
+   intro and track are lifted above them instead. */
 .block {
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
-  background-color: var(--tk-brand);
-  color: var(--tk-brand-ink);
-  border-radius: var(--radius-lg);
+  background-color: var(--fc-panel);
+  color: var(--fc-panel-text);
+  border-radius: 1.5rem;
+  box-shadow: var(--sp-shadow);
   overflow: hidden;
 }
 
+.block::before,
+.block::after,
+.blobPeach,
+.blobButter {
+  position: absolute;
+  pointer-events: none;
+}
+
+.block::before,
+.block::after {
+  content: "";
+}
+
+.block::before {
+  top: -3.5rem;
+  left: -3rem;
+  width: 11rem;
+  height: 9rem;
+  background-color: var(--fc-blob-mint);
+  border-radius: 58% 42% 50% 50% / 46% 56% 44% 54%;
+  transform: rotate(-12deg);
+}
+
+.block::after {
+  right: -3rem;
+  bottom: -4rem;
+  width: 14rem;
+  height: 9rem;
+  background-color: var(--fc-blob-blue);
+  border-radius: 46% 54% 42% 58% / 52% 44% 56% 48%;
+  transform: rotate(8deg);
+}
+
+.blobPeach {
+  top: -2.5rem;
+  right: 18%;
+  width: 9rem;
+  height: 5rem;
+  background-color: var(--fc-blob-peach);
+  border-radius: 52% 48% 60% 40% / 50% 58% 42% 50%;
+  transform: rotate(6deg);
+}
+
+.blobButter {
+  left: 38%;
+  bottom: -2.25rem;
+  width: 5.5rem;
+  height: 4.5rem;
+  background-color: var(--fc-blob-butter);
+  border-radius: 50% 50% 44% 56% / 56% 46% 54% 44%;
+  transform: rotate(-10deg);
+}
+
 .intro {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: var(--spacing-3);
-  padding: var(--spacing-6) 1.25rem var(--spacing-4);
+  padding: var(--spacing-6) 1.25rem var(--spacing-2);
   min-width: 0;
+}
+
+/* A peach tile on a solid ledge, tilted, with a sage sparkle and a mint dot
+   pinned to its corners. */
+.illustration {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 auto;
+  margin-bottom: var(--spacing-2);
+  background-color: var(--fc-peach-tint);
+  border: 1.5px solid var(--fc-peach-edge);
+  border-radius: 0.875rem;
+  box-shadow: 0 3px 0 var(--fc-peach-edge);
+  color: var(--fc-peach-ink);
+  transform: rotate(-6deg);
+}
+
+.illustration::after {
+  content: "";
+  position: absolute;
+  left: -0.3125rem;
+  bottom: -0.5rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background-color: var(--fc-mint-tint);
+}
+
+.sparkle {
+  position: absolute;
+  top: -0.625rem;
+  right: -0.6875rem;
+  width: 1rem;
+  height: 1rem;
+  fill: var(--fc-sage-tint);
 }
 
 .title {
   margin: 0;
   font-family: var(--font-family-heading);
-  font-size: 1.5rem;
+  font-size: 1.625rem;
   font-weight: 800;
   line-height: 1.1;
-  letter-spacing: -0.015em;
-  color: var(--tk-brand-ink);
+  letter-spacing: -0.02em;
+  color: var(--fc-panel-ink);
   text-wrap: balance;
+}
+
+.titleUnderline {
+  display: block;
+  width: 7rem;
+  height: 0.5rem;
+  margin: calc(var(--spacing-2) * -1) 0 0;
+  overflow: visible;
+}
+
+.titleUnderline path {
+  fill: none;
+  stroke: var(--fc-peach-line);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
 }
 
 .description {
   margin: 0;
   max-width: 40ch;
   font-size: 0.9375rem;
-  line-height: 1.5;
-  color: var(--tk-brand-ink);
+  line-height: 1.6;
+  color: var(--fc-panel-text);
 }
 
 .controls {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: var(--spacing-4);
+  gap: var(--spacing-3) var(--spacing-4);
   margin-top: var(--spacing-2);
 }
 
@@ -61,8 +186,8 @@
   gap: var(--spacing-2);
 }
 
-/* Solid ink when it can move, ink outline when it can't: the two states differ
-   by fill, not by fading the control into the coral. */
+/* Sage fill with a sage edge when it can move, filling solid on hover; a
+   flat, dashed grey ring with no fill or shadow when it can't. */
 .arrow {
   display: inline-flex;
   align-items: center;
@@ -70,52 +195,93 @@
   width: 2.5rem;
   height: 2.5rem;
   padding: 0;
-  border: 2px solid var(--tk-brand-ink);
+  border: 1.5px solid var(--fc-sage-edge);
   border-radius: 50%;
-  background-color: var(--tk-brand-ink);
-  color: #fff;
+  background-color: var(--fc-sage-tint);
+  box-shadow: 0 2px 0 var(--fc-sage-line);
+  color: var(--fc-sage-ink);
   cursor: pointer;
-  transition: background-color var(--animation-duration-fast) ease;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
 }
 
 .arrow:hover:not(:disabled) {
-  background-color: var(--tk-brand-ink-hover);
-  border-color: var(--tk-brand-ink-hover);
+  background-color: var(--fc-sage-edge);
+  color: var(--sp-card);
+  transform: translateY(-1px);
+}
+
+.arrow:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .arrow:disabled {
   background-color: transparent;
-  color: var(--tk-brand-ink);
+  border-style: dashed;
+  border-color: var(--fc-panel-muted);
+  box-shadow: none;
+  color: var(--fc-panel-muted);
   cursor: default;
 }
 
 .arrow:focus-visible,
 .browseLink:focus-visible {
-  outline: 2px solid var(--tk-brand-ink);
+  outline: 2px solid var(--fc-panel-ink);
   outline-offset: 3px;
 }
 
+/* Peach pill on a solid ledge it lifts off on hover. */
 .browseLink {
-  font-size: 0.9375rem;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-height: 2.5rem;
+  padding: 0 1rem;
+  background-color: var(--fc-peach-tint);
+  border: 1px solid var(--fc-peach-edge);
+  border-radius: var(--radius-full);
+  box-shadow: 0 3px 0 var(--fc-peach-edge);
+  color: var(--fc-peach-ink);
+  font-size: 0.875rem;
   font-weight: 700;
-  color: var(--tk-brand-ink);
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 4px;
-  border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
 }
 
 .browseLink:hover {
-  color: var(--tk-brand-ink-hover);
+  background-color: var(--fc-peach-hover);
+  box-shadow: 0 5px 0 var(--fc-peach-edge);
+  transform: translateY(-2px);
 }
 
-/* Vertical padding leaves room for the card focus ring, which the scroller
-   would otherwise clip. */
+.browseLink:active {
+  box-shadow: 0 1px 0 var(--fc-peach-edge);
+  transform: translateY(2px);
+}
+
+.browseArrow {
+  flex-shrink: 0;
+  transition: transform var(--animation-duration-fast) ease;
+}
+
+.browseLink:hover .browseArrow {
+  transform: translateX(2px);
+}
+
+/* Padding leaves room for the card lift, its shadow and the focus ring, which
+   the scroller would otherwise clip. */
 .track {
+  position: relative;
+  z-index: 1;
   display: flex;
   gap: var(--spacing-4);
   margin: 0;
-  padding: var(--spacing-2) 1.25rem 1.25rem;
+  padding: var(--spacing-4) 1.25rem var(--spacing-6);
   list-style: none;
   overflow-x: auto;
   overscroll-behavior-x: contain;
@@ -130,32 +296,75 @@
 }
 
 .item {
+  --accent-tint: var(--fc-sage-tint);
+  --accent-line: var(--fc-sage-line);
+  --accent-edge: var(--fc-sage-edge);
+  --accent-ink: var(--fc-sage-ink);
+  display: flex;
   flex: 0 0 80%;
-  max-width: 18rem;
+  max-width: 17.5rem;
   min-width: 0;
   scroll-snap-align: start;
 }
 
+.item:nth-child(4n + 2) {
+  --accent-tint: var(--fc-blue-tint);
+  --accent-line: var(--fc-blue-line);
+  --accent-edge: var(--fc-blue-edge);
+  --accent-ink: var(--fc-blue-ink);
+}
+
+.item:nth-child(4n + 3) {
+  --accent-tint: var(--fc-peach-tint);
+  --accent-line: var(--fc-peach-line);
+  --accent-edge: var(--fc-peach-edge);
+  --accent-ink: var(--fc-peach-ink);
+}
+
+.item:nth-child(4n) {
+  --accent-tint: var(--fc-butter-tint);
+  --accent-line: var(--fc-butter-line);
+  --accent-edge: var(--fc-butter-edge);
+  --accent-ink: var(--fc-butter-ink);
+}
+
+/* White card with a hairline in its own accent; on hover it lifts, the border
+   takes the accent's stronger edge and a neutral shadow deepens. */
 .card {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
   overflow: hidden;
-  background-color: var(--card);
-  color: var(--card-foreground);
-  border-radius: var(--radius-md);
+  background-color: var(--sp-card);
+  color: var(--sp-text);
+  border: 1px solid var(--accent-line);
+  border-radius: 1.25rem;
+  box-shadow: var(--sp-shadow);
   text-decoration: none;
+  transition:
+    transform var(--animation-duration-normal) ease,
+    box-shadow var(--animation-duration-normal) ease,
+    border-color var(--animation-duration-normal) ease;
 }
 
-.card:focus-visible {
-  outline: 3px solid var(--tk-brand-ink);
+a.card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent-edge);
+  box-shadow: var(--sp-shadow-hover);
+}
+
+a.card:focus-visible {
+  outline: 3px solid var(--fc-panel-ink);
   outline-offset: 2px;
 }
 
 .thumb {
+  flex: 0 0 auto;
   aspect-ratio: 16 / 9;
-  background-color: var(--muted);
   overflow: hidden;
+  border-bottom: 1px solid var(--accent-line);
+  background-color: var(--accent-tint);
 }
 
 .thumbImage {
@@ -163,23 +372,43 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.45s ease;
+}
+
+a.card:hover .thumbImage {
+  transform: scale(1.04);
 }
 
 .cardBody {
   display: flex;
   flex-direction: column;
   flex: 1;
-  gap: var(--spacing-2);
-  padding: var(--spacing-4);
+  gap: 0.625rem;
+  min-width: 0;
+  padding: 1rem 1.125rem 1.125rem;
 }
 
 /* Kept even when empty so titles line up across the track. */
+.badgeRow {
+  display: flex;
+  min-height: 1.5rem;
+  min-width: 0;
+}
+
 .exam {
-  min-height: 1.25em;
-  font-size: 0.75rem;
-  line-height: 1.25;
-  font-weight: 600;
-  color: var(--muted-foreground);
+  align-self: flex-start;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 0.25rem 0.625rem;
+  background-color: var(--accent-tint);
+  border: 1px solid var(--accent-line);
+  border-radius: var(--radius-full);
+  color: var(--accent-ink);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -191,17 +420,13 @@
   font-size: 1rem;
   font-weight: 700;
   line-height: 1.35;
-  color: var(--card-foreground);
+  color: var(--sp-ink);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  overflow-wrap: anywhere;
   min-height: 2.7em;
-}
-
-.card:hover .courseTitle {
-  text-decoration: underline;
-  text-underline-offset: 3px;
 }
 
 .teacher {
@@ -216,13 +441,14 @@
   height: 24px;
   flex: 0 0 auto;
   border-radius: 50%;
+  box-shadow: 0 0 0 1.5px var(--accent-line);
   font-size: 0.625rem;
 }
 
 .teacherName {
   font-size: 0.8125rem;
   font-weight: 500;
-  color: var(--muted-foreground);
+  color: var(--sp-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -231,21 +457,57 @@
 
 .footer {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: var(--spacing-3);
   margin-top: auto;
   padding-top: var(--spacing-3);
-  border-top: 1px solid var(--border);
+  border-top: 1px dashed var(--accent-line);
 }
 
 .meta {
   display: flex;
   flex-wrap: wrap;
-  column-gap: var(--spacing-3);
+  gap: 0.25rem var(--spacing-3);
   font-size: 0.8125rem;
-  color: var(--muted-foreground);
+  color: var(--sp-muted);
   min-width: 0;
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  white-space: nowrap;
+}
+
+.metaIcon {
+  flex-shrink: 0;
+  color: var(--accent-edge);
+}
+
+/* Accent circle that fills solid on card hover. */
+.cardArrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+  border: 1.5px solid var(--accent-edge);
+  border-radius: 50%;
+  background-color: var(--accent-tint);
+  color: var(--accent-ink);
+  transition:
+    background-color var(--animation-duration-normal) ease,
+    color var(--animation-duration-normal) ease,
+    transform var(--animation-duration-normal) ease;
+}
+
+a.card:hover .cardArrow {
+  background-color: var(--accent-edge);
+  color: var(--sp-card);
+  transform: translateX(2px);
 }
 
 .priceGroup {
@@ -259,23 +521,23 @@
 .originalPrice {
   font-size: 0.8125rem;
   font-weight: 500;
-  color: var(--muted-foreground);
+  color: var(--sp-muted);
 }
 
 .price,
 .priceFree {
-  flex: 0 0 auto;
-  font-size: 1rem;
+  font-size: 1.25rem;
   font-weight: 800;
+  letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
 }
 
 .price {
-  color: var(--tk-brand-text);
+  color: var(--fc-price);
 }
 
 .priceFree {
-  color: color-mix(in srgb, var(--success), var(--foreground) 50%);
+  color: var(--fc-mint-ink);
 }
 
 .skeletonThumb {
@@ -294,13 +556,47 @@
   width: 60%;
 }
 
+.skeletonFooter {
+  height: 1.25rem;
+  width: 100%;
+  margin-top: auto;
+}
+
 /* Side by side: the copy holds a fixed column and the track takes the rest,
-   running to the block's right edge. */
+   running to the panel's right edge. */
 @container (min-width: 48rem) {
   .block {
     display: grid;
     grid-template-columns: minmax(15rem, 19rem) minmax(0, 1fr);
     align-items: center;
+  }
+
+  .block::before {
+    top: -4rem;
+    left: -3.5rem;
+    width: 15rem;
+    height: 12rem;
+  }
+
+  .block::after {
+    right: -2rem;
+    bottom: -5rem;
+    width: 22rem;
+    height: 11rem;
+  }
+
+  .blobPeach {
+    top: -3rem;
+    right: 30%;
+    width: 13rem;
+    height: 5.5rem;
+  }
+
+  .blobButter {
+    left: 9rem;
+    bottom: -2.5rem;
+    width: 7rem;
+    height: 5rem;
   }
 
   .intro {
@@ -317,7 +613,7 @@
   }
 
   .item {
-    flex-basis: 17rem;
+    flex-basis: 16.5rem;
     max-width: none;
   }
 }
@@ -340,7 +636,7 @@
   }
 
   .item {
-    flex-basis: 18rem;
+    flex-basis: 17.5rem;
   }
 }
 
@@ -351,7 +647,22 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .arrow {
+  .arrow,
+  .browseLink,
+  .browseArrow,
+  .card,
+  .cardArrow,
+  .thumbImage {
     transition: none;
+  }
+
+  .arrow:hover:not(:disabled),
+  .browseLink:hover,
+  .browseLink:active,
+  .browseLink:hover .browseArrow,
+  a.card:hover,
+  a.card:hover .cardArrow,
+  a.card:hover .thumbImage {
+    transform: none;
   }
 }

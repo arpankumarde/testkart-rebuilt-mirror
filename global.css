@@ -239,6 +239,50 @@
   --sp-blue-tint: hsl(210 60% 92%);
   --sp-blue-edge: hsl(210 40% 52%);
   --sp-blue-ink: hsl(212 50% 30%);
+
+  /*
+   * Homepage showcase panels (HomepageFeaturedCourses, HomepageTeacherSpotlight)
+   * - a deep pine panel that stands out from the light page, with white cards
+   * on it. The panel, its type and its tonal blobs are fixed in both themes,
+   * like the brand blocks; the card accents below are themed. Each accent has
+   * -tint (fill), -line (hairline), -edge (icons, strong outlines, hover
+   * fills) and -ink (text on the tint, 7:1+).
+   */
+  --fc-panel: hsl(172 32% 15%);
+  --fc-panel-ink: hsl(42 45% 96%);
+  --fc-panel-text: hsl(165 18% 80%);
+  --fc-panel-muted: hsl(165 14% 62%);
+  --fc-blob-mint: hsl(160 30% 22%);
+  --fc-blob-blue: hsl(200 30% 23%);
+  --fc-blob-peach: hsl(20 30% 24%);
+  --fc-blob-butter: hsl(42 30% 23%);
+
+  --fc-sage-tint: hsl(100 32% 89%);
+  --fc-sage-line: hsl(100 22% 76%);
+  --fc-sage-edge: hsl(110 24% 38%);
+  --fc-sage-ink: hsl(110 30% 20%);
+
+  --fc-mint-tint: hsl(152 50% 87%);
+  --fc-mint-edge: hsl(158 42% 34%);
+  --fc-mint-ink: hsl(160 48% 19%);
+
+  --fc-blue-tint: hsl(210 78% 90%);
+  --fc-blue-line: hsl(210 50% 80%);
+  --fc-blue-edge: hsl(210 52% 46%);
+  --fc-blue-ink: hsl(212 56% 27%);
+
+  --fc-peach-tint: hsl(24 100% 89%);
+  --fc-peach-line: hsl(22 80% 79%);
+  --fc-peach-edge: hsl(20 70% 50%);
+  --fc-peach-ink: hsl(18 80% 27%);
+  --fc-peach-hover: hsl(22 100% 82%);
+
+  --fc-butter-tint: hsl(44 90% 88%);
+  --fc-butter-line: hsl(42 60% 74%);
+  --fc-butter-edge: hsl(38 65% 36%);
+  --fc-butter-ink: hsl(36 70% 20%);
+
+  --fc-price: #176b68;
 }
 
 .dark {
@@ -347,6 +391,34 @@
   --sp-blue-tint: hsl(212 24% 23%);
   --sp-blue-edge: hsl(210 35% 58%);
   --sp-blue-ink: hsl(210 60% 85%);
+
+  /* Homepage showcase card accents, dark. The panel tokens stay fixed. */
+  --fc-sage-tint: hsl(100 16% 21%);
+  --fc-sage-line: hsl(100 12% 33%);
+  --fc-sage-edge: hsl(100 28% 62%);
+  --fc-sage-ink: hsl(95 35% 84%);
+
+  --fc-mint-tint: hsl(158 24% 20%);
+  --fc-mint-edge: hsl(155 42% 58%);
+  --fc-mint-ink: hsl(152 48% 82%);
+
+  --fc-blue-tint: hsl(212 28% 23%);
+  --fc-blue-line: hsl(212 22% 36%);
+  --fc-blue-edge: hsl(210 58% 68%);
+  --fc-blue-ink: hsl(210 66% 86%);
+
+  --fc-peach-tint: hsl(20 32% 21%);
+  --fc-peach-line: hsl(20 24% 34%);
+  --fc-peach-edge: hsl(20 72% 64%);
+  --fc-peach-ink: hsl(22 92% 82%);
+  --fc-peach-hover: hsl(20 34% 28%);
+
+  --fc-butter-tint: hsl(42 26% 19%);
+  --fc-butter-line: hsl(42 20% 31%);
+  --fc-butter-edge: hsl(44 60% 62%);
+  --fc-butter-ink: hsl(44 70% 82%);
+
+  --fc-price: hsl(172 55% 62%);
 }
 
 /*
@@ -593,4 +665,106 @@
 .language-video-block > .language-video-panel > iframe {
   aspect-ratio: 16 / 9;
   height: auto;
+}
+
+/*
+ * Zoomable content images, wrapped by helpers/zoomableImages and opened by
+ * ImageLightbox. The button hugs its image, so the image keeps its own size
+ * and the hover layer matches its box. Pointer devices get a light veil and
+ * a centred zoom-in disc on hover or keyboard focus; touch devices get a
+ * small corner badge instead, since they never hover.
+ */
+.tk-zoomable {
+  position: relative;
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0.875rem;
+  background: none;
+  color: inherit;
+  font: inherit;
+  line-height: 0;
+  cursor: zoom-in;
+}
+
+.tk-zoomable img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0;
+}
+
+.tk-zoomable::before,
+.tk-zoomable::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    opacity var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
+}
+
+.tk-zoomable::before {
+  inset: 0;
+  border-radius: inherit;
+  background-color: hsl(224 30% 12% / 0.22);
+}
+
+.tk-zoomable::after {
+  left: 50%;
+  top: 50%;
+  width: 3rem;
+  height: 3rem;
+  margin: -1.5rem 0 0 -1.5rem;
+  border-radius: 50%;
+  background: #fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231f2633' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='8'/><path d='m21 21-4.3-4.3'/><path d='M11 8v6'/><path d='M8 11h6'/></svg>") center / 1.375rem no-repeat;
+  box-shadow: 0 6px 18px -6px hsl(224 30% 10% / 0.5);
+  transform: scale(0.85);
+}
+
+.tk-zoomable:hover::before,
+.tk-zoomable:focus-visible::before,
+.tk-zoomable:hover::after,
+.tk-zoomable:focus-visible::after {
+  opacity: 1;
+}
+
+.tk-zoomable:hover::after,
+.tk-zoomable:focus-visible::after {
+  transform: scale(1);
+}
+
+.tk-zoomable:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 3px;
+}
+
+@media (hover: none) {
+  .tk-zoomable::before {
+    display: none;
+  }
+
+  .tk-zoomable::after {
+    left: auto;
+    top: auto;
+    right: 0.5rem;
+    bottom: 0.5rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    margin: 0;
+    background-size: 1.125rem;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tk-zoomable::before,
+  .tk-zoomable::after {
+    transition: none;
+  }
 }

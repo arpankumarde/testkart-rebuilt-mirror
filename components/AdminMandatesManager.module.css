@@ -1,0 +1,188 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+}
+
+.insightsGrid {
+  container: insights / inline-size;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-4);
+}
+
+@container insights (min-width: 48rem) {
+  .insightsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container insights (min-width: 72rem) {
+  .insightsGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.insightCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: 1.25rem;
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  min-width: 0;
+}
+
+.insightTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.insightTitle svg {
+  flex-shrink: 0;
+  color: var(--tk-brand-text);
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.chip {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-1);
+  padding: var(--spacing-1) var(--spacing-3);
+  font-size: 0.75rem;
+  background-color: var(--muted);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.chipDanger {
+  background-color: color-mix(in srgb, var(--error) 12%, transparent);
+  color: var(--error-text);
+}
+
+.chipWarning {
+  background-color: color-mix(in srgb, var(--warning) 14%, transparent);
+  color: var(--warning-text);
+}
+
+.chipSuccess {
+  background-color: color-mix(in srgb, var(--success) 12%, transparent);
+  color: var(--success-text);
+}
+
+.chipValue {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.bigStat {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.bigStatValue {
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.bigStatLabel {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.planRows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.planRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  font-size: 0.8125rem;
+}
+
+.planRowName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--foreground);
+}
+
+.planRowValue {
+  flex-shrink: 0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground);
+}
+
+.planRowSub {
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+  margin-left: var(--spacing-1);
+  font-weight: 400;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  align-items: flex-end;
+}
+
+.toolbarControl {
+  min-width: 10rem;
+}
+
+.amountCell {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.strikethrough {
+  color: var(--muted-foreground);
+  text-decoration: line-through;
+  font-size: 0.75rem;
+}
+
+.lastChargeError {
+  display: block;
+  max-width: 14rem;
+  font-size: 0.6875rem;
+  color: var(--error-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.iconButtonDanger {
+  color: var(--error-text);
+}
+
+.dialogFields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}

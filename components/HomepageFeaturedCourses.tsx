@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, BookOpen, ChevronLeft, ChevronRight, GraduationCap, PlayCircle } from "lucide-react";
 import type { HomepageFeaturedCourseItem } from "../endpoints/homepage/data_GET.schema";
 import { itemPriceProps } from "../helpers/homepageItemUtils";
 import { Placeholder } from "../helpers/placeholderImages";
@@ -21,9 +21,10 @@ const LEVEL_LABEL: Record<NonNullable<HomepageFeaturedCourseItem["level"]>, stri
 };
 
 /**
- * Hand-picked courses (helpers/homepageFetchFeaturedCourses) on one brand coral
- * block: copy and arrows on the left, a snap-scrolling track of cards on the
- * right that runs to the block's edge so a clipped card signals there is more.
+ * Hand-picked courses (helpers/homepageFetchFeaturedCourses) on an ivory panel
+ * in the spotlight card language: copy and arrows on the left, a snap-scrolling
+ * track of cards on the right that runs to the panel's edge so a clipped card
+ * signals there is more.
  */
 export function HomepageFeaturedCourses({ courses, isLoading = false }: HomepageFeaturedCoursesProps) {
   const trackRef = useRef<HTMLUListElement>(null);
@@ -65,10 +66,22 @@ export function HomepageFeaturedCourses({ courses, isLoading = false }: Homepage
   return (
     <section className={styles.section} aria-labelledby="featured-courses-title">
       <div className={styles.block}>
+        <span className={styles.blobPeach} aria-hidden />
+        <span className={styles.blobButter} aria-hidden />
         <div className={styles.intro}>
+          <span className={styles.illustration} aria-hidden>
+            <PlayCircle size={22} strokeWidth={2} />
+            <svg className={styles.sparkle} viewBox="0 0 16 16">
+              <path d="M8 1.5c.5 3.2 1.3 4 4.5 4.5-3.2.5-4 1.3-4.5 4.5-.5-3.2-1.3-4-4.5-4.5 3.2-.5 4-1.3 4.5-4.5Z" />
+            </svg>
+          </span>
+
           <h2 id="featured-courses-title" className={styles.title}>
             Featured courses
           </h2>
+          <svg className={styles.titleUnderline} viewBox="0 0 120 10" preserveAspectRatio="none" aria-hidden>
+            <path d="M2 6.5C20 2.5 38 8.5 58 5S98 2 118 5.5" />
+          </svg>
           <p className={styles.description}>
             Picked by the Testkart team. Complete courses you can study lesson by lesson, at your own pace.
           </p>
@@ -100,6 +113,7 @@ export function HomepageFeaturedCourses({ courses, isLoading = false }: Homepage
             )}
             <Link to="/course" className={styles.browseLink}>
               Browse all courses
+              <ArrowRight size={16} aria-hidden className={styles.browseArrow} />
             </Link>
           </div>
         </div>
@@ -119,6 +133,7 @@ export function HomepageFeaturedCourses({ courses, isLoading = false }: Homepage
                     <div className={styles.cardBody}>
                       <Skeleton className={styles.skeletonLine} />
                       <Skeleton className={styles.skeletonLineShort} />
+                      <Skeleton className={styles.skeletonFooter} />
                     </div>
                   </div>
                 </li>
@@ -150,7 +165,9 @@ function FeaturedCourseCard({ course }: { course: HomepageFeaturedCourseItem }) 
       </div>
 
       <div className={styles.cardBody}>
-        <span className={styles.exam}>{course.examName ?? ""}</span>
+        <div className={styles.badgeRow}>
+          {course.examName && <span className={styles.exam}>{course.examName}</span>}
+        </div>
         <h3 className={styles.courseTitle}>{course.title}</h3>
 
         <div className={styles.teacher}>
@@ -162,16 +179,26 @@ function FeaturedCourseCard({ course }: { course: HomepageFeaturedCourseItem }) 
           <VerifiedBadge isVerified={course.teacherIsVerified} size="sm" />
         </div>
 
-        <div className={styles.footer}>
-          <span className={styles.meta}>
-            <span>
-              {course.totalLessons} {course.totalLessons === 1 ? "lesson" : "lessons"}
-            </span>
-            {course.level && <span>{LEVEL_LABEL[course.level]}</span>}
+        <span className={styles.meta}>
+          <span className={styles.metaItem}>
+            <BookOpen size={14} aria-hidden className={styles.metaIcon} />
+            {course.totalLessons} {course.totalLessons === 1 ? "lesson" : "lessons"}
           </span>
+          {course.level && (
+            <span className={styles.metaItem}>
+              <GraduationCap size={14} aria-hidden className={styles.metaIcon} />
+              {LEVEL_LABEL[course.level]}
+            </span>
+          )}
+        </span>
+
+        <div className={styles.footer}>
           <span className={styles.priceGroup}>
             {originalPriceLabel && <s className={styles.originalPrice}>{originalPriceLabel}</s>}
             <span className={isFree ? styles.priceFree : styles.price}>{priceLabel}</span>
+          </span>
+          <span className={styles.cardArrow} aria-hidden>
+            <ArrowRight size={16} />
           </span>
         </div>
       </div>

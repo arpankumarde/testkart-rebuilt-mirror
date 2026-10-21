@@ -1,0 +1,120 @@
+/* Fixed colours: the lightbox is a dark stage in both themes. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4.5rem 1.5rem 4rem;
+  box-sizing: border-box;
+  background-color: hsl(224 30% 8% / 0.88);
+  cursor: zoom-out;
+  animation: fadeIn var(--animation-duration-fast) ease;
+}
+
+/* Transparent to clicks, so anything outside the image reaches the backdrop. */
+.stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0;
+  pointer-events: none;
+}
+
+.image {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(100%, 1600px);
+  max-height: calc(100vh - 8.5rem);
+  max-height: calc(100dvh - 8.5rem);
+  object-fit: contain;
+  border-radius: 0.875rem;
+  background-color: #fff;
+  box-shadow: 0 24px 60px -16px hsl(0 0% 0% / 0.65);
+  cursor: default;
+  pointer-events: auto;
+  animation: zoomIn var(--animation-duration-normal) ease;
+}
+
+.image.withCaption {
+  max-height: calc(100vh - 11rem);
+  max-height: calc(100dvh - 11rem);
+}
+
+.caption {
+  max-width: 48rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  text-align: center;
+  color: hsl(220 20% 92%);
+  cursor: default;
+  pointer-events: auto;
+}
+
+.close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background-color: #fff;
+  color: hsl(224 28% 18%);
+  box-shadow: 0 6px 18px -6px hsl(0 0% 0% / 0.5);
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.close:hover {
+  background-color: hsl(24 100% 92%);
+}
+
+.close:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+@media (max-width: 639px) {
+  .backdrop {
+    padding: 4rem 0.75rem;
+  }
+
+  .image {
+    border-radius: 0.625rem;
+  }
+
+  .close {
+    top: 0.75rem;
+    right: 0.75rem;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes zoomIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop,
+  .image {
+    animation: none;
+  }
+
+  .close {
+    transition: none;
+  }
+}
