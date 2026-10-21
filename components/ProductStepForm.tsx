@@ -33,12 +33,15 @@ import { Plus, GripVertical, ArrowUp, ArrowDown, X, Eye, Sparkles, AlertTriangle
 import { AIRewriteButton } from './AIRewriteButton';
 import { WithdrawReviewButton } from './WithdrawReviewButton';
 import { useAdminContentEdit } from '../helpers/useAdminContentEdit';
+import type { ContentVisibility } from '../helpers/schema';
 
 const LazyPdfReaderDialog = React.lazy(() => import('./PdfReaderDialog').then(m => ({ default: m.PdfReaderDialog })));
 import styles from './ProductStepForm.module.css';
 
 interface ProductStepFormProps {
   productId?: number;
+  /** Create mode only; a saved product changes it in ContentVisibilityPanel. */
+  visibility?: ContentVisibility;
   aiInitialValues?: {
     title?: string;
     shortDescription?: string;
@@ -118,7 +121,7 @@ const generateClientKey = () =>
     ? crypto.randomUUID()
     : `f_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 
-export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiInitialValues }) => {
+export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, visibility, aiInitialValues }) => {
   const navigate = useNavigate();
   const isEditMode = !!productId;
   // Inside the admin panel the form only saves; status changes stay on the admin preview page.
@@ -629,7 +632,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
       });
     } else {
       // Creating only collects details; files are added on the edit page next.
-      createProductMutation.mutate(payload, {
+      createProductMutation.mutate({ ...payload, visibility }, {
         onSuccess: (data) => {
           markSaved();
           setIsSubmittingAction(null);

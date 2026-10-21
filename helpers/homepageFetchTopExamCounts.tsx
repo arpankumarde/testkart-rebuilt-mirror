@@ -37,15 +37,15 @@ export async function homepageFetchTopExamCounts(): Promise<Record<string, numbe
     ),
     listed AS (
       SELECT l.exam_id FROM mt_l l JOIN mock_tests m ON m.id = l.content_id
-      WHERE m.is_published = true AND m.deleted_at IS NULL
+      WHERE m.is_published = true AND m.deleted_at IS NULL AND m.visibility = 'public'
         AND NOT EXISTS (SELECT 1 FROM live_tests lt WHERE lt.mock_test_id = m.id)
       UNION ALL
       SELECT l.exam_id FROM dp_l l JOIN digital_products d ON d.id = l.content_id
-      WHERE d.status = 'published' AND d.is_published = true
+      WHERE d.status = 'published' AND d.is_published = true AND d.visibility = 'public'
       UNION ALL
-      SELECT l.exam_id FROM c_l l JOIN courses c ON c.id = l.content_id WHERE c.status = 'published'
+      SELECT l.exam_id FROM c_l l JOIN courses c ON c.id = l.content_id WHERE c.status = 'published' AND c.visibility = 'public'
       UNION ALL
-      SELECT b.exam_id FROM bundle_l b JOIN course_bundles cb ON cb.id = b.bundle_id WHERE cb.is_published = true
+      SELECT b.exam_id FROM bundle_l b JOIN course_bundles cb ON cb.id = b.bundle_id WHERE cb.is_published = true AND cb.visibility = 'public'
     )
     SELECT t.exam_slug AS "examSlug", COUNT(l.exam_id)::int AS total
     FROM target t LEFT JOIN listed l ON l.exam_id = t.id

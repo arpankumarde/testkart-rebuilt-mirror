@@ -3,6 +3,7 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { slugify } from "../../../helpers/slugify";
 import { schema, OutputType } from "./create_POST.schema";
 import superjson from "superjson";
+import { DEFAULT_CONTENT_VISIBILITY } from "../../../helpers/contentVisibility";
 import {
   BundleRuleError,
   computeBundlePricing,
@@ -84,6 +85,7 @@ export async function handle(request: Request): Promise<Response> {
           title: input.title,
           slug: slug,
           description: input.description,
+          visibility: input.visibility ?? DEFAULT_CONTENT_VISIBILITY,
           price: input.price.toString(),
           originalPrice: pricing.originalPrice.toString(),
           discountPercentage: pricing.discountPercentage.toFixed(2),

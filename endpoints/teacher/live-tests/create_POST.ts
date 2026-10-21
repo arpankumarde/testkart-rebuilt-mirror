@@ -4,6 +4,7 @@ import { slugify } from "../../../helpers/slugify";
 import { primaryExamFields, resolveExamSelection, saveContentExams } from "../../../helpers/contentExams";
 import { schema, OutputType } from "./create_POST.schema";
 import superjson from "superjson";
+import { DEFAULT_CONTENT_VISIBILITY } from "../../../helpers/contentVisibility";
 import { Transaction } from "kysely";
 import { DB, PrizeDistributionStatus, PrizeFundSource } from "../../../helpers/schema";
 import { getTotalPrizePool, sortPrizeTiers, tiersToLegacyPrizes } from "../../../helpers/liveTestPrizeTiers";
@@ -93,6 +94,7 @@ export async function handle(request: Request) {
           title: input.title,
           slug: slug,
           description,
+          visibility: input.visibility ?? DEFAULT_CONTENT_VISIBILITY,
           ...primaryExamFields(exams),
           ...(input.languages?.length
             ? { languages: normalizeLanguages(input.languages), language: languagesSummary(input.languages) }
@@ -138,6 +140,7 @@ export async function handle(request: Request) {
           mockTestId: newMockTest.id,
           title: input.title,
           description,
+          visibility: input.visibility ?? DEFAULT_CONTENT_VISIBILITY,
           teacherId: effectiveTeacherId,
           price: input.price.toString(),
           discountPrice: input.discountPrice != null ? input.discountPrice.toString() : null,

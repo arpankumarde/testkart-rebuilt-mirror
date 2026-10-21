@@ -4,43 +4,7 @@ import { schema, OutputType } from "./publish_POST.schema";
 import superjson from "superjson";
 import { computeBundlePricing, loadBundleItemPrices, type BundleItemIds } from "../../../helpers/bundlePricing";
 import { clearOpenReviews } from "../../../helpers/contentReviewQueue";
-
-// How many of the bundle's items students cannot buy on their own right now.
-async function countUnpublishedItems(ids: BundleItemIds): Promise<number> {
-  const courseIds = Array.from(new Set(ids.courseIds));
-  const testIds = Array.from(new Set(ids.testIds));
-  const digitalProductIds = Array.from(new Set(ids.digitalProductIds));
-  let live = 0;
-  if (courseIds.length > 0) {
-    const rows = await db
-      .selectFrom("courses")
-      .select("id")
-      .where("id", "in", courseIds)
-      .where("status", "=", "published")
-      .execute();
-    live += rows.length;
-  }
-  if (testIds.length > 0) {
-    const rows = await db
-      .selectFrom("mockTests")
-      .select("id")
-      .where("id", "in", testIds)
-      .where("isPublished", "=", true)
-      .where("deletedAt", "is", null)
-      .execute();
-    live += rows.length;
-  }
-  if (digitalProductIds.length > 0) {
-    const rows = await db
-      .selectFrom("digitalProducts")
-      .select("id")
-      .where("id", "in", digitalProductIds)
-      .where("status", "=", "published")
-      .execute();
-    live += rows.length;
-  }
-  return courseIds.length + testIds.length + digitalProductIds.length - live;
-}
+import { countUnavailableBundleItems } from "../../../helpers/bundleDependencies";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -58,7 +22,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const bundle = await db
       .selectFrom("courseBundles")
-      .select(["id", "teacherId", "price"])
+      .select(["id", "teacherId", "price", "visibility"])
       .where("id", "=", input.bundleId)
       .where("teacherId", "=", effectiveTeacherId)
       .executeTakeFirst();
@@ -110,14 +74,18 @@ export async function handle(request: Request): Promise<Response> {
     };
 
     // Bundles skip content review and publish at once. That is safe only because
-    // every item in them is already live, which for a teacher means an admin
-    // approved it, so an unpublished item blocks publishing.
-    const unpublished = await countUnpublishedItems(itemIds);
+    // every item in them is already live, which for a public item means an admin
+    // approved it, so an unpublished item blocks publishing. A public bundle lists
+    // its items to everyone, so it may not hold unlisted (unreviewed) items either.
+    const isPublic = bundle.visibility === "public";
+    const unpublished = await countUnavailableBundleItems(db, itemIds, isPublic);
     if (unpublished > 0) {
       const one = unpublished === 1;
       return new Response(
         superjson.stringify({
-          error: `${unpublished} ${one ? "item in this bundle is" : "items in this bundle are"} not published yet. A bundle can only go live with published items, so remove ${one ? "it" : "them"} or wait until ${one ? "it is" : "they are"} approved.`,
+          error: isPublic
+            ? `${unpublished} ${one ? "item in this bundle is" : "items in this bundle are"} unlisted or not published yet. A public bundle can only go live with public, published items, so remove ${one ? "it" : "them"}, wait until ${one ? "it is" : "they are"} approved, or make the bundle unlisted.`
+            : `${unpublished} ${one ? "item in this bundle is" : "items in this bundle are"} not published yet. A bundle can only go live with published items, so remove ${one ? "it" : "them"} or wait until ${one ? "it is" : "they are"} published.`,
         }),
         { status: 400 }
       );
@@ -153,7 +121,9 @@ export async function handle(request: Request): Promise<Response> {
 
     const output: OutputType = {
       success: true,
-      message: "Your course bundle has been published successfully.",
+      message: isPublic
+        ? "Your course bundle has been published successfully."
+        : "Your course bundle is live as unlisted. Anyone with its link can open and buy it; it stays out of search and listings.",
     };
 
     return new Response(superjson.stringify(output));

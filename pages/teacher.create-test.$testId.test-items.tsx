@@ -5,6 +5,7 @@ import { ChevronRight, Pencil } from "lucide-react";
 import { Button } from '../components/Button';
 import { TeacherFormHeader } from '../components/TeacherFormHeader';
 import { TeacherRejectionBanner } from '../components/TeacherRejectionBanner';
+import { ContentVisibilityPanel } from '../components/ContentVisibilityPanel';
 import { AddTestItemsButton, TestSeriesItemsList } from '../components/TestSeriesItemsEditor';
 import { useTeacherTestItemsQuery, useTeacherTestsQuery } from '../helpers/useTeacherTestsQuery';
 import styles from "./teacher.create-test.$testId.test-items.module.css";
@@ -40,6 +41,7 @@ const Page = () => {
         </TeacherFormHeader>
 
         <TeacherRejectionBanner contentType="mock_test" contentId={packageId} />
+        <ContentVisibilityPanel contentType="mock_test" contentId={packageId} />
 
         <TestSeriesItemsList packageId={packageId} />
 

@@ -4,6 +4,7 @@ import { SEOHead } from '../components/SEOHead';
 import { BundleEditor } from '../components/BundleEditor';
 import { TeacherFormHeader } from '../components/TeacherFormHeader';
 import { TeacherRejectionBanner } from '../components/TeacherRejectionBanner';
+import { ContentVisibilityPanel } from '../components/ContentVisibilityPanel';
 import { useTeacherBundleDetailsQuery } from '../helpers/useTeacherBundleDetailsQuery';
 import styles from './teacher.bundles.$bundleId.edit.module.css';
 
@@ -28,6 +29,7 @@ export default function EditBundlePage() {
         />
 
         <TeacherRejectionBanner contentType="course_bundle" contentId={id} />
+        <ContentVisibilityPanel contentType="course_bundle" contentId={id} />
 
         <div className={styles.content}>
           <BundleEditor bundleId={id} exitTo="/teacher/bundles" exitLabel="Bundles" />

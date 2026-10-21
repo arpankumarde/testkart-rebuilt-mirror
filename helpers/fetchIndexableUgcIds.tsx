@@ -17,6 +17,7 @@ import {
 // one GROUP BY query instead of one COUNT query per row, then returns the
 // set of ids that passed. Callers do their own lightweight follow-up query
 // (WHERE id IN (...)) for whatever display fields they need.
+// Unlisted items are filtered out up front and also fail the SEO gate.
 
 async function buildDuplicateTitleMap(
   tableName: "mockTests" | "digitalProducts" | "courses" | "courseBundles",
@@ -30,6 +31,7 @@ async function buildDuplicateTitleMap(
       (eb) => eb.fn.count<number>(`${tableName}.id` as any).as("cnt"),
     ])
     .where(`${tableName}.${publishedColumn}` as any, "=", publishedValue as any)
+    .where(`${tableName}.visibility` as any, "=", "public")
     .groupBy(sql`lower(trim(${sql.ref(`${tableName}.title`)}))`)
     .having((eb) => eb.fn.count(`${tableName}.id` as any), ">", 1)
     .execute();
@@ -47,6 +49,7 @@ export async function getIndexableMockTestIds(): Promise<Set<number>> {
     .selectFrom("mockTests")
     .where("mockTests.isPublished", "=", true)
     .where("mockTests.deletedAt", "is", null)
+    .where("mockTests.visibility", "=", "public")
     .where((eb) =>
       eb.not(
         eb.exists(
@@ -63,6 +66,7 @@ export async function getIndexableMockTestIds(): Promise<Set<number>> {
       "mockTests.longDescription",
       "mockTests.isPublished",
       "mockTests.deletedAt",
+      "mockTests.visibility",
       "mockTests.examId",
       "mockTests.totalQuestions",
       "mockTests.thumbnailUrl",
@@ -103,12 +107,14 @@ export async function getIndexableStudyNoteIds(): Promise<Set<number>> {
     .selectFrom("digitalProducts")
     .where("digitalProducts.status", "=", "published")
     .where("digitalProducts.isPublished", "=", true)
+    .where("digitalProducts.visibility", "=", "public")
     .select([
       "digitalProducts.id",
       "digitalProducts.title",
       "digitalProducts.description",
       "digitalProducts.shortDescription",
       "digitalProducts.status",
+      "digitalProducts.visibility",
       "digitalProducts.examId",
       "digitalProducts.category",
       "digitalProducts.pageCount",
@@ -144,6 +150,7 @@ export async function getIndexableStudyNoteIds(): Promise<Set<number>> {
           description: p.description,
           shortDescription: p.shortDescription,
           status: p.status,
+          visibility: p.visibility,
           examId: p.examId,
           category: p.category,
           actualPageCount,
@@ -163,11 +170,13 @@ export async function getIndexableCourseIds(): Promise<Set<number>> {
   const candidates = await db
     .selectFrom("courses")
     .where("courses.status", "=", "published")
+    .where("courses.visibility", "=", "public")
     .select([
       "courses.id",
       "courses.title",
       "courses.description",
       "courses.status",
+      "courses.visibility",
       "courses.examId",
       "courses.thumbnailUrl",
       "courses.introVideoUrl",
@@ -218,6 +227,7 @@ export async function getIndexableCourseIds(): Promise<Set<number>> {
           title: c.title,
           description: c.description,
           status: c.status,
+          visibility: c.visibility,
           examId: c.examId,
           totalLessons,
           videoLessons,
@@ -237,11 +247,13 @@ export async function getIndexableBundleIds(): Promise<Set<number>> {
   const candidates = await db
     .selectFrom("courseBundles")
     .where("courseBundles.isPublished", "=", true)
+    .where("courseBundles.visibility", "=", "public")
     .select([
       "courseBundles.id",
       "courseBundles.title",
       "courseBundles.description",
       "courseBundles.isPublished",
+      "courseBundles.visibility",
       "courseBundles.discountPercentage",
       "courseBundles.thumbnailUrl",
       "courseBundles.introVideoUrl",
@@ -293,6 +305,7 @@ export async function getIndexableBundleIds(): Promise<Set<number>> {
           title: b.title,
           description: b.description,
           isPublished: b.isPublished,
+          visibility: b.visibility,
           itemCount: agg.itemCount,
           publishedItemCount: agg.publishedItemCount,
           distinctItemTypeCount: agg.itemTypes.size,

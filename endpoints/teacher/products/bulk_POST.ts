@@ -28,7 +28,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const products = await db
       .selectFrom("digitalProducts")
-      .select(["id", "teacherId", "pdfUrl", "price", "title", "description", "status"])
+      .select(["id", "teacherId", "pdfUrl", "price", "title", "description", "status", "visibility"])
       .where("id", "in", input.ids)
       .where("teacherId", "=", effectiveTeacherId)
       .execute();
@@ -90,17 +90,21 @@ export async function handle(request: Request): Promise<Response> {
         }
         succeeded.push(p.id);
       }
-      if (succeeded.length > 0 && needsReview) {
-        for (const p of products.filter((row) => succeeded.includes(row.id))) {
-          await queueContentReview(db, { contentType: "digital_product", contentId: p.id, teacherId: p.teacherId });
-        }
-      } else if (succeeded.length > 0) {
+      // Unlisted study notes skip review and go live at once (helpers/contentVisibility).
+      const unlistedIds = new Set(products.filter((p) => p.visibility === "unlisted").map((p) => p.id));
+      const reviewIds = needsReview ? succeeded.filter((id) => !unlistedIds.has(id)) : [];
+      const goLiveIds = succeeded.filter((id) => !reviewIds.includes(id));
+      for (const p of products.filter((row) => reviewIds.includes(row.id))) {
+        await queueContentReview(db, { contentType: "digital_product", contentId: p.id, teacherId: p.teacherId });
+      }
+      if (goLiveIds.length > 0) {
         await db
           .updateTable("digitalProducts")
           .set({ status: "published", isPublished: true, publishedAt: new Date() })
-          .where("id", "in", succeeded)
+          .where("id", "in", goLiveIds)
           .execute();
       }
+      needsReview = reviewIds.length > 0;
     } else {
       // Unpublish and archive both take live products off the store, so the
       // published bundles holding any of them have to go down in the same

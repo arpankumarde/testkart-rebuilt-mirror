@@ -56,6 +56,7 @@ export async function handle(request: Request) {
     const input = schema.parse(json);
     const { testId } = input;
     let needsReview = true;
+    let unlisted = false;
     let queued: QueuedReview | null = null;
 
     // Run all validations and publish (or queue for review) in a transaction
@@ -89,7 +90,9 @@ export async function handle(request: Request) {
         throw new Error("Live test is already published.");
       }
 
-      needsReview = !(await publishesWithoutReview(trx, user.role, liveTest.teacherId));
+      // Unlisted live tests skip review and go live at once (helpers/contentVisibility).
+      unlisted = liveTest.visibility === "unlisted";
+      needsReview = !unlisted && !(await publishesWithoutReview(trx, user.role, liveTest.teacherId));
       if (user.role !== "admin" && (await hasPendingReview(trx, "live_test", liveTest.id))) {
         throw new Error(alreadyInReviewMessage("live test"));
       }
@@ -138,7 +141,9 @@ export async function handle(request: Request) {
       published: !needsReview,
       message: needsReview
         ? `Your live test has been submitted for review. ${REVIEW_QUEUED_NOTE}`
-        : "Your live test is live. Students can find it and register now.",
+        : unlisted
+          ? "Your live test is live as unlisted. Anyone with its link can register; it stays out of search and listings."
+          : "Your live test is live. Students can find it and register now.",
     };
 
     return new Response(superjson.stringify(output));

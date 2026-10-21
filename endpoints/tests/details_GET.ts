@@ -233,6 +233,7 @@ export async function handle(request: Request) {
       longDescription: test.longDescription,
       isPublished: test.isPublished,
       deletedAt: test.deletedAt,
+      visibility: test.visibility,
       examId: test.examId,
       hasSubjectTagging: itemsWithSubjects.some((item) =>
         item.subjects.some((s) => isMeaningfulSubjectName(s.subjectName))

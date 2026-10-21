@@ -24,6 +24,7 @@ export async function homepageFetchFeaturedCourses(): Promise<HomepageFeaturedCo
     .selectFrom("courses")
     .innerJoin("users", "users.id", "courses.teacherId")
     .where("courses.status", "=", "published")
+    .where("courses.visibility", "=", "public")
     .where("courses.slug", "in", FEATURED_COURSE_SLUGS)
     .select([
       "courses.id",

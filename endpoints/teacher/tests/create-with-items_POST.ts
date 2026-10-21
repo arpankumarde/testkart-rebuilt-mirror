@@ -5,6 +5,7 @@ import { syncMockTestAggregates } from "../../../helpers/syncMockTestAggregates"
 import { primaryExamFields, resolveExamSelection, saveContentExams } from "../../../helpers/contentExams";
 import { schema, OutputType } from "./create-with-items_POST.schema";
 import superjson from "superjson";
+import { DEFAULT_CONTENT_VISIBILITY } from "../../../helpers/contentVisibility";
 import { sanitizeHtml } from "../../../helpers/sanitizeHtml";
 import { languagesSummary, normalizeLanguages } from "../../../helpers/itemLanguages";
 import { nanoid } from "nanoid";
@@ -69,6 +70,7 @@ export async function handle(request: Request): Promise<Response> {
         title: title,
         slug: slug,
         description: input.description || "Draft test package",
+        visibility: input.visibility ?? DEFAULT_CONTENT_VISIBILITY,
         ...primaryExamFields(exams, "Unspecified"),
         subject: JSON.stringify(input.subjects || []),
         price: price.toString(),

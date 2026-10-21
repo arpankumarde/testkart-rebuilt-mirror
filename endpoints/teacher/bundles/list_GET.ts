@@ -37,6 +37,7 @@ export async function handle(request: Request): Promise<Response> {
         "courseBundles.price",
         "courseBundles.originalPrice",
         "courseBundles.isPublished",
+        "courseBundles.visibility",
         "courseBundles.createdAt",
         "courseBundles.publishedAt",
         "courseBundles.thumbnailUrl",

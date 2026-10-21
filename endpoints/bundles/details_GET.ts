@@ -185,6 +185,7 @@ export async function handle(request: Request): Promise<Response> {
       title: bundle.title,
       description: bundle.description,
       isPublished: bundle.isPublished,
+      visibility: bundle.visibility,
       itemCount: coursesInBundle.length + digitalProductsInBundle.length + testsInBundle.length,
       publishedItemCount,
       distinctItemTypeCount,

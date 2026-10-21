@@ -8,6 +8,7 @@ export async function homepageFetchTopMockTests(): Promise<HomepageTestItem[]> {
     .selectFrom("mockTests")
     .innerJoin("users", "users.id", "mockTests.teacherId")
     .where("mockTests.isPublished", "=", true)
+    .where("mockTests.visibility", "=", "public")
     .where("mockTests.deletedAt", "is", null)
     .where(({ not, exists, selectFrom }) =>
       not(

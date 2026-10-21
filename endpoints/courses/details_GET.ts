@@ -102,6 +102,7 @@ export async function handle(request: Request): Promise<Response> {
       title: course.title,
       description: course.description,
       status: course.status,
+      visibility: course.visibility,
       examId: course.examId,
       totalLessons: lessons.length,
       videoLessons,

@@ -10,6 +10,7 @@ import { Skeleton } from '../components/Skeleton';
 import { Badge } from '../components/Badge';
 import { WithdrawReviewButton } from '../components/WithdrawReviewButton';
 import { TeacherRejectionBanner } from '../components/TeacherRejectionBanner';
+import { ContentVisibilityPanel } from '../components/ContentVisibilityPanel';
 import { CreatorBonusClaimCard } from '../components/CreatorBonusClaimCard';
 import type { TestItemWithQuestionsCount } from "../endpoints/teacher/test-items/list_GET.schema";
 import {
@@ -137,7 +138,8 @@ const Page = () => {
         onSuccess: () => navigate("/teacher/live-tests"),
       });
     } else {
-      publishMutation.mutate({ testId: packageId, claimCreatorBonus: claimBonus || undefined }, {
+      const bonus = claimBonus && testPackage?.visibility !== "unlisted";
+      publishMutation.mutate({ testId: packageId, claimCreatorBonus: bonus || undefined }, {
         onSuccess: () => navigate("/teacher/test-series"),
       });
     }
@@ -268,10 +270,11 @@ const Page = () => {
   // already waiting on admin review.
   const isAlreadyLive = isLiveTest && liveTest ? !!liveTest.isActive : !!testPackage.isPublished;
   const isInReview = isLiveTest && liveTest ? liveTest.inReview : testPackage.inReview;
+  const isUnlisted = (isLiveTest && liveTest ? liveTest.visibility : testPackage.visibility) === "unlisted";
   const kindLabel = isLiveTest ? "live test" : "test series";
   const isPublishing = publishMutation.isPending || publishLiveMutation.isPending;
-  // A Creator Bonus claim always goes through review, even for a verified teacher.
-  const goesLiveNow = publishesDirectly && !(claimBonus && !isLiveTest);
+  // Unlisted content skips review. A Creator Bonus claim always goes through review, even for a verified teacher.
+  const goesLiveNow = isUnlisted || (publishesDirectly && !(claimBonus && !isLiveTest));
   const verdict = isAlreadyLive ? "live" : isInReview ? "inReview" : isReadyToPublish ? "ready" : "blocked";
 
   const totalQuestions = orderedItems.reduce((sum, item) => sum + item.questionsCount, 0);
@@ -317,6 +320,11 @@ const Page = () => {
           contentId={isLiveTest && liveTest ? liveTest.id : packageId}
         />
 
+        <ContentVisibilityPanel
+          contentType={isLiveTest && liveTest ? "live_test" : "mock_test"}
+          contentId={isLiveTest && liveTest ? liveTest.id : packageId}
+        />
+
         <div className={styles.layout}>
           <aside className={styles.rail} aria-labelledby="review-verdict">
             <div className={styles.railCard}>
@@ -328,7 +336,10 @@ const Page = () => {
                   <>
                     <h2 id="review-verdict" className={styles.verdictTitle}>Live on Testkart</h2>
                     <p className={styles.verdictBody}>
-                      Students can find this {kindLabel} now, and changes you save go live right away.
+                      {isUnlisted
+                        ? `Anyone with the link can open this ${kindLabel} now; it stays out of search and listings.`
+                        : `Students can find this ${kindLabel} now.`}{" "}
+                      Changes you save go live right away.
                       {failCount > 0 && " Fix the checks marked below."}
                     </p>
                     <div className={styles.verdictActions}>
@@ -371,7 +382,9 @@ const Page = () => {
                     <p className={styles.verdictBody}>
                       {plural(orderedItems.length, "test")} and {plural(totalQuestions, "question")} pass every
                       required check.{" "}
-                      {goesLiveNow
+                      {isUnlisted
+                        ? "It is unlisted, so it goes live as soon as you publish, without review, for anyone with the link."
+                        : goesLiveNow
                         ? "Your account is verified, so it goes live as soon as you publish."
                         : publishesDirectly
                           ? "Claiming the Creator Bonus sends it to our team for review before students can find it."
@@ -380,11 +393,11 @@ const Page = () => {
                     <div className={styles.verdictActions}>
                       <Button size="lg" onClick={handlePublish} disabled={isPublishing}>
                         {goesLiveNow
-                          ? (isPublishing ? "Publishing..." : "Publish")
+                          ? (isPublishing ? "Publishing..." : isUnlisted ? "Publish as unlisted" : "Publish")
                           : (isPublishing ? "Submitting..." : "Submit for review")}
                       </Button>
                     </div>
-                    {!isLiveTest && (
+                    {!isLiveTest && !isUnlisted && (
                       <CreatorBonusClaimCard
                         type="mock_test"
                         id={packageId}

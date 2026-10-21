@@ -11,6 +11,7 @@ export async function homepageFetchPopularCourses(): Promise<HomepageCourseItem[
     .selectFrom("courses")
     .innerJoin("users", "users.id", "courses.teacherId")
     .where("courses.status", "=", "published")
+    .where("courses.visibility", "=", "public")
     .select((eb) => [
       "courses.id",
       "courses.title",

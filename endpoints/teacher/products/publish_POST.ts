@@ -28,7 +28,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const product = await db
       .selectFrom("digitalProducts")
-      .select(["id", "teacherId", "pdfUrl", "price", "title", "description", "status"])
+      .select(["id", "teacherId", "pdfUrl", "price", "title", "description", "status", "visibility"])
       .where("id", "=", input.id)
       .where("teacherId", "=", effectiveTeacherId)
       .executeTakeFirst();
@@ -47,7 +47,9 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
-    const needsReview = !(await publishesWithoutReview(db, user.role, product.teacherId));
+    // Unlisted study notes skip review and go live at once (helpers/contentVisibility).
+    const unlisted = product.visibility === "unlisted";
+    const needsReview = !unlisted && !(await publishesWithoutReview(db, user.role, product.teacherId));
     if (user.role !== "admin" && (await hasPendingReview(db, "digital_product", input.id))) {
       return new Response(
         superjson.stringify({ error: alreadyInReviewMessage("study note") }),
@@ -106,7 +108,9 @@ export async function handle(request: Request): Promise<Response> {
     const output: OutputType = {
       success: true,
       published: true,
-      message: "Your study note is live. Students can find and buy it now.",
+      message: unlisted
+        ? "Your study note is live as unlisted. Anyone with its link can open and buy it; it stays out of search and listings."
+        : "Your study note is live. Students can find and buy it now.",
     };
 
     return new Response(superjson.stringify(output));

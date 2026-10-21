@@ -3,6 +3,7 @@ import superjson from "superjson";
 import { Selectable } from "kysely";
 import { MockTests } from "../../../helpers/schema";
 import { MAX_ITEM_LANGUAGES, MAX_LANGUAGE_LENGTH } from "../../../helpers/itemLanguages";
+import { visibilityInputSchema } from "../../../helpers/contentVisibility";
 
 export const schema = z
   .object({
@@ -30,6 +31,7 @@ export const schema = z
     subjects: z.array(z.string()).optional(),
     whatYouLearn: z.array(z.string()).optional().nullable(),
     requirements: z.array(z.string()).optional().nullable(),
+    visibility: visibilityInputSchema,
   })
   .refine(
     (data) => {

@@ -89,6 +89,7 @@ export async function fetchTestsListServer(filters: InputType = {}): Promise<Out
         .as("actualQuestionCount"),
     ])
     .where("mockTests.isPublished", "=", true)
+    .where("mockTests.visibility", "=", "public")
     .where("mockTests.deletedAt", "is", null);
 
   query = query.where((eb) =>

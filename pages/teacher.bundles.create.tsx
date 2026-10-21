@@ -2,10 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SEOHead } from '../components/SEOHead';
 import { BundleForm, BundleFormValues } from '../components/BundleForm';
+import { ContentVisibilityPicker } from '../components/ContentVisibilityPicker';
 import { TeacherFormHeader } from '../components/TeacherFormHeader';
 import { useBundleMutations } from '../helpers/useBundleMutations';
 import { AIContentPrompt } from '../components/AIContentPrompt';
 import { useAuth } from '../helpers/useAuth';
+import { DEFAULT_CONTENT_VISIBILITY } from '../helpers/contentVisibility';
+import type { ContentVisibility } from '../helpers/schema';
 import styles from './teacher.bundles.create.module.css';
 
 export default function CreateBundlePage() {
@@ -17,9 +20,10 @@ export default function CreateBundlePage() {
 
   const [showAIPrompt, setShowAIPrompt] = useState(true);
   const [aiInitialValues, setAiInitialValues] = useState<any>(null);
+  const [visibility, setVisibility] = useState<ContentVisibility>(DEFAULT_CONTENT_VISIBILITY);
 
   const handleSubmit = (values: BundleFormValues) => {
-    createBundleMutation.mutate(values, {
+    createBundleMutation.mutate({ ...values, visibility }, {
       onSuccess: () => navigate('/teacher/bundles'),
     });
   };
@@ -52,6 +56,17 @@ export default function CreateBundlePage() {
           />
 
           <div className={styles.content}>
+            <ContentVisibilityPicker
+              value={visibility}
+              onChange={setVisibility}
+              disabled={createBundleMutation.isPending}
+              className={styles.visibility}
+              footnote={
+                visibility === 'public'
+                  ? 'A public bundle can only go live with public, published items.'
+                  : 'An unlisted bundle can hold public and unlisted items.'
+              }
+            />
             <BundleForm
               initialValues={aiInitialValues ? {
                 title: aiInitialValues.title,

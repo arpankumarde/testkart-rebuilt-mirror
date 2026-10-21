@@ -33,11 +33,13 @@ export async function fetchBundlesListServer(rawInput: Partial<InputType> = {}):
   let query = db
     .selectFrom("courseBundles")
     .innerJoin("users", "users.id", "courseBundles.teacherId")
-    .where("courseBundles.isPublished", "=", true);
+    .where("courseBundles.isPublished", "=", true)
+    .where("courseBundles.visibility", "=", "public");
 
   let countQuery = db
     .selectFrom("courseBundles")
-    .where("courseBundles.isPublished", "=", true);
+    .where("courseBundles.isPublished", "=", true)
+    .where("courseBundles.visibility", "=", "public");
 
   if (search) {
     const searchPattern = `%${search}%`;

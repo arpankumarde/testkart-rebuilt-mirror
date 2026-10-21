@@ -11,6 +11,7 @@ import {
 import { ShareAssetDialog } from './ShareAssetDialog';
 import { TeacherCardInsights } from './TeacherCardInsights';
 import { TeacherRejectionNote } from './TeacherRejectionNote';
+import { UnlistedBadge } from './UnlistedBadge';
 import { WithdrawReviewDialog, WITHDRAW_REVIEW_LABEL } from './WithdrawReviewButton';
 import { TEACHER_CONSOLE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
 import { computeBundlePricing } from '../helpers/bundlePricing';
@@ -114,6 +115,7 @@ export const BundleCard: React.FC<BundleCardProps> = ({
         )}
 
         <h3 className={styles.title}>{bundle.title}</h3>
+        {bundle.visibility === 'unlisted' && <UnlistedBadge />}
 
         {rejection && <TeacherRejectionNote rejection={rejection} />}
 

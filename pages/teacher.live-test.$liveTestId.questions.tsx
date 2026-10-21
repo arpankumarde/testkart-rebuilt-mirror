@@ -34,6 +34,7 @@ import {
 import { useTestItemSubjectsQuery } from "../helpers/useTestItemSubjectsQuery";
 import { WithdrawReviewButton } from "../components/WithdrawReviewButton";
 import { TeacherRejectionBanner } from "../components/TeacherRejectionBanner";
+import { ContentVisibilityPanel } from "../components/ContentVisibilityPanel";
 import { useDownloadTestPdf } from "../helpers/useDownloadTestPdf";
 import { usePublishesWithoutReview } from "../helpers/usePublishesWithoutReview";
 import styles from "./teacher.live-test.$liveTestId.questions.module.css";
@@ -223,6 +224,7 @@ const Page = () => {
         </div>
 
         <TeacherRejectionBanner contentType="live_test" contentId={liveTestDetails.id} />
+        <ContentVisibilityPanel contentType="live_test" contentId={liveTestDetails.id} />
 
         {!liveTestDetails.isActive && liveTestDetails.inReview && (
           <div className={styles.publishWarning}>

@@ -8,7 +8,8 @@ import { schema, OutputType } from "./withdraw_POST.schema";
 /*
  * The teacher takes an item back out of the review queue. Content waiting for
  * review is never live, so removing the waiting review leaves it a draft that
- * can be edited and submitted again.
+ * can be edited and submitted again. The exception is an unlisted item asking
+ * to go public: it is already live, and withdrawing leaves it live and unlisted.
  */
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -28,7 +29,7 @@ export async function handle(request: Request): Promise<Response> {
       });
     }
 
-    if (state.live) {
+    if (state.live && state.visibility !== "unlisted") {
       return new Response(
         superjson.stringify({ error: `This ${noun} is already live, so there is nothing to take back.` }),
         { status: 400 }
@@ -47,7 +48,9 @@ export async function handle(request: Request): Promise<Response> {
 
     const output: OutputType = {
       success: true,
-      message: `Your ${noun} is a draft again. Edit it and submit it for review when it is ready.`,
+      message: state.live
+        ? `Your ${noun} stays live as unlisted. Ask to make it public again whenever you are ready.`
+        : `Your ${noun} is a draft again. Edit it and submit it for review when it is ready.`,
     };
     return new Response(superjson.stringify(output));
   } catch (error) {

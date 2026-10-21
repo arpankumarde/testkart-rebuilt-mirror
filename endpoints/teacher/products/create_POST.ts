@@ -3,6 +3,7 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { slugify } from "../../../helpers/slugify";
 import { schema, OutputType } from "./create_POST.schema";
 import superjson from "superjson";
+import { DEFAULT_CONTENT_VISIBILITY } from "../../../helpers/contentVisibility";
 import { sanitizeOptionalHtml } from "../../../helpers/sanitizeHtml";
 import { DigitalProductFileItem } from "../../../helpers/digitalProductFileTypes";
 import { languagesSummary, normalizeLanguages } from "../../../helpers/itemLanguages";
@@ -98,6 +99,7 @@ export async function handle(request: Request): Promise<Response> {
           title: input.title,
           slug: slug,
           description: sanitizeOptionalHtml(input.description),
+          visibility: input.visibility ?? DEFAULT_CONTENT_VISIBILITY,
           shortDescription: input.shortDescription ?? null,
           price: input.price.toString(),
           thumbnailUrl: input.thumbnailUrl ?? null,

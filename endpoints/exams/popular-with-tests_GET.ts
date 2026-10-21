@@ -10,11 +10,11 @@ export async function handle(request: Request): Promise<Response> {
     const { rows: popularExams } = await sql<PopularExam>`
       WITH listed AS (
         SELECT mt.id AS mock_test_id, mt.exam_id FROM mock_tests mt
-        WHERE mt.is_published = true AND mt.exam_id IS NOT NULL
+        WHERE mt.is_published = true AND mt.visibility = 'public' AND mt.exam_id IS NOT NULL
         UNION
         SELECT mte.mock_test_id, mte.exam_id FROM mock_test_exams mte
         JOIN mock_tests mt ON mt.id = mte.mock_test_id
-        WHERE mt.is_published = true AND mte.exam_id IS NOT NULL
+        WHERE mt.is_published = true AND mt.visibility = 'public' AND mte.exam_id IS NOT NULL
       )
       SELECT e.id, e.exam_name, e.exam_slug, COUNT(*)::int AS series_count
       FROM exams e

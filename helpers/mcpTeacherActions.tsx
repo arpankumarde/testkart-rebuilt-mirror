@@ -119,6 +119,8 @@ import { handle as bundlesPublish } from "../endpoints/teacher/bundles/publish_P
 import * as bundlesPublishSchema from "../endpoints/teacher/bundles/publish_POST.schema";
 import { handle as bundlesUpdate } from "../endpoints/teacher/bundles/update_POST";
 import * as bundlesUpdateSchema from "../endpoints/teacher/bundles/update_POST.schema";
+import { handle as contentVisibilityUpdate } from "../endpoints/teacher/content-visibility/update_POST";
+import * as contentVisibilityUpdateSchema from "../endpoints/teacher/content-visibility/update_POST.schema";
 import { handle as courseLessonsCreate } from "../endpoints/teacher/course-lessons/create_POST";
 import * as courseLessonsCreateSchema from "../endpoints/teacher/course-lessons/create_POST.schema";
 import { handle as courseLessonsDelete } from "../endpoints/teacher/course-lessons/delete_POST";
@@ -386,6 +388,11 @@ const ACTIONS: Record<string, TeacherAction> = {
   "bundles/delete": write(bundlesDelete, bundlesDeleteSchema, "Delete a bundle.", CONFIRM),
   "bundles/publish": write(bundlesPublish, bundlesPublishSchema, "Publish a bundle, or unpublish it. It goes live at once without review; every item in it must already be published."),
   "bundles/update": write(bundlesUpdate, bundlesUpdateSchema, "Update a bundle."),
+  "content-visibility/update": write(
+    contentVisibilityUpdate,
+    contentVisibilityUpdateSchema,
+    "Make a test series, live test (liveTests.id), course, study note or bundle public or unlisted. Unlisted items publish at once without review, open from their link for anyone, and stay out of search, listings, profiles and sitemaps. Making a live unlisted item public sends it for review first unless the teacher is verified; it stays unlisted until approved."
+  ),
   "course-lessons/create": write(courseLessonsCreate, courseLessonsCreateSchema, "Add a lesson to a course section."),
   "course-lessons/delete": write(courseLessonsDelete, courseLessonsDeleteSchema, "Delete a course lesson.", CONFIRM),
   "course-lessons/reorder": write(courseLessonsReorder, courseLessonsReorderSchema, "Reorder lessons in a course section."),

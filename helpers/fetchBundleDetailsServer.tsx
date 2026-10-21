@@ -150,6 +150,7 @@ export async function fetchBundleDetailsServer(slug: string): Promise<OutputType
     title: bundle.title,
     description: bundle.description,
     isPublished: bundle.isPublished,
+    visibility: bundle.visibility,
     itemCount: coursesInBundle.length + digitalProductsInBundle.length + testsInBundle.length,
     publishedItemCount,
     distinctItemTypeCount,

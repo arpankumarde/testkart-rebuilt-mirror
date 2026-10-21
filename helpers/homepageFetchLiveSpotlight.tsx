@@ -20,6 +20,7 @@ export async function homepageFetchLiveSpotlight(): Promise<HomepageLiveTestSpot
     .innerJoin("mockTests", "mockTests.id", "liveTests.mockTestId")
     .innerJoin("users", "users.id", "liveTests.teacherId")
     .where("liveTests.isActive", "=", true)
+    .where("liveTests.visibility", "=", "public")
     .where("liveTests.endTime", ">", now)
     .select([
       "liveTests.id",

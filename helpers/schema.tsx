@@ -25,6 +25,8 @@ export type ContactSubmissionStatus = "archived" | "new" | "read" | "responded";
 
 export type ContentType = "course" | "course_bundle" | "digital_product" | "live_test" | "mock_test";
 
+export type ContentVisibility = "public" | "unlisted";
+
 export type CourseLevel = "advanced" | "beginner" | "intermediate";
 
 export type CourseStatus = "archived" | "draft" | "published";
@@ -376,6 +378,7 @@ export interface CourseBundles {
   thumbnailUrl: string | null;
   title: string;
   updatedAt: Generated<Timestamp>;
+  visibility: Generated<ContentVisibility>;
 }
 
 export interface CourseEnrollments {
@@ -466,6 +469,7 @@ export interface Courses {
   title: string;
   updatedAt: Generated<Timestamp>;
   views: Generated<number>;
+  visibility: Generated<ContentVisibility>;
 }
 
 export interface CourseSections {
@@ -679,6 +683,7 @@ export interface DigitalProducts {
   totalPurchases: Generated<number | null>;
   updatedAt: Generated<Timestamp | null>;
   views: Generated<number>;
+  visibility: Generated<ContentVisibility>;
 }
 
 export interface DocumentPageViews {
@@ -936,6 +941,7 @@ export interface LiveTests {
   totalPrizePool: Generated<Numeric>;
   updatedAt: Generated<Timestamp>;
   viewCount: Generated<number>;
+  visibility: Generated<ContentVisibility>;
 }
 
 export interface LoginAttempts {
@@ -1155,6 +1161,7 @@ export interface MockTests {
   totalTests: Generated<number>;
   updatedAt: Generated<Timestamp | null>;
   views: Generated<number>;
+  visibility: Generated<ContentVisibility>;
   wasEverPublished: Generated<boolean>;
   whatYouLearn: Json | null;
 }
@@ -2218,6 +2225,7 @@ export const CurrentAffairsLanguageArrayValues: [CurrentAffairsLanguage, ...Curr
 export const CurrentAffairsTagKindArrayValues: [CurrentAffairsTagKind, ...CurrentAffairsTagKind[]] = ["exam","syllabus","topic"];
 export const ExamNewsStatusArrayValues: [ExamNewsStatus, ...ExamNewsStatus[]] = ["archived","draft","published","scheduled"];
 export const ExamNewsTypeArrayValues: [ExamNewsType, ...ExamNewsType[]] = ["admit_card","answer_key","cut_off","date_change","notification","result","syllabus"];
+export const ContentVisibilityArrayValues: [ContentVisibility, ...ContentVisibility[]] = ["public","unlisted"];
 // Table/column names whose snake_case spelling kysely's default CamelCasePlugin
 // cannot recover from the camelCase name used in code (an underscore directly
 // before a digit, e.g. reminder_48h_sent ⇄ reminder48hSent). The db helper's

@@ -44,6 +44,7 @@ import { TeacherListPagination } from './TeacherListPagination';
 import { ShareAssetDialog } from './ShareAssetDialog';
 import { WithdrawReviewButton } from './WithdrawReviewButton';
 import { TeacherRejectionNote } from './TeacherRejectionNote';
+import { UnlistedBadge } from './UnlistedBadge';
 import { buildPublicAssetUrl, TEACHER_CONSOLE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
 import { performanceHref } from '../helpers/teacherPerformanceFormat';
 import { DIGITAL_PRODUCT_CATEGORIES } from '../helpers/digitalProductRules';
@@ -171,6 +172,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
           <Link to={editPath} className={styles.titleLink}>
             {product.title}
           </Link>
+          {product.visibility === 'unlisted' && <UnlistedBadge />}
           <span
             className={styles.productMeta}
             title={getItemExamNames(product).length > 1 ? `Exams: ${getItemExamNames(product).join(', ')}` : undefined}
@@ -214,7 +216,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
             onClick={onSubmit}
             disabled={isSubmitting}
           >
-            {publishesDirectly
+            {publishesDirectly || product.visibility === 'unlisted'
               ? (isSubmitting ? 'Publishing...' : 'Publish')
               : (isSubmitting ? 'Submitting...' : 'Submit for review')}
             <span className={styles.visuallyHidden}>: {product.title}</span>

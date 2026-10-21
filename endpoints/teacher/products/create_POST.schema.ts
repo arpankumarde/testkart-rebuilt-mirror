@@ -4,6 +4,7 @@ import { Selectable } from "kysely";
 import { DigitalProducts } from "../../../helpers/schema";
 import { DigitalProductFileItem } from "../../../helpers/digitalProductFileTypes";
 import { MAX_ITEM_LANGUAGES, MAX_LANGUAGE_LENGTH } from "../../../helpers/itemLanguages";
+import { visibilityInputSchema } from "../../../helpers/contentVisibility";
 
 const fileEntrySchema = z.object({
   title: z.string().min(1, "File title is required.").max(255, "File title must be 255 characters or fewer."),
@@ -47,6 +48,7 @@ export const schema = z.object({
     .optional()
     .describe("Official exam names, up to 5, first is the primary"),
   files: z.array(fileEntrySchema).optional().nullable(),
+  visibility: visibilityInputSchema,
 });
 
 export type InputType = z.infer<typeof schema>;

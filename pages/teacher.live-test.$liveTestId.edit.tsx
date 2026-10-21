@@ -5,6 +5,7 @@ import { ListChecks } from "lucide-react";
 import { LiveTestDetailsEditor } from "../components/LiveTestDetailsEditor";
 import { TeacherFormHeader } from "../components/TeacherFormHeader";
 import { TeacherRejectionBanner } from "../components/TeacherRejectionBanner";
+import { ContentVisibilityPanel } from "../components/ContentVisibilityPanel";
 import { Button } from "../components/Button";
 import { useLiveTestDetailsQuery } from "../helpers/useLiveTestQueries";
 import styles from "./teacher.create-live-test.module.css";
@@ -33,6 +34,7 @@ const EditLiveTestContent: React.FC<{ liveTestIdParam: string | undefined }> = (
       </TeacherFormHeader>
 
       <TeacherRejectionBanner contentType="live_test" contentId={hasValidId ? liveTestId : null} />
+      <ContentVisibilityPanel contentType="live_test" contentId={hasValidId ? liveTestId : null} />
 
       <LiveTestDetailsEditor liveTestId={liveTestId} exitTo="/teacher/live-tests" exitLabel="Live tests" />
     </div>

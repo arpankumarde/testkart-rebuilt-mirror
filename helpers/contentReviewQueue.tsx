@@ -1,5 +1,5 @@
 import type { Kysely, Transaction } from "kysely";
-import type { ContentType, DB } from "./schema";
+import type { ContentType, ContentVisibility, DB } from "./schema";
 import { assertTeacherCanFundPrizePool } from "./liveTestPrizeFunding";
 import { CONTENT_NOUNS, OPEN_REVIEW_STATUSES, type ContentRejection } from "./contentReviewStatus";
 import { withdrawClaimsForReviews } from "./teacherCampaign";
@@ -26,6 +26,11 @@ type Executor = Kysely<DB> | Transaction<DB>;
  * or trashing an item clears its waiting review the same way, so the queue never
  * holds a review for content that is gone. A Creator Bonus claim made with that
  * review is withdrawn with it (helpers/teacherCampaign).
+ *
+ * Unlisted content (helpers/contentVisibility) skips review and goes live at
+ * once. A review is therefore always a request to list an item publicly: an
+ * approval also sets its visibility to public, and an unlisted item that is
+ * already live stays live while its request to go public waits.
  */
 
 export const REVIEW_QUEUED_NOTE =
@@ -189,7 +194,7 @@ export async function publishApprovedContent(
       if (test.deletedAt) throw new Error("The teacher moved this test series to the Trash.");
       await trx
         .updateTable("mockTests")
-        .set({ isPublished: true, wasEverPublished: true, updatedAt: now })
+        .set({ isPublished: true, wasEverPublished: true, visibility: "public", updatedAt: now })
         .where("id", "=", contentId)
         .execute();
       return;
@@ -198,7 +203,7 @@ export async function publishApprovedContent(
     case "course": {
       const result = await trx
         .updateTable("courses")
-        .set({ status: "published", publishedAt: now, updatedAt: now })
+        .set({ status: "published", publishedAt: now, visibility: "public", updatedAt: now })
         .where("id", "=", contentId)
         .executeTakeFirst();
       if (Number(result.numUpdatedRows) === 0) throw new ContentGoneError(contentType);
@@ -208,7 +213,7 @@ export async function publishApprovedContent(
     case "digital_product": {
       const result = await trx
         .updateTable("digitalProducts")
-        .set({ status: "published", isPublished: true, publishedAt: now, updatedAt: now })
+        .set({ status: "published", isPublished: true, publishedAt: now, visibility: "public", updatedAt: now })
         .where("id", "=", contentId)
         .executeTakeFirst();
       if (Number(result.numUpdatedRows) === 0) throw new ContentGoneError(contentType);
@@ -218,7 +223,7 @@ export async function publishApprovedContent(
     case "course_bundle": {
       const result = await trx
         .updateTable("courseBundles")
-        .set({ isPublished: true, publishedAt: now, updatedAt: now })
+        .set({ isPublished: true, publishedAt: now, visibility: "public", updatedAt: now })
         .where("id", "=", contentId)
         .executeTakeFirst();
       if (Number(result.numUpdatedRows) === 0) throw new ContentGoneError(contentType);
@@ -232,23 +237,27 @@ export async function publishApprovedContent(
         .where("id", "=", contentId)
         .executeTakeFirst();
       if (!liveTest) throw new ContentGoneError(contentType);
+      // An unlisted live test that is already running only changes visibility here.
+      const alreadyLive = liveTest.isActive && liveTest.visibility === "unlisted";
       if (
-        (liveTest.registrationDeadline && liveTest.registrationDeadline <= now) ||
-        (liveTest.startTime && liveTest.startTime <= now) ||
+        (!alreadyLive &&
+          ((liveTest.registrationDeadline && liveTest.registrationDeadline <= now) ||
+            (liveTest.startTime && liveTest.startTime <= now))) ||
         liveTest.endTime <= now
       ) {
         throw new Error(
           "This live test's registration deadline or start time has passed. Reject it so the teacher can reschedule."
         );
       }
-      await assertTeacherCanFundPrizePool(trx, liveTest);
+      if (!alreadyLive) await assertTeacherCanFundPrizePool(trx, liveTest);
       // Only the live test is activated. Its shadow mockTests row must stay
       // unpublished, or it shows up as a separate mock test on the marketplace.
       await trx
         .updateTable("liveTests")
-        .set({ isActive: true, updatedAt: now })
+        .set({ isActive: true, visibility: "public", updatedAt: now })
         .where("id", "=", contentId)
         .execute();
+      await trx.updateTable("mockTests").set({ visibility: "public", updatedAt: now }).where("id", "=", liveTest.mockTestId).execute();
       return;
     }
   }
@@ -259,9 +268,10 @@ export type ContentState = {
   title: string;
   live: boolean;
   endTime: Date | null;
+  visibility: ContentVisibility;
 };
 
-/** Owner, title and whether students can currently find and buy the item. */
+/** Owner, title, visibility and whether the item is live (bought or opened from its link). */
 export async function loadContentState(
   executor: Executor,
   contentType: ContentType,
@@ -271,42 +281,52 @@ export async function loadContentState(
     case "mock_test": {
       const row = await executor
         .selectFrom("mockTests")
-        .select(["teacherId", "title", "isPublished", "deletedAt"])
+        .select(["teacherId", "title", "isPublished", "deletedAt", "visibility"])
         .where("id", "=", contentId)
         .executeTakeFirst();
-      return row ? { teacherId: row.teacherId, title: row.title, live: row.isPublished && !row.deletedAt, endTime: null } : null;
+      return row
+        ? { teacherId: row.teacherId, title: row.title, live: row.isPublished && !row.deletedAt, endTime: null, visibility: row.visibility }
+        : null;
     }
     case "course": {
       const row = await executor
         .selectFrom("courses")
-        .select(["teacherId", "title", "status"])
+        .select(["teacherId", "title", "status", "visibility"])
         .where("id", "=", contentId)
         .executeTakeFirst();
-      return row ? { teacherId: row.teacherId, title: row.title, live: row.status === "published", endTime: null } : null;
+      return row
+        ? { teacherId: row.teacherId, title: row.title, live: row.status === "published", endTime: null, visibility: row.visibility }
+        : null;
     }
     case "digital_product": {
       const row = await executor
         .selectFrom("digitalProducts")
-        .select(["teacherId", "title", "status"])
+        .select(["teacherId", "title", "status", "visibility"])
         .where("id", "=", contentId)
         .executeTakeFirst();
-      return row ? { teacherId: row.teacherId, title: row.title, live: row.status === "published", endTime: null } : null;
+      return row
+        ? { teacherId: row.teacherId, title: row.title, live: row.status === "published", endTime: null, visibility: row.visibility }
+        : null;
     }
     case "course_bundle": {
       const row = await executor
         .selectFrom("courseBundles")
-        .select(["teacherId", "title", "isPublished"])
+        .select(["teacherId", "title", "isPublished", "visibility"])
         .where("id", "=", contentId)
         .executeTakeFirst();
-      return row ? { teacherId: row.teacherId, title: row.title, live: row.isPublished, endTime: null } : null;
+      return row
+        ? { teacherId: row.teacherId, title: row.title, live: row.isPublished, endTime: null, visibility: row.visibility }
+        : null;
     }
     case "live_test": {
       const row = await executor
         .selectFrom("liveTests")
-        .select(["teacherId", "title", "isActive", "endTime"])
+        .select(["teacherId", "title", "isActive", "endTime", "visibility"])
         .where("id", "=", contentId)
         .executeTakeFirst();
-      return row ? { teacherId: row.teacherId, title: row.title, live: row.isActive, endTime: row.endTime } : null;
+      return row
+        ? { teacherId: row.teacherId, title: row.title, live: row.isActive, endTime: row.endTime, visibility: row.visibility }
+        : null;
     }
   }
 }

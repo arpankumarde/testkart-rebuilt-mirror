@@ -35,6 +35,7 @@ export async function handle(request: Request) {
           "users.displayName as teacherName",
         ])
         .where("mockTests.isPublished", "=", true)
+        .where("mockTests.visibility", "=", "public")
         .where("mockTests.deletedAt", "is", null);
       if (searchPattern) {
         q = q.where("mockTests.title", "ilike", searchPattern);
@@ -69,7 +70,8 @@ export async function handle(request: Request) {
           "digitalProducts.price",
           "users.displayName as teacherName",
         ])
-        .where("digitalProducts.status", "=", "published");
+        .where("digitalProducts.status", "=", "published")
+        .where("digitalProducts.visibility", "=", "public");
       if (searchPattern) {
         q = q.where("digitalProducts.title", "ilike", searchPattern);
       }
@@ -103,7 +105,8 @@ export async function handle(request: Request) {
           "courses.price",
           "users.displayName as teacherName",
         ])
-        .where("courses.status", "=", "published");
+        .where("courses.status", "=", "published")
+        .where("courses.visibility", "=", "public");
       if (searchPattern) {
         q = q.where("courses.title", "ilike", searchPattern);
       }
@@ -137,7 +140,8 @@ export async function handle(request: Request) {
           "courseBundles.originalPrice",
           "users.displayName as teacherName",
         ])
-        .where("courseBundles.isPublished", "=", true);
+        .where("courseBundles.isPublished", "=", true)
+        .where("courseBundles.visibility", "=", "public");
       if (searchPattern) {
         q = q.where("courseBundles.title", "ilike", searchPattern);
       }

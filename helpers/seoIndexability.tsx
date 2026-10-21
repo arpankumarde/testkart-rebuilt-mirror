@@ -1,5 +1,5 @@
 import { Kysely } from "kysely";
-import type { DB } from "./schema";
+import type { ContentVisibility, DB } from "./schema";
 
 // ---------------------------------------------------------------------------
 // SEO Indexability System — Testkart UGC pages (Mock Tests, Study Notes,
@@ -20,6 +20,9 @@ import type { DB } from "./schema";
 // Every function here returns a SeoResult with `indexable` (the gate) and
 // `qualityScore` (0-100, for transparency/debugging). `indexable` is only
 // true when ALL hard requirements pass AND qualityScore >= 60.
+//
+// Unlisted items (helpers/contentVisibility) are never indexable, whatever
+// their score: their pages render noindex and the sitemaps leave them out.
 // ---------------------------------------------------------------------------
 
 export type SeoResult = {
@@ -141,6 +144,7 @@ export type MockTestSeoInput = {
   longDescription: string | null;
   isPublished: boolean;
   deletedAt: Date | string | null;
+  visibility: ContentVisibility;
   examId: number | null;
   // Whether at least one of this package's test items has a real (non-
   // placeholder) subject section name — see the isMeaningfulSubjectName
@@ -180,6 +184,7 @@ export async function computeMockTestSeo(
   const title = (input.title || "").trim();
 
   const isLive = input.isPublished === true && !input.deletedAt;
+  const isPublic = input.visibility === "public";
   const hasValidTitle = title.length >= MIN_TITLE_LENGTH;
   // Neither exam tagging nor subject/topic tagging gates indexing here —
   // both excluded from the indexing decision site-wide per product
@@ -188,12 +193,13 @@ export async function computeMockTestSeo(
   const hasMinQuestions = input.totalQuestions >= MIN_MOCK_TEST_QUESTIONS;
 
   if (!isLive) reasons.push("Not published");
+  if (!isPublic) reasons.push("Unlisted");
   if (!hasValidTitle) reasons.push("Title missing or too short");
   if (!hasMinQuestions) {
     reasons.push(`Fewer than ${MIN_MOCK_TEST_QUESTIONS} questions (has ${input.totalQuestions})`);
   }
 
-  const hardGatesPass = isLive && hasValidTitle && hasMinQuestions;
+  const hardGatesPass = isLive && isPublic && hasValidTitle && hasMinQuestions;
 
   let dupCount = precomputedDuplicateCount ?? 0;
   if (precomputedDuplicateCount === undefined && db && title) {
@@ -203,6 +209,7 @@ export async function computeMockTestSeo(
       .where("mockTests.id", "!=", input.id)
       .where("mockTests.isPublished", "=", true)
       .where("mockTests.deletedAt", "is", null)
+      .where("mockTests.visibility", "=", "public")
       .where("mockTests.title", "ilike", normalizedForCompare(title))
       .executeTakeFirst();
     dupCount = Number(dupRow?.cnt ?? 0);
@@ -241,6 +248,7 @@ export type StudyNoteSeoInput = {
   description: string | null;
   shortDescription: string | null;
   status: string | null;
+  visibility: ContentVisibility;
   examId: number | null;
   category: string | null;
   actualPageCount: number;
@@ -259,6 +267,7 @@ export async function computeStudyNoteSeo(
   const title = (input.title || "").trim();
 
   const isPublished = input.status === "published";
+  const isPublic = input.visibility === "public";
   const hasValidTitle = title.length >= MIN_TITLE_LENGTH;
   // Neither exam tagging nor subject/topic (category) tagging gates
   // indexing here — both excluded from the indexing decision site-wide per
@@ -267,12 +276,13 @@ export async function computeStudyNoteSeo(
   const hasMinPages = input.actualPageCount >= MIN_STUDY_NOTE_PAGES;
 
   if (!isPublished) reasons.push("Not published");
+  if (!isPublic) reasons.push("Unlisted");
   if (!hasValidTitle) reasons.push("Title missing or too short");
   if (!hasMinPages) {
     reasons.push(`Fewer than ${MIN_STUDY_NOTE_PAGES} pages (has ${input.actualPageCount})`);
   }
 
-  const hardGatesPass = isPublished && hasValidTitle && hasMinPages;
+  const hardGatesPass = isPublished && isPublic && hasValidTitle && hasMinPages;
 
   let dupCount = precomputedDuplicateCount ?? 0;
   if (precomputedDuplicateCount === undefined && db && title) {
@@ -281,6 +291,7 @@ export async function computeStudyNoteSeo(
       .select((eb) => eb.fn.count<number>("digitalProducts.id").as("cnt"))
       .where("digitalProducts.id", "!=", input.id)
       .where("digitalProducts.status", "=", "published")
+      .where("digitalProducts.visibility", "=", "public")
       .where("digitalProducts.title", "ilike", normalizedForCompare(title))
       .executeTakeFirst();
     dupCount = Number(dupRow?.cnt ?? 0);
@@ -318,6 +329,7 @@ export type CourseSeoInput = {
   title: string;
   description: string | null;
   status: string | null;
+  visibility: ContentVisibility;
   examId: number | null;
   totalLessons: number;
   videoLessons: number;
@@ -336,6 +348,7 @@ export async function computeCourseSeo(
   const title = (input.title || "").trim();
 
   const isPublished = input.status === "published";
+  const isPublic = input.visibility === "public";
   const hasValidTitle = title.length >= MIN_TITLE_LENGTH;
   const hasMeaningfulDescription = isMeaningfulText(input.description, 40);
   // Exam tagging does not gate indexing here - excluded from the indexing
@@ -344,13 +357,14 @@ export async function computeCourseSeo(
   const hasMinVideoLessons = input.videoLessons >= MIN_COURSE_VIDEO_LESSONS;
 
   if (!isPublished) reasons.push("Not published");
+  if (!isPublic) reasons.push("Unlisted");
   if (!hasValidTitle) reasons.push("Title missing or too short");
   if (!hasMeaningfulDescription) reasons.push("Description missing or too short");
   if (!hasMinVideoLessons) {
     reasons.push(`Fewer than ${MIN_COURSE_VIDEO_LESSONS} video lessons (has ${input.videoLessons})`);
   }
 
-  const hardGatesPass = isPublished && hasValidTitle && hasMeaningfulDescription && hasMinVideoLessons;
+  const hardGatesPass = isPublished && isPublic && hasValidTitle && hasMeaningfulDescription && hasMinVideoLessons;
 
   let dupCount = precomputedDuplicateCount ?? 0;
   if (precomputedDuplicateCount === undefined && db && title) {
@@ -359,6 +373,7 @@ export async function computeCourseSeo(
       .select((eb) => eb.fn.count<number>("courses.id").as("cnt"))
       .where("courses.id", "!=", input.id)
       .where("courses.status", "=", "published")
+      .where("courses.visibility", "=", "public")
       .where("courses.title", "ilike", normalizedForCompare(title))
       .executeTakeFirst();
     dupCount = Number(dupRow?.cnt ?? 0);
@@ -394,6 +409,7 @@ export type BundleSeoInput = {
   title: string;
   description: string | null;
   isPublished: boolean;
+  visibility: ContentVisibility;
   itemCount: number;
   publishedItemCount: number; // how many of the bundle's items are themselves published/available
   distinctItemTypeCount: number;
@@ -411,12 +427,14 @@ export async function computeBundleSeo(
   const title = (input.title || "").trim();
 
   const isPublished = input.isPublished === true;
+  const isPublic = input.visibility === "public";
   const hasValidTitle = title.length >= MIN_TITLE_LENGTH;
   const hasMeaningfulDescription = isMeaningfulText(input.description, 40);
   const hasMinItems = input.itemCount >= MIN_BUNDLE_ITEMS;
   const allItemsAvailable = input.itemCount > 0 && input.publishedItemCount === input.itemCount;
 
   if (!isPublished) reasons.push("Not published");
+  if (!isPublic) reasons.push("Unlisted");
   if (!hasValidTitle) reasons.push("Title missing or too short");
   if (!hasMeaningfulDescription) reasons.push("Description missing or too short");
   if (!hasMinItems) {
@@ -429,7 +447,7 @@ export async function computeBundleSeo(
   }
 
   const hardGatesPass =
-    isPublished && hasValidTitle && hasMeaningfulDescription && hasMinItems && allItemsAvailable;
+    isPublished && isPublic && hasValidTitle && hasMeaningfulDescription && hasMinItems && allItemsAvailable;
 
   let dupCount = precomputedDuplicateCount ?? 0;
   if (precomputedDuplicateCount === undefined && db && title) {
@@ -438,6 +456,7 @@ export async function computeBundleSeo(
       .select((eb) => eb.fn.count<number>("courseBundles.id").as("cnt"))
       .where("courseBundles.id", "!=", input.id)
       .where("courseBundles.isPublished", "=", true)
+      .where("courseBundles.visibility", "=", "public")
       .where("courseBundles.title", "ilike", normalizedForCompare(title))
       .executeTakeFirst();
     dupCount = Number(dupRow?.cnt ?? 0);

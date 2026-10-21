@@ -85,6 +85,7 @@ export async function handle(request: Request): Promise<Response> {
       ])
       .where("courses.id", "!=", input.courseId)
       .where("courses.status", "=", "published")
+      .where("courses.visibility", "=", "public")
       .orderBy(tier, "asc")
       // Ratings only order tier 3; tiers 1 and 2 rank by popularity
       .orderBy(sql`CASE WHEN ${tier} = 3 THEN ${avgRating} END DESC NULLS LAST`)

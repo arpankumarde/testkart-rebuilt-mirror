@@ -82,7 +82,8 @@ export async function handle(request: Request): Promise<Response> {
       ])
       .where("digitalProducts.id", "!=", input.productId)
       .where("digitalProducts.status", "=", "published")
-      .where("digitalProducts.isPublished", "=", true);
+      .where("digitalProducts.isPublished", "=", true)
+      .where("digitalProducts.visibility", "=", "public");
 
     // 3. Rank in three tiers; the limit is filled from tier 1 down:
     //    1 - same teacher and same category

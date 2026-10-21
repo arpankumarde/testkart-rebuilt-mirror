@@ -44,6 +44,7 @@ export async function handle(request: Request): Promise<Response> {
         "users.slug as teacherSlug",
       ])
       .where("mockTests.isPublished", "=", true)
+      .where("mockTests.visibility", "=", "public")
       .where("mockTests.deletedAt", "is", null)
       .where((eb) =>
         eb.not(
@@ -96,6 +97,7 @@ export async function handle(request: Request): Promise<Response> {
         "users.slug as teacherSlug",
       ])
       .where("courses.status", "=", "published")
+      .where("courses.visibility", "=", "public")
       .where((eb) =>
         eb.or([
           eb("courses.title", "ilike", searchTerm),
@@ -136,6 +138,7 @@ export async function handle(request: Request): Promise<Response> {
         )`.as("itemCount"),
       ])
       .where("courseBundles.isPublished", "=", true)
+      .where("courseBundles.visibility", "=", "public")
       .where((eb) =>
         eb.or([
           eb("courseBundles.title", "ilike", searchTerm),
@@ -172,6 +175,7 @@ export async function handle(request: Request): Promise<Response> {
       ])
       .where("digitalProducts.status", "=", "published")
       .where("digitalProducts.isPublished", "=", true)
+      .where("digitalProducts.visibility", "=", "public")
       .where((eb) =>
         eb.or([
           eb("digitalProducts.title", "ilike", searchTerm),
@@ -197,8 +201,8 @@ export async function handle(request: Request): Promise<Response> {
         "users.isVerified",
       ])
       .select(() => [
-        sql<number>`(SELECT COUNT(*) FROM mock_tests WHERE mock_tests.teacher_id = users.id AND mock_tests.is_published = true)`.as("testCount"),
-        sql<number>`(SELECT COUNT(*) FROM courses WHERE courses.teacher_id = users.id AND courses.status = 'published')`.as("courseCount"),
+        sql<number>`(SELECT COUNT(*) FROM mock_tests WHERE mock_tests.teacher_id = users.id AND mock_tests.is_published = true AND mock_tests.visibility = 'public')`.as("testCount"),
+        sql<number>`(SELECT COUNT(*) FROM courses WHERE courses.teacher_id = users.id AND courses.status = 'published' AND courses.visibility = 'public')`.as("courseCount"),
         sql<number>`(SELECT COUNT(DISTINCT me.student_id) FROM mock_test_enrollments me INNER JOIN mock_tests mt ON mt.id = me.mock_test_id WHERE mt.teacher_id = users.id)`.as("studentCount"),
       ])
       .where("users.role", "=", "teacher")
@@ -214,6 +218,7 @@ export async function handle(request: Request): Promise<Response> {
               .whereRef("mockTests.teacherId", "=", "users.id")
               .where("mockTests.isPublished", "=", true)
               .where("mockTests.deletedAt", "is", null)
+              .where("mockTests.visibility", "=", "public")
               .limit(1)
           ),
           eb.exists(
@@ -222,6 +227,7 @@ export async function handle(request: Request): Promise<Response> {
               .select("courses.id")
               .whereRef("courses.teacherId", "=", "users.id")
               .where("courses.status", "=", "published")
+              .where("courses.visibility", "=", "public")
               .limit(1)
           ),
         ])

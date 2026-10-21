@@ -88,7 +88,8 @@ export async function handle(request: Request): Promise<Response> {
        "fileStats.fileCount",
      ])
       .where("digitalProducts.status", "=", "published")
-      .where("digitalProducts.isPublished", "=", true);
+      .where("digitalProducts.isPublished", "=", true)
+      .where("digitalProducts.visibility", "=", "public");
 
     if (input.category) {
       query = query.where("digitalProducts.category", "=", input.category);

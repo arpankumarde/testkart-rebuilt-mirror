@@ -25,6 +25,8 @@ interface CourseSubmitDialogProps {
   readiness: CourseReadinessItem[];
   hasUnsavedChanges: boolean;
   isSubmitting: boolean;
+  /** An unlisted course goes live at once without review. */
+  unlisted?: boolean;
   aiContext: CourseAiContext;
   /** Saves the Details tab. Resolves false when something needs fixing there. */
   onSaveDetails: () => Promise<boolean>;
@@ -60,6 +62,7 @@ export const CourseSubmitDialog: React.FC<CourseSubmitDialogProps> = ({
   readiness,
   hasUnsavedChanges,
   isSubmitting,
+  unlisted = false,
   aiContext,
   onSaveDetails,
   onUseDescription,
@@ -136,9 +139,11 @@ export const CourseSubmitDialog: React.FC<CourseSubmitDialogProps> = ({
 
   if (step === 'save') {
     title = 'Save your changes and submit?';
-    description = publishesDirectly
-      ? 'Your unsaved edits in Details are saved first. Then the course is published, or sent for review if you claimed the Creator Bonus.'
-      : 'Your unsaved edits in Details are saved first. Then the course goes to our team for review.';
+    description = unlisted
+      ? 'Your unsaved edits in Details are saved first. Then the course goes live as unlisted, without review, for anyone with the link.'
+      : publishesDirectly
+        ? 'Your unsaved edits in Details are saved first. Then the course is published, or sent for review if you claimed the Creator Bonus.'
+        : 'Your unsaved edits in Details are saved first. Then the course goes to our team for review.';
     body = null;
     footer = (
       <>

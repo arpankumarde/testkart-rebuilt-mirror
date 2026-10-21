@@ -49,6 +49,7 @@ export async function handle(request: Request): Promise<Response> {
         "digitalProducts.views",
         "digitalProducts.publishedAt",
         "digitalProducts.allowDownload",
+        "digitalProducts.visibility",
         "users.displayName as teacherName",
         "users.avatarUrl as teacherAvatar",
         "users.bio as teacherBio",
@@ -140,6 +141,7 @@ export async function handle(request: Request): Promise<Response> {
       description: product.description,
       shortDescription: product.shortDescription,
       status: "published", // gated by the query above; this row is always published
+      visibility: product.visibility,
       examId: product.examId,
       category: product.category,
       actualPageCount,
@@ -192,6 +194,7 @@ export async function handle(request: Request): Promise<Response> {
         allowDownload: product.allowDownload === true,
         isPurchased,
         publishedAt: product.publishedAt,
+        visibility: product.visibility,
        teacherId: product.teacherId,
         teacherName: product.teacherName,
         teacherSlug: product.teacherSlugCol || slugify(product.teacherName),

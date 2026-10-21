@@ -1,0 +1,113 @@
+.fieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  display: grid;
+  gap: var(--spacing-2);
+}
+
+.legend {
+  padding: 0;
+  margin-bottom: var(--spacing-2);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: var(--spacing-3);
+}
+
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--card);
+  color: var(--card-foreground);
+  cursor: pointer;
+  transition:
+    border-color var(--animation-duration-fast) ease,
+    background-color var(--animation-duration-fast) ease;
+}
+
+.option:hover {
+  border-color: var(--tk-brand);
+}
+
+.option[data-selected="true"] {
+  border-color: var(--tk-brand);
+  background-color: var(--tk-brand-tint);
+}
+
+.fieldset:disabled .option {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.radio {
+  margin-top: 0.125rem;
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.option[data-selected="true"] .icon {
+  background-color: var(--card);
+  color: var(--tk-brand-text);
+}
+
+.text {
+  display: grid;
+  gap: var(--spacing-1);
+  min-width: 0;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.defaultTag {
+  padding: 0 var(--spacing-2);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  background-color: var(--card);
+}
+
+.description {
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+}
+
+.option[data-selected="true"] .description {
+  color: var(--foreground);
+}
+
+.footnote {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+}

@@ -2,6 +2,7 @@ import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
 import { CourseBundles } from "../../../helpers/schema";
+import { visibilityInputSchema } from "../../../helpers/contentVisibility";
 
 export const schema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters long."),
@@ -15,6 +16,7 @@ export const schema = z.object({
   thumbnailFileId: z.string().optional().nullable(),
   introVideoUrl: z.string().optional().nullable(),
   introVideoFileId: z.string().optional().nullable(),
+  visibility: visibilityInputSchema,
 }).refine((data) => {
   const totalItems =
     (data.courseIds?.length ?? 0) +

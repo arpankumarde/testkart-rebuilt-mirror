@@ -38,6 +38,7 @@ export async function fetchExamProductCountsServer(examSlug: string): Promise<Ou
       .where(contentInExam("mock_test", "mockTests.id", "mockTests.examId", examId))
       .where("isPublished", "=", true)
       .where("deletedAt", "is", null)
+      .where("visibility", "=", "public")
       .where((eb) =>
         eb.not(
           eb.exists(
@@ -55,17 +56,20 @@ export async function fetchExamProductCountsServer(examSlug: string): Promise<Ou
       .where(contentInExam("digital_product", "digitalProducts.id", "digitalProducts.examId", examId))
       .where("status", "=", "published")
       .where("isPublished", "=", true)
+      .where("visibility", "=", "public")
       .executeTakeFirst(),
     db
       .selectFrom("courses")
       .select((eb) => eb.fn.countAll<number>().as("count"))
       .where(contentInExam("course", "courses.id", "courses.examId", examId))
       .where("status", "=", "published")
+      .where("visibility", "=", "public")
       .executeTakeFirst(),
     db
       .selectFrom("courseBundles")
       .select((eb) => eb.fn.countAll<number>().as("count"))
       .where("isPublished", "=", true)
+      .where("visibility", "=", "public")
       .where(
         sql<boolean>`EXISTS (
           SELECT 1 FROM course_bundle_items cbi

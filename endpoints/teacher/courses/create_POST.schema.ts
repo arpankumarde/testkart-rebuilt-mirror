@@ -3,6 +3,7 @@ import superjson from "superjson";
 import { Selectable } from "kysely";
 import { Courses, CourseLevelArrayValues } from "../../../helpers/schema";
 import { MAX_ITEM_LANGUAGES, MAX_LANGUAGE_LENGTH } from "../../../helpers/itemLanguages";
+import { visibilityInputSchema } from "../../../helpers/contentVisibility";
 
 export const schema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters long."),
@@ -29,6 +30,7 @@ export const schema = z.object({
     .max(5)
     .optional()
     .describe("Official exam names, up to 5, first is the primary"),
+  visibility: visibilityInputSchema,
 });
 
 export type InputType = z.infer<typeof schema>;

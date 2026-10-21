@@ -177,6 +177,7 @@ export async function fetchLiveTestsListServer(
 
   const allTests = await query
     .where("liveTests.isActive", "=", true)
+    .where("liveTests.visibility", "=", "public")
     .orderBy("liveTests.startTime", "asc")
     .execute();
 

@@ -188,6 +188,7 @@ export async function fetchPopularTeachers(): Promise<HomepageTeacher[]> {
       .where("mockTests.teacherId", "in", topTeacherIds)
       .where("mockTests.isPublished", "=", true)
       .where("mockTests.deletedAt", "is", null)
+      .where("mockTests.visibility", "=", "public")
       .groupBy("mockTests.teacherId")
       .select([
         "mockTests.teacherId",
@@ -199,6 +200,7 @@ export async function fetchPopularTeachers(): Promise<HomepageTeacher[]> {
       .selectFrom("courses")
       .where("courses.teacherId", "in", topTeacherIds)
       .where("courses.status", "=", "published")
+      .where("courses.visibility", "=", "public")
       .groupBy("courses.teacherId")
       .select([
         "courses.teacherId",
@@ -210,6 +212,7 @@ export async function fetchPopularTeachers(): Promise<HomepageTeacher[]> {
       .selectFrom("digitalProducts")
       .where("digitalProducts.teacherId", "in", topTeacherIds)
       .where("digitalProducts.status", "=", "published")
+      .where("digitalProducts.visibility", "=", "public")
       .groupBy("digitalProducts.teacherId")
       .select([
         "digitalProducts.teacherId",

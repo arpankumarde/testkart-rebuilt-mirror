@@ -12,6 +12,7 @@ import { Badge } from './Badge';
 import { ShareAssetDialog } from './ShareAssetDialog';
 import { TeacherCardInsights } from './TeacherCardInsights';
 import { TeacherRejectionNote } from './TeacherRejectionNote';
+import { UnlistedBadge } from './UnlistedBadge';
 import { TEACHER_CONSOLE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
 import { Placeholder } from '../helpers/placeholderImages';
 import { performanceHref } from '../helpers/teacherPerformanceFormat';
@@ -140,6 +141,7 @@ export const TeacherLiveTestCard: React.FC<TeacherLiveTestCardProps> = ({
 
         <div className={styles.content}>
           <h3 className={styles.title}>{liveTest.title}</h3>
+          {liveTest.visibility === 'unlisted' && <UnlistedBadge />}
           <p className={styles.description}>{stripHtmlClient(liveTest.description)}</p>
 
           {rejection && <TeacherRejectionNote rejection={rejection} />}
@@ -150,7 +152,9 @@ export const TeacherLiveTestCard: React.FC<TeacherLiveTestCardProps> = ({
               <span>
                 {liveTest.inReview
                   ? 'In review. Students can see it and register once our team approves it.'
-                  : 'This test is not yet visible to students. Submit it for review to make it available.'}
+                  : liveTest.visibility === 'unlisted'
+                    ? 'This test is not live yet. Publish it to open it at once for anyone with the link.'
+                    : 'This test is not yet visible to students. Submit it for review to make it available.'}
               </span>
             </div>
           )}

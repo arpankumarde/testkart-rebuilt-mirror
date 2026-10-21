@@ -1,7 +1,8 @@
 /*
  * Teacher spotlight: the pine showcase panel shared with HomepageFeaturedCourses
- * (--fc-* tokens in base.css), fixed in both themes. Ivory type and tonal
- * blobs on the panel; white spotlight-language cards (--sp-*) on top, each
+ * (--fc-* tokens in base.css); in dark mode it turns muted sage with dark ink,
+ * so it still stands out from the dark page. Panel type and tonal blobs
+ * on the panel; spotlight-language cards (--sp-*) on top, each
  * taking one accent - sage, blue, peach, butter, cycling - for its rank pill,
  * avatar ring, border and arrow. The section is the query container: compact
  * rows on phones, two columns on tablets, five tall cards across on desktop.

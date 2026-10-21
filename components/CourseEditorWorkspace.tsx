@@ -23,6 +23,8 @@ import { CourseSectionBuilder } from "./CourseSectionBuilder";
 import { CourseCardPreview } from "./CourseCardPreview";
 import { CourseSubmitDialog } from "./CourseSubmitDialog";
 import { CreatorBonusClaimCard } from "./CreatorBonusClaimCard";
+import { ContentVisibilityPanel } from "./ContentVisibilityPanel";
+import { UnlistedBadge } from "./UnlistedBadge";
 import { ConsoleConfirmDialog } from "./ConsoleConfirmDialog";
 import { WithdrawReviewButton } from "./WithdrawReviewButton";
 import { TeacherRejectionNote } from "./TeacherRejectionNote";
@@ -170,6 +172,8 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
 
   const isPublished = course.status === "published";
   const isInReview = !isPublished && course.inReview;
+  // Unlisted courses publish at once without review and cannot claim the Creator Bonus.
+  const isUnlisted = course.visibility === "unlisted";
   const status = isPublished
     ? { label: "Live", className: styles.statusLive }
     : isInReview
@@ -188,7 +192,7 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
 
   const submit = () =>
     publishCourseMutation.mutate(
-      { courseId, claimCreatorBonus: claimBonus || undefined },
+      { courseId, claimCreatorBonus: (claimBonus && !isUnlisted) || undefined },
       { onSuccess: () => setSubmitOpen(false) }
     );
 
@@ -256,6 +260,7 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
               )}
               <p className={styles.meta}>
                 <span className={`${styles.status} ${status.className}`}>{status.label}</span>
+                {isUnlisted && <UnlistedBadge />}
                 <span>{summary}</span>
               </p>
             </div>
@@ -284,8 +289,8 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
               ) : (
                 <Button onClick={startSubmit} disabled={publishCourseMutation.isPending || detailsUploading}>
                   <Send size={16} />
-                  {publishesDirectly
-                    ? (publishCourseMutation.isPending ? "Publishing..." : "Publish")
+                  {publishesDirectly || isUnlisted
+                    ? (publishCourseMutation.isPending ? "Publishing..." : isUnlisted ? "Publish as unlisted" : "Publish")
                     : (publishCourseMutation.isPending ? "Submitting..." : "Submit for review")}
                 </Button>
               )}
@@ -350,6 +355,8 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
               pageUrl={isPublished ? `/course/${course.slug}` : undefined}
             />
 
+            <ContentVisibilityPanel contentType="course" contentId={courseId} />
+
             {isPublished ? (
               <p className={styles.asideNote}>
                 This course is live. Changes you save show to students straight away.
@@ -395,7 +402,7 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
                 ) : null}
               </section>
             )}
-            {!adminEdit && !isPublished && !isInReview && (
+            {!adminEdit && !isPublished && !isInReview && !isUnlisted && (
               <CreatorBonusClaimCard
                 type="course"
                 id={courseId}
@@ -416,6 +423,7 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
             readiness={readiness}
             hasUnsavedChanges={detailsDirty}
             isSubmitting={publishCourseMutation.isPending}
+            unlisted={isUnlisted}
             aiContext={{
               title: live.title,
               level: live.level,

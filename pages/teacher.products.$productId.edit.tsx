@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet';
 import { ProductStepForm } from '../components/ProductStepForm';
 import { TeacherFormHeader } from '../components/TeacherFormHeader';
 import { TeacherRejectionBanner } from '../components/TeacherRejectionBanner';
+import { ContentVisibilityPanel } from '../components/ContentVisibilityPanel';
 import styles from './teacher.products.$productId.edit.module.css';
 
 const TeacherEditProductPage: React.FC = () => {
@@ -25,6 +26,7 @@ const TeacherEditProductPage: React.FC = () => {
         />
 
         <TeacherRejectionBanner contentType="digital_product" contentId={parsedId} />
+        <ContentVisibilityPanel contentType="digital_product" contentId={parsedId} />
 
         {parsedId ? (
           // The form copies the product into its state once, and the router

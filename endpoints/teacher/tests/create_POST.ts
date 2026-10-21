@@ -4,6 +4,7 @@ import { slugify } from "../../../helpers/slugify";
 import { primaryExamFields, resolveExamSelection, saveContentExams } from "../../../helpers/contentExams";
 import { schema, OutputType } from "./create_POST.schema";
 import superjson from "superjson";
+import { DEFAULT_CONTENT_VISIBILITY } from "../../../helpers/contentVisibility";
 import { sanitizeHtml } from "../../../helpers/sanitizeHtml";
 import { languagesSummary, normalizeLanguages } from "../../../helpers/itemLanguages";
 import { customAlphabet } from "nanoid";
@@ -61,6 +62,7 @@ export async function handle(request: Request): Promise<Response> {
         title: input.title,
         slug: slug,
         description: input.description,
+        visibility: input.visibility ?? DEFAULT_CONTENT_VISIBILITY,
         ...primaryExamFields(exams),
         subject: JSON.stringify(input.subjects || []),
         price: input.price.toString(),

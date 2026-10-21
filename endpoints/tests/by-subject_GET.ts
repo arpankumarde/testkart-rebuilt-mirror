@@ -95,6 +95,7 @@ export async function handle(request: Request) {
           .as('actualQuestionCount')
       ])
       .where("mockTests.isPublished", "=", true)
+      .where("mockTests.visibility", "=", "public")
       .where("mockTests.deletedAt", "is", null)
       .where((eb) =>
         eb.not(

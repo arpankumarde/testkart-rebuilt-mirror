@@ -1,7 +1,8 @@
 /*
- * Featured courses: a deep pine panel, fixed in both themes like the brand
- * blocks, so the section stands out from the light page around it. Type on
- * the panel is ivory (--fc-panel-*), the blobs are dark tones of the pastels,
+ * Featured courses: a deep pine panel so the section stands out from the light
+ * page around it; in dark mode it turns muted sage with dark ink, so it still
+ * stands out from the dark page. Type on the panel is --fc-panel-*, the blobs
+ * are tones of the panel,
  * and the cards are spotlight-language surfaces (--sp-* tokens in base.css)
  * with the homepage showcase accents (--fc-* in base.css, shared with
  * HomepageTeacherSpotlight).

@@ -31,6 +31,7 @@ export async function fetchShopProductDetailsServer(slug: string): Promise<Outpu
       "digitalProducts.views",
       "digitalProducts.publishedAt",
       "digitalProducts.allowDownload",
+      "digitalProducts.visibility",
      "digitalProducts.examName",
      "digitalProducts.examId",
       "users.displayName as teacherName",
@@ -104,6 +105,7 @@ export async function fetchShopProductDetailsServer(slug: string): Promise<Outpu
     description: product.description,
     shortDescription: product.shortDescription,
     status: "published", // gated by the query above; this row is always published
+    visibility: product.visibility,
     examId: product.examId,
     category: product.category,
     actualPageCount,
@@ -141,6 +143,7 @@ export async function fetchShopProductDetailsServer(slug: string): Promise<Outpu
       previewUrl: null,
       previewPages: product.previewPages,
       pageCount: product.pageCount,
+      visibility: product.visibility,
       fileSizeBytes: product.fileSizeBytes ? Number(product.fileSizeBytes) : null,
       language: product.language,
       languages: product.languages,

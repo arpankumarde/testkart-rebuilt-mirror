@@ -243,10 +243,10 @@
   /*
    * Homepage showcase panels (HomepageFeaturedCourses, HomepageTeacherSpotlight)
    * - a deep pine panel that stands out from the light page, with white cards
-   * on it. The panel, its type and its tonal blobs are fixed in both themes,
-   * like the brand blocks; the card accents below are themed. Each accent has
-   * -tint (fill), -line (hairline), -edge (icons, strong outlines, hover
-   * fills) and -ink (text on the tint, 7:1+).
+   * on it. In dark mode the panel turns muted sage with dark ink, so it still
+   * stands out from the dark page; the card accents below are themed too.
+   * Each accent has -tint (fill), -line (hairline), -edge (icons, strong
+   * outlines, hover fills) and -ink (text on the tint, 7:1+).
    */
   --fc-panel: hsl(172 32% 15%);
   --fc-panel-ink: hsl(42 45% 96%);
@@ -392,7 +392,17 @@
   --sp-blue-edge: hsl(210 35% 58%);
   --sp-blue-ink: hsl(210 60% 85%);
 
-  /* Homepage showcase card accents, dark. The panel tokens stay fixed. */
+  /* Homepage showcase, dark: a muted sage panel with dark ink and tonal blobs,
+     so the panel stands out from the dark page, and darker card accents. */
+  --fc-panel: hsl(140 18% 70%);
+  --fc-panel-ink: hsl(150 40% 9%);
+  --fc-panel-text: hsl(150 28% 15%);
+  --fc-panel-muted: hsl(150 16% 25%);
+  --fc-blob-mint: hsl(148 20% 66%);
+  --fc-blob-blue: hsl(172 16% 66%);
+  --fc-blob-peach: hsl(110 14% 66%);
+  --fc-blob-butter: hsl(80 14% 67%);
+
   --fc-sage-tint: hsl(100 16% 21%);
   --fc-sage-line: hsl(100 12% 33%);
   --fc-sage-edge: hsl(100 28% 62%);

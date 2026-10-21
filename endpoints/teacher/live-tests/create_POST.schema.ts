@@ -5,6 +5,7 @@ import { LiveTests } from "../../../helpers/schema";
 import { validatePrizeTiers, PrizeTier } from "../../../helpers/liveTestPrizeTiers";
 import { isEmptyRichText } from "../../../helpers/liveTestCreationFormSchema";
 import { MAX_ITEM_LANGUAGES, MAX_LANGUAGE_LENGTH } from "../../../helpers/itemLanguages";
+import { visibilityInputSchema } from "../../../helpers/contentVisibility";
 
 const prizeTierSchema = z.object({
   rankFrom: z.number().int().min(1),
@@ -51,6 +52,7 @@ export const schema = z
       .max(5)
       .optional()
       .describe("Official exam names, up to 5, first is the primary"),
+    visibility: visibilityInputSchema,
   })
   .refine((data) => {
     // Only validate if both registrationDeadline and startTime exist

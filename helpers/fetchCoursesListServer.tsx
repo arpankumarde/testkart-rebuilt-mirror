@@ -71,7 +71,8 @@ export async function fetchCoursesListServer(filters: InputType = {}): Promise<O
         WHERE r.course_id = courses.id
       )`.as("ratingsCount"),
     ])
-    .where("courses.status", "=", "published");
+    .where("courses.status", "=", "published")
+    .where("courses.visibility", "=", "public");
 
   if (search) {
     const searchPattern = `%${search}%`;

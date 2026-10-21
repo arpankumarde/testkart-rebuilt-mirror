@@ -12,7 +12,7 @@ export const schema = z.object({
 
 export type InputType = z.infer<typeof schema>;
 
-export type BundleListItem = Pick<Selectable<CourseBundles>, "id" | "title" | "slug" | "isPublished" | "createdAt" | "publishedAt" | "thumbnailUrl"> & {
+export type BundleListItem = Pick<Selectable<CourseBundles>, "id" | "title" | "slug" | "isPublished" | "visibility" | "createdAt" | "publishedAt" | "thumbnailUrl"> & {
     price: number;
     // What students are shown, stored when the bundle was last saved or published.
     originalPrice: number;

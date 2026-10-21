@@ -9,6 +9,7 @@ export async function homepageFetchPopularNotes(): Promise<HomepageNoteItem[]> {
     .innerJoin("users", "users.id", "digitalProducts.teacherId")
     .where("digitalProducts.status", "=", "published")
     .where("digitalProducts.isPublished", "=", true)
+    .where("digitalProducts.visibility", "=", "public")
     .select((eb) => [
       "digitalProducts.id",
       "digitalProducts.title",

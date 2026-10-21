@@ -28,7 +28,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const test = await db
       .selectFrom("mockTests")
-      .select(["teacherId", "isPublished", "isFree", "price", "title", "deletedAt"])
+      .select(["teacherId", "isPublished", "isFree", "price", "title", "deletedAt", "visibility"])
       .where("id", "=", input.testId)
       .executeTakeFirst();
 
@@ -61,8 +61,16 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
+    // Unlisted series skip review and go live at once (helpers/contentVisibility).
+    const unlisted = test.visibility === "unlisted";
+    if (unlisted && input.claimCreatorBonus === true) {
+      return new Response(
+        superjson.stringify({ error: "The Creator Bonus is for public content. Make this test series public to claim it." }),
+        { status: 400 }
+      );
+    }
     const needsReview =
-      input.claimCreatorBonus === true || !(await publishesWithoutReview(db, user.role, test.teacherId));
+      !unlisted && (input.claimCreatorBonus === true || !(await publishesWithoutReview(db, user.role, test.teacherId)));
     if (user.role !== "admin" && (await hasPendingReview(db, "mock_test", input.testId))) {
       return new Response(
         superjson.stringify({ error: alreadyInReviewMessage("test series") }),
@@ -150,7 +158,9 @@ export async function handle(request: Request): Promise<Response> {
     const output: OutputType = {
       success: true,
       published: true,
-      message: "Your test series is live. Students can find and buy it now.",
+      message: unlisted
+        ? "Your test series is live as unlisted. Anyone with its link can open and buy it; it stays out of search and listings."
+        : "Your test series is live. Students can find and buy it now.",
     };
 
     return new Response(superjson.stringify(output));

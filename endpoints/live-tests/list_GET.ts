@@ -186,6 +186,7 @@ export async function handle(request: Request) {
 
     const allTests = await query
       .where("liveTests.isActive", "=", true)
+      .where("liveTests.visibility", "=", "public")
       .orderBy("liveTests.startTime", "asc")
       .execute();
 

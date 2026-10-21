@@ -27,7 +27,7 @@ export const fetchExamBySlugServer = async (
       // Published series listed under this exam, as their primary exam or any other.
       sql<number>`(
         SELECT count(*) FROM mock_tests mt
-        WHERE mt.is_published = true AND (mt.exam_id = exams.id OR EXISTS (
+        WHERE mt.is_published = true AND mt.visibility = 'public' AND (mt.exam_id = exams.id OR EXISTS (
           SELECT 1 FROM mock_test_exams mte WHERE mte.mock_test_id = mt.id AND mte.exam_id = exams.id
         ))
       )`.as("testCount"),

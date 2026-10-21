@@ -37,14 +37,16 @@ export async function handle(request: Request): Promise<Response> {
     let query = db
       .selectFrom("courseBundles")
       .innerJoin("users", "users.id", "courseBundles.teacherId")
-      .where("courseBundles.isPublished", "=", true);
+      .where("courseBundles.isPublished", "=", true)
+      .where("courseBundles.visibility", "=", "public");
 
     // Build a separate count query from scratch with the same filters.
     // We do NOT clone the main query with clearSelect() because the subquery
     // selects (itemCount, courseTitles) cause a "must appear in GROUP BY" error.
     let countQuery = db
       .selectFrom("courseBundles")
-      .where("courseBundles.isPublished", "=", true);
+      .where("courseBundles.isPublished", "=", true)
+      .where("courseBundles.visibility", "=", "public");
 
     if (search) {
       const searchPattern = `%${search}%`;

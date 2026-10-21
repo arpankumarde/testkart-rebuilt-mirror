@@ -28,7 +28,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const course = await db
       .selectFrom("courses")
-      .select(["teacherId", "status", "description", "thumbnailImageUrl", "introVideoUrl"])
+      .select(["teacherId", "status", "description", "thumbnailImageUrl", "introVideoUrl", "visibility"])
       .where("id", "=", courseId)
       .executeTakeFirst();
 
@@ -53,8 +53,16 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
+    // Unlisted courses skip review and go live at once (helpers/contentVisibility).
+    const unlisted = course.visibility === "unlisted";
+    if (unlisted && claimCreatorBonus === true) {
+      return new Response(
+        superjson.stringify({ error: "The Creator Bonus is for public content. Make this course public to claim it." }),
+        { status: 400 }
+      );
+    }
     const needsReview =
-      claimCreatorBonus === true || !(await publishesWithoutReview(db, user.role, course.teacherId));
+      !unlisted && (claimCreatorBonus === true || !(await publishesWithoutReview(db, user.role, course.teacherId)));
     if (user.role !== "admin" && (await hasPendingReview(db, "course", courseId))) {
       return new Response(
         superjson.stringify({ error: alreadyInReviewMessage("course") }),
@@ -128,7 +136,9 @@ export async function handle(request: Request): Promise<Response> {
     const output: OutputType = {
       success: true,
       published: true,
-      message: "Your course is live. Students can find and buy it now.",
+      message: unlisted
+        ? "Your course is live as unlisted. Anyone with its link can open and buy it; it stays out of search and listings."
+        : "Your course is live. Students can find and buy it now.",
     };
 
     return new Response(superjson.stringify(output));

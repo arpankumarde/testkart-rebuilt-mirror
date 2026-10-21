@@ -9,6 +9,7 @@ import {
 } from "../../../helpers/contentExams";
 import { schema, OutputType } from "./create_POST.schema";
 import superjson from "superjson";
+import { DEFAULT_CONTENT_VISIBILITY } from "../../../helpers/contentVisibility";
 import { sanitizeHtml } from "../../../helpers/sanitizeHtml";
 import { courseDiscountError } from "../../../helpers/coursePricing";
 import { languagesSummary, normalizeLanguages } from "../../../helpers/itemLanguages";
@@ -75,6 +76,7 @@ export async function handle(request: Request): Promise<Response> {
         title: input.title,
         slug: slug,
         description: sanitizeHtml(input.description ?? ""),
+        visibility: input.visibility ?? DEFAULT_CONTENT_VISIBILITY,
         level: input.level,
         price: input.price.toString(),
         discountPrice: input.discountPrice == null ? null : input.discountPrice.toString(),

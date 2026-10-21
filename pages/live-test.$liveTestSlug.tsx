@@ -181,6 +181,7 @@ const LiveTestDetailsPage: React.FC = () => {
           `Join the live test '${data.title}'${formattedStartDate ? ` on ${formattedStartDate}` : ''} on Testkart. Compete, learn, and see where you stand.`
         }
         image={data.thumbnailUrl || Placeholder.LIVE}
+        noIndex={data.visibility === "unlisted"}
       />
       <div className={styles.pageContainer}>
         <LiveTestHero liveTest={data} />
