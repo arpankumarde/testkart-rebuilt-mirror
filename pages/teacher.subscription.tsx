@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Helmet } from "react-helmet";
 import { useSearchParams } from "react-router-dom";
 import { postPaymentPayuSubscriptionVerifyAndComplete } from "../endpoints/payment/payu/subscription/verify-and-complete_POST.schema";
@@ -18,7 +18,7 @@ import { useTeacherSubscriptionPaymentInfoQuery, useTeacherWalletSubscribeMutati
 import { Button } from "../components/Button";
 import { Switch } from "../components/Switch";
 import { Input } from "../components/Input";
-import { Tag, X as XIcon, CheckCircle2 } from "lucide-react";
+import { Tag, X as XIcon, CheckCircle2, ChevronDown, AlertCircle } from "lucide-react";
 import { postPaymentPayuRecurringCreateMandate } from "../endpoints/payment/payu/recurring/create-mandate_POST.schema";
 import { postPaymentPayuRedirect } from "../endpoints/payment/payu/redirect_POST.schema";
 import { CurrentSubscriptionStatus } from "../components/CurrentSubscriptionStatus";
@@ -40,6 +40,21 @@ import { DEFAULT_TEACHER_PLATFORM_FEE } from "../helpers/teacherPlatformFeeDefau
 
 import styles from "./teacher.subscription.module.css";
 
+const promoErrorTitle = (message: string) => {
+  const text = message.toLowerCase();
+  if (text.includes("already used")) return "Already used";
+  if (text.includes("usage limit")) return "Limit reached";
+  if (text.includes("no longer active")) return "Expired";
+  if (text.includes("not valid at this time")) return "Not valid now";
+  if (text.includes("invalid")) return "Not recognised";
+  return "Can't apply";
+};
+
+const formatInr = (amount: number) => {
+  const rounded = Math.round(amount * 100) / 100;
+  return rounded.toLocaleString("en-IN", Number.isInteger(rounded) ? undefined : { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
 const SubscriptionPage: React.FC = () => {
   const [historyPage, setHistoryPage] = useState(1);
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
@@ -56,6 +71,10 @@ const SubscriptionPage: React.FC = () => {
     recurringScope: "first_month" | "every_month";
   } | null>(null);
   const [promoError, setPromoError] = useState<string | null>(null);
+  const [promoOpen, setPromoOpen] = useState(false);
+  // Bumped whenever the dialog's plan or promo state resets, so a late
+  // validation reply for an earlier plan is dropped instead of applied.
+  const promoRequestRef = useRef(0);
   const validatePromoMutation = useValidatePromoCodeMutation();
 
   const paymentInfoQuery = useTeacherSubscriptionPaymentInfoQuery();
@@ -184,17 +203,21 @@ const SubscriptionPage: React.FC = () => {
     setPromoCodeInput("");
     setAppliedPromo(null);
     setPromoError(null);
+    setPromoOpen(false);
+    promoRequestRef.current += 1;
     setPendingPlan(plan);
   };
 
   const handleApplyPromoCode = async () => {
-    if (!pendingPlan || !promoCodeInput.trim()) return;
+    if (!pendingPlan || !promoCodeInput.trim() || validatePromoMutation.isPending) return;
     setPromoError(null);
+    const requestId = ++promoRequestRef.current;
     try {
       const result = await validatePromoMutation.mutateAsync({
         code: promoCodeInput.trim(),
         planId: pendingPlan.id,
       });
+      if (requestId !== promoRequestRef.current) return;
       setAppliedPromo({
         code: result.code,
         discountAmount: result.discountAmount,
@@ -202,15 +225,18 @@ const SubscriptionPage: React.FC = () => {
         recurringScope: result.recurringScope,
       });
     } catch (error) {
+      if (requestId !== promoRequestRef.current) return;
       setAppliedPromo(null);
       setPromoError(error instanceof Error ? error.message : "Could not apply this code.");
     }
   };
 
   const handleRemovePromoCode = () => {
+    promoRequestRef.current += 1;
     setAppliedPromo(null);
     setPromoError(null);
     setPromoCodeInput("");
+    setPromoOpen(false);
   };
 
   const handleConfirmSubscription = async () => {
@@ -369,65 +395,129 @@ const SubscriptionPage: React.FC = () => {
 
           {pendingPlan && (
             <div className={styles.paymentBreakdown}>
-              <div className={styles.promoRow}>
-                {appliedPromo ? (
-                  <div className={styles.promoApplied}>
-                    <CheckCircle2 size={16} className={styles.successText} />
-                    <span>
-                      Code <strong>{appliedPromo.code}</strong> applied: -₹{appliedPromo.discountAmount.toLocaleString("en-IN")}
-                      {appliedPromo.recurringScope === "every_month" ? " every renewal" : " this cycle"}
-                    </span>
-                    <button
-                      type="button"
-                      className={styles.promoRemoveButton}
-                      onClick={handleRemovePromoCode}
-                      aria-label="Remove promo code"
-                    >
-                      <XIcon size={14} />
-                    </button>
-                  </div>
-                ) : (
-                  <div className={styles.promoInputRow}>
-                    <Tag size={16} />
-                    <input
-                      type="text"
-                      className={styles.promoInput}
-                      placeholder="Have a promo code?"
-                      value={promoCodeInput}
-                      onChange={(e) => setPromoCodeInput(e.target.value.toUpperCase())}
-                      disabled={isInitiatingPayment}
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleApplyPromoCode}
-                      disabled={!promoCodeInput.trim() || validatePromoMutation.isPending || isInitiatingPayment}
-                    >
-                      {validatePromoMutation.isPending ? "Checking..." : "Apply"}
-                    </Button>
-                  </div>
-                )}
-                {promoError && <p className={styles.formError}>{promoError}</p>}
-              </div>
+              <div className={styles.summaryCard}>
+                <div className={styles.breakdownRow}>
+                  <span>Plan Price:</span>
+                  <strong>₹{formatInr(pendingPlan.price)}</strong>
+                </div>
 
-              <div className={styles.breakdownRow}>
-                <span>Plan Price:</span>
-                {appliedPromo ? (
-                  <strong>
-                    <span className={styles.strikethrough}>₹{pendingPlan.price.toLocaleString("en-IN")}</span>{" "}
-                    ₹{appliedPromo.finalPrice.toLocaleString("en-IN")}
-                  </strong>
-                ) : (
-                  <strong>₹{pendingPlan.price.toLocaleString("en-IN")}</strong>
+                <div className={styles.promoSection}>
+                  {appliedPromo ? (
+                    <div className={styles.promoApplied} role="status">
+                      <CheckCircle2 size={18} className={styles.promoAppliedIcon} aria-hidden />
+                      <div className={styles.promoAppliedText}>
+                        <span className={styles.promoAppliedCode}>{appliedPromo.code} applied</span>
+                        <span className={styles.promoAppliedNote}>
+                          You save ₹{formatInr(appliedPromo.discountAmount)}
+                          {appliedPromo.recurringScope === "every_month" ? " now and on every renewal" : " on this payment"}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        className={styles.promoRemoveButton}
+                        onClick={handleRemovePromoCode}
+                        disabled={isInitiatingPayment}
+                        aria-label={`Remove promo code ${appliedPromo.code}`}
+                      >
+                        <XIcon size={14} aria-hidden />
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        className={styles.promoToggle}
+                        aria-expanded={promoOpen}
+                        aria-controls="promo-code-panel"
+                        onClick={() => setPromoOpen((open) => !open)}
+                        disabled={isInitiatingPayment}
+                      >
+                        <Tag size={16} aria-hidden />
+                        <span>Have a promo code?</span>
+                        <ChevronDown size={16} className={styles.promoChevron} aria-hidden />
+                      </button>
+
+                      {promoOpen && (
+                        <form
+                          id="promo-code-panel"
+                          className={styles.promoForm}
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            handleApplyPromoCode();
+                          }}
+                          noValidate
+                        >
+                          <div className={styles.promoField}>
+                            <input
+                              type="text"
+                              className={styles.promoInput}
+                              placeholder="Enter promo code"
+                              aria-label="Promo code"
+                              value={promoCodeInput}
+                              onChange={(e) => {
+                                setPromoCodeInput(e.target.value.toUpperCase());
+                                if (promoError) setPromoError(null);
+                              }}
+                              readOnly={validatePromoMutation.isPending}
+                              disabled={isInitiatingPayment}
+                              aria-invalid={!!promoError}
+                              aria-describedby={promoError ? "promo-code-error" : undefined}
+                              autoComplete="off"
+                              autoCapitalize="characters"
+                              spellCheck={false}
+                              autoFocus
+                            />
+                            <button
+                              type="submit"
+                              className={styles.promoApply}
+                              disabled={!promoCodeInput.trim() || validatePromoMutation.isPending || isInitiatingPayment}
+                              aria-busy={validatePromoMutation.isPending}
+                            >
+                              {validatePromoMutation.isPending ? (
+                                <>
+                                  <Loader2 size={14} className={styles.spinner} aria-hidden />
+                                  Checking
+                                </>
+                              ) : (
+                                "Apply"
+                              )}
+                            </button>
+                          </div>
+                          {promoError && (
+                            <p id="promo-code-error" className={styles.promoError} role="alert">
+                              <AlertCircle size={16} aria-hidden />
+                              <span>
+                                <strong>{promoErrorTitle(promoError)}:</strong> {promoError}
+                              </span>
+                            </p>
+                          )}
+                        </form>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {appliedPromo && (
+                  <>
+                    <div className={styles.breakdownRow}>
+                      <span>Promo Discount ({appliedPromo.code}):</span>
+                      <strong className={styles.successText}>-₹{formatInr(appliedPromo.discountAmount)}</strong>
+                    </div>
+                    <div className={`${styles.breakdownRow} ${styles.totalRow}`}>
+                      <span>Total Payable:</span>
+                      <strong>₹{formatInr(appliedPromo.finalPrice)}</strong>
+                    </div>
+                  </>
                 )}
               </div>
 
               {paymentMode === "normal" && walletBalance > 0 && (
                 <div className={styles.walletToggleRow}>
-                  <label htmlFor="dialog-use-wallet">Use Wallet Balance (Available: ₹{walletBalance.toLocaleString("en-IN")})</label>
+                  <label htmlFor="dialog-use-wallet">Use Wallet Balance (Available: ₹{formatInr(walletBalance)})</label>
                   <Switch 
                     id="dialog-use-wallet" 
+                    className={styles.walletSwitch}
                     checked={useWalletBalance} 
                     onCheckedChange={setUseWalletBalance} 
                   />
@@ -436,17 +526,17 @@ const SubscriptionPage: React.FC = () => {
 
               {paymentMode === "recurring" ? (
                 <p className={styles.warningNote}>
-                  You'll set up autopay and be charged ₹{(appliedPromo?.finalPrice ?? pendingPlan.price).toLocaleString("en-IN")} now
+                  You'll set up autopay and be charged ₹{formatInr(appliedPromo?.finalPrice ?? pendingPlan.price)} now
                   {appliedPromo?.recurringScope === "every_month"
-                    ? `. Future renewals are discounted the same way, for ₹${Math.max(1, pendingPlan.price - appliedPromo.discountAmount).toLocaleString("en-IN")} each.`
-                    : `. Renewals after this cycle are charged the full ₹${pendingPlan.price.toLocaleString("en-IN")}.`}
+                    ? `. Future renewals are discounted the same way, for ₹${formatInr(Math.max(1, pendingPlan.price - appliedPromo.discountAmount))} each.`
+                    : `. Renewals after this cycle are charged the full ₹${formatInr(pendingPlan.price)}.`}
                 </p>
               ) : useWalletBalance && walletBalance > 0 ? (
                 <>
                   <div className={styles.breakdownRow}>
                     <span>Wallet Deduction:</span>
                     <strong className={styles.successText}>
-                      -₹{Math.min(walletBalance, appliedPromo?.finalPrice ?? pendingPlan.price).toLocaleString("en-IN")}
+                      -₹{formatInr(Math.min(walletBalance, appliedPromo?.finalPrice ?? pendingPlan.price))}
                     </strong>
                   </div>
                   <div className={styles.breakdownRow}>
@@ -454,14 +544,14 @@ const SubscriptionPage: React.FC = () => {
                     {walletBalance >= (appliedPromo?.finalPrice ?? pendingPlan.price) ? (
                       <strong className={styles.successText}>No additional payment needed</strong>
                     ) : (
-                      <strong>₹{((appliedPromo?.finalPrice ?? pendingPlan.price) - walletBalance).toLocaleString("en-IN")}</strong>
+                      <strong>₹{formatInr((appliedPromo?.finalPrice ?? pendingPlan.price) - walletBalance)}</strong>
                     )}
                   </div>
                 </>
               ) : (
                 <div className={styles.breakdownRow}>
                   <span>Full payment via PayU:</span>
-                  <strong>₹{(appliedPromo?.finalPrice ?? pendingPlan.price).toLocaleString("en-IN")}</strong>
+                  <strong>₹{formatInr(appliedPromo?.finalPrice ?? pendingPlan.price)}</strong>
                 </div>
               )}
 
@@ -474,10 +564,10 @@ const SubscriptionPage: React.FC = () => {
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setPendingPlan(null)} disabled={isInitiatingPayment}>
+            <Button variant="outline" className={styles.payCancelButton} onClick={() => setPendingPlan(null)} disabled={isInitiatingPayment}>
               Cancel
             </Button>
-            <Button onClick={handleConfirmSubscription} disabled={isInitiatingPayment}>
+            <Button className={styles.payConfirmButton} onClick={handleConfirmSubscription} disabled={isInitiatingPayment}>
               {isInitiatingPayment ? (
                 <><Loader2 size={16} className={styles.spinner} style={{ marginRight: 8 }} /> Processing...</>
               ) : (
