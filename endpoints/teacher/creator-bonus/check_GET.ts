@@ -6,25 +6,27 @@ import {
   campaignAmount,
   campaignRequirements,
   checkClaimable,
+  examBonusOptions,
   getActiveCampaign,
 } from "../../../helpers/teacherCampaign";
 import { campaignProgress } from "../../../helpers/teacherCampaignRules";
 import { schema, type OutputType } from "./check_GET.schema";
 
-/* Whether the submit dialog should offer the Creator Bonus for one item. */
+/* Whether the submit dialog should offer the Creator Bonus, or an Exam Bonus, for one item. */
 export async function handle(request: Request): Promise<Response> {
   try {
     const { user, effectiveTeacherId } = await getServerUserSession(request);
     if (user.role !== "teacher") {
-      return new Response(superjson.stringify({ active: false } satisfies OutputType));
+      return new Response(superjson.stringify({ active: false, examOptions: [] } satisfies OutputType));
     }
     const url = new URL(request.url);
     const parsed = schema.safeParse({ type: url.searchParams.get("type"), id: url.searchParams.get("id") });
     if (!parsed.success) return new Response(superjson.stringify({ error: "Invalid request" }), { status: 400 });
     const { type, id } = parsed.data;
 
+    const examOptions = type === "mock_test" ? await examBonusOptions(db, effectiveTeacherId, id) : [];
     const campaign = await getActiveCampaign(db);
-    if (!campaign) return new Response(superjson.stringify({ active: false } satisfies OutputType));
+    if (!campaign) return new Response(superjson.stringify({ active: false, examOptions } satisfies OutputType));
 
     const check = await checkClaimable(db, campaign, effectiveTeacherId, type, id);
     const output: OutputType = {
@@ -36,6 +38,7 @@ export async function handle(request: Request): Promise<Response> {
       progress: check.criteria ? campaignProgress(check.criteria, campaignRequirements(campaign)) : null,
       videos: check.criteria?.kind === "course" ? check.criteria.lessons : null,
       minMinutesPerVideo: campaign.minMinutesPerVideo,
+      examOptions,
     };
     return new Response(superjson.stringify(output));
   } catch (error) {

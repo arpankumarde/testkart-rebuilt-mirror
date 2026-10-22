@@ -59,6 +59,7 @@ export type OutputType = {
   products: SearchResultItem[];
   teachers: SearchTeacherItem[];
   organizations: SearchOrganizationItem[];
+  teacherTotal: number;
   totalResults: number;
 };
 

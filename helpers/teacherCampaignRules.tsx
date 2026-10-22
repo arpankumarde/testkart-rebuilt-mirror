@@ -6,9 +6,39 @@
  * the campaign's size rules. The teacher claims it when submitting for review;
  * approving the content does not pay it. An admin credits it separately, as a
  * call on quality, and only then does it reach the teacher's balance.
+ *
+ * An Exam Bonus is the same deal as a short campaign for one exam in the news:
+ * test series only, with slots shared by all teachers.
  */
 
 export type CampaignContentType = "mock_test" | "course";
+
+export type CampaignKind = "creator" | "exam";
+
+/** Starting values for a new Exam Bonus. An admin can change them per campaign. */
+export const EXAM_BONUS_DEFAULTS = {
+  totalSlots: 10,
+  amount: 100,
+  maxPerTeacher: 3,
+  days: 7,
+  minTests: 10,
+  minQuestions: 500,
+} as const;
+
+export const examBonusTitle = (examName: string): string => `${examName} Exam Bonus`;
+
+/** A running Exam Bonus a test series is tagged for, as the submit screen shows it. */
+export type ExamBonusOption = {
+  campaignId: number;
+  title: string;
+  amount: number;
+  slotsLeft: number;
+  totalSlots: number;
+  endsAt: Date;
+  canClaim: boolean;
+  /** Why this series cannot claim it now; null when it can. */
+  reason: string | null;
+};
 
 /** Why a course video does not count toward the bonus. */
 export type CourseVideoReason = "no_file" | "external" | "duplicate" | "short";

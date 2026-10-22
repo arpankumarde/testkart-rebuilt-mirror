@@ -10,8 +10,12 @@ import type {
 export const BONUS_CLAIM_FILTERS = ["claimed", "credited", "declined", "reversed", "withdrawn", "all"] as const;
 export type BonusClaimFilter = (typeof BONUS_CLAIM_FILTERS)[number];
 
+export const BONUS_KIND_FILTERS = ["all", "creator", "exam"] as const;
+export type BonusKindFilter = (typeof BONUS_KIND_FILTERS)[number];
+
 export const schema = z.object({
   status: z.enum(BONUS_CLAIM_FILTERS).default("claimed"),
+  kind: z.enum(BONUS_KIND_FILTERS).default("all"),
   page: z.coerce.number().int().positive().default(1),
 });
 
@@ -21,6 +25,7 @@ export type BonusClaimAdminView = {
   id: number;
   status: CampaignClaimStatus;
   amount: number;
+  campaignTitle: string;
   contentType: CampaignContentType;
   contentId: number;
   contentTitle: string;
@@ -34,6 +39,8 @@ export type BonusClaimAdminView = {
   criteriaNow: CampaignCriteria | null;
   /** Whether criteriaNow meets the campaign rules. */
   meetsNow: boolean | null;
+  /** Open Exam Bonus claims: the series no longer carries the campaign's exam tag. */
+  examTagMissing: boolean;
   requirements: CampaignRequirements;
   slots: { credited: number; limit: number };
   decisionNote: string | null;
@@ -55,6 +62,7 @@ export type OutputType = {
 export const getAdminBonusClaims = async (params: InputType = {}, init?: RequestInit): Promise<OutputType> => {
   const query = new URLSearchParams();
   if (params.status) query.set("status", params.status);
+  if (params.kind) query.set("kind", params.kind);
   if (params.page) query.set("page", String(params.page));
   const result = await fetch(`/_api/admin/content-reviews/bonus-claims?${query.toString()}`, {
     method: "GET",

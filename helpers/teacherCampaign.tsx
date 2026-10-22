@@ -1,6 +1,7 @@
 import { sql, type Kysely, type Selectable, type Transaction } from "kysely";
 import type { DB, TeacherCampaignClaims, TeacherCampaigns } from "./schema";
 import { lockWallet } from "./walletLock";
+import { loadContentExamList } from "./contentExams";
 import {
   CAMPAIGN_CONTENT_NOUNS,
   evaluateCourseVideos,
@@ -10,6 +11,7 @@ import {
   type CampaignCriteria,
   type CampaignRequirements,
   type CourseVideoRow,
+  type ExamBonusOption,
 } from "./teacherCampaignRules";
 
 /*
@@ -29,6 +31,11 @@ import {
  *   cannot pass the cap together.
  * - Course videos count only as uploads, once per file, and at least
  *   minMinutesPerVideo long (evaluateCourseVideos).
+ * - An Exam Bonus (kind 'exam') is a short campaign for one exam: test series
+ *   only, with slots shared by all teachers. The series must carry the exam's tag
+ *   and must never have been public, checked live, so these campaigns have no
+ *   excluded content. Its slots are separate from the Creator Bonus ones, but the
+ *   one claim per item rule covers both, so an item earns one or the other.
  */
 
 type Executor = Kysely<DB> | Transaction<DB>;
@@ -36,6 +43,7 @@ export type Campaign = Selectable<TeacherCampaigns>;
 export type CampaignClaim = Selectable<TeacherCampaignClaims>;
 
 const SLOT_STATUSES = ["claimed", "credited"] as const;
+const EXAM_SLOT_STATUSES = ["claimed", "credited", "reversed"] as const;
 
 export const campaignRequirements = (c: Campaign): CampaignRequirements => ({
   minTests: c.minTests,
@@ -54,16 +62,75 @@ export const campaignSlotLimit = (c: Campaign, type: CampaignContentType): numbe
 export const isCampaignContentType = (type: string): type is CampaignContentType =>
   type === "mock_test" || type === "course";
 
+/** The always-on Creator Bonus. Exam Bonus campaigns run beside it: getRunningExamCampaigns. */
 export async function getActiveCampaign(executor: Executor, now = new Date()): Promise<Campaign | null> {
   const row = await executor
     .selectFrom("teacherCampaigns")
     .selectAll()
+    .where("kind", "=", "creator")
     .where("isActive", "=", true)
     .where("startsAt", "<=", now)
     .where((eb) => eb.or([eb("endsAt", "is", null), eb("endsAt", ">", now)]))
     .orderBy("id", "desc")
     .executeTakeFirst();
   return row ?? null;
+}
+
+/** Exam Bonus campaigns open for claims now, the one ending soonest first. */
+export async function getRunningExamCampaigns(executor: Executor, now = new Date()): Promise<Campaign[]> {
+  return executor
+    .selectFrom("teacherCampaigns")
+    .selectAll()
+    .where("kind", "=", "exam")
+    .where("isActive", "=", true)
+    .where("startsAt", "<=", now)
+    .where("endsAt", ">", now)
+    .orderBy("endsAt", "asc")
+    .orderBy("id", "asc")
+    .execute();
+}
+
+/** Slots taken per campaign across all teachers. A reversed bonus keeps its slot. */
+export async function examSlotsTaken(executor: Executor, campaignIds: number[]): Promise<Map<number, number>> {
+  const result = new Map<number, number>();
+  if (campaignIds.length === 0) return result;
+  const rows = await executor
+    .selectFrom("teacherCampaignClaims")
+    .select(["campaignId", (eb) => eb.fn.countAll<string>().as("count")])
+    .where("campaignId", "in", campaignIds)
+    .where("status", "in", [...EXAM_SLOT_STATUSES])
+    .groupBy("campaignId")
+    .execute();
+  for (const row of rows) result.set(row.campaignId, Number(row.count));
+  return result;
+}
+
+export async function isTaggedForExam(executor: Executor, campaign: Campaign, mockTestId: number): Promise<boolean> {
+  if (campaign.examId === null) return false;
+  const exams = await loadContentExamList(executor, "mock_test", mockTestId);
+  return exams.some((exam) => exam.examId === campaign.examId);
+}
+
+async function wasEverPublic(executor: Executor, mockTestId: number): Promise<boolean> {
+  const row = await executor
+    .selectFrom("mockTests")
+    .select((eb) => [
+      "isPublished",
+      "wasEverPublished",
+      eb
+        .exists(
+          eb
+            .selectFrom("contentReviews")
+            .select("contentReviews.id")
+            .where("contentReviews.contentType", "=", "mock_test")
+            .whereRef("contentReviews.contentId", "=", "mockTests.id")
+            .where("contentReviews.status", "=", "approved")
+        )
+        .as("approved"),
+    ])
+    .where("id", "=", mockTestId)
+    .executeTakeFirst();
+  return !row || row.isPublished || row.wasEverPublished || Boolean(row.approved);
 }
 
 /** Tests that have at least one question, and the questions across untrashed tests. */
@@ -218,7 +285,17 @@ export async function checkClaimable(
   if (!content.usable) {
     return { ok: false, reason: `This ${noun} cannot take part in the ${campaign.title}.`, criteria: null };
   }
-  if (await isExcludedFromCampaign(executor, campaign.id, type, id)) {
+  if (campaign.kind === "exam") {
+    if (type !== "mock_test") {
+      return { ok: false, reason: `The ${campaign.title} is for test series only.`, criteria: null };
+    }
+    if (!(await isTaggedForExam(executor, campaign, id))) {
+      return { ok: false, reason: `Tag this test series with the exam to claim the ${campaign.title}.`, criteria: null };
+    }
+    if (await wasEverPublic(executor, id)) {
+      return { ok: false, reason: `This test series has been public before, so it cannot claim the ${campaign.title}.`, criteria: null };
+    }
+  } else if (await isExcludedFromCampaign(executor, campaign.id, type, id)) {
     return {
       ok: false,
       reason: `This ${noun} was already live before the ${campaign.title} started, so it cannot claim it.`,
@@ -242,6 +319,13 @@ export async function checkClaimable(
     return { ok: false, reason: `This ${noun} was not selected for the bonus, so it cannot claim again.`, criteria: null };
   }
 
+  if (campaign.totalSlots !== null) {
+    const taken = (await examSlotsTaken(executor, [campaign.id])).get(campaign.id) ?? 0;
+    if (taken >= campaign.totalSlots) {
+      return { ok: false, reason: `All ${campaign.totalSlots} slots in the ${campaign.title} are taken.`, criteria: null };
+    }
+  }
+
   const req = campaignRequirements(campaign);
   const criteria = await measureContent(executor, type, id, req);
   if (!meetsCampaignCriteria(criteria, req)) {
@@ -260,13 +344,67 @@ export async function checkClaimable(
   return { ok: true, criteria, amount: campaignAmount(campaign, type) };
 }
 
-/** Claims the bonus alongside a review submission. Throws a teacher-readable Error when it cannot. */
+/** The running Exam Bonus campaigns for the exams this series is tagged with, and whether it can claim each. */
+export async function examBonusOptions(
+  executor: Executor,
+  teacherId: number,
+  mockTestId: number
+): Promise<ExamBonusOption[]> {
+  const running = await getRunningExamCampaigns(executor);
+  if (running.length === 0) return [];
+  const exams = await loadContentExamList(executor, "mock_test", mockTestId);
+  const tagged = running.filter((campaign) => exams.some((exam) => exam.examId === campaign.examId));
+  const taken = await examSlotsTaken(executor, tagged.map((campaign) => campaign.id));
+  const options: ExamBonusOption[] = [];
+  for (const campaign of tagged) {
+    const check = await checkClaimable(executor, campaign, teacherId, "mock_test", mockTestId);
+    const totalSlots = campaign.totalSlots ?? 0;
+    options.push({
+      campaignId: campaign.id,
+      title: campaign.title,
+      amount: campaignAmount(campaign, "mock_test"),
+      slotsLeft: Math.max(0, totalSlots - (taken.get(campaign.id) ?? 0)),
+      totalSlots,
+      endsAt: campaign.endsAt!,
+      canClaim: check.ok,
+      reason: check.ok ? null : check.reason,
+    });
+  }
+  return options;
+}
+
+/** Locks an Exam Bonus so two teachers cannot take its last slot together. Null when it is not running. */
+async function lockRunningExamCampaign(trx: Transaction<DB>, campaignId: number, now = new Date()): Promise<Campaign | null> {
+  const row = await trx
+    .selectFrom("teacherCampaigns")
+    .selectAll()
+    .where("id", "=", campaignId)
+    .where("kind", "=", "exam")
+    .forUpdate()
+    .executeTakeFirst();
+  if (!row || !row.isActive || row.startsAt > now || !row.endsAt || row.endsAt <= now) return null;
+  return row;
+}
+
+/**
+ * Claims a bonus alongside a review submission: the Creator Bonus, or the Exam
+ * Bonus named by examCampaignId. Throws a teacher-readable Error when it cannot.
+ */
 export async function createClaim(
   trx: Transaction<DB>,
-  input: { teacherId: number; type: CampaignContentType; contentId: number; reviewId: number }
+  input: { teacherId: number; type: CampaignContentType; contentId: number; reviewId: number; examCampaignId?: number }
 ): Promise<{ amount: number; campaignTitle: string }> {
-  const campaign = await getActiveCampaign(trx);
-  if (!campaign) throw new Error("The Creator Bonus is not running right now. Submit without claiming it.");
+  const campaign =
+    input.examCampaignId === undefined
+      ? await getActiveCampaign(trx)
+      : await lockRunningExamCampaign(trx, input.examCampaignId);
+  if (!campaign) {
+    throw new Error(
+      input.examCampaignId === undefined
+        ? "The Creator Bonus is not running right now. Submit without claiming it."
+        : "This Exam Bonus has ended. Submit without it, or pick another bonus."
+    );
+  }
   await lockWallet(trx, input.teacherId);
   const check = await checkClaimable(trx, campaign, input.teacherId, input.type, input.contentId);
   if (!check.ok) throw new Error(check.reason);
@@ -343,6 +481,9 @@ export async function creditClaim(
   const criteria = await measureContent(trx, type, claim.contentId, req);
   if (!meetsCampaignCriteria(criteria, req)) {
     throw new Error(`This ${noun} no longer meets the rules: it needs ${missingCriteriaText(criteria, req)}.`);
+  }
+  if (campaign.kind === "exam" && !(await isTaggedForExam(trx, campaign, claim.contentId))) {
+    throw new Error(`This ${noun} is no longer tagged with the exam of the ${campaign.title}.`);
   }
   const limit = campaignSlotLimit(campaign, type);
   if ((await slotsUsed(trx, campaign.id, claim.teacherId, type, ["credited"])) >= limit) {

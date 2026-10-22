@@ -33,16 +33,40 @@ export type CampaignItem = {
   declines: number;
   /** Courses only: video lessons that do not count (links, no file, repeats, too short). */
   uncountedVideos: number;
+  /** A running Exam Bonus this test series can still claim, if any. */
+  examBonus: { title: string; amount: number } | null;
+  /** The Exam Bonus this item's claim belongs to; null for the Creator Bonus or no claim. */
+  claimedExamBonus: string | null;
 };
 
 export type CampaignSlots = { used: number; credited: number; limit: number; amount: number };
+
+/** A running Exam Bonus as every teacher sees it, with their own slots. */
+export type ExamCampaignCard = {
+  id: number;
+  title: string;
+  examId: number | null;
+  examName: string;
+  amount: number;
+  totalSlots: number;
+  slotsTaken: number;
+  perTeacher: number;
+  mine: number;
+  minTests: number;
+  minQuestions: number;
+  endsAt: Date;
+  news: { title: string; slug: string } | null;
+};
 
 export type OutputType =
   | { campaign: null }
   | {
       campaign: { title: string; startsAt: Date; requirements: CampaignRequirements; maxDeclinesPerItem: number };
       slots: Record<CampaignContentType, CampaignSlots>;
+      /** Creator Bonus money only, so it stays within the campaign's maximum. */
       earned: number;
+      examEarned: number;
+      examCampaigns: ExamCampaignCard[];
       items: CampaignItem[];
     };
 

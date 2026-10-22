@@ -63,14 +63,24 @@ export async function handle(request: Request): Promise<Response> {
 
     // Unlisted series skip review and go live at once (helpers/contentVisibility).
     const unlisted = test.visibility === "unlisted";
-    if (unlisted && input.claimCreatorBonus === true) {
+    const claimsExamBonus = input.examBonusCampaignId !== undefined;
+    const claimsBonus = input.claimCreatorBonus === true || claimsExamBonus;
+    if (input.claimCreatorBonus === true && claimsExamBonus) {
       return new Response(
-        superjson.stringify({ error: "The Creator Bonus is for public content. Make this test series public to claim it." }),
+        superjson.stringify({ error: "A test series earns one bonus. Pick the Creator Bonus or an Exam Bonus." }),
+        { status: 400 }
+      );
+    }
+    if (unlisted && claimsBonus) {
+      return new Response(
+        superjson.stringify({
+          error: `The ${claimsExamBonus ? "Exam" : "Creator"} Bonus is for public content. Make this test series public to claim it.`,
+        }),
         { status: 400 }
       );
     }
     const needsReview =
-      !unlisted && (input.claimCreatorBonus === true || !(await publishesWithoutReview(db, user.role, test.teacherId)));
+      !unlisted && (claimsBonus || !(await publishesWithoutReview(db, user.role, test.teacherId)));
     if (user.role !== "admin" && (await hasPendingReview(db, "mock_test", input.testId))) {
       return new Response(
         superjson.stringify({ error: alreadyInReviewMessage("test series") }),
@@ -130,7 +140,8 @@ export async function handle(request: Request): Promise<Response> {
     if (needsReview) {
       const submitted = await submitForReview(
         { contentType: "mock_test", contentId: input.testId, teacherId: test.teacherId },
-        input.claimCreatorBonus === true
+        claimsBonus,
+        input.examBonusCampaignId
       );
       if (!submitted.ok) {
         return new Response(superjson.stringify({ error: submitted.error }), { status: 400 });

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import superjson from "superjson";
-import type { CampaignLesson, CampaignProgressItem } from "../../../helpers/teacherCampaignRules";
+import type { CampaignLesson, CampaignProgressItem, ExamBonusOption } from "../../../helpers/teacherCampaignRules";
 
 export const schema = z.object({
   type: z.enum(["mock_test", "course"]),
@@ -10,7 +10,7 @@ export const schema = z.object({
 export type InputType = z.infer<typeof schema>;
 
 export type OutputType =
-  | { active: false }
+  | { active: false; examOptions: ExamBonusOption[] }
   | {
       active: true;
       title: string;
@@ -22,6 +22,8 @@ export type OutputType =
       /** Courses: every video lesson with whether it counts and why not. */
       videos: CampaignLesson[] | null;
       minMinutesPerVideo: number;
+      /** Test series: the running Exam Bonus campaigns for the exams it is tagged with. */
+      examOptions: ExamBonusOption[];
     };
 
 export const getTeacherCreatorBonusCheck = async (params: InputType, init?: RequestInit): Promise<OutputType> => {

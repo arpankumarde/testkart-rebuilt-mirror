@@ -5,7 +5,7 @@ import { SEOHead } from '../components/SEOHead';
 import { Button } from '../components/Button';
 import { Skeleton } from '../components/Skeleton';
 import { VerifiedBadge } from '../components/VerifiedBadge';
-import { useHomepageSearch } from '../helpers/useHomepageSearch';
+import { useHomepageSearch, useMoreTeacherResults } from '../helpers/useHomepageSearch';
 import { useDebounce } from '../helpers/useDebounce';
 import { SearchResultItem, SearchTeacherItem, SearchOrganizationItem } from '../endpoints/homepage/search_GET.schema';
 import { TeacherProductCard } from '../components/HomepageContentSection';
@@ -21,6 +21,8 @@ const ORG_TYPE_LABELS: Record<string, string> = {
   university: 'University',
   other: 'Organisation',
 };
+
+const SEARCH_PAGE_SIZE = 10;
 
 const OrganizationResultCard = ({ organization }: { organization: SearchOrganizationItem }) => {
   return (
@@ -98,9 +100,15 @@ export default function SearchPage() {
     }
   };
 
-  const { data, isFetching } = useHomepageSearch(debouncedQuery, 10);
+  const { data, isFetching } = useHomepageSearch(debouncedQuery, SEARCH_PAGE_SIZE);
+  const firstTeachers = data?.teachers || [];
+  const moreTeachers = useMoreTeacherResults(debouncedQuery, firstTeachers.length, SEARCH_PAGE_SIZE);
 
-  const displayTeachers = data?.teachers || [];
+  const displayTeachers = [
+    ...firstTeachers,
+    ...(moreTeachers.data?.pages.flatMap((page) => page.teachers) ?? []),
+  ];
+  const teacherTotal = data?.teacherTotal ?? 0;
   const displayOrganizations = data?.organizations || [];
   const displayTests = data?.tests || [];
   const displayCourses = data?.courses || [];
@@ -163,7 +171,7 @@ export default function SearchPage() {
                 <div className={styles.sectionHeader}>
                   <div className={styles.sectionTitleWrapper}>
                     <User className={styles.sectionIcon} size={24} />
-                    <h2>Teachers <span className={styles.count}>({displayTeachers.length})</span></h2>
+                    <h2>Teachers <span className={styles.count}>({teacherTotal})</span></h2>
                   </div>
                 </div>
 
@@ -184,6 +192,23 @@ export default function SearchPage() {
                     ))
                   )}
                 </div>
+
+                {!isLoading && displayTeachers.length < teacherTotal && (
+                  <div className={styles.loadMoreRow}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => moreTeachers.fetchNextPage()}
+                      disabled={moreTeachers.isFetchingNextPage}
+                    >
+                      {moreTeachers.isFetchingNextPage
+                        ? 'Loading...'
+                        : moreTeachers.isError
+                          ? 'Try again'
+                          : 'Load more teachers'}
+                    </Button>
+                  </div>
+                )}
               </section>
             )}
 

@@ -467,15 +467,27 @@ export async function handle(request: Request): Promise<Response> {
       reviewIds.length > 0
         ? await db
             .selectFrom("teacherCampaignClaims")
-            .select(["id", "contentReviewId", "amount", "status"])
-            .where("contentReviewId", "in", reviewIds)
-            .orderBy("id", "desc")
+            .innerJoin("teacherCampaigns", "teacherCampaigns.id", "teacherCampaignClaims.campaignId")
+            .select([
+              "teacherCampaignClaims.id",
+              "teacherCampaignClaims.contentReviewId",
+              "teacherCampaignClaims.amount",
+              "teacherCampaignClaims.status",
+              "teacherCampaigns.title as campaignTitle",
+            ])
+            .where("teacherCampaignClaims.contentReviewId", "in", reviewIds)
+            .orderBy("teacherCampaignClaims.id", "desc")
             .execute()
         : [];
-    const bonusByReview = new Map<number, { id: number; amount: number; status: string }>();
+    const bonusByReview = new Map<number, { id: number; amount: number; status: string; campaignTitle: string }>();
     for (const claim of bonusClaims) {
       if (claim.contentReviewId !== null && !bonusByReview.has(claim.contentReviewId)) {
-        bonusByReview.set(claim.contentReviewId, { id: claim.id, amount: Number(claim.amount), status: claim.status });
+        bonusByReview.set(claim.contentReviewId, {
+          id: claim.id,
+          amount: Number(claim.amount),
+          status: claim.status,
+          campaignTitle: claim.campaignTitle,
+        });
       }
     }
 

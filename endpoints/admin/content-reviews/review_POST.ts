@@ -141,22 +141,23 @@ export async function handle(request: Request): Promise<Response> {
       if (input.creditBonus) {
         const claim = await db
           .selectFrom("teacherCampaignClaims")
-          .select("id")
-          .where("contentReviewId", "=", input.reviewId)
-          .where("status", "=", "claimed")
+          .innerJoin("teacherCampaigns", "teacherCampaigns.id", "teacherCampaignClaims.campaignId")
+          .select(["teacherCampaignClaims.id", "teacherCampaigns.title"])
+          .where("teacherCampaignClaims.contentReviewId", "=", input.reviewId)
+          .where("teacherCampaignClaims.status", "=", "claimed")
           .executeTakeFirst();
         if (!claim) {
-          bonusNote = " No Creator Bonus claim was waiting on this submission.";
+          bonusNote = " No bonus claim was waiting on this submission.";
         } else {
           try {
             const credited: CampaignClaim = await db
               .transaction()
               .execute((trx) => creditClaim(trx, claim.id, admin.id, new Date()));
             await sendCampaignDecisionEmail(credited, "credited");
-            bonusNote = ` ${formatRupees(Number(credited.amount))} Creator Bonus credited.`;
+            bonusNote = ` ${formatRupees(Number(credited.amount))} ${claim.title} credited.`;
           } catch (creditError) {
             const reason = creditError instanceof Error ? creditError.message : "it could not be credited.";
-            bonusNote = ` The Creator Bonus was not credited: ${reason}`;
+            bonusNote = ` The ${claim.title} was not credited: ${reason}`;
           }
         }
       }

@@ -6,7 +6,7 @@ import { sendCampaignDecisionEmail } from "../../../helpers/teacherCampaignEmail
 import { formatRupees } from "../../../helpers/teacherCampaignRules";
 import { schema, type OutputType } from "./bonus-decide_POST.schema";
 
-/* Credit, decline or reverse one Creator Bonus claim. The teacher is emailed each decision. */
+/* Credit, decline or reverse one bonus claim. The teacher is emailed each decision. */
 export async function handle(request: Request): Promise<Response> {
   let admin: Awaited<ReturnType<typeof getAdminServerSessionOrThrow>>;
   try {

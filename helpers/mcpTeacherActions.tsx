@@ -24,6 +24,8 @@ import { SITE_ORIGIN } from "./shareLinks";
 
 import { handle as bankDetails } from "../endpoints/teacher/bank-details_GET";
 import * as bankDetailsSchema from "../endpoints/teacher/bank-details_GET.schema";
+import { handle as creatorBonusCheck } from "../endpoints/teacher/creator-bonus/check_GET";
+import * as creatorBonusCheckSchema from "../endpoints/teacher/creator-bonus/check_GET.schema";
 import { handle as bundlesDetails } from "../endpoints/teacher/bundles/details_GET";
 import * as bundlesDetailsSchema from "../endpoints/teacher/bundles/details_GET.schema";
 import { handle as bundlesList } from "../endpoints/teacher/bundles/list_GET";
@@ -343,6 +345,7 @@ const ACTIONS: Record<string, TeacherAction> = {
   "bundles/details": read(bundlesDetails, bundlesDetailsSchema, "One bundle with the tests, courses and study notes in it."),
   "bundles/list": read(bundlesList, bundlesListSchema, "Your bundles."),
   "certificates/issued": read(certificatesIssued, certificatesIssuedSchema, "Certificates issued to students for your courses and tests (page, limit)."),
+  "creator-bonus/check": read(creatorBonusCheck, creatorBonusCheckSchema, "Whether a test series or course (type, id) can claim the Creator Bonus. For a test series, examOptions lists each running Exam Bonus for its exams with its campaignId, slots left and whether it can claim."),
   "courses/details": read(coursesDetails, coursesDetailsSchema, "One course with its sections and lessons."),
   "courses/list": read(coursesList, coursesListSchema, "Your courses with section and lesson counts."),
   "dashboard/overview": read(dashboardOverview, dashboardOverviewSchema, "Teacher dashboard overview."),
@@ -469,7 +472,7 @@ const ACTIONS: Record<string, TeacherAction> = {
   "tests/create": write(testsCreate, testsCreateSchema, "Create a test series."),
   "tests/create-with-items": write(testsCreateWithItems, testsCreateWithItemsSchema, "Create a test series together with up to 50 empty test items."),
   "tests/delete": write(testsDelete, testsDeleteSchema, "Delete a test series.", CONFIRM),
-  "tests/publish": write(testsPublish, testsPublishSchema, "Submit a test series for review. It goes live once an admin approves it. Set claimCreatorBonus only when the teacher asks to claim the Creator Bonus; the submission is refused if the series does not qualify."),
+  "tests/publish": write(testsPublish, testsPublishSchema, "Submit a test series for review. It goes live once an admin approves it. Set claimCreatorBonus only when the teacher asks to claim the Creator Bonus, or examBonusCampaignId (from creator-bonus/check) when they ask to claim an Exam Bonus; a series earns one bonus, and the submission is refused if it does not qualify."),
   "tests/unpublish": write(testsUnpublish, testsUnpublishSchema, "Take a test series off sale.", CONFIRM),
   "tests/update": write(testsUpdate, testsUpdateSchema, "Update a test series."),
   "trash/delete": write(trashDelete, trashDeleteSchema, "Permanently delete a trashed test series or test item. Cannot be undone.", CONFIRM),

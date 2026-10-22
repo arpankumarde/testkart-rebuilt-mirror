@@ -211,6 +211,11 @@
 }
 
 /* Teacher Result Card Styles */
+.loadMoreRow {
+  display: flex;
+  justify-content: center;
+}
+
 .teacherCard {
   display: flex;
   align-items: center;

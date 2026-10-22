@@ -5,6 +5,7 @@ import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import {
   campaignRequirements,
   campaignSlotLimit,
+  isTaggedForExam,
   loadCampaignContent,
   measureContent,
 } from "../../../helpers/teacherCampaign";
@@ -24,10 +25,12 @@ export async function handle(request: Request): Promise<Response> {
     const url = new URL(request.url);
     const parsed = schema.safeParse({
       status: url.searchParams.get("status") || undefined,
+      kind: url.searchParams.get("kind") || undefined,
       page: url.searchParams.get("page") || undefined,
     });
     if (!parsed.success) return new Response(superjson.stringify({ error: "Invalid request" }), { status: 400 });
-    const { status, page } = parsed.data;
+    const { status, kind, page } = parsed.data;
+    const inKind = (ref: string) => sql<boolean>`${sql.ref(ref)} IN (SELECT id FROM teacher_campaigns WHERE kind = ${kind})`;
 
     let query = db
       .selectFrom("teacherCampaignClaims as c")
@@ -54,6 +57,17 @@ export async function handle(request: Request): Promise<Response> {
         "a.fullName as decidedByName",
       ]);
     if (status !== "all") query = query.where("c.status", "=", status);
+    if (kind !== "all") query = query.where(inKind("c.campaignId"));
+
+    let countQuery = db.selectFrom("teacherCampaignClaims").select(["status", (eb) => eb.fn.countAll<string>().as("count")]);
+    let creditedQuery = db
+      .selectFrom("teacherCampaignClaims")
+      .select(sql<string>`COALESCE(SUM(amount), 0)`.as("total"))
+      .where("status", "=", "credited");
+    if (kind !== "all") {
+      countQuery = countQuery.where(inKind("campaignId"));
+      creditedQuery = creditedQuery.where(inKind("campaignId"));
+    }
 
     const [rows, countRows, creditedRow] = await Promise.all([
       query
@@ -62,16 +76,8 @@ export async function handle(request: Request): Promise<Response> {
         .limit(PAGE_SIZE)
         .offset((page - 1) * PAGE_SIZE)
         .execute(),
-      db
-        .selectFrom("teacherCampaignClaims")
-        .select(["status", (eb) => eb.fn.countAll<string>().as("count")])
-        .groupBy("status")
-        .execute(),
-      db
-        .selectFrom("teacherCampaignClaims")
-        .select(sql<string>`COALESCE(SUM(amount), 0)`.as("total"))
-        .where("status", "=", "credited")
-        .executeTakeFirst(),
+      countQuery.groupBy("status").execute(),
+      creditedQuery.executeTakeFirst(),
     ]);
 
     const campaignIds = [...new Set(rows.map((r) => r.campaignId))];
@@ -84,7 +90,7 @@ export async function handle(request: Request): Promise<Response> {
       const type = row.contentType as CampaignContentType;
       const campaign = campaignById.get(row.campaignId)!;
       const open = row.status === "claimed";
-      const [content, criteriaNow, credited] = await Promise.all([
+      const [content, criteriaNow, credited, tagged] = await Promise.all([
         loadCampaignContent(db, type, row.contentId),
         open ? measureContent(db, type, row.contentId, campaignRequirements(campaign)) : Promise.resolve(null),
         db
@@ -95,11 +101,13 @@ export async function handle(request: Request): Promise<Response> {
           .where("contentType", "=", type)
           .where("status", "=", "credited")
           .executeTakeFirst(),
+        open && campaign.kind === "exam" ? isTaggedForExam(db, campaign, row.contentId) : Promise.resolve(true),
       ]);
       claims.push({
         id: row.id,
         status: row.status as CampaignClaimStatus,
         amount: Number(row.amount),
+        campaignTitle: campaign.title,
         contentType: type,
         contentId: row.contentId,
         contentTitle: content?.title ?? "Deleted item",
@@ -111,6 +119,7 @@ export async function handle(request: Request): Promise<Response> {
         criteriaAtClaim: row.criteriaAtClaim as CampaignCriteria,
         criteriaNow,
         meetsNow: criteriaNow ? meetsCampaignCriteria(criteriaNow, campaignRequirements(campaign)) : null,
+        examTagMissing: !tagged,
         requirements: campaignRequirements(campaign),
         slots: { credited: Number(credited?.count ?? 0), limit: campaignSlotLimit(campaign, type) },
         decisionNote: row.decisionNote,

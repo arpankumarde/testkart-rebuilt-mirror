@@ -115,8 +115,8 @@ export type ContentReviewAdminView = {
   contentMeta: ContentMeta | null;
   // Every exam the item is listed under, primary first. Empty for bundles.
   exams: { examId: number | null; examName: string }[];
-  // The Creator Bonus the teacher claimed with this submission, if any.
-  bonusClaim: { id: number; amount: number; status: string } | null;
+  // The bonus the teacher claimed with this submission, if any.
+  bonusClaim: { id: number; amount: number; status: string; campaignTitle: string } | null;
 };
 
 export type OutputType = {

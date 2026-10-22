@@ -9,34 +9,42 @@ const PAGE_URL = "https://testkart.in/teacher/creator-bonus";
 
 type Decision = "credited" | "declined" | "reversed";
 
-function buildEmail(decision: Decision, name: string, noun: string, title: string, amount: string, note: string | null) {
+function buildEmail(
+  decision: Decision,
+  name: string,
+  noun: string,
+  title: string,
+  amount: string,
+  note: string | null,
+  bonus: string
+) {
   const safeTitle = esc(title);
   const safeNote = note ? esc(note) : null;
   const noteHtml = safeNote ? `<p style="margin:12px 0 0;"><strong>Note from our team:</strong> ${safeNote}</p>` : "";
   switch (decision) {
     case "credited":
       return {
-        subject: `${amount} Creator Bonus added to your wallet`,
-        heading: "Your Creator Bonus is in",
+        subject: `${amount} ${bonus} added to your wallet`,
+        heading: `Your ${bonus} is in`,
         accent: "success" as const,
-        body: `<p style="margin:0;">Our team picked your ${noun} <strong>"${safeTitle}"</strong> for the Creator Bonus. <strong>${amount}</strong> has been added to your wallet and can be withdrawn with your earnings.</p>`,
-        text: `Hi ${name}, our team picked your ${noun} "${title}" for the Creator Bonus. ${amount} has been added to your wallet.`,
+        body: `<p style="margin:0;">Our team picked your ${noun} <strong>"${safeTitle}"</strong> for the ${esc(bonus)}. <strong>${amount}</strong> has been added to your wallet and can be withdrawn with your earnings.</p>`,
+        text: `Hi ${name}, our team picked your ${noun} "${title}" for the ${bonus}. ${amount} has been added to your wallet.`,
       };
     case "declined":
       return {
-        subject: `Creator Bonus update for "${title}"`,
+        subject: `${bonus} update for "${title}"`,
         heading: "Not selected for the bonus this time",
         accent: "brand" as const,
-        body: `<p style="margin:0;">Your ${noun} <strong>"${safeTitle}"</strong> was not selected for the Creator Bonus.</p>${noteHtml}<p style="margin:12px 0 0;">You can improve it and claim once more with its next submission for review.</p>`,
-        text: `Hi ${name}, your ${noun} "${title}" was not selected for the Creator Bonus.${note ? ` Note: ${note}` : ""} You can improve it and claim once more with its next submission.`,
+        body: `<p style="margin:0;">Your ${noun} <strong>"${safeTitle}"</strong> was not selected for the ${esc(bonus)}.</p>${noteHtml}<p style="margin:12px 0 0;">You can improve it and claim once more with its next submission for review.</p>`,
+        text: `Hi ${name}, your ${noun} "${title}" was not selected for the ${bonus}.${note ? ` Note: ${note}` : ""} You can improve it and claim once more with its next submission.`,
       };
     case "reversed":
       return {
-        subject: `Creator Bonus for "${title}" reversed`,
-        heading: "A Creator Bonus was reversed",
+        subject: `${bonus} for "${title}" reversed`,
+        heading: `Your ${bonus} was reversed`,
         accent: "danger" as const,
-        body: `<p style="margin:0;">The ${amount} Creator Bonus for your ${noun} <strong>"${safeTitle}"</strong> has been taken back off your wallet balance.</p>${noteHtml}`,
-        text: `Hi ${name}, the ${amount} Creator Bonus for your ${noun} "${title}" has been taken back off your wallet balance.${note ? ` Reason: ${note}` : ""}`,
+        body: `<p style="margin:0;">The ${amount} ${esc(bonus)} for your ${noun} <strong>"${safeTitle}"</strong> has been taken back off your wallet balance.</p>${noteHtml}`,
+        text: `Hi ${name}, the ${amount} ${bonus} for your ${noun} "${title}" has been taken back off your wallet balance.${note ? ` Reason: ${note}` : ""}`,
       };
   }
 }
@@ -53,6 +61,7 @@ export async function sendCampaignDecisionEmail(claim: CampaignClaim, decision: 
     const type = claim.contentType as CampaignContentType;
     const table = type === "mock_test" ? "mockTests" : "courses";
     const content = await db.selectFrom(table).select("title").where("id", "=", claim.contentId).executeTakeFirst();
+    const campaign = await db.selectFrom("teacherCampaigns").select("title").where("id", "=", claim.campaignId).executeTakeFirst();
     const note = decision === "reversed" ? claim.reverseReason : decision === "declined" ? claim.decisionNote : null;
     const email = buildEmail(
       decision,
@@ -60,7 +69,8 @@ export async function sendCampaignDecisionEmail(claim: CampaignClaim, decision: 
       CAMPAIGN_CONTENT_NOUNS[type] ?? "item",
       content?.title ?? "your content",
       formatRupees(Number(claim.amount)),
-      note
+      note,
+      campaign?.title ?? "Creator Bonus"
     );
     const html = getBrandedEmailHtml({
       title: email.subject,

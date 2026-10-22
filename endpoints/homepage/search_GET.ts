@@ -1,8 +1,9 @@
 import { db } from "../../helpers/db";
 import { sql } from "kysely";
-import { OutputType, SearchTeacherItem, SearchOrganizationItem, schema } from "./search_GET.schema";
+import { OutputType, SearchOrganizationItem, schema } from "./search_GET.schema";
 import superjson from "superjson";
 import { courseDiscountPrice } from "../../helpers/coursePricing";
+import { searchTeachers } from "../../helpers/searchTeachers";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -191,58 +192,7 @@ export async function handle(request: Request): Promise<Response> {
       .execute();
 
     // 5. Search Teachers
-    const teachersPromise = db
-      .selectFrom("users")
-      .select([
-        "users.id",
-        "users.displayName",
-        "users.avatarUrl",
-        "users.slug",
-        "users.isVerified",
-      ])
-      .select(() => [
-        sql<number>`(SELECT COUNT(*) FROM mock_tests WHERE mock_tests.teacher_id = users.id AND mock_tests.is_published = true AND mock_tests.visibility = 'public')`.as("testCount"),
-        sql<number>`(SELECT COUNT(*) FROM courses WHERE courses.teacher_id = users.id AND courses.status = 'published' AND courses.visibility = 'public')`.as("courseCount"),
-        sql<number>`(SELECT COUNT(DISTINCT me.student_id) FROM mock_test_enrollments me INNER JOIN mock_tests mt ON mt.id = me.mock_test_id WHERE mt.teacher_id = users.id)`.as("studentCount"),
-      ])
-      .where("users.role", "=", "teacher")
-      .where("users.isActive", "=", true)
-      .where("users.displayName", "ilike", searchTerm)
-      .where("users.slug", "is not", null)
-      .where((eb) =>
-        eb.or([
-          eb.exists(
-            eb
-              .selectFrom("mockTests")
-              .select("mockTests.id")
-              .whereRef("mockTests.teacherId", "=", "users.id")
-              .where("mockTests.isPublished", "=", true)
-              .where("mockTests.deletedAt", "is", null)
-              .where("mockTests.visibility", "=", "public")
-              .limit(1)
-          ),
-          eb.exists(
-            eb
-              .selectFrom("courses")
-              .select("courses.id")
-              .whereRef("courses.teacherId", "=", "users.id")
-              .where("courses.status", "=", "published")
-              .where("courses.visibility", "=", "public")
-              .limit(1)
-          ),
-        ])
-      )
-      .orderBy(
-        sql`(
-          SELECT COUNT(DISTINCT mock_test_enrollments.student_id)
-          FROM mock_test_enrollments
-          INNER JOIN mock_tests ON mock_tests.id = mock_test_enrollments.mock_test_id
-          WHERE mock_tests.teacher_id = users.id
-        )`,
-        "desc"
-      )
-      .limit(5)
-      .execute();
+    const teachersPromise = searchTeachers({ q, limit });
 
     // 6. Search Organisations (coaching/school/college/university pages)
     const organizationsPromise = db
@@ -281,7 +231,7 @@ export async function handle(request: Request): Promise<Response> {
       .limit(limit)
       .execute();
 
-    const [tests, courses, bundles, products, teachers, organizations] = await Promise.all([
+    const [tests, courses, bundles, products, teacherResults, organizations] = await Promise.all([
       testsPromise,
       coursesPromise,
       bundlesPromise,
@@ -364,17 +314,6 @@ export async function handle(request: Request): Promise<Response> {
             examName: p.examName ?? null,
     }));
 
-    const formattedTeachers: SearchTeacherItem[] = teachers.map((t) => ({
-      id: t.id,
-      displayName: t.displayName,
-      avatarUrl: t.avatarUrl ?? null,
-      slug: t.slug!,
-      isVerified: t.isVerified,
-      testCount: Number(t.testCount ?? 0),
-      courseCount: Number(t.courseCount ?? 0),
-      studentCount: Number(t.studentCount ?? 0),
-    }));
-
     const formattedOrganizations: SearchOrganizationItem[] = organizations.map((o) => ({
       id: o.id,
       name: o.name,
@@ -391,7 +330,7 @@ export async function handle(request: Request): Promise<Response> {
       formattedCourses.length +
       formattedBundles.length +
       formattedProducts.length +
-      formattedTeachers.length +
+      teacherResults.teachers.length +
       formattedOrganizations.length;
 
     const output: OutputType = {
@@ -399,8 +338,9 @@ export async function handle(request: Request): Promise<Response> {
       courses: formattedCourses,
       bundles: formattedBundles,
       products: formattedProducts,
-      teachers: formattedTeachers,
+      teachers: teacherResults.teachers,
       organizations: formattedOrganizations,
+      teacherTotal: teacherResults.total,
       totalResults,
     };
 

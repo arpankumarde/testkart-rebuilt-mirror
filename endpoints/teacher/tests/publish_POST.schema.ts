@@ -5,6 +5,8 @@ export const schema = z.object({
   testId: z.number(),
   /** Also claim the Creator Bonus with this submission (helpers/teacherCampaign). */
   claimCreatorBonus: z.boolean().optional(),
+  /** Claim this Exam Bonus instead. A test series earns one bonus, so this cannot go with claimCreatorBonus. */
+  examBonusCampaignId: z.number().int().positive().optional(),
 });
 
 export type InputType = z.infer<typeof schema>;

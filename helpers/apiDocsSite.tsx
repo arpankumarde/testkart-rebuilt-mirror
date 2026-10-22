@@ -35,20 +35,39 @@ export const apiDocsSite: ApiEndpoint[] = [
     usedBy: ["web", "mobile"],
     queryParams: [
       { name: "q", type: "string", required: true, description: "Search text. Case-insensitive match on titles, descriptions and teacher names, plus subject and exam names for test series" },
-      { name: "limit", type: "number", required: false, description: "Items per group for tests, courses, bundles and products. Default 5, maximum 10. Teachers are always capped at 5" },
+      { name: "limit", type: "number", required: false, description: "Items per group for tests, courses, bundles, products and teachers. Default 5, maximum 10" },
     ],
     responseFields: [
       { name: "tests", type: "array", description: "Published series that are not live tests: { id, slug, title, thumbnailUrl, price, discountPrice, examName, category, views, type: 'test', teacher fields }" },
       { name: "courses", type: "array", description: "Published courses: { id, slug, title, thumbnailUrl, price, discountPrice, category (the primary exam name), views, type: 'course', teacher fields }" },
       { name: "bundles", type: "array", description: "Published bundles: { id, slug, title, thumbnailUrl, price, originalPrice, itemCount, type: 'bundle', teacher fields }" },
       { name: "products", type: "array", description: "Published study notes: { id, slug, title, thumbnailUrl, price, examName, category, views, type: 'product', teacher fields }" },
-      { name: "teachers", type: "array", description: "Up to 5 active teachers with published content: { id, displayName, avatarUrl, slug, isVerified, testCount, courseCount, studentCount }" },
+      { name: "teachers", type: "array", description: "First page of active teachers whose name matches, with or without published content, by students then name: { id, displayName, avatarUrl, slug, isVerified, testCount, courseCount, studentCount }" },
+      { name: "teacherTotal", type: "number", description: "All teachers matching q. Load the rest from /_api/homepage/search/teachers" },
       { name: "totalResults", type: "number", description: "Items across all five groups" },
     ],
     notes: [
       "Returns 400 when q is missing or empty, or limit is not a number or is above 10.",
       "Live tests are not searched.",
     ],
+  },
+  {
+    method: "GET",
+    route: "/_api/homepage/search/teachers",
+    description: "Page through every active teacher whose name matches the search",
+    auth: "none",
+    category: "Site",
+    usedBy: ["web"],
+    queryParams: [
+      { name: "q", type: "string", required: true, description: "Case-insensitive match on the teacher's display name" },
+      { name: "limit", type: "number", required: false, description: "Teachers per page. Default 10, maximum 10" },
+      { name: "offset", type: "number", required: false, description: "Teachers to skip. Default 0" },
+    ],
+    responseFields: [
+      { name: "teachers", type: "array", description: "Same shape and order as teachers on /_api/homepage/search" },
+      { name: "total", type: "number", description: "All teachers matching q" },
+    ],
+    notes: ["Returns 400 when q is missing or empty, limit is not 1 to 10, or offset is negative."],
   },
   {
     method: "GET",
