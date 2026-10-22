@@ -44,16 +44,10 @@ export function validateExamNews(input: InputType, now: Date = new Date()): Vali
 
   input.keyDates.forEach((row, index) => {
     const base = `keyDates.${index}`;
-    const filled = KEY_DATE_FIELDS.filter((field) => row[field]);
+    const filled = KEY_DATE_FIELDS.filter((field) => row[field].trim());
     if (!row.eventName.trim() && filled.length === 0 && !row.note.trim()) return;
     if (!row.eventName.trim()) add(`${base}.eventName`, "Name the event");
-    for (const field of filled) {
-      if (!isValidDay(row[field])) add(`${base}.${field}`, "Enter a valid date");
-    }
-    if (filled.length === 0) add(`${base}.startDate`, "Add at least one date");
-    if (row.startDate && row.endDate && isValidDay(row.startDate) && isValidDay(row.endDate) && row.endDate < row.startDate) {
-      add(`${base}.endDate`, "Ends before it starts");
-    }
+    if (filled.length === 0) add(`${base}.startDate`, "Add a date or a status such as To be announced");
   });
 
   const officialName = input.officialSourceName.trim();

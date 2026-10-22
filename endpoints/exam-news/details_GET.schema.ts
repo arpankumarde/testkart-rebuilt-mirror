@@ -26,6 +26,7 @@ export type PublicExamNewsStory = {
   updatedAt: Date;
   keyDates: {
     eventName: string;
+    /** Free text as the admin wrote it, a date or a status such as "To be announced". */
     startDate: string | null;
     endDate: string | null;
     examDate: string | null;

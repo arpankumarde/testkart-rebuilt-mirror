@@ -35,7 +35,7 @@ const hasText = (html: string) => examNewsMeta.stripHtml(html).length > 0;
 /* A story laid out like its public /exam-news/{slug} page (wireframe page 4), for the admin preview. */
 export const ExamNewsPreview: React.FC<ExamNewsPreviewProps> = ({ post, examName, authorName, publishedAt, updatedAt }) => {
   const notice = NOTICE[post.status];
-  const keyDates = post.keyDates.filter((row) => row.eventName.trim() || DATE_LABELS.some((d) => row[d.key]));
+  const keyDates = post.keyDates.filter((row) => row.eventName.trim() || DATE_LABELS.some((d) => row[d.key].trim()));
   const sources = post.sources.filter((s) => s.url.trim());
   const corrections = post.corrections.filter((c) => c.date && c.note.trim());
   const liveAt = publishedAt ?? (post.publishAt ? examNewsMeta.fromIstInput(post.publishAt) : null);
@@ -119,9 +119,9 @@ export const ExamNewsPreview: React.FC<ExamNewsPreviewProps> = ({ post, examName
                     </th>
                     <td>
                       <ul className={styles.dateList}>
-                        {DATE_LABELS.filter((d) => row[d.key]).map((d) => (
+                        {DATE_LABELS.filter((d) => row[d.key].trim()).map((d) => (
                           <li key={d.key}>
-                            <span className={styles.dateLabel}>{d.label}</span> {examNewsMeta.formatDay(row[d.key])}
+                            <span className={styles.dateLabel}>{d.label}</span> {row[d.key]}
                           </li>
                         ))}
                       </ul>

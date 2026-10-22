@@ -517,6 +517,7 @@ export interface CurrentAffairsItems {
   keyPoints: Generated<string>;
   position: Generated<number>;
   postId: number;
+  slug: string | null;
   updatedAt: Generated<Timestamp>;
   whyInNews: Generated<string>;
 }
@@ -784,14 +785,18 @@ export interface ExamNewsCorrections {
 
 export interface ExamNewsKeyDates {
   endDate: Timestamp | null;
+  endLabel: string | null;
   eventName: Generated<string>;
   examDate: Timestamp | null;
+  examLabel: string | null;
   id: Generated<number>;
   note: string | null;
   position: Generated<number>;
   postId: number;
   resultDate: Timestamp | null;
+  resultLabel: string | null;
   startDate: Timestamp | null;
+  startLabel: string | null;
 }
 
 export interface ExamNewsPosts {

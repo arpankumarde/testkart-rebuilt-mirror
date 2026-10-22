@@ -178,7 +178,7 @@ async function save(input: InputType, adminId: number): Promise<number> {
     }
 
     const keyDates = input.keyDates.filter(
-      (row) => row.eventName.trim() || row.startDate || row.endDate || row.examDate || row.resultDate || row.note.trim()
+      (row) => row.eventName.trim() || row.startDate.trim() || row.endDate.trim() || row.examDate.trim() || row.resultDate.trim() || row.note.trim()
     );
     if (keyDates.length > 0) {
       await trx
@@ -188,10 +188,10 @@ async function save(input: InputType, adminId: number): Promise<number> {
             postId,
             position,
             eventName: row.eventName.trim(),
-            startDate: row.startDate || null,
-            endDate: row.endDate || null,
-            examDate: row.examDate || null,
-            resultDate: row.resultDate || null,
+            startLabel: orNull(row.startDate),
+            endLabel: orNull(row.endDate),
+            examLabel: orNull(row.examDate),
+            resultLabel: orNull(row.resultDate),
             note: orNull(row.note),
           }))
         )
@@ -255,14 +255,7 @@ async function contentSnapshot(trx: Trx, id: number): Promise<string> {
   const post = await trx.selectFrom("examNewsPosts").select(EDITED_COLUMNS).where("id", "=", id).executeTakeFirst();
   const keyDates = await trx
     .selectFrom("examNewsKeyDates")
-    .select([
-      "eventName",
-      "note",
-      day("start_date").as("startDay"),
-      day("end_date").as("endDay"),
-      day("exam_date").as("examDay"),
-      day("result_date").as("resultDay"),
-    ])
+    .select(["eventName", "note", "startLabel", "endLabel", "examLabel", "resultLabel"])
     .where("postId", "=", id)
     .orderBy("position")
     .execute();
@@ -298,15 +291,7 @@ async function loadDetail(id: number): Promise<ExamNewsDetail | null> {
   const [keyDates, sources, corrections] = await Promise.all([
     db
       .selectFrom("examNewsKeyDates")
-      .select([
-        "id",
-        "eventName",
-        "note",
-        day("start_date").as("startDay"),
-        day("end_date").as("endDay"),
-        day("exam_date").as("examDay"),
-        day("result_date").as("resultDay"),
-      ])
+      .select(["id", "eventName", "note", "startLabel", "endLabel", "examLabel", "resultLabel"])
       .where("postId", "=", id)
       .orderBy("position")
       .execute(),
@@ -337,10 +322,10 @@ async function loadDetail(id: number): Promise<ExamNewsDetail | null> {
     keyDates: keyDates.map((row) => ({
       key: `date-${row.id}`,
       eventName: row.eventName,
-      startDate: row.startDay ?? "",
-      endDate: row.endDay ?? "",
-      examDate: row.examDay ?? "",
-      resultDate: row.resultDay ?? "",
+      startDate: row.startLabel ?? "",
+      endDate: row.endLabel ?? "",
+      examDate: row.examLabel ?? "",
+      resultDate: row.resultLabel ?? "",
       note: row.note ?? "",
     })),
     officialSourceName: post.officialSourceName ?? "",

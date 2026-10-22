@@ -16,11 +16,11 @@ export const keyDateSchema = z.object({
   /** Client-side identity for list keys; never stored. */
   key: z.string(),
   eventName: z.string().max(200),
-  /** Each date is YYYY-MM-DD or blank. */
-  startDate: z.string(),
-  endDate: z.string(),
-  examDate: z.string(),
-  resultDate: z.string(),
+  /** Free text shown as written: "23 October 2026", "To be announced", or blank when it does not apply. */
+  startDate: z.string().max(120),
+  endDate: z.string().max(120),
+  examDate: z.string().max(120),
+  resultDate: z.string().max(120),
   note: z.string().max(300),
 });
 

@@ -171,10 +171,10 @@ async function fetchDetail(slug: string): Promise<DetailOutput | null> {
       .select([
         "eventName",
         "note",
-        day("start_date").as("startDate"),
-        day("end_date").as("endDate"),
-        day("exam_date").as("examDate"),
-        day("result_date").as("resultDate"),
+        "startLabel as startDate",
+        "endLabel as endDate",
+        "examLabel as examDate",
+        "resultLabel as resultDate",
       ])
       .where("postId", "=", post.id)
       .orderBy("position")

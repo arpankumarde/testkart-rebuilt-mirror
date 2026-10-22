@@ -786,7 +786,7 @@ const AdminExamNewsEditorPage: React.FC = () => {
                   step={3}
                   title="Key dates"
                   tag="Optional"
-                  hint="Shown as a table on the story and feeds upcoming dates"
+                  hint="Shown as a table on the story, exactly as typed"
                   status={sectionStatus("en-dates", filledDates > 0 ? `${filledDates} added` : null)}
                 >
                   <ExamNewsKeyDatesEditor value={values.keyDates} onChange={(keyDates) => set("keyDates", keyDates)} />

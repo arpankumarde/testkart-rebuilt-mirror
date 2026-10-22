@@ -209,7 +209,7 @@ export const ExamNewsStoryView: React.FC<{ slug: string }> = ({ slug }) => {
                             {DATE_COLUMNS.filter((c) => row[c.key]).map((c) => (
                               <li key={c.key}>
                                 <span className={styles.dateLabel}>{c.label}</span>
-                                <time dateTime={row[c.key]!}>{examNewsPublicMeta.formatDay(row[c.key]!)}</time>
+                                <span>{row[c.key]}</span>
                               </li>
                             ))}
                           </ul>

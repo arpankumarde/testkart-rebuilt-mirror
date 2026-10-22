@@ -18,10 +18,10 @@ const EVENT_SUGGESTIONS = [
 ];
 
 const DATE_FIELDS = [
-  { key: "startDate", label: "Start date" },
-  { key: "endDate", label: "End date" },
-  { key: "examDate", label: "Exam date" },
-  { key: "resultDate", label: "Result date" },
+  { key: "startDate", label: "Start date", placeholder: "e.g. 23 October 2026" },
+  { key: "endDate", label: "End date", placeholder: "e.g. Coming soon" },
+  { key: "examDate", label: "Exam date", placeholder: "e.g. To be announced" },
+  { key: "resultDate", label: "Result date", placeholder: "e.g. Not yet declared" },
 ] as const;
 
 export const emptyExamNewsKeyDate = (): ExamNewsKeyDateInput => ({
@@ -39,7 +39,7 @@ interface ExamNewsKeyDatesEditorProps {
   onChange: (value: ExamNewsKeyDateInput[]) => void;
 }
 
-/* One row per event; only the dates that apply need filling in. */
+/* One row per event; only the dates that apply need filling in, as a date or a status, shown as written. */
 export const ExamNewsKeyDatesEditor: React.FC<ExamNewsKeyDatesEditorProps> = ({ value, onChange }) => {
   const update = (index: number, patch: Partial<ExamNewsKeyDateInput>) =>
     onChange(value.map((row, i) => (i === index ? { ...row, ...patch } : row)));
@@ -90,7 +90,12 @@ export const ExamNewsKeyDatesEditor: React.FC<ExamNewsKeyDatesEditorProps> = ({ 
                     <FormItem key={field.key} name={`keyDates.${index}.${field.key}`} className={styles.dateField}>
                       <FormLabel className={styles.label}>{field.label}</FormLabel>
                       <FormControl>
-                        <Input type="date" value={row[field.key]} onChange={(e) => update(index, { [field.key]: e.target.value })} />
+                        <Input
+                          placeholder={field.placeholder}
+                          maxLength={120}
+                          value={row[field.key]}
+                          onChange={(e) => update(index, { [field.key]: e.target.value })}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
