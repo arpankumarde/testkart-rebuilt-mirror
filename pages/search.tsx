@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { Search as SearchIcon, ArrowRight, PackageOpen, BookOpen, ShoppingBag, Layers, User, FileText, Building2 } from 'lucide-react';
+import { Search as SearchIcon, ArrowRight, PackageOpen, BookOpen, ShoppingBag, Layers, Star, User, Users, Library, FileText, Building2 } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
 import { Button } from '../components/Button';
 import { Skeleton } from '../components/Skeleton';
@@ -23,6 +23,17 @@ const ORG_TYPE_LABELS: Record<string, string> = {
 };
 
 const SEARCH_PAGE_SIZE = 10;
+
+const plural = (count: number, one: string, many: string) =>
+  `${count.toLocaleString('en-IN')} ${count === 1 ? one : many}`;
+
+const TestRating = ({ rating, reviewsCount }: { rating: number; reviewsCount: number }) => (
+  <span className={styles.testRating} aria-label={`Rated ${rating.toFixed(1)} out of 5 from ${plural(reviewsCount, 'review', 'reviews')}`}>
+    <Star className={styles.testRatingStar} fill="currentColor" aria-hidden="true" />
+    <span className={styles.testRatingValue}>{rating.toFixed(1)}</span>
+    <span>({plural(reviewsCount, 'review', 'reviews')})</span>
+  </span>
+);
 
 const OrganizationResultCard = ({ organization }: { organization: SearchOrganizationItem }) => {
   return (
@@ -70,8 +81,15 @@ const TeacherResultCard = ({ teacher }: { teacher: SearchTeacherItem }) => {
           <h3 className={styles.teacherDisplayName}>{teacher.displayName}</h3>
           <VerifiedBadge isVerified={teacher.isVerified} size="sm" />
         </div>
-        <p className={styles.teacherStats}>
-          {teacher.testCount} Tests • {teacher.courseCount} Courses • {teacher.studentCount} Students
+        <p className={styles.teacherCardStats}>
+          <span className={styles.teacherStat}>
+            <Library size={14} aria-hidden="true" />
+            {plural(teacher.resourceCount, 'Resource', 'Resources')}
+          </span>
+          <span className={styles.teacherStat}>
+            <Users size={14} aria-hidden="true" />
+            {plural(teacher.followerCount, 'Follower', 'Followers')}
+          </span>
         </p>
       </div>
     </Link>
@@ -281,6 +299,9 @@ export default function SearchPage() {
                         teacherIsVerified={test.teacherIsVerified}
                         productTitle={test.title}
                         examName={test.examName}
+                        stats={test.rating != null && test.reviewsCount ? (
+                          <TestRating rating={test.rating} reviewsCount={test.reviewsCount} />
+                        ) : undefined}
                         {...itemPriceProps(test.price, test.discountPrice)}
                         thumbnailUrl={test.thumbnailUrl}
                         placeholderUrl={Placeholder.TEST}
@@ -397,7 +418,7 @@ export default function SearchPage() {
                     <h2>Digital Products <span className={styles.count}>({displayProducts.length})</span></h2>
                   </div>
                   {displayProducts.length > 0 && (
-                    <Link to={`/shop?search=${encodeURIComponent(query)}`} className={styles.viewAllLink}>
+                    <Link to={`/study-notes?search=${encodeURIComponent(query)}`} className={styles.viewAllLink}>
                       View All <ArrowRight size={16} />
                     </Link>
                   )}

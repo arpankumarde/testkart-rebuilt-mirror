@@ -45,6 +45,39 @@
   list-style: none;
 }
 
+.kinds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.kind_filter {
+  padding: 0.25rem 0.75rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--card);
+  color: var(--foreground);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.kind_filter:hover {
+  border-color: var(--foreground);
+}
+
+.kind_filter:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.kind_filterOn {
+  border-color: var(--tk-brand-ink);
+  background: var(--tk-brand);
+  color: var(--tk-brand-ink);
+}
+
 .card {
   display: flex;
   flex-direction: column;

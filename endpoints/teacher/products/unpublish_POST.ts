@@ -6,6 +6,7 @@ import {
   findPublishedBundlesContaining,
   unpublishBundles,
 } from "../../../helpers/bundleDependencies";
+import { clearOpenReviews } from "../../../helpers/contentReviewQueue";
 import superjson from "superjson";
 
 export async function handle(request: Request): Promise<Response> {
@@ -49,6 +50,8 @@ export async function handle(request: Request): Promise<Response> {
       }
 
       const now = new Date();
+      // A live unlisted item's request to go public ends with it.
+      if (product.status === "published") await clearOpenReviews(trx, "digital_product", input.id);
       const updatedProduct = await trx
         .updateTable("digitalProducts")
         .set({

@@ -5,7 +5,7 @@ import { getAdminExamNewsPost } from "../endpoints/admin/exam-news/get_GET.schem
 import { postAdminExamNewsSave, InputType as SaveInput } from "../endpoints/admin/exam-news/save_POST.schema";
 import { postAdminExamNewsStatus, InputType as StatusInput } from "../endpoints/admin/exam-news/status_POST.schema";
 import { postAdminExamNewsDelete } from "../endpoints/admin/exam-news/delete_POST.schema";
-import { getAdminExamNewsExams } from "../endpoints/admin/exam-news/exams_GET.schema";
+import { getExamNewsExams } from "../endpoints/exam-news/exams_GET.schema";
 import { parseErrorMessage } from "./parseErrorMessage";
 
 export const ADMIN_EXAM_NEWS_QUERY_KEY = ["admin", "exam-news"] as const;
@@ -34,11 +34,11 @@ export const useAdminExamNewsPost = (id: number | null) =>
     refetchOnWindowFocus: false,
   });
 
-/** Picker search; an id looks up one exam, for a filter restored from the URL. */
-export const useExamNewsExamSearch = (input: { search?: string; id?: number }, enabled = true) =>
+/** Looks up one exam by id, for a filter restored from the URL. */
+export const useExamNewsExamSearch = (input: { id: number | undefined }, enabled = true) =>
   useQuery({
-    queryKey: [...ADMIN_EXAM_NEWS_QUERY_KEY, "exams", input.search ?? "", input.id ?? null],
-    queryFn: () => getAdminExamNewsExams(input),
+    queryKey: [...ADMIN_EXAM_NEWS_QUERY_KEY, "exams", input.id ?? null],
+    queryFn: () => getExamNewsExams(input),
     enabled,
     staleTime: 5 * 60_000,
     placeholderData: keepPreviousData,

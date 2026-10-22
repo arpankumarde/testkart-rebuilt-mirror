@@ -4,6 +4,7 @@ import { PAYU_MODE } from "../../../helpers/_publicConfigs";
 import { createHash } from "crypto";
 import { nanoid } from "nanoid";
 import { completeBundleEnrollment } from "../../../helpers/completeBundleEnrollment";
+import { followTeachersForOrder } from "../../../helpers/ensureTeacherFollow";
 import { getTeacherPlatformFee } from "../../../helpers/getTeacherPlatformFee";
 import { Transaction, Selectable } from "kysely";
 import { DB, PromoCodes } from "../../../helpers/schema";
@@ -296,6 +297,7 @@ export async function handle(request: Request) {
           .executeTakeFirstOrThrow();
 
         await completeBundleEnrollment(trx, bundle.id, user.id, newOrder.id);
+        await followTeachersForOrder(trx, newOrder.id, bundle.id, user.id);
 
         if (promoCode) {
           await recordPromoUsage(trx, promoCode.id, user.id, newOrder.id, discountAmount);

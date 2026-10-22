@@ -6,6 +6,7 @@ import {
   findPublishedBundlesContaining,
   unpublishBundles,
 } from "../../../helpers/bundleDependencies";
+import { clearOpenReviews } from "../../../helpers/contentReviewQueue";
 import superjson from "superjson";
 
 export async function handle(request: Request): Promise<Response> {
@@ -68,6 +69,9 @@ export async function handle(request: Request): Promise<Response> {
         .executeTakeFirst();
 
       if (!updatedCourse) return { kind: "not-published" as const };
+
+      // A live unlisted item's request to go public ends with it.
+      await clearOpenReviews(trx, "course", courseId);
 
       const deletedCartItems = await trx
         .deleteFrom("cartItems")

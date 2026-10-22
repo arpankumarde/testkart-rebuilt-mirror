@@ -260,7 +260,7 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
               )}
               <p className={styles.meta}>
                 <span className={`${styles.status} ${status.className}`}>{status.label}</span>
-                {isUnlisted && <UnlistedBadge />}
+                {isUnlisted && <UnlistedBadge live={isPublished} inReview={course.inReview} rejected={false} />}
                 <span>{summary}</span>
               </p>
             </div>

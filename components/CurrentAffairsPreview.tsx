@@ -23,6 +23,7 @@ import { Button } from "./Button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "./Dialog";
 import { CurrentAffairsSourceLinks } from "./CurrentAffairsSourceLinks";
 import { currentAffairsMeta } from "../helpers/currentAffairsMeta";
+import { wrapContentTables } from "../helpers/contentTables";
 import { sanitizeHtml } from "../helpers/sanitizeHtml";
 import { slugify } from "../helpers/slugify";
 import type { InputType, CurrentAffairsTagRef } from "../endpoints/admin/current-affairs/save_POST.schema";
@@ -59,7 +60,7 @@ const NOTICE: Record<CurrentAffairsStatus, string | null> = {
 };
 
 const Html: React.FC<{ html: string; className?: string }> = ({ html, className }) => (
-  <div className={`${styles.prose} ${className ?? ""}`} dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }} />
+  <div className={`${styles.prose} ${className ?? ""}`} dangerouslySetInnerHTML={{ __html: wrapContentTables(sanitizeHtml(html)) }} />
 );
 
 const hasText = (html: string) => currentAffairsMeta.stripHtml(html).length > 0;

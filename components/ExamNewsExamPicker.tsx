@@ -3,10 +3,12 @@ import { useDebounce } from "use-debounce";
 import { Check, ChevronsUpDown, GraduationCap, X } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "./Popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "./Command";
-import { useExamNewsExamSearch } from "../helpers/useAdminExamNews";
+import { useExamNewsExamPages } from "../helpers/useExamNewsPublic";
 import styles from "./ExamNewsExamPicker.module.css";
 
-export type ExamNewsExamChoice = { id: number; name: string };
+export type ExamNewsExamChoice = { id: number; name: string; slug?: string };
+
+const LOAD_MORE_DISTANCE = 120;
 
 interface ExamNewsExamPickerProps {
   value: ExamNewsExamChoice | null;
@@ -18,6 +20,7 @@ interface ExamNewsExamPickerProps {
   invalid?: boolean;
   className?: string;
   id?: string;
+  ariaLabel?: string;
 }
 
 /* Searches the exam catalogue on the server: there are too many exams for a plain select. */
@@ -30,17 +33,24 @@ export const ExamNewsExamPicker: React.FC<ExamNewsExamPickerProps> = ({
   invalid = false,
   className,
   id,
+  ariaLabel,
 }) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [debounced] = useDebounce(search.trim(), 250);
-  const { data, isFetching } = useExamNewsExamSearch({ search: debounced || undefined }, open);
-  const exams = data?.exams ?? [];
+  const { data, isFetching, hasNextPage, isFetchingNextPage, fetchNextPage } = useExamNewsExamPages(debounced || undefined, open);
+  const exams = data?.pages.flatMap((page) => page.exams) ?? [];
 
   const choose = (choice: ExamNewsExamChoice | null) => {
     onChange(choice);
     setOpen(false);
     setSearch("");
+  };
+
+  const loadMoreNearEnd = (event: React.UIEvent<HTMLDivElement>) => {
+    const list = event.currentTarget;
+    const nearEnd = list.scrollHeight - list.scrollTop - list.clientHeight < LOAD_MORE_DISTANCE;
+    if (nearEnd && hasNextPage && !isFetchingNextPage) fetchNextPage();
   };
 
   return (
@@ -52,6 +62,7 @@ export const ExamNewsExamPicker: React.FC<ExamNewsExamPickerProps> = ({
             type="button"
             role="combobox"
             aria-expanded={open}
+            aria-label={ariaLabel}
             aria-invalid={invalid || undefined}
             className={`${styles.trigger} ${value ? "" : styles.placeholder} ${allowClear && value ? styles.withClear : ""}`}
           >
@@ -69,7 +80,7 @@ export const ExamNewsExamPicker: React.FC<ExamNewsExamPickerProps> = ({
       <PopoverContent align="start" removeBackgroundAndPadding className={styles.popover}>
         <Command shouldFilter={false} className={styles.command}>
           <CommandInput placeholder="Search exams, e.g. NEET UG" value={search} onValueChange={setSearch} />
-          <CommandList className={styles.list}>
+          <CommandList className={styles.list} onScroll={loadMoreNearEnd}>
             <CommandEmpty>{isFetching ? "Searching..." : "No exam matches"}</CommandEmpty>
             <CommandGroup>
               {allowClear && !debounced && (
@@ -82,7 +93,7 @@ export const ExamNewsExamPicker: React.FC<ExamNewsExamPickerProps> = ({
                 <CommandItem
                   key={exam.id}
                   value={String(exam.id)}
-                  onSelect={() => choose({ id: exam.id, name: exam.examName })}
+                  onSelect={() => choose({ id: exam.id, name: exam.examName, slug: exam.examSlug })}
                   className={styles.item}
                 >
                   <span className={styles.itemText}>
@@ -97,6 +108,7 @@ export const ExamNewsExamPicker: React.FC<ExamNewsExamPickerProps> = ({
                 </CommandItem>
               ))}
             </CommandGroup>
+            {isFetchingNextPage && <p className={styles.loadingMore}>Loading more exams...</p>}
           </CommandList>
         </Command>
       </PopoverContent>

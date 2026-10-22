@@ -808,6 +808,7 @@ export interface ExamNewsPosts {
   heroImageFileId: string | null;
   heroImageUrl: string | null;
   id: Generated<number>;
+  lastEditedAt: Timestamp | null;
   newsType: Generated<ExamNewsType>;
   officialSourceName: string | null;
   officialSourceUrl: string | null;
@@ -1746,8 +1747,11 @@ export interface TeacherCampaigns {
   courseAmount: Numeric;
   createdAt: Generated<Timestamp>;
   endsAt: Timestamp | null;
+  examId: number | null;
+  examNewsPostId: number | null;
   id: Generated<number>;
   isActive: Generated<boolean>;
+  kind: Generated<string>;
   maxCourses: number;
   maxDeclinesPerItem: Generated<number>;
   maxMockTests: number;
@@ -1760,6 +1764,7 @@ export interface TeacherCampaigns {
   slug: string;
   startsAt: Timestamp;
   title: string;
+  totalSlots: number | null;
   updatedAt: Generated<Timestamp>;
 }
 
@@ -1877,6 +1882,12 @@ export interface TeacherTeamMembers {
   role: Generated<TeacherTeamRole>;
   status: Generated<string>;
   teacherId: number;
+}
+
+export interface TeacherUnfollows {
+  studentId: number;
+  teacherId: number;
+  unfollowedAt: Generated<Timestamp>;
 }
 
 export interface TeacherWithdrawals {
@@ -2193,6 +2204,7 @@ export interface DB {
   teacherSponsoredEnrollments: TeacherSponsoredEnrollments;
   teacherSubscriptions: TeacherSubscriptions;
   teacherTeamMembers: TeacherTeamMembers;
+  teacherUnfollows: TeacherUnfollows;
   teacherWithdrawals: TeacherWithdrawals;
   teacherWorkExperiences: TeacherWorkExperiences;
   testAttemptAnswers: TestAttemptAnswers;

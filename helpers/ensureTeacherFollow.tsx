@@ -2,23 +2,50 @@ import { Transaction, Kysely } from "kysely";
 import { DB } from "./schema";
 
 /**
- * Creates a follow from a student to a teacher as a side effect of
- * enrollment - buying or claiming any of a teacher's content is treated as
- * an implicit "follow" signal. Idempotent: a student who already follows
- * (or later unfollows) is left alone, this never re-adds a follow someone
- * deliberately removed on a SECOND purchase from the same teacher, only on
- * the very first insert does it establish the relationship.
+ * Auto-follow: buying, claiming or attempting a teacher's content is treated
+ * as following that teacher. Idempotent through the unique (teacher, student)
+ * key. Only students follow, nobody follows themselves, and a student who
+ * unfollowed a teacher (teacher_unfollows) stays unfollowed until they follow
+ * again by hand.
  */
+async function addFollows(
+  trx: Transaction<DB> | Kysely<DB>,
+  studentId: number,
+  teacherIds: number[]
+): Promise<void> {
+  const candidates = teacherIds.filter((teacherId) => teacherId !== studentId);
+  if (candidates.length === 0) return;
+
+  const student = await trx
+    .selectFrom("users")
+    .select(["role"])
+    .where("id", "=", studentId)
+    .executeTakeFirst();
+  if (student?.role !== "student") return;
+
+  const unfollowed = await trx
+    .selectFrom("teacherUnfollows")
+    .select(["teacherId"])
+    .where("studentId", "=", studentId)
+    .where("teacherId", "in", candidates)
+    .execute();
+  const unfollowedIds = new Set(unfollowed.map((row) => row.teacherId));
+  const newFollows = candidates.filter((teacherId) => !unfollowedIds.has(teacherId));
+  if (newFollows.length === 0) return;
+
+  await trx
+    .insertInto("teacherFollows")
+    .values(newFollows.map((teacherId) => ({ teacherId, studentId })))
+    .onConflict((oc) => oc.columns(["teacherId", "studentId"]).doNothing())
+    .execute();
+}
+
 export async function followTeacher(
   trx: Transaction<DB> | Kysely<DB>,
   studentId: number,
   teacherId: number
 ): Promise<void> {
-  await trx
-    .insertInto("teacherFollows")
-    .values({ teacherId, studentId })
-    .onConflict((oc) => oc.columns(["teacherId", "studentId"]).doNothing())
-    .execute();
+  await addFollows(trx, studentId, [teacherId]);
 }
 
 /**
@@ -60,11 +87,20 @@ export async function followTeachersForOrder(
     if (bundle) teacherIds.add(bundle.teacherId);
   }
 
-  if (teacherIds.size === 0) return;
+  await addFollows(trx, studentId, Array.from(teacherIds));
+}
 
-  await trx
-    .insertInto("teacherFollows")
-    .values(Array.from(teacherIds).map((teacherId) => ({ teacherId, studentId })))
-    .onConflict((oc) => oc.columns(["teacherId", "studentId"]).doNothing())
-    .execute();
+/** Follows the teacher behind a test item, for students who attempt it. */
+export async function followTeacherForTestItem(
+  trx: Transaction<DB> | Kysely<DB>,
+  studentId: number,
+  testItemId: number
+): Promise<void> {
+  const test = await trx
+    .selectFrom("mockTestItems")
+    .innerJoin("mockTests", "mockTests.id", "mockTestItems.packageId")
+    .select(["mockTests.teacherId"])
+    .where("mockTestItems.id", "=", testItemId)
+    .executeTakeFirst();
+  if (test) await addFollows(trx, studentId, [test.teacherId]);
 }

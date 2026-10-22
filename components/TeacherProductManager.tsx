@@ -172,7 +172,9 @@ const ProductRow: React.FC<ProductRowProps> = ({
           <Link to={editPath} className={styles.titleLink}>
             {product.title}
           </Link>
-          {product.visibility === 'unlisted' && <UnlistedBadge />}
+          {product.visibility === 'unlisted' && (
+            <UnlistedBadge live={state === 'published'} inReview={product.inReview} rejected={!!product.rejection} />
+          )}
           <span
             className={styles.productMeta}
             title={getItemExamNames(product).length > 1 ? `Exams: ${getItemExamNames(product).join(', ')}` : undefined}

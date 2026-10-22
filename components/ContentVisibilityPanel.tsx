@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Check, Copy, Globe, Link2 } from "lucide-react";
+import { Check, Clock, Copy, Globe, Link2, XCircle } from "lucide-react";
+import { Badge } from "./Badge";
 import { Button } from "./Button";
 import { ConsoleConfirmDialog } from "./ConsoleConfirmDialog";
 import { ContentVisibilityPicker } from "./ContentVisibilityPicker";
@@ -9,7 +10,7 @@ import { useContentVisibilityStatus } from "../helpers/useContentVisibilityStatu
 import { useUpdateContentVisibility } from "../helpers/useUpdateContentVisibility";
 import { usePublishesWithoutReview } from "../helpers/usePublishesWithoutReview";
 import { CONTENT_NOUNS } from "../helpers/contentReviewStatus";
-import { UNLISTED_HINT } from "../helpers/contentVisibility";
+import { PUBLICATION_STATUS_META, UNLISTED_HINT } from "../helpers/contentVisibility";
 import type { ContentVisibility } from "../helpers/schema";
 import type { InputType } from "../endpoints/teacher/content-visibility/update_POST.schema";
 import styles from "./ContentVisibilityPanel.module.css";
@@ -24,7 +25,9 @@ interface ContentVisibilityPanelProps {
 /*
  * Public / unlisted control for a saved teacher item, shown in its editor.
  * A draft switches at once. A live item asks first, since going unlisted takes
- * it off every listing and going public needs review. Visibility is the
+ * it off every listing and going public needs review. While a request to go
+ * public waits, Public is locked and the panel says where the request stands;
+ * a rejected request shows the reason and can be sent again. Visibility is the
  * teacher's call, so it is not shown while an admin edits their item.
  */
 export const ContentVisibilityPanel: React.FC<ContentVisibilityPanelProps> = (props) =>
@@ -37,6 +40,8 @@ const ContentVisibilityPanelBody: React.FC<ContentVisibilityPanelProps> = ({ con
   const [confirming, setConfirming] = useState<ContentVisibility | null>(null);
   const [copied, setCopied] = useState(false);
   const noun = CONTENT_NOUNS[contentType];
+  // Bundles skip review, so they switch at once for every teacher.
+  const switchesAtOnce = skipsReview || contentType === "course_bundle";
 
   if (!status) {
     return isFetching ? <Skeleton className={`${styles.skeleton} ${className ?? ""}`} /> : null;
@@ -66,17 +71,20 @@ const ContentVisibilityPanelBody: React.FC<ContentVisibilityPanelProps> = ({ con
   };
 
   const unlisted = status.visibility === "unlisted";
+  const isPending = status.publicationStatus === "public_pending";
+  const isRejected = status.publicationStatus === "public_rejected";
+  const statusMeta = PUBLICATION_STATUS_META[status.publicationStatus];
   let note: string;
-  if (status.live && unlisted && status.inReview) {
-    note = `Live as unlisted. Your request to make it public is waiting for review; it stays unlisted until it is approved.`;
-  } else if (status.live && unlisted) {
+  if (status.live && unlisted) {
     note = `Live as unlisted. ${UNLISTED_HINT} It stays out of search, listings, your profile and search engines.`;
   } else if (status.live) {
     note = "Live and public. Students can find it in search, listings and your profile.";
+  } else if (status.inReview) {
+    note = "Pending review. It goes live and is listed once our team approves it.";
   } else if (unlisted) {
     note = "Draft. Publishing puts it live at once, without review, for anyone with the link.";
   } else {
-    note = skipsReview
+    note = switchesAtOnce
       ? "Draft. Publishing puts it live and lists it publicly."
       : "Draft. Publishing sends it for review; it is listed once approved.";
   }
@@ -87,22 +95,45 @@ const ContentVisibilityPanelBody: React.FC<ContentVisibilityPanelProps> = ({ con
         value={status.visibility}
         onChange={choose}
         disabled={update.isPending}
-        footnote={note}
+        footnote={isPending || isRejected ? null : note}
+        status={<Badge variant={statusMeta.variant}>{statusMeta.label}</Badge>}
+        locked={isPending ? { value: "public", tag: "Pending review" } : undefined}
       />
 
-      {status.live && unlisted && status.inReview && (
-        <div>
-          <Button type="button" variant="outline" size="sm" disabled={update.isPending} onClick={() => save("unlisted")}>
-            Cancel the public request
-          </Button>
+      {isPending && (
+        <div className={`${styles.callout} ${styles.calloutPending}`} role="status">
+          <Clock size={18} aria-hidden="true" className={styles.calloutIcon} />
+          <div className={styles.calloutBody}>
+            <p className={styles.calloutTitle}>Your request is pending review</p>
+            <p className={styles.calloutText}>
+              It stays Unlisted, and its link keeps working, until our team approves it. We will email you when the
+              review is complete.
+            </p>
+            <Button type="button" variant="outline" size="sm" disabled={update.isPending} onClick={() => save("unlisted")}>
+              Cancel request
+            </Button>
+          </div>
         </div>
       )}
 
-      {status.publicRequestRejection && (
-        <p className={styles.rejection} role="status">
-          <strong>Not approved for public listing.</strong>{" "}
-          {status.publicRequestRejection.reason ?? "No reason was given."} It stays live as unlisted.
-        </p>
+      {isRejected && (
+        <div className={`${styles.callout} ${styles.calloutRejected}`} role="status">
+          <XCircle size={18} aria-hidden="true" className={styles.calloutIcon} />
+          <div className={styles.calloutBody}>
+            <p className={styles.calloutTitle}>Your request to make this public was rejected</p>
+            {status.publicRequestRejection?.reason && (
+              <p className={styles.calloutText}>
+                <strong>Reason:</strong> {status.publicRequestRejection.reason}
+              </p>
+            )}
+            <p className={styles.calloutText}>
+              It stays Unlisted, and its link keeps working. Make any changes needed, then send it again.
+            </p>
+            <Button type="button" size="sm" disabled={update.isPending} onClick={() => setConfirming("public")}>
+              Resubmit for review
+            </Button>
+          </div>
+        </div>
       )}
 
       {status.live && shareUrl && (
@@ -123,17 +154,31 @@ const ContentVisibilityPanelBody: React.FC<ContentVisibilityPanelProps> = ({ con
           if (!open && !update.isPending) setConfirming(null);
         }}
         icon={confirming === "unlisted" ? <Link2 size={20} /> : <Globe size={20} />}
-        title={confirming === "unlisted" ? `Make this ${noun} unlisted?` : `Make this ${noun} public?`}
+        title={
+          confirming === "unlisted"
+            ? `Make this ${noun} unlisted?`
+            : isRejected
+              ? `Resubmit this ${noun} for review?`
+              : `Make this ${noun} public?`
+        }
         description={
           confirming === "unlisted"
-            ? skipsReview
+            ? switchesAtOnce
               ? "It leaves search, listings, your profile and the sitemap at once. Its link keeps working for everyone who has it."
               : "It leaves search, listings, your profile and the sitemap at once. Its link keeps working. Making it public again later goes through review."
-            : skipsReview
+            : switchesAtOnce
               ? "It is listed in search, categories and your profile right away."
               : "It goes to our team for review first. Until it is approved it stays live as unlisted, and we email you the decision."
         }
-        confirmLabel={confirming === "unlisted" ? "Make unlisted" : skipsReview ? "Make public" : "Submit for review"}
+        confirmLabel={
+          confirming === "unlisted"
+            ? "Make unlisted"
+            : switchesAtOnce
+              ? "Make public"
+              : isRejected
+                ? "Resubmit for review"
+                : "Submit for review"
+        }
         pendingLabel="Saving..."
         isPending={update.isPending}
         onConfirm={() => confirming && save(confirming)}

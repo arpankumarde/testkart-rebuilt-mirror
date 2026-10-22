@@ -141,7 +141,9 @@ export const TeacherLiveTestCard: React.FC<TeacherLiveTestCardProps> = ({
 
         <div className={styles.content}>
           <h3 className={styles.title}>{liveTest.title}</h3>
-          {liveTest.visibility === 'unlisted' && <UnlistedBadge />}
+          {liveTest.visibility === 'unlisted' && (
+            <UnlistedBadge live={liveTest.isActive} inReview={liveTest.inReview} rejected={!!liveTest.rejection} />
+          )}
           <p className={styles.description}>{stripHtmlClient(liveTest.description)}</p>
 
           {rejection && <TeacherRejectionNote rejection={rejection} />}

@@ -141,7 +141,7 @@ const TeacherEarningsPage: React.FC = () => {
 
       return {
         Date: tx.transactionDate ? format(new Date(tx.transactionDate), 'yyyy-MM-dd') : 'N/A',
-        Type: tx.isRefunded ? 'Refunded' : type === 'sponsored' ? 'Sponsored' : type === 'prize_deduction' ? 'Prize Deduction' : type === 'subscription' ? 'Subscription' : type === 'campaign_bonus' ? 'Creator Bonus' : type.charAt(0).toUpperCase() + type.slice(1),
+        Type: tx.isRefunded ? 'Refunded' : type === 'sponsored' ? 'Sponsored' : type === 'prize_deduction' ? 'Prize Deduction' : type === 'subscription' ? 'Subscription' : type === 'campaign_bonus' ? 'Bonus' : type.charAt(0).toUpperCase() + type.slice(1),
         'Item Title': itemTitle,
         'Student Name': studentName,
         'Gross Amount': tx.grossAmount.toFixed(2),
@@ -265,7 +265,7 @@ const TeacherEarningsPage: React.FC = () => {
               <LedgerRow label="Earned this month" value={rupees.format(summary.thisMonthEarnings)} isLoading={isTransactionsLoading} />
               <LedgerRow label="Earned in total" value={rupees.format(summary.totalEarnings)} isLoading={isBalanceLoading} />
               {summary.totalBonuses > 0 && (
-                <LedgerRow label="Creator Bonus" value={rupees.format(summary.totalBonuses)} isLoading={isBalanceLoading} />
+                <LedgerRow label="Bonuses" value={rupees.format(summary.totalBonuses)} isLoading={isBalanceLoading} />
               )}
               <LedgerRow label="Withdrawn in total" value={rupees.format(summary.totalWithdrawn)} isLoading={isBalanceLoading} />
               <LedgerRow label="Sales" value={summary.totalSales.toLocaleString('en-IN')} isLoading={isBalanceLoading} />
@@ -347,7 +347,7 @@ const TeacherEarningsPage: React.FC = () => {
                         <td className={styles.date}>{tx.transactionDate ? format(new Date(tx.transactionDate), 'MMM dd, yyyy') : 'N/A'}</td>
                         <td>
                           <span className={`${styles.typeBadge} ${isRefunded ? styles.refunded : styles[txType]}`}>
-                            {isRefunded ? 'Refunded' : txType === 'sponsored' ? 'Sponsored' : txType === 'prize_deduction' ? 'Prize deduction' : txType === 'subscription' ? 'Subscription' : isBonus ? 'Creator Bonus' : txType}
+                            {isRefunded ? 'Refunded' : txType === 'sponsored' ? 'Sponsored' : txType === 'prize_deduction' ? 'Prize deduction' : txType === 'subscription' ? 'Subscription' : isBonus ? 'Bonus' : txType}
                           </span>
                         </td>
                         <td>

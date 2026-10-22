@@ -83,7 +83,7 @@ async function fetchList(input: ListInput): Promise<ListOutput> {
     total,
     totalPages: Math.max(1, Math.ceil(total / pageSize)),
     page,
-    exam: exam ? { name: exam.examName, slug: exam.examSlug } : null,
+    exam: exam ? { id: exam.id, name: exam.examName, slug: exam.examSlug } : null,
   };
 }
 
@@ -124,10 +124,12 @@ async function fetchSidebar(): Promise<SidebarOutput> {
     db
       .selectFrom("examNewsPosts as p")
       .leftJoin("exams as e", "e.id", "p.examId")
-      .select(["p.title", "p.slug", "p.newsType", "e.examName as examName", "p.updatedAt"])
+      .select(["p.title", "p.slug", "p.newsType", "e.examName as examName", "p.lastEditedAt"])
       .where("p.status", "=", "published")
-      .orderBy("p.updatedAt", "desc")
+      .where("p.lastEditedAt", "is not", null)
+      .orderBy("p.lastEditedAt", "desc")
       .limit(RECENTLY_UPDATED)
+      .$narrowType<{ lastEditedAt: Date }>()
       .execute(),
   ]);
 

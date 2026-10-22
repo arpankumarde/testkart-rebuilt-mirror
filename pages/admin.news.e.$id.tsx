@@ -71,6 +71,8 @@ type SectionId = "en-basics" | "en-story" | "en-dates" | "en-sources" | "en-corr
 
 const SEO_TITLE_TARGET = 60;
 const SEO_DESCRIPTION_TARGET = 160;
+/* Matches the .sectionBody transition. */
+const SECTION_ANIMATION_MS = 250;
 
 const SOURCE_SUGGESTIONS = ["NTA", "UPSC", "SSC", "IBPS", "CBSE", "UGC", "NMC", "Press Information Bureau", "Official website"];
 
@@ -157,6 +159,60 @@ const SUCCESS_COPY: Record<InputType["status"], string> = {
   published: "Published",
 };
 
+type SectionStatus = { ok: boolean; label: string };
+
+interface EditorSectionProps {
+  id: SectionId;
+  step: number;
+  title: string;
+  tag?: string;
+  hint?: string;
+  status: SectionStatus | null;
+  open: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}
+
+/* A numbered form section. Its fields stay mounted while collapsed, so nothing typed or uploading is lost. */
+const EditorSection: React.FC<EditorSectionProps> = ({ id, step, title, tag, hint, status, open, onToggle, children }) => {
+  // Clipped only while it moves: a lasting overflow would stop the article toolbar sticking.
+  const [settled, setSettled] = useState(open);
+  useEffect(() => {
+    if (!open) {
+      setSettled(false);
+      return;
+    }
+    const timer = setTimeout(() => setSettled(true), SECTION_ANIMATION_MS);
+    return () => clearTimeout(timer);
+  }, [open]);
+
+  return (
+    <section id={id} className={styles.card} aria-labelledby={`${id}-title`}>
+      <h2 id={`${id}-title`} className={styles.sectionHeading}>
+        <button type="button" className={styles.collapseToggle} aria-expanded={open} aria-controls={`${id}-body`} onClick={onToggle}>
+          <span className={styles.cardTitle}>
+            <span className={styles.step}>{step}</span> {title}
+            {tag && <span className={styles.optional}>{tag}</span>}
+          </span>
+          {hint && <span className={styles.cardHint}>{hint}</span>}
+          {status && (
+            <span className={`${styles.sectionStatus} ${status.ok ? styles.sectionStatusOk : styles.sectionStatusTodo}`}>
+              {status.ok ? <CheckCircle2 size={14} aria-hidden="true" /> : <AlertCircle size={14} aria-hidden="true" />}
+              {status.label}
+            </span>
+          )}
+          <ChevronDown size={18} className={`${styles.chevron} ${open ? styles.chevronOpen : ""}`} aria-hidden="true" />
+        </button>
+      </h2>
+      <div id={`${id}-body`} className={`${styles.sectionBody} ${open ? styles.sectionBodyOpen : ""}`}>
+        <div className={`${styles.sectionClip} ${settled ? styles.sectionClipSettled : ""}`}>
+          <div className={styles.collapseBody}>{children}</div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
 const AdminExamNewsEditorPage: React.FC = () => {
   const { id: idSegment } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -182,7 +238,7 @@ const AdminExamNewsEditorPage: React.FC = () => {
   const [meta, setMeta] = useState<SavedMeta | null>(null);
   const [examChoice, setExamChoice] = useState<ExamNewsExamChoice | null>(null);
   const [publishMode, setPublishMode] = useState<PublishMode>("now");
-  const [seoOpen, setSeoOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState<Set<SectionId>>(() => new Set<SectionId>(["en-seo"]));
   const [previewOpen, setPreviewOpen] = useState(false);
   const [confirmUnpublish, setConfirmUnpublish] = useState(false);
   const [confirmArchive, setConfirmArchive] = useState(false);
@@ -256,15 +312,24 @@ const AdminExamNewsEditorPage: React.FC = () => {
 
   const set = <K extends keyof InputType>(key: K, value: InputType[K]) => setValues((prev) => ({ ...prev, [key]: value }));
 
+  const expandSections = (ids: SectionId[]) => setCollapsed((prev) => new Set([...prev].filter((id) => !ids.includes(id))));
+
+  const toggleSection = (id: SectionId) =>
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (!next.delete(id)) next.add(id);
+      return next;
+    });
+
   const scrollToFirstError = () =>
     setTimeout(() => {
       document.querySelector('[aria-invalid="true"]')?.scrollIntoView({ block: "center", behavior: "smooth" });
-    }, 150);
+    }, SECTION_ANIMATION_MS + 50);
 
   const applyIssues = (issues: ValidationIssue[], headline?: string) => {
     form.validateForm();
     for (const issue of issues) form.setFieldError(issue.path, issue.message);
-    if (issues.some((issue) => sectionOf(issue.path) === "en-seo")) setSeoOpen(true);
+    expandSections(issues.flatMap((issue) => sectionOf(issue.path) ?? []));
     toast.error(headline ?? `${issues.length} field${issues.length === 1 ? " needs" : "s need"} attention`, {
       description: issues[0]?.message,
     });
@@ -394,6 +459,9 @@ const AdminExamNewsEditorPage: React.FC = () => {
   const filledSources = values.sources.filter((s) => s.url.trim()).length;
   const corrections = values.corrections.filter((c) => c.note.trim()).length;
   const seoIssues = issuesIn((path) => sectionOf(path) === "en-seo");
+  const seoCustomised = [values.seoTitle, values.seoDescription, values.ogTitle, values.ogDescription, values.ogImageUrl, values.canonicalUrl].some(Boolean);
+  // Advisory only: a typed title or description past its target never blocks publishing.
+  const seoTooLong = values.seoTitle.length > SEO_TITLE_TARGET || values.seoDescription.length > SEO_DESCRIPTION_TARGET;
 
   type CheckRow = { label: string; state: "ok" | "todo" | "optional"; detail?: string; target: SectionId };
   const checklist: CheckRow[] = [
@@ -428,14 +496,29 @@ const AdminExamNewsEditorPage: React.FC = () => {
     ...(rootIssues("corrections") > 0
       ? [{ label: "Corrections", state: "todo" as const, detail: `${rootIssues("corrections")} to fix`, target: "en-corrections" as const }]
       : []),
-    ...(seoIssues > 0 ? [{ label: "SEO & sharing", state: "todo" as const, detail: `${seoIssues} to fix`, target: "en-seo" as const }] : []),
+    {
+      label: "SEO & sharing",
+      state: seoIssues > 0 || seoTooLong ? "todo" : seoCustomised ? "ok" : "optional",
+      detail: seoIssues > 0 ? `${seoIssues} to fix` : seoTooLong ? "Too long" : seoCustomised ? undefined : "Optional",
+      target: "en-seo",
+    },
   ];
   const required = checklist.filter((row) => row.state !== "optional");
   const readyCount = required.filter((row) => row.state === "ok").length;
 
   const goTo = (id: SectionId) => {
-    if (id === "en-seo") setSeoOpen(true);
-    setTimeout(() => document.getElementById(id)?.scrollIntoView({ block: "start", behavior: "smooth" }), 50);
+    const delay = collapsed.has(id) ? SECTION_ANIMATION_MS : 50;
+    expandSections([id]);
+    setTimeout(() => document.getElementById(id)?.scrollIntoView({ block: "start", behavior: "smooth" }), delay);
+  };
+
+  const sectionProps = (id: SectionId) => ({ id, open: !collapsed.has(id), onToggle: () => toggleSection(id) });
+
+  /** What a collapsed section shows: anything to fix first, then what has been filled in. */
+  const sectionStatus = (id: SectionId, filledLabel: string | null): SectionStatus | null => {
+    const toFix = issuesIn((path) => sectionOf(path) === id) + (id === "en-basics" && slugTaken ? 1 : 0);
+    if (toFix > 0) return { ok: false, label: `${toFix} to fix` };
+    return filledLabel ? { ok: true, label: filledLabel } : null;
   };
 
   const seoTitle = values.seoTitle || values.title;
@@ -511,13 +594,7 @@ const AdminExamNewsEditorPage: React.FC = () => {
           <div className={styles.contentArea}>
             <div className={styles.layout}>
               <div className={styles.mainColumn}>
-                <section id="en-basics" className={styles.card} aria-labelledby="en-basics-title">
-                  <div className={styles.cardHead}>
-                    <h2 id="en-basics-title" className={styles.cardTitle}>
-                      <span className={styles.step}>1</span> Basic information
-                    </h2>
-                  </div>
-
+                <EditorSection {...sectionProps("en-basics")} step={1} title="Basic information" status={sectionStatus("en-basics", "Complete")}>
                   <FormItem name="title">
                     <FormLabel>Headline</FormLabel>
                     <FormControl>
@@ -642,16 +719,15 @@ const AdminExamNewsEditorPage: React.FC = () => {
                       <FormMessage />
                     </FormItem>
                   </div>
-                </section>
+                </EditorSection>
 
-                <section id="en-story" className={styles.card} aria-labelledby="en-story-title">
-                  <div className={styles.cardHead}>
-                    <h2 id="en-story-title" className={styles.cardTitle}>
-                      <span className={styles.step}>2</span> Story
-                    </h2>
-                    <span className={styles.cardHint}>Use Heading 2 and 3 for subheads</span>
-                  </div>
-
+                <EditorSection
+                  {...sectionProps("en-story")}
+                  step={2}
+                  title="Story"
+                  hint="Use Heading 2 and 3 for subheads"
+                  status={sectionStatus("en-story", "Complete")}
+                >
                   <div className={styles.coverBlock}>
                     <FormItem name="heroImageUrl" className={styles.coverUpload}>
                       <FormLabel>Hero image</FormLabel>
@@ -703,26 +779,26 @@ const AdminExamNewsEditorPage: React.FC = () => {
                     </FormControl>
                     <FormMessage />
                   </FormItem>
-                </section>
+                </EditorSection>
 
-                <section id="en-dates" className={styles.card} aria-labelledby="en-dates-title">
-                  <div className={styles.cardHead}>
-                    <h2 id="en-dates-title" className={styles.cardTitle}>
-                      <span className={styles.step}>3</span> Key dates
-                      <span className={styles.optional}>Optional</span>
-                    </h2>
-                    <span className={styles.cardHint}>Shown as a table on the story and feeds upcoming dates</span>
-                  </div>
+                <EditorSection
+                  {...sectionProps("en-dates")}
+                  step={3}
+                  title="Key dates"
+                  tag="Optional"
+                  hint="Shown as a table on the story and feeds upcoming dates"
+                  status={sectionStatus("en-dates", filledDates > 0 ? `${filledDates} added` : null)}
+                >
                   <ExamNewsKeyDatesEditor value={values.keyDates} onChange={(keyDates) => set("keyDates", keyDates)} />
-                </section>
+                </EditorSection>
 
-                <section id="en-sources" className={styles.card} aria-labelledby="en-sources-title">
-                  <div className={styles.cardHead}>
-                    <h2 id="en-sources-title" className={styles.cardTitle}>
-                      <span className={styles.step}>4</span> Official sources
-                      <span className={styles.optional}>Recommended</span>
-                    </h2>
-                  </div>
+                <EditorSection
+                  {...sectionProps("en-sources")}
+                  step={4}
+                  title="Official sources"
+                  tag="Recommended"
+                  status={sectionStatus("en-sources", values.officialSourceUrl.trim() ? "Complete" : null)}
+                >
                   <div className={styles.sourceGrid}>
                     <FormItem name="officialSourceName">
                       <FormLabel>Source name</FormLabel>
@@ -763,128 +839,113 @@ const AdminExamNewsEditorPage: React.FC = () => {
                       addLabel="Add link"
                     />
                   </div>
-                </section>
+                </EditorSection>
 
-                <section id="en-corrections" className={styles.card} aria-labelledby="en-corrections-title">
-                  <div className={styles.cardHead}>
-                    <h2 id="en-corrections-title" className={styles.cardTitle}>
-                      <span className={styles.step}>5</span> Corrections
-                      <span className={styles.optional}>Optional</span>
-                    </h2>
-                    <span className={styles.cardHint}>Shown on the story only when there is one</span>
-                  </div>
+                <EditorSection
+                  {...sectionProps("en-corrections")}
+                  step={5}
+                  title="Corrections"
+                  tag="Optional"
+                  hint="Shown on the story only when there is one"
+                  status={sectionStatus("en-corrections", corrections > 0 ? `${corrections} added` : null)}
+                >
                   <ExamNewsCorrectionsEditor value={values.corrections} onChange={(next) => set("corrections", next)} />
-                </section>
+                </EditorSection>
 
-                <section id="en-seo" className={`${styles.card} ${styles.collapsible}`}>
-                  <button
-                    type="button"
-                    className={styles.collapseToggle}
-                    aria-expanded={seoOpen}
-                    aria-controls="en-seo-body"
-                    onClick={() => setSeoOpen((open) => !open)}
-                  >
-                    <span className={styles.cardTitle}>
-                      <span className={styles.step}>6</span> SEO & sharing
-                    </span>
-                    <span className={styles.cardHint}>
-                      Falls back to the headline, standfirst and hero image
-                      {seoIssues > 0 && <span className={styles.inlineError}> - {seoIssues} to fix</span>}
-                    </span>
-                    <ChevronDown size={18} className={`${styles.chevron} ${seoOpen ? styles.chevronOpen : ""}`} aria-hidden="true" />
-                  </button>
+                <EditorSection
+                  {...sectionProps("en-seo")}
+                  step={6}
+                  title="SEO & sharing"
+                  hint="Falls back to the headline, standfirst and hero image"
+                  status={seoTooLong && seoIssues === 0 ? { ok: false, label: "Too long" } : sectionStatus("en-seo", seoCustomised ? "Customised" : null)}
+                >
+                  <div className={styles.snippet} aria-label="Search result preview">
+                    <span className={styles.snippetUrl}>testkart.in/exam-news/{slugToCheck || "..."}</span>
+                    <span className={styles.snippetTitle}>{seoTitle || "SEO title"}</span>
+                    <span className={styles.snippetText}>{seoDescription || "The meta description shows here."}</span>
+                  </div>
 
-                  {seoOpen && (
-                    <div id="en-seo-body" className={styles.collapseBody}>
-                      <div className={styles.snippet} aria-label="Search result preview">
-                        <span className={styles.snippetUrl}>testkart.in/exam-news/{slugToCheck || "..."}</span>
-                        <span className={styles.snippetTitle}>{seoTitle || "SEO title"}</span>
-                        <span className={styles.snippetText}>{seoDescription || "The meta description shows here."}</span>
-                      </div>
+                  <div className={styles.grid2}>
+                    <FormItem name="seoTitle">
+                      <FormLabel>SEO title</FormLabel>
+                      <FormControl>
+                        <Input value={values.seoTitle} placeholder={values.title} onChange={(e) => set("seoTitle", e.target.value)} />
+                      </FormControl>
+                      <p className={`${styles.hint} ${seoTitle.length > SEO_TITLE_TARGET ? styles.over : ""}`}>
+                        {seoTitle.length} / {SEO_TITLE_TARGET}
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                    <FormItem name="seoDescription">
+                      <FormLabel>Meta description</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          rows={2}
+                          value={values.seoDescription}
+                          placeholder={values.summary || "Shown under the title in search results"}
+                          onChange={(e) => set("seoDescription", e.target.value)}
+                        />
+                      </FormControl>
+                      <p className={`${styles.hint} ${seoDescription.length > SEO_DESCRIPTION_TARGET ? styles.over : ""}`}>
+                        {seoDescription.length} / {SEO_DESCRIPTION_TARGET}
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  </div>
 
-                      <div className={styles.grid2}>
-                        <FormItem name="seoTitle">
-                          <FormLabel>SEO title</FormLabel>
-                          <FormControl>
-                            <Input value={values.seoTitle} placeholder={values.title} onChange={(e) => set("seoTitle", e.target.value)} />
-                          </FormControl>
-                          <p className={`${styles.hint} ${seoTitle.length > SEO_TITLE_TARGET ? styles.over : ""}`}>
-                            {seoTitle.length} / {SEO_TITLE_TARGET}
-                          </p>
-                          <FormMessage />
-                        </FormItem>
-                        <FormItem name="seoDescription">
-                          <FormLabel>Meta description</FormLabel>
-                          <FormControl>
-                            <Textarea
-                              rows={2}
-                              value={values.seoDescription}
-                              placeholder={values.summary || "Shown under the title in search results"}
-                              onChange={(e) => set("seoDescription", e.target.value)}
-                            />
-                          </FormControl>
-                          <p className={`${styles.hint} ${seoDescription.length > SEO_DESCRIPTION_TARGET ? styles.over : ""}`}>
-                            {seoDescription.length} / {SEO_DESCRIPTION_TARGET}
-                          </p>
-                          <FormMessage />
-                        </FormItem>
-                      </div>
-
-                      <h3 className={styles.subTitle}>Social sharing</h3>
-                      <div className={styles.shareBlock}>
-                        <FormItem name="ogImageUrl" className={styles.ogField}>
-                          <FormLabel>Sharing image</FormLabel>
-                          <ImageUploader
-                            folder="exam-news"
-                            currentImageUrl={values.ogImageUrl || undefined}
-                            currentFileId={values.ogImageFileId || undefined}
-                            aspectRatio="1200 / 630"
-                            label="Upload sharing image"
-                            onSuccess={({ url, fileId }) => setValues((prev) => ({ ...prev, ogImageUrl: url, ogImageFileId: fileId }))}
-                          />
-                          <p className={styles.hint}>1200x630. Left blank, the hero image is shared.</p>
-                          <FormMessage />
-                        </FormItem>
-                        <div className={styles.coverMeta}>
-                          <FormItem name="ogTitle">
-                            <FormLabel>Sharing title</FormLabel>
-                            <FormControl>
-                              <Input value={values.ogTitle} placeholder={seoTitle} onChange={(e) => set("ogTitle", e.target.value)} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                          <FormItem name="ogDescription">
-                            <FormLabel>Sharing description</FormLabel>
-                            <FormControl>
-                              <Textarea
-                                rows={2}
-                                value={values.ogDescription}
-                                placeholder={seoDescription || "Shown in WhatsApp, Telegram and social previews"}
-                                onChange={(e) => set("ogDescription", e.target.value)}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        </div>
-                      </div>
-
-                      <FormItem name="canonicalUrl">
-                        <FormLabel>Canonical URL</FormLabel>
+                  <h3 className={styles.subTitle}>Social sharing</h3>
+                  <div className={styles.shareBlock}>
+                    <FormItem name="ogImageUrl" className={styles.ogField}>
+                      <FormLabel>Sharing image</FormLabel>
+                      <ImageUploader
+                        folder="exam-news"
+                        currentImageUrl={values.ogImageUrl || undefined}
+                        currentFileId={values.ogImageFileId || undefined}
+                        aspectRatio="1200 / 630"
+                        label="Upload sharing image"
+                        onSuccess={({ url, fileId }) => setValues((prev) => ({ ...prev, ogImageUrl: url, ogImageFileId: fileId }))}
+                      />
+                      <p className={styles.hint}>1200x630. Left blank, the hero image is shared.</p>
+                      <FormMessage />
+                    </FormItem>
+                    <div className={styles.coverMeta}>
+                      <FormItem name="ogTitle">
+                        <FormLabel>Sharing title</FormLabel>
                         <FormControl>
-                          <Input
-                            type="url"
-                            inputMode="url"
-                            value={values.canonicalUrl}
-                            placeholder={`https://testkart.in/exam-news/${slugToCheck || "..."}`}
-                            onChange={(e) => set("canonicalUrl", e.target.value)}
+                          <Input value={values.ogTitle} placeholder={seoTitle} onChange={(e) => set("ogTitle", e.target.value)} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                      <FormItem name="ogDescription">
+                        <FormLabel>Sharing description</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            rows={2}
+                            value={values.ogDescription}
+                            placeholder={seoDescription || "Shown in WhatsApp, Telegram and social previews"}
+                            onChange={(e) => set("ogDescription", e.target.value)}
                           />
                         </FormControl>
-                        <p className={styles.hint}>Leave blank unless this story is a copy of a page that should rank instead.</p>
                         <FormMessage />
                       </FormItem>
                     </div>
-                  )}
-                </section>
+                  </div>
+
+                  <FormItem name="canonicalUrl">
+                    <FormLabel>Canonical URL</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="url"
+                        inputMode="url"
+                        value={values.canonicalUrl}
+                        placeholder={`https://testkart.in/exam-news/${slugToCheck || "..."}`}
+                        onChange={(e) => set("canonicalUrl", e.target.value)}
+                      />
+                    </FormControl>
+                    <p className={styles.hint}>Leave blank unless this story is a copy of a page that should rank instead.</p>
+                    <FormMessage />
+                  </FormItem>
+                </EditorSection>
               </div>
 
               <aside className={styles.sidebar}>

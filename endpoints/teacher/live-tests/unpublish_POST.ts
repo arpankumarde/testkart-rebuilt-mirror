@@ -2,6 +2,7 @@ import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./unpublish_POST.schema";
 import { countLiveTestEnrollments } from "../../../helpers/enrollmentCounters";
+import { clearOpenReviews } from "../../../helpers/contentReviewQueue";
 import superjson from "superjson";
 
 export async function handle(request: Request) {
@@ -70,6 +71,8 @@ export async function handle(request: Request) {
       .set({ isActive: false })
       .where("id", "=", id)
       .execute();
+    // A live unlisted item's request to go public ends with it.
+    await clearOpenReviews(db, "live_test", id);
 
     console.log(`[Live Test Unpublish] Successfully unpublished live test ${id}`);
 

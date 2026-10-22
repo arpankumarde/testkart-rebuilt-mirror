@@ -18,7 +18,7 @@ export const apiDocsSite: ApiEndpoint[] = [
       { name: "featuredCourses", type: "array", description: "Up to 5 hand-picked courses (a fixed list in code): { id, title, slug, thumbnailUrl, price, discountPrice, examName, level, totalLessons, teacherName, teacherAvatarUrl, teacherIsVerified }" },
       { name: "popularNotes", type: "array", description: "Up to 8 published study notes by recent purchases, then views: { id, title, slug, price, totalPurchases, rating, pageCount, views, examName, teacher fields }" },
       { name: "liveTestSpotlight", type: "array", description: "Up to 8 active live tests that have not ended: running ones first (soonest to end), then upcoming ones (soonest to start), with up to 3 slots held for upcoming tests. A null startTime means no fixed start, so the test is running until endTime: { id, title, examName, price, enrolledCount, maxSeats, hasPrizes, totalPrizePool, startTime, endTime, isLive, teacher fields }" },
-      { name: "popularTeachers", type: "array", description: "Up to 10 active teachers by revenue and enrollments over the last year: { id, displayName, avatarUrl, slug, isVerified, tagline, testCount, courseCount, productCount, studentCount, targetExams }" },
+      { name: "popularTeachers", type: "array", description: "Up to 10 active teachers by revenue and enrollments over the last year: { id, displayName, avatarUrl, slug, isVerified, tagline, testCount, courseCount, productCount, studentCount, followerCount, targetExams }" },
     ],
     notes: [
       "Takes no parameters.",
@@ -38,11 +38,11 @@ export const apiDocsSite: ApiEndpoint[] = [
       { name: "limit", type: "number", required: false, description: "Items per group for tests, courses, bundles, products and teachers. Default 5, maximum 10" },
     ],
     responseFields: [
-      { name: "tests", type: "array", description: "Published series that are not live tests: { id, slug, title, thumbnailUrl, price, discountPrice, examName, category, views, type: 'test', teacher fields }" },
+      { name: "tests", type: "array", description: "Published series that are not live tests: { id, slug, title, thumbnailUrl, price, discountPrice, examName, category, views, rating (null when never reviewed), reviewsCount, type: 'test', teacher fields }" },
       { name: "courses", type: "array", description: "Published courses: { id, slug, title, thumbnailUrl, price, discountPrice, category (the primary exam name), views, type: 'course', teacher fields }" },
       { name: "bundles", type: "array", description: "Published bundles: { id, slug, title, thumbnailUrl, price, originalPrice, itemCount, type: 'bundle', teacher fields }" },
       { name: "products", type: "array", description: "Published study notes: { id, slug, title, thumbnailUrl, price, examName, category, views, type: 'product', teacher fields }" },
-      { name: "teachers", type: "array", description: "First page of active teachers whose name matches, with or without published content, by students then name: { id, displayName, avatarUrl, slug, isVerified, testCount, courseCount, studentCount }" },
+      { name: "teachers", type: "array", description: "First page of active teachers whose name matches, with or without published content, by students then name: { id, displayName, avatarUrl, slug, isVerified, testCount, courseCount, studentCount, resourceCount (published test series, courses and study notes), followerCount }" },
       { name: "teacherTotal", type: "number", description: "All teachers matching q. Load the rest from /_api/homepage/search/teachers" },
       { name: "totalResults", type: "number", description: "Items across all five groups" },
     ],

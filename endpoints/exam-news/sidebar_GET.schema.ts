@@ -14,12 +14,13 @@ export type OutputType = {
   /** Every exam with at least one published story, most stories first. */
   examsWithNews: PublicExamNewsExam[];
   typeCounts: Partial<Record<ExamNewsType, number>>;
+  /** Published stories an admin has changed since they first went live, latest edit first. */
   recentlyUpdated: {
     title: string;
     slug: string;
     newsType: ExamNewsType;
     examName: string | null;
-    updatedAt: Date;
+    lastEditedAt: Date;
   }[];
 };
 

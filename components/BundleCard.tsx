@@ -115,7 +115,9 @@ export const BundleCard: React.FC<BundleCardProps> = ({
         )}
 
         <h3 className={styles.title}>{bundle.title}</h3>
-        {bundle.visibility === 'unlisted' && <UnlistedBadge />}
+        {bundle.visibility === 'unlisted' && (
+          <UnlistedBadge live={isPublished} inReview={bundle.inReview} rejected={!!bundle.rejection} />
+        )}
 
         {rejection && <TeacherRejectionNote rejection={rejection} />}
 

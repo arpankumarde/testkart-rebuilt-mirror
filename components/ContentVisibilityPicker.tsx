@@ -13,6 +13,10 @@ interface ContentVisibilityPickerProps {
   disabled?: boolean;
   /** Shown under the options, e.g. what the choice does to a live item. */
   footnote?: React.ReactNode;
+  /** The item's current status, shown beside the heading. */
+  status?: React.ReactNode;
+  /** An option that cannot be chosen right now, shown with this tag, e.g. while a request is pending. */
+  locked?: { value: ContentVisibility; tag: string };
   className?: string;
 }
 
@@ -22,13 +26,18 @@ export const ContentVisibilityPicker: React.FC<ContentVisibilityPickerProps> = (
   onChange,
   disabled,
   footnote,
+  status,
+  locked,
   className,
 }) => {
   const id = useId();
 
   return (
     <fieldset className={`${styles.fieldset} ${className ?? ""}`} disabled={disabled}>
-      <legend className={styles.legend}>Visibility</legend>
+      <legend className={styles.legend}>
+        Visibility
+        {status}
+      </legend>
       <RadioGroup
         value={value}
         onValueChange={(next) => onChange(next as ContentVisibility)}
@@ -39,21 +48,27 @@ export const ContentVisibilityPicker: React.FC<ContentVisibilityPickerProps> = (
         {VISIBILITY_OPTIONS.map((option) => {
           const Icon = ICONS[option.value];
           const itemId = `${id}-${option.value}`;
+          const isLocked = locked?.value === option.value;
           return (
             <label
               key={option.value}
               htmlFor={itemId}
               className={styles.option}
               data-selected={value === option.value ? "true" : undefined}
+              data-locked={isLocked ? "true" : undefined}
             >
-              <RadioGroupItem id={itemId} value={option.value} className={styles.radio} />
+              <RadioGroupItem id={itemId} value={option.value} disabled={isLocked} className={styles.radio} />
               <span className={styles.icon} aria-hidden="true">
                 <Icon size={18} />
               </span>
               <span className={styles.text}>
                 <span className={styles.label}>
                   {option.label}
-                  {option.value === "public" && <span className={styles.defaultTag}>Default</span>}
+                  {isLocked ? (
+                    <span className={styles.lockedTag}>{locked.tag}</span>
+                  ) : (
+                    option.value === "public" && <span className={styles.defaultTag}>Default</span>
+                  )}
                 </span>
                 <span className={styles.description}>{option.description}</span>
               </span>

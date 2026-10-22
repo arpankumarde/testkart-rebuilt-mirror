@@ -4,7 +4,7 @@ import { schema, OutputType } from "./bulk_POST.schema";
 import superjson from "superjson";
 import { getProductPublishIssues, formatPublishIssues } from "../../../helpers/digitalProductRules";
 import { findStudyNoteFileProblem } from "../../../helpers/studyNoteFileCheck";
-import { pendingReviewIds, publishesWithoutReview, queueContentReview } from "../../../helpers/contentReviewQueue";
+import { clearOpenReviews, pendingReviewIds, publishesWithoutReview, queueContentReview } from "../../../helpers/contentReviewQueue";
 import {
   bundleConfirmationResponse,
   findPublishedBundlesContaining,
@@ -120,6 +120,8 @@ export async function handle(request: Request): Promise<Response> {
           }
 
           const now = new Date();
+          // A live unlisted item's request to go public ends with it.
+          for (const id of liveIds) await clearOpenReviews(trx, "digital_product", id);
           if (input.action === "unpublish") {
             await trx
               .updateTable("digitalProducts")

@@ -135,7 +135,8 @@ const groups: AdminNavGroup[] = [
     items: [
       { href: "/admin/catalogue", label: "Catalogue dashboard", icon: LayoutDashboard, modules: ["catalogue"], keywords: "catalogue overview coverage publishing gaps tests courses notes" },
       { href: "/admin/content-reviews", label: "Content reviews", icon: ClipboardCheck, modules: ["content_reviews"], countKeys: ["reviewsPending"], keywords: "approve moderation" },
-      { href: "/admin/content-reviews/bonus-claims", label: "Creator Bonus claims", icon: Gift, modules: ["content_reviews"], keywords: "campaign teacher bonus credit payout" },
+      { href: "/admin/content-reviews/bonus-claims", label: "Bonus claims", icon: Gift, modules: ["content_reviews"], keywords: "campaign teacher creator exam bonus credit payout" },
+      { href: "/admin/content-reviews/exam-bonus", label: "Exam Bonus", icon: Newspaper, modules: ["content_reviews"], keywords: "campaign teacher exam news slots bonus" },
       { href: "/admin/courses", label: "Courses", icon: MonitorPlay, modules: ["courses"] },
       { href: "/admin/notes", label: "Study notes", icon: FileText, modules: ["notes"], keywords: "digital products pdf" },
       { href: "/admin/test-series", label: "Test series", icon: ListChecks, modules: ["test_series"], keywords: "mock tests" },

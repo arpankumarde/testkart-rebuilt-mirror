@@ -103,11 +103,6 @@
   background-color: var(--muted);
 }
 
-.typeRowActive {
-  background-color: color-mix(in srgb, var(--tk-brand) 14%, var(--surface));
-  color: var(--tk-brand-text);
-}
-
 .typeIcon {
   display: inline-flex;
   align-items: center;
@@ -179,12 +174,6 @@
 
 .recentMeta {
   font-size: 0.75rem;
-  color: var(--muted-foreground);
-}
-
-.empty {
-  margin: 0;
-  font-size: 0.8125rem;
   color: var(--muted-foreground);
 }
 

@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { Button } from '../components/Button';
 import { useTeacherTestsQuery, useTeacherTestItemsQuery } from '../helpers/useTeacherTestsQuery';
 import { useTeacherTestMutations } from '../helpers/useTeacherTestMutations';
 import { usePublishesWithoutReview } from '../helpers/usePublishesWithoutReview';
+import { useInvalidateCreatorBonus } from '../helpers/useCreatorBonus';
 import { useTeacherLiveTestsQuery } from '../helpers/useTeacherLiveTestsQuery';
 import { Skeleton } from '../components/Skeleton';
 import { Badge } from '../components/Badge';
@@ -116,7 +117,13 @@ const Page = () => {
   const publishMutation = usePublishTestMutation();
   const publishLiveMutation = usePublishLiveTestMutation();
   const [claimBonus, setClaimBonus] = useState(false);
+  const [examCampaignId, setExamCampaignId] = useState<number | null>(null);
   const publishesDirectly = usePublishesWithoutReview();
+  const invalidateCreatorBonus = useInvalidateCreatorBonus();
+  const pickExamBonus = useCallback((campaignId: number | null) => {
+    setExamCampaignId(campaignId);
+    if (campaignId !== null) setClaimBonus(false);
+  }, []);
 
   const testPackage = tests?.find((t) => t.id === packageId);
   const liveTest = liveTestsData?.tests.find((lt) => lt.mockTestId === packageId);
@@ -138,10 +145,19 @@ const Page = () => {
         onSuccess: () => navigate("/teacher/live-tests"),
       });
     } else {
-      const bonus = claimBonus && testPackage?.visibility !== "unlisted";
-      publishMutation.mutate({ testId: packageId, claimCreatorBonus: bonus || undefined }, {
-        onSuccess: () => navigate("/teacher/test-series"),
-      });
+      const listed = testPackage?.visibility !== "unlisted";
+      publishMutation.mutate(
+        {
+          testId: packageId,
+          claimCreatorBonus: (claimBonus && listed) || undefined,
+          examBonusCampaignId: (listed && examCampaignId) || undefined,
+        },
+        {
+          onSuccess: () => navigate("/teacher/test-series"),
+          // The last slot may have gone: refresh what the card offers.
+          onError: () => invalidateCreatorBonus(),
+        }
+      );
     }
   };
 
@@ -273,8 +289,9 @@ const Page = () => {
   const isUnlisted = (isLiveTest && liveTest ? liveTest.visibility : testPackage.visibility) === "unlisted";
   const kindLabel = isLiveTest ? "live test" : "test series";
   const isPublishing = publishMutation.isPending || publishLiveMutation.isPending;
-  // Unlisted content skips review. A Creator Bonus claim always goes through review, even for a verified teacher.
-  const goesLiveNow = isUnlisted || (publishesDirectly && !(claimBonus && !isLiveTest));
+  // Unlisted content skips review. A bonus claim always goes through review, even for a verified teacher.
+  const claimsBonus = (claimBonus || examCampaignId !== null) && !isLiveTest;
+  const goesLiveNow = isUnlisted || (publishesDirectly && !claimsBonus);
   const verdict = isAlreadyLive ? "live" : isInReview ? "inReview" : isReadyToPublish ? "ready" : "blocked";
 
   const totalQuestions = orderedItems.reduce((sum, item) => sum + item.questionsCount, 0);
@@ -387,7 +404,7 @@ const Page = () => {
                         : goesLiveNow
                         ? "Your account is verified, so it goes live as soon as you publish."
                         : publishesDirectly
-                          ? "Claiming the Creator Bonus sends it to our team for review before students can find it."
+                          ? "Claiming a bonus sends it to our team for review before students can find it."
                           : "Our team reviews it before students can find it."}
                     </p>
                     <div className={styles.verdictActions}>
@@ -402,7 +419,12 @@ const Page = () => {
                         type="mock_test"
                         id={packageId}
                         checked={claimBonus}
-                        onCheckedChange={setClaimBonus}
+                        onCheckedChange={(on) => {
+                          setClaimBonus(on);
+                          if (on) setExamCampaignId(null);
+                        }}
+                        examCampaignId={examCampaignId}
+                        onExamCampaignChange={pickExamBonus}
                         disabled={isPublishing}
                         onBrand
                       />

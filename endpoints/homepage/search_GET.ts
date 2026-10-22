@@ -37,6 +37,8 @@ export async function handle(request: Request): Promise<Response> {
         "mockTests.discountPrice",
         "mockTests.examName",
         "mockTests.views",
+        "mockTests.rating",
+        "mockTests.reviewsCount",
         "users.displayName as teacherName",
         "users.isVerified as teacherIsVerified",
         "users.avatarUrl as teacherAvatarUrl",
@@ -257,6 +259,8 @@ export async function handle(request: Request): Promise<Response> {
           category: t.examName,
      type: "test",
      examName: t.examName ?? null,
+      rating: t.rating != null ? Number(t.rating) : null,
+      reviewsCount: Number(t.reviewsCount ?? 0),
     }));
 
     const formattedCourses: OutputType["courses"] = courses.map((c) => ({

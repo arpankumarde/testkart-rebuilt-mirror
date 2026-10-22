@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
-import { AlertCircle, ArrowLeft, Ban, CheckCircle, ExternalLink, Gift, Undo2 } from "lucide-react";
+import { AlertCircle, ArrowLeft, Ban, CheckCircle, ExternalLink, Gift, Newspaper, Undo2 } from "lucide-react";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
 import { ConsolePageHeader } from "../components/ConsolePageHeader";
@@ -19,10 +19,20 @@ import {
   type CampaignCriteria,
   type CampaignRequirements,
 } from "../helpers/teacherCampaignRules";
-import type { BonusClaimAdminView, BonusClaimFilter } from "../endpoints/admin/content-reviews/bonus-claims_GET.schema";
+import type {
+  BonusClaimAdminView,
+  BonusClaimFilter,
+  BonusKindFilter,
+} from "../endpoints/admin/content-reviews/bonus-claims_GET.schema";
 import styles from "./admin.content-reviews.bonus-claims.module.css";
 
 type Decision = { claim: BonusClaimAdminView; action: "credit" | "decline" | "reverse" };
+
+const KIND_FILTERS: { value: BonusKindFilter; label: string }[] = [
+  { value: "all", label: "All bonuses" },
+  { value: "creator", label: "Creator Bonus" },
+  { value: "exam", label: "Exam Bonus" },
+];
 
 const formatDate = (date: Date | null) =>
   date ? new Intl.DateTimeFormat("en-IN", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(date)) : "-";
@@ -91,10 +101,11 @@ const LessonList = ({ criteria, requirements }: { criteria: CampaignCriteria; re
 
 const AdminBonusClaimsPage: React.FC = () => {
   const [status, setStatus] = useState<BonusClaimFilter>("claimed");
+  const [kind, setKind] = useState<BonusKindFilter>("all");
   const [page, setPage] = useState(1);
   const [decision, setDecision] = useState<Decision | null>(null);
   const [note, setNote] = useState("");
-  const { data, isFetching, isError, error, refetch } = useAdminBonusClaimsQuery({ status, page });
+  const { data, isFetching, isError, error, refetch } = useAdminBonusClaimsQuery({ status, kind, page });
   const decide = useAdminBonusDecision();
 
   const open = (claim: BonusClaimAdminView, action: Decision["action"]) => {
@@ -144,10 +155,16 @@ const AdminBonusClaimsPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Creator Bonus claims - Testkart Admin</title>
+        <title>Bonus claims - Testkart Admin</title>
       </Helmet>
       <div className={styles.page}>
-        <ConsolePageHeader title="Creator Bonus claims">
+        <ConsolePageHeader title="Bonus claims">
+          <Button variant="outline" asChild>
+            <Link to="/admin/content-reviews/exam-bonus">
+              <Newspaper size={16} />
+              Exam Bonus
+            </Link>
+          </Button>
           <Button variant="outline" asChild>
             <Link to="/admin/content-reviews">
               <ArrowLeft size={16} />
@@ -156,7 +173,7 @@ const AdminBonusClaimsPage: React.FC = () => {
           </Button>
         </ConsolePageHeader>
 
-        <section className={styles.intro} aria-label="How the Creator Bonus works">
+        <section className={styles.intro} aria-label="How bonuses work">
           <span className={styles.introIcon} aria-hidden="true">
             <Gift size={20} />
           </span>
@@ -176,6 +193,23 @@ const AdminBonusClaimsPage: React.FC = () => {
           }}
           tabsLabel="Claim status"
         />
+
+        <div className={styles.kinds} role="group" aria-label="Bonus type">
+          {KIND_FILTERS.map((f) => (
+            <button
+              key={f.value}
+              type="button"
+              className={`${styles.kind_filter} ${kind === f.value ? styles.kind_filterOn : ""}`}
+              aria-pressed={kind === f.value}
+              onClick={() => {
+                setKind(f.value);
+                setPage(1);
+              }}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
 
         {isError ? (
           <ConsoleListEmpty
@@ -198,7 +232,7 @@ const AdminBonusClaimsPage: React.FC = () => {
             title={status === "claimed" ? "No claims waiting" : "Nothing here yet"}
             description={
               status === "claimed"
-                ? "Claims appear here when a teacher submits a test series or course with the Creator Bonus ticked."
+                ? "Claims appear here when a teacher submits a test series or course with a bonus ticked."
                 : "Claims with this status will be listed here."
             }
           />
@@ -206,7 +240,8 @@ const AdminBonusClaimsPage: React.FC = () => {
           <ul className={styles.list}>
             {claims.map((claim) => {
               const label = reviewLabel(claim);
-              const canCredit = claim.status === "claimed" && claim.reviewStatus === "approved" && claim.live && claim.meetsNow !== false;
+              const canCredit =
+                claim.status === "claimed" && claim.reviewStatus === "approved" && claim.live && claim.meetsNow !== false && !claim.examTagMissing;
               return (
                 <li key={claim.id} className={styles.card}>
                   <div className={styles.cardHead}>
@@ -227,6 +262,7 @@ const AdminBonusClaimsPage: React.FC = () => {
                   </div>
 
                   <div className={styles.facts}>
+                    <span className={styles.fact}>{claim.campaignTitle}</span>
                     {label && <span className={styles.fact}>{label}</span>}
                     <span className={styles.fact}>
                       {claim.slots.credited} of {claim.slots.limit} {CAMPAIGN_CONTENT_NOUNS[claim.contentType]} bonuses credited
@@ -283,7 +319,9 @@ const AdminBonusClaimsPage: React.FC = () => {
                         ? "Approve the content in the review queue before crediting."
                         : !claim.live
                           ? "The teacher took this item off the site, so it cannot be credited now."
-                          : "It no longer meets the size rules, so it cannot be credited now."}
+                          : claim.examTagMissing
+                            ? "The teacher removed the exam tag, so it cannot be credited now."
+                            : "It no longer meets the size rules, so it cannot be credited now."}
                     </p>
                   )}
                 </li>

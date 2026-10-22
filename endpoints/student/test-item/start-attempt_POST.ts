@@ -5,6 +5,7 @@ import { schema, OutputType } from "./start-attempt_POST.schema";
 import superjson from "superjson";
 import { hasStudentAccessToTestItem } from "../../../helpers/hasStudentPurchasedTestItem";
 import { getLiveTestForTestItem, liveTestWindowError } from "../../../helpers/liveTestAttemptWindow";
+import { followTeacherForTestItem } from "../../../helpers/ensureTeacherFollow";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -123,6 +124,11 @@ export async function handle(request: Request): Promise<Response> {
       })
       .returning(["id", "startedAt"])
       .executeTakeFirstOrThrow();
+
+    // A failed follow must never stop a student from taking the test.
+    await followTeacherForTestItem(db, user.id, input.testItemId).catch((error) => {
+      console.error(`Failed to auto-follow for test item ${input.testItemId}:`, error);
+    });
 
     return new Response(
       superjson.stringify({

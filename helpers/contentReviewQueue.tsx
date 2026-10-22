@@ -82,9 +82,11 @@ export async function queueContentReview(
       contentId: input.contentId,
       teacherId: input.teacherId,
     })
+    // idx_content_reviews_unique_pending stops a second pending row; a racing submit gets null.
+    .onConflict((oc) => oc.doNothing())
     .returning("id")
-    .executeTakeFirstOrThrow();
-  return row.id;
+    .executeTakeFirst();
+  return row?.id ?? null;
 }
 
 export async function hasPendingReview(

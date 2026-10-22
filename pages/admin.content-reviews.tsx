@@ -105,7 +105,7 @@ const BonusFlag = ({ review }: { review: ContentReviewAdminView }) => {
   const claim = openBonus(review);
   if (!claim) return null;
   return (
-    <span className={styles.bonusFlag} title={`The teacher claimed the ${formatRupees(claim.amount)} Creator Bonus`}>
+    <span className={styles.bonusFlag} title={`The teacher claimed the ${formatRupees(claim.amount)} ${claim.campaignTitle}`}>
       <Gift size={12} aria-hidden="true" />
       Bonus {formatRupees(claim.amount)}
     </span>
@@ -384,6 +384,11 @@ const AdminContentReviewsPage: React.FC = () => {
                       </span>
                       <span className={styles.rowDate}>{formatDate(review.createdAt)}</span>
                       <BonusFlag review={review} />
+                      {review.publicRequest && (
+                        <Badge variant="lavender" className={styles.flag} title="Live as unlisted, asking to be listed publicly">
+                          Public request
+                        </Badge>
+                      )}
                       {statusFilter === "all" && (
                         <Badge variant={reviewStatusBadgeVariant(review.status)} className={styles.flag}>
                           {reviewStatusLabel(review.status)}
@@ -471,7 +476,7 @@ const AdminContentReviewsPage: React.FC = () => {
           <Button variant="outline" asChild>
             <Link to="/admin/content-reviews/bonus-claims">
               <Gift size={16} />
-              Creator Bonus claims
+              Bonus claims
             </Link>
           </Button>
           {showApproveAll && (
@@ -561,6 +566,7 @@ const AdminContentReviewsPage: React.FC = () => {
         contentTitle={approveTarget?.contentTitle ?? ""}
         teacherName={approveTarget?.teacherName ?? ""}
         amount={openBonus(approveTarget)?.amount ?? 0}
+        bonusTitle={openBonus(approveTarget)?.campaignTitle ?? ""}
         isPending={reviewMutation.isPending}
         onApprove={confirmApprove}
       />

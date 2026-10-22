@@ -30,9 +30,9 @@ export class TeacherNotFoundError extends Error {
  * be called from within the SSR pass. Keep in sync with
  * endpoints/teachers/profile_GET.ts.
  *
- * SSR is always anonymous, so isEnrolled/hasAttempted are hardcoded false
- * (matching the fetchTestDetailsServer.tsx convention) — the client
- * re-fetches with real session data after hydration.
+ * SSR is always anonymous, so isEnrolled/hasAttempted/isFollowing are
+ * hardcoded false (matching the fetchTestDetailsServer.tsx convention) — the
+ * profile page re-fetches for signed-in students after hydration.
  *
  * Throws TeacherNotFoundError when no active teacher has this slug; the page
  * prefetch turns that into an HTTP 404, and any other error into an uncached page.
@@ -388,12 +388,17 @@ export async function fetchTeacherProfileServer(teacherSlug: string): Promise<Ou
     }
   }
 
-  const [courseExams, productExams, testExams, bundles, organization] = await Promise.all([
+  const [courseExams, productExams, testExams, bundles, organization, followerCountRow] = await Promise.all([
     loadContentExams(db, "course", courses.map((course) => course.id)),
     loadContentExams(db, "digital_product", products.map((product) => product.id)),
     loadContentExams(db, "mock_test", tests.map((test) => test.id)),
     loadTeacherProfileBundles(teacher.id),
     loadTeacherOrganization(teacher.id),
+    db
+      .selectFrom("teacherFollows")
+      .select((eb) => eb.fn.countAll<number>().as("count"))
+      .where("teacherId", "=", teacher.id)
+      .executeTakeFirst(),
   ]);
   const examNames = [
     ...new Set(
@@ -434,5 +439,7 @@ export async function fetchTeacherProfileServer(teacherSlug: string): Promise<Ou
     bundles,
     examNames,
     organization,
+    followerCount: Number(followerCountRow?.count ?? 0),
+    isFollowing: false,
   };
 }

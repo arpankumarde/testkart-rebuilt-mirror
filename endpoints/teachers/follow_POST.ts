@@ -37,17 +37,35 @@ export async function handle(request: Request) {
       .where("studentId", "=", user.id)
       .executeTakeFirst();
 
-    if (existing) {
-      await db
-        .deleteFrom("teacherFollows")
-        .where("id", "=", existing.id)
-        .execute();
-    } else {
-      await db
-        .insertInto("teacherFollows")
-        .values({ teacherId: input.teacherId, studentId: user.id })
-        .execute();
-    }
+    const shouldFollow = input.follow ?? !existing;
+    const pair = { teacherId: input.teacherId, studentId: user.id };
+
+    await db.transaction().execute(async (trx) => {
+      if (shouldFollow) {
+        await trx
+          .insertInto("teacherFollows")
+          .values(pair)
+          .onConflict((oc) => oc.columns(["teacherId", "studentId"]).doNothing())
+          .execute();
+        await trx
+          .deleteFrom("teacherUnfollows")
+          .where("teacherId", "=", pair.teacherId)
+          .where("studentId", "=", pair.studentId)
+          .execute();
+      } else {
+        await trx
+          .deleteFrom("teacherFollows")
+          .where("teacherId", "=", pair.teacherId)
+          .where("studentId", "=", pair.studentId)
+          .execute();
+        // Remembered so auto-follow does not undo this choice.
+        await trx
+          .insertInto("teacherUnfollows")
+          .values(pair)
+          .onConflict((oc) => oc.columns(["teacherId", "studentId"]).doUpdateSet({ unfollowedAt: new Date() }))
+          .execute();
+      }
+    });
 
     const countRow = await db
       .selectFrom("teacherFollows")
@@ -57,7 +75,7 @@ export async function handle(request: Request) {
 
     return new Response(
       superjson.stringify({
-        isFollowing: !existing,
+        isFollowing: shouldFollow,
         followerCount: Number(countRow?.count ?? 0),
       } satisfies OutputType)
     );

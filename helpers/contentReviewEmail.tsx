@@ -51,12 +51,16 @@ export async function sendReviewEmail(
   contentId: number,
   contentTitle: string,
   action: "approve" | "reject",
-  adminNotes?: string | null
+  adminNotes?: string | null,
+  /** A live unlisted item's request to go public; rejecting it leaves the item live and unlisted. */
+  publicRequest = false
 ) {
-  const templateKey = action === "approve" ? "content_review_approved" : "content_review_rejected";
+  const standardKey = action === "approve" ? "content_review_approved" : "content_review_rejected";
+  const requestKey = action === "approve" ? "content_public_request_approved" : "content_public_request_rejected";
+  const templateKey = publicRequest ? requestKey : standardKey;
 
   try {
-    const template = await getEmailTemplate(templateKey);
+    const template = (await getEmailTemplate(templateKey)) ?? (await getEmailTemplate(standardKey));
     if (!template) {
       console.warn(`Email template '${templateKey}' not found or inactive, skipping email.`);
       return;

@@ -113,7 +113,9 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
             {course.title}
           </Link>
         </h3>
-        {course.visibility === 'unlisted' && <UnlistedBadge />}
+        {course.visibility === 'unlisted' && (
+          <UnlistedBadge live={status === 'published'} inReview={course.inReview} rejected={!!course.rejection} />
+        )}
         {plainDescription ? <p className={styles.description}>{plainDescription}</p> : null}
 
         <div className={styles.stats}>

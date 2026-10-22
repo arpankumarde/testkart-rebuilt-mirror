@@ -211,6 +211,25 @@
 }
 
 /* Teacher Result Card Styles */
+.testRating {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  vertical-align: middle;
+}
+
+.testRatingStar {
+  width: 1.1em;
+  height: 1.1em;
+  flex-shrink: 0;
+  color: hsl(45 100% 51%);
+}
+
+.testRatingValue {
+  font-weight: 700;
+  color: var(--foreground);
+}
+
 .loadMoreRow {
   display: flex;
   justify-content: center;
@@ -297,6 +316,37 @@
 }
 
 /* Teacher Skeleton Styles */
+.teacherCardStats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.125rem var(--spacing-3);
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  margin: 0;
+  overflow: hidden;
+}
+
+.teacherStat {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  white-space: nowrap;
+}
+
+/* Sits in the gap, so the container clips it when the stats wrap to two lines. */
+.teacherStat + .teacherStat::before {
+  content: "·";
+  position: absolute;
+  left: -0.45rem;
+}
+
+.teacherStat svg {
+  flex-shrink: 0;
+  color: var(--primary);
+}
+
 .skeletonTeacherCard {
   display: flex;
   align-items: center;

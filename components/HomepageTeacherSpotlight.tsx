@@ -87,7 +87,8 @@ export function HomepageTeacherSpotlight({ teachers, isLoading = false }: Homepa
 
 function TeacherCard({ teacher, rank }: { teacher: HomepageTeacher; rank: number }) {
   const description = describeTeacher(teacher);
-  const resources = plural(resourceCount(teacher), "Learning Resource", "Learning Resources");
+  const resources = plural(resourceCount(teacher), "Resource", "Resources");
+  const followers = plural(teacher.followerCount ?? 0, "Follower", "Followers");
   const name = teacher.displayName.trim();
 
   return (
@@ -108,8 +109,14 @@ function TeacherCard({ teacher, rank }: { teacher: HomepageTeacher; rank: number
         </span>
         {description && <span className={styles.tagline}>{description}</span>}
         <span className={styles.resources}>
-          <Library size={15} aria-hidden className={styles.resourcesIcon} />
-          {resources}
+          <span className={styles.resourceStat}>
+            <Library size={15} aria-hidden className={styles.resourcesIcon} />
+            {resources}
+          </span>
+          <span className={styles.resourceStat}>
+            <Users size={15} aria-hidden className={styles.resourcesIcon} />
+            {followers}
+          </span>
         </span>
       </div>
 

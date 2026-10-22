@@ -138,3 +138,11 @@
   flex-shrink: 0;
   color: var(--tk-brand-text);
 }
+
+.loadingMore {
+  margin: 0;
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  text-align: center;
+}

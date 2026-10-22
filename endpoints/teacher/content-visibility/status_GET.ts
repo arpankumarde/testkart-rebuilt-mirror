@@ -3,6 +3,7 @@ import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { hasPendingReview, loadContentState, rejectedReviews } from "../../../helpers/contentReviewQueue";
 import { loadContentPublicPath } from "../../../helpers/contentVisibilityServer";
+import { contentPublicationStatus } from "../../../helpers/contentVisibility";
 import { schema, OutputType } from "./status_GET.schema";
 
 /* An item's visibility, live and review state and share link, for the teacher's editor. */
@@ -26,17 +27,16 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     const inReview = await hasPendingReview(db, contentType, contentId);
-    const publicRequestRejection =
-      state.live && state.visibility === "unlisted" && !inReview
-        ? (await rejectedReviews(db, contentType, [contentId])).get(contentId) ?? null
-        : null;
+    const listed = state.live && state.visibility === "public";
+    const rejection = !inReview && !listed ? (await rejectedReviews(db, contentType, [contentId])).get(contentId) ?? null : null;
 
     const output: OutputType = {
       visibility: state.visibility,
+      publicationStatus: contentPublicationStatus({ ...state, inReview, rejected: rejection !== null }),
       live: state.live,
       inReview,
       publicPath: await loadContentPublicPath(db, contentType, contentId),
-      publicRequestRejection,
+      publicRequestRejection: state.live ? rejection : null,
     };
     return new Response(superjson.stringify(output));
   } catch (error) {

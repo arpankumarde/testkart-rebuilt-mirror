@@ -38,7 +38,7 @@ export const FollowTeacherButton: React.FC<FollowTeacherButtonProps> = ({
       navigate(`/login?redirectTo=${encodeURIComponent(currentPath)}`);
       return;
     }
-    mutation.mutate(teacherId);
+    mutation.mutate({ teacherId, follow: !isFollowing });
   };
 
   return (

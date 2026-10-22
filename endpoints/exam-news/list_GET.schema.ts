@@ -34,7 +34,7 @@ export type OutputType = {
   totalPages: number;
   page: number;
   /** The exam asked for, when it exists; null for an unknown slug. */
-  exam: { name: string; slug: string } | null;
+  exam: { id: number; name: string; slug: string } | null;
 };
 
 export const getExamNewsList = async (input: InputType, init?: RequestInit): Promise<OutputType> => {

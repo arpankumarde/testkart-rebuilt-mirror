@@ -2,7 +2,7 @@ import superjson from "superjson";
 import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { AdminModule, hasAdminModule } from "../../../helpers/adminPermissions";
-import { loadContentState, publishApprovedContent, takeDownContent } from "../../../helpers/contentReviewQueue";
+import { clearOpenReviews, loadContentState, publishApprovedContent, takeDownContent } from "../../../helpers/contentReviewQueue";
 import { sendReviewEmail } from "../../../helpers/contentReviewEmail";
 import { OPEN_REVIEW_STATUSES } from "../../../helpers/contentReviewStatus";
 import { countLiveTestEnrollments } from "../../../helpers/enrollmentCounters";
@@ -14,7 +14,8 @@ import { schema, OutputType } from "./status_POST.schema";
  * Admin status control for one teacher item from its preview page: make it live
  * (approving any pending review), move it back to draft, or reject it with a
  * reason - including items that are already live. Approvals and rejections are
- * recorded as contentReviews rows and emailed to the teacher.
+ * recorded as contentReviews rows and emailed to the teacher. Rejecting a live
+ * unlisted item's request to go public leaves it live and unlisted.
  */
 
 const TYPE_MODULES: Record<PreviewContentType, AdminModule> = {
@@ -57,13 +58,15 @@ export async function handle(request: Request): Promise<Response> {
       .where("status", "in", [...OPEN_REVIEW_STATUSES])
       .executeTakeFirst();
     const now = new Date();
+    const publicRequest = state.live && state.visibility === "unlisted" && !!pending;
+    const takesDown = state.live && (action === "unpublish" || (action === "reject" && !publicRequest));
 
     if (action === "reject" && !note) return fail("Add a reason. The teacher sees it in the email.");
     if (action === "publish" && state.live && !pending) return fail("This item is already live.");
     if (action === "unpublish" && !state.live) return fail("This item is not live.");
     if (action === "reject" && !state.live && !pending) return fail("This item is not live or waiting for review.");
 
-    if (action !== "publish" && state.live && type === "live_test") {
+    if (takesDown && type === "live_test") {
       if (state.endTime && state.endTime <= now) return fail("This live test has already ended, so it cannot be taken down.");
       const registered = await countLiveTestEnrollments(id);
       if (registered > 0) {
@@ -76,8 +79,11 @@ export async function handle(request: Request): Promise<Response> {
     try {
       await db.transaction().execute(async (trx) => {
         if (action === "publish") await publishApprovedContent(trx, type, id, now);
-        else if (state.live) await takeDownContent(trx, type, id, now);
-        if (action === "unpublish") return;
+        else if (takesDown) await takeDownContent(trx, type, id, now);
+        if (action === "unpublish") {
+          await clearOpenReviews(trx, type, id);
+          return;
+        }
 
         const review = {
           status: action === "publish" ? ("approved" as const) : ("rejected" as const),
@@ -108,18 +114,31 @@ export async function handle(request: Request): Promise<Response> {
         .where("id", "=", state.teacherId)
         .executeTakeFirst();
       if (teacher?.email) {
-        await sendReviewEmail(teacher.email, teacher.displayName, type, id, state.title, action === "publish" ? "approve" : "reject", note);
+        await sendReviewEmail(
+          teacher.email,
+          teacher.displayName,
+          type,
+          id,
+          state.title,
+          action === "publish" ? "approve" : "reject",
+          note,
+          publicRequest
+        );
       }
     }
 
     const message =
       action === "publish"
-        ? "It is live. The teacher has been emailed."
+        ? publicRequest
+          ? "It is now public and listed. The teacher has been emailed."
+          : "It is live. The teacher has been emailed."
         : action === "unpublish"
           ? "Moved back to draft. Students can no longer find or buy it."
-          : state.live
-            ? "Rejected and taken off the site. The teacher has been emailed the reason."
-            : "Rejected. The teacher has been emailed the reason.";
+          : publicRequest
+            ? "Request rejected. It stays live as unlisted, and the teacher has been emailed the reason."
+            : state.live
+              ? "Rejected and taken off the site. The teacher has been emailed the reason."
+              : "Rejected. The teacher has been emailed the reason.";
     return new Response(superjson.stringify({ message } satisfies OutputType));
   } catch (error) {
     console.error("Error changing content status:", error);

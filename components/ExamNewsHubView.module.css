@@ -69,7 +69,7 @@
   color: var(--muted-foreground);
 }
 
-/* Filters in one framed band: type chips over search and exam. */
+/* Filters in one framed band: search and exam. */
 .discovery {
   display: flex;
   flex-direction: column;
@@ -81,37 +81,6 @@
   border-radius: var(--radius-lg);
 }
 
-.typeChips {
-  display: flex;
-  gap: var(--spacing-2);
-  overflow-x: auto;
-  padding-bottom: 2px;
-  scrollbar-width: thin;
-}
-
-.typeChip {
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
-  height: 2.125rem;
-  padding: 0 var(--spacing-4);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-full);
-  background-color: var(--surface);
-  color: var(--foreground);
-  font-size: 0.875rem;
-  font-weight: 600;
-  white-space: nowrap;
-  text-decoration: none;
-  transition: border-color var(--animation-duration-fast) ease, background-color var(--animation-duration-fast) ease;
-}
-
-.typeChip:hover {
-  border-color: var(--tk-brand-text);
-  color: var(--tk-brand-text);
-}
-
-.typeChip:focus-visible,
 .pagerNumber:focus-visible,
 .pagerStep:focus-visible,
 .clearSearch:focus-visible,
@@ -120,19 +89,10 @@
   outline-offset: 2px;
 }
 
-.typeChipActive,
-.typeChipActive:hover {
-  border-color: var(--tk-brand);
-  background-color: var(--tk-brand);
-  color: var(--tk-brand-ink);
-}
-
 .filterRow {
   display: flex;
   align-items: center;
   gap: var(--spacing-3);
-  padding-top: var(--spacing-3);
-  border-top: 1px solid var(--border);
 }
 
 .searchForm {
@@ -164,10 +124,6 @@
 .examFilter {
   flex: 0 1 15rem;
   min-width: 11rem;
-}
-
-.examTrigger {
-  width: 100%;
 }
 
 .searchNote {
@@ -414,11 +370,5 @@
 
   .pagerNumbers {
     display: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .typeChip {
-    transition: none;
   }
 }

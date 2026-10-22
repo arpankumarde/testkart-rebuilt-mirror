@@ -16,6 +16,7 @@ export const AdminContentStatusActions = ({ data }: { data: OutputType }) => {
   if (data.status === "trashed") return null;
 
   const live = data.status === "published";
+  const publicRequest = live && data.inReview && data.visibility === "unlisted";
   const noun = PREVIEW_TYPE_LABELS[data.type].toLowerCase();
 
   const open = (next: ContentStatusAction) => {
@@ -34,10 +35,10 @@ export const AdminContentStatusActions = ({ data }: { data: OutputType }) => {
   const dialog =
     action === "publish"
       ? {
-          title: data.inReview ? "Approve and make live" : "Make live",
+          title: publicRequest ? "Approve and make public" : data.inReview ? "Approve and make live" : "Make live",
           description: `Students can find and buy this ${noun} straight away. The teacher gets an approval email.`,
-          confirmLabel: data.inReview ? "Approve and make live" : "Make live",
-          pendingLabel: "Making live...",
+          confirmLabel: publicRequest ? "Approve and make public" : data.inReview ? "Approve and make live" : "Make live",
+          pendingLabel: publicRequest ? "Making public..." : "Making live...",
           icon: <CheckCircle2 size={20} />,
           tone: "default" as const,
         }
@@ -51,11 +52,13 @@ export const AdminContentStatusActions = ({ data }: { data: OutputType }) => {
             tone: "destructive" as const,
           }
         : {
-            title: live ? `Reject this live ${noun}` : `Reject this ${noun}`,
-            description: live
-              ? `It comes off the site now. Anyone who already bought it keeps access. The teacher is emailed your reason.`
-              : `The teacher is emailed your reason and can resubmit after making changes.`,
-            confirmLabel: live ? "Reject and take down" : "Reject",
+            title: publicRequest ? "Reject this public listing request" : live ? `Reject this live ${noun}` : `Reject this ${noun}`,
+            description: publicRequest
+              ? `It stays live as unlisted at its link. The teacher is emailed your reason and can ask again.`
+              : live
+                ? `It comes off the site now. Anyone who already bought it keeps access. The teacher is emailed your reason.`
+                : `The teacher is emailed your reason and can resubmit after making changes.`,
+            confirmLabel: publicRequest ? "Reject request" : live ? "Reject and take down" : "Reject",
             pendingLabel: "Rejecting...",
             icon: <XCircle size={20} />,
             tone: "destructive" as const,
@@ -66,9 +69,15 @@ export const AdminContentStatusActions = ({ data }: { data: OutputType }) => {
       {data.inReview || !live ? (
         <Button variant="primary" onClick={() => open("publish")}>
           <CheckCircle2 size={16} />
-          {data.inReview ? "Approve and make live" : "Make live"}
+          {publicRequest ? "Approve and make public" : data.inReview ? "Approve and make live" : "Make live"}
         </Button>
       ) : (
+        <Button variant="outline" onClick={() => open("unpublish")}>
+          <EyeOff size={16} />
+          Move to draft
+        </Button>
+      )}
+      {publicRequest && (
         <Button variant="outline" onClick={() => open("unpublish")}>
           <EyeOff size={16} />
           Move to draft

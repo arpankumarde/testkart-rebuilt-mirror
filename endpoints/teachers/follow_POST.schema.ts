@@ -3,6 +3,9 @@ import superjson from "superjson";
 
 export const schema = z.object({
   teacherId: z.number().int().positive(),
+  // Omitted means toggle. The web sends the state the student asked for, so a
+  // stale button can never undo a follow.
+  follow: z.boolean().optional(),
 });
 
 export type InputType = z.infer<typeof schema>;

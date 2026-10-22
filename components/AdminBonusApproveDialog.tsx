@@ -11,13 +11,14 @@ interface AdminBonusApproveDialogProps {
   contentTitle: string;
   teacherName: string;
   amount: number;
+  bonusTitle: string;
   isPending: boolean;
-  /** creditBonus true credits the claimed Creator Bonus along with the approval. */
+  /** creditBonus true credits the claimed bonus along with the approval. */
   onApprove: (creditBonus: boolean) => void;
 }
 
 /*
- * Approve step for a submission that carries a Creator Bonus claim. Approval
+ * Approve step for a submission that carries a bonus claim. Approval
  * puts the content live; crediting the bonus is a separate quality call, so the
  * two buttons stay side by side and approving alone leaves the claim open.
  */
@@ -27,6 +28,7 @@ export const AdminBonusApproveDialog: React.FC<AdminBonusApproveDialogProps> = (
   contentTitle,
   teacherName,
   amount,
+  bonusTitle,
   isPending,
   onApprove,
 }) => (
@@ -51,10 +53,10 @@ export const AdminBonusApproveDialog: React.FC<AdminBonusApproveDialogProps> = (
           <Gift size={18} />
         </span>
         <div>
-          <p className={styles.bonusTitle}>The teacher claimed the {formatRupees(amount)} Creator Bonus</p>
+          <p className={styles.bonusTitle}>The teacher claimed the {formatRupees(amount)} {bonusTitle}</p>
           <p className={styles.bonusText}>
             Credit it only if this is high quality work. Approving alone keeps the claim open, so you can credit or
-            decline it later from Creator Bonus claims.
+            decline it later from Bonus claims.
           </p>
         </div>
       </div>

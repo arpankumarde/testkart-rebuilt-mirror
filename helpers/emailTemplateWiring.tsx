@@ -29,6 +29,8 @@ export const EMAIL_TEMPLATE_WIRING: Record<string, EmailTemplateWiring> = {
   contact_form_admin_alert: { status: "live", source: "endpoints/contact/submit_POST, endpoints/demo-request/submit_POST" },
   content_review_approved: { status: "live", source: "endpoints/admin/content-reviews/review_POST, approve-all_POST, admin/content-preview/status_POST" },
   content_review_rejected: { status: "live", source: "endpoints/admin/content-reviews/review_POST, approve-all_POST, admin/content-preview/status_POST" },
+  content_public_request_approved: { status: "live", source: "endpoints/admin/content-reviews/review_POST, approve-all_POST, admin/content-preview/status_POST" },
+  content_public_request_rejected: { status: "live", source: "endpoints/admin/content-reviews/review_POST, admin/content-preview/status_POST" },
   live_test_reminder: { status: "live", source: "helpers/sendLiveTestReminder (queued task, 1h before start)" },
   live_test_results: { status: "live", source: "helpers/liveTestPrizePayout" },
   promo_code_used: { status: "live", source: "helpers/sendOrderConfirmationEmails" },

@@ -28,6 +28,8 @@ export type SearchResultItem = {
   teacherYearsOfExperience: number | null;
     teacherSlug: string | null;
   examName?: string | null;
+  rating?: number | null;
+  reviewsCount?: number;
 };
 
 export type SearchTeacherItem = {
@@ -39,6 +41,8 @@ export type SearchTeacherItem = {
   testCount: number;
   courseCount: number;
   studentCount: number;
+  resourceCount: number;
+  followerCount: number;
 };
 
 export type SearchOrganizationItem = {

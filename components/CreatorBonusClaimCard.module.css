@@ -8,6 +8,12 @@
   text-align: left;
 }
 
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
 .claimable {
   cursor: pointer;
   background: var(--tk-brand);
@@ -91,6 +97,11 @@
 .text {
   font-size: 0.875rem;
   line-height: 1.5;
+}
+
+.slots {
+  font-size: 0.875rem;
+  font-weight: 700;
 }
 
 .tick {

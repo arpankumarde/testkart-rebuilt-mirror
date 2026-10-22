@@ -2,6 +2,7 @@ import { z } from "zod";
 import superjson from "superjson";
 import type { ContentVisibility } from "../../../helpers/schema";
 import type { ContentRejection } from "../../../helpers/contentReviewStatus";
+import type { ContentPublicationStatus } from "../../../helpers/contentVisibility";
 import { REVIEWABLE_CONTENT_TYPES } from "../content-reviews/withdraw_POST.schema";
 
 export const schema = z.object({
@@ -13,6 +14,8 @@ export type InputType = z.infer<typeof schema>;
 
 export type OutputType = {
   visibility: ContentVisibility;
+  /** The one status every teacher screen shows: draft, pending review, published, unlisted or rejected. */
+  publicationStatus: ContentPublicationStatus;
   /** Published: open to anyone with the link, and listed too when public. */
   live: boolean;
   /** Waiting for review: a public publish, or a live unlisted item asking to go public. */

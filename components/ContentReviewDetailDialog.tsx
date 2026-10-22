@@ -466,6 +466,7 @@ export const ContentReviewBadges = ({ review }: { review: ContentReviewAdminView
     <Badge variant={reviewStatusBadgeVariant(review.status)}>
       {reviewStatusLabel(review.status)}
     </Badge>
+    {review.publicRequest && <Badge variant="lavender">Public request</Badge>}
     {review.contentMeta?.type === "digital_product" && (
       <DownloadBadge allowDownload={review.contentMeta.allowDownload} />
     )}

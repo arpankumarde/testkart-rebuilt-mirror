@@ -1,5 +1,6 @@
 import { z } from "zod";
 import superjson from "superjson";
+import type { ContentVisibility } from "../../../helpers/schema";
 
 export const PREVIEW_CONTENT_TYPES = ["mock_test", "course", "digital_product", "course_bundle", "live_test"] as const;
 export type PreviewContentType = (typeof PREVIEW_CONTENT_TYPES)[number];
@@ -75,6 +76,7 @@ type PreviewBase = {
   status: PreviewStatus;
   inReview: boolean;
   teacher: { id: number; name: string; email: string | null };
+  visibility: ContentVisibility;
   thumbnailUrl: string | null;
   introVideoUrl: string | null;
   description: string | null;

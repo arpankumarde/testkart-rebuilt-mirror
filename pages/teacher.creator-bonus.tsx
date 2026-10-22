@@ -4,11 +4,13 @@ import { Link } from "react-router-dom";
 import {
   ArrowRight,
   BookOpenCheck,
+  Check,
   CheckCircle2,
   Clock,
   Gift,
   Hammer,
   ListChecks,
+  Newspaper,
   Send,
   Sparkles,
   Wallet,
@@ -21,6 +23,7 @@ import type {
   CampaignItem,
   CampaignItemState,
   CampaignSlots,
+  ExamCampaignCard,
 } from "../endpoints/teacher/creator-bonus/overview_GET.schema";
 import styles from "./teacher.creator-bonus.module.css";
 
@@ -67,6 +70,12 @@ function nextStep(item: CampaignItem, slots: CampaignSlots): { text: string; act
       if (item.live) {
         return { text: "It went live without the bonus. To claim it, unpublish it and submit it again with the bonus ticked." };
       }
+      if (item.examBonus && slots.used >= slots.limit) {
+        return {
+          text: `Your ${slots.limit} Creator Bonus slots are used, but the ${item.examBonus.title} is open. Pick it when you submit for review.`,
+          action: { label: "Submit with bonus", to: editHref(item) },
+        };
+      }
       return {
         text: `Tick the ${amount} bonus when you submit it for review.`,
         action: { label: "Submit with bonus", to: editHref(item) },
@@ -77,7 +86,8 @@ function nextStep(item: CampaignItem, slots: CampaignSlots): { text: string; act
         item.uncountedVideos > 0
           ? ` ${item.uncountedVideos} of its ${item.uncountedVideos === 1 ? "videos does" : "videos do"} not count yet; open the course to see why.`
           : "";
-      return { text: `Add ${missing.join(" and ")} to unlock ${amount}.${skipped}`, action: { label: "Keep building", to: buildHref(item) } };
+      const exam = item.examBonus ? ` It also counts for the ${item.examBonus.title}.` : "";
+      return { text: `Add ${missing.join(" and ")} to unlock ${amount}.${skipped}${exam}`, action: { label: "Keep building", to: buildHref(item) } };
     }
     case "claimed":
       return {
@@ -86,7 +96,7 @@ function nextStep(item: CampaignItem, slots: CampaignSlots): { text: string; act
           : "Waiting for content review. The bonus is decided after approval.",
       };
     case "credited":
-      return { text: `${amount} is in your wallet.` };
+      return { text: item.claimedExamBonus ? `The ${item.claimedExamBonus} is in your wallet.` : `${amount} is in your wallet.` };
     case "reversed":
       return { text: item.note ? `Reversed: ${item.note}` : "This bonus was reversed." };
     case "final":
@@ -115,6 +125,70 @@ const CoinSlots = ({ slots, accent }: { slots: CampaignSlots; accent: string }) 
         );
       })}
     </ol>
+  );
+};
+
+const EXAM_ACCENTS = ["#f9b99a", "#c8b6f2", "#aed3f2", "#f4dfa3"];
+/** Above this the coin row would be a wall of stickers, so only the count shows. */
+const MAX_EXAM_COINS = 20;
+
+const daysLeftText = (endsAt: Date) => {
+  const days = Math.ceil((new Date(endsAt).getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+  return days <= 1 ? "Last day" : `${days} days left`;
+};
+
+const ExamCard = ({ card, accent }: { card: ExamCampaignCard; accent: string }) => {
+  const left = Math.max(0, card.totalSlots - card.slotsTaken);
+  return (
+    <article className={styles.track} style={{ "--track-accent": accent } as React.CSSProperties}>
+      <span className={styles.trackStrip} aria-hidden="true" />
+      <div className={styles.trackCard}>
+        <div className={styles.trackHead}>
+          <span className={styles.trackIcon} aria-hidden="true">
+            <span className={styles.trackBlob} />
+            <Newspaper size={22} />
+          </span>
+          <div>
+            <h3 className={styles.trackTitle}>{card.examName}</h3>
+            <p className={styles.trackRule}>
+              {formatRupees(card.amount)} each · {card.minTests}+ tests and {card.minQuestions}+ questions
+            </p>
+          </div>
+        </div>
+        {card.news && (
+          <Link to={`/exam-news/${card.news.slug}`} className={styles.examNews}>
+            {card.news.title}
+          </Link>
+        )}
+        {card.totalSlots <= MAX_EXAM_COINS && (
+          <ol className={`${styles.coins} ${styles.examCoins}`} aria-label={`${left} of ${card.totalSlots} slots left`}>
+            {Array.from({ length: card.totalSlots }).map((_, i) => {
+              const gone = i < card.slotsTaken;
+              return (
+                <li
+                  key={i}
+                  className={`${styles.coin} ${gone ? styles.coin_paid : styles.coin_free}`}
+                  style={{ "--coin-accent": accent, "--coin-tilt": `${[-8, 6, -4, 9, -11][i % 5]}deg` } as React.CSSProperties}
+                >
+                  {gone ? <Check size={14} aria-hidden="true" /> : i + 1}
+                </li>
+              );
+            })}
+          </ol>
+        )}
+        <p className={styles.examCount}>
+          {left > 0 ? `${left} of ${card.totalSlots} slots left` : "All slots taken"} · {daysLeftText(card.endsAt)}
+        </p>
+        <p className={styles.trackFoot}>
+          Your slots: {card.mine} of {card.perTeacher}
+          {left > 0 && card.mine < card.perTeacher && (
+            <Link to="/teacher/create-test" className={styles.trackLink}>
+              Create one <ArrowRight size={14} aria-hidden="true" />
+            </Link>
+          )}
+        </p>
+      </div>
+    </article>
   );
 };
 
@@ -173,7 +247,7 @@ const TeacherCreatorBonusPage: React.FC = () => {
     );
   }
 
-  const { campaign, slots, earned } = data;
+  const { campaign, slots, earned, examEarned, examCampaigns } = data;
   const req = campaign.requirements;
   const maxTotal = slots.mock_test.limit * slots.mock_test.amount + slots.course.limit * slots.course.amount;
   const earnedShare = maxTotal > 0 ? Math.min(100, (earned / maxTotal) * 100) : 0;
@@ -222,6 +296,28 @@ const TeacherCreatorBonusPage: React.FC = () => {
             </span>
           </div>
         </section>
+
+        {examCampaigns.length > 0 && (
+          <section className={styles.examBonus} aria-labelledby="exam-bonus-title">
+            <div className={styles.examHead}>
+              <h2 id="exam-bonus-title" className={styles.sectionTitle}>
+                Exam Bonus
+                <span className={styles.readyBadge}>Limited slots</span>
+              </h2>
+              <p className={styles.examLead}>
+                These exams are in the news. A new test series tagged with the exam can claim the bonus, even if your
+                Creator Bonus slots are used up. Slots are shared by all teachers, and each test series earns one bonus,
+                so you pick one when you submit.
+                {examEarned > 0 && ` You have earned ${formatRupees(examEarned)} from Exam Bonuses so far.`}
+              </p>
+            </div>
+            <div className={styles.tracks}>
+              {examCampaigns.map((card, i) => (
+                <ExamCard key={card.id} card={card} accent={EXAM_ACCENTS[i % EXAM_ACCENTS.length]} />
+              ))}
+            </div>
+          </section>
+        )}
 
         <div className={styles.tracks}>
           {(["mock_test", "course"] as const).map((type) => {
@@ -351,6 +447,11 @@ const TeacherCreatorBonusPage: React.FC = () => {
                     </div>
                     <div className={styles.itemSide}>
                       <span className={`${styles.sticker} ${styles[`tone_${sticker.tone}`]}`}>{sticker.label}</span>
+                      {(item.claimedExamBonus || item.examBonus) && (
+                        <span className={`${styles.sticker} ${styles.examSticker} ${styles.tone_lavender}`}>
+                          {item.claimedExamBonus ?? "Exam Bonus open"}
+                        </span>
+                      )}
                       {step.action && (
                         <Button asChild size="sm" variant={item.state === "ready" ? "primary" : "outline"}>
                           <Link to={step.action.to}>{step.action.label}</Link>
@@ -372,6 +473,15 @@ const TeacherCreatorBonusPage: React.FC = () => {
             <li>Only content that was never live before {new Date(campaign.startsAt).toLocaleDateString("en-IN")} can claim it.</li>
             <li>If a bonus is not selected, you can improve the item and claim once more with its next submission.</li>
             <li>If content is taken down or turns out not to meet the rules, our team can reverse a bonus.</li>
+            <li>
+              An Exam Bonus runs for a short time for one exam in the news, for test series only. The series must be
+              tagged with that exam and must never have been public. Each test series earns one bonus in all: the
+              Creator Bonus or an Exam Bonus.
+            </li>
+            <li>
+              An Exam Bonus slot is taken when you submit. It comes back if the review is rejected or taken back, or the
+              bonus is not selected. If a campaign ends while you are waiting, your claim still counts.
+            </li>
             <li>
               For courses, only videos you upload to Testkart count: not YouTube or other links, each file once, and
               only videos of {req.minMinutesPerVideo} minutes or more. A video counts at the length you entered or the

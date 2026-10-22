@@ -133,6 +133,7 @@ async function save(input: InputType, adminId: number): Promise<number> {
         : existing?.previousSlugs.filter((s) => s !== slug) ?? [];
 
     const officialUrl = input.officialSourceUrl.trim();
+    const contentBefore = existing?.firstPublishedAt ? await contentSnapshot(trx, existing.id) : null;
     const values = {
       title: input.title.trim(),
       slug,
@@ -215,11 +216,65 @@ async function save(input: InputType, adminId: number): Promise<number> {
         .execute();
     }
 
+    // Only a real change to a story that has been live counts: creating, publishing and no-change saves do not.
+    if (contentBefore !== null && contentBefore !== (await contentSnapshot(trx, postId))) {
+      await trx.updateTable("examNewsPosts").set({ lastEditedAt: now }).where("id", "=", postId).execute();
+    }
+
     return postId;
   });
 }
 
 const day = (column: string) => sql<string | null>`to_char(${sql.ref(column)}, 'YYYY-MM-DD')`;
+
+const EDITED_COLUMNS = [
+  "title",
+  "slug",
+  "summary",
+  "newsType",
+  "examId",
+  "authorId",
+  "body",
+  "heroImageUrl",
+  "heroImageFileId",
+  "heroImageAlt",
+  "heroImageCredit",
+  "officialSourceName",
+  "officialSourceUrl",
+  "seoTitle",
+  "seoDescription",
+  "ogTitle",
+  "ogDescription",
+  "ogImageUrl",
+  "ogImageFileId",
+  "canonicalUrl",
+] as const;
+
+/** Everything an admin edits on a story, as stored, so a save can tell whether it changed. Publish timing is left out. */
+async function contentSnapshot(trx: Trx, id: number): Promise<string> {
+  const post = await trx.selectFrom("examNewsPosts").select(EDITED_COLUMNS).where("id", "=", id).executeTakeFirst();
+  const keyDates = await trx
+    .selectFrom("examNewsKeyDates")
+    .select([
+      "eventName",
+      "note",
+      day("start_date").as("startDay"),
+      day("end_date").as("endDay"),
+      day("exam_date").as("examDay"),
+      day("result_date").as("resultDay"),
+    ])
+    .where("postId", "=", id)
+    .orderBy("position")
+    .execute();
+  const sources = await trx.selectFrom("examNewsSources").select(["name", "url"]).where("postId", "=", id).orderBy("position").execute();
+  const corrections = await trx
+    .selectFrom("examNewsCorrections")
+    .select(["note", day("corrected_on").as("correctedDay")])
+    .where("postId", "=", id)
+    .orderBy("position")
+    .execute();
+  return JSON.stringify({ post, keyDates, sources, corrections });
+}
 
 async function loadDetail(id: number): Promise<ExamNewsDetail | null> {
   const post = await db

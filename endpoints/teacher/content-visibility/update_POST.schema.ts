@@ -17,6 +17,10 @@ export type OutputType = {
   /** The visibility now stored. A live item asking to go public stays unlisted until approved. */
   visibility: InputType["visibility"];
   inReview: boolean;
+  /** A request was already waiting, so nothing new was queued. */
+  alreadyInReview: boolean;
+  /** The headline to show the teacher. */
+  title: string;
   message: string;
 };
 

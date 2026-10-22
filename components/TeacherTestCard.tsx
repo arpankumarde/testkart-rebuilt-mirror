@@ -112,7 +112,9 @@ export const TeacherTestCard: React.FC<TeacherTestCardProps> = ({
             {test.title}
           </Link>
         </h3>
-        {test.visibility === 'unlisted' && <UnlistedBadge />}
+        {test.visibility === 'unlisted' && (
+          <UnlistedBadge live={isPublished} inReview={test.inReview} rejected={!!test.rejection} />
+        )}
 
         <dl className={styles.meta}>
           <div className={styles.metaItem}>

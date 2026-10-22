@@ -373,6 +373,11 @@
   text-underline-offset: 2px;
 }
 
+/* Keeps whole words in narrow columns; a table too wide for the phone scrolls in its frame. */
+.prose :global(table) {
+  word-break: normal;
+}
+
 .glance {
   padding: var(--spacing-4) var(--spacing-5, 1.25rem);
   border-radius: var(--radius-lg);

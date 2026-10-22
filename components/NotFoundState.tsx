@@ -535,13 +535,11 @@ const TeacherRecs: React.FC = () => {
     >
       {teachers.map((teacher) => {
         const name = teacher.displayName.trim();
+        const resources = teacher.testCount + teacher.courseCount + teacher.productCount;
         const catalog = [
-          teacher.testCount > 0 ? plural(teacher.testCount, "test series", "test series") : null,
-          teacher.courseCount > 0 ? plural(teacher.courseCount, "course", "courses") : null,
-          teacher.productCount > 0 ? plural(teacher.productCount, "study note", "study notes") : null,
-        ]
-          .filter(Boolean)
-          .join(" · ");
+          plural(resources, "Resource", "Resources"),
+          plural(teacher.followerCount ?? 0, "Follower", "Followers"),
+        ].join(" · ");
         return (
           <Link key={teacher.id} to={`/expert/${teacher.slug}`} className={styles.teacherCard}>
             <Avatar className={styles.teacherAvatar}>
@@ -553,7 +551,7 @@ const TeacherRecs: React.FC = () => {
                 <span className={styles.teacherNameText}>{name}</span>
                 <VerifiedBadge isVerified={teacher.isVerified} size="sm" />
               </span>
-              {catalog && <span className={styles.teacherMeta}>{catalog}</span>}
+              <span className={styles.teacherMeta}>{catalog}</span>
             </span>
             <ArrowRight size={18} className={styles.teacherArrow} aria-hidden="true" />
           </Link>

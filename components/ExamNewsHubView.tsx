@@ -8,12 +8,10 @@ import { SEOHead } from "./SEOHead";
 import { Button } from "./Button";
 import { Input } from "./Input";
 import { Skeleton } from "./Skeleton";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "./Select";
 import { ExamNewsListItem } from "./ExamNewsListItem";
+import { ExamNewsExamPicker } from "./ExamNewsExamPicker";
 import { ExamNewsSidebar } from "./ExamNewsSidebar";
 import styles from "./ExamNewsHubView.module.css";
-
-const ALL_EXAMS = "__all";
 
 interface ExamNewsHubViewProps {
   scope: ListingScope;
@@ -47,7 +45,9 @@ export const ExamNewsHubView: React.FC<ExamNewsHubViewProps> = ({ scope, page, i
   const [searchText, setSearchText] = useState(q);
   useEffect(() => setSearchText(q), [q]);
 
-  const examName = data?.exam?.name ?? sidebar.data?.examsWithNews.find((e) => e.slug === scope.examSlug)?.name ?? null;
+  // While the next exam loads, the list still holds the previous one.
+  const loadedExam = data?.exam?.slug === scope.examSlug ? data?.exam : null;
+  const examName = loadedExam?.name ?? sidebar.data?.examsWithNews.find((e) => e.slug === scope.examSlug)?.name ?? null;
   const typePlural = scope.type ? examNewsPublicMeta.typePlural(scope.type) : null;
   const pageSuffix = page > 1 ? ` - Page ${page}` : "";
 
@@ -71,14 +71,7 @@ export const ExamNewsHubView: React.FC<ExamNewsHubViewProps> = ({ scope, page, i
   const pastTheEnd = !!data && page > data.totalPages;
   const notFound = invalid || unknownExam || pastTheEnd;
 
-  const examOptions = sidebar.data
-    ? {
-        popular: sidebar.data.popularExams,
-        others: sidebar.data.examsWithNews.filter((e) => !sidebar.data!.popularExams.some((p) => p.slug === e.slug)),
-      }
-    : { popular: [], others: [] };
-  const examKnown =
-    !scope.examSlug || [...examOptions.popular, ...examOptions.others].some((e) => e.slug === scope.examSlug);
+  const examChoice = scope.examSlug ? { id: loadedExam?.id ?? 0, name: examName ?? scope.examSlug } : null;
 
   const submitSearch = (event: React.FormEvent) => {
     event.preventDefault();
@@ -138,7 +131,7 @@ export const ExamNewsHubView: React.FC<ExamNewsHubViewProps> = ({ scope, page, i
           </h2>
           <p className={styles.stateText}>
             {q
-              ? "Try a shorter search, or browse by news type or exam."
+              ? "Try a shorter search, or choose another exam."
               : filtered
                 ? "New notifications, results and admit cards will show here as soon as they are published."
                 : "Exam updates will show here as soon as they are published."}
@@ -260,26 +253,6 @@ export const ExamNewsHubView: React.FC<ExamNewsHubViewProps> = ({ scope, page, i
       </header>
 
       <section className={styles.discovery} aria-label="Filter exam news">
-        <nav className={styles.typeChips} aria-label="News types">
-          <Link
-            to={examNewsPublicMeta.HUB_PATH}
-            className={`${styles.typeChip} ${!scope.type && !scope.examSlug ? styles.typeChipActive : ""}`}
-            aria-current={!scope.type && !scope.examSlug ? "page" : undefined}
-          >
-            All
-          </Link>
-          {examNewsPublicMeta.TYPES.map((type) => (
-            <Link
-              key={type.value}
-              to={examNewsPublicMeta.listingPath({ type: type.value })}
-              className={`${styles.typeChip} ${scope.type === type.value ? styles.typeChipActive : ""}`}
-              aria-current={scope.type === type.value ? "page" : undefined}
-            >
-              {type.plural}
-            </Link>
-          ))}
-        </nav>
-
         <div className={styles.filterRow}>
           <form className={styles.searchForm} role="search" onSubmit={submitSearch}>
             <Search size={16} className={styles.searchIcon} aria-hidden="true" />
@@ -298,42 +271,17 @@ export const ExamNewsHubView: React.FC<ExamNewsHubViewProps> = ({ scope, page, i
           </form>
 
           <div className={styles.examFilter}>
-            <Select
-              value={scope.examSlug ?? ALL_EXAMS}
-              onValueChange={(value) => {
-                // Radix can report "" while the chosen item is still mounting; that is not a choice.
-                if (!value || value === (scope.examSlug ?? ALL_EXAMS)) return;
-                navigate(value === ALL_EXAMS ? examNewsPublicMeta.HUB_PATH : examNewsPublicMeta.listingPath({ examSlug: value }));
+            <ExamNewsExamPicker
+              value={examChoice}
+              onChange={(choice) => {
+                if (choice?.slug === scope.examSlug) return;
+                navigate(choice?.slug ? examNewsPublicMeta.listingPath({ examSlug: choice.slug }) : examNewsPublicMeta.HUB_PATH);
               }}
-            >
-              <SelectTrigger aria-label="Filter by exam" className={styles.examTrigger}>
-                <SelectValue placeholder="All exams" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL_EXAMS}>All exams</SelectItem>
-                {!examKnown && scope.examSlug && <SelectItem value={scope.examSlug}>{examName ?? scope.examSlug}</SelectItem>}
-                {examOptions.popular.length > 0 && (
-                  <SelectGroup>
-                    <SelectLabel>Popular exams</SelectLabel>
-                    {examOptions.popular.map((exam) => (
-                      <SelectItem key={exam.slug} value={exam.slug}>
-                        {exam.name}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                )}
-                {examOptions.others.length > 0 && (
-                  <SelectGroup>
-                    <SelectLabel>More exams in the news</SelectLabel>
-                    {examOptions.others.map((exam) => (
-                      <SelectItem key={exam.slug} value={exam.slug}>
-                        {exam.name}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                )}
-              </SelectContent>
-            </Select>
+              placeholder="All exams"
+              allowClear
+              clearLabel="All exams"
+              ariaLabel="Filter by exam"
+            />
           </div>
         </div>
 
@@ -360,12 +308,7 @@ export const ExamNewsHubView: React.FC<ExamNewsHubViewProps> = ({ scope, page, i
           {renderList()}
         </main>
 
-        <ExamNewsSidebar
-          data={sidebar.data}
-          isLoading={sidebar.isLoading}
-          activeType={scope.type}
-          activeExam={scope.examSlug}
-        />
+        <ExamNewsSidebar data={sidebar.data} isLoading={sidebar.isLoading} activeExam={scope.examSlug} showBrowse={false} />
       </div>
     </div>
   );

@@ -12,15 +12,57 @@
   border-radius: var(--radius-lg);
 }
 
-.rejection {
-  margin: 0;
-  padding: var(--spacing-3);
+.callout {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
   border-radius: var(--radius-md);
-  border: 1px solid color-mix(in srgb, var(--error) 35%, transparent);
+  border: 1px solid var(--border);
+}
+
+.calloutPending {
+  border-color: color-mix(in srgb, var(--warning) 45%, transparent);
+  background-color: color-mix(in srgb, var(--warning) 12%, var(--card));
+}
+
+.calloutRejected {
+  border-color: color-mix(in srgb, var(--error) 40%, transparent);
   background-color: color-mix(in srgb, var(--error) 10%, var(--card));
+}
+
+.calloutIcon {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.calloutPending .calloutIcon {
+  color: var(--warning-text);
+}
+
+.calloutRejected .calloutIcon {
   color: var(--error-text);
+}
+
+.calloutBody {
+  display: grid;
+  justify-items: start;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.calloutTitle {
+  margin: 0;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.calloutText {
+  margin: 0;
   font-size: 0.875rem;
   line-height: 1.45;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
 }
 
 .share {

@@ -165,7 +165,7 @@ export async function fetchPopularTeachers(): Promise<HomepageTeacher[]> {
   }
 
   // Step 3: Fetch teacher details + individual content counts in parallel
-  const [teachers, testCounts, courseCounts, productCounts] = await Promise.all([
+  const [teachers, testCounts, courseCounts, productCounts, followerCounts] = await Promise.all([
     db
       .selectFrom("users")
       .where("users.id", "in", topTeacherIds)
@@ -219,11 +219,22 @@ export async function fetchPopularTeachers(): Promise<HomepageTeacher[]> {
         db.fn.count("digitalProducts.id").as("productCount"),
       ])
       .execute(),
+
+    db
+      .selectFrom("teacherFollows")
+      .where("teacherFollows.teacherId", "in", topTeacherIds)
+      .groupBy("teacherFollows.teacherId")
+      .select([
+        "teacherFollows.teacherId",
+        db.fn.count("teacherFollows.id").as("followerCount"),
+      ])
+      .execute(),
   ]);
 
   const testCountMap = new Map(testCounts.map((t) => [t.teacherId, Number(t.testCount)]));
   const courseCountMap = new Map(courseCounts.map((c) => [c.teacherId, Number(c.courseCount)]));
   const productCountMap = new Map(productCounts.map((p) => [p.teacherId, Number(p.productCount)]));
+  const followerCountMap = new Map(followerCounts.map((f) => [f.teacherId, Number(f.followerCount)]));
 
   return teachers
     .map((t) => ({
@@ -237,6 +248,7 @@ export async function fetchPopularTeachers(): Promise<HomepageTeacher[]> {
       courseCount: courseCountMap.get(t.id) ?? 0,
       productCount: productCountMap.get(t.id) ?? 0,
       studentCount: enrollmentsMap.get(t.id) ?? 0,
+      followerCount: followerCountMap.get(t.id) ?? 0,
       targetExams: t.targetExams ? (Array.isArray(t.targetExams) ? t.targetExams as string[] : []) : null,
     }))
     .sort((a, b) => (scoreMap.get(b.id) ?? 0) - (scoreMap.get(a.id) ?? 0));

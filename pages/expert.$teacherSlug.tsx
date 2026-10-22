@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useParams, useLocation, useSearchParams } from "react-router-dom";
 import { AlertTriangle } from "lucide-react";
 import { SEOHead } from "../components/SEOHead";
@@ -7,6 +7,7 @@ import { useTeacherPublicProfileQuery } from "../helpers/useTeacherPublicProfile
 import { ExpertProfileView } from "../components/ExpertProfileView";
 import { Skeleton } from "../components/Skeleton";
 import { useTrackStorefrontView } from "../helpers/trackStorefrontEvent";
+import { useAuth } from "../helpers/useAuth";
 import { NotFoundState } from "../components/NotFoundState";
 import { isNotFoundError } from "../helpers/isNotFoundError";
 import styles from "./expert.$teacherSlug.module.css";
@@ -58,8 +59,16 @@ const ExpertProfilePage = () => {
   const [searchParams] = useSearchParams();
   const { defaultTab } = (location.state as { defaultTab?: string }) || {};
 
-  const { data, isLoading, isError, error } = useTeacherPublicProfileQuery(teacherSlug || "");
+  const { data, isLoading, isError, error, refetch } = useTeacherPublicProfileQuery(teacherSlug || "");
   useTrackStorefrontView("teacher_profile", data ? teacherSlug : null);
+
+  // The server-rendered and cached profile is anonymous, so a student's follow
+  // and enrolment state and the latest follower count need a fresh read.
+  const { authState } = useAuth();
+  const isStudent = authState.type === "authenticated" && authState.user.role === "student";
+  useEffect(() => {
+    if (isStudent) refetch({ cancelRefetch: false });
+  }, [isStudent, teacherSlug, refetch]);
 
   if (isLoading) {
     return (

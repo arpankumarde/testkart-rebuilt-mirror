@@ -140,6 +140,8 @@ export type HomepageTeacher = {
   courseCount: number;
   productCount: number;
   studentCount: number;
+  // Optional so a cached response from before this shipped still renders.
+  followerCount?: number;
   targetExams: string[] | null;
 };
 

@@ -34,11 +34,12 @@ export const ContentReviewRejectDialog: React.FC<
       }}
       tone="destructive"
       icon={<XCircle size={20} />}
-      title="Reject content"
+      title={review?.publicRequest ? "Reject public listing request" : "Reject content"}
       description={
         <>
           Provide a reason for rejecting &ldquo;{review?.contentTitle}&rdquo;. This will be
-          visible to the teacher.
+          visible to the teacher.{" "}
+          {review?.publicRequest && "It stays live as unlisted, and the teacher can ask again."}
         </>
       }
       confirmLabel="Reject content"

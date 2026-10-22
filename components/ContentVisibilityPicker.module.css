@@ -8,6 +8,10 @@
 }
 
 .legend {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
   padding: 0;
   margin-bottom: var(--spacing-2);
   font-size: 0.9375rem;
@@ -48,6 +52,13 @@
 .fieldset:disabled .option {
   cursor: not-allowed;
   opacity: 0.7;
+}
+
+.option[data-locked="true"] {
+  cursor: not-allowed;
+  border-color: var(--border);
+  border-style: dashed;
+  background-color: var(--muted);
 }
 
 .radio {
@@ -99,6 +110,16 @@
   font-size: 0.875rem;
   line-height: 1.45;
   color: var(--muted-foreground);
+}
+
+.lockedTag {
+  padding: 0 var(--spacing-2);
+  border-radius: var(--radius-full);
+  border: 1px solid color-mix(in srgb, var(--warning) 45%, transparent);
+  background-color: color-mix(in srgb, var(--warning) 15%, var(--card));
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--warning-text);
 }
 
 .option[data-selected="true"] .description {

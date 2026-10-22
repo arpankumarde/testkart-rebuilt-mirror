@@ -54,9 +54,12 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
-    if (!(await loadContentState(db, review.contentType, review.contentId))) {
+    const state = await loadContentState(db, review.contentType, review.contentId);
+    if (!state) {
       return goneResponse(review.contentType, review.contentId);
     }
+    // A live unlisted item asking to go public. Rejecting it leaves it live and unlisted.
+    const publicRequest = state.live && state.visibility === "unlisted";
 
     if (input.action === "send_to_senior" || input.action === "back_to_pending") {
       const toSenior = input.action === "send_to_senior";
@@ -132,7 +135,8 @@ export async function handle(request: Request): Promise<Response> {
           review.contentId,
           contentTitle,
           "approve",
-          input.adminNotes
+          input.adminNotes,
+          publicRequest
         );
       }
 
@@ -164,7 +168,9 @@ export async function handle(request: Request): Promise<Response> {
 
       const output: OutputType = {
         success: true,
-        message: `Content approved and published successfully.${bonusNote}`,
+        message: publicRequest
+          ? `Approved. It is now public and listed.${bonusNote}`
+          : `Content approved and published successfully.${bonusNote}`,
       };
       return new Response(superjson.stringify(output));
     } else {
@@ -202,13 +208,16 @@ export async function handle(request: Request): Promise<Response> {
           review.contentId,
           contentTitle,
           "reject",
-          input.adminNotes
+          input.adminNotes,
+          publicRequest
         );
       }
 
       const output: OutputType = {
         success: true,
-        message: "Content review rejected.",
+        message: publicRequest
+          ? "Request rejected. It stays live as unlisted, and the teacher has been emailed the reason."
+          : "Content review rejected.",
       };
       return new Response(superjson.stringify(output));
     }

@@ -2,7 +2,6 @@ import type { Kysely, Transaction } from "kysely";
 import { db } from "./db";
 import type { ContentType, ContentVisibility, DB } from "./schema";
 import {
-  alreadyInReviewMessage,
   clearOpenReviews,
   hasPendingReview,
   loadContentState,
@@ -30,6 +29,9 @@ type Executor = Kysely<DB> | Transaction<DB>;
  *   publish. The item stays live and unlisted until the review is approved;
  *   publishApprovedContent then sets it public. Verified teachers, admins and
  *   bundles (whose items must all be public) switch at once.
+ * - Asking again while a request waits is not an error: nothing new is queued
+ *   and the teacher is told it is already with the team. A rejected request can
+ *   be sent again; the item stays live and unlisted throughout.
  */
 
 export class VisibilityChangeError extends Error {
@@ -46,6 +48,9 @@ export type VisibilityChangeResult = {
   visibility: ContentVisibility;
   /** True when the item now waits for review to become public. */
   inReview: boolean;
+  /** True when a request was already waiting, so nothing new was queued. */
+  alreadyInReview: boolean;
+  title: string;
   message: string;
 };
 
@@ -147,10 +152,17 @@ export async function changeContentVisibility(input: {
 
   if (visibility === "unlisted") {
     if (state.visibility === "unlisted" && !pending) {
-      return { visibility, inReview: false, message: `This ${noun} is already unlisted.` };
+      return {
+        visibility,
+        inReview: false,
+        alreadyInReview: false,
+        title: "Nothing to change",
+        message: `This ${noun} is already unlisted.`,
+      };
     }
+    const cancelledRequest = state.live && state.visibility === "unlisted";
     const kind = BUNDLED_KIND[contentType];
-    if (kind && state.live) {
+    if (kind && state.live && !cancelledRequest) {
       const bundles = await findPublishedBundlesContaining(db, kind, [contentId], { visibility: "public" });
       if (bundles.length > 0) {
         const one = bundles.length === 1;
@@ -163,16 +175,30 @@ export async function changeContentVisibility(input: {
       await clearOpenReviews(trx, contentType, contentId);
       await writeContentVisibility(trx, contentType, contentId, "unlisted");
     });
-    const message = state.live
-      ? `${Noun} is now unlisted. It no longer shows in search, listings or your profile, and its link still works.`
-      : pending
-        ? `${Noun} was taken out of review and is now unlisted. Publish it to put it live at once for anyone with the link.`
-        : `${Noun} is set to unlisted. When you publish it, it goes live at once for anyone with the link.`;
-    return { visibility: "unlisted", inReview: false, message };
+    const message = cancelledRequest
+      ? `Your request to make this ${noun} public was cancelled. It stays live as unlisted.`
+      : state.live
+        ? `${Noun} is now unlisted. It no longer shows in search, listings or your profile, and its link still works.`
+        : pending
+          ? `${Noun} was taken out of review and is now unlisted. Publish it to put it live at once for anyone with the link.`
+          : `${Noun} is set to unlisted. When you publish it, it goes live at once for anyone with the link.`;
+    return {
+      visibility: "unlisted",
+      inReview: false,
+      alreadyInReview: false,
+      title: cancelledRequest ? "Request cancelled" : "Visibility updated",
+      message,
+    };
   }
 
   if (state.visibility === "public") {
-    return { visibility, inReview: pending, message: `This ${noun} is already public.` };
+    return {
+      visibility,
+      inReview: pending,
+      alreadyInReview: false,
+      title: "Nothing to change",
+      message: `This ${noun} is already public.`,
+    };
   }
 
   if (!state.live) {
@@ -180,6 +206,8 @@ export async function changeContentVisibility(input: {
     return {
       visibility: "public",
       inReview: false,
+      alreadyInReview: false,
+      title: "Visibility updated",
       message: `${Noun} is set to public. Publishing it follows the usual review before it is listed.`,
     };
   }
@@ -194,7 +222,13 @@ export async function changeContentVisibility(input: {
       );
     }
     await writeContentVisibility(db, contentType, contentId, "public");
-    return { visibility: "public", inReview: false, message: "Bundle is now public. Students can find it in search and listings." };
+    return {
+      visibility: "public",
+      inReview: false,
+      alreadyInReview: false,
+      title: "Visibility updated",
+      message: "Bundle is now public. Students can find it in search and listings.",
+    };
   }
 
   if (contentType === "live_test" && state.endTime && state.endTime <= new Date()) {
@@ -202,19 +236,32 @@ export async function changeContentVisibility(input: {
   }
 
   if (await publishesWithoutReview(db, input.role, state.teacherId)) {
+    if (pending) await clearOpenReviews(db, contentType, contentId);
     await writeContentVisibility(db, contentType, contentId, "public");
     return {
       visibility: "public",
       inReview: false,
+      alreadyInReview: false,
+      title: "Visibility updated",
       message: `${Noun} is now public. Students can find it in search, listings and your profile.`,
     };
   }
 
-  if (pending) throw new VisibilityChangeError(alreadyInReviewMessage(noun));
-  await queueContentReview(db, { contentType, contentId, teacherId: state.teacherId });
+  const reviewId = pending ? null : await queueContentReview(db, { contentType, contentId, teacherId: state.teacherId });
+  if (reviewId === null) {
+    return {
+      visibility: "unlisted",
+      inReview: true,
+      alreadyInReview: true,
+      title: "Already waiting for review",
+      message: `Your request to make this ${noun} public is with our team. It stays unlisted until the review is done, and we will email you the decision.`,
+    };
+  }
   return {
     visibility: "unlisted",
     inReview: true,
-    message: `${Noun} was submitted for review. It stays live as unlisted until our team approves it for public listing. We will email you once it is approved or needs changes.`,
+    alreadyInReview: false,
+    title: "Your request has been submitted successfully!",
+    message: `${Noun} stays unlisted until our team approves it. We will email you when the review is complete.`,
   };
 }
