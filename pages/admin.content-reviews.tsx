@@ -382,6 +382,14 @@ const AdminContentReviewsPage: React.FC = () => {
                       <span className={styles.rowTeacher} title={review.teacherName}>
                         {review.teacherName}
                       </span>
+                      {review.reviewedByName && (
+                        <span
+                          className={styles.rowReviewer}
+                          title={`${review.status === "rejected" ? "Rejected" : "Approved"} by ${review.reviewedByName}`}
+                        >
+                          {review.status === "rejected" ? "Rejected by" : "Approved by"} {review.reviewedByName}
+                        </span>
+                      )}
                       <span className={styles.rowDate}>{formatDate(review.createdAt)}</span>
                       <BonusFlag review={review} />
                       {review.publicRequest && (

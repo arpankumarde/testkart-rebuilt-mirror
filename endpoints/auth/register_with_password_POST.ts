@@ -13,13 +13,15 @@ import { assignUserSlug } from "../../helpers/assignUserSlug";
 export async function handle(request: Request) {
   try {
     const json = await request.json();
-    const { email, password, displayName } = schema.parse(json);
+    const { email: rawEmail, password, displayName } = schema.parse(json);
+    // One account per address: emails are stored and compared in lowercase.
+    const email = rawEmail.trim().toLowerCase();
 
     // Check if email already exists
     const existingUser = await db
       .selectFrom("users")
       .select("id")
-      .where("email", "=", email)
+      .where((eb) => eb.fn("lower", [eb.ref("email")]), "=", email)
       .limit(1)
       .execute();
 

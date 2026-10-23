@@ -1,0 +1,32 @@
+.bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2) var(--spacing-3);
+  padding: var(--spacing-2) var(--spacing-4);
+  background-color: var(--pastel-lavender);
+  color: var(--pastel-lavender-ink);
+}
+
+.bar a:not(.edit) {
+  color: var(--pastel-lavender-ink);
+}
+
+.note {
+  flex: 1 1 14rem;
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.edit {
+  flex-shrink: 0;
+}
+
+.state {
+  width: 100%;
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: var(--spacing-6) var(--spacing-4);
+  box-sizing: border-box;
+}

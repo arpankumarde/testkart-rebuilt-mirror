@@ -50,6 +50,7 @@ export const ADMIN_MODULES = [
   { key: "blog_comments", label: "Blog comments", group: "Content", hint: "Comment moderation" },
   { key: "current_affairs", label: "Current affairs", group: "Content", hint: "Daily digests, editorials and quizzes" },
   { key: "exam_news", label: "News", group: "Content", hint: "Exam results, admit cards, answer keys and date changes" },
+  { key: "glossary", label: "Glossary", group: "Content", hint: "Glossary terms, definitions and their SEO" },
   { key: "careers", label: "Careers", group: "Site", hint: "Job postings and applications" },
   { key: "news", label: "Press", group: "Site", hint: "Press coverage and events" },
   { key: "static_pages", label: "Static pages", group: "Site", hint: "Terms, privacy, about" },
@@ -173,6 +174,7 @@ const API_RULES: Record<string, ApiRule> = {
   "admin/blog": ["blog"],
   "admin/current-affairs": ["current_affairs"],
   "admin/exam-news": ["exam_news"],
+  "admin/glossary": ["glossary"],
 
   "admin/careers": ["careers"],
   "admin/news": ["news"],

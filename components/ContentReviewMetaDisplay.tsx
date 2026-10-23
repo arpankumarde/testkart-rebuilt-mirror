@@ -46,10 +46,7 @@ const formatFileSize = (bytes: string | null): string | null => {
   return `${(b / (1024 * 1024)).toFixed(1)} MB`;
 };
 
-const StatPill: React.FC<{ icon: React.ReactNode; label: string }> = ({
-  icon,
-  label,
-}) => (
+const StatPill: React.FC<{ icon: React.ReactNode; label: string }> = ({ icon, label }) => (
   <span className={styles.statPill}>
     <span className={styles.statPillIcon}>{icon}</span>
     {label}

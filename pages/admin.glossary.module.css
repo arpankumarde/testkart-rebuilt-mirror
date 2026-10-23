@@ -1,0 +1,327 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  width: 100%;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: var(--spacing-6) var(--spacing-6) var(--spacing-8);
+  box-sizing: border-box;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--spacing-3);
+}
+
+.stat {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "value icon"
+    "label label";
+  align-items: center;
+  gap: var(--spacing-1) var(--spacing-3);
+  padding: var(--spacing-4);
+  background-color: var(--stat-bg);
+  color: var(--stat-ink);
+  border-radius: var(--radius-lg);
+}
+
+.toneLavender {
+  --stat-bg: var(--pastel-lavender);
+  --stat-ink: var(--pastel-lavender-ink);
+}
+
+.toneMint {
+  --stat-bg: var(--pastel-mint);
+  --stat-ink: var(--pastel-mint-ink);
+}
+
+.tonePeach {
+  --stat-bg: var(--pastel-peach);
+  --stat-ink: var(--pastel-peach-ink);
+}
+
+.tonePowder {
+  --stat-bg: var(--pastel-powder);
+  --stat-ink: var(--pastel-powder-ink);
+}
+
+.statIcon {
+  grid-area: icon;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-full);
+  background-color: var(--surface);
+  color: var(--foreground);
+}
+
+.statValue {
+  grid-area: value;
+  font-family: var(--font-family-heading);
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.statLabel {
+  grid-area: label;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+/* This band has no tabs, so the filters take the full width from the left. */
+.toolbar > div {
+  flex: 1;
+  justify-content: flex-start;
+  margin-left: 0;
+}
+
+.error {
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid var(--error);
+  border-radius: var(--radius);
+  background-color: color-mix(in srgb, var(--error) 10%, var(--surface));
+  color: var(--error-text);
+  font-size: 0.875rem;
+}
+
+/* The same rows as a table or as cards, chosen by the width the list actually has. */
+.results {
+  container: results / inline-size;
+}
+
+.tableWrap {
+  display: none;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.colCategory {
+  width: 13rem;
+}
+
+.colSlug {
+  width: 13rem;
+}
+
+.colStatus {
+  width: 6.5rem;
+}
+
+.colUpdated {
+  width: 7.5rem;
+}
+
+.colActions {
+  width: 8.5rem;
+}
+
+.table th {
+  padding: var(--spacing-3);
+  background-color: var(--muted);
+  color: var(--foreground);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.table td {
+  padding: var(--spacing-3);
+  border-top: 1px solid var(--border);
+  vertical-align: middle;
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+
+.table tbody tr {
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.table tbody tr:hover {
+  background-color: var(--background);
+}
+
+.actionsHead {
+  text-align: right;
+}
+
+.termLink {
+  display: block;
+  min-width: 0;
+  border-radius: var(--radius-sm);
+  color: var(--foreground);
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.termLink:hover {
+  color: var(--tk-brand-text);
+}
+
+.termLink:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.flag {
+  display: block;
+  margin-top: 2px;
+  color: var(--warning-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.slug {
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.table td.slug {
+  color: var(--muted-foreground);
+}
+
+.updated {
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.table td.updated {
+  color: var(--muted-foreground);
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status_published {
+  background-color: var(--pastel-mint);
+  color: var(--pastel-mint-ink);
+}
+
+.status_draft {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-1);
+}
+
+.actions .danger:hover {
+  background-color: color-mix(in srgb, var(--error) 12%, var(--surface));
+  color: var(--error-text);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-3);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+}
+
+.cardSlug {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+}
+
+.cardBottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding-top: var(--spacing-2);
+  border-top: 1px solid var(--border);
+}
+
+@container results (min-width: 40rem) {
+  .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container results (min-width: 60rem) {
+  .tableWrap {
+    display: block;
+  }
+
+  .cards {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: var(--spacing-4) var(--spacing-4) var(--spacing-6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .table tbody tr {
+    transition: none;
+  }
+}

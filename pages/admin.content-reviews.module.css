@@ -183,6 +183,15 @@
   font-variant-numeric: tabular-nums;
 }
 
+.rowReviewer {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--reviews-quiet-text);
+}
+
 .flag {
   align-self: center;
   flex-shrink: 0;

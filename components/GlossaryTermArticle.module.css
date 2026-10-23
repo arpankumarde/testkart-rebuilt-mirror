@@ -1,0 +1,233 @@
+/* A narrow reading column: no contents list, no tables, no FAQ accordion. */
+.page {
+  width: 100%;
+  padding: var(--spacing-6) var(--spacing-4) var(--spacing-8);
+  box-sizing: border-box;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 44rem;
+  margin: 0 auto;
+}
+
+.crumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-1) var(--spacing-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.crumbs li + li::before {
+  content: ">";
+  margin-right: var(--spacing-2);
+}
+
+.crumbs a {
+  color: var(--muted-foreground);
+  text-decoration: none;
+}
+
+.crumbs a:hover {
+  color: var(--tk-brand-text);
+  text-decoration: underline;
+}
+
+.crumbs [aria-current="page"] {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--foreground);
+}
+
+.definition {
+  margin: 0;
+  font-size: 1.25rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  min-width: 0;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+  color: var(--foreground);
+}
+
+.extraTitle {
+  margin: var(--spacing-2) 0 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  color: var(--foreground);
+}
+
+.prose {
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+.prose p {
+  margin: 0;
+}
+
+.prose p + p,
+.prose ul,
+.prose ol {
+  margin-top: var(--spacing-3);
+}
+
+.prose ul,
+.prose ol {
+  margin-bottom: 0;
+  padding-left: 1.25rem;
+}
+
+.prose a {
+  color: var(--tk-brand-text);
+  font-weight: 600;
+}
+
+.product {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  background-color: var(--pastel-powder);
+  color: var(--pastel-powder-ink);
+  border-radius: var(--radius-lg);
+}
+
+.productIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+  color: var(--pastel-powder-ink);
+}
+
+.productBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.productTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--pastel-powder-ink);
+}
+
+.productText {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--pastel-powder-ink);
+}
+
+.productLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  width: fit-content;
+  border-radius: var(--radius-sm);
+  color: var(--pastel-powder-ink);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.productLink:focus-visible {
+  outline: 2px solid var(--pastel-powder-ink);
+  outline-offset: 2px;
+}
+
+.relatedGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-3);
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  border-radius: var(--radius-sm);
+  color: var(--pastel-butter-ink);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+a.back:hover {
+  text-decoration: underline;
+}
+
+a.back:focus-visible {
+  outline: 2px solid var(--pastel-butter-ink);
+  outline-offset: 2px;
+}
+
+.missing {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+
+@media (max-width: 640px) {
+  .title {
+    font-size: 2rem;
+  }
+
+  .definition {
+    font-size: 1.125rem;
+  }
+
+  .relatedGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

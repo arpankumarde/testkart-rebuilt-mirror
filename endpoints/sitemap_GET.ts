@@ -16,6 +16,7 @@ import {
 import { currentAffairsPublicServer } from "../helpers/currentAffairsPublicServer";
 import { currentAffairsMeta } from "../helpers/currentAffairsMeta";
 import { examNewsPublicServer } from "../helpers/examNewsPublicServer";
+import { glossaryPublicServer } from "../helpers/glossaryPublicServer";
 
 const BASE_URL = "https://testkart.in";
 
@@ -435,6 +436,16 @@ export async function handle(request: Request) {
         // "/exam-news/{slug}" is a story; the hub and the listings change more often.
         changefreq: entry.path.split("/").length === 3 ? "weekly" : "daily",
         priority: entry.path === "/exam-news" ? 0.8 : 0.6,
+      });
+    }
+
+    // Glossary: the hub and each published term.
+    for (const entry of await glossaryPublicServer.fetchSitemapEntries()) {
+      xml += generateUrlEntry({
+        loc: `${BASE_URL}${entry.path}`,
+        lastmod: toW3CDate(entry.updatedAt),
+        changefreq: "monthly",
+        priority: entry.path === "/glossary" ? 0.7 : 0.5,
       });
     }
 

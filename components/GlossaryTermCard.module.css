@@ -1,0 +1,105 @@
+.card {
+  --accent: var(--pastel-lavender);
+  --accent-ink: var(--pastel-lavender-ink);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-width: 0;
+  padding: var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: inset 0 3px 0 var(--accent), var(--shadow);
+  color: var(--foreground);
+}
+
+.scoring_and_assessment {
+  --accent: var(--pastel-mint);
+  --accent-ink: var(--pastel-mint-ink);
+}
+
+.delivery_and_creation {
+  --accent: var(--pastel-powder);
+  --accent-ink: var(--pastel-powder-ink);
+}
+
+/* Keeps a lone card under a letter the same height as cards in a full row. */
+.hub {
+  min-height: 11.5rem;
+}
+
+.related {
+  min-height: 10rem;
+}
+
+.linked {
+  transition:
+    border-color var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
+}
+
+.linked:hover {
+  border-color: var(--accent-ink);
+  transform: translateY(-2px);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  color: var(--foreground);
+}
+
+.definition {
+  flex: 1;
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.read {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  width: fit-content;
+  border-radius: var(--radius-sm);
+  color: var(--tk-brand-text);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.read::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-lg);
+}
+
+.linked:hover .read {
+  text-decoration: underline;
+}
+
+.read:focus-visible {
+  outline: none;
+}
+
+.read:focus-visible::after {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .linked {
+    transition: none;
+  }
+
+  .linked:hover {
+    transform: none;
+  }
+}

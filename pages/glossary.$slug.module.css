@@ -1,0 +1,64 @@
+.page {
+  width: 100%;
+  padding: var(--spacing-6) var(--spacing-4) var(--spacing-8);
+  box-sizing: border-box;
+}
+
+.column {
+  width: 100%;
+  max-width: 44rem;
+  margin: 0 auto;
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-2);
+  width: 100%;
+  max-width: 32rem;
+  margin: var(--spacing-8) auto;
+  padding: var(--spacing-8) var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.stateIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radius-full);
+  background-color: var(--pastel-lavender);
+  color: var(--pastel-lavender-ink);
+}
+
+.stateIconError {
+  background-color: var(--pastel-peach);
+  color: var(--pastel-peach-ink);
+}
+
+.stateTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--foreground);
+}
+
+.stateText {
+  margin: 0;
+  color: var(--muted-foreground);
+}
+
+.stateActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-3);
+}

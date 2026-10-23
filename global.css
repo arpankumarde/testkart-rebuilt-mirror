@@ -188,6 +188,22 @@
   --chart-color-4: hsl(340 80% 60%);
   --chart-color-5: hsl(260 75% 65%);
 
+  /* Solid pastel fills, each with the ink that reads on it. Themed. */
+  --pastel-mint: hsl(152 48% 90%);
+  --pastel-mint-ink: hsl(158 58% 19%);
+  --pastel-sage: hsl(92 26% 88%);
+  --pastel-sage-ink: hsl(98 32% 21%);
+  --pastel-lavender: hsl(258 52% 93%);
+  --pastel-lavender-ink: hsl(258 36% 30%);
+  --pastel-powder: hsl(207 66% 91%);
+  --pastel-powder-ink: hsl(211 56% 25%);
+  --pastel-cream: hsl(42 62% 94%);
+  --pastel-cream-ink: hsl(32 48% 22%);
+  --pastel-peach: hsl(22 86% 92%);
+  --pastel-peach-ink: hsl(18 66% 27%);
+  --pastel-butter: hsl(46 84% 88%);
+  --pastel-butter-ink: hsl(36 62% 20%);
+
   /*
    * Spotlight/showcase card language - the ivory panel with pastel accent
    * cards and a peach pill CTA first built for HomepageUgcNetSpotlight, now
@@ -361,6 +377,21 @@
   --chart-color-3: hsl(38 90% 60%);
   --chart-color-4: hsl(340 80% 65%);
   --chart-color-5: hsl(260 75% 70%);
+
+  --pastel-mint: hsl(158 24% 21%);
+  --pastel-mint-ink: hsl(152 52% 84%);
+  --pastel-sage: hsl(98 16% 22%);
+  --pastel-sage-ink: hsl(92 34% 84%);
+  --pastel-lavender: hsl(258 22% 25%);
+  --pastel-lavender-ink: hsl(258 62% 88%);
+  --pastel-powder: hsl(211 28% 24%);
+  --pastel-powder-ink: hsl(207 72% 86%);
+  --pastel-cream: hsl(36 20% 21%);
+  --pastel-cream-ink: hsl(42 68% 86%);
+  --pastel-peach: hsl(18 26% 23%);
+  --pastel-peach-ink: hsl(22 86% 86%);
+  --pastel-butter: hsl(42 24% 21%);
+  --pastel-butter-ink: hsl(46 78% 84%);
 
   /* Spotlight/showcase card language, dark mode. */
   --sp-surface: hsl(222 20% 13%);

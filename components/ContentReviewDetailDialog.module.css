@@ -141,14 +141,26 @@
   border-radius: var(--radius-full);
 }
 
+.breakdownBarBank,
 .breakdownBarAi,
+.breakdownBarMcp,
 .breakdownBarManual {
   height: 100%;
+}
+
+.breakdownBarBank,
+.legendSwatchBank {
+  background-color: color-mix(in srgb, var(--success-text), black 10%);
 }
 
 .breakdownBarAi,
 .legendSwatchAi {
   background-color: color-mix(in srgb, var(--info), black 30%);
+}
+
+.breakdownBarMcp,
+.legendSwatchMcp {
+  background-color: color-mix(in srgb, var(--lavender-text, #7c5cfc), black 10%);
 }
 
 .breakdownBarManual,

@@ -47,10 +47,19 @@ async function fetchMockTestMeta(
       "mt.freeTestsCount",
       sql<string>`count(distinct mti.id)`.as("totalTests"),
       sql<string>`count(tq.id)`.as("totalQuestions"),
-      sql<string>`count(tq.id) filter (where tq.is_ai_generated = true)`.as(
+      // Mutually exclusive buckets, checked in this priority, so the four
+      // counts always sum to totalQuestions: a question pulled from the bank
+      // is credited there even if it also happens to be AI-authored.
+      sql<string>`count(tq.id) filter (where tq.source_bank_question_id is not null)`.as(
+        "questionBankCount"
+      ),
+      sql<string>`count(tq.id) filter (where tq.source_bank_question_id is null and tq.is_ai_generated = true)`.as(
         "aiQuestionsCount"
       ),
-      sql<string>`count(tq.id) filter (where tq.is_ai_generated is false or tq.is_ai_generated is null)`.as(
+      sql<string>`count(tq.id) filter (where tq.source_bank_question_id is null and coalesce(tq.is_ai_generated, false) = false and tq.creation_source = 'mcp')`.as(
+        "mcpQuestionsCount"
+      ),
+      sql<string>`count(tq.id) filter (where tq.source_bank_question_id is null and coalesce(tq.is_ai_generated, false) = false and coalesce(tq.creation_source, '') is distinct from 'mcp')`.as(
         "manualQuestionsCount"
       ),
       sql<string>`(
@@ -97,6 +106,8 @@ async function fetchMockTestMeta(
       freeTestsCount: row.freeTestsCount,
       aiQuestionsCount: parseInt(row.aiQuestionsCount, 10),
       manualQuestionsCount: parseInt(row.manualQuestionsCount, 10),
+      questionBankCount: parseInt(row.questionBankCount, 10),
+      mcpQuestionsCount: parseInt(row.mcpQuestionsCount, 10),
       totalOrders: parseInt(row.totalOrders, 10),
     });
   }
@@ -333,6 +344,7 @@ export async function handle(request: Request): Promise<Response> {
     let query = db
       .selectFrom("contentReviews as cr")
       .innerJoin("users as u", "u.id", "cr.teacherId")
+      .leftJoin("admins as reviewer", "reviewer.id", "cr.reviewedBy")
       .select([
         "cr.id",
         "cr.contentType",
@@ -344,6 +356,7 @@ export async function handle(request: Request): Promise<Response> {
         "cr.createdAt",
         "u.displayName as teacherName",
         "u.email as teacherEmail",
+        "reviewer.fullName as reviewedByName",
         sql<string>`
           CASE cr.content_type
             WHEN 'mock_test' THEN (SELECT mt.title FROM mock_tests mt WHERE mt.id = cr.content_id)
@@ -552,6 +565,7 @@ export async function handle(request: Request): Promise<Response> {
         status: r.status,
         adminNotes: r.adminNotes ?? null,
         reviewedAt: r.reviewedAt ?? null,
+        reviewedByName: r.reviewedByName ?? null,
         createdAt: r.createdAt,
         publicRequest: r.publicRequest === true,
         contentMeta: getContentMeta(r.contentType, r.contentId),

@@ -66,6 +66,9 @@ describe("adminPermissions", () => {
   });
 
   it("still gates the Support inbox by its module", () => {
+    expect(adminNavigation.canOpen("/admin/glossary", ["blog"])).toBe(false);
+    expect(adminNavigation.canOpen("/admin/glossary/e/1", ["glossary"])).toBe(true);
+    expect(adminNavigation.canOpen("/admin/glossary/preview/1", ["blog"])).toBe(false);
     expect(adminNavigation.canOpen("/admin/support", ["blog"])).toBe(false);
     expect(adminNavigation.canOpen("/admin/support?status=open", ["blog"])).toBe(false);
     expect(adminNavigation.canOpen("/admin/support?status=open", ["support"])).toBe(true);

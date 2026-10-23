@@ -45,8 +45,11 @@ import {
   Clock,
   Trophy,
   Layers,
+  UserCheck,
   Download,
   Lock,
+  Database,
+  Server,
 } from "lucide-react";
 import styles from "./ContentReviewDetailDialog.module.css";
 
@@ -148,9 +151,14 @@ const RatingDisplay = ({
 // ─── Content-specific numbers; the contents themselves come from AdminPreviewContent ───
 
 const MockTestDetails = ({ meta }: { meta: MockTestMeta }) => {
-  const total = meta.aiQuestionsCount + meta.manualQuestionsCount;
-  const aiPct = total > 0 ? Math.round((meta.aiQuestionsCount / total) * 100) : 0;
-  const manualPct = 100 - aiPct;
+  const total =
+    meta.questionBankCount + meta.aiQuestionsCount + meta.mcpQuestionsCount + meta.manualQuestionsCount;
+  const pct = (n: number) => (total > 0 ? Math.round((n / total) * 100) : 0);
+  const bankPct = pct(meta.questionBankCount);
+  const aiPct = pct(meta.aiQuestionsCount);
+  const mcpPct = pct(meta.mcpQuestionsCount);
+  // Remainder rather than its own rounded figure, so the four bars always sum to 100%.
+  const manualPct = Math.max(0, 100 - bankPct - aiPct - mcpPct);
 
   return (
     <div className={styles.metaSection}>
@@ -219,8 +227,15 @@ const MockTestDetails = ({ meta }: { meta: MockTestMeta }) => {
 
       {total > 0 && (
         <div className={styles.breakdownSection}>
-          <span className={styles.gridLabel}>Question breakdown</span>
+          <span className={styles.gridLabel}>How the questions were created</span>
           <div className={styles.breakdownBar}>
+            {bankPct > 0 && (
+              <div
+                className={styles.breakdownBarBank}
+                style={{ width: `${bankPct}%` }}
+                title={`Question bank: ${meta.questionBankCount}`}
+              />
+            )}
             {aiPct > 0 && (
               <div
                 className={styles.breakdownBarAi}
@@ -228,28 +243,46 @@ const MockTestDetails = ({ meta }: { meta: MockTestMeta }) => {
                 title={`AI: ${meta.aiQuestionsCount}`}
               />
             )}
+            {mcpPct > 0 && (
+              <div
+                className={styles.breakdownBarMcp}
+                style={{ width: `${mcpPct}%` }}
+                title={`MCP: ${meta.mcpQuestionsCount}`}
+              />
+            )}
             {manualPct > 0 && (
               <div
                 className={styles.breakdownBarManual}
                 style={{ width: `${manualPct}%` }}
-                title={`Manual: ${meta.manualQuestionsCount}`}
+                title={`Manual / upload: ${meta.manualQuestionsCount}`}
               />
             )}
           </div>
           <div className={styles.breakdownLegend}>
+            <span className={styles.legendItem}>
+              <span className={`${styles.legendSwatch} ${styles.legendSwatchBank}`} aria-hidden="true" />
+              <Database size={12} />
+              Question bank: {formatNumber(meta.questionBankCount)} ({bankPct}%)
+            </span>
             <span className={styles.legendItem}>
               <span className={`${styles.legendSwatch} ${styles.legendSwatchAi}`} aria-hidden="true" />
               <Bot size={12} />
               AI: {formatNumber(meta.aiQuestionsCount)} ({aiPct}%)
             </span>
             <span className={styles.legendItem}>
+              <span className={`${styles.legendSwatch} ${styles.legendSwatchMcp}`} aria-hidden="true" />
+              <Server size={12} />
+              MCP: {formatNumber(meta.mcpQuestionsCount)} ({mcpPct}%)
+            </span>
+            <span className={styles.legendItem}>
               <span className={`${styles.legendSwatch} ${styles.legendSwatchManual}`} aria-hidden="true" />
               <PenLine size={12} />
-              Manual: {formatNumber(meta.manualQuestionsCount)} ({manualPct}%)
+              Manual / upload: {formatNumber(meta.manualQuestionsCount)} ({manualPct}%)
             </span>
           </div>
         </div>
       )}
+
     </div>
   );
 };
@@ -570,9 +603,20 @@ export const ContentReviewDetailBody = ({ review }: { review: ContentReviewAdmin
         )}
         {review.reviewedAt && (
           <GridItem
-            label="Reviewed on"
-            value={formatDate(review.reviewedAt)}
-            icon={<CalendarDays size={12} />}
+            label={
+              review.status === "approved"
+                ? "Approved by"
+                : review.status === "rejected"
+                ? "Rejected by"
+                : "Reviewed by"
+            }
+            value={
+              <span className={styles.stack}>
+                <span>{review.reviewedByName ?? "Not recorded"}</span>
+                <span className={styles.subValue}>{formatDate(review.reviewedAt)}</span>
+              </span>
+            }
+            icon={<UserCheck size={12} />}
           />
         )}
       </div>

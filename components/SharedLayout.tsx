@@ -7,14 +7,16 @@ import { AccountMenu } from "./AccountMenu";
 import { ThemeModeSwitch } from "./ThemeModeSwitch";
 import { Button } from "./Button";
 import { Skeleton } from "./Skeleton";
-import { ShoppingCart, ShoppingBag, Radio, Users, Search } from "lucide-react";
+import { ShoppingCart, ShoppingBag, Radio, Users, Search, ChevronDown } from "lucide-react";
 import { Footer } from "./Footer";
 import { useCartItemsQuery } from "../helpers/useCartQuery";
 import { MobileBottomNav } from "./MobileBottomNav";
+import { MoreResourcesMenu } from "./MoreResourcesMenu";
 import { DiwaliSiteLayer } from "./DiwaliSiteLayer";
 import { useDarkModeObserver } from "../helpers/useDarkModeObserver";
 import { BRAND_FAVICON, getBrandLogo } from "../helpers/brandAssets";
 import { ORGANIZATION_PATH_PATTERN } from "../helpers/organizationRoutes";
+import { MORE_RESOURCES, isMoreResourcePath } from "../helpers/moreResources";
 import styles from "./SharedLayout.module.css";
 
 
@@ -145,6 +147,8 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
   const isMobileNavVisible = !pathname.includes('/portal/') && !pathname.includes('/live-portal/') && !pathname.endsWith('/results');
   // Organisation pages use a slimmer header on phones; tablet and desktop are unchanged.
   const isCompactHeader = ORGANIZATION_PATH_PATTERN.test(pathname);
+  // Current Affairs marks its own link while it sits in the bar, so More stays quiet on those pages.
+  const isMoreActive = MORE_RESOURCES.some(({ href }) => href !== "/current-affairs" && isMoreResourcePath(pathname, href));
 
   // Scroll detection for mobile header hide/show (mobile only)
   const [isHeaderHidden, setIsHeaderHidden] = useState(false);
@@ -276,10 +280,19 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
             >
               Study Notes
             </NavLink>
+            <MoreResourcesMenu
+              openOnHover
+              trigger={
+                <button type="button" className={`${styles.navLink} ${styles.moreTrigger} ${isMoreActive ? styles.active : ""}`}>
+                  More
+                  <ChevronDown size={16} className={styles.moreChevron} aria-hidden="true" />
+                </button>
+              }
+            />
             <NavLink
               to="/current-affairs"
               className={({ isActive }) =>
-                `${styles.navLink} ${isActive ? styles.active : ""}`
+                `${styles.navLink} ${styles.currentAffairsLink} ${isActive ? styles.active : ""}`
               }
             >
               Current Affairs

@@ -32,8 +32,11 @@ export type MockTestMeta = {
   language: string | null;
   discountPrice: string | null;
   freeTestsCount: number;
+  /** Mutually exclusive buckets - every question falls into exactly one, in this priority: bank, AI, MCP, then manual. */
   aiQuestionsCount: number;
   manualQuestionsCount: number;
+  questionBankCount: number;
+  mcpQuestionsCount: number;
   totalOrders: number;
 };
 
@@ -111,6 +114,8 @@ export type ContentReviewAdminView = {
   status: string;
   adminNotes: string | null;
   reviewedAt: Date | null;
+  /** Full name of the admin who approved or rejected it; null for reviews decided before this was recorded. */
+  reviewedByName: string | null;
   createdAt: Date;
   /** An open review of a live unlisted item, asking to be listed publicly. */
   publicRequest: boolean;

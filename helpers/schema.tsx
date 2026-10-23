@@ -55,6 +55,10 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
 
+export type GlossaryCategory = "delivery_and_creation" | "scoring_and_assessment" | "test_types";
+
+export type GlossaryTermStatus = "draft" | "published";
+
 export type GumletPushStatus = "failed" | "ready" | "submitted";
 
 export type ImageRecoveryStatus = "completed" | "failed" | "running";
@@ -868,6 +872,39 @@ export interface ExamSubjects {
   subjectSlug: string;
   syllabusTopics: string | null;
   updatedAt: Generated<Timestamp | null>;
+}
+
+export interface GlossaryTermRelations {
+  position: number;
+  relatedTermId: number;
+  termId: number;
+}
+
+export interface GlossaryTerms {
+  canonicalUrl: string | null;
+  category: GlossaryCategory;
+  createdAt: Generated<Timestamp>;
+  createdBy: number | null;
+  definition: string;
+  explanationFirst: Generated<string>;
+  explanationHeading: string | null;
+  explanationSecond: Generated<string>;
+  extraBody: string | null;
+  extraHeading: string | null;
+  firstPublishedAt: Timestamp | null;
+  id: Generated<number>;
+  previousSlugs: Generated<string[]>;
+  productLabel: string | null;
+  productText: string | null;
+  productUrl: string | null;
+  publishedAt: Timestamp | null;
+  seoDescription: string | null;
+  seoTitle: string | null;
+  slug: string;
+  status: Generated<GlossaryTermStatus>;
+  term: string;
+  updatedAt: Generated<Timestamp>;
+  updatedBy: number | null;
 }
 
 export interface GumletFolders {
@@ -2136,6 +2173,8 @@ export interface DB {
   examNewsSources: ExamNewsSources;
   exams: Exams;
   examSubjects: ExamSubjects;
+  glossaryTermRelations: GlossaryTermRelations;
+  glossaryTerms: GlossaryTerms;
   gumletFolders: GumletFolders;
   imageRecoveryJobs: ImageRecoveryJobs;
   invoiceCounters: InvoiceCounters;
@@ -2281,6 +2320,8 @@ export const CurrentAffairsTagKindArrayValues: [CurrentAffairsTagKind, ...Curren
 export const ExamNewsStatusArrayValues: [ExamNewsStatus, ...ExamNewsStatus[]] = ["archived","draft","published","scheduled"];
 export const ExamNewsTypeArrayValues: [ExamNewsType, ...ExamNewsType[]] = ["admit_card","answer_key","cut_off","date_change","notification","result","syllabus"];
 export const ContentVisibilityArrayValues: [ContentVisibility, ...ContentVisibility[]] = ["public","unlisted"];
+export const GlossaryCategoryArrayValues: [GlossaryCategory, ...GlossaryCategory[]] = ["delivery_and_creation","scoring_and_assessment","test_types"];
+export const GlossaryTermStatusArrayValues: [GlossaryTermStatus, ...GlossaryTermStatus[]] = ["draft","published"];
 // Table/column names whose snake_case spelling kysely's default CamelCasePlugin
 // cannot recover from the camelCase name used in code (an underscore directly
 // before a digit, e.g. reminder_48h_sent ⇄ reminder48hSent). The db helper's

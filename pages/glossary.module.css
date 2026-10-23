@@ -1,0 +1,315 @@
+.page {
+  --bar-top: calc(var(--site-notice-offset) + var(--header-height));
+  width: 100%;
+  padding: var(--spacing-6) var(--spacing-4) var(--spacing-8);
+  box-sizing: border-box;
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 64rem;
+  margin: 0 auto;
+  min-width: 0;
+}
+
+.crumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.crumbs li + li::before {
+  content: ">";
+  margin-right: var(--spacing-2);
+}
+
+.crumbs a {
+  color: var(--muted-foreground);
+  text-decoration: none;
+}
+
+.crumbs a:hover {
+  color: var(--tk-brand-text);
+  text-decoration: underline;
+}
+
+.crumbs [aria-current="page"] {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: var(--spacing-8);
+  background-color: var(--exam-ivory);
+  border: 1px solid var(--exam-ivory-border);
+  border-radius: var(--radius-lg);
+}
+
+/* Decoration only, kept clear of the text column. */
+.shapes {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 15rem;
+  pointer-events: none;
+}
+
+.shapeMint,
+.shapeLavender,
+.shapePeach,
+.shapeButter {
+  position: absolute;
+  display: block;
+}
+
+.shapeMint {
+  top: -1.5rem;
+  right: 3.5rem;
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--pastel-mint);
+}
+
+.shapeLavender {
+  bottom: 1rem;
+  right: 1.5rem;
+  width: 3.75rem;
+  height: 3.75rem;
+  border-radius: var(--radius-md);
+  background-color: var(--pastel-lavender);
+  transform: rotate(14deg);
+}
+
+.shapePeach {
+  bottom: -1.25rem;
+  right: 8rem;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--pastel-peach);
+}
+
+.shapeButter {
+  top: 2.25rem;
+  right: 1.5rem;
+  width: 1rem;
+  height: 1rem;
+  border-radius: var(--radius-full);
+  background-color: var(--pastel-butter);
+}
+
+.heroText {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  max-width: 40rem;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--foreground);
+}
+
+.intro {
+  margin: 0;
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  color: var(--muted-foreground);
+}
+
+/* Stays under the site header, so the selected letter is visible while reading. Scrolls sideways on phones. */
+.letters {
+  position: sticky;
+  top: var(--bar-top);
+  z-index: 5;
+  margin: calc(-1 * var(--spacing-2)) calc(-1 * var(--spacing-4)) 0;
+  padding: var(--spacing-2) var(--spacing-4);
+  background-color: var(--background);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.letters::-webkit-scrollbar {
+  display: none;
+}
+
+.letters ul {
+  display: flex;
+  justify-content: space-between;
+  gap: 2px;
+  width: max-content;
+  min-width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.125rem;
+  height: 2.125rem;
+  border-radius: var(--radius-full);
+  background-color: var(--pastel-lavender);
+  color: var(--pastel-lavender-ink);
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  text-decoration: none;
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+a.letter:hover {
+  background-color: var(--pastel-mint);
+  color: var(--pastel-mint-ink);
+}
+
+a.letter:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+a.letterSelected,
+a.letterSelected:hover {
+  background-color: var(--tk-brand);
+  color: var(--tk-brand-ink);
+}
+
+/* No term under this letter: plain text, greyed, not a link. */
+.letterEmpty {
+  background-color: transparent;
+  color: var(--muted-foreground);
+  font-weight: 500;
+  cursor: default;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  scroll-margin-top: calc(var(--bar-top) + 3.75rem);
+}
+
+.groupTitle {
+  margin: 0;
+  padding-bottom: var(--spacing-2);
+  border-bottom: 2px solid var(--border);
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--foreground);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-3);
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-12) var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.stateIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radius-full);
+  background-color: var(--pastel-lavender);
+  color: var(--pastel-lavender-ink);
+}
+
+.stateIconError {
+  background-color: var(--pastel-peach);
+  color: var(--pastel-peach-ink);
+}
+
+.stateTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--foreground);
+}
+
+.stateText {
+  margin: 0 0 var(--spacing-2);
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 968px) {
+  /* The header is 64px tall from here down. */
+  .page {
+    --bar-top: calc(var(--site-notice-offset) + 64px);
+  }
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .hero {
+    padding: var(--spacing-6) var(--spacing-4);
+  }
+
+  .shapes {
+    width: 6rem;
+  }
+
+  .shapeLavender,
+  .shapePeach {
+    display: none;
+  }
+
+  .shapeMint {
+    right: -1.5rem;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .letter {
+    transition: none;
+  }
+}
