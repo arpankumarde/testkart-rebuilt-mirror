@@ -43,9 +43,12 @@ interface CurrentAffairsPreviewProps {
   /* The public page: it draws its own linked breadcrumb, and a missing cover is simply left out
      rather than flagged the way the admin preview flags it. */
   publicView?: boolean;
+  /* A day's digest on the site: each story is a card linking to its own page, not the full text. */
+  linkStories?: boolean;
 }
 
 const LETTERS = ["A", "B", "C", "D"];
+const STORY_SNIPPET_CHARS = 220;
 
 /* A section counts as the one being read once its top passes this far below the sticky
    contents list's own top (or the viewport top, when the list is not sticky). */
@@ -312,6 +315,7 @@ export const CurrentAffairsPreview: React.FC<CurrentAffairsPreviewProps> = ({
   updatedAt,
   related = [],
   publicView = false,
+  linkStories = false,
 }) => {
   const rootRef = useRef<HTMLElement | null>(null);
   const tocRef = useRef<HTMLElement | null>(null);
@@ -320,7 +324,7 @@ export const CurrentAffairsPreview: React.FC<CurrentAffairsPreviewProps> = ({
 
   const isSingle = post.contentType === "individual_item";
   const items = post.items;
-  // The same ids the server saves as anchor_slug, so story links from the listing land here.
+  // The same ids the server saves as anchor_slug, so section links land here.
   const anchors = currentAffairsMeta.itemAnchors(items.map((item) => item.headline));
   const quizId = "quiz";
   const hasQuiz = !!post.quiz && post.quiz.questions.length > 0;
@@ -344,7 +348,7 @@ export const CurrentAffairsPreview: React.FC<CurrentAffairsPreviewProps> = ({
     ...items.map((item, index) => ({ id: anchors[index], label: item.headline || `Item ${index + 1}` })),
     ...(hasQuiz ? [{ id: quizId, label: post.quiz?.title || "Quiz" }] : []),
   ];
-  const showToc = !isSingle && toc.length > 1;
+  const showToc = !isSingle && !linkStories && toc.length > 1;
   const notice = NOTICE[post.status];
 
   // Scroll events do not bubble, so listen in the capture phase: the page may scroll inside the
@@ -432,7 +436,7 @@ export const CurrentAffairsPreview: React.FC<CurrentAffairsPreviewProps> = ({
           )}
         </ul>
 
-        <Pills tags={post.tags} />
+        <Pills tags={post.tags} linkTopics={publicView} />
       </header>
 
       {post.coverImageUrl ? (
@@ -491,7 +495,28 @@ export const CurrentAffairsPreview: React.FC<CurrentAffairsPreviewProps> = ({
 
           {hasText(post.body) && <Html html={post.body} />}
 
-          {items.map((item, index) => (
+          {linkStories && (
+            <ol className={styles.storyList} aria-label="Stories">
+              {items.map((item, index) => (
+                <li key={item.key} id={anchors[index]}>
+                  <Link to={currentAffairsMeta.storyPath(item.slug ?? anchors[index])} className={styles.story}>
+                    {item.imageUrl && <img src={item.imageUrl} alt="" className={styles.storyImage} loading="lazy" />}
+                    <div className={styles.storyBody}>
+                      <h2 className={styles.storyTitle}>{item.headline}</h2>
+                      <p className={styles.storySummary}>
+                        {(item.whyInNews.trim() || currentAffairsMeta.stripHtml(item.keyPoints)).slice(0, STORY_SNIPPET_CHARS)}
+                      </p>
+                      <span className={styles.storyAction}>
+                        Read more <ArrowRight size={14} aria-hidden="true" />
+                      </span>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          )}
+
+          {!linkStories && items.map((item, index) => (
             <section key={item.key} id={anchors[index]} className={styles.item} data-toc-section>
               {!isSingle && (
                 <h2 className={styles.itemTitle}>

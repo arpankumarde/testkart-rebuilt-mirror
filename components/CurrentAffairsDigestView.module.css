@@ -34,6 +34,16 @@
   outline-offset: 2px;
 }
 
+.breadcrumbCurrent {
+  min-width: 0;
+  max-width: 32rem;
+  overflow: hidden;
+  color: var(--foreground);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* The article sheet; its contents list sticks below the site header. */
 .sheet {
   --ca-toc-top: calc(var(--header-height, 4.5rem) + var(--spacing-4));
@@ -54,6 +64,134 @@
   border-radius: var(--radius-lg);
   background-color: var(--surface);
   text-align: center;
+}
+
+.digestNote {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2) var(--spacing-6);
+  padding: var(--spacing-4) var(--spacing-6);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background-color: color-mix(in srgb, var(--tk-brand) 12%, var(--surface));
+}
+
+.digestText {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--foreground);
+}
+
+.digestText a {
+  color: var(--foreground);
+  font-weight: 700;
+}
+
+.digestLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2) var(--spacing-4);
+}
+
+.digestLinks a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--tk-brand-text);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.digestLinks a:hover {
+  text-decoration: underline;
+}
+
+.related {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-4);
+}
+
+.relatedTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.375rem;
+  font-weight: 800;
+  color: var(--foreground);
+}
+
+.relatedGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--spacing-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.relatedCard {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background-color: var(--surface);
+  color: var(--foreground);
+  text-decoration: none;
+  transition: border-color var(--animation-duration-fast) ease;
+}
+
+.relatedCard:hover {
+  border-color: var(--tk-brand-text);
+}
+
+.relatedCard:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.relatedMedia {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 16 / 9;
+  background-color: color-mix(in srgb, var(--tk-brand) 12%, var(--surface));
+  color: var(--tk-brand-text);
+}
+
+.relatedImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.relatedBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  padding: var(--spacing-3);
+}
+
+.relatedDate {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--tk-brand-text);
+}
+
+.relatedCardTitle {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.4;
 }
 
 .stateIcon {
@@ -92,6 +230,10 @@
   .sheet {
     padding: var(--spacing-6);
   }
+
+  .relatedGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 640px) {
@@ -101,5 +243,17 @@
 
   .sheet {
     padding: var(--spacing-4);
+  }
+
+  .digestNote {
+    padding: var(--spacing-3) var(--spacing-4);
+  }
+
+  .relatedGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .breadcrumbCurrent {
+    max-width: 100%;
   }
 }

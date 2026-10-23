@@ -416,7 +416,7 @@ export async function handle(request: Request) {
       });
     }
 
-    // Current affairs posts, each at its canonical (period) URL
+    // Current affairs digests and daily stories, each at its canonical URL
     for (const entry of await currentAffairsPublicServer.fetchSitemapEntries()) {
       xml += generateUrlEntry({
         loc: `${BASE_URL}${entry.path}`,

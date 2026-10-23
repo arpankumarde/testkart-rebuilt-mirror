@@ -8,18 +8,16 @@ export async function handle(request: Request) {
     const input = schema.parse({
       slug: params.get("slug") || undefined,
       type: params.get("type") || undefined,
-      period: params.get("period") || undefined,
     });
-    const result =
-      input.type && input.period
-        ? await currentAffairsPublicServer.fetchDetailByPeriod(input.type, input.period)
-        : await currentAffairsPublicServer.fetchDetail(input.slug!);
+    const result = input.type
+      ? await currentAffairsPublicServer.fetchArchiveDetail(input.type, input.slug)
+      : await currentAffairsPublicServer.fetchDetail(input.slug);
     if (!result) {
-      return new Response(superjson.stringify({ error: "Digest not found" }), { status: 404 });
+      return new Response(superjson.stringify({ error: "Article not found" }), { status: 404 });
     }
-    return new Response(superjson.stringify({ post: result.post, canonicalPath: result.canonicalPath } satisfies OutputType));
+    return new Response(superjson.stringify(result satisfies OutputType));
   } catch (error) {
-    console.error("Error loading public current affairs digest:", error);
-    return new Response(superjson.stringify({ error: "Could not load this digest" }), { status: 400 });
+    console.error("Error loading public current affairs article:", error);
+    return new Response(superjson.stringify({ error: "Could not load this article" }), { status: 400 });
   }
 }

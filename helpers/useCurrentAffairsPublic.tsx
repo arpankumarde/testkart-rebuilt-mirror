@@ -10,7 +10,7 @@ export const currentAffairsPublicKeys = {
   list: (input: ListInput) => ["current-affairs", "list", input] as const,
   stories: (input: StoriesInput) => ["current-affairs", "stories", input] as const,
   details: (input: DetailsInput) =>
-    ["current-affairs", "details", input.type && input.period ? `${input.type}/${input.period}` : `slug:${input.slug ?? ""}`] as const,
+    ["current-affairs", "details", input.type ? `${input.type}/${input.slug}` : `slug:${input.slug}`] as const,
 };
 
 export const useCurrentAffairsHub = (input: HubInput) =>
@@ -43,8 +43,8 @@ export const useCurrentAffairsDetails = (input: DetailsInput) =>
   useQuery({
     queryKey: currentAffairsPublicKeys.details(input),
     queryFn: () => getCurrentAffairsDetails(input),
-    enabled: !!input.slug || (!!input.type && !!input.period),
+    enabled: !!input.slug,
     staleTime: 5 * 60 * 1000,
-    // A missing digest will not appear on retry; only network or server errors are worth repeating.
+    // A missing article will not appear on retry; only network or server errors are worth repeating.
     retry: (count, error) => !/not found/i.test(String(error)) && count < 2,
   });

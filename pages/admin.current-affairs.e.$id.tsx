@@ -290,8 +290,11 @@ const AdminCurrentAffairsEditorPage: React.FC = () => {
           digestDate: settled.digestDate,
           readingTimeMinutes: settled.readingTimeMinutes,
         };
-        setSaved({ ...payload, ...patch });
-        setValues((prev) => ({ ...prev, ...patch }));
+        // Stories get their URL slugs on save; holding them here lets later saves keep them.
+        const slugByKey = new Map(payload.items.map((item, index) => [item.key, settled.items[index]?.slug]));
+        const withSlugs = (items: InputType["items"]) => items.map((item) => ({ ...item, slug: slugByKey.get(item.key) ?? item.slug }));
+        setSaved({ ...payload, ...patch, items: withSlugs(payload.items) });
+        setValues((prev) => ({ ...prev, ...patch, items: withSlugs(prev.items) }));
         setMeta(toMeta(post));
         setPublishMode(post.status === "scheduled" ? "schedule" : "now");
         toast.success(
@@ -388,12 +391,11 @@ const AdminCurrentAffairsEditorPage: React.FC = () => {
 
   const isSaved = !!values.id;
   const isDigestType = currentAffairsMeta.isDigest(values.contentType);
-  // Digests live at their period URL; the slug only names older post types and keeps old links working.
-  const archive = currentAffairsMeta.archiveOf(values.contentType);
-  const periodPart = currentAffairsMeta.periodSegment(values.contentType, values.digestDate);
-  const publicUrl = archive
-    ? `${currentAffairsMeta.archivePath(archive)}/${periodPart ?? "..."}`
-    : `${currentAffairsMeta.HUB_PATH}/${slugToCheck || "..."}`;
+  // A daily digest lives at its day's URL, so its slug only keeps old links working; other posts live at their slug.
+  const isDaily = values.contentType === "daily_digest";
+  const publicUrl = isDaily
+    ? `${currentAffairsMeta.archivePath("daily")}/${values.digestDate || "..."}`
+    : currentAffairsMeta.canonicalPath({ contentType: values.contentType, slug: slugToCheck || "..." });
   const slugChanged = !!meta?.firstPublishedAt && !!saved.slug && saved.slug !== slugToCheck;
   const slugTaken = slugCheck.data && slugCheck.data.slug === slugToCheck && !slugCheck.data.available ? slugCheck.data.usedBy : null;
   const period = currentAffairsMeta.periodLabel(values.contentType, values.digestDate);
@@ -788,13 +790,16 @@ const AdminCurrentAffairsEditorPage: React.FC = () => {
                           </p>
                         ) : (
                           <p className={styles.hint}>
-                            {archive
+                            {isDaily
                               ? `Made from the title. This digest opens at ${publicUrl}; old links using the slug redirect there.`
                               : "Made from the title. Change it only if you need a different link."}
                           </p>
                         )}
-                        {slugChanged && !archive && (
-                          <p className={styles.warning}>The old URL /current-affairs/{saved.slug} keeps redirecting to the new one.</p>
+                        {slugChanged && !isDaily && (
+                          <p className={styles.warning}>
+                            The old URL {currentAffairsMeta.canonicalPath({ contentType: values.contentType, slug: saved.slug })} keeps redirecting to
+                            the new one.
+                          </p>
                         )}
                         <FormMessage />
                       </FormItem>

@@ -16,6 +16,8 @@ export const sourceSchema = z.object({
 export const itemSchema = z.object({
   /** Client-side identity for list keys and reordering; never stored. */
   key: z.string(),
+  /** The story's URL slug as loaded; the server keeps it once the digest has been live and otherwise sets its own. */
+  slug: z.string().max(255).optional(),
   headline: z.string().max(300),
   whyInNews: z.string().max(5000),
   keyPoints: z.string().max(40000),

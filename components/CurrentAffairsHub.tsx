@@ -230,7 +230,7 @@ const storyDay = (story: PublicDailyStory): string => {
   return `${WEEKDAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]}, ${d} ${MONTHS_SHORT[m - 1]} ${y}`;
 };
 
-/** A story's image, else a small tile with its day; the story's section opens from the whole row. */
+/** A story's image, else a small tile with its day; the story's own page opens from the whole row. */
 const StoryRow: React.FC<{ story: PublicDailyStory }> = ({ story }) => {
   const [failed, setFailed] = useState(false);
   const day = storyDay(story);

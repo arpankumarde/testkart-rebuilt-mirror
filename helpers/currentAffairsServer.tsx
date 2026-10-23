@@ -109,6 +109,34 @@ async function resolveTags(trx: Trx, refs: CurrentAffairsTagRef[], adminId: numb
 
 const tagKey = (ref: CurrentAffairsTagRef) => `${ref.kind}:${slugify(ref.name)}`;
 
+/**
+ * One URL slug per story, unique across all stories. `keep` holds the slugs a story may hold on to;
+ * the rest come from the headline. Runs after the post's old items are deleted.
+ */
+async function storySlugs(trx: Trx, input: InputType, postId: number, keep: Set<string>): Promise<string[]> {
+  const taken = new Set<string>();
+  const slugs = input.items.map((item) => {
+    if (!item.slug || !keep.has(item.slug) || taken.has(item.slug)) return "";
+    taken.add(item.slug);
+    return item.slug;
+  });
+  for (const [index, item] of input.items.entries()) {
+    if (slugs[index]) continue;
+    const base = currentAffairsMeta.storySlug(item.headline) || `story-${postId}-${index + 1}`;
+    let candidate = base;
+    for (let n = 2; ; n++) {
+      const owner = taken.has(candidate)
+        ? true
+        : await trx.selectFrom("currentAffairsItems").select("id").where("slug", "=", candidate).executeTakeFirst();
+      if (!owner) break;
+      candidate = `${base}-${n}`;
+    }
+    taken.add(candidate);
+    slugs[index] = candidate;
+  }
+  return slugs;
+}
+
 function computeReadingTime(input: InputType): number {
   if (input.readingTimeIsManual) return input.readingTimeMinutes;
   return currentAffairsMeta.readingMinutes([
@@ -242,8 +270,14 @@ async function save(input: InputType, adminId: number, options: { autoSlug?: boo
     };
 
     let postId: number;
+    // A story keeps its URL once its digest has been live; before that it follows the headline.
+    const keepSlugs = new Set<string>();
     if (existing) {
       postId = existing.id;
+      if (existing.firstPublishedAt) {
+        const rows = await trx.selectFrom("currentAffairsItems").select("slug").where("postId", "=", postId).execute();
+        for (const row of rows) if (row.slug) keepSlugs.add(row.slug);
+      }
       await trx.updateTable("currentAffairsPosts").set(values).where("id", "=", postId).execute();
       await trx.deleteFrom("currentAffairsTagLinks").where("postId", "=", postId).execute();
       await trx.deleteFrom("currentAffairsSources").where("postId", "=", postId).execute();
@@ -288,6 +322,7 @@ async function save(input: InputType, adminId: number, options: { autoSlug?: boo
 
     if (input.items.length > 0) {
       const anchors = currentAffairsMeta.itemAnchors(input.items.map((item) => item.headline));
+      const slugs = await storySlugs(trx, input, postId, keepSlugs);
       const itemRows = await trx
         .insertInto("currentAffairsItems")
         .values(
@@ -296,6 +331,7 @@ async function save(input: InputType, adminId: number, options: { autoSlug?: boo
             position,
             headline: item.headline.trim(),
             anchorSlug: anchors[position],
+            slug: slugs[position],
             whyInNews: item.whyInNews.trim(),
             keyPoints: sanitizeHtml(item.keyPoints),
             background: sanitizeHtml(item.background),
@@ -453,6 +489,8 @@ async function loadDetail(id: number): Promise<CurrentAffairsPostDetail | null> 
     sources: sources.filter((s) => s.itemId === null).map((s) => ({ name: s.name, url: s.url })),
     items: items.map((item) => ({
       key: `item-${item.id}`,
+      // A row written before stories had slugs answers at its anchor until its next save.
+      slug: item.slug ?? item.anchorSlug,
       headline: item.headline,
       whyInNews: item.whyInNews,
       keyPoints: item.keyPoints,

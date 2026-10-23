@@ -10,10 +10,10 @@ export const prefetch: PagePrefetchFn = async (ctx) => {
   try {
     const result = await currentAffairsPublicServer.fetchDetail(slug);
     if (!result) return { statusCode: 404 };
-    // Dated digests moved to their period URL and renamed posts to their current slug: 301 straight there.
+    // Digests moved under their archive and renamed posts to their current slug: 301 straight there.
     if (result.canonicalPath !== url.pathname) return { redirect: { to: `${result.canonicalPath}${url.search}`, permanent: true } };
     // Must match currentAffairsPublicKeys.details({ slug }) in helpers/useCurrentAffairsPublic.
-    qc.setQueryData(["current-affairs", "details", `slug:${slug}`], { post: result.post, canonicalPath: result.canonicalPath });
+    qc.setQueryData(["current-affairs", "details", `slug:${slug}`], result);
     return { maxAge: 300 };
   } catch (error) {
     console.error("Error prefetching current affairs digest:", error);

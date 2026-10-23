@@ -198,9 +198,11 @@ const wordCount = (texts: string[]): number =>
 const readingMinutes = (texts: string[]): number => Math.max(1, Math.round(wordCount(texts) / WORDS_PER_MINUTE));
 
 /*
- * Public URLs, per the Current Affairs SOP: /current-affairs, /current-affairs/{daily|weekly|monthly}
- * and one digest per period at /current-affairs/daily/2026-10-23, /weekly/2026-w43 (ISO week) or
- * /monthly/2023-08. Lowercase, no trailing slash. Older post types keep /current-affairs/{slug}.
+ * Public URLs: /current-affairs, /current-affairs/{daily|weekly|monthly}, then one page each under
+ * those: /daily/{story slug} for a story, /daily/2026-10-23 for the day's digest, and
+ * /weekly/{post slug} or /monthly/{post slug} for a roundup. The older /weekly/2026-w43 (ISO week)
+ * and /monthly/2023-08 period URLs redirect to the slug. Lowercase, no trailing slash. Older post
+ * types keep /current-affairs/{slug}.
  */
 type ArchiveType = "daily" | "weekly" | "monthly";
 
@@ -238,19 +240,6 @@ const isoWeek = (isoDay: string): { year: number; week: number } => {
   return { year, week: days / 7 + 1 };
 };
 
-/** The URL segment for the period a digest covers: "2026-10-23", "2026-w43" or "2023-08". */
-const periodSegment = (type: CurrentAffairsContentType, isoDay: string): string | null => {
-  if (!isRealDay(isoDay)) return null;
-  const start = periodStart(type, isoDay);
-  if (type === "daily_digest") return start;
-  if (type === "weekly_digest") {
-    const { year, week } = isoWeek(start);
-    return `${year}-w${pad2(week)}`;
-  }
-  if (type === "monthly_digest") return start.slice(0, 7);
-  return null;
-};
-
 /** The first day of the period a URL segment names, or null when the segment is not a valid one. */
 const periodFromSegment = (type: ArchiveType, segment: string): string | null => {
   if (type === "daily") return isRealDay(segment) ? segment : null;
@@ -266,20 +255,33 @@ const periodFromSegment = (type: ArchiveType, segment: string): string | null =>
   return week >= 1 && check.year === year && check.week === week ? monday : null;
 };
 
-/** A post's public path: the period URL for a dated digest, else the slug URL older post types use. */
+/** A post's public path: the day URL for a daily digest, the archive slug URL for a roundup, else the slug URL older post types use. */
 const canonicalPath = (post: { contentType: CurrentAffairsContentType; digestDate?: string | null; slug: string }): string => {
   const archive = archiveOf(post.contentType);
-  const segment = archive && post.digestDate ? periodSegment(post.contentType, post.digestDate) : null;
-  return archive && segment ? `${archivePath(archive)}/${segment}` : `${HUB_PATH}/${post.slug}`;
+  if (archive === "daily") {
+    return post.digestDate && isRealDay(post.digestDate) ? `${archivePath(archive)}/${post.digestDate}` : `${HUB_PATH}/${post.slug}`;
+  }
+  return archive ? `${archivePath(archive)}/${post.slug}` : `${HUB_PATH}/${post.slug}`;
 };
 
 /** Where a published post opens: its public page, relative so it works on preview and live hosts. */
 const openHref = canonicalPath;
 
+/** A daily story's own page. */
+const storyPath = (slug: string) => `${archivePath("daily")}/${slug}`;
+
+const STORY_SLUG_MAX = 120;
+
+/** A story's slug from its headline, cut at a word when it runs long; "" when no Latin letters or digits remain. */
+const storySlug = (headline: string): string => {
+  const slug = slugify(headline.replace(/[–—]/g, "-"));
+  return slug.length <= STORY_SLUG_MAX ? slug : slug.slice(0, STORY_SLUG_MAX).replace(/-[^-]*$/, "");
+};
+
 /**
  * Section ids for a digest's stories, from their headlines in order: "parliament-moves-into-its-new-building",
- * with -2, -3 on repeats. Saved with each item as anchor_slug and used as the #hash of story links.
- * "quiz" is taken by the quiz section.
+ * with -2, -3 on repeats. Saved with each item as anchor_slug; these are the #hash of section links in a
+ * roundup and of the older story links into a day's digest. "quiz" is taken by the quiz section.
  */
 const itemAnchors = (headlines: string[]): string[] => {
   const used = new Set<string>(["quiz"]);
@@ -324,10 +326,11 @@ export const currentAffairsMeta = {
   isArchiveType,
   archiveOf,
   archivePath,
-  periodSegment,
   periodFromSegment,
   canonicalPath,
   openHref,
+  storyPath,
+  storySlug,
   itemAnchors,
 };
 

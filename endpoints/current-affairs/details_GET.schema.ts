@@ -2,15 +2,13 @@ import { z } from "zod";
 import superjson from "superjson";
 import type { InputType as SaveInput } from "../admin/current-affairs/save_POST.schema";
 import type { CurrentAffairsStatus } from "../../helpers/schema";
+import type { ArchiveType } from "../../helpers/currentAffairsMeta";
 
-/** A digest by its period URL (type + period, e.g. weekly + 2026-w43), or an older post by its slug. */
-export const schema = z
-  .object({
-    slug: z.string().min(1).max(255).optional(),
-    type: z.enum(["daily", "weekly", "monthly"]).optional(),
-    period: z.string().min(1).max(20).optional(),
-  })
-  .refine((input) => !!input.slug || (!!input.type && !!input.period), { message: "Pass a slug, or a type and period" });
+/** With a type, the last segment of /current-affairs/{type}/{slug}; without one, an older post's slug. */
+export const schema = z.object({
+  slug: z.string().min(1).max(255),
+  type: z.enum(["daily", "weekly", "monthly"]).optional(),
+});
 
 export type InputType = z.infer<typeof schema>;
 
@@ -28,6 +26,19 @@ export type OutputType = {
   post: PublicDigestDetail;
   /** Where the post lives now; pages redirect here when the requested URL is an older one. */
   canonicalPath: string;
+  /** The listing the page sits under; null for older post types. */
+  archive: ArchiveType | null;
+  /** On a story's own page, the digest it came from. */
+  digest: { title: string; path: string; storyCount: number; hasQuiz: boolean } | null;
+  relatedArticles: PublicRelatedArticle[];
+};
+
+export type PublicRelatedArticle = {
+  id: number;
+  title: string;
+  href: string;
+  imageUrl: string | null;
+  dateLabel: string;
 };
 
 export const getCurrentAffairsDetails = async (input: InputType, init?: RequestInit): Promise<OutputType> => {

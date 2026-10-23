@@ -5,7 +5,11 @@ import { currentAffairsMeta, type ArchiveType } from "./currentAffairsMeta";
 import type { CurrentAffairsContentType, CurrentAffairsLanguage } from "./schema";
 import type { OutputType as HubOutput, PublicDigestCard } from "../endpoints/current-affairs/hub_GET.schema";
 import type { InputType as ListInput, OutputType as ListOutput, PublicListType } from "../endpoints/current-affairs/list_GET.schema";
-import type { PublicDigestDetail } from "../endpoints/current-affairs/details_GET.schema";
+import type {
+  OutputType as DetailOutput,
+  PublicDigestDetail,
+  PublicRelatedArticle,
+} from "../endpoints/current-affairs/details_GET.schema";
 import type { InputType as StoriesInput, OutputType as StoriesOutput } from "../endpoints/current-affairs/stories_GET.schema";
 
 /*
@@ -17,6 +21,8 @@ import type { InputType as StoriesInput, OutputType as StoriesOutput } from "../
 const PAGE_SIZE = 12;
 const STORY_PAGE_SIZE = 15;
 const STORY_SUMMARY_CHARS = 220;
+const SEO_DESCRIPTION_CHARS = 160;
+const RELATED_ARTICLES = 4;
 const DAILY_LIST = 7;
 const LATEST_LIST = 10;
 const EDITORIALS = 3;
@@ -184,10 +190,26 @@ async function fetchList(input: ListInput): Promise<ListOutput> {
   };
 }
 
-type PublicDetailResult = { post: PublicDigestDetail; canonicalSlug: string; canonicalPath: string };
+const shorten = (text: string, max: number) => (text.length <= max ? text : `${text.slice(0, max).replace(/\s+\S*$/, "")}...`);
+
+/** The other newest roundups of the same type and language; a day's digest lists its own stories instead. */
+async function relatedRoundups(post: { id: number; contentType: CurrentAffairsContentType; language: CurrentAffairsLanguage }): Promise<PublicRelatedArticle[]> {
+  if (post.contentType !== "weekly_digest" && post.contentType !== "monthly_digest") return [];
+  const cards = await selectCards({ contentType: post.contentType, language: post.language }, RELATED_ARTICLES + 1);
+  return cards
+    .filter((card) => card.id !== post.id)
+    .slice(0, RELATED_ARTICLES)
+    .map((card) => ({
+      id: card.id,
+      title: card.title,
+      href: currentAffairsMeta.canonicalPath(card),
+      imageUrl: card.thumbnailUrl,
+      dateLabel: card.digestDate ? currentAffairsMeta.periodLabel(card.contentType, card.digestDate) : "",
+    }));
+}
 
 /** A published post in its public shape, with the path it lives at and live related posts only. */
-async function publicDetail(id: number): Promise<PublicDetailResult | null> {
+async function publicDetail(id: number): Promise<DetailOutput | null> {
   const detail = await currentAffairsServer.loadDetail(id);
   if (!detail || detail.status !== "published") return null;
 
@@ -210,14 +232,20 @@ async function publicDetail(id: number): Promise<PublicDetailResult | null> {
       .filter((r) => livePaths.has(r.id))
       .map(({ id, title, slug }) => ({ id, title, slug, path: livePaths.get(id)! })),
   };
-  return { post, canonicalSlug: detail.slug, canonicalPath: currentAffairsMeta.canonicalPath(detail) };
+  return {
+    post,
+    canonicalPath: currentAffairsMeta.canonicalPath(detail),
+    archive: currentAffairsMeta.archiveOf(detail.contentType),
+    digest: null,
+    relatedArticles: await relatedRoundups(detail),
+  };
 }
 
 /**
  * A published post by its slug, current or retired, for the old /current-affairs/{slug} URLs; the
  * result carries the path the post now lives at so the page can redirect. Null when nothing matches.
  */
-async function fetchDetail(slug: string): Promise<PublicDetailResult | null> {
+async function fetchDetail(slug: string): Promise<DetailOutput | null> {
   await currentAffairsServer.promoteDue();
   const match = await db
     .selectFrom("currentAffairsPosts")
@@ -230,10 +258,10 @@ async function fetchDetail(slug: string): Promise<PublicDetailResult | null> {
 }
 
 /**
- * The published digest for a period URL such as daily/2026-10-23, weekly/2026-w43 or monthly/2023-08.
- * The URL carries no language, so the English edition answers when both exist.
+ * The published digest for a period URL such as daily/2026-10-23, or the older weekly/2026-w43 and
+ * monthly/2023-08. The URL carries no language, so the English edition answers when both exist.
  */
-async function fetchDetailByPeriod(type: ArchiveType, segment: string): Promise<PublicDetailResult | null> {
+async function fetchDetailByPeriod(type: ArchiveType, segment: string): Promise<DetailOutput | null> {
   const digestDate = currentAffairsMeta.periodFromSegment(type, segment);
   if (!digestDate) return null;
   await currentAffairsServer.promoteDue();
@@ -249,37 +277,144 @@ async function fetchDetailByPeriod(type: ArchiveType, segment: string): Promise<
   return match ? publicDetail(match.id) : null;
 }
 
-/** Every published post's public path and last edit, for the sitemap. */
-async function fetchSitemapEntries(): Promise<{ path: string; updatedAt: Date }[]> {
-  const rows = await db
-    .selectFrom("currentAffairsPosts")
-    .select(["contentType", "slug", "updatedAt", sql<string | null>`to_char(digest_date, 'YYYY-MM-DD')`.as("digestDate")])
-    .where("status", "=", "published")
-    .orderBy("publishedAt", "desc")
-    .execute();
-  const seen = new Set<string>();
-  return rows.flatMap((row) => {
-    const path = currentAffairsMeta.canonicalPath(row);
-    if (seen.has(path)) return [];
-    seen.add(path);
-    return [{ path, updatedAt: row.updatedAt }];
-  });
-}
-
-const shorten = (text: string, max: number) => (text.length <= max ? text : `${text.slice(0, max).replace(/\s+\S*$/, "")}...`);
-
-/**
- * The news items of published daily digests, one row each: newest digest first, then in the order
- * the digest lists them. Each links to its section of the digest page.
- */
-async function fetchDailyStories(input: StoriesInput): Promise<StoriesOutput> {
-  await currentAffairsServer.promoteDue();
-  const page = input.page ?? 1;
-  let base = db
+/** The news items of published daily digests, the stories that have their own pages. */
+function storyQuery() {
+  return db
     .selectFrom("currentAffairsItems as i")
     .innerJoin("currentAffairsPosts as p", "p.id", "i.postId")
     .where("p.status", "=", "published")
     .where("p.contentType", "=", "daily_digest");
+}
+
+const storySlugColumn = sql<string>`coalesce(i.slug, i.anchor_slug)`;
+const digestDayColumn = sql<string | null>`to_char(p.digest_date, 'YYYY-MM-DD')`;
+const storyNewestFirst = sql`coalesce(p.digest_date, (p.published_at at time zone 'Asia/Kolkata')::date)`;
+
+/** Stories sharing the most topics with this one, newest first; with no overlap, simply the newest. */
+async function relatedStories(itemId: number, language: CurrentAffairsLanguage, tagIds: number[]): Promise<PublicRelatedArticle[]> {
+  const shared = tagIds.length
+    ? sql<number>`(select count(*)::int from current_affairs_tag_links l where l.item_id = i.id and l.tag_id in (${sql.join(tagIds)}))`
+    : sql<number>`0`;
+  const rows = await storyQuery()
+    .select([
+      "i.id",
+      "i.headline",
+      "i.imageUrl",
+      storySlugColumn.as("storySlug"),
+      digestDayColumn.as("digestDate"),
+      sql<string | null>`coalesce(nullif(p.cover_image_url, ''), nullif(p.og_image_url, ''))`.as("digestImageUrl"),
+    ])
+    .where("p.language", "=", language)
+    .where("i.id", "!=", itemId)
+    .orderBy(shared, "desc")
+    .orderBy(storyNewestFirst, "desc")
+    .orderBy("i.position", "asc")
+    .limit(RELATED_ARTICLES)
+    .execute();
+  return rows.map((row) => ({
+    id: row.id,
+    title: row.headline,
+    href: currentAffairsMeta.storyPath(row.storySlug),
+    imageUrl: row.imageUrl || row.digestImageUrl || null,
+    dateLabel: row.digestDate ? currentAffairsMeta.formatDay(row.digestDate) : "",
+  }));
+}
+
+/**
+ * One story of a published daily digest, in the single-article shape the renderer takes. The anchor
+ * is matched too, so a row saved before stories had slugs still answers. Null when nothing matches.
+ */
+async function fetchStory(slug: string): Promise<DetailOutput | null> {
+  const match = await storyQuery()
+    .select(["i.id", "i.postId"])
+    .where((eb) => eb.or([eb("i.slug", "=", slug), eb("i.anchorSlug", "=", slug)]))
+    .orderBy(sql`coalesce(i.slug = ${slug}, false)`, "desc")
+    .orderBy(storyNewestFirst, "desc")
+    .executeTakeFirst();
+  const digest = match ? await publicDetail(match.postId) : null;
+  const item = digest?.post.items.find((row) => row.key === `item-${match?.id}`);
+  if (!match || !digest || !item) return null;
+
+  const { post, canonicalPath } = digest;
+  const slugOf = item.slug ?? slug;
+  const story: PublicDigestDetail = {
+    ...post,
+    contentType: "individual_item",
+    title: item.headline,
+    slug: slugOf,
+    summary: "",
+    coverImageUrl: item.imageUrl || post.coverImageUrl,
+    coverImageFileId: "",
+    coverImageAlt: item.imageAlt || item.headline,
+    coverImageCredit: item.imageUrl ? item.imageCredit : post.coverImageCredit,
+    digestDate: "",
+    atAGlance: [],
+    body: "",
+    readingTimeIsManual: false,
+    seoTitle: "",
+    seoDescription: shorten(item.whyInNews.trim() || currentAffairsMeta.stripHtml(item.keyPoints), SEO_DESCRIPTION_CHARS),
+    ogImageUrl: item.imageUrl || post.ogImageUrl,
+    tags: item.tags,
+    sources: [],
+    items: [{ ...item, imageUrl: "", tags: [] }],
+    relatedIds: [],
+    related: [],
+    quiz: null,
+  };
+  const tagIds = item.tags.flatMap((tag) => (tag.id ? [tag.id] : []));
+  return {
+    post: story,
+    canonicalPath: currentAffairsMeta.storyPath(slugOf),
+    archive: "daily",
+    digest: { title: post.title, path: canonicalPath, storyCount: post.items.length, hasQuiz: !!post.quiz && post.quiz.questions.length > 0 },
+    relatedArticles: await relatedStories(match.id, post.language, tagIds),
+  };
+}
+
+/**
+ * Whatever /current-affairs/{type}/{slug} names: a period URL, a daily story, or a post by its slug.
+ * The result's canonicalPath tells the page when the URL is an older one to redirect from.
+ */
+async function fetchArchiveDetail(type: ArchiveType, slug: string): Promise<DetailOutput | null> {
+  if (currentAffairsMeta.periodFromSegment(type, slug)) return fetchDetailByPeriod(type, slug);
+  if (type === "daily") {
+    await currentAffairsServer.promoteDue();
+    const story = await fetchStory(slug);
+    if (story) return story;
+  }
+  return fetchDetail(slug);
+}
+
+/** Every published post's and daily story's public path and last edit, for the sitemap. */
+async function fetchSitemapEntries(): Promise<{ path: string; updatedAt: Date }[]> {
+  const [rows, stories] = await Promise.all([
+    db
+      .selectFrom("currentAffairsPosts")
+      .select(["contentType", "slug", "updatedAt", sql<string | null>`to_char(digest_date, 'YYYY-MM-DD')`.as("digestDate")])
+      .where("status", "=", "published")
+      .orderBy("publishedAt", "desc")
+      .execute(),
+    storyQuery().select([storySlugColumn.as("storySlug"), "p.updatedAt"]).orderBy("p.publishedAt", "desc").execute(),
+  ]);
+  const seen = new Set<string>();
+  return [
+    ...rows.map((row) => ({ path: currentAffairsMeta.canonicalPath(row), updatedAt: row.updatedAt })),
+    ...stories.map((row) => ({ path: currentAffairsMeta.storyPath(row.storySlug), updatedAt: row.updatedAt })),
+  ].filter((entry) => {
+    if (seen.has(entry.path)) return false;
+    seen.add(entry.path);
+    return true;
+  });
+}
+
+/**
+ * The news items of published daily digests, one row each: newest digest first, then in the order
+ * the digest lists them. Each links to the story's own page.
+ */
+async function fetchDailyStories(input: StoriesInput): Promise<StoriesOutput> {
+  await currentAffairsServer.promoteDue();
+  const page = input.page ?? 1;
+  let base = storyQuery();
   if (input.lang) base = base.where("p.language", "=", input.lang);
   if (input.topic) {
     const topic = input.topic;
@@ -302,19 +437,17 @@ async function fetchDailyStories(input: StoriesInput): Promise<StoriesOutput> {
       .select([
         "i.id",
         "i.headline",
-        "i.anchorSlug",
         "i.whyInNews",
         "i.keyPoints",
         "i.imageUrl",
         "p.title as digestTitle",
-        "p.slug",
-        "p.contentType",
         "p.language",
         "p.publishedAt",
+        storySlugColumn.as("storySlug"),
         sql<string | null>`coalesce(nullif(p.cover_image_url, ''), nullif(p.og_image_url, ''))`.as("digestImageUrl"),
-        sql<string | null>`to_char(p.digest_date, 'YYYY-MM-DD')`.as("digestDate"),
+        digestDayColumn.as("digestDate"),
       ])
-      .orderBy(sql`coalesce(p.digest_date, (p.published_at at time zone 'Asia/Kolkata')::date)`, "desc")
+      .orderBy(storyNewestFirst, "desc")
       .orderBy("p.publishedAt", "desc")
       .orderBy("p.id", "desc")
       .orderBy("i.position", "asc")
@@ -347,7 +480,7 @@ async function fetchDailyStories(input: StoriesInput): Promise<StoriesOutput> {
         digestDate: row.digestDate,
         publishedAt: row.publishedAt,
         language: row.language,
-        href: `${currentAffairsMeta.canonicalPath(row)}${row.anchorSlug ? `#${row.anchorSlug}` : ""}`,
+        href: currentAffairsMeta.storyPath(row.storySlug),
         tags: tags.filter((t) => t.itemId === row.id).map(({ name, slug }) => ({ name, slug })),
       };
     }),
@@ -360,7 +493,7 @@ export const currentAffairsPublicServer = {
   fetchHub,
   fetchList,
   fetchDetail,
-  fetchDetailByPeriod,
+  fetchArchiveDetail,
   fetchSitemapEntries,
   fetchDailyStories,
 };

@@ -22,7 +22,7 @@ export type PublicDailyStory = {
   digestDate: string | null;
   publishedAt: Date | null;
   language: "en" | "hi";
-  /** The digest's page with the story's section as the hash. */
+  /** The story's own page. */
   href: string;
   tags: { name: string; slug: string }[];
 };
