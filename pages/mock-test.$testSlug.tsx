@@ -128,7 +128,7 @@ const TestDetailsPage: React.FC = () => {
       },
       "offers": {
         "@type": "Offer",
-        "price": testPackage.price === 0 ? "0" : testPackage.price.toString(),
+        "price": (testPackage.discountPrice ?? testPackage.price).toString(),
         "priceCurrency": "INR",
         "availability": "https://schema.org/InStock",
         "url": canonicalUrl
@@ -196,7 +196,8 @@ const TestDetailsPage: React.FC = () => {
   const metaDescription = useMemo(() => {
     if (!data?.package) return "";
     const pkg = data.package;
-    const priceText = pkg.price === 0 ? "Free" : `₹${pkg.price}`;
+    const salePrice = pkg.discountPrice ?? pkg.price;
+    const priceText = salePrice === 0 ? "Free" : `₹${salePrice}`;
     return `${pkg.title} - ${pkg.totalTests} mock tests | ${priceText} | Created by ${pkg.teacherName || 'expert educators'} | Prepare for ${pkg.examName || 'your exam'} with Testkart`;
   }, [data?.package]);
 
