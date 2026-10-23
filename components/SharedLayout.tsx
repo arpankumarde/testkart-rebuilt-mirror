@@ -147,8 +147,7 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
   const isMobileNavVisible = !pathname.includes('/portal/') && !pathname.includes('/live-portal/') && !pathname.endsWith('/results');
   // Organisation pages use a slimmer header on phones; tablet and desktop are unchanged.
   const isCompactHeader = ORGANIZATION_PATH_PATTERN.test(pathname);
-  // Current Affairs marks its own link while it sits in the bar, so More stays quiet on those pages.
-  const isMoreActive = MORE_RESOURCES.some(({ href }) => href !== "/current-affairs" && isMoreResourcePath(pathname, href));
+  const isMoreActive = MORE_RESOURCES.some(({ href }) => isMoreResourcePath(pathname, href));
 
   // Scroll detection for mobile header hide/show (mobile only)
   const [isHeaderHidden, setIsHeaderHidden] = useState(false);
@@ -289,14 +288,6 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
                 </button>
               }
             />
-            <NavLink
-              to="/current-affairs"
-              className={({ isActive }) =>
-                `${styles.navLink} ${styles.currentAffairsLink} ${isActive ? styles.active : ""}`
-              }
-            >
-              Current Affairs
-            </NavLink>
           </nav>
           <div className={styles.headerActions}>
             <SearchButton />

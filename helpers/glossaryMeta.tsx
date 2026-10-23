@@ -18,6 +18,13 @@ const STATUSES: { value: GlossaryTermStatus; label: string }[] = [
   { value: "draft", label: "Draft" },
 ];
 
+/** How the public pages name each category. The admin keeps the wording in CATEGORIES. */
+const PUBLIC_CATEGORY_LABELS: Record<GlossaryCategory, string> = {
+  test_types: "Test Types",
+  scoring_and_assessment: "Scoring & Assessment",
+  delivery_and_creation: "Delivery & Creation",
+};
+
 /** Landing pages that exist today, offered as shortcuts for the "See it on Testkart" link. */
 const PRODUCT_PAGES: { path: string; name: string; label: string }[] = [
   { path: "/ai-mock-test-generator", name: "AI mock test generator", label: "Create a mock test" },
@@ -33,6 +40,8 @@ const isCategory = (value: string | null): value is GlossaryCategory => CATEGORI
 const isStatus = (value: string | null): value is GlossaryTermStatus => STATUSES.some((s) => s.value === value);
 
 const categoryLabel = (category: GlossaryCategory) => CATEGORIES.find((c) => c.value === category)?.label ?? category;
+
+const publicCategoryLabel = (category: GlossaryCategory) => PUBLIC_CATEGORY_LABELS[category];
 
 const statusLabel = (status: GlossaryTermStatus) => STATUSES.find((s) => s.value === status)?.label ?? status;
 
@@ -101,6 +110,7 @@ export const glossaryMeta = {
   isCategory,
   isStatus,
   categoryLabel,
+  publicCategoryLabel,
   statusLabel,
   termPath,
   canonicalUrl,

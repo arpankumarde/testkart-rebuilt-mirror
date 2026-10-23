@@ -6,9 +6,8 @@ import { sanitizeHtml } from "../helpers/sanitizeHtml";
 import type { GlossaryCategory } from "../helpers/schema";
 import type { PublicGlossaryCard } from "../endpoints/glossary/list_GET.schema";
 import type { PublicGlossaryTerm } from "../endpoints/glossary/details_GET.schema";
-import { GlossaryCategoryTag } from "./GlossaryCategoryTag";
-import { GlossaryCtaBand } from "./GlossaryCtaBand";
-import { GlossaryTermCard } from "./GlossaryTermCard";
+import { GlossaryCategoryLabel } from "./GlossaryCategoryLabel";
+import { GlossaryTermSidebar } from "./GlossaryTermSidebar";
 import styles from "./GlossaryTermArticle.module.css";
 
 /** The term's content. A draft in the editor may not have a category yet. */
@@ -25,7 +24,7 @@ interface GlossaryTermArticleProps {
 }
 
 /*
- * The one layout of a term page (wireframe modules 2 to 8), rendered by the public page and by both
+ * The one layout of a term page, article beside sidebar, rendered by the public page and by both
  * admin previews, so a preview cannot drift from what goes live.
  */
 export const GlossaryTermArticle: React.FC<GlossaryTermArticleProps> = ({ term, related, preview = false }) => {
@@ -42,9 +41,9 @@ export const GlossaryTermArticle: React.FC<GlossaryTermArticleProps> = ({ term, 
   const hasExtra = !!term.extraHeading?.trim() && glossaryMeta.hasText(term.extraBody);
 
   return (
-    <>
-      <div className={styles.page}>
-        <article className={styles.column}>
+    <div className={styles.page}>
+      <div className={styles.layout}>
+        <article className={styles.article}>
           <nav className={styles.crumbs} aria-label="Breadcrumb">
             <ol>
               <li>{preview ? <span>Home</span> : <Link to="/">Home</Link>}</li>
@@ -54,7 +53,7 @@ export const GlossaryTermArticle: React.FC<GlossaryTermArticleProps> = ({ term, 
           </nav>
 
           <header className={styles.header}>
-            {term.category && <GlossaryCategoryTag category={term.category} caps />}
+            {term.category && <GlossaryCategoryLabel category={term.category} badge />}
             <h1 className={styles.title}>{name || <span className={styles.missing}>Term name</span>}</h1>
             {term.definition.trim() ? (
               <p className={styles.definition}>{term.definition}</p>
@@ -78,7 +77,7 @@ export const GlossaryTermArticle: React.FC<GlossaryTermArticleProps> = ({ term, 
           {hasProduct ? (
             <section className={styles.product} aria-labelledby="glossary-product-title">
               <span className={styles.productIcon} aria-hidden="true">
-                <Rocket size={20} />
+                <Rocket size={20} strokeWidth={1.75} />
               </span>
               <div className={styles.productBody}>
                 <h2 id="glossary-product-title" className={styles.productTitle}>
@@ -102,32 +101,19 @@ export const GlossaryTermArticle: React.FC<GlossaryTermArticleProps> = ({ term, 
             preview && <p className={styles.missing}>The See it on Testkart box goes here.</p>
           )}
 
-          {related.length > 0 && (
-            <section className={styles.section} aria-labelledby="glossary-related-title">
-              <h2 id="glossary-related-title" className={styles.sectionTitle}>
-                Related terms
-              </h2>
-              <div className={styles.relatedGrid}>
-                {related.map((item) => (
-                  <GlossaryTermCard key={item.slug} term={item} variant="related" preview={preview} />
-                ))}
-              </div>
-            </section>
+          {preview ? (
+            <span className={styles.back}>
+              <ArrowLeft size={15} aria-hidden="true" /> Back to Glossary
+            </span>
+          ) : (
+            <Link to={glossaryMeta.HUB_PATH} className={styles.back}>
+              <ArrowLeft size={15} aria-hidden="true" /> Back to Glossary
+            </Link>
           )}
         </article>
-      </div>
 
-      <GlossaryCtaBand title="Create and sell your own tests on Testkart" preview={preview}>
-        {preview ? (
-          <span className={styles.back}>
-            <ArrowLeft size={15} aria-hidden="true" /> Back to Glossary
-          </span>
-        ) : (
-          <Link to={glossaryMeta.HUB_PATH} className={styles.back}>
-            <ArrowLeft size={15} aria-hidden="true" /> Back to Glossary
-          </Link>
-        )}
-      </GlossaryCtaBand>
-    </>
+        <GlossaryTermSidebar related={related} preview={preview} />
+      </div>
+    </div>
   );
 };

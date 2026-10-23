@@ -12,16 +12,14 @@ const ICONS: Record<GlossaryCategory, LucideIcon> = {
 
 interface GlossaryCategoryTagProps {
   category: GlossaryCategory;
-  /** Uppercase, for the badge above a term's H1. */
-  caps?: boolean;
   className?: string;
 }
 
-/** The small pastel tag above a term; each category keeps one colour and icon everywhere it appears. */
-export const GlossaryCategoryTag: React.FC<GlossaryCategoryTagProps> = ({ category, caps = false, className }) => {
+/** The pastel category tag of the admin glossary; each category keeps one colour and icon. */
+export const GlossaryCategoryTag: React.FC<GlossaryCategoryTagProps> = ({ category, className }) => {
   const Icon = ICONS[category];
   return (
-    <span className={`${styles.tag} ${styles[category]} ${caps ? styles.caps : ""} ${className ?? ""}`}>
+    <span className={`${styles.tag} ${styles[category]} ${className ?? ""}`}>
       <Icon size={13} aria-hidden="true" />
       {glossaryMeta.categoryLabel(category)}
     </span>

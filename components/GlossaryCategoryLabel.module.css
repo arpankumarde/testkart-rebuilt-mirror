@@ -1,0 +1,46 @@
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4375rem;
+  width: fit-content;
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.label::before {
+  content: "";
+  flex-shrink: 0;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: var(--radius-full);
+  background-color: var(--dot);
+}
+
+.test_types {
+  --dot: hsl(258 42% 62%);
+  --badge: var(--pastel-lavender);
+  --badge-ink: var(--pastel-lavender-ink);
+}
+
+.scoring_and_assessment {
+  --dot: hsl(155 38% 46%);
+  --badge: var(--pastel-mint);
+  --badge-ink: var(--pastel-mint-ink);
+}
+
+.delivery_and_creation {
+  --dot: hsl(207 56% 56%);
+  --badge: var(--pastel-powder);
+  --badge-ink: var(--pastel-powder-ink);
+}
+
+.badge {
+  padding: 0.25rem 0.75rem;
+  background-color: var(--badge);
+  border-radius: var(--radius-full);
+  color: var(--badge-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
