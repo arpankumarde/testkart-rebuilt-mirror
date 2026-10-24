@@ -1,0 +1,60 @@
+@layer base {
+  .box {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+    padding: var(--spacing-4);
+    background-color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .useRow {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-3);
+    cursor: pointer;
+  }
+
+  .useRowDisabled {
+    cursor: default;
+  }
+
+  .useText {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-1);
+    min-width: 0;
+  }
+
+  .useTitle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--foreground);
+  }
+
+  .useTitle svg {
+    color: var(--tk-brand-text);
+    flex-shrink: 0;
+  }
+
+  .useHint {
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--muted-foreground);
+  }
+
+  .earn {
+    margin: 0;
+    padding: var(--spacing-2) var(--spacing-3);
+    border-radius: var(--radius);
+    background-color: var(--pastel-mint);
+    color: var(--pastel-mint-ink);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-align: center;
+  }
+}

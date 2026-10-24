@@ -13,6 +13,8 @@ import { Button } from "../components/Button";
 import { CartItem, CartItemSkeleton } from "../components/CartItem";
 import { CartOrderSummary } from "../components/CartOrderSummary";
 import { SpinWinCouponPicker } from "../components/SpinWinCouponPicker";
+import { TcoinsCheckoutOption, tcoinsToSpend } from "../components/TcoinsCheckoutOption";
+import { useStudentTcoins } from "../helpers/useTcoins";
 import { useValidatePromoCodeMutation } from "../helpers/usePromoCodeMutations";
 import { paymentFailureReason } from "../helpers/paymentFailureReason";
 import styles from "./cart.module.css";
@@ -28,6 +30,7 @@ const CartPage: React.FC = () => {
     discountAmount: number;
     eligibleItemIds: number[];
   } | null>(null);
+  const [wantsTcoins, setWantsTcoins] = useState(false);
 
   const { data, isLoading, isError, error } = useCartItemsQuery();
   const { mutate: removeFromCart, isPending: isRemoving } = useRemoveFromCartMutation();
@@ -35,6 +38,7 @@ const CartPage: React.FC = () => {
   const { data: walletData } = useStudentWalletBalance();
   const { mutate: purchaseWithWallet, isPending: isWalletProcessing } = useStudentWalletPurchase();
   const { mutate: validateCode, isPending: isValidatingCode } = useValidatePromoCodeMutation();
+  const { data: tcoins } = useStudentTcoins(isStudent);
 
   // Handle URL messages (payment failure, cancellation, etc.)
   useEffect(() => {
@@ -78,7 +82,9 @@ const CartPage: React.FC = () => {
   
   // Total logic: (Price - ItemDiscount) - PromoDiscount
   const totalBeforePromo = subtotal - itemDiscounts;
-  const finalTotal = Math.max(0, totalBeforePromo - promoDiscount);
+  const totalBeforeTcoins = Math.max(0, totalBeforePromo - promoDiscount);
+  const tcoinsUsed = tcoinsToSpend(tcoins, totalBeforePromo, wantsTcoins, appliedPromoCode !== null);
+  const finalTotal = Math.max(0, Math.round((totalBeforeTcoins - tcoinsUsed) * 100) / 100);
 
   // Promo Code Input Props
   const promoInputItems = data?.items.map(item => {
@@ -102,6 +108,8 @@ const CartPage: React.FC = () => {
     code: string, 
     eligibleItemIds: number[]
   ) => {
+    // Coins never combine with a coupon, so applying one turns them off.
+    setWantsTcoins(false);
     setAppliedPromoCode({
       code,
       promoCodeId,
@@ -138,13 +146,15 @@ const CartPage: React.FC = () => {
 
   const handlePayment = () => {
     initiatePayment({
-      promoCodeId: appliedPromoCode?.promoCodeId
+      promoCodeId: appliedPromoCode?.promoCodeId,
+      useTcoins: tcoinsUsed > 0,
     });
   };
 
   const handleWalletPayment = () => {
     purchaseWithWallet({
-      promoCodeId: appliedPromoCode?.promoCodeId
+      promoCodeId: appliedPromoCode?.promoCodeId,
+      useTcoins: tcoinsUsed > 0,
     }, {
       onSuccess: (data) => {
         toast.success(`Purchase successful! ₹${data.amountDeducted} deducted from wallet.`);
@@ -241,6 +251,19 @@ const CartPage: React.FC = () => {
               walletBalance={isStudent ? walletData?.availableBalance : undefined}
               onPayWithWallet={handleWalletPayment}
               isWalletProcessing={isWalletProcessing}
+              tcoinsUsed={tcoinsUsed}
+              tcoinsOption={
+                tcoins?.enabled ? (
+                  <TcoinsCheckoutOption
+                    summary={tcoins}
+                    orderValue={totalBeforePromo}
+                    amountToPay={finalTotal}
+                    checked={wantsTcoins}
+                    onCheckedChange={setWantsTcoins}
+                    couponApplied={appliedPromoCode !== null}
+                  />
+                ) : undefined
+              }
               couponPicker={
                 isStudent ? (
                   <SpinWinCouponPicker

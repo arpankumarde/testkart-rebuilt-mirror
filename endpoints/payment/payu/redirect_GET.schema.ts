@@ -15,12 +15,16 @@ export type InputType = z.infer<typeof schema>;
  * The frontend should navigate to this URL (e.g., via window.location.href)
  * to initiate the payment process.
  * @param promoCodeId - Optional promo code ID to apply discount
+ * @param useTcoins - Pay part of the order with Tcoins (never together with a promo code)
  * @returns The absolute URL path to the redirect endpoint.
  */
-export const getPaymentPayuRedirectUrl = (promoCodeId?: number): string => {
+export const getPaymentPayuRedirectUrl = (promoCodeId?: number, useTcoins?: boolean): string => {
   const baseUrl = "/_api/payment/payu/redirect";
   if (promoCodeId) {
     return `${baseUrl}?promoCodeId=${promoCodeId}`;
+  }
+  if (useTcoins) {
+    return `${baseUrl}?useTcoins=1`;
   }
   return baseUrl;
 };

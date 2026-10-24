@@ -135,6 +135,10 @@
     margin-top: var(--spacing-3);
   }
 
+  .tcoinsRow {
+    margin-bottom: var(--spacing-4);
+  }
+
   .savings {
     margin: 0;
     padding: var(--spacing-2) var(--spacing-3);

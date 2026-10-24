@@ -8,6 +8,7 @@ import { emailTemplatesExtra } from "../../helpers/emailTemplatesExtra";
 import { sendEmail } from "../../helpers/sendEmail";
 import { getTeacherPlatformFee } from "../../helpers/getTeacherPlatformFee";
 import { followTeacher } from "../../helpers/ensureTeacherFollow";
+import { planTcoinsForOrder } from "../../helpers/tcoins";
 
 export async function handle(request: Request): Promise<Response> {
   const PAYU_MERCHANT_KEY = process.env.PAYU_MERCHANT_KEY;
@@ -24,7 +25,7 @@ export async function handle(request: Request): Promise<Response> {
   try {
     const { user } = await getServerUserSession(request);
     const json = superjson.parse(await request.text());
-    const { bundleId } = schema.parse(json);
+    const { bundleId, useTcoins } = schema.parse(json);
 
     const bundle = await db
       .selectFrom("courseBundles")
@@ -201,32 +202,46 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     // For paid bundles, proceed with PayU
-    const platformFeePercentage = await getTeacherPlatformFee(bundle.teacherId);
-    const order = await db
-      .insertInto("orders")
-      .values({
+    const { txnid, amountToPay } = await db.transaction().execute(async (trx) => {
+      const platformFeePercentage = await getTeacherPlatformFee(bundle.teacherId, trx);
+      const tcoins = await planTcoinsForOrder(trx, {
         userId: user.id,
-        bundleId: bundle.id,
-        totalAmount: amount.toString(),
-        status: "pending",
-        paymentMethod: "payu",
-        platformFeePercentage: platformFeePercentage.toFixed(2),
-      })
-      .returning("id")
-      .executeTakeFirstOrThrow();
+        orderValue: amount,
+        amountBeforeTcoins: amount,
+        useTcoins: useTcoins ?? false,
+        hasCoupon: false,
+      });
 
-    const txnid = `testkart-bundle-${order.id}-${Date.now()}`;
-    await db
-      .updateTable("orders")
-      .set({ paymentTransactionId: txnid })
-      .where("id", "=", order.id)
-      .execute();
+      const order = await trx
+        .insertInto("orders")
+        .values({
+          userId: user.id,
+          bundleId: bundle.id,
+          totalAmount: tcoins.amountToPay.toFixed(2),
+          status: "pending",
+          paymentMethod: "payu",
+          platformFeePercentage: platformFeePercentage.toFixed(2),
+          tcoinsRedeemed: tcoins.tcoinsRedeemed,
+          tcoinsCashback: tcoins.tcoinsCashback,
+        })
+        .returning("id")
+        .executeTakeFirstOrThrow();
+
+      const orderTxnid = `testkart-bundle-${order.id}-${Date.now()}`;
+      await trx
+        .updateTable("orders")
+        .set({ paymentTransactionId: orderTxnid })
+        .where("id", "=", order.id)
+        .execute();
+
+      return { txnid: orderTxnid, amountToPay: tcoins.amountToPay };
+    });
 
     const productInfo = bundle.title.substring(0, 100).replace(/\|/g, " ");
     const firstname = (user.displayName || "Student").replace(/\|/g, " ");
     const email = user.email ?? `${user.mobileNumber}@mail.testkart.in`;
 
-    const hashString = `${PAYU_MERCHANT_KEY}|${txnid}|${amount.toFixed(
+    const hashString = `${PAYU_MERCHANT_KEY}|${txnid}|${amountToPay.toFixed(
       2
     )}|${productInfo}|${firstname}|${email}|||||||||||${PAYU_MERCHANT_SALT}`;
     const hash = createHash("sha512").update(hashString).digest("hex");
@@ -244,7 +259,7 @@ export async function handle(request: Request): Promise<Response> {
       paymentData: {
         key: PAYU_MERCHANT_KEY,
         txnid,
-        amount: amount.toFixed(2),
+        amount: amountToPay.toFixed(2),
         productinfo: productInfo,
         firstname,
         email,

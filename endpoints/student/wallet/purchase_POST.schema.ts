@@ -3,6 +3,8 @@ import superjson from "superjson";
 
 export const schema = z.object({
   promoCodeId: z.number().optional(),
+  /** Pay part of the order with Tcoins. Rejected together with a promo code. */
+  useTcoins: z.boolean().optional(),
 });
 
 export type InputType = z.infer<typeof schema>;
@@ -11,6 +13,8 @@ export type OutputType = {
   orderId: number;
   walletBalanceAfter: number;
   amountDeducted: number;
+  tcoinsRedeemed: number;
+  tcoinsCashback: number;
 };
 
 export const postStudentWalletPurchase = async (

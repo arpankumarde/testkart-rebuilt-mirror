@@ -1,0 +1,147 @@
+.loading {
+  height: 24rem;
+  width: 100%;
+  border-radius: var(--radius-lg);
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  padding: var(--spacing-6);
+  background-color: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-4);
+}
+
+.headerIcon {
+  color: var(--tk-brand-text);
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--surface-foreground);
+  margin: 0;
+}
+
+.description {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+  margin: var(--spacing-1) 0 0;
+  max-width: 60ch;
+}
+
+.toggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.toggleLabel {
+  display: block;
+  font-weight: 600;
+  color: var(--surface-foreground);
+}
+
+.toggleHint {
+  display: block;
+  margin-top: var(--spacing-1);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--spacing-4);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.fieldLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--surface-foreground);
+}
+
+.example {
+  margin: 0;
+  padding: var(--spacing-3);
+  border-radius: var(--radius);
+  background-color: var(--muted);
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8);
+  margin: 0;
+}
+
+.stats dt {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.stats dd {
+  margin: var(--spacing-1) 0 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-4);
+}
+
+.invalid {
+  font-size: 0.875rem;
+  color: var(--error-text, var(--foreground));
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin: 0;
+  color: var(--foreground);
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

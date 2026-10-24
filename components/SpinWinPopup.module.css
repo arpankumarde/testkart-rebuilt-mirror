@@ -356,6 +356,52 @@
   transform: scale(0.98);
 }
 
+/* A guest's won reward: one full-width Claim button, then Terms as a quiet text link. */
+.claimActions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--spacing-2);
+}
+
+.claimButton {
+  width: 100%;
+  min-height: 2.75rem;
+  font-size: 0.9375rem;
+}
+
+.claimTerms {
+  align-self: center;
+  padding: 0.25rem 0.5rem;
+  border: 0;
+  background: none;
+  color: var(--sw-link);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, var(--sw-link) 45%, var(--sw-panel));
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+
+.claimTerms:hover {
+  color: var(--sw-deep);
+  text-decoration-color: currentColor;
+}
+
+.claimTerms:focus-visible {
+  outline: 2px solid var(--sw-link);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm, 4px);
+}
+
+.claimActions .fine {
+  text-align: center;
+}
+
 .fine {
   margin: 0;
   width: 100%;
@@ -735,6 +781,10 @@
 
   .actions > * {
     flex: 1 1 100%;
+  }
+
+  .claimTerms {
+    font-size: 0.75rem;
   }
 
   .detailRow {

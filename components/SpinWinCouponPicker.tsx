@@ -5,7 +5,7 @@ import { ConsoleDialogBody, ConsoleDialogContent, ConsoleDialogFooter, ConsoleDi
 import { Badge } from "./Badge";
 import { Button } from "./Button";
 import { Skeleton } from "./Skeleton";
-import { couponCategories } from "./StudentCouponCard";
+import { couponCategories } from "../helpers/studentCoupons";
 import { useMySpinCoupons } from "../helpers/useSpinWin";
 import { computeSpinDiscount, discountLabel, type SpinLineType } from "../helpers/spinWinRules";
 import { spinDate } from "../helpers/spinWinFormat";

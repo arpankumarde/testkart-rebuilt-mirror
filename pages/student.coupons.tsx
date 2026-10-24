@@ -1,21 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
-import { Gift, Ticket } from "lucide-react";
-import { ConsolePageHeader } from "../components/ConsolePageHeader";
-import { ConsoleListToolbar } from "../components/ConsoleListToolbar";
+import { BadgeCheck, Gift, PiggyBank, Ticket, TicketPercent } from "lucide-react";
 import { ConsoleListEmpty } from "../components/ConsoleListEmpty";
-import { Dialog } from "../components/Dialog";
-import { ConsoleDialogBody, ConsoleDialogContent, ConsoleDialogFooter, ConsoleDialogHeader } from "../components/ConsoleDialog";
-import { Badge } from "../components/Badge";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
-import { StudentCouponCard, COUPON_BADGE, couponCategories } from "../components/StudentCouponCard";
+import { StudentCouponCard } from "../components/StudentCouponCard";
+import { StudentCouponDetailsDialog } from "../components/StudentCouponDetailsDialog";
 import { useMySpinCoupons } from "../helpers/useSpinWin";
 import { parseErrorMessage } from "../helpers/parseErrorMessage";
-import { discountLabel } from "../helpers/spinWinRules";
-import { spinDateTime } from "../helpers/spinWinFormat";
-import { STUDENT_COUPON_LABELS, studentCouponStatus } from "../helpers/studentCoupons";
+import { couponRupees, studentCouponStatus } from "../helpers/studentCoupons";
 import type { MySpinCoupon } from "../endpoints/spin-win/my-coupons_GET.schema";
 import styles from "./student.coupons.module.css";
 
@@ -31,12 +25,11 @@ const inTab = (coupon: MySpinCoupon, tab: Tab) => {
   return status === "redeemed";
 };
 
-const rupees = (n: number) => `₹${new Intl.NumberFormat("en-IN", { maximumFractionDigits: 2 }).format(n)}`;
-
 const StudentCouponsPage: React.FC = () => {
   const { data, isError, error, refetch, isFetching } = useMySpinCoupons();
   const [tab, setTab] = useState<Tab>("all");
   const [open, setOpen] = useState<MySpinCoupon | null>(null);
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   // Cached queries are not refetched on mount here, so pull fresh statuses on arrival.
   useEffect(() => {
@@ -48,13 +41,44 @@ const StudentCouponsPage: React.FC = () => {
   const savings = coupons.reduce((sum, c) => sum + (studentCouponStatus(c) === "redeemed" ? c.savedAmount ?? 0 : 0), 0);
   const visible = coupons.filter((c) => inTab(c, tab));
 
+  const stats = [
+    { label: "Coupons earned", value: String(coupons.length), icon: <Gift size={18} />, tone: styles.peach },
+    { label: "Available", value: String(counts.available), icon: <Ticket size={18} />, tone: styles.mint },
+    { label: "Redeemed", value: String(counts.redeemed), icon: <BadgeCheck size={18} />, tone: styles.lavender },
+    { label: "Total savings", value: couponRupees(savings), icon: <PiggyBank size={18} />, tone: styles.butter },
+  ];
+
+  // Roving focus across the filter pills: arrows and Home/End move and select.
+  const onTabKey = (event: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+    const last = TABS.length - 1;
+    const next =
+      event.key === "ArrowRight" ? (index === last ? 0 : index + 1)
+      : event.key === "ArrowLeft" ? (index === 0 ? last : index - 1)
+      : event.key === "Home" ? 0
+      : event.key === "End" ? last
+      : null;
+    if (next === null) return;
+    event.preventDefault();
+    tabRefs.current[next]?.focus();
+    setTab(TABS[next]);
+  };
+
   return (
     <div className={styles.page}>
       <Helmet>
         <title>My Coupons | Testkart</title>
         <meta name="description" content="Your Testkart reward coupons, their status and savings." />
       </Helmet>
-      <ConsolePageHeader title="My Coupons" />
+
+      <header className={styles.header}>
+        <span className={styles.headerIcon} aria-hidden="true">
+          <TicketPercent size={22} />
+        </span>
+        <div className={styles.headings}>
+          <h1 className={styles.title}>My Coupons</h1>
+          <p className={styles.subtitle}>Your rewards, ready to make your next purchase more affordable.</p>
+        </div>
+      </header>
 
       {isError ? (
         <ConsoleListEmpty tone="error" icon={<Ticket size={20} />} title="Your coupons could not be loaded" description={parseErrorMessage(error)}>
@@ -64,8 +88,15 @@ const StudentCouponsPage: React.FC = () => {
         </ConsoleListEmpty>
       ) : !data ? (
         <>
-          <Skeleton style={{ height: "5.5rem", borderRadius: "var(--radius-md)" }} />
-          <Skeleton style={{ height: "14rem", borderRadius: "var(--radius-md)" }} />
+          <div className={styles.stats}>
+            {stats.map((s) => (
+              <Skeleton key={s.label} style={{ height: "5.25rem", borderRadius: "var(--radius-lg)" }} />
+            ))}
+          </div>
+          <div className={styles.grid}>
+            <Skeleton style={{ height: "17rem", borderRadius: "var(--radius-lg)" }} />
+            <Skeleton style={{ height: "17rem", borderRadius: "var(--radius-lg)" }} />
+          </div>
         </>
       ) : coupons.length === 0 ? (
         <ConsoleListEmpty
@@ -79,32 +110,42 @@ const StudentCouponsPage: React.FC = () => {
         </ConsoleListEmpty>
       ) : (
         <>
-          <dl className={styles.summary} aria-label="Coupon summary">
-            <div className={styles.peach}>
-              <dt>Coupons earned</dt>
-              <dd>{coupons.length}</dd>
-            </div>
-            <div className={styles.mint}>
-              <dt>Available</dt>
-              <dd>{counts.available}</dd>
-            </div>
-            <div className={styles.lavender}>
-              <dt>Redeemed</dt>
-              <dd>{counts.redeemed}</dd>
-            </div>
-            <div className={styles.butter}>
-              <dt>Total savings</dt>
-              <dd>{rupees(savings)}</dd>
-            </div>
+          <dl className={styles.stats} aria-label="Coupon summary">
+            {stats.map((s) => (
+              <div key={s.label} className={`${styles.stat} ${s.tone}`}>
+                <span className={styles.statIcon} aria-hidden="true">
+                  {s.icon}
+                </span>
+                <div className={styles.statText}>
+                  <dt>{s.label}</dt>
+                  <dd>{s.value}</dd>
+                </div>
+              </div>
+            ))}
           </dl>
 
-          <ConsoleListToolbar
-            tabs={TABS.map((t) => ({ value: t, label: TAB_LABELS[t], count: counts[t] }))}
-            value={tab}
-            onValueChange={(value) => setTab(value as Tab)}
-            tabsLabel="Coupon status"
-            panelId="coupon-list"
-          />
+          <div className={styles.tabs} role="tablist" aria-label="Coupon status">
+            {TABS.map((t, index) => (
+              <button
+                key={t}
+                ref={(el) => {
+                  tabRefs.current[index] = el;
+                }}
+                type="button"
+                role="tab"
+                id={`coupon-list-tab-${t}`}
+                aria-controls="coupon-list"
+                aria-selected={tab === t}
+                tabIndex={tab === t ? 0 : -1}
+                className={`${styles.tab} ${tab === t ? styles.tabActive : ""}`}
+                onClick={() => setTab(t)}
+                onKeyDown={(event) => onTabKey(event, index)}
+              >
+                {TAB_LABELS[t]}
+                <span className={styles.tabCount}>{counts[t]}</span>
+              </button>
+            ))}
+          </div>
 
           <div id="coupon-list" role="tabpanel" aria-labelledby={`coupon-list-tab-${tab}`} aria-busy={isFetching}>
             {visible.length === 0 ? (
@@ -120,69 +161,7 @@ const StudentCouponsPage: React.FC = () => {
         </>
       )}
 
-      <Dialog open={open !== null} onOpenChange={(next) => !next && setOpen(null)}>
-        <ConsoleDialogContent size="sm">
-          {open ? (
-            <>
-              <ConsoleDialogHeader title={open.code} description={`${open.campaignName} · ${open.rewardName}`}>
-                <Badge variant={COUPON_BADGE[studentCouponStatus(open)]}>{STUDENT_COUPON_LABELS[studentCouponStatus(open)]}</Badge>
-              </ConsoleDialogHeader>
-              <ConsoleDialogBody>
-                <dl className={styles.details}>
-                  <div>
-                    <dt>Discount</dt>
-                    <dd>{discountLabel(open.discountType, open.discountValue)}</dd>
-                  </div>
-                  <div>
-                    <dt>Valid on</dt>
-                    <dd>{couponCategories(open.eligibleCategories)}</dd>
-                  </div>
-                  <div>
-                    <dt>Minimum purchase</dt>
-                    <dd>{open.minOrderValue > 0 ? `₹${open.minOrderValue} of eligible items` : "No minimum order requirement"}</dd>
-                  </div>
-                  <div>
-                    <dt>Maximum discount</dt>
-                    <dd>
-                      {open.maxDiscountAmount ? `₹${open.maxDiscountAmount}, and ` : ""}
-                      {open.maxDiscountPercent}% of eligible items
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Issued</dt>
-                    <dd>{spinDateTime(open.issuedAt)}</dd>
-                  </div>
-                  <div>
-                    <dt>Expires</dt>
-                    <dd>{spinDateTime(open.expiresAt)}</dd>
-                  </div>
-                  {open.savedAmount !== null ? (
-                    <div>
-                      <dt>You saved</dt>
-                      <dd>{rupees(open.savedAmount)}</dd>
-                    </div>
-                  ) : null}
-                </dl>
-                <ul className={styles.rules}>
-                  <li>Single use, on one order, with no other promo code.</li>
-                  <li>Tied to your account; it cannot be shared.</li>
-                  <li>Only eligible items count toward the minimum and the discount.</li>
-                </ul>
-              </ConsoleDialogBody>
-              <ConsoleDialogFooter>
-                {studentCouponStatus(open) === "redeemed" && open.orderId ? (
-                  <Button asChild variant="outline">
-                    <Link to={`/order/${open.orderId}`}>View Order</Link>
-                  </Button>
-                ) : null}
-                <Button variant="outline" onClick={() => setOpen(null)}>
-                  Close
-                </Button>
-              </ConsoleDialogFooter>
-            </>
-          ) : null}
-        </ConsoleDialogContent>
-      </Dialog>
+      <StudentCouponDetailsDialog coupon={open} onClose={() => setOpen(null)} />
     </div>
   );
 };

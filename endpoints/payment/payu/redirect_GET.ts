@@ -9,6 +9,7 @@ import { ensureOrderCompletionSideEffects } from "../../../helpers/ensureOrderCo
 import { promoCodeCoversTeacher } from "../../../helpers/promoCodeEligibility";
 import { countPromoCodeUses } from "../../../helpers/promoCodeUsage";
 import { courseEffectivePriceSql } from "../../../helpers/coursePricing";
+import { planTcoinsForOrder } from "../../../helpers/tcoins";
 import {
   applySpinCouponOrThrow,
   asEligibleItemIds,
@@ -122,6 +123,7 @@ export async function handle(request: Request) {
     const url = new URL(request.url);
     const promoCodeIdParam = url.searchParams.get("promoCodeId");
     const promoCodeId = promoCodeIdParam ? parseInt(promoCodeIdParam, 10) : null;
+    const useTcoins = url.searchParams.get("useTcoins") === "1";
 
     // Validate promoCodeId if provided
     if (promoCodeIdParam && (isNaN(promoCodeId!) || promoCodeId! <= 0)) {
@@ -355,6 +357,15 @@ export async function handle(request: Request) {
       // Clamp finalAmount to 0 to prevent negative totals
       finalAmount = Math.max(0, finalAmount);
 
+      const tcoins = await planTcoinsForOrder(trx, {
+        userId: user.id,
+        orderValue: totalAmount,
+        amountBeforeTcoins: finalAmount,
+        useTcoins,
+        hasCoupon: validatedPromoCodeId !== null,
+      });
+      finalAmount = tcoins.amountToPay;
+
       // Calculate per-item discount amounts for eligible items (needed for both free and paid paths)
       const eligibleItemsTotal = validatedPromoCodeId && eligibleItemIds.length > 0
         ? cartItems
@@ -405,6 +416,8 @@ export async function handle(request: Request) {
             status: "completed",
             paymentMethod: "free",
             paymentTransactionId: null,
+            tcoinsRedeemed: tcoins.tcoinsRedeemed,
+            tcoinsCashback: tcoins.tcoinsCashback,
           })
           .returning("id")
           .executeTakeFirstOrThrow();
@@ -573,6 +586,8 @@ export async function handle(request: Request) {
           status: "pending",
           paymentMethod: "payu",
           paymentTransactionId: txnid,
+          tcoinsRedeemed: tcoins.tcoinsRedeemed,
+          tcoinsCashback: tcoins.tcoinsCashback,
         })
         .returning("id")
         .executeTakeFirstOrThrow();

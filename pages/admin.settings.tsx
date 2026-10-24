@@ -6,6 +6,7 @@ import { Skeleton } from "../components/Skeleton";
 import { ScriptsManager } from "../components/ScriptsManager";
 import { AIProviderManager } from "../components/AIProviderManager";
 import { AdminUploadLimitsManager } from "../components/AdminUploadLimitsManager";
+import { AdminTcoinsSettings } from "../components/AdminTcoinsSettings";
 import { AdminManagementSection } from "../components/AdminManagementSection";
 import { ConnectedAppsSection } from "../components/TeacherAccountAccess";
 import { ConsolePageHeader } from "../components/ConsolePageHeader";
@@ -66,6 +67,7 @@ const AdminSettingsPage: React.FC = () => {
                 <TabsTrigger value="scripts">Scripts</TabsTrigger>
                 <TabsTrigger value="ai">AI provider</TabsTrigger>
                 <TabsTrigger value="limits">Upload limits</TabsTrigger>
+                <TabsTrigger value="tcoins">Tcoins</TabsTrigger>
               </>
             )}
             <TabsTrigger value={AI_APPS_TAB}>Connected AI apps</TabsTrigger>
@@ -89,6 +91,10 @@ const AdminSettingsPage: React.FC = () => {
 
               <TabsContent value="limits">
                 <AdminUploadLimitsManager />
+              </TabsContent>
+
+              <TabsContent value="tcoins">
+                <AdminTcoinsSettings />
               </TabsContent>
             </>
           )}

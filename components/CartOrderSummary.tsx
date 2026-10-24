@@ -18,6 +18,9 @@ interface CartOrderSummaryProps {
   isWalletProcessing?: boolean;
   /** Lists the student's own coupons that fit this cart. */
   couponPicker?: React.ReactNode;
+  /** Coins taken off finalTotal, which is already net of them. */
+  tcoinsUsed?: number;
+  tcoinsOption?: React.ReactNode;
 }
 
 export const CartOrderSummary: React.FC<CartOrderSummaryProps> = ({
@@ -33,6 +36,8 @@ export const CartOrderSummary: React.FC<CartOrderSummaryProps> = ({
   onPayWithWallet,
   isWalletProcessing,
   couponPicker,
+  tcoinsUsed = 0,
+  tcoinsOption,
 }) => {
   const [isPromoOpen, setIsPromoOpen] = useState(false);
 
@@ -44,6 +49,7 @@ export const CartOrderSummary: React.FC<CartOrderSummaryProps> = ({
     }).format(amount);
 
   const discountPercentage = subtotal > 0 ? Math.round((itemDiscounts / subtotal) * 100) : 0;
+  const checkoutSavings = promoDiscount + tcoinsUsed;
 
   return (
     <div className={styles.container}>
@@ -73,6 +79,13 @@ export const CartOrderSummary: React.FC<CartOrderSummaryProps> = ({
           </div>
         )}
 
+        {tcoinsUsed > 0 && (
+          <div className={`${styles.row} ${styles.discountRow}`}>
+            <span className={styles.label}>Paid with Tcoins</span>
+            <span className={styles.discountValue}>-{formatPrice(tcoinsUsed)}</span>
+          </div>
+        )}
+
         <div className={styles.separator} />
 
         <div className={`${styles.row} ${styles.totalRow}`}>
@@ -80,8 +93,8 @@ export const CartOrderSummary: React.FC<CartOrderSummaryProps> = ({
           <span className={styles.totalValue}>{formatPrice(finalTotal)}</span>
         </div>
 
-        {promoDiscount > 0 && (
-          <p className={styles.savings}>You save {formatPrice(promoDiscount)} on this order</p>
+        {checkoutSavings > 0 && (
+          <p className={styles.savings}>You save {formatPrice(checkoutSavings)} on this order</p>
         )}
 
         <p className={styles.taxNote}>Inclusive of all taxes</p>
@@ -110,6 +123,8 @@ export const CartOrderSummary: React.FC<CartOrderSummaryProps> = ({
 
         {couponPicker ? <div className={styles.pickerRow}>{couponPicker}</div> : null}
       </div>
+
+      {tcoinsOption ? <div className={styles.tcoinsRow}>{tcoinsOption}</div> : null}
 
       {walletBalance !== undefined && walletBalance > 0 && (
         <div className={styles.walletSection}>

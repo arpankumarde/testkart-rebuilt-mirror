@@ -4,6 +4,8 @@ import superjson from "superjson";
 export const schema = z.object({
   bundleId: z.number().int().positive(),
   promoCode: z.string().optional(), // Note: promo code logic is not implemented in this version
+  /** Pay part of a paid bundle with Tcoins. */
+  useTcoins: z.boolean().optional(),
 });
 
 export type InputType = z.infer<typeof schema>;

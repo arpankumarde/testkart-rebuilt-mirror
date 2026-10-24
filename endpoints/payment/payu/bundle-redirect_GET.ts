@@ -10,6 +10,7 @@ import { Transaction, Selectable } from "kysely";
 import { DB, PromoCodes } from "../../../helpers/schema";
 import { countPromoCodeUses } from "../../../helpers/promoCodeUsage";
 import { getSpinCouponRuleOrThrow } from "../../../helpers/spinWinServer";
+import { planTcoinsForOrder } from "../../../helpers/tcoins";
 
 const generateErrorHtml = (errorMessage: string, backUrl: string) => `
 <!DOCTYPE html>
@@ -215,6 +216,7 @@ export async function handle(request: Request) {
     const bundleId = bundleIdParam ? parseInt(bundleIdParam, 10) : null;
     const promoCodeIdParam = url.searchParams.get("promoCodeId");
     const promoCodeId = promoCodeIdParam ? parseInt(promoCodeIdParam, 10) : null;
+    const useTcoins = url.searchParams.get("useTcoins") === "1";
 
     if (!bundleId || isNaN(bundleId) || bundleId <= 0) {
       const errorHtml = generateErrorHtml("Invalid bundle ID parameter.", "/bundles");
@@ -280,7 +282,14 @@ export async function handle(request: Request) {
         promoCode = promoResult.promoCode;
       }
 
-      const finalAmount = Math.max(0, originalAmount - discountAmount);
+      const tcoins = await planTcoinsForOrder(trx, {
+        userId: user.id,
+        orderValue: originalAmount,
+        amountBeforeTcoins: Math.max(0, originalAmount - discountAmount),
+        useTcoins,
+        hasCoupon: promoCode !== null,
+      });
+      const finalAmount = tcoins.amountToPay;
 
       if (finalAmount <= 0) {
         console.log(`[bundle-redirect_GET] Zero-total bundle order for user ${user.id} after discount. Processing as free order.`);
@@ -297,6 +306,8 @@ export async function handle(request: Request) {
             discountAmount: discountAmount.toFixed(2),
             promoCodeId: promoCode ? promoCode.id : null,
             platformFeePercentage: platformFeePercentage.toFixed(2),
+            tcoinsRedeemed: tcoins.tcoinsRedeemed,
+            tcoinsCashback: tcoins.tcoinsCashback,
           })
           .returning("id")
           .executeTakeFirstOrThrow();
@@ -326,6 +337,8 @@ export async function handle(request: Request) {
           discountAmount: discountAmount.toFixed(2),
           promoCodeId: promoCode ? promoCode.id : null,
           platformFeePercentage: platformFeePercentage.toFixed(2),
+          tcoinsRedeemed: tcoins.tcoinsRedeemed,
+          tcoinsCashback: tcoins.tcoinsCashback,
         })
         .returning("id")
         .executeTakeFirstOrThrow();

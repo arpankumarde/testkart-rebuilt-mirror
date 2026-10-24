@@ -10,15 +10,16 @@ const PAYMENT_QUERY_KEY = ["payment", "initiate"] as const;
  * the payment initiation and form submission server-side.
  * 
  * @param promoCodeId - Optional promo code ID to apply discount during payment
+ * @param useTcoins - Pay part of the order with Tcoins
  */
 export const useInitiatePaymentMutation = () => {
-  return useMutation<void, Error, { promoCodeId?: number }>({
+  return useMutation<void, Error, { promoCodeId?: number; useTcoins?: boolean }>({
     mutationKey: PAYMENT_QUERY_KEY,
-    mutationFn: async ({ promoCodeId }) => {
+    mutationFn: async ({ promoCodeId, useTcoins }) => {
       // Simply navigate to the redirect endpoint
       // The endpoint will handle payment initiation and redirect to PayU
       toast.loading("Redirecting to payment gateway...");
-      window.location.href = getPaymentPayuRedirectUrl(promoCodeId);
+      window.location.href = getPaymentPayuRedirectUrl(promoCodeId, useTcoins);
       
       // Return a promise that never resolves since we're navigating away
       // This prevents any onSuccess/onError callbacks from firing

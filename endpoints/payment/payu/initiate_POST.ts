@@ -10,6 +10,7 @@ import { getTeacherPlatformFee, DEFAULT_TEACHER_PLATFORM_FEE } from "../../../he
 import { promoCodeCoversTeacher } from "../../../helpers/promoCodeEligibility";
 import { countPromoCodeUses } from "../../../helpers/promoCodeUsage";
 import { courseEffectivePriceSql } from "../../../helpers/coursePricing";
+import { planTcoinsForOrder } from "../../../helpers/tcoins";
 import {
   applySpinCouponOrThrow,
   asEligibleItemIds,
@@ -248,6 +249,15 @@ export async function handle(request: Request) {
         console.log(`Promo code ${promoCode.code} applied. Discount: ₹${discountAmount.toFixed(2)}`);
       }
 
+      const tcoins = await planTcoinsForOrder(trx, {
+        userId: user.id,
+        orderValue: totalAmount,
+        amountBeforeTcoins: Math.max(0, finalAmount),
+        useTcoins: input.useTcoins ?? false,
+        hasCoupon: validatedPromoCodeId !== null,
+      });
+      finalAmount = tcoins.amountToPay;
+
       // Generate product info from all item types
       const productInfo = cartItems
         .map((item) => {
@@ -272,6 +282,8 @@ export async function handle(request: Request) {
           status: "pending",
           paymentMethod: "payu",
           paymentTransactionId: txnid,
+          tcoinsRedeemed: tcoins.tcoinsRedeemed,
+          tcoinsCashback: tcoins.tcoinsCashback,
         })
         .returning("id")
         .executeTakeFirstOrThrow();

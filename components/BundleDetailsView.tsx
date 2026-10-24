@@ -39,6 +39,8 @@ import type { OutputType as BundleDetails } from '../endpoints/bundles/details_G
 import { MobileStickyPurchaseBar } from './MobileStickyPurchaseBar';
 import { AssetTopRow } from './AssetTopRow';
 import { PublicCouponsCard } from './PublicCouponsCard';
+import { TcoinsCheckoutOption, tcoinsToSpend } from './TcoinsCheckoutOption';
+import { useStudentTcoins } from '../helpers/useTcoins';
 import { NotFoundState } from './NotFoundState';
 import { isNotFoundError } from '../helpers/isNotFoundError';
 import styles from './BundleDetailsView.module.css';
@@ -334,11 +336,14 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
   const queryClient = useQueryClient();
   const { authState } = useAuth();
   const isTeacher = authState.type === 'authenticated' && authState.user.role === 'teacher';
+  const isStudent = authState.type === 'authenticated' && authState.user.role === 'student';
   const { data: bundle, isFetching, error } = useBundleDetailsQuery(slug);
   const purchaseMutation = usePurchaseBundleMutation();
+  const { data: tcoins } = useStudentTcoins(isStudent);
 
   const [promoCodeId, setPromoCodeId] = useState<number | null>(null);
   const [discountAmount, setDiscountAmount] = useState(0);
+  const [wantsTcoins, setWantsTcoins] = useState(false);
   const [isStickyBarVisible, setIsStickyBarVisible] = useState(false);
   const pricingRef = useRef<HTMLDivElement>(null);
   const asideRef = useRef<HTMLElement>(null);
@@ -395,8 +400,7 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
       );
     } else {
       toast.loading('Redirecting to payment gateway...');
-      // @ts-ignore
-      window.location.href = getBundleRedirectUrl(bundle.id, promoCodeId);
+      window.location.href = getBundleRedirectUrl(bundle.id, promoCodeId, tcoinsUsed > 0);
     }
   };
 
@@ -422,7 +426,8 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
     return <NotFoundState kind="bundle" />;
   }
 
-  const finalPrice = Math.max(0, bundle.price - discountAmount);
+  const tcoinsUsed = tcoinsToSpend(tcoins, bundle.price, wantsTcoins, promoCodeId !== null);
+  const finalPrice = Math.max(0, Math.round((bundle.price - discountAmount - tcoinsUsed) * 100) / 100);
   const totalItemsValue = bundle.items.reduce((sum, item) => sum + item.price, 0);
   const hasDiscount = totalItemsValue > finalPrice;
   const totalSavings = totalItemsValue - finalPrice;
@@ -635,6 +640,7 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
                   items={[{ id: bundle.id, type: 'bundle' as const, price: bundle.price }]}
                   totalAmount={bundle.price}
                   onApply={(id, amount) => {
+                    setWantsTcoins(false);
                     setPromoCodeId(id);
                     setDiscountAmount(amount);
                     toast.success(`Promo code applied! You saved ₹${amount}.`);
@@ -644,6 +650,17 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
                     setDiscountAmount(0);
                     toast.info('Promo code removed.');
                   }}
+                />
+              )}
+
+              {!isTeacher && !bundle.isEnrolled && bundle.price > 0 && tcoins?.enabled && (
+                <TcoinsCheckoutOption
+                  summary={tcoins}
+                  orderValue={bundle.price}
+                  amountToPay={finalPrice}
+                  checked={wantsTcoins}
+                  onCheckedChange={setWantsTcoins}
+                  couponApplied={promoCodeId !== null}
                 />
               )}
             </div>
@@ -700,6 +717,8 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
           price: bundle.price,
           originalPrice: bundle.originalPrice,
           isEnrolled: bundle.isEnrolled,
+          promoCodeId,
+          useTcoins: tcoinsUsed > 0,
         }}
         isVisible={isStickyBarVisible}
       />

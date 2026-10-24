@@ -16,13 +16,16 @@ export type InputType = z.infer<typeof schema>;
  * to initiate the payment process for a bundle.
  * @param bundleId - ID of the bundle to purchase
  * @param promoCodeId - Optional ID of the promo code to apply
+ * @param useTcoins - Pay part of the bundle with Tcoins (never together with a promo code)
  * @returns The absolute URL path to the redirect endpoint.
  */
-export const getBundleRedirectUrl = (bundleId: number, promoCodeId?: number | null): string => {
+export const getBundleRedirectUrl = (bundleId: number, promoCodeId?: number | null, useTcoins?: boolean): string => {
   const baseUrl = "/_api/payment/payu/bundle-redirect";
   let url = `${baseUrl}?bundleId=${bundleId}`;
   if (promoCodeId) {
     url += `&promoCodeId=${promoCodeId}`;
+  } else if (useTcoins) {
+    url += `&useTcoins=1`;
   }
   return url;
 };

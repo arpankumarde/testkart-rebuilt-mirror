@@ -275,17 +275,17 @@ export const SpinWinPopup: React.FC<Props> = ({ open, onOpenChange, view, autoCl
               </div>
             </>
           ) : spin.requiresLogin ? (
-            <div className={styles.actions}>
+            <div className={styles.claimActions}>
               {viewer.loggedIn ? (
-                <button type="button" onClick={runClaim} disabled={claimMutation.isPending} className={styles.primary}>
+                <button type="button" onClick={runClaim} disabled={claimMutation.isPending} className={`${styles.primary} ${styles.claimButton}`}>
                   {claimMutation.isPending ? "Claiming…" : "Claim My Coupon"}
                 </button>
               ) : (
-                <button type="button" onClick={() => goTo(claimRedirect(location.pathname, location.search))} className={styles.primary}>
+                <button type="button" onClick={() => goTo(claimRedirect(location.pathname, location.search))} className={`${styles.primary} ${styles.claimButton}`}>
                   Claim My Coupon
                 </button>
               )}
-              <button type="button" className={styles.secondary} onClick={() => setScreen("terms")}>
+              <button type="button" className={styles.claimTerms} onClick={() => setScreen("terms")}>
                 View Terms & Conditions
               </button>
               {!viewer.loggedIn ? <p className={styles.fine}>Log in or create a free account to claim. Your reward is saved for this browser session.</p> : null}

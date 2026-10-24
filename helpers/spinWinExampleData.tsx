@@ -101,8 +101,8 @@ const base = {
 };
 
 export const exampleCoupons: MySpinCoupon[] = [
-  { ...base, id: 1, code: "DIWALI-EXAMPLE1", rewardName: "10% OFF", discountType: "percentage", discountValue: 10, minOrderValue: 0, status: "active", orderId: null, savedAmount: null },
-  { ...base, id: 2, code: "DIWALI-EXAMPLE2", rewardName: "₹100 OFF", discountType: "flat", discountValue: 100, minOrderValue: 556, status: "active", orderId: null, savedAmount: null },
-  { ...base, id: 3, code: "NEWYR-EXAMPLE3", campaignName: "Example earlier campaign", rewardName: "15% OFF", discountType: "percentage", discountValue: 15, minOrderValue: 0, status: "redeemed", orderId: 1234, savedAmount: 74.85 },
-  { ...base, id: 4, code: "SUMMR-EXAMPLE4", campaignName: "Example summer campaign", rewardName: "₹50 OFF", discountType: "flat", discountValue: 50, minOrderValue: 278, status: "expired", orderId: null, savedAmount: null, expiresAt: new Date(now - 20 * DAY) },
+  { ...base, id: 1, code: "DIWALI-EXAMPLE1", rewardName: "10% OFF", discountType: "percentage", discountValue: 10, minOrderValue: 0, status: "active", orderId: null, savedAmount: null, redeemedAt: null },
+  { ...base, id: 2, code: "DIWALI-EXAMPLE2", rewardName: "₹100 OFF", discountType: "flat", discountValue: 100, minOrderValue: 556, maxDiscountAmount: 100, status: "active", orderId: null, savedAmount: null, redeemedAt: null },
+  { ...base, id: 3, code: "NEWYR-EXAMPLE3", campaignName: "Example earlier campaign", rewardName: "15% OFF", discountType: "percentage", discountValue: 15, minOrderValue: 0, status: "redeemed", orderId: 1234, savedAmount: 74.85, redeemedAt: new Date(now - 2 * DAY) },
+  { ...base, id: 4, code: "SUMMR-EXAMPLE4", campaignName: "Example summer campaign", rewardName: "₹50 OFF", discountType: "flat", discountValue: 50, minOrderValue: 278, maxDiscountAmount: 50, status: "expired", orderId: null, savedAmount: null, redeemedAt: null, expiresAt: new Date(now - 20 * DAY) },
 ];

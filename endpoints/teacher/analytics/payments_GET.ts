@@ -115,7 +115,7 @@ export async function handle(request: Request): Promise<Response> {
           AND (mt.teacher_id = ${teacherId} OR c.teacher_id = ${teacherId} OR dp.teacher_id = ${teacherId})
         GROUP BY oi.order_id
         UNION ALL
-        SELECT o.id, o.total_amount::numeric, 1, cb.title::text
+        SELECT o.id, (o.total_amount::numeric + o.tcoins_redeemed), 1, cb.title::text
         FROM orders o JOIN course_bundles cb ON cb.id = o.bundle_id
         WHERE o.created_at >= ${window.previousStart} AND cb.teacher_id = ${teacherId}
       )

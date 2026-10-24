@@ -160,7 +160,8 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
     -- override, then subscription) for legacy orders that predate that column. Correlates to
     -- cb.teacher_id (the bundle's own teacher) rather than the outer teacherIdExpr, so this
     -- stays correct for the global (unfiltered) case.
-    SELECT o.total_amount::numeric * (1 - COALESCE(
+    -- Tcoins a student spent are funded by Testkart, so they are added back to the sale value.
+    SELECT (o.total_amount::numeric + o.tcoins_redeemed) * (1 - COALESCE(
       o.platform_fee_percentage,
       (SELECT fee_user.platform_fee_override FROM users fee_user WHERE fee_user.id = cb.teacher_id),
       (SELECT COALESCE(ts.platform_fee_override, sp.platform_fee_percentage)
@@ -172,7 +173,7 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
        ORDER BY ts.created_at DESC
        LIMIT 1
       ), 28) / 100) AS earnings,
-      o.total_amount::numeric AS gross,
+      (o.total_amount::numeric + o.tcoins_redeemed) AS gross,
       o.created_at AS sold_at,
       o.id AS order_id,
       o.user_id AS buyer_id,

@@ -184,6 +184,7 @@ const API_RULES: Record<string, ApiRule> = {
   "admin/static-pages": ["static_pages"],
   "admin/email-templates": ["email_templates"],
   "admin/settings/ai-provider": ["settings"],
+  "admin/settings/tcoins": ["settings"],
   "admin/scripts": ["settings"],
   "admin/well-known": ["settings"],
   "admin/upload-limits": ["settings"],

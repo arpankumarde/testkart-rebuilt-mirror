@@ -1,13 +1,22 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Check, Copy, Eye, Receipt, ShoppingBag, Ticket } from "lucide-react";
+import { BadgePercent, CalendarCheck, Check, Copy, Eye, Gift, Layers, Receipt, ShoppingBag, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "./Badge";
 import { Button } from "./Button";
-import { discountLabel, SPIN_CATEGORY_LABELS, type SpinCategory } from "../helpers/spinWinRules";
 import { spinDate } from "../helpers/spinWinFormat";
 import { shopPathFor } from "../helpers/useSpinWin";
-import { STUDENT_COUPON_LABELS, studentCouponStatus, type StudentCouponStatus } from "../helpers/studentCoupons";
+import {
+  couponCategories,
+  couponDateFact,
+  couponMaxLabel,
+  couponMinimumLabel,
+  couponRupees,
+  couponValueLabel,
+  STUDENT_COUPON_LABELS,
+  studentCouponStatus,
+  type StudentCouponStatus,
+} from "../helpers/studentCoupons";
 import type { MySpinCoupon } from "../endpoints/spin-win/my-coupons_GET.schema";
 import styles from "./StudentCouponCard.module.css";
 
@@ -16,13 +25,40 @@ type Variant = React.ComponentProps<typeof Badge>["variant"];
 export const COUPON_BADGE: Record<StudentCouponStatus | "ineligible", Variant> = {
   available: "success",
   pending: "lavender",
-  redeemed: "default",
-  expired: "secondary",
+  redeemed: "lavender",
+  expired: "outline",
   withdrawn: "destructive",
   ineligible: "warning",
 };
 
-export const couponCategories = (categories: string[]) => categories.map((c) => SPIN_CATEGORY_LABELS[c as SpinCategory] ?? c).join(", ");
+/** The code with a Copy button that confirms for two seconds. Shared by the card and the details modal. */
+export const CouponCode: React.FC<{ code: string; canCopy: boolean; size?: "md" | "lg" }> = ({ code, canCopy, size = "md" }) => {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      toast.success(`${code} copied`);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Copy failed. Select the code and copy it instead.");
+    }
+  };
+  return (
+    <div className={`${styles.codeBox} ${size === "lg" ? styles.codeBoxLg : ""} ${canCopy ? "" : styles.codeBoxMuted}`}>
+      <div className={styles.codeText}>
+        <span className={styles.codeLabel}>Coupon code</span>
+        <code className={styles.code}>{code}</code>
+      </div>
+      {canCopy ? (
+        <Button variant="outline" size="sm" onClick={copy} aria-label={copied ? `${code} copied` : `Copy ${code}`} className={styles.copy}>
+          {copied ? <Check size={14} /> : <Copy size={14} />}
+          <span aria-live="polite">{copied ? "Copied" : "Copy"}</span>
+        </Button>
+      ) : null}
+    </div>
+  );
+};
 
 type Props = {
   coupon: MySpinCoupon;
@@ -30,64 +66,57 @@ type Props = {
 };
 
 export const StudentCouponCard: React.FC<Props> = ({ coupon, onDetails }) => {
-  const [copied, setCopied] = useState(false);
   const status = studentCouponStatus(coupon);
   const usable = status === "available" || status === "pending";
-
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(coupon.code);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
-    } catch {
-      toast.error("Copy failed. Select the code and copy it instead.");
-    }
-  };
+  const dateFact = couponDateFact(coupon);
 
   return (
-    <article className={`${styles.card} ${usable ? "" : styles.muted}`}>
+    <article className={`${styles.card} ${styles[status]}`}>
       <div className={styles.top}>
         <span className={styles.icon} aria-hidden="true">
-          <Ticket size={18} />
+          <Gift size={18} />
         </span>
         <div className={styles.headline}>
-          <span className={styles.value}>{discountLabel(coupon.discountType, coupon.discountValue).toUpperCase()}</span>
+          <span className={styles.value}>{couponValueLabel(coupon)}</span>
           <span className={styles.campaign}>{coupon.campaignName}</span>
         </div>
-        <Badge variant={COUPON_BADGE[status]}>{STUDENT_COUPON_LABELS[status]}</Badge>
+        <Badge variant={COUPON_BADGE[status]} className={styles.badge}>
+          {STUDENT_COUPON_LABELS[status]}
+        </Badge>
       </div>
 
-      <div className={styles.codeRow}>
-        <code className={styles.code}>{coupon.code}</code>
-        {usable ? (
-          <Button variant="ghost" size="sm" onClick={copy} aria-label={`Copy ${coupon.code}`}>
-            {copied ? <Check size={14} /> : <Copy size={14} />} {copied ? "Copied" : "Copy Code"}
-          </Button>
-        ) : null}
-      </div>
+      <div className={styles.perforation} aria-hidden="true" />
+
+      <CouponCode code={coupon.code} canCopy={usable} />
 
       <dl className={styles.facts}>
         <div>
-          <dt>Valid on</dt>
+          <dt>
+            <Layers size={13} aria-hidden="true" /> Valid on
+          </dt>
           <dd>{couponCategories(coupon.eligibleCategories)}</dd>
         </div>
         <div>
-          <dt>Minimum purchase</dt>
-          <dd>{coupon.minOrderValue > 0 ? `₹${coupon.minOrderValue}` : "No minimum order requirement"}</dd>
+          <dt>
+            <ShoppingCart size={13} aria-hidden="true" /> Minimum purchase
+          </dt>
+          <dd>{couponMinimumLabel(coupon)}</dd>
         </div>
         <div>
-          <dt>{status === "redeemed" ? "You saved" : "Maximum discount"}</dt>
-          <dd>
-            {status === "redeemed" && coupon.savedAmount !== null
-              ? `₹${coupon.savedAmount}`
-              : `${coupon.maxDiscountAmount ? `₹${coupon.maxDiscountAmount} or ` : ""}${coupon.maxDiscountPercent}% of eligible items`}
-          </dd>
+          <dt>
+            <BadgePercent size={13} aria-hidden="true" /> {status === "redeemed" && coupon.savedAmount !== null ? "You saved" : "Maximum discount"}
+          </dt>
+          <dd>{status === "redeemed" && coupon.savedAmount !== null ? couponRupees(coupon.savedAmount) : couponMaxLabel(coupon)}</dd>
         </div>
         <div>
-          <dt>{status === "expired" ? "Expired on" : "Expires on"}</dt>
-          <dd>{spinDate(coupon.expiresAt)}</dd>
+          <dt>
+            <CalendarCheck size={13} aria-hidden="true" /> {dateFact.label}
+          </dt>
+          <dd>{dateFact.date ? spinDate(dateFact.date) : "Not recorded"}</dd>
         </div>
       </dl>
+
+      {status === "pending" ? <p className={styles.hint}>A payment with this coupon is in progress. If it failed, you can use the coupon again.</p> : null}
 
       <div className={styles.actions}>
         {usable ? (
@@ -104,11 +133,10 @@ export const StudentCouponCard: React.FC<Props> = ({ coupon, onDetails }) => {
             </Link>
           </Button>
         ) : null}
-        <Button size="sm" variant="ghost" onClick={onDetails}>
+        <Button size="sm" variant="ghost" onClick={onDetails} className={styles.details}>
           <Eye size={14} /> View Details
         </Button>
       </div>
-      {status === "pending" ? <p className={styles.hint}>A payment with this coupon is in progress. If it failed, you can use the coupon again.</p> : null}
     </article>
   );
 };

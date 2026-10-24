@@ -1,0 +1,179 @@
+@layer base {
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: var(--spacing-6);
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow);
+  }
+
+  .head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-6);
+    justify-content: space-between;
+  }
+
+  .balanceBlock {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-1);
+    min-width: 12rem;
+  }
+
+  .title {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    margin: 0;
+    font-family: var(--font-family-base);
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--foreground);
+  }
+
+  .title svg {
+    color: var(--tk-brand-text);
+  }
+
+  .balance {
+    margin: 0;
+    font-family: var(--font-family-heading);
+    font-size: 2.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    color: var(--tk-brand-text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .balance span {
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .pendingNote {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--muted-foreground);
+  }
+
+  .rules {
+    flex: 1 1 18rem;
+    max-width: 32rem;
+    margin: 0;
+    padding-left: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-1);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--foreground);
+  }
+
+  .results {
+    overflow-x: auto;
+  }
+
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  .table th {
+    text-align: left;
+    font-weight: 600;
+    color: var(--muted-foreground);
+    padding: var(--spacing-2) var(--spacing-3);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  .table td {
+    padding: var(--spacing-3);
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  .table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .table .numeric {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .date {
+    white-space: nowrap;
+    color: var(--muted-foreground);
+  }
+
+  .details {
+    color: var(--foreground);
+    min-width: 12rem;
+  }
+
+  .paid {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+  }
+
+  .chip {
+    display: inline-block;
+    padding: 2px var(--spacing-2);
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .done {
+    background-color: var(--pastel-mint);
+    color: var(--pastel-mint-ink);
+  }
+
+  .pending {
+    background-color: var(--pastel-butter);
+    color: var(--pastel-butter-ink);
+  }
+
+  .neutral {
+    background-color: var(--muted);
+    color: var(--foreground);
+  }
+
+  .in {
+    font-weight: 700;
+    color: var(--success-text);
+  }
+
+  .out {
+    font-weight: 700;
+    color: var(--foreground);
+  }
+
+  .void {
+    color: var(--muted-foreground);
+    text-decoration: line-through;
+  }
+
+  .emptyRow td {
+    text-align: center;
+    color: var(--muted-foreground);
+    padding: var(--spacing-6) var(--spacing-3);
+  }
+
+  @media (max-width: 768px) {
+    .card {
+      padding: var(--spacing-4);
+    }
+  }
+}

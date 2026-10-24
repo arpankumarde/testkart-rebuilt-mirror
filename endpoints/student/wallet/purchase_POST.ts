@@ -9,6 +9,7 @@ import { promoCodeCoversTeacher } from "../../../helpers/promoCodeEligibility";
 import { countPromoCodeUses } from "../../../helpers/promoCodeUsage";
 import { lockWallet } from "../../../helpers/walletLock";
 import { courseEffectivePriceSql } from "../../../helpers/coursePricing";
+import { planTcoinsForOrder } from "../../../helpers/tcoins";
 import {
   applySpinCouponOrThrow,
   asEligibleItemIds,
@@ -29,7 +30,7 @@ export async function handle(request: Request) {
 
     const text = await request.text();
     const json = superjson.parse(text);
-    const { promoCodeId } = schema.parse(json);
+    const { promoCodeId, useTcoins } = schema.parse(json);
 
     const result = await db.transaction().execute(async (trx) => {
       // Held until commit, so a parallel purchase or withdrawal request sees this debit
@@ -221,6 +222,15 @@ export async function handle(request: Request) {
 
       finalAmount = Math.max(0, finalAmount);
 
+      const tcoins = await planTcoinsForOrder(trx, {
+        userId: user.id,
+        orderValue: totalAmount,
+        amountBeforeTcoins: finalAmount,
+        useTcoins: useTcoins ?? false,
+        hasCoupon: validatedPromoCodeId !== null,
+      });
+      finalAmount = tcoins.amountToPay;
+
       // 5. Compute student's available balance
       const balanceInfo = await getStudentAvailableBalance(user.id, trx);
       if (balanceInfo.availableBalance < finalAmount) {
@@ -266,6 +276,8 @@ export async function handle(request: Request) {
           status: "completed",
           paymentMethod: "wallet",
           paymentTransactionId: null,
+          tcoinsRedeemed: tcoins.tcoinsRedeemed,
+          tcoinsCashback: tcoins.tcoinsCashback,
         })
         .returning("id")
         .executeTakeFirstOrThrow();
@@ -418,6 +430,8 @@ export async function handle(request: Request) {
         orderId: newOrder.id,
         walletBalanceAfter: balanceInfo.availableBalance - finalAmount,
         amountDeducted: finalAmount,
+        tcoinsRedeemed: tcoins.tcoinsRedeemed,
+        tcoinsCashback: tcoins.tcoinsCashback,
       };
     });
 

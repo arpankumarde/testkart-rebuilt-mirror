@@ -17,7 +17,7 @@ export type ProductData =
   | { type: 'test'; id: number; price: number; discountPrice: number | null; isEnrolled: boolean }
   | { type: 'course'; id: number; price: number; discountPrice?: number | null; isEnrolled: boolean }
   | { type: 'digitalProduct'; id: number; price: number; isEnrolled: boolean }
-  | { type: 'bundle'; id: number; price: number; originalPrice?: number; isEnrolled: boolean; slug?: string }
+  | { type: 'bundle'; id: number; price: number; originalPrice?: number; isEnrolled: boolean; slug?: string; promoCodeId?: number | null; useTcoins?: boolean }
   | { type: 'liveTest'; id: number; price: number; isEnrolled: boolean; canEnroll?: boolean };
 
 interface MobileStickyPurchaseBarProps {
@@ -133,7 +133,7 @@ export const MobileStickyPurchaseBar: React.FC<MobileStickyPurchaseBarProps> = (
           navigate('/cart');
         } else if (product.type === 'bundle') {
           toast.loading('Redirecting to payment gateway...');
-          window.location.href = getBundleRedirectUrl(product.id);
+          window.location.href = getBundleRedirectUrl(product.id, product.promoCodeId, product.useTcoins);
         } else if (product.type === 'liveTest') {
           // direct purchase not going through cart
         }

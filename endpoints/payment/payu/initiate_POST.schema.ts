@@ -4,6 +4,8 @@ import superjson from "superjson";
 export const schema = z.object({
   promoCodeId: z.number().optional(),
   deepLinkUrl: z.string().optional(),
+  /** Pay part of the order with Tcoins. Rejected together with a promo code. */
+  useTcoins: z.boolean().optional(),
 });
 
 export type InputType = z.infer<typeof schema>;

@@ -6,6 +6,7 @@ import { Skeleton } from "../components/Skeleton";
 import { ConsolePageHeader } from "../components/ConsolePageHeader";
 import { StudentWithdrawalSection } from "../components/StudentWithdrawalSection";
 import { StudentWalletTransactions } from "../components/StudentWalletTransactions";
+import { StudentTcoinsCard } from "../components/StudentTcoinsCard";
 import { StudentWithdrawDialog, STUDENT_MIN_WITHDRAWAL } from "../components/StudentWithdrawDialog";
 import { StudentBankDetailsDialog } from "../components/StudentBankDetailsDialog";
 import { useStudentWalletBalance } from "../helpers/useStudentWallet";
@@ -133,6 +134,8 @@ const StudentWalletPage: React.FC = () => {
       </div>
 
       <StudentWithdrawalSection withdrawals={withdrawals} isLoading={isWithdrawalsLoading} />
+
+      <StudentTcoinsCard />
 
       <StudentWalletTransactions />
 

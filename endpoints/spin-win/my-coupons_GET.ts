@@ -39,6 +39,10 @@ export async function handle(request: Request) {
           WHERE u.promo_code_id = sc.promo_code_id AND o.status IN ('completed', 'refunded') ORDER BY o.created_at DESC LIMIT 1)`.as(
           "savedAmount"
         ),
+        sql<Date | null>`(SELECT o.updated_at FROM promo_code_usages u JOIN orders o ON o.id = u.order_id
+          WHERE u.promo_code_id = sc.promo_code_id AND o.status IN ('completed', 'refunded') ORDER BY o.created_at DESC LIMIT 1)`.as(
+          "redeemedAt"
+        ),
       ])
       .where("sc.userId", "=", viewer.userId)
       .orderBy("sc.issuedAt", "desc")
@@ -55,6 +59,7 @@ export async function handle(request: Request) {
         status: row.status as SpinCouponStatus,
         orderId: row.orderId === null ? null : Number(row.orderId),
         savedAmount: row.savedAmount === null ? null : Number(row.savedAmount),
+        redeemedAt: row.redeemedAt === null ? null : new Date(row.redeemedAt),
       })),
     };
     return new Response(superjson.stringify(output), { headers: { "Cache-Control": "no-store" } });

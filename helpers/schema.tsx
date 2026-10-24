@@ -1321,6 +1321,8 @@ export interface Orders {
   refundedAt: Timestamp | null;
   refundReason: string | null;
   status: Generated<OrderStatus>;
+  tcoinsCashback: Generated<number>;
+  tcoinsRedeemed: Generated<number>;
   totalAmount: Numeric;
   updatedAt: Generated<Timestamp | null>;
   userId: number;

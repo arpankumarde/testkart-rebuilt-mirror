@@ -25,6 +25,8 @@ export type MySpinCoupon = {
   orderId: number | null;
   /** What the student saved, once redeemed. */
   savedAmount: number | null;
+  /** When the paid order that used it was completed. */
+  redeemedAt: Date | null;
 };
 
 export type OutputType = { coupons: MySpinCoupon[] };

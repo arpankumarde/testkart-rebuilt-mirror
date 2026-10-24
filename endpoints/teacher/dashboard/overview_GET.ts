@@ -171,7 +171,7 @@ export async function handle(request: Request): Promise<Response> {
           GROUP BY oi.order_id
         ),
         bundle_orders AS (
-          SELECT o.id, 1::bigint AS item_count, o.total_amount::numeric AS amount, cb.title::text AS first_title,
+          SELECT o.id, 1::bigint AS item_count, (o.total_amount::numeric + o.tcoins_redeemed) AS amount, cb.title::text AS first_title,
                  'bundle'::text AS first_kind, cb.thumbnail_url::text AS first_thumbnail
           FROM orders o JOIN course_bundles cb ON cb.id = o.bundle_id
           WHERE cb.teacher_id = ${teacherId}
