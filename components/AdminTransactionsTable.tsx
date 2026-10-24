@@ -163,7 +163,7 @@ export const AdminTransactionsTable: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const PAGE_SIZE = 100;
   const { data: orders, dataUpdatedAt, isFetching, isError, error } = useAdminOrdersQuery();
-  const { status: statusParam, listFilter, write } = useTransactionsListParams();
+  const { status: statusParam, listFilter, promo: promoParam, write } = useTransactionsListParams();
   const [downloadingOrderId, setDownloadingOrderId] = useState<number | null>(null);
   const [reconcilingId, setReconcilingId] = useState<number | null>(null);
   const [markingFailedId, setMarkingFailedId] = useState<number | null>(null);
@@ -277,7 +277,7 @@ export const AdminTransactionsTable: React.FC = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [statusParam, listFilter]);
+  }, [statusParam, listFilter, promoParam]);
 
   const formatPaymentMethod = (method: string): string => {
     const labels: Record<string, string> = {
@@ -318,7 +318,7 @@ export const AdminTransactionsTable: React.FC = () => {
   const handleClearFilters = () => {
     setLocalFilters(DEFAULT_LOCAL_FILTERS);
     setCurrentPage(1);
-    write({ status: null, filter: null });
+    write({ status: null, filter: null, promo: null });
   };
 
   // Apply filters
@@ -332,7 +332,16 @@ export const AdminTransactionsTable: React.FC = () => {
         const nameMatch = order.studentName.toLowerCase().includes(searchLower);
         const emailMatch = order.studentEmail?.toLowerCase().includes(searchLower) ?? false;
         const phoneMatch = order.studentPhone?.toLowerCase().includes(searchLower) ?? false;
-        if (!nameMatch && !emailMatch && !phoneMatch) return false;
+        const orderMatch =
+          (order.paymentTransactionId?.toLowerCase().includes(searchLower) ?? false) ||
+          `#${order.id}` === searchLower ||
+          String(order.id) === searchLower;
+        const promoMatch = order.promoCode?.toLowerCase().includes(searchLower) ?? false;
+        if (!nameMatch && !emailMatch && !phoneMatch && !orderMatch && !promoMatch) return false;
+      }
+
+      if (promoParam && order.promoCode?.toLowerCase() !== promoParam.toLowerCase()) {
+        return false;
       }
 
       // Status filter
@@ -374,7 +383,7 @@ export const AdminTransactionsTable: React.FC = () => {
 
       return true;
     });
-  }, [orders, filters, listFilter, dataUpdatedAt]);
+  }, [orders, filters, listFilter, promoParam, dataUpdatedAt]);
 
   const { sorted: sortedOrders, toggleSort: toggleSortColumn, ...sortState } = useTableSort(filteredOrders, SORT_ACCESSORS);
   const sort = {
@@ -427,11 +436,13 @@ export const AdminTransactionsTable: React.FC = () => {
       const formattedDate = `${day}/${month}/${year}`;
 
       const invoiceNo = order.invoiceNumber!;
+      const orderId = order.paymentTransactionId || `#${order.id}`;
 
       return [
         index + 1,
         formattedDate,
         invoiceNo,
+        orderId,
         "",
         order.studentName,
         order.teacherName || "",
@@ -441,12 +452,14 @@ export const AdminTransactionsTable: React.FC = () => {
         "",
         `  ${igst.toFixed(2)} `,
         "",
-        `  ${total.toFixed(2)} `
+        `  ${total.toFixed(2)} `,
+        order.promoCode || "",
+        order.promoCode ? `  ${order.discountAmount.toFixed(2)} ` : "",
       ];
     });
 
-    const header1 = "S.No.,Date,Invoice No,Supplier GSTIN number,Name of Supplier,Teacher Name,Invoice Base Amount (Rs.),Rate of tax (%),GST,,,Exempted/Nill rated sales (Rs.)  ,Invoice Total (Rs.)\n";
-    const header2 = ",,,,,,,SGST (Rs.),CGST (Rs.),IGST (Rs.),,\n";
+    const header1 = "S.No.,Date,Invoice No,Order ID,Supplier GSTIN number,Name of Supplier,Teacher Name,Invoice Base Amount (Rs.),Rate of tax (%),GST,,,Exempted/Nill rated sales (Rs.)  ,Invoice Total (Rs.),Promo Code,Promo Discount (Rs.)\n";
+    const header2 = ",,,,,,,,,SGST (Rs.),CGST (Rs.),IGST (Rs.),,,,\n";
 
     const csvData = Papa.unparse(dataRows, { header: false });
     const finalCsv = header1 + header2 + csvData;
@@ -750,6 +763,14 @@ export const AdminTransactionsTable: React.FC = () => {
                       <div className={styles.stack}>
                         <span className={styles.valueLine}>{formatCurrency(order.totalAmount)}</span>
                         <span className={styles.secondaryLine} title={method}>{method}</span>
+                        {order.promoCode && (
+                          <span
+                            className={styles.promoLine}
+                            title={`Promo ${order.promoCode}, ${formatCurrency(order.discountAmount)} off`}
+                          >
+                            {order.promoCode}
+                          </span>
+                        )}
                       </div>
                     </td>
                     <td>
@@ -800,6 +821,12 @@ export const AdminTransactionsTable: React.FC = () => {
                     <dd>{order.createdAt ? `${formatDay(order.createdAt)}, ${formatTime(order.createdAt)}` : "Not recorded"}</dd>
                   </div>
                   <div className={styles.cardStat}><dt>Teacher</dt><dd>{order.teacherName || "No teacher"}</dd></div>
+                  {order.promoCode && (
+                    <div className={styles.cardStat}>
+                      <dt>Promo code</dt>
+                      <dd>{order.promoCode} ({formatCurrency(order.discountAmount)} off)</dd>
+                    </div>
+                  )}
                   <div className={styles.cardStat}>
                     <dt>Transaction ID</dt>
                     <dd>{order.paymentTransactionId || "No transaction ID"}</dd>
@@ -902,6 +929,15 @@ export const AdminTransactionsTable: React.FC = () => {
           label="Pending orders older than an hour"
           count={!isFetching && orders ? filteredCount : undefined}
           onClear={() => write({ filter: null })}
+          clearLabel="Show all"
+        />
+      )}
+
+      {promoParam && (
+        <ConsoleFilterNotice
+          label={`Orders that used promo code ${promoParam}`}
+          count={!isFetching && orders ? filteredCount : undefined}
+          onClear={() => write({ promo: null })}
           clearLabel="Show all"
         />
       )}

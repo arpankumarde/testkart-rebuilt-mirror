@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, BadgePercent, BookOpen, Check, Copy, Gift, ShoppingBag, Ticket, X } from "lucide-react";
+import { ArrowLeft, BadgePercent, BookOpen, Check, Copy, Gift, LogIn, ShoppingBag, Ticket, UserPlus, X } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "./Dialog";
 import { SpinWinWheel, rotationForSlice } from "./SpinWinWheel";
@@ -44,12 +44,6 @@ const categoryList = (categories: string[]) => categories.map((c) => SPIN_CATEGO
 
 const BENEFIT_NAMES: Record<string, string> = { courses: "Courses", test_series: "Test Series", study_notes: "Notes" };
 
-const VALID_ON_NAMES: Record<string, string> = { test_series: "Test Series", courses: "Courses", study_notes: "Study Notes" };
-
-/* "Test Series, Courses, Study Notes", in that order, from the coupon's eligible categories. */
-const validOn = (categories: string[]) =>
-  ["test_series", "courses", "study_notes"].filter((c) => categories.includes(c)).map((c) => VALID_ON_NAMES[c]).join(", ");
-
 /* "Courses, Test Series & Notes", in that order, from the campaign's eligible categories. */
 function benefitCategories(categories: string[]): string {
   const names = ["courses", "test_series", "study_notes"].filter((c) => categories.includes(c)).map((c) => BENEFIT_NAMES[c]);
@@ -57,10 +51,10 @@ function benefitCategories(categories: string[]): string {
   return `${names.slice(0, -1).join(", ")} & ${names[names.length - 1]}`;
 }
 
-function claimRedirect(pathname: string, search: string): string {
+function claimRedirect(page: "login" | "signup", pathname: string, search: string): string {
   const params = new URLSearchParams(search);
   params.set("spin", "claim");
-  return `/login?redirectTo=${encodeURIComponent(`${pathname}?${params.toString()}`)}`;
+  return `/${page}?redirectTo=${encodeURIComponent(`${pathname}?${params.toString()}`)}`;
 }
 
 const Confetti: React.FC = () => (
@@ -82,40 +76,6 @@ const Confetti: React.FC = () => (
     ))}
   </div>
 );
-
-/*
- * The conditions of the won coupon, from the issued coupon when claimed, else from the reward
- * saved with the spin. Checkout enforces the same minimum and caps on the server.
- */
-const RewardDetails: React.FC<{ spin: SpinViewState; maxPercent: number }> = ({ spin, maxPercent }) => {
-  const coupon = spin.coupon;
-  const minOrder = coupon?.minOrderValue ?? spin.minOrderValue ?? 0;
-  const maxDiscount = coupon?.maxDiscountAmount ?? spin.maxDiscountAmount;
-  if (!spin.discountType) {
-    return <p className={styles.note}>Our team will contact you about this prize after you claim it.</p>;
-  }
-  const rows: [string, string][] = [
-    ["Valid on", validOn(spin.eligibleCategories)],
-    ["Minimum order", minOrder > 0 ? `₹${minOrder} on eligible items` : "No minimum order requirement"],
-    [
-      "Maximum discount",
-      maxDiscount
-        ? `₹${maxDiscount} or ${maxPercent}% of eligible cart value, whichever is lower`
-        : `${maxPercent}% of eligible cart value`,
-    ],
-    ["Expires", spinDateTime(spin.expiresAt)],
-  ];
-  return (
-    <dl className={styles.details}>
-      {rows.map(([label, value]) => (
-        <div key={label} className={styles.detailRow}>
-          <dt>{label}</dt>
-          <dd>{value}</dd>
-        </div>
-      ))}
-    </dl>
-  );
-};
 
 export const SpinWinPopup: React.FC<Props> = ({ open, onOpenChange, view, autoClaim, onAutoClaimDone }) => {
   const navigate = useNavigate();
@@ -256,7 +216,9 @@ export const SpinWinPopup: React.FC<Props> = ({ open, onOpenChange, view, autoCl
               {message}
             </p>
           ) : null}
-          <RewardDetails spin={spin} maxPercent={campaign.maxDiscountPercent} />
+          {!spin.discountType && spin.claimStatus !== "claimed" ? (
+            <p className={styles.note}>Our team will contact you about this prize after you claim it.</p>
+          ) : null}
 
           {spin.coupon ? (
             <>
@@ -275,6 +237,7 @@ export const SpinWinPopup: React.FC<Props> = ({ open, onOpenChange, view, autoCl
                   My Coupons
                 </button>
               </div>
+              <p className={styles.fine}>Minimum order, maximum discount and expiry for this coupon are under My Coupons.</p>
             </>
           ) : spin.requiresLogin ? (
             <div className={styles.claimActions}>
@@ -283,14 +246,23 @@ export const SpinWinPopup: React.FC<Props> = ({ open, onOpenChange, view, autoCl
                   {claimMutation.isPending ? "Claiming…" : "Claim My Coupon"}
                 </button>
               ) : (
-                <button type="button" onClick={() => goTo(claimRedirect(location.pathname, location.search))} className={`${styles.primary} ${styles.claimButton}`}>
-                  Claim My Coupon
-                </button>
+                <>
+                  <button type="button" onClick={() => goTo(claimRedirect("signup", location.pathname, location.search))} className={`${styles.primary} ${styles.claimButton}`}>
+                    <UserPlus size={16} aria-hidden="true" /> Sign Up to Claim
+                  </button>
+                  <button type="button" onClick={() => goTo(claimRedirect("login", location.pathname, location.search))} className={`${styles.secondary} ${styles.claimButton}`}>
+                    <LogIn size={16} aria-hidden="true" /> I have an account - Log In
+                  </button>
+                </>
               )}
               <button type="button" className={styles.claimTerms} onClick={() => setScreen("terms")}>
                 View Terms & Conditions
               </button>
-              {!viewer.loggedIn ? <p className={styles.fine}>Log in or create a free account to claim. Your reward is saved for this browser session.</p> : null}
+              <p className={styles.fine}>
+                {viewer.loggedIn
+                  ? "Claim it to see your coupon and its details under My Coupons."
+                  : "Your reward is saved for this browser session. Once you sign up or log in, your coupon and its details appear under My Coupons."}
+              </p>
             </div>
           ) : spin.claimStatus === "claimed" && !spin.discountType ? (
             <p className={styles.note}>Claimed. Our team will be in touch.</p>
@@ -378,7 +350,7 @@ export const SpinWinPopup: React.FC<Props> = ({ open, onOpenChange, view, autoCl
                   <li>Coupons are valid until {spinDateTime(campaign.couponExpiresAt)} and expire automatically when the campaign ends.</li>
                   <li>Valid only on {categoryList(campaign.eligibleCategories).toLowerCase()}.</li>
                   <li>
-                    Flat-discount coupons need a minimum eligible purchase, shown on your coupon. The discount never exceeds{" "}
+                    Every coupon needs a minimum eligible purchase, shown on the coupon under My Coupons. The discount never exceeds{" "}
                     {campaign.maxDiscountPercent}% of the eligible items.
                   </li>
                   <li>One coupon per order. Spin & Win coupons cannot be combined with other promo codes.</li>
@@ -408,7 +380,7 @@ export const SpinWinPopup: React.FC<Props> = ({ open, onOpenChange, view, autoCl
                         Terms & Conditions
                       </button>
                     )}
-                    {spin?.coupon ? null : (
+                    {spin?.coupon || (spin?.requiresLogin && !viewer.loggedIn) ? null : (
                       <Link to="/student/coupons" className={styles.termsLink} onClick={() => onOpenChange(false)}>
                         See My Coupons
                       </Link>

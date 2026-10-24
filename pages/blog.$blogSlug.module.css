@@ -938,7 +938,8 @@
 
 .articleContent :global(.tk-content-table > table > * > tr > :is(td, th)) {
   background-color: var(--bd-card);
-  border-bottom-color: var(--border);
+  border-bottom-color: var(--tk-table-line);
+  border-right-color: var(--tk-table-line);
 }
 
 .articleContent :global(.tk-content-table > table > tbody > tr:nth-child(even) > td) {

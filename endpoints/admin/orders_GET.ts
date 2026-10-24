@@ -12,6 +12,7 @@ export async function handle(request: Request) {
     const orders = await db
       .selectFrom("orders")
       .innerJoin("users", "users.id", "orders.userId")
+      .leftJoin("promoCodes", "promoCodes.id", "orders.promoCodeId")
       .select([
         "orders.id",
         "orders.bundleId",
@@ -25,6 +26,9 @@ export async function handle(request: Request) {
         "orders.paymentErrorMessage",
         "orders.paymentBankMessage",
         "orders.paymentGatewayStatus",
+        "orders.promoCodeId",
+        "orders.discountAmount",
+        "promoCodes.code as promoCode",
         "users.displayName as studentName",
         "users.email as studentEmail",
         "users.mobileNumber as studentPhone",
@@ -300,6 +304,9 @@ export async function handle(request: Request) {
         paymentMethod: o.paymentMethod,
         paymentTransactionId: o.paymentTransactionId,
         invoiceNumber: o.invoiceNumber,
+        promoCodeId: o.promoCodeId,
+        promoCode: o.promoCode,
+        discountAmount: o.discountAmount !== null ? parseFloat(o.discountAmount as unknown as string) || 0 : 0,
         paymentFailure:
           o.status === "failed" || o.status === "cancelled"
             ? paymentFailureReason.details({

@@ -214,10 +214,10 @@ export type SpinRewardPreset = {
  * business decision, and the Grand Prize benefit is still undecided, so it carries no discount.
  */
 export const DIWALI_REWARD_PRESETS: SpinRewardPreset[] = [
-  { name: "5% OFF", rewardType: "percentage", discountType: "percentage", discountValue: 5, wheelLabel: "5% OFF", minOrderValue: null, icon: "percent" },
-  { name: "10% OFF", rewardType: "percentage", discountType: "percentage", discountValue: 10, wheelLabel: "10% OFF", minOrderValue: null, icon: "percent" },
-  { name: "15% OFF", rewardType: "percentage", discountType: "percentage", discountValue: 15, wheelLabel: "15% OFF", minOrderValue: null, icon: "percent" },
-  { name: "18% OFF", rewardType: "percentage", discountType: "percentage", discountValue: 18, wheelLabel: "18% OFF", minOrderValue: null, icon: "percent" },
+  { name: "5% OFF", rewardType: "percentage", discountType: "percentage", discountValue: 5, wheelLabel: "5% OFF", minOrderValue: 10, icon: "percent" },
+  { name: "10% OFF", rewardType: "percentage", discountType: "percentage", discountValue: 10, wheelLabel: "10% OFF", minOrderValue: 10, icon: "percent" },
+  { name: "15% OFF", rewardType: "percentage", discountType: "percentage", discountValue: 15, wheelLabel: "15% OFF", minOrderValue: 10, icon: "percent" },
+  { name: "18% OFF", rewardType: "percentage", discountType: "percentage", discountValue: 18, wheelLabel: "18% OFF", minOrderValue: 10, icon: "percent" },
   { name: "₹50 OFF", rewardType: "flat", discountType: "flat", discountValue: 50, wheelLabel: "₹50 OFF", minOrderValue: 278, icon: "ticket" },
   { name: "₹100 OFF", rewardType: "flat", discountType: "flat", discountValue: 100, wheelLabel: "₹100 OFF", minOrderValue: 556, icon: "ticket" },
   { name: "₹150 OFF", rewardType: "flat", discountType: "flat", discountValue: 150, wheelLabel: "₹150 OFF", minOrderValue: 834, icon: "ticket" },

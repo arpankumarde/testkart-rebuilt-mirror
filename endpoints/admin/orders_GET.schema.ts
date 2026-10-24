@@ -28,6 +28,9 @@ export type Order = {
   paymentMethod: string | null;
   paymentTransactionId: string | null;
   invoiceNumber: string | null;
+  promoCodeId: number | null;
+  promoCode: string | null;
+  discountAmount: number;
   // Only for failed and cancelled orders with a PayU reason on record
   paymentFailure: PaymentFailureDetails | null;
 };

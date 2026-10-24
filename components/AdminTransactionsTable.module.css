@@ -66,7 +66,7 @@
 }
 
 .colAmount {
-  width: 6rem;
+  width: 7rem;
 }
 
 .colStatus {
@@ -169,6 +169,24 @@
 .secondaryLine {
   font-size: 0.75rem;
   color: var(--muted-foreground);
+}
+
+/* Coral chip with its paired ink; plain coral text is under 4.5:1 on white. */
+.promoLine {
+  align-self: flex-end;
+  max-width: 100%;
+  margin-top: 2px;
+  padding: 0 0.375rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-radius: var(--radius-sm);
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1.125rem;
+  letter-spacing: 0.02em;
 }
 
 .flag {
@@ -419,9 +437,9 @@
   }
 }
 
-/* The six fixed columns take 51.75rem; 64rem leaves the Student column at
+/* The six fixed columns take 52.75rem; 65rem leaves the Student column at
    least 12rem. Narrower than that, the same data reads as cards. */
-@container results (min-width: 64rem) {
+@container results (min-width: 65rem) {
   .tableContainer {
     display: block;
   }

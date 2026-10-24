@@ -22,12 +22,14 @@ export type TransactionsListFilter = (typeof LIST_FILTERS)[number];
 /*
  * Status and the dashboard-only filter live in the URL, so a dashboard tile
  * lands on exactly the orders it counted. Absent status means all statuses.
+ * promo narrows to orders that used one code; the Promo codes tab links to it.
  */
 export const useTransactionsListParams = () => {
-  const { read, write } = useListUrlParams();
+  const { read, write, searchParams } = useListUrlParams();
   const status = read<OrderStatus | "__all">("status", OrderStatusArrayValues, "__all");
   const listFilter = read<TransactionsListFilter | "">("filter", LIST_FILTERS, "");
-  return { status, listFilter, write };
+  const promo = (searchParams.get("promo") ?? "").trim().slice(0, 64);
+  return { status, listFilter, promo, write };
 };
 
 export const FilterSection: React.FC<{
@@ -57,7 +59,7 @@ export const FilterSection: React.FC<{
             <Search size={18} className={styles.searchIcon} />
             <Input
               type="search"
-              placeholder="Student name, email or phone..."
+              placeholder="Student, email, phone, order ID or promo code..."
               value={search.value}
               onChange={(e) => search.onChange(e.target.value)}
               onKeyDown={(e) => {

@@ -356,7 +356,7 @@
   transform: scale(0.98);
 }
 
-/* A guest's won reward: one full-width Claim button, then Terms as a quiet text link. */
+/* A won reward waiting to be claimed: full-width Claim (or Sign Up and Log In) buttons, then Terms as a quiet text link. */
 .claimActions {
   display: flex;
   flex-direction: column;
@@ -504,44 +504,6 @@
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--sw-chip-ink);
-}
-
-/* Coupon conditions: one label and value per row */
-.details {
-  display: flex;
-  flex-direction: column;
-  margin: 0;
-  padding: 0.25rem var(--spacing-3);
-  border: 1px solid var(--sw-line);
-  border-radius: var(--radius-md);
-  background: var(--sw-card);
-}
-
-.detailRow {
-  display: grid;
-  grid-template-columns: 7.75rem minmax(0, 1fr);
-  align-items: baseline;
-  gap: var(--spacing-3);
-  padding: 0.4375rem 0;
-  border-bottom: 1px solid var(--sw-line);
-}
-
-.detailRow:last-child {
-  border-bottom: 0;
-}
-
-.details dt {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--sw-muted);
-}
-
-.details dd {
-  margin: 0;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  line-height: 1.4;
-  color: var(--sw-text);
 }
 
 .ticket {
@@ -785,10 +747,5 @@
 
   .claimTerms {
     font-size: 0.75rem;
-  }
-
-  .detailRow {
-    grid-template-columns: 6.5rem minmax(0, 1fr);
-    gap: var(--spacing-2);
   }
 }

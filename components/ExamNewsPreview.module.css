@@ -149,7 +149,7 @@
 }
 
 .tableWrap {
-  border: 1px solid var(--border);
+  border: 1px solid var(--tk-table-line);
   border-radius: var(--radius-md);
   overflow: hidden;
 }
@@ -174,9 +174,14 @@
 .table tbody th,
 .table td {
   padding: var(--spacing-3);
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--tk-table-line);
   text-align: left;
   vertical-align: top;
+}
+
+.table th:not(:last-child),
+.table td:not(:last-child) {
+  border-right: 1px solid var(--tk-table-line);
 }
 
 .table tbody th {
@@ -275,7 +280,7 @@
 .prose :global(th),
 .prose :global(td) {
   padding: var(--spacing-2);
-  border: 1px solid var(--border);
+  border: 1px solid var(--tk-table-line);
   text-align: left;
 }
 

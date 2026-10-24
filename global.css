@@ -104,6 +104,8 @@
   --info-text: hsl(204 90% 30%);
 
   --border: hsl(220 15% 90%);
+  /* Row and column lines in content tables: --border is too faint to separate cells. */
+  --tk-table-line: hsl(220 12% 76%);
 
   /*
    * Brand block - one coral, three roles. Replaced the coral-to-teal gradients
@@ -340,6 +342,7 @@
   --info-text: hsl(204 90% 72%);
 
   --border: hsl(220 15% 25%);
+  --tk-table-line: hsl(220 12% 38%);
 
   /* Only the two surface-relative brand values flip. --tk-brand, its ink and
      --tk-brand-deep stay put: a brand block looks the same in both themes. */
@@ -553,8 +556,9 @@
 /*
  * Tables in rendered rich text (articles, exam content, product and lesson
  * descriptions, static pages), wrapped by helpers/contentTables. Coral is the
- * header band only, set in brand ink. The first column holds row labels and
- * stays in view while a wide table scrolls sideways.
+ * header band only, set in brand ink. Rows and columns are both ruled in
+ * --tk-table-line. The first column holds row labels and stays in view while
+ * a wide table scrolls sideways.
  */
 .tk-content-table,
 .tk-content-table-plain {
@@ -564,7 +568,7 @@
 
 .tk-content-table {
   background-color: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--tk-table-line);
   border-radius: var(--radius-md);
 }
 
@@ -609,10 +613,15 @@
 
 .tk-content-table > table > * > tr > :is(td, th) {
   background-color: var(--surface);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--tk-table-line);
+  border-right: 1px solid var(--tk-table-line);
 }
 
-.tk-content-table > table > * > tr:last-child > :is(td, th) {
+.tk-content-table > table > * > tr > :is(td, th):last-child {
+  border-right: 0;
+}
+
+.tk-content-table > table > *:last-child > tr:last-child > :is(td, th) {
   border-bottom: 0;
 }
 
@@ -622,7 +631,6 @@
   left: 0;
   z-index: 1;
   font-weight: 600;
-  border-right: 1px solid var(--border);
 }
 
 .tk-content-table > table > tbody > tr:not(:first-child) > th {
@@ -636,6 +644,7 @@
   font-family: var(--font-family-heading);
   font-weight: 700;
   border-bottom: 0;
+  border-right-color: color-mix(in srgb, var(--tk-brand-ink) 35%, var(--tk-brand));
 }
 
 .tk-content-table > table > thead > tr > th:first-child:not(:only-child),
@@ -657,7 +666,7 @@
   font-family: var(--font-family-heading);
   font-weight: 700;
   border-bottom: 0;
-  border-right-color: var(--tk-brand);
+  border-right-color: color-mix(in srgb, var(--tk-brand-ink) 35%, var(--tk-brand));
 }
 
 @media (max-width: 640px) {
