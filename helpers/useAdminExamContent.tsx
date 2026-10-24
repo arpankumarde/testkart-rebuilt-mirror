@@ -19,6 +19,10 @@ import {
   postAdminDeleteExamCustomPage,
   type InputType as DeleteCustomPageInput,
 } from "../endpoints/admin/exam-content/custom-page/delete_POST.schema";
+import {
+  postAdminUpdateExamCustomPage,
+  type InputType as UpdateCustomPageInput,
+} from "../endpoints/admin/exam-content/custom-page/update_POST.schema";
 
 const ADMIN_EXAM_CONTENT_QUERY_KEY = ["admin", "exam-content"];
 
@@ -109,7 +113,7 @@ export const useExamContentReadyForReviewMutation = () => {
   });
 };
 
-// Errors are shown inline in the add-page dialog, so no toast for them here.
+// Errors are shown inline in the tab dialog, so no toast for them here or in the update below.
 export const useCreateExamCustomPageMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -117,6 +121,18 @@ export const useCreateExamCustomPageMutation = () => {
     onSuccess: (result, variables) => {
       toast.success(`"${result.customPage.label}" added.`);
       // Returned so the caller can open the new tab once it's in the list.
+      return invalidateExamContent(queryClient, variables.examId);
+    },
+  });
+};
+
+export const useUpdateExamCustomPageMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: UpdateCustomPageInput) => postAdminUpdateExamCustomPage(data),
+    onSuccess: (_, variables) => {
+      toast.success("Tab updated.");
+      // Returned so the caller can open the moved tab once it's in the list.
       return invalidateExamContent(queryClient, variables.examId);
     },
   });

@@ -1,0 +1,139 @@
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--tk-brand-text);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.trigger:focus-visible,
+.toggle:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.itemOff {
+  background: var(--muted);
+}
+
+.itemMain {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.value {
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: var(--foreground);
+}
+
+.code {
+  font-family: var(--font-family-monospace);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.meta,
+.reason {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.reason {
+  color: var(--warning-text);
+}
+
+.itemAction {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--spacing-1);
+  flex-shrink: 0;
+}
+
+.saving {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--success-text);
+}
+
+.notice,
+.empty {
+  margin: 0;
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+}
+
+.notice {
+  background: var(--pastel-butter);
+  color: var(--pastel-butter-ink);
+}
+
+.empty {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.toggle {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--foreground);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@media (max-width: 480px) {
+  .item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .itemAction {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}

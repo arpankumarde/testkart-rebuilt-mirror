@@ -69,6 +69,7 @@ describe("buildPublicAssetUrl", () => {
       "help-article",
       "certificate",
       "exam-page",
+      "exam-news",
       "news",
       "career",
     ];

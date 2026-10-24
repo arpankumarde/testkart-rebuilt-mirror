@@ -85,6 +85,7 @@ const world = {
   "live-tests/leaderboard_GET": leaderboard,
   "promo-codes/public_GET": noPromos,
   "analytics/track_POST": { success: true },
+  "spin-win/active_GET": { active: null },
 };
 
 export default defineScreens({

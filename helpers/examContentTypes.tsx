@@ -266,3 +266,38 @@ export interface FaqItem {
   question: string;
   answer: string;
 }
+
+// ---- Content format --------------------------------------------------------
+
+// "rich" comes from the visual editor, "html" from the editor's HTML mode. HTML
+// mode content is stored with this comment as its first line, so the format
+// moves with the content through drafts, publishing and AI regeneration, and
+// content without it (everything written before HTML mode) stays rich text.
+// Content with scripts or form controls is HTML even without the marker, since
+// the rich text path could only strip it down to its labels.
+export const HTML_CONTENT_MARKER = "<!-- tk:html-mode -->";
+
+export type ExamContentFormat = "rich" | "html";
+
+const INTERACTIVE_TAG = /<(?:script|form|input|select|textarea|canvas)[\s>/]/i;
+const EVENT_HANDLER = /<[a-z][^>]*\son[a-z]+\s*=/i;
+
+// True for HTML that only works with its scripts and controls intact. It runs in
+// a sandboxed frame (helpers/htmlFrame); anything else is sanitized into the page.
+// <button> alone doesn't count: the rich text language video tabs use it.
+export function isInteractiveHtml(html: string): boolean {
+  const markup = html.replace(/<!--[\s\S]*?(?:-->|$)/g, "");
+  return INTERACTIVE_TAG.test(markup) || EVENT_HANDLER.test(markup);
+}
+
+export function parseExamContent(stored: string | null | undefined): { format: ExamContentFormat; body: string } {
+  const content = stored ?? "";
+  if (content.startsWith(HTML_CONTENT_MARKER)) {
+    return { format: "html", body: content.slice(HTML_CONTENT_MARKER.length).trimStart() };
+  }
+  return { format: isInteractiveHtml(content) ? "html" : "rich", body: content };
+}
+
+export function serializeExamContent(format: ExamContentFormat, body: string): string {
+  return format === "html" && body.trim() ? `${HTML_CONTENT_MARKER}\n${body}` : body;
+}

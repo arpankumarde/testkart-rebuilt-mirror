@@ -49,8 +49,20 @@ export const postAdminCurrentAffairsGenerateQuiz = async (body: InputType, init?
     },
   });
   if (!result.ok) {
-    const errorObject = superjson.parse<{ error: string }>(await result.text());
-    throw new Error(errorObject.error);
+    // A timeout or gateway error comes back as an HTML page, not our JSON.
+    const text = await result.text();
+    let message = "";
+    try {
+      message = superjson.parse<{ error?: string }>(text)?.error ?? "";
+    } catch {
+      message = "";
+    }
+    throw new Error(
+      message ||
+        (result.status === 504
+          ? "The AI took too long to answer. Try fewer questions or try again."
+          : `The quiz could not be generated (error ${result.status}). Try again in a moment.`)
+    );
   }
   return superjson.parse<OutputType>(await result.text());
 };

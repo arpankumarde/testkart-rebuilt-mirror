@@ -18,9 +18,6 @@ import { AIRewriteButton } from "../components/AIRewriteButton";
 import { AIListGenerateButton } from "../components/AIListGenerateButton";
 import { RichTextEditor } from "../components/RichTextEditor";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "../components/Collapsible";
-import { ContentVisibilityPicker } from "../components/ContentVisibilityPicker";
-import { DEFAULT_CONTENT_VISIBILITY } from "../helpers/contentVisibility";
-import type { ContentVisibility } from "../helpers/schema";
 import { X, Plus, ChevronDown, ArrowLeft } from "lucide-react";
 import {
   Form,
@@ -47,7 +44,6 @@ export default function CreateTestPage() {
   const [languages, setLanguages] = useState<string[]>([]);
   const [isStorefrontOpen, setIsStorefrontOpen] = useState(false);
   const [examNames, setExamNames] = useState<string[]>([]);
-  const [visibility, setVisibility] = useState<ContentVisibility>(DEFAULT_CONTENT_VISIBILITY);
   const { officialExams } = useExamNameSuggestions();
 
   const { useCreateTestWithItemsMutation } = useTeacherBulkMutations();
@@ -117,7 +113,6 @@ export default function CreateTestPage() {
       whatYouLearn: filteredWhatYouLearn.length > 0 ? filteredWhatYouLearn : null,
       requirements: filteredRequirements.length > 0 ? filteredRequirements : null,
       longDescription: values.longDescription || null,
-      visibility,
     };
 
     createTestMutation.mutate(finalValues, {
@@ -571,12 +566,6 @@ export default function CreateTestPage() {
 
               </CollapsibleContent>
             </Collapsible>
-
-            <ContentVisibilityPicker
-              value={visibility}
-              onChange={setVisibility}
-              disabled={createTestMutation.isPending}
-            />
 
             {createTestMutation.isError && (
               <div className={styles.error} role="alert">

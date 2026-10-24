@@ -355,8 +355,6 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
               pageUrl={isPublished ? `/course/${course.slug}` : undefined}
             />
 
-            <ContentVisibilityPanel contentType="course" contentId={courseId} />
-
             {isPublished ? (
               <p className={styles.asideNote}>
                 This course is live. Changes you save show to students straight away.
@@ -402,6 +400,8 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
                 ) : null}
               </section>
             )}
+            {/* With the publish checks, so visibility is picked at the publish step. */}
+            <ContentVisibilityPanel contentType="course" contentId={courseId} />
             {!adminEdit && !isPublished && !isInReview && !isUnlisted && (
               <CreatorBonusClaimCard
                 type="course"

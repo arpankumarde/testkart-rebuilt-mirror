@@ -6,8 +6,8 @@ import { customPageType } from "../../../../helpers/examContentTypes";
 
 // Adds a custom page (sidebar tab) to an exam. It starts empty - content is
 // written through the normal exam-content upsert/generate/publish endpoints
-// under the page type "custom:<slug>". The slug is fixed once created, since
-// it is both the content row's key and the public URL.
+// under the page type "custom:<slug>". The slug is both the content row's key
+// and the public URL, so custom-page/update moves the two together.
 export async function handle(request: Request): Promise<Response> {
   try {
     const admin = await getAdminServerSessionOrThrow(request);

@@ -72,13 +72,15 @@ export async function handle(request: Request): Promise<Response> {
       .where("courses.status", "=", "published")
       .where("courses.visibility", "=", "public");
 
-    // Apply filters
+    // Apply filters. Search matches the teacher's name too, as the site-wide
+    // search does, so its View All link lists the same courses.
     if (search) {
       const searchPattern = `%${search}%`;
       query = query.where((eb) =>
         eb.or([
           eb("courses.title", "ilike", searchPattern),
           eb("courses.description", "ilike", searchPattern),
+          eb("users.displayName", "ilike", searchPattern),
         ])
       );
     }

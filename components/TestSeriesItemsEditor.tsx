@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Plus, Edit, Trash2, FileText, Clock, Layers, AlertTriangle, ChevronDown, ChevronUp, GripVertical, CalendarClock } from "lucide-react";
+import { Plus, Edit, Trash2, FileText, Clock, Layers, AlertTriangle, ChevronDown, ChevronUp, GripVertical, CalendarClock, Zap, X } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -58,6 +58,13 @@ import styles from "./TestSeriesItemsEditor.module.css";
  * The tests inside one test series: add, edit, reorder and trash them, and open
  * each one's subjects. Shared by the teacher test items page and the admin editor.
  */
+
+const formatSchedule = (date: Date | string): string =>
+  new Date(date).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" });
+
+// A schedule only holds a test back while it is in the future; a passed one is already live.
+const isScheduledAhead = (date: Date | string | null | undefined): date is Date | string =>
+  !!date && new Date(date).getTime() > Date.now();
 
 const TestItemForm = ({
   packageId,
@@ -129,6 +136,19 @@ const TestItemForm = ({
   };
 
   const isLoading = createMutation.isPending || updateMutation.isPending;
+
+  const scheduledDate = form.values.scheduledDate ?? null;
+  const scheduleHint = (() => {
+    if (!scheduledDate) {
+      return item?.scheduledDate
+        ? "Schedule removed. The test becomes available to students as soon as you save."
+        : "Leave empty to make this test available immediately, or pick a date and time to schedule it.";
+    }
+    if (isScheduledAhead(scheduledDate)) {
+      return `Students can see this test but cannot start it until ${formatSchedule(scheduledDate)}. Pick another date to reschedule, or make it live now.`;
+    }
+    return "This time has already passed, so the test is available to students.";
+  })();
 
   return (
     <Form {...form}>
@@ -233,15 +253,26 @@ const TestItemForm = ({
         </FormItem>
         <FormItem name="scheduledDate">
           <FormLabel>Schedule Availability</FormLabel>
-          <FormControl>
-            <DatePicker
-              value={form.values.scheduledDate || undefined}
-              onChange={(date) => form.setValues((p) => ({ ...p, scheduledDate: date ?? null }))}
-            />
-          </FormControl>
-          <FormDescription>
-            Set a future date when this test becomes available to students. Leave empty for immediate availability.
-          </FormDescription>
+          <div className={styles.scheduleRow}>
+            <div className={styles.schedulePicker}>
+              <FormControl>
+                <DatePicker
+                  value={scheduledDate || undefined}
+                  onChange={(date) => form.setValues((p) => ({ ...p, scheduledDate: date ?? null }))}
+                />
+              </FormControl>
+            </div>
+            {scheduledDate && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => form.setValues((p) => ({ ...p, scheduledDate: null }))}
+              >
+                {isScheduledAhead(scheduledDate) ? <><Zap size={16} /> Make live now</> : <><X size={16} /> Clear</>}
+              </Button>
+            )}
+          </div>
+          <FormDescription>{scheduleHint}</FormDescription>
           <FormMessage />
         </FormItem>
         <DialogFooter>
@@ -426,10 +457,10 @@ const SortableItemCard = ({
             {item.isFree && <span className={styles.freeBadge}>Free</span>}
             {item.subjectWiseTiming && <span className={styles.subjectTimingBadge}>Subject-wise Timing</span>}
             {item.questionWiseTiming && <span className={styles.questionTimingBadge}>Question-wise Timing</span>}
-            {item.scheduledDate && (
+            {isScheduledAhead(item.scheduledDate) && (
               <span className={styles.scheduledBadge}>
                 <CalendarClock size={14} />
-                {new Date(item.scheduledDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                Scheduled {formatSchedule(item.scheduledDate)}
               </span>
             )}
           </div>
@@ -630,10 +661,10 @@ export const TestSeriesItemsList = ({ packageId }: { packageId: number }) => {
                     {activeItem.isFree && <span className={styles.freeBadge}>Free</span>}
                     {activeItem.subjectWiseTiming && <span className={styles.subjectTimingBadge}>Subject-wise Timing</span>}
                     {activeItem.questionWiseTiming && <span className={styles.questionTimingBadge}>Question-wise Timing</span>}
-                    {activeItem.scheduledDate && (
+                    {isScheduledAhead(activeItem.scheduledDate) && (
                       <span className={styles.scheduledBadge}>
                         <CalendarClock size={14} />
-                        {new Date(activeItem.scheduledDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        Scheduled {formatSchedule(activeItem.scheduledDate)}
                       </span>
                     )}
                   </div>

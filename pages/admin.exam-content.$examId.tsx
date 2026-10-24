@@ -24,6 +24,7 @@ import {
   File,
   ChevronDown,
   Trash2,
+  Pencil,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "../components/Button";
@@ -32,7 +33,6 @@ import { Textarea } from "../components/Textarea";
 import { Skeleton } from "../components/Skeleton";
 import { Badge } from "../components/Badge";
 import { Spinner } from "../components/Spinner";
-import { RichTextEditor } from "../components/RichTextEditor";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../components/Select";
 import {
   Sheet,
@@ -53,6 +53,7 @@ import {
 import { ConsolePageHeader } from "../components/ConsolePageHeader";
 import { ConsoleListEmpty } from "../components/ConsoleListEmpty";
 import { ExamContentExportButton } from "../components/ExamContentExportButton";
+import { ExamContentEditor } from "../components/ExamContentEditor";
 import { ExamCustomPageDialog } from "../components/ExamCustomPageDialog";
 import { useAdminLayout } from "../helpers/useAdminLayout";
 import { adminFormat } from "../helpers/adminFormat";
@@ -72,8 +73,12 @@ import {
   customSectionMeta,
   isAdminExamSectionType,
   isCustomPageType,
+  parseExamContent,
+  serializeExamContent,
   type AdminExamSectionType,
+  type ExamContentFormat,
   type ExamContentPageTypeMeta,
+  type ExamCustomPage,
   type ExamSectionPageType,
   type FaqItem,
 } from "../helpers/examContentTypes";
@@ -86,10 +91,19 @@ type FormState = {
   seoDescription: string;
   description: string;
   content: string;
+  contentFormat: ExamContentFormat;
   faqItems: FaqItem[];
 };
 
-const emptyForm: FormState = { title: "", seoTitle: "", seoDescription: "", description: "", content: "", faqItems: [] };
+const emptyForm: FormState = {
+  title: "",
+  seoTitle: "",
+  seoDescription: "",
+  description: "",
+  content: "",
+  contentFormat: "rich",
+  faqItems: [],
+};
 
 const SECTION_PARAM = "section";
 
@@ -116,12 +130,14 @@ const iconFor = (type: ExamSectionPageType): LucideIcon =>
   isCustomPageType(type) ? File : SECTION_ICONS[type];
 
 function toFormState(page: ExamContentPageItem): FormState {
+  const { format, body } = parseExamContent(page.content);
   return {
     title: page.title,
     seoTitle: page.seoTitle || "",
     seoDescription: page.seoDescription || "",
     description: page.description || "",
-    content: page.content || "",
+    content: body,
+    contentFormat: format,
     faqItems: page.faqItems || [],
   };
 }
@@ -167,6 +183,8 @@ export default function AdminExamContentPage() {
   const [navOpen, setNavOpen] = useState(false);
   const [addTabOpen, setAddTabOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [renameTab, setRenameTab] = useState<ExamCustomPage | null>(null);
+  const [renameOpen, setRenameOpen] = useState(false);
 
   const setActiveType = (type: ExamSectionPageType) => {
     writeUrlParams({ [SECTION_PARAM]: type === "overview" ? null : type });
@@ -273,6 +291,8 @@ export default function AdminExamContentPage() {
   const currentPage = data.pages.find((p) => p.pageType === activeType)!;
   const currentForm = formByType[activeType] ?? emptyForm;
   const savedSnapshot = savedSnapshotByType[activeType] ?? emptyForm;
+  const storedContent = serializeExamContent(currentForm.contentFormat, currentForm.content);
+  const publishedContent = parseExamContent(currentPage.publishedContent);
   const isDirty = JSON.stringify(currentForm) !== JSON.stringify(savedSnapshot);
   const isTypeDirty = (type: string) =>
     formByType[type] !== undefined &&
@@ -314,7 +334,8 @@ export default function AdminExamContentPage() {
   const draftDiffersFromPublished =
     hasPublishedSnapshot &&
     (JSON.stringify(currentPage.publishedFaqItems || []) !== JSON.stringify(currentForm.faqItems) ||
-      (currentPage.publishedContent || "") !== currentForm.content ||
+      publishedContent.body !== currentForm.content ||
+      publishedContent.format !== currentForm.contentFormat ||
       (currentPage.publishedTitle || "") !== currentForm.title);
 
   const updateForm = (patch: Partial<FormState>) => {
@@ -330,7 +351,7 @@ export default function AdminExamContentPage() {
     seoTitle: currentForm.seoTitle || null,
     seoDescription: currentForm.seoDescription || null,
     description: currentForm.description || null,
-    content: currentForm.content,
+    content: storedContent,
     faqItems: currentForm.faqItems,
   });
 
@@ -386,6 +407,30 @@ export default function AdminExamContentPage() {
     }
   };
 
+  // The server keeps a tab's updatedAt on rename, so the forms aren't reloaded;
+  // a title still holding the default built from the old name is updated here.
+  const handleTabRenamed = (previous: ExamCustomPage, saved: ExamCustomPage) => {
+    const oldTitle = `${examLabel} ${previous.label}`;
+    const newTitle = `${examLabel} ${saved.label}`;
+    const retitle = (forms: Record<string, FormState>) => {
+      const form = forms[saved.pageType];
+      if (!form) return forms;
+      return {
+        ...forms,
+        [saved.pageType]: {
+          ...form,
+          title: form.title === oldTitle ? newTitle : form.title,
+          seoTitle: form.seoTitle === oldTitle ? newTitle : form.seoTitle,
+        },
+      };
+    };
+    setFormByType(retitle);
+    setSavedSnapshotByType(retitle);
+    if (saved.pageType !== previous.pageType && activeType === previous.pageType) {
+      setActiveType(saved.pageType);
+    }
+  };
+
   const publicUrl = meta.slug ? `/exams/${data.exam.examSlug}/${meta.slug}` : null;
 
   // Shared by the desktop sidebar and the mobile drawer.
@@ -408,14 +453,15 @@ export default function AdminExamContentPage() {
               <ul className={styles.navList}>
                 {group.types.map((type) => {
                   const page = data.pages.find((p) => p.pageType === type)!;
+                  const customPage = customPages.find((p) => p.pageType === type);
                   const Icon = iconFor(type);
                   const isActive = type === activeType;
                   const dirty = isTypeDirty(type);
                   return (
-                    <li key={type}>
+                    <li key={type} className={styles.navRow}>
                       <button
                         type="button"
-                        className={`${styles.navItem} ${isActive ? styles.navItemActive : ""}`}
+                        className={`${styles.navItem} ${isActive ? styles.navItemActive : ""} ${customPage ? styles.navItemRenamable : ""}`}
                         aria-current={isActive ? "page" : undefined}
                         onClick={() => setActiveType(type)}
                       >
@@ -433,6 +479,23 @@ export default function AdminExamContentPage() {
                           )}
                         </span>
                       </button>
+                      {customPage && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          className={styles.renameButton}
+                          aria-label={`Rename ${customPage.label}`}
+                          title="Rename tab"
+                          onClick={() => {
+                            setNavOpen(false);
+                            setRenameTab(customPage);
+                            setRenameOpen(true);
+                          }}
+                        >
+                          <Pencil size={14} />
+                        </Button>
+                      )}
                     </li>
                   );
                 })}
@@ -567,7 +630,7 @@ export default function AdminExamContentPage() {
                   sectionLabel={meta.label}
                   title={currentForm.title || defaultTitleFor(activeType)}
                   description={meta.hasDescription ? currentForm.description : ""}
-                  content={meta.hasBodyContent ? currentForm.content : ""}
+                  content={meta.hasBodyContent ? storedContent : ""}
                   faqItems={currentForm.faqItems}
                   disabled={!hasSavableDraft}
                 />
@@ -643,19 +706,23 @@ export default function AdminExamContentPage() {
 
               {meta.hasBodyContent && (
                 <div className={styles.field}>
-                  <span className={styles.fieldLabel}>Content</span>
-                  {isOverview && (
-                    <p className={styles.fieldHint}>Shown below the mock test listings on this exam's own page.</p>
-                  )}
-                  {meta.hasDescription && (
-                    <p className={styles.fieldHint}>
-                      Shown below the product grid on this listing page, above the footer.
-                    </p>
-                  )}
-                  <RichTextEditor
+                  <ExamContentEditor
                     value={currentForm.content}
-                    onChange={(html) => updateForm({ content: html })}
-                    placeholder="Write or generate the page content..."
+                    format={currentForm.contentFormat}
+                    onChange={(content) => updateForm({ content })}
+                    onFormatChange={(contentFormat) => updateForm({ contentFormat })}
+                    hint={
+                      <>
+                        {isOverview && (
+                          <p className={styles.fieldHint}>Shown below the mock test listings on this exam's own page.</p>
+                        )}
+                        {meta.hasDescription && (
+                          <p className={styles.fieldHint}>
+                            Shown below the product grid on this listing page, above the footer.
+                          </p>
+                        )}
+                      </>
+                    }
                   />
                 </div>
               )}
@@ -802,6 +869,22 @@ export default function AdminExamContentPage() {
         existingSlugs={customPages.map((p) => p.slug)}
         onCreated={(pageType) => setActiveType(pageType)}
       />
+
+      {renameTab && (
+        <ExamCustomPageDialog
+          open={renameOpen}
+          onOpenChange={setRenameOpen}
+          examId={examId}
+          examSlug={data.exam.examSlug}
+          existingSlugs={customPages.map((p) => p.slug)}
+          editing={{
+            page: renameTab,
+            isPublished: data.pages.find((p) => p.pageType === renameTab.pageType)?.status === "published",
+            hasUnsavedEdits: isTypeDirty(renameTab.pageType),
+          }}
+          onRenamed={handleTabRenamed}
+        />
+      )}
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent className={styles.deleteDialog}>

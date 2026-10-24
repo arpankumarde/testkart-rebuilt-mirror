@@ -1,4 +1,4 @@
-import React, { useState, useMemo, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { SEOHead } from '../components/SEOHead';
 import { useQuery } from '@tanstack/react-query';
@@ -32,24 +32,46 @@ const BundlesGridSkeleton = () => (
 
 const BundlesPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [searchTerm, setSearchTerm] = useState('');
+  const urlSearch = searchParams.get('search') || '';
+  const [searchTerm, setSearchTerm] = useState(urlSearch);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   const page = parseInt(searchParams.get('page') || '1', 10);
 
+  // Search lives in the URL, as on /course and /mock-test, so the search page's
+  // View All lands on a filtered list. It runs on the server across every page;
+  // a new term goes back to page 1.
+  const setSearchParam = useCallback(
+    (value: string) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (value) next.set('search', value);
+          else next.delete('search');
+          next.delete('page');
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
+
+  useEffect(() => {
+    if (debouncedSearchTerm !== urlSearch) setSearchParam(debouncedSearchTerm);
+  }, [debouncedSearchTerm]);
+
+  useEffect(() => {
+    if (urlSearch !== debouncedSearchTerm) setSearchTerm(urlSearch);
+  }, [urlSearch]);
+
+  // Without a search the key matches pages/bundles.prefetch.ts, so the default list stays server-rendered.
+  const listParams = { page, limit: BUNDLES_PER_PAGE, ...(urlSearch ? { search: urlSearch } : {}) };
   const { data, isFetching, error } = useQuery({
-    queryKey: ['public', 'bundles', 'list', { page, limit: BUNDLES_PER_PAGE }],
-    queryFn: () => getBundlesList({ page, limit: BUNDLES_PER_PAGE }),
+    queryKey: ['public', 'bundles', 'list', listParams],
+    queryFn: () => getBundlesList(listParams),
     placeholderData: (previousData) => previousData,
   });
-
-  const filteredBundles = useMemo(() => {
-    if (!data?.bundles) return [];
-    if (!debouncedSearchTerm) return data.bundles;
-    return data.bundles.filter(bundle =>
-      bundle.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
-    );
-  }, [data?.bundles, debouncedSearchTerm]);
 
   const totalPages = data ? Math.ceil(data.total / BUNDLES_PER_PAGE) : 1;
 
@@ -73,7 +95,7 @@ const BundlesPage: React.FC = () => {
 
     return (
       <BundlesGrid
-        bundles={filteredBundles}
+        bundles={data?.bundles ?? []}
         isLoading={isFetching && !data}
       />
     );

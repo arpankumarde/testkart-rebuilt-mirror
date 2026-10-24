@@ -11,10 +11,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './Tabs';
 import { Input } from './Input';
 import { Button } from './Button';
 import { Skeleton } from './Skeleton';
-import { useTestLeaderboardQuery } from '../helpers/useTestLeaderboardQuery';
-import { useAuth } from '../helpers/useAuth';
+import { isLeaderboardLocked, useTestLeaderboardQuery } from '../helpers/useTestLeaderboardQuery';
 import { useDebounce } from '../helpers/useDebounce';
-import { Trophy, Search, Info, AlertCircle, User, BarChart2, X } from 'lucide-react';
+import { Trophy, Search, Info, AlertCircle, User, BarChart2, X, Lock } from 'lucide-react';
 import { LeaderboardEntry } from '../endpoints/tests/leaderboard_GET.schema';
 import styles from './TestLeaderboardDialog.module.css';
 
@@ -71,13 +70,12 @@ const LeaderboardSkeleton: React.FC = () => (
 );
 
 const LeaderboardView: React.FC<{ testItemId: number }> = ({ testItemId }) => {
-  const { authState } = useAuth();
   const { data, isFetching, error, refetch } = useTestLeaderboardQuery(testItemId);
   const [searchTerm, setSearchTerm] = useState('');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-  const currentUserDisplayName = authState.type === 'authenticated' ? authState.user.displayName : null;
+  const currentUserRank = data?.currentUserBestRank?.rank ?? null;
 
   const filteredLeaderboard = useMemo(() => {
     if (!data?.leaderboard) return [];
@@ -102,6 +100,16 @@ const LeaderboardView: React.FC<{ testItemId: number }> = ({ testItemId }) => {
 
   if (isFetching && !data) {
     return <LeaderboardSkeleton />;
+  }
+
+  if (isLeaderboardLocked(error)) {
+    return (
+      <div className={styles.stateContainer}>
+        <Lock size={36} aria-hidden="true" />
+        <h3>Leaderboard locked</h3>
+        <p>{(error as Error).message}</p>
+      </div>
+    );
   }
 
   if (error) {
@@ -158,7 +166,7 @@ const LeaderboardView: React.FC<{ testItemId: number }> = ({ testItemId }) => {
               </div>
               <div className={styles.tableBody}>
                 {visibleEntries.map((entry: LeaderboardEntry) => {
-                  const isCurrentUser = entry.studentName === currentUserDisplayName;
+                  const isCurrentUser = entry.rank === currentUserRank;
                   return (
                     <div
                       key={entry.rank}

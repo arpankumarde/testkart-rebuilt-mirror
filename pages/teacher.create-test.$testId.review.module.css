@@ -168,6 +168,14 @@
   border-top: none;
 }
 
+.visibility {
+  padding: var(--spacing-4);
+}
+
+.verdictBlocked + .visibility {
+  border-top: 1px solid var(--border);
+}
+
 .checksHeader {
   display: flex;
   justify-content: space-between;
@@ -766,7 +774,8 @@
   }
 
   .checksHeader,
-  .check {
+  .check,
+  .visibility {
     padding-inline: var(--spacing-6);
   }
 }
@@ -776,22 +785,17 @@
     grid-template-columns: minmax(0, 1fr) 22rem;
   }
 
+  /* Not sticky and not clipped: the rail holds the verdict, bonus, visibility
+     and checks, which outgrow a laptop window, so it shows in full and scrolls
+     with the page instead of inside its own scrollbar. */
   .rail {
     grid-column: 2;
     grid-row: 1;
-    position: sticky;
-    top: calc(var(--spacing-6) + var(--site-notice-offset));
   }
 
   .content {
     grid-column: 1;
     grid-row: 1;
-  }
-
-  /* Scrolls inside itself when a long list of failures outgrows the window. */
-  .railCard {
-    max-height: calc(100dvh - var(--spacing-12));
-    overflow-y: auto;
   }
 }
 

@@ -5,6 +5,8 @@ import superjson from "superjson";
 import { mapExamContentRow, EXAM_CONTENT_SELECT_COLUMNS } from "../../../helpers/examContentMapper";
 import { setExamOwnerToEditor } from "../../../helpers/examOwner";
 import { examCustomPages } from "../../../helpers/examCustomPages";
+import { isInteractiveHtml, parseExamContent, serializeExamContent } from "../../../helpers/examContentTypes";
+import { sanitizeLayoutHtml } from "../../../helpers/sanitizeLayoutHtml";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -23,6 +25,15 @@ export async function handle(request: Request): Promise<Response> {
     }
     await examCustomPages.assertWritable(input.examId, input.pageType);
 
+    // Static HTML is sanitized here as well as on render, so reopening the editor
+    // shows exactly what visitors get. Interactive HTML is stored as written: it
+    // only ever runs in a sandboxed frame. Rich text is sanitized on render.
+    const { format, body } = parseExamContent(input.content);
+    const content =
+      format === "html"
+        ? serializeExamContent(format, isInteractiveHtml(body) ? body : sanitizeLayoutHtml(body).html)
+        : (input.content ?? null);
+
     // Manual edits are saved as a draft (or keep whatever status the row
     // already has — editing a published page doesn't silently republish it
     // with unreviewed changes; the admin has to hit Publish again). We only
@@ -37,7 +48,7 @@ export async function handle(request: Request): Promise<Response> {
           seoTitle: input.seoTitle ?? null,
           seoDescription: input.seoDescription ?? null,
           description: input.description ?? null,
-          content: input.content ?? null,
+          content,
           faqItems: (input.faqItems ?? null) as any,
           source: "manual",
           status: "draft",
@@ -48,7 +59,7 @@ export async function handle(request: Request): Promise<Response> {
             seoTitle: input.seoTitle ?? null,
             seoDescription: input.seoDescription ?? null,
             description: input.description ?? null,
-            content: input.content ?? null,
+            content,
             faqItems: (input.faqItems ?? null) as any,
             source: "manual",
             updatedAt: new Date(),

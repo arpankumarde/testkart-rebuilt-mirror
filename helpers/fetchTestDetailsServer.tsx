@@ -226,6 +226,7 @@ export async function fetchTestDetailsServer(slug: string): Promise<OutputType> 
     createdAt: test.createdAt,
     updatedAt: test.updatedAt,
     isEnrolled: false,
+    canViewLeaderboard: false,
     language: test.language,
     languages: test.languages,
     teacherIsVerified: !!test.teacherIsVerified,

@@ -12,6 +12,8 @@ import { trackGTMEvent } from "../helpers/trackGTMEvent";
 import { Button } from "../components/Button";
 import { CartItem, CartItemSkeleton } from "../components/CartItem";
 import { CartOrderSummary } from "../components/CartOrderSummary";
+import { SpinWinCouponPicker } from "../components/SpinWinCouponPicker";
+import { useValidatePromoCodeMutation } from "../helpers/usePromoCodeMutations";
 import { paymentFailureReason } from "../helpers/paymentFailureReason";
 import styles from "./cart.module.css";
 
@@ -32,6 +34,7 @@ const CartPage: React.FC = () => {
   const { mutate: initiatePayment, isPending: isInitiatingPayment } = useInitiatePaymentMutation();
   const { data: walletData } = useStudentWalletBalance();
   const { mutate: purchaseWithWallet, isPending: isWalletProcessing } = useStudentWalletPurchase();
+  const { mutate: validateCode, isPending: isValidatingCode } = useValidatePromoCodeMutation();
 
   // Handle URL messages (payment failure, cancellation, etc.)
   useEffect(() => {
@@ -105,12 +108,32 @@ const CartPage: React.FC = () => {
       discountAmount,
       eligibleItemIds,
     });
-    toast.success("Promo code applied successfully!");
+    toast.success(`Coupon applied successfully! You saved ₹${discountAmount.toFixed(2).replace(/\.00$/, "")} on this order.`);
   };
 
   const handlePromoRemove = () => {
     setAppliedPromoCode(null);
-    toast.info("Promo code removed");
+    toast.info("Coupon removed");
+  };
+
+  // Applying from the coupon list goes through the same server validation as a typed code.
+  const applyCouponCode = (code: string) => {
+    if (appliedPromoCode) {
+      toast.error(`${appliedPromoCode.code} is already applied. Remove it first; only one coupon works per order.`);
+      return;
+    }
+    validateCode(
+      { code, items: promoInputItems, totalAmount: totalBeforePromo },
+      {
+        onSuccess: (result) => {
+          if (result.valid && result.promoCodeId && result.discountAmount) {
+            handlePromoApply(result.promoCodeId, result.discountAmount, code, result.eligibleItemIds ?? []);
+          } else {
+            toast.error(result.message);
+          }
+        },
+      }
+    );
   };
 
   const handlePayment = () => {
@@ -218,6 +241,16 @@ const CartPage: React.FC = () => {
               walletBalance={isStudent ? walletData?.availableBalance : undefined}
               onPayWithWallet={handleWalletPayment}
               isWalletProcessing={isWalletProcessing}
+              couponPicker={
+                isStudent ? (
+                  <SpinWinCouponPicker
+                    items={promoInputItems}
+                    appliedCode={appliedPromoCode?.code}
+                    onApply={applyCouponCode}
+                    isApplying={isValidatingCode}
+                  />
+                ) : undefined
+              }
               promoInputProps={{
                 items: promoInputItems,
                 totalAmount: totalBeforePromo,

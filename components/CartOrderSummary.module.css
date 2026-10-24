@@ -130,6 +130,21 @@
   .promoInputWrapper {
     margin-top: var(--spacing-3);
   }
+
+  .pickerRow {
+    margin-top: var(--spacing-3);
+  }
+
+  .savings {
+    margin: 0;
+    padding: var(--spacing-2) var(--spacing-3);
+    border-radius: var(--radius);
+    background-color: var(--pastel-mint);
+    color: var(--pastel-mint-ink);
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-align: center;
+  }
   
   /* Override PromoCodeInput styles to fit better */
   .promoInput :global(input) {

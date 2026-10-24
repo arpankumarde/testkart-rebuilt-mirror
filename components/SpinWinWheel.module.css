@@ -1,0 +1,110 @@
+.figure {
+  position: relative;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.rotor {
+  will-change: transform;
+}
+
+/* The hub sits at (100, 110) of the 200 x 210 view box. */
+.center {
+  position: absolute;
+  left: 50%;
+  top: 52.38%;
+  transform: translate(-50%, -50%);
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.rim {
+  fill: var(--pastel-butter);
+  stroke: var(--pastel-butter-ink);
+  stroke-width: 1.5;
+}
+
+.empty {
+  fill: var(--muted);
+  stroke: var(--border);
+}
+
+.slice {
+  stroke: #ffffff;
+  stroke-width: 1.5;
+}
+
+.label {
+  font-family: var(--font-family-heading);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  pointer-events: none;
+}
+
+.bulb {
+  fill: #ffffff;
+  stroke: var(--pastel-butter-ink);
+  stroke-width: 0.6;
+}
+
+.hub {
+  fill: var(--surface);
+  stroke: var(--pastel-butter-ink);
+  stroke-width: 2;
+}
+
+.hubDot {
+  fill: var(--tk-brand);
+}
+
+.pointer {
+  fill: var(--tk-brand);
+  stroke: var(--tk-brand-ink);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+
+/* Student popup: gold rim and pointer, cream dividers and a soft gold glow. Fixed in both themes. */
+.festive .svg {
+  filter: drop-shadow(0 0 12px rgba(233, 185, 87, 0.45)) drop-shadow(0 6px 14px rgba(20, 6, 34, 0.45));
+}
+
+.festive .rim {
+  fill: #e9b957;
+  stroke: #fff0be;
+  stroke-width: 1.2;
+}
+
+.festive .innerRing {
+  fill: none;
+  stroke: #b8862f;
+  stroke-width: 1.2;
+}
+
+.festive .slice {
+  stroke: #fff9f1;
+  stroke-width: 1.4;
+}
+
+.festive .bulb {
+  fill: #fff9f1;
+  stroke: #b8862f;
+  stroke-width: 0.5;
+}
+
+.festive .pointer {
+  fill: #e9b957;
+  stroke: #fff9f1;
+  stroke-width: 1.6;
+  filter: drop-shadow(0 2px 2px rgba(20, 6, 34, 0.5));
+}
+
+.festive .pointerGem {
+  fill: #49216b;
+  stroke: #fff9f1;
+  stroke-width: 0.8;
+}

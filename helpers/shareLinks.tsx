@@ -29,6 +29,7 @@ export type ShareAssetKind =
   | "help-article"
   | "certificate"
   | "exam-page"
+  | "exam-news"
   | "news"
   | "career";
 
@@ -43,6 +44,7 @@ export const SHARE_ASSET_LABELS: Record<ShareAssetKind, string> = {
   "help-article": "article",
   certificate: "certificate",
   "exam-page": "page",
+  "exam-news": "update",
   news: "story",
   career: "job",
 };
@@ -72,6 +74,8 @@ export const buildPublicAssetUrl = (kind: ShareAssetKind, handle: string | numbe
       return `${SITE_ORIGIN}/help/${segment}`;
     case "certificate":
       return `${SITE_ORIGIN}/certificates/${segment}`;
+    case "exam-news":
+      return `${SITE_ORIGIN}/exam-news/${segment}`;
     case "news":
       return `${SITE_ORIGIN}/press/${segment}`;
     case "career":

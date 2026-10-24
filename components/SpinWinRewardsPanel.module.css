@@ -1,0 +1,351 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 20rem minmax(0, 1fr);
+  gap: var(--spacing-4);
+  align-items: start;
+}
+
+.wheelCard,
+.listCard,
+.grandCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  min-width: 0;
+  padding: var(--spacing-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.wheelCard {
+  background: var(--pastel-cream);
+  color: var(--pastel-cream-ink);
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.total strong {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+
+.totalOk {
+  background: var(--pastel-mint);
+  color: var(--pastel-mint-ink);
+}
+
+.totalOff {
+  background: var(--pastel-butter);
+  color: var(--pastel-butter-ink);
+  border: 1px solid var(--pastel-butter-ink);
+}
+
+.odds {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.oddsRow {
+  display: grid;
+  grid-template-columns: minmax(0, 7rem) minmax(0, 1fr) 3.5rem;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.8125rem;
+}
+
+.oddsName {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: 600;
+}
+
+.bar {
+  height: 0.5rem;
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.barFill {
+  display: block;
+  height: 100%;
+  background: var(--pastel-cream-ink);
+}
+
+.oddsValue {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.problems {
+  margin: 0;
+  padding: var(--spacing-2) var(--spacing-3) var(--spacing-2) var(--spacing-6);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--error-text);
+  font-size: 0.8125rem;
+}
+
+.ready {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.dot {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+}
+
+.results {
+  container: results / inline-size;
+}
+
+.table {
+  display: none;
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.table th {
+  padding: var(--spacing-2) var(--spacing-2);
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  border-bottom: 1px solid var(--border);
+}
+
+.table td {
+  padding: var(--spacing-2);
+  border-bottom: 1px solid var(--border);
+  color: var(--foreground);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.num {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.muted {
+  color: var(--muted-foreground) !important;
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.primary {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.secondary {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-1);
+}
+
+.cards {
+  display: grid;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cardItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2) var(--spacing-6);
+  margin: 0;
+}
+
+.facts div {
+  display: flex;
+  flex-direction: column;
+}
+
+.facts dt {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.facts dd {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground);
+}
+
+@container results (min-width: 42rem) {
+  .table {
+    display: table;
+  }
+
+  .cards {
+    display: none;
+  }
+}
+
+@container results (min-width: 28rem) and (max-width: 41.99rem) {
+  .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.grandCard {
+  background: var(--pastel-lavender);
+  color: var(--pastel-lavender-ink);
+}
+
+.grandHead {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+}
+
+.grandHead .stack {
+  flex: 1 1 auto;
+  gap: var(--spacing-1);
+}
+
+.grandIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  color: var(--pastel-lavender-ink);
+}
+
+.grandNote {
+  font-size: 0.8125rem;
+}
+
+.grandRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-3);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.grandRow .facts {
+  flex: 1 1 auto;
+}
+
+.grandImage {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: var(--radius);
+  object-fit: cover;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

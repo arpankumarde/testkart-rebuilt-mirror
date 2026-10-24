@@ -4,15 +4,20 @@ import { Link, useParams } from 'react-router-dom';
 import {
   AlertTriangle,
   ArrowLeft,
+  ArrowRight,
   BookCopy,
+  CalendarCheck,
   CheckCircle2,
+  ClipboardList,
   Info,
   Star,
   Target,
+  Trophy,
+  UserRound,
 } from 'lucide-react';
 import { useAuth } from '../helpers/useAuth';
 import { useEnrolledTestsQuery } from '../helpers/useEnrolledTestsQuery';
-import { TestItemRow } from '../components/EnrolledTestCard';
+import { EnrolledTestItemList, EnrolledTestItemRow } from '../components/EnrolledTestItemRow';
 import { ReviewDialog } from '../components/ReviewDialog';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
@@ -59,9 +64,7 @@ export default function StudentTestPackageDetailPage() {
     return (
       <div className={styles.page}>
         <Skeleton className={styles.headerSkeleton} />
-        <Skeleton className={styles.itemSkeleton} />
-        <Skeleton className={styles.itemSkeleton} />
-        <Skeleton className={styles.itemSkeleton} />
+        <Skeleton className={styles.listSkeleton} />
       </div>
     );
   }
@@ -109,6 +112,7 @@ export default function StudentTestPackageDetailPage() {
     month: 'short',
     day: 'numeric',
   }).format(new Date(enrolledTest.enrolledAt ?? new Date()));
+  const completionPercent = Math.round(enrolledTest.progressPercentage);
 
   return (
     <>
@@ -121,8 +125,8 @@ export default function StudentTestPackageDetailPage() {
           <ArrowLeft size={16} /> Back to mock tests
         </Link>
 
-        <div className={styles.headerCard}>
-          <div className={styles.cardHeader}>
+        <section className={styles.overview} aria-labelledby="series-title">
+          <div className={styles.overviewTop}>
             <div className={styles.thumbnail}>
               <img
                 src={enrolledTest.thumbnailUrl || Placeholder.TEST}
@@ -130,68 +134,125 @@ export default function StudentTestPackageDetailPage() {
                 className={styles.thumbnailImage}
               />
             </div>
+
             <div className={styles.headerContent}>
-              <div className={styles.headerBadges}>
-                {enrolledTest.examName && <Badge>{enrolledTest.examName}</Badge>}
-                {!enrolledTest.isPublished && (
-                  <Badge variant="outline" className={styles.unpublishedBadge}>
-                    <Info size={14} />
-                    Unpublished
-                  </Badge>
+              {(enrolledTest.examName || !enrolledTest.isPublished) && (
+                <div className={styles.headerBadges}>
+                  {enrolledTest.examName && <Badge className={styles.examBadge}>{enrolledTest.examName}</Badge>}
+                  {!enrolledTest.isPublished && (
+                    <Badge variant="outline" className={styles.unpublishedBadge}>
+                      <Info size={12} />
+                      Unpublished
+                    </Badge>
+                  )}
+                </div>
+              )}
+              <h1 id="series-title" className={styles.title}>{enrolledTest.title}</h1>
+              <p className={styles.metaLine}>
+                <span className={styles.metaItem}>
+                  <CalendarCheck size={14} aria-hidden="true" />
+                  Enrolled {formattedEnrolledDate}
+                </span>
+                {enrolledTest.creatorName && (
+                  <span className={styles.metaItem}>
+                    <UserRound size={14} aria-hidden="true" />
+                    {enrolledTest.creatorName}
+                  </span>
+                )}
+              </p>
+            </div>
+
+            {!isTeacher && (
+              <div className={styles.actions}>
+                <Link to={continueLearningUrl} className={`${styles.actionButton} ${styles.primaryButton}`}>
+                  Continue learning
+                  <ArrowRight size={15} aria-hidden="true" />
+                </Link>
+                <Link
+                  to={`/student/tests/leaderboards?series=${enrolledTest.id}`}
+                  className={`${styles.actionButton} ${styles.outlineButton}`}
+                >
+                  <Trophy size={15} aria-hidden="true" />
+                  Leaderboard
+                </Link>
+                {enrolledTest.completedItems > 0 && !enrolledTest.hasReviewed && (
+                  <button
+                    type="button"
+                    className={`${styles.actionButton} ${styles.ghostButton}`}
+                    onClick={() => setIsReviewDialogOpen(true)}
+                  >
+                    <Star size={15} aria-hidden="true" />
+                    Write a review
+                  </button>
                 )}
               </div>
-              <h1 className={styles.title}>{enrolledTest.title}</h1>
-              <p className={styles.enrolledDate}>Enrolled {formattedEnrolledDate}</p>
-            </div>
+            )}
           </div>
 
-          <div className={styles.progressSection}>
-            <div className={styles.progressTopRow}>
-              <span className={styles.progressLabel}>Progress</span>
-              <span className={styles.progressPercent}>{Math.round(enrolledTest.progressPercentage)}%</span>
+          <dl className={styles.stats}>
+            <div className={styles.progressCell}>
+              <div className={styles.progressTopRow}>
+                <dt className={styles.statLabel}>Completion</dt>
+                <dd className={styles.progressPercent}>{completionPercent}%</dd>
+              </div>
+              <Progress value={enrolledTest.progressPercentage} className={styles.progressBar} />
             </div>
-            <Progress value={enrolledTest.progressPercentage} />
-            <div className={styles.statStrip}>
-              <span className={styles.statChip}>
-                <BookCopy size={14} className={styles.statChipIcon} />
-                <strong>{enrolledTest.totalItems}</strong> tests
-              </span>
-              <span className={styles.statDivider} aria-hidden="true">&bull;</span>
-              <span className={styles.statChip}>
-                <CheckCircle2 size={14} className={styles.statChipIcon} />
-                <strong>{enrolledTest.completedItems}</strong> completed
-              </span>
-              <span className={styles.statDivider} aria-hidden="true">&bull;</span>
-              <span className={styles.statChip}>
-                <Target size={14} className={styles.statChipIcon} />
-                Avg{' '}
-                <strong className={styles[averageScoreColor]}>
-                  {enrolledTest.averageScore !== null ? `${enrolledTest.averageScore.toFixed(1)}%` : 'Not scored'}
-                </strong>
-              </span>
+            <div className={styles.statCell}>
+              <dt className={styles.statLabel}>
+                <BookCopy size={14} aria-hidden="true" />
+                Total tests
+              </dt>
+              <dd className={styles.statValue}>{enrolledTest.totalItems}</dd>
             </div>
-          </div>
+            <div className={styles.statCell}>
+              <dt className={styles.statLabel}>
+                <CheckCircle2 size={14} aria-hidden="true" />
+                Completed
+              </dt>
+              <dd className={styles.statValue}>
+                {enrolledTest.completedItems}
+                <span className={styles.statOf}>/ {enrolledTest.totalItems}</span>
+              </dd>
+            </div>
+            <div className={styles.statCell}>
+              <dt className={styles.statLabel}>
+                <Target size={14} aria-hidden="true" />
+                Average score
+              </dt>
+              <dd className={`${styles.statValue} ${styles[averageScoreColor]}`}>
+                {enrolledTest.averageScore !== null ? `${enrolledTest.averageScore.toFixed(1)}%` : 'Not scored'}
+              </dd>
+            </div>
+          </dl>
+        </section>
 
-          {!isTeacher && (
-            <div className={styles.headerFooter}>
-              {enrolledTest.completedItems > 0 && !enrolledTest.hasReviewed && (
-                <button className={styles.reviewButton} onClick={() => setIsReviewDialogOpen(true)}>
-                  <Star size={14} />
-                  Write a review
-                </button>
-              )}
-              <Link to={continueLearningUrl} className={styles.continueButton}>
-                Continue learning
-              </Link>
-            </div>
+        <section className={styles.testsPanel} aria-labelledby="series-tests-title">
+          <header className={styles.testsHeader}>
+            <h2 id="series-tests-title" className={styles.testsTitle}>
+              <ClipboardList size={18} aria-hidden="true" />
+              Tests in this series
+            </h2>
+            <span className={styles.testsCount}>
+              {enrolledTest.completedItems} of {enrolledTest.totalItems} completed
+            </span>
+          </header>
+
+          {enrolledTest.testItems.length > 0 ? (
+            <EnrolledTestItemList>
+              {enrolledTest.testItems.map((item, index) => (
+                <EnrolledTestItemRow
+                  key={item.id}
+                  item={item}
+                  index={index + 1}
+                  seriesId={enrolledTest.id}
+                  isTeacher={isTeacher}
+                />
+              ))}
+            </EnrolledTestItemList>
+          ) : (
+            <p className={styles.noTests}>The teacher has not added any tests to this series yet.</p>
           )}
-        </div>
-
-        <div className={styles.testItemsList}>
-          {enrolledTest.testItems.map((item) => (
-            <TestItemRow key={item.id} item={item} isTeacher={isTeacher} />
-          ))}
-        </div>
+        </section>
 
         <ReviewDialog
           isOpen={isReviewDialogOpen}

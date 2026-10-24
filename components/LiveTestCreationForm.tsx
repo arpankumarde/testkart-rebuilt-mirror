@@ -8,9 +8,6 @@ import { LiveTestBasicInfoStep } from './LiveTestBasicInfoStep';
 import { LiveTestScheduleStep } from './LiveTestScheduleStep';
 import { LiveTestPrizesStep } from './LiveTestPrizesStep';
 import { LiveTestReviewStep } from './LiveTestReviewStep';
-import { ContentVisibilityPicker } from './ContentVisibilityPicker';
-import { DEFAULT_CONTENT_VISIBILITY } from '../helpers/contentVisibility';
-import type { ContentVisibility } from '../helpers/schema';
 import { useTeacherLiveTestMutations } from '../helpers/useTeacherLiveTestMutations';
 import {
   Dialog,
@@ -56,7 +53,6 @@ export const LiveTestCreationForm: React.FC<LiveTestCreationFormProps> = ({ clas
   const [storefrontOpen, setStorefrontOpen] = useState(false);
   const [focusRequest, setFocusRequest] = useState(0);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [visibility, setVisibility] = useState<ContentVisibility>(DEFAULT_CONTENT_VISIBILITY);
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { useCreateLiveTestMutation } = useTeacherLiveTestMutations();
@@ -147,7 +143,6 @@ export const LiveTestCreationForm: React.FC<LiveTestCreationFormProps> = ({ clas
       isFree: data.isFree ?? false,
       hasPrizes: data.hasPrizes ?? false,
       prizeTiers: data.prizeTiers ?? [],
-      visibility,
     };
     createLiveTest.mutate(payload, {
       onSuccess: (result) => navigate(`/teacher/live-test/${result.id}/questions`),
@@ -182,9 +177,6 @@ export const LiveTestCreationForm: React.FC<LiveTestCreationFormProps> = ({ clas
             setStep(target);
             if (section === 'storefront') setStorefrontOpen(true);
           }} />}
-          {step === 'review' && (
-            <ContentVisibilityPicker value={visibility} onChange={setVisibility} disabled={createLiveTest.isPending} />
-          )}
           <div className={styles.footer}>
             <div className={styles.footerGroup}>
               {stepIndex > 0 && (
@@ -212,8 +204,7 @@ export const LiveTestCreationForm: React.FC<LiveTestCreationFormProps> = ({ clas
             <DialogTitle>Create Live Test?</DialogTitle>
             <DialogDescription>
               This creates your live test as a draft and takes you straight to the question manager. It won&apos;t be
-              visible to students until you add questions and publish it
-              {visibility === 'unlisted' ? ', and then only to people with its link.' : '.'}
+              visible to students until you add questions and publish it. You choose Public or Unlisted when you publish.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

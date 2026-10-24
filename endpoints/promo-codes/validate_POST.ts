@@ -5,11 +5,21 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 import { promoCodeCoversTeacher } from "../../helpers/promoCodeEligibility";
 import { countPromoCodeUses } from "../../helpers/promoCodeUsage";
+import { getSpinCouponRuleOrThrow } from "../../helpers/spinWinServer";
+import { computeSpinDiscount, type SpinLineType } from "../../helpers/spinWinRules";
 
 type ItemWithType = {
   id: number;
   type: "course" | "test" | "live_test" | "bundle" | "digital_product";
   price: number;
+};
+
+const SPIN_LINE_TYPE: Record<ItemWithType["type"], SpinLineType> = {
+  course: "course",
+  test: "test",
+  live_test: "live_test",
+  bundle: "bundle",
+  digital_product: "digitalProduct",
 };
 
 export async function handle(request: Request): Promise<Response> {
@@ -73,7 +83,22 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
-    if (promoCode.usageLimit !== null && (await countPromoCodeUses(db, promoCode.id)) >= promoCode.usageLimit) {
+    // Spin & Win coupons carry their own owner and single-use checks, which also treat a pending
+    // checkout as retryable, so the generic usage limits below are skipped for them.
+    let spinRule;
+    try {
+      spinRule = await getSpinCouponRuleOrThrow(db, promoCode.id, user.id, { ignorePending: true });
+    } catch (error) {
+      return new Response(
+        superjson.stringify({
+          valid: false,
+          message: error instanceof Error ? error.message : "This coupon cannot be used.",
+        } satisfies OutputType),
+        { status: 200 }
+      );
+    }
+
+    if (!spinRule && promoCode.usageLimit !== null && (await countPromoCodeUses(db, promoCode.id)) >= promoCode.usageLimit) {
       return new Response(
         superjson.stringify({
           valid: false,
@@ -83,7 +108,7 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
-    if (promoCode.perUserLimit !== null) {
+    if (!spinRule && promoCode.perUserLimit !== null) {
       if ((await countPromoCodeUses(db, promoCode.id, user.id)) >= promoCode.perUserLimit) {
         return new Response(
           superjson.stringify({
@@ -93,6 +118,35 @@ export async function handle(request: Request): Promise<Response> {
           { status: 200 }
         );
       }
+    }
+
+    // A preview only: checkout recomputes the discount from server-side prices.
+    if (spinRule) {
+      const lines = items.map((item) => ({ type: SPIN_LINE_TYPE[item.type], id: item.id, price: item.price }));
+      const result = computeSpinDiscount(spinRule, lines);
+      const isEligible = (item: ItemWithType) =>
+        result.eligible.some((line) => line.id === item.id && line.type === SPIN_LINE_TYPE[item.type]);
+      const eligibleItemIds = items.filter(isEligible).map((i) => i.id);
+      const ineligibleItemIds = items.filter((i) => !isEligible(i)).map((i) => i.id);
+      return new Response(
+        superjson.stringify(
+          (result.ok
+            ? {
+                valid: true,
+                discountAmount: result.discount,
+                eligibleItemIds,
+                ineligibleItemIds,
+                promoCodeId: promoCode.id,
+                message: "Spin & Win coupon applied!",
+                discountBreakdown:
+                  eligibleItemIds.length === items.length
+                    ? `Applied to all ${items.length} items in cart`
+                    : `Applied to ${eligibleItemIds.length} out of ${items.length} items in cart`,
+              }
+            : { valid: false, eligibleItemIds, ineligibleItemIds, message: result.message }) satisfies OutputType
+        ),
+        { status: 200 }
+      );
     }
 
     // Fetch teacher IDs for all items

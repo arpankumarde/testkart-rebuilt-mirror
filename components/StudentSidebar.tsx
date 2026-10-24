@@ -10,6 +10,7 @@ import {
   Award,
   Wallet,
   Receipt,
+  Ticket,
   UserCog,
   LogOut,
   X,
@@ -104,6 +105,7 @@ const NAV_GROUPS: StudentNavGroup[] = [
     label: 'Account',
     items: [
       { href: '/student/wallet', label: 'Wallet', icon: Wallet },
+      { href: '/student/coupons', label: 'My Coupons', icon: Ticket },
       { href: '/student/orders', label: 'Orders', icon: Receipt },
       { href: '/student/profile', label: 'Profile', icon: UserCog },
     ],

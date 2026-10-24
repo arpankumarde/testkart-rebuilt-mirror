@@ -10,6 +10,14 @@ import { getTeacherPlatformFee, DEFAULT_TEACHER_PLATFORM_FEE } from "../../../he
 import { promoCodeCoversTeacher } from "../../../helpers/promoCodeEligibility";
 import { countPromoCodeUses } from "../../../helpers/promoCodeUsage";
 import { courseEffectivePriceSql } from "../../../helpers/coursePricing";
+import {
+  applySpinCouponOrThrow,
+  asEligibleItemIds,
+  getSpinCouponRuleOrThrow,
+  recordSpinRedemption,
+  spinCartLines,
+  type AppliedSpinCoupon,
+} from "../../../helpers/spinWinServer";
 
 export async function handle(request: Request) {
   try {
@@ -84,6 +92,7 @@ export async function handle(request: Request) {
       let finalAmount = totalAmount;
       let validatedPromoCodeId: number | null = null;
       let eligibleItemIds: Array<{ type: 'test' | 'course' | 'digitalProduct'; id: number }> = [];
+      let spinApplied: AppliedSpinCoupon | null = null;
 
       // Validate and apply promo code if provided
       if (input.promoCodeId) {
@@ -225,6 +234,15 @@ export async function handle(request: Request) {
         discountAmount = Math.min(discountAmount, eligibleItemsTotal);
         finalAmount = totalAmount - discountAmount;
 
+        // Spin & Win coupons: owner, expiry, single use, categories, minimum and the 18% cap.
+        const spinRule = await getSpinCouponRuleOrThrow(trx, input.promoCodeId, user.id);
+        if (spinRule) {
+          spinApplied = applySpinCouponOrThrow(spinRule, spinCartLines(cartItems));
+          eligibleItemIds = asEligibleItemIds(spinApplied.eligible);
+          discountAmount = spinApplied.discount;
+          finalAmount = totalAmount - discountAmount;
+        }
+
         validatedPromoCodeId = input.promoCodeId;
 
         console.log(`Promo code ${promoCode.code} applied. Discount: ₹${discountAmount.toFixed(2)}`);
@@ -358,6 +376,10 @@ export async function handle(request: Request) {
             discountAmount: discountAmount.toFixed(2),
           })
           .execute();
+      }
+
+      if (spinApplied) {
+        await recordSpinRedemption(trx, spinApplied, { id: newOrder.id, userId: user.id, finalAmount, paymentMethod: "payu" });
       }
 
       const amount = finalAmount.toFixed(2);

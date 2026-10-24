@@ -1,7 +1,8 @@
-import { defineScreens, pending, httpError } from "@floot/examples";
+import { defineScreens, pending, httpError, delayed } from "@floot/examples";
 import type { OutputType as Reviews } from "../endpoints/reviews/external_GET.schema";
 import type { OutputType as Session } from "../endpoints/auth/session_GET.schema";
 import type { OutputType as Cart } from "../endpoints/cart/items_GET.schema";
+import { exampleCampaignView, exampleGuestWon, exampleStudentClaimed, exampleStudentSession, wonTenPercent } from "../helpers/spinWinExampleData";
 
 const source = {
   name: "AmbitionBox",
@@ -86,6 +87,7 @@ export default defineScreens({
   backend: {
     "auth/session_GET": { error: "Not authenticated" } as Session,
     "cart/items_GET": { items: [] } as Cart,
+    "spin-win/active_GET": { active: null },
   },
   screens: [
     {
@@ -115,6 +117,32 @@ export default defineScreens({
       description: "Not real reviews - shows rating, bars and cards once a feed is approved",
       route: "/about",
       backend: { "reviews/external_GET": sample },
+    },
+    {
+      title: "Spin & Win popup - ready to spin",
+      description: "The Diwali popup opened over a public page, before the spin",
+      route: "/about?spin=open",
+      backend: {
+        "reviews/external_GET": today,
+        "spin-win/active_GET": { active: exampleCampaignView },
+        "spin-win/spin_POST": delayed(400, { spin: wonTenPercent, alreadySpun: false, message: null }),
+      },
+    },
+    {
+      title: "Spin & Win popup - guest won",
+      description: "A guest's saved reward, waiting for login to claim",
+      route: "/about?spin=open",
+      backend: { "reviews/external_GET": today, "spin-win/active_GET": { active: exampleGuestWon } },
+    },
+    {
+      title: "Spin & Win popup - coupon claimed",
+      description: "A signed-in student's coupon with Copy Code and Shop Now",
+      route: "/about?spin=open",
+      backend: {
+        "reviews/external_GET": today,
+        "auth/session_GET": exampleStudentSession as Session,
+        "spin-win/active_GET": { active: exampleStudentClaimed },
+      },
     },
   ],
 });

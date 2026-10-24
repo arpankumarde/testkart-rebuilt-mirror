@@ -4,16 +4,10 @@ import {
   BookCopy,
   CheckCircle2,
   ChevronRight,
-  Clock,
-  Eye,
-  FileQuestion,
   Info,
-  Lock,
-  PlayCircle,
-  Repeat,
   Target,
 } from 'lucide-react';
-import type { EnrolledTest, TestItemWithProgress } from '../endpoints/student/enrolled-tests_GET.schema';
+import type { EnrolledTest } from '../endpoints/student/enrolled-tests_GET.schema';
 import { Badge } from './Badge';
 import { Progress } from './Progress';
 import { Placeholder } from '../helpers/placeholderImages';
@@ -31,99 +25,6 @@ const getScoreColor = (score: number | null): 'success' | 'warning' | 'destructi
   return 'destructive';
 };
 
-export const TestItemRow: React.FC<{ item: TestItemWithProgress; isTeacher: boolean }> = ({ item, isTeacher }) => {
-  const isScheduled = item.scheduledDate && new Date(item.scheduledDate) > new Date();
-  
-  const getStatus = (): { label: string; variant: 'success' | 'warning' | 'outline' | 'secondary' } => {
-    if (item.isCompleted) {
-      return { label: 'Completed', variant: 'success' };
-    }
-    if (item.attemptsCount > 0) {
-      return { label: 'In progress', variant: 'warning' };
-    }
-    if (isScheduled) {
-      return { label: 'Scheduled', variant: 'secondary' };
-    }
-    return { label: 'Not started', variant: 'outline' };
-  };
-
-  const status = getStatus();
-  const hasBeenAttempted = item.attemptsCount > 0;
-  const testUrl = `/portal/${item.id}`;
-  const resultsUrl = `/portal/${item.id}/results`;
-  
-  const scheduledDateStr = item.scheduledDate 
-    ? new Date(item.scheduledDate).toLocaleString(undefined, {
-        month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
-      })
-    : '';
-
-  return (
-    <div className={styles.testItem}>
-      <div className={styles.itemMain}>
-        <div className={styles.itemTitleWrapper}>
-          <span className={styles.itemTitle}>{item.title}</span>
-          {item.subject && <Badge variant="secondary">{item.subject}</Badge>}
-        </div>
-        <div className={styles.itemMeta}>
-          <div className={styles.itemMetaChip}>
-            <Clock size={14} />
-            <span>{item.durationMinutes > 0 ? `${item.durationMinutes} min` : "No Time Limit"}</span>
-          </div>
-          <div className={styles.itemMetaChip}>
-            <FileQuestion size={14} />
-            <span>{item.totalQuestions} Qs</span>
-          </div>
-          {isScheduled && (
-            <div className={styles.scheduledInfo}>
-              Available: {scheduledDateStr}
-            </div>
-          )}
-        </div>
-      </div>
-      <div className={styles.itemStatus}>
-        <Badge variant={status.variant} className={styles.statusBadge}>
-          {status.label}
-        </Badge>
-        {item.bestScore !== null && (
-          <div className={styles.bestScore}>
-            Best Score:
-            <span className={styles[getScoreColor(item.bestScore)]}>
-              {item.bestScore.toFixed(2)}%
-            </span>
-          </div>
-        )}
-      </div>
-      {!isTeacher && (
-        <div className={styles.itemActions}>
-          {item.isCompleted ? (
-          <>
-            <Link to={resultsUrl} className={`${styles.actionButton} ${styles.primaryAction}`}>
-              <Eye size={16} />
-              <span>View Result</span>
-            </Link>
-            <Link to={testUrl} className={`${styles.actionButton} ${styles.secondaryAction}`}>
-              <Repeat size={16} />
-              <span>Retake</span>
-            </Link>
-          </>
-        ) : isScheduled ? (
-             <button className={`${styles.actionButton} ${styles.disabledAction}`} disabled>
-                <Lock size={16} />
-                <span>Locked</span>
-             </button>
-        ) : (
-              <Link to={testUrl} className={styles.actionButton}>
-                {hasBeenAttempted ? <Repeat size={16} /> : <PlayCircle size={16} />}
-                <span>{hasBeenAttempted ? 'Retake Test' : 'Start Test'}</span>
-              </Link>
-            )}
-          </div>
-        )}
-      </div>
-  );
-};
-
 const getPackageStatus = (
   completedItems: number,
   totalItems: number
@@ -137,6 +38,7 @@ const getPackageStatus = (
   return { label: 'Not started', variant: 'outline', accentVar: 'var(--border)' };
 };
 
+/* Summary card for the Mock Tests grid. The series' own test rows live in EnrolledTestItemRow. */
 export const EnrolledTestCard: React.FC<EnrolledTestCardProps> = ({ enrolledTest, className }) => {
   const formattedEnrolledDate = new Intl.DateTimeFormat('en-US', {
     year: 'numeric',

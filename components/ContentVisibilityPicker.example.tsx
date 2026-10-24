@@ -32,7 +32,7 @@ export default function Showcase() {
   return (
     <>
       <h1>ContentVisibilityPicker</h1>
-      <p>Public or unlisted choice on teacher create forms and inside ContentVisibilityPanel.</p>
+      <p>Compact public or unlisted choice inside ContentVisibilityPanel, shown at each item's publish step.</p>
 
       <Example title="Public (default)">
         <Controlled initial="public" />

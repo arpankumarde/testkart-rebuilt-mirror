@@ -321,7 +321,7 @@ export default function SearchPage() {
                     <h2>Courses <span className={styles.count}>({displayCourses.length})</span></h2>
                   </div>
                   {displayCourses.length > 0 && (
-                    <Link to="/course" className={styles.viewAllLink}>
+                    <Link to={`/course?search=${encodeURIComponent(query)}`} className={styles.viewAllLink}>
                       View All <ArrowRight size={16} />
                     </Link>
                   )}
@@ -369,7 +369,7 @@ export default function SearchPage() {
                     <h2>Bundles <span className={styles.count}>({displayBundles.length})</span></h2>
                   </div>
                   {displayBundles.length > 0 && (
-                    <Link to="/bundles" className={styles.viewAllLink}>
+                    <Link to={`/bundles?search=${encodeURIComponent(query)}`} className={styles.viewAllLink}>
                       View All <ArrowRight size={16} />
                     </Link>
                   )}

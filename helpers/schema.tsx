@@ -1584,6 +1584,122 @@ export interface Sessions {
   userId: number;
 }
 
+export interface SpinCampaignAuditLogs {
+  action: string;
+  adminId: number | null;
+  after: Json | null;
+  before: Json | null;
+  campaignId: number | null;
+  createdAt: Generated<Timestamp>;
+  entity: string;
+  entityId: Int8 | null;
+  id: Generated<Int8>;
+}
+
+export interface SpinCampaignRewards {
+  activatesAt: Timestamp | null;
+  campaignId: number;
+  createdAt: Generated<Timestamp>;
+  description: string | null;
+  discountType: string | null;
+  discountValue: Numeric | null;
+  icon: string | null;
+  id: Generated<number>;
+  imageUrl: string | null;
+  isActive: Generated<boolean>;
+  maxDiscountAmount: Numeric | null;
+  minOrderValue: Numeric | null;
+  name: string;
+  probability: Generated<Numeric>;
+  quantityLimit: number | null;
+  rewardType: string;
+  segmentColor: Generated<string>;
+  sortOrder: Generated<number>;
+  updatedAt: Generated<Timestamp>;
+  wheelLabel: string;
+}
+
+export interface SpinCampaigns {
+  allowGuestSpins: Generated<boolean>;
+  bannerUrl: string | null;
+  claimDeadline: Timestamp | null;
+  createdAt: Generated<Timestamp>;
+  createdByAdminId: number | null;
+  description: string | null;
+  discountFunding: Generated<string>;
+  eligibleCategories: Generated<string[]>;
+  endsAt: Timestamp;
+  id: Generated<number>;
+  loginRequiredToSpin: Generated<boolean>;
+  maxDiscountPercent: Generated<Numeric>;
+  maxTotalSpins: number | null;
+  name: string;
+  popupDelaySeconds: Generated<number>;
+  popupEnabled: Generated<boolean>;
+  redemptionDeadline: Timestamp | null;
+  slug: string;
+  startsAt: Timestamp;
+  status: Generated<string>;
+  terms: string | null;
+  timezone: Generated<string>;
+  updatedAt: Generated<Timestamp>;
+  updatedByAdminId: number | null;
+}
+
+export interface SpinCouponRedemptions {
+  campaignId: number;
+  couponCode: string;
+  couponId: number;
+  createdAt: Generated<Timestamp>;
+  discountAmount: Numeric;
+  discountType: string;
+  discountValue: Numeric;
+  eligibleAmount: Numeric;
+  finalAmount: Numeric;
+  id: Generated<number>;
+  orderId: number;
+  originalTotal: Numeric;
+  paymentMethod: string;
+  promoCodeId: number;
+  rewardId: number;
+  userId: number;
+}
+
+export interface SpinCoupons {
+  campaignId: number;
+  discountType: string;
+  discountValue: Numeric;
+  eligibleCategories: string[];
+  expiresAt: Timestamp;
+  id: Generated<number>;
+  issuedAt: Generated<Timestamp>;
+  maxDiscountAmount: Numeric | null;
+  maxDiscountPercent: Numeric;
+  minOrderValue: Generated<Numeric>;
+  promoCodeId: number;
+  rewardId: number;
+  spinRecordId: Int8;
+  userId: number;
+  voidedAt: Timestamp | null;
+  voidedByAdminId: number | null;
+  voidedReason: string | null;
+}
+
+export interface SpinRecords {
+  campaignId: number;
+  claimedAt: Timestamp | null;
+  claimStatus: Generated<string>;
+  forfeitedByUserId: number | null;
+  forfeitReason: string | null;
+  guestSessionId: string | null;
+  id: Generated<Int8>;
+  rewardId: number;
+  rewardSnapshot: Json;
+  spunAs: string;
+  spunAt: Generated<Timestamp>;
+  userId: number | null;
+}
+
 export interface StaticPages {
   content: string;
   createdAt: Generated<Timestamp | null>;
@@ -2223,6 +2339,12 @@ export interface DB {
   salesContactNotes: SalesContactNotes;
   salesContacts: SalesContacts;
   sessions: Sessions;
+  spinCampaignAuditLogs: SpinCampaignAuditLogs;
+  spinCampaignRewards: SpinCampaignRewards;
+  spinCampaigns: SpinCampaigns;
+  spinCouponRedemptions: SpinCouponRedemptions;
+  spinCoupons: SpinCoupons;
+  spinRecords: SpinRecords;
   staticPages: StaticPages;
   storefrontEvents: StorefrontEvents;
   studentBankDetails: StudentBankDetails;

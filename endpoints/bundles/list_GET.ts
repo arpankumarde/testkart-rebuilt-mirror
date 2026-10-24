@@ -43,23 +43,28 @@ export async function handle(request: Request): Promise<Response> {
     // Build a separate count query from scratch with the same filters.
     // We do NOT clone the main query with clearSelect() because the subquery
     // selects (itemCount, courseTitles) cause a "must appear in GROUP BY" error.
+    // It joins users like the main query so search can match the teacher name.
     let countQuery = db
       .selectFrom("courseBundles")
+      .innerJoin("users", "users.id", "courseBundles.teacherId")
       .where("courseBundles.isPublished", "=", true)
       .where("courseBundles.visibility", "=", "public");
 
+    // Search matches the teacher's name too, as the site-wide search does.
     if (search) {
       const searchPattern = `%${search}%`;
       query = query.where((eb) =>
         eb.or([
           eb("courseBundles.title", "ilike", searchPattern),
           eb("courseBundles.description", "ilike", searchPattern),
+          eb("users.displayName", "ilike", searchPattern),
         ])
       );
       countQuery = countQuery.where((eb) =>
         eb.or([
           eb("courseBundles.title", "ilike", searchPattern),
           eb("courseBundles.description", "ilike", searchPattern),
+          eb("users.displayName", "ilike", searchPattern),
         ])
       );
     }

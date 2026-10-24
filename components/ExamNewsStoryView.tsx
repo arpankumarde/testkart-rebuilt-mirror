@@ -9,6 +9,9 @@ import type { PublicExamNewsStory } from "../endpoints/exam-news/details_GET.sch
 import { SEOHead } from "./SEOHead";
 import { Button } from "./Button";
 import { Skeleton } from "./Skeleton";
+import { ShareButton } from "./ShareButton";
+import { ExamContentExportButton } from "./ExamContentExportButton";
+import { PUBLIC_PAGE_SHARE_CAMPAIGN } from "../helpers/shareLinks";
 import { ExamNewsListItem, ExamNewsTypeBadge } from "./ExamNewsListItem";
 import { ExamNewsSidebar } from "./ExamNewsSidebar";
 import styles from "./ExamNewsStoryView.module.css";
@@ -23,6 +26,50 @@ const DATE_COLUMNS = [
 ] as const;
 
 const hasText = (html: string) => html.replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ").trim().length > 0;
+
+const escapeHtml = (text: string) =>
+  text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+type KeyDateRow = PublicExamNewsStory["keyDates"][number];
+
+/** The story as one HTML document for the Print sheet: byline, hero, dates, body and sources, with link URLs spelled out for paper. */
+const printableStory = (story: PublicExamNewsStory, keyDates: KeyDateRow[], updated: boolean): string => {
+  const parts: string[] = [];
+  const byline = [
+    story.authorName && `By ${story.authorName}`,
+    story.publishedAt && `Published ${examNewsPublicMeta.formatDateTime(story.publishedAt)}`,
+    updated && `Updated ${examNewsPublicMeta.formatDateTime(story.updatedAt)}`,
+  ].filter(Boolean);
+  if (byline.length > 0) parts.push(`<p><em>${escapeHtml(byline.join(" | "))}</em></p>`);
+  if (story.heroImageUrl) {
+    parts.push(`<figure><img src="${escapeHtml(story.heroImageUrl)}" alt="${escapeHtml(story.heroImageAlt ?? "")}" /></figure>`);
+  }
+  if (keyDates.length > 0) {
+    const rows = keyDates
+      .map((row) => {
+        const dates = DATE_COLUMNS.filter((c) => row[c.key])
+          .map((c) => `${c.label}: ${escapeHtml(String(row[c.key]))}`)
+          .join("<br />");
+        const note = row.note ? `<br />${escapeHtml(row.note)}` : "";
+        return `<tr><th>${escapeHtml(row.eventName)}${note}</th><td>${dates}</td></tr>`;
+      })
+      .join("");
+    parts.push(`<h2>Important dates</h2><table><thead><tr><th>Event</th><th>Date</th></tr></thead><tbody>${rows}</tbody></table>`);
+  }
+  if (hasText(story.body)) parts.push(story.body);
+  const links = [...(story.officialSource ? [story.officialSource] : []), ...story.sources];
+  if (links.length > 0) {
+    const items = links
+      .map((link) => `<li><a href="${escapeHtml(link.url)}">${escapeHtml(link.name || link.url)}</a> (${escapeHtml(link.url)})</li>`)
+      .join("");
+    parts.push(
+      `<h2>Official source</h2><ul>${items}</ul><p>Always confirm dates and instructions on the official website before you act.</p>`,
+    );
+  }
+  return parts.join("\n");
+};
+
+const NO_FAQS: never[] = [];
 
 /** The admin's canonical URL, when it points at testkart.in; anything else falls back to the story itself. */
 const canonicalFor = (story: PublicExamNewsStory, canonicalPath: string): string => {
@@ -156,25 +203,47 @@ export const ExamNewsStoryView: React.FC<{ slug: string }> = ({ slug }) => {
             </div>
             <h1 className={styles.headline}>{story.title}</h1>
             {story.summary && <p className={styles.standfirst}>{story.summary}</p>}
-            <ul className={styles.meta}>
-              {story.authorName && (
-                <li>
-                  <UserRound size={14} aria-hidden="true" /> By {story.authorName}
-                </li>
-              )}
-              {story.publishedAt && (
-                <li>
-                  <CalendarDays size={14} aria-hidden="true" /> Published{" "}
-                  <time dateTime={new Date(story.publishedAt).toISOString()}>{examNewsPublicMeta.formatDateTime(story.publishedAt)}</time>
-                </li>
-              )}
-              {updated && (
-                <li>
-                  <RefreshCw size={14} aria-hidden="true" /> Updated{" "}
-                  <time dateTime={new Date(story.updatedAt).toISOString()}>{examNewsPublicMeta.formatDateTime(story.updatedAt)}</time>
-                </li>
-              )}
-            </ul>
+            <div className={styles.metaRow}>
+              <ul className={styles.meta}>
+                {story.authorName && (
+                  <li>
+                    <UserRound size={14} aria-hidden="true" /> By {story.authorName}
+                  </li>
+                )}
+                {story.publishedAt && (
+                  <li>
+                    <CalendarDays size={14} aria-hidden="true" /> Published{" "}
+                    <time dateTime={new Date(story.publishedAt).toISOString()}>{examNewsPublicMeta.formatDateTime(story.publishedAt)}</time>
+                  </li>
+                )}
+                {updated && (
+                  <li>
+                    <RefreshCw size={14} aria-hidden="true" /> Updated{" "}
+                    <time dateTime={new Date(story.updatedAt).toISOString()}>{examNewsPublicMeta.formatDateTime(story.updatedAt)}</time>
+                  </li>
+                )}
+              </ul>
+              <div className={styles.actions}>
+                <ShareButton
+                  kind="exam-news"
+                  handle={story.slug}
+                  title={story.title}
+                  campaign={PUBLIC_PAGE_SHARE_CAMPAIGN}
+                  size="sm"
+                />
+                <ExamContentExportButton
+                  examLabel={story.exam?.name ?? "Exam News"}
+                  sectionLabel={examNewsPublicMeta.typeLabel(story.newsType)}
+                  title={story.title}
+                  description={story.summary ?? ""}
+                  content={printableStory(story, keyDates, updated)}
+                  faqItems={NO_FAQS}
+                  label="Print"
+                  variant="outline"
+                  size="sm"
+                />
+              </div>
+            </div>
           </header>
 
           {story.heroImageUrl && (

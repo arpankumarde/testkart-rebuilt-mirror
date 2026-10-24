@@ -166,6 +166,10 @@
   list-style: none;
 }
 
+.navRow {
+  position: relative;
+}
+
 .navItem {
   position: relative;
   display: flex;
@@ -219,6 +223,27 @@
 
 .navItemIcon {
   flex-shrink: 0;
+}
+
+/* Room for the rename button, a sibling on top of the row: a button can't hold a button. */
+.navItemRenamable {
+  padding-right: 2.25rem;
+}
+
+/* Two classes, so the kit button's size and muted colour lose. */
+.navRow .renameButton {
+  position: absolute;
+  top: 50%;
+  right: var(--spacing-1);
+  width: 1.75rem;
+  height: 1.75rem;
+  color: var(--muted-foreground);
+  transform: translateY(-50%);
+}
+
+.navRow .renameButton:hover {
+  color: var(--tk-brand-text);
+  background-color: var(--surface);
 }
 
 .navItemLabel {

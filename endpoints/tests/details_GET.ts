@@ -6,6 +6,7 @@ import { sql } from "kysely";
 import { z } from "zod";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { hasStudentEnrolledInMockTest } from "../../helpers/hasStudentEnrolledInMockTest";
+import { getTestSeriesLeaderboardAccess } from "../../helpers/testSeriesLeaderboardAccess";
 import { slugify } from "../../helpers/slugify";
 import { PRODUCT_DISCLAIMER } from "../../helpers/productDisclaimer";
 import { computeMockTestSeo, isMeaningfulSubjectName } from "../../helpers/seoIndexability";
@@ -109,13 +110,16 @@ export async function handle(request: Request) {
 
     // Try to get the current user session (don't fail if not authenticated)
     let isEnrolled = false;
+    let canViewLeaderboard = false;
     try {
       const { user } = await getServerUserSession(request);
       // Check if the user is enrolled in this test package
       isEnrolled = await hasStudentEnrolledInMockTest(user.id, test.id);
+      canViewLeaderboard =
+        isEnrolled || (await getTestSeriesLeaderboardAccess(user, test.id)) !== null;
     } catch (error) {
       // User is not authenticated or session is invalid, treat as unauthenticated
-      // isEnrolled remains false
+      // isEnrolled and canViewLeaderboard remain false
     }
 
     // Query all individual test items for this package, ordered by orderIndex.
@@ -280,6 +284,7 @@ export async function handle(request: Request) {
       createdAt: test.createdAt,
       updatedAt: test.updatedAt,
       isEnrolled: isEnrolled,
+      canViewLeaderboard,
       language: test.language,
       languages: test.languages,
       teacherSlug: test.teacherSlug || slugify(test.teacherName),

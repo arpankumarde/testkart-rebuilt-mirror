@@ -9,6 +9,7 @@ import { getTeacherPlatformFee } from "../../../helpers/getTeacherPlatformFee";
 import { Transaction, Selectable } from "kysely";
 import { DB, PromoCodes } from "../../../helpers/schema";
 import { countPromoCodeUses } from "../../../helpers/promoCodeUsage";
+import { getSpinCouponRuleOrThrow } from "../../../helpers/spinWinServer";
 
 const generateErrorHtml = (errorMessage: string, backUrl: string) => `
 <!DOCTYPE html>
@@ -146,6 +147,10 @@ async function validateAndCalculatePromo(
 
   if (promoCode.createdByTeacherId !== null && promoCode.createdByTeacherId !== bundle.teacherId) {
     throw new Error("This promo code is not valid for this bundle.");
+  }
+
+  if (await getSpinCouponRuleOrThrow(trx, promoCodeId, studentId)) {
+    throw new Error("Spin & Win coupons work only on test series, courses and study notes, not bundles.");
   }
 
   if (promoCode.appliesTo !== "all" && promoCode.appliesTo !== "bundles") {

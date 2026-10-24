@@ -505,6 +505,52 @@
 }
 
 /*
+ * Exam content written in the editor's HTML mode, wrapped by
+ * helpers/sanitizeLayoutHtml. Its styles are scoped to this class. A layout too
+ * wide for the phone scrolls inside the box instead of pushing the page sideways,
+ * and z-index and absolute positioning can't reach the page around it.
+ */
+.tk-html-content {
+  position: relative;
+  isolation: isolate;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-wrap: break-word;
+}
+
+.tk-html-content :is(img, video) {
+  max-width: 100%;
+  height: auto;
+}
+
+.tk-html-content :is(iframe, table, pre) {
+  max-width: 100%;
+}
+
+.tk-html-content pre {
+  overflow-x: auto;
+}
+
+/*
+ * Interactive exam content, in a sandboxed frame built by helpers/htmlFrame. The
+ * height is a starting point until helpers/useHtmlFrame sets the real one. A
+ * frame is only see-through while its document's colour scheme matches this
+ * element's, so the scheme is set here for the first paint, ahead of that hook.
+ */
+.tk-html-frame {
+  display: block;
+  width: 100%;
+  height: 20rem;
+  color-scheme: light;
+  background-color: transparent;
+  border: 0;
+}
+
+.dark .tk-html-frame {
+  color-scheme: dark;
+}
+
+/*
  * Tables in rendered rich text (articles, exam content, product and lesson
  * descriptions, static pages), wrapped by helpers/contentTables. Coral is the
  * header band only, set in brand ink. The first column holds row labels and

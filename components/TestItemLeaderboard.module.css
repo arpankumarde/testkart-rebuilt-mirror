@@ -1,0 +1,385 @@
+/*
+ * Console language: a --surface panel on a hairline, solid tokens only, coral
+ * as the highlight for the viewer's own row. The panel is the size container,
+ * so the table drops its Completed column wherever the panel is narrow.
+ */
+.panel {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+/* Your standing */
+.summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-3) var(--spacing-6);
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius);
+  background-color: var(--tk-brand-tint);
+}
+
+.summaryRank {
+  display: flex;
+  flex-direction: column;
+}
+
+.summaryLabel,
+.summaryStats dt {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tk-brand-text);
+}
+
+.summaryRankValue {
+  font-family: var(--font-family-heading);
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.summaryOf {
+  margin-left: var(--spacing-2);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.summaryStats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2) var(--spacing-6);
+  margin: 0;
+  flex: 1;
+}
+
+.summaryStats dd {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.findMe {
+  margin-left: auto;
+}
+
+.summaryEmpty {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.summaryEmpty svg {
+  flex-shrink: 0;
+  color: var(--tk-brand-text);
+}
+
+/* Search */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+}
+
+.searchWrapper {
+  position: relative;
+  flex: 1;
+  max-width: 20rem;
+}
+
+.searchIcon {
+  position: absolute;
+  top: 50%;
+  left: var(--spacing-3);
+  transform: translateY(-50%);
+  color: var(--muted-foreground);
+  pointer-events: none;
+}
+
+.searchInput {
+  padding-left: 2.25rem;
+}
+
+.count {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Table */
+.table {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.headRow,
+.row {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr) 6rem 6rem 7rem;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: 0 var(--spacing-4);
+}
+
+.headRow {
+  min-height: 2.5rem;
+  background-color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.row {
+  min-height: 3.25rem;
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+
+.row + .row {
+  border-top: 1px solid var(--border);
+}
+
+.row:hover {
+  background-color: var(--muted);
+}
+
+.row[data-you],
+.row[data-you]:hover {
+  background-color: var(--tk-brand-tint);
+  box-shadow: inset 3px 0 0 var(--primary);
+}
+
+.colRank {
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
+
+.colNum {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.score {
+  font-weight: 700;
+}
+
+.date {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.rankBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 2rem;
+  height: 1.75rem;
+  padding: 0 var(--spacing-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background-color: var(--surface);
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Solid medal fills with dark ink, which reads in both themes. */
+.rankBadge[data-medal] {
+  border-color: transparent;
+  color: hsl(220 30% 12%);
+}
+
+.rankBadge[data-medal='gold'] { background-color: hsl(45 93% 58%); }
+.rankBadge[data-medal='silver'] { background-color: hsl(215 16% 78%); }
+.rankBadge[data-medal='bronze'] { background-color: hsl(26 70% 64%); }
+
+.student {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  min-width: 0;
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-full);
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.nameBlock {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.name {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-width: 0;
+  font-weight: 600;
+}
+
+.nameText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.youTag {
+  flex-shrink: 0;
+  padding: 1px var(--spacing-2);
+  border-radius: var(--radius-full);
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.sub {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.subDate {
+  display: none;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+}
+
+/* States */
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-10, 2.5rem) var(--spacing-4);
+  text-align: center;
+  color: var(--muted-foreground);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.panel .state {
+  border-style: dashed;
+  border-radius: var(--radius);
+}
+
+.state svg {
+  color: var(--tk-brand-text);
+}
+
+.state h2 {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.state p {
+  max-width: 26rem;
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.summarySkeleton {
+  height: 4.5rem;
+  border-radius: var(--radius);
+}
+
+.rowSkeleton {
+  height: 3rem;
+  border-radius: var(--radius);
+}
+
+/* Narrow panel: the completion date moves under the name. */
+@container (max-width: 40rem) {
+  .headRow,
+  .row {
+    grid-template-columns: 3rem minmax(0, 1fr) 4.75rem 4.5rem;
+    gap: var(--spacing-2);
+    padding: 0 var(--spacing-3);
+  }
+
+  .colDate {
+    display: none;
+  }
+
+  .subDate {
+    display: inline;
+  }
+
+  .avatar {
+    display: none;
+  }
+
+  .findMe {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .summaryStats {
+    flex-basis: 100%;
+    gap: var(--spacing-2) var(--spacing-4);
+  }
+}
+
+@container (max-width: 26rem) {
+  .panel {
+    padding: var(--spacing-3);
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .searchWrapper {
+    max-width: none;
+  }
+}

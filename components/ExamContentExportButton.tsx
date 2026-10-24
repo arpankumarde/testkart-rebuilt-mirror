@@ -4,7 +4,9 @@ import { sanitizeHtml } from "../helpers/sanitizeHtml";
 import { Printer } from "lucide-react";
 import { Button } from "./Button";
 import { renderMathInHtml } from "../helpers/renderMathInHtml";
-import type { FaqItem } from "../helpers/examContentTypes";
+import { renderExamContent } from "../helpers/renderExamContent";
+import { useHtmlFrame } from "../helpers/useHtmlFrame";
+import { parseExamContent, type FaqItem } from "../helpers/examContentTypes";
 import "katex/dist/katex.min.css";
 import styles from "./ExamContentExportButton.module.css";
 
@@ -80,6 +82,12 @@ const PrintSheet: React.FC<ExamContentExport & { onDone: () => void }> = ({
 
   const faqs = faqItems.filter((item) => item.question.trim() || item.answer.trim());
   const exportedOn = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  const contentHtml =
+    parseExamContent(content).format === "html"
+      ? renderExamContent(content, { math: true })
+      : renderMathInHtml(sanitizeHtml(content));
+  const [contentEl, setContentEl] = useState<HTMLDivElement | null>(null);
+  useHtmlFrame(contentEl, contentHtml, "light");
 
   return createPortal(
     <div ref={sheetRef} className={styles.sheet}>
@@ -95,8 +103,9 @@ const PrintSheet: React.FC<ExamContentExport & { onDone: () => void }> = ({
       {description.trim() && <p className={styles.description}>{description}</p>}
       {content.trim() && (
         <div
+          ref={setContentEl}
           className={styles.content}
-          dangerouslySetInnerHTML={{ __html: renderMathInHtml(sanitizeHtml(content)) }}
+          dangerouslySetInnerHTML={{ __html: contentHtml }}
         />
       )}
       {faqs.length > 0 && (

@@ -36,9 +36,9 @@ import { usePublicCoursesQuery } from "../helpers/useStudentCoursesQuery";
 import { useBundlesQuery } from "../helpers/useBundlesQuery";
 import { Placeholder } from "../helpers/placeholderImages";
 import { formatItemPrice, itemPriceProps } from "../helpers/homepageItemUtils";
-import { wrapContentTables } from "../helpers/contentTables";
-import { sanitizeHtml } from "../helpers/sanitizeHtml";
-import { linkContentToc, useContentToc } from "../helpers/contentToc";
+import { renderExamContent } from "../helpers/renderExamContent";
+import { useContentToc } from "../helpers/contentToc";
+import { useHtmlFrame } from "../helpers/useHtmlFrame";
 import { getPublicExamContent } from "../endpoints/exam-content/get_GET.schema";
 import { examProductPageMeta, type ExamProductType } from "../helpers/examProductPageMeta";
 import type { InputType as TestsInputType } from "../endpoints/tests/list_GET.schema";
@@ -441,12 +441,10 @@ export const ExamProductListingPage: React.FC<ExamProductListingPageProps> = ({ 
     staleTime: 5 * 60 * 1000,
   });
   const pageContent = contentData?.page ?? null;
-  const contentHtml = useMemo(
-    () => (pageContent?.content?.trim() ? wrapContentTables(linkContentToc(sanitizeHtml(pageContent.content))) : ""),
-    [pageContent?.content]
-  );
+  const contentHtml = useMemo(() => renderExamContent(pageContent?.content), [pageContent?.content]);
   const [contentEl, setContentEl] = useState<HTMLElement | null>(null);
   useContentToc(contentEl, contentHtml);
+  useHtmlFrame(contentEl, contentHtml);
 
   const isLoading = isExamFetching || isCountsFetching;
 

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Radio, User, GraduationCap, FileText, UserPlus, ShoppingBag } from 'lucide-react';
+import { Radio, User, GraduationCap, FileText, UserPlus, ShoppingBag, LayoutGrid } from 'lucide-react';
 import { useAuth } from '../helpers/useAuth';
+import { MORE_RESOURCES, isMoreResourcePath } from '../helpers/moreResources';
 import { Avatar, AvatarImage, AvatarFallback } from './Avatar';
 import { AuthRoleSelectDialog } from './AuthRoleSelectDialog';
+import { MoreResourcesMenu } from './MoreResourcesMenu';
 import styles from './MobileBottomNav.module.css';
 
 const navItems = [
@@ -11,6 +13,7 @@ const navItems = [
   { path: '/mock-test', label: 'Tests', icon: FileText },
   { path: '/live-test', label: 'Live', icon: Radio },
   { path: '/study-notes', label: 'Notes', icon: ShoppingBag },
+  { path: '/more', label: 'More', icon: LayoutGrid },
   { path: '/profile', label: 'Profile', icon: User },
 ];
 
@@ -50,6 +53,9 @@ export const MobileBottomNav: React.FC = () => {
     if (path === '/live-test') {
       return pathname.startsWith('/live-test') || pathname.startsWith('/student/live');
     }
+    if (path === '/more') {
+      return MORE_RESOURCES.some(({ href }) => isMoreResourcePath(pathname, href));
+    }
     return pathname.startsWith(path);
   };
 
@@ -62,6 +68,25 @@ export const MobileBottomNav: React.FC = () => {
             const active = isActive(item.path);
             let Icon = item.icon;
             let label = item.label;
+
+            // More opens a menu rather than a page.
+            if (item.label === 'More') {
+              return (
+                <MoreResourcesMenu
+                  key="more"
+                  side="top"
+                  align="end"
+                  trigger={
+                    <button type="button" className={`${styles.navItem} ${active ? styles.active : ''}`}>
+                      <div className={styles.iconWrapper}>
+                        <Icon size={20} />
+                      </div>
+                      <span className={styles.label}>{label}</span>
+                    </button>
+                  }
+                />
+              );
+            }
 
             // Handle unauthenticated state for Profile/Sign Up
             if (item.label === 'Profile' && authState.type !== 'authenticated') {

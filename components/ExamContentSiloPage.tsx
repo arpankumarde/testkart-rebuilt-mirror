@@ -16,10 +16,9 @@ import {
 } from "../helpers/examContentTypes";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "./Accordion";
 import { useInExamSectionShell } from "./ExamSectionLayout";
-import { renderMathInHtml } from "../helpers/renderMathInHtml";
-import { wrapContentTables } from "../helpers/contentTables";
-import { sanitizeHtml } from "../helpers/sanitizeHtml";
-import { linkContentToc, useContentToc } from "../helpers/contentToc";
+import { renderExamContent } from "../helpers/renderExamContent";
+import { useContentToc } from "../helpers/contentToc";
+import { useHtmlFrame } from "../helpers/useHtmlFrame";
 import { NotFoundState } from "./NotFoundState";
 import "katex/dist/katex.min.css";
 import styles from "./ExamContentSiloPage.module.css";
@@ -70,15 +69,11 @@ export const ExamContentSiloPage: React.FC<ExamContentSiloPageProps> = ({ pageTy
     staleTime: 5 * 60 * 1000,
   });
 
-  // Headings get ids and the article's own table of contents becomes jump
-  // links before math is rendered, so KaTeX markup never reaches the matcher.
   const pageContent = data?.page?.content;
-  const contentHtml = React.useMemo(
-    () => (pageContent ? wrapContentTables(renderMathInHtml(linkContentToc(sanitizeHtml(pageContent)))) : ""),
-    [pageContent]
-  );
+  const contentHtml = React.useMemo(() => renderExamContent(pageContent, { math: true }), [pageContent]);
   const [contentEl, setContentEl] = React.useState<HTMLDivElement | null>(null);
   useContentToc(contentEl, contentHtml);
+  useHtmlFrame(contentEl, contentHtml);
 
   if (isFetching && !data) {
     if (inShell) return <SectionContentSkeleton />;

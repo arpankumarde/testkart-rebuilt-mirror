@@ -1,4 +1,4 @@
-import { BellRing, BookA, CalendarDays, PenLine, type LucideIcon } from "lucide-react";
+import { BellRing, CalendarDays, PenLine, type LucideIcon } from "lucide-react";
 
 export type MoreResource = {
   href: string;
@@ -10,7 +10,6 @@ export type MoreResource = {
 export const MORE_RESOURCES: MoreResource[] = [
   { href: "/current-affairs", label: "Current Affairs", icon: CalendarDays },
   { href: "/exam-news", label: "Exam News", icon: BellRing },
-  { href: "/glossary", label: "Glossary", icon: BookA },
   { href: "/blog", label: "Blogs", icon: PenLine },
 ];
 

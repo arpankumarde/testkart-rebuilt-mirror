@@ -8,6 +8,23 @@ import type { CurrentAffairsQuestionInput } from "./save_POST.schema";
 const DEEPSEEK_URL = "https://api.deepseek.com/chat/completions";
 /** Below this much text a digest cannot carry even one well-grounded question. */
 const MIN_DIGEST_WORDS = 25;
+/** Waits before each retry when DeepSeek is briefly overloaded (429 or 5xx). */
+const RETRY_DELAYS_MS = [1500, 3500];
+
+const callDeepSeek = async (apiKey: string, body: string): Promise<Response> => {
+  for (let attempt = 0; ; attempt++) {
+    const response = await fetch(DEEPSEEK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body,
+    });
+    const transient = response.status === 429 || response.status >= 500;
+    if (response.ok || !transient || attempt >= RETRY_DELAYS_MS.length) return response;
+    console.warn("[admin/current-affairs/generate-quiz] DeepSeek busy, retrying", response.status);
+    await response.body?.cancel();
+    await new Promise((resolve) => setTimeout(resolve, RETRY_DELAYS_MS[attempt]));
+  }
+};
 
 const DIFFICULTY_BRIEF: Record<InputType["difficulty"], string> = {
   easy: "EASY: direct recall of a single stated fact (who, what, where, when).",
@@ -113,10 +130,9 @@ export async function handle(request: Request) {
       .filter(Boolean)
       .join("\n");
 
-    const response = await fetch(DEEPSEEK_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({
+    const response = await callDeepSeek(
+      apiKey,
+      JSON.stringify({
         model: "deepseek-chat",
         messages: [
           { role: "system", content: system },
@@ -125,11 +141,20 @@ export async function handle(request: Request) {
         response_format: { type: "json_object" },
         temperature: 0.4,
         stream: false,
-      }),
-    });
+      })
+    );
+    // Answered as 500, not 502/503: the host swaps gateway-error bodies for its own HTML page.
     if (!response.ok) {
       console.error("[admin/current-affairs/generate-quiz] DeepSeek error", response.status, (await response.text()).slice(0, 500));
-      return new Response(superjson.stringify({ error: "The AI service did not respond. Try again in a moment." }), { status: 502 });
+      const busy = response.status === 429 || response.status === 503;
+      return new Response(
+        superjson.stringify({
+          error: busy
+            ? "The AI service is busy right now. Wait a minute and try again."
+            : "The AI service did not respond. Try again in a moment.",
+        }),
+        { status: 500 }
+      );
     }
 
     const reply = await response.json();

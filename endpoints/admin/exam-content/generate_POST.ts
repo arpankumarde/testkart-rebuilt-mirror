@@ -218,8 +218,8 @@ ${contextLines.length > 0 ? contextLines.join("\n") : ""}
         rawResponse: JSON.stringify(aiResponse).slice(0, 500),
       });
       return new Response(
-        superjson.stringify({ error: "AI returned empty content — nothing was saved. Please try again." }),
-        { status: 502 }
+        superjson.stringify({ error: "AI returned empty content - nothing was saved. Please try again." }),
+        { status: 500 }
       );
     }
     if (target === "faqs" && parseFaqResponse(rawContent).length === 0) {
@@ -229,8 +229,8 @@ ${contextLines.length > 0 ? contextLines.join("\n") : ""}
         rawResponse: JSON.stringify(aiResponse).slice(0, 500),
       });
       return new Response(
-        superjson.stringify({ error: "AI returned no usable FAQs — nothing was saved. Please try again." }),
-        { status: 502 }
+        superjson.stringify({ error: "AI returned no usable FAQs - nothing was saved. Please try again." }),
+        { status: 500 }
       );
     }
 

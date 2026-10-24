@@ -58,6 +58,14 @@
   color: var(--muted-foreground);
 }
 
+.warning {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  font-weight: 500;
+  color: var(--warning-text);
+}
+
 .error {
   margin: 0;
   font-size: 0.8125rem;

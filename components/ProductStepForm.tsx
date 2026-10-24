@@ -32,16 +32,14 @@ import { postTeacherProductsPdfPageCount, PdfRejectedError } from '../endpoints/
 import { Plus, GripVertical, ArrowUp, ArrowDown, X, Eye, Sparkles, AlertTriangle, AlertCircle, CheckCircle, FileText, RefreshCw } from 'lucide-react';
 import { AIRewriteButton } from './AIRewriteButton';
 import { WithdrawReviewButton } from './WithdrawReviewButton';
+import { ContentVisibilityPanel } from './ContentVisibilityPanel';
 import { useAdminContentEdit } from '../helpers/useAdminContentEdit';
-import type { ContentVisibility } from '../helpers/schema';
 
 const LazyPdfReaderDialog = React.lazy(() => import('./PdfReaderDialog').then(m => ({ default: m.PdfReaderDialog })));
 import styles from './ProductStepForm.module.css';
 
 interface ProductStepFormProps {
   productId?: number;
-  /** Create mode only; a saved product changes it in ContentVisibilityPanel. */
-  visibility?: ContentVisibility;
   aiInitialValues?: {
     title?: string;
     shortDescription?: string;
@@ -121,7 +119,7 @@ const generateClientKey = () =>
     ? crypto.randomUUID()
     : `f_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 
-export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, visibility, aiInitialValues }) => {
+export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiInitialValues }) => {
   const navigate = useNavigate();
   const isEditMode = !!productId;
   // Inside the admin panel the form only saves; status changes stay on the admin preview page.
@@ -631,8 +629,9 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, vis
         },
       });
     } else {
-      // Creating only collects details; files are added on the edit page next.
-      createProductMutation.mutate({ ...payload, visibility }, {
+      // Creating only collects details and starts public; files and visibility
+      // are set on the edit page next.
+      createProductMutation.mutate(payload, {
         onSuccess: (data) => {
           markSaved();
           setIsSubmittingAction(null);
@@ -1184,6 +1183,8 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, vis
                 </div>
               )}
             </div>
+
+            {isEditMode && <ContentVisibilityPanel contentType="digital_product" contentId={productId} />}
 
             <div className={styles.actionsCard}>
               {isPublished && (

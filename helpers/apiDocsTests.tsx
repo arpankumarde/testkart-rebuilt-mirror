@@ -43,13 +43,14 @@ export const apiDocsTests: ApiEndpoint[] = [
       { name: "id", type: "number", required: false, description: "Series id. Required if slug is not sent" },
     ],
     responseFields: [
-      { name: "package", type: "object", description: "{ id, title, description, longDescription, subject, price, discountPrice, examName, examSlug, slug, language, rating, studentsEnrolled, reviewsCount, totalTests, freeTestsCount, thumbnailUrl, introVideoUrl, creatorName, whatYouLearn, requirements, createdAt, updatedAt, isEnrolled, disclaimer, seo, teacherId, teacherName, teacherSlug, teacherIsVerified, teacherAvatarUrl, teacherBio, teacherWebsiteUrl, teacherPublicPhone, teacherPublicEmail, teacherAcademyName, teacherSocialLinks, teacherAwardsCertificates }" },
+      { name: "package", type: "object", description: "{ id, title, description, longDescription, subject, price, discountPrice, examName, examSlug, slug, language, rating, studentsEnrolled, reviewsCount, totalTests, freeTestsCount, thumbnailUrl, introVideoUrl, creatorName, whatYouLearn, requirements, createdAt, updatedAt, isEnrolled, canViewLeaderboard, disclaimer, seo, teacherId, teacherName, teacherSlug, teacherIsVerified, teacherAvatarUrl, teacherBio, teacherWebsiteUrl, teacherPublicPhone, teacherPublicEmail, teacherAcademyName, teacherSocialLinks, teacherAwardsCertificates }" },
       { name: "items", type: "array", description: "Non-trashed test items by orderIndex: { id, title, description, durationMinutes, totalQuestions, isFree, orderIndex, createdAt, scheduledDate, subjectWiseTiming, questionWiseTiming, subjects: [{ id, subjectName, actualQuestionCount }] }" },
     ],
     notes: [
       "Returns 400 when neither id nor slug is valid, 404 when the series is missing, deleted or backs a live test, and 403 when it is not published.",
       "Each successful call increments the series view counter.",
       "isEnrolled is true only when a valid session is enrolled in the series.",
+      "canViewLeaderboard is true when the session may open this series' leaderboard: enrolled, at least one attempt on any of its papers, the series' teacher team, or an admin. The SSR payload always carries false.",
     ],
   },
   {
@@ -76,8 +77,8 @@ export const apiDocsTests: ApiEndpoint[] = [
   {
     method: "GET",
     route: "/_api/tests/leaderboard",
-    description: "Get the ranked best attempts for one test item",
-    auth: "optional",
+    description: "Get the ranked best attempts for one test item, for a caller allowed to see its series",
+    auth: "any",
     category: "Tests",
     usedBy: ["web"],
     queryParams: [
@@ -89,8 +90,24 @@ export const apiDocsTests: ApiEndpoint[] = [
     ],
     notes: [
       "Returns 400 when testItemId is missing or not a positive integer.",
+      "Returns 401 without a session, 404 when the test item does not exist, and 403 unless the caller is enrolled in the item's series, has at least one attempt on any paper of that series, is on the series' teacher team or is an admin. Access is checked per series.",
       "Each student's best attempt counts: highest score, then shortest time (capped at the item's duration).",
-      "There is no limit parameter and no paging. Student display names are visible to anyone.",
+      "There is no limit parameter and no paging. Student display names are visible to every caller who passes the access check.",
+    ],
+  },
+  {
+    method: "GET",
+    route: "/_api/student/leaderboards",
+    description: "List the test series whose leaderboards the signed-in student may open",
+    auth: "any",
+    category: "Tests",
+    usedBy: ["web"],
+    responseFields: [
+      { name: "series", type: "array", description: "Most recent activity first: { id, title, slug, thumbnailUrl, examName, access: 'enrolled' | 'attempted', items: [{ id, title }] }. items are non-trashed papers with at least one question, by orderIndex" },
+    ],
+    notes: [
+      "Returns 401 without a session.",
+      "A series is listed when the student is enrolled in it or has any attempt on one of its papers. Live-test shadow series and series with no listable papers are left out.",
     ],
   },
   {

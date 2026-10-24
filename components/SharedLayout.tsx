@@ -13,6 +13,7 @@ import { useCartItemsQuery } from "../helpers/useCartQuery";
 import { MobileBottomNav } from "./MobileBottomNav";
 import { MoreResourcesMenu } from "./MoreResourcesMenu";
 import { DiwaliSiteLayer } from "./DiwaliSiteLayer";
+import { SpinWinLauncher } from "./SpinWinLauncher";
 import { useDarkModeObserver } from "../helpers/useDarkModeObserver";
 import { BRAND_FAVICON, getBrandLogo } from "../helpers/brandAssets";
 import { ORGANIZATION_PATH_PATTERN } from "../helpers/organizationRoutes";
@@ -305,6 +306,7 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
       </main>
       <Footer />
       <MobileBottomNav />
+      <SpinWinLauncher />
       </div>
     </>
   );

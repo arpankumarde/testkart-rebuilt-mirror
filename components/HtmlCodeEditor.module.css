@@ -1,0 +1,31 @@
+.editor {
+  --code-tag: #9a3412;
+  --code-attribute: #0f5f6e;
+  --code-value: #166534;
+  --code-keyword: #6b21a8;
+  --code-comment: #52525b;
+
+  display: flex;
+  flex-direction: column;
+  height: 28rem;
+  min-width: 0;
+}
+
+:global(.dark) .editor {
+  --code-tag: #fdba74;
+  --code-attribute: #7dd3d8;
+  --code-value: #86efac;
+  --code-keyword: #d8b4fe;
+  --code-comment: #d4d4d8;
+}
+
+.editor :global(.cm-editor) {
+  flex: 1;
+  min-height: 0;
+}
+
+@media (max-width: 640px) {
+  .editor {
+    height: 22rem;
+  }
+}

@@ -15,8 +15,7 @@ import { TestPackageHero } from "../components/TestPackageHero";
 import { TestPackageSidebar } from "../components/TestPackageSidebar";
 import { MobileStickyPurchaseBar } from "../components/MobileStickyPurchaseBar";
 import { TestItemsList } from "../components/TestItemsList";
-import { TestLeaderboard } from "../components/TestLeaderboard";
-import { TestLeaderboardDialog } from "../components/TestLeaderboardDialog";
+import { TestLeaderboardCta } from "../components/TestLeaderboardCta";
 import { TestReviews } from "../components/TestReviews";
 import { TeacherCtaBanner } from "../components/TeacherCtaBanner";
 import { BundleSuggestions } from "../components/BundleSuggestions";
@@ -76,7 +75,6 @@ const TestDetailsPage: React.FC = () => {
   useTrackStorefrontView("mock_test", data?.package?.id);
 
   const [isStickyBarVisible, setIsStickyBarVisible] = useState(false);
-  const [isLeaderboardDialogOpen, setIsLeaderboardDialogOpen] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
   // Construct canonical URL and other SEO data
@@ -338,10 +336,11 @@ const TestDetailsPage: React.FC = () => {
           )}
 
           <section className={styles.section}>
-            <SectionHeading tone="butter" icon={<Trophy />}>Top performers</SectionHeading>
-            <TestLeaderboard 
-              testItems={items.map(item => ({ id: item.id, title: item.title }))}
-              onViewFull={() => setIsLeaderboardDialogOpen(true)}
+            <SectionHeading tone="butter" icon={<Trophy />}>Leaderboard</SectionHeading>
+            <TestLeaderboardCta
+              seriesId={testPackage.id}
+              canViewLeaderboard={!!testPackage.canViewLeaderboard}
+              onEnrol={() => sidebarRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
             />
           </section>
 
@@ -405,13 +404,6 @@ const TestDetailsPage: React.FC = () => {
           isEnrolled: testPackage.isEnrolled,
         }} 
         isVisible={isStickyBarVisible} 
-      />
-
-      <TestLeaderboardDialog
-        isOpen={isLeaderboardDialogOpen}
-        onClose={() => setIsLeaderboardDialogOpen(false)}
-        testItems={items.map(item => ({ id: item.id, title: item.title }))}
-        packageTitle={testPackage.title}
       />
     </>
   );

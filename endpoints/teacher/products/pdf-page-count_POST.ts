@@ -97,7 +97,7 @@ export async function handle(request: Request): Promise<Response> {
     if (!pdfRes.ok) {
       return new Response(
         superjson.stringify({ error: "Could not fetch the uploaded file" }),
-        { status: 502 }
+        { status: 500 }
       );
     }
 

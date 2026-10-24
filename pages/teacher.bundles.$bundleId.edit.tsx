@@ -29,11 +29,13 @@ export default function EditBundlePage() {
         />
 
         <TeacherRejectionBanner contentType="course_bundle" contentId={id} />
-        <ContentVisibilityPanel contentType="course_bundle" contentId={id} />
 
         <div className={styles.content}>
           <BundleEditor bundleId={id} exitTo="/teacher/bundles" exitLabel="Bundles" />
         </div>
+
+        {/* Bundles publish from the list; visibility sits after the details, out of the editing flow. */}
+        <ContentVisibilityPanel contentType="course_bundle" contentId={id} />
       </div>
     </>
   );

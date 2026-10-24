@@ -1,15 +1,19 @@
 .panel {
   display: grid;
   gap: var(--spacing-3);
-  padding: var(--spacing-4);
+  min-width: 0;
+}
+
+.card {
+  padding: var(--spacing-3) var(--spacing-4);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   background-color: var(--card);
 }
 
 .skeleton {
-  height: 9rem;
-  border-radius: var(--radius-lg);
+  height: 6.5rem;
+  border-radius: var(--radius-md);
 }
 
 .callout {

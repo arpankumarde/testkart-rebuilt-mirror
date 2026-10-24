@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { SEOHead } from "../components/SEOHead";
 import { Search } from "lucide-react";
@@ -21,39 +22,74 @@ import {
 import { InputType, CourseListItem } from "../endpoints/courses/list_GET.schema";
 import styles from "./course.module.css";
 
-const SORT_OPTIONS = [
+type SortValue = NonNullable<InputType["sortBy"]>;
+
+const SORT_OPTIONS: { value: SortValue; label: string }[] = [
   { value: "newest", label: "Newest" },
   { value: "price_asc", label: "Price: Low to High" },
   { value: "price_desc", label: "Price: High to Low" },
   { value: "popular", label: "Most Popular" },
 ];
 
+const DEFAULT_SORT: SortValue = "popular";
+
+const parseSort = (raw: string | null): SortValue =>
+  SORT_OPTIONS.find((opt) => opt.value === raw)?.value ?? DEFAULT_SORT;
+
 const ITEMS_PER_PAGE = 12;
 
 const CoursesPage: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const sortBy = parseSort(searchParams.get("sort"));
+  const urlSearch = searchParams.get("search") || "";
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(urlSearch);
   const debouncedSearch = useDebounce(search, 300);
-  const [filters, setFilters] = useState<InputType>({
-    sortBy: "popular",
-  });
   const [allCourses, setAllCourses] = useState<CourseListItem[]>([]);
 
-  // Query with pagination parameters
-  const queryFilters = React.useMemo(
-    () => ({
-      ...filters,
-      search: debouncedSearch || undefined,
-      page: page.toString(),
-      limit: ITEMS_PER_PAGE.toString(),
-    }),
-    [filters, debouncedSearch, page],
+  // Sort and search live in the URL, as on /mock-test and /study-notes, so the
+  // search page's View All lands on a filtered list that can be shared or
+  // reloaded. Load More accumulates pages in memory, so page stays out of it.
+  const updateParam = useCallback(
+    (key: string, value: string | null) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (value) next.set(key, value);
+          else next.delete(key);
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
   );
+
+  // Typing reaches the URL once the debounce settles; a URL change that did
+  // not come from typing (a new View All link) is copied into the box.
+  useEffect(() => {
+    if (debouncedSearch !== urlSearch) updateParam("search", debouncedSearch);
+  }, [debouncedSearch]);
+
+  useEffect(() => {
+    if (urlSearch !== debouncedSearch) setSearch(urlSearch);
+  }, [urlSearch]);
 
   useEffect(() => {
     setPage(1);
     setAllCourses([]);
-  }, [debouncedSearch]);
+  }, [debouncedSearch, sortBy]);
+
+  // Query with pagination parameters
+  const queryFilters = React.useMemo(
+    () => ({
+      sortBy,
+      search: debouncedSearch || undefined,
+      page: page.toString(),
+      limit: ITEMS_PER_PAGE.toString(),
+    }),
+    [sortBy, debouncedSearch, page],
+  );
 
   const { data, isFetching, error } = usePublicCoursesQuery(queryFilters);
 
@@ -69,11 +105,14 @@ const CoursesPage: React.FC = () => {
     }
   }, [data, page]);
 
-  const handleSortChange = useCallback((sortBy: string) => {
-    setFilters((prev) => ({ ...prev, sortBy: sortBy as InputType["sortBy"] }));
-    setPage(1); // Reset to first page when sort changes
-    setAllCourses([]);
-  }, []);
+  const handleSortChange = useCallback(
+    (value: string) => {
+      const next = parseSort(value);
+      updateParam("sort", next === DEFAULT_SORT ? null : next);
+      setPage(1);
+    },
+    [updateParam],
+  );
 
   const canonicalUrl = "https://testkart.in/course";
   const pageTitle = "Online Courses | Testkart";
@@ -167,8 +206,14 @@ const CoursesPage: React.FC = () => {
     if (!isFetching && allCourses.length === 0) {
       return (
         <div className={styles.stateContainer}>
-          <p>No courses are available at the moment.</p>
-          <p>Please check back later!</p>
+          {debouncedSearch ? (
+            <p>No courses match "{debouncedSearch}". Try a different search.</p>
+          ) : (
+            <>
+              <p>No courses are available at the moment.</p>
+              <p>Please check back later!</p>
+            </>
+          )}
         </div>
       );
     }
@@ -253,7 +298,7 @@ const CoursesPage: React.FC = () => {
               <div className={styles.sortControls}>
                 <label className={styles.sortLabel}>Sort by:</label>
                 <Select
-                  value={filters.sortBy || "popular"}
+                  value={sortBy}
                   onValueChange={handleSortChange}
                 >
                   <SelectTrigger className={styles.sortTrigger}>

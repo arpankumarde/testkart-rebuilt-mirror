@@ -19,21 +19,29 @@ interface ContentVisibilityPanelProps {
   contentType: InputType["contentType"];
   /** The item's own id; for a live test this is liveTests.id. */
   contentId: number | null | undefined;
+  /** "card" stands alone with its own border; "inline" sits inside a host card that supplies the padding. */
+  variant?: "card" | "inline";
   className?: string;
 }
 
 /*
- * Public / unlisted control for a saved teacher item, shown in its editor.
- * A draft switches at once. A live item asks first, since going unlisted takes
- * it off every listing and going public needs review. While a request to go
- * public waits, Public is locked and the panel says where the request stands;
- * a rejected request shows the reason and can be sent again. Visibility is the
+ * Public / unlisted control for a saved teacher item, placed at its publish
+ * step rather than in the creation form; new items start public. A draft
+ * switches at once. A live item asks first, since going unlisted takes it off
+ * every listing and going public needs review. While a request to go public
+ * waits, Public is locked and the panel says where the request stands; a
+ * rejected request shows the reason and can be sent again. Visibility is the
  * teacher's call, so it is not shown while an admin edits their item.
  */
 export const ContentVisibilityPanel: React.FC<ContentVisibilityPanelProps> = (props) =>
   useAdminContentEdit() ? null : <ContentVisibilityPanelBody {...props} />;
 
-const ContentVisibilityPanelBody: React.FC<ContentVisibilityPanelProps> = ({ contentType, contentId, className }) => {
+const ContentVisibilityPanelBody: React.FC<ContentVisibilityPanelProps> = ({
+  contentType,
+  contentId,
+  variant = "card",
+  className,
+}) => {
   const { data: status, isFetching } = useContentVisibilityStatus(contentType, contentId);
   const update = useUpdateContentVisibility();
   const skipsReview = usePublishesWithoutReview();
@@ -42,9 +50,14 @@ const ContentVisibilityPanelBody: React.FC<ContentVisibilityPanelProps> = ({ con
   const noun = CONTENT_NOUNS[contentType];
   // Bundles skip review, so they switch at once for every teacher.
   const switchesAtOnce = skipsReview || contentType === "course_bundle";
+  const rootClass = `${styles.panel} ${variant === "card" ? styles.card : ""} ${className ?? ""}`;
 
   if (!status) {
-    return isFetching ? <Skeleton className={`${styles.skeleton} ${className ?? ""}`} /> : null;
+    return isFetching ? (
+      <div className={rootClass}>
+        <Skeleton className={styles.skeleton} />
+      </div>
+    ) : null;
   }
 
   const save = (visibility: ContentVisibility) => {
@@ -90,7 +103,7 @@ const ContentVisibilityPanelBody: React.FC<ContentVisibilityPanelProps> = ({ con
   }
 
   return (
-    <section className={`${styles.panel} ${className ?? ""}`} aria-label={`Visibility of this ${noun}`}>
+    <section className={rootClass} aria-label={`Visibility of this ${noun}`}>
       <ContentVisibilityPicker
         value={status.visibility}
         onChange={choose}

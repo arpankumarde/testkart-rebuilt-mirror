@@ -9,6 +9,14 @@ import { promoCodeCoversTeacher } from "../../../helpers/promoCodeEligibility";
 import { countPromoCodeUses } from "../../../helpers/promoCodeUsage";
 import { lockWallet } from "../../../helpers/walletLock";
 import { courseEffectivePriceSql } from "../../../helpers/coursePricing";
+import {
+  applySpinCouponOrThrow,
+  asEligibleItemIds,
+  getSpinCouponRuleOrThrow,
+  recordSpinRedemption,
+  spinCartLines,
+  type AppliedSpinCoupon,
+} from "../../../helpers/spinWinServer";
 import { sql } from "kysely";
 
 export async function handle(request: Request) {
@@ -81,6 +89,7 @@ export async function handle(request: Request) {
       let finalAmount = totalAmount;
       let validatedPromoCodeId: number | null = null;
       let eligibleItemIds: Array<{ type: "test" | "course" | "digitalProduct"; id: number }> = [];
+      let spinApplied: AppliedSpinCoupon | null = null;
 
       // 4. Validate and apply promo code if provided
       if (promoCodeId) {
@@ -198,6 +207,15 @@ export async function handle(request: Request) {
 
         discountAmount = Math.min(discountAmount, eligibleItemsTotal);
         finalAmount = totalAmount - discountAmount;
+
+        // Spin & Win coupons: owner, expiry, single use, categories, minimum and the 18% cap.
+        const spinRule = await getSpinCouponRuleOrThrow(trx, promoCodeId, user.id);
+        if (spinRule) {
+          spinApplied = applySpinCouponOrThrow(spinRule, spinCartLines(cartItems));
+          eligibleItemIds = asEligibleItemIds(spinApplied.eligible);
+          discountAmount = spinApplied.discount;
+          finalAmount = totalAmount - discountAmount;
+        }
         validatedPromoCodeId = promoCodeId;
       }
 
@@ -326,6 +344,10 @@ export async function handle(request: Request) {
             discountAmount: discountAmount.toFixed(2),
           })
           .execute();
+      }
+
+      if (spinApplied) {
+        await recordSpinRedemption(trx, spinApplied, { id: newOrder.id, userId: user.id, finalAmount, paymentMethod: "wallet" });
       }
 
       // 9. Side effects logic (enrollments & cleanups)

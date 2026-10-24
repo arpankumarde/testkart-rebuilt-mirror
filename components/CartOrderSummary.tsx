@@ -16,6 +16,8 @@ interface CartOrderSummaryProps {
   walletBalance?: number;
   onPayWithWallet?: () => void;
   isWalletProcessing?: boolean;
+  /** Lists the student's own coupons that fit this cart. */
+  couponPicker?: React.ReactNode;
 }
 
 export const CartOrderSummary: React.FC<CartOrderSummaryProps> = ({
@@ -30,6 +32,7 @@ export const CartOrderSummary: React.FC<CartOrderSummaryProps> = ({
   walletBalance,
   onPayWithWallet,
   isWalletProcessing,
+  couponPicker,
 }) => {
   const [isPromoOpen, setIsPromoOpen] = useState(false);
 
@@ -64,7 +67,7 @@ export const CartOrderSummary: React.FC<CartOrderSummaryProps> = ({
         {promoDiscount > 0 && (
           <div className={`${styles.row} ${styles.promoRow}`}>
             <span className={styles.label}>
-               Promo Code ({appliedPromoCode})
+              Coupon discount ({appliedPromoCode})
             </span>
             <span className={styles.promoValue}>-{formatPrice(promoDiscount)}</span>
           </div>
@@ -73,10 +76,14 @@ export const CartOrderSummary: React.FC<CartOrderSummaryProps> = ({
         <div className={styles.separator} />
 
         <div className={`${styles.row} ${styles.totalRow}`}>
-          <span className={styles.totalLabel}>Total Amount</span>
+          <span className={styles.totalLabel}>Final payable amount</span>
           <span className={styles.totalValue}>{formatPrice(finalTotal)}</span>
         </div>
-        
+
+        {promoDiscount > 0 && (
+          <p className={styles.savings}>You save {formatPrice(promoDiscount)} on this order</p>
+        )}
+
         <p className={styles.taxNote}>Inclusive of all taxes</p>
       </div>
 
@@ -89,7 +96,7 @@ export const CartOrderSummary: React.FC<CartOrderSummaryProps> = ({
           >
             <div className={styles.promoToggleLeft}>
               <Tag size={16} />
-              <span>Have a Promo Code?</span>
+              <span>Have a coupon?</span>
             </div>
             {isPromoOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
           </button>
@@ -100,6 +107,8 @@ export const CartOrderSummary: React.FC<CartOrderSummaryProps> = ({
             <PromoCodeInput {...promoInputProps} className={styles.promoInput} />
           </div>
         )}
+
+        {couponPicker ? <div className={styles.pickerRow}>{couponPicker}</div> : null}
       </div>
 
       {walletBalance !== undefined && walletBalance > 0 && (

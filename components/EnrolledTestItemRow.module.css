@@ -1,0 +1,299 @@
+/*
+ * The list owns the columns - index, main, result, actions - and each row
+ * takes them through subgrid, so result and actions align down the list.
+ * The index track is auto, not a fixed width: a subgrid row's padding lands in
+ * its edge tracks, and a fixed track would let the padding squeeze the index.
+ * Hairline separators between rows, a muted wash on hover, no shadows.
+ */
+.list {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  column-gap: var(--spacing-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+  padding: var(--spacing-3) var(--spacing-4);
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.row + .row {
+  border-top: 1px solid var(--border);
+}
+
+.row:hover {
+  background-color: var(--muted);
+}
+
+.index {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.row[data-completed] .index {
+  border-color: var(--success);
+  background-color: var(--success);
+  color: var(--surface);
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  min-width: 0;
+}
+
+.titleLine {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-1) var(--spacing-2);
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-base);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+.subject {
+  padding: 1px var(--spacing-2);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background-color: var(--muted);
+  color: var(--foreground);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-1) var(--spacing-3);
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  white-space: nowrap;
+}
+
+.scheduled {
+  color: var(--tk-brand-text);
+  font-weight: 600;
+}
+
+.result {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-1);
+  min-width: 7.5rem;
+}
+
+.statusBadge {
+  font-size: 0.6875rem !important;
+  padding: 1px var(--spacing-2) !important;
+  font-weight: 600 !important;
+}
+
+.bestScore {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.bestScore strong {
+  font-weight: 700;
+}
+
+.success { color: var(--success-text); }
+.warning { color: var(--warning-text); }
+.destructive { color: var(--error-text); }
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-2);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  height: 2.25rem;
+  padding: 0 var(--spacing-3);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--foreground);
+  font-family: var(--font-family-base);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) ease, border-color var(--animation-duration-fast) ease, color var(--animation-duration-fast) ease;
+}
+
+.button:hover {
+  background-color: var(--muted);
+  border-color: color-mix(in srgb, var(--border), var(--foreground) 20%);
+}
+
+.button:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.button svg {
+  flex-shrink: 0;
+}
+
+/* A dark neutral fill keeps coral for the page's one primary CTA. */
+.solidButton {
+  min-width: 7.5rem;
+  background-color: var(--foreground);
+  border-color: var(--foreground);
+  color: var(--surface);
+}
+
+.solidButton:hover {
+  background-color: color-mix(in srgb, var(--foreground), var(--surface) 18%);
+  border-color: color-mix(in srgb, var(--foreground), var(--surface) 18%);
+}
+
+.iconButton {
+  width: 2.25rem;
+  padding: 0;
+  color: var(--tk-brand-text);
+}
+
+.iconButton:hover {
+  color: var(--tk-brand-text);
+  border-color: var(--primary);
+}
+
+.iconButtonLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* No opacity: the muted pair already reads as unavailable. */
+.disabledButton,
+.disabledButton:hover {
+  min-width: 7.5rem;
+  background-color: var(--muted);
+  border-color: var(--border);
+  color: var(--muted-foreground);
+  cursor: not-allowed;
+}
+
+/*
+ * Container queries against the enrolled series page (its .page is the
+ * container), so the sidebar's width is accounted for.
+ * Tablet: actions drop to a second line under the title, result stays beside it.
+ */
+@container (max-width: 56rem) {
+  .list {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .row {
+    row-gap: var(--spacing-3);
+  }
+
+  .actions {
+    grid-column: 2 / -1;
+    justify-content: flex-start;
+  }
+}
+
+/* Phone: one column beside the index; text buttons share the width and the
+   leaderboard stays an icon square, so three actions still fit at 320px. */
+@container (max-width: 30rem) {
+  .list {
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: var(--spacing-3);
+  }
+
+  .row {
+    row-gap: var(--spacing-2);
+    padding: var(--spacing-3);
+    align-items: start;
+  }
+
+  .index {
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 0.6875rem;
+  }
+
+  .result {
+    grid-column: 2;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-3);
+    min-width: 0;
+  }
+
+  .actions {
+    grid-column: 2;
+  }
+
+  .button {
+    flex: 1;
+    height: 2.5rem;
+  }
+
+  .iconButton {
+    flex: 0 0 2.5rem;
+    width: 2.5rem;
+  }
+
+  .solidButton,
+  .disabledButton {
+    min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row,
+  .button {
+    transition: none;
+  }
+}

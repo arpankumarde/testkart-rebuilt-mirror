@@ -211,6 +211,17 @@
   gap: var(--spacing-2);
 }
 
+.scheduleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.schedulePicker {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 @media (max-width: 640px) {
   .itemCard {
     padding: var(--spacing-3);
@@ -235,6 +246,15 @@
     flex: 1 1 auto;
     justify-content: center;
     min-height: 2.75rem;
+  }
+
+  .scheduleRow {
+    flex-wrap: wrap;
+  }
+
+  .scheduleRow > button {
+    flex: 1 1 100%;
+    justify-content: center;
   }
 }
 

@@ -8,7 +8,7 @@ import { Button } from '../components/Button';
 import { ConsolePageHeader } from '../components/ConsolePageHeader';
 import { ConsoleListToolbar, type ConsoleListTab } from '../components/ConsoleListToolbar';
 import { ConsoleListEmpty } from '../components/ConsoleListEmpty';
-import { BookCopy, AlertTriangle } from "lucide-react";
+import { BookCopy, AlertTriangle, Trophy } from "lucide-react";
 import styles from "./student.tests.module.css";
 
 type FilterStatus = "all" | "inProgress" | "completed";
@@ -120,6 +120,12 @@ export default function StudentTestsPage() {
       </Helmet>
       <div className={styles.page}>
         <ConsolePageHeader title="Mock tests">
+          <Button asChild variant="outline">
+            <Link to="/student/tests/leaderboards">
+              <Trophy size={16} aria-hidden="true" />
+              Leaderboards
+            </Link>
+          </Button>
           <Button asChild variant="outline">
             <Link to="/mock-test">Browse tests</Link>
           </Button>

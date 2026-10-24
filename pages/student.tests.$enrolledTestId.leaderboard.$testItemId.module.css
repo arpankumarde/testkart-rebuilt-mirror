@@ -1,0 +1,225 @@
+/*
+ * On the shared console language - see student.tests.module.css for the rules.
+ * Same 64rem measure as the series page it belongs to, and a size container so
+ * the header reflows by the page's own width, not the viewport's.
+ */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  width: 100%;
+  max-width: 64rem;
+  margin: 0 auto;
+  box-sizing: border-box;
+  container-type: inline-size;
+  container-name: testboard;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  max-width: 100%;
+  width: fit-content;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color var(--animation-duration-fast) ease;
+}
+
+.backLink svg {
+  flex-shrink: 0;
+}
+
+.backText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.backLink:hover {
+  color: var(--foreground);
+}
+
+.backLink:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--radius-sm);
+}
+
+.header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4) 1.25rem;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.headerIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius);
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--tk-brand-text);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.375rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-1) var(--spacing-4);
+  margin: var(--spacing-1) 0 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  min-width: 0;
+}
+
+.metaItem svg {
+  flex-shrink: 0;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.secondaryButton,
+.solidButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  height: 2.5rem;
+  padding: 0 var(--spacing-4);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background-color var(--animation-duration-fast) ease, border-color var(--animation-duration-fast) ease;
+}
+
+.secondaryButton svg,
+.solidButton svg {
+  flex-shrink: 0;
+}
+
+.secondaryButton {
+  background-color: var(--surface);
+  color: var(--foreground);
+}
+
+.secondaryButton:hover {
+  background-color: var(--muted);
+}
+
+/* Dark neutral fill, as on the series page's test rows. */
+.solidButton {
+  background-color: var(--foreground);
+  border-color: var(--foreground);
+  color: var(--surface);
+}
+
+.solidButton:hover {
+  background-color: color-mix(in srgb, var(--foreground), var(--surface) 18%);
+}
+
+.secondaryButton:focus-visible,
+.solidButton:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.headerSkeleton {
+  height: 6rem;
+  border-radius: var(--radius-md);
+}
+
+.boardSkeleton {
+  height: 24rem;
+  border-radius: var(--radius-md);
+}
+
+@container testboard (max-width: 44rem) {
+  .header {
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: var(--spacing-4);
+    gap: var(--spacing-3);
+  }
+
+  .headerActions {
+    grid-column: 1 / -1;
+  }
+
+  .title {
+    font-size: 1.1875rem;
+  }
+}
+
+@container testboard (max-width: 30rem) {
+  .headerIcon {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .title {
+    font-size: 1.0625rem;
+  }
+
+  .secondaryButton,
+  .solidButton {
+    flex: 1;
+    height: 2.75rem;
+    padding: 0 var(--spacing-3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backLink,
+  .secondaryButton,
+  .solidButton {
+    transition: none;
+  }
+}

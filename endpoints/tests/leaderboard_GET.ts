@@ -4,11 +4,16 @@ import superjson from "superjson";
 import { z } from "zod";
 import { sql } from "kysely";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
+import { getTestSeriesLeaderboardAccess } from "../../helpers/testSeriesLeaderboardAccess";
 
 const inputSchema = z.object({
   testItemId: z.coerce.number().int().positive(),
 });
 
+/*
+ * Rankings are student performance data, so they are served only to a signed-in
+ * caller who may see this paper's series - see helpers/testSeriesLeaderboardAccess.
+ */
 export async function handle(request: Request) {
   try {
     const url = new URL(request.url);
@@ -23,6 +28,39 @@ export async function handle(request: Request) {
     }
 
     const validatedTestItemId = validationResult.data.testItemId;
+
+    let user;
+    try {
+      ({ user } = await getServerUserSession(request));
+    } catch {
+      return new Response(
+        superjson.stringify({ error: "Log in to view this leaderboard." }),
+        { status: 401 }
+      );
+    }
+
+    const testItem = await db
+      .selectFrom("mockTestItems")
+      .select("packageId")
+      .where("id", "=", validatedTestItemId)
+      .executeTakeFirst();
+
+    if (!testItem) {
+      return new Response(
+        superjson.stringify({ error: "Test not found." }),
+        { status: 404 }
+      );
+    }
+
+    const access = await getTestSeriesLeaderboardAccess(user, testItem.packageId);
+    if (!access) {
+      return new Response(
+        superjson.stringify({
+          error: "Enrol in this test series or attempt one of its tests to view its leaderboard.",
+        }),
+        { status: 403 }
+      );
+    }
 
     // Use a CTE to find the best attempt for each student
     const bestAttemptsSubquery = db
@@ -71,26 +109,21 @@ export async function handle(request: Request) {
     }));
 
     let currentUserBestRank: OutputType["currentUserBestRank"] = null;
-    try {
-      const { user } = await getServerUserSession(request);
-      const userEntry = rankedLeaderboard.find(
-        (entry) => entry.studentId === user.id
-      );
-      if (userEntry) {
-        currentUserBestRank = {
-          rank: userEntry.rank,
-          studentName: userEntry.studentName,
-          score: userEntry.score,
-          timeTaken: userEntry.timeTaken,
-          completedAt: userEntry.completedAt,
-          attemptNumber: userEntry.attemptNumber,
-        };
-      }
-    } catch (error) {
-      // User not authenticated, which is fine for this public endpoint
+    const userEntry = rankedLeaderboard.find(
+      (entry) => entry.studentId === user.id
+    );
+    if (userEntry) {
+      currentUserBestRank = {
+        rank: userEntry.rank,
+        studentName: userEntry.studentName,
+        score: userEntry.score,
+        timeTaken: userEntry.timeTaken,
+        completedAt: userEntry.completedAt,
+        attemptNumber: userEntry.attemptNumber,
+      };
     }
 
-    // Remove studentId from the final public response
+    // Remove studentId from the response
     const finalLeaderboard = rankedLeaderboard.map(({ studentId, ...rest }) => rest);
 
     return new Response(

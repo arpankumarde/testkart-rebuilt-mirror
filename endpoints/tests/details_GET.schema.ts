@@ -52,6 +52,8 @@ export type PackageDetails = {
   createdAt: Date | null;
   updatedAt: Date | null;
   isEnrolled: boolean;
+  /** The caller may open this series' leaderboard (helpers/testSeriesLeaderboardAccess). Optional so older payloads still parse. */
+  canViewLeaderboard?: boolean;
   language: string | null;
   /** Every language of the series; language keeps the readable summary. */
   languages?: string[];

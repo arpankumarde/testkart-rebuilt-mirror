@@ -1,4 +1,4 @@
-/* Sits inside the detail page's section card, which supplies the heading. */
+/* Sits inside a section card or panel, which supplies the heading. */
 .container {
   min-width: 0;
 }
@@ -47,8 +47,56 @@
 }
 
 .currentUserRow {
-  background-color: color-mix(in srgb, var(--primary) 5%, transparent);
-  border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+  background-color: var(--tk-brand-tint);
+  border: 1px solid var(--primary);
+}
+
+.currentUserRow:nth-child(even),
+.currentUserRow:hover {
+  background-color: var(--tk-brand-tint);
+}
+
+.youTag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px var(--spacing-2);
+  border-radius: var(--radius-full);
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  flex-shrink: 0;
+}
+
+.yourRank {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--spacing-2) var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid var(--primary);
+  border-radius: 0.875rem;
+  background-color: var(--tk-brand-tint);
+}
+
+.yourRankLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--tk-brand-text);
+}
+
+.yourRankValue {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--foreground);
+}
+
+.yourRankMeta {
+  font-size: 0.875rem;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
 }
 
 .headerCellRank { text-align: center; }
@@ -149,8 +197,7 @@
   color: var(--muted-foreground);
 }
 
-.emptyState,
-.loginPrompt {
+.emptyState {
   background-color: var(--exam-ivory);
   border: 1.5px dashed var(--exam-ivory-border);
   border-radius: 1.25rem;
@@ -171,72 +218,15 @@
   margin: 0; 
 }
 
-/* Login Prompt */
-.loginPrompt {
-  text-align: center;
-  padding: var(--spacing-8) var(--spacing-6);
-  color: var(--foreground);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-3);
-}
-
-.loginPromptIcon {
-  color: hsl(42 96% 46%);
-}
-
-.loginPromptHeadline {
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--surface-foreground);
-  margin: 0;
-  font-family: var(--font-family-heading);
-}
-
-.loginPromptSubtitle {
-  font-size: 0.9375rem;
-  color: var(--muted-foreground);
-  margin: 0 0 var(--spacing-2);
-  max-width: 400px;
-}
-
-.loginPromptButtons {
-  display: flex;
-  gap: var(--spacing-3);
-  justify-content: center;
-  align-items: center;
-}
-
-.loginPromptButtons > * {
-  border-radius: var(--radius-full);
-}
-
 /* Responsive */
 @media (max-width: 768px) {
-  .loginPrompt {
-    padding: var(--spacing-6) var(--spacing-4);
-  }
-
-  .loginPromptHeadline {
-    font-size: 1.125rem;
-  }
-
-  .loginPromptSubtitle {
-    font-size: 0.9375rem;
-  }
-
-  .loginPromptButtons {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .loginPromptButtons > * {
-    width: 100%;
-  }
-
   .container {
     overflow-x: auto;
+  }
+
+  .yourRank {
+    padding: var(--spacing-2) var(--spacing-3);
+    margin-bottom: var(--spacing-3);
   }
 
   .table {

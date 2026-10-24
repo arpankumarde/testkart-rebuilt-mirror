@@ -1,15 +1,20 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { useTestLeaderboardQuery } from '../helpers/useTestLeaderboardQuery';
-import { useAuth } from '../helpers/useAuth';
+import React, { useEffect, useRef, useState } from 'react';
+import { isLeaderboardLocked, useTestLeaderboardQuery } from '../helpers/useTestLeaderboardQuery';
 import { Skeleton } from './Skeleton';
 import { Button } from './Button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './Tabs';
 import { Trophy, BarChart2, Lock } from 'lucide-react';
 import styles from './TestLeaderboard.module.css';
 
+/*
+ * Top five of one series' papers, for a viewer the server has already let in
+ * (see helpers/testSeriesLeaderboardAccess). The public series page does not
+ * render this - it shows TestLeaderboardCta instead.
+ */
 interface TestLeaderboardProps {
   testItems: Array<{ id: number; title: string }>;
+  /* Paper whose tab opens first; falls back to the first paper. */
+  initialTestItemId?: number;
   onViewFull: () => void;
   className?: string;
 }
@@ -48,19 +53,29 @@ const formatRelativeTime = (date: Date): string => {
 
 export const TestLeaderboard: React.FC<TestLeaderboardProps> = ({
   testItems,
+  initialTestItemId,
   onViewFull,
   className,
 }) => {
-  const { authState } = useAuth();
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedIndex, setSelectedIndex] = useState(() =>
+    Math.max(0, testItems.findIndex((item) => item.id === initialTestItemId))
+  );
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // A preselected paper can sit past the edge of the scrolling tab strip.
+  useEffect(() => {
+    if (!initialTestItemId) return;
+    const tab = containerRef.current?.querySelector<HTMLElement>('[role="tab"][data-state="active"]');
+    const strip = tab?.parentElement;
+    if (tab && strip) strip.scrollLeft = tab.offsetLeft - strip.offsetLeft - 16;
+  }, [initialTestItemId]);
 
   const selectedTestItem = testItems[selectedIndex];
   const { data, isFetching, error } = useTestLeaderboardQuery(
     selectedTestItem?.id
   );
 
-  const currentUserDisplayName =
-    authState.type === 'authenticated' ? authState.user.displayName : null;
+  const currentUserRank = data?.currentUserBestRank?.rank ?? null;
 
   const renderRankIcon = (rank: number) => {
     if (rank === 1)
@@ -72,30 +87,19 @@ export const TestLeaderboard: React.FC<TestLeaderboardProps> = ({
     return <span className={styles.rankNumber}>{rank}</span>;
   };
 
-  const location = useLocation();
-
   const renderContent = () => {
-    // Check authentication first
-    if (authState.type !== 'authenticated') {
-      return (
-        <div className={styles.loginPrompt}>
-          <Trophy size={40} className={styles.loginPromptIcon} aria-hidden="true" />
-          <h3 className={styles.loginPromptHeadline}>Want to see who's on top?</h3>
-          <p className={styles.loginPromptSubtitle}>Login to view rankings and compete with students across India!</p>
-          <div className={styles.loginPromptButtons}>
-            <Button asChild>
-              <Link to={`/login?redirectTo=${encodeURIComponent(location.pathname)}`}>Login</Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link to={`/signup?redirectTo=${encodeURIComponent(location.pathname)}`}>Sign Up</Link>
-            </Button>
-          </div>
-        </div>
-      );
-    }
-
     if (isFetching && !data) {
       return <LeaderboardSkeleton />;
+    }
+
+    if (isLeaderboardLocked(error)) {
+      return (
+        <div className={styles.emptyState}>
+          <Lock size={40} />
+          <h3>Leaderboard locked</h3>
+          <p>{(error as Error).message}</p>
+        </div>
+      );
     }
 
     if (error) {
@@ -117,9 +121,19 @@ export const TestLeaderboard: React.FC<TestLeaderboardProps> = ({
     }
 
     const topFive = data.leaderboard.slice(0, 5);
+    const yourEntry = data.currentUserBestRank;
 
     return (
       <>
+        {yourEntry && (
+          <div className={styles.yourRank}>
+            <span className={styles.yourRankLabel}>Your best</span>
+            <span className={styles.yourRankValue}>Rank #{yourEntry.rank}</span>
+            <span className={styles.yourRankMeta}>
+              {yourEntry.score.toFixed(2)}% - {yourEntry.timeTaken} min - Attempt {yourEntry.attemptNumber}
+            </span>
+          </div>
+        )}
         <div className={styles.table}>
           <div className={styles.tableHeader}>
             <div className={styles.headerCellRank}>Rank</div>
@@ -130,7 +144,7 @@ export const TestLeaderboard: React.FC<TestLeaderboardProps> = ({
           </div>
           <div className={styles.tableBody}>
             {topFive.map((entry) => {
-              const isCurrentUser = entry.studentName === currentUserDisplayName;
+              const isCurrentUser = entry.rank === currentUserRank;
               return (
                 <div
                   key={entry.rank}
@@ -142,6 +156,7 @@ export const TestLeaderboard: React.FC<TestLeaderboardProps> = ({
                   </div>
                   <div className={styles.cellName} data-label="Student">
                     {entry.studentName}
+                    {isCurrentUser && <span className={styles.youTag}>You</span>}
                     <span className={styles.attemptBadge}>
                       Attempt {entry.attemptNumber}
                     </span>
@@ -176,7 +191,7 @@ export const TestLeaderboard: React.FC<TestLeaderboardProps> = ({
   }
 
   return (
-    <div className={`${styles.container} ${className || ''}`}>
+    <div ref={containerRef} className={`${styles.container} ${className || ''}`}>
       {testItems.length === 1 ? (
         <div className={styles.contentWrapper}>{renderContent()}</div>
       ) : (

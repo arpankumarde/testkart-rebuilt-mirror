@@ -28,13 +28,12 @@ export const VISIBILITY_OPTIONS: { value: ContentVisibility; label: string; desc
   {
     value: "public",
     label: "Public",
-    description: "Shows in search, categories and your profile. Follows the usual publishing and review steps.",
+    description: "Listed in search, categories and your profile. Follows the usual publishing and review steps.",
   },
   {
     value: "unlisted",
     label: "Unlisted",
-    description:
-      "Only people with the link can open it. Goes live at once without review, and stays out of search, listings, your profile and search engines.",
+    description: "Anyone with the direct link can access this content. It won't appear in search results or public listings.",
   },
 ];
 

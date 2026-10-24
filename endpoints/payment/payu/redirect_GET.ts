@@ -9,6 +9,14 @@ import { ensureOrderCompletionSideEffects } from "../../../helpers/ensureOrderCo
 import { promoCodeCoversTeacher } from "../../../helpers/promoCodeEligibility";
 import { countPromoCodeUses } from "../../../helpers/promoCodeUsage";
 import { courseEffectivePriceSql } from "../../../helpers/coursePricing";
+import {
+  applySpinCouponOrThrow,
+  asEligibleItemIds,
+  getSpinCouponRuleOrThrow,
+  recordSpinRedemption,
+  spinCartLines,
+  type AppliedSpinCoupon,
+} from "../../../helpers/spinWinServer";
 
 const generateErrorHtml = (errorMessage: string, backUrl: string) => `
 <!DOCTYPE html>
@@ -188,6 +196,7 @@ export async function handle(request: Request) {
       let finalAmount = totalAmount;
       let validatedPromoCodeId: number | null = null;
       let eligibleItemIds: Array<{ type: 'test' | 'course' | 'digitalProduct'; id: number }> = [];
+      let spinApplied: AppliedSpinCoupon | null = null;
 
       // Validate and apply promo code if provided
       if (promoCodeId) {
@@ -329,6 +338,15 @@ export async function handle(request: Request) {
         discountAmount = Math.min(discountAmount, eligibleItemsTotal);
         finalAmount = totalAmount - discountAmount;
 
+        // Spin & Win coupons: owner, expiry, single use, categories, minimum and the 18% cap.
+        const spinRule = await getSpinCouponRuleOrThrow(trx, promoCodeId, user.id);
+        if (spinRule) {
+          spinApplied = applySpinCouponOrThrow(spinRule, spinCartLines(cartItems));
+          eligibleItemIds = asEligibleItemIds(spinApplied.eligible);
+          discountAmount = spinApplied.discount;
+          finalAmount = totalAmount - discountAmount;
+        }
+
         validatedPromoCodeId = promoCodeId;
 
         console.log(`Promo code ${promoCode.code} applied. Discount: ₹${discountAmount.toFixed(2)}`);
@@ -446,6 +464,10 @@ export async function handle(request: Request) {
               discountAmount: discountAmount.toFixed(2),
             })
             .execute();
+        }
+
+        if (spinApplied) {
+          await recordSpinRedemption(trx, spinApplied, { id: newOrder.id, userId: user.id, finalAmount: 0, paymentMethod: "free" });
         }
 
         const mockTestIds = cartItems
@@ -621,6 +643,10 @@ export async function handle(request: Request) {
             discountAmount: discountAmount.toFixed(2),
           })
           .execute();
+      }
+
+      if (spinApplied) {
+        await recordSpinRedemption(trx, spinApplied, { id: newOrder.id, userId: user.id, finalAmount, paymentMethod: "payu" });
       }
 
       const amount = finalAmount.toFixed(2);

@@ -1,0 +1,100 @@
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--foreground);
+}
+
+.toggle {
+  padding: 0 var(--spacing-3);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.toggle[data-state="on"],
+.toggle[data-state="on"]:hover {
+  color: var(--tk-brand-text);
+  background-color: var(--tk-brand-tint);
+  border-color: var(--tk-brand-text);
+}
+
+.htmlPanel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.htmlToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.htmlNote {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.codeSkeleton {
+  height: 28rem;
+}
+
+/* Two classes, so the public card's frame loses: the panel is the frame here. */
+.htmlPanel .preview {
+  max-height: 36rem;
+  padding: var(--spacing-6);
+  overflow-y: auto;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.previewEmpty {
+  margin: 0;
+  padding: var(--spacing-8) var(--spacing-4);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  text-align: center;
+}
+
+.removedNote {
+  margin: 0;
+  padding: var(--spacing-2) var(--spacing-3);
+  overflow-wrap: anywhere;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--warning-text);
+  border-top: 1px solid var(--border);
+}
+
+.confirmDialog {
+  max-width: 30rem;
+}
+
+@media (max-width: 640px) {
+  .codeSkeleton {
+    height: 22rem;
+  }
+
+  .htmlPanel .preview {
+    padding: var(--spacing-4);
+  }
+}

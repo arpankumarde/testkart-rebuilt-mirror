@@ -54,28 +54,35 @@ const DATA_OR_ARIA_ATTR = /^(data|aria)-[a-z0-9_.:-]+$/i;
 // Text is escaped by the filter, so this only meets real button tags, whose own type was dropped.
 const BUTTON_OPEN_TAG = /<button(?=[\s>])/g;
 
-const filter = new FilterXSS({
+// Shared with sanitizeLayoutHtml, which widens this allow list for the exam editor's HTML mode.
+export const htmlFilterOptions = {
   whiteList,
   stripIgnoreTag: true,
   stripIgnoreTagBody: ["script", "style", "noscript", "template", "object", "embed"],
-  onTagAttr(tag, name, value) {
+  onTagAttr(tag: string, name: string, value: string): string | undefined {
     if (tag === "iframe" && name === "src") {
       const src = value.trim();
       return EMBED_SRC.test(src) ? `src="${escapeAttrValue(src)}"` : "";
     }
     return undefined;
   },
-  onIgnoreTagAttr(_tag, name, value) {
+  onIgnoreTagAttr(_tag: string, name: string, value: string): string | undefined {
     if (DATA_OR_ARIA_ATTR.test(name)) {
       return `${name}="${escapeAttrValue(value)}"`;
     }
     return undefined;
   },
-});
+};
+
+const filter = new FilterXSS(htmlFilterOptions);
+
+export function makeButtonsInert(html: string): string {
+  return html.replace(BUTTON_OPEN_TAG, '<button type="button"');
+}
 
 export function sanitizeHtml(html: string | null | undefined): string {
   if (!html) return "";
-  return filter.process(html).replace(BUTTON_OPEN_TAG, '<button type="button"');
+  return makeButtonsInert(filter.process(html));
 }
 
 /** For optional fields on save: keeps undefined and null as they are. */

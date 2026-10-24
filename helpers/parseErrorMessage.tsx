@@ -18,6 +18,14 @@ export function parseErrorMessage(error: unknown): string {
 
     const trimmed = msg.trim();
 
+    // The server answered with an HTML page (timeout or gateway error) and the client failed to read it as JSON.
+    if (
+      /<!doctype|<html|unexpected token '<'|is not valid json|json\.parse:|json parse error/i.test(trimmed) ||
+      (error instanceof SyntaxError && /json/i.test(trimmed))
+    ) {
+      return "The server did not respond properly. Please try again in a moment.";
+    }
+
     // Check if it's a JSON stringified Zod array or similar
     if (trimmed.startsWith("[")) {
       try {

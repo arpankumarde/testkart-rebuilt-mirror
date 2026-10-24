@@ -453,7 +453,13 @@ export function buildToolDefinitions(permissions: readonly string[]): ToolDefini
               "tables, links, images; scripts, event handlers, unsafe URLs and non-YouTube/Vimeo " +
               "iframes are stripped). Keep it structural: h2, h3, p, ul, ol, li, strong, em, " +
               "table/tbody/tr/th/td with a <p> in each cell, https links. No h1 and no " +
-              "hand-written inline styles.",
+              "hand-written inline styles. Content starting with the comment <!-- tk:html-mode --> " +
+              "was written in the admin panel's HTML mode: keep that first line when sending it " +
+              "back, or the section reverts to the rich text editor. HTML with scripts or form " +
+              "controls is not sanitised: it runs whole in a sandboxed iframe that blocks network " +
+              "requests and external scripts. The iframe is transparent and follows the site theme: " +
+              "avoid hard-coded backgrounds and text colours, and use --tk-surface, --tk-foreground, " +
+              "--tk-muted, --tk-muted-foreground, --tk-border and --tk-brand, or a .dark selector.",
           },
           faqItems: {
             type: ["array", "null"],

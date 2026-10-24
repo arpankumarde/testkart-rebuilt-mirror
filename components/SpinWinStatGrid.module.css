@@ -1,0 +1,47 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: var(--spacing-3);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  min-width: 0;
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+
+.label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.value {
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.note {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.skeleton {
+  height: 1.8rem;
+  width: 60%;
+}
+
+.peach { background: var(--pastel-peach); color: var(--pastel-peach-ink); }
+.mint { background: var(--pastel-mint); color: var(--pastel-mint-ink); }
+.lavender { background: var(--pastel-lavender); color: var(--pastel-lavender-ink); }
+.powder { background: var(--pastel-powder); color: var(--pastel-powder-ink); }
+.butter { background: var(--pastel-butter); color: var(--pastel-butter-ink); }
+.sage { background: var(--pastel-sage); color: var(--pastel-sage-ink); }
+.cream { background: var(--pastel-cream); color: var(--pastel-cream-ink); }

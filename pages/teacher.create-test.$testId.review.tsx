@@ -337,11 +337,6 @@ const Page = () => {
           contentId={isLiveTest && liveTest ? liveTest.id : packageId}
         />
 
-        <ContentVisibilityPanel
-          contentType={isLiveTest && liveTest ? "live_test" : "mock_test"}
-          contentId={isLiveTest && liveTest ? liveTest.id : packageId}
-        />
-
         <div className={styles.layout}>
           <aside className={styles.rail} aria-labelledby="review-verdict">
             <div className={styles.railCard}>
@@ -442,6 +437,14 @@ const Page = () => {
                   </>
                 )}
               </div>
+
+              {/* Visibility is chosen here, beside the publish action, not during creation. */}
+              <ContentVisibilityPanel
+                variant="inline"
+                className={styles.visibility}
+                contentType={isLiveTest && liveTest ? "live_test" : "mock_test"}
+                contentId={isLiveTest && liveTest ? liveTest.id : packageId}
+              />
 
               <div className={styles.checks}>
                 <div className={styles.checksHeader}>

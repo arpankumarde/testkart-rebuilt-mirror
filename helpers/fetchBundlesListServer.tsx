@@ -38,6 +38,7 @@ export async function fetchBundlesListServer(rawInput: Partial<InputType> = {}):
 
   let countQuery = db
     .selectFrom("courseBundles")
+    .innerJoin("users", "users.id", "courseBundles.teacherId")
     .where("courseBundles.isPublished", "=", true)
     .where("courseBundles.visibility", "=", "public");
 
@@ -47,12 +48,14 @@ export async function fetchBundlesListServer(rawInput: Partial<InputType> = {}):
       eb.or([
         eb("courseBundles.title", "ilike", searchPattern),
         eb("courseBundles.description", "ilike", searchPattern),
+        eb("users.displayName", "ilike", searchPattern),
       ])
     );
     countQuery = countQuery.where((eb) =>
       eb.or([
         eb("courseBundles.title", "ilike", searchPattern),
         eb("courseBundles.description", "ilike", searchPattern),
+        eb("users.displayName", "ilike", searchPattern),
       ])
     );
   }

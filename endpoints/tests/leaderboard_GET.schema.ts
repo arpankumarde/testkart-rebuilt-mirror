@@ -21,6 +21,14 @@ export type OutputType = {
   currentUserBestRank: LeaderboardEntry | null;
 };
 
+/* Carries the HTTP status so callers can tell a locked leaderboard (401/403) from a failure. */
+export class LeaderboardRequestError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message);
+    this.name = "LeaderboardRequestError";
+  }
+}
+
 export const getTestsLeaderboard = async (
   params: InputType,
   init?: RequestInit
@@ -46,7 +54,7 @@ export const getTestsLeaderboard = async (
     const errorObject = superjson.parse<{ error: string }>(
       await result.text()
     );
-    throw new Error(errorObject.error);
+    throw new LeaderboardRequestError(errorObject.error, result.status);
   }
 
   return superjson.parse<OutputType>(await result.text());

@@ -1,0 +1,142 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--spacing-3);
+}
+
+.dateField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.financeCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4) var(--spacing-6);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  min-width: 0;
+}
+
+.financeHead {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.subtitle {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.financeNote {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  border-radius: var(--radius);
+  background: var(--pastel-butter);
+  color: var(--pastel-butter-ink);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.financeNote svg {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
+.financeTable {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+
+.financeTable th,
+.financeTable td {
+  padding: var(--spacing-2) var(--spacing-2);
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.financeTable thead th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.financeTable th:first-child {
+  text-align: left;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.financeTable thead th:first-child {
+  font-weight: 600;
+}
+
+.financeTable tfoot th,
+.financeTable tfoot td {
+  font-weight: 700;
+  border-bottom: 0;
+}
+
+.selected {
+  color: var(--foreground) !important;
+  text-decoration: underline;
+  text-decoration-color: var(--tk-brand);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 4px;
+}
+
+.strong th,
+.strong td {
+  font-weight: 800 !important;
+  border-bottom: 0;
+}
+
+.dot {
+  display: inline-block;
+  width: 0.625rem;
+  height: 0.625rem;
+  margin-right: var(--spacing-1);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+}
+
+@media (max-width: 640px) {
+  .financeCard {
+    padding: var(--spacing-4);
+  }
+}

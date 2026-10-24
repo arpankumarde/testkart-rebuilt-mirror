@@ -38,6 +38,7 @@ import {
   CalendarDays,
   BellRing,
   Video,
+  Ticket,
 } from "lucide-react";
 import { ANY_ADMIN, EXTRA_PAGE_RULES, hasAdminModule, type AdminModule } from "./adminPermissions";
 import { ARTICLE_TABS } from "./adminContentSurfaces";
@@ -94,6 +95,19 @@ const groups: AdminNavGroup[] = [
         icon: Video,
         modules: ["masterclasses"],
         keywords: "webinar events registrations reminders training teachers",
+      },
+    ],
+  },
+  {
+    key: "marketing",
+    label: "Marketing",
+    items: [
+      {
+        href: "/admin/spin-win",
+        label: "Spin & Win",
+        icon: Ticket,
+        modules: ["spin_win"],
+        keywords: "diwali campaign wheel spin rewards coupons promo codes grand prize",
       },
     ],
   },

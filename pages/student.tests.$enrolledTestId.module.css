@@ -1,13 +1,15 @@
 /*
  * On the shared console language - see student.tests.module.css for the rules.
- * Panels at --radius-md on a hairline, coral only as a block, and the semantic
- * score colours on the themed --*-text tokens so they hold as type in both themes.
- */
-/*
- * 64rem, not the 1440 workspace measure: this is a header card over a single
- * column of test rows, so at 1440 each row's title column ran most of a screen
- * with its status and actions marooned at the far edge. 1440 is for the grid
- * pages, where the extra width buys another card per row.
+ * Two panels at --radius-md on a hairline with the flat --shadow: an overview
+ * (identity, actions, then a stats band) and the test list. Coral is used once
+ * as a block, on Continue learning; everything else is neutral, and the score
+ * colours use the themed --*-text tokens so they hold in both themes.
+ *
+ * 64rem, not the 1440 workspace measure: a single column of test rows at 1440
+ * left each row's status and actions marooned at the far edge.
+ *
+ * Breakpoints are container queries on .page, not viewport media queries: the
+ * student sidebar takes ~260px, so an 820px tablet leaves the page ~540px.
  */
 .page {
   display: flex;
@@ -17,6 +19,8 @@
   max-width: 64rem;
   margin: 0 auto;
   box-sizing: border-box;
+  container-type: inline-size;
+  container-name: series;
 }
 
 .backLink {
@@ -41,7 +45,9 @@
   border-radius: var(--radius-sm);
 }
 
-.headerCard {
+/* Overview */
+.overview,
+.testsPanel {
   background-color: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -49,23 +55,28 @@
   overflow: hidden;
 }
 
-.cardHeader {
-  display: flex;
-  gap: var(--spacing-4);
-  padding: var(--spacing-6);
-  border-bottom: 1px solid var(--border);
+.overviewTop {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--spacing-3) var(--spacing-5, 1.25rem);
+  padding: var(--spacing-4) 1.25rem;
 }
 
+/* The thumbnail spans the title block and the action row beside it. */
 .thumbnail {
-  width: 96px;
+  grid-row: span 2;
+  align-self: center;
+  width: 10rem;
   aspect-ratio: 16 / 9;
-  flex-shrink: 0;
   border-radius: var(--radius);
   overflow: hidden;
   background-color: var(--muted);
+  border: 1px solid var(--border);
 }
 
 .thumbnailImage {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -75,253 +86,362 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-1);
-  flex-grow: 1;
   min-width: 0;
 }
 
 .headerBadges {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
   flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.examBadge,
+.unpublishedBadge {
+  font-size: 0.6875rem !important;
+  padding: 1px var(--spacing-2) !important;
+  font-weight: 600 !important;
 }
 
 .unpublishedBadge {
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-1);
-  background-color: color-mix(in srgb, var(--warning) 15%, transparent);
+  background-color: var(--muted);
   color: var(--warning-text);
-  border-color: color-mix(in srgb, var(--warning) 40%, transparent);
+  border-color: var(--warning);
 }
 
 .title {
   margin: 0;
   font-family: var(--font-family-heading);
-  font-size: 1.5rem;
+  font-size: 1.375rem;
   font-weight: 800;
   letter-spacing: -0.015em;
-  line-height: 1.2;
+  line-height: 1.25;
   color: var(--foreground);
+  overflow-wrap: anywhere;
 }
 
-.enrolledDate {
+.metaLine {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-1) var(--spacing-3);
   margin: 0;
   font-size: 0.8125rem;
   color: var(--muted-foreground);
 }
 
-.progressSection {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-2);
-  padding: var(--spacing-6);
-}
-
-.progressTopRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-}
-
-.progressLabel {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--muted-foreground);
-}
-
-.progressPercent {
-  font-size: 0.9375rem;
-  font-weight: 700;
-  color: var(--foreground);
-  font-variant-numeric: tabular-nums;
-}
-
-.statStrip {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--spacing-2);
-  margin-top: var(--spacing-1);
-  font-size: 0.875rem;
-  color: var(--muted-foreground);
-}
-
-.statChip {
+.metaItem {
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-1);
 }
 
-.statChip strong {
-  color: var(--foreground);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
+/* Actions sit under the title: the coral primary first, then outline, then ghost. */
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
 }
 
-.statChipIcon {
+.actionButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  height: 2.5rem;
+  padding: 0 var(--spacing-4);
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  font-family: var(--font-family-base);
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) ease, border-color var(--animation-duration-fast) ease, color var(--animation-duration-fast) ease;
+}
+
+.actionButton:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.actionButton svg {
+  flex-shrink: 0;
+}
+
+.ghostButton {
+  background-color: transparent;
+  color: var(--foreground);
+}
+
+.ghostButton:hover {
+  background-color: var(--muted);
+}
+
+.outlineButton {
+  background-color: var(--surface);
+  border-color: var(--border);
+  color: var(--foreground);
+}
+
+.outlineButton:hover {
+  background-color: var(--muted);
+  border-color: color-mix(in srgb, var(--border), var(--foreground) 20%);
+}
+
+/* Ink on coral, 6.2:1 - the pairing base.css defines. Hover drops to the deep
+   orange with a white label. */
+.primaryButton {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.primaryButton:hover {
+  background-color: var(--tk-brand-hover);
+  border-color: var(--tk-brand-hover);
+  color: var(--tk-brand-hover-foreground);
+}
+
+/* Stats band: completion with its bar, then three equal figures. */
+.stats {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) repeat(3, minmax(0, 1fr));
+  margin: 0;
+  border-top: 1px solid var(--border);
+  background-color: var(--muted);
+}
+
+.stats dt,
+.stats dd {
+  margin: 0;
+}
+
+.progressCell,
+.statCell {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) 1.25rem;
+  min-width: 0;
+}
+
+.statCell {
+  border-left: 1px solid var(--border);
+}
+
+.progressTopRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+}
+
+.statLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+.statLabel svg {
   flex-shrink: 0;
   color: var(--tk-brand-text);
 }
 
-.statDivider {
-  color: var(--border);
+.progressPercent {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
 }
 
-/* Themed status text: the raw tokens land near 2.8:1 as type on the panel. */
+.progressBar {
+  height: 0.5rem;
+}
+
+.statValue {
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.statOf {
+  margin-left: var(--spacing-1);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
 .success { color: var(--success-text); }
 .warning { color: var(--warning-text); }
 .destructive { color: var(--error-text); }
 .default { color: var(--muted-foreground); }
 
-.headerFooter {
+/* Test list */
+.testsHeader {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
   align-items: center;
+  justify-content: space-between;
   gap: var(--spacing-3);
-  padding: var(--spacing-4) var(--spacing-6);
-  border-top: 1px solid var(--border);
+  padding: var(--spacing-3) var(--spacing-4);
+  border-bottom: 1px solid var(--border);
 }
 
-.reviewButton {
+.testsTitle {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: var(--spacing-1);
-  height: 2.5rem;
-  padding: 0 var(--spacing-4);
-  border-radius: var(--radius);
-  background-color: transparent;
-  border: 1px solid var(--border);
-  color: var(--foreground);
-  font-family: var(--font-family-base);
-  font-size: 0.875rem;
-  font-weight: 600;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background-color var(--animation-duration-fast) ease, border-color var(--animation-duration-fast) ease;
-}
-
-.reviewButton:hover {
-  background-color: var(--muted);
-  border-color: color-mix(in srgb, var(--border), black 10%);
-}
-
-.reviewButton:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus);
-}
-
-/* Ink on coral, 6.2:1 - the pairing base.css defines. Hover drops to the deep
-   orange with a white label. */
-.continueButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-1);
-  height: 2.5rem;
-  padding: 0 var(--spacing-4);
-  border-radius: var(--radius);
-  background-color: var(--primary);
-  color: var(--primary-foreground);
-  font-size: 0.875rem;
-  font-weight: 600;
-  white-space: nowrap;
-  text-decoration: none;
-  transition: background-color var(--animation-duration-fast) ease, color var(--animation-duration-fast) ease;
-}
-
-.continueButton:hover {
-  background-color: var(--tk-brand-hover);
-  color: var(--tk-brand-hover-foreground);
-}
-
-.continueButton:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus);
-}
-
-.testItemsList {
-  display: flex;
-  flex-direction: column;
   gap: var(--spacing-2);
-  padding: var(--spacing-4);
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--foreground);
 }
 
-/* Reuses the .testItem / .itemMain / .itemMeta / .itemStatus / .itemActions /
-   .actionButton class names from EnrolledTestCard.module.css via the shared
-   TestItemRow component, which carries its own CSS module import - this
-   file only needs the classes referenced directly in this page's JSX. */
+.testsTitle svg {
+  color: var(--tk-brand-text);
+}
+
+.testsCount {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.noTests {
+  margin: 0;
+  padding: var(--spacing-8) var(--spacing-4);
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
 
 .headerSkeleton {
-  height: 260px;
+  height: 13rem;
   border-radius: var(--radius-md);
 }
 
-.itemSkeleton {
-  height: 88px;
-  border-radius: var(--radius);
+.listSkeleton {
+  height: 20rem;
+  border-radius: var(--radius-md);
 }
 
-@media (max-width: 768px) {
-  .cardHeader {
+/* Tablet-width page: actions take the full width under a smaller thumbnail. */
+@container series (max-width: 44rem) {
+  .overviewTop {
     padding: var(--spacing-4);
     gap: var(--spacing-3);
   }
 
   .thumbnail {
-    width: 72px;
+    grid-row: auto;
+    width: 5.5rem;
+  }
+
+  .actions {
+    grid-column: 1 / -1;
   }
 
   .title {
-    font-size: 1.25rem;
+    font-size: 1.1875rem;
   }
 
-  .progressSection {
-    padding: var(--spacing-4);
+  .stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .headerFooter {
-    padding: var(--spacing-4);
-    flex-direction: column;
-    align-items: stretch;
+  .progressCell {
+    grid-column: 1 / -1;
+    border-bottom: 1px solid var(--border);
+    padding: var(--spacing-3) var(--spacing-4);
   }
 
-  .reviewButton,
-  .continueButton {
-    width: 100%;
-    height: 2.75rem;
-    font-size: 1rem;
+  .statCell {
+    padding: var(--spacing-3) var(--spacing-4);
   }
 
-  .testItemsList {
-    padding: var(--spacing-3);
+  .statCell:nth-child(2) {
+    border-left: none;
   }
 }
 
-@media (max-width: 480px) {
+/* Phone: primary first and full width, the other two share a row. */
+@container series (max-width: 30rem) {
+  .overviewTop {
+    align-items: start;
+  }
+
   .thumbnail {
-    width: 64px;
+    width: 4.5rem;
   }
 
   .title {
-    font-size: 1.125rem;
+    font-size: 1.0625rem;
   }
 
-  .statStrip {
-    font-size: 0.75rem;
+  .actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .primaryButton {
+    grid-column: 1 / -1;
+  }
+
+  .actionButton {
+    height: 2.75rem;
+    padding: 0 var(--spacing-3);
+  }
+
+  /* Without the review button, Leaderboard is alone on its row. */
+  .outlineButton:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .ghostButton {
+    border-color: var(--border);
+  }
+
+  .statCell {
+    padding: var(--spacing-3);
+  }
+
+  .statLabel {
+    font-size: 0.6875rem;
+    white-space: normal;
+  }
+
+  .statCell .statLabel svg {
+    display: none;
+  }
+
+  .statValue {
+    font-size: 1.0625rem;
+  }
+
+  .testsHeader {
+    padding: var(--spacing-3);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .backLink,
-  .reviewButton,
-  .continueButton {
+  .actionButton {
     transition: none;
   }
 }

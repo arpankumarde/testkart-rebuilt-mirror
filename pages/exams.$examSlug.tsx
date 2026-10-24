@@ -11,9 +11,9 @@ import { useInExamSectionShell } from "../components/ExamSectionLayout";
 import { getPublicExamContent } from "../endpoints/exam-content/get_GET.schema";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "../components/Accordion";
 import { useExamDetailQuery } from "../helpers/useExamDetail";
-import { wrapContentTables } from "../helpers/contentTables";
-import { sanitizeHtml } from "../helpers/sanitizeHtml";
-import { linkContentToc, useContentToc } from "../helpers/contentToc";
+import { renderExamContent } from "../helpers/renderExamContent";
+import { useContentToc } from "../helpers/contentToc";
+import { useHtmlFrame } from "../helpers/useHtmlFrame";
 import { NotFoundState } from "../components/NotFoundState";
 
 import styles from "./exams.$examSlug.module.css";
@@ -42,12 +42,10 @@ export default function ExamDetailPage() {
   });
   const overviewContent = contentSiloData?.page?.content ?? null;
   const overviewFaqItems = contentSiloData?.page?.faqItems ?? [];
-  const overviewHtml = React.useMemo(
-    () => (overviewContent?.trim() ? wrapContentTables(linkContentToc(sanitizeHtml(overviewContent))) : ""),
-    [overviewContent]
-  );
+  const overviewHtml = React.useMemo(() => renderExamContent(overviewContent), [overviewContent]);
   const [overviewEl, setOverviewEl] = React.useState<HTMLElement | null>(null);
   useContentToc(overviewEl, overviewHtml);
+  useHtmlFrame(overviewEl, overviewHtml);
 
   const canonicalUrl = `https://testkart.in/exams/${examSlug}`;
 

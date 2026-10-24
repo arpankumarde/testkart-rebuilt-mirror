@@ -9,6 +9,7 @@
 export const ADMIN_MODULE_GROUPS = [
   "Overview",
   "Sales",
+  "Marketing",
   "Finance",
   "Users",
   "Catalogue",
@@ -23,6 +24,7 @@ export const ADMIN_MODULES = [
   { key: "dashboard", label: "Dashboard", group: "Overview", hint: "Revenue, orders and growth figures" },
   { key: "sales", label: "Sales pipeline", group: "Sales", hint: "Leads, demo requests and follow-ups" },
   { key: "masterclasses", label: "Masterclasses", group: "Sales", hint: "Webinar events, registrations and reminders" },
+  { key: "spin_win", label: "Spin & Win", group: "Marketing", hint: "Campaigns, wheel rewards, coupons and campaign analytics" },
   { key: "finance", label: "Finance overview", group: "Finance", hint: "Revenue, fees and payouts summary" },
   { key: "transactions", label: "Transactions", group: "Finance", hint: "Orders, refunds, reconciliation and invoices" },
   { key: "subscriptions", label: "Subscriptions", group: "Finance", hint: "Teacher plans, trials and payments" },
@@ -124,6 +126,7 @@ const API_RULES: Record<string, ApiRule> = {
   "admin/sales": ["sales"],
   "admin/sync-contacts-to-resend": ["sales"],
   "admin/masterclasses": ["masterclasses"],
+  "admin/spin-win": ["spin_win"],
 
   "admin/finance": ["finance"],
   "admin/orders": ["transactions"],

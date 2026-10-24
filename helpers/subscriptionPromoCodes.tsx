@@ -2,6 +2,7 @@ import { Kysely, Transaction } from "kysely";
 import { DB, PromoCodes } from "./schema";
 import { Selectable } from "kysely";
 import { countPromoCodeUses } from "./promoCodeUsage";
+import { isSpinCouponPromo } from "./spinWinServer";
 
 export type SubscriptionPromoCode = Selectable<PromoCodes>;
 
@@ -47,6 +48,10 @@ export async function validatePromoCodeForPlan(
   }
 
   if (promo.appliesTo !== "all" && promo.appliesTo !== "subscription") {
+    throw new Error("This promo code cannot be used on a subscription plan.");
+  }
+
+  if (await isSpinCouponPromo(executor as Kysely<DB>, promo.id)) {
     throw new Error("This promo code cannot be used on a subscription plan.");
   }
 
