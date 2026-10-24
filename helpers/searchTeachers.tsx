@@ -40,6 +40,7 @@ export async function searchTeachers({
         )`.as("resourceCount"),
         sql<number>`(SELECT COUNT(*) FROM teacher_follows WHERE teacher_follows.teacher_id = users.id)`.as("followerCount"),
       ])
+      .orderBy(sql`coalesce(users.is_verified, false)`, "desc")
       .orderBy("studentCount", "desc")
       // Most teachers tie on students, so these keep pages stable and put name-prefix matches first.
       .orderBy(sql`users.display_name ILIKE ${`${q}%`}`, "desc")

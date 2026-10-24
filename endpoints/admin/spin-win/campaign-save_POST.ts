@@ -59,6 +59,20 @@ export async function handle(request: Request) {
       if (before.status !== "draft" && before.slug !== fields.slug) {
         throw new Error("The slug is locked once a campaign has been published, so shared links keep working.");
       }
+      if (before.discountFunding === "platform_funded" && fields.discountFunding !== "platform_funded") {
+        const paid = await trx
+          .selectFrom("spinCoupons")
+          .innerJoin("orders", "orders.promoCodeId", "spinCoupons.promoCodeId")
+          .select((eb) => eb.fn.countAll<string>().as("count"))
+          .where("spinCoupons.campaignId", "=", id)
+          .where("orders.status", "=", "completed")
+          .executeTakeFirst();
+        if (Number(paid?.count ?? 0) > 0) {
+          throw new Error(
+            "Teachers are already paid the full price on orders from this campaign, so discount funding cannot go back to shared."
+          );
+        }
+      }
       const updated = await trx
         .updateTable("spinCampaigns")
         .set({ ...values, updatedByAdminId: admin.id, updatedAt: new Date() })

@@ -10,6 +10,7 @@ import {
   buildTeacherPrizeDeductionsSql,
   buildTeacherSubscriptionWalletPaymentsSql,
   buildTeacherCampaignCreditsSql,
+  teacherItemDiscountSql,
 } from "../../../helpers/teacherEarningsSql";
 import {
   startOfDay,
@@ -115,15 +116,17 @@ export async function handle(request: Request): Promise<Response> {
     if (endDate) revenueQuery = revenueQuery.where("createdAt", "<=", endDate);
 
     // 2. Platform Fee & Teacher Earnings (Flow metrics: filtered by date)
-    // Excludes sponsored orders
+    // Excludes sponsored orders. The platform fee is what the student paid minus the teacher's
+    // share, so it absorbs the whole discount on a Testkart-funded coupon.
+    const teacherDiscount = teacherItemDiscountSql("order_items", "orders");
     let itemsQuery = db
       .selectFrom("orderItems")
       .innerJoin("orders", "orderItems.orderId", "orders.id")
       .select([
-        sql<string>`SUM((order_items.price_at_purchase - order_items.discount_amount) * (order_items.platform_fee_percentage / 100))`.as(
+        sql<string>`SUM((order_items.price_at_purchase - order_items.discount_amount) - (order_items.price_at_purchase - ${teacherDiscount}) * (1 - order_items.platform_fee_percentage / 100))`.as(
           "totalPlatformFee"
         ),
-        sql<string>`SUM((order_items.price_at_purchase - order_items.discount_amount) * (1 - order_items.platform_fee_percentage / 100))`.as(
+        sql<string>`SUM((order_items.price_at_purchase - ${teacherDiscount}) * (1 - order_items.platform_fee_percentage / 100))`.as(
           "totalTeacherEarnings"
         ),
       ])

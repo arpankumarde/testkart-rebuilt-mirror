@@ -4,6 +4,10 @@ import { OutputType, SearchOrganizationItem, schema } from "./search_GET.schema"
 import superjson from "superjson";
 import { courseDiscountPrice } from "../../helpers/coursePricing";
 import { searchTeachers } from "../../helpers/searchTeachers";
+import { examNewsPublicServer } from "../../helpers/examNewsPublicServer";
+
+/* Content from verified teachers ranks above everything else; popularity orders within each half. */
+const verifiedTeacherFirst = sql`coalesce(users.is_verified, false)`;
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -72,6 +76,7 @@ export async function handle(request: Request): Promise<Response> {
           eb("users.displayName", "ilike", searchTerm),
         ])
       )
+      .orderBy(verifiedTeacherFirst, "desc")
       .orderBy(
         sql`(SELECT COUNT(*) FROM mock_test_enrollments WHERE mock_test_id = mock_tests.id AND enrolled_at > NOW() - INTERVAL '60 days')`,
         "desc"
@@ -108,6 +113,7 @@ export async function handle(request: Request): Promise<Response> {
           eb("users.displayName", "ilike", searchTerm),
         ])
       )
+      .orderBy(verifiedTeacherFirst, "desc")
       .orderBy(
         sql`(SELECT COUNT(*) FROM course_enrollments WHERE course_id = courses.id AND enrolled_at > NOW() - INTERVAL '60 days')`,
         "desc"
@@ -149,6 +155,7 @@ export async function handle(request: Request): Promise<Response> {
           eb("users.displayName", "ilike", searchTerm),
         ])
       )
+      .orderBy(verifiedTeacherFirst, "desc")
       .orderBy(
         sql`(SELECT COUNT(*) FROM bundle_enrollments WHERE bundle_id = course_bundles.id AND created_at > NOW() - INTERVAL '60 days')`,
         "desc"
@@ -186,6 +193,7 @@ export async function handle(request: Request): Promise<Response> {
           eb("users.displayName", "ilike", searchTerm),
         ])
       )
+      .orderBy(verifiedTeacherFirst, "desc")
       .orderBy(
         sql`(SELECT COUNT(*) FROM digital_product_purchases WHERE product_id = digital_products.id AND purchased_at > NOW() - INTERVAL '60 days')`,
         "desc"
@@ -233,13 +241,17 @@ export async function handle(request: Request): Promise<Response> {
       .limit(limit)
       .execute();
 
-    const [tests, courses, bundles, products, teacherResults, organizations] = await Promise.all([
+    // 7. Search Exam News headlines
+    const newsPromise = examNewsPublicServer.searchCards(q, limit);
+
+    const [tests, courses, bundles, products, teacherResults, organizations, news] = await Promise.all([
       testsPromise,
       coursesPromise,
       bundlesPromise,
       productsPromise,
       teachersPromise,
       organizationsPromise,
+      newsPromise,
     ]);
 
     const formattedTests: OutputType["tests"] = tests.map((t) => ({
@@ -335,7 +347,8 @@ export async function handle(request: Request): Promise<Response> {
       formattedBundles.length +
       formattedProducts.length +
       teacherResults.teachers.length +
-      formattedOrganizations.length;
+      formattedOrganizations.length +
+      news.length;
 
     const output: OutputType = {
       tests: formattedTests,
@@ -344,6 +357,7 @@ export async function handle(request: Request): Promise<Response> {
       products: formattedProducts,
       teachers: teacherResults.teachers,
       organizations: formattedOrganizations,
+      news,
       teacherTotal: teacherResults.total,
       totalResults,
     };

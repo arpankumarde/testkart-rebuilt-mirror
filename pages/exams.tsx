@@ -14,9 +14,12 @@ import styles from "./exams.module.css";
 const DOMAIN = "https://testkart.in";
 const CANONICAL_URL = `${DOMAIN}/exams`;
 
-// How many exams to preview per category on the "All" overview before a
-// student has to click through - keeps the initial view scannable instead
-// of dumping all ~1,700 exams into one wall of cards.
+// The default tab: Hot exams (recent Exam News), latest news first. With no
+// Hot exams it falls back to the every-category overview.
+const POPULAR = "Popular";
+
+// How many exams to preview per category on the fallback overview before a
+// student has to click through.
 const PREVIEW_COUNT = 24;
 
 // Category pills shown before "More categories" is opened. Phones get fewer
@@ -114,7 +117,7 @@ const CategoryMark: React.FC<{ name: string }> = ({ name }) => (
 );
 
 const ExamsPage: React.FC = () => {
-  const [activeCategory, setActiveCategory] = useState<string>("All");
+  const [activeCategory, setActiveCategory] = useState<string>(POPULAR);
   const [search, setSearch] = useState("");
   const [pillsExpanded, setPillsExpanded] = useState(false);
   const debouncedSearch = useDebounce(search.trim(), 250);
@@ -144,6 +147,27 @@ const ExamsPage: React.FC = () => {
   const hotIds = useMemo(() => new Set(data?.hotExamIds ?? []), [data]);
 
   const allExams = useMemo(() => categories.flatMap((category) => category.exams), [categories]);
+
+  // Hot exams in the server's latest-news-first order, each with its category.
+  const popularRows = useMemo<SearchRow[]>(() => {
+    const byId = new Map<number, SearchRow>();
+    for (const category of categories) {
+      for (const exam of category.exams) {
+        byId.set(exam.id, {
+          key: `${category.id}-${exam.id}`,
+          exam,
+          categoryName: category.categoryName,
+          accent: category.accent,
+        });
+      }
+    }
+    return (data?.hotExamIds ?? []).flatMap((id) => {
+      const row = byId.get(id);
+      return row ? [row] : [];
+    });
+  }, [categories, data]);
+
+  const hasPopular = popularRows.length > 0;
 
   const nonEmptyCategoryCount = useMemo(
     () => categories.filter((category) => category.exams.length > 0).length,
@@ -192,7 +216,7 @@ const ExamsPage: React.FC = () => {
   }, [categories, debouncedSearch]);
 
   const activeCategoryView = useMemo(() => {
-    if (activeCategory === "All") return null;
+    if (activeCategory === POPULAR) return null;
     const category = categories.find((c) => c.categoryName === activeCategory);
     return category ? { ...category, exams: sortByName(category.exams) } : null;
   }, [activeCategory, categories]);
@@ -253,7 +277,13 @@ const ExamsPage: React.FC = () => {
 
   const renderPills = () => {
     const pills = [
-      { key: "all", name: "All", count: allExams.length, accent: "", moreOnly: false },
+      {
+        key: "popular",
+        name: POPULAR,
+        count: hasPopular ? popularRows.length : allExams.length,
+        accent: "",
+        moreOnly: false,
+      },
       ...categories.map((category) => ({
         key: String(category.id),
         name: category.categoryName,
@@ -280,7 +310,11 @@ const ExamsPage: React.FC = () => {
               onClick={() => handleCategorySelect(pill.name)}
               className={`${styles.pill} ${pill.accent} ${isActive ? styles.pillActive : ""} ${collapseClass}`}
             >
-              {pill.accent && <span className={styles.pillDot} aria-hidden="true" />}
+              {pill.accent ? (
+                <span className={styles.pillDot} aria-hidden="true" />
+              ) : (
+                <Flame size={14} className={styles.pillFlame} aria-hidden="true" />
+              )}
               <span className={styles.pillLabel}>{pill.name}</span>
               <span className={styles.pillCount}>{pill.count.toLocaleString("en-IN")}</span>
             </button>
@@ -354,6 +388,30 @@ const ExamsPage: React.FC = () => {
     </div>
   );
 
+  const renderPopular = () => (
+    <section className={`${styles.categorySection} ${styles.accentPeach}`} aria-labelledby="exam-category-popular">
+      <div className={styles.sectionHeader}>
+        <span className={styles.categoryMark} aria-hidden="true">
+          <Flame size={20} />
+        </span>
+        <div className={styles.sectionHeading}>
+          <h2 id="exam-category-popular" className={styles.sectionTitle}>
+            Popular exams
+          </h2>
+          <p className={styles.sectionNote}>
+            Exams with the latest news and updates. Pick a category above to see all its exams.
+          </p>
+        </div>
+        <span className={styles.countChip}>{plural(popularRows.length, "exam")}</span>
+      </div>
+      <div className={styles.examsGrid}>
+        {popularRows.map((row) => (
+          <ExamCard key={row.key} exam={row.exam} accent={row.accent} hot={false} categoryName={row.categoryName} />
+        ))}
+      </div>
+    </section>
+  );
+
   const renderSearch = () => (
     <>
       <div className={styles.resultsBar}>
@@ -410,8 +468,8 @@ const ExamsPage: React.FC = () => {
             {activeCategoryView.categoryName}
           </h2>
           <span className={styles.countChip}>{plural(activeCategoryView.exams.length, "exam")}</span>
-          <button type="button" className={styles.backButton} onClick={() => handleCategorySelect("All")}>
-            <ArrowLeft size={16} aria-hidden="true" /> All categories
+          <button type="button" className={styles.backButton} onClick={() => handleCategorySelect(POPULAR)}>
+            <ArrowLeft size={16} aria-hidden="true" /> Popular exams
           </button>
         </div>
         {activeCategoryView.exams.length > 0 ? (
@@ -529,7 +587,13 @@ const ExamsPage: React.FC = () => {
               {renderPills()}
             </nav>
 
-            {isSearching ? renderSearch() : activeCategory === "All" ? renderOverview() : renderCategory()}
+            {isSearching
+              ? renderSearch()
+              : activeCategory !== POPULAR
+                ? renderCategory()
+                : hasPopular
+                  ? renderPopular()
+                  : renderOverview()}
           </>
         ) : null}
       </div>

@@ -5,6 +5,7 @@ import superjson from "superjson";
 import { sql } from "kysely";
 import { getTeacherAvailableBalance } from "../../../helpers/getTeacherAvailableBalance";
 import { getTeacherPlatformFee } from "../../../helpers/getTeacherPlatformFee";
+import { teacherItemDiscountSql } from "../../../helpers/teacherEarningsSql";
 
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -98,17 +99,17 @@ export async function handle(request: Request): Promise<Response> {
       // 5. Monthly Earnings
       sql<{ month: string; year: string; earnings: string }>`
         WITH sales AS (
-           SELECT o.created_at, (oi.price_at_purchase - COALESCE(oi.discount_amount, 0)) * (1 - oi.platform_fee_percentage / 100.0) as net
+           SELECT o.created_at, (oi.price_at_purchase - ${teacherItemDiscountSql("oi", "o")}) * (1 - oi.platform_fee_percentage / 100.0) as net
            FROM order_items oi JOIN orders o ON o.id = oi.order_id JOIN mock_tests mt ON mt.id = oi.mock_test_id
            WHERE mt.teacher_id = ${effectiveTeacherId} AND o.status = 'completed' AND (o.payment_method IS NULL OR o.payment_method != 'teacher_sponsored') AND o.id NOT IN (SELECT order_id FROM teacher_sponsored_enrollments WHERE order_id IS NOT NULL)
            
            UNION ALL
-           SELECT o.created_at, (oi.price_at_purchase - COALESCE(oi.discount_amount, 0)) * (1 - oi.platform_fee_percentage / 100.0) as net
+           SELECT o.created_at, (oi.price_at_purchase - ${teacherItemDiscountSql("oi", "o")}) * (1 - oi.platform_fee_percentage / 100.0) as net
            FROM order_items oi JOIN orders o ON o.id = oi.order_id JOIN courses c ON c.id = oi.course_id
            WHERE c.teacher_id = ${effectiveTeacherId} AND o.status = 'completed' AND (o.payment_method IS NULL OR o.payment_method != 'teacher_sponsored') AND o.id NOT IN (SELECT order_id FROM teacher_sponsored_enrollments WHERE order_id IS NOT NULL)
 
            UNION ALL
-           SELECT o.created_at, (oi.price_at_purchase - COALESCE(oi.discount_amount, 0)) * (1 - oi.platform_fee_percentage / 100.0) as net
+           SELECT o.created_at, (oi.price_at_purchase - ${teacherItemDiscountSql("oi", "o")}) * (1 - oi.platform_fee_percentage / 100.0) as net
            FROM order_items oi JOIN orders o ON o.id = oi.order_id JOIN digital_products dp ON dp.id = oi.digital_product_id
            WHERE dp.teacher_id = ${effectiveTeacherId} AND o.status = 'completed' AND (o.payment_method IS NULL OR o.payment_method != 'teacher_sponsored') AND o.id NOT IN (SELECT order_id FROM teacher_sponsored_enrollments WHERE order_id IS NOT NULL)
 

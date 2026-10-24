@@ -97,8 +97,8 @@ export async function handle(request: Request) {
       csv = toCsv(
         [
           "Order ID", "Ordered at", "Campaign", "Coupon", "Reward", "Reward type", "User ID", "Student",
-          "Original value", "Discount", "Student paid", "Commission on original", "Commission on paid (current)",
-          "Teacher payout (current)", "Teacher payout (proposed)", "Testkart margin (current)", "Testkart margin (proposed)",
+          "Original value", "Discount", "Student paid", "Commission on original", "Commission on paid (shared)",
+          "Teacher payout (shared)", "Teacher payout (Testkart-funded)", "Testkart margin (shared)", "Testkart margin (Testkart-funded)",
         ],
         rows.rows.map((r) => {
           const money = (v: unknown) => Number(v ?? 0).toFixed(2);

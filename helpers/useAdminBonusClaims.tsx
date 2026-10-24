@@ -2,10 +2,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getAdminBonusClaims, type InputType as ListInput } from "../endpoints/admin/content-reviews/bonus-claims_GET.schema";
 import { postAdminBonusDecide, type InputType as DecideInput } from "../endpoints/admin/content-reviews/bonus-decide_POST.schema";
-import { ADMIN_CONTENT_REVIEWS_QUERY_KEY } from "./useAdminContentReviews";
+import { ADMIN_BONUS_CLAIMS_QUERY_KEY, ADMIN_CONTENT_REVIEWS_QUERY_KEY } from "./useAdminContentReviews";
 import { parseErrorMessage } from "./parseErrorMessage";
 
-export const ADMIN_BONUS_CLAIMS_QUERY_KEY = "admin-bonus-claims";
+export { ADMIN_BONUS_CLAIMS_QUERY_KEY };
 
 const SUCCESS_TITLES: Record<DecideInput["action"], string> = {
   credit: "Bonus credited",

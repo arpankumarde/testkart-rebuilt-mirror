@@ -60,6 +60,22 @@ function windowFilter(column: string, window?: TeacherEarningsWindow) {
 }
 
 /**
+ * The part of an order item's promo discount the teacher bears. A Spin & Win coupon from a
+ * campaign set to Testkart-funded (spin_campaigns.discount_funding = 'platform_funded') costs
+ * the teacher nothing: the sale is settled on the full price and Testkart's commission absorbs
+ * the whole discount. Every other discount is shared pro rata through the platform fee.
+ * `item` and `order` are the aliases of order_items and orders in the calling query.
+ */
+export function teacherItemDiscountSql(item: string, order: string) {
+  return sql<string>`(CASE WHEN ${sql.ref(`${order}.promo_code_id`)} IS NOT NULL AND EXISTS (
+      SELECT 1 FROM spin_coupons fund_sc
+      JOIN spin_campaigns fund_c ON fund_c.id = fund_sc.campaign_id
+      WHERE fund_sc.promo_code_id = ${sql.ref(`${order}.promo_code_id`)}
+        AND fund_c.discount_funding = 'platform_funded'
+    ) THEN 0 ELSE COALESCE(${sql.ref(`${item}.discount_amount`)}, 0) END)`;
+}
+
+/**
  * The set of individual sale rows (one per order_item / bundle order) that
  * count toward a teacher's earnings, each carrying its own net `earnings`
  * value. Shared by buildTeacherNetEarningsSql (SUM),
@@ -71,7 +87,8 @@ function windowFilter(column: string, window?: TeacherEarningsWindow) {
  * platform fee), `sold_at`, `order_id`, `buyer_id`, `kind`, `title`,
  * `item_id` (the mock test, course, digital product or bundle id; a live-test
  * sale carries its mock test's id), `promo_code_id` (the order's code, if any)
- * and `discount` (the promo discount already taken off `gross`).
+ * and `discount` (the promo discount the teacher bears, already taken off
+ * `gross`; zero for a Testkart-funded coupon, see teacherItemDiscountSql).
  * Mock-test sales attached to a live test surface as kind 'live_test' — the
  * live-test money arrives through the mock test its enrollment paid for, and
  * only once that test has ended, since unfinished live tests are excluded
@@ -79,8 +96,8 @@ function windowFilter(column: string, window?: TeacherEarningsWindow) {
  */
 function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEarningsWindow) {
   return sql`(
-    SELECT (oi.price_at_purchase - oi.discount_amount) * (1 - oi.platform_fee_percentage / 100) AS earnings,
-           (oi.price_at_purchase - oi.discount_amount) AS gross,
+    SELECT (oi.price_at_purchase - td.amount) * (1 - oi.platform_fee_percentage / 100) AS earnings,
+           (oi.price_at_purchase - td.amount) AS gross,
            o.created_at AS sold_at,
            o.id AS order_id,
            o.user_id AS buyer_id,
@@ -91,9 +108,10 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
            mt.thumbnail_url::text AS thumbnail,
            mt.id AS item_id,
            o.promo_code_id AS promo_code_id,
-           oi.discount_amount AS discount
+           td.amount AS discount
     FROM order_items oi
     JOIN orders o ON oi.order_id = o.id
+    CROSS JOIN LATERAL (SELECT ${teacherItemDiscountSql("oi", "o")} AS amount) td
     JOIN mock_tests mt ON oi.mock_test_id = mt.id
     WHERE o.status = 'completed'
       ${teacherFilter("mt.teacher_id", teacherIdExpr)}
@@ -109,8 +127,8 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
         WHERE lt.end_time > NOW() AND lte.payment_order_id IS NOT NULL
       )
     UNION ALL
-    SELECT (oi.price_at_purchase - oi.discount_amount) * (1 - oi.platform_fee_percentage / 100) AS earnings,
-           (oi.price_at_purchase - oi.discount_amount) AS gross,
+    SELECT (oi.price_at_purchase - td.amount) * (1 - oi.platform_fee_percentage / 100) AS earnings,
+           (oi.price_at_purchase - td.amount) AS gross,
            o.created_at AS sold_at,
            o.id AS order_id,
            o.user_id AS buyer_id,
@@ -119,9 +137,10 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
            COALESCE(c.thumbnail_image_url, c.thumbnail_url)::text AS thumbnail,
            c.id AS item_id,
            o.promo_code_id AS promo_code_id,
-           oi.discount_amount AS discount
+           td.amount AS discount
     FROM order_items oi
     JOIN orders o ON oi.order_id = o.id
+    CROSS JOIN LATERAL (SELECT ${teacherItemDiscountSql("oi", "o")} AS amount) td
     JOIN courses c ON oi.course_id = c.id
     WHERE o.status = 'completed'
       ${teacherFilter("c.teacher_id", teacherIdExpr)}
@@ -131,8 +150,8 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
         SELECT tse.order_id FROM teacher_sponsored_enrollments tse WHERE tse.order_id IS NOT NULL
       )
     UNION ALL
-    SELECT (oi.price_at_purchase - oi.discount_amount) * (1 - oi.platform_fee_percentage / 100) AS earnings,
-           (oi.price_at_purchase - oi.discount_amount) AS gross,
+    SELECT (oi.price_at_purchase - td.amount) * (1 - oi.platform_fee_percentage / 100) AS earnings,
+           (oi.price_at_purchase - td.amount) AS gross,
            o.created_at AS sold_at,
            o.id AS order_id,
            o.user_id AS buyer_id,
@@ -143,9 +162,10 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
            NULL::text AS thumbnail,
            dp.id AS item_id,
            o.promo_code_id AS promo_code_id,
-           oi.discount_amount AS discount
+           td.amount AS discount
     FROM order_items oi
     JOIN orders o ON oi.order_id = o.id
+    CROSS JOIN LATERAL (SELECT ${teacherItemDiscountSql("oi", "o")} AS amount) td
     JOIN digital_products dp ON oi.digital_product_id = dp.id
     WHERE o.status = 'completed'
       ${teacherFilter("dp.teacher_id", teacherIdExpr)}
@@ -281,7 +301,7 @@ export function buildTeacherPrizeDeductionsSql(teacherIdExpr?: TeacherIdExpr) {
       +
       COALESCE((
         SELECT SUM(LEAST(lt.total_prize_pool, COALESCE((
-          SELECT SUM((oi.price_at_purchase - oi.discount_amount) * (1 - oi.platform_fee_percentage / 100))
+          SELECT SUM((oi.price_at_purchase - ${teacherItemDiscountSql("oi", "o")}) * (1 - oi.platform_fee_percentage / 100))
           FROM live_test_enrollments lte
           JOIN orders o ON o.id = lte.payment_order_id
           JOIN order_items oi ON oi.order_id = o.id

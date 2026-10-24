@@ -19,6 +19,13 @@ import { schema, type BonusClaimAdminView, type OutputType } from "./bonus-claim
 
 const PAGE_SIZE = 25;
 
+/** Whether the claim's test series or course still exists. Claims on permanently deleted content are not listed. */
+const contentExists = (typeRef: string, idRef: string) =>
+  sql<boolean>`CASE ${sql.ref(typeRef)}
+    WHEN 'mock_test' THEN EXISTS (SELECT 1 FROM mock_tests ex_m WHERE ex_m.id = ${sql.ref(idRef)})
+    WHEN 'course' THEN EXISTS (SELECT 1 FROM courses ex_c WHERE ex_c.id = ${sql.ref(idRef)})
+    ELSE FALSE END`;
+
 export async function handle(request: Request): Promise<Response> {
   try {
     await getAdminServerSessionOrThrow(request);
@@ -55,11 +62,15 @@ export async function handle(request: Request): Promise<Response> {
         "u.email as teacherEmail",
         "r.status as reviewStatus",
         "a.fullName as decidedByName",
-      ]);
+      ])
+      .where(contentExists("c.contentType", "c.contentId"));
     if (status !== "all") query = query.where("c.status", "=", status);
     if (kind !== "all") query = query.where(inKind("c.campaignId"));
 
-    let countQuery = db.selectFrom("teacherCampaignClaims").select(["status", (eb) => eb.fn.countAll<string>().as("count")]);
+    let countQuery = db
+      .selectFrom("teacherCampaignClaims")
+      .select(["status", (eb) => eb.fn.countAll<string>().as("count")])
+      .where(contentExists("teacherCampaignClaims.contentType", "teacherCampaignClaims.contentId"));
     let creditedQuery = db
       .selectFrom("teacherCampaignClaims")
       .select(sql<string>`COALESCE(SUM(amount), 0)`.as("total"))
@@ -103,6 +114,7 @@ export async function handle(request: Request): Promise<Response> {
           .executeTakeFirst(),
         open && campaign.kind === "exam" ? isTaggedForExam(db, campaign, row.contentId) : Promise.resolve(true),
       ]);
+      if (!content) continue;
       claims.push({
         id: row.id,
         status: row.status as CampaignClaimStatus,
@@ -110,8 +122,8 @@ export async function handle(request: Request): Promise<Response> {
         campaignTitle: campaign.title,
         contentType: type,
         contentId: row.contentId,
-        contentTitle: content?.title ?? "Deleted item",
-        live: content?.live ?? false,
+        contentTitle: content.title,
+        live: content.live,
         teacherId: row.teacherId,
         teacherName: row.teacherName,
         teacherEmail: row.teacherEmail,
@@ -147,7 +159,7 @@ export async function handle(request: Request): Promise<Response> {
     };
     return new Response(superjson.stringify(output));
   } catch (error) {
-    console.error("Error listing Creator Bonus claims:", error);
+    console.error("Error listing bonus claims:", error);
     const message = error instanceof Error ? error.message : "Unknown error";
     const status = error instanceof Error && error.name === "NotAuthenticatedError" ? 401 : 500;
     return new Response(superjson.stringify({ error: message }), { status });

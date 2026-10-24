@@ -5,11 +5,11 @@ import { db } from "./db";
  * Campaign metrics for the Spin & Win admin. Days are IST calendar days. A redemption is a
  * completed order that used a spin coupon; refunded orders drop out of revenue and redemptions.
  *
- * Finance shows two treatments side by side. "Current" is what settlement does today
- * (helpers/teacherEarningsSql): teacher earnings = (price - discount) * (1 - fee), so the
- * discount is shared pro rata. "Proposed" is the PRD model awaiting finance approval: the
- * teacher keeps price * (1 - fee) and Testkart's commission absorbs the whole discount.
- * Nothing here changes settlement.
+ * Finance shows both discount-funding treatments side by side. "Current" fields are the shared
+ * split: teacher earnings = (price - discount) * (1 - fee). "Proposed" fields are Testkart-funded:
+ * the teacher keeps price * (1 - fee) and Testkart's commission absorbs the whole discount.
+ * The campaign's discount_funding picks which one settlement applies (teacherItemDiscountSql in
+ * helpers/teacherEarningsSql); nothing here changes settlement.
  */
 
 export type SpinRange = { startDay: string; endDay: string };

@@ -68,6 +68,7 @@ export type CampaignRequirements = {
   minMinutesPerVideo: number;
 };
 
+/** claimed is the teacher's request, waiting on an admin; credited means the bonus was paid. */
 export type CampaignClaimStatus = "claimed" | "credited" | "declined" | "withdrawn" | "reversed";
 
 export type CampaignProgressItem = { label: string; have: number; need: number };
@@ -155,9 +156,10 @@ export function evaluateCourseVideos(rows: CourseVideoRow[], minMinutesPerVideo:
   };
 }
 
+/** Admin wording: a teacher's claim is a request until the bonus is credited, and only then is it Claimed. */
 export const CLAIM_STATUS_LABELS: Record<CampaignClaimStatus, string> = {
-  claimed: "Claimed",
-  credited: "Credited",
+  claimed: "Requested",
+  credited: "Claimed",
   declined: "Not selected",
   withdrawn: "Withdrawn",
   reversed: "Reversed",

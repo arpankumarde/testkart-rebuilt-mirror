@@ -63,10 +63,9 @@ export const FinanceTable: React.FC<{ finance: SpinFinance; stats: SpinStats; fu
       <div className={styles.financeNote} role="note">
         <Info size={16} aria-hidden="true" />
         <span>
-          <strong>Current</strong> is how settlement works today: the discount comes off the sale before the platform fee, so teacher and Testkart
-          share it. <strong>Proposed</strong> is the PRD model (commission on the original value, Testkart absorbs the discount). It needs finance
-          approval and is not applied to payouts.
-          {funding ? ` This campaign reports on: ${SPIN_FUNDING_LABELS[funding] ?? funding}.` : ""}
+          <strong>Shared</strong>: the discount comes off the sale before the platform fee, so teacher and Testkart share it.{" "}
+          <strong>Testkart-funded</strong>: the teacher is paid on the full price and Testkart&apos;s commission absorbs the whole discount.
+          {funding ? ` This campaign settles teachers as: ${SPIN_FUNDING_LABELS[funding] ?? funding}.` : ""}
         </span>
       </div>
       <table className={styles.financeTable}>
@@ -74,10 +73,10 @@ export const FinanceTable: React.FC<{ finance: SpinFinance; stats: SpinStats; fu
           <tr>
             <th scope="col">Particulars</th>
             <th scope="col" className={funding === "current_split" ? styles.selected : undefined}>
-              Current
+              Shared
             </th>
             <th scope="col" className={funding === "platform_funded" ? styles.selected : undefined}>
-              Proposed
+              Testkart-funded
             </th>
           </tr>
         </thead>

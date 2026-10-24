@@ -23,7 +23,8 @@ export type DirectoryCategory = {
 export type OutputType = {
   categories: DirectoryCategory[];
   // Exams with a published Exam News story in the last HOT_NEWS_DAYS days
-  // (helpers/fetchExamDirectoryServer); /exams marks them "Hot".
+  // (helpers/fetchExamDirectoryServer), latest story first. /exams marks them
+  // "Hot" and lists them under its default Popular tab.
   hotExamIds: number[];
 };
 

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import superjson from "superjson";
 import type { OrganizationTypeValue } from "../teacher/organizations/create_POST.schema";
+import type { PublicExamNewsCard } from "../exam-news/list_GET.schema";
 
 export const schema = z.object({
   q: z.string().min(1, "Search query is required"),
@@ -63,6 +64,7 @@ export type OutputType = {
   products: SearchResultItem[];
   teachers: SearchTeacherItem[];
   organizations: SearchOrganizationItem[];
+  news: PublicExamNewsCard[];
   teacherTotal: number;
   totalResults: number;
 };

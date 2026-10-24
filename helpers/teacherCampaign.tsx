@@ -435,6 +435,22 @@ export async function withdrawClaimsForReviews(executor: Executor, reviewIds: nu
   return Number(result.numUpdatedRows);
 }
 
+/** Withdraws claims still waiting on an item that is being deleted for good, so they free their slot and leave the admin list. */
+export async function withdrawClaimsForDeletedContent(
+  executor: Executor,
+  type: CampaignContentType,
+  id: number
+): Promise<number> {
+  const result = await executor
+    .updateTable("teacherCampaignClaims")
+    .set({ status: "withdrawn", decisionNote: `The ${CAMPAIGN_CONTENT_NOUNS[type]} was deleted.`, updatedAt: new Date() })
+    .where("contentType", "=", type)
+    .where("contentId", "=", id)
+    .where("status", "=", "claimed")
+    .executeTakeFirst();
+  return Number(result.numUpdatedRows);
+}
+
 async function lockClaim(trx: Transaction<DB>, claimId: number): Promise<CampaignClaim> {
   const claim = await trx
     .selectFrom("teacherCampaignClaims")
@@ -470,7 +486,8 @@ export async function creditClaim(
   if (review?.status !== "approved") throw new Error(`Approve the ${noun} before crediting its bonus.`);
 
   const content = await loadCampaignContent(trx, type, claim.contentId);
-  if (!content || !content.live) throw new Error(`This ${noun} is not live any more, so the bonus cannot be credited.`);
+  if (!content) throw new Error(`This ${noun} was deleted, so the bonus cannot be credited.`);
+  if (!content.live) throw new Error(`This ${noun} is not live any more, so the bonus cannot be credited.`);
 
   const campaign = await trx
     .selectFrom("teacherCampaigns")

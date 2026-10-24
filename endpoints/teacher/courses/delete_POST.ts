@@ -6,6 +6,7 @@ import { deleteOwnedR2Files } from "../../../helpers/r2FileOwnership";
 import { releaseGumletAssets } from "../../../helpers/syncLessonVideoToGumlet";
 import { releaseMuxAssets } from "../../../helpers/syncLessonVideoToMux";
 import { clearOpenReviews } from "../../../helpers/contentReviewQueue";
+import { withdrawClaimsForDeletedContent } from "../../../helpers/teacherCampaign";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -106,6 +107,7 @@ export async function handle(request: Request): Promise<Response> {
       await trx.deleteFrom("courseSections").where("courseId", "=", courseId).execute();
 
       await clearOpenReviews(trx, "course", courseId);
+      await withdrawClaimsForDeletedContent(trx, "course", courseId);
 
       // Delete course
       await trx.deleteFrom("courses").where("id", "=", courseId).execute();

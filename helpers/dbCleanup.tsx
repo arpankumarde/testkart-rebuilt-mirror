@@ -5,6 +5,7 @@ import { deleteFromR2 } from "./r2Client";
 import { releaseGumletAssets } from "./syncLessonVideoToGumlet";
 import { releaseMuxAssets } from "./syncLessonVideoToMux";
 import { clearOpenReviews } from "./contentReviewQueue";
+import { withdrawClaimsForDeletedContent } from "./teacherCampaign";
 
 export async function dbCleanup(): Promise<void> {
   console.log("Starting database cleanup job...");
@@ -122,6 +123,7 @@ export async function dbCleanup(): Promise<void> {
           .execute();
 
         await clearOpenReviews(trx, "mock_test", mt.id);
+        await withdrawClaimsForDeletedContent(trx, "mock_test", mt.id);
 
         await trx
           .deleteFrom("mockTests")
@@ -204,6 +206,7 @@ export async function dbCleanup(): Promise<void> {
           .execute();
 
         await clearOpenReviews(trx, "course", course.id);
+        await withdrawClaimsForDeletedContent(trx, "course", course.id);
 
         await trx
           .deleteFrom("courses")
@@ -341,6 +344,7 @@ export async function dbCleanup(): Promise<void> {
           .execute();
 
         await clearOpenReviews(trx, "mock_test", mt.id);
+        await withdrawClaimsForDeletedContent(trx, "mock_test", mt.id);
 
         await trx
           .deleteFrom("mockTests")

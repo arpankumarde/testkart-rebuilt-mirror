@@ -282,6 +282,6 @@ export function discountLabel(type: string | null, value: number | null): string
 }
 
 export const SPIN_FUNDING_LABELS: Record<string, string> = {
-  current_split: "Current split (discount shared pro rata)",
-  platform_funded: "Testkart-funded (proposed, pending finance approval)",
+  current_split: "Shared (discount split between teacher and Testkart)",
+  platform_funded: "Testkart-funded (teacher paid on the full price)",
 };

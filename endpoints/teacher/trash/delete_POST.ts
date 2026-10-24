@@ -5,6 +5,7 @@ import superjson from "superjson";
 import { deleteOwnedR2Files } from "../../../helpers/r2FileOwnership";
 import { syncMockTestAggregates } from "../../../helpers/syncMockTestAggregates";
 import { clearOpenReviews } from "../../../helpers/contentReviewQueue";
+import { withdrawClaimsForDeletedContent } from "../../../helpers/teacherCampaign";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -103,6 +104,7 @@ export async function handle(request: Request): Promise<Response> {
           .execute();
 
         await clearOpenReviews(trx, "mock_test", testId);
+        await withdrawClaimsForDeletedContent(trx, "mock_test", testId);
         await trx.deleteFrom("mockTests").where("id", "=", testId).execute();
       });
 

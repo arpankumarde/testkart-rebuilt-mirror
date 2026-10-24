@@ -123,8 +123,8 @@ const AdminBonusClaimsPage: React.FC = () => {
 
   const counts = data?.counts;
   const tabs: { value: BonusClaimFilter; label: string; count?: number }[] = [
-    { value: "claimed", label: "Waiting", count: counts?.claimed },
-    { value: "credited", label: "Credited", count: counts?.credited },
+    { value: "claimed", label: "Requested", count: counts?.claimed },
+    { value: "credited", label: "Claimed", count: counts?.credited },
     { value: "declined", label: "Not selected", count: counts?.declined },
     { value: "reversed", label: "Reversed", count: counts?.reversed },
     { value: "withdrawn", label: "Withdrawn" },
@@ -178,8 +178,9 @@ const AdminBonusClaimsPage: React.FC = () => {
             <Gift size={20} />
           </span>
           <p>
-            Teachers claim the bonus when they submit a test series or course for review. Approving the content does
+            Teachers request the bonus when they submit a test series or course for review. Approving the content does
             not pay it. Credit it here, or with "Approve and credit" in the review queue, only for high quality work.
+            Once credited, the request shows as Claimed.
             {data ? <strong> {formatRupees(data.creditedTotal)} credited so far.</strong> : null}
           </p>
         </section>
@@ -229,11 +230,11 @@ const AdminBonusClaimsPage: React.FC = () => {
         ) : claims.length === 0 ? (
           <ConsoleListEmpty
             icon={<Gift size={24} />}
-            title={status === "claimed" ? "No claims waiting" : "Nothing here yet"}
+            title={status === "claimed" ? "No requests waiting" : "Nothing here yet"}
             description={
               status === "claimed"
-                ? "Claims appear here when a teacher submits a test series or course with a bonus ticked."
-                : "Claims with this status will be listed here."
+                ? "Requests appear here when a teacher submits a test series or course with a bonus ticked."
+                : "Bonuses with this status will be listed here."
             }
           />
         ) : (
@@ -250,7 +251,7 @@ const AdminBonusClaimsPage: React.FC = () => {
                       <h2 className={styles.cardTitle}>{claim.contentTitle}</h2>
                       <p className={styles.cardMeta}>
                         {claim.teacherName}
-                        {claim.teacherEmail ? ` · ${claim.teacherEmail}` : ""} · claimed {formatDate(claim.createdAt)}
+                        {claim.teacherEmail ? ` · ${claim.teacherEmail}` : ""} · requested {formatDate(claim.createdAt)}
                       </p>
                     </div>
                     <div className={styles.amountBlock}>
@@ -265,7 +266,7 @@ const AdminBonusClaimsPage: React.FC = () => {
                     <span className={styles.fact}>{claim.campaignTitle}</span>
                     {label && <span className={styles.fact}>{label}</span>}
                     <span className={styles.fact}>
-                      {claim.slots.credited} of {claim.slots.limit} {CAMPAIGN_CONTENT_NOUNS[claim.contentType]} bonuses credited
+                      {claim.slots.credited} of {claim.slots.limit} {CAMPAIGN_CONTENT_NOUNS[claim.contentType]} bonuses claimed
                     </span>
                     {claim.decidedByName && claim.status !== "claimed" && (
                       <span className={styles.fact}>

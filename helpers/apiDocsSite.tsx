@@ -29,26 +29,29 @@ export const apiDocsSite: ApiEndpoint[] = [
   {
     method: "GET",
     route: "/_api/homepage/search",
-    description: "Search published test series, courses, bundles, study notes and teachers",
+    description: "Search published test series, courses, bundles, study notes, teachers, organisations and exam news",
     auth: "none",
     category: "Site",
     usedBy: ["web", "mobile"],
     queryParams: [
       { name: "q", type: "string", required: true, description: "Search text. Case-insensitive match on titles, descriptions and teacher names, plus subject and exam names for test series" },
-      { name: "limit", type: "number", required: false, description: "Items per group for tests, courses, bundles, products and teachers. Default 5, maximum 10" },
+      { name: "limit", type: "number", required: false, description: "Items per group for every group. Default 5, maximum 10. The web search page asks for 4" },
     ],
     responseFields: [
       { name: "tests", type: "array", description: "Published series that are not live tests: { id, slug, title, thumbnailUrl, price, discountPrice, examName, category, views, rating (null when never reviewed), reviewsCount, type: 'test', teacher fields }" },
       { name: "courses", type: "array", description: "Published courses: { id, slug, title, thumbnailUrl, price, discountPrice, category (the primary exam name), views, type: 'course', teacher fields }" },
       { name: "bundles", type: "array", description: "Published bundles: { id, slug, title, thumbnailUrl, price, originalPrice, itemCount, type: 'bundle', teacher fields }" },
       { name: "products", type: "array", description: "Published study notes: { id, slug, title, thumbnailUrl, price, examName, category, views, type: 'product', teacher fields }" },
-      { name: "teachers", type: "array", description: "First page of active teachers whose name matches, with or without published content, by students then name: { id, displayName, avatarUrl, slug, isVerified, testCount, courseCount, studentCount, resourceCount (published test series, courses and study notes), followerCount }" },
+      { name: "teachers", type: "array", description: "First page of active teachers whose name matches, with or without published content, verified first, then by students and name: { id, displayName, avatarUrl, slug, isVerified, testCount, courseCount, studentCount, resourceCount (published test series, courses and study notes), followerCount }" },
+      { name: "organizations", type: "array", description: "Active organisations whose name, description or location matches, by followers: { id, name, slug, orgType, logoUrl, location, teacherCount, followerCount }" },
+      { name: "news", type: "array", description: "Published Exam News stories whose headline matches, newest first: { id, title, slug, summary, newsType, examName, examSlug, thumbnailUrl, thumbnailAlt, publishedAt, updatedAt }" },
       { name: "teacherTotal", type: "number", description: "All teachers matching q. Load the rest from /_api/homepage/search/teachers" },
-      { name: "totalResults", type: "number", description: "Items across all five groups" },
+      { name: "totalResults", type: "number", description: "Items returned across all groups" },
     ],
     notes: [
       "Returns 400 when q is missing or empty, or limit is not a number or is above 10.",
       "Live tests are not searched.",
+      "Tests, courses, bundles and study notes from verified teachers come first, then by recent enrolments or purchases.",
     ],
   },
   {

@@ -234,9 +234,9 @@ const CampaignRow = ({
         <span className={styles.factStrong}>
           {Math.max(0, campaign.totalSlots - campaign.taken)} of {campaign.totalSlots} slots left
         </span>
-        <span className={styles.fact}>{campaign.waiting} waiting</span>
+        <span className={styles.fact}>{campaign.waiting} requested</span>
         <span className={styles.fact}>
-          {campaign.credited} credited ({formatRupees(campaign.creditedAmount)})
+          {campaign.credited} claimed ({formatRupees(campaign.creditedAmount)})
         </span>
         <span className={styles.fact}>
           {formatRupees(campaign.amount)} each · up to {campaign.perTeacher} per teacher

@@ -5,8 +5,12 @@ import superjson from "superjson";
 import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
 import { getTeacherPlatformFee } from "../../../helpers/getTeacherPlatformFee";
 import { sql } from "kysely";
+import { teacherItemDiscountSql } from "../../../helpers/teacherEarningsSql";
 
-// A promo code only counts for a teacher's row when it took money off that row.
+const teacherDiscount = () => teacherItemDiscountSql("order_items", "orders");
+
+// A promo code only counts for a teacher's row when it took money off that row, so a
+// Testkart-funded coupon does not show on it.
 const couponFields = (code: string | null, discount: string | number | null) =>
   code && Number(discount) > 0 ? { couponCode: code, couponDiscount: Number(discount) } : {};
 
@@ -54,13 +58,13 @@ export async function handle(request: Request): Promise<Response> {
         "orders.createdAt as transactionDate",
         "mockTests.title as testTitle",
         "users.displayName as studentName",
-        sql<string>`(order_items.price_at_purchase - order_items.discount_amount)`.as("grossAmount"),
+        sql<string>`(order_items.price_at_purchase - ${teacherDiscount()})`.as("grossAmount"),
         "orderItems.platformFeePercentage",
-        sql<string>`(order_items.price_at_purchase - order_items.discount_amount) * (1 - order_items.platform_fee_percentage / 100)`.as(
+        sql<string>`(order_items.price_at_purchase - ${teacherDiscount()}) * (1 - order_items.platform_fee_percentage / 100)`.as(
           "amountEarned"
         ),
         "promoCodes.code as couponCode",
-        "orderItems.discountAmount as couponDiscount",
+        sql<string>`${teacherDiscount()}`.as("couponDiscount"),
         "orders.status as orderStatus",
         "orders.refundedAt",
         "orders.refundReason",
@@ -122,13 +126,13 @@ export async function handle(request: Request): Promise<Response> {
         "orders.createdAt as transactionDate",
         "courses.title as testTitle",
         "users.displayName as studentName",
-        sql<string>`(order_items.price_at_purchase - order_items.discount_amount)`.as("grossAmount"),
+        sql<string>`(order_items.price_at_purchase - ${teacherDiscount()})`.as("grossAmount"),
         "orderItems.platformFeePercentage",
-        sql<string>`(order_items.price_at_purchase - order_items.discount_amount) * (1 - order_items.platform_fee_percentage / 100)`.as(
+        sql<string>`(order_items.price_at_purchase - ${teacherDiscount()}) * (1 - order_items.platform_fee_percentage / 100)`.as(
           "amountEarned"
         ),
         "promoCodes.code as couponCode",
-        "orderItems.discountAmount as couponDiscount",
+        sql<string>`${teacherDiscount()}`.as("couponDiscount"),
         "orders.status as orderStatus",
         "orders.refundedAt",
         "orders.refundReason",
@@ -165,13 +169,13 @@ export async function handle(request: Request): Promise<Response> {
         "orders.createdAt as transactionDate",
         "digitalProducts.title as testTitle",
         "users.displayName as studentName",
-        sql<string>`(order_items.price_at_purchase - order_items.discount_amount)`.as("grossAmount"),
+        sql<string>`(order_items.price_at_purchase - ${teacherDiscount()})`.as("grossAmount"),
         "orderItems.platformFeePercentage",
-        sql<string>`(order_items.price_at_purchase - order_items.discount_amount) * (1 - order_items.platform_fee_percentage / 100)`.as(
+        sql<string>`(order_items.price_at_purchase - ${teacherDiscount()}) * (1 - order_items.platform_fee_percentage / 100)`.as(
           "amountEarned"
         ),
         "promoCodes.code as couponCode",
-        "orderItems.discountAmount as couponDiscount",
+        sql<string>`${teacherDiscount()}`.as("couponDiscount"),
         "orders.status as orderStatus",
         "orders.refundedAt",
         "orders.refundReason",

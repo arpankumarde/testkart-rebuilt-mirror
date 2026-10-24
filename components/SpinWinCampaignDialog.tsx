@@ -359,7 +359,7 @@ export const SpinWinCampaignDialog: React.FC<Props> = ({ open, onOpenChange, cam
                       <span className={styles.hint}>Capped at {SPIN_MAX_DISCOUNT_PERCENT}% by the PRD. Applies to every coupon, flat ones included.</span>
                     </label>
                     <div className={styles.field}>
-                      <span className={styles.label}>Discount funding (reporting)</span>
+                      <span className={styles.label}>Discount funding</span>
                       <Select value={form.discountFunding} onValueChange={(value) => set("discountFunding", value as FormState["discountFunding"])}>
                         <SelectTrigger aria-label="Discount funding">
                           <SelectValue />
@@ -372,7 +372,7 @@ export const SpinWinCampaignDialog: React.FC<Props> = ({ open, onOpenChange, cam
                           ))}
                         </SelectContent>
                       </Select>
-                      <span className={styles.hint}>Changes the finance reports only. Teacher settlement is unchanged until finance approves.</span>
+                      <span className={styles.hint}>Sets teacher payouts for every order that used this campaign's coupons, past orders included. Once Testkart-funded orders exist it cannot go back to shared.</span>
                     </div>
                   </div>
                 </AccordionContent>

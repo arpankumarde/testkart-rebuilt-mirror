@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { Search as SearchIcon, ArrowRight, PackageOpen, BookOpen, ShoppingBag, Layers, Star, User, Users, Library, FileText, Building2 } from 'lucide-react';
+import { Search as SearchIcon, ArrowRight, PackageOpen, BookOpen, Layers, Star, User, Users, Library, FileText, Building2, Newspaper, GraduationCap } from 'lucide-react';
 import { SEOHead } from '../components/SEOHead';
 import { Button } from '../components/Button';
 import { Skeleton } from '../components/Skeleton';
 import { VerifiedBadge } from '../components/VerifiedBadge';
-import { useHomepageSearch, useMoreTeacherResults } from '../helpers/useHomepageSearch';
+import { ExamNewsListItem } from '../components/ExamNewsListItem';
+import { useHomepageSearch } from '../helpers/useHomepageSearch';
 import { useDebounce } from '../helpers/useDebounce';
-import { SearchResultItem, SearchTeacherItem, SearchOrganizationItem } from '../endpoints/homepage/search_GET.schema';
+import { SearchTeacherItem, SearchOrganizationItem } from '../endpoints/homepage/search_GET.schema';
 import { TeacherProductCard } from '../components/HomepageContentSection';
 import { Placeholder } from '../helpers/placeholderImages';
 import { bundlePriceProps, formatItemPrice, itemPriceProps } from '../helpers/homepageItemUtils';
@@ -22,7 +23,8 @@ const ORG_TYPE_LABELS: Record<string, string> = {
   other: 'Organisation',
 };
 
-const SEARCH_PAGE_SIZE = 10;
+/* Every category shows at most this many results; View All links lead to the full listings. */
+const RESULTS_PER_CATEGORY = 4;
 
 const plural = (count: number, one: string, many: string) =>
   `${count.toLocaleString('en-IN')} ${count === 1 ? one : many}`;
@@ -96,7 +98,60 @@ const TeacherResultCard = ({ teacher }: { teacher: SearchTeacherItem }) => {
   );
 };
 
+const skeletonKeys = Array.from({ length: RESULTS_PER_CATEGORY }, (_, i) => i);
 
+const ProductSkeletons = () => (
+  <>
+    {skeletonKeys.map((i) => (
+      <div key={i} className={styles.skeletonCard}>
+        <Skeleton className={styles.skeletonThumb} />
+        <div className={styles.skeletonContent}>
+          <Skeleton className={styles.skeletonTitle} />
+          <Skeleton className={styles.skeletonText} />
+        </div>
+      </div>
+    ))}
+  </>
+);
+
+const ProfileSkeletons = () => (
+  <>
+    {skeletonKeys.map((i) => (
+      <div key={i} className={styles.skeletonTeacherCard}>
+        <Skeleton className={styles.skeletonAvatar} />
+        <div className={styles.skeletonTeacherInfo}>
+          <Skeleton className={styles.skeletonTitle} />
+          <Skeleton className={styles.skeletonText} />
+        </div>
+      </div>
+    ))}
+  </>
+);
+
+interface ResultSectionProps {
+  icon: React.ElementType;
+  title: string;
+  count: number;
+  viewAllTo?: string;
+  children: React.ReactNode;
+}
+
+const ResultSection = ({ icon: Icon, title, count, viewAllTo, children }: ResultSectionProps) => (
+  <section className={styles.section}>
+    <div className={styles.sectionHeader}>
+      <div className={styles.sectionTitleWrapper}>
+        <Icon className={styles.sectionIcon} size={24} />
+        <h2>{title} <span className={styles.count}>({count.toLocaleString('en-IN')})</span></h2>
+      </div>
+      {viewAllTo && count > 0 && (
+        <Link to={viewAllTo} className={styles.viewAllLink}>
+          View All <ArrowRight size={16} />
+        </Link>
+      )}
+    </div>
+    {children}
+  </section>
+);
 
 export default function SearchPage() {
   const [searchParams] = useSearchParams();
@@ -118,23 +173,21 @@ export default function SearchPage() {
     }
   };
 
-  const { data, isFetching } = useHomepageSearch(debouncedQuery, SEARCH_PAGE_SIZE);
-  const firstTeachers = data?.teachers || [];
-  const moreTeachers = useMoreTeacherResults(debouncedQuery, firstTeachers.length, SEARCH_PAGE_SIZE);
+  const { data, isFetching } = useHomepageSearch(debouncedQuery, RESULTS_PER_CATEGORY);
+  const cap = <T,>(items: T[] | undefined) => (items ?? []).slice(0, RESULTS_PER_CATEGORY);
 
-  const displayTeachers = [
-    ...firstTeachers,
-    ...(moreTeachers.data?.pages.flatMap((page) => page.teachers) ?? []),
-  ];
+  const displayTests = cap(data?.tests);
+  const displayCourses = cap(data?.courses);
+  const displayProducts = cap(data?.products);
+  const displayTeachers = cap(data?.teachers);
   const teacherTotal = data?.teacherTotal ?? 0;
-  const displayOrganizations = data?.organizations || [];
-  const displayTests = data?.tests || [];
-  const displayCourses = data?.courses || [];
-  const displayBundles = data?.bundles || [];
-  const displayProducts = data?.products || [];
+  const displayOrganizations = cap(data?.organizations);
+  const displayNews = cap(data?.news);
+  const displayBundles = cap(data?.bundles);
 
   const hasResults = data && data.totalResults > 0;
   const isLoading = isFetching;
+  const encodedQuery = encodeURIComponent(query);
 
   return (
     <div className={styles.container}>
@@ -182,280 +235,140 @@ export default function SearchPage() {
           </div>
         ) : (
           <div className={styles.sectionsWrapper}>
-            
-            {/* Teachers Section */}
-            {(isLoading || displayTeachers.length > 0) && (
-              <section className={styles.section}>
-                <div className={styles.sectionHeader}>
-                  <div className={styles.sectionTitleWrapper}>
-                    <User className={styles.sectionIcon} size={24} />
-                    <h2>Teachers <span className={styles.count}>({teacherTotal})</span></h2>
-                  </div>
-                </div>
 
-                <div className={styles.profileGrid}>
-                  {isLoading ? (
-                    Array(4).fill(0).map((_, i) => (
-                      <div key={i} className={styles.skeletonTeacherCard}>
-                        <Skeleton className={styles.skeletonAvatar} />
-                        <div className={styles.skeletonTeacherInfo}>
-                          <Skeleton className={styles.skeletonTitle} />
-                          <Skeleton className={styles.skeletonText} />
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    displayTeachers.map(teacher => (
-                      <TeacherResultCard key={`teacher-${teacher.id}`} teacher={teacher} />
-                    ))
-                  )}
-                </div>
-
-                {!isLoading && displayTeachers.length < teacherTotal && (
-                  <div className={styles.loadMoreRow}>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => moreTeachers.fetchNextPage()}
-                      disabled={moreTeachers.isFetchingNextPage}
-                    >
-                      {moreTeachers.isFetchingNextPage
-                        ? 'Loading...'
-                        : moreTeachers.isError
-                          ? 'Try again'
-                          : 'Load more teachers'}
-                    </Button>
-                  </div>
-                )}
-              </section>
-            )}
-
-            {/* Organizations Section */}
-            {(isLoading || displayOrganizations.length > 0) && (
-              <section className={styles.section}>
-                <div className={styles.sectionHeader}>
-                  <div className={styles.sectionTitleWrapper}>
-                    <Building2 className={styles.sectionIcon} size={24} />
-                    <h2>Organisations <span className={styles.count}>({displayOrganizations.length})</span></h2>
-                  </div>
-                </div>
-
-                <div className={styles.profileGrid}>
-                  {isLoading ? (
-                    Array(4).fill(0).map((_, i) => (
-                      <div key={i} className={styles.skeletonTeacherCard}>
-                        <Skeleton className={styles.skeletonAvatar} />
-                        <div className={styles.skeletonTeacherInfo}>
-                          <Skeleton className={styles.skeletonTitle} />
-                          <Skeleton className={styles.skeletonText} />
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    displayOrganizations.map(organization => (
-                      <OrganizationResultCard key={`organization-${organization.id}`} organization={organization} />
-                    ))
-                  )}
-                </div>
-              </section>
-            )}
-
-            {/* Mock Tests Section */}
+            {/* Fixed order: Mock Tests, Courses, Notes & PDFs, Bundles, Teachers, Organisations, News */}
             {(isLoading || displayTests.length > 0) && (
-              <section className={styles.section}>
-                <div className={styles.sectionHeader}>
-                  <div className={styles.sectionTitleWrapper}>
-                    <BookOpen className={styles.sectionIcon} size={24} />
-                    <h2>Mock Tests <span className={styles.count}>({displayTests.length})</span></h2>
-                  </div>
-                  {displayTests.length > 0 && (
-                    <Link to={`/mock-test?search=${encodeURIComponent(query)}`} className={styles.viewAllLink}>
-                      View All <ArrowRight size={16} />
-                    </Link>
-                  )}
-                </div>
-                
+              <ResultSection icon={BookOpen} title="Mock Tests" count={displayTests.length} viewAllTo={`/mock-test?search=${encodedQuery}`}>
                 <div className={styles.grid}>
-                  {isLoading ? (
-                    Array(4).fill(0).map((_, i) => (
-                      <div key={i} className={styles.skeletonCard}>
-                        <Skeleton className={styles.skeletonThumb} />
-                        <div className={styles.skeletonContent}>
-                          <Skeleton className={styles.skeletonTitle} />
-                          <Skeleton className={styles.skeletonText} />
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    displayTests.map(test => (
-                                            <TeacherProductCard
-                        key={`test-${test.id}`}
-                        link={`/mock-test/${test.slug}`}
-                        teacherName={test.teacherName}
-                        teacherAvatarUrl={test.teacherAvatarUrl}
-                        teacherTagline={test.teacherTagline}
-                        teacherYearsOfExperience={test.teacherYearsOfExperience}
-                        teacherSlug={test.teacherSlug}
-                        teacherIsVerified={test.teacherIsVerified}
-                        productTitle={test.title}
-                        examName={test.examName}
-                        stats={test.rating != null && test.reviewsCount ? (
-                          <TestRating rating={test.rating} reviewsCount={test.reviewsCount} />
-                        ) : undefined}
-                        {...itemPriceProps(test.price, test.discountPrice)}
-                        thumbnailUrl={test.thumbnailUrl}
-                        placeholderUrl={Placeholder.TEST}
-                      />
-                    ))
-                  )}
+                  {isLoading ? <ProductSkeletons /> : displayTests.map(test => (
+                    <TeacherProductCard
+                      key={`test-${test.id}`}
+                      link={`/mock-test/${test.slug}`}
+                      teacherName={test.teacherName}
+                      teacherAvatarUrl={test.teacherAvatarUrl}
+                      teacherTagline={test.teacherTagline}
+                      teacherYearsOfExperience={test.teacherYearsOfExperience}
+                      teacherSlug={test.teacherSlug}
+                      teacherIsVerified={test.teacherIsVerified}
+                      productTitle={test.title}
+                      examName={test.examName}
+                      stats={test.rating != null && test.reviewsCount ? (
+                        <TestRating rating={test.rating} reviewsCount={test.reviewsCount} />
+                      ) : undefined}
+                      {...itemPriceProps(test.price, test.discountPrice)}
+                      thumbnailUrl={test.thumbnailUrl}
+                      placeholderUrl={Placeholder.TEST}
+                    />
+                  ))}
                 </div>
-              </section>
+              </ResultSection>
             )}
 
-            {/* Courses Section */}
             {(isLoading || displayCourses.length > 0) && (
-              <section className={styles.section}>
-                <div className={styles.sectionHeader}>
-                  <div className={styles.sectionTitleWrapper}>
-                    <BookOpen className={styles.sectionIcon} size={24} />
-                    <h2>Courses <span className={styles.count}>({displayCourses.length})</span></h2>
-                  </div>
-                  {displayCourses.length > 0 && (
-                    <Link to={`/course?search=${encodeURIComponent(query)}`} className={styles.viewAllLink}>
-                      View All <ArrowRight size={16} />
-                    </Link>
-                  )}
-                </div>
-
+              <ResultSection icon={GraduationCap} title="Courses" count={displayCourses.length} viewAllTo={`/course?search=${encodedQuery}`}>
                 <div className={styles.grid}>
-                  {isLoading ? (
-                    Array(4).fill(0).map((_, i) => (
-                      <div key={i} className={styles.skeletonCard}>
-                        <Skeleton className={styles.skeletonThumb} />
-                        <div className={styles.skeletonContent}>
-                          <Skeleton className={styles.skeletonTitle} />
-                          <Skeleton className={styles.skeletonText} />
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    displayCourses.map(course => (
-                      <TeacherProductCard
-                        key={`course-${course.id}`}
-                        link={`/course/${course.slug}`}
-                        teacherName={course.teacherName}
-                        teacherAvatarUrl={course.teacherAvatarUrl}
-                        teacherTagline={course.teacherTagline}
-                        teacherYearsOfExperience={course.teacherYearsOfExperience}
-                        teacherSlug={course.teacherSlug}
-                        teacherIsVerified={course.teacherIsVerified}
-                        productTitle={course.title}
-                        {...itemPriceProps(course.price, course.discountPrice)}
-                        thumbnailUrl={course.thumbnailUrl}
-                        placeholderUrl={Placeholder.COURSE}
-                      />
-                    ))
-                  )}
+                  {isLoading ? <ProductSkeletons /> : displayCourses.map(course => (
+                    <TeacherProductCard
+                      key={`course-${course.id}`}
+                      link={`/course/${course.slug}`}
+                      teacherName={course.teacherName}
+                      teacherAvatarUrl={course.teacherAvatarUrl}
+                      teacherTagline={course.teacherTagline}
+                      teacherYearsOfExperience={course.teacherYearsOfExperience}
+                      teacherSlug={course.teacherSlug}
+                      teacherIsVerified={course.teacherIsVerified}
+                      productTitle={course.title}
+                      {...itemPriceProps(course.price, course.discountPrice)}
+                      thumbnailUrl={course.thumbnailUrl}
+                      placeholderUrl={Placeholder.COURSE}
+                    />
+                  ))}
                 </div>
-              </section>
+              </ResultSection>
             )}
 
-            {/* Bundles Section */}
-            {(isLoading || displayBundles.length > 0) && (
-              <section className={styles.section}>
-                <div className={styles.sectionHeader}>
-                  <div className={styles.sectionTitleWrapper}>
-                    <Layers className={styles.sectionIcon} size={24} />
-                    <h2>Bundles <span className={styles.count}>({displayBundles.length})</span></h2>
-                  </div>
-                  {displayBundles.length > 0 && (
-                    <Link to={`/bundles?search=${encodeURIComponent(query)}`} className={styles.viewAllLink}>
-                      View All <ArrowRight size={16} />
-                    </Link>
-                  )}
-                </div>
-
-                <div className={styles.grid}>
-                  {isLoading ? (
-                    Array(4).fill(0).map((_, i) => (
-                      <div key={i} className={styles.skeletonCard}>
-                        <Skeleton className={styles.skeletonThumb} />
-                        <div className={styles.skeletonContent}>
-                          <Skeleton className={styles.skeletonTitle} />
-                          <Skeleton className={styles.skeletonText} />
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    displayBundles.map(bundle => (
-                      <TeacherProductCard
-                        key={`bundle-${bundle.id}`}
-                        link={`/bundles/${bundle.slug}`}
-                        teacherName={bundle.teacherName}
-                        teacherAvatarUrl={bundle.teacherAvatarUrl}
-                        teacherTagline={bundle.teacherTagline}
-                        teacherYearsOfExperience={bundle.teacherYearsOfExperience}
-                        teacherSlug={bundle.teacherSlug}
-                        teacherIsVerified={bundle.teacherIsVerified}
-                        productTitle={bundle.title}
-                        stats={`${bundle.itemCount} items`}
-                        {...bundlePriceProps(bundle.price, bundle.originalPrice)}
-                        thumbnailUrl={bundle.thumbnailUrl}
-                        placeholderUrl={Placeholder.TEST}
-                      />
-                    ))
-                  )}
-                </div>
-              </section>
-            )}
-
-            {/* Digital Products Section */}
             {(isLoading || displayProducts.length > 0) && (
-              <section className={styles.section}>
-                <div className={styles.sectionHeader}>
-                  <div className={styles.sectionTitleWrapper}>
-                    <ShoppingBag className={styles.sectionIcon} size={24} />
-                    <h2>Digital Products <span className={styles.count}>({displayProducts.length})</span></h2>
-                  </div>
-                  {displayProducts.length > 0 && (
-                    <Link to={`/study-notes?search=${encodeURIComponent(query)}`} className={styles.viewAllLink}>
-                      View All <ArrowRight size={16} />
-                    </Link>
-                  )}
-                </div>
-
+              <ResultSection icon={FileText} title="Notes & PDFs" count={displayProducts.length} viewAllTo={`/study-notes?search=${encodedQuery}`}>
                 <div className={styles.grid}>
-                  {isLoading ? (
-                    Array(4).fill(0).map((_, i) => (
-                      <div key={i} className={styles.skeletonCard}>
-                        <Skeleton className={styles.skeletonThumb} />
-                        <div className={styles.skeletonContent}>
-                          <Skeleton className={styles.skeletonTitle} />
-                          <Skeleton className={styles.skeletonText} />
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    displayProducts.map(product => (
-                                            <TeacherProductCard
-                        key={`product-${product.id}`}
-                        link={`/study-notes/${product.slug}`}
-                        teacherName={product.teacherName}
-                        teacherAvatarUrl={product.teacherAvatarUrl}
-                        teacherTagline={product.teacherTagline}
-                        teacherYearsOfExperience={product.teacherYearsOfExperience}
-                        teacherSlug={product.teacherSlug}
-                        teacherIsVerified={product.teacherIsVerified}
-                        productTitle={product.title}
-                        examName={product.examName}
-                        priceLabel={formatItemPrice(product.price)}
-                        isFree={product.price === 0}
-                      />
-                    ))
-                  )}
+                  {isLoading ? <ProductSkeletons /> : displayProducts.map(product => (
+                    <TeacherProductCard
+                      key={`product-${product.id}`}
+                      link={`/study-notes/${product.slug}`}
+                      teacherName={product.teacherName}
+                      teacherAvatarUrl={product.teacherAvatarUrl}
+                      teacherTagline={product.teacherTagline}
+                      teacherYearsOfExperience={product.teacherYearsOfExperience}
+                      teacherSlug={product.teacherSlug}
+                      teacherIsVerified={product.teacherIsVerified}
+                      productTitle={product.title}
+                      examName={product.examName}
+                      priceLabel={formatItemPrice(product.price)}
+                      isFree={product.price === 0}
+                    />
+                  ))}
                 </div>
-              </section>
+              </ResultSection>
             )}
+
+            {(isLoading || displayBundles.length > 0) && (
+              <ResultSection icon={Layers} title="Bundles" count={displayBundles.length} viewAllTo={`/bundles?search=${encodedQuery}`}>
+                <div className={styles.grid}>
+                  {isLoading ? <ProductSkeletons /> : displayBundles.map(bundle => (
+                    <TeacherProductCard
+                      key={`bundle-${bundle.id}`}
+                      link={`/bundles/${bundle.slug}`}
+                      teacherName={bundle.teacherName}
+                      teacherAvatarUrl={bundle.teacherAvatarUrl}
+                      teacherTagline={bundle.teacherTagline}
+                      teacherYearsOfExperience={bundle.teacherYearsOfExperience}
+                      teacherSlug={bundle.teacherSlug}
+                      teacherIsVerified={bundle.teacherIsVerified}
+                      productTitle={bundle.title}
+                      stats={`${bundle.itemCount} items`}
+                      {...bundlePriceProps(bundle.price, bundle.originalPrice)}
+                      thumbnailUrl={bundle.thumbnailUrl}
+                      placeholderUrl={Placeholder.TEST}
+                    />
+                  ))}
+                </div>
+              </ResultSection>
+            )}
+
+            {(isLoading || displayTeachers.length > 0) && (
+              <ResultSection icon={User} title="Teachers" count={teacherTotal}>
+                <div className={styles.profileGrid}>
+                  {isLoading ? <ProfileSkeletons /> : displayTeachers.map(teacher => (
+                    <TeacherResultCard key={`teacher-${teacher.id}`} teacher={teacher} />
+                  ))}
+                </div>
+              </ResultSection>
+            )}
+
+            {(isLoading || displayOrganizations.length > 0) && (
+              <ResultSection icon={Building2} title="Organisations" count={displayOrganizations.length}>
+                <div className={styles.profileGrid}>
+                  {isLoading ? <ProfileSkeletons /> : displayOrganizations.map(organization => (
+                    <OrganizationResultCard key={`organization-${organization.id}`} organization={organization} />
+                  ))}
+                </div>
+              </ResultSection>
+            )}
+
+            {(isLoading || displayNews.length > 0) && (
+              <ResultSection icon={Newspaper} title="News" count={displayNews.length} viewAllTo={`/exam-news?q=${encodedQuery}`}>
+                <div className={styles.newsList}>
+                  {isLoading ? skeletonKeys.map((i) => (
+                    <div key={i} className={styles.skeletonNewsRow}>
+                      <Skeleton className={styles.skeletonTitle} />
+                      <Skeleton className={styles.skeletonText} />
+                    </div>
+                  )) : displayNews.map(item => (
+                    <ExamNewsListItem key={`news-${item.id}`} item={item} headingLevel="h3" />
+                  ))}
+                </div>
+              </ResultSection>
+            )}
+
           </div>
         )}
       </div>

@@ -5,6 +5,8 @@ import { parseErrorMessage } from "./parseErrorMessage";
 import { postReviewContent, InputType as ReviewInput } from "../endpoints/admin/content-reviews/review_POST.schema";
 
 export const ADMIN_CONTENT_REVIEWS_QUERY_KEY = "admin-content-reviews";
+/** Lives here so the review mutation can refresh Bonus claims without a circular import; useAdminBonusClaims re-exports it. */
+export const ADMIN_BONUS_CLAIMS_QUERY_KEY = "admin-bonus-claims";
 
 const SUCCESS_TITLES: Record<ReviewInput["action"], string> = {
   approve: "Content approved successfully.",
@@ -32,6 +34,8 @@ export function useReviewContentMutation() {
         description: data.message,
       });
       queryClient.invalidateQueries({ queryKey: [ADMIN_CONTENT_REVIEWS_QUERY_KEY] });
+      // An approval can credit a bonus or a rejection can withdraw one, so Bonus claims reloads too.
+      queryClient.invalidateQueries({ queryKey: [ADMIN_BONUS_CLAIMS_QUERY_KEY] });
     },
     onError: (error: unknown) => {
       toast.error("Action failed", {

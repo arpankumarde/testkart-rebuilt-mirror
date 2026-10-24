@@ -105,7 +105,7 @@ const BonusFlag = ({ review }: { review: ContentReviewAdminView }) => {
   const claim = openBonus(review);
   if (!claim) return null;
   return (
-    <span className={styles.bonusFlag} title={`The teacher claimed the ${formatRupees(claim.amount)} ${claim.campaignTitle}`}>
+    <span className={styles.bonusFlag} title={`The teacher requested the ${formatRupees(claim.amount)} ${claim.campaignTitle}`}>
       <Gift size={12} aria-hidden="true" />
       Bonus {formatRupees(claim.amount)}
     </span>

@@ -257,8 +257,14 @@ async function fetchSitemapEntries(): Promise<{ path: string; updatedAt: Date | 
   ];
 }
 
+/** Newest published stories whose headline matches, for the site-wide search page. */
+async function searchCards(q: string, limit: number): Promise<PublicExamNewsCard[]> {
+  return selectCards({ q }, limit);
+}
+
 export const examNewsPublicServer = {
   fetchList,
+  searchCards,
   fetchSidebar,
   fetchDetail,
   fetchSitemapEntries,

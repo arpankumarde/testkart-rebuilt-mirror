@@ -300,6 +300,15 @@
   background-color: var(--acc-edge);
 }
 
+.pillFlame {
+  flex-shrink: 0;
+  color: var(--tk-brand-text);
+}
+
+.pill.pillActive .pillFlame {
+  color: var(--tk-brand-ink);
+}
+
 .pillLabel {
   min-width: 0;
 }
@@ -435,6 +444,21 @@
   font-weight: 700;
   line-height: 1.25;
   color: var(--sp-ink);
+}
+
+.sectionHeading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+  flex: 1 1 14rem;
+}
+
+.sectionNote {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  color: var(--sp-muted);
 }
 
 .countChip {

@@ -13,7 +13,7 @@ interface AdminBonusApproveDialogProps {
   amount: number;
   bonusTitle: string;
   isPending: boolean;
-  /** creditBonus true credits the claimed bonus along with the approval. */
+  /** creditBonus true credits the requested bonus along with the approval. */
   onApprove: (creditBonus: boolean) => void;
 }
 
@@ -53,9 +53,9 @@ export const AdminBonusApproveDialog: React.FC<AdminBonusApproveDialogProps> = (
           <Gift size={18} />
         </span>
         <div>
-          <p className={styles.bonusTitle}>The teacher claimed the {formatRupees(amount)} {bonusTitle}</p>
+          <p className={styles.bonusTitle}>The teacher requested the {formatRupees(amount)} {bonusTitle}</p>
           <p className={styles.bonusText}>
-            Credit it only if this is high quality work. Approving alone keeps the claim open, so you can credit or
+            Credit it only if this is high quality work. Approving alone keeps the request open, so you can credit or
             decline it later from Bonus claims.
           </p>
         </div>

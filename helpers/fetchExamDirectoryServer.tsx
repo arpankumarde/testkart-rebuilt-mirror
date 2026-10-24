@@ -25,11 +25,12 @@ export const fetchExamDirectoryServer = async (): Promise<OutputType> => {
       .execute(),
     db
       .selectFrom("examNewsPosts")
-      .select("examId")
-      .distinct()
+      .select((eb) => ["examId", eb.fn.max("publishedAt").as("latestNewsAt")])
       .where("status", "=", "published")
       .where("examId", "is not", null)
       .where("publishedAt", ">=", hotSince)
+      .groupBy("examId")
+      .orderBy("latestNewsAt", "desc")
       .execute(),
   ]);
 
