@@ -24,10 +24,12 @@ type Props = {
 
 type Screen = "play" | "terms";
 
-/* About 2.6s longer than before, so the slowdown into the winning slice can be followed. */
-const SPIN_MS = 7800;
-const SPIN_TURNS = 8;
-const REDUCED_SPIN_MS = 600;
+/* Six turns over 7s: at least a turn a second for the first 3s, then a slowdown that can be followed. */
+const SPIN_MS = 7000;
+const SPIN_TURNS = 6;
+/* Reduced motion still gets a short, slow spin rather than a jump to the result. */
+const REDUCED_SPIN_MS = 3500;
+const REDUCED_SPIN_TURNS = 2;
 
 const SPARKLES = [
   { size: 10, duration: 3.4, delay: 0.2, motion: "twinkle" as const, top: "12%", left: "10%" },
@@ -197,7 +199,7 @@ export const SpinWinPopup: React.FC<Props> = ({ open, onOpenChange, view, autoCl
         const duration = reducedMotion ? REDUCED_SPIN_MS : SPIN_MS;
         setIsSpinning(true);
         setSpinMs(duration);
-        setRotation((from) => rotationForSlice(index, segments.length, from, reducedMotion ? 1 : SPIN_TURNS));
+        setRotation((from) => rotationForSlice(index, segments.length, from, reducedMotion ? REDUCED_SPIN_TURNS : SPIN_TURNS));
         timer.current = window.setTimeout(() => {
           setIsSpinning(false);
           setLocalSpin(result.spin);

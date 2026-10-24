@@ -81,7 +81,7 @@ function initialState(campaign?: AdminSpinCampaign): FormState {
     maxDiscountPercent: String(campaign?.maxDiscountPercent ?? SPIN_MAX_DISCOUNT_PERCENT),
     discountFunding: (campaign?.discountFunding as FormState["discountFunding"] | undefined) ?? "current_split",
     popupEnabled: campaign?.popupEnabled ?? true,
-    popupDelaySeconds: String(campaign?.popupDelaySeconds ?? 6),
+    popupDelaySeconds: String(campaign?.popupDelaySeconds ?? 0),
     seedDiwaliPresets: !campaign,
   };
 }

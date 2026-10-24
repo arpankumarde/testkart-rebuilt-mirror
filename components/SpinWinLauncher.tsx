@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Gift } from "lucide-react";
 import { SpinWinPopup } from "./SpinWinPopup";
@@ -40,16 +40,20 @@ export const SpinWinLauncher: React.FC = () => {
   const authReady = authState.type !== "loading";
   const userId = authState.type === "authenticated" ? authState.user.id : null;
   const quiet = QUIET_PATHS.some((re) => re.test(location.pathname));
-  const { data, refetch } = useActiveSpinCampaign(authReady);
+  const { data, refetch } = useActiveSpinCampaign();
   const [open, setOpen] = useState(false);
   const [autoClaim, setAutoClaim] = useState(false);
+  const lastUserId = useRef<number | null | undefined>(undefined);
 
   const view = data?.active ?? null;
   const spinParam = new URLSearchParams(location.search).get("spin");
 
-  // A login or logout changes who the backend sees, so reload the viewer's spin.
+  // The first fetch does not wait for the session check: the cookie already tells the backend who
+  // is visiting. Only a later login or logout changes that, so only then reload the viewer's spin.
   useEffect(() => {
-    if (authReady) refetch();
+    if (!authReady) return;
+    if (lastUserId.current !== undefined && lastUserId.current !== userId) refetch();
+    lastUserId.current = userId;
   }, [userId, authReady, refetch]);
 
   useEffect(() => {

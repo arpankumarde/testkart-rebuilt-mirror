@@ -48,7 +48,7 @@ export const schema = z
     maxDiscountPercent: z.number().positive().max(SPIN_MAX_DISCOUNT_PERCENT, `At most ${SPIN_MAX_DISCOUNT_PERCENT}%`),
     discountFunding: z.enum(["current_split", "platform_funded"]),
     popupEnabled: z.boolean().default(true),
-    popupDelaySeconds: z.number().int().min(0).max(120).default(6),
+    popupDelaySeconds: z.number().int().min(0).max(120).default(0),
     seedDiwaliPresets: z.boolean().optional(),
   })
   .refine((v) => v.endsAt > v.startsAt, { message: "The end must be after the start", path: ["endsAt"] })

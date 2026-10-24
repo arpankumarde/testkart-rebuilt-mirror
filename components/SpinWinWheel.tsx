@@ -18,8 +18,8 @@ type Props = {
   tone?: "default" | "festive";
 };
 
-/* A slow wind-up, then a long, gradual slowdown into the winning slice. */
-const SPIN_EASING = "cubic-bezier(0.32, 0.06, 0.12, 1)";
+/* A quick start held at an even pace, then a long, gradual slowdown into the winning slice. */
+const SPIN_EASING = "cubic-bezier(0.25, 0.3, 0.35, 1)";
 
 const DARK_INK = "#33164F";
 const LIGHT_INK = "#FFFFFF";
