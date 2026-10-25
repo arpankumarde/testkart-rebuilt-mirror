@@ -7,6 +7,7 @@ export async function handle(request: Request): Promise<Response> {
   try {
     const rows = await db
       .selectFrom("masterclasses as m")
+      .leftJoin("admins as a", "a.id", "m.hostAdminId")
       .where("m.status", "=", "published")
       .select([
         "m.id",
@@ -16,6 +17,10 @@ export async function handle(request: Request): Promise<Response> {
         "m.coverImageUrl",
         "m.hostName",
         "m.hostTitle",
+        "m.hostImageUrl",
+        "a.fullName as hostAdminName",
+        "a.avatarUrl as hostAdminAvatarUrl",
+        "m.platformLabel",
         "m.startTime",
         "m.durationMinutes",
         "m.capacity",
@@ -32,8 +37,10 @@ export async function handle(request: Request): Promise<Response> {
         title: r.title,
         subtitle: r.subtitle,
         coverImageUrl: r.coverImageUrl,
-        hostName: r.hostName,
+        hostName: r.hostAdminName || r.hostName,
         hostTitle: r.hostTitle,
+        hostImageUrl: r.hostAdminAvatarUrl || r.hostImageUrl || null,
+        platformLabel: r.platformLabel,
         startTime: r.startTime,
         durationMinutes: r.durationMinutes,
         capacity: r.capacity,

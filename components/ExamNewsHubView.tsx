@@ -92,7 +92,7 @@ export const ExamNewsHubView: React.FC<ExamNewsHubViewProps> = ({ scope, page, i
         <div className={styles.skeletons} aria-busy="true" aria-label="Loading exam news">
           {[0, 1, 2, 3].map((n) => (
             <div key={n} className={styles.skeletonRow}>
-              <Skeleton style={{ width: "10rem", aspectRatio: "16 / 10", borderRadius: "var(--radius-md)" }} />
+              <Skeleton style={{ width: "10rem", aspectRatio: "16 / 9", borderRadius: "var(--radius-md)" }} />
               <div className={styles.skeletonText}>
                 <Skeleton style={{ height: "1rem", width: "30%" }} />
                 <Skeleton style={{ height: "1.25rem", width: "85%" }} />
@@ -206,9 +206,11 @@ export const ExamNewsHubView: React.FC<ExamNewsHubViewProps> = ({ scope, page, i
           <span className={styles.stateIcon} aria-hidden="true">
             <Newspaper size={22} />
           </span>
-          <h1 className={styles.stateTitle}>{unknownExam ? "We could not find that exam" : "We could not find that page"}</h1>
+          <h1 className={styles.stateTitle}>We could not find that page</h1>
           <p className={styles.stateText}>
-            {unknownExam ? "The link may be wrong, or the exam may have been renamed." : "The link may be wrong, or this page no longer exists."}
+            {unknownExam
+              ? "The link may be wrong, or the story or exam may have been renamed or removed."
+              : "The link may be wrong, or this page no longer exists."}
           </p>
           <Button asChild variant="outline">
             <Link to={examNewsPublicMeta.HUB_PATH}>Back to Exam News</Link>

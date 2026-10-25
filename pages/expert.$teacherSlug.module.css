@@ -12,15 +12,15 @@
 
 .heroSkeleton {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--spacing-8);
 }
 
 .avatarSkeleton {
   flex-shrink: 0;
-  width: 11.5rem;
-  height: 11.5rem;
-  border-radius: var(--radius-full);
+  width: 10rem;
+  height: 10rem;
+  border-radius: var(--radius-lg);
 }
 
 .heroTextSkeleton {
@@ -39,18 +39,16 @@
 
 .statsSkeleton {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
   gap: var(--spacing-6);
   margin-top: var(--spacing-8);
-  padding: var(--spacing-6);
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
 }
 
 .gridSkeleton {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(17.5rem, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--spacing-4);
   margin-top: var(--spacing-12);
 }
@@ -108,8 +106,8 @@
   }
 
   .avatarSkeleton {
-    width: 8rem;
-    height: 8rem;
+    width: 5.5rem;
+    height: 5.5rem;
   }
 
   .gridSkeleton {

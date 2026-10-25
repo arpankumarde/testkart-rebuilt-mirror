@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { toast } from "sonner";
 import { Check, UserPlus } from "lucide-react";
 import { useAuth } from "../helpers/useAuth";
 import { useFollowTeacherMutation } from "../helpers/useFollowTeacher";
@@ -14,9 +15,9 @@ interface FollowTeacherButtonProps {
 
 /**
  * A student-only follow toggle for a teacher's public profile. Signed-out
- * visitors and teachers (who can't follow another teacher here) are sent to
- * login instead of silently doing nothing, same pattern as add-to-cart on
- * TestCard/CourseCard.
+ * visitors are sent to login instead of silently doing nothing, same pattern
+ * as add-to-cart on TestCard/CourseCard. Teachers cannot follow, so it is
+ * hidden for them.
  */
 export const FollowTeacherButton: React.FC<FollowTeacherButtonProps> = ({
   teacherId,
@@ -38,7 +39,13 @@ export const FollowTeacherButton: React.FC<FollowTeacherButtonProps> = ({
       navigate(`/login?redirectTo=${encodeURIComponent(currentPath)}`);
       return;
     }
-    mutation.mutate({ teacherId, follow: !isFollowing });
+    mutation.mutate(
+      { teacherId, follow: !isFollowing },
+      {
+        onError: (error) =>
+          toast.error(error instanceof Error && error.message ? error.message : "Could not update follow status."),
+      }
+    );
   };
 
   return (
@@ -48,9 +55,19 @@ export const FollowTeacherButton: React.FC<FollowTeacherButtonProps> = ({
       onClick={handleClick}
       disabled={mutation.isPending}
       aria-pressed={isFollowing}
+      title={isFollowing ? "Unfollow" : undefined}
     >
       {isFollowing ? <Check size={16} aria-hidden="true" /> : <UserPlus size={16} aria-hidden="true" />}
-      {isFollowing ? "Following" : "Follow"}
+      {isFollowing ? (
+        <span className={styles.label}>
+          <span className={styles.restLabel}>Following</span>
+          <span className={styles.hoverLabel} aria-hidden="true">
+            Unfollow
+          </span>
+        </span>
+      ) : (
+        "Follow"
+      )}
     </button>
   );
 };

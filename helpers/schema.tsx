@@ -996,12 +996,14 @@ export interface LoginAttempts {
 
 export interface Masterclasses {
   capacity: number | null;
+  coHosts: Generated<Json>;
   coverImageFileId: string | null;
   coverImageUrl: string | null;
   createdAt: Generated<Timestamp | null>;
   createdByAdminId: number | null;
   description: string | null;
   durationMinutes: Generated<number | null>;
+  hostAdminId: number | null;
   hostImageUrl: string | null;
   hostName: string | null;
   hostTitle: string | null;

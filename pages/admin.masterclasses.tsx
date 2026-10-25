@@ -8,6 +8,7 @@ import {
   useUpsertMasterclassMutation,
   useMarkMasterclassAttendedMutation,
 } from "../helpers/useAdminMasterclasses";
+import { useAdminOptionsQuery } from "../helpers/useAdminOptions";
 import { AdminMasterclassRow } from "../endpoints/admin/masterclasses/list_GET.schema";
 import { ConsolePageHeader } from "../components/ConsolePageHeader";
 import { Button } from "../components/Button";
@@ -17,6 +18,8 @@ import { Textarea } from "../components/Textarea";
 import { Switch } from "../components/Switch";
 import { ImageUploader } from "../components/ImageUploader";
 import { Skeleton } from "../components/Skeleton";
+import { useAdminAuth } from "../helpers/useAdminAuth";
+import { CoHostDraft, CoHostsEditor, HostPicker, newCoHostDraft } from "../components/MasterclassPresentersFields";
 import { Dialog } from "../components/Dialog";
 import { ConsoleDialogContent, ConsoleDialogHeader, ConsoleDialogBody, ConsoleDialogFooter } from "../components/ConsoleDialog";
 import { Form, FormItem, FormLabel, FormControl, FormMessage, FormDescription, useForm } from "../components/Form";
@@ -208,6 +211,12 @@ const MasterclassEditorDialog: React.FC<{
 }> = ({ open, onOpenChange, row }) => {
   const upsertMutation = useUpsertMasterclassMutation();
   const [slugTouched, setSlugTouched] = useState(false);
+  const [coHosts, setCoHosts] = useState<CoHostDraft[]>([]);
+  const [hostAdminId, setHostAdminId] = useState<number | null>(null);
+  const { authState } = useAdminAuth();
+  const currentAdmin = authState.type === "authenticated" ? authState.admin : null;
+  const adminsQuery = useAdminOptionsQuery();
+  const admins = adminsQuery.data?.admins ?? [];
 
   const defaultValues: MasterclassFormData = {
     id: row?.id,
@@ -234,9 +243,33 @@ const MasterclassEditorDialog: React.FC<{
     if (open) {
       form.setValues(defaultValues);
       setSlugTouched(!!row);
+      // A new masterclass defaults to the admin creating it; an existing one
+      // keeps its saved host.
+      setHostAdminId(row ? row.hostAdminId : currentAdmin?.id ?? null);
+      setCoHosts(
+        (row?.coHosts ?? []).map((coHost) =>
+          newCoHostDraft({
+            type: coHost.type,
+            userId: coHost.userId,
+            name: coHost.name,
+            title: coHost.title ?? "",
+            profileImage: coHost.profileImage ?? "",
+            imageFileId: coHost.imageFileId ?? "",
+            organization: coHost.organization ?? "",
+            website: coHost.website ?? "",
+          })
+        )
+      );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, row?.id]);
+
+  // Picking a co-host as the new host moves them: they are dropped from the
+  // co-host list rather than shown twice.
+  const handleHostChange = (adminId: number) => {
+    setHostAdminId(adminId);
+    setCoHosts((prev) => prev.filter((coHost) => !(coHost.type === "admin" && coHost.userId === adminId)));
+  };
 
   const handleTitleChange = (title: string) => {
     form.setValues((prev) => ({
@@ -247,6 +280,22 @@ const MasterclassEditorDialog: React.FC<{
   };
 
   const handleSubmit = (data: MasterclassFormData) => {
+    if (!hostAdminId) {
+      toast.error("Choose a host for this masterclass.");
+      return;
+    }
+    // Guest rows left completely blank are dropped; a guest with details but no
+    // name is a mistake worth stopping for.
+    const filledCoHosts = coHosts.filter(
+      (coHost) =>
+        coHost.type === "admin" ||
+        [coHost.name, coHost.title, coHost.profileImage, coHost.organization, coHost.website].some((v) => v.trim())
+    );
+    if (filledCoHosts.some((coHost) => coHost.type === "guest" && coHost.name.trim().length < 2)) {
+      toast.error("Enter a full name for every guest co-host, or remove the empty row.");
+      return;
+    }
+
     upsertMutation.mutate(
       {
         id: data.id,
@@ -256,15 +305,28 @@ const MasterclassEditorDialog: React.FC<{
         description: data.description || undefined,
         coverImageUrl: data.coverImageUrl || undefined,
         coverImageFileId: data.coverImageFileId || undefined,
-        hostName: data.hostName || undefined,
         hostTitle: data.hostTitle || undefined,
         hostImageUrl: data.hostImageUrl || undefined,
+        hostAdminId,
         platformLabel: data.platformLabel || undefined,
         joinUrl: data.joinUrl || undefined,
         startTime: new Date(data.startTime),
         durationMinutes: data.durationMinutes ? parseInt(data.durationMinutes, 10) : undefined,
         capacity: data.capacity ? parseInt(data.capacity, 10) : null,
         status: data.status,
+        coHosts: filledCoHosts.map((coHost) =>
+          coHost.type === "admin"
+            ? { type: "admin" as const, userId: coHost.userId!, title: coHost.title.trim() || undefined }
+            : {
+                type: "guest" as const,
+                name: coHost.name.trim(),
+                title: coHost.title.trim() || undefined,
+                profileImage: coHost.profileImage || undefined,
+                imageFileId: coHost.imageFileId || undefined,
+                organization: coHost.organization.trim() || undefined,
+                website: coHost.website.trim() || undefined,
+              }
+        ),
       },
       {
         onSuccess: () => {
@@ -322,8 +384,18 @@ const MasterclassEditorDialog: React.FC<{
                 <FormItem name="description">
                   <FormLabel>Description (optional)</FormLabel>
                   <FormControl>
-                    <Textarea rows={4} value={form.values.description || ""} onChange={(e) => form.setValues((prev) => ({ ...prev, description: e.target.value }))} placeholder="What teachers will learn" />
+                    <Textarea
+                      rows={10}
+                      value={form.values.description || ""}
+                      onChange={(e) => form.setValues((prev) => ({ ...prev, description: e.target.value }))}
+                      placeholder={"A short intro to the session.\n\n## What you'll learn\n- First takeaway\n- Second takeaway\n\n## About the host\nA two-line bio of the host."}
+                    />
                   </FormControl>
+                  <FormDescription>
+                    Text at the top shows as "About this masterclass". A "## What you'll learn" heading with "- " lines
+                    becomes the checklist, "## About the host" becomes the host bio, and any other "## Heading" adds its
+                    own section.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
 
@@ -347,20 +419,27 @@ const MasterclassEditorDialog: React.FC<{
 
                 <div className={styles.formRow}>
                   <FormItem name="hostName" className={styles.flex1}>
-                    <FormLabel>Host name (optional)</FormLabel>
-                    <FormControl>
-                      <Input value={form.values.hostName || ""} onChange={(e) => form.setValues((prev) => ({ ...prev, hostName: e.target.value }))} placeholder="Who's teaching" />
-                    </FormControl>
+                    <FormLabel>Host</FormLabel>
+                    <HostPicker
+                      admins={admins}
+                      hostAdminId={hostAdminId}
+                      fallbackName={row?.hostName || currentAdmin?.fullName || ""}
+                      isLoading={adminsQuery.isLoading}
+                      onChange={handleHostChange}
+                    />
+                    <FormDescription>Only active admins and team members can host. Name and photo come from their account.</FormDescription>
                     <FormMessage />
                   </FormItem>
                   <FormItem name="hostTitle" className={styles.flex1}>
-                    <FormLabel>Host title (optional)</FormLabel>
+                    <FormLabel>Host title</FormLabel>
                     <FormControl>
-                      <Input value={form.values.hostTitle || ""} onChange={(e) => form.setValues((prev) => ({ ...prev, hostTitle: e.target.value }))} placeholder="e.g. Head of Growth" />
+                      <Input value={form.values.hostTitle || ""} onChange={(e) => form.setValues((prev) => ({ ...prev, hostTitle: e.target.value }))} placeholder="e.g. Founder, Testkart" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 </div>
+
+                <CoHostsEditor admins={admins} hostAdminId={hostAdminId} value={coHosts} onChange={setCoHosts} />
 
                 <div className={styles.formRow}>
                   <FormItem name="platformLabel" className={styles.flex1}>

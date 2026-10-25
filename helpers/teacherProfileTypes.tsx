@@ -15,6 +15,7 @@ export interface SocialLinks {
   linkedin?: string;
   instagram?: string;
   youtube?: string;
+  telegram?: string;
 }
 
 /**

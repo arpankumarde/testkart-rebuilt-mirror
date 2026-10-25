@@ -16,6 +16,7 @@ export async function handle(request: Request) {
         superjson.stringify({
           enabled: false,
           redeemPercent: 0,
+          maxRedeem: 0,
           cashbackPercent: 0,
           maxCashback: 0,
           balance: 0,
@@ -95,6 +96,7 @@ export async function handle(request: Request) {
       superjson.stringify({
         enabled: true,
         redeemPercent: config.redeemPercent,
+        maxRedeem: config.maxRedeem,
         cashbackPercent: config.cashbackPercent,
         maxCashback: config.maxCashback,
         ...balance,

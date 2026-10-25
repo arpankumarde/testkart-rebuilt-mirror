@@ -1,5 +1,6 @@
 import { z } from "zod";
 import superjson from "superjson";
+import type { MasterclassPresenter } from "../../helpers/masterclassCoHosts";
 
 export const schema = z.object({
   slug: z.string().min(1),
@@ -16,6 +17,8 @@ export type MasterclassDetail = {
   hostName: string | null;
   hostTitle: string | null;
   hostImageUrl: string | null;
+  /** Additional presenters, never including the primary host. */
+  coHosts: MasterclassPresenter[];
   platformLabel: string | null;
   startTime: Date;
   durationMinutes: number | null;

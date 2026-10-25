@@ -16,7 +16,11 @@ export async function handle(request: Request) {
     });
 
     const slug = slugify(input.slug);
-    const usedBy = slug ? (await examNewsServer.findSlugOwner(db, slug, input.excludeId)) ?? null : null;
+    let usedBy: OutputType["usedBy"] = slug ? (await examNewsServer.findSlugOwner(db, slug, input.excludeId)) ?? null : null;
+    if (slug && !usedBy) {
+      const exam = await examNewsServer.findExamSlugClash(db, slug, input.excludeId);
+      if (exam) usedBy = { id: exam.id, title: `${exam.examName} exam news page` };
+    }
     return new Response(superjson.stringify({ slug, available: !!slug && !usedBy, usedBy } satisfies OutputType));
   } catch (error) {
     return examNewsServer.errorResponse(error, "Error checking exam news slug");

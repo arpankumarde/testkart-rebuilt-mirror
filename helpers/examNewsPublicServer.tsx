@@ -112,6 +112,7 @@ async function fetchSidebar(): Promise<SidebarOutput> {
       .where("p.status", "=", "published")
       .groupBy(["e.examName", "e.examSlug"])
       .orderBy(sql`count(*)`, "desc")
+      .orderBy(sql`max(p.published_at)`, "desc")
       .orderBy("e.examName")
       .limit(EXAMS_WITH_NEWS)
       .execute(),
@@ -249,10 +250,12 @@ async function fetchSitemapEntries(): Promise<{ path: string; updatedAt: Date | 
       .execute(),
   ]);
   if (stories.length === 0) return [{ path: examNewsPublicMeta.HUB_PATH, updatedAt: null }];
+  // A story whose slug is also an exam's owns /exam-news/{slug}, so that exam has no listing URL of its own.
+  const storySlugs = new Set(stories.map((s) => s.slug));
   return [
     { path: examNewsPublicMeta.HUB_PATH, updatedAt: stories.reduce<Date | null>((max, s) => (!max || s.updatedAt > max ? s.updatedAt : max), null) },
     ...types.map((t) => ({ path: examNewsPublicMeta.listingPath({ type: t.newsType }), updatedAt: t.updatedAt as Date | null })),
-    ...exams.map((e) => ({ path: examNewsPublicMeta.listingPath({ examSlug: e.examSlug }), updatedAt: e.updatedAt as Date | null })),
+    ...exams.filter((e) => !storySlugs.has(e.examSlug)).map((e) => ({ path: examNewsPublicMeta.listingPath({ examSlug: e.examSlug }), updatedAt: e.updatedAt as Date | null })),
     ...stories.map((s) => ({ path: examNewsPublicMeta.storyPath(s.slug), updatedAt: s.updatedAt })),
   ];
 }

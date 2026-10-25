@@ -66,14 +66,14 @@
 .thumb {
   display: block;
   width: 100%;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 9;
   object-fit: cover;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background-color: var(--muted);
 }
 
-/* No image: a pastel tile in the type's colour, the same 16:10 box as a thumbnail. */
+/* No image: a pastel tile in the type's colour, the same 16:9 box as a thumbnail. */
 .thumbTile {
   display: flex;
   flex-direction: column;
@@ -81,7 +81,7 @@
   justify-content: center;
   gap: var(--spacing-2);
   width: 100%;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 9;
   border: 1px solid color-mix(in srgb, var(--tk-brand) 30%, var(--border));
   border-radius: var(--radius-md);
   background-color: color-mix(in srgb, var(--tk-brand) 16%, var(--surface));

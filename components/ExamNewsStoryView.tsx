@@ -97,9 +97,9 @@ const articleJsonLd = (story: PublicExamNewsStory, canonicalPath: string) =>
   }).replace(/</g, "\\u003c");
 
 export const ExamNewsStoryView: React.FC<{ slug: string }> = ({ slug }) => {
-  const { data, isLoading, isError, error, refetch } = useExamNewsDetails(slug);
+  const { data, isLoading, refetch } = useExamNewsDetails(slug);
   const sidebar = useExamNewsSidebar();
-  const notFound = isError && /not found/i.test(String(error));
+  const notFound = data === null;
   const location = useLocation();
   const navigate = useNavigate();
 

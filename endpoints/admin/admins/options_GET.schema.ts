@@ -9,6 +9,7 @@ export type AdminOption = {
   id: number;
   fullName: string;
   isActive: boolean;
+  avatarUrl: string | null;
 };
 
 export type OutputType = {

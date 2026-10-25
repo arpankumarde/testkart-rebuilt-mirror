@@ -1,5 +1,6 @@
 import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
+import { parseMasterclassCoHosts } from "../../../helpers/masterclassCoHosts";
 import { OutputType, AdminMasterclassRow } from "./list_GET.schema";
 import superjson from "superjson";
 import { sql } from "kysely";
@@ -10,6 +11,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const rows = await db
       .selectFrom("masterclasses as m")
+      .leftJoin("admins as a", "a.id", "m.hostAdminId")
       .select([
         "m.id",
         "m.slug",
@@ -21,6 +23,10 @@ export async function handle(request: Request): Promise<Response> {
         "m.hostName",
         "m.hostTitle",
         "m.hostImageUrl",
+        "m.coHosts",
+        "m.hostAdminId",
+        "m.createdByAdminId",
+        "a.fullName as hostAdminName",
         "m.platformLabel",
         "m.joinUrl",
         "m.startTime",
@@ -42,9 +48,11 @@ export async function handle(request: Request): Promise<Response> {
       description: r.description,
       coverImageUrl: r.coverImageUrl,
       coverImageFileId: r.coverImageFileId,
-      hostName: r.hostName,
+      hostName: r.hostAdminName || r.hostName,
       hostTitle: r.hostTitle,
       hostImageUrl: r.hostImageUrl,
+      hostAdminId: r.hostAdminId ?? r.createdByAdminId,
+      coHosts: parseMasterclassCoHosts(r.coHosts, { adminId: r.hostAdminId ?? r.createdByAdminId }),
       platformLabel: r.platformLabel,
       joinUrl: r.joinUrl,
       startTime: r.startTime,

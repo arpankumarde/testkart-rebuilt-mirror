@@ -10,6 +10,7 @@ import styles from "./AdminTcoinsSettings.module.css";
 type Draft = {
   enabled: boolean;
   redeemPercent: string;
+  maxRedeem: string;
   cashbackPercent: string;
   maxCashback: string;
 };
@@ -24,6 +25,7 @@ export const AdminTcoinsSettings = ({ className }: { className?: string }) => {
       setDraft({
         enabled: data.enabled,
         redeemPercent: String(data.redeemPercent),
+        maxRedeem: String(data.maxRedeem),
         cashbackPercent: String(data.cashbackPercent),
         maxCashback: String(data.maxCashback),
       });
@@ -46,23 +48,28 @@ export const AdminTcoinsSettings = ({ className }: { className?: string }) => {
   }
 
   const redeemPercent = Number(draft.redeemPercent);
+  const maxRedeem = Number(draft.maxRedeem);
   const cashbackPercent = Number(draft.cashbackPercent);
   const maxCashback = Number(draft.maxCashback);
   const isValid =
     draft.redeemPercent.trim() !== "" && Number.isFinite(redeemPercent) && redeemPercent >= 0 && redeemPercent <= 100 &&
+    draft.maxRedeem.trim() !== "" && Number.isInteger(maxRedeem) && maxRedeem >= 0 &&
     draft.cashbackPercent.trim() !== "" && Number.isFinite(cashbackPercent) && cashbackPercent >= 0 && cashbackPercent <= 100 &&
     draft.maxCashback.trim() !== "" && Number.isInteger(maxCashback) && maxCashback >= 0;
   const hasChanged =
     draft.enabled !== data.enabled ||
     redeemPercent !== data.redeemPercent ||
+    maxRedeem !== data.maxRedeem ||
     cashbackPercent !== data.cashbackPercent ||
     maxCashback !== data.maxCashback;
 
   const update = (field: keyof Omit<Draft, "enabled">) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setDraft({ ...draft, [field]: e.target.value });
 
-  const exampleCart = 400;
-  const exampleCoins = Number.isFinite(redeemPercent) ? Math.floor((exampleCart * redeemPercent) / 100) : 0;
+  const exampleCart = 2500;
+  const exampleCoins = Number.isFinite(redeemPercent)
+    ? Math.min(Number.isFinite(maxRedeem) ? maxRedeem : 0, Math.floor((exampleCart * redeemPercent) / 100))
+    : 0;
   const examplePaid = exampleCart - exampleCoins;
   const exampleCashback = Number.isFinite(cashbackPercent)
     ? Math.min(Number.isFinite(maxCashback) ? maxCashback : 0, Math.floor((examplePaid * cashbackPercent) / 100))
@@ -104,6 +111,10 @@ export const AdminTcoinsSettings = ({ className }: { className?: string }) => {
           <Input type="number" min={0} max={100} step="any" value={draft.redeemPercent} onChange={update("redeemPercent")} disabled={isPending} />
         </label>
         <label className={styles.field}>
+          <span className={styles.fieldLabel}>Most coins spent per order</span>
+          <Input type="number" min={0} step={1} value={draft.maxRedeem} onChange={update("maxRedeem")} disabled={isPending} />
+        </label>
+        <label className={styles.field}>
           <span className={styles.fieldLabel}>Cashback (% of amount paid)</span>
           <Input type="number" min={0} max={100} step="any" value={draft.cashbackPercent} onChange={update("cashbackPercent")} disabled={isPending} />
         </label>
@@ -132,9 +143,9 @@ export const AdminTcoinsSettings = ({ className }: { className?: string }) => {
       </dl>
 
       <div className={styles.actions}>
-        {!isValid && <span className={styles.invalid}>Percentages run 0 to 100 and the cap is a whole number.</span>}
+        {!isValid && <span className={styles.invalid}>Percentages run 0 to 100 and the caps are whole numbers.</span>}
         <Button
-          onClick={() => save({ enabled: draft.enabled, redeemPercent, cashbackPercent, maxCashback })}
+          onClick={() => save({ enabled: draft.enabled, redeemPercent, maxRedeem, cashbackPercent, maxCashback })}
           disabled={!hasChanged || !isValid || isPending}
         >
           {isPending && <Loader2 className={styles.spinner} size={16} />}

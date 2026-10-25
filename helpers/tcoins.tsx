@@ -14,7 +14,7 @@ export { TCOINS_SETTING_KEY, type TcoinsConfig } from "./tcoinsMath";
 /**
  * Tcoins: a non-withdrawable student balance, one coin = one rupee.
  *
- * Spending: a student can pay up to redeemPercent of an order's value with coins.
+ * Spending: a student can pay up to redeemPercent of an order's value with coins, capped at maxRedeem.
  * Earning: every paid order earns cashbackPercent of the cash actually paid, capped at maxCashback.
  * Coins never combine with a coupon (Spin & Win included), but a coupon order still earns cashback.
  *

@@ -1,192 +1,983 @@
+/*
+ * Masterclass detail page, in the Blog / Exam Details pastel language: a warm
+ * ivory page, white rounded cards and a spread of solid pastels, each with
+ * one job:
+ *   lavender  the registration card icon, the host, time, focus rings
+ *   sage      the cover's offset block, the CTA, co-hosts, learnings panel,
+ *             How it works
+ *   powder    the date and the first step
+ *   mint      upcoming status, what you'll learn, success states
+ *   butter    the cover's corner tile, presenters heading, guests, spots note
+ *   coral     only the small brand dot on the registration card - never a fill
+ * Each pastel has -tint (fill), -line (large outline), -edge (chip outline,
+ * 3:1+) and -ink (text on the tint, 7:1+). The dark block re-maps the same
+ * names, so nothing below branches on theme.
+ */
+.pageWrapper {
+  --mc-page: hsl(42 45% 98%);
+  --mc-card: hsl(0 0% 100%);
+  --mc-ink: hsl(224 28% 18%);
+  --mc-text: hsl(222 14% 26%);
+  --mc-muted: hsl(220 12% 36%);
+  --mc-line: hsl(36 15% 82%);
+  --mc-line-strong: hsl(36 14% 70%);
+  --mc-field: hsl(30 8% 62%);
+  --mc-field-bg: hsl(40 40% 99.5%);
+  --mc-shadow:
+    0 1px 2px hsl(30 20% 20% / 0.06),
+    0 18px 40px -30px hsl(30 25% 20% / 0.4);
+
+  --mc-cta: hsl(150 28% 28%);
+  --mc-cta-hover: hsl(150 32% 21%);
+  --mc-cta-ink: hsl(0 0% 100%);
+
+  --mc-lavender-tint: hsl(258 55% 94%);
+  --mc-lavender-line: hsl(258 30% 80%);
+  --mc-lavender-edge: hsl(258 35% 58%);
+  --mc-lavender-ink: hsl(258 32% 30%);
+
+  --mc-sage-tint: hsl(95 28% 91%);
+  --mc-sage-line: hsl(95 18% 72%);
+  --mc-sage-edge: hsl(95 22% 42%);
+  --mc-sage-ink: hsl(100 28% 22%);
+
+  --mc-powder-tint: hsl(210 60% 93%);
+  --mc-powder-line: hsl(210 35% 76%);
+  --mc-powder-edge: hsl(210 40% 52%);
+  --mc-powder-ink: hsl(212 50% 28%);
+
+  --mc-mint-tint: hsl(155 45% 90%);
+  --mc-mint-line: hsl(157 28% 70%);
+  --mc-mint-edge: hsl(158 38% 40%);
+  --mc-mint-ink: hsl(162 45% 20%);
+
+  --mc-butter-tint: hsl(46 92% 89%);
+  --mc-butter-line: hsl(44 55% 66%);
+  --mc-butter-edge: hsl(42 60% 42%);
+  --mc-butter-ink: hsl(36 70% 22%);
+
+  --mc-rose-tint: hsl(354 80% 95%);
+  --mc-rose-line: hsl(354 45% 80%);
+  --mc-rose-dot: hsl(354 70% 48%);
+  --mc-rose-ink: hsl(354 62% 30%);
+
+  --mc-brand-dot: hsl(20 90% 72%);
+
+  /* The shared muted grey and hairline wash out on ivory; these also reach
+     the Form, Input and Skeleton pieces inside the page. */
+  --muted-foreground: var(--mc-muted);
+  --border: var(--mc-line);
+
+  min-height: 100vh;
+  background-color: var(--mc-page);
+  color: var(--mc-text);
+}
+
+:global(.dark) .pageWrapper {
+  --mc-page: hsl(222 20% 12%);
+  --mc-card: hsl(222 18% 16%);
+  --mc-ink: hsl(220 20% 93%);
+  --mc-text: hsl(220 14% 82%);
+  --mc-muted: hsl(220 12% 68%);
+  --mc-line: hsl(222 14% 26%);
+  --mc-line-strong: hsl(222 14% 36%);
+  --mc-field: hsl(220 10% 42%);
+  --mc-field-bg: hsl(222 20% 13%);
+  --mc-shadow: 0 1px 2px hsl(0 0% 0% / 0.25);
+
+  --mc-cta: hsl(145 32% 68%);
+  --mc-cta-hover: hsl(145 38% 76%);
+  --mc-cta-ink: hsl(150 40% 11%);
+
+  --mc-lavender-tint: hsl(258 20% 23%);
+  --mc-lavender-line: hsl(258 16% 35%);
+  --mc-lavender-edge: hsl(258 35% 66%);
+  --mc-lavender-ink: hsl(258 60% 87%);
+
+  --mc-sage-tint: hsl(95 14% 19%);
+  --mc-sage-line: hsl(95 10% 32%);
+  --mc-sage-edge: hsl(95 20% 52%);
+  --mc-sage-ink: hsl(95 30% 82%);
+
+  --mc-powder-tint: hsl(212 24% 21%);
+  --mc-powder-line: hsl(212 20% 34%);
+  --mc-powder-edge: hsl(210 35% 58%);
+  --mc-powder-ink: hsl(210 60% 85%);
+
+  --mc-mint-tint: hsl(160 20% 18%);
+  --mc-mint-line: hsl(160 15% 31%);
+  --mc-mint-edge: hsl(158 32% 50%);
+  --mc-mint-ink: hsl(158 45% 80%);
+
+  --mc-butter-tint: hsl(42 28% 19%);
+  --mc-butter-line: hsl(42 22% 33%);
+  --mc-butter-edge: hsl(44 55% 55%);
+  --mc-butter-ink: hsl(45 80% 82%);
+
+  --mc-rose-tint: hsl(354 26% 21%);
+  --mc-rose-line: hsl(354 18% 34%);
+  --mc-rose-dot: hsl(354 75% 66%);
+  --mc-rose-ink: hsl(354 80% 86%);
+
+  --mc-brand-dot: hsl(20 70% 62%);
+}
+
 .page {
-  max-width: 60rem;
+  max-width: 72rem;
   margin: 0 auto;
-  padding: 2.5rem var(--spacing-4) var(--spacing-16);
+  padding: var(--spacing-6) var(--spacing-4) var(--spacing-16);
 }
 
-.notFound {
-  max-width: 32rem;
-  margin: var(--spacing-16) auto;
-  padding: var(--spacing-8);
-  text-align: center;
-  color: var(--muted-foreground);
+.breadcrumb {
+  margin-bottom: 1.25rem;
 }
 
+.breadcrumb a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--mc-muted);
+  text-decoration: none;
+  transition: color var(--animation-duration-fast) ease;
+}
+
+.breadcrumb a:hover {
+  color: var(--mc-lavender-ink);
+}
+
+/* Mobile order: event header, then registration, then the long-form detail. */
 .layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "header"
+    "aside"
+    "body";
   gap: var(--spacing-8);
 }
 
-@media (min-width: 900px) {
+.header {
+  grid-area: header;
+  min-width: 0;
+}
+
+.aside {
+  grid-area: aside;
+  min-width: 0;
+}
+
+.body {
+  grid-area: body;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Roughly 66/30 with the gap. The aside spans both rows so its sticky card
+   travels the full height of the content column and stops at its end. */
+@media (min-width: 1024px) {
   .layout {
-    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-    align-items: start;
+    grid-template-columns: minmax(0, 2.1fr) minmax(21rem, 1fr);
+    grid-template-areas:
+      "header aside"
+      "body aside";
+    grid-template-rows: auto 1fr;
+    column-gap: 3.5rem;
+    row-gap: 2.75rem;
   }
 }
 
-.cover {
+@media (min-width: 768px) and (max-width: 1023px) {
+  .aside {
+    max-width: 34rem;
+  }
+}
+
+/* ---------------------------------------------------------------- cover --- */
+
+/* A solid sage block sits offset behind the banner and a small butter tile
+   overlaps its corner. Both are positioned before/after the image in paint
+   order, so no negative z-index is needed (this build strips it). */
+.coverFrame {
+  position: relative;
+  margin: 0 0.625rem 0.625rem 0;
+}
+
+.coverFrame::before {
+  content: "";
+  position: absolute;
+  inset: 0.625rem -0.625rem -0.625rem 0.625rem;
+  border: 1.5px solid var(--mc-sage-line);
+  border-radius: var(--radius-lg);
+  background-color: var(--mc-sage-tint);
+  pointer-events: none;
+}
+
+.cover,
+.coverPlaceholder {
+  position: relative;
+  display: block;
   width: 100%;
   aspect-ratio: 16 / 9;
+  border: 1px solid var(--mc-line);
   border-radius: var(--radius-lg);
+  background-color: var(--mc-card);
+  box-sizing: border-box;
+}
+
+.cover {
   object-fit: cover;
-  background-color: var(--muted);
 }
 
 .coverPlaceholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  border-radius: var(--radius-lg);
-  background: linear-gradient(135deg, var(--tk-brand-tint), var(--muted));
-  color: var(--tk-brand-text);
+  background-color: var(--mc-lavender-tint);
+  color: var(--mc-lavender-ink);
 }
+
+.coverDot {
+  position: absolute;
+  top: -0.5rem;
+  left: -0.5rem;
+  width: 1.375rem;
+  height: 1.375rem;
+  border: 1.5px solid var(--mc-butter-line);
+  border-radius: 0.4375rem;
+  background-color: var(--mc-butter-tint);
+  transform: rotate(14deg);
+  pointer-events: none;
+}
+
+@media (min-width: 640px) {
+  .coverFrame {
+    margin: 0 0.875rem 0.875rem 0;
+  }
+
+  .coverFrame::before {
+    inset: 0.875rem -0.875rem -0.875rem 0.875rem;
+  }
+
+  .coverDot {
+    top: -0.625rem;
+    left: -0.625rem;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 0.5rem;
+  }
+}
+
+/* ----------------------------------------------------------- event info --- */
 
 .metaRow {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-4);
-  margin: 1.25rem 0 var(--spacing-2);
+  align-items: center;
+  gap: 0.625rem 1.375rem;
+  margin: 1.75rem 0 1.125rem;
   font-size: 0.875rem;
-  color: var(--muted-foreground);
+  font-weight: 500;
+  color: var(--mc-text);
 }
 
 .metaItem {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: var(--spacing-2);
+  gap: 0.5rem;
+}
+
+.metaIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+}
+
+/* The status badge is shared with the listing page; here it takes the page's
+   pastels by phase. The attribute selector outranks the badge's own class. */
+.statusBadge[data-phase] {
+  padding: 0.3125rem 0.75rem;
+  border: 1px solid;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.statusBadge[data-phase="upcoming"] {
+  border-color: var(--mc-mint-line);
+  background-color: var(--mc-mint-tint);
+  color: var(--mc-mint-ink);
+}
+
+.statusBadge[data-phase="upcoming"] > span {
+  background-color: var(--mc-mint-edge);
+}
+
+.statusBadge[data-phase="live"] {
+  border-color: var(--mc-rose-line);
+  background-color: var(--mc-rose-tint);
+  color: var(--mc-rose-ink);
+}
+
+.statusBadge[data-phase="live"] > span {
+  background-color: var(--mc-rose-dot);
+}
+
+.statusBadge[data-phase="completed"] {
+  border-color: var(--mc-line-strong);
+  background-color: var(--mc-card);
+  color: var(--mc-text);
+}
+
+.statusBadge[data-phase="completed"] > span {
+  background-color: var(--mc-muted);
+}
+
+.statusBadge[data-phase="cancelled"] {
+  border-color: var(--mc-rose-line);
+  background-color: var(--mc-card);
+  color: var(--mc-rose-ink);
 }
 
 .title {
-  margin: 0 0 var(--spacing-3);
+  margin: 0 0 0.75rem;
   font-family: var(--font-family-heading);
-  font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+  font-size: clamp(1.75rem, 1.2rem + 2.2vw, 2.5rem);
   font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--foreground);
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  color: var(--mc-ink);
+  text-wrap: balance;
 }
 
 .subtitle {
-  margin: 0 0 1.25rem;
+  margin: 0;
+  max-width: 44rem;
   font-size: 1.0625rem;
-  color: var(--muted-foreground);
+  line-height: 1.6;
+  color: var(--mc-muted);
 }
 
-.hostRow {
+/* ------------------------------------------------------------- sections --- */
+
+/* Long-form sections, divided by dashed hairlines rather than boxed. */
+.section + .section {
+  margin-top: 2.5rem;
+  padding-top: 2.5rem;
+  border-top: 1.5px dashed var(--mc-line-strong);
+}
+
+.sectionTitle {
   display: flex;
   align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 1.25rem;
+  font-family: var(--font-family-heading);
+  font-size: 1.3125rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--mc-ink);
+}
+
+.iconTile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  border-radius: 0.75rem;
+}
+
+.tile_lavender {
+  border: 1px solid var(--mc-lavender-line);
+  background-color: var(--mc-lavender-tint);
+  color: var(--mc-lavender-ink);
+}
+
+.tile_sage {
+  border: 1px solid var(--mc-sage-line);
+  background-color: var(--mc-sage-tint);
+  color: var(--mc-sage-ink);
+}
+
+.tile_powder {
+  border: 1px solid var(--mc-powder-line);
+  background-color: var(--mc-powder-tint);
+  color: var(--mc-powder-ink);
+}
+
+.tile_mint {
+  border: 1px solid var(--mc-mint-line);
+  background-color: var(--mc-mint-tint);
+  color: var(--mc-mint-ink);
+}
+
+.tile_butter {
+  border: 1px solid var(--mc-butter-line);
+  background-color: var(--mc-butter-tint);
+  color: var(--mc-butter-ink);
+}
+
+.prose {
+  max-width: 46rem;
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--mc-text);
+}
+
+.prose p {
+  margin: 0 0 var(--spacing-4);
+  white-space: pre-line;
+}
+
+.prose ul {
+  margin: 0 0 var(--spacing-4);
+  padding-left: 1.25rem;
+}
+
+.prose li + li {
+  margin-top: var(--spacing-1);
+}
+
+.prose li::marker {
+  color: var(--mc-lavender-edge);
+}
+
+.prose > :last-child {
+  margin-bottom: 0;
+}
+
+.learnList {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.875rem var(--spacing-6);
+  margin: 0;
+  padding: 1.25rem;
+  border: 1px solid var(--mc-sage-line);
+  border-radius: 1.25rem;
+  background-color: var(--mc-sage-tint);
+  list-style: none;
+}
+
+.learnList li {
+  display: flex;
+  align-items: flex-start;
   gap: var(--spacing-3);
-  margin-bottom: var(--spacing-6);
-  padding: var(--spacing-4);
-  background-color: var(--muted);
-  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--mc-sage-ink);
+}
+
+.learnCheck {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  flex-shrink: 0;
+  margin-top: 0.0625rem;
+  border: 1px solid var(--mc-mint-line);
+  border-radius: var(--radius-full);
+  background-color: var(--mc-card);
+  color: var(--mc-mint-ink);
+}
+
+@media (min-width: 640px) {
+  .learnList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 1.5rem;
+  }
+}
+
+/* ----------------------------------------------------------- presenters --- */
+
+.hostCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  border: 1px solid var(--mc-line);
+  border-radius: 1.25rem;
+  background-color: var(--mc-card);
+  box-shadow: var(--mc-shadow);
+}
+
+/* A white gap and a lavender hairline ring the photo. */
+.hostAvatar,
+.presenterAvatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  font-family: var(--font-family-heading);
+  font-weight: 700;
+  object-fit: cover;
 }
 
 .hostAvatar {
-  width: 2.75rem;
-  height: 2.75rem;
-  border-radius: var(--radius-full);
-  object-fit: cover;
-  flex-shrink: 0;
-  background-color: var(--surface);
+  width: 4.5rem;
+  height: 4.5rem;
+  background-color: var(--mc-lavender-tint);
+  color: var(--mc-lavender-ink);
+  font-size: 1.125rem;
+  box-shadow:
+    0 0 0 3px var(--mc-card),
+    0 0 0 4.5px var(--mc-lavender-line);
 }
 
-.hostAvatarPlaceholder {
-  display: flex;
+.presenterAvatar {
+  width: 3.25rem;
+  height: 3.25rem;
+  background-color: var(--mc-sage-tint);
+  color: var(--mc-sage-ink);
+  font-size: 0.9375rem;
+  box-shadow:
+    0 0 0 2.5px var(--mc-card),
+    0 0 0 4px var(--mc-sage-line);
+}
+
+.presenterPrimary .presenterAvatar {
+  background-color: var(--mc-lavender-tint);
+  color: var(--mc-lavender-ink);
+  box-shadow:
+    0 0 0 2.5px var(--mc-card),
+    0 0 0 4px var(--mc-lavender-line);
+}
+
+.hostInfo {
+  min-width: 0;
+}
+
+.roleChip {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 2.75rem;
-  height: 2.75rem;
+  margin-bottom: 0.375rem;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid;
   border-radius: var(--radius-full);
-  background-color: var(--tk-brand-tint);
-  color: var(--tk-brand-text);
-  flex-shrink: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.chip_lavender {
+  border-color: var(--mc-lavender-line);
+  background-color: var(--mc-lavender-tint);
+  color: var(--mc-lavender-ink);
+}
+
+.chip_sage {
+  border-color: var(--mc-sage-line);
+  background-color: var(--mc-sage-tint);
+  color: var(--mc-sage-ink);
+}
+
+.chip_butter {
+  border-color: var(--mc-butter-line);
+  background-color: var(--mc-butter-tint);
+  color: var(--mc-butter-ink);
 }
 
 .hostName {
   margin: 0;
-  font-weight: 700;
-  font-size: 0.9375rem;
-  color: var(--foreground);
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--mc-ink);
 }
 
 .hostTitle {
-  margin: 0;
-  font-size: 0.8125rem;
-  color: var(--muted-foreground);
+  margin: 0.125rem 0 0;
+  font-size: 0.875rem;
+  color: var(--mc-muted);
 }
 
-.description {
+.hostInfo .prose {
+  margin-top: var(--spacing-3);
   font-size: 0.9375rem;
-  line-height: 1.75;
-  color: var(--foreground);
-  white-space: pre-wrap;
+  line-height: 1.7;
 }
 
-.sidebarCard {
-  position: sticky;
-  top: var(--spacing-6);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4);
-  padding: var(--spacing-6);
-  background-color: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-}
-
-.sidebarTitle {
-  margin: 0;
-  font-family: var(--font-family-heading);
-  font-size: 1.0625rem;
-  font-weight: 700;
-  color: var(--foreground);
-}
-
-.formField {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-1);
-}
-
-.successState {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+/* Host first, co-hosts beside it, in equal tiles that wrap. */
+.presenterGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
   gap: var(--spacing-3);
-  padding: var(--spacing-4) 0;
-  text-align: center;
-}
-
-.successIcon {
-  color: var(--success-text);
-}
-
-.successTitle {
   margin: 0;
-  font-weight: 700;
-  font-size: 1.0625rem;
-  color: var(--foreground);
+  padding: 0;
+  list-style: none;
 }
 
-.successNote {
+.presenterCard {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+  padding: 1rem 1.125rem;
+  border: 1px solid var(--mc-line);
+  border-radius: 1.125rem;
+  background-color: var(--mc-card);
+  box-shadow: var(--mc-shadow);
+}
+
+.presenterPrimary {
+  border-color: var(--mc-lavender-line);
+}
+
+.presenterName {
+  display: block;
+  margin: 0;
+  overflow: hidden;
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--mc-ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.presenterWebsite {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: 100%;
+  margin-top: var(--spacing-1);
+  overflow: hidden;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--mc-powder-ink);
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.presenterWebsite:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.presenterBio {
+  margin-top: 1.25rem;
+  font-size: 0.9375rem;
+}
+
+/* --------------------------------------------------------- how it works --- */
+
+/* One panel with three steps divided by dashed hairlines, not three cards. */
+.steps {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--mc-line);
+  border-radius: 1.25rem;
+  background-color: var(--mc-card);
+  box-shadow: var(--mc-shadow);
+  list-style: none;
+}
+
+.step {
   display: flex;
   align-items: flex-start;
-  gap: var(--spacing-1);
-  margin: 0;
-  font-size: 0.8125rem;
-  line-height: 1.5;
-  color: var(--muted-foreground);
-  text-align: left;
+  gap: 0.875rem;
+  padding: 1.125rem 1.25rem;
 }
 
-.successNoteIcon {
+.step + .step {
+  border-top: 1.5px dashed var(--mc-line);
+}
+
+@media (min-width: 640px) {
+  .steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .step {
+    flex-direction: column;
+    gap: 0.625rem;
+    padding: 1.375rem 1.25rem;
+  }
+
+  .step + .step {
+    border-top: none;
+    border-left: 1.5px dashed var(--mc-line);
+  }
+}
+
+.stepNum {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
   flex-shrink: 0;
-  margin-top: 0.1875rem;
-  color: var(--tk-brand-text);
+  border-radius: var(--radius-full);
+  font-family: var(--font-family-heading);
+  font-size: 0.875rem;
+  font-weight: 800;
+}
+
+.stepTitle {
+  margin: 0 0 0.25rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--mc-ink);
+}
+
+.stepText {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--mc-muted);
+}
+
+/* ---------------------------------------------------- registration card --- */
+
+.registerCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  border: 1px solid var(--mc-line);
+  border-radius: 1.25rem;
+  background-color: var(--mc-card);
+  box-shadow: var(--mc-shadow);
+}
+
+/* After the base rule, so sticky wins over relative on desktop. */
+@media (min-width: 1024px) {
+  .registerCard {
+    position: sticky;
+    top: calc(var(--header-height) + var(--site-notice-offset) + var(--spacing-6));
+  }
+}
+
+/* Two small shapes in the card's top-right corner. */
+.registerCard::before,
+.registerCard::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.registerCard::before {
+  top: 1rem;
+  right: 1rem;
+  width: 0.75rem;
+  height: 0.75rem;
+  border: 1.5px solid var(--mc-powder-line);
+  border-radius: 50%;
+  background-color: var(--mc-powder-tint);
+}
+
+.registerCard::after {
+  top: 2.125rem;
+  right: 1.75rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background-color: var(--mc-brand-dot);
+}
+
+.cardHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+  padding-right: 1.25rem;
+}
+
+.cardIcon {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.875rem;
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.1875rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  color: var(--mc-ink);
+}
+
+.cardSub {
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--mc-muted);
+}
+
+.spotsNote {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--mc-butter-line);
+  border-radius: 0.75rem;
+  background-color: var(--mc-butter-tint);
+  color: var(--mc-butter-ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+/* FormItem carries its own bottom margin and a wider label gap on phones; the
+   flex gap owns the rhythm here, the same at every width. */
+.form > div {
+  gap: 0.375rem;
+  margin-bottom: 0;
+}
+
+.form label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--mc-ink);
+}
+
+/* The shared Input sits in a lower cascade layer, so these win in both themes. */
+.form input {
+  height: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0 0.875rem;
+  border: 1px solid var(--mc-field);
+  border-radius: 0.75rem;
+  background-color: var(--mc-field-bg);
+  color: var(--mc-ink);
+  box-shadow: none;
+}
+
+.form input:hover {
+  border-color: var(--mc-lavender-edge);
+  background-color: var(--mc-field-bg);
+  box-shadow: none;
+}
+
+.form input:focus {
+  border-color: var(--mc-lavender-edge);
+  background-color: var(--mc-field-bg);
+  box-shadow: 0 0 0 3px var(--mc-lavender-tint);
+}
+
+.formError {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--mc-rose-line);
+  border-radius: 0.75rem;
+  background-color: var(--mc-rose-tint);
+  color: var(--mc-rose-ink);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+/* Deep sage CTA: clearly the action, without a bright orange block. */
+.cta {
+  width: 100%;
+  height: 2.875rem;
+  margin-top: 0.25rem;
+  border-color: var(--mc-cta);
+  border-radius: 0.875rem;
+  background-color: var(--mc-cta);
+  color: var(--mc-cta-ink);
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.cta:hover,
+.cta:active {
+  border-color: var(--mc-cta-hover);
+  background-color: var(--mc-cta-hover);
+  color: var(--mc-cta-ink);
+}
+
+.cta:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--mc-card),
+    0 0 0 4px var(--mc-lavender-edge);
+}
+
+.cta:disabled {
+  opacity: 0.7;
+}
+
+.outlineAction {
+  width: 100%;
+  border-color: var(--mc-line-strong);
+  border-radius: 0.75rem;
+  background-color: var(--mc-card);
+  color: var(--mc-ink);
+  font-weight: 600;
+}
+
+.outlineAction:hover {
+  border-color: var(--mc-lavender-edge);
+  background-color: var(--mc-lavender-tint);
+  color: var(--mc-lavender-ink);
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.875rem;
+}
+
+.stateIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid;
+  border-radius: 0.875rem;
+}
+
+.tone_success {
+  border-color: var(--mc-mint-line);
+  background-color: var(--mc-mint-tint);
+  color: var(--mc-mint-ink);
+}
+
+.tone_neutral {
+  border-color: var(--mc-butter-line);
+  background-color: var(--mc-butter-tint);
+  color: var(--mc-butter-ink);
+}
+
+.tone_danger,
+.tone_live {
+  border-color: var(--mc-rose-line);
+  background-color: var(--mc-rose-tint);
+  color: var(--mc-rose-ink);
+}
+
+.stateTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.1875rem;
+  font-weight: 800;
+  color: var(--mc-ink);
+}
+
+.stateText {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--mc-muted);
 }
 
 .calendarActions {
@@ -194,29 +985,61 @@
   flex-direction: column;
   gap: var(--spacing-2);
   width: 100%;
+  margin-top: var(--spacing-1);
 }
 
-.noticeBox {
+/* ------------------------------------------------------------ not found --- */
+
+.notFound {
   display: flex;
-  align-items: flex-start;
-  gap: var(--spacing-2);
-  padding: var(--spacing-3);
-  font-size: 0.8125rem;
-  border-radius: var(--radius);
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-3);
+  max-width: 32rem;
+  margin: 0 auto;
+  padding: var(--spacing-16) var(--spacing-4);
+  text-align: center;
 }
 
-.noticeWarning {
-  color: var(--warning-text);
-  background-color: color-mix(in srgb, var(--warning) 12%, transparent);
-}
-
-.noticeDanger {
-  color: var(--error-text);
-  background-color: color-mix(in srgb, var(--error) 12%, transparent);
-}
-
-.formError {
+.notFoundTitle {
   margin: 0;
-  font-size: 0.8125rem;
-  color: var(--error-text);
+  font-family: var(--font-family-heading);
+  font-size: 1.375rem;
+  font-weight: 800;
+  color: var(--mc-ink);
+}
+
+.notFound > a {
+  width: auto;
+  margin-top: var(--spacing-2);
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding-top: var(--spacing-4);
+  }
+
+  .layout {
+    gap: var(--spacing-6);
+  }
+
+  .metaRow {
+    gap: 0.625rem 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .registerCard {
+    padding: 1.25rem;
+  }
+
+  .hostCard {
+    gap: 1rem;
+    padding: 1.125rem;
+  }
+
+  .hostAvatar {
+    width: 3.5rem;
+    height: 3.5rem;
+    font-size: 1rem;
+  }
 }

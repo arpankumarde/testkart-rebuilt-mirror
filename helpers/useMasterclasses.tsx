@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getMasterclasses } from "../endpoints/masterclasses/list_GET.schema";
 import { getMasterclass } from "../endpoints/masterclasses/get_GET.schema";
 import { postMasterclassRegister } from "../endpoints/masterclasses/register_POST.schema";
@@ -16,7 +16,10 @@ export const useMasterclassQuery = (slug: string) =>
     enabled: !!slug,
   });
 
-export const useRegisterForMasterclassMutation = () =>
-  useMutation({
+export const useRegisterForMasterclassMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
     mutationFn: postMasterclassRegister,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["masterclasses"] }),
   });
+};

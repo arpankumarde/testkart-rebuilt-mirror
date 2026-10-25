@@ -20,6 +20,7 @@ export type OutputType = {
   /** False while Tcoins are switched off; every other field is then zero or empty. */
   enabled: boolean;
   redeemPercent: number;
+  maxRedeem: number;
   cashbackPercent: number;
   maxCashback: number;
   balance: number;

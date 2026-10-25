@@ -57,6 +57,21 @@ async function findSlugOwner(
   return query.executeTakeFirst();
 }
 
+/**
+ * The exam whose listing lives at /exam-news/{slug}, which a story with that slug would hide.
+ * A story that already holds the slug keeps it, so older clashes do not block its edits.
+ */
+async function findExamSlugClash(
+  executor: Trx | typeof db,
+  slug: string,
+  storyId?: number
+): Promise<{ id: number; examName: string } | undefined> {
+  const exam = await executor.selectFrom("exams").select(["id", "examName"]).where("examSlug", "=", slug).executeTakeFirst();
+  if (!exam || !storyId) return exam;
+  const story = await executor.selectFrom("examNewsPosts").select("slug").where("id", "=", storyId).executeTakeFirst();
+  return story?.slug === slug ? undefined : exam;
+}
+
 type ExistingState = {
   status: ExamNewsStatus;
   slug: string;
@@ -115,7 +130,9 @@ async function save(input: InputType, adminId: number): Promise<number> {
       issues.push({ path: "slug", message: `"${slug}" is part of the Exam News URLs - choose another slug` });
     } else {
       const owner = await findSlugOwner(trx, slug, existing?.id);
+      const exam = owner ? undefined : await findExamSlugClash(trx, slug, existing?.id);
       if (owner) issues.push({ path: "slug", message: `Already used by "${owner.title}"` });
+      else if (exam) issues.push({ path: "slug", message: `Already used by the ${exam.examName} exam news page - choose another slug` });
     }
     if (input.authorId) {
       const author = await trx.selectFrom("admins").select("id").where("id", "=", input.authorId).executeTakeFirst();
@@ -392,5 +409,6 @@ export const examNewsServer = {
   loadDetail,
   detailToInput,
   findSlugOwner,
+  findExamSlugClash,
   errorResponse,
 };

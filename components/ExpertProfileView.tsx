@@ -1,134 +1,212 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { format } from "date-fns";
 import {
+  ArrowRight,
   Award,
   BookOpen,
   Briefcase,
   Building2,
-  ClipboardList,
+  CalendarDays,
+  Clock,
   GraduationCap,
-  Globe,
-  Link as LinkIcon,
+  Languages,
+  Lightbulb,
   MapPin,
   MessageSquare,
   Share2,
   ShoppingBag,
   Star,
-  Target,
-  User,
+  Trophy,
+  UserRound,
   Users,
 } from "lucide-react";
-import {
-  FaFacebook,
-  FaInstagram,
-  FaLinkedin,
-  FaXTwitter,
-  FaYoutube,
-} from "react-icons/fa6";
+import { FaFacebook, FaInstagram, FaLinkedin, FaTelegram, FaXTwitter, FaYoutube } from "react-icons/fa6";
+import { normalizeSocialUrl, SocialPlatform } from "../helpers/socialProfileUrl";
 import type { OutputType } from "../endpoints/teachers/profile_GET.schema";
+import type { AwardCertificate } from "../helpers/teacherProfileTypes";
 import { computeTeacherProfileStats, formatStatCount } from "../helpers/teacherProfileStats";
 import { getOrganizationProfilePath } from "../helpers/organizationRoutes";
-import { bundlePriceProps, formatItemPrice, itemPriceProps } from "../helpers/homepageItemUtils";
+import { bundlePriceProps, itemPriceProps } from "../helpers/homepageItemUtils";
 import { Placeholder } from "../helpers/placeholderImages";
 import { formatCalendarMonthYear } from "../helpers/calendarDate";
 import { liveTestPath } from "../helpers/liveTestRoutes";
 import { EXPERT_PROFILE_SHARE_CAMPAIGN } from "../helpers/shareLinks";
-import { TeacherProductCard } from "./HomepageContentSection";
+import { ExpertResourceCard } from "./ExpertResourceCard";
 import { ShareAssetDialog } from "./ShareAssetDialog";
 import { VerifiedBadge } from "./VerifiedBadge";
 import { TeacherCtaBanner } from "./TeacherCtaBanner";
 import { FollowTeacherButton } from "./FollowTeacherButton";
 import { TeacherPostsSection } from "./TeacherPostsSection";
+import { Button } from "./Button";
 import styles from "./ExpertProfileView.module.css";
 
 type CatalogueFilter = "courses" | "tests" | "live" | "products" | "bundles";
-
-/** One row of cards per group, then a View more button. */
-const ROWS_PER_STEP = 2;
+type ActiveFilter = "all" | CatalogueFilter;
 
 interface ExpertProfileViewProps {
   data: OutputType;
   /**
    * "preview" is the same page rendered inside the teacher's own dashboard,
-   * so it drops a size step and never claims the full viewport height.
+   * so it drops a size step and leaves out the follow action.
    */
   variant?: "page" | "preview";
-  /** Scrolls the page to that group on load, for ?tab= links. */
+  /** Opens the catalogue on that category, for ?tab= links. */
   initialFilter?: CatalogueFilter | null;
   className?: string;
 }
 
 const GROUP_LABELS: Record<CatalogueFilter, string> = {
   courses: "Courses",
-  tests: "Test series",
-  live: "Live tests",
-  products: "Notes & PDFs",
+  tests: "Test Series",
+  live: "Live Tests",
+  products: "Study Notes & PDFs",
   bundles: "Bundles",
 };
 
+const TAG_TONES = ["toneLavender", "toneMint", "tonePowder", "toneButter"] as const;
+const DETAIL_TONES = ["toneLavender", "toneMint", "tonePowder", "toneButter", "toneSage", "tonePeach"] as const;
+
+// There are no separate profile fields for teaching approach or education, so
+// the About section sorts what the teacher already wrote. After the opening
+// paragraph, a bio paragraph about how they teach goes under Teaching approach.
+// An award that reads as a degree, exam qualification or certificate goes under
+// Education & qualifications, and the rest stay in Awards. Nothing is invented.
+const APPROACH_PATTERN =
+  /\b(approach|method(?:ology)?|classes|sessions|lectures|students?|practi[cs]e|revision|concepts?|step[- ]by[- ]step)\b/i;
+// Matched on the title only. Bare exam names ("UGC NET") are left out on
+// purpose: they turn up in channel names and lesson counts as often as in
+// qualifications, so a qualifier word or a degree has to be present.
+const QUALIFICATION_PATTERN =
+  /\b(b\.?\s?(?:a|sc|ed|tech|com|e)|m\.?\s?(?:a|sc|ed|tech|com|phil)|mba|ph\.?\s?d|degree|bachelor'?s?|master'?s?|doctorate|universit(?:y|ies)|graduat\w*|post[- ]?graduat\w*|diploma|certifi\w*|qualified|qualifying|cleared|jrf)\b/i;
+
+const splitBio = (bio: string | null | undefined) => {
+  const paragraphs = (bio ?? "")
+    .split(/\n\s*\n/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+  const intro: string[] = [];
+  const approach: string[] = [];
+  paragraphs.forEach((paragraph, index) => {
+    if (index > 0 && APPROACH_PATTERN.test(paragraph)) approach.push(paragraph);
+    else intro.push(paragraph);
+  });
+  return { intro, approach };
+};
+
+const splitAwards = (awards: AwardCertificate[]) => {
+  const education: AwardCertificate[] = [];
+  const achievements: AwardCertificate[] = [];
+  awards.forEach((award) => {
+    if (QUALIFICATION_PATTERN.test(award.title)) education.push(award);
+    else achievements.push(award);
+  });
+  return { education, achievements };
+};
+
+const BIO_BULLET = /^\s*(?:[-*•]|\d+[.)])\s+/;
+
+/**
+ * A bio paragraph as written, except that lines typed as "- item" become a
+ * real list, with any lead-in lines kept as a paragraph above it.
+ */
+const BioParagraph = ({ text }: { text: string }) => {
+  const lines = text.split("\n");
+  const firstBullet = lines.findIndex((line) => BIO_BULLET.test(line));
+  const bullets = firstBullet === -1 ? [] : lines.slice(firstBullet);
+  if (bullets.length < 2 || !bullets.every((line) => BIO_BULLET.test(line) || !line.trim())) return <p>{text}</p>;
+  const lead = lines.slice(0, firstBullet).join("\n").trim();
+  return (
+    <>
+      {lead && <p>{lead}</p>}
+      <ul>
+        {bullets
+          .filter((line) => line.trim())
+          .map((line, i) => (
+            <li key={i}>{line.replace(BIO_BULLET, "")}</li>
+          ))}
+      </ul>
+    </>
+  );
+};
+
+const formatLiveStatus = (status: string) => {
+  const text = status.replace(/_/g, " ").trim().toLowerCase();
+  return text ? text[0].toUpperCase() + text.slice(1) : null;
+};
+
+const bundleSavePercent = (price: number, originalPrice: number) =>
+  originalPrice > price && originalPrice > 0 ? Math.round(((originalPrice - price) / originalPrice) * 100) : null;
+
 interface CatalogueGroupProps {
+  id: CatalogueFilter;
   title: string;
   cards: React.ReactNode[];
-  groupRef: (node: HTMLElement | null) => void;
+  /** Showing every card, because this category is the selected filter. */
+  expanded: boolean;
+  onViewAll: () => void;
 }
 
-const CatalogueGroup: React.FC<CatalogueGroupProps> = ({ title, cards, groupRef }) => {
+const CatalogueGroup: React.FC<CatalogueGroupProps> = ({ id, title, cards, expanded, onViewAll }) => {
   const gridRef = useRef<HTMLDivElement | null>(null);
-  const [columns, setColumns] = useState(4);
-  const [rowsShown, setRowsShown] = useState(1);
+  const [columns, setColumns] = useState(3);
 
-  // The grid is auto-fill, so the column count is whatever the current width
-  // resolves to - read it off the resolved template rather than guessing from
-  // a breakpoint, so "one row" means one row at every size.
+  // The column count comes from a container query, so read it off the resolved
+  // template: "one row" then means one row at every width, the dashboard
+  // preview included.
   useEffect(() => {
     const grid = gridRef.current;
     if (!grid || typeof ResizeObserver === "undefined") return;
-
     const measure = () => {
-      const template = window.getComputedStyle(grid).gridTemplateColumns;
-      const count = template.split(" ").filter(Boolean).length;
+      const count = window.getComputedStyle(grid).gridTemplateColumns.split(" ").filter(Boolean).length;
       if (count > 0) setColumns(count);
     };
-
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(grid);
     return () => observer.disconnect();
   }, []);
 
-  const shownCards = cards.slice(0, columns * rowsShown);
-  const hiddenCount = cards.length - shownCards.length;
+  const initialCount = columns === 1 ? 3 : columns;
+  const shownCards = expanded ? cards : cards.slice(0, initialCount);
+  const hasMore = shownCards.length < cards.length;
 
   return (
-    <section className={styles.group} ref={groupRef}>
-      <h3 className={styles.groupTitle}>
-        {title}
-        <span className={styles.groupCount}>{cards.length}</span>
-      </h3>
+    <section className={styles.group} aria-labelledby={`expert-group-${id}`}>
+      <div className={styles.groupHead}>
+        <h3 id={`expert-group-${id}`} className={styles.groupTitle}>
+          {title}
+        </h3>
+        {hasMore && (
+          <button type="button" className={styles.viewAll} onClick={onViewAll}>
+            View all
+            <ArrowRight size={15} aria-hidden="true" />
+          </button>
+        )}
+      </div>
       <div className={styles.grid} ref={gridRef}>
         {shownCards}
       </div>
-      {hiddenCount > 0 && (
-        <div className={styles.loadMoreRow}>
-          <button
-            type="button"
-            className={styles.loadMore}
-            onClick={() => setRowsShown((rows) => rows + ROWS_PER_STEP)}
-          >
-            View more
-            <span className={styles.loadMoreCount}>{hiddenCount}</span>
-          </button>
-        </div>
-      )}
     </section>
   );
 };
 
-const formatYear = (value: Date | string | null | undefined) => {
+const formatJoined = (value: Date | string | null | undefined) => {
   if (!value) return "";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  return String(date.getFullYear());
+  return Number.isNaN(date.getTime()) ? "" : format(date, "MMMM yyyy");
+};
+
+const initialsOf = (name: string) => {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return "T";
+  return (words[0][0] + (words.length > 1 ? words[words.length - 1][0] : "")).toUpperCase();
+};
+
+const smoothScroll = (node: HTMLElement | null) => {
+  if (!node) return;
+  const reduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  node.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
 };
 
 export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
@@ -141,159 +219,103 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
   const bundles = data.bundles ?? [];
   const organization = data.organization ?? null;
   const stats = useMemo(() => computeTeacherProfileStats(data), [data]);
+  const displayName = teacher.displayName.trim();
 
   const catalogueRef = useRef<HTMLElement | null>(null);
   const aboutRef = useRef<HTMLElement | null>(null);
-  const groupRefs = useRef<Partial<Record<CatalogueFilter, HTMLElement | null>>>({});
   const [shareOpen, setShareOpen] = useState(false);
 
-  const teacherCardProps = {
-    teacherName: teacher.displayName,
+  const educator = {
+    teacherName: displayName,
     teacherAvatarUrl: teacher.avatarUrl ?? null,
-    teacherTagline: teacher.tagline ?? null,
-    teacherYearsOfExperience: teacher.yearsOfExperience ?? null,
-    teacherSlug: teacher.slug ?? null,
     teacherIsVerified: !!teacher.isVerified,
   };
 
-  const scrollTo = (target: React.MutableRefObject<HTMLElement | null>) => {
-    target.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+  // A teacher's email, phone and personal website are not shown on the public
+  // page; the website stays in their profile data and the admin panel. The
+  // social links they chose to share are the only outbound routes offered here.
 
-  // A teacher's email and phone are never surfaced on the public page - not as
-  // text, not as a mailto:/tel: href. The website (first icon in the social row)
-  // is the only outbound contact route offered here; everything else goes
-  // through Testkart.
-  const websiteHref = teacher.websiteUrl
-    ? teacher.websiteUrl.match(/^https?:\/\//)
-      ? teacher.websiteUrl
-      : `https://${teacher.websiteUrl}`
-    : null;
-
-  // What the teacher has published leads, then the volume of work behind it,
-  // then the audience it reached. Exams covered and years teaching sit last as
-  // fallbacks - they only reach the visible five when a profile is sparse.
-  // Labels are one word wherever the number already carries the meaning: five
-  // of these sit two-up on a phone, and a two-word label wrapped every cell.
-  const followerCount = data.followerCount ?? 0;
-
-  const headlineStats = [
-    stats.catalogue > 0 && {
-      key: "catalogue",
-      icon: BookOpen,
-      value: formatStatCount(stats.catalogue),
-      label: "Resources",
-    },
-    followerCount > 0 && {
-      key: "followers",
-      icon: Users,
-      value: formatStatCount(followerCount),
-      label: followerCount === 1 ? "Follower" : "Followers",
-    },
-    stats.questions > 0 && {
-      key: "questions",
-      icon: ClipboardList,
-      value: formatStatCount(stats.questions),
-      label: "Questions",
-    },
-    stats.rating !== null && {
-      key: "rating",
-      icon: Star,
-      value: stats.rating.toFixed(1),
-      // The review count is the one label that still earns a second word - a
-      // bare "Rating" under 4.9 says nothing about how much it is worth.
-      label: `${formatStatCount(stats.reviews)} reviews`,
-    },
-    stats.exams.length > 0 && {
-      key: "exams",
-      icon: Target,
-      value: String(stats.exams.length),
-      label: stats.exams.length === 1 ? "Exam" : "Exams",
-    },
-    stats.yearsTeaching !== null && {
-      key: "years",
-      icon: Briefcase,
-      value: `${stats.yearsTeaching}+`,
-      label: "Years",
-    },
-  ].filter(Boolean) as { key: string; icon: typeof Users; value: string; label: string }[];
-
-  const visibleStats = headlineStats.slice(0, 5);
-
+  // Enrolment, page and file counts are real data but are left off these
+  // cards on purpose: only the rating (with reviews), a test count, a live
+  // status or a bundle saving is shown, each only when it has a value.
   const courseCards = courses.map((course) => (
-    <TeacherProductCard
+    <ExpertResourceCard
       key={`course-${course.id}`}
-      {...teacherCardProps}
-      link={`/course/${course.slug}`}
-      productTitle={course.title}
+      {...educator}
+      kind="course"
+      to={`/course/${course.slug}`}
+      title={course.title}
       examName={course.examName}
-      {...itemPriceProps(course.price, course.discountPrice)}
+      rating={course.avgRating}
+      ratingsCount={course.ratingsCount}
+      price={itemPriceProps(course.price, course.discountPrice)}
       thumbnailUrl={course.thumbnailImageUrl}
       placeholderUrl={Placeholder.COURSE}
     />
   ));
 
   const testCards = tests.map((test) => (
-    <TeacherProductCard
+    <ExpertResourceCard
       key={`test-${test.id}`}
-      {...teacherCardProps}
-      link={`/mock-test/${test.slug}`}
-      productTitle={test.title}
+      {...educator}
+      kind="test"
+      to={`/mock-test/${test.slug}`}
+      title={test.title}
       examName={test.examName}
-      stats={test.rating != null ? `${test.rating.toFixed(1)} rating` : undefined}
-      {...itemPriceProps(test.price, test.discountPrice)}
+      rating={test.rating}
+      ratingsCount={Number(test.reviewsCount ?? 0)}
+      detail={test.totalTests ? `${test.totalTests} ${test.totalTests === 1 ? "test" : "tests"}` : null}
+      price={itemPriceProps(test.price, test.discountPrice)}
       thumbnailUrl={test.thumbnailUrl}
       placeholderUrl={Placeholder.TEST}
     />
   ));
 
   const liveCards = liveTests.map((liveTest) => (
-    <TeacherProductCard
+    <ExpertResourceCard
       key={`live-${liveTest.id}`}
-      {...teacherCardProps}
-      link={liveTestPath(liveTest.slug)}
-      productTitle={liveTest.title}
+      {...educator}
+      kind="live"
+      to={liveTestPath(liveTest.slug)}
+      title={liveTest.title}
       examName={liveTest.examName}
-      stats={liveTest.status.replace(/_/g, " ")}
-      {...itemPriceProps(liveTest.price, liveTest.discountPrice)}
+      detail={formatLiveStatus(liveTest.status)}
+      price={itemPriceProps(liveTest.price, liveTest.discountPrice)}
       thumbnailUrl={liveTest.thumbnailUrl}
       placeholderUrl={Placeholder.LIVE}
     />
   ));
 
+  // Study notes carry no thumbnail, by product decision.
   const productCards = products.map((product) => (
-    <TeacherProductCard
+    <ExpertResourceCard
       key={`product-${product.id}`}
-      {...teacherCardProps}
-      link={`/study-notes/${product.slug}`}
-      productTitle={product.title}
+      {...educator}
+      kind="notes"
+      to={`/study-notes/${product.slug}`}
+      title={product.title}
       examName={product.examName}
-      stats={[
-        product.pageCount ? `${product.pageCount} pages` : null,
-        product.fileCount > 1 ? `${product.fileCount} files` : null,
-      ]
-        .filter(Boolean)
-        .join(" · ")}
-      priceLabel={formatItemPrice(product.price)}
-      isFree={product.price === 0}
+      rating={product.rating}
+      ratingsCount={product.ratingsCount}
+      price={itemPriceProps(product.price)}
     />
   ));
 
   const bundleCards = bundles.map((bundle) => (
-    <TeacherProductCard
+    <ExpertResourceCard
       key={`bundle-${bundle.id}`}
-      {...teacherCardProps}
-      link={`/bundles/${bundle.slug}`}
-      productTitle={bundle.title}
-      stats={`${bundle.itemCount} ${bundle.itemCount === 1 ? "item" : "items"}`}
-      {...bundlePriceProps(bundle.price, bundle.originalPrice)}
+      {...educator}
+      kind="bundle"
+      to={`/bundles/${bundle.slug}`}
+      title={bundle.title}
+      savePercent={bundleSavePercent(bundle.price, bundle.originalPrice)}
+      price={bundlePriceProps(bundle.price, bundle.originalPrice)}
       thumbnailUrl={bundle.thumbnailUrl}
       placeholderUrl={Placeholder.COURSE}
     />
   ));
 
-  // Every category stacks in this fixed order, each under its own heading; an
-  // empty category is left out rather than shown as an empty block.
+  // Fixed order; an empty category is left out rather than shown empty.
   const groups = (
     [
       { key: "courses", cards: courseCards },
@@ -304,384 +326,509 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
     ] as { key: CatalogueFilter; cards: React.ReactNode[] }[]
   ).filter((group) => group.cards.length > 0);
 
+  const hasResources = groups.length > 0;
+
+  const [activeFilter, setActiveFilter] = useState<ActiveFilter>(() =>
+    initialFilter && groups.some((group) => group.key === initialFilter) ? initialFilter : "all"
+  );
+  const visibleGroups = activeFilter === "all" ? groups : groups.filter((group) => group.key === activeFilter);
+
   useEffect(() => {
-    if (!initialFilter) return;
-    groupRefs.current[initialFilter]?.scrollIntoView({ block: "start" });
-    // Only on first load - a ?tab= link opens on its group once.
+    if (initialFilter) catalogueRef.current?.scrollIntoView({ block: "start" });
+    // Only on first load - a ?tab= link opens on its category once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const socialLinks = [
-    websiteHref && { key: "website", href: websiteHref, label: "Website", Icon: LinkIcon },
-    teacher.socialLinks?.youtube && { key: "youtube", href: teacher.socialLinks.youtube, label: "YouTube", Icon: FaYoutube },
-    teacher.socialLinks?.linkedin && { key: "linkedin", href: teacher.socialLinks.linkedin, label: "LinkedIn", Icon: FaLinkedin },
-    teacher.socialLinks?.twitter && { key: "twitter", href: teacher.socialLinks.twitter, label: "X", Icon: FaXTwitter },
-    teacher.socialLinks?.instagram && { key: "instagram", href: teacher.socialLinks.instagram, label: "Instagram", Icon: FaInstagram },
-    teacher.socialLinks?.facebook && { key: "facebook", href: teacher.socialLinks.facebook, label: "Facebook", Icon: FaFacebook },
-  ].filter(Boolean) as { key: string; href: string; label: string; Icon: React.ComponentType<{ size?: number }> }[];
+  const selectFilter = (filter: ActiveFilter) => {
+    setActiveFilter(filter);
+    smoothScroll(catalogueRef.current);
+  };
 
-  const joinedYear = formatYear(teacher.joinedAt);
+  // Only platforms with a usable link get an icon: placeholders like "no" or
+  // "NA" and plain names are dropped, scheme-less links get https://.
+  const SOCIAL_PLATFORMS: { key: SocialPlatform; label: string; Icon: React.ComponentType<{ size?: number }> }[] = [
+    { key: "youtube", label: "YouTube", Icon: FaYoutube },
+    { key: "instagram", label: "Instagram", Icon: FaInstagram },
+    { key: "linkedin", label: "LinkedIn", Icon: FaLinkedin },
+    { key: "twitter", label: "X", Icon: FaXTwitter },
+    { key: "telegram", label: "Telegram", Icon: FaTelegram },
+    { key: "facebook", label: "Facebook", Icon: FaFacebook },
+  ];
+  const socialLinks = SOCIAL_PLATFORMS.flatMap(({ key, label, Icon }) => {
+    const href = normalizeSocialUrl(key, teacher.socialLinks?.[key]);
+    return href ? [{ key, href, label, Icon }] : [];
+  });
+
+  const joined = formatJoined(teacher.joinedAt);
+  const languages = teacher.languages?.filter(Boolean) ?? [];
+  const orgName = organization?.name ?? teacher.academyName ?? null;
+  const followerCount = data.followerCount ?? 0;
 
   // A one or two word display name is a person, so headings can use the first
-  // name. Anything longer is usually an academy ("Deep's Physics Classes"),
-  // where dropping the rest reads as a typo - those keep the full name.
-  const nameParts = teacher.displayName.trim().split(/\s+/);
+  // name. A titled name keeps the title with the surname ("Dr. Goyal").
+  // Anything longer is usually an academy ("Deep's Physics Classes"), where
+  // dropping the rest reads as a typo - those keep the full name.
+  const nameParts = displayName.split(/\s+/);
+  const hasTitle = /^(dr|prof|mr|mrs|ms|er)\.?$/i.test(nameParts[0] ?? "");
   const shortName =
-    nameParts.length <= 2 && nameParts[0].length >= 3 ? nameParts[0] : teacher.displayName.trim();
+    hasTitle && nameParts.length >= 2 && nameParts.length <= 3
+      ? `${nameParts[0]} ${nameParts[nameParts.length - 1]}`
+      : nameParts.length <= 2 && nameParts[0].length >= 3
+        ? nameParts[0]
+        : displayName;
+
+  const expertise = Array.from(
+    new Set(
+      [
+        ...(teacher.expertiseAreas ?? []).map((area) => (typeof area === "string" ? area : area.examName)),
+        ...stats.exams,
+      ]
+        .filter((name): name is string => typeof name === "string" && name.trim().length > 0 && name !== "Unspecified")
+        .map((name) => name.trim())
+    )
+  ).slice(0, 16);
+
+  // Profile-level figures, each shown only when it has real data behind it: no
+  // zeros, no placeholder rating, no filler metric. The rating needs actual
+  // reviews (stats only averages items that have them).
+  type HeadlineStat = {
+    key: string;
+    Icon: typeof Users;
+    tone: "statLavender" | "statButter" | "statPowder";
+    value: string;
+    label: string;
+    rating?: boolean;
+  };
+  const headlineStats = [
+    variant === "page" &&
+      followerCount > 0 && {
+        key: "followers",
+        Icon: Users,
+        tone: "statLavender",
+        value: formatStatCount(followerCount),
+        label: followerCount === 1 ? "follower" : "followers",
+      },
+    stats.rating !== null &&
+      stats.reviews > 0 && {
+        key: "rating",
+        Icon: MessageSquare,
+        tone: "statButter",
+        value: stats.rating.toFixed(1),
+        label: `${formatStatCount(stats.reviews)} ${stats.reviews === 1 ? "review" : "reviews"}`,
+        rating: true,
+      },
+    stats.yearsTeaching !== null &&
+      stats.yearsTeaching > 0 && {
+        key: "years",
+        Icon: Briefcase,
+        tone: "statPowder",
+        value: `${stats.yearsTeaching}+`,
+        label: stats.yearsTeaching === 1 ? "year teaching" : "years teaching",
+      },
+  ].filter(Boolean) as HeadlineStat[];
+
+  const { intro, approach } = splitBio(teacher.bio);
+  const { education, achievements } = splitAwards(teacher.awardsCertificates ?? []);
+  const workExperiences = teacher.workExperiences ?? [];
+
+  const details = [
+    orgName && {
+      key: "org",
+      Icon: Building2,
+      label: "Organization",
+      value: organization ? (
+        <Link to={getOrganizationProfilePath(organization.orgType, organization.slug)} className={styles.detailLink}>
+          {organization.name}
+        </Link>
+      ) : (
+        orgName
+      ),
+    },
+    teacher.location && { key: "location", Icon: MapPin, label: "Location", value: teacher.location },
+    languages.length > 0 && { key: "languages", Icon: Languages, label: "Languages", value: languages.join(", ") },
+    stats.yearsTeaching !== null &&
+      stats.yearsTeaching > 0 && {
+        key: "experience",
+        Icon: Award,
+        label: "Teaching experience",
+        value: `${stats.yearsTeaching}+ ${stats.yearsTeaching === 1 ? "year" : "years"}`,
+      },
+    joined && { key: "joined", Icon: CalendarDays, label: "Joined Testkart", value: joined },
+    teacher.responseTime && { key: "response", Icon: Clock, label: "Response time", value: teacher.responseTime },
+  ].filter(Boolean) as { key: string; Icon: typeof MapPin; label: string; value: React.ReactNode }[];
+
+  const hasExperience = workExperiences.length > 0 || education.length > 0 || achievements.length > 0;
   const hasAbout =
-    !!teacher.bio ||
-    (teacher.workExperiences?.length ?? 0) > 0 ||
-    (teacher.awardsCertificates?.length ?? 0) > 0;
+    intro.length > 0 || approach.length > 0 || expertise.length > 0 || hasExperience || details.length > 0;
 
   return (
     <div className={`${styles.root} ${variant === "preview" ? styles.preview : ""} ${className || ""}`}>
       <section className={styles.hero}>
-        <span className={styles.heroPattern} aria-hidden="true" />
-        <div className={styles.heroInner}>
+        <div className={styles.profileCard}>
           {teacher.slug && (
             <button
               type="button"
               className={styles.shareButton}
               onClick={() => setShareOpen(true)}
+              aria-label="Share profile"
+              title="Share profile"
             >
               <Share2 size={16} aria-hidden="true" />
-              Share
+              <span className={styles.shareLabel}>Share</span>
             </button>
           )}
 
-          {/* Two badges, one shown at a time by the stylesheet: on a phone the
-              tick rides the avatar's bottom right corner, everywhere else it
-              follows the name. Rendering both beats moving one with JS - there
-              is no width to read at first paint, so a measured swap would flash
-              the wrong one. */}
-          <div className={styles.heroAvatarBlock}>
-            <div className={styles.heroAvatarWrap}>
+          <div className={styles.profileBody}>
+            {/* Decoration only: a few solid pastel shapes in the open right
+                side on wide screens, as on the blog article header. */}
+            <div className={styles.decor} aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </div>
+
+            <div className={styles.avatar}>
               {teacher.avatarUrl ? (
-                <img src={teacher.avatarUrl} alt={teacher.displayName} className={styles.heroAvatar} />
+                <img src={teacher.avatarUrl} alt={displayName} className={styles.avatarImage} />
               ) : (
-                <span className={styles.heroAvatarFallback} aria-hidden="true">
-                  <User size={56} />
+                <span className={styles.avatarFallback} aria-hidden="true">
+                  {initialsOf(displayName)}
                 </span>
               )}
             </div>
-            <VerifiedBadge
-              isVerified={!!teacher.isVerified}
-              size="lg"
-              className={styles.avatarBadge}
-            />
-          </div>
 
-          <div className={styles.heroText}>
-            {organization ? (
-              <Link
-                to={getOrganizationProfilePath(organization.orgType, organization.slug)}
-                className={`${styles.orgLabel} ${styles.orgLabelLink}`}
-              >
-                <Building2 size={14} aria-hidden="true" />
-                <span className={styles.orgLabelText}>
-                  Educator at <strong>{organization.name}</strong>
-                </span>
-              </Link>
-            ) : (
-              <span className={styles.orgLabel}>
-                <Building2 size={14} aria-hidden="true" />
-                <span className={styles.orgLabelText}>
-                  {teacher.academyName ? (
+            <div className={styles.identity}>
+              <div className={styles.heading}>
+                {/* Inline, not flex: the tick follows the last word wherever it wraps. */}
+                <h1 className={styles.name}>
+                  {displayName}
+                  <VerifiedBadge isVerified={!!teacher.isVerified} size="md" className={styles.nameBadge} />
+                </h1>
+
+                <p className={styles.orgLine}>
+                  {organization ? (
+                    <>
+                      Educator at{" "}
+                      <Link to={getOrganizationProfilePath(organization.orgType, organization.slug)} className={styles.orgLink}>
+                        {organization.name}
+                      </Link>
+                    </>
+                  ) : teacher.academyName ? (
                     <>
                       Educator at <strong>{teacher.academyName}</strong>
                     </>
                   ) : (
                     "Educator on Testkart"
                   )}
-                </span>
-              </span>
-            )}
+                </p>
+              </div>
 
-            <h1 className={styles.name}>
-              {teacher.displayName}
-              <VerifiedBadge isVerified={!!teacher.isVerified} size="lg" className={styles.nameBadge} />
-            </h1>
+              {teacher.tagline && <p className={styles.tagline}>{teacher.tagline}</p>}
 
-            {teacher.tagline && <p className={styles.tagline}>{teacher.tagline}</p>}
+              <ul className={styles.meta}>
+                {teacher.location && (
+                  <li>
+                    <MapPin size={15} aria-hidden="true" />
+                    {teacher.location}
+                  </li>
+                )}
+                {languages.length > 0 && (
+                  <li>
+                    <Languages size={15} aria-hidden="true" />
+                    {languages.join(", ")}
+                  </li>
+                )}
+                {joined && (
+                  <li>
+                    <CalendarDays size={15} aria-hidden="true" />
+                    Joined {joined}
+                  </li>
+                )}
+              </ul>
 
-            <ul className={styles.heroMeta}>
-              {teacher.location && (
-                <li className={styles.heroMetaItem}>
-                  <MapPin size={15} aria-hidden="true" />
-                  {teacher.location}
-                </li>
+              {socialLinks.length > 0 && (
+                <div className={styles.links}>
+                  {socialLinks.map(({ key, href, label, Icon }) => (
+                    <a
+                      key={key}
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`${displayName} on ${label}`}
+                      title={label}
+                      className={styles.socialLink}
+                    >
+                      <Icon size={15} />
+                    </a>
+                  ))}
+                </div>
               )}
-              {teacher.languages && teacher.languages.length > 0 && (
-                <li className={styles.heroMetaItem}>
-                  <Globe size={15} aria-hidden="true" />
-                  Teaches in {teacher.languages.join(", ")}
-                </li>
-              )}
-              {teacher.responseTime && (
-                <li className={styles.heroMetaItem}>
-                  <MessageSquare size={15} aria-hidden="true" />
-                  {/* Stored as a whole phrase ("Usually responds in a few
-                      hours"), so it takes no label of its own. */}
-                  {teacher.responseTime}
-                </li>
-              )}
-              {joinedYear && (
-                <li className={styles.heroMetaItem}>
-                  <GraduationCap size={15} aria-hidden="true" />
-                  On Testkart since {joinedYear}
-                </li>
-              )}
-            </ul>
 
-            <div className={styles.heroActions}>
-              {stats.catalogue > 0 ? (
-                <button type="button" className={styles.heroPrimary} onClick={() => scrollTo(catalogueRef)}>
-                  Explore {formatStatCount(stats.catalogue)} {stats.catalogue === 1 ? "resource" : "resources"}
-                </button>
-              ) : (
-                hasAbout && (
-                  <button type="button" className={styles.heroPrimary} onClick={() => scrollTo(aboutRef)}>
+              <div className={styles.actions}>
+                {hasResources && (
+                  <Button size="md" className={styles.actionPrimary} onClick={() => selectFilter("all")}>
+                    Explore resources
+                  </Button>
+                )}
+                {hasAbout && (
+                  <button type="button" className={styles.actionSecondary} onClick={() => smoothScroll(aboutRef.current)}>
                     About {shortName}
                   </button>
-                )
-              )}
-              {hasAbout && stats.catalogue > 0 && (
-                <button type="button" className={styles.heroSecondary} onClick={() => scrollTo(aboutRef)}>
-                  About {shortName}
-                </button>
-              )}
-              {variant === "page" && teacher.slug && (
-                <FollowTeacherButton
-                  teacherId={teacher.id}
-                  teacherSlug={teacher.slug}
-                  isFollowing={!!data.isFollowing}
-                />
-              )}
-            </div>
-
-            {socialLinks.length > 0 && (
-              <div className={styles.socialRow}>
-                {socialLinks.map(({ key, href, label, Icon }) => (
-                  <a
-                    key={key}
-                    href={href}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label={label}
-                    className={styles.socialLink}
-                  >
-                    <Icon size={17} />
-                  </a>
-                ))}
+                )}
+                {variant === "page" && teacher.slug && (
+                  <FollowTeacherButton
+                    teacherId={teacher.id}
+                    teacherSlug={teacher.slug}
+                    isFollowing={!!data.isFollowing}
+                    className={styles.followButton}
+                  />
+                )}
               </div>
-            )}
+            </div>
           </div>
+
+          {headlineStats.length > 0 && (
+            <div className={styles.statsBar}>
+              <dl className={styles.stats}>
+                {headlineStats.map(({ key, Icon, tone, value, label, rating }) => (
+                  <div key={key} className={styles.stat}>
+                    <span className={`${styles.statIcon} ${styles[tone]}`} aria-hidden="true">
+                      <Icon size={14} />
+                    </span>
+                    <dt className={styles.srOnly}>{rating ? "Average rating" : label}</dt>
+                    <dd className={styles.statBody}>
+                      <span className={styles.statValue}>{value}</span>
+                      {rating ? (
+                        <>
+                          <Star size={13} aria-label="out of 5 stars" className={styles.statStar} />
+                          <span className={styles.statLabel}>· {label}</span>
+                        </>
+                      ) : (
+                        <span className={styles.statLabel}>{label}</span>
+                      )}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )}
         </div>
       </section>
 
-      {visibleStats.length > 0 && (
-        <div className={styles.statsBand}>
-          <dl className={styles.statsCard}>
-            {visibleStats.map(({ key, icon: Icon, value, label }) => (
-              <div key={key} className={styles.stat}>
-                <span className={styles.statIcon} aria-hidden="true">
-                  <Icon size={20} />
-                </span>
-                <div className={styles.statBody}>
-                  <dt className={styles.statValue}>{value}</dt>
-                  <dd className={styles.statLabel}>{label}</dd>
-                </div>
-              </div>
+      <section className={styles.section} ref={catalogueRef} id="resources">
+        <h2 className={styles.sectionTitle}>Learn with {shortName}</h2>
+
+        {groups.length > 1 && (
+          <div className={styles.filters} role="group" aria-label="Resource categories">
+            <button
+              type="button"
+              className={`${styles.filter} ${activeFilter === "all" ? styles.filterActive : ""}`}
+              aria-pressed={activeFilter === "all"}
+              onClick={() => selectFilter("all")}
+            >
+              All
+            </button>
+            {groups.map(({ key }) => (
+              <button
+                key={key}
+                type="button"
+                className={`${styles.filter} ${activeFilter === key ? styles.filterActive : ""}`}
+                aria-pressed={activeFilter === key}
+                onClick={() => selectFilter(key)}
+              >
+                {GROUP_LABELS[key]}
+              </button>
             ))}
-          </dl>
-        </div>
-      )}
+          </div>
+        )}
 
-      <section className={styles.section} ref={catalogueRef}>
-        <div className={styles.sectionHead}>
-          <h2 className={styles.sectionTitle}>Learn with {shortName}</h2>
-          <p className={styles.sectionText}>
-            {stats.catalogue > 0
-              ? `${formatStatCount(stats.catalogue)} published ${
-                  stats.catalogue === 1 ? "resource" : "resources"
-                }${stats.freeItems > 0 ? `, including ${stats.freeItems} free to start` : ""}.`
-              : "Nothing published yet. New material will show up here as soon as it goes live."}
-          </p>
-        </div>
-
-        {groups.length > 0 ? (
-          <div className={styles.groups}>
-            {groups.map(({ key, cards }) => (
+        {hasResources ? (
+          <div className={styles.catalogue}>
+            {visibleGroups.map(({ key, cards }) => (
               <CatalogueGroup
                 key={key}
+                id={key}
                 title={GROUP_LABELS[key]}
                 cards={cards}
-                groupRef={(node) => {
-                  groupRefs.current[key] = node;
-                }}
+                expanded={activeFilter === key || groups.length === 1}
+                onViewAll={() => selectFilter(key)}
               />
             ))}
           </div>
         ) : (
           <div className={styles.emptyPanel}>
-            <span className={styles.emptyIcon} aria-hidden="true">
-              <ShoppingBag size={24} />
-            </span>
+            <ShoppingBag size={22} aria-hidden="true" className={styles.emptyIcon} />
             <h3 className={styles.emptyTitle}>Nothing published here yet</h3>
             <p className={styles.emptyText}>
-              {shortName} is still building this catalogue. Follow the social links above to hear when it
-              lands.
+              {shortName} is still building this catalogue. Follow to hear when new material goes live.
             </p>
           </div>
         )}
       </section>
 
-      {variant === "page" && teacher.slug && (
-        <TeacherPostsSection teacherSlug={teacher.slug} shortName={shortName} />
-      )}
-
-      <section className={styles.section} ref={aboutRef}>
-        <div className={styles.sectionHead}>
-          <h2 className={styles.sectionTitle}>About {shortName}</h2>
-        </div>
+      {hasAbout && (
+      <section className={styles.section} ref={aboutRef} id="about">
+        <h2 className={`${styles.sectionTitle} ${styles.aboutTitle}`}>About {shortName}</h2>
 
         <div className={styles.aboutGrid}>
           <div className={styles.aboutMain}>
-            {teacher.bio ? (
-              <article className={styles.card}>
-                <p className={styles.bio}>{teacher.bio}</p>
-              </article>
-            ) : (
-              <article className={styles.card}>
-                <p className={styles.mutedText}>
-                  {shortName} has not written an introduction yet.
-                </p>
-              </article>
+            {intro.length > 0 && (
+              <div className={styles.aboutBlock}>
+                <h3 className={styles.blockTitle}>
+                  <span className={`${styles.blockIcon} ${styles.toneMint}`} aria-hidden="true">
+                    <UserRound size={15} />
+                  </span>
+                  Professional introduction
+                </h3>
+                <div className={`${styles.prose} ${styles.introProse}`}>
+                  {intro.map((paragraph, i) => (
+                    <BioParagraph key={i} text={paragraph} />
+                  ))}
+                </div>
+              </div>
             )}
 
-            {teacher.workExperiences && teacher.workExperiences.length > 0 && (
-              <article className={styles.card}>
-                <h3 className={styles.cardTitle}>
-                  <Briefcase size={17} aria-hidden="true" />
-                  Experience
+            {approach.length > 0 && (
+              <div className={styles.aboutBlock}>
+                <h3 className={styles.blockTitle}>
+                  <span className={`${styles.blockIcon} ${styles.toneButter}`} aria-hidden="true">
+                    <Lightbulb size={15} />
+                  </span>
+                  Teaching approach
                 </h3>
-                <ul className={styles.timeline}>
-                  {teacher.workExperiences.map((entry) => (
-                    <li key={entry.id} className={styles.timelineItem}>
-                      <span className={styles.timelineDot} aria-hidden="true" />
-                      <h4 className={styles.timelineRole}>{entry.position}</h4>
-                      <p className={styles.timelineMeta}>
-                        {entry.companyName}
-                        {entry.location ? ` · ${entry.location}` : ""}
-                      </p>
-                      <p className={styles.timelineDate}>
-                        {formatCalendarMonthYear(entry.startDate)} -{" "}
-                        {entry.isCurrent ? "Present" : formatCalendarMonthYear(entry.endDate)}
-                      </p>
-                      {entry.description && <p className={styles.timelineDesc}>{entry.description}</p>}
+                <div className={`${styles.prose} ${styles.approachPanel}`}>
+                  {approach.map((paragraph, i) => (
+                    <BioParagraph key={i} text={paragraph} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {expertise.length > 0 && (
+              <div className={styles.aboutBlock}>
+                <h3 className={styles.blockTitle}>
+                  <span className={`${styles.blockIcon} ${styles.toneLavender}`} aria-hidden="true">
+                    <BookOpen size={15} />
+                  </span>
+                  Subjects & exams
+                </h3>
+                <ul className={styles.tags}>
+                  {expertise.map((name, i) => (
+                    <li key={name} className={`${styles.tag} ${styles[TAG_TONES[i % TAG_TONES.length]]}`}>
+                      {name}
                     </li>
                   ))}
                 </ul>
-              </article>
+              </div>
             )}
 
-            {teacher.awardsCertificates && teacher.awardsCertificates.length > 0 && (
-              <article className={styles.card}>
-                <h3 className={styles.cardTitle}>
-                  <Award size={17} aria-hidden="true" />
-                  Awards & certificates
+            {hasExperience && (
+              <div className={styles.aboutBlock}>
+                <h3 className={styles.blockTitle}>
+                  <span className={`${styles.blockIcon} ${styles.tonePowder}`} aria-hidden="true">
+                    <Award size={15} />
+                  </span>
+                  Experience & achievements
                 </h3>
-                <ul className={styles.awards}>
-                  {teacher.awardsCertificates.map((award, index) => (
-                    <li key={`${award.title}-${index}`} className={styles.award}>
-                      <span className={styles.awardIcon} aria-hidden="true">
-                        <Award size={18} />
-                      </span>
-                      <div>
-                        <p className={styles.awardTitle}>{award.title}</p>
-                        {award.description && <p className={styles.awardDesc}>{award.description}</p>}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </article>
+
+                {workExperiences.length > 0 && (
+                  <div className={styles.subBlock}>
+                    <h4 className={styles.subTitle}>Work</h4>
+                    <ol className={styles.timeline}>
+                      {workExperiences.map((entry) => (
+                        <li
+                          key={entry.id}
+                          className={`${styles.timelineItem} ${entry.isCurrent ? styles.timelineCurrent : ""}`}
+                        >
+                          <span className={styles.timelineDot} aria-hidden="true" />
+                          <p className={styles.timelineDate}>
+                            {formatCalendarMonthYear(entry.startDate)} -{" "}
+                            {entry.isCurrent ? "Present" : formatCalendarMonthYear(entry.endDate)}
+                          </p>
+                          <p className={styles.timelineRole}>{entry.position}</p>
+                          <p className={styles.timelineOrg}>
+                            {entry.companyName}
+                            {entry.location ? <span className={styles.timelineLocation}> · {entry.location}</span> : null}
+                          </p>
+                          {entry.description && <p className={styles.timelineDesc}>{entry.description}</p>}
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
+
+                {education.length > 0 && (
+                  <div className={styles.subBlock}>
+                    <h4 className={styles.subTitle}>Education & qualifications</h4>
+                    <ul className={styles.rowList}>
+                      {education.map((item, index) => (
+                        <li key={`${item.title}-${index}`} className={styles.row}>
+                          <span className={`${styles.rowIcon} ${styles.toneMint}`} aria-hidden="true">
+                            <GraduationCap size={15} />
+                          </span>
+                          <div>
+                            <p className={styles.rowTitle}>{item.title}</p>
+                            {item.description && <p className={styles.rowDesc}>{item.description}</p>}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {achievements.length > 0 && (
+                  <div className={styles.subBlock}>
+                    <h4 className={styles.subTitle}>Achievements</h4>
+                    <ul className={`${styles.rowList} ${styles.rowListColumns}`}>
+                      {achievements.map((award, index) => (
+                        <li key={`${award.title}-${index}`} className={styles.row}>
+                          <span className={`${styles.rowIcon} ${styles.toneButter}`} aria-hidden="true">
+                            <Trophy size={15} />
+                          </span>
+                          <div>
+                            <p className={styles.rowTitle}>{award.title}</p>
+                            {award.description && <p className={styles.rowDesc}>{award.description}</p>}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
-          <aside className={styles.aboutSide}>
-            <article className={styles.card}>
-              <h3 className={styles.cardTitle}>
-                <User size={17} aria-hidden="true" />
-                Details
-              </h3>
-              <ul className={styles.details}>
-                {teacher.location && (
-                  <li className={styles.detail}>
-                    <MapPin size={16} aria-hidden="true" />
-                    <span>{teacher.location}</span>
-                  </li>
-                )}
-                {teacher.languages && teacher.languages.length > 0 && (
-                  <li className={styles.detail}>
-                    <Globe size={16} aria-hidden="true" />
-                    <span>{teacher.languages.join(", ")}</span>
-                  </li>
-                )}
-                {stats.yearsTeaching !== null && (
-                  <li className={styles.detail}>
-                    <Briefcase size={16} aria-hidden="true" />
-                    <span>{stats.yearsTeaching}+ years teaching</span>
-                  </li>
-                )}
-                {teacher.websiteUrl && (
-                  <li className={styles.detail}>
-                    <LinkIcon size={16} aria-hidden="true" />
-                    <a
-                      href={teacher.websiteUrl.match(/^https?:\/\//) ? teacher.websiteUrl : `https://${teacher.websiteUrl}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={styles.detailLink}
+          {details.length > 0 && (
+            <aside className={styles.detailsPanel} aria-label="Expert details">
+              <h3 className={styles.panelTitle}>Expert details</h3>
+              <dl className={styles.detailList}>
+                {details.map(({ key, Icon, label, value }, i) => (
+                  <div key={key} className={styles.detailRow}>
+                    <span
+                      className={`${styles.detailIcon} ${styles[DETAIL_TONES[i % DETAIL_TONES.length]]}`}
+                      aria-hidden="true"
                     >
-                      {teacher.websiteUrl.replace(/^https?:\/\//, "")}
-                    </a>
-                  </li>
-                )}
-                {/* Views live in the headline stats band now, so this list
-                    stays profile facts only - no figure repeated twice. */}
-              </ul>
-            </article>
-
-          </aside>
+                      <Icon size={15} />
+                    </span>
+                    <div className={styles.detailBody}>
+                      <dt className={styles.detailLabel}>{label}</dt>
+                      <dd className={styles.detailValue}>{value}</dd>
+                    </div>
+                  </div>
+                ))}
+              </dl>
+            </aside>
+          )}
         </div>
       </section>
-
-      {stats.catalogue > 0 && (
-        <section className={styles.closing}>
-          <span className={styles.heroPattern} aria-hidden="true" />
-          <div className={styles.closingInner}>
-            <h2 className={styles.closingTitle}>Start preparing with {shortName}</h2>
-            <p className={styles.closingText}>
-              {stats.students > 0
-                ? `${formatStatCount(stats.students)} students are already learning from this teacher.`
-                : "Every paper, course and note on this page is built for one thing - your next exam."}
-            </p>
-            <button type="button" className={styles.heroPrimary} onClick={() => scrollTo(catalogueRef)}>
-              Browse the catalogue
-            </button>
-          </div>
-        </section>
       )}
 
-      {/* The standard teacher CTA, the same component that closes the asset
-          detail pages. It sits below the closing band so the student ask -
-          "Start preparing with X" - is the last word on a student-facing page,
-          and the "become a teacher" pitch reads as the footnote it is. It runs
-          at page width so it gets the same two-column card as the bundles and
-          study-notes pages - in a 376px sidebar it would have dropped to the
-          phone layout and towered over a sparse profile. Signed-out only: a
-          visitor who already has an account is not the audience for this ask on
-          someone else's profile, and that also keeps it out of the dashboard
-          preview. */}
+      {variant === "page" && teacher.slug && <TeacherPostsSection teacherSlug={teacher.slug} shortName={shortName} />}
+
+      {/* The standard teacher CTA that closes the asset detail pages, at page
+          width. Signed-out only: a visitor with an account is not the audience
+          for this ask on someone else's profile, which also keeps it out of the
+          dashboard preview. */}
       <TeacherCtaBanner guestsOnly className={styles.teacherCta} />
 
       {teacher.slug && (
@@ -690,10 +837,10 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
           onOpenChange={setShareOpen}
           kind="expert"
           handle={teacher.slug}
-          title={teacher.displayName}
+          title={displayName}
           campaign={EXPERT_PROFILE_SHARE_CAMPAIGN}
           heading="Share this profile"
-          message={`Check out ${teacher.displayName} on Testkart`}
+          message={`Check out ${displayName} on Testkart`}
         />
       )}
     </div>

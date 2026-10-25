@@ -1,41 +1,49 @@
-/* Spotlight/showcase language (base.css --sp-*): the peach 3D pill CTA,
-   same treatment as .subscribeButton in TeacherSubscriptionAvailablePlans -
-   one shared "forward action" button across the app. */
+/* A quiet secondary action, sized like Button md so it sits level with the
+   other hero actions. Neutral outline at rest; once following it settles into a
+   soft sage fill, and hover hints that a click unfollows. Colours ease between
+   states so the switch reads as a change, not a jump. */
 .button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--spacing-2);
-  height: 2.75rem;
-  padding: 0 1.25rem;
-  border-radius: 1.375rem 1.375rem 1.375rem 0.5rem;
-  border: 1px solid var(--sp-peach-edge);
-  background-color: var(--sp-cta);
-  box-shadow: 0 3px 0 var(--sp-peach-edge);
-  color: var(--sp-cta-ink);
+  height: 2.5rem;
+  padding: 0 var(--spacing-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: transparent;
+  color: var(--foreground);
   font-family: var(--font-family-base);
   font-size: 0.9375rem;
-  font-weight: 700;
+  font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
-  transition: background-color var(--animation-duration-fast) ease,
-    box-shadow var(--animation-duration-fast) ease,
-    transform var(--animation-duration-fast) ease;
+  transition:
+    background-color var(--animation-duration-normal) ease,
+    border-color var(--animation-duration-normal) ease,
+    color var(--animation-duration-normal) ease;
+}
+
+.button svg {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+  transition: color var(--animation-duration-normal) ease;
 }
 
 .button:hover:not(:disabled) {
-  background-color: var(--sp-cta-hover);
-  box-shadow: 0 5px 0 var(--sp-peach-edge);
-  transform: translateY(-2px);
+  border-color: var(--tk-table-line);
+  background-color: var(--muted);
 }
 
 .button:active:not(:disabled) {
-  box-shadow: 0 1px 0 var(--sp-peach-edge);
-  transform: translateY(2px);
+  background-color: color-mix(in srgb, var(--muted), var(--foreground) 6%);
 }
 
 .button:focus-visible {
   outline: none;
-  box-shadow: var(--shadow-focus);
+  box-shadow:
+    0 0 0 2px var(--background),
+    0 0 0 4px var(--tk-brand-text);
 }
 
 .button:disabled {
@@ -43,30 +51,52 @@
   cursor: wait;
 }
 
-/* Already following: the lavender "active" pill (same family as the plan
-   toolbar's active toggle), not the peach forward-action treatment. */
 .following {
-  border-radius: var(--radius-full);
-  border: 1px solid var(--sp-lavender-edge);
-  background-color: var(--sp-lavender-tint);
-  box-shadow: none;
-  color: var(--sp-lavender-ink);
+  border-color: var(--pastel-sage);
+  background-color: var(--pastel-sage);
+  color: var(--pastel-sage-ink);
+}
+
+.following svg {
+  color: var(--pastel-sage-ink);
 }
 
 .following:hover:not(:disabled) {
-  background-color: var(--sp-lavender-tint);
-  box-shadow: none;
-  transform: none;
-  border-color: var(--sp-lavender-edge);
+  border-color: var(--border);
+  background-color: var(--surface);
+  color: var(--error-text);
+}
+
+.following:hover:not(:disabled) svg {
+  color: var(--error-text);
+}
+
+/* Both labels share one grid cell, so the button keeps the wider one's width
+   and does not jump when the text swaps on hover. */
+.label {
+  display: inline-grid;
+}
+
+.restLabel,
+.hoverLabel {
+  grid-area: 1 / 1;
+}
+
+.hoverLabel {
+  visibility: hidden;
+}
+
+.following:hover:not(:disabled) .restLabel {
+  visibility: hidden;
+}
+
+.following:hover:not(:disabled) .hoverLabel {
+  visibility: visible;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .button {
+  .button,
+  .button svg {
     transition: none;
-  }
-
-  .button:hover,
-  .button:active {
-    transform: none;
   }
 }

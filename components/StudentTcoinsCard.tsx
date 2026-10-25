@@ -43,7 +43,7 @@ export const StudentTcoinsCard: React.FC = () => {
           )}
         </div>
         <ul className={styles.rules}>
-          <li>1 Tcoin = ₹1. Use them to pay up to {data.redeemPercent}% of any order.</li>
+          <li>1 Tcoin = ₹1. Use them to pay up to {data.redeemPercent}% of any order, up to {data.maxRedeem} coins per order.</li>
           <li>Earn {data.cashbackPercent}% back in Tcoins on what you pay, up to {data.maxCashback} coins per order.</li>
           <li>Tcoins can't be withdrawn or combined with a coupon.</li>
         </ul>

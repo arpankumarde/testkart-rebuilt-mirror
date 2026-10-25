@@ -26,8 +26,9 @@ interface ExamNewsSidebarProps {
 }
 
 export const ExamNewsSidebar: React.FC<ExamNewsSidebarProps> = ({ data, isLoading, activeExam, showRecent = true, showBrowse = true, children }) => {
+  // Exams with news come first; pinned popular exams only fill the chips that are left.
   const exams = data
-    ? [...data.popularExams, ...data.examsWithNews.filter((e) => !data.popularExams.some((p) => p.slug === e.slug))].slice(0, 10)
+    ? [...data.examsWithNews, ...data.popularExams.filter((p) => !data.examsWithNews.some((e) => e.slug === p.slug))].slice(0, 10)
     : [];
   const recent = data?.recentlyUpdated ?? [];
   const recentLoading = isLoading && !data;

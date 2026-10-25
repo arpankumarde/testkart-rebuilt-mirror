@@ -1,68 +1,354 @@
-.heroSection {
-  padding: var(--spacing-16) var(--spacing-4) 2.5rem;
-  background: linear-gradient(180deg, var(--tk-brand-tint) 0%, var(--background) 100%);
+/*
+ * Masterclass listing, in the same pastel language as the detail page, Blog
+ * and Exam Details: a warm ivory page, white rounded cards and solid pastels,
+ * each with one job:
+ *   lavender  the eyebrow, Upcoming heading, time, host avatars, hover edges
+ *   sage      the featured cover's offset block, the CTA
+ *   powder    dates and the empty state
+ *   mint      "free to attend", the platform, the upcoming badge dot
+ *   butter    reminders, the Past heading, small shapes
+ *   coral     only one small shape in the hero - never a fill
+ * Each pastel has -tint (fill), -line (large outline), -edge (icons, 3:1+) and
+ * -ink (text on the tint, 7:1+). The dark block re-maps the same names.
+ */
+.pageWrapper {
+  --mc-page: hsl(42 45% 98%);
+  --mc-hero: hsl(40 50% 96%);
+  --mc-card: hsl(0 0% 100%);
+  --mc-ink: hsl(224 28% 18%);
+  --mc-text: hsl(222 14% 26%);
+  --mc-muted: hsl(220 12% 36%);
+  --mc-line: hsl(36 15% 82%);
+  --mc-line-strong: hsl(36 14% 70%);
+  --mc-shadow:
+    0 1px 2px hsl(30 20% 20% / 0.06),
+    0 18px 40px -30px hsl(30 25% 20% / 0.4);
+  --mc-shadow-hover:
+    0 2px 4px hsl(30 20% 20% / 0.08),
+    0 22px 40px -24px hsl(30 25% 20% / 0.45);
+
+  --mc-cta: hsl(150 28% 28%);
+  --mc-cta-hover: hsl(150 32% 21%);
+  --mc-cta-ink: hsl(0 0% 100%);
+
+  --mc-lavender-tint: hsl(258 55% 94%);
+  --mc-lavender-line: hsl(258 30% 80%);
+  --mc-lavender-edge: hsl(258 35% 58%);
+  --mc-lavender-ink: hsl(258 32% 30%);
+
+  --mc-sage-tint: hsl(95 28% 91%);
+  --mc-sage-line: hsl(95 18% 72%);
+  --mc-sage-edge: hsl(95 22% 42%);
+  --mc-sage-ink: hsl(100 28% 22%);
+
+  --mc-powder-tint: hsl(210 60% 93%);
+  --mc-powder-line: hsl(210 35% 76%);
+  --mc-powder-edge: hsl(210 40% 52%);
+  --mc-powder-ink: hsl(212 50% 28%);
+
+  --mc-mint-tint: hsl(155 45% 90%);
+  --mc-mint-line: hsl(157 28% 70%);
+  --mc-mint-edge: hsl(158 38% 40%);
+  --mc-mint-ink: hsl(162 45% 20%);
+
+  --mc-butter-tint: hsl(46 92% 89%);
+  --mc-butter-line: hsl(44 55% 66%);
+  --mc-butter-edge: hsl(42 60% 42%);
+  --mc-butter-ink: hsl(36 70% 22%);
+
+  --mc-brand-dot: hsl(20 90% 72%);
+
+  /* The shared muted grey and hairline wash out on ivory; these also reach
+     the Skeleton and Button pieces inside the page. */
+  --muted-foreground: var(--mc-muted);
+  --border: var(--mc-line);
+
+  min-height: 100vh;
+  background-color: var(--mc-page);
+  color: var(--mc-text);
+}
+
+:global(.dark) .pageWrapper {
+  --mc-page: hsl(222 20% 12%);
+  --mc-hero: hsl(222 20% 14%);
+  --mc-card: hsl(222 18% 16%);
+  --mc-ink: hsl(220 20% 93%);
+  --mc-text: hsl(220 14% 82%);
+  --mc-muted: hsl(220 12% 68%);
+  --mc-line: hsl(222 14% 26%);
+  --mc-line-strong: hsl(222 14% 36%);
+  --mc-shadow: 0 1px 2px hsl(0 0% 0% / 0.25);
+  --mc-shadow-hover: 0 14px 30px -14px hsl(0 0% 0% / 0.6);
+
+  --mc-cta: hsl(145 32% 68%);
+  --mc-cta-hover: hsl(145 38% 76%);
+  --mc-cta-ink: hsl(150 40% 11%);
+
+  --mc-lavender-tint: hsl(258 20% 23%);
+  --mc-lavender-line: hsl(258 16% 35%);
+  --mc-lavender-edge: hsl(258 35% 66%);
+  --mc-lavender-ink: hsl(258 60% 87%);
+
+  --mc-sage-tint: hsl(95 14% 19%);
+  --mc-sage-line: hsl(95 10% 32%);
+  --mc-sage-edge: hsl(95 20% 52%);
+  --mc-sage-ink: hsl(95 30% 82%);
+
+  --mc-powder-tint: hsl(212 24% 21%);
+  --mc-powder-line: hsl(212 20% 34%);
+  --mc-powder-edge: hsl(210 35% 58%);
+  --mc-powder-ink: hsl(210 60% 85%);
+
+  --mc-mint-tint: hsl(160 20% 18%);
+  --mc-mint-line: hsl(160 15% 31%);
+  --mc-mint-edge: hsl(158 32% 50%);
+  --mc-mint-ink: hsl(158 45% 80%);
+
+  --mc-butter-tint: hsl(42 28% 19%);
+  --mc-butter-line: hsl(42 22% 33%);
+  --mc-butter-edge: hsl(44 55% 55%);
+  --mc-butter-ink: hsl(45 80% 82%);
+
+  --mc-brand-dot: hsl(20 70% 62%);
+}
+
+/* Solid pastel tiles shared by icons across the page. */
+.tile_lavender {
+  border: 1px solid var(--mc-lavender-line);
+  background-color: var(--mc-lavender-tint);
+  color: var(--mc-lavender-ink);
+}
+
+.tile_sage {
+  border: 1px solid var(--mc-sage-line);
+  background-color: var(--mc-sage-tint);
+  color: var(--mc-sage-ink);
+}
+
+.tile_powder {
+  border: 1px solid var(--mc-powder-line);
+  background-color: var(--mc-powder-tint);
+  color: var(--mc-powder-ink);
+}
+
+.tile_mint {
+  border: 1px solid var(--mc-mint-line);
+  background-color: var(--mc-mint-tint);
+  color: var(--mc-mint-ink);
+}
+
+.tile_butter {
+  border: 1px solid var(--mc-butter-line);
+  background-color: var(--mc-butter-tint);
+  color: var(--mc-butter-ink);
+}
+
+/* ----------------------------------------------------------------- hero --- */
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--mc-hero);
+  border-bottom: 1.5px dashed var(--mc-line-strong);
+}
+
+.heroInner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 3.5rem var(--spacing-4) 3rem;
   text-align: center;
 }
 
-.heroContent {
-  max-width: 44rem;
-  margin: 0 auto;
+/* Four small solid shapes in the empty side margins, wide screens only. */
+.decor {
+  display: none;
 }
 
-.heroEyebrow {
+@media (min-width: 1100px) {
+  .decor {
+    position: absolute;
+    inset: 0;
+    display: block;
+    max-width: 80rem;
+    margin: 0 auto;
+    pointer-events: none;
+  }
+
+  .decor span {
+    position: absolute;
+    display: block;
+    box-sizing: border-box;
+  }
+
+  .decor span:nth-child(1) {
+    top: 2.75rem;
+    left: 6%;
+    width: 3.5rem;
+    height: 3.5rem;
+    border: 1.5px solid var(--mc-lavender-line);
+    border-radius: 50%;
+    background-color: var(--mc-lavender-tint);
+  }
+
+  .decor span:nth-child(2) {
+    bottom: 3rem;
+    left: 11%;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: 1.5px solid var(--mc-butter-line);
+    border-radius: 0.5rem;
+    background-color: var(--mc-butter-tint);
+    transform: rotate(14deg);
+  }
+
+  .decor span:nth-child(3) {
+    top: 3.5rem;
+    right: 8%;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1.5px dashed var(--mc-mint-edge);
+    border-radius: 50%;
+  }
+
+  .decor span:nth-child(4) {
+    right: 12%;
+    bottom: 3.75rem;
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+    background-color: var(--mc-brand-dot);
+  }
+}
+
+.eyebrow {
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-2);
-  padding: var(--spacing-1) var(--spacing-3);
-  margin-bottom: var(--spacing-4);
+  margin-bottom: 1.25rem;
+  padding: 0.3125rem 0.875rem;
+  border: 1px solid var(--mc-lavender-line);
+  border-radius: var(--radius-full);
+  background-color: var(--mc-lavender-tint);
+  color: var(--mc-lavender-ink);
   font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--tk-brand-text);
-  background-color: var(--surface);
-  border-radius: var(--radius-full);
-  box-shadow: var(--shadow);
 }
 
 .heroTitle {
-  margin: 0 0 var(--spacing-3);
+  margin: 0 0 1rem;
   font-family: var(--font-family-heading);
-  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  font-size: clamp(2rem, 1.3rem + 3vw, 3rem);
   font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--foreground);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--mc-ink);
+  text-wrap: balance;
 }
 
 .heroSubtitle {
+  max-width: 38rem;
   margin: 0;
   font-size: 1.0625rem;
-  color: var(--muted-foreground);
-  line-height: 1.6;
+  line-height: 1.65;
+  color: var(--mc-muted);
+  text-wrap: balance;
 }
 
-.mainContainer {
-  max-width: 68rem;
+.heroFacts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.625rem;
+  margin: 1.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.heroFacts li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3125rem 0.875rem 0.3125rem 0.3125rem;
+  border: 1px solid var(--mc-line);
+  border-radius: var(--radius-full);
+  background-color: var(--mc-card);
+  color: var(--mc-ink);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.heroFactIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+}
+
+/* ------------------------------------------------------------- sections --- */
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 3.5rem;
+  max-width: 72rem;
   margin: 0 auto;
-  padding: 2.5rem var(--spacing-4) var(--spacing-16);
+  padding: 3rem var(--spacing-4) var(--spacing-16);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  margin-bottom: 1.5rem;
 }
 
 .sectionTitle {
-  margin: 0 0 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
   font-family: var(--font-family-heading);
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--foreground);
+  font-size: 1.375rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--mc-ink);
 }
 
-.sectionTitle:not(:first-child) {
-  margin-top: 2.5rem;
+.sectionIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  border-radius: 0.75rem;
+}
+
+.sectionCount {
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--mc-line-strong);
+  border-radius: var(--radius-full);
+  background-color: var(--mc-card);
+  color: var(--mc-text);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 1.25rem;
+  gap: 1.5rem;
 }
 
 @media (min-width: 640px) {
@@ -75,106 +361,513 @@
   .grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+
+  .gridTwo {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
+/* ---------------------------------------------------------------- cards --- */
+
+.card,
+.featured {
+  min-width: 0;
+  border: 1px solid var(--mc-line);
+  border-radius: 1.25rem;
+  background-color: var(--mc-card);
+  box-shadow: var(--mc-shadow);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
+}
+
+.card:hover,
+.featured:hover {
+  border-color: var(--mc-lavender-line);
+  box-shadow: var(--mc-shadow-hover);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .card:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.card:focus-visible,
+.featured:focus-visible {
+  outline: 2px solid var(--mc-lavender-edge);
+  outline-offset: 3px;
+}
+
+/* The cover sits inset in the card with its own rounded corners. */
 .card {
   display: flex;
   flex-direction: column;
-  min-width: 0;
-  background-color: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  box-shadow: var(--shadow);
-  text-decoration: none;
-  color: inherit;
-  transition: transform var(--animation-duration-fast) ease, box-shadow var(--animation-duration-fast) ease;
+  padding: 0.625rem;
 }
 
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-.cardCover {
-  width: 100%;
+.cardMedia,
+.featuredMedia {
+  position: relative;
   aspect-ratio: 16 / 9;
-  background-color: var(--muted);
+  overflow: hidden;
+  border: 1px solid var(--mc-line);
+  border-radius: 0.875rem;
+  background-color: var(--mc-lavender-tint);
+}
+
+.coverImage {
+  display: block;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
 }
 
-.cardCoverPlaceholder {
+.coverPlaceholder {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  aspect-ratio: 16 / 9;
-  background: linear-gradient(135deg, var(--tk-brand-tint), var(--muted));
-  color: var(--tk-brand-text);
+  height: 100%;
+  background-color: var(--mc-lavender-tint);
+  color: var(--mc-lavender-ink);
+}
+
+.coverBadge {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+}
+
+/* Over artwork the badge stays light in both themes; only the upcoming dot
+   moves from orange to a fixed mint. */
+.coverBadge[data-phase="upcoming"] > span {
+  background-color: hsl(158 45% 34%);
 }
 
 .cardBody {
   display: flex;
-  flex-direction: column;
-  gap: var(--spacing-2);
-  padding: 1.25rem;
   flex: 1;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem 0.625rem 0.75rem;
 }
 
-.cardDateRow {
-  display: flex;
+.cardWhen {
+  display: inline-flex;
   align-items: center;
-  gap: var(--spacing-2);
+  align-self: flex-start;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0.1875rem 0.625rem;
+  border: 1px solid var(--mc-powder-line);
+  border-radius: var(--radius-full);
+  background-color: var(--mc-powder-tint);
+  color: var(--mc-powder-ink);
   font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--tk-brand-text);
+  font-weight: 700;
+}
+
+.cardWhen svg {
+  flex-shrink: 0;
 }
 
 .cardTitle {
-  margin: 0;
+  display: -webkit-box;
+  margin: 0.125rem 0 0;
+  overflow: hidden;
   font-family: var(--font-family-heading);
-  font-size: 1.0625rem;
-  font-weight: 700;
-  color: var(--foreground);
-  line-height: 1.35;
+  font-size: 1.125rem;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--mc-ink);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .cardSubtitle {
+  display: -webkit-box;
   margin: 0;
+  overflow: hidden;
   font-size: 0.875rem;
-  color: var(--muted-foreground);
   line-height: 1.5;
+  color: var(--mc-muted);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.host {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-width: 0;
+}
+
+.cardBody .host {
+  margin-top: auto;
+  padding-top: 0.625rem;
+}
+
+.hostAvatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  background-color: var(--mc-lavender-tint);
+  color: var(--mc-lavender-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+  object-fit: cover;
+  box-shadow:
+    0 0 0 2px var(--mc-card),
+    0 0 0 3.5px var(--mc-lavender-line);
+}
+
+.hostText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.hostName,
+.hostTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hostName {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--mc-ink);
+}
+
+.hostTitle {
+  font-size: 0.8125rem;
+  color: var(--mc-muted);
 }
 
 .cardFooter {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--spacing-2);
-  margin-top: auto;
-  padding-top: var(--spacing-3);
+  gap: var(--spacing-3);
+  margin: 0 0.625rem;
+  padding: 0.875rem 0 0.375rem;
+  border-top: 1.5px dashed var(--mc-line);
+}
+
+.duration {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
   font-size: 0.8125rem;
-  color: var(--muted-foreground);
+  font-weight: 500;
+  color: var(--mc-muted);
 }
 
-.cardPastBadge {
-  opacity: 0.65;
+.duration svg {
+  color: var(--mc-lavender-edge);
 }
 
-.emptyState {
-  padding: 2.5rem var(--spacing-4);
-  text-align: center;
-  color: var(--muted-foreground);
-  border: 1px dashed var(--border);
-  border-radius: var(--radius-lg);
+.cardCta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  color: var(--mc-sage-ink);
+  font-size: 0.875rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.cardPast .cardCta {
+  color: var(--mc-text);
+}
+
+.cardCta svg,
+.featuredCta svg {
+  transition: transform var(--animation-duration-fast) ease;
+}
+
+.card:hover .cardCta svg,
+.featured:hover .featuredCta svg {
+  transform: translateX(2px);
+}
+
+/* ------------------------------------------------------------- featured --- */
+
+/* A single upcoming session spans the row. The cover keeps its 16:9 box so
+   artwork with text on it is never cropped, and a solid sage block sits offset
+   behind it, positioned before it in paint order (no negative z-index). */
+.featured {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  padding: 1rem;
+}
+
+.featuredFrame {
+  position: relative;
+  margin: 0 0.625rem 0.625rem 0;
+}
+
+.featuredFrame::before {
+  content: "";
+  position: absolute;
+  inset: 0.625rem -0.625rem -0.625rem 0.625rem;
+  border: 1.5px solid var(--mc-sage-line);
+  border-radius: 0.875rem;
+  background-color: var(--mc-sage-tint);
+  pointer-events: none;
+}
+
+.featuredMedia {
+  position: relative;
+  background-color: var(--mc-card);
+}
+
+.featuredBody {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0 0.25rem 0.25rem;
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 0.375rem;
+  margin-bottom: 0.875rem;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--mc-lavender-line);
+  border-radius: var(--radius-full);
+  background-color: var(--mc-lavender-tint);
+  color: var(--mc-lavender-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.featuredTitle {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-family-heading);
+  font-size: clamp(1.375rem, 1rem + 1.4vw, 1.875rem);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--mc-ink);
+  text-wrap: balance;
+}
+
+.featuredSubtitle {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--mc-muted);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem var(--spacing-4);
+  margin: 1.25rem 0;
+  padding: 1.125rem 0;
+  border-top: 1.5px dashed var(--mc-line);
+  border-bottom: 1.5px dashed var(--mc-line);
+  list-style: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--mc-text);
+}
+
+.facts li {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-width: 0;
+}
+
+.factIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+}
+
+.factText {
+  min-width: 0;
+}
+
+.featuredFooter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  margin-top: auto;
+}
+
+/* Styled as a button, but the whole card is the link, so it is a span rather
+   than a nested control. */
+.featuredCta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  height: 2.625rem;
+  padding: 0 1.25rem;
+  border-radius: 0.875rem;
+  background-color: var(--mc-cta);
+  color: var(--mc-cta-ink);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.featured:hover .featuredCta {
+  background-color: var(--mc-cta-hover);
+}
+
+@media (min-width: 560px) {
+  .facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 640px) {
+  .featuredFrame {
+    margin: 0 0.875rem 0.875rem 0;
+  }
+
+  .featuredFrame::before {
+    inset: 0.875rem -0.875rem -0.875rem 0.875rem;
+  }
+}
+
+@media (min-width: 900px) {
+  .featured {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 2.5rem;
+    padding: 1.25rem;
+  }
+
+  .featuredBody {
+    padding: 0.5rem 1rem 0.5rem 0;
+  }
+}
+
+/* --------------------------------------------------------------- states --- */
+
+.empty {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: 1.5rem;
+  border: 1.5px dashed var(--mc-line-strong);
+  border-radius: 1.25rem;
+  background-color: var(--mc-card);
+}
+
+.emptyIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
+  border-radius: 0.875rem;
+}
+
+.emptyTitle {
+  margin: 0 0 var(--spacing-1);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--mc-ink);
+}
+
+.emptyText {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--mc-muted);
+}
+
+.errorBox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  padding: 1.5rem;
+  border: 1px solid var(--mc-line);
+  border-radius: 1.25rem;
+  background-color: var(--mc-card);
+}
+
+.retry {
+  margin-top: var(--spacing-2);
+  border-color: var(--mc-line-strong);
+  border-radius: 0.625rem;
+  background-color: var(--mc-card);
+  color: var(--mc-ink);
+}
+
+.retry:hover {
+  border-color: var(--mc-lavender-edge);
+  background-color: var(--mc-lavender-tint);
+  color: var(--mc-lavender-ink);
 }
 
 .skeletonCard {
   display: flex;
   flex-direction: column;
+  padding: 0.625rem;
+  border: 1px solid var(--mc-line);
+  border-radius: 1.25rem;
+  background-color: var(--mc-card);
+}
+
+.skeletonBody {
+  display: flex;
+  flex-direction: column;
   gap: var(--spacing-3);
-  padding: 1.25rem;
-  background-color: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  padding: 1rem 0.625rem 0.625rem;
+}
+
+@media (max-width: 480px) {
+  .heroInner {
+    padding: 2.5rem var(--spacing-4) 2.25rem;
+  }
+
+  .heroFacts {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .main {
+    gap: 2.75rem;
+    padding-top: var(--spacing-8);
+  }
+
+  .sectionTitle {
+    font-size: 1.1875rem;
+  }
+
+  .featuredFooter {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }

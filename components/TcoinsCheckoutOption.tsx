@@ -7,7 +7,7 @@ import styles from "./TcoinsCheckoutOption.module.css";
 
 interface TcoinsCheckoutOptionProps {
   summary: TcoinsSummary;
-  /** The order value before coupons. Coins can cover redeemPercent of it. */
+  /** The order value before coupons. Coins can cover redeemPercent of it, up to maxRedeem coins. */
   orderValue: number;
   /** What the student pays in cash with the current choice. Cashback is earned on this. */
   amountToPay: number;
@@ -48,7 +48,7 @@ export const TcoinsCheckoutOption: React.FC<TcoinsCheckoutOptionProps> = ({
     : summary.balance <= 0
       ? "You have no Tcoins yet. Earn them as cashback on paid orders."
       : canUse
-        ? `Balance ${summary.balance} Tcoins. Pay up to ${summary.redeemPercent}% of an order with Tcoins.`
+        ? `Balance ${summary.balance} Tcoins. Pay up to ${summary.redeemPercent}% of an order (at most ${summary.maxRedeem} Tcoins) with Tcoins.`
         : `Balance ${summary.balance} Tcoins. This order is too small to use them.`;
 
   return (

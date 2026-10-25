@@ -27,14 +27,21 @@ export const useExamNewsSidebar = () =>
     staleTime: 5 * 60 * 1000,
   });
 
+/** The story at /exam-news/{slug}; null when no story has that slug, so the path may be an exam's listing. */
 export const useExamNewsDetails = (slug: string) =>
   useQuery({
     queryKey: examNewsPublicKeys.details(slug),
-    queryFn: () => getExamNewsDetails({ slug }),
+    queryFn: async () => {
+      try {
+        return await getExamNewsDetails({ slug });
+      } catch (error) {
+        if (/not found/i.test(String(error))) return null;
+        throw error;
+      }
+    },
     enabled: !!slug,
     staleTime: 5 * 60 * 1000,
-    // A missing story will not appear on retry; only network or server errors are worth repeating.
-    retry: (count, error) => !/not found/i.test(String(error)) && count < 2,
+    retry: (count) => count < 2,
   });
 
 /** The exam picker's list: the search results, or the whole catalogue, loaded a page at a time. */

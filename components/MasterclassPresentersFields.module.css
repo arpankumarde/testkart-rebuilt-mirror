@@ -1,0 +1,237 @@
+/* Host trigger: sized like Input so it sits level with Host title. */
+.hostTrigger {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  width: 100%;
+  height: 2.5rem;
+  padding: 0 var(--spacing-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  color: var(--foreground);
+  font-family: var(--font-family-base);
+  font-size: 0.9375rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.hostTrigger:hover {
+  border-color: var(--tk-table-line);
+}
+
+.hostTrigger:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-color: var(--tk-brand-text);
+}
+
+.hostTrigger:disabled {
+  cursor: wait;
+}
+
+.hostTriggerName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hostTriggerPlaceholder {
+  flex: 1;
+  color: var(--muted-foreground);
+}
+
+.hostTriggerIcon {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+
+.pickerPopover {
+  width: min(20rem, calc(100vw - 2rem));
+}
+
+.optionName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  background-color: var(--pastel-lavender);
+  color: var(--pastel-lavender-ink);
+  font-weight: 700;
+  object-fit: cover;
+}
+
+.avatar_sm {
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: 0.625rem;
+}
+
+.avatar_md {
+  width: 2.75rem;
+  height: 2.75rem;
+  font-size: 0.8125rem;
+}
+
+/* Co-hosts panel */
+.coHosts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--muted);
+}
+
+.coHostsHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+}
+
+.coHostsTitle {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.coHostsHint {
+  margin: 0.125rem 0 0;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.coHostsActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.actionButton {
+  height: 2rem;
+  padding: 0 var(--spacing-3);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+}
+
+.rowBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.rowIdentity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-height: 1.5rem;
+}
+
+.rowName {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.chipMember {
+  background-color: var(--pastel-sage);
+  color: var(--pastel-sage-ink);
+}
+
+.chipGuest {
+  background-color: var(--pastel-butter);
+  color: var(--pastel-butter-ink);
+}
+
+.guestGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-2);
+}
+
+@media (min-width: 600px) {
+  .guestGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* The shared uploader is built for wide covers; at this size only its icon
+   fits, so its text is hidden. */
+.photo {
+  flex-shrink: 0;
+  width: 4.5rem;
+}
+
+.photo p,
+.photo span {
+  display: none;
+}
+
+.photo svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.remove {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+
+.remove:hover {
+  color: var(--error-text);
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}

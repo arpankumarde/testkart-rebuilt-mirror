@@ -1,5 +1,6 @@
 import { z } from "zod";
 import superjson from "superjson";
+import type { MasterclassCoHost } from "../../../helpers/masterclassCoHosts";
 
 export const schema = z.object({});
 export type InputType = z.infer<typeof schema>;
@@ -15,6 +16,9 @@ export type AdminMasterclassRow = {
   hostName: string | null;
   hostTitle: string | null;
   hostImageUrl: string | null;
+  /** The admin presenting; null only on a record saved before hosts were linked. */
+  hostAdminId: number | null;
+  coHosts: MasterclassCoHost[];
   platformLabel: string | null;
   joinUrl: string | null;
   startTime: Date;

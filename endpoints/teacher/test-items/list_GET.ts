@@ -38,6 +38,7 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
+    // subject_id = ANY(ARRAY(...)) lets the OR use both test_questions indexes; IN (subquery) forced a full table scan per item.
     const testItems = await db
       .selectFrom("mockTestItems")
       .selectAll("mockTestItems")
@@ -46,9 +47,9 @@ export async function handle(request: Request): Promise<Response> {
           SELECT COUNT(*)
           FROM test_questions
           WHERE test_questions.test_id = mock_test_items.id
-             OR test_questions.subject_id IN (
+             OR test_questions.subject_id = ANY(ARRAY(
                SELECT id FROM test_item_subjects WHERE test_item_id = mock_test_items.id
-             )
+             ))
         )`.as("questionsCount"),
         sql<number | null>`(
           SELECT SUM(COALESCE(duration_minutes, 20))
@@ -64,16 +65,16 @@ export async function handle(request: Request): Promise<Response> {
           SELECT SUM(COALESCE(duration_seconds, 60))
           FROM test_questions
           WHERE test_questions.test_id = mock_test_items.id
-             OR test_questions.subject_id IN (
+             OR test_questions.subject_id = ANY(ARRAY(
                SELECT id FROM test_item_subjects WHERE test_item_id = mock_test_items.id
-             )
+             ))
         )`.as("totalQuestionDurationSeconds"),
         sql<number>`(
           SELECT COUNT(*)
           FROM test_questions tq
           WHERE (
             tq.test_id = mock_test_items.id
-            OR tq.subject_id IN (SELECT id FROM test_item_subjects WHERE test_item_id = mock_test_items.id)
+            OR tq.subject_id = ANY(ARRAY(SELECT id FROM test_item_subjects WHERE test_item_id = mock_test_items.id))
           )
           AND (
             (tq.question_type IN ('single_correct_mcq', 'assertion_reason', 'comprehension') AND (tq.correct_option IS NULL OR tq.correct_option = ''))

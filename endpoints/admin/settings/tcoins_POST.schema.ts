@@ -4,6 +4,7 @@ import superjson from "superjson";
 export const schema = z.object({
   enabled: z.boolean(),
   redeemPercent: z.number().min(0).max(100),
+  maxRedeem: z.number().int().min(0).max(100000),
   cashbackPercent: z.number().min(0).max(100),
   maxCashback: z.number().int().min(0).max(100000),
 });

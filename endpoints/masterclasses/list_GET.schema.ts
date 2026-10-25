@@ -12,6 +12,8 @@ export type MasterclassListItem = {
   coverImageUrl: string | null;
   hostName: string | null;
   hostTitle: string | null;
+  hostImageUrl: string | null;
+  platformLabel: string | null;
   startTime: Date;
   durationMinutes: number | null;
   capacity: number | null;

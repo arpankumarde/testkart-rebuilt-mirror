@@ -1,6 +1,7 @@
 import { db } from "../../helpers/db";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { NotAuthenticatedError } from "../../helpers/getSetServerSession";
+import { resolveMasterclassPresenters } from "../../helpers/masterclassPresenters";
 import { schema, OutputType, MasterclassDetail } from "./get_GET.schema";
 import superjson from "superjson";
 
@@ -20,6 +21,8 @@ export async function handle(request: Request): Promise<Response> {
       .select((eb) => eb.fn.countAll<string>().as("count"))
       .executeTakeFirst();
     const registrantCount = registrantCountRow ? Number(registrantCountRow.count) : 0;
+
+    const presenters = await resolveMasterclassPresenters(m);
 
     let isRegistered = false;
     let prefill: MasterclassDetail["prefill"] = null;
@@ -52,9 +55,10 @@ export async function handle(request: Request): Promise<Response> {
       subtitle: m.subtitle,
       description: m.description,
       coverImageUrl: m.coverImageUrl,
-      hostName: m.hostName,
+      hostName: presenters.host?.name ?? null,
       hostTitle: m.hostTitle,
-      hostImageUrl: m.hostImageUrl,
+      hostImageUrl: presenters.host?.profileImage ?? null,
+      coHosts: presenters.coHosts,
       platformLabel: m.platformLabel,
       startTime: m.startTime,
       durationMinutes: m.durationMinutes,

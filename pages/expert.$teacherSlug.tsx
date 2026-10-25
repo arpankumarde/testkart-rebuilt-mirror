@@ -29,19 +29,19 @@ const ExpertProfilePageSkeleton = () => (
     <div className={styles.heroSkeleton}>
       <Skeleton className={styles.avatarSkeleton} />
       <div className={styles.heroTextSkeleton}>
-        <Skeleton style={{ width: "9rem", height: "1.75rem", borderRadius: "var(--radius-full)" }} />
-        <Skeleton style={{ width: "min(22rem, 80%)", height: "3rem" }} />
+        <Skeleton style={{ width: "11rem", height: "1rem" }} />
+        <Skeleton style={{ width: "min(22rem, 80%)", height: "2.25rem" }} />
         <Skeleton style={{ width: "min(30rem, 90%)", height: "1.25rem" }} />
         <div className={styles.heroActionsSkeleton}>
-          <Skeleton style={{ width: "11rem", height: "2.75rem" }} />
-          <Skeleton style={{ width: "9rem", height: "2.75rem" }} />
+          <Skeleton style={{ width: "10rem", height: "2.5rem" }} />
+          <Skeleton style={{ width: "8rem", height: "2.5rem" }} />
         </div>
       </div>
     </div>
 
     <div className={styles.statsSkeleton}>
       {Array.from({ length: 4 }).map((_, index) => (
-        <Skeleton key={index} style={{ height: "3.5rem" }} />
+        <Skeleton key={index} style={{ height: "2.75rem" }} />
       ))}
     </div>
 
