@@ -124,6 +124,7 @@ export const Footer: React.FC = () => {
               <li><Link to="/help" className={styles.footerLink}>Help Doc</Link></li>
               <li><Link to="/contact" className={styles.footerLink}>Contact Us</Link></li>
               <li><Link to="/careers" className={styles.footerLink}>Careers</Link></li>
+              <li><Link to="/masterclass" className={styles.footerLink}>Masterclass</Link></li>
               <li><Link to="/exams" className={styles.footerLink}>Exams</Link></li>
               <li><Link to="/glossary" className={styles.footerLink}>Glossary</Link></li>
             </ul>

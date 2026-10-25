@@ -32,7 +32,7 @@ export async function handle(request: Request) {
     // 1. Check if a user exists with this email (optional - not required for signup)
     const user = await db
       .selectFrom("users")
-      .select("id")
+      .select(["id", "role"])
       .where("email", "=", email)
       .where("emailVerified", "=", true)
       .executeTakeFirst();
@@ -80,6 +80,7 @@ export async function handle(request: Request) {
       subheading: "Use this code to log in to Testkart.",
       bodyHtml: `<p style="margin:0;">Your verification code for Testkart is below. This code will expire in ${OTP_EXPIRATION_MINUTES} minutes. If you didn't request this code, you can safely ignore this email.</p>`,
       codeBlock: otpCode,
+      studentAppPromo: user?.role === "student",
     });
 
     const emailSent = await sendEmail({

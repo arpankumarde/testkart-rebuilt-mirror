@@ -17,7 +17,8 @@ export const emailTemplatesExtra = {
   paymentFailed: (
     studentName: string,
     orderId: number | string,
-    amount: number
+    amount: number,
+    forStudent = true
   ): EmailTemplateResult => {
     const subject = `Payment Failed: Order #${orderId}`;
     const html = getBrandedEmailHtml({
@@ -29,6 +30,7 @@ export const emailTemplatesExtra = {
       bodyHtml: `<p style="margin:0;">We're writing to let you know that your payment for Order #${orderId} of <strong>₹${amount.toFixed(2)}</strong> failed. Please try your payment again to complete your order.</p>`,
       ctaLabel: "Go to Cart",
       ctaUrl: "https://testkart.in/cart",
+      studentAppPromo: forStudent,
     });
 
     return {
@@ -61,6 +63,7 @@ export const emailTemplatesExtra = {
       ],
       ctaLabel: "View Detailed Results",
       ctaUrl: "https://testkart.in/student/tests",
+      studentAppPromo: true,
     });
 
     return {
@@ -84,6 +87,7 @@ export const emailTemplatesExtra = {
       bodyHtml: `<p style="margin:0;">You've enrolled in the free test <strong>"${testName}"</strong> by ${teacherName}. You can start practicing right away!</p>`,
       ctaLabel: "Go to My Tests",
       ctaUrl: "https://testkart.in/student/tests",
+      studentAppPromo: true,
     });
 
     return {
@@ -107,6 +111,7 @@ export const emailTemplatesExtra = {
       bodyHtml: `<p style="margin:0;">You've enrolled in the free course <strong>"${courseName}"</strong> by ${teacherName}. Start your learning journey today!</p>`,
       ctaLabel: "Go to My Courses",
       ctaUrl: "https://testkart.in/student/courses",
+      studentAppPromo: true,
     });
 
     return {
@@ -131,6 +136,7 @@ export const emailTemplatesExtra = {
       bodyHtml: `<p style="margin:0;">You're registered for the live test <strong>"${testName}"</strong> on <strong>${formattedDate}</strong>. Please log in 10 minutes early to ensure you're ready when the test starts.</p>`,
       ctaLabel: "View Live Tests",
       ctaUrl: "https://testkart.in/live-test",
+      studentAppPromo: true,
     });
 
     return {
@@ -156,6 +162,7 @@ export const emailTemplatesExtra = {
       table: [{ label: "Certificate Number", value: certificateNumber, emphasize: true }],
       ctaLabel: "View My Certificates",
       ctaUrl: "https://testkart.in/student/certificates",
+      studentAppPromo: true,
     });
 
     return {
@@ -248,6 +255,7 @@ export const emailTemplatesExtra = {
       `,
       ctaLabel: "Go to Dashboard",
       ctaUrl: "https://testkart.in/student/dashboard",
+      studentAppPromo: true,
     });
 
     return {
@@ -272,6 +280,7 @@ export const emailTemplatesExtra = {
       bodyHtml: `<p style="margin:0;">You've purchased the digital product <strong>"${productName}"</strong> by ${teacherName}. You can start reading it immediately from your shop purchases.</p>`,
       ctaLabel: "Go to My Purchases",
       ctaUrl: "https://testkart.in/student/shop",
+      studentAppPromo: true,
     });
 
     return {

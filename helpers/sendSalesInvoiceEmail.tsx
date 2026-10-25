@@ -83,6 +83,7 @@ export async function sendSalesInvoiceEmail(orderId: number): Promise<void> {
       subheading: `Invoice ${invoiceNumber}`,
       bodyHtml: `<p style="margin:0;">Hi ${studentName}, thank you for your purchase! Your tax invoice is attached to this email as a PDF for your records.</p>`,
       footerNote: "This is an automated invoice email sent from Testkart.",
+      studentAppPromo: true,
     });
 
     const result = await sendEmail({

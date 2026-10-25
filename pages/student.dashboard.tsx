@@ -530,6 +530,7 @@ const StudentDashboardPage: React.FC = () => {
               />
             </span>
           </a>
+          {/* Indus Appstore badge hidden for now.
           <a
             href="https://indusapp.store/pbmrru87"
             target="_blank"
@@ -547,6 +548,7 @@ const StudentDashboardPage: React.FC = () => {
               className={`${styles.playBadgeImg} ${styles.indusBadgeImgDark}`}
             />
           </a>
+          */}
           <button
             type="button"
             className={styles.appBannerClose}

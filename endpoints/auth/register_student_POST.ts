@@ -10,6 +10,7 @@ import superjson from "superjson";
 import { UserRole } from "../../helpers/schema";
 import { sendEmail } from "../../helpers/sendEmail";
 import { welcomeStudent } from "../../helpers/emailTemplates";
+import { withStudentAppPromo } from "../../helpers/emailBaseTemplate";
 import { addContactToAudience } from "../../helpers/resendContacts";
 
 export async function handle(request: Request) {
@@ -149,7 +150,7 @@ export async function handle(request: Request) {
           };
 
           subject = replacePlaceholders(template.subject, placeholders);
-          html = replacePlaceholders(template.htmlContent, placeholders);
+          html = withStudentAppPromo(replacePlaceholders(template.htmlContent, placeholders));
           text = replacePlaceholders(template.textContent || "", placeholders);
         } else {
           // Fallback to imported helper

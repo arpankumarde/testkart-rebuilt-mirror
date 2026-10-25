@@ -12,7 +12,7 @@ function generateOtp(): string {
   return generateOtpCode(6);
 }
 
-function getEmailHtml(otpCode: string): string {
+function getEmailHtml(otpCode: string, isStudent: boolean): string {
   return getBrandedEmailHtml({
     title: "Verify your email - Testkart",
     icon: "🔒",
@@ -20,6 +20,7 @@ function getEmailHtml(otpCode: string): string {
     subheading: "Enter this code to confirm it's you.",
     bodyHtml: `<p style="margin:0;">Please use the following 6-digit code to verify your email address. This code is valid for 10 minutes. If you did not request this code, you can safely ignore this email.</p>`,
     codeBlock: otpCode,
+    studentAppPromo: isStudent,
   });
 }
 
@@ -64,7 +65,7 @@ export async function handle(request: Request): Promise<Response> {
     const emailResult = await sendEmail({
       to: normalizedEmail,
       subject: "Verify your email - Testkart",
-      html: getEmailHtml(otpCode),
+      html: getEmailHtml(otpCode, user.role === "student"),
       text: `Your Testkart email verification code is: ${otpCode}`,
     });
 

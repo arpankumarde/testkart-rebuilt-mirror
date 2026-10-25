@@ -363,7 +363,8 @@ export async function handle(request: Request) {
         const template = emailTemplatesExtra.paymentFailed(
           result.teacherName,
           result.orderId,
-          result.paidAmount
+          result.paidAmount,
+          false
         );
         await sendEmail({
           to: result.teacherEmail,

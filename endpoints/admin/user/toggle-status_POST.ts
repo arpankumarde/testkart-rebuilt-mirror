@@ -39,15 +39,16 @@ export async function handle(request: Request): Promise<Response> {
     // Send email notification
     try {
       const targetUser = await db.selectFrom("users")
-        .select(["email", "displayName"])
+        .select(["email", "displayName", "role"])
         .where("id", "=", userId)
         .executeTakeFirst();
         
       if (targetUser?.email) {
+        const emailOptions = { studentAppPromo: targetUser.role === "student" };
         if (!isActive) {
-          await sendTemplateEmail("account_suspended", targetUser.email, { displayName: targetUser.displayName });
+          await sendTemplateEmail("account_suspended", targetUser.email, { displayName: targetUser.displayName }, emailOptions);
         } else {
-          await sendTemplateEmail("account_reactivated", targetUser.email, { displayName: targetUser.displayName });
+          await sendTemplateEmail("account_reactivated", targetUser.email, { displayName: targetUser.displayName }, emailOptions);
         }
       }
     } catch (emailError) {

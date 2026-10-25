@@ -69,7 +69,45 @@ export interface BrandedEmailOptions {
   afterCtaHtml?: string;
   /** Optional extra line shown above the copyright in the footer. */
   footerNote?: string;
+  /** Adds the "Study on the Go" app-download block to the footer. Student emails only. */
+  studentAppPromo?: boolean;
 }
+
+const PLAY_STORE_URL =
+  "https://play.google.com/store/apps/details?id=com.testkart.mocktest.courses.studynotes";
+const PLAY_BADGE_URL =
+  "https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png";
+const APP_PROMO_MARKER = "<!--tk-app-promo-->";
+
+const STUDENT_APP_PROMO_HTML = `${APP_PROMO_MARKER}
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;background-color:${EMAIL_BRAND.surface};border:1px solid ${EMAIL_BRAND.border};border-radius:12px;">
+                <tr>
+                  <td style="padding:20px 24px;text-align:center;">
+                    <p style="color:${EMAIL_BRAND.text};margin:0 0 6px;font-size:17px;font-weight:700;">Study on the Go.</p>
+                    <p style="color:${EMAIL_BRAND.muted};margin:0 0 12px;font-size:14px;line-height:1.5;">Mock tests, notes and progress, all in the Testkart app.</p>
+                    <a href="${PLAY_STORE_URL}" style="display:inline-block;text-decoration:none;">
+                      <img src="${PLAY_BADGE_URL}" alt="Get it on Google Play" width="168" style="display:block;width:168px;max-width:100%;height:auto;border:0;">
+                    </a>
+                    <p style="color:${EMAIL_BRAND.muted};margin:4px 0 0;font-size:12px;">Available on Google Play.</p>
+                  </td>
+                </tr>
+              </table>`;
+
+const FOOTER_CELL_PATTERN = /<td[^>]*border-top:1px solid #E5E7EB;text-align:center;[^>]*>/i;
+
+/**
+ * Adds the app-download block to an already-rendered branded email, such as an
+ * admin-editable template from the email_templates table. Returns the HTML
+ * unchanged if the block is already there or the footer cell can't be found.
+ */
+export const withStudentAppPromo = (html: string): string => {
+  if (html.includes(APP_PROMO_MARKER)) return html;
+  const match = FOOTER_CELL_PATTERN.exec(html);
+  if (!match) return html;
+  const insertAt = match.index + match[0].length;
+  return `${html.slice(0, insertAt)}
+              ${STUDENT_APP_PROMO_HTML}${html.slice(insertAt)}`;
+};
 
 const renderTable = (rows: EmailTableRow[] | undefined): string => {
   if (!rows || rows.length === 0) return "";
@@ -190,6 +228,7 @@ export const getBrandedEmailHtml = (options: BrandedEmailOptions): string => {
           </tr>
           <tr>
             <td style="background-color:${EMAIL_BRAND.surfaceMuted};padding:28px 40px;border-top:1px solid ${EMAIL_BRAND.border};text-align:center;">
+              ${options.studentAppPromo ? STUDENT_APP_PROMO_HTML : ""}
               <div style="margin-bottom:16px;">
                 <a href="https://www.instagram.com/testkart" style="display:inline-block;margin:0 8px;color:${EMAIL_BRAND.muted};text-decoration:none;font-size:12px;">Instagram</a>
                 <a href="https://x.com/testkart_in" style="display:inline-block;margin:0 8px;color:${EMAIL_BRAND.muted};text-decoration:none;font-size:12px;">X (Twitter)</a>

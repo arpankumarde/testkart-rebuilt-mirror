@@ -1,6 +1,7 @@
 import { db } from "./db";
 import { sendEmail } from "./sendEmail";
 import { welcomeStudent } from "./emailTemplates";
+import { withStudentAppPromo } from "./emailBaseTemplate";
 import { addContactToAudience } from "./resendContacts";
 
 export type SendOAuthWelcomeEmailParams = {
@@ -72,7 +73,7 @@ export async function sendOAuthWelcomeEmail({
         };
 
         subject = replacePlaceholders(template.subject, placeholders);
-        html = replacePlaceholders(template.htmlContent, placeholders);
+        html = withStudentAppPromo(replacePlaceholders(template.htmlContent, placeholders));
         text = replacePlaceholders(template.textContent || "", placeholders);
       } else {
         console.warn(

@@ -94,7 +94,8 @@ export async function handle(request: Request): Promise<Response> {
         const emailTemplate = withdrawalProcessed(
           student.displayName,
           Number(updatedWithdrawal.amount),
-          updatedWithdrawal.status
+          updatedWithdrawal.status,
+          true
         );
         const emailResult = await sendEmail({
           to: student.email,

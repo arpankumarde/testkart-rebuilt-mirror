@@ -11,6 +11,7 @@ import {
 import { randomUUID } from "crypto";
 import { sendEmail } from "../../../helpers/sendEmail";
 import { welcomeStudent } from "../../../helpers/emailTemplates";
+import { withStudentAppPromo } from "../../../helpers/emailBaseTemplate";
 import { addContactToAudience } from "../../../helpers/resendContacts";
 import { addTeacherToSalesContacts } from "../../../helpers/addTeacherToSalesContacts";
 import { getClientIp } from "../../../helpers/getClientIp";
@@ -252,7 +253,7 @@ export async function handle(request: Request): Promise<Response> {
             };
 
             subject = replacePlaceholders(template.subject, placeholders);
-            html = replacePlaceholders(template.htmlContent, placeholders);
+            html = withStudentAppPromo(replacePlaceholders(template.htmlContent, placeholders));
             text = replacePlaceholders(template.textContent || "", placeholders);
           } else {
             console.warn(`${templateKey} template not found in database, using fallback`);

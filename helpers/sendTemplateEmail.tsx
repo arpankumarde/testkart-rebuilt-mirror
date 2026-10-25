@@ -1,7 +1,20 @@
 import { db } from "./db";
 import { sendEmail } from "./sendEmail";
+import { withStudentAppPromo } from "./emailBaseTemplate";
 
 export const ADMIN_EMAIL = "teamtestkart@gmail.com";
+
+// Templates that only ever go to students carry the app-download footer.
+const STUDENT_TEMPLATE_KEYS = new Set([
+  "welcome_student",
+  "live_test_reminder",
+  "live_test_results",
+  "review_reminder",
+  "student_bank_details_verified",
+  "student_bank_details_rejected",
+  "student_withdrawal_requested",
+  "wallet_credit_received",
+]);
 
 /**
  * Sends an email using a template stored in the database.
@@ -9,12 +22,15 @@ export const ADMIN_EMAIL = "teamtestkart@gmail.com";
  * @param templateKey - The unique key of the template in the `emailTemplates` table
  * @param to - The recipient email address(es)
  * @param placeholders - A record of placeholders to replace in the subject and content (e.g. { name: 'John' } replaces {{name}})
+ * @param options.studentAppPromo - Adds the app-download footer. Defaults to true for
+ *   student-only templates; pass it for templates shared by students and teachers.
  * @returns A promise that resolves to an object indicating success or failure
  */
 export async function sendTemplateEmail(
   templateKey: string,
   to: string | string[],
-  placeholders: Record<string, string>
+  placeholders: Record<string, string>,
+  options: { studentAppPromo?: boolean } = {}
 ): Promise<{ success: boolean; skipped?: boolean }> {
   try {
     const template = await db
@@ -41,6 +57,10 @@ export async function sendTemplateEmail(
       if (textContent) {
         textContent = textContent.replace(regex, value);
       }
+    }
+
+    if (options.studentAppPromo ?? STUDENT_TEMPLATE_KEYS.has(templateKey)) {
+      htmlContent = withStudentAppPromo(htmlContent);
     }
 
     const result = await sendEmail({

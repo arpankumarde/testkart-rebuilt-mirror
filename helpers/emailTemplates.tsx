@@ -43,6 +43,7 @@ export const welcomeStudent = (
     `,
     ctaLabel: "Go to Dashboard",
     ctaUrl: "https://testkart.in/student/dashboard",
+    studentAppPromo: true,
   });
 
   return {
@@ -72,6 +73,7 @@ export const orderConfirmation = (
     bodyHtml: `<p style="margin:0;">You can access your purchased items immediately from your dashboard.</p>`,
     ctaLabel: "Access My Content",
     ctaUrl: "https://testkart.in/student/dashboard",
+    studentAppPromo: true,
   });
 
   return {
@@ -95,6 +97,7 @@ export const testEnrollment = (
     bodyHtml: `<p style="margin:0;">You have successfully enrolled in the test series <strong>"${testName}"</strong> by ${teacherName}. Get ready to practice and improve your skills!</p>`,
     ctaLabel: "Start Practicing",
     ctaUrl: "https://testkart.in/student/tests",
+    studentAppPromo: true,
   });
 
   return {
@@ -118,6 +121,7 @@ export const courseEnrollment = (
     bodyHtml: `<p style="margin:0;">You are now enrolled in the course <strong>"${courseName}"</strong> by ${teacherName}. Start learning today!</p>`,
     ctaLabel: "Go to Course",
     ctaUrl: "https://testkart.in/student/courses",
+    studentAppPromo: true,
   });
 
   return {
@@ -141,6 +145,7 @@ export const bundleEnrollment = (
     bodyHtml: `<p style="margin:0;">You have successfully purchased the bundle <strong>"${bundleName}"</strong> by ${teacherName}. All the courses and tests included in this bundle have been added to your account.</p>`,
     ctaLabel: "View My Dashboard",
     ctaUrl: "https://testkart.in/student/dashboard",
+    studentAppPromo: true,
   });
 
   return {
@@ -166,6 +171,7 @@ export const liveTestEnrollment = (
     table: [{ label: "Scheduled Time", value: formattedDate, emphasize: true }],
     ctaLabel: "View Live Tests",
     ctaUrl: "https://testkart.in/live-test",
+    studentAppPromo: true,
   });
 
   return {
@@ -186,6 +192,7 @@ export const paymentSuccessful = (
     heading: "Payment Successful",
     bodyHtml: `<p style="margin:0;">We have received your payment for Order #${orderDetails.orderId}. Thank you for choosing Testkart.</p>`,
     table: [{ label: "Amount Paid", value: `₹${orderDetails.totalAmount.toFixed(2)}`, emphasize: true }],
+    studentAppPromo: true,
   });
 
   return {
@@ -240,7 +247,8 @@ export const withdrawalRequested = (
 export const withdrawalProcessed = (
   teacherName: string,
   amount: number,
-  status: "completed" | "failed" | "cancelled" | "pending"
+  status: "completed" | "failed" | "cancelled" | "pending",
+  forStudent = false
 ): EmailTemplateResult => {
   const subject = `Withdrawal Update: ${status.toUpperCase()}`;
   const html = getBrandedEmailHtml({
@@ -257,6 +265,7 @@ export const withdrawalProcessed = (
           : "Please check your dashboard for more details or contact support if you have questions."
       }</p>
     `,
+    studentAppPromo: forStudent,
   });
 
   return {
@@ -280,6 +289,7 @@ export const sponsoredEnrollment = (
     bodyHtml: `<p style="margin:0;"><strong>${sponsorName}</strong> has enrolled you in <strong>"${itemName}"</strong>. You can access this content immediately from your dashboard.</p>`,
     ctaLabel: "Go to Dashboard",
     ctaUrl: "https://testkart.in/student/dashboard",
+    studentAppPromo: true,
   });
 
   return {

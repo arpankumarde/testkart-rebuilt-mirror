@@ -93,6 +93,7 @@ export async function handle(request: Request): Promise<Response> {
       subheading: "Use this code to finish signing up for Testkart.",
       bodyHtml: `<p style="margin:0;">Your verification code to sign up for Testkart is below. This code will expire in ${OTP_EXPIRATION_MINUTES} minutes. If you didn't request this code, you can safely ignore this email.</p>`,
       codeBlock: otpCode,
+      studentAppPromo: role === "student",
     });
 
     const emailSent = await sendEmail({

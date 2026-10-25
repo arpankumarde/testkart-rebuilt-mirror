@@ -109,7 +109,7 @@ export async function handle(request: Request) {
       await sendTemplateEmail("account_closure_confirmation", closedUser.email, {
         displayName: closedUser.displayName,
         email: closedUser.email,
-      });
+      }, { studentAppPromo: closedUser.role === "student" });
     }
 
     const response = new Response(
