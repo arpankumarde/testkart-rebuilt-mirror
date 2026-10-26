@@ -10,6 +10,7 @@ import { countPromoCodeUses } from "../../../helpers/promoCodeUsage";
 import { lockWallet } from "../../../helpers/walletLock";
 import { courseEffectivePriceSql } from "../../../helpers/coursePricing";
 import { planTcoinsForOrder } from "../../../helpers/tcoins";
+import { getOrderClientInfo } from "../../../helpers/orderClientInfo";
 import {
   applySpinCouponOrThrow,
   asEligibleItemIds,
@@ -270,6 +271,7 @@ export async function handle(request: Request) {
         .insertInto("orders")
         .values({
           userId: user.id,
+          ...getOrderClientInfo(request),
           totalAmount: finalAmount.toFixed(2),
           discountAmount: discountAmount.toFixed(2),
           promoCodeId: validatedPromoCodeId,

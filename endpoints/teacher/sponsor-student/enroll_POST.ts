@@ -16,6 +16,7 @@ import { getTeacherAvailableBalance } from "../../../helpers/getTeacherAvailable
 import { lockWallet } from "../../../helpers/walletLock";
 import { getTeacherPlatformFee } from "../../../helpers/getTeacherPlatformFee";
 import { courseDiscountPrice } from "../../../helpers/coursePricing";
+import { getOrderClientInfo } from "../../../helpers/orderClientInfo";
 
 function isEmailIdentifier(identifier: string): boolean {
   return identifier.includes("@");
@@ -476,6 +477,7 @@ export async function handle(request: Request): Promise<Response> {
           .insertInto("orders")
           .values({
             userId: user.id,
+            ...getOrderClientInfo(request),
             totalAmount: prepResult.commissionAmount.toFixed(2),
             discountAmount: "0",
             paymentMethod: "payu",
@@ -566,6 +568,7 @@ export async function handle(request: Request): Promise<Response> {
             .insertInto("orders")
             .values({
               userId: prepResult.studentUser.id,
+              ...getOrderClientInfo(request),
               totalAmount: prepResult.commissionAmount.toString(),
               paymentMethod: "teacher_sponsored",
               status: "completed",
@@ -581,6 +584,7 @@ export async function handle(request: Request): Promise<Response> {
             .insertInto("orders")
             .values({
               userId: prepResult.studentUser.id,
+              ...getOrderClientInfo(request),
               totalAmount: prepResult.commissionAmount.toString(),
               paymentMethod: "teacher_sponsored",
               status: "completed",

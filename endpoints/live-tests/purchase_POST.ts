@@ -9,6 +9,7 @@ import { NotAuthenticatedError } from "../../helpers/getSetServerSession";
 import { getTeacherPlatformFee, DEFAULT_TEACHER_PLATFORM_FEE } from "../../helpers/getTeacherPlatformFee";
 import { sanitizePayuText } from "../../helpers/sanitizePayuText";
 import { liveTestEffectivePrice } from "../../helpers/liveTestPricing";
+import { getOrderClientInfo } from "../../helpers/orderClientInfo";
 
 export async function handle(request: Request) {
   try {
@@ -83,6 +84,7 @@ export async function handle(request: Request) {
         .insertInto("orders")
         .values({
           userId: user.id,
+          ...getOrderClientInfo(request),
           totalAmount: amount,
           status: "pending",
           paymentMethod: "payu",

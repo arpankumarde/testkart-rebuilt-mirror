@@ -1,0 +1,173 @@
+.sidebar {
+  position: sticky;
+  top: var(--gec-sidebar-top, 9rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  max-height: calc(100vh - var(--gec-sidebar-top, 9rem) - var(--spacing-4));
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--exam-ivory-border);
+  border-radius: var(--radius-lg);
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--foreground);
+}
+
+.cardText {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.toc {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tocLink {
+  display: block;
+  padding: 0.375rem 0.625rem;
+  border-left: 3px solid transparent;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.35;
+  text-decoration: none;
+  transition: background-color var(--animation-duration-fast) ease, color var(--animation-duration-fast) ease;
+}
+
+.tocLink:hover {
+  background-color: var(--exam-ivory);
+  color: var(--foreground);
+}
+
+.tocLink:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 1px;
+}
+
+.tocActive,
+.tocActive:hover {
+  background-color: var(--pastel-peach);
+  border-left-color: var(--tk-brand);
+  color: var(--pastel-peach-ink);
+  font-weight: 700;
+}
+
+.mockCard {
+  background-color: var(--pastel-powder);
+  border-color: color-mix(in srgb, var(--pastel-powder-ink) 22%, var(--pastel-powder));
+}
+
+.mockCard .cardTitle,
+.mockCard .cardText {
+  color: var(--pastel-powder-ink);
+}
+
+.mockIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: var(--surface);
+  border-radius: var(--radius-md);
+  color: var(--pastel-powder-ink);
+}
+
+.mockButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.5rem;
+  margin-top: var(--spacing-1);
+  padding: 0 1.25rem;
+  background-color: var(--tk-brand);
+  border: 1px solid var(--tk-brand);
+  border-radius: 1rem;
+  color: var(--tk-brand-ink);
+  font-family: var(--font-family-base);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) ease, color var(--animation-duration-fast) ease;
+}
+
+.mockButton:hover {
+  background-color: var(--tk-brand-hover);
+  border-color: var(--tk-brand-hover);
+  color: var(--tk-brand-hover-foreground);
+}
+
+.mockButton:focus-visible {
+  outline: 2px solid var(--pastel-powder-ink);
+  outline-offset: 2px;
+}
+
+.updates {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-1);
+}
+
+.updateButton {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-height: 2.5rem;
+  padding: 0 var(--spacing-3);
+  background-color: var(--exam-ivory);
+  border: 1px dashed var(--tk-table-line);
+  border-radius: var(--radius-md);
+  color: var(--foreground);
+  font-family: var(--font-family-base);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: not-allowed;
+}
+
+.updateButton:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 1px;
+}
+
+.soon {
+  margin-left: auto;
+  padding: 0.125rem 0.5rem;
+  background-color: var(--pastel-butter);
+  border-radius: var(--radius-full);
+  color: var(--pastel-butter-ink);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tocLink,
+  .mockButton {
+    transition: none;
+  }
+}

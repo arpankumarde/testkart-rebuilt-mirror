@@ -7,13 +7,15 @@ import { DB } from "../../helpers/schema";
 import { sendEmail } from "../../helpers/sendEmail";
 import { emailTemplatesExtra } from "../../helpers/emailTemplatesExtra";
 import { followTeachersForOrder } from "../../helpers/ensureTeacherFollow";
+import { getOrderClientInfo, type OrderClientInfo } from "../../helpers/orderClientInfo";
 
 
 
 async function enrollInFreeProduct(
   trx: Transaction<DB>,
   userId: number,
-  digitalProductId: number
+  digitalProductId: number,
+  clientInfo: OrderClientInfo
 ): Promise<number> {
   // 1. Check if the product exists, is published, and is free.
   const product = await trx
@@ -47,6 +49,7 @@ async function enrollInFreeProduct(
     .insertInto("orders")
     .values({
       userId: userId,
+      ...clientInfo,
       totalAmount: "0",
       status: "completed",
       paymentMethod: "free",
@@ -107,7 +110,9 @@ export async function handle(request: Request) {
 
     const orderId = await db
       .transaction()
-      .execute((trx) => enrollInFreeProduct(trx, user.id, digitalProductId));
+      .execute((trx) =>
+        enrollInFreeProduct(trx, user.id, digitalProductId, getOrderClientInfo(request))
+      );
 
     // Send enrollment emails
     try {

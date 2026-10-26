@@ -1,10 +1,11 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, ChevronRight, GraduationCap, MonitorPlay, Radio, ListChecks } from "lucide-react";
+import { BookOpen, ChevronRight, MonitorPlay, Radio, ListChecks } from "lucide-react";
 import { examNewsPublicMeta } from "../helpers/examNewsPublicMeta";
 import { EXAM_NEWS_TYPE_ICONS } from "../helpers/examNewsIcons";
 import type { OutputType as SidebarData } from "../endpoints/exam-news/sidebar_GET.schema";
 import { Skeleton } from "./Skeleton";
+import { ExamNewsResources } from "./ExamNewsResources";
 import styles from "./ExamNewsSidebar.module.css";
 
 const EXPLORE = [
@@ -17,6 +18,7 @@ const EXPLORE = [
 interface ExamNewsSidebarProps {
   data: SidebarData | undefined;
   isLoading: boolean;
+  /* The exam being read about: its study resources show, else the Hot exams' resources. */
   activeExam?: string;
   /* The story page shows its related updates instead of the recently updated list. */
   showRecent?: boolean;
@@ -26,10 +28,15 @@ interface ExamNewsSidebarProps {
 }
 
 export const ExamNewsSidebar: React.FC<ExamNewsSidebarProps> = ({ data, isLoading, activeExam, showRecent = true, showBrowse = true, children }) => {
-  // Exams with news come first; pinned popular exams only fill the chips that are left.
-  const exams = data
-    ? [...data.examsWithNews, ...data.popularExams.filter((p) => !data.examsWithNews.some((e) => e.slug === p.slug))].slice(0, 10)
-    : [];
+  /*
+   * Popular exams is switched off for now and replaced by the study resources card. To restore it,
+   * add GraduationCap back to the lucide import and uncomment this block and the section below.
+   *
+   * // Exams with news come first; pinned popular exams only fill the chips that are left.
+   * const exams = data
+   *   ? [...data.examsWithNews, ...data.popularExams.filter((p) => !data.examsWithNews.some((e) => e.slug === p.slug))].slice(0, 10)
+   *   : [];
+   */
   const recent = data?.recentlyUpdated ?? [];
   const recentLoading = isLoading && !data;
 
@@ -37,6 +44,9 @@ export const ExamNewsSidebar: React.FC<ExamNewsSidebarProps> = ({ data, isLoadin
     <aside className={styles.sidebar} aria-label="Exam News sections">
       {children}
 
+      <ExamNewsResources examSlug={activeExam} />
+
+      {/*
       <section className={styles.card} aria-labelledby="en-side-exams">
         <h2 id="en-side-exams" className={styles.title}>
           <GraduationCap size={16} aria-hidden="true" /> Popular exams
@@ -60,6 +70,7 @@ export const ExamNewsSidebar: React.FC<ExamNewsSidebarProps> = ({ data, isLoadin
           </ul>
         )}
       </section>
+      */}
 
       {showBrowse && (
         <section className={styles.card} aria-labelledby="en-side-types">

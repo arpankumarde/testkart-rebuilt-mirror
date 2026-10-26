@@ -11,6 +11,7 @@ import { DB, PromoCodes } from "../../../helpers/schema";
 import { countPromoCodeUses } from "../../../helpers/promoCodeUsage";
 import { getSpinCouponRuleOrThrow } from "../../../helpers/spinWinServer";
 import { planTcoinsForOrder } from "../../../helpers/tcoins";
+import { getOrderClientInfo } from "../../../helpers/orderClientInfo";
 
 const generateErrorHtml = (errorMessage: string, backUrl: string) => `
 <!DOCTYPE html>
@@ -298,6 +299,7 @@ export async function handle(request: Request) {
           .insertInto("orders")
           .values({
             userId: user.id,
+            ...getOrderClientInfo(request),
             bundleId: bundle.id,
             totalAmount: "0.00",
             status: "completed",
@@ -329,6 +331,7 @@ export async function handle(request: Request) {
         .insertInto("orders")
         .values({
           userId: user.id,
+          ...getOrderClientInfo(request),
           bundleId: bundle.id,
           totalAmount: finalAmount.toFixed(2),
           status: "pending",

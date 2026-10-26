@@ -9,6 +9,7 @@ import { sendEmail } from "../../helpers/sendEmail";
 import { getTeacherPlatformFee } from "../../helpers/getTeacherPlatformFee";
 import { followTeacher } from "../../helpers/ensureTeacherFollow";
 import { planTcoinsForOrder } from "../../helpers/tcoins";
+import { getOrderClientInfo } from "../../helpers/orderClientInfo";
 
 export async function handle(request: Request): Promise<Response> {
   const PAYU_MERCHANT_KEY = process.env.PAYU_MERCHANT_KEY;
@@ -65,6 +66,7 @@ export async function handle(request: Request): Promise<Response> {
           .insertInto("orders")
           .values({
             userId: user.id,
+            ...getOrderClientInfo(request),
             bundleId: bundle.id,
             totalAmount: "0",
             status: "completed",
@@ -216,6 +218,7 @@ export async function handle(request: Request): Promise<Response> {
         .insertInto("orders")
         .values({
           userId: user.id,
+          ...getOrderClientInfo(request),
           bundleId: bundle.id,
           totalAmount: tcoins.amountToPay.toFixed(2),
           status: "pending",

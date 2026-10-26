@@ -10,6 +10,7 @@ import { promoCodeCoversTeacher } from "../../../helpers/promoCodeEligibility";
 import { countPromoCodeUses } from "../../../helpers/promoCodeUsage";
 import { courseEffectivePriceSql } from "../../../helpers/coursePricing";
 import { planTcoinsForOrder } from "../../../helpers/tcoins";
+import { getOrderClientInfo } from "../../../helpers/orderClientInfo";
 import {
   applySpinCouponOrThrow,
   asEligibleItemIds,
@@ -410,6 +411,7 @@ export async function handle(request: Request) {
           .insertInto("orders")
           .values({
             userId: user.id,
+            ...getOrderClientInfo(request),
             totalAmount: "0.00",
             discountAmount: discountAmount.toFixed(2),
             promoCodeId: validatedPromoCodeId,
@@ -580,6 +582,7 @@ export async function handle(request: Request) {
         .insertInto("orders")
         .values({
           userId: user.id,
+          ...getOrderClientInfo(request),
           totalAmount: finalAmount.toFixed(2),
           discountAmount: discountAmount.toFixed(2),
           promoCodeId: validatedPromoCodeId,

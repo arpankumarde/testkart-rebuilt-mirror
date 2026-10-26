@@ -1,0 +1,273 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  min-width: 0;
+  scroll-margin-top: var(--gec-anchor-offset, 9rem);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-2) var(--spacing-4);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+  color: var(--foreground);
+  text-wrap: balance;
+}
+
+.count {
+  flex-shrink: 0;
+  padding: 0.25rem 0.625rem;
+  background-color: var(--pastel-lavender);
+  border-radius: var(--radius-full);
+  color: var(--pastel-lavender-ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.intro,
+.note {
+  margin: 0;
+  max-width: 46rem;
+  color: var(--muted-foreground);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.note {
+  font-size: 0.875rem;
+}
+
+/* Each table scrolls sideways on its own, so the page never does. */
+.scroll {
+  --row-line: color-mix(in srgb, var(--tk-table-line) 55%, var(--surface));
+  width: 100%;
+  overflow-x: auto;
+  background-color: var(--surface);
+  border: 1px solid var(--exam-ivory-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 2px hsl(30 30% 20% / 0.05);
+  overscroll-behavior-x: contain;
+}
+
+.scroll:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.table {
+  width: 100%;
+  min-width: 40rem;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: var(--foreground);
+}
+
+.table thead th {
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--pastel-cream);
+  border-bottom: 1px solid var(--tk-table-line);
+  color: var(--pastel-cream-ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table tbody th,
+.table tbody td {
+  padding: var(--spacing-3) var(--spacing-4);
+  border-bottom: 1px solid var(--row-line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.table tbody tr:last-child th,
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody th {
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.table tbody tr:hover th,
+.table tbody tr:hover td {
+  background-color: var(--exam-ivory);
+}
+
+/* The first column stays put while the rest scrolls under it. */
+.table th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background-color: var(--surface);
+}
+
+.table thead th:first-child {
+  background-color: var(--pastel-cream);
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  background-color: var(--tint);
+  border: 1px solid color-mix(in srgb, var(--ink) 30%, var(--tint));
+  border-radius: var(--radius-full);
+  color: var(--ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.open {
+  --tint: var(--pastel-mint);
+  --ink: var(--pastel-mint-ink);
+}
+
+.upcoming {
+  --tint: var(--pastel-powder);
+  --ink: var(--pastel-powder-ink);
+}
+
+.progress {
+  --tint: var(--pastel-butter);
+  --ink: var(--pastel-butter-ink);
+}
+
+.concluded {
+  --tint: var(--muted);
+  --ink: var(--foreground);
+}
+
+.awaited {
+  --tint: var(--pastel-lavender);
+  --ink: var(--pastel-lavender-ink);
+}
+
+.deadlineWrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.deadline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  background-color: var(--pastel-peach);
+  border: 1px solid color-mix(in srgb, var(--pastel-peach-ink) 30%, var(--pastel-peach));
+  border-radius: var(--radius-full);
+  color: var(--pastel-peach-ink);
+  font-size: 0.875rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Fixed in both themes: white on this red holds about 6:1, where the --error token gives under 4:1. */
+.deadlineUrgent {
+  background-color: hsl(0 72% 42%);
+  border-color: hsl(0 72% 42%);
+  color: hsl(0 0% 100%);
+}
+
+.deadlineClosed {
+  background-color: var(--muted);
+  border-color: var(--tk-table-line);
+  color: var(--foreground);
+  text-decoration: line-through;
+}
+
+.deadlineNote {
+  padding-left: 0.625rem;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.deadlineNoteUrgent {
+  color: var(--error-text);
+}
+
+.empty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4) var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px dashed var(--tk-table-line);
+  border-radius: var(--radius-lg);
+  color: var(--muted-foreground);
+  font-size: 0.9375rem;
+}
+
+.empty p {
+  margin: 0;
+}
+
+.emptyClear {
+  padding: 0.375rem 0.875rem;
+  background-color: var(--surface);
+  border: 1px solid var(--tk-table-line);
+  border-radius: var(--radius-full);
+  color: var(--foreground);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.emptyClear:hover {
+  border-color: var(--tk-brand-text);
+  color: var(--tk-brand-text);
+}
+
+.emptyClear:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+  .title {
+    font-size: 1.3125rem;
+  }
+
+  .table {
+    min-width: 46rem;
+  }
+
+  .table tbody td:nth-child(2) {
+    min-width: 11rem;
+  }
+
+  .table th:first-child {
+    min-width: 8.5rem;
+    max-width: 11rem;
+    box-shadow: inset -1px 0 0 var(--tk-table-line);
+  }
+
+}

@@ -1306,6 +1306,13 @@ export interface OrderItems {
 
 export interface Orders {
   bundleId: number | null;
+  clientAppVersion: string | null;
+  clientBrowser: string | null;
+  clientDeviceType: string | null;
+  clientIp: string | null;
+  clientOs: string | null;
+  clientSource: string | null;
+  clientUserAgent: string | null;
   createdAt: Generated<Timestamp | null>;
   discountAmount: Generated<Numeric>;
   emailsSentAt: Timestamp | null;

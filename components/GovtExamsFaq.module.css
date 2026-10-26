@@ -1,0 +1,117 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  scroll-margin-top: var(--gec-anchor-offset, 9rem);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+  color: var(--foreground);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.item {
+  background-color: var(--surface);
+  border: 1px solid var(--exam-ivory-border);
+  border-radius: var(--radius-lg);
+  transition: border-color var(--animation-duration-fast) ease;
+}
+
+.item:hover {
+  border-color: var(--tk-table-line);
+}
+
+.item[open] {
+  border-color: var(--tk-table-line);
+}
+
+.question {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4) var(--spacing-6);
+  border-radius: var(--radius-lg);
+  list-style: none;
+  cursor: pointer;
+}
+
+.question::-webkit-details-marker {
+  display: none;
+}
+
+.question:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.questionText {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--foreground);
+}
+
+.icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background-color: var(--pastel-peach);
+  border-radius: var(--radius-full);
+  color: var(--pastel-peach-ink);
+  transition: transform var(--animation-duration-normal) ease;
+}
+
+.item[open] .icon {
+  transform: rotate(45deg);
+}
+
+.answer {
+  margin: 0;
+  padding: 0 var(--spacing-6) var(--spacing-4);
+  max-width: 48rem;
+  color: var(--muted-foreground);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+@media (max-width: 640px) {
+  .title {
+    font-size: 1.3125rem;
+  }
+
+  .question {
+    padding: var(--spacing-4);
+  }
+
+  .answer {
+    padding: 0 var(--spacing-4) var(--spacing-4);
+  }
+
+  .questionText {
+    font-size: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .item,
+  .icon {
+    transition: none;
+  }
+}

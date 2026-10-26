@@ -1,0 +1,128 @@
+/* Soft sage band with charcoal type. Body text is darker than the palette's muted grey so it holds 4.5:1 on sage. */
+.band {
+  --cta-bg: #dce8dc;
+  --cta-line: #c5d6c6;
+  --cta-ink: #303a36;
+  --cta-text: #47524c;
+  --cta-label: #4a6652;
+  --cta-button: #303a36;
+  --cta-button-hover: #1f2724;
+  --cta-button-ink: #ffffff;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-6) var(--spacing-8);
+  padding: var(--spacing-8);
+  background-color: var(--cta-bg);
+  border: 1px solid var(--cta-line);
+  border-radius: var(--radius-md);
+  color: var(--cta-ink);
+}
+
+:global(.dark) .band {
+  --cta-bg: hsl(135 12% 19%);
+  --cta-line: hsl(135 10% 28%);
+  --cta-ink: hsl(140 14% 92%);
+  --cta-text: hsl(140 8% 76%);
+  --cta-label: hsl(140 24% 72%);
+  --cta-button: #dce8dc;
+  --cta-button-hover: #ffffff;
+  --cta-button-ink: #303a36;
+}
+
+.content {
+  display: flex;
+  flex: 1 1 22rem;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.label {
+  color: var(--cta-label);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.625rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--cta-ink);
+}
+
+.text {
+  margin: 0;
+  max-width: 46ch;
+  color: var(--cta-text);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.button {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  height: 2.875rem;
+  padding: 0 1.375rem;
+  background-color: var(--cta-button);
+  border: none;
+  border-radius: var(--radius);
+  color: var(--cta-button-ink);
+  font-family: var(--font-family-base);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.arrow {
+  transition: transform var(--animation-duration-fast) ease;
+}
+
+.button:hover {
+  background-color: var(--cta-button-hover);
+}
+
+.button:hover .arrow {
+  transform: translateX(3px);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--cta-ink);
+  outline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .band {
+    padding: var(--spacing-6) var(--spacing-4);
+  }
+
+  .title {
+    font-size: 1.375rem;
+  }
+
+  .button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .arrow {
+    transition: none;
+  }
+
+  .button:hover .arrow {
+    transform: none;
+  }
+}

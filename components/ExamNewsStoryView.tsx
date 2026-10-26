@@ -350,7 +350,7 @@ export const ExamNewsStoryView: React.FC<{ slug: string }> = ({ slug }) => {
           </footer>
         </article>
 
-        <ExamNewsSidebar data={sidebar.data} isLoading={sidebar.isLoading} showRecent={false}>
+        <ExamNewsSidebar data={sidebar.data} isLoading={sidebar.isLoading} activeExam={story.exam?.slug} showRecent={false}>
           {related.length > 0 && (
             <section className={styles.relatedCard} aria-labelledby="en-related">
               <h2 id="en-related" className={styles.relatedTitle}>

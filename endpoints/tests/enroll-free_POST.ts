@@ -7,13 +7,15 @@ import { DB } from "../../helpers/schema";
 import { sendEmail } from "../../helpers/sendEmail";
 import { emailTemplatesExtra } from "../../helpers/emailTemplatesExtra";
 import { followTeachersForOrder } from "../../helpers/ensureTeacherFollow";
+import { getOrderClientInfo, type OrderClientInfo } from "../../helpers/orderClientInfo";
 
 
 
 async function enrollInFreeTest(
   trx: Transaction<DB>,
   userId: number,
-  mockTestId: number
+  mockTestId: number,
+  clientInfo: OrderClientInfo
 ): Promise<number> {
   // 1. Check if the test exists, is published, and is free.
   const test = await trx
@@ -61,6 +63,7 @@ async function enrollInFreeTest(
     .insertInto("orders")
     .values({
       userId: userId,
+      ...clientInfo,
       totalAmount: "0",
       status: "completed",
     })
@@ -121,7 +124,7 @@ export async function handle(request: Request) {
 
     const orderId = await db
       .transaction()
-      .execute((trx) => enrollInFreeTest(trx, user.id, mockTestId));
+      .execute((trx) => enrollInFreeTest(trx, user.id, mockTestId, getOrderClientInfo(request)));
 
     // Send enrollment emails
     try {
