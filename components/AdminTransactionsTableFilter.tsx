@@ -59,7 +59,7 @@ export const FilterSection: React.FC<{
             <Search size={18} className={styles.searchIcon} />
             <Input
               type="search"
-              placeholder="Student, email, phone, order ID or promo code..."
+              placeholder="Student, email, phone, order ID, promo code or IP..."
               value={search.value}
               onChange={(e) => search.onChange(e.target.value)}
               onKeyDown={(e) => {

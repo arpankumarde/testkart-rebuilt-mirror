@@ -290,25 +290,36 @@ const GovtExamsCalendarPage: React.FC = () => {
                 <h2 id="sources-title" className={styles.sectionTitle}>
                   Official sources and disclaimer
                 </h2>
-                <div className={styles.trust}>
-                  <p>
-                    <strong>Official sources:</strong>{" "}
-                    {GEC_SOURCES.map(({ label, domain }) => `${label} (${domain})`).join(", ")}, {GEC_SOURCES_TAIL}
-                  </p>
-                  <p>
-                    <strong>Disclaimer:</strong> {GEC_DISCLAIMER}
-                  </p>
-                  <div className={styles.log}>
-                    <strong>Update log:</strong>
-                    <ul>
-                      {GEC_UPDATE_LOG.map(({ date, text }) => (
-                        <li key={date}>
-                          <span className={styles.logDate}>{date}.</span> {text}
-                        </li>
+                <dl className={styles.trust}>
+                  <div className={styles.trustRow}>
+                    <dt>Official sources</dt>
+                    <dd>
+                      {GEC_SOURCES.map(({ label, domain }, index) => (
+                        <React.Fragment key={domain}>
+                          {index > 0 && ", "}
+                          {label} (<span className={styles.domain}>{domain}</span>)
+                        </React.Fragment>
                       ))}
-                    </ul>
+                      , {GEC_SOURCES_TAIL}
+                    </dd>
                   </div>
-                </div>
+                  <div className={`${styles.trustRow} ${styles.trustNotice}`}>
+                    <dt>Disclaimer</dt>
+                    <dd>{GEC_DISCLAIMER}</dd>
+                  </div>
+                  <div className={styles.trustRow}>
+                    <dt>Update log</dt>
+                    <dd>
+                      <ul className={styles.log}>
+                        {GEC_UPDATE_LOG.map(({ date, text }) => (
+                          <li key={date}>
+                            <span className={styles.logDate}>{date}.</span> <span>{text}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </dd>
+                  </div>
+                </dl>
               </section>
 
               <section className={styles.section} aria-labelledby="related-title">

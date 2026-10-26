@@ -405,6 +405,82 @@
   grid-column: 1 / -1;
 }
 
+/* Where the order was placed from: a link-style trigger under the date opens the full details. */
+.clientTrigger {
+  align-self: flex-start;
+  max-width: 100%;
+  margin-top: 2px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--foreground);
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-color: var(--muted-foreground);
+  text-underline-offset: 2px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.clientTrigger:hover {
+  text-decoration-color: currentColor;
+}
+
+.clientTrigger:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.clientPopover {
+  width: 24rem;
+  max-width: calc(100vw - 2rem);
+}
+
+.clientPopoverTitle {
+  margin: 0 0 var(--spacing-2);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.clientDetails {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--spacing-1) var(--spacing-3);
+  margin: 0;
+}
+
+.clientDetailRow {
+  display: contents;
+}
+
+.clientDetails dt {
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+  color: var(--muted-foreground);
+}
+
+.clientDetails dd {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+  font-weight: 600;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+.clientDetails .clientUserAgent {
+  font-family: var(--font-family-monospace);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
 .paginationWrapper {
   display: flex;
   justify-content: center;

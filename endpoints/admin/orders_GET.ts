@@ -1,6 +1,6 @@
 import { db } from "../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../helpers/getAdminSession";
-import { OutputType } from "./orders_GET.schema";
+import { OutputType, type OrderClient } from "./orders_GET.schema";
 import { paymentFailureReason } from "../../helpers/paymentFailureReason";
 import superjson from "superjson";
 
@@ -28,6 +28,13 @@ export async function handle(request: Request) {
         "orders.paymentGatewayStatus",
         "orders.promoCodeId",
         "orders.discountAmount",
+        "orders.clientSource",
+        "orders.clientDeviceType",
+        "orders.clientBrowser",
+        "orders.clientOs",
+        "orders.clientAppVersion",
+        "orders.clientUserAgent",
+        "orders.clientIp",
         "promoCodes.code as promoCode",
         "users.displayName as studentName",
         "users.email as studentEmail",
@@ -316,6 +323,17 @@ export async function handle(request: Request) {
                 paymentGatewayStatus: o.paymentGatewayStatus,
               })
             : null,
+        client: o.clientSource
+          ? {
+              source: o.clientSource as OrderClient["source"],
+              deviceType: (o.clientDeviceType ?? "unknown") as OrderClient["deviceType"],
+              browser: o.clientBrowser,
+              os: o.clientOs,
+              appVersion: o.clientAppVersion,
+              userAgent: o.clientUserAgent,
+              ip: o.clientIp,
+            }
+          : null,
       };
     });
 

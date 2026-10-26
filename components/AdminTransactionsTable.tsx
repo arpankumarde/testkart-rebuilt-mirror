@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAdminOrdersQuery, ADMIN_ORDERS_QUERY_KEY } from "../helpers/useAdminOrders";
-import { Order } from "../endpoints/admin/orders_GET.schema";
+import { Order, OrderClient } from "../endpoints/admin/orders_GET.schema";
 import { Skeleton } from "./Skeleton";
 import { Badge } from "./Badge";
 import { Button } from "./Button";
@@ -103,6 +103,64 @@ const renderItemList = (items: Order["purchasedItemDetails"]) => (
     ))}
   </ul>
 );
+
+const CLIENT_SOURCE_LABELS: Record<OrderClient["source"], string> = {
+  web: "Web",
+  android_app: "Android app",
+  ios_app: "iOS app",
+  unknown: "Unknown source",
+};
+
+const clientSummary = (client: OrderClient) =>
+  client.deviceType === "unknown"
+    ? CLIENT_SOURCE_LABELS[client.source]
+    : `${CLIENT_SOURCE_LABELS[client.source]}, ${client.deviceType}`;
+
+const clientDetailRows = (client: OrderClient): [string, string][] => {
+  const isApp = client.source === "android_app" || client.source === "ios_app";
+  return [
+    ["Source", CLIENT_SOURCE_LABELS[client.source]],
+    ["Device", client.deviceType === "unknown" ? "Not known" : sentenceCase(client.deviceType)],
+    ["Browser", client.browser ?? (isApp ? "None, sent by the app" : "Not known")],
+    ["OS", client.os ?? "Not known"],
+    ...(isApp ? [["App version", client.appVersion ?? "Not sent by this app version"] as [string, string]] : []),
+    ["IP address", client.ip ?? "Not recorded"],
+    ["User agent", client.userAgent ?? "Not recorded"],
+  ];
+};
+
+const renderClientDetails = (client: OrderClient) => (
+  <dl className={styles.clientDetails}>
+    {clientDetailRows(client).map(([label, value]) => (
+      <div key={label} className={styles.clientDetailRow}>
+        <dt>{label}</dt>
+        <dd className={label === "User agent" ? styles.clientUserAgent : undefined}>{value}</dd>
+      </div>
+    ))}
+  </dl>
+);
+
+const renderClientTrigger = (order: Order) => {
+  if (!order.client) return null;
+  const summary = clientSummary(order.client);
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className={styles.clientTrigger}
+          aria-label={`Order #${order.id} placed from ${summary}. Show device details`}
+        >
+          {summary}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className={styles.clientPopover}>
+        <p className={styles.clientPopoverTitle}>Placed from</p>
+        {renderClientDetails(order.client)}
+      </PopoverContent>
+    </Popover>
+  );
+};
 
 /* Shared by the loading and loaded tables so the columns do not jump. */
 const TableColumns = () => (
@@ -337,7 +395,8 @@ export const AdminTransactionsTable: React.FC = () => {
           `#${order.id}` === searchLower ||
           String(order.id) === searchLower;
         const promoMatch = order.promoCode?.toLowerCase().includes(searchLower) ?? false;
-        if (!nameMatch && !emailMatch && !phoneMatch && !orderMatch && !promoMatch) return false;
+        const ipMatch = order.client?.ip?.toLowerCase().includes(searchLower) ?? false;
+        if (!nameMatch && !emailMatch && !phoneMatch && !orderMatch && !promoMatch && !ipMatch) return false;
       }
 
       if (promoParam && order.promoCode?.toLowerCase() !== promoParam.toLowerCase()) {
@@ -746,7 +805,12 @@ export const AdminTransactionsTable: React.FC = () => {
                         </span>
                       </div>
                     </td>
-                    <td>{renderDate(order.createdAt)}</td>
+                    <td>
+                      <div className={styles.stack}>
+                        {renderDate(order.createdAt)}
+                        {renderClientTrigger(order)}
+                      </div>
+                    </td>
                     <td>
                       <div className={styles.stack}>
                         <span className={styles.primaryLine}>
@@ -835,6 +899,12 @@ export const AdminTransactionsTable: React.FC = () => {
                     <div className={`${styles.cardStat} ${styles.cardStatWide}`}>
                       <dt>Reason</dt>
                       <dd><PaymentFailureReason failure={order.paymentFailure} variant="card" /></dd>
+                    </div>
+                  )}
+                  {order.client && (
+                    <div className={`${styles.cardStat} ${styles.cardStatWide}`}>
+                      <dt>Placed from</dt>
+                      <dd>{renderClientDetails(order.client)}</dd>
                     </div>
                   )}
                 </dl>

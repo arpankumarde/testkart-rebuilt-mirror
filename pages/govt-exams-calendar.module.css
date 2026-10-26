@@ -436,33 +436,86 @@
   border-radius: var(--radius-full);
 }
 
+/* Sources, disclaimer and log as an editorial definition list: label column, hairline rules, no card. */
 .trust {
+  --ed-ink: #303a36;
+  --ed-muted: #646d68;
+  --ed-line: #ddd6ca;
+  --ed-label: #4a6652;
+  --ed-notice: #f5eedb;
+  --ed-notice-ink: #4d4330;
+  margin: 0;
+  border-top: 1px solid var(--ed-ink);
+  border-bottom: 1px solid var(--ed-line);
+  color: var(--ed-ink);
+  font-size: 0.9375rem;
+  line-height: 1.65;
+}
+
+:global(.dark) .trust {
+  --ed-ink: hsl(150 10% 90%);
+  --ed-muted: hsl(150 6% 70%);
+  --ed-line: hsl(150 6% 28%);
+  --ed-label: hsl(140 24% 72%);
+  --ed-notice: hsl(42 18% 19%);
+  --ed-notice-ink: hsl(42 50% 86%);
+}
+
+.trustRow {
+  display: grid;
+  grid-template-columns: 10rem minmax(0, 1fr);
+  gap: var(--spacing-6);
+  padding: var(--spacing-4) 0;
+}
+
+.trustRow + .trustRow {
+  border-top: 1px solid var(--ed-line);
+}
+
+.trustRow dt {
+  padding-top: 0.125rem;
+  color: var(--ed-label);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1.5rem;
+  text-transform: uppercase;
+}
+
+.trustRow dd {
+  margin: 0;
+  max-width: 44rem;
+}
+
+.domain {
+  font-weight: 600;
+}
+
+/* The disclaimer is the one line readers must not skip: a butter-cream wash, edge to edge. */
+.trustNotice {
+  padding-right: var(--spacing-4);
+  padding-left: var(--spacing-4);
+  background-color: var(--ed-notice);
+}
+
+.trustNotice dd {
+  color: var(--ed-notice-ink);
+}
+
+.log {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-3);
-  padding: var(--spacing-6);
-  background-color: var(--surface);
-  border: 1px solid var(--exam-ivory-border);
-  border-left: 4px solid var(--exam-sage);
-  border-radius: var(--radius-lg);
-  color: var(--foreground);
-  font-size: 0.9375rem;
-  line-height: 1.6;
-}
-
-.trust p {
+  gap: var(--spacing-2);
   margin: 0;
-}
-
-.log ul {
-  margin: var(--spacing-1) 0 0;
-  padding-left: 1.25rem;
-  color: var(--muted-foreground);
+  padding: 0;
+  list-style: none;
+  color: var(--ed-muted);
 }
 
 .logDate {
-  color: var(--foreground);
+  color: var(--ed-ink);
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .related {
@@ -605,8 +658,9 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .trust {
-    padding: var(--spacing-4);
+  .trustRow {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--spacing-1);
   }
 }
 
