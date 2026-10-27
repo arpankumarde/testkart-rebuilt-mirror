@@ -1,5 +1,16 @@
 /* Sized off its own width, not the viewport: the same article renders in the preview page and
-   inside the editor's preview dialog. --ca-toc-top lets a host clear its own sticky header. */
+   inside the editor's preview dialog. --ca-toc-top lets a host clear its own sticky header.
+   Accents come from the homepage showcase palette (--fc-*, --sp-*): blue for links and the
+   contents list, mint for Why in News, lavender for the quiz, pine for solid surfaces. The quiz
+   dialog is portalled out of .root, so it carries the same variables. */
+.root,
+.quizDialog {
+  --ca-ink: var(--fc-blue-ink);
+  --ca-edge: var(--fc-blue-edge);
+  --ca-tint: var(--fc-blue-tint);
+  --ca-line: var(--fc-blue-line);
+}
+
 .root {
   container-type: inline-size;
   display: flex;
@@ -101,18 +112,18 @@
 }
 
 .pill_topic {
-  background-color: color-mix(in srgb, var(--chart-color-2) 13%, var(--surface));
-  color: color-mix(in srgb, var(--chart-color-2) 40%, var(--foreground));
+  background-color: var(--fc-mint-tint);
+  color: var(--fc-mint-ink);
 }
 
 .pill_exam {
-  background-color: color-mix(in srgb, var(--info) 13%, var(--surface));
-  color: var(--info-text);
+  background-color: var(--fc-blue-tint);
+  color: var(--fc-blue-ink);
 }
 
 .pill_syllabus {
-  background-color: color-mix(in srgb, var(--success) 13%, var(--surface));
-  color: var(--success-text);
+  background-color: var(--sp-lavender-tint);
+  color: var(--sp-lavender-ink);
 }
 
 .pillLink {
@@ -120,11 +131,11 @@
 }
 
 .pillLink:hover {
-  background-color: color-mix(in srgb, var(--chart-color-2) 24%, var(--surface));
+  box-shadow: inset 0 0 0 1px var(--fc-mint-edge);
 }
 
 .pillLink:focus-visible {
-  outline: 2px solid var(--tk-brand-text);
+  outline: 2px solid var(--ca-ink);
   outline-offset: 2px;
 }
 
@@ -227,16 +238,16 @@
 }
 
 .tocLink:focus-visible {
-  outline: 2px solid var(--tk-brand-text);
+  outline: 2px solid var(--ca-ink);
   outline-offset: -2px;
 }
 
-/* Active: a peach wash with a hairline of the same hue, no edge bar. */
+/* Active: a blue wash with a hairline of the same hue, no edge bar. */
 .tocLinkActive,
 .tocLinkActive:hover {
-  background-color: color-mix(in srgb, var(--tk-brand) 10%, var(--surface));
-  border-color: color-mix(in srgb, var(--tk-brand) 30%, var(--surface));
-  color: var(--tk-brand-text);
+  background-color: color-mix(in srgb, var(--ca-edge) 10%, var(--surface));
+  border-color: color-mix(in srgb, var(--ca-edge) 30%, var(--surface));
+  color: var(--ca-ink);
   font-weight: 600;
 }
 
@@ -257,8 +268,8 @@
 }
 
 .tocLinkActive .tocNumber {
-  background-color: color-mix(in srgb, var(--tk-brand) 26%, var(--surface));
-  color: var(--tk-brand-text);
+  background-color: color-mix(in srgb, var(--ca-edge) 26%, var(--surface));
+  color: var(--ca-ink);
 }
 
 /* Nudged so the first line sits centred on the badge. */
@@ -303,11 +314,11 @@
 }
 
 .story:hover {
-  border-color: var(--tk-brand-text);
+  border-color: var(--ca-ink);
 }
 
 .story:focus-visible {
-  outline: 2px solid var(--tk-brand-text);
+  outline: 2px solid var(--ca-ink);
   outline-offset: 2px;
 }
 
@@ -353,7 +364,7 @@
   margin-top: 2px;
   font-size: 0.8125rem;
   font-weight: 700;
-  color: var(--tk-brand-text);
+  color: var(--ca-ink);
 }
 
 @container (max-width: 34rem) {
@@ -384,7 +395,7 @@
   width: 6px;
   height: 6px;
   border-radius: var(--radius-full);
-  background-color: var(--tk-brand);
+  background-color: var(--ca-edge);
 }
 
 .para {
@@ -438,7 +449,7 @@
 
 .prose :global(li)::marker,
 .list li::marker {
-  color: var(--tk-brand);
+  color: var(--ca-edge);
 }
 
 .prose :global(li > p) {
@@ -456,7 +467,7 @@
 }
 
 .prose :global(a) {
-  color: var(--tk-brand-text);
+  color: var(--ca-ink);
   text-underline-offset: 2px;
 }
 
@@ -487,9 +498,9 @@
 @keyframes storyHighlight {
   0%,
   40% {
-    background-color: color-mix(in srgb, var(--tk-brand) 10%, var(--surface));
-    box-shadow: 0 0 0 10px color-mix(in srgb, var(--tk-brand) 10%, var(--surface)),
-      0 0 0 12px color-mix(in srgb, var(--tk-brand) 45%, var(--surface));
+    background-color: color-mix(in srgb, var(--ca-edge) 10%, var(--surface));
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--ca-edge) 10%, var(--surface)),
+      0 0 0 12px color-mix(in srgb, var(--ca-edge) 45%, var(--surface));
   }
   100% {
     background-color: var(--surface);
@@ -519,8 +530,8 @@
   margin-top: 3px;
   padding: 2px 8px;
   border-radius: var(--radius-sm);
-  background-color: color-mix(in srgb, var(--tk-brand) 14%, var(--surface));
-  color: var(--tk-brand-text);
+  background-color: var(--ca-tint);
+  color: var(--ca-ink);
   font-size: 0.8125rem;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
@@ -539,13 +550,17 @@
   background-color: var(--muted);
 }
 
-/* The one highlighted block per item: a pale peach card with a hairline border. */
+/* The one highlighted block per item: a mint card with a stronger mint edge. */
 .why {
   padding: 1rem 1.25rem;
-  border: 1px solid color-mix(in srgb, var(--tk-brand) 22%, var(--border));
-  border-radius: var(--radius-lg);
-  background-color: color-mix(in srgb, var(--tk-brand) 6%, var(--surface));
-  box-shadow: 0 1px 2px hsl(20 40% 20% / 0.05);
+  border: 1.5px solid color-mix(in srgb, var(--fc-mint-edge) 45%, var(--fc-mint-tint));
+  border-radius: 1.125rem;
+  background-color: var(--fc-mint-tint);
+  color: var(--fc-mint-ink);
+}
+
+.why .labelIcon svg {
+  color: var(--fc-mint-edge);
 }
 
 /* A label that carries its own icon instead of the dot. */
@@ -555,10 +570,10 @@
 
 .labelIcon svg {
   flex-shrink: 0;
-  color: var(--tk-brand-text);
+  color: var(--ca-ink);
 }
 
-/* Key points: a small check in a peach disc, centred on each item's first line. */
+/* Key points: a small check in a blue disc, centred on each item's first line. */
 .keyPoints > :global(ul) {
   padding-left: 0;
   list-style: none;
@@ -582,12 +597,12 @@
 
 .keyPoints > :global(ul) > :global(li)::before {
   border-radius: var(--radius-full);
-  background-color: color-mix(in srgb, var(--tk-brand) 16%, var(--surface));
+  background-color: var(--ca-tint);
 }
 
-/* lucide "check", drawn as a mask so it takes the themed brand text colour. */
+/* lucide "check", drawn as a mask so it takes the themed accent colour. */
 .keyPoints > :global(ul) > :global(li)::after {
-  background-color: var(--tk-brand-text);
+  background-color: var(--ca-ink);
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E")
     center / 0.6875rem no-repeat;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E")
@@ -628,14 +643,14 @@
 }
 
 .footLabel svg {
-  color: color-mix(in srgb, var(--chart-color-2) 40%, var(--foreground));
+  color: var(--fc-mint-edge);
 }
 
 .link {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: var(--tk-brand-text);
+  color: var(--ca-ink);
   font-weight: 600;
   text-decoration: none;
   border-radius: var(--radius-sm);
@@ -646,7 +661,7 @@
 }
 
 .link:focus-visible {
-  outline: 2px solid var(--tk-brand-text);
+  outline: 2px solid var(--ca-ink);
   outline-offset: 2px;
 }
 
@@ -660,24 +675,25 @@
   background-color: color-mix(in srgb, var(--warning) 12%, var(--surface));
 }
 
-/* The quiz preview card: a peach wash with a coral edge, the whole card opens the quiz. */
+/* The quiz preview card: lavender with a chunky edge, the whole card opens the quiz. */
 .quizCard {
   display: flex;
   align-items: flex-start;
   gap: 1.25rem;
   padding: 1.5rem;
-  border: 1px solid color-mix(in srgb, var(--tk-brand) 45%, var(--surface));
-  border-radius: var(--radius-lg);
-  background-color: color-mix(in srgb, var(--tk-brand) 11%, var(--surface));
-  box-shadow: 0 1px 2px hsl(20 40% 20% / 0.06), 0 10px 24px -14px hsl(20 60% 30% / 0.35);
+  border: 1.5px solid var(--sp-lavender-edge);
+  border-radius: 1.5rem;
+  background-color: var(--sp-lavender-tint);
+  box-shadow: 0 4px 0 var(--sp-lavender-edge);
+  color: var(--sp-lavender-ink);
   cursor: pointer;
   scroll-margin-top: calc(var(--ca-toc-top, var(--spacing-4)) + var(--spacing-2));
-  transition: border-color var(--animation-duration-fast) ease, box-shadow var(--animation-duration-fast) ease;
+  transition: transform var(--animation-duration-fast) ease, box-shadow var(--animation-duration-fast) ease;
 }
 
 .quizCard:hover {
-  border-color: var(--tk-brand);
-  box-shadow: 0 1px 2px hsl(20 40% 20% / 0.08), 0 14px 30px -14px hsl(20 60% 30% / 0.45);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--sp-lavender-edge);
 }
 
 .quizArt {
@@ -687,10 +703,10 @@
   flex-shrink: 0;
   width: 4rem;
   height: 4rem;
-  border-radius: var(--radius-lg);
-  background-color: var(--tk-brand);
-  color: var(--tk-brand-ink);
-  box-shadow: 0 6px 14px -6px hsl(20 70% 35% / 0.55);
+  border-radius: 1.125rem;
+  background-color: var(--fc-panel);
+  color: var(--fc-mint-tint);
+  transform: rotate(-4deg);
 }
 
 .quizCardBody {
@@ -707,7 +723,7 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--tk-brand-text);
+  color: var(--sp-lavender-ink);
 }
 
 .quizCardTitle {
@@ -718,13 +734,14 @@
   letter-spacing: -0.015em;
   line-height: 1.25;
   text-wrap: balance;
+  color: var(--sp-lavender-ink);
 }
 
 .quizBlurb {
   margin: 0;
   font-size: 0.9375rem;
   line-height: 1.55;
-  color: var(--foreground);
+  color: var(--sp-lavender-ink);
 }
 
 .quizFacts {
@@ -742,21 +759,17 @@
   gap: 6px;
   height: 1.75rem;
   padding: 0 0.625rem;
-  border: 1px solid var(--border);
+  border: 1px solid var(--sp-lavender-line);
   border-radius: var(--radius-full);
-  background-color: var(--surface);
-  color: var(--foreground);
+  background-color: var(--sp-card);
+  color: var(--sp-lavender-ink);
   font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
 }
 
 .quizFacts li svg {
-  color: var(--tk-brand-text);
-}
-
-.quizFacts .quizHidden {
-  background-color: var(--muted);
+  color: var(--sp-lavender-edge);
 }
 
 .quizCardActions {
@@ -767,25 +780,66 @@
   margin-top: var(--spacing-2);
 }
 
-.quizCta {
+/* Solid pine actions instead of the coral primary button. */
+.quizCta,
+.quizPrimary {
+  border-color: var(--fc-panel);
+  background-color: var(--fc-panel);
+  color: var(--fc-panel-ink);
   font-weight: 700;
+}
+
+.quizCta:hover:not(:disabled),
+.quizPrimary:hover:not(:disabled) {
+  border-color: var(--fc-panel);
+  background-color: var(--fc-panel);
+  color: var(--fc-panel-ink);
+  box-shadow: 0 3px 0 var(--fc-mint-edge);
+  transform: translateY(-1px);
+}
+
+.quizCta:focus-visible,
+.quizPrimary:focus-visible {
+  outline: 2px solid var(--fc-panel);
+  outline-offset: 2px;
+}
+
+.quizSecondary {
+  border: 1.5px solid var(--sp-line-strong);
+  background-color: var(--surface);
+  color: var(--foreground);
+  font-weight: 700;
+}
+
+.quizSecondary:hover:not(:disabled) {
+  border-color: var(--foreground);
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.quizSecondary:focus-visible {
+  outline: 2px solid var(--fc-panel);
+  outline-offset: 2px;
 }
 
 .quizStatus {
   font-size: 0.875rem;
   font-weight: 700;
-  color: var(--foreground);
+  color: var(--sp-lavender-ink);
   font-variant-numeric: tabular-nums;
 }
 
-/* The quiz itself, opened from the card. Full screen on phones. */
+/* The quiz itself, opened from the card: a pine header, one question per screen, then results.
+   Full screen on phones. */
 .quizDialog {
   display: flex;
   flex-direction: column;
-  width: min(48rem, calc(100vw - 2rem));
+  width: min(46rem, calc(100vw - 2rem));
   max-width: none;
-  max-height: min(90vh, 56rem);
+  height: min(90vh, 46rem);
+  max-height: min(90vh, 46rem);
   padding: 0;
+  gap: 0;
   overflow: hidden;
   border-radius: var(--radius-lg);
   background-color: var(--surface);
@@ -796,7 +850,9 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-3);
-  padding: 1.25rem 3.75rem 1rem 1.5rem;
+  padding: 1rem 1rem 1rem 1.5rem;
+  background-color: var(--fc-panel);
+  color: var(--fc-panel-ink);
 }
 
 .quizIcon {
@@ -804,110 +860,165 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.5rem;
+  height: 2.5rem;
   border-radius: var(--radius-md);
-  background-color: var(--tk-brand);
-  color: var(--tk-brand-ink);
+  background-color: var(--sp-lavender-tint);
+  color: var(--sp-lavender-ink);
+}
+
+.quizHeadText {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .quizTitle {
   margin: 0;
   font-family: var(--font-family-heading);
-  font-size: 1.125rem;
+  font-size: 1.1875rem;
   font-weight: 800;
   line-height: 1.3;
-  color: var(--foreground);
+  color: var(--fc-panel-ink);
 }
 
 .quizMeta {
   margin: 2px 0 0;
   font-size: 0.8125rem;
-  color: var(--muted-foreground);
+  font-weight: 600;
+  color: var(--fc-panel-text);
+  font-variant-numeric: tabular-nums;
 }
 
-.quizProgress {
+.quizClose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  height: 4px;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: none;
+  border-radius: var(--radius-full);
+  background: none;
+  color: var(--fc-panel-ink);
+  cursor: pointer;
+}
+
+.quizClose:hover {
+  background-color: var(--fc-blob-mint);
+}
+
+.quizClose:focus-visible {
+  outline: 2px solid var(--fc-panel-ink);
+  outline-offset: 1px;
+}
+
+/* One segment per question: grey until answered, then green or red; the current one is ringed. */
+.qSteps {
+  display: flex;
+  flex-shrink: 0;
+  gap: 4px;
+  padding: 0.875rem 1.5rem 0;
+}
+
+.qStep {
+  flex: 1 1 0;
+  min-width: 6px;
+  height: 8px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
   background-color: var(--muted);
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) ease;
 }
 
-.quizProgress span {
-  display: block;
-  height: 100%;
-  background-color: var(--tk-brand);
-  transition: width var(--animation-duration-normal) ease;
+.qStep:hover {
+  background-color: var(--sp-line-strong);
 }
 
-/* Its own query container: the dialog is portalled out of .root, so the narrow-width rules
-   for the options grid measure this instead. */
+.qStepRight,
+.qStepRight:hover {
+  background-color: var(--success-text);
+}
+
+.qStepWrong,
+.qStepWrong:hover {
+  background-color: var(--error-text);
+}
+
+.qStepCurrent {
+  outline: 2px solid var(--ca-ink);
+  outline-offset: 2px;
+}
+
+.qStep:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+}
+
 .quizBody {
-  container-type: inline-size;
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 1.25rem 1.5rem 1.5rem;
+  padding: 1.5rem;
 }
 
-.quizList {
+.qView {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-5, 1.25rem);
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  gap: var(--spacing-4);
 }
 
-.quizQuestion {
+.qEyebrow {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ca-ink);
+}
+
+.qText {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.1875rem;
+  font-weight: 700;
+  line-height: 1.45;
+  color: var(--foreground);
+}
+
+.qOptions {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-2);
-}
-
-.quizText {
-  display: flex;
-  gap: 6px;
-  margin: 0;
-  font-weight: 600;
-  line-height: 1.5;
-}
-
-.quizNumber {
-  flex-shrink: 0;
-  color: var(--muted-foreground);
-  font-variant-numeric: tabular-nums;
-}
-
-.quizOptions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--spacing-2);
 }
 
 .quizOption {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
-  min-height: 2.5rem;
-  padding: var(--spacing-2) var(--spacing-3);
-  border: 1px solid var(--border);
+  gap: var(--spacing-3);
+  min-height: 3.25rem;
+  padding: 0.625rem 0.875rem;
+  border: 1.5px solid var(--sp-line);
   border-radius: var(--radius-md);
   background-color: var(--surface);
   color: var(--foreground);
   font-family: var(--font-family-base);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
+  line-height: 1.45;
   text-align: left;
   cursor: pointer;
   transition: border-color var(--animation-duration-fast) ease, background-color var(--animation-duration-fast) ease;
 }
 
 .quizOption:hover:not(:disabled) {
-  border-color: var(--tk-brand-text);
+  border-color: var(--ca-edge);
+  background-color: var(--ca-tint);
 }
 
 .quizOption:focus-visible {
-  outline: 2px solid var(--tk-brand-text);
+  outline: 2px solid var(--ca-ink);
   outline-offset: 2px;
 }
 
@@ -920,12 +1031,12 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 1.375rem;
-  height: 1.375rem;
-  border-radius: var(--radius-full);
+  width: 1.875rem;
+  height: 1.875rem;
+  border-radius: var(--radius-md);
   background-color: var(--muted);
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 800;
 }
 
 .optText {
@@ -937,21 +1048,73 @@
   flex-shrink: 0;
 }
 
-.optPicked {
-  border-color: var(--tk-brand-text);
-  background-color: color-mix(in srgb, var(--tk-brand) 14%, var(--surface));
-}
-
 .optRight {
   border-color: var(--success-text);
   background-color: color-mix(in srgb, var(--success) 14%, var(--surface));
   color: var(--success-text);
 }
 
+.optRight .optLetter {
+  background-color: var(--success-text);
+  color: var(--surface);
+}
+
 .optWrong {
   border-color: var(--error-text);
   background-color: color-mix(in srgb, var(--error) 10%, var(--surface));
   color: var(--error-text);
+}
+
+.optWrong .optLetter {
+  background-color: var(--error-text);
+  color: var(--surface);
+}
+
+.optDim {
+  color: var(--muted-foreground);
+}
+
+.verdict {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0.875rem 1rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+}
+
+.verdictRight {
+  border-color: var(--success-text);
+  background-color: color-mix(in srgb, var(--success) 8%, var(--surface));
+}
+
+.verdictWrong {
+  border-color: var(--error-text);
+  background-color: color-mix(in srgb, var(--error) 6%, var(--surface));
+}
+
+.verdictLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 800;
+}
+
+.verdictRight .verdictLabel {
+  color: var(--success-text);
+}
+
+.verdictWrong .verdictLabel {
+  color: var(--error-text);
+}
+
+.verdict .explanation {
+  padding: 0;
+  background: none;
+  color: var(--foreground);
 }
 
 .explanation {
@@ -977,17 +1140,307 @@
   margin-left: auto;
 }
 
-.quizCount {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--muted-foreground);
+/* Results: a score ring, five stat tiles in the pastel set, then the answer review. */
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5, 1.25rem);
+}
+
+.resultHero {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--radius-lg);
+  background-color: var(--fc-panel);
+  color: var(--fc-panel-ink);
+}
+
+.resultRing {
+  position: relative;
+  flex-shrink: 0;
+  width: 7.5rem;
+  height: 7.5rem;
+}
+
+.resultRing svg {
+  width: 100%;
+  height: 100%;
+}
+
+.ringTrack,
+.ringValue {
+  fill: none;
+  stroke-width: 10;
+}
+
+.ringTrack {
+  stroke: var(--fc-blob-mint);
+}
+
+.ringValue {
+  stroke: var(--fc-mint-tint);
+  stroke-linecap: round;
+}
+
+.ringLabel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.1;
+}
+
+.ringLabel strong {
+  font-family: var(--font-family-heading);
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--fc-panel-ink);
   font-variant-numeric: tabular-nums;
 }
 
-.score {
-  font-family: var(--font-family-heading);
-  font-size: 1rem;
+.ringLabel span {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--fc-panel-text);
+}
+
+.resultCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.resultEyebrow {
+  margin: 0;
+  font-size: 0.75rem;
   font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fc-panel-text);
+}
+
+.resultHeadline {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--fc-panel-ink);
+}
+
+.resultLead {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--fc-panel-text);
+}
+
+.resultStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  gap: var(--spacing-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius-md);
+  background-color: var(--stat-tint);
+  color: var(--stat-ink);
+}
+
+.statSage {
+  --stat-tint: var(--sp-sage-tint);
+  --stat-ink: var(--sp-sage-ink);
+}
+
+.statRose {
+  --stat-tint: var(--sp-peach-tint);
+  --stat-ink: var(--sp-peach-ink);
+}
+
+.statButter {
+  --stat-tint: var(--fc-butter-tint);
+  --stat-ink: var(--fc-butter-ink);
+}
+
+.statBlue {
+  --stat-tint: var(--sp-blue-tint);
+  --stat-ink: var(--sp-blue-ink);
+}
+
+.statLavender {
+  --stat-tint: var(--sp-lavender-tint);
+  --stat-ink: var(--sp-lavender-ink);
+}
+
+.statIcon {
+  display: inline-flex;
+  margin-bottom: 4px;
+}
+
+.statValue {
+  font-family: var(--font-family-heading);
+  font-size: 1.375rem;
+  font-weight: 800;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.statLabel {
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.reviewTitle {
+  margin: var(--spacing-2) 0 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--foreground);
+}
+
+.reviewList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reviewItem {
+  display: flex;
+  gap: var(--spacing-3);
+  padding: 1rem;
+  border: 1px solid var(--sp-line);
+  border-left: 4px solid var(--review-edge);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+}
+
+.reviewRight {
+  --review-edge: var(--success-text);
+}
+
+.reviewWrong {
+  --review-edge: var(--error-text);
+}
+
+.reviewSkip {
+  --review-edge: var(--muted-foreground);
+}
+
+.reviewNum {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-full);
+  background-color: var(--review-edge);
+  color: var(--surface);
+  font-size: 0.8125rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.reviewBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.reviewQ {
+  margin: 0;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--foreground);
+}
+
+.reviewLines {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+}
+
+.reviewLine {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.reviewLine dt {
+  flex: 0 0 7.5rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.reviewLine dd {
+  flex: 1 1 14rem;
+  margin: 0;
+  font-weight: 600;
+}
+
+.reviewMine {
+  color: var(--review-edge);
+}
+
+.reviewSkip .reviewMine {
+  color: var(--muted-foreground);
+}
+
+.reviewAnswer {
+  color: var(--success-text);
+}
+
+.reviewTag {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0 0.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--review-edge);
+  color: var(--surface);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.5rem;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.reviewExplain {
+  margin: 0;
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--foreground);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .missing {
@@ -1031,7 +1484,7 @@
   }
 
   .tocToggle:focus-visible {
-    outline: 2px solid var(--tk-brand-text);
+    outline: 2px solid var(--ca-ink);
     outline-offset: -2px;
   }
 
@@ -1066,10 +1519,6 @@
 }
 
 @container (max-width: 34rem) {
-  .quizOptions {
-    grid-template-columns: 1fr;
-  }
-
   .quizCard {
     flex-direction: column;
     gap: var(--spacing-4);
@@ -1126,11 +1575,30 @@
   }
 
   .quizHead {
-    padding: 1rem 3.25rem 0.875rem 1rem;
+    padding: 0.875rem 0.75rem 0.875rem 1rem;
+  }
+
+  .qSteps {
+    padding: 0.75rem 1rem 0;
   }
 
   .quizBody {
     padding: 1rem;
+  }
+
+  .qText {
+    font-size: 1.0625rem;
+  }
+
+  .resultHero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem;
+  }
+
+  .reviewItem {
+    padding: 0.875rem;
   }
 
   .quizFoot {
@@ -1145,7 +1613,7 @@
   .tocChevron,
   .pillLink,
   .quizCard,
-  .quizProgress span {
+  .qStep {
     transition: none;
   }
 }

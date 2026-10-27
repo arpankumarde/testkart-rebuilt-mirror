@@ -7,6 +7,7 @@ import {
   CalendarRange,
   CheckCircle2,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   Clock,
   EyeOff,
@@ -14,13 +15,18 @@ import {
   Image as ImageIcon,
   ListChecks,
   LockOpen,
+  MinusCircle,
   Newspaper,
+  RotateCcw,
   Tag,
+  Target,
+  Timer,
   UserRound,
+  X,
   XCircle,
 } from "lucide-react";
 import { Button } from "./Button";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "./Dialog";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "./Dialog";
 import { CurrentAffairsSourceLinks } from "./CurrentAffairsSourceLinks";
 import { currentAffairsMeta } from "../helpers/currentAffairsMeta";
 import { wrapContentTables } from "../helpers/contentTables";
@@ -107,80 +113,280 @@ const QUIZ_BLURB: Record<"daily" | "weekly" | "monthly", string> = {
   monthly: "Test your knowledge of the month's current affairs.",
 };
 
-const QuizQuestions: React.FC<{
-  quiz: Quiz;
-  answers: Record<number, number>;
-  submitted: boolean;
-  onPick: (question: number, option: number) => void;
-}> = ({ quiz, answers, submitted, onPick }) => (
-  <ol className={styles.quizList}>
-    {quiz.questions.map((question, index) => (
-      <li key={question.key} className={styles.quizQuestion}>
-        <p className={styles.quizText}>
-          <span className={styles.quizNumber}>{index + 1}.</span>
-          {question.question || <em className={styles.missing}>Question not written yet</em>}
-        </p>
-        <div className={styles.quizOptions}>
-          {question.options.map((option, optionIndex) => {
-            const picked = answers[index] === optionIndex;
-            const correct = question.correctOption === optionIndex;
-            const state = submitted ? (correct ? styles.optRight : picked ? styles.optWrong : "") : picked ? styles.optPicked : "";
-            return (
-              <button
-                key={optionIndex}
-                type="button"
-                disabled={submitted}
-                aria-pressed={picked}
-                className={`${styles.quizOption} ${state}`}
-                onClick={() => onPick(index, optionIndex)}
-              >
-                <span className={styles.optLetter}>{LETTERS[optionIndex]}</span>
-                <span className={styles.optText}>{option || <em className={styles.missing}>Empty option</em>}</span>
-                {submitted && correct && <CheckCircle2 size={16} className={styles.optIcon} aria-label="Correct answer" />}
-                {submitted && picked && !correct && <XCircle size={16} className={styles.optIcon} aria-label="Your answer" />}
-              </button>
-            );
-          })}
+const CONFETTI_COLORS = ["#ff8a50", "#ff9966", "#22c55e", "#3b82f6", "#facc15", "#ec4899"];
+
+/* A short burst of paper pieces from a screen point, drawn above the dialog. Nothing is stored. */
+function burstConfetti(x: number, y: number, count = 28) {
+  if (typeof window === "undefined" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const host = document.createElement("div");
+  host.setAttribute("aria-hidden", "true");
+  host.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:2147483000;overflow:hidden";
+  document.body.appendChild(host);
+  const remove = () => host.remove();
+  window.setTimeout(remove, 2600);
+  for (let i = 0; i < count; i++) {
+    const piece = document.createElement("span");
+    const size = 6 + Math.random() * 6;
+    const color = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+    piece.style.cssText = `position:absolute;left:${x}px;top:${y}px;width:${size}px;height:${size * 0.5}px;background:${color};border-radius:2px`;
+    host.appendChild(piece);
+    const angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.2;
+    const speed = 90 + Math.random() * 170;
+    const dx = Math.cos(angle) * speed;
+    const dy = Math.sin(angle) * speed;
+    const fall = 180 + Math.random() * 140;
+    const spin = (Math.random() - 0.5) * 1080;
+    piece.animate(
+      [
+        { transform: "translate(0, 0) rotate(0deg)", opacity: 1 },
+        { transform: `translate(${dx}px, ${dy}px) rotate(${spin / 2}deg)`, opacity: 1, offset: 0.35 },
+        { transform: `translate(${dx * 1.3}px, ${dy + fall}px) rotate(${spin}deg)`, opacity: 0 },
+      ],
+      { duration: 1100 + Math.random() * 600, easing: "cubic-bezier(0.2, 0.7, 0.4, 1)", fill: "forwards" }
+    );
+  }
+}
+
+const celebrateFinish = () => {
+  const y = window.innerHeight * 0.4;
+  burstConfetti(window.innerWidth * 0.3, y, 40);
+  burstConfetti(window.innerWidth * 0.7, y, 40);
+};
+
+type QuizQuestion = Quiz["questions"][number];
+
+const RING_RADIUS = 52;
+const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
+
+const percentOf = (part: number, whole: number) => (whole > 0 ? Math.round((part / whole) * 100) : 0);
+
+const resultHeadline = (percent: number) =>
+  percent >= 80 ? "Excellent work" : percent >= 60 ? "Good effort" : percent >= 40 ? "Getting there" : "Keep practising";
+
+const formatDuration = (ms: number) => {
+  const seconds = Math.max(1, Math.round(ms / 1000));
+  const minutes = Math.floor(seconds / 60);
+  return minutes > 0 ? `${minutes}m ${String(seconds % 60).padStart(2, "0")}s` : `${seconds}s`;
+};
+
+const optionLine = (question: QuizQuestion, option: number | null | undefined) =>
+  option === null || option === undefined ? null : `${LETTERS[option]}. ${question.options[option] ?? ""}`;
+
+/* One question per screen. A pick is marked the moment it is clicked, and then locked. */
+const QuizQuestionView: React.FC<{
+  question: QuizQuestion;
+  index: number;
+  total: number;
+  picked: number | undefined;
+  onPick: (option: number, event: React.MouseEvent<HTMLButtonElement>) => void;
+}> = ({ question, index, total, picked, onPick }) => {
+  const answered = picked !== undefined;
+  const gotIt = answered && picked === question.correctOption;
+  const rightLetter = question.correctOption === null ? null : LETTERS[question.correctOption];
+  return (
+    <div className={styles.qView}>
+      <p className={styles.qEyebrow}>
+        Question {index + 1} of {total}
+      </p>
+      <p className={styles.qText}>{question.question || <em className={styles.missing}>Question not written yet</em>}</p>
+      <div className={styles.qOptions} role="group" aria-label={`Options for question ${index + 1}`}>
+        {question.options.map((option, optionIndex) => {
+          const isPicked = picked === optionIndex;
+          const correct = question.correctOption === optionIndex;
+          const state = answered ? (correct ? styles.optRight : isPicked ? styles.optWrong : styles.optDim) : "";
+          return (
+            <button
+              key={optionIndex}
+              type="button"
+              disabled={answered}
+              aria-pressed={isPicked}
+              className={`${styles.quizOption} ${state}`}
+              onClick={(event) => onPick(optionIndex, event)}
+            >
+              <span className={styles.optLetter}>{LETTERS[optionIndex]}</span>
+              <span className={styles.optText}>{option || <em className={styles.missing}>Empty option</em>}</span>
+              {answered && correct && <CheckCircle2 size={18} className={styles.optIcon} aria-label="Correct answer" />}
+              {isPicked && !correct && <XCircle size={18} className={styles.optIcon} aria-label="Your answer" />}
+            </button>
+          );
+        })}
+      </div>
+      {answered && (
+        <div className={`${styles.verdict} ${gotIt ? styles.verdictRight : styles.verdictWrong}`} role="status">
+          <p className={styles.verdictLabel}>
+            {gotIt ? <CheckCircle2 size={18} aria-hidden="true" /> : <XCircle size={18} aria-hidden="true" />}
+            {gotIt ? "Correct!" : rightLetter ? `Not quite - the answer is ${rightLetter}` : "Not quite"}
+          </p>
+          {question.explanation && <p className={styles.explanation}>{question.explanation}</p>}
         </div>
-        {submitted && question.explanation && <p className={styles.explanation}>{question.explanation}</p>}
-      </li>
-    ))}
-  </ol>
-);
+      )}
+    </div>
+  );
+};
+
+/* Score, stats and a transcript of every question with the reader's answer and the right one. */
+const QuizResults: React.FC<{ quiz: Quiz; answers: Record<number, number>; elapsedMs: number }> = ({ quiz, answers, elapsedMs }) => {
+  const total = quiz.questions.length;
+  const attempted = Object.keys(answers).length;
+  const correct = quiz.questions.filter((q, i) => answers[i] !== undefined && answers[i] === q.correctOption).length;
+  const wrong = attempted - correct;
+  const skipped = total - attempted;
+  const percent = percentOf(correct, total);
+  const stats = [
+    { key: "correct", label: "Correct", value: String(correct), icon: <CheckCircle2 size={18} />, tone: styles.statSage },
+    { key: "wrong", label: "Wrong", value: String(wrong), icon: <XCircle size={18} />, tone: styles.statRose },
+    ...(skipped > 0
+      ? [{ key: "skipped", label: "Skipped", value: String(skipped), icon: <MinusCircle size={18} />, tone: styles.statButter }]
+      : []),
+    { key: "accuracy", label: "Accuracy", value: `${percentOf(correct, attempted)}%`, icon: <Target size={18} />, tone: styles.statBlue },
+    { key: "time", label: "Time taken", value: formatDuration(elapsedMs), icon: <Timer size={18} />, tone: styles.statLavender },
+  ];
+
+  return (
+    <div className={styles.results}>
+      <section className={styles.resultHero} aria-label="Score">
+        <div className={styles.resultRing}>
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <circle className={styles.ringTrack} cx="60" cy="60" r={RING_RADIUS} />
+            <circle
+              className={styles.ringValue}
+              cx="60"
+              cy="60"
+              r={RING_RADIUS}
+              strokeDasharray={`${(RING_LENGTH * percent) / 100} ${RING_LENGTH}`}
+              transform="rotate(-90 60 60)"
+            />
+          </svg>
+          <span className={styles.ringLabel}>
+            <strong>{correct}</strong>
+            <span>of {total}</span>
+          </span>
+        </div>
+        <div className={styles.resultCopy}>
+          <p className={styles.resultEyebrow}>Your score - {percent}%</p>
+          <h3 className={styles.resultHeadline}>{resultHeadline(percent)}</h3>
+          <p className={styles.resultLead}>
+            You answered {correct} of {total} questions correctly. Go through the review below to see where you slipped.
+          </p>
+        </div>
+      </section>
+
+      <ul className={styles.resultStats}>
+        {stats.map((stat) => (
+          <li key={stat.key} className={`${styles.stat} ${stat.tone}`}>
+            <span className={styles.statIcon} aria-hidden="true">
+              {stat.icon}
+            </span>
+            <span className={styles.statValue}>{stat.value}</span>
+            <span className={styles.statLabel}>{stat.label}</span>
+          </li>
+        ))}
+      </ul>
+
+      <h4 className={styles.reviewTitle}>Answer review</h4>
+      <ol className={styles.reviewList}>
+        {quiz.questions.map((question, index) => {
+          const picked = answers[index];
+          const isSkipped = picked === undefined;
+          const gotIt = !isSkipped && picked === question.correctOption;
+          const tone = gotIt ? styles.reviewRight : isSkipped ? styles.reviewSkip : styles.reviewWrong;
+          return (
+            <li key={question.key} className={`${styles.reviewItem} ${tone}`}>
+              <span className={styles.reviewNum} aria-hidden="true">
+                {index + 1}
+              </span>
+              <div className={styles.reviewBody}>
+                <p className={styles.reviewQ}>
+                  <span className={styles.srOnly}>Question {index + 1}: </span>
+                  {question.question}
+                </p>
+                <dl className={styles.reviewLines}>
+                  <div className={styles.reviewLine}>
+                    <dt>Your answer</dt>
+                    <dd className={styles.reviewMine}>
+                      {optionLine(question, picked) ?? "Not answered"}
+                      <span className={styles.reviewTag}>{gotIt ? "Correct" : isSkipped ? "Skipped" : "Wrong"}</span>
+                    </dd>
+                  </div>
+                  {!gotIt && (
+                    <div className={styles.reviewLine}>
+                      <dt>Correct answer</dt>
+                      <dd className={styles.reviewAnswer}>{optionLine(question, question.correctOption) ?? "-"}</dd>
+                    </div>
+                  )}
+                </dl>
+                {question.explanation && <p className={styles.reviewExplain}>{question.explanation}</p>}
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  );
+};
 
 /*
  * The quiz sits in the article as a preview card; the questions open in a dialog. Answers live
  * here rather than in the dialog, so closing it and coming back resumes where the reader left off.
+ * Answers are marked on click and kept in memory only - nothing is saved.
  */
 const QuizSection: React.FC<{ quiz: Quiz; id: string; period: string; blurb: string }> = ({ quiz, id, period, blurb }) => {
   const [open, setOpen] = useState(false);
   const [answers, setAnswers] = useState<Record<number, number>>({});
-  const [submitted, setSubmitted] = useState(false);
+  const [current, setCurrent] = useState(0);
+  const [view, setView] = useState<"question" | "results">("question");
+  const [timing, setTiming] = useState<{ start: number | null; end: number | null }>({ start: null, end: null });
   const bodyRef = useRef<HTMLDivElement | null>(null);
 
   const total = quiz.questions.length;
   const answered = Object.keys(answers).length;
+  const done = timing.end !== null;
   const score = quiz.questions.filter((q, i) => answers[i] !== undefined && answers[i] === q.correctOption).length;
   const title = quiz.title || "Quiz";
   const showDate = !!period && !title.includes(period);
   const minutes = Math.max(1, Math.ceil(total / 2));
   const questionsLabel = `${total} ${total === 1 ? "question" : "questions"}`;
-  const cta = submitted ? "Review Answers" : answered > 0 ? "Resume Quiz" : "Start Quiz";
+  const cta = done ? "View Results" : answered > 0 ? "Resume Quiz" : "Start Quiz";
   const titleId = `${id}-title`;
+  const question = quiz.questions[current];
+  const isLast = current >= total - 1;
 
-  const toTop = () => bodyRef.current?.scrollTo({ top: 0, behavior: "smooth" });
-  const submit = () => {
-    setSubmitted(true);
+  const openQuiz = () => {
+    setOpen(true);
+    setTiming((t) => (t.start === null ? { ...t, start: Date.now() } : t));
+  };
+  const toTop = () => bodyRef.current?.scrollTo({ top: 0 });
+  const goTo = (index: number) => {
+    setCurrent(Math.min(Math.max(index, 0), total - 1));
+    setView("question");
     toTop();
+  };
+  const pick = (option: number, event: React.MouseEvent<HTMLButtonElement>) => {
+    if (answers[current] !== undefined) return;
+    setAnswers((prev) => ({ ...prev, [current]: option }));
+    if (question.correctOption === option) {
+      const rect = event.currentTarget.getBoundingClientRect();
+      burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    }
+  };
+  const showResults = () => {
+    const firstTime = timing.end === null;
+    const now = Date.now();
+    setTiming((t) => ({ start: t.start ?? now, end: t.end ?? now }));
+    setView("results");
+    toTop();
+    if (firstTime && percentOf(score, total) >= 60) window.setTimeout(celebrateFinish, 200);
   };
   const reset = () => {
     setAnswers({});
-    setSubmitted(false);
+    setCurrent(0);
+    setView("question");
+    setTiming({ start: Date.now(), end: null });
     toTop();
   };
 
   return (
-    <section id={id} className={styles.quizCard} data-toc-section aria-labelledby={titleId} onClick={() => setOpen(true)}>
+    <section id={id} className={styles.quizCard} data-toc-section aria-labelledby={titleId} onClick={openQuiz}>
       <span className={styles.quizArt} aria-hidden="true">
         <ListChecks size={30} strokeWidth={2.25} />
       </span>
@@ -209,12 +415,6 @@ const QuizSection: React.FC<{ quiz: Quiz; id: string; period: string; blurb: str
             <LockOpen size={14} aria-hidden="true" />
             No login needed
           </li>
-          {!quiz.isPublished && (
-            <li className={styles.quizHidden}>
-              <EyeOff size={14} aria-hidden="true" />
-              Hidden on the site
-            </li>
-          )}
         </ul>
         <div className={styles.quizCardActions}>
           <Button
@@ -223,13 +423,13 @@ const QuizSection: React.FC<{ quiz: Quiz; id: string; period: string; blurb: str
             aria-haspopup="dialog"
             onClick={(event) => {
               event.stopPropagation();
-              setOpen(true);
+              openQuiz();
             }}
           >
             {cta}
             <ArrowRight size={18} aria-hidden="true" />
           </Button>
-          {submitted ? (
+          {done ? (
             <span className={styles.quizStatus}>
               You scored {score} / {total}
             </span>
@@ -242,58 +442,80 @@ const QuizSection: React.FC<{ quiz: Quiz; id: string; period: string; blurb: str
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className={styles.quizDialog} onClick={(event) => event.stopPropagation()}>
+        <DialogContent className={styles.quizDialog} hideCloseButton onClick={(event) => event.stopPropagation()}>
           <header className={styles.quizHead}>
             <span className={styles.quizIcon} aria-hidden="true">
-              <ListChecks size={18} />
+              <ListChecks size={20} />
             </span>
-            <div>
+            <div className={styles.quizHeadText}>
               <DialogTitle className={styles.quizTitle}>{title}</DialogTitle>
               <DialogDescription className={styles.quizMeta}>
-                {questionsLabel} - no login needed
-                {quiz.isPublished ? "" : " - hidden on the site"}
+                {view === "results"
+                  ? `Results - ${score} of ${total} correct`
+                  : `${questionsLabel} - ${answered} answered, ${score} correct`}
               </DialogDescription>
             </div>
+            <DialogClose className={styles.quizClose} aria-label="Close quiz">
+              <X size={20} aria-hidden="true" />
+            </DialogClose>
           </header>
-          <div
-            className={styles.quizProgress}
-            role="progressbar"
-            aria-label="Questions answered"
-            aria-valuemin={0}
-            aria-valuemax={total}
-            aria-valuenow={answered}
-          >
-            <span style={{ width: `${total ? (answered / total) * 100 : 0}%` }} />
-          </div>
+          {view === "question" && (
+            <nav className={styles.qSteps} aria-label="Questions">
+              {quiz.questions.map((q, index) => {
+                const a = answers[index];
+                const state = a === undefined ? "" : a === q.correctOption ? styles.qStepRight : styles.qStepWrong;
+                return (
+                  <button
+                    key={q.key}
+                    type="button"
+                    className={`${styles.qStep} ${state} ${index === current ? styles.qStepCurrent : ""}`}
+                    aria-current={index === current ? "step" : undefined}
+                    aria-label={`Question ${index + 1}${a === undefined ? "" : a === q.correctOption ? ", correct" : ", wrong"}`}
+                    onClick={() => goTo(index)}
+                  />
+                );
+              })}
+            </nav>
+          )}
           <div ref={bodyRef} className={styles.quizBody}>
-            <QuizQuestions
-              quiz={quiz}
-              answers={answers}
-              submitted={submitted}
-              onPick={(question, option) => setAnswers((prev) => ({ ...prev, [question]: option }))}
-            />
+            {view === "results" ? (
+              <QuizResults quiz={quiz} answers={answers} elapsedMs={(timing.end ?? Date.now()) - (timing.start ?? Date.now())} />
+            ) : question ? (
+              <QuizQuestionView key={question.key} question={question} index={current} total={total} picked={answers[current]} onPick={pick} />
+            ) : null}
           </div>
           <footer className={styles.quizFoot}>
-            {submitted ? (
+            {view === "results" ? (
               <>
-                <span className={styles.score}>
-                  You scored {score} / {total}
-                </span>
-                <Button variant="outline" size="sm" className={styles.quizFootEnd} onClick={reset}>
+                <Button variant="outline" className={styles.quizSecondary} onClick={reset}>
+                  <RotateCcw size={16} aria-hidden="true" />
                   Try again
                 </Button>
-                <Button size="sm" onClick={() => setOpen(false)}>
+                <Button className={`${styles.quizFootEnd} ${styles.quizPrimary}`} onClick={() => setOpen(false)}>
                   Done
                 </Button>
               </>
             ) : (
               <>
-                <span className={styles.quizCount}>
-                  {answered} of {total} answered
-                </span>
-                <Button size="sm" className={styles.quizFootEnd} onClick={submit} disabled={answered === 0}>
-                  Submit answers
+                <Button variant="outline" className={styles.quizSecondary} onClick={() => goTo(current - 1)} disabled={current === 0}>
+                  <ChevronLeft size={16} aria-hidden="true" />
+                  Previous
                 </Button>
+                {isLast || answered === total ? (
+                  <Button className={`${styles.quizFootEnd} ${styles.quizPrimary}`} onClick={showResults}>
+                    See results
+                    <ArrowRight size={16} aria-hidden="true" />
+                  </Button>
+                ) : (
+                  <Button
+                    className={`${styles.quizFootEnd} ${answers[current] === undefined ? styles.quizSecondary : styles.quizPrimary}`}
+                    variant={answers[current] === undefined ? "outline" : "primary"}
+                    onClick={() => goTo(current + 1)}
+                  >
+                    {answers[current] === undefined ? "Skip" : "Next"}
+                    <ChevronRight size={16} aria-hidden="true" />
+                  </Button>
+                )}
               </>
             )}
           </footer>

@@ -359,7 +359,7 @@ async function save(input: InputType, adminId: number, options: { autoSlug?: boo
           postId,
           title: input.quiz.title.trim(),
           questionCount: input.quiz.questionCount,
-          isPublished: input.quiz.isPublished,
+          isPublished: true,
         })
         .returning("id")
         .executeTakeFirstOrThrow();

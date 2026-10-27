@@ -25,12 +25,12 @@
 }
 
 .breadcrumb a:hover {
-  color: var(--tk-brand-text);
+  color: var(--fc-blue-ink);
   text-decoration: underline;
 }
 
 .breadcrumb a:focus-visible {
-  outline: 2px solid var(--tk-brand-text);
+  outline: 2px solid var(--fc-blue-edge);
   outline-offset: 2px;
 }
 
@@ -73,19 +73,18 @@
   justify-content: space-between;
   gap: var(--spacing-2) var(--spacing-6);
   padding: var(--spacing-4) var(--spacing-6);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background-color: color-mix(in srgb, var(--tk-brand) 12%, var(--surface));
+  border-radius: 1.25rem;
+  background-color: var(--fc-panel);
 }
 
 .digestText {
   margin: 0;
   font-size: 0.9375rem;
-  color: var(--foreground);
+  color: var(--fc-panel-text);
 }
 
 .digestText a {
-  color: var(--foreground);
+  color: var(--fc-panel-ink);
   font-weight: 700;
 }
 
@@ -99,14 +98,31 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: var(--tk-brand-text);
+  padding: 0.375rem 0.875rem;
+  border: 1.5px solid var(--fc-mint-edge);
+  border-radius: var(--radius-full);
+  background-color: var(--fc-mint-tint);
+  box-shadow: 0 2px 0 var(--fc-mint-edge);
+  color: var(--fc-mint-ink);
   font-size: 0.875rem;
   font-weight: 700;
   text-decoration: none;
 }
 
+.digestLinks a + a {
+  border-color: var(--sp-lavender-edge);
+  background-color: var(--sp-lavender-tint);
+  box-shadow: 0 2px 0 var(--sp-lavender-edge);
+  color: var(--sp-lavender-ink);
+}
+
 .digestLinks a:hover {
   text-decoration: underline;
+}
+
+.digestLinks a:focus-visible {
+  outline: 2px solid var(--fc-panel-ink);
+  outline-offset: 2px;
 }
 
 .related {
@@ -147,11 +163,11 @@
 }
 
 .relatedCard:hover {
-  border-color: var(--tk-brand-text);
+  border-color: var(--rel-edge, var(--fc-blue-edge));
 }
 
 .relatedCard:focus-visible {
-  outline: 2px solid var(--tk-brand-text);
+  outline: 2px solid var(--fc-blue-edge);
   outline-offset: 2px;
 }
 
@@ -160,8 +176,8 @@
   align-items: center;
   justify-content: center;
   aspect-ratio: 16 / 9;
-  background-color: color-mix(in srgb, var(--tk-brand) 12%, var(--surface));
-  color: var(--tk-brand-text);
+  background-color: var(--rel-tint, var(--fc-blue-tint));
+  color: var(--rel-ink, var(--fc-blue-ink));
 }
 
 .relatedImage {
@@ -180,8 +196,33 @@
 
 .relatedDate {
   font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--tk-brand-text);
+  font-weight: 700;
+  color: var(--rel-ink, var(--fc-blue-ink));
+}
+
+/* Related cards cycle through the showcase accents. */
+.relatedGrid > li:nth-child(4n + 1) {
+  --rel-tint: var(--fc-blue-tint);
+  --rel-edge: var(--fc-blue-edge);
+  --rel-ink: var(--fc-blue-ink);
+}
+
+.relatedGrid > li:nth-child(4n + 2) {
+  --rel-tint: var(--fc-mint-tint);
+  --rel-edge: var(--fc-mint-edge);
+  --rel-ink: var(--fc-mint-ink);
+}
+
+.relatedGrid > li:nth-child(4n + 3) {
+  --rel-tint: var(--sp-lavender-tint);
+  --rel-edge: var(--sp-lavender-edge);
+  --rel-ink: var(--sp-lavender-ink);
+}
+
+.relatedGrid > li:nth-child(4n + 4) {
+  --rel-tint: var(--fc-butter-tint);
+  --rel-edge: var(--fc-butter-edge);
+  --rel-ink: var(--fc-butter-ink);
 }
 
 .relatedCardTitle {
@@ -201,8 +242,8 @@
   width: 3.25rem;
   height: 3.25rem;
   border-radius: var(--radius-full);
-  background-color: var(--tk-brand-tint);
-  color: var(--tk-brand-text);
+  background-color: var(--fc-blue-tint);
+  color: var(--fc-blue-ink);
 }
 
 .stateTitle {

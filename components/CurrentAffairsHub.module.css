@@ -1,20 +1,21 @@
 .page {
-  --ca-coral: var(--tk-brand);
-  --ca-coral-ink: var(--tk-brand-text);
-  --ca-coral-soft: color-mix(in srgb, var(--tk-brand) 12%, var(--surface));
-  --ca-coral-line: color-mix(in srgb, var(--tk-brand) 38%, var(--surface));
-  --ca-warm: color-mix(in srgb, var(--tk-brand) 5%, var(--surface));
+  /* The homepage showcase palette (--fc-*, --sp-*): blue drives links and actions, and each digest
+     type has its own accent, so the page is multi-coloured rather than orange-led. */
+  --ca-accent: var(--fc-blue-edge);
+  --ca-accent-ink: var(--fc-blue-ink);
+  --ca-accent-soft: var(--fc-blue-tint);
+  --ca-accent-line: var(--fc-blue-line);
   --ca-neutral: color-mix(in srgb, var(--foreground) 4%, var(--surface));
-  --ca-mint: color-mix(in srgb, var(--chart-color-2) 14%, var(--surface));
-  --ca-mint-line: color-mix(in srgb, var(--chart-color-2) 55%, var(--surface));
-  --ca-mint-ink: color-mix(in srgb, var(--chart-color-2) 45%, var(--foreground));
-  --ca-lavender: color-mix(in srgb, var(--chart-color-5) 15%, var(--surface));
-  --ca-lavender-line: color-mix(in srgb, var(--chart-color-5) 55%, var(--surface));
-  --ca-lavender-ink: color-mix(in srgb, var(--chart-color-5) 45%, var(--foreground));
-  --ca-blue: color-mix(in srgb, var(--info) 11%, var(--surface));
-  --ca-blue-ink: var(--info-text);
-  --ca-shadow: 0 1px 2px rgb(28 25 23 / 0.05);
-  --ca-shadow-hover: 0 1px 2px rgb(28 25 23 / 0.05), 0 10px 24px -14px rgb(28 25 23 / 0.28);
+  --ca-mint: var(--fc-mint-tint);
+  --ca-mint-line: var(--fc-mint-edge);
+  --ca-mint-ink: var(--fc-mint-ink);
+  --ca-lavender: var(--sp-lavender-tint);
+  --ca-lavender-line: var(--sp-lavender-edge);
+  --ca-lavender-ink: var(--sp-lavender-ink);
+  --ca-blue: var(--fc-blue-tint);
+  --ca-blue-ink: var(--fc-blue-ink);
+  --ca-shadow: var(--sp-shadow);
+  --ca-shadow-hover: var(--sp-shadow-hover);
 
   display: flex;
   flex-direction: column;
@@ -38,13 +39,24 @@
   border: 0;
 }
 
-/* Per-type accents for date badges and fallback thumbnails. */
-.tone_daily_digest,
-.tone_editorial_analysis,
+/* Per-type accents for date badges and fallback thumbnails: daily blue, weekly mint, monthly
+   lavender, editorials butter, single stories sage. */
+.tone_daily_digest {
+  --tone-bg: var(--fc-blue-tint);
+  --tone-line: var(--fc-blue-edge);
+  --tone-ink: var(--fc-blue-ink);
+}
+
+.tone_editorial_analysis {
+  --tone-bg: var(--fc-butter-tint);
+  --tone-line: var(--fc-butter-edge);
+  --tone-ink: var(--fc-butter-ink);
+}
+
 .tone_individual_item {
-  --tone-bg: var(--ca-coral-soft);
-  --tone-line: var(--ca-coral-line);
-  --tone-ink: var(--ca-coral-ink);
+  --tone-bg: var(--fc-sage-tint);
+  --tone-line: var(--fc-sage-edge);
+  --tone-ink: var(--fc-sage-ink);
 }
 
 .tone_weekly_digest {
@@ -59,7 +71,7 @@
   --tone-ink: var(--ca-lavender-ink);
 }
 
-/* Intro: a compact warm panel, not a hero. */
+/* Intro: a compact pine panel, the homepage showcase surface. */
 .intro {
   display: flex;
   align-items: flex-end;
@@ -67,9 +79,9 @@
   flex-wrap: wrap;
   gap: 0.75rem 1.5rem;
   padding: 1.375rem 1.625rem;
-  border: 1px solid color-mix(in srgb, var(--tk-brand) 14%, var(--border));
-  border-radius: var(--radius-lg);
-  background-color: var(--ca-warm);
+  border-radius: 1.5rem;
+  background-color: var(--fc-panel);
+  box-shadow: var(--sp-shadow);
 }
 
 .introText {
@@ -87,7 +99,7 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--ca-coral-ink);
+  color: var(--fc-panel-text);
 }
 
 .accentBar {
@@ -99,15 +111,15 @@
   width: 14px;
   height: 4px;
   border-radius: 2px;
-  background-color: var(--ca-coral);
+  background-color: var(--fc-peach-line);
 }
 
 .accentBar span:nth-child(2) {
-  background-color: var(--ca-lavender-line);
+  background-color: var(--sp-lavender-tint);
 }
 
 .accentBar span:nth-child(3) {
-  background-color: var(--ca-mint-line);
+  background-color: var(--fc-mint-tint);
 }
 
 .title {
@@ -117,7 +129,7 @@
   font-weight: 800;
   letter-spacing: -0.025em;
   line-height: 1.15;
-  color: var(--foreground);
+  color: var(--fc-panel-ink);
 }
 
 .subtitle {
@@ -125,7 +137,7 @@
   max-width: 40rem;
   font-size: 0.9375rem;
   line-height: 1.55;
-  color: var(--muted-foreground);
+  color: var(--fc-panel-text);
 }
 
 .updated {
@@ -134,12 +146,11 @@
   gap: 0.5rem;
   margin: 0;
   padding: 0.375rem 0.75rem;
-  border: 1px solid var(--border);
   border-radius: var(--radius-full);
-  background-color: var(--surface);
+  background-color: var(--fc-mint-tint);
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--foreground);
+  color: var(--fc-mint-ink);
   white-space: nowrap;
 }
 
@@ -147,7 +158,7 @@
   width: 7px;
   height: 7px;
   border-radius: var(--radius-full);
-  background-color: var(--ca-mint-ink);
+  background-color: var(--fc-mint-edge);
 }
 
 /* Tabs on the first grid row, list and sidebar on the second, so the sidebar lines up with the list. */
@@ -200,9 +211,8 @@
 
 .tabOn,
 .tabOn:hover {
-  background-color: var(--ca-coral-soft);
-  color: var(--ca-coral-ink);
-  box-shadow: inset 0 0 0 1px var(--ca-coral-line);
+  background-color: var(--fc-panel);
+  color: var(--fc-panel-ink);
 }
 
 .main {
@@ -245,7 +255,7 @@
 }
 
 .row:hover {
-  border-color: var(--ca-coral-line);
+  border-color: var(--ca-accent-line);
   box-shadow: var(--ca-shadow-hover);
 }
 
@@ -257,7 +267,7 @@
 .stateLink:focus-visible,
 .pagerStep:focus-visible,
 .pagerNumber:focus-visible {
-  outline: 2px solid var(--ca-coral-ink);
+  outline: 2px solid var(--ca-accent-ink);
   outline-offset: 2px;
 }
 
@@ -415,7 +425,7 @@
 }
 
 .row:hover .rowTitle {
-  color: var(--ca-coral-ink);
+  color: var(--ca-accent-ink);
 }
 
 .rowSummary {
@@ -456,10 +466,10 @@
   align-items: center;
   gap: 6px;
   padding: 0.5rem 0.875rem;
-  border: 1px solid var(--ca-coral-line);
+  border: 1px solid var(--ca-accent-line);
   border-radius: var(--radius-full);
   background-color: var(--surface);
-  color: var(--ca-coral-ink);
+  color: var(--ca-accent-ink);
   font-size: 0.8125rem;
   font-weight: 700;
   white-space: nowrap;
@@ -467,7 +477,7 @@
 }
 
 .row:hover .rowAction {
-  background-color: var(--ca-coral-soft);
+  background-color: var(--ca-accent-soft);
 }
 
 .rowAction svg,
@@ -635,11 +645,11 @@
 }
 
 .story:hover {
-  background-color: color-mix(in srgb, var(--tk-brand) 4%, var(--surface));
+  background-color: color-mix(in srgb, var(--fc-blue-tint) 40%, var(--surface));
 }
 
 .story:focus-visible {
-  outline: 2px solid var(--ca-coral-ink);
+  outline: 2px solid var(--ca-accent-ink);
   outline-offset: -2px;
 }
 
@@ -686,7 +696,7 @@
 .storyMeta {
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--ca-coral-ink);
+  color: var(--ca-accent-ink);
 }
 
 .storyTitle {
@@ -703,7 +713,7 @@
 }
 
 .story:hover .storyTitle {
-  color: var(--ca-coral-ink);
+  color: var(--ca-accent-ink);
 }
 
 .storySummary {
@@ -729,7 +739,7 @@
   gap: 4px;
   font-size: 0.8125rem;
   font-weight: 700;
-  color: var(--ca-coral-ink);
+  color: var(--ca-accent-ink);
   white-space: nowrap;
 }
 
@@ -836,15 +846,15 @@
 
 .pagerStep:hover,
 .pagerNumber:hover {
-  border-color: var(--ca-coral-line);
-  background-color: var(--ca-coral-soft);
+  border-color: var(--ca-accent-line);
+  background-color: var(--ca-accent-soft);
 }
 
 .pagerCurrent,
 .pagerCurrent:hover {
-  border-color: var(--ca-coral-line);
-  background-color: var(--ca-coral-soft);
-  color: var(--ca-coral-ink);
+  border-color: var(--ca-accent-line);
+  background-color: var(--ca-accent-soft);
+  color: var(--ca-accent-ink);
 }
 
 .pagerDisabled {
@@ -883,8 +893,8 @@
   height: 2.75rem;
   margin-bottom: 0.375rem;
   border-radius: var(--radius-full);
-  background-color: var(--ca-coral-soft);
-  color: var(--ca-coral-ink);
+  background-color: var(--ca-accent-soft);
+  color: var(--ca-accent-ink);
 }
 
 .state_weekly .stateIcon {
@@ -911,7 +921,7 @@
   margin-top: 0.5rem;
   border-radius: var(--radius-sm);
   font-weight: 700;
-  color: var(--ca-coral-ink);
+  color: var(--ca-accent-ink);
   text-decoration: none;
 }
 
@@ -950,7 +960,7 @@
   color: var(--muted-foreground);
 }
 
-/* Topic filter: pastel pills in five rotating tones; the active one turns solid coral. */
+/* Topic filter: pastel pills in five rotating tones; the active one turns solid pine. */
 .topicCard {
   display: flex;
   flex-direction: column;
@@ -973,17 +983,18 @@
 
 /* Long topic names wrap inside the card instead of running past its edge. */
 .topicChip {
-  --chip-tint: var(--tk-brand);
-  --chip-ink: var(--ca-coral-ink);
+  --chip-bg: var(--fc-blue-tint);
+  --chip-line: var(--fc-blue-line);
+  --chip-ink: var(--fc-blue-ink);
   display: inline-flex;
   align-items: center;
   gap: 4px;
   max-width: 100%;
   box-sizing: border-box;
   padding: 0.3125rem 0.75rem;
-  border: 1px solid color-mix(in srgb, var(--chip-tint) 30%, var(--surface));
+  border: 1px solid var(--chip-line);
   border-radius: var(--radius-full);
-  background-color: color-mix(in srgb, var(--chip-tint) 10%, var(--surface));
+  background-color: var(--chip-bg);
   color: var(--chip-ink);
   font-size: 0.8125rem;
   font-weight: 600;
@@ -998,40 +1009,44 @@
 }
 
 .topicChip:hover {
-  border-color: color-mix(in srgb, var(--chip-tint) 60%, var(--surface));
-  background-color: color-mix(in srgb, var(--chip-tint) 18%, var(--surface));
+  border-color: var(--chip-ink);
 }
 
 .topicCoral {
-  --chip-tint: var(--tk-brand);
-  --chip-ink: var(--ca-coral-ink);
+  --chip-bg: var(--fc-peach-tint);
+  --chip-line: var(--fc-peach-line);
+  --chip-ink: var(--fc-peach-ink);
 }
 
 .topicTeal {
-  --chip-tint: var(--chart-color-2);
-  --chip-ink: color-mix(in srgb, var(--chart-color-2) 40%, var(--foreground));
+  --chip-bg: var(--fc-mint-tint);
+  --chip-line: color-mix(in srgb, var(--fc-mint-edge) 35%, var(--fc-mint-tint));
+  --chip-ink: var(--fc-mint-ink);
 }
 
 .topicLavender {
-  --chip-tint: var(--chart-color-5);
-  --chip-ink: color-mix(in srgb, var(--chart-color-5) 45%, var(--foreground));
+  --chip-bg: var(--sp-lavender-tint);
+  --chip-line: var(--sp-lavender-line);
+  --chip-ink: var(--sp-lavender-ink);
 }
 
 .topicMint {
-  --chip-tint: var(--success);
-  --chip-ink: color-mix(in srgb, var(--success) 40%, var(--foreground));
+  --chip-bg: var(--fc-sage-tint);
+  --chip-line: var(--fc-sage-line);
+  --chip-ink: var(--fc-sage-ink);
 }
 
 .topicBlue {
-  --chip-tint: var(--info);
-  --chip-ink: var(--info-text);
+  --chip-bg: var(--fc-butter-tint);
+  --chip-line: var(--fc-butter-line);
+  --chip-ink: var(--fc-butter-ink);
 }
 
 .topicChipOn,
 .topicChipOn:hover {
-  border-color: var(--tk-brand-text);
-  background-color: var(--tk-brand-text);
-  color: #ffffff;
+  border-color: var(--fc-panel);
+  background-color: var(--fc-panel);
+  color: var(--fc-panel-ink);
 }
 
 .topicMore {
@@ -1043,7 +1058,7 @@
   font: inherit;
   font-size: 0.8125rem;
   font-weight: 700;
-  color: var(--ca-coral-ink);
+  color: var(--ca-accent-ink);
   cursor: pointer;
 }
 
@@ -1058,11 +1073,11 @@
   flex-wrap: wrap;
   gap: 0.5rem 1rem;
   padding: 0.625rem 0.875rem;
-  border: 1px solid var(--ca-coral-line);
+  border: 1px solid var(--fc-butter-line);
   border-radius: var(--radius-md);
-  background-color: var(--ca-warm);
+  background-color: var(--fc-butter-tint);
   font-size: 0.875rem;
-  color: var(--foreground);
+  color: var(--fc-butter-ink);
 }
 
 .filterClear {
@@ -1072,7 +1087,7 @@
   border-radius: var(--radius-sm);
   font-size: 0.8125rem;
   font-weight: 700;
-  color: var(--ca-coral-ink);
+  color: var(--fc-butter-ink);
   text-decoration: none;
 }
 
@@ -1084,7 +1099,7 @@
 .topicMore:focus-visible,
 .filterClear:focus-visible,
 .telegramButton:focus-visible {
-  outline: 2px solid var(--ca-coral-ink);
+  outline: 2px solid var(--ca-accent-ink);
   outline-offset: 2px;
 }
 
@@ -1093,7 +1108,7 @@
   flex-direction: column;
   gap: 0.75rem;
   background-color: var(--ca-blue);
-  border-color: color-mix(in srgb, var(--info) 28%, var(--surface));
+  border-color: var(--fc-blue-line);
   box-shadow: none;
 }
 
@@ -1149,7 +1164,7 @@
   border-radius: var(--radius-sm);
   font-size: 0.8125rem;
   font-weight: 700;
-  color: var(--ca-coral-ink);
+  color: var(--ca-accent-ink);
   text-decoration: none;
 }
 
@@ -1182,7 +1197,7 @@
 
 .monthCard:hover,
 .weekCard:hover {
-  border-color: var(--ca-coral-line);
+  border-color: var(--ca-accent-line);
   box-shadow: var(--ca-shadow-hover);
 }
 
@@ -1224,7 +1239,7 @@
 
 .monthCard:hover .monthTitle,
 .weekCard:hover .monthTitle {
-  color: var(--ca-coral-ink);
+  color: var(--ca-accent-ink);
 }
 
 .monthSummary {
@@ -1254,7 +1269,7 @@
   margin-left: auto;
   font-size: 0.8125rem;
   font-weight: 700;
-  color: var(--ca-coral-ink);
+  color: var(--ca-accent-ink);
   white-space: nowrap;
 }
 

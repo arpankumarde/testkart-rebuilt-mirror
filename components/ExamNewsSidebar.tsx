@@ -58,7 +58,7 @@ export const ExamNewsSidebar: React.FC<ExamNewsSidebarProps> = ({ data, isLoadin
             {exams.map((exam) => (
               <li key={exam.slug}>
                 <Link
-                  to={examNewsPublicMeta.listingPath({ examSlug: exam.slug })}
+                  to={examNewsPublicMeta.examPath(exam.slug)}
                   className={`${styles.chip} ${activeExam === exam.slug ? styles.chipActive : ""}`}
                   aria-current={activeExam === exam.slug ? "page" : undefined}
                 >

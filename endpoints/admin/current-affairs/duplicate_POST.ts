@@ -24,7 +24,7 @@ export async function handle(request: Request) {
         publishAt: "",
         digestDate: "",
         corrections: [],
-        quiz: source.quiz ? { ...source.quiz, isPublished: false } : null,
+        quiz: source.quiz ? { ...source.quiz, isPublished: true } : null,
       },
       admin.id,
       { autoSlug: true }

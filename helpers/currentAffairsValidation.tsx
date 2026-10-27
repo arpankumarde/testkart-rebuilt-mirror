@@ -116,7 +116,7 @@ export function validateCurrentAffairs(input: InputType, now: Date = new Date())
   }
 
   const quiz = input.quiz;
-  if (quiz && quiz.isPublished) {
+  if (quiz && strict) {
     if (!quiz.title.trim()) add("quiz.title", "Name the quiz");
     if (quiz.questions.length !== quiz.questionCount) {
       add("quiz.questionCount", `The quiz is set to ${quiz.questionCount} questions but has ${quiz.questions.length}`);

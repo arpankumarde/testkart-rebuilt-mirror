@@ -63,24 +63,6 @@
   min-width: 0;
 }
 
-.publishRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-4);
-  padding: var(--spacing-3) var(--spacing-4);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background-color: var(--muted);
-}
-
-.publishLabel {
-  margin: 0 0 2px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--foreground);
-}
-
 .questions {
   display: flex;
   flex-direction: column;

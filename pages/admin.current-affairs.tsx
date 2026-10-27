@@ -233,7 +233,6 @@ const AdminCurrentAffairsPage: React.FC = () => {
               <li className={`${styles.pill} ${styles.neutralPill}`}>
                 <ListChecks size={12} aria-hidden="true" />
                 Quiz {row.quiz.questionCount}
-                {row.quiz.isPublished ? "" : " (hidden)"}
               </li>
             )}
             {pillTags.slice(0, VISIBLE_TAGS).map((tag) => (

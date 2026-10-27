@@ -46,7 +46,7 @@ function cardQuery(filters: Filters) {
   let query = db
     .selectFrom("currentAffairsPosts as p")
     .leftJoin("admins as a", "a.id", "p.authorId")
-    .leftJoin("currentAffairsQuizzes as q", (join) => join.onRef("q.postId", "=", "p.id").on("q.isPublished", "=", true))
+    .leftJoin("currentAffairsQuizzes as q", "q.postId", "p.id")
     .where("p.status", "=", "published");
   if (filters.contentType) query = query.where("p.contentType", "=", filters.contentType);
   if (filters.language) query = query.where("p.language", "=", filters.language);
@@ -227,7 +227,7 @@ async function publicDetail(id: number): Promise<DetailOutput | null> {
   const { createdByName: _c, updatedByName: _u, previousSlugs: _p, firstPublishedAt: _f, archivedAt: _a, createdAt: _cr, ...rest } = detail;
   const post: PublicDigestDetail = {
     ...rest,
-    quiz: detail.quiz && detail.quiz.isPublished ? detail.quiz : null,
+    quiz: detail.quiz && detail.quiz.questions.length > 0 ? detail.quiz : null,
     related: detail.related
       .filter((r) => livePaths.has(r.id))
       .map(({ id, title, slug }) => ({ id, title, slug, path: livePaths.get(id)! })),

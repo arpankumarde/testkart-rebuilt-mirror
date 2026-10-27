@@ -75,7 +75,7 @@ export const ExamNewsListItem: React.FC<ExamNewsListItemProps> = ({ item, compac
         <div className={styles.tags}>
           <ExamNewsTypeBadge type={item.newsType} />
           {item.examName && item.examSlug && (
-            <Link to={href} className={styles.examLink}>
+            <Link to={examNewsPublicMeta.examPath(item.examSlug)} className={styles.examLink}>
               {item.examName}
             </Link>
           )}

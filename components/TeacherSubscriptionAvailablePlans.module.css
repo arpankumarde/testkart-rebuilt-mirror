@@ -3,7 +3,7 @@
  * an ivory panel holding white, rounded, shadowed plan cards, a lavender chip
  * for the section's badges, and a peach 3D pill for the primary CTA. Each
  * plan gets a fixed accent (not fee-based) cycling lavender, sage, blue,
- * peach - the same order HomepageUgcNetSpotlight uses for its credentials.
+ * peach - the order the old UGC NET spotlight used for its credential cards.
  */
 .plansSection {
   display: flex;

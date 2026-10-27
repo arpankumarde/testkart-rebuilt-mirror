@@ -182,11 +182,6 @@ export const ExamNewsStoryView: React.FC<{ slug: string }> = ({ slug }) => {
           <li>
             <Link to={examNewsPublicMeta.HUB_PATH}>Exam News</Link>
           </li>
-          {story.exam && (
-            <li>
-              <Link to={examNewsPublicMeta.listingPath({ examSlug: story.exam.slug })}>{story.exam.name}</Link>
-            </li>
-          )}
         </ol>
       </nav>
 
@@ -196,7 +191,7 @@ export const ExamNewsStoryView: React.FC<{ slug: string }> = ({ slug }) => {
             <div className={styles.tags}>
               <ExamNewsTypeBadge type={story.newsType} asLink className={styles.typeBadge} />
               {story.exam && (
-                <Link to={examNewsPublicMeta.listingPath({ examSlug: story.exam.slug })} className={styles.examTag}>
+                <Link to={examNewsPublicMeta.examPath(story.exam.slug)} className={styles.examTag}>
                   {story.exam.name}
                 </Link>
               )}
@@ -343,8 +338,8 @@ export const ExamNewsStoryView: React.FC<{ slug: string }> = ({ slug }) => {
               <ArrowLeft size={16} aria-hidden="true" /> Back to Exam News
             </Link>
             {story.exam && (
-              <Link to={examNewsPublicMeta.listingPath({ examSlug: story.exam.slug })} className={styles.moreLink}>
-                More {story.exam.name} news
+              <Link to={examNewsPublicMeta.examPath(story.exam.slug)} className={styles.moreLink}>
+                Explore {story.exam.name}
               </Link>
             )}
           </footer>

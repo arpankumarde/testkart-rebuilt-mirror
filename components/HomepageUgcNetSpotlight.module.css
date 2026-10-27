@@ -1,123 +1,32 @@
 /*
- * UGC NET spotlight: an ivory profile panel (identity left, four staggered
- * credential cards right) above a white catalogue of his courses. Pastels each
- * have one job:
- *   lavender  the spotlight chip, the portrait ring, item-type pills, hover
- *   mint      the offset blob behind the portrait
- *   sage, blue, peach  credential accents (one each, with lavender)
- *   coral     only the View profile CTA, the name underline and View all
- *   peach, mint, blue, butter  item price panels, cycling card by card
- * Every colour is solid. -tint is a fill, -line a large outline (~2:1), -edge
- * a chip outline (3:1+), -ink text on the tint (7:1+). The dark block re-maps
- * the same names, so nothing below branches on theme.
+ * UGC NET Spotlight, compact: an ivory panel (spotlight language, --sp-* in
+ * base.css) holding a compact header, a slim featured course card and one
+ * snap-scrolling carousel of mixed resources. Accents use the homepage
+ * showcase tokens (--fc-* in base.css) plus the spotlight lavender and mint,
+ * all themed there, so nothing below branches on theme.
+ *   peach     the title underline, View all, the featured card frame, its
+ *             CTA and its discount badge
+ *   lavender, mint, peach, sage, blue  resource card accents, cycling
+ * Brand orange is kept to the title accent word. Every colour is solid.
  *
  * The section is the query container, so the layout follows the homepage
- * column rather than the viewport: item cards run 1, 2 and 4 across.
+ * column rather than the viewport.
  */
 .section {
-  --sp-surface: hsl(42 45% 98%);
-  --sp-card: hsl(0 0% 100%);
-  --sp-ink: hsl(224 28% 18%);
-  --sp-text: hsl(222 14% 28%);
-  --sp-muted: hsl(220 12% 38%);
-  --sp-line: hsl(36 14% 80%);
-  --sp-line-strong: hsl(36 14% 70%);
-  --sp-shadow:
-    0 1px 2px hsl(30 20% 20% / 0.06),
-    0 18px 40px -30px hsl(30 25% 20% / 0.4);
-  --sp-shadow-hover:
-    0 2px 4px hsl(30 20% 20% / 0.08),
-    0 18px 32px -20px hsl(30 25% 20% / 0.4);
-
-  --sp-cta: #fdba91;
-  --sp-cta-hover: #fca777;
-  --sp-cta-ink: hsl(222 24% 17%);
-
-  --sp-peach-tint: hsl(24 100% 92%);
-  --sp-peach-edge: hsl(20 68% 52%);
-  --sp-peach-ink: var(--tk-brand-text);
-
-  --sp-lavender-tint: hsl(258 55% 93%);
-  --sp-lavender-line: hsl(258 30% 80%);
-  --sp-lavender-edge: hsl(258 35% 58%);
-  --sp-lavender-ink: hsl(258 32% 30%);
-
-  --sp-sage-tint: hsl(95 30% 90%);
-  --sp-sage-edge: hsl(95 22% 42%);
-  --sp-sage-ink: hsl(100 28% 22%);
-
-  --sp-mint-tint: hsl(155 45% 88%);
-  --sp-mint-line: hsl(157 28% 64%);
-
-  --sp-blue-tint: hsl(210 60% 92%);
-  --sp-blue-edge: hsl(210 40% 52%);
-  --sp-blue-ink: hsl(212 50% 30%);
-
-  /* Price panels: fill, hairline, doodle/icon edge. */
-  --sp-price-peach: #fff0e8;
-  --sp-price-peach-line: hsl(22 75% 85%);
-  --sp-price-peach-edge: hsl(20 68% 52%);
-  --sp-price-mint: #e8f7ef;
-  --sp-price-mint-line: hsl(150 38% 78%);
-  --sp-price-mint-edge: hsl(158 38% 38%);
-  --sp-price-blue: #eaf3ff;
-  --sp-price-blue-line: hsl(214 60% 84%);
-  --sp-price-blue-edge: hsl(212 45% 46%);
-  --sp-price-butter: #fff5df;
-  --sp-price-butter-line: hsl(42 75% 78%);
-  --sp-price-butter-edge: hsl(38 65% 38%);
-
   container-type: inline-size;
 }
 
-:global(.dark) .section {
-  --sp-surface: hsl(222 20% 13%);
-  --sp-card: hsl(222 18% 16%);
-  --sp-ink: hsl(220 20% 93%);
-  --sp-text: hsl(220 14% 82%);
-  --sp-muted: hsl(220 12% 70%);
-  --sp-line: hsl(222 14% 27%);
-  --sp-line-strong: hsl(222 14% 34%);
-  --sp-shadow: 0 1px 2px hsl(0 0% 0% / 0.25);
-  --sp-shadow-hover: 0 12px 28px -12px hsl(0 0% 0% / 0.6);
-
-  --sp-peach-tint: hsl(20 28% 20%);
-  --sp-peach-edge: hsl(20 60% 58%);
-
-  --sp-lavender-tint: hsl(258 20% 24%);
-  --sp-lavender-line: hsl(258 16% 33%);
-  --sp-lavender-edge: hsl(258 35% 66%);
-  --sp-lavender-ink: hsl(258 60% 87%);
-
-  --sp-sage-tint: hsl(95 14% 21%);
-  --sp-sage-edge: hsl(95 20% 52%);
-  --sp-sage-ink: hsl(95 30% 82%);
-
-  --sp-mint-tint: hsl(160 20% 20%);
-  --sp-mint-line: hsl(160 18% 36%);
-
-  --sp-blue-tint: hsl(212 24% 23%);
-  --sp-blue-edge: hsl(210 35% 58%);
-  --sp-blue-ink: hsl(210 60% 85%);
-
-  --sp-price-peach: hsl(20 28% 20%);
-  --sp-price-peach-line: hsl(20 22% 30%);
-  --sp-price-peach-edge: hsl(20 60% 64%);
-  --sp-price-mint: hsl(155 20% 18%);
-  --sp-price-mint-line: hsl(155 16% 29%);
-  --sp-price-mint-edge: hsl(155 38% 58%);
-  --sp-price-blue: hsl(212 26% 21%);
-  --sp-price-blue-line: hsl(212 20% 32%);
-  --sp-price-blue-edge: hsl(210 50% 68%);
-  --sp-price-butter: hsl(42 26% 18%);
-  --sp-price-butter-line: hsl(42 20% 29%);
-  --sp-price-butter-edge: hsl(44 60% 60%);
-}
-
+/* The build drops negative z-index, so the blobs sit on the panel and the
+   content is lifted above them instead. */
 .block {
+  --pad: 1.125rem;
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
-  background-color: var(--sp-card);
+  gap: 1.25rem;
+  padding: 1.25rem var(--pad) 0.75rem;
+  background-color: var(--sp-surface);
   color: var(--sp-text);
   border: 1px solid var(--sp-line);
   border-radius: 1.5rem;
@@ -125,355 +34,201 @@
   overflow: hidden;
 }
 
-/* Profile */
-.profile {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-6);
-  padding: var(--spacing-6) 1.25rem;
-  background-color: var(--sp-surface);
-  border-bottom: 1px solid var(--sp-line);
+.block > :not(.blobMint):not(.blobLavender) {
+  position: relative;
+  z-index: 1;
   min-width: 0;
 }
 
-.profileMain {
+.blobMint,
+.blobLavender {
+  position: absolute;
+  pointer-events: none;
+}
+
+.blobMint {
+  top: -2.75rem;
+  left: -2.5rem;
+  width: 7rem;
+  height: 5.5rem;
+  background-color: var(--sp-mint-tint);
+  border-radius: 58% 42% 50% 50% / 46% 56% 44% 54%;
+  transform: rotate(-12deg);
+}
+
+.blobLavender {
+  top: -2.5rem;
+  right: -2.5rem;
+  width: 11rem;
+  height: 9rem;
+  background-color: var(--sp-lavender-tint);
+  border-radius: 46% 54% 42% 58% / 52% 44% 56% 48%;
+  transform: rotate(10deg);
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+}
+
+.headerCopy {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--spacing-4);
-  min-width: 0;
-}
-
-/* A small sticker-like pill, tilted a touch. */
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.375rem 0.75rem 0.375rem 0.625rem;
-  background-color: var(--sp-lavender-tint);
-  border: 1px solid var(--sp-lavender-line);
-  border-radius: var(--radius-full);
-  color: var(--sp-lavender-ink);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  line-height: 1;
-  transform: rotate(-2deg);
-}
-
-.identity {
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  min-width: 0;
-}
-
-/* Lavender-ringed portrait over a mint blob offset down and right. The build
-   drops negative z-index, so the photo is lifted (z-index 1) above the blob
-   rather than the blob being pushed under it. */
-.portraitWrap {
-  position: relative;
-  flex: 0 0 auto;
-  display: inline-flex;
-  isolation: isolate;
-}
-
-.portraitWrap::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-color: var(--sp-mint-tint);
-  border: 1.5px solid var(--sp-mint-line);
-  border-radius: 58% 42% 50% 50% / 46% 56% 44% 54%;
-  transform: translate(0.5rem, 0.4375rem) rotate(-8deg);
-}
-
-.portrait {
-  position: relative;
-  z-index: 1;
-  display: block;
-  width: 5.5rem;
-  height: 5.5rem;
-  object-fit: cover;
-  object-position: center 15%;
-  border: 3px solid var(--sp-card);
-  border-radius: 50%;
-  box-shadow: 0 0 0 2.5px var(--sp-lavender-line);
-  background-color: var(--sp-lavender-tint);
-}
-
-.nameBlock {
-  display: flex;
-  flex-direction: column;
   gap: 0.25rem;
+  flex: 1 1 auto;
   min-width: 0;
-}
-
-.nameUnderline {
-  display: block;
-  width: 7.5rem;
-  height: 0.5rem;
-  margin: 0.125rem 0 0.25rem;
-  overflow: visible;
-}
-
-.nameUnderline path {
-  fill: none;
-  stroke: var(--sp-peach-edge);
-  stroke-width: 2.5;
-  stroke-linecap: round;
-  vector-effect: non-scaling-stroke;
 }
 
 .title {
   margin: 0;
   font-family: var(--font-family-heading);
-  font-size: 1.75rem;
-  font-weight: 800;
-  line-height: 1.08;
-  letter-spacing: -0.02em;
-  color: var(--sp-ink);
-  text-wrap: balance;
-}
-
-.academy {
-  margin: 0;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  line-height: 1.35;
-  color: var(--sp-muted);
-}
-
-.lede {
-  margin: 0;
-  max-width: 50ch;
-  font-size: 0.9375rem;
-  line-height: 1.7;
-  color: var(--sp-text);
-}
-
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-3);
-  margin-top: var(--spacing-1);
-}
-
-/* Pill with one tucked corner and a solid peach ledge it lifts off on hover. */
-.action {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-2);
-  min-height: 2.75rem;
-  padding: 0 1.25rem;
-  border: 1px solid var(--sp-peach-edge);
-  border-radius: 1.375rem 1.375rem 1.375rem 0.5rem;
-  background-color: var(--sp-cta);
-  box-shadow: 0 3px 0 var(--sp-peach-edge);
-  color: var(--sp-cta-ink);
-  font-size: 0.9375rem;
-  font-weight: 700;
-  text-decoration: none;
-  transition:
-    background-color var(--animation-duration-fast) ease,
-    box-shadow var(--animation-duration-fast) ease,
-    transform var(--animation-duration-fast) ease;
-}
-
-.action:hover {
-  background-color: var(--sp-cta-hover);
-  box-shadow: 0 5px 0 var(--sp-peach-edge);
-  transform: translateY(-2px);
-}
-
-.action:active {
-  box-shadow: 0 1px 0 var(--sp-peach-edge);
-  transform: translateY(2px);
-}
-
-.actionArrow {
-  transition: transform var(--animation-duration-fast) ease;
-}
-
-.action:hover .actionArrow {
-  transform: translateX(2px);
-}
-
-.action:focus-visible {
-  outline: 2px solid var(--sp-lavender-edge);
-  outline-offset: 3px;
-}
-
-/* Credentials: four light cards in a 2x2 grid, each with one pastel accent
-   (its icon chip and a small corner dot). From tablet width the right column
-   drops half a step for a staggered, pinned-up feel. */
-.credentials {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--spacing-3);
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-.credential {
-  --accent-tint: var(--sp-lavender-tint);
-  --accent-edge: var(--sp-lavender-edge);
-  --accent-ink: var(--sp-lavender-ink);
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  padding: 0.875rem 1rem 0.9375rem;
-  background-color: var(--sp-card);
-  border: 1px solid var(--sp-line);
-  border-radius: 1.125rem;
-  box-shadow: var(--sp-shadow);
-}
-
-.credential::after {
-  content: "";
-  position: absolute;
-  top: 0.875rem;
-  right: 0.875rem;
-  width: 0.4375rem;
-  height: 0.4375rem;
-  border-radius: 50%;
-  background-color: var(--accent-edge);
-}
-
-.credential:nth-child(2) {
-  --accent-tint: var(--sp-sage-tint);
-  --accent-edge: var(--sp-sage-edge);
-  --accent-ink: var(--sp-sage-ink);
-}
-
-.credential:nth-child(3) {
-  --accent-tint: var(--sp-blue-tint);
-  --accent-edge: var(--sp-blue-edge);
-  --accent-ink: var(--sp-blue-ink);
-}
-
-.credential:nth-child(4) {
-  --accent-tint: var(--sp-peach-tint);
-  --accent-edge: var(--sp-peach-edge);
-  --accent-ink: var(--sp-peach-ink);
-}
-
-.credentialValue {
-  order: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.625rem;
-  margin: 0;
-  font-family: var(--font-family-heading);
-  font-size: 1.375rem;
+  font-size: 1.5rem;
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.02em;
   color: var(--sp-ink);
 }
 
-.credentialLabel {
-  order: 2;
-  margin-top: var(--spacing-1);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  line-height: 1.35;
-  color: var(--sp-muted);
-}
-
-.credentialIcon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  background-color: var(--accent-tint);
-  color: var(--accent-ink);
-}
-
-/* Catalogue */
-.catalog {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4);
-  padding: var(--spacing-6) 1.25rem;
-  background-color: var(--sp-card);
-  min-width: 0;
-}
-
-.catalogHead {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--spacing-3);
-}
-
-.catalogTitle {
-  margin: 0;
-  font-family: var(--font-family-heading);
-  font-size: 1.125rem;
-  font-weight: 700;
-  line-height: 1.3;
-  letter-spacing: -0.01em;
-  color: var(--sp-ink);
-}
-
-.viewAllLink {
-  flex: 0 0 auto;
-  font-size: 0.875rem;
-  font-weight: 700;
+.titleAccent {
   color: var(--tk-brand-text);
-  text-decoration: none;
-  text-underline-offset: 3px;
 }
 
-.viewAllLink:hover {
-  text-decoration: underline;
-  text-decoration-thickness: 1.5px;
+.titleUnderline {
+  display: block;
+  width: 6rem;
+  height: 0.5rem;
+  margin: 0 0 0.25rem;
+  overflow: visible;
 }
 
-.viewAllLink:focus-visible {
-  outline: 2px solid var(--sp-lavender-edge);
-  outline-offset: 2px;
-  border-radius: 0.25rem;
+.titleUnderline path {
+  fill: none;
+  stroke: var(--fc-peach-edge);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
 }
 
-.list {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--spacing-4);
+.subtitle {
   margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.listItem {
-  min-width: 0;
-}
-
-/* Item card: thumbnail, info, then the price panel pinned to the bottom so
-   panels line up across a row whatever the title length. */
-.row {
-  --price-fill: var(--sp-price-peach);
-  --price-line: var(--sp-price-peach-line);
-  --price-edge: var(--sp-price-peach-edge);
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
-  border: 1px solid var(--sp-line);
-  border-radius: 1.25rem;
-  background-color: var(--sp-card);
-  box-shadow: var(--sp-shadow);
+  font-size: 0.9375rem;
+  line-height: 1.5;
   color: var(--sp-text);
+}
+
+.illustration {
+  display: block;
+  align-self: flex-start;
+  flex: 0 0 auto;
+  width: 6.5rem;
+  height: auto;
+  overflow: visible;
+}
+
+.illoShadow {
+  fill: none;
+  stroke: var(--sp-line-strong);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.illoBookPeach,
+.illoBookMint,
+.illoBookLavender {
+  stroke-width: 1.5;
+}
+
+.illoBookPeach {
+  fill: var(--fc-peach-tint);
+  stroke: var(--fc-peach-edge);
+}
+
+.illoBookMint {
+  fill: var(--fc-mint-tint);
+  stroke: var(--fc-mint-edge);
+}
+
+.illoBookLavender {
+  fill: var(--sp-lavender-tint);
+  stroke: var(--sp-lavender-edge);
+}
+
+.illoPage {
+  fill: none;
+  stroke: var(--sp-card);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.illoCap {
+  fill: var(--sp-ink);
+}
+
+.illoCapBase {
+  fill: var(--sp-text);
+}
+
+.illoTassel {
+  fill: none;
+  stroke: var(--fc-butter-edge);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.illoTasselEnd {
+  fill: var(--fc-butter-edge);
+}
+
+.illoSparkle {
+  fill: var(--fc-peach-edge);
+}
+
+.illoSparkleSmall {
+  fill: var(--sp-lavender-edge);
+}
+
+.illoDot {
+  fill: var(--fc-mint-edge);
+}
+
+.illoSquiggle {
+  fill: none;
+  stroke: var(--fc-blue-edge);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.viewAll:focus-visible,
+.arrow:focus-visible,
+.retry:focus-visible {
+  outline: 2px solid var(--sp-lavender-edge);
+  outline-offset: 3px;
+}
+
+/* Featured course: a slim framed card on a peach ledge holding the
+   thumbnail, the details (teacher, title, pills) and a price breakdown.
+   Stacked on phones; thumbnail left from tablet width, with the price in its
+   own column behind a dashed divider on wide screens. */
+.featured {
+  display: grid;
+  grid-template-areas:
+    "thumb"
+    "info"
+    "price";
+  gap: 0.75rem;
+  padding: 0.625rem;
+  box-sizing: border-box;
+  background-color: var(--sp-card);
+  color: var(--sp-text);
+  border: 1.5px solid var(--fc-peach-line);
+  border-radius: 1.25rem;
+  box-shadow:
+    0 3px 0 var(--fc-peach-line),
+    var(--sp-shadow);
   text-decoration: none;
   transition:
     transform var(--animation-duration-normal) ease,
@@ -481,45 +236,28 @@
     border-color var(--animation-duration-normal) ease;
 }
 
-.listItem:nth-child(4n + 2) .row {
-  --price-fill: var(--sp-price-mint);
-  --price-line: var(--sp-price-mint-line);
-  --price-edge: var(--sp-price-mint-edge);
+a.featured:hover {
+  transform: translateY(-2px);
+  border-color: var(--fc-peach-edge);
+  box-shadow:
+    0 5px 0 var(--fc-peach-edge),
+    var(--sp-shadow-hover);
 }
 
-.listItem:nth-child(4n + 3) .row {
-  --price-fill: var(--sp-price-blue);
-  --price-line: var(--sp-price-blue-line);
-  --price-edge: var(--sp-price-blue-edge);
+a.featured:focus-visible {
+  outline: 3px solid var(--sp-lavender-edge);
+  outline-offset: 3px;
 }
 
-.listItem:nth-child(4n) .row {
-  --price-fill: var(--sp-price-butter);
-  --price-line: var(--sp-price-butter-line);
-  --price-edge: var(--sp-price-butter-edge);
-}
-
-a.row:hover {
-  transform: translateY(-4px);
-  border-color: var(--sp-lavender-edge);
-  box-shadow: var(--sp-shadow-hover);
-}
-
-a.row:focus-visible {
-  outline: 2px solid var(--sp-lavender-edge);
-  outline-offset: 2px;
-}
-
-.thumbFrame {
-  display: block;
-  flex: 0 0 auto;
+.featuredThumb {
+  grid-area: thumb;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  border-bottom: 1px solid var(--sp-line);
-  background-color: var(--sp-lavender-tint);
+  border-radius: 0.875rem;
+  background-color: var(--fc-peach-tint);
 }
 
-.thumb {
+.featuredImage {
   display: block;
   width: 100%;
   height: 100%;
@@ -527,52 +265,27 @@ a.row:focus-visible {
   transition: transform 0.45s ease;
 }
 
-a.row:hover .thumb {
-  transform: scale(1.05);
+a.featured:hover .featuredImage {
+  transform: scale(1.04);
 }
 
-.skeletonThumb {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: 0;
-}
-
-.rowBody {
+.featuredInfo {
+  grid-area: info;
   display: flex;
   flex-direction: column;
-  flex: 1;
-  gap: 0.875rem;
-  min-width: 0;
-  padding: 1rem 1.125rem 1.125rem;
-}
-
-.rowInfo {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
+  align-items: flex-start;
   gap: 0.5rem;
   min-width: 0;
+  padding: 0 0.25rem;
 }
 
-.kind {
-  align-self: flex-start;
-  padding: 0.25rem 0.625rem;
-  background-color: var(--sp-lavender-tint);
-  border-radius: var(--radius-full);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  line-height: 1.3;
-  color: var(--sp-lavender-ink);
-}
-
-.rowTitle {
+.featuredTitle {
+  margin: 0;
   font-family: var(--font-family-heading);
-  font-size: 1rem;
-  font-weight: 700;
-  line-height: 1.35;
+  font-size: 1.125rem;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
   color: var(--sp-ink);
   display: -webkit-box;
   -webkit-line-clamp: 3;
@@ -581,69 +294,163 @@ a.row:hover .thumb {
   overflow-wrap: anywhere;
 }
 
-.meta {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--sp-muted);
-}
-
-.metaIcon {
-  flex-shrink: 0;
-}
-
-/* Price panel: the card's pastel, a hairline in the same hue, and two small
-   hand-drawn strokes breaking its top edge on the right. */
-.pricePanel {
-  position: relative;
+.featuredPills {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.25rem var(--spacing-3);
-  padding: 0.6875rem 1rem;
-  background-color: var(--price-fill);
-  border: 1px solid var(--price-line);
-  border-radius: 1rem;
+  gap: 0.375rem;
+  min-width: 0;
 }
 
-.priceDoodle {
-  position: absolute;
-  top: -0.5rem;
-  right: 0.875rem;
-  width: 1.25rem;
-  height: 0.875rem;
-  overflow: visible;
-}
-
-.priceDoodle path {
-  fill: none;
-  stroke: var(--price-edge);
-  stroke-width: 2;
-  stroke-linecap: round;
-}
-
-.priceLabel {
+.teacher {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--sp-text);
+  min-width: 0;
 }
 
-.priceLabel svg {
+.featuredAvatar {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--sp-card), 0 0 0 3.5px var(--fc-peach-line);
+  font-size: 0.625rem;
+}
+
+.featuredTeacherName {
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--sp-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.metaPill {
+  --pill-tint: var(--fc-blue-tint);
+  --pill-line: var(--fc-blue-line);
+  --pill-ink: var(--fc-blue-ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  box-sizing: border-box;
+  height: 1.75rem;
+  padding: 0 0.75rem;
+  background-color: var(--pill-tint);
+  border: 1px solid var(--pill-line);
+  border-radius: var(--radius-full);
+  color: var(--pill-ink);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.metaPill[data-tone="lavender"] {
+  --pill-tint: var(--sp-lavender-tint);
+  --pill-line: var(--sp-lavender-line);
+  --pill-ink: var(--sp-lavender-ink);
+}
+
+.metaPill[data-tone="mint"] {
+  --pill-tint: var(--fc-mint-tint);
+  --pill-line: var(--sp-mint-line);
+  --pill-ink: var(--fc-mint-ink);
+}
+
+/* Minimal price block, left aligned: the price to pay large and dark with a
+   small mint "N% OFF" pill beside it, the struck list price under it, and
+   the coupon code as a quiet line last. The pill and list price appear only
+   for a real saving, the coupon line only when a coupon applies. */
+.priceBox {
+  grid-area: price;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.125rem;
+  padding: 0.75rem 0.25rem 0.125rem;
+  border-top: 1.5px dashed var(--fc-peach-line);
+}
+
+.priceRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  white-space: nowrap;
+}
+
+.listPrice {
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--sp-muted);
+  text-decoration-thickness: 1px;
+  font-variant-numeric: tabular-nums;
+}
+
+.discountBadge {
+  padding: 0.1875rem 0.5625rem;
+  background-color: var(--fc-mint-tint);
+  border-radius: var(--radius-full);
+  color: var(--fc-mint-ink);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.couponLine {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  margin-top: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--sp-muted);
+  white-space: nowrap;
+}
+
+.couponIcon {
   flex-shrink: 0;
-  color: var(--price-edge);
+  color: var(--fc-peach-edge);
+}
+
+/* The code as a small dashed coupon stub, like the course page's coupon card. */
+.couponCode {
+  display: inline-block;
+  margin-left: 0.125rem;
+  padding: 0.125rem 0.4375rem;
+  background-color: var(--fc-peach-tint);
+  border: 1.5px dashed var(--fc-peach-edge);
+  border-radius: 0.375rem;
+  color: var(--fc-peach-ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1.3;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .priceGroup {
   display: inline-flex;
   align-items: baseline;
   gap: 0.375rem;
-  margin-left: auto;
   white-space: nowrap;
 }
 
@@ -653,20 +460,584 @@ a.row:hover .thumb {
   color: var(--sp-muted);
 }
 
-.price,
-.priceFree {
-  font-size: 1.25rem;
+.featuredPrice,
+.featuredPriceFree {
+  font-size: 1.625rem;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.featuredPrice {
+  color: var(--sp-ink);
+}
+
+.featuredPriceFree {
+  color: var(--fc-mint-ink);
+}
+
+/* Resources carousel */
+.resources {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.resourcesHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.resourcesHeading {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 14rem;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.resourcesTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--sp-ink);
+}
+
+.resourcesCaption {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--sp-muted);
+}
+
+.resourcesControls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-left: auto;
+}
+
+.arrows {
+  display: flex;
+  gap: var(--spacing-2);
+}
+
+/* Sage fill with an edge when it can move, filling solid on hover; a flat
+   dashed ring with no fill when it can't. */
+.arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 1.5px solid var(--fc-sage-edge);
+  border-radius: 50%;
+  background-color: var(--fc-sage-tint);
+  box-shadow: 0 2px 0 var(--fc-sage-line);
+  color: var(--fc-sage-ink);
+  cursor: pointer;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
+}
+
+.arrow:hover:not(:disabled) {
+  background-color: var(--fc-sage-edge);
+  color: var(--sp-card);
+  transform: translateY(-1px);
+}
+
+.arrow:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.arrow:disabled {
+  background-color: transparent;
+  border-style: dashed;
+  border-color: var(--sp-line-strong);
+  box-shadow: none;
+  color: var(--sp-muted);
+  cursor: default;
+}
+
+/* Compact coral-peach pill with one tucked corner on a solid ledge it lifts
+   off on hover; the same height and ledge as the arrows beside it. */
+.viewAll {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  box-sizing: border-box;
+  height: 2.25rem;
+  padding: 0 0.75rem 0 0.875rem;
+  background-color: var(--sp-cta);
+  border: 1px solid var(--fc-peach-edge);
+  border-radius: 1.125rem 1.125rem 1.125rem 0.375rem;
+  box-shadow: 0 2px 0 var(--fc-peach-edge);
+  color: var(--sp-cta-ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
+}
+
+.viewAll:hover {
+  background-color: var(--sp-cta-hover);
+  box-shadow: 0 3px 0 var(--fc-peach-edge);
+  transform: translateY(-1px);
+}
+
+.viewAll:active {
+  box-shadow: 0 0 0 var(--fc-peach-edge);
+  transform: translateY(1px);
+}
+
+.viewAllArrow {
+  flex-shrink: 0;
+  transition: transform var(--animation-duration-fast) ease;
+}
+
+.viewAll:hover .viewAllArrow {
+  transform: translateX(2px);
+}
+
+/* The track runs to the panel's edges so a clipped card signals more; the
+   padding leaves room for the card lift, its shadow and the focus ring. */
+.track {
+  display: flex;
+  gap: 0.875rem;
+  margin: 0 calc(var(--pad) * -1);
+  padding: 0.25rem var(--pad) 0.875rem;
+  list-style: none;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--pad);
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.track::-webkit-scrollbar {
+  display: none;
+}
+
+.item {
+  --a-tint: var(--sp-lavender-tint);
+  --a-line: var(--sp-lavender-line);
+  --a-edge: var(--sp-lavender-edge);
+  --a-ink: var(--sp-lavender-ink);
+  display: flex;
+  flex: 0 0 72%;
+  max-width: 15rem;
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+.item:nth-child(5n + 2) {
+  --a-tint: var(--fc-mint-tint);
+  --a-line: var(--sp-mint-line);
+  --a-edge: var(--fc-mint-edge);
+  --a-ink: var(--fc-mint-ink);
+}
+
+.item:nth-child(5n + 3) {
+  --a-tint: var(--fc-peach-tint);
+  --a-line: var(--fc-peach-line);
+  --a-edge: var(--fc-peach-edge);
+  --a-ink: var(--fc-peach-ink);
+}
+
+.item:nth-child(5n + 4) {
+  --a-tint: var(--fc-sage-tint);
+  --a-line: var(--fc-sage-line);
+  --a-edge: var(--fc-sage-edge);
+  --a-ink: var(--fc-sage-ink);
+}
+
+.item:nth-child(5n) {
+  --a-tint: var(--fc-blue-tint);
+  --a-line: var(--fc-blue-line);
+  --a-edge: var(--fc-blue-edge);
+  --a-ink: var(--fc-blue-ink);
+}
+
+/* White card with a hairline in its own accent. The top is either the
+   thumbnail or a pastel text panel; both grow so cards in a row match. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.5rem;
+  background-color: var(--sp-card);
+  color: var(--sp-text);
+  border: 1px solid var(--a-line);
+  border-radius: 1.25rem;
+  box-shadow: var(--sp-shadow);
+  text-decoration: none;
+  transition:
+    transform var(--animation-duration-normal) ease,
+    box-shadow var(--animation-duration-normal) ease,
+    border-color var(--animation-duration-normal) ease;
+}
+
+a.card:hover {
+  transform: translateY(-4px);
+  border-color: var(--a-edge);
+  box-shadow: var(--sp-shadow-hover);
+}
+
+a.card:focus-visible {
+  outline: 3px solid var(--sp-lavender-edge);
+  outline-offset: 2px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.1875rem 0.5rem;
+  background-color: var(--sp-card);
+  border: 1px solid var(--a-edge);
+  border-radius: var(--radius-full);
+  color: var(--a-ink);
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.badge[data-on="media"] {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  box-shadow: 0 2px 0 var(--a-edge);
+}
+
+.media {
+  position: relative;
+  display: block;
+  flex: 0 0 auto;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 0.875rem;
+  background-color: var(--a-tint);
+}
+
+.mediaImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.45s ease;
+}
+
+a.card:hover .mediaImage {
+  transform: scale(1.05);
+}
+
+.cardTitle {
+  flex: 1 0 auto;
+  padding: 0 0.375rem;
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--sp-ink);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  min-height: 2.7em;
+}
+
+/* Text-first top for resources with no thumbnail: the accent tint with the
+   type icon on a tilted tile, the badge, a larger title and a small wave. */
+.cover {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+  gap: 0.625rem;
+  min-height: 10.25rem;
+  box-sizing: border-box;
+  padding: 0.75rem 0.75rem 1.5rem;
+  overflow: hidden;
+  background-color: var(--a-tint);
+  border: 1px solid var(--a-line);
+  border-radius: 0.875rem;
+}
+
+.coverTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+}
+
+.coverIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 2.25rem;
+  height: 2.25rem;
+  background-color: var(--sp-card);
+  border: 1.5px solid var(--a-edge);
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 0 var(--a-edge);
+  color: var(--a-ink);
+  transform: rotate(-5deg);
+  transition: transform var(--animation-duration-normal) ease;
+}
+
+a.card:hover .coverIcon {
+  transform: rotate(0deg);
+}
+
+.coverTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--sp-ink);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.coverDoodle {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.5rem;
+  width: 2.5rem;
+  height: 1rem;
+  overflow: visible;
+}
+
+.coverDoodle path {
+  fill: none;
+  stroke: var(--a-edge);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+  padding: 0 0.375rem 0.25rem;
+}
+
+.avatar {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px var(--a-line);
+  font-size: 0.5625rem;
+}
+
+.teacherName {
+  min-width: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--sp-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cardMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.625rem;
+  min-width: 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--sp-muted);
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+  max-width: 100%;
+  white-space: nowrap;
+}
+
+.metaText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.metaIcon {
+  flex-shrink: 0;
+  color: var(--a-edge);
+}
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--a-line);
+}
+
+.cardPrice,
+.cardPriceFree {
+  font-size: 1.0625rem;
   font-weight: 800;
   letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
 }
 
-.price {
-  color: var(--sp-ink);
+.cardPrice {
+  color: var(--fc-price);
 }
 
-.priceFree {
-  color: var(--sp-sage-ink);
+.cardPriceFree {
+  color: var(--fc-mint-ink);
+}
+
+/* Accent circle that fills solid on card hover. */
+.cardArrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.875rem;
+  height: 1.875rem;
+  flex: 0 0 auto;
+  border: 1.5px solid var(--a-edge);
+  border-radius: 50%;
+  background-color: var(--a-tint);
+  color: var(--a-ink);
+  transition:
+    background-color var(--animation-duration-normal) ease,
+    color var(--animation-duration-normal) ease,
+    transform var(--animation-duration-normal) ease;
+}
+
+a.card:hover .cardArrow {
+  background-color: var(--a-edge);
+  color: var(--sp-card);
+  transform: translateX(2px);
+}
+
+/* Empty and error states */
+.message {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-3);
+  margin-bottom: 0.875rem;
+  padding: 0.875rem 1rem;
+  background-color: var(--sp-card);
+  border: 1.5px dashed var(--sp-line-strong);
+  border-radius: 1.125rem;
+}
+
+.message[data-tone="error"] {
+  border-style: solid;
+  border-color: var(--fc-peach-line);
+}
+
+.messageIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background-color: var(--sp-lavender-tint);
+  color: var(--sp-lavender-ink);
+}
+
+.message[data-tone="error"] .messageIcon {
+  background-color: var(--fc-peach-tint);
+  color: var(--fc-peach-ink);
+}
+
+.messageText {
+  flex: 1 1 14rem;
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--sp-text);
+}
+
+.retry {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 2.25rem;
+  padding: 0 0.875rem;
+  background-color: var(--fc-peach-tint);
+  border: 1px solid var(--fc-peach-edge);
+  border-radius: var(--radius-full);
+  color: var(--fc-peach-ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.retry:hover {
+  background-color: var(--fc-peach-hover);
+}
+
+/* Skeletons */
+.skeletonFill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+}
+
+.skeletonTitle {
+  height: 1.375rem;
+  width: 90%;
+}
+
+.skeletonPrice {
+  height: 2rem;
+  width: 7rem;
+}
+
+.skeletonMedia {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  border-radius: 0.875rem;
+}
+
+.skeletonCover {
+  height: 10.25rem;
+  width: 100%;
+  border-radius: 0.875rem;
 }
 
 .skeletonLine {
@@ -676,97 +1047,144 @@ a.row:hover .thumb {
 
 .skeletonLineShort {
   height: 0.875rem;
-  width: 55%;
+  width: 60%;
 }
 
-.skeletonPanel {
-  height: 2.75rem;
+.skeletonFooter {
+  height: 1.875rem;
   width: 100%;
-  margin-top: auto;
-  border-radius: 1rem;
 }
 
-/* Tablet and up: two cards across, the credential stagger kicks in. */
-@container (min-width: 40rem) {
-  .profile {
-    padding: 1.75rem var(--spacing-6);
-  }
-
-  .credentials {
-    padding-bottom: var(--spacing-3);
-  }
-
-  .credential:nth-child(even) {
-    transform: translateY(var(--spacing-3));
-  }
-
-  .catalog {
-    padding: var(--spacing-6);
-  }
-
-  .list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-/* Desktop: identity left, the credential cards right; catalogue four across. */
-@container (min-width: 56rem) {
-  .profile {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(20rem, 27rem);
-    align-items: center;
-    column-gap: var(--spacing-12);
-    padding: var(--spacing-8) var(--spacing-8) 1.75rem;
-  }
-
-  .lede {
-    font-size: 1rem;
+/* Tablet: thumbnail beside the course details, the price row under them. */
+@container (min-width: 38rem) {
+  .block {
+    --pad: 1.5rem;
+    padding: 1.5rem var(--pad) 1rem;
   }
 
   .title {
-    font-size: 2.25rem;
+    font-size: 1.75rem;
   }
 
-  .portrait {
-    width: 6.5rem;
-    height: 6.5rem;
+  .illustration {
+    width: 8.25rem;
+    margin: 0.5rem 0.25rem 0 0;
   }
 
-  .credential {
-    padding: 1rem 1.125rem 1.0625rem;
+  .featured {
+    grid-template-columns: 13rem minmax(0, 1fr);
+    grid-template-areas:
+      "thumb info"
+      "thumb price";
+    align-items: center;
+    column-gap: 1.125rem;
+    row-gap: 0.5rem;
   }
 
-  .credentialValue {
-    font-size: 1.625rem;
+  .featuredInfo {
+    align-self: end;
+    padding: 0.125rem 0.25rem 0 0;
   }
 
-  .catalog {
-    padding: var(--spacing-8);
+  .priceBox {
+    align-self: start;
+    padding: 0.5rem 0.25rem 0 0;
   }
 
-  .catalogTitle {
+  .item {
+    flex-basis: 14.5rem;
+    max-width: none;
+  }
+}
+
+/* Wide: one row - thumbnail, details, then the price breakdown, all three
+   vertically centred. */
+@container (min-width: 56rem) {
+  .block {
+    --pad: 2rem;
+    gap: 1.5rem;
+    padding: 1.75rem var(--pad) 1.125rem;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .titleUnderline {
+    width: 7rem;
+  }
+
+  .featured {
+    grid-template-columns: 15rem minmax(0, 1fr) minmax(10rem, auto);
+    grid-template-areas: "thumb info price";
+    column-gap: 1.5rem;
+    padding: 0.625rem 1.5rem 0.625rem 0.625rem;
+  }
+
+  .featuredInfo {
+    align-self: center;
+    padding: 0;
+  }
+
+  .featuredTitle {
     font-size: 1.25rem;
   }
 
-  .list {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 1.25rem;
+  .priceBox {
+    align-self: center;
+    justify-content: center;
+    min-height: 6.5rem;
+    padding: 0 0 0 1.5rem;
+    border-top: 0;
+    border-left: 1px solid var(--sp-line);
+  }
+
+  .featuredPrice,
+  .featuredPriceFree {
+    font-size: 1.875rem;
+  }
+
+  .resourcesTitle {
+    font-size: 1.25rem;
+  }
+
+  .item {
+    flex-basis: 15rem;
+  }
+}
+
+/* The illustration's full desktop size and its offset from the panel's top
+   and right edges (2.25rem and 2.5rem), as in the first spotlight design. */
+@container (min-width: 64rem) {
+  .illustration {
+    width: 9.5rem;
+    margin: 0.5rem 0.5rem 0 0;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .action,
-  .actionArrow,
-  .row,
-  .thumb {
+  .viewAll,
+  .viewAllArrow,
+  .featured,
+  .featuredImage,
+  .arrow,
+  .card,
+  .cardArrow,
+  .mediaImage,
+  .coverIcon {
     transition: none;
   }
 
-  a.row:hover,
-  a.row:hover .thumb,
-  .action:hover,
-  .action:active,
-  .action:hover .actionArrow {
+  .viewAll:hover,
+  .viewAll:active,
+  .viewAll:hover .viewAllArrow,
+  a.featured:hover,
+  a.featured:hover .featuredImage,
+  .arrow:hover:not(:disabled),
+  .arrow:active:not(:disabled),
+  a.card:hover,
+  a.card:hover .cardArrow,
+  a.card:hover .mediaImage {
     transform: none;
   }
 }

@@ -19,7 +19,7 @@
 }
 
 .heading svg {
-  color: var(--tk-brand-text);
+  color: var(--fc-blue-edge);
 }
 
 .list {
@@ -55,13 +55,13 @@
 }
 
 a.source:hover {
-  border-color: color-mix(in srgb, var(--tk-brand) 45%, var(--surface));
-  background-color: color-mix(in srgb, var(--tk-brand) 10%, var(--surface));
-  color: var(--tk-brand-text);
+  border-color: var(--fc-blue-line);
+  background-color: var(--fc-blue-tint);
+  color: var(--fc-blue-ink);
 }
 
 a.source:focus-visible {
-  outline: 2px solid var(--tk-brand-text);
+  outline: 2px solid var(--fc-blue-edge);
   outline-offset: 2px;
 }
 
@@ -79,7 +79,7 @@ a.source:focus-visible {
 }
 
 a.source:hover .icon {
-  color: var(--tk-brand-text);
+  color: var(--fc-blue-ink);
 }
 
 .plain {

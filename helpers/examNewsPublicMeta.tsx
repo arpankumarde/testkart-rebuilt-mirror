@@ -3,11 +3,11 @@ import type { ExamNewsType } from "./schema";
 /*
  * URL rules for the public Exam News pages (SOP "URL Structure and Slug Rules", 1.2):
  *   /exam-news                     hub
- *   /exam-news/{slug}              a story, else one exam's listing (a story slug wins a clash)
+ *   /exam-news/{slug}              a story
  *   /exam-news/type/{type}         one news type
  *   /exam-news/page/{n}            hub page 2+
- * Filtered listings page the same way: /exam-news/type/{type}/page/{n}, /exam-news/{exam-slug}/page/{n}.
- * The old /exam-news/exam/{exam-slug}[/page/{n}] URLs answer with a 301 to the current ones.
+ * Type listings page the same way: /exam-news/type/{type}/page/{n}.
+ * There are no per-exam news listings: an exam tag links to the exam's own page, /exams/{exam-slug}.
  */
 
 export const HUB_PATH = "/exam-news";
@@ -41,15 +41,14 @@ const typePlural = (type: ExamNewsType) => TYPES.find((t) => t.value === type)?.
 
 const storyPath = (slug: string) => `${HUB_PATH}/${slug}`;
 
-export type ListingScope = { type?: ExamNewsType; examSlug?: string };
+/** Where an exam tag on a story leads: the exam's own page. */
+const examPath = (examSlug: string) => `/exams/${examSlug}`;
+
+export type ListingScope = { type?: ExamNewsType };
 
 /** The listing's page-1 path; page n adds /page/{n}. */
 const listingPath = (scope: ListingScope, page = 1): string => {
-  const base = scope.type
-    ? `${HUB_PATH}/type/${typeSegment(scope.type)}`
-    : scope.examSlug
-      ? `${HUB_PATH}/${scope.examSlug}`
-      : HUB_PATH;
+  const base = scope.type ? `${HUB_PATH}/type/${typeSegment(scope.type)}` : HUB_PATH;
   return page > 1 ? `${base}/page/${page}` : base;
 };
 
@@ -100,6 +99,7 @@ export const examNewsPublicMeta = {
   typeLabel,
   typePlural,
   storyPath,
+  examPath,
   listingPath,
   normalizePath,
   parsePage,

@@ -3,7 +3,6 @@ import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, ListChecks, Loader2, P
 import { Button } from "./Button";
 import { Input } from "./Input";
 import { Textarea } from "./Textarea";
-import { Switch } from "./Switch";
 import { RadioGroup, RadioGroupItem } from "./RadioGroup";
 import { Dialog } from "./Dialog";
 import { ConsoleDialogBody, ConsoleDialogContent, ConsoleDialogFooter, ConsoleDialogHeader } from "./ConsoleDialog";
@@ -97,7 +96,6 @@ export const CurrentAffairsQuizEditor: React.FC<CurrentAffairsQuizEditorProps> =
     setAiOpen(true);
   };
 
-  // A fresh or regenerated quiz starts hidden so the admin reviews it before it can go live.
   const runGenerate = () => {
     if (!countValid || generate.isPending) return;
     setAiError(null);
@@ -106,7 +104,7 @@ export const CurrentAffairsQuizEditor: React.FC<CurrentAffairsQuizEditorProps> =
         onChange({
           title: quiz?.title || defaultTitle,
           questionCount: questions.length,
-          isPublished: false,
+          isPublished: true,
           questions,
         });
         setNotice(
@@ -114,7 +112,7 @@ export const CurrentAffairsQuizEditor: React.FC<CurrentAffairsQuizEditorProps> =
             ? { tone: "warning", text: warning }
             : {
                 tone: "success",
-                text: `${questions.length} question${questions.length === 1 ? "" : "s"} written from this digest. Review them, then turn on "Show the quiz on the site" and save.`,
+                text: `${questions.length} question${questions.length === 1 ? "" : "s"} written from this digest. Review them before saving - the quiz goes live with the post.`,
               }
         );
         setAiOpen(false);
@@ -259,7 +257,7 @@ export const CurrentAffairsQuizEditor: React.FC<CurrentAffairsQuizEditorProps> =
                 onChange({
                   title: defaultTitle,
                   questionCount: currentAffairsMeta.DEFAULT_QUIZ_QUESTIONS,
-                  isPublished: false,
+                  isPublished: true,
                   questions: Array.from({ length: currentAffairsMeta.DEFAULT_QUIZ_QUESTIONS }, () => emptyQuestion(postTags)),
                 })
               }
@@ -353,19 +351,9 @@ export const CurrentAffairsQuizEditor: React.FC<CurrentAffairsQuizEditorProps> =
         </FormItem>
       </div>
 
-      <div className={styles.publishRow}>
-        <div>
-          <p className={styles.publishLabel}>Show the quiz on the site</p>
-          <p className={styles.publishHint}>
-            It goes live only together with the post. Turning this on makes every question required.
-          </p>
-        </div>
-        <Switch
-          checked={quiz.isPublished}
-          onCheckedChange={(isPublished) => setQuiz({ isPublished })}
-          aria-label="Show the quiz on the site"
-        />
-      </div>
+      <p className={styles.publishHint}>
+        The quiz is always public and goes live together with the post, so every question must be complete before publishing.
+      </p>
 
       <ol className={styles.questions}>
         {quiz.questions.map((question, index) => {

@@ -9,7 +9,6 @@ import { Button } from "./Button";
 import { Input } from "./Input";
 import { Skeleton } from "./Skeleton";
 import { ExamNewsListItem } from "./ExamNewsListItem";
-import { ExamNewsExamPicker } from "./ExamNewsExamPicker";
 import { ExamNewsSidebar } from "./ExamNewsSidebar";
 import styles from "./ExamNewsHubView.module.css";
 
@@ -35,7 +34,6 @@ export const ExamNewsHubView: React.FC<ExamNewsHubViewProps> = ({ scope, page, i
 
   const input: ListInput = { page };
   if (scope.type) input.type = scope.type;
-  if (scope.examSlug) input.exam = scope.examSlug;
   if (q) input.q = q;
 
   const list = useExamNewsList(input, !invalid);
@@ -45,33 +43,17 @@ export const ExamNewsHubView: React.FC<ExamNewsHubViewProps> = ({ scope, page, i
   const [searchText, setSearchText] = useState(q);
   useEffect(() => setSearchText(q), [q]);
 
-  // While the next exam loads, the list still holds the previous one.
-  const loadedExam = data?.exam?.slug === scope.examSlug ? data?.exam : null;
-  const examName = loadedExam?.name ?? sidebar.data?.examsWithNews.find((e) => e.slug === scope.examSlug)?.name ?? null;
   const typePlural = scope.type ? examNewsPublicMeta.typePlural(scope.type) : null;
   const pageSuffix = page > 1 ? ` - Page ${page}` : "";
 
-  const heading = scope.type
-    ? `Exam ${typePlural}`
-    : scope.examSlug
-      ? `${examName ?? "Exam"} News & Updates`
-      : "Exam News & Updates";
+  const heading = scope.type ? `Exam ${typePlural}` : "Exam News & Updates";
   const intro = scope.type
     ? `The latest ${typePlural!.toLowerCase()} for competitive exams, newest first, each linked to its official notice.`
-    : scope.examSlug
-      ? `Notifications, admit cards, results, answer keys and date changes for ${examName ?? "this exam"}, in one place.`
-      : "Exam notifications, admit cards, results, answer keys, syllabus updates, cut-offs and date changes, in one place and newest first.";
-  const seoTitle = scope.type
-    ? `Exam ${typePlural}: Latest Updates${pageSuffix}`
-    : scope.examSlug
-      ? `${examName ?? "Exam"} News, Results & Admit Card Updates${pageSuffix}`
-      : `Exam News & Updates${pageSuffix}`;
+    : "Exam notifications, admit cards, results, answer keys, syllabus updates, cut-offs and date changes, in one place and newest first.";
+  const seoTitle = scope.type ? `Exam ${typePlural}: Latest Updates${pageSuffix}` : `Exam News & Updates${pageSuffix}`;
   const canonicalPath = examNewsPublicMeta.listingPath(scope, page);
-  const unknownExam = !!scope.examSlug && !!data && !data.exam;
   const pastTheEnd = !!data && page > data.totalPages;
-  const notFound = invalid || unknownExam || pastTheEnd;
-
-  const examChoice = scope.examSlug ? { id: loadedExam?.id ?? 0, name: examName ?? scope.examSlug } : null;
+  const notFound = invalid || pastTheEnd;
 
   const submitSearch = (event: React.FormEvent) => {
     event.preventDefault();
@@ -120,7 +102,7 @@ export const ExamNewsHubView: React.FC<ExamNewsHubViewProps> = ({ scope, page, i
     }
 
     if (!data || data.rows.length === 0) {
-      const filtered = !!q || !!scope.type || !!scope.examSlug;
+      const filtered = !!q || !!scope.type;
       return (
         <div className={styles.state}>
           <span className={styles.stateIcon} aria-hidden="true">
@@ -131,7 +113,7 @@ export const ExamNewsHubView: React.FC<ExamNewsHubViewProps> = ({ scope, page, i
           </h2>
           <p className={styles.stateText}>
             {q
-              ? "Try a shorter search, or choose another exam."
+              ? "Try a shorter search, or a different word."
               : filtered
                 ? "New notifications, results and admit cards will show here as soon as they are published."
                 : "Exam updates will show here as soon as they are published."}
@@ -207,11 +189,7 @@ export const ExamNewsHubView: React.FC<ExamNewsHubViewProps> = ({ scope, page, i
             <Newspaper size={22} />
           </span>
           <h1 className={styles.stateTitle}>We could not find that page</h1>
-          <p className={styles.stateText}>
-            {unknownExam
-              ? "The link may be wrong, or the story or exam may have been renamed or removed."
-              : "The link may be wrong, or this page no longer exists."}
-          </p>
+          <p className={styles.stateText}>The link may be wrong, or this page no longer exists.</p>
           <Button asChild variant="outline">
             <Link to={examNewsPublicMeta.HUB_PATH}>Back to Exam News</Link>
           </Button>
@@ -226,8 +204,8 @@ export const ExamNewsHubView: React.FC<ExamNewsHubViewProps> = ({ scope, page, i
         title={seoTitle}
         description={intro}
         url={canonicalPath}
-        // An exam or type listing with nothing in it yet is thin: kept crawlable but out of the index.
-        noIndex={!!data && data.total === 0 && (!!scope.type || !!scope.examSlug) && !q}
+        // A type listing with nothing in it yet is thin: kept crawlable but out of the index.
+        noIndex={!!data && data.total === 0 && !!scope.type && !q}
       />
 
       <nav className={styles.crumbs} aria-label="Breadcrumb">
@@ -236,11 +214,11 @@ export const ExamNewsHubView: React.FC<ExamNewsHubViewProps> = ({ scope, page, i
             <Link to="/">Home</Link>
           </li>
           <li>
-            {scope.type || scope.examSlug ? <Link to={examNewsPublicMeta.HUB_PATH}>Exam News</Link> : <span aria-current="page">Exam News</span>}
+            {scope.type ? <Link to={examNewsPublicMeta.HUB_PATH}>Exam News</Link> : <span aria-current="page">Exam News</span>}
           </li>
-          {(scope.type || scope.examSlug) && (
+          {scope.type && (
             <li>
-              <span aria-current="page">{scope.type ? typePlural : examName ?? scope.examSlug}</span>
+              <span aria-current="page">{typePlural}</span>
             </li>
           )}
         </ol>
@@ -271,20 +249,6 @@ export const ExamNewsHubView: React.FC<ExamNewsHubViewProps> = ({ scope, page, i
               Search
             </Button>
           </form>
-
-          <div className={styles.examFilter}>
-            <ExamNewsExamPicker
-              value={examChoice}
-              onChange={(choice) => {
-                if (choice?.slug === scope.examSlug) return;
-                navigate(choice?.slug ? examNewsPublicMeta.listingPath({ examSlug: choice.slug }) : examNewsPublicMeta.HUB_PATH);
-              }}
-              placeholder="All exams"
-              allowClear
-              clearLabel="All exams"
-              ariaLabel="Filter by exam"
-            />
-          </div>
         </div>
 
         {q && (
@@ -310,7 +274,7 @@ export const ExamNewsHubView: React.FC<ExamNewsHubViewProps> = ({ scope, page, i
           {renderList()}
         </main>
 
-        <ExamNewsSidebar data={sidebar.data} isLoading={sidebar.isLoading} activeExam={scope.examSlug} showBrowse={false} />
+        <ExamNewsSidebar data={sidebar.data} isLoading={sidebar.isLoading} showBrowse={false} />
       </div>
     </div>
   );

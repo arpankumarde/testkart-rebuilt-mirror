@@ -121,11 +121,6 @@
   flex-shrink: 0;
 }
 
-.examFilter {
-  flex: 0 1 15rem;
-  min-width: 11rem;
-}
-
 .searchNote {
   display: flex;
   flex-wrap: wrap;
@@ -355,8 +350,7 @@
     flex-wrap: wrap;
   }
 
-  .searchForm,
-  .examFilter {
+  .searchForm {
     flex: 1 1 100%;
   }
 

@@ -26,7 +26,7 @@
 }
 
 .pick:focus-visible {
-  outline: 2px solid var(--tk-brand-text);
+  outline: 2px solid var(--fc-blue-edge);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
@@ -44,8 +44,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: color-mix(in srgb, var(--chart-color-2) 16%, var(--surface));
-  color: var(--secondary-text);
+  background-color: var(--fc-mint-tint);
+  color: var(--fc-mint-ink);
 }
 
 .body {
@@ -67,7 +67,7 @@
 }
 
 .pick:hover .title {
-  color: var(--tk-brand-text);
+  color: var(--fc-blue-ink);
 }
 
 .meta {
@@ -93,7 +93,7 @@
 
 .empty a {
   font-weight: 700;
-  color: var(--tk-brand-text);
+  color: var(--fc-blue-ink);
 }
 
 @media (prefers-reduced-motion: reduce) {

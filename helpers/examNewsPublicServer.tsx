@@ -225,10 +225,10 @@ async function fetchDetail(slug: string): Promise<DetailOutput | null> {
   };
 }
 
-/** Every indexable Exam News URL: the hub, listings that have stories, and each story. */
+/** Every indexable Exam News URL: the hub, type listings that have stories, and each story. */
 async function fetchSitemapEntries(): Promise<{ path: string; updatedAt: Date | null }[]> {
   await examNewsServer.promoteDue();
-  const [stories, types, exams] = await Promise.all([
+  const [stories, types] = await Promise.all([
     db
       .selectFrom("examNewsPosts")
       .select(["slug", "updatedAt"])
@@ -241,21 +241,11 @@ async function fetchSitemapEntries(): Promise<{ path: string; updatedAt: Date | 
       .where("status", "=", "published")
       .groupBy("newsType")
       .execute(),
-    db
-      .selectFrom("examNewsPosts as p")
-      .innerJoin("exams as e", "e.id", "p.examId")
-      .select(["e.examSlug", (eb) => eb.fn.max("p.updatedAt").as("updatedAt")])
-      .where("p.status", "=", "published")
-      .groupBy("e.examSlug")
-      .execute(),
   ]);
   if (stories.length === 0) return [{ path: examNewsPublicMeta.HUB_PATH, updatedAt: null }];
-  // A story whose slug is also an exam's owns /exam-news/{slug}, so that exam has no listing URL of its own.
-  const storySlugs = new Set(stories.map((s) => s.slug));
   return [
     { path: examNewsPublicMeta.HUB_PATH, updatedAt: stories.reduce<Date | null>((max, s) => (!max || s.updatedAt > max ? s.updatedAt : max), null) },
     ...types.map((t) => ({ path: examNewsPublicMeta.listingPath({ type: t.newsType }), updatedAt: t.updatedAt as Date | null })),
-    ...exams.filter((e) => !storySlugs.has(e.examSlug)).map((e) => ({ path: examNewsPublicMeta.listingPath({ examSlug: e.examSlug }), updatedAt: e.updatedAt as Date | null })),
     ...stories.map((s) => ({ path: examNewsPublicMeta.storyPath(s.slug), updatedAt: s.updatedAt })),
   ];
 }
