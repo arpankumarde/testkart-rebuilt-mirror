@@ -7,7 +7,8 @@ import { AccountMenu } from "./AccountMenu";
 import { ThemeModeSwitch } from "./ThemeModeSwitch";
 import { Button } from "./Button";
 import { Skeleton } from "./Skeleton";
-import { ShoppingCart, ShoppingBag, Radio, Users, Search, ChevronDown } from "lucide-react";
+import { ShoppingCart, ShoppingBag, Radio, Users, Search, ChevronDown, Menu } from "lucide-react";
+import { SiteNavDrawer } from "./SiteNavDrawer";
 import { Footer } from "./Footer";
 import { useCartItemsQuery } from "../helpers/useCartQuery";
 import { MobileBottomNav } from "./MobileBottomNav";
@@ -70,15 +71,8 @@ const CartButton: React.FC = () => {
   );
 };
 
-const AuthNav: React.FC = () => {
+const AuthNav: React.FC<{ onLogin: () => void; onSignup: () => void }> = ({ onLogin, onSignup }) => {
   const { authState, logout } = useAuth();
-  const location = useLocation();
-  const [loginDialogOpen, setLoginDialogOpen] = useState(false);
-  const [signupDialogOpen, setSignupDialogOpen] = useState(false);
-  
-  // Construct the current path with search params for redirectTo
-  const currentPath = location.pathname + location.search;
-  const redirectTo = currentPath !== "/" ? currentPath : undefined;
 
   if (authState.type === "loading") {
     return (
@@ -97,30 +91,17 @@ const AuthNav: React.FC = () => {
         <Button 
           variant="ghost" 
           className={styles.loginButton} 
-          onClick={() => setLoginDialogOpen(true)}
+          onClick={onLogin}
         >
           Log In
         </Button>
         <Button 
           className={styles.signupButton} 
           size="lg" 
-          onClick={() => setSignupDialogOpen(true)}
+          onClick={onSignup}
         >
           Create Account
         </Button>
-
-        <AuthRoleSelectDialog 
-          open={loginDialogOpen} 
-          onOpenChange={setLoginDialogOpen} 
-          type="login" 
-          redirectTo={redirectTo}
-        />
-        <AuthRoleSelectDialog 
-          open={signupDialogOpen} 
-          onOpenChange={setSignupDialogOpen} 
-          type="signup" 
-          redirectTo={redirectTo}
-        />
       </>
     );
   }
@@ -149,6 +130,10 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
   // Organisation pages use a slimmer header on phones; tablet and desktop are unchanged.
   const isCompactHeader = ORGANIZATION_PATH_PATTERN.test(pathname);
   const isMoreActive = MORE_RESOURCES.some(({ href }) => isMoreResourcePath(pathname, href));
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [authDialog, setAuthDialog] = useState<"login" | "signup" | null>(null);
+  const currentPath = pathname + location.search;
+  const redirectTo = currentPath !== "/" ? currentPath : undefined;
 
   // Scroll detection for mobile header hide/show (mobile only)
   const [isHeaderHidden, setIsHeaderHidden] = useState(false);
@@ -231,16 +216,18 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
         className={`${styles.header} ${isCompactHeader ? styles.headerCompact : ''} ${isHeaderHidden ? styles.headerHidden : ''}`}
       >
         <div className={styles.headerContent}>
-          <Link to="/" className={styles.logo}>
-            <img 
-              src={getBrandLogo(isDarkMode)}
-              alt="Testkart" 
-              className={styles.logoImage}
-              width={140}
-              height={44}
-            />
-          </Link>
-                    <nav className={styles.nav}>
+          <div className={styles.brandZone}>
+            <Link to="/" className={styles.logo}>
+              <img
+                src={getBrandLogo(isDarkMode)}
+                alt="Testkart"
+                className={styles.logoImage}
+                width={140}
+                height={44}
+              />
+            </Link>
+          </div>
+          <nav className={styles.nav} aria-label="Main">
             <NavLink
               to="/course"
               className={({ isActive }) =>
@@ -267,7 +254,7 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
               title="Live Competitions"
             >
               <div className={styles.liveIndicatorWrapper}>
-                <Radio size={20} className={styles.liveIcon} />
+                <Radio size={16} strokeWidth={2.25} className={styles.liveIcon} />
                 <span className={styles.liveDot}></span>
               </div>
               <span className={styles.liveLabel}>Live Competitions</span>
@@ -295,10 +282,39 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
             <ShopButton />
             <CartButton />
                         <div className={styles.themeSwitch}><ThemeModeSwitch /></div>
-            <AuthNav />
+            <span className={styles.actionsDivider} aria-hidden="true" />
+            <AuthNav onLogin={() => setAuthDialog("login")} onSignup={() => setAuthDialog("signup")} />
+            <button
+              type="button"
+              className={styles.menuButton}
+              onClick={() => setDrawerOpen(true)}
+              aria-label="Open menu"
+              aria-expanded={drawerOpen}
+              aria-haspopup="dialog"
+            >
+              <Menu size={20} aria-hidden="true" />
+            </button>
           </div>
         </div>
       </header>
+      <SiteNavDrawer
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        onLogin={() => setAuthDialog("login")}
+        onSignup={() => setAuthDialog("signup")}
+      />
+      <AuthRoleSelectDialog
+        open={authDialog === "login"}
+        onOpenChange={(open) => setAuthDialog(open ? "login" : null)}
+        type="login"
+        redirectTo={redirectTo}
+      />
+      <AuthRoleSelectDialog
+        open={authDialog === "signup"}
+        onOpenChange={(open) => setAuthDialog(open ? "signup" : null)}
+        type="signup"
+        redirectTo={redirectTo}
+      />
       <main
         className={`${styles.main} ${isMobileNavVisible ? styles.mainWithMobileNav : ''} ${isCompactHeader ? styles.mainCompactHeader : ''}`}
       >

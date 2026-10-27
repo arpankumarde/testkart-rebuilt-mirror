@@ -9,15 +9,61 @@
   width: 100%;
 }
 
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.label {
+  font-family: var(--font-family-base);
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--foreground);
+}
+
+.field .inputInvalid {
+  border-color: var(--error);
+  box-shadow: 0 0 0 1px var(--error);
+}
+
+/* Holds one line even when empty, so a message appearing does not push the button down. */
+.fieldMessage {
+  min-height: 1.3125rem;
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.3125rem;
+  font-weight: 500;
+  color: var(--error-text);
+}
+
 .errorMessage {
-  background-color: color-mix(in srgb, var(--error) 15%, transparent);
+  background-color: var(--card);
   border: 1px solid var(--error);
+  border-left-width: 4px;
   color: var(--error-text);
   padding: var(--spacing-3);
   border-radius: var(--radius);
-  margin-bottom: var(--spacing-4);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.notice {
+  margin: 0;
   font-size: 0.875rem;
   line-height: 1.5;
+  font-weight: 500;
+  color: var(--success-text);
+  text-align: center;
+}
+
+.offlineNote {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--foreground);
   text-align: center;
 }
 
@@ -73,7 +119,32 @@
   font-size: 0.875rem;
 }
 
+.challenge,
+.challengeShown {
+  display: flex;
+  justify-content: center;
+}
+
+.challengeShown {
+  margin-top: var(--spacing-3);
+}
+
 .timer {
   font-size: 0.875rem;
   color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 768px) {
+  .label {
+    font-size: 1rem;
+  }
+
+  .fieldMessage {
+    font-size: 0.875rem;
+  }
+
+  .submitButton {
+    min-height: 3rem;
+  }
 }

@@ -20,9 +20,9 @@ import {
   useSendEmailSignupOtpMutation,
   useVerifyEmailSignupAndRegisterMutation,
 } from "../helpers/useEmailSignup";
+import { authErrorMessage } from "../helpers/authRequest";
+import { useOtpSender } from "../helpers/useOtpSender";
 import styles from "./EmailOTPSignupForm.module.css";
-
-const RESEND_COOLDOWN_SECONDS = 30;
 
 // Teachers must also give a mobile number; students only see name and email.
 const buildEmailSchema = (requireMobile: boolean) =>
@@ -62,13 +62,9 @@ export const EmailOTPSignupForm: React.FC<EmailOTPSignupFormProps> = ({
   role,
 }) => {
   const [step, setStep] = useState<"email" | "otp">("email");
-  const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [mobileNumber, setMobileNumber] = useState("");
-  const [resendTimer, setResendTimer] = useState(0);
-  const [turnstileReady, setTurnstileReady] = useState(false);
-  const [awaitingToken, setAwaitingToken] = useState(false);
 
   const { onLogin } = useAuth();
   const navigate = useNavigate();
@@ -76,6 +72,9 @@ export const EmailOTPSignupForm: React.FC<EmailOTPSignupFormProps> = ({
   const otpInputRef = useRef<HTMLInputElement>(null);
   const turnstileRef = useRef<TurnstileWidgetHandle>(null);
 
+  const sender = useOtpSender(turnstileRef);
+  const { error, setError } = sender;
+  const resendTimer = sender.cooldownSeconds;
   const sendOtpMutation = useSendEmailSignupOtpMutation();
   const verifyAndRegisterMutation = useVerifyEmailSignupAndRegisterMutation();
 
@@ -91,45 +90,26 @@ export const EmailOTPSignupForm: React.FC<EmailOTPSignupFormProps> = ({
   });
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (resendTimer > 0) {
-      interval = setInterval(() => setResendTimer((prev) => prev - 1), 1000);
-    }
-    return () => clearInterval(interval);
-  }, [resendTimer]);
-
-  useEffect(() => {
     if (step === "otp") otpInputRef.current?.focus();
   }, [step]);
 
-  const startResendTimer = () => setResendTimer(RESEND_COOLDOWN_SECONDS);
-
   const handleSendOtp = async (data: EmailFormData) => {
-    setError(null);
-    setAwaitingToken(true);
-    // Single-use: the first send spends the token minted on load, and only a
-    // later send (a retry or resend) runs a new check.
-    const turnstileToken = await turnstileRef.current?.getToken();
     const teacherMobile = isTeacher ? data.mobileNumber : undefined;
-    sendOtpMutation.mutate(
-      {
-        email: data.email,
+    const address = data.email.trim().toLowerCase();
+    const sent = await sender.send((turnstileToken) =>
+      sendOtpMutation.mutateAsync({
+        email: address,
         role,
         mobileNumber: teacherMobile,
-        turnstileToken: turnstileToken ?? undefined,
-      },
-      {
-        onSuccess: () => {
-          setEmail(data.email);
-          setDisplayName(data.displayName.trim());
-          setMobileNumber(teacherMobile ?? "");
-          setStep("otp");
-          startResendTimer();
-        },
-        onError: (err) => setError(err.message),
-        onSettled: () => setAwaitingToken(false),
-      }
+        turnstileToken,
+      })
     );
+    if (sent) {
+      setEmail(address);
+      setDisplayName(data.displayName.trim());
+      setMobileNumber(teacherMobile ?? "");
+      setStep("otp");
+    }
   };
 
   const handleVerifyAndRegister = async (data: OtpFormData) => {
@@ -154,7 +134,7 @@ export const EmailOTPSignupForm: React.FC<EmailOTPSignupFormProps> = ({
           }
         },
         onError: (err) => {
-          setError(err.message);
+          setError(authErrorMessage(err));
           otpForm.setValues({ otpCode: "" });
         },
       }
@@ -163,33 +143,28 @@ export const EmailOTPSignupForm: React.FC<EmailOTPSignupFormProps> = ({
 
   const handleResendOtp = async () => {
     if (resendTimer > 0) return;
-    setAwaitingToken(true);
-    const turnstileToken = await turnstileRef.current?.getToken();
     // Re-send using the stored email address and mobile number
-    sendOtpMutation.mutate(
-      { email, role, mobileNumber: mobileNumber || undefined, turnstileToken: turnstileToken ?? undefined },
-      {
-        onSuccess: () => {
-          startResendTimer();
-          setError(null);
-        },
-        onError: (err) => setError(err.message),
-        onSettled: () => setAwaitingToken(false),
-      }
+    await sender.send((turnstileToken) =>
+      sendOtpMutation.mutateAsync({
+        email,
+        role,
+        mobileNumber: mobileNumber || undefined,
+        turnstileToken,
+      })
     );
   };
 
-  const isLoading =
-    awaitingToken || sendOtpMutation.isPending || verifyAndRegisterMutation.isPending;
+  const isLoading = sender.isSending || verifyAndRegisterMutation.isPending;
 
   return (
     <div className={`${styles.container} ${className || ""}`}>
-      {error && <div className={styles.errorMessage}>{error}</div>}
+      {error && <div className={styles.errorMessage} role="alert">{error}</div>}
 
       {/* Mounted for both steps. It mints one token on load for the first
           send; a retry or resend asks getToken() for another, so nobody is
-          challenged twice for the same send. */}
-      <TurnstileWidget ref={turnstileRef} onVerify={() => setTurnstileReady(true)} />
+          challenged twice for the same send. The submit button never waits on
+          it: the token is only awaited after the button is pressed. */}
+      <TurnstileWidget ref={turnstileRef} />
 
       {step === "email" && (
         <Form {...emailForm}>
@@ -249,7 +224,7 @@ export const EmailOTPSignupForm: React.FC<EmailOTPSignupFormProps> = ({
             )}
             <Button
               type="submit"
-              disabled={isLoading || !turnstileReady}
+              disabled={isLoading}
               className={styles.submitButton}
             >
               {isLoading ? <Spinner size="sm" /> : "Send OTP"}

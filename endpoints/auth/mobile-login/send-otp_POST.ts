@@ -12,7 +12,12 @@ const OTP_EXPIRATION_MINUTES = 10;
 
 export async function handle(request: Request) {
   try {
-    const json = superjson.parse(await request.text());
+    let json: unknown;
+    try {
+      json = superjson.parse(await request.text());
+    } catch {
+      return new Response(superjson.stringify({ error: "Invalid request." }), { status: 400 });
+    }
     const { mobileNumber, turnstileToken } = schema.parse(json);
     const ipAddress = getClientIp(request);
 
@@ -42,8 +47,16 @@ export async function handle(request: Request) {
     const rateLimitResult = await checkOtpRateLimit(db, { mobileNumber, ipAddress });
     if (!rateLimitResult.allowed) {
       return new Response(
-        superjson.stringify({ error: rateLimitResult.message }),
-        { status: 429 }
+        superjson.stringify({
+          error: rateLimitResult.message,
+          retryAfterSeconds: rateLimitResult.retryAfterSeconds,
+        }),
+        {
+          status: 429,
+          headers: rateLimitResult.retryAfterSeconds
+            ? { "Retry-After": String(rateLimitResult.retryAfterSeconds) }
+            : undefined,
+        }
       );
     }
 
@@ -85,13 +98,14 @@ export async function handle(request: Request) {
   } catch (error) {
     console.error("Error sending OTP:", error);
     if (error instanceof z.ZodError) {
-      return new Response(superjson.stringify({ error: error.errors }), {
+      const message = error.errors[0]?.message ?? "Please enter a valid 10-digit mobile number.";
+      return new Response(superjson.stringify({ error: message }), {
         status: 400,
       });
     }
-    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
-    return new Response(superjson.stringify({ error: errorMessage }), {
-      status: 500,
-    });
+    return new Response(
+      superjson.stringify({ error: "We couldn't send the OTP right now. Please try again." }),
+      { status: 500 }
+    );
   }
 }

@@ -3,7 +3,12 @@ import superjson from "superjson";
 import { render, act, fireEvent, waitFor, cleanup, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
-import { TurnstileWidget, TurnstileWidgetHandle } from "../components/TurnstileWidget";
+import {
+  TURNSTILE_INTERACTIVE_MAX_WAIT_MS,
+  TURNSTILE_TOKEN_WAIT_MS,
+  TurnstileWidget,
+  TurnstileWidgetHandle,
+} from "../components/TurnstileWidget";
 import { MobileOTPLoginForm } from "../components/MobileOTPLoginForm";
 import { AuthProvider } from "./useAuth";
 
@@ -166,6 +171,81 @@ describe("TurnstileWidget one check per send", () => {
     expect(await pending).toBe("fresh");
   });
 
+  it("resolves null when no token arrives in time, and keeps a late token for the next send", async () => {
+    const { last } = installFakeTurnstile();
+    const ref = createRef<TurnstileWidgetHandle>();
+    render(<TurnstileWidget ref={ref} />);
+    await flush();
+
+    jasmine.clock().install();
+    try {
+      const pending = ref.current!.getToken();
+      jasmine.clock().tick(TURNSTILE_TOKEN_WAIT_MS);
+      expect(await pending).toBeNull();
+    } finally {
+      jasmine.clock().uninstall();
+    }
+
+    act(() => last().callback!("late"));
+    expect(await ref.current!.getToken()).toBe("late");
+  });
+
+  it("keeps waiting while a visible challenge is on screen", async () => {
+    const { last } = installFakeTurnstile();
+    const ref = createRef<TurnstileWidgetHandle>();
+    render(<TurnstileWidget ref={ref} />);
+    await flush();
+
+    jasmine.clock().install();
+    try {
+      const pending = ref.current!.getToken();
+      act(() => last()["before-interactive-callback"]!());
+      jasmine.clock().tick(TURNSTILE_TOKEN_WAIT_MS * 3);
+      expect((await settled(pending)).done).toBe(false);
+      act(() => last().callback!("solved"));
+      expect(await pending).toBe("solved");
+    } finally {
+      jasmine.clock().uninstall();
+    }
+  });
+
+  it("gives up on a visible challenge that is never solved", async () => {
+    const { last } = installFakeTurnstile();
+    const ref = createRef<TurnstileWidgetHandle>();
+    render(<TurnstileWidget ref={ref} />);
+    await flush();
+
+    jasmine.clock().install();
+    jasmine.clock().mockDate(new Date(2026, 10, 6));
+    try {
+      const pending = ref.current!.getToken();
+      act(() => last()["before-interactive-callback"]!());
+      for (let elapsed = 0; elapsed <= TURNSTILE_INTERACTIVE_MAX_WAIT_MS; elapsed += TURNSTILE_TOKEN_WAIT_MS) {
+        jasmine.clock().tick(TURNSTILE_TOKEN_WAIT_MS);
+      }
+      expect(await pending).toBeNull();
+    } finally {
+      jasmine.clock().uninstall();
+    }
+  });
+
+  it("resolves null and reports an error when the script cannot load", async () => {
+    delete (window as { turnstile?: unknown }).turnstile;
+    const ref = createRef<TurnstileWidgetHandle>();
+    const onError = jasmine.createSpy("onError");
+    jasmine.clock().install();
+    try {
+      render(<TurnstileWidget ref={ref} onError={onError} />);
+      const pending = ref.current!.getToken();
+      jasmine.clock().tick(15_000);
+      expect(await pending).toBeNull();
+      expect(onError).toHaveBeenCalled();
+      expect(document.getElementById("cf-turnstile-script")).toBeNull();
+    } finally {
+      jasmine.clock().uninstall();
+    }
+  });
+
   it("keeps auto refresh and reset() for the mobile app bridge", async () => {
     const { api, last } = installFakeTurnstile();
     const ref = createRef<TurnstileWidgetHandle>();
@@ -187,7 +267,7 @@ describe("MobileOTPLoginForm with Turnstile", () => {
     cleanup();
   });
 
-  it("asks for one check per send and never re-challenges after the OTP goes out", async () => {
+  it("enables Send OTP from valid input alone, sends once per tap, and checks once per send", async () => {
     const { api, last } = installFakeTurnstile();
     const sendBodies: { turnstileToken?: string }[] = [];
     const fakeResponse = (status: number, body: unknown) =>
@@ -222,21 +302,29 @@ describe("MobileOTPLoginForm with Turnstile", () => {
     );
     await flush();
 
-    const sendButton = screen.getByRole("button", { name: "Send OTP" }) as HTMLButtonElement;
-    expect(sendButton.disabled).toBe(true);
-    act(() => last().callback!("t1"));
-    expect(sendButton.disabled).toBe(false);
+    const sendButton = () => screen.getByRole("button", { name: "Send OTP" }) as HTMLButtonElement;
+    const input = screen.getByPlaceholderText("Enter your 10-digit mobile number");
+    expect(sendButton().disabled).toBe(true);
+    fireEvent.change(input, { target: { value: "98765" } });
+    expect(sendButton().disabled).toBe(true);
 
-    fireEvent.change(screen.getByPlaceholderText("Enter your 10-digit mobile number"), {
-      target: { value: "9876543210" },
-    });
-    fireEvent.click(sendButton);
+    // Valid input alone enables the button; the check has not finished yet.
+    fireEvent.change(input, { target: { value: "9876543210" } });
+    expect(sendButton().disabled).toBe(false);
+
+    const button = sendButton();
+    fireEvent.click(button);
+    fireEvent.click(button);
+    await flush();
+    expect(sendBodies.length).toBe(0);
+    act(() => last().callback!("t1"));
     await until(() => sendBodies.length === 1);
     expect(sendBodies[0].turnstileToken).toBe("t1");
     await until(() => screen.queryByText("Please wait before retrying") !== null);
     expect(api.reset).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByRole("button", { name: "Send OTP" }));
+    await until(() => !sendButton().disabled);
+    fireEvent.click(sendButton());
     await until(() => api.reset.calls.count() > 0);
     expect(api.reset).toHaveBeenCalledTimes(1);
     expect(sendBodies.length).toBe(1);

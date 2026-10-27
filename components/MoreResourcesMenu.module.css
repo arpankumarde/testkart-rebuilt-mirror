@@ -1,50 +1,113 @@
+/* A compact menu panel: white surface, hairline border, natural two-layer shadow, text rows.
+   It fades and settles in on open and fades out on close. */
 .menu {
-  min-width: 12rem;
-  padding: 6px;
+  --menu-line: hsl(32 18% 88%);
+  --menu-hover: hsl(36 24% 95%);
+  --menu-ink: hsl(224 30% 14%);
+  --menu-icon: hsl(222 12% 46%);
+  min-width: 11.5rem;
+  padding: 5px;
   background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--menu-line);
+  border-radius: 0.75rem;
+  box-shadow:
+    0 1px 2px hsl(30 20% 20% / 0.05),
+    0 12px 28px -12px hsl(30 25% 20% / 0.22);
+  transform-origin: var(--radix-dropdown-menu-content-transform-origin);
+  animation: menuIn 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.menu[data-side="top"] {
+  animation-name: menuInUp;
+}
+
+.menu[data-state="closed"] {
+  animation: menuOut 120ms ease-in forwards;
+}
+
+:global(.dark) .menu {
+  --menu-line: var(--border);
+  --menu-hover: hsl(220 18% 19%);
+  --menu-ink: hsl(220 20% 96%);
+  --menu-icon: hsl(220 12% 66%);
+  box-shadow: 0 12px 28px -10px hsl(0 0% 0% / 0.65);
 }
 
 .item {
   display: flex;
   align-items: center;
-  gap: var(--spacing-3);
-  min-height: 2.5rem;
-  padding: 0 var(--spacing-3);
-  border-radius: var(--radius-md);
-  color: var(--foreground);
+  gap: 10px;
+  min-height: 2.375rem;
+  padding: 0 10px;
+  border-radius: 0.5rem;
+  color: var(--menu-ink);
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
   text-decoration: none;
   cursor: pointer;
-  transition: background-color var(--animation-duration-fast) ease;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
 }
 
 .item:hover,
 .item:focus-visible,
 .item[data-highlighted] {
-  background-color: var(--pastel-cream);
-  color: var(--foreground);
+  background-color: var(--menu-hover);
+  color: var(--menu-ink);
 }
 
 .item[aria-current="page"] {
   color: var(--tk-brand-text);
+  font-weight: 600;
 }
 
 .icon {
   flex-shrink: 0;
-  color: var(--muted-foreground);
+  color: var(--menu-icon);
 }
 
-.item:hover .icon,
-.item:focus-visible .icon,
-.item[data-highlighted] .icon {
-  color: var(--foreground);
+.item[aria-current="page"] .icon {
+  color: currentColor;
+}
+
+@keyframes menuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes menuInUp {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes menuOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .menu,
+  .menu[data-state="closed"] {
+    animation: none;
+  }
+
   .item {
     transition: none;
   }

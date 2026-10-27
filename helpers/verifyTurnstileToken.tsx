@@ -1,4 +1,5 @@
 const TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
+const SITEVERIFY_TIMEOUT_MS = 8_000;
 
 interface TurnstileVerifyResponse {
   success: boolean;
@@ -52,9 +53,12 @@ export async function verifyTurnstileToken(
       formData.append("remoteip", remoteIp);
     }
 
+    // Bounded so a slow siteverify answers the caller with a clear 403 well
+    // inside the web client's 20 s request timeout instead of hanging.
     const response = await fetch(TURNSTILE_VERIFY_URL, {
       method: "POST",
       body: formData,
+      signal: AbortSignal.timeout(SITEVERIFY_TIMEOUT_MS),
     });
 
     if (!response.ok) {

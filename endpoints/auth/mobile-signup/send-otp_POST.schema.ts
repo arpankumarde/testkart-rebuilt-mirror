@@ -1,5 +1,5 @@
 import { z } from "zod";
-import superjson from "superjson";
+import { postAuthRequest } from "../../../helpers/authRequest";
 import { UserRoleArrayValues } from "../../../helpers/schema";
 
 export const schema = z.object({
@@ -36,22 +36,5 @@ export const postSendMobileSignupOtp = async (
   init?: RequestInit
 ): Promise<OutputType> => {
   const validatedInput = schema.parse(body);
-  const result = await fetch(`/_api/auth/mobile-signup/send-otp`, {
-    method: "POST",
-    body: superjson.stringify(validatedInput),
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(init?.headers ?? {}),
-    },
-  });
-
-  const json = superjson.parse(await result.text());
-
-  if (!result.ok) {
-    const error = (json as { error: string }).error;
-    throw new Error(error || "Failed to send OTP");
-  }
-
-  return json as OutputType;
+  return postAuthRequest<OutputType>(`/_api/auth/mobile-signup/send-otp`, validatedInput, init);
 };

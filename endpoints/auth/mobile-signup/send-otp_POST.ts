@@ -56,7 +56,10 @@ export async function handle(request: Request): Promise<Response> {
     const rateLimitResult = await checkOtpRateLimit(db, { mobileNumber, ipAddress });
     if (!rateLimitResult.allowed) {
       return new Response(
-        superjson.stringify({ error: rateLimitResult.message }),
+        superjson.stringify({
+          error: rateLimitResult.message,
+          retryAfterSeconds: rateLimitResult.retryAfterSeconds,
+        }),
         { status: 429 }
       );
     }

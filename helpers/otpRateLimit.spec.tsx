@@ -99,6 +99,7 @@ describe("checkOtpRateLimit", () => {
     expect(await checkOtpRateLimit(fakeDb({}, 10.5).db, { ...sms, userId: 42 })).toEqual({
       allowed: false,
       message: "Please wait 35 seconds before requesting another OTP.",
+      retryAfterSeconds: 35,
     });
     expect(await checkOtpRateLimit(fakeDb({ mobile_number: [5, 5], user_id: [5, 5] }).db, { ...sms, userId: 42 })).toEqual({
       allowed: false,
@@ -126,7 +127,14 @@ describe("checkEmailOtpRateLimit", () => {
     expect(await checkEmailOtpRateLimit(fakeDb({}, 10.5).db, input)).toEqual({
       allowed: false,
       message: "Please wait 35 seconds before requesting another code.",
+      retryAfterSeconds: 35,
     });
+  });
+
+  it("skips the user axis for an email login with no known user", async () => {
+    const { db, statements } = fakeDb({ user_id: [10, 10] });
+    expect(await checkEmailOtpRateLimit(db, { email: input.email })).toEqual({ allowed: true });
+    expect(statements.some((sql) => sql.includes('"user_id"'))).toBe(false);
   });
 
   it("blocks an address at 5 sends in the hour", async () => {

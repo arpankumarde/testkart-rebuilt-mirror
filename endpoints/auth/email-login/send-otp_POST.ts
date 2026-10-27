@@ -7,13 +7,19 @@ import { getBrandedEmailHtml } from "../../../helpers/emailBaseTemplate";
 import { getClientIp } from "../../../helpers/getClientIp";
 import { verifyTurnstileToken } from "../../../helpers/verifyTurnstileToken";
 import { generateOtpCode } from "../../../helpers/otpVerifyGuard";
+import { checkEmailOtpRateLimit } from "../../../helpers/otpRateLimit";
 
 const OTP_EXPIRATION_MINUTES = 10;
 const MAX_ATTEMPTS = 5;
 
 export async function handle(request: Request) {
   try {
-    const json = superjson.parse(await request.text());
+    let json: unknown;
+    try {
+      json = superjson.parse(await request.text());
+    } catch {
+      return new Response(superjson.stringify({ error: "Invalid request." }), { status: 400 });
+    }
     const { email, turnstileToken } = schema.parse(json);
 
     // 0. Turnstile challenge - the same bot check the SMS OTP routes use.
@@ -37,7 +43,25 @@ export async function handle(request: Request) {
       .where("emailVerified", "=", true)
       .executeTakeFirst();
 
-    // 2. Rate limiting: Check existing OTP records
+    // 2. Rate limiting: a per-address cooldown and hourly/daily caps, so
+    // retries and double taps cannot fan out into a stream of emails.
+    const rateLimitResult = await checkEmailOtpRateLimit(db, { email, userId: user?.id });
+    if (!rateLimitResult.allowed) {
+      return new Response(
+        superjson.stringify({
+          error: rateLimitResult.message,
+          retryAfterSeconds: rateLimitResult.retryAfterSeconds,
+        }),
+        {
+          status: 429,
+          headers: rateLimitResult.retryAfterSeconds
+            ? { "Retry-After": String(rateLimitResult.retryAfterSeconds) }
+            : undefined,
+        }
+      );
+    }
+
+    // A live OTP that already used up its verify attempts stays locked.
     const existingOtp = await db
       .selectFrom("emailOtps")
       .select(["expiresAt", "attempts"])
@@ -109,13 +133,14 @@ export async function handle(request: Request) {
   } catch (error) {
     console.error("Error sending email OTP:", error);
     if (error instanceof z.ZodError) {
-      return new Response(superjson.stringify({ error: error.errors }), {
+      const message = error.errors[0]?.message ?? "Please enter a valid email address.";
+      return new Response(superjson.stringify({ error: message }), {
         status: 400,
       });
     }
-    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
-    return new Response(superjson.stringify({ error: errorMessage }), {
-      status: 500,
-    });
+    return new Response(
+      superjson.stringify({ error: "We couldn't send the OTP right now. Please try again." }),
+      { status: 500 }
+    );
   }
 }

@@ -8,162 +8,209 @@
   color: var(--foreground);
 }
 
+/* Navbar palette: warm white surface, a light neutral tray for the links, navy ink, coral only
+   for the active mark and the CTA. */
 .header {
+  --nav-bg: hsl(36 45% 99%);
+  --nav-line: hsl(32 20% 89%);
+  --nav-ink: hsl(224 30% 14%);
+  --nav-text: hsl(222 22% 28%);
+  --nav-tray: hsl(36 28% 95.5%);
+  --nav-tray-line: hsl(32 18% 88%);
+  --nav-tray-hover: hsl(34 24% 90.5%);
+  --nav-hover-surface: hsl(34 30% 94%);
+  --nav-shadow: 0 1px 2px hsl(30 20% 20% / 0.04), 0 6px 16px -10px hsl(30 25% 20% / 0.18);
   position: sticky;
   top: var(--site-notice-offset);
   width: 100%;
-  background-color: var(--surface);
-  border-bottom: 1px solid var(--border);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  background-color: var(--nav-bg);
+  border-bottom: 1px solid var(--nav-line);
+  box-shadow: var(--nav-shadow);
   z-index: var(--z-nav-sticky);
   transition: transform var(--animation-duration-normal) ease-in-out;
+}
+
+:global(.dark) .header {
+  --nav-bg: var(--surface);
+  --nav-line: var(--border);
+  --nav-ink: hsl(220 20% 96%);
+  --nav-text: hsl(220 14% 80%);
+  --nav-tray: hsl(220 18% 16.5%);
+  --nav-tray-line: hsl(220 15% 23%);
+  --nav-tray-hover: hsl(220 18% 22%);
+  --nav-hover-surface: hsl(220 18% 19%);
+  --nav-shadow: 0 6px 16px -10px hsl(0 0% 0% / 0.6);
 }
 
 .headerHidden {
   transform: translateY(calc(-100% - var(--site-notice-offset)));
 }
 
+/* Three zones. The two side columns are equal 1fr tracks, so the auto-width nav column sits on
+   the container's centre line (and the container is centred in the viewport) whatever the logo
+   and the actions measure. Breakpoints below keep each side's content narrower than its track. */
 .headerContent {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--spacing-4);
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-8);
+  height: var(--header-height);
+}
+
+.brandZone {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: var(--spacing-4) var(--spacing-6);
-  height: var(--header-height);
+  justify-self: start;
+  min-width: 0;
 }
 
 .logo {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
   gap: var(--spacing-3);
   font-family: var(--font-family-heading);
   font-size: 1.75rem;
   font-weight: 800;
   color: var(--foreground);
   text-decoration: none;
-  transition: transform var(--animation-duration-normal) ease;
+  border-radius: var(--radius);
 }
 
-.logo:hover {
-  transform: translateY(-1px);
+.logo:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 4px;
 }
 
 .logoImage {
   height: 44px;
   width: auto;
   object-fit: contain;
-  transition: transform var(--animation-duration-normal) ease,
-              filter var(--animation-duration-normal) ease;
 }
 
-.logo:hover .logoImage {
-  transform: scale(1.05);
-  filter: brightness(1.1);
-}
-
+/* The links share one light tray with a hairline edge, so they read as a single control.
+   Hover gives a link a slightly deeper tint of the tray; the active page turns its label orange
+   and grows a short coral bar under it. No filled active background. */
 .nav {
   display: flex;
-  gap: clamp(var(--spacing-4), 1.6vw, var(--spacing-6));
   align-items: center;
+  gap: 2px;
+  padding: 4px;
+  background-color: var(--nav-tray);
+  border: 1px solid var(--nav-tray-line);
+  border-radius: 0.875rem;
 }
 
 .navLink {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 2.25rem;
+  padding: 0 var(--spacing-3);
+  border-radius: 0.625rem;
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--muted-foreground);
+  letter-spacing: -0.006em;
+  color: var(--nav-text);
   text-decoration: none;
   white-space: nowrap;
-  transition: color var(--animation-duration-fast) ease,
-              transform var(--animation-duration-fast) ease;
-  padding: var(--spacing-2) var(--spacing-1);
-  position: relative;
+  transition:
+    color var(--animation-duration-fast) ease,
+    background-color var(--animation-duration-fast) ease;
 }
 
 .navLink::after {
   content: "";
   position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 100%;
-  height: 3px;
+  bottom: 3px;
+  left: 50%;
+  width: 1.125rem;
+  height: 2px;
+  margin-left: -0.5625rem;
   background-color: var(--primary);
   border-radius: var(--radius-full);
   transform: scaleX(0);
-  transform-origin: bottom right;
-  transition: transform var(--animation-duration-normal) ease-out;
+  transition: transform var(--animation-duration-normal) cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.navLink:hover {
-  color: var(--foreground);
-  transform: translateY(-1px);
-}
-
-.navLink:hover::after {
-  transform: scaleX(1);
-  transform-origin: bottom left;
+.navLink:hover,
+.moreTrigger[data-state="open"] {
+  color: var(--nav-ink);
+  background-color: var(--nav-tray-hover);
 }
 
 .navLink.active {
   color: var(--tk-brand-text);
-  font-weight: 700;
 }
 
 .navLink.active::after {
   transform: scaleX(1);
 }
 
+.navLink:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 1px;
+}
+
 .liveTestsLink {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
+  gap: 7px;
 }
 
 .moreTrigger {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
   background: none;
   border: none;
   font-family: inherit;
   cursor: pointer;
 }
 
-.moreTrigger[data-state="open"] {
-  color: var(--foreground);
-}
-
-.moreTrigger[data-state="open"]::after {
-  transform: scaleX(1);
-}
-
 .moreChevron {
-  transition: transform var(--animation-duration-fast) ease;
+  margin-right: -2px;
+  transition: transform var(--animation-duration-normal) cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .moreTrigger[data-state="open"] .moreChevron {
   transform: rotate(180deg);
 }
 
-/* The five items fit the 1200px header. Narrower, Live Competitions drops to its icon (it keeps its
-   aria-label and title) and the gaps tighten, down to the 968px mobile header. */
-@media (max-width: 1180px) {
+/* Widths that keep the side content inside its 1fr track (tray ~580px with every label, actions
+   ~335px logged out): below 1360px Live Competitions drops to its icon (it keeps its aria-label
+   and title); below 1280px the side padding narrows; below 1200px Create Account moves into the
+   drawer, the hamburger appears and the links tighten; at 968px the phone header takes over. */
+@media (max-width: 1359px) {
   .liveLabel {
     display: none;
   }
 }
 
-@media (max-width: 1080px) {
-  .nav {
-    gap: var(--spacing-3);
+@media (max-width: 1279px) {
+  .headerContent {
+    padding: 0 var(--spacing-6);
   }
+}
 
-  .headerActions {
-    gap: var(--spacing-2);
+@media (max-width: 1199px) {
+  .navLink {
+    padding: 0 0.625rem;
   }
 
   .logoImage {
-    height: 38px;
+    height: 40px;
+  }
+
+  .headerActions .signupButton {
+    display: none;
+  }
+
+  .headerActions .menuButton {
+    display: inline-flex;
   }
 }
 
@@ -175,106 +222,168 @@
 }
 
 .liveIcon {
-  color: var(--muted-foreground);
-  transition: color var(--animation-duration-fast) ease,
-              transform var(--animation-duration-fast) ease;
-}
-
-.liveTestsLink:hover .liveIcon {
-  color: var(--foreground);
-  transform: scale(1.1);
-}
-
-.liveTestsLink.active .liveIcon {
-  color: var(--tk-brand-text);
+  display: block;
+  color: currentColor;
 }
 
 .liveDot {
   position: absolute;
-  top: -2px;
+  top: -1px;
   right: -2px;
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   background: var(--error);
   border-radius: var(--radius-full);
-  border: 2px solid var(--surface);
-  box-shadow: 0 0 0 0 var(--error);
+  box-shadow: 0 0 0 1.5px var(--nav-bg);
   animation: livePulse 2s ease-in-out infinite;
 }
 
 @keyframes livePulse {
-  0% {
-    box-shadow: 0 0 0 0 var(--error);
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
-    box-shadow: 0 0 0 6px transparent;
-    opacity: 0.8;
-  }
-  100% {
-    box-shadow: 0 0 0 0 transparent;
-    opacity: 1;
+    opacity: 0.45;
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .liveDot {
+    animation: none;
+  }
+}
+
+/* Right zone: utilities (search, cart, theme) together, a hairline separator, then the account
+   actions (Log In and Create Account, or the avatar), then the hamburger below 1200px. */
 .headerActions {
   display: flex;
   align-items: center;
-  gap: var(--spacing-3);
+  justify-self: end;
+  gap: var(--spacing-1);
+  min-width: 0;
+}
+
+.actionsDivider {
+  width: 1px;
+  height: 1.375rem;
+  margin: 0 var(--spacing-2);
+  background-color: var(--nav-line);
+}
+
+.headerActions .accountTrigger > * {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.menuButton {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.375rem;
+  height: 2.375rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0.625rem;
+  background-color: transparent;
+  color: var(--nav-ink);
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.menuButton:hover {
+  background-color: var(--nav-hover-surface);
+}
+
+.menuButton:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
 }
 
 .loginButton {
+  height: 2.5rem;
+  padding: 0 var(--spacing-3);
   font-weight: 600;
-  color: var(--foreground);
+  color: var(--nav-ink);
   transition: color var(--animation-duration-fast) ease;
   min-width: 44px;
   min-height: 44px;
 }
 
 .loginButton:hover {
+  background-color: transparent;
   color: var(--tk-brand-text);
 }
 
+/* The peach CTA shared with the teacher pages (OrganizationProfileView .followButton): peach
+   fill, peach-edge outline and a 2px ledge, lifting a pixel on hover. Set here because this
+   button overrides Button's own background. */
 .signupButton {
-  background: var(--primary);
-  color: var(--primary-foreground);
-  font-weight: 600;
-  box-shadow: 0 4px 12px rgba(255, 111, 64, 0.3);
-  transition: transform var(--animation-duration-normal) ease,
-              box-shadow var(--animation-duration-normal) ease,
-              background-color var(--animation-duration-fast) ease;
+  height: 2.625rem;
+  min-height: 2.625rem;
   min-width: 44px;
-  min-height: 44px;
+  margin-left: var(--spacing-1);
+  padding: 0 var(--spacing-4);
+  border: 1px solid var(--sp-peach-edge);
+  border-radius: 1.3125rem 1.3125rem 1.3125rem 0.5rem;
+  background: var(--sp-cta);
+  color: var(--sp-cta-ink);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  box-shadow: 0 2px 0 var(--sp-peach-edge), 0 6px 14px -8px hsl(20 70% 40% / 0.45);
+  transition: background-color var(--animation-duration-fast) ease,
+              box-shadow var(--animation-duration-fast) ease,
+              transform var(--animation-duration-fast) ease;
 }
 
-/* Same hover destination as every other coral control: deep orange fill, white
-   label. Set here because this button overrides Button's own background. */
 .signupButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 111, 64, 0.4);
-  background-color: var(--tk-brand-hover);
-  color: var(--tk-brand-hover-foreground);
+  background-color: var(--sp-cta-hover);
+  color: var(--sp-cta-ink);
+  box-shadow: 0 3px 0 var(--sp-peach-edge), 0 8px 18px -8px hsl(20 70% 40% / 0.5);
+  transform: translateY(-1px);
 }
 
 .signupButton:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(255, 111, 64, 0.3);
+  box-shadow: 0 1px 0 var(--sp-peach-edge);
+  transform: translateY(1px);
 }
 
+.signupButton:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 3px;
+}
+
+/* Plain icon buttons: no resting fill, a soft rounded-square surface on hover. The theme toggle
+   is restyled to match. All icons 20px. */
 .searchButton,
-.cartButton {
-  padding: var(--spacing-2);
-  min-width: 44px;
-  min-height: 44px;
-  width: 44px;
-  height: 44px;
+.cartButton,
+.themeSwitch button {
+  padding: 0;
+  min-width: 2.375rem;
+  min-height: 2.375rem;
+  width: 2.375rem;
+  height: 2.375rem;
+  border-radius: 0.625rem;
+  color: var(--nav-ink);
   position: relative;
-  transition: transform var(--animation-duration-normal) ease;
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.searchButton svg,
+.cartButton svg,
+.themeSwitch button svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--nav-ink);
 }
 
 .searchButton:hover,
-.cartButton:hover {
-  transform: scale(1.05);
+.cartButton:hover,
+.themeSwitch button:hover,
+.themeSwitch button[data-state="open"] {
+  background-color: var(--nav-hover-surface);
+  color: var(--nav-ink);
+  transform: none;
 }
 
 .shopButton {
@@ -311,24 +420,13 @@
   border-radius: var(--radius-full);
   min-width: 1.35rem;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  border: 2px solid var(--surface);
-  animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
+  border: 2px solid var(--nav-bg);
 }
 
 .authLoading {
   display: flex;
   align-items: center;
-  gap: var(--spacing-4);
+  gap: var(--spacing-3);
 }
 
 /* Two classes so it outranks AccountMenu's own display rule whichever
@@ -363,15 +461,20 @@
     right: 0;
   }
 
-  .nav {
-    display: none;
-  }
-
-  .signupButton {
+  /* Phones: logo left; search, cart, theme and the hamburger right. Log In and Create Account
+     live in the drawer (and Sign Up in the tab bar). */
+  .nav,
+  .actionsDivider,
+  .signupButton,
+  .loginButton,
+  .authLoading {
     display: none;
   }
 
   .headerContent {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     padding: var(--spacing-3) var(--spacing-4);
     height: 64px;
     gap: var(--spacing-3);
@@ -386,29 +489,18 @@
   }
 
   .headerActions {
-    gap: var(--spacing-2);
-  }
-
-  .signupButton {
-    padding: 0 var(--spacing-4);
-    font-size: 0.9375rem;
-    min-width: 80px;
-  }
-
-  .loginButton {
-    font-size: 0.9375rem;
-    padding: 0 var(--spacing-3);
+    gap: var(--spacing-1);
   }
 
   .searchButton,
-  .searchButton,
-  .cartButton {
-    min-width: 44px;
-    min-height: 44px;
-    width: 44px;
-    height: 44px;
+  .cartButton,
+  .themeSwitch button,
+  .headerActions .menuButton {
+    min-width: 42px;
+    min-height: 42px;
+    width: 42px;
+    height: 42px;
   }
-
 }
 
 @media (max-width: 480px) {
@@ -431,28 +523,7 @@
   }
 
   .headerActions {
-    gap: var(--spacing-1);
-  }
-
-  .cartButton {
-    min-width: 44px;
-    min-height: 44px;
-    width: 44px;
-    height: 44px;
-  }
-
-  .signupButton {
-    padding: 0 var(--spacing-3);
-    font-size: 0.875rem;
-    min-width: 72px;
-    min-height: 44px;
-  }
-
-  .loginButton {
-    font-size: 0.875rem;
-    padding: 0 var(--spacing-2);
-    min-width: 60px;
-    min-height: 44px;
+    gap: 2px;
   }
 
   .cartBadge {
@@ -474,24 +545,14 @@
     height: 32px;
   }
 
-  .signupButton {
-    padding: 0 var(--spacing-2);
-    font-size: 0.8125rem;
-    min-width: 68px;
-  }
-
-  .loginButton {
-    font-size: 0.8125rem;
-    padding: 0 var(--spacing-1);
-    min-width: 56px;
-  }
-
   .searchButton,
-  .cartButton {
-    min-width: 44px;
-    min-height: 44px;
-    width: 44px;
-    height: 44px;
+  .cartButton,
+  .themeSwitch button,
+  .headerActions .menuButton {
+    min-width: 40px;
+    min-height: 40px;
+    width: 40px;
+    height: 40px;
   }
 }
 
@@ -573,7 +634,9 @@
     min-width: 1.125rem;
   }
 
+  /* Organisation pages keep their Log In pill in the bar, beside the hamburger. */
   .headerCompact .headerActions .loginButton {
+    display: inline-flex;
     height: 36px;
     min-height: 36px;
     min-width: 0;
@@ -609,7 +672,15 @@
   }
 
   .headerCompact .authLoading {
+    display: flex;
     gap: 6px;
+  }
+
+  .headerCompact .headerActions .menuButton {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
   }
 
   /* The account avatar is hidden below 968px, so its placeholder is too. */

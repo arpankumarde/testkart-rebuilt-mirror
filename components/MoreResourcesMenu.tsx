@@ -75,7 +75,7 @@ export const MoreResourcesMenu: React.FC<MoreResourcesMenuProps> = ({ trigger, o
         {MORE_RESOURCES.map(({ href, label, icon: Icon }) => (
           <DropdownMenuItem key={href} asChild className={styles.item}>
             <Link to={href} aria-current={isMoreResourcePath(pathname, href) ? "page" : undefined}>
-              <Icon size={18} strokeWidth={1.75} className={styles.icon} aria-hidden="true" />
+              <Icon size={16} strokeWidth={1.75} className={styles.icon} aria-hidden="true" />
               {label}
             </Link>
           </DropdownMenuItem>

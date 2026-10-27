@@ -14,8 +14,10 @@ import { DB } from "./schema";
  *  - per source IP: hourly/daily caps, since a single attacker typically
  *    rotates through many numbers from one machine/script
  *
- * checkEmailOtpRateLimit (auth/send-email-otp) enforces the same cooldown and
- * caps per address and per user.
+ * checkEmailOtpRateLimit (auth/send-email-otp, auth/email-login) enforces the
+ * same cooldown and caps per address, and per user when one is known.
+ *
+ * Cooldown refusals carry retryAfterSeconds so callers can show a countdown.
  *
  * IP checks are skipped (not fail-open in a way that disables everything --
  * only the IP axis) when no IP could be determined, since we never want a
@@ -40,12 +42,13 @@ export interface OtpRateLimitParams {
 
 export interface EmailOtpRateLimitParams {
   email: string;
-  userId: number;
+  /** Omitted for email login, where the address may not belong to anyone yet. */
+  userId?: number;
 }
 
 export type OtpRateLimitResult =
   | { allowed: true }
-  | { allowed: false; message: string };
+  | { allowed: false; message: string; retryAfterSeconds?: number };
 
 export async function checkOtpRateLimit(
   db: Kysely<DB>,
@@ -71,6 +74,7 @@ export async function checkOtpRateLimit(
       return {
         allowed: false,
         message: `Please wait ${waitSeconds} second${waitSeconds === 1 ? "" : "s"} before requesting another OTP.`,
+        retryAfterSeconds: waitSeconds,
       };
     }
   }
@@ -202,6 +206,7 @@ export async function checkEmailOtpRateLimit(
       return {
         allowed: false,
         message: `Please wait ${waitSeconds} second${waitSeconds === 1 ? "" : "s"} before requesting another code.`,
+        retryAfterSeconds: waitSeconds,
       };
     }
   }
@@ -236,7 +241,9 @@ export async function checkEmailOtpRateLimit(
     };
   }
 
-  // 3. Per-user hourly / daily caps.
+  // 3. Per-user hourly / daily caps (only when the address belongs to a user).
+  if (userId === undefined) return { allowed: true };
+
   const userCounts = await db
     .selectFrom("emailOtps")
     .select((eb) => [

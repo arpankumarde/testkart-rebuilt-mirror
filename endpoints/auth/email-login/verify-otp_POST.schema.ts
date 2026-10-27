@@ -1,5 +1,5 @@
 import { z } from "zod";
-import superjson from "superjson";
+import { postAuthRequest } from "../../../helpers/authRequest";
 import { User } from "../../../helpers/User";
 
 export const schema = z.object({
@@ -23,22 +23,5 @@ export const postVerifyEmailLoginOtp = async (
   init?: RequestInit
 ): Promise<OutputType> => {
   const validatedInput = schema.parse(body);
-  const result = await fetch(`/_api/auth/email-login/verify-otp`, {
-    method: "POST",
-    body: superjson.stringify(validatedInput),
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(init?.headers ?? {}),
-    },
-  });
-
-  if (!result.ok) {
-    const errorObject = superjson.parse<{ error: string }>(
-      await result.text()
-    );
-    throw new Error(errorObject.error);
-  }
-
-  return superjson.parse<OutputType>(await result.text());
+  return postAuthRequest<OutputType>(`/_api/auth/email-login/verify-otp`, validatedInput, init);
 };

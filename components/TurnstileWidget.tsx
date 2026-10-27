@@ -26,34 +26,54 @@ interface TurnstileRenderOptions {
 
 const SCRIPT_SRC = "https://challenges.cloudflare.com/turnstile/v0/api.js";
 const SCRIPT_ID = "cf-turnstile-script";
+const SCRIPT_LOAD_TIMEOUT_MS = 15_000;
 let scriptLoadPromise: Promise<void> | null = null;
 
+/**
+ * Loads the Turnstile script once. Rejects on a network error or after
+ * SCRIPT_LOAD_TIMEOUT_MS, and forgets the failed attempt so the next send can
+ * try again instead of waiting on a promise that never settles.
+ */
 function loadTurnstileScript(): Promise<void> {
   if (typeof window === "undefined") return Promise.resolve();
   if (window.turnstile) return Promise.resolve();
   if (scriptLoadPromise) return scriptLoadPromise;
 
-  scriptLoadPromise = new Promise((resolve) => {
-    const existing = document.getElementById(SCRIPT_ID) as HTMLScriptElement | null;
-    if (existing) {
-      existing.addEventListener("load", () => resolve());
-      // Script tag already present but possibly already loaded before this
-      // listener was attached - poll briefly as a fallback.
-      const checkInterval = setInterval(() => {
-        if (window.turnstile) {
-          clearInterval(checkInterval);
-          resolve();
-        }
-      }, 100);
-      return;
+  scriptLoadPromise = new Promise<void>((resolve, reject) => {
+    let settled = false;
+    let poll: ReturnType<typeof setInterval> | undefined;
+    const finish = (error?: Error) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      if (poll) clearInterval(poll);
+      if (error) reject(error);
+      else resolve();
+    };
+    const timeout = setTimeout(
+      () => finish(new Error("Turnstile script load timed out")),
+      SCRIPT_LOAD_TIMEOUT_MS
+    );
+
+    let script = document.getElementById(SCRIPT_ID) as HTMLScriptElement | null;
+    if (!script) {
+      script = document.createElement("script");
+      script.id = SCRIPT_ID;
+      script.src = SCRIPT_SRC;
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
     }
-    const script = document.createElement("script");
-    script.id = SCRIPT_ID;
-    script.src = SCRIPT_SRC;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => resolve();
-    document.head.appendChild(script);
+    script.addEventListener("load", () => finish());
+    script.addEventListener("error", () => finish(new Error("Turnstile script failed to load")));
+    // The tag may have loaded before these listeners were attached.
+    poll = setInterval(() => {
+      if (window.turnstile) finish();
+    }, 100);
+  }).catch((error: unknown) => {
+    scriptLoadPromise = null;
+    if (!window.turnstile) document.getElementById(SCRIPT_ID)?.remove();
+    throw error;
   });
 
   return scriptLoadPromise;
@@ -66,6 +86,15 @@ type HeldToken = { value: string; mintedAt: number };
 
 const isFresh = (held: HeldToken | null): held is HeldToken =>
   held !== null && Date.now() - held.mintedAt < TOKEN_MAX_AGE_MS;
+
+/**
+ * How long getToken() waits for an invisible challenge before resolving null,
+ * so a stalled check can never hold a send open. The wait is extended while a
+ * visible challenge is on screen, since the visitor is solving it.
+ */
+export const TURNSTILE_TOKEN_WAIT_MS = 20_000;
+/** Upper bound on that extension, so an abandoned or broken challenge still ends. */
+export const TURNSTILE_INTERACTIVE_MAX_WAIT_MS = 180_000;
 
 // An unspent token from a widget that unmounted, for example when the login
 // page swaps the mobile form for the email form. The next widget to mount
@@ -80,7 +109,8 @@ export interface TurnstileWidgetHandle {
   reset: () => void;
   /**
    * Resolves with a single-use token for one send, or null if the challenge
-   * errors. Hands over the token already minted when there is one and only
+   * errors, the script cannot load, or no token arrives within
+   * TURNSTILE_TOKEN_WAIT_MS. Hands over the token already minted when there is one and only
    * runs a new challenge once that token has been spent, so a visitor who
    * passed the check is not challenged again until they ask for another send.
    */
@@ -150,6 +180,9 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetHandle, TurnstileWidget
     // True from render or reset until the widget reports a token, error or expiry.
     const runningRef = useRef(false);
     const tokenRef = useRef<HeldToken | null>(null);
+    // True while Cloudflare shows a visible challenge the visitor has to solve.
+    const interactiveRef = useRef(false);
+    const waitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const waiterRef = useRef<{
       promise: Promise<string | null>;
       resolve: (token: string | null) => void;
@@ -169,12 +202,35 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetHandle, TurnstileWidget
     refreshExpiredRef.current = refreshExpired;
     themeRef.current = theme;
 
+    const clearWaitTimer = () => {
+      if (waitTimerRef.current) clearTimeout(waitTimerRef.current);
+      waitTimerRef.current = null;
+    };
+
     const settleWaiter = (token: string | null) => {
       const waiter = waiterRef.current;
       if (!waiter) return false;
       waiterRef.current = null;
+      clearWaitTimer();
       waiter.resolve(token);
       return true;
+    };
+
+    const armWaitTimer = (startedAt = Date.now()) => {
+      clearWaitTimer();
+      waitTimerRef.current = setTimeout(() => {
+        const withinLimit = Date.now() - startedAt < TURNSTILE_INTERACTIVE_MAX_WAIT_MS;
+        if (interactiveRef.current && withinLimit) armWaitTimer(startedAt);
+        else settleWaiter(null);
+      }, TURNSTILE_TOKEN_WAIT_MS);
+    };
+
+    const failRender = () => {
+      renderStartedRef.current = false;
+      runningRef.current = false;
+      interactiveRef.current = false;
+      settleWaiter(null);
+      if (mountedRef.current) (onErrorRef.current ?? onExpireRef.current)?.();
     };
 
     const renderWidget = () => {
@@ -182,43 +238,53 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetHandle, TurnstileWidget
       renderStartedRef.current = true;
       runningRef.current = true;
 
-      loadTurnstileScript().then(() => {
-        if (
-          !mountedRef.current ||
-          !containerRef.current ||
-          !window.turnstile ||
-          widgetIdRef.current
-        ) {
-          return;
-        }
+      loadTurnstileScript()
+        .then(() => {
+          if (
+            !mountedRef.current ||
+            !containerRef.current ||
+            !window.turnstile ||
+            widgetIdRef.current
+          ) {
+            return;
+          }
 
-        widgetIdRef.current = window.turnstile.render(containerRef.current, {
-          sitekey: CLOUDFLARE_TURNSTILE_SITE_KEY,
-          appearance: "interaction-only",
-          theme: themeRef.current ?? "auto",
-          "refresh-expired": refreshExpiredRef.current,
-          callback: (token: string) => {
-            runningRef.current = false;
-            if (!settleWaiter(token)) {
-              tokenRef.current = { value: token, mintedAt: Date.now() };
-            }
-            onVerifyRef.current?.(token);
-          },
-          "expired-callback": () => {
-            tokenRef.current = null;
-            runningRef.current = refreshExpiredRef.current === "auto";
-            onExpireRef.current?.();
-          },
-          "error-callback": () => {
-            tokenRef.current = null;
-            runningRef.current = false;
-            settleWaiter(null);
-            (onErrorRef.current ?? onExpireRef.current)?.();
-          },
-          "before-interactive-callback": () => onBeforeInteractiveRef.current?.(),
-          "after-interactive-callback": () => onAfterInteractiveRef.current?.(),
-        });
-      });
+          widgetIdRef.current = window.turnstile.render(containerRef.current, {
+            sitekey: CLOUDFLARE_TURNSTILE_SITE_KEY,
+            appearance: "interaction-only",
+            theme: themeRef.current ?? "auto",
+            "refresh-expired": refreshExpiredRef.current,
+            callback: (token: string) => {
+              runningRef.current = false;
+              interactiveRef.current = false;
+              if (!settleWaiter(token)) {
+                tokenRef.current = { value: token, mintedAt: Date.now() };
+              }
+              onVerifyRef.current?.(token);
+            },
+            "expired-callback": () => {
+              tokenRef.current = null;
+              runningRef.current = refreshExpiredRef.current === "auto";
+              onExpireRef.current?.();
+            },
+            "error-callback": () => {
+              tokenRef.current = null;
+              runningRef.current = false;
+              interactiveRef.current = false;
+              settleWaiter(null);
+              (onErrorRef.current ?? onExpireRef.current)?.();
+            },
+            "before-interactive-callback": () => {
+              interactiveRef.current = true;
+              onBeforeInteractiveRef.current?.();
+            },
+            "after-interactive-callback": () => {
+              interactiveRef.current = false;
+              onAfterInteractiveRef.current?.();
+            },
+          });
+        })
+        .catch(failRender);
     };
 
     const rerunChallenge = () => {
@@ -247,6 +313,7 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetHandle, TurnstileWidget
           resolve = r;
         });
         waiterRef.current = { promise, resolve };
+        armWaitTimer();
         rerunChallenge();
         return promise;
       },
@@ -267,6 +334,8 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetHandle, TurnstileWidget
         mountedRef.current = false;
         renderStartedRef.current = false;
         runningRef.current = false;
+        interactiveRef.current = false;
+        settleWaiter(null);
         if (isFresh(tokenRef.current)) leftoverToken = tokenRef.current;
         tokenRef.current = null;
         if (window.turnstile && widgetIdRef.current) {
