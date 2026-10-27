@@ -5,6 +5,7 @@ import { DigitalProducts } from "../../../helpers/schema";
 import { DigitalProductFileItem } from "../../../helpers/digitalProductFileTypes";
 import { fileEntrySchemaRef } from "./create_POST.schema";
 import { MAX_ITEM_LANGUAGES, MAX_LANGUAGE_LENGTH } from "../../../helpers/itemLanguages";
+import { noEmoji } from "../../../helpers/emojiText";
 
 // id is the digital_product_files row the entry came from. Sending it back
 // lets the server update that row in place so students keep the same file id.
@@ -14,7 +15,7 @@ const updateFileEntrySchema = fileEntrySchemaRef.extend({
 
 export const schema = z.object({
   id: z.number().int().positive(),
-  title: z.string().min(3).max(255, "Title must be 255 characters or fewer.").optional(),
+  title: noEmoji(z.string().min(3).max(255, "Title must be 255 characters or fewer.")).optional(),
   description: z.string().min(10).optional(),
   shortDescription: z.string().max(255).optional().nullable(),
   price: z.number().min(0).optional(),

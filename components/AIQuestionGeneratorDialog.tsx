@@ -41,6 +41,7 @@ import {
   type GeneratedQuestionDraft,
 } from '../endpoints/teacher/questions/generate-ai_POST.schema';
 import { useTeacherTestMutations } from '../helpers/useTeacherTestMutations';
+import { getAiErrorMessage } from '../helpers/aiPromptValidation';
 
 import styles from './AIQuestionGeneratorDialog.module.css';
 
@@ -140,7 +141,7 @@ export const AIQuestionGeneratorDialog: React.FC<AIQuestionGeneratorDialogProps>
         examName: values.examName,
         subjectName: values.subjectName,
         numberOfQuestions,
-        customPrompt: values.customPrompt,
+        customPrompt: values.customPrompt?.trim() || undefined,
         chapterTopic: values.chapterTopic,
         syllabus: values.syllabus,
         questionType: values.questionType,
@@ -164,9 +165,7 @@ export const AIQuestionGeneratorDialog: React.FC<AIQuestionGeneratorDialogProps>
           }
         },
         onError: (error) => {
-          const errorMessage = error instanceof Error
-            ? error.message
-            : 'An unknown error occurred during question generation.';
+          const errorMessage = getAiErrorMessage(error);
           onGenerationError?.(errorMessage);
           toast.error(errorMessage);
           console.error('AI Question Generation Error:', error);
@@ -521,9 +520,11 @@ export const AIQuestionGeneratorDialog: React.FC<AIQuestionGeneratorDialogProps>
                     placeholder="Any specific instructions for the AI..."
                     rows={2}
                     value={form.values.customPrompt}
-                    onChange={(e) =>
-                      form.setValues((prev) => ({ ...prev, customPrompt: e.target.value }))
-                    }
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      form.setValues((prev) => ({ ...prev, customPrompt: value }));
+                      if (form.errors.customPrompt) form.setFieldError('customPrompt', '');
+                    }}
                     disabled={isBusy}
                   />
                 </FormControl>

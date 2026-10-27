@@ -210,10 +210,11 @@ export type SpinRewardPreset = {
 };
 
 /**
- * The PRD's Diwali wheel. Probabilities start at 0% and every reward starts off: the split is a
- * business decision, and the Grand Prize benefit is still undecided, so it carries no discount.
+ * The starter rewards a new campaign can be created with. Probabilities start at 0% and every
+ * reward starts off: the split is a business decision, and the Grand Prize carries no discount
+ * until one is chosen.
  */
-export const DIWALI_REWARD_PRESETS: SpinRewardPreset[] = [
+export const DEFAULT_REWARD_PRESETS: SpinRewardPreset[] = [
   { name: "5% OFF", rewardType: "percentage", discountType: "percentage", discountValue: 5, wheelLabel: "5% OFF", minOrderValue: 10, icon: "percent" },
   { name: "10% OFF", rewardType: "percentage", discountType: "percentage", discountValue: 10, wheelLabel: "10% OFF", minOrderValue: 10, icon: "percent" },
   { name: "15% OFF", rewardType: "percentage", discountType: "percentage", discountValue: 15, wheelLabel: "15% OFF", minOrderValue: 10, icon: "percent" },
@@ -275,6 +276,18 @@ export function durationLabel(start: Date | string, end: Date | string): string 
   const days = Math.round(hours / 24);
   return `${days} days`;
 }
+
+/** What may come before the hyphen in a coupon code; the database checks the same pattern. */
+export const COUPON_PREFIX_PATTERN = /^[A-Z0-9]{2,10}$/;
+
+/** The slug's first word in capitals ("holi-2027" gives "HOLI"), or "SPIN" when that word is too short. */
+export function defaultCouponPrefix(slug: string): string {
+  const word = (slug.split("-")[0] ?? "").replace(/[^a-z0-9]/gi, "").toUpperCase().slice(0, 10);
+  return word.length >= 2 ? word : "SPIN";
+}
+
+export const couponPrefixFor = (campaign: { couponPrefix: string | null; slug: string }): string =>
+  campaign.couponPrefix ?? defaultCouponPrefix(campaign.slug);
 
 export function discountLabel(type: string | null, value: number | null): string {
   if (!type || value === null) return "No discount";

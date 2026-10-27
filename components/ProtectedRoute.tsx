@@ -1,11 +1,41 @@
 import React, { useEffect } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Link, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../helpers/useAuth";
 import { User } from "../helpers/User";
 import { AuthErrorPage } from "./AuthErrorPage";
-import { ShieldOff } from "lucide-react";
+import { Lock } from "lucide-react";
 import { AuthLoadingState } from "./AuthLoadingState";
+import { SharedLayout } from "./SharedLayout";
+import { Button } from "./Button";
 import styles from "./ProtectedRoute.module.css";
+
+const DASHBOARD_BY_ROLE: Record<User["role"], string> = {
+  student: "/student/dashboard",
+  teacher: "/teacher/dashboard",
+  admin: "/admin/dashboard",
+};
+
+// Protected routes are always the outermost pageLayout entry, so the page's own
+// layout is never mounted here and the site header and footer appear once.
+const AccessDenied: React.FC<{ message: string; role: User["role"] }> = ({ message, role }) => (
+  <SharedLayout>
+    <AuthErrorPage
+      title="Access Denied"
+      message={message}
+      icon={<Lock className={styles.accessDeniedIcon} size={26} strokeWidth={2} aria-hidden="true" />}
+      actions={
+        <>
+          <Button asChild size="lg" className={`${styles.action} ${styles.primaryAction}`}>
+            <Link to={DASHBOARD_BY_ROLE[role]}>Go to my dashboard</Link>
+          </Button>
+          <Button asChild size="lg" variant="outline" className={`${styles.action} ${styles.secondaryAction}`}>
+            <Link to="/">Back to home</Link>
+          </Button>
+        </>
+      }
+    />
+  </SharedLayout>
+);
 
 // Do not use this in pageLayout
 const MakeProtectedRoute: (
@@ -39,10 +69,9 @@ const MakeProtectedRoute: (
 
     if (!roles.includes(authState.user.role)) {
       return (
-        <AuthErrorPage
-          title="Access Denied"
+        <AccessDenied
+          role={authState.user.role}
           message={`Access denied. Your role (${authState.user.role}) lacks required permissions.`}
-          icon={<ShieldOff className={styles.accessDeniedIcon} size={64} />}
         />
       );
     }
@@ -50,13 +79,7 @@ const MakeProtectedRoute: (
     if (customCheck) {
       const errorMessage = customCheck(authState.user);
       if (errorMessage) {
-        return (
-          <AuthErrorPage
-            title="Access Denied"
-            message={errorMessage}
-            icon={<ShieldOff className={styles.accessDeniedIcon} size={64} />}
-          />
-        );
+        return <AccessDenied role={authState.user.role} message={errorMessage} />;
       }
     }
 

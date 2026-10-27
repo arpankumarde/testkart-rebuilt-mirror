@@ -1,10 +1,11 @@
 import { z } from "zod";
 import superjson from "superjson";
 import { ASSET_NAME_MAX, type TeacherAsset } from "../../../helpers/teacherAssetFiles";
+import { noEmoji } from "../../../helpers/emojiText";
 
 export const schema = z.object({
   id: z.number().int().positive(),
-  name: z.string().trim().min(1, "Enter a name.").max(ASSET_NAME_MAX, `Keep the name under ${ASSET_NAME_MAX} characters.`),
+  name: noEmoji(z.string().trim().min(1, "Enter a name.").max(ASSET_NAME_MAX, `Keep the name under ${ASSET_NAME_MAX} characters.`)),
 });
 
 export type InputType = z.infer<typeof schema>;

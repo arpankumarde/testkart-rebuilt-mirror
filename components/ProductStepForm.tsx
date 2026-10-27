@@ -34,6 +34,7 @@ import { AIRewriteButton } from './AIRewriteButton';
 import { WithdrawReviewButton } from './WithdrawReviewButton';
 import { ContentVisibilityPanel } from './ContentVisibilityPanel';
 import { useAdminContentEdit } from '../helpers/useAdminContentEdit';
+import { noEmoji } from '../helpers/emojiText';
 
 const LazyPdfReaderDialog = React.lazy(() => import('./PdfReaderDialog').then(m => ({ default: m.PdfReaderDialog })));
 import styles from './ProductStepForm.module.css';
@@ -57,7 +58,7 @@ const fileRowSchema = z.object({
   clientKey: z.string().optional(),
   // The saved file row id, sent back so the server updates that row in place.
   id: z.number().int().positive().optional().nullable(),
-  title: z.string().max(255, 'File title must be 255 characters or fewer.'),
+  title: noEmoji(z.string().max(255, 'File title must be 255 characters or fewer.')),
   // Empty until the row's PDF is uploaded. Rows without a real file are not saved.
   fileUrl: z.string(),
   fileId: z.string().optional().nullable(),

@@ -46,6 +46,8 @@ export type ShopProductDetails = Omit<
 > & {
   /** The teacher lets buyers download this note's PDFs. A flag only, never a link. */
   allowDownload: boolean;
+  /** Slug of the linked exam (digitalProducts.examId), for the /exams/{slug} link; null when no exam is linked. */
+  examSlug: string | null;
   price: number;
   rating: number | null;
   totalPurchases: number;

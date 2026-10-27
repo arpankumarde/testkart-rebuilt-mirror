@@ -1,3 +1,43 @@
 .accessDeniedIcon {
-  color: var(--warning-text);
+  color: var(--exam-blue-ink);
+}
+
+/* Exam page palette (base.css): sage ink on ivory flips to light sage on dark ivory in dark mode. */
+.action {
+  min-width: 11rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  transition: background-color var(--animation-duration-fast) ease,
+              border-color var(--animation-duration-fast) ease,
+              color var(--animation-duration-fast) ease;
+}
+
+.action:focus-visible {
+  outline: 2px solid var(--exam-sage-ink);
+  outline-offset: 2px;
+}
+
+.primaryAction {
+  background-color: var(--exam-sage-ink);
+  border: 1px solid var(--exam-sage-ink);
+  color: var(--exam-ivory);
+  box-shadow: none;
+}
+
+.primaryAction:hover {
+  background-color: color-mix(in srgb, var(--exam-sage-ink), var(--foreground) 18%);
+  border-color: color-mix(in srgb, var(--exam-sage-ink), var(--foreground) 18%);
+  color: var(--exam-ivory);
+}
+
+.secondaryAction {
+  background-color: var(--exam-lavender-tint);
+  border: 1px solid var(--exam-lavender-border);
+  color: var(--exam-lavender-ink);
+}
+
+.secondaryAction:hover {
+  background-color: color-mix(in srgb, var(--exam-lavender-border) 45%, var(--exam-lavender-tint));
+  border-color: color-mix(in srgb, var(--exam-lavender-ink) 35%, var(--exam-lavender-border));
+  color: var(--exam-lavender-ink);
 }

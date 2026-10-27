@@ -9,6 +9,7 @@ import { Spinner } from './Spinner';
 import { uploadFileToR2 } from '../helpers/useR2Upload';
 import { useUploadLimits } from '../helpers/useUploadLimits';
 import { useTeacherCourseMutations } from '../helpers/useTeacherCoursesQuery';
+import { stripEmoji } from '../helpers/emojiText';
 import styles from './CourseBulkVideoUpload.module.css';
 
 export const MAX_BULK_VIDEOS = 10;
@@ -45,9 +46,9 @@ const videoMimeType = (file: File): string | null => {
   return VIDEO_TYPES[extension] ?? null;
 };
 
-// "Lecture 1 - Basics.mp4" keeps its hyphen; slug-style "lecture_1-basics.mp4" gets spaces.
+// "Lecture 1 - Basics.mp4" keeps its hyphen; slug-style "lecture_1-basics.mp4" gets spaces. Emojis are dropped.
 const titleFromFileName = (name: string) => {
-  const base = name.replace(/\.[^.]+$/, '');
+  const base = stripEmoji(name.replace(/\.[^.]+$/, ''));
   const spaced = /\s/.test(base) ? base.replace(/_+/g, ' ') : base.replace(/[_-]+/g, ' ');
   return spaced.replace(/\s+/g, ' ').trim() || 'Untitled video';
 };

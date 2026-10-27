@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { postTeacherAIRewrite, AiRewriteError } from "../endpoints/teacher/ai/rewrite_POST.schema";
+import { getAiErrorMessage } from "./aiPromptValidation";
 
 export const useTeacherAIRewrite = () => {
   return useMutation({
@@ -14,7 +15,7 @@ export const useTeacherAIRewrite = () => {
         return;
       }
       
-      toast.error(error instanceof Error ? error.message : "Failed to generate content");
+      toast.error(getAiErrorMessage(error));
     },
   });
 };

@@ -208,7 +208,7 @@ export const SpinWinRewardsPanel: React.FC<Props> = ({ campaign, rewards, probab
           <div className={styles.stack}>
             <h2 className={styles.cardTitle}>Grand Prize</h2>
             <span className={styles.grandNote}>
-              The prize itself is still to be decided. It stays off at 0% until approved; on Diwali, give it a small chance and rebalance the others in Edit probabilities.
+              Decide the prize before turning it on. It stays off at 0% until approved; to run it, give it a small chance and rebalance the others in Edit probabilities.
             </span>
           </div>
           {grandPrizes.length === 0 ? (

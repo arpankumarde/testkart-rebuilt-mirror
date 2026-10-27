@@ -4,7 +4,7 @@ import type { OutputType as CouponsOutput } from "../endpoints/admin/spin-win/co
 import type { OutputType as SpinsOutput } from "../endpoints/admin/spin-win/spins_GET.schema";
 import type { OutputType as AnalyticsOutput } from "../endpoints/admin/spin-win/analytics_GET.schema";
 import type { AdminSpinReward } from "../helpers/spinWinAdmin";
-import { DIWALI_REWARD_PRESETS, SPIN_SEGMENT_COLORS } from "../helpers/spinWinRules";
+import { DEFAULT_REWARD_PRESETS, SPIN_SEGMENT_COLORS } from "../helpers/spinWinRules";
 
 const session = {
   admin: { id: 1, email: "marketing@testkart.in", fullName: "Marketing Admin", role: "admin", permissions: ["spin_win"] },
@@ -14,7 +14,7 @@ const stamp = new Date("2026-11-01T09:30:00Z");
 const odds = [30, 25, 15, 5, 12, 8, 5, 0];
 const won = [412, 340, 198, 61, 170, 104, 66, 0];
 
-const rewards: AdminSpinReward[] = DIWALI_REWARD_PRESETS.map((p, i) => ({
+const rewards: AdminSpinReward[] = DEFAULT_REWARD_PRESETS.map((p, i) => ({
   id: i + 1,
   campaignId: 1,
   name: p.name,
@@ -58,6 +58,7 @@ const campaign = {
   discountFunding: "current_split",
   popupEnabled: true,
   popupDelaySeconds: 6,
+  couponPrefix: "DIWALI",
   createdAt: stamp,
   updatedAt: stamp,
 };
@@ -71,7 +72,7 @@ const detail: CampaignOutput = {
   audit: [
     { id: "3", adminName: "Marketing Admin", entity: "reward", entityId: null, action: "probabilities_updated", before: null, after: null, createdAt: stamp },
     { id: "2", adminName: "Marketing Admin", entity: "campaign", entityId: "1", action: "publish", before: { status: "draft" }, after: { status: "published" }, createdAt: stamp },
-    { id: "1", adminName: "Marketing Admin", entity: "campaign", entityId: "1", action: "created_with_diwali_presets", before: null, after: null, createdAt: stamp },
+    { id: "1", adminName: "Marketing Admin", entity: "campaign", entityId: "1", action: "created_with_default_rewards", before: null, after: null, createdAt: stamp },
   ],
 };
 

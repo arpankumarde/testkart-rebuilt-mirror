@@ -34,6 +34,8 @@ export type AdminSpinCampaign = {
   discountFunding: string;
   popupEnabled: boolean;
   popupDelaySeconds: number;
+  /** Null means coupon codes start with the slug's first word. */
+  couponPrefix: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -85,6 +87,7 @@ export function toAdminCampaign(row: Selectable<SpinCampaigns>): AdminSpinCampai
     discountFunding: row.discountFunding,
     popupEnabled: row.popupEnabled,
     popupDelaySeconds: row.popupDelaySeconds,
+    couponPrefix: row.couponPrefix,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };

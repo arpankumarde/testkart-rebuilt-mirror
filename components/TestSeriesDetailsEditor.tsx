@@ -39,6 +39,7 @@ import {
   pickFirstIssue,
 } from "../helpers/testSeriesEditing";
 import type { TeacherTest } from "../endpoints/teacher/tests/list_GET.schema";
+import { noEmoji } from "../helpers/emojiText";
 import styles from "./TestSeriesDetailsEditor.module.css";
 
 const SHORT_BIO_MAX = 200;
@@ -47,7 +48,7 @@ const SHORT_BIO_MAX = 200;
 // dropped on save instead of failing a per-row rule no message could show.
 const formSchema = z
   .object({
-    title: z.string().trim().min(3, "Use at least 3 characters."),
+    title: noEmoji(z.string().trim().min(3, "Use at least 3 characters.")),
     examNames: z.array(z.string()).max(MAX_ITEM_EXAMS, `Pick up to ${MAX_ITEM_EXAMS} exams.`),
     languages: z
       .array(z.string())

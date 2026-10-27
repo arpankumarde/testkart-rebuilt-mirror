@@ -24,6 +24,7 @@ export async function handle(request: Request): Promise<Response> {
     const product = await db
       .selectFrom("digitalProducts")
       .innerJoin("users", "users.id", "digitalProducts.teacherId")
+      .leftJoin("exams", "exams.id", "digitalProducts.examId")
       .select([
         "digitalProducts.id",
         "digitalProducts.title",
@@ -41,6 +42,7 @@ export async function handle(request: Request): Promise<Response> {
         "digitalProducts.category",
        "digitalProducts.examName",
        "digitalProducts.examId",
+       "exams.examSlug as examSlug",
        "digitalProducts.teacherId",
          "digitalProducts.tags",
         "digitalProducts.rating",
@@ -185,6 +187,7 @@ export async function handle(request: Request): Promise<Response> {
         tags: product.tags,
         examName: product.examName ?? null,
         examId: product.examId ?? null,
+        examSlug: product.examSlug ?? null,
         rating: product.rating ? Number(product.rating) : null,
         reviewsCount: product.reviewsCount ? Number(product.reviewsCount) : 0,
         totalPurchases: product.totalPurchases ? Number(product.totalPurchases) : 0,

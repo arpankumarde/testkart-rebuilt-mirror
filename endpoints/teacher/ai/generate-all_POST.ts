@@ -1,7 +1,9 @@
 import { schema, OutputType } from "./generate-all_POST.schema";
 import superjson from "superjson";
+import { ZodError } from "zod";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { startAiGenerationLog, completeAiGenerationLog } from "../../../helpers/aiGenerationLog";
+import { AI_PROMPT_MESSAGES, aiValidationMessage } from "../../../helpers/aiPromptValidation";
 
 export async function handle(request: Request) {
   let aiLogId: number | null = null;
@@ -19,7 +21,7 @@ export async function handle(request: Request) {
     if (!apiKey) {
       console.error("DeepSeek API key is not configured.");
       return new Response(
-        superjson.stringify({ error: "DeepSeek API key is not configured." }),
+        superjson.stringify({ error: AI_PROMPT_MESSAGES.requestFailed, code: "AI_UNAVAILABLE" }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -107,8 +109,8 @@ ${input.bundleItemTitles ? `Bundle Item Titles: ${input.bundleItemTitles.join(",
         startedAt: aiLogStartedAt,
       });
       return new Response(
-        superjson.stringify({ error: `Failed to call DeepSeek API: ${response.statusText}` }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
+        superjson.stringify({ error: AI_PROMPT_MESSAGES.requestFailed, code: "AI_UNAVAILABLE" }),
+        { status: 502, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -125,7 +127,7 @@ ${input.bundleItemTitles ? `Bundle Item Titles: ${input.bundleItemTitles.join(",
     try {
       parsedResult = JSON.parse(responseText);
     } catch (e) {
-      throw new Error("Failed to parse AI response as JSON.");
+      throw new Error(`Failed to parse AI response as JSON: ${e instanceof Error ? e.message : String(e)}`);
     }
 
     await completeAiGenerationLog(aiLogId, "done", { startedAt: aiLogStartedAt });
@@ -136,12 +138,18 @@ ${input.bundleItemTitles ? `Bundle Item Titles: ${input.bundleItemTitles.join(",
     );
   } catch (error) {
     console.error("AI Generate All error:", error);
+    if (error instanceof ZodError) {
+      return new Response(
+        superjson.stringify({ error: aiValidationMessage(error), code: "VALIDATION_ERROR" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
     await completeAiGenerationLog(aiLogId, "failed", { errorMessage, startedAt: aiLogStartedAt });
 
     return new Response(
-      superjson.stringify({ error: errorMessage }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
+      superjson.stringify({ error: AI_PROMPT_MESSAGES.unexpected, code: "UNEXPECTED" }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 }

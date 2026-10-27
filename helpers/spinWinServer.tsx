@@ -6,6 +6,7 @@ import { jsonbParam } from "./jsonbParam";
 import type { DB, SpinCampaigns, SpinCampaignRewards, SpinRecords } from "./schema";
 import {
   computeSpinDiscount,
+  couponPrefixFor,
   toMilli,
   type SpinCheckoutLine,
   type SpinCouponTerms,
@@ -235,7 +236,7 @@ async function issueCoupon(
   snapshot: RewardSnapshot
 ): Promise<number> {
   const expiresAt = couponExpiry(campaign);
-  const prefix = (campaign.slug.replace(/[^a-z0-9]/gi, "").toUpperCase().slice(0, 6) || "SPIN") + "-";
+  const prefix = couponPrefixFor(campaign) + "-";
   const discountType = snapshot.discountType as SpinDiscountType;
   let promo: { id: number } | undefined;
   for (let attempt = 0; attempt < 6 && !promo; attempt++) {

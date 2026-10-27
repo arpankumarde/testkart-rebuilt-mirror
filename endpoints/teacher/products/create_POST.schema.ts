@@ -5,9 +5,10 @@ import { DigitalProducts } from "../../../helpers/schema";
 import { DigitalProductFileItem } from "../../../helpers/digitalProductFileTypes";
 import { MAX_ITEM_LANGUAGES, MAX_LANGUAGE_LENGTH } from "../../../helpers/itemLanguages";
 import { visibilityInputSchema } from "../../../helpers/contentVisibility";
+import { noEmoji } from "../../../helpers/emojiText";
 
 const fileEntrySchema = z.object({
-  title: z.string().min(1, "File title is required.").max(255, "File title must be 255 characters or fewer."),
+  title: noEmoji(z.string().min(1, "File title is required.").max(255, "File title must be 255 characters or fewer.")),
   fileUrl: z.string().url("Must be a valid URL."),
   fileId: z.string().optional().nullable(),
   fileSizeBytes: z.number().int().min(0).optional().nullable(),
@@ -17,10 +18,10 @@ const fileEntrySchema = z.object({
 export const fileEntrySchemaRef = fileEntrySchema;
 
 export const schema = z.object({
-  title: z
+  title: noEmoji(z
     .string()
     .min(3, "Title must be at least 3 characters long.")
-    .max(255, "Title must be 255 characters or fewer."),
+    .max(255, "Title must be 255 characters or fewer.")),
   description: z.string().min(10, "Description must be at least 10 characters long."),
   shortDescription: z.string().max(255).optional().nullable(),
   price: z.number().min(0, "Price cannot be negative."),

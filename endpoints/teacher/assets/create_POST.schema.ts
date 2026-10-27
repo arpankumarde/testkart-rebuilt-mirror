@@ -1,10 +1,11 @@
 import { z } from "zod";
 import superjson from "superjson";
 import { ASSET_NAME_MAX, type TeacherAsset } from "../../../helpers/teacherAssetFiles";
+import { noEmoji } from "../../../helpers/emojiText";
 
 export const schema = z.object({
   key: z.string().min(1).max(500),
-  name: z.string().trim().min(1, "Enter a name.").max(ASSET_NAME_MAX),
+  name: noEmoji(z.string().trim().min(1, "Enter a name.").max(ASSET_NAME_MAX)),
   mimeType: z.string().min(1).max(100),
   sizeBytes: z.number().int().min(0).nullable().optional(),
   durationSeconds: z.number().int().min(0).nullable().optional(),

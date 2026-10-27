@@ -1,8 +1,7 @@
-import React, { useState, KeyboardEvent } from "react";
+import React, { useId, useRef, useState, KeyboardEvent } from "react";
 import { Sparkles, ArrowUp, AlertCircle } from "lucide-react";
-import { Button } from "./Button";
-import { Spinner } from "./Spinner";
 import { useTeacherAIGenerateAll } from "../helpers/useTeacherAIGenerateAll";
+import { getAiErrorMessage, validateAiPrompt } from "../helpers/aiPromptValidation";
 import styles from "./AIContentPrompt.module.css";
 
 interface AIContentPromptProps {
@@ -219,15 +218,39 @@ export const AIContentPrompt: React.FC<AIContentPromptProps> = ({
   onSkip,
 }) => {
   const [prompt, setPrompt] = useState("");
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const errorId = useId();
   const mutation = useTeacherAIGenerateAll();
   const config = CONTENT_CONFIGS[contentType];
 
+  const requestError = mutation.isError ? getAiErrorMessage(mutation.error) : null;
+  const inlineError = validationError ?? requestError;
+
+  const clearErrors = () => {
+    if (validationError) setValidationError(null);
+    if (mutation.isError) mutation.reset();
+  };
+
+  const updatePrompt = (value: string) => {
+    setPrompt(value);
+    clearErrors();
+  };
+
   const handleSubmit = () => {
-    if (!prompt.trim() || mutation.isPending) return;
+    if (mutation.isPending) return;
+
+    const problem = validateAiPrompt(prompt);
+    if (problem) {
+      if (mutation.isError) mutation.reset();
+      setValidationError(problem);
+      textareaRef.current?.focus();
+      return;
+    }
 
     mutation.mutate(
       {
-        prompt,
+        prompt: prompt.trim(),
         contentType,
         bundleItemTitles,
       },
@@ -262,32 +285,6 @@ export const AIContentPrompt: React.FC<AIContentPromptProps> = ({
     );
   }
 
-  if (mutation.isError) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.errorState}>
-          <div className={styles.errorIcon}>
-            <AlertCircle size={40} />
-          </div>
-          <h2 className={styles.errorTitle}>Oops, something went wrong</h2>
-          <p className={styles.errorSubtitle}>
-            {mutation.error instanceof Error
-              ? mutation.error.message
-              : "Failed to generate content. Let's give it another shot."}
-          </p>
-          <div className={styles.errorActions}>
-            <Button onClick={handleSubmit} size="lg">
-              Try Again
-            </Button>
-            <Button variant="ghost" onClick={() => mutation.reset()}>
-              Edit Prompt
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className={styles.container}>
       <div className={styles.greetingSection}>
@@ -307,16 +304,21 @@ export const AIContentPrompt: React.FC<AIContentPromptProps> = ({
       </div>
 
       <div className={styles.promptArea}>
-        <div className={styles.textareaWrapper}>
+        <div
+          className={`${styles.textareaWrapper} ${inlineError ? styles.textareaWrapperError : ""}`}
+        >
           <div className={styles.textareaInner}>
             <textarea
+              ref={textareaRef}
               className={styles.textarea}
               placeholder={config.placeholder}
               value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
+              onChange={(e) => updatePrompt(e.target.value)}
               onKeyDown={handleKeyDown}
               rows={5}
               autoFocus
+              aria-invalid={inlineError ? true : undefined}
+              aria-describedby={inlineError ? errorId : undefined}
             />
             <div className={styles.textareaFooter}>
               <div className={styles.chipsContainer}>
@@ -329,14 +331,26 @@ export const AIContentPrompt: React.FC<AIContentPromptProps> = ({
               <button
                 className={styles.submitBtn}
                 onClick={handleSubmit}
-                disabled={!prompt.trim()}
                 title="Generate (Cmd+Enter)"
+                aria-label="Generate"
               >
                 <ArrowUp size={20} strokeWidth={3} />
               </button>
             </div>
           </div>
         </div>
+
+        {inlineError && (
+          <div id={errorId} className={styles.fieldError} role="alert">
+            <AlertCircle size={16} aria-hidden="true" />
+            <span>{inlineError}</span>
+            {requestError && !validationError && (
+              <button type="button" className={styles.retryBtn} onClick={handleSubmit}>
+                Try again
+              </button>
+            )}
+          </div>
+        )}
 
         <div className={styles.skipAction}>
           <button onClick={onSkip} className={styles.skipBtn}>
@@ -350,7 +364,7 @@ export const AIContentPrompt: React.FC<AIContentPromptProps> = ({
 
         <div
           className={styles.featuredTemplate}
-          onClick={() => setPrompt(config.featuredTemplate.prompt)}
+          onClick={() => updatePrompt(config.featuredTemplate.prompt)}
           role="button"
           tabIndex={0}
         >
@@ -372,7 +386,7 @@ export const AIContentPrompt: React.FC<AIContentPromptProps> = ({
             <div
               key={idx}
               className={styles.templateCard}
-              onClick={() => setPrompt(template.prompt)}
+              onClick={() => updatePrompt(template.prompt)}
               role="button"
               tabIndex={0}
             >

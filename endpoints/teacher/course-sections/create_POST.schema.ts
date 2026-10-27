@@ -2,10 +2,11 @@ import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
 import { CourseSections } from "../../../helpers/schema";
+import { noEmoji } from "../../../helpers/emojiText";
 
 export const schema = z.object({
   courseId: z.number().int().positive(),
-  title: z.string().min(1, "Title is required."),
+  title: noEmoji(z.string().min(1, "Title is required.")),
   description: z.string().optional().nullable(),
 });
 

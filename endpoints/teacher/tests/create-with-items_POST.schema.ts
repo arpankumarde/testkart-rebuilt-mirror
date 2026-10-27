@@ -4,11 +4,12 @@ import { Selectable } from "kysely";
 import { MockTests } from "../../../helpers/schema";
 import { MAX_ITEM_LANGUAGES, MAX_LANGUAGE_LENGTH } from "../../../helpers/itemLanguages";
 import { visibilityInputSchema } from "../../../helpers/contentVisibility";
+import { noEmoji } from "../../../helpers/emojiText";
 
 export const schema = z
   .object({
     itemCount: z.number().int().min(1).max(50),
-    title: z.string().min(3).optional(),
+    title: noEmoji(z.string().min(3)).optional(),
     description: z.string().max(200).optional(),
     examName: z.string().optional().nullable(),
     examNames: z

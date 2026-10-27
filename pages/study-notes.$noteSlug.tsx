@@ -351,7 +351,13 @@ const ProductDetailsPage: React.FC = () => {
                 <Badge variant="secondary" className={styles.categoryBadge}>{product.category}</Badge>
               )}
               {product.examName && (
-                <Badge variant="default" className={styles.categoryBadge}>{product.examName}</Badge>
+                product.examSlug ? (
+                  <Link to={`/exams/${product.examSlug}`} className={styles.examBadgeLink}>
+                    <Badge variant="default" className={styles.categoryBadge}>{product.examName}</Badge>
+                  </Link>
+                ) : (
+                  <Badge variant="default" className={styles.categoryBadge}>{product.examName}</Badge>
+                )
               )}
               {product.allowDownload === true && (
                 <Badge variant="success" className={`${styles.categoryBadge} ${styles.downloadBadge}`}>

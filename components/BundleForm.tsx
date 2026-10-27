@@ -18,10 +18,11 @@ import { AlertTriangle, BookOpen, Lock } from 'lucide-react';
 import { ThumbnailUploader } from './ThumbnailUploader';
 import { VideoUploader } from './VideoUploader';
 import { AIRewriteButton } from './AIRewriteButton';
+import { noEmoji } from '../helpers/emojiText';
 import styles from './BundleForm.module.css';
 
 const formSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters long."),
+  title: noEmoji(z.string().min(3, "Title must be at least 3 characters long.")),
   description: z.string().optional(),
   // Uploaders clear a file with "" or null; submit turns both into null.
   thumbnailUrl: z.string().url().or(z.literal('')).optional().nullable(),

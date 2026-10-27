@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { postTeacherAIGenerateList, AiGenerateListError } from "../endpoints/teacher/ai/generate-list_POST.schema";
+import { getAiErrorMessage } from "./aiPromptValidation";
 
 export const useTeacherAIGenerateList = () => {
   return useMutation({
@@ -14,7 +15,7 @@ export const useTeacherAIGenerateList = () => {
         return;
       }
 
-      toast.error(error instanceof Error ? error.message : "Failed to generate suggestions");
+      toast.error(getAiErrorMessage(error));
     },
   });
 };

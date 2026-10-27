@@ -2,10 +2,11 @@ import { schema } from "./generate-ai_POST.schema";
 import { db } from '../../../helpers/db';
 import { getServerUserSession } from '../../../helpers/getServerUserSession';
 
-import { z } from "zod";
+import { z, ZodError } from "zod";
 import { AiResponseSchema, GeneratedQuestionDraft, OutputType } from "./generate-ai_POST.schema";
 import { startAiGenerationLog, completeAiGenerationLog } from '../../../helpers/aiGenerationLog';
 import { checkAiQuestionQuota } from '../../../helpers/aiQuestionQuota';
+import { AI_PROMPT_MESSAGES, aiValidationMessage } from '../../../helpers/aiPromptValidation';
 
 function convertLatexToTiptap(text: string): string {
   // Convert inline LaTeX \(...\) to Tiptap math spans
@@ -143,8 +144,9 @@ export async function handle(request: Request) {
 
     const apiKey = process.env.DEEPSEEK_API_KEY;
     if (!apiKey) {
+      console.error("DeepSeek API key is not configured.");
       return new Response(
-        JSON.stringify({ error: "DeepSeek API key is not configured." }),
+        JSON.stringify({ error: AI_PROMPT_MESSAGES.requestFailed, code: "AI_UNAVAILABLE" }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -272,8 +274,8 @@ ${customPrompt ? `10. Follow this additional instruction: "${customPrompt}"` : '
         startedAt: aiLogStartedAt,
       });
       return new Response(
-        JSON.stringify({ error: `Failed to call DeepSeek API: ${response.statusText}` }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
+        JSON.stringify({ error: AI_PROMPT_MESSAGES.requestFailed, code: "AI_UNAVAILABLE" }),
+        { status: 502, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -312,7 +314,7 @@ ${customPrompt ? `10. Follow this additional instruction: "${customPrompt}"` : '
         startedAt: aiLogStartedAt,
       });
       return new Response(
-                JSON.stringify({ error: "Failed to parse AI response. The AI did not return valid JSON." }),
+        JSON.stringify({ error: AI_PROMPT_MESSAGES.requestFailed, code: "AI_BAD_RESPONSE" }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -323,7 +325,7 @@ ${customPrompt ? `10. Follow this additional instruction: "${customPrompt}"` : '
         startedAt: aiLogStartedAt,
       });
       return new Response(
-        JSON.stringify({ error: "Failed to generate any questions. The AI returned an empty array." }),
+        JSON.stringify({ error: AI_PROMPT_MESSAGES.requestFailed, code: "AI_BAD_RESPONSE" }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -374,10 +376,16 @@ ${customPrompt ? `10. Follow this additional instruction: "${customPrompt}"` : '
 
   } catch (error) {
     console.error("AI Question Generation Error:", error);
+    if (error instanceof ZodError) {
+      return new Response(
+        JSON.stringify({ error: aiValidationMessage(error), code: "VALIDATION_ERROR" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
     await completeAiGenerationLog(aiLogId, "failed", { errorMessage, startedAt: aiLogStartedAt });
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: AI_PROMPT_MESSAGES.unexpected, code: "UNEXPECTED" }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }

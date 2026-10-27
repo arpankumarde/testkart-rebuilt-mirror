@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { AdminSpinCampaign } from "../../../helpers/spinWinAdmin";
-import { SPIN_CATEGORIES, SPIN_MAX_DISCOUNT_PERCENT } from "../../../helpers/spinWinRules";
+import { COUPON_PREFIX_PATTERN, SPIN_CATEGORIES, SPIN_MAX_DISCOUNT_PERCENT } from "../../../helpers/spinWinRules";
 import { spinAdminFetch } from "../../../helpers/spinWinAdminFetch";
 
 const optionalText = (max: number) =>
@@ -49,7 +49,14 @@ export const schema = z
     discountFunding: z.enum(["current_split", "platform_funded"]),
     popupEnabled: z.boolean().default(true),
     popupDelaySeconds: z.number().int().min(0).max(120).default(0),
-    seedDiwaliPresets: z.boolean().optional(),
+    couponPrefix: z
+      .string()
+      .trim()
+      .regex(COUPON_PREFIX_PATTERN, "Coupon prefix: use 2 to 10 capital letters or digits")
+      .nullable()
+      .optional()
+      .transform((v) => v ?? null),
+    seedDefaultRewards: z.boolean().optional(),
   })
   .refine((v) => v.endsAt > v.startsAt, { message: "The end must be after the start", path: ["endsAt"] })
   .refine((v) => !v.claimDeadline || v.claimDeadline > v.startsAt, { message: "The claim deadline must be after the start", path: ["claimDeadline"] })

@@ -3,21 +3,11 @@ import { AlertTriangle } from "lucide-react";
 import styles from "./AuthErrorPage.module.css";
 
 export interface AuthErrorPageProps {
-  /**
-   * The title of the error message
-   */
   title?: string;
-  /**
-   * The detailed error message
-   */
   message: string;
-  /**
-   * Optional custom icon
-   */
   icon?: React.ReactNode;
-  /**
-   * Optional additional class name
-   */
+  /** Optional links or buttons shown under the message. */
+  actions?: React.ReactNode;
   className?: string;
 }
 
@@ -25,19 +15,22 @@ export const AuthErrorPage: React.FC<AuthErrorPageProps> = ({
   title = "Authentication Error",
   message,
   icon,
+  actions,
   className,
 }) => {
   return (
-    <div className={`${styles.container} ${className || ""}`}>
+    <section className={`${styles.container} ${className || ""}`}>
       <div className={styles.card}>
         <div className={styles.iconContainer}>
-          {icon || <AlertTriangle className={styles.icon} size={64} />}
+          {icon || <AlertTriangle className={styles.icon} size={32} aria-hidden="true" />}
         </div>
 
         <h1 className={styles.title}>{title}</h1>
 
         <p className={styles.message}>{message}</p>
+
+        {actions && <div className={styles.actions}>{actions}</div>}
       </div>
-    </div>
+    </section>
   );
 };

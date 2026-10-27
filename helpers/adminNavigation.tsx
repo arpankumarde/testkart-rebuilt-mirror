@@ -107,7 +107,7 @@ const groups: AdminNavGroup[] = [
         label: "Spin & Win",
         icon: Ticket,
         modules: ["spin_win"],
-        keywords: "diwali campaign wheel spin rewards coupons promo codes grand prize",
+        keywords: "festival campaign wheel spin rewards coupons promo codes grand prize",
       },
     ],
   },

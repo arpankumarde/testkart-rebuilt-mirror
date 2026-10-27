@@ -3,12 +3,13 @@ import superjson from "superjson";
 import { Selectable } from "kysely";
 import { MockTests } from "../../../helpers/schema";
 import { MAX_ITEM_LANGUAGES, MAX_LANGUAGE_LENGTH } from "../../../helpers/itemLanguages";
+import { noEmoji } from "../../../helpers/emojiText";
 
 // Every optional field is written only when the request carries it (see
 // buildMockTestUpdateSet), so no field here may take a default value.
 export const schema = z.object({
   testId: z.number(),
-  title: z.string().min(3, "Title must be at least 3 characters long."),
+  title: noEmoji(z.string().min(3, "Title must be at least 3 characters long.")),
   description: z
     .string()
     .min(10, "Description must be at least 10 characters long.")

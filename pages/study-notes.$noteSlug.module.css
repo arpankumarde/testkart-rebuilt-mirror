@@ -495,6 +495,28 @@ opacity: 0.5;
   text-transform: uppercase;
 }
 
+.examBadgeLink {
+  display: inline-flex;
+  border-radius: var(--radius-full);
+  text-decoration: none;
+}
+
+.examBadgeLink .categoryBadge {
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) ease-in-out,
+              border-color var(--animation-duration-fast) ease-in-out;
+}
+
+.examBadgeLink:hover .categoryBadge {
+  background-color: color-mix(in srgb, var(--tk-brand) 25%, transparent);
+  border-color: var(--tk-brand);
+}
+
+.examBadgeLink:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
 .downloadBadge {
   gap: var(--spacing-1);
 }

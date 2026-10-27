@@ -2,10 +2,11 @@ import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
 import { MockTestItems } from "../../../helpers/schema";
+import { noEmoji } from "../../../helpers/emojiText";
 
 export const schema = z.object({
   itemId: z.number(),
-  title: z.string().min(3, "Title must be at least 3 characters long."),
+  title: noEmoji(z.string().min(3, "Title must be at least 3 characters long.")),
   description: z.string().optional().nullable(),
   durationMinutes: z.number().int().min(0, "Duration must be 0 or more."),
   isFree: z.boolean(),

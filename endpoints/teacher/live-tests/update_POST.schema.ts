@@ -5,6 +5,7 @@ import { LiveTests } from "../../../helpers/schema";
 import { validatePrizeTiers, PrizeTier } from "../../../helpers/liveTestPrizeTiers";
 import { isEmptyRichText } from "../../../helpers/liveTestCreationFormSchema";
 import { MAX_ITEM_LANGUAGES, MAX_LANGUAGE_LENGTH } from "../../../helpers/itemLanguages";
+import { noEmoji } from "../../../helpers/emojiText";
 
 const prizeTierSchema = z.object({
   rankFrom: z.number().int().min(1),
@@ -23,7 +24,7 @@ const emptyRichTextToNull = (value: unknown) => (typeof value === "string" && is
 export const schema = z
   .object({
     id: z.number().int().positive(),
-    title: z.string().min(3).max(100).optional(),
+    title: noEmoji(z.string().min(3).max(100)).optional(),
     description: z.preprocess(emptyRichTextToNull, z.string().max(2000).nullable().optional()),
     examName: z.string().optional().nullable(),
     examNames: z

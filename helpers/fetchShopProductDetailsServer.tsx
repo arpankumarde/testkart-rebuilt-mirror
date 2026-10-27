@@ -9,6 +9,7 @@ export async function fetchShopProductDetailsServer(slug: string): Promise<Outpu
   const product = await db
     .selectFrom("digitalProducts")
     .innerJoin("users", "users.id", "digitalProducts.teacherId")
+    .leftJoin("exams", "exams.id", "digitalProducts.examId")
     .select([
       "digitalProducts.id",
       "digitalProducts.title",
@@ -34,6 +35,7 @@ export async function fetchShopProductDetailsServer(slug: string): Promise<Outpu
       "digitalProducts.visibility",
      "digitalProducts.examName",
      "digitalProducts.examId",
+     "exams.examSlug as examSlug",
       "users.displayName as teacherName",
       "users.avatarUrl as teacherAvatar",
       "users.bio as teacherBio",
@@ -160,6 +162,7 @@ export async function fetchShopProductDetailsServer(slug: string): Promise<Outpu
      publishedAt: product.publishedAt,
      examName: product.examName ?? null,
      examId: product.examId ?? null,
+     examSlug: product.examSlug ?? null,
             teacherId: product.teacherId,
       teacherName: product.teacherName,
       teacherSlug: product.teacherSlugCol || slugify(product.teacherName),

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { validatePrizeTiers } from './liveTestPrizeTiers';
 import { MAX_ITEM_LANGUAGES } from './itemLanguages';
+import { noEmoji } from './emojiText';
 
 const prizeTierSchema = z.object({
   rankFrom: z.number().int().min(1),
@@ -25,7 +26,7 @@ const emptyRichTextToNull = (value: unknown) => (typeof value === 'string' && is
 // matching the review step, which lists a missing description as optional.
 export const liveTestCreationFormSchema = z
   .object({
-    title: z.string().min(3, 'Title must be at least 3 characters.').max(100, 'Title must be 100 characters or fewer.'),
+    title: noEmoji(z.string().min(3, 'Title must be at least 3 characters.').max(100, 'Title must be 100 characters or fewer.')),
     description: z.preprocess(
       emptyRichTextToNull,
       z.string().max(2000, 'Description must be 2000 characters or fewer, including formatting.').nullable().optional()

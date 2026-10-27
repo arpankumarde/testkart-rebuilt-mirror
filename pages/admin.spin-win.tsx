@@ -155,7 +155,7 @@ const AdminSpinWinPage: React.FC = () => {
                 Campaigns
               </h2>
               {data.campaigns.length === 0 ? (
-                <ConsoleListEmpty icon={<Disc3 size={20} />} title="No campaigns yet" description="Create the Diwali campaign to set up the wheel.">
+                <ConsoleListEmpty icon={<Disc3 size={20} />} title="No campaigns yet" description="Create a campaign to set up the wheel.">
                   <Button onClick={() => setCreating(true)}>
                     <Plus size={16} /> New campaign
                   </Button>

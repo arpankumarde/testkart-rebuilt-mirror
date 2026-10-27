@@ -6,6 +6,7 @@ import { validatePrizeTiers, PrizeTier } from "../../../helpers/liveTestPrizeTie
 import { isEmptyRichText } from "../../../helpers/liveTestCreationFormSchema";
 import { MAX_ITEM_LANGUAGES, MAX_LANGUAGE_LENGTH } from "../../../helpers/itemLanguages";
 import { visibilityInputSchema } from "../../../helpers/contentVisibility";
+import { noEmoji } from "../../../helpers/emojiText";
 
 const prizeTierSchema = z.object({
   rankFrom: z.number().int().min(1),
@@ -18,7 +19,7 @@ const emptyRichTextToNull = (value: unknown) => (typeof value === "string" && is
 
 export const schema = z
   .object({
-    title: z.string().min(3).max(100),
+    title: noEmoji(z.string().min(3).max(100)),
     description: z.preprocess(emptyRichTextToNull, z.string().max(2000).nullable().optional()),
     language: z.string().max(100).optional().nullable(),
     // Takes precedence over language. Stored on the backing mock test.

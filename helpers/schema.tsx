@@ -1634,6 +1634,7 @@ export interface SpinCampaigns {
   allowGuestSpins: Generated<boolean>;
   bannerUrl: string | null;
   claimDeadline: Timestamp | null;
+  couponPrefix: string | null;
   createdAt: Generated<Timestamp>;
   createdByAdminId: number | null;
   description: string | null;

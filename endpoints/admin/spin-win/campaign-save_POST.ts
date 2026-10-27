@@ -2,13 +2,13 @@ import superjson from "superjson";
 import { db } from "../../../helpers/db";
 import { isLiveStatus, runAdminSpin, toAdminCampaign, toAdminReward } from "../../../helpers/spinWinAdmin";
 import { writeSpinAudit } from "../../../helpers/spinWinServer";
-import { DIWALI_REWARD_PRESETS, rewardTermsProblems, SPIN_SEGMENT_COLORS } from "../../../helpers/spinWinRules";
+import { DEFAULT_REWARD_PRESETS, rewardTermsProblems, SPIN_SEGMENT_COLORS } from "../../../helpers/spinWinRules";
 import { schema, type OutputType } from "./campaign-save_POST.schema";
 
 export async function handle(request: Request) {
   return runAdminSpin(request, async (admin) => {
     const input = schema.parse(superjson.parse(await request.text()));
-    const { id, seedDiwaliPresets, ...fields } = input;
+    const { id, seedDefaultRewards, ...fields } = input;
 
     const clash = await db.selectFrom("spinCampaigns").select("id").where("slug", "=", fields.slug).executeTakeFirst();
     if (clash && clash.id !== id) throw new Error("Another campaign already uses this slug.");
@@ -22,11 +22,11 @@ export async function handle(request: Request) {
           .values({ ...values, status: "draft", createdByAdminId: admin.id, updatedByAdminId: admin.id })
           .returningAll()
           .executeTakeFirstOrThrow();
-        if (seedDiwaliPresets) {
+        if (seedDefaultRewards) {
           await trx
             .insertInto("spinCampaignRewards")
             .values(
-              DIWALI_REWARD_PRESETS.map((preset, index) => ({
+              DEFAULT_REWARD_PRESETS.map((preset, index) => ({
                 campaignId: created.id,
                 name: preset.name,
                 rewardType: preset.rewardType,
@@ -48,7 +48,7 @@ export async function handle(request: Request) {
           adminId: admin.id,
           entity: "campaign",
           entityId: created.id,
-          action: seedDiwaliPresets ? "created_with_diwali_presets" : "created",
+          action: seedDefaultRewards ? "created_with_default_rewards" : "created",
           after: created,
         });
         return created;

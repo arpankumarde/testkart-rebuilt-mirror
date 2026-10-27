@@ -30,7 +30,7 @@ const toRows = (rewards: AdminSpinReward[]): Row[] =>
 
 /*
  * Edits every reward's odds at once, so a live wheel moves from one valid 100% split to the
- * next in a single save. Turning the Grand Prize on for Diwali happens here.
+ * next in a single save. Turning the Grand Prize on happens here.
  */
 export const SpinWinProbabilityDialog: React.FC<Props> = ({ open, onOpenChange, campaign, rewards }) => {
   const [rows, setRows] = useState<Row[]>(() => toRows(rewards));

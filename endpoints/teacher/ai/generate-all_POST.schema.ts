@@ -1,8 +1,13 @@
 import { z } from "zod";
 import superjson from "superjson";
+import {
+  AI_PROMPT_MESSAGES,
+  AI_PROMPT_MIN_LENGTH,
+  readAiErrorPayload,
+} from "../../../helpers/aiPromptValidation";
 
 export const schema = z.object({
-  prompt: z.string().min(5, "Prompt must be at least 5 characters long"),
+  prompt: z.string().trim().min(AI_PROMPT_MIN_LENGTH, AI_PROMPT_MESSAGES.tooShort),
   contentType: z.enum(["product", "test", "liveTest", "course", "bundle"]),
   bundleItemTitles: z.array(z.string()).optional(),
 });
@@ -47,10 +52,8 @@ export const postTeacherAIGenerateAll = async (
   });
 
   if (!result.ok) {
-    const errorObject = superjson.parse<{ error: string; code?: string }>(
-      await result.text()
-    );
-    throw new AiGenerateAllError(errorObject.error, errorObject.code);
+    const { message, code } = readAiErrorPayload(await result.text(), (raw) => superjson.parse(raw));
+    throw new AiGenerateAllError(message, code);
   }
 
   return superjson.parse<OutputType>(await result.text());

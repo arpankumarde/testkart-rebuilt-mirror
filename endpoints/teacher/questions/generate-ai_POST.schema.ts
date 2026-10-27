@@ -1,10 +1,19 @@
 import { z } from "zod";
+import {
+  AI_PROMPT_MESSAGES,
+  AI_PROMPT_MIN_LENGTH,
+  readAiErrorPayload,
+} from "../../../helpers/aiPromptValidation";
 export const schema = z.object({
   subjectId: z.number().int().positive(),
   examName: z.string().min(1, "Exam name is required."),
   subjectName: z.string().min(1, "Subject name is required."),
   numberOfQuestions: z.number().int().min(1).max(20, "Number of questions must be between 1 and 20."),
-  customPrompt: z.string().optional(),
+  customPrompt: z
+    .string()
+    .trim()
+    .optional()
+    .refine((value) => !value || value.length >= AI_PROMPT_MIN_LENGTH, AI_PROMPT_MESSAGES.tooShort),
   chapterTopic: z.string().optional(),
   syllabus: z.string().optional(),
   questionType: z.enum(['single_correct_mcq', 'multiple_correct_mcq', 'numerical']).default('single_correct_mcq'),
@@ -86,8 +95,8 @@ export const postTeacherQuestionsGenerateAi = async (
   });
 
   if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: response.statusText }));
-    throw new Error(errorData.error || `Request failed: ${response.statusText}`);
+    const { message } = readAiErrorPayload(await response.text(), (raw) => JSON.parse(raw));
+    throw new Error(message);
   }
 
   const data = await response.json();

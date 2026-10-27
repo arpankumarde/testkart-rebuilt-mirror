@@ -13,6 +13,7 @@ import { ImageUploader } from "./ImageUploader";
 import { useSaveSpinCampaign } from "../helpers/useSpinWinAdmin";
 import {
   dateToZonedInput,
+  defaultCouponPrefix,
   SPIN_CATEGORIES,
   SPIN_CATEGORY_LABELS,
   SPIN_FUNDING_LABELS,
@@ -49,7 +50,8 @@ type FormState = {
   discountFunding: "current_split" | "platform_funded";
   popupEnabled: boolean;
   popupDelaySeconds: string;
-  seedDiwaliPresets: boolean;
+  couponPrefix: string;
+  seedDefaultRewards: boolean;
 };
 
 const DEFAULT_TZ = "Asia/Kolkata";
@@ -60,6 +62,8 @@ const slugify = (value: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 80);
+
+const cleanPrefix = (value: string) => value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10);
 
 function initialState(campaign?: AdminSpinCampaign): FormState {
   const tz = campaign?.timezone ?? DEFAULT_TZ;
@@ -82,7 +86,8 @@ function initialState(campaign?: AdminSpinCampaign): FormState {
     discountFunding: (campaign?.discountFunding as FormState["discountFunding"] | undefined) ?? "current_split",
     popupEnabled: campaign?.popupEnabled ?? true,
     popupDelaySeconds: String(campaign?.popupDelaySeconds ?? 0),
-    seedDiwaliPresets: !campaign,
+    couponPrefix: campaign ? (campaign.couponPrefix ?? defaultCouponPrefix(campaign.slug)) : "",
+    seedDefaultRewards: !campaign,
   };
 }
 
@@ -91,6 +96,7 @@ const TIMEZONES = ["Asia/Kolkata", "Asia/Dubai", "Asia/Singapore", "Europe/Londo
 export const SpinWinCampaignDialog: React.FC<Props> = ({ open, onOpenChange, campaign }) => {
   const [form, setForm] = useState<FormState>(() => initialState(campaign));
   const [slugTouched, setSlugTouched] = useState(!!campaign);
+  const [prefixTouched, setPrefixTouched] = useState(!!campaign);
   const [error, setError] = useState<string | null>(null);
   const save = useSaveSpinCampaign();
   const navigate = useNavigate();
@@ -100,6 +106,7 @@ export const SpinWinCampaignDialog: React.FC<Props> = ({ open, onOpenChange, cam
     if (open) {
       setForm(initialState(campaign));
       setSlugTouched(!!campaign);
+      setPrefixTouched(!!campaign);
       setError(null);
     }
   }, [open, campaign]);
@@ -142,7 +149,8 @@ export const SpinWinCampaignDialog: React.FC<Props> = ({ open, onOpenChange, cam
         discountFunding: form.discountFunding,
         popupEnabled: form.popupEnabled,
         popupDelaySeconds: Number(form.popupDelaySeconds || 0),
-        seedDiwaliPresets: campaign ? undefined : form.seedDiwaliPresets,
+        couponPrefix: form.couponPrefix || null,
+        seedDefaultRewards: campaign ? undefined : form.seedDefaultRewards,
       },
       {
         onSuccess: (result) => {
@@ -174,10 +182,13 @@ export const SpinWinCampaignDialog: React.FC<Props> = ({ open, onOpenChange, cam
                         value={form.name}
                         required
                         maxLength={120}
-                        placeholder="Diwali Spin & Win 2026"
+                        placeholder="e.g. Exam Season Spin & Win"
                         onChange={(e) => {
                           const name = e.target.value;
-                          setForm((prev) => ({ ...prev, name, slug: slugTouched ? prev.slug : slugify(name) }));
+                          setForm((prev) => {
+                            const slug = slugTouched ? prev.slug : slugify(name);
+                            return { ...prev, name, slug, couponPrefix: prefixTouched ? prev.couponPrefix : defaultCouponPrefix(slug) };
+                          });
                         }}
                       />
                     </label>
@@ -190,11 +201,27 @@ export const SpinWinCampaignDialog: React.FC<Props> = ({ open, onOpenChange, cam
                         maxLength={80}
                         onChange={(e) => {
                           setSlugTouched(true);
-                          set("slug", slugify(e.target.value));
+                          const slug = slugify(e.target.value);
+                          setForm((prev) => ({ ...prev, slug, couponPrefix: prefixTouched ? prev.couponPrefix : defaultCouponPrefix(slug) }));
                         }}
                       />
                       <span className={styles.hint}>
-                        {slugLocked ? "Locked after publishing so shared links keep working." : "Used in the campaign link and coupon prefix."}
+                        {slugLocked ? "Locked after publishing so shared links keep working." : "Used in the campaign link."}
+                      </span>
+                    </label>
+                    <label className={styles.field}>
+                      <span className={styles.label}>Coupon code prefix</span>
+                      <Input
+                        value={form.couponPrefix}
+                        maxLength={10}
+                        placeholder={defaultCouponPrefix(form.slug)}
+                        onChange={(e) => {
+                          setPrefixTouched(true);
+                          set("couponPrefix", cleanPrefix(e.target.value));
+                        }}
+                      />
+                      <span className={styles.hint}>
+                        Codes look like {form.couponPrefix || defaultCouponPrefix(form.slug)}-K7Q2MX9P. 2 to 10 letters or digits; a change only affects coupons issued after it.
                       </span>
                     </label>
                     <label className={`${styles.field} ${styles.full}`}>
@@ -392,8 +419,8 @@ export const SpinWinCampaignDialog: React.FC<Props> = ({ open, onOpenChange, cam
 
             {!campaign ? (
               <label className={styles.check}>
-                <Checkbox checked={form.seedDiwaliPresets} onChange={(e) => set("seedDiwaliPresets", e.target.checked)} />
-                Start with the Diwali rewards (5%, 10%, 15%, 18%, ₹50, ₹100, ₹150 and Grand Prize, all off at 0%)
+                <Checkbox checked={form.seedDefaultRewards} onChange={(e) => set("seedDefaultRewards", e.target.checked)} />
+                Start with the default rewards (5%, 10%, 15%, 18%, ₹50, ₹100, ₹150 and Grand Prize, all off at 0%)
               </label>
             ) : null}
 

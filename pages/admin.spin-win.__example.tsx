@@ -22,6 +22,7 @@ const base = {
   discountFunding: "current_split",
   popupEnabled: true,
   popupDelaySeconds: 6,
+  couponPrefix: null,
   createdAt: stamp,
   updatedAt: stamp,
 };

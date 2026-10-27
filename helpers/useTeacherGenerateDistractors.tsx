@@ -4,6 +4,7 @@ import {
   postTeacherGenerateDistractors,
   GenerateDistractorsError,
 } from "../endpoints/teacher/ai/generate-distractors_POST.schema";
+import { getAiErrorMessage } from "./aiPromptValidation";
 
 export const useTeacherGenerateDistractors = () => {
   return useMutation({
@@ -16,7 +17,7 @@ export const useTeacherGenerateDistractors = () => {
         return;
       }
 
-      toast.error(error instanceof Error ? error.message : "Failed to generate distractors");
+      toast.error(getAiErrorMessage(error));
     },
   });
 };

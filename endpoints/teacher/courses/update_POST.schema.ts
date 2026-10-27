@@ -3,10 +3,11 @@ import superjson from "superjson";
 import { Selectable } from "kysely";
 import { Courses, CourseLevelArrayValues } from "../../../helpers/schema";
 import { MAX_ITEM_LANGUAGES, MAX_LANGUAGE_LENGTH } from "../../../helpers/itemLanguages";
+import { noEmoji } from "../../../helpers/emojiText";
 
 export const schema = z.object({
   courseId: z.number().int().positive(),
-  title: z.string().min(3, "Title must be at least 3 characters long."),
+  title: noEmoji(z.string().min(3, "Title must be at least 3 characters long.")),
   // Optional while drafting; teacher/courses/publish requires one.
   description: z.string().optional(),
   level: z.enum(CourseLevelArrayValues),
