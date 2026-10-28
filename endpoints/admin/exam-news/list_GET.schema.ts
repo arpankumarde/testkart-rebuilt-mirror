@@ -28,6 +28,8 @@ export type ExamNewsListRow = {
   publishedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  /** Public page views, deduplicated per visitor; admin previews are not counted. */
+  viewCount: number;
   keyDateCount: number;
   correctionCount: number;
 };

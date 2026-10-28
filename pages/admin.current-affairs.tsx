@@ -61,6 +61,7 @@ const NEW_HREF = "/admin/current-affairs/e/new";
 const ALL = "__all";
 const PAGE_SIZE = 20;
 const VISIBLE_TAGS = 3;
+const VIEWS_HINT = "Public page views, counted once per visitor every 30 minutes, including its stories' own pages";
 
 const TYPE_ICONS = {
   daily_digest: CalendarDays,
@@ -255,6 +256,10 @@ const AdminCurrentAffairsPage: React.FC = () => {
             <li>
               <CalendarCheck size={14} aria-hidden="true" />
               {timingLine(row)}
+            </li>
+            <li title={VIEWS_HINT}>
+              <Eye size={14} aria-hidden="true" />
+              {adminFormat.count(row.viewCount)} view{row.viewCount === 1 ? "" : "s"}
             </li>
             {period && (
               <li>

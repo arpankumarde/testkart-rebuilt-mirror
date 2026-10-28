@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AlertCircle, ArrowLeft, CalendarClock, CalendarDays, ExternalLink, FilePenLine, Landmark, Newspaper, RefreshCw, UserRound } from "lucide-react";
 import { examNewsPublicMeta } from "../helpers/examNewsPublicMeta";
 import { useExamNewsDetails, useExamNewsSidebar } from "../helpers/useExamNewsPublic";
+import { useRecordContentView } from "../helpers/useRecordContentView";
 import { sanitizeHtml } from "../helpers/sanitizeHtml";
 import type { PublicExamNewsStory } from "../endpoints/exam-news/details_GET.schema";
 import { SEOHead } from "./SEOHead";
@@ -107,6 +108,8 @@ export const ExamNewsStoryView: React.FC<{ slug: string }> = ({ slug }) => {
   useEffect(() => {
     if (data && data.canonicalPath !== location.pathname) navigate(data.canonicalPath, { replace: true });
   }, [data, location.pathname, navigate]);
+
+  useRecordContentView("exam_news", data?.story.id);
 
   if (isLoading && !data) {
     return (

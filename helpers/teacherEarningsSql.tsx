@@ -88,7 +88,8 @@ export function teacherItemDiscountSql(item: string, order: string) {
  * `item_id` (the mock test, course, digital product or bundle id; a live-test
  * sale carries its mock test's id), `promo_code_id` (the order's code, if any)
  * and `discount` (the promo discount the teacher bears, already taken off
- * `gross`; zero for a Testkart-funded coupon, see teacherItemDiscountSql).
+ * `gross`; zero for a Testkart-funded coupon, see teacherItemDiscountSql)
+ * and `teacher_id` (the teacher whose content was sold).
  * Mock-test sales attached to a live test surface as kind 'live_test' — the
  * live-test money arrives through the mock test its enrollment paid for, and
  * only once that test has ended, since unfinished live tests are excluded
@@ -108,7 +109,8 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
            mt.thumbnail_url::text AS thumbnail,
            mt.id AS item_id,
            o.promo_code_id AS promo_code_id,
-           td.amount AS discount
+           td.amount AS discount,
+           mt.teacher_id AS teacher_id
     FROM order_items oi
     JOIN orders o ON oi.order_id = o.id
     CROSS JOIN LATERAL (SELECT ${teacherItemDiscountSql("oi", "o")} AS amount) td
@@ -137,7 +139,8 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
            COALESCE(c.thumbnail_image_url, c.thumbnail_url)::text AS thumbnail,
            c.id AS item_id,
            o.promo_code_id AS promo_code_id,
-           td.amount AS discount
+           td.amount AS discount,
+           c.teacher_id AS teacher_id
     FROM order_items oi
     JOIN orders o ON oi.order_id = o.id
     CROSS JOIN LATERAL (SELECT ${teacherItemDiscountSql("oi", "o")} AS amount) td
@@ -162,7 +165,8 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
            NULL::text AS thumbnail,
            dp.id AS item_id,
            o.promo_code_id AS promo_code_id,
-           td.amount AS discount
+           td.amount AS discount,
+           dp.teacher_id AS teacher_id
     FROM order_items oi
     JOIN orders o ON oi.order_id = o.id
     CROSS JOIN LATERAL (SELECT ${teacherItemDiscountSql("oi", "o")} AS amount) td
@@ -202,7 +206,8 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
       cb.thumbnail_url::text AS thumbnail,
       cb.id AS item_id,
       o.promo_code_id AS promo_code_id,
-      COALESCE(o.discount_amount, 0)::numeric AS discount
+      COALESCE(o.discount_amount, 0)::numeric AS discount,
+      cb.teacher_id AS teacher_id
     FROM orders o
     JOIN course_bundles cb ON o.bundle_id = cb.id
     WHERE o.status = 'completed'
@@ -246,6 +251,26 @@ export function buildTeacherSalesCountSql(teacherIdExpr?: TeacherIdExpr, window?
  */
 export function buildTeacherSaleRowsSql(teacherIdExpr?: TeacherIdExpr, window?: TeacherEarningsWindow) {
   return earningsRowsFragment(teacherIdExpr, window);
+}
+
+/**
+ * Teachers ranked by the sale value of their content in a window: the same
+ * qualifying rows as their earnings, summed on `gross` (what students paid,
+ * before the platform fee) so a teacher's subscription tier does not move
+ * their rank. Ties fall to sale count, then teacher id, so the order is
+ * stable between requests. Rows: teacherId, salesTotal, salesCount.
+ */
+export function buildTopSellingTeachersSql(window: TeacherEarningsWindow, limit: number) {
+  return sql<{ teacherId: number; salesTotal: string; salesCount: string }>`
+    SELECT sales.teacher_id AS "teacherId",
+           SUM(sales.gross) AS "salesTotal",
+           COUNT(*) AS "salesCount"
+    FROM ${earningsRowsFragment(undefined, window)} sales
+    GROUP BY sales.teacher_id
+    HAVING SUM(sales.gross) > 0
+    ORDER BY SUM(sales.gross) DESC, COUNT(*) DESC, sales.teacher_id ASC
+    LIMIT ${limit}
+  `;
 }
 
 /** Total completed (or pending, if specified) withdrawals paid out. */

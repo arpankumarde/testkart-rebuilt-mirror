@@ -7,6 +7,7 @@ import { Button } from "./Button";
 import { Skeleton } from "./Skeleton";
 import { CurrentAffairsPreview } from "./CurrentAffairsPreview";
 import { useCurrentAffairsDetails } from "../helpers/useCurrentAffairsPublic";
+import { useRecordContentView } from "../helpers/useRecordContentView";
 import { currentAffairsMeta } from "../helpers/currentAffairsMeta";
 import type { InputType as DetailsInput, PublicDigestDetail, PublicRelatedArticle } from "../endpoints/current-affairs/details_GET.schema";
 import styles from "./CurrentAffairsDigestView.module.css";
@@ -87,6 +88,9 @@ export const CurrentAffairsDigestView: React.FC<{ input: DetailsInput; className
   const location = useLocation();
   const { data, isFetching, isError, error, refetch } = useCurrentAffairsDetails(input);
   const post = data?.post;
+
+  // A daily story's page carries its digest's id, so story reads count toward that digest.
+  useRecordContentView("current_affairs", post?.id);
 
   // Section links (#parliament-moves-into-its-new-building) and #quiz open on their section: aligned below
   // the sticky header, held there while images load unless the reader scrolls, and briefly highlighted.

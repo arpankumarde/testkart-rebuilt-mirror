@@ -77,6 +77,7 @@ export async function handle(request: Request) {
         "p.publishedAt",
         "p.createdAt",
         "p.updatedAt",
+        "p.viewCount",
         "a.fullName as authorName",
         "q.questionCount",
         "q.isPublished as quizPublished",

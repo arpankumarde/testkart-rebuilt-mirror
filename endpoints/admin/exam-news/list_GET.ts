@@ -60,6 +60,7 @@ export async function handle(request: Request) {
         "p.publishedAt",
         "p.createdAt",
         "p.updatedAt",
+        "p.viewCount",
         sql<number>`(select count(*)::int from exam_news_key_dates d where d.post_id = p.id)`.as("keyDateCount"),
         sql<number>`(select count(*)::int from exam_news_corrections c where c.post_id = p.id)`.as("correctionCount"),
       ])

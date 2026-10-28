@@ -38,6 +38,8 @@ export type CurrentAffairsListRow = {
   digestDate: string | null;
   createdAt: Date;
   updatedAt: Date;
+  /** Public page views, deduplicated per visitor; a daily story's reads count toward its digest. */
+  viewCount: number;
   itemCount: number;
   quiz: { questionCount: number; isPublished: boolean } | null;
   tags: { kind: CurrentAffairsTagKind; name: string }[];

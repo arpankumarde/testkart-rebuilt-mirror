@@ -59,6 +59,7 @@ import styles from "./admin.news.module.css";
 const NEW_HREF = examNewsMeta.editPath("new");
 const ALL = "__all";
 const PAGE_SIZE = 20;
+const VIEWS_HINT = "Public page views, counted once per visitor every 30 minutes";
 
 type StatusAction = StatusInput["action"];
 
@@ -233,6 +234,10 @@ const AdminExamNewsPage: React.FC = () => {
             <li>
               <CalendarCheck size={14} aria-hidden="true" />
               {timingLine(row)}
+            </li>
+            <li title={VIEWS_HINT}>
+              <Eye size={14} aria-hidden="true" />
+              {adminFormat.count(row.viewCount)} view{row.viewCount === 1 ? "" : "s"}
             </li>
             <li>
               <Clock size={14} aria-hidden="true" />

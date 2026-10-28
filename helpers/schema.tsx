@@ -354,6 +354,13 @@ export interface ContentReviews {
   updatedAt: Generated<Timestamp>;
 }
 
+export interface ContentViewHits {
+  contentKind: string;
+  countedAt: Generated<Timestamp>;
+  postId: number;
+  visitorHash: string;
+}
+
 export interface CourseBundleItems {
   bundleId: number;
   courseId: number | null;
@@ -557,6 +564,7 @@ export interface CurrentAffairsPosts {
   title: string;
   updatedAt: Generated<Timestamp>;
   updatedBy: number | null;
+  viewCount: Generated<number>;
 }
 
 export interface CurrentAffairsQuizQuestions {
@@ -836,6 +844,7 @@ export interface ExamNewsPosts {
   title: string;
   updatedAt: Generated<Timestamp>;
   updatedBy: number | null;
+  viewCount: Generated<number>;
 }
 
 export interface ExamNewsSources {
@@ -2264,6 +2273,7 @@ export interface DB {
   certificates: Certificates;
   contactSubmissions: ContactSubmissions;
   contentReviews: ContentReviews;
+  contentViewHits: ContentViewHits;
   courseBundleItems: CourseBundleItems;
   courseBundles: CourseBundles;
   courseEnrollments: CourseEnrollments;

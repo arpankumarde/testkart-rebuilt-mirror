@@ -18,7 +18,7 @@ export const apiDocsSite: ApiEndpoint[] = [
       { name: "featuredCourses", type: "array", description: "Up to 5 hand-picked courses (a fixed list in code): { id, title, slug, thumbnailUrl, price, discountPrice, examName, level, totalLessons, teacherName, teacherAvatarUrl, teacherIsVerified }" },
       { name: "popularNotes", type: "array", description: "Up to 8 published study notes by recent purchases, then views: { id, title, slug, price, totalPurchases, rating, pageCount, views, examName, teacher fields }" },
       { name: "liveTestSpotlight", type: "array", description: "Up to 8 active live tests that have not ended: running ones first (soonest to end), then upcoming ones (soonest to start), with up to 3 slots held for upcoming tests. A null startTime means no fixed start, so the test is running until endTime: { id, title, examName, price, enrolledCount, maxSeats, hasPrizes, totalPrizePool, startTime, endTime, isLive, teacher fields }" },
-      { name: "popularTeachers", type: "array", description: "Up to 10 active teachers by revenue and enrollments over the last year: { id, displayName, avatarUrl, slug, isVerified, tagline, testCount, courseCount, productCount, studentCount, followerCount, targetExams }" },
+      { name: "popularTeachers", type: "array", description: "Up to 10 active teachers with published content, ranked by the sale value of completed, non-sponsored orders in the rolling last 30 days (array order is the rank; studentCount is enrolments over the last year): { id, displayName, avatarUrl, slug, isVerified, tagline, testCount, courseCount, productCount, studentCount, followerCount, targetExams }" },
     ],
     notes: [
       "Takes no parameters.",

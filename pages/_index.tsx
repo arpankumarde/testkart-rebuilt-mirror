@@ -15,7 +15,7 @@ import { Placeholder } from "../helpers/placeholderImages";
 import styles from "./_index.module.css";
 
 const HomePage: React.FC = () => {
-  const { data, isFetching } = useHomepageData();
+  const { data, isFetching, isError, refetch } = useHomepageData();
 
   // Structured data for SEO
   const structuredData = {
@@ -176,6 +176,8 @@ const HomePage: React.FC = () => {
             <HomepageTeacherSpotlight
               teachers={data?.popularTeachers ?? []}
               isLoading={isFetching}
+              isError={isError && !data}
+              onRetry={() => refetch()}
             />
           </DiwaliHomeSection>
 

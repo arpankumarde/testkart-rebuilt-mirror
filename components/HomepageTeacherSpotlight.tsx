@@ -1,12 +1,14 @@
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Library, Users } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Library, RotateCw, Users } from "lucide-react";
 import type { HomepageTeacher } from "../endpoints/homepage/data_GET.schema";
 import { Avatar, AvatarImage, AvatarFallback } from "./Avatar";
 import { VerifiedBadge } from "./VerifiedBadge";
 import { Skeleton } from "./Skeleton";
 import styles from "./HomepageTeacherSpotlight.module.css";
 
-const SPOTLIGHT_SIZE = 5;
+const SPOTLIGHT_SIZE = 10;
+const SKELETON_COUNT = 5;
 
 const plural = (count: number, one: string, many: string) =>
   `${count.toLocaleString("en-IN")} ${count === 1 ? one : many}`;
@@ -25,19 +27,64 @@ const resourceCount = (teacher: HomepageTeacher) => teacher.testCount + teacher.
 interface HomepageTeacherSpotlightProps {
   teachers: HomepageTeacher[];
   isLoading?: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
 }
 
 /**
- * Top 5 teachers from homepage/data popularTeachers (ranked by the last
- * year of sales and enrolments). Teachers with nothing published are skipped,
- * so every card leads to a profile with something to buy. Pine showcase panel
- * shared with HomepageFeaturedCourses; hidden when no teacher qualifies.
+ * Top 10 teachers from homepage/data popularTeachers, which the server ranks
+ * by sales over the rolling last 30 days (helpers/homepageFetchPopularTeachers);
+ * the array order is the rank, so nothing is re-sorted here. A snap-scrolling
+ * track with prev/next arrows on the pine showcase panel shared with
+ * HomepageFeaturedCourses.
  */
-export function HomepageTeacherSpotlight({ teachers, isLoading = false }: HomepageTeacherSpotlightProps) {
+export function HomepageTeacherSpotlight({
+  teachers,
+  isLoading = false,
+  isError = false,
+  onRetry,
+}: HomepageTeacherSpotlightProps) {
   const spotlight = teachers.filter((t) => resourceCount(t) > 0).slice(0, SPOTLIGHT_SIZE);
   const showSkeleton = isLoading && spotlight.length === 0;
+  const showError = !showSkeleton && isError && spotlight.length === 0;
+  const showEmpty = !showSkeleton && !showError && spotlight.length === 0;
 
-  if (!showSkeleton && spotlight.length === 0) return null;
+  const trackRef = useRef<HTMLOListElement>(null);
+  const [canPrev, setCanPrev] = useState(false);
+  const [canNext, setCanNext] = useState(false);
+
+  const updateArrows = useCallback(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    setCanPrev(track.scrollLeft > 4);
+    setCanNext(track.scrollLeft + track.clientWidth < track.scrollWidth - 4);
+  }, []);
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) {
+      setCanPrev(false);
+      setCanNext(false);
+      return;
+    }
+    updateArrows();
+    const observer = new ResizeObserver(updateArrows);
+    observer.observe(track);
+    return () => observer.disconnect();
+  }, [updateArrows, spotlight.length, showSkeleton]);
+
+  const scrollByCards = (direction: 1 | -1) => {
+    const track = trackRef.current;
+    const card = track?.querySelector("li");
+    if (!track || !card) return;
+    const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
+    const step = card.getBoundingClientRect().width + gap;
+    const perView = Math.max(1, Math.floor((track.clientWidth + gap) / step));
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    track.scrollBy({ left: direction * step * perView, behavior: reduceMotion ? "auto" : "smooth" });
+  };
+
+  const showArrows = canPrev || canNext;
 
   return (
     <section className={styles.section} aria-labelledby="teacher-spotlight-title">
@@ -45,41 +92,91 @@ export function HomepageTeacherSpotlight({ teachers, isLoading = false }: Homepa
         <span className={styles.blobPeach} aria-hidden />
         <span className={styles.blobButter} aria-hidden />
         <div className={styles.head}>
-          <span className={styles.illustration} aria-hidden>
-            <Users size={22} strokeWidth={2} />
-            <svg className={styles.sparkle} viewBox="0 0 16 16">
-              <path d="M8 1.5c.5 3.2 1.3 4 4.5 4.5-3.2.5-4 1.3-4.5 4.5-.5-3.2-1.3-4-4.5-4.5 3.2-.5 4-1.3 4.5-4.5Z" />
-            </svg>
-          </span>
-          <div className={styles.titleGroup}>
-            <h2 id="teacher-spotlight-title" className={styles.title}>
-              Top teachers on Testkart
-            </h2>
-            <svg className={styles.titleUnderline} viewBox="0 0 120 10" preserveAspectRatio="none" aria-hidden>
-              <path d="M2 6.5C20 2.5 38 8.5 58 5S98 2 118 5.5" />
-            </svg>
+          <div className={styles.headCopy}>
+            <span className={styles.illustration} aria-hidden>
+              <Users size={22} strokeWidth={2} />
+              <svg className={styles.sparkle} viewBox="0 0 16 16">
+                <path d="M8 1.5c.5 3.2 1.3 4 4.5 4.5-3.2.5-4 1.3-4.5 4.5-.5-3.2-1.3-4-4.5-4.5 3.2-.5 4-1.3 4.5-4.5Z" />
+              </svg>
+            </span>
+            <div className={styles.titleGroup}>
+              <h2 id="teacher-spotlight-title" className={styles.title}>
+                Top teachers on Testkart
+              </h2>
+              <svg className={styles.titleUnderline} viewBox="0 0 120 10" preserveAspectRatio="none" aria-hidden>
+                <path d="M2 6.5C20 2.5 38 8.5 58 5S98 2 118 5.5" />
+              </svg>
+            </div>
           </div>
+
+          {showArrows && (
+            <div className={styles.arrows}>
+              <button
+                type="button"
+                className={styles.arrow}
+                onClick={() => scrollByCards(-1)}
+                disabled={!canPrev}
+                aria-label="Previous teachers"
+                aria-controls="teacher-spotlight-track"
+              >
+                <ChevronLeft size={20} aria-hidden />
+              </button>
+              <button
+                type="button"
+                className={styles.arrow}
+                onClick={() => scrollByCards(1)}
+                disabled={!canNext}
+                aria-label="Next teachers"
+                aria-controls="teacher-spotlight-track"
+              >
+                <ChevronRight size={20} aria-hidden />
+              </button>
+            </div>
+          )}
         </div>
 
-        <ol className={styles.list} aria-busy={showSkeleton || undefined}>
-          {showSkeleton
-            ? Array.from({ length: SPOTLIGHT_SIZE }).map((_, i) => (
-                <li key={i} className={styles.listItem} aria-hidden>
-                  <div className={styles.card}>
-                    <Skeleton className={styles.skeletonAvatar} />
-                    <div className={styles.body}>
-                      <Skeleton className={styles.skeletonLine} />
-                      <Skeleton className={styles.skeletonLineShort} />
+        {showError ? (
+          <div className={styles.status} role="alert">
+            <p className={styles.statusText}>We couldn't load the top teachers right now.</p>
+            {onRetry && (
+              <button type="button" className={styles.retry} onClick={onRetry}>
+                <RotateCw size={16} aria-hidden />
+                Try again
+              </button>
+            )}
+          </div>
+        ) : showEmpty ? (
+          <div className={styles.status}>
+            <p className={styles.statusText}>No teacher sales in the last 30 days yet. Check back soon.</p>
+          </div>
+        ) : (
+          <ol
+            id="teacher-spotlight-track"
+            ref={trackRef}
+            className={styles.track}
+            onScroll={updateArrows}
+            aria-label="Top teachers by sales in the last 30 days"
+            aria-busy={showSkeleton || undefined}
+          >
+            {showSkeleton
+              ? Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+                  <li key={i} className={styles.item} aria-hidden>
+                    <div className={styles.card}>
+                      <Skeleton className={styles.skeletonAvatar} />
+                      <div className={styles.body}>
+                        <Skeleton className={styles.skeletonLine} />
+                        <Skeleton className={styles.skeletonLineShort} />
+                      </div>
                     </div>
-                  </div>
-                </li>
-              ))
-            : spotlight.map((teacher, index) => (
-                <li key={teacher.id} className={styles.listItem}>
-                  <TeacherCard teacher={teacher} rank={index + 1} />
-                </li>
-              ))}
-        </ol>
+                  </li>
+                ))
+              : spotlight.map((teacher, index) => (
+                  <li key={teacher.id} className={styles.item}>
+                    <TeacherCard teacher={teacher} rank={index + 1} />
+                  </li>
+                ))}
+          </ol>
+        )}
       </div>
     </section>
   );
@@ -108,13 +205,13 @@ function TeacherCard({ teacher, rank }: { teacher: HomepageTeacher; rank: number
           <VerifiedBadge isVerified={teacher.isVerified} size="sm" className={styles.verified} />
         </span>
         {description && <span className={styles.tagline}>{description}</span>}
-        <span className={styles.resources}>
-          <span className={styles.resourceStat}>
-            <Library size={15} aria-hidden className={styles.resourcesIcon} />
+        <span className={styles.stats}>
+          <span className={styles.stat}>
+            <Library size={15} aria-hidden className={styles.statIcon} />
             {resources}
           </span>
-          <span className={styles.resourceStat}>
-            <Users size={15} aria-hidden className={styles.resourcesIcon} />
+          <span className={styles.stat}>
+            <Users size={15} aria-hidden className={styles.statIcon} />
             {followers}
           </span>
         </span>
