@@ -60,6 +60,8 @@ interface UseSubjectTimersOptions {
   isActive: boolean;
   activeSubjectName: string;
   onSubjectExpired: (subjectName: string) => void;
+  // Saved timer states from a paused attempt; subjects missing from it start fresh
+  initialStates?: SubjectTimerState | null;
 }
 
 interface UseSubjectTimersResult {
@@ -78,6 +80,7 @@ export function useSubjectTimers({
   isActive,
   activeSubjectName,
   onSubjectExpired,
+  initialStates,
 }: UseSubjectTimersOptions): UseSubjectTimersResult {
   const [subjectTimerStates, setSubjectTimerStates] = useState<SubjectTimerState>({});
   const [isInitialized, setIsInitialized] = useState(false);
@@ -87,16 +90,22 @@ export function useSubjectTimers({
     onSubjectExpiredRef.current = onSubjectExpired;
   }, [onSubjectExpired]);
 
-  // Initialize timer states when subjectGroups become available
+  // Initialize timer states when subjectGroups become available, from the saved
+  // states when resuming a paused attempt
   useEffect(() => {
     if (subjectGroups.length === 0 || isInitialized) return;
-    const initialStates = initSubjectTimerStates(subjectGroups);
-    if (Object.keys(initialStates).length > 0) {
-      setSubjectTimerStates(initialStates);
-      setIsInitialized(true);
-      console.log('[useSubjectTimers] Initialized subject timer states:', initialStates);
+    const freshStates = initSubjectTimerStates(subjectGroups);
+    if (initialStates) {
+      for (const name of Object.keys(freshStates)) {
+        const saved = initialStates[name];
+        if (saved) freshStates[name] = { remaining: saved.remaining, submitted: saved.submitted };
+      }
     }
-  }, [subjectGroups, isInitialized]);
+    if (Object.keys(freshStates).length > 0) {
+      setSubjectTimerStates(freshStates);
+      setIsInitialized(true);
+    }
+  }, [subjectGroups, isInitialized, initialStates]);
 
   // Tick down the active subject's timer
   useEffect(() => {

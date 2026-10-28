@@ -11,6 +11,7 @@ import {
 } from "./liveTestPrizeTiers";
 import { getRankedLiveTestAttempts } from "./liveTestRanking";
 import { LIVE_TEST_SUBMIT_GRACE_MS, liveTestResultsReleased } from "./liveTestAttemptWindow";
+import { closeOpenLiveTestAttempts } from "./liveTestAttemptAutoClose";
 
 export type PrizeDistributionResult = {
   success: boolean;
@@ -27,11 +28,15 @@ const RESULTS_EMAIL_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 /**
  * Pays a live test's prizes into the winners' wallets once submissions have
- * closed. The live test row is locked for the whole transaction and its status
- * re-read under that lock, so concurrent calls pay out once; the unique
- * (live_test_id, rank) index on live_test_prize_distributions backs this up.
+ * closed, after closing the test's never-submitted attempts so their saved
+ * answers are ranked. The live test row is locked for the whole transaction
+ * and its status re-read under that lock, so concurrent calls pay out once;
+ * the unique (live_test_id, rank) index on live_test_prize_distributions backs
+ * this up.
  */
 export async function distributeLiveTestPrizes(liveTestId: number): Promise<PrizeDistributionResult> {
+  await closeOpenLiveTestAttempts(liveTestId);
+
   const outcome = await db.transaction().execute(async (trx) => {
     const liveTest = await trx
       .selectFrom("liveTests")
@@ -219,11 +224,19 @@ export async function distributeLiveTestPrizes(liveTestId: number): Promise<Priz
 }
 
 /**
- * Scheduled job (static/__dev/scheduled-jobs.json): pays out every live test
- * with prizes whose submissions have closed. This replaced payouts triggered
+ * Scheduled job (static/__dev/scheduled-jobs.json): closes never-submitted
+ * attempts on every live test whose submissions have closed, prizes or not,
+ * then pays out every live test with prizes. This replaced payouts triggered
  * from the leaderboard page.
  */
 export async function liveTestPrizePayout(): Promise<void> {
+  try {
+    const { closed, failed } = await closeOpenLiveTestAttempts();
+    console.log(`[liveTestPrizePayout] Auto-closed ${closed} open attempt(s), ${failed} failed`);
+  } catch (error) {
+    console.error("[liveTestPrizePayout] Auto-close failed:", error);
+  }
+
   const closedBefore = new Date(Date.now() - LIVE_TEST_SUBMIT_GRACE_MS);
 
   const due = await db

@@ -134,6 +134,7 @@ const LivePortalPage: React.FC = () => {
         durationMinutes={liveTestDetails.mockTestDetails.durationMinutes}
         totalQuestions={liveTestDetails.mockTestDetails.totalQuestions}
         teacherName={liveTestDetails.teacherProfile.name}
+        endTime={liveTestDetails.endTime}
       />
     </div>
   );

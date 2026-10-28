@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo, useId } from 'react';
-import { Clock, ArrowLeft, ArrowRight, Lock, Eraser, Info, Flag, PanelRightClose, PanelRightOpen } from 'lucide-react';
+import { Clock, ArrowLeft, ArrowRight, Lock, Eraser, Info, Flag, PanelRightClose, PanelRightOpen, Pause } from 'lucide-react';
 import { Button } from './Button';
 import { Dialog, DialogTrigger } from './Dialog';
 import { Skeleton } from './Skeleton';
@@ -47,6 +47,8 @@ interface TestingInterfaceProps {
   questionTimerSeconds?: number;
   expiredQuestionIds?: Set<number>;
   isNoTimeLimit?: boolean;
+  // Saves the attempt and leaves; the student can resume it later
+  onPause?: () => void;
 }
 
 export const TestingInterface: React.FC<TestingInterfaceProps> = ({
@@ -72,6 +74,7 @@ export const TestingInterface: React.FC<TestingInterfaceProps> = ({
   questionTimerSeconds,
   expiredQuestionIds = new Set(),
   isNoTimeLimit = false,
+  onPause,
 }) => {
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
   const [isSubjectSubmitDialogOpen, setIsSubjectSubmitDialogOpen] = useState(false);
@@ -534,6 +537,11 @@ export const TestingInterface: React.FC<TestingInterfaceProps> = ({
           {subjectWiseTiming && !isCurrentSubjectSubmitted && onSubjectSubmit && (
             <Button variant="outline" onClick={() => setIsSubjectSubmitDialogOpen(true)} className={styles.submitSubjectBtn}>
               Submit Subject
+            </Button>
+          )}
+          {onPause && (
+            <Button variant="outline" onClick={onPause} disabled={isSubmitting} className={styles.pauseBtn}>
+              <Pause size={16} /> Pause
             </Button>
           )}
           <Dialog open={isSubmitDialogOpen} onOpenChange={setIsSubmitDialogOpen}>

@@ -130,6 +130,10 @@
   white-space: nowrap;
 }
 
+.pauseBtn {
+  white-space: nowrap;
+}
+
 .nextSubjectBtn {
   /* Base primary styles are inherited, custom tweaks go here */
 }
@@ -495,6 +499,7 @@
   }
 
   .submitSubjectBtn,
+  .pauseBtn,
   .headerSubmitTestBtn {
     font-size: 0.75rem;
     padding: var(--spacing-1) var(--spacing-2);

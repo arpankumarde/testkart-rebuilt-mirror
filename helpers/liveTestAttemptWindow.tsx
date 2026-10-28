@@ -76,3 +76,28 @@ export function attemptStartedInLiveWindow(startedAt: Date | null, paper: LiveTe
   if (paper.startTime && started < paper.startTime.getTime()) return false;
   return started <= paper.endTime.getTime();
 }
+
+/** The paper's duration, summed over its package the same way live-tests/details reports it. */
+export async function getLiveTestPaperDurationSeconds(testItemId: number): Promise<number> {
+  const row = await db
+    .selectFrom("mockTestItems as item")
+    .innerJoin("mockTestItems as sibling", "sibling.packageId", "item.packageId")
+    .select((eb) => eb.fn.sum<number>("sibling.durationMinutes").as("totalMinutes"))
+    .where("item.id", "=", testItemId)
+    .executeTakeFirst();
+  return Math.max(0, Math.round(Number(row?.totalMinutes ?? 0) * 60));
+}
+
+/**
+ * Seconds left on a live attempt. The clock never pauses: it runs from
+ * startedAt for the paper's duration and stops at the live test's end.
+ */
+export function liveAttemptSecondsLeft(
+  startedAt: Date,
+  durationSeconds: number,
+  paper: LiveTestPaper,
+  now = new Date()
+): number {
+  const deadline = Math.min(new Date(startedAt).getTime() + durationSeconds * 1000, paper.endTime.getTime());
+  return Math.max(0, Math.floor((deadline - now.getTime()) / 1000));
+}

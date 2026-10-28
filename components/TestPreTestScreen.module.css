@@ -74,3 +74,78 @@
 .scheduledNotice svg {
   color: var(--primary);
 }
+
+.pausedCard {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  text-align: left;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-6);
+}
+
+.pausedHeading {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.pausedHeading h3 {
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  margin: 0;
+  color: var(--foreground);
+}
+
+.pausedIcon {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.pausedText {
+  line-height: 1.6;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.pausedFacts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.pausedFacts li {
+  font-size: 0.875rem;
+  color: var(--foreground);
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  padding: var(--spacing-1) var(--spacing-3);
+}
+
+.pausedActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+}
+
+@media (max-width: 480px) {
+  .preTestTitle {
+    font-size: 1.75rem;
+  }
+
+  .pausedCard {
+    padding: var(--spacing-4);
+  }
+
+  .pausedActions > * {
+    flex: 1 1 100%;
+  }
+}

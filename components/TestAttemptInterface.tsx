@@ -1,12 +1,31 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import superjson from 'superjson';
 import { useTestQuestionsQuery, useStartAttemptMutation, useSubmitAttemptMutation } from '../helpers/useTestAttemptMutations';
 import { ENROLLED_TESTS_QUERY_KEY } from '../helpers/useEnrolledTestsQuery';
 import { TEST_RESULTS_QUERY_KEY } from '../helpers/useTestResultsQuery';
 import { postStudentTestItemSubmitAttempt } from '../endpoints/student/test-item/submit-attempt_POST.schema';
-import { TestPreTestScreen } from './TestPreTestScreen';
+import { getStudentTestItemSavedAttempt } from '../endpoints/student/test-item/saved-attempt_GET.schema';
+import {
+  postStudentTestItemSaveProgress,
+  SAVE_PROGRESS_URL,
+  InputType as SaveProgressInput,
+} from '../endpoints/student/test-item/save-progress_POST.schema';
+import { postStudentTestItemResumeAttempt } from '../endpoints/student/test-item/resume-attempt_POST.schema';
+import { postStudentTestItemDiscardAttempt } from '../endpoints/student/test-item/discard-attempt_POST.schema';
+import { AttemptProgressState } from '../helpers/testAttemptProgressState';
+import { TestPreTestScreen, PausedAttemptSummary } from './TestPreTestScreen';
 import { TestingInterface, TestingSkeleton } from './TestingInterface';
+import { Button } from './Button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from './Dialog';
 import { QuestionAnswer, convertAnswerForSubmission, QuestionData } from '../helpers/questionAnswerTypes';
 import {
   SubjectTimerState,
@@ -22,6 +41,32 @@ import {
 import styles from './TestAttemptInterface.module.css';
 
 type Stage = 'pre-test' | 'testing' | 'submitted';
+
+const savedAttemptQueryKey = (testItemId: number) => ['savedTestAttempt', testItemId] as const;
+const AUTOSAVE_DEBOUNCE_MS = 1500;
+const AUTOSAVE_INTERVAL_MS = 30000;
+
+function describeSeconds(totalSeconds: number): string {
+  if (totalSeconds < 60) return 'under a minute';
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  if (hours === 0) return `${minutes} min`;
+  return minutes === 0 ? `${hours} hr` : `${hours} hr ${minutes} min`;
+}
+
+// Sends the save even while the page is unloading.
+function sendProgressOnExit(payload: SaveProgressInput) {
+  try {
+    fetch(SAVE_PROGRESS_URL, {
+      method: 'POST',
+      keepalive: true,
+      headers: { 'Content-Type': 'application/json' },
+      body: superjson.stringify(payload),
+    }).catch(() => undefined);
+  } catch {
+    // Nothing more can be done while the page goes away.
+  }
+}
 
 interface TestAttemptInterfaceProps {
   testItemId: number;
@@ -59,23 +104,50 @@ export const TestAttemptInterface: React.FC<TestAttemptInterfaceProps> = ({
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  // Store latest values in ref for cleanup
+  // Pause and resume. restoreState holds a resumed attempt's saved state until
+  // the questions load; progressReady turns autosave on once it is applied (or
+  // a fresh attempt is ready), so an empty state never overwrites a saved one.
+  const [restoreState, setRestoreState] = useState<AttemptProgressState | null>(null);
+  const [progressReady, setProgressReady] = useState(false);
+  const [isResuming, setIsResuming] = useState(false);
+  const [isDiscarding, setIsDiscarding] = useState(false);
+  const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
+  const [isPausing, setIsPausing] = useState(false);
+  const [pauseError, setPauseError] = useState<string | null>(null);
+  const elapsedBaseRef = useRef(0);
+  const segmentStartRef = useRef<number | null>(null);
+  const pendingQuestionTimerRef = useRef<number | null>(null);
+  const leavingRef = useRef(false);
+  // Set once the attempt is saved for leaving, so later exit hooks don't save again
+  const pausedRef = useRef(false);
+
+  // Latest values for the timers, the page-exit save and the unmount cleanup
   const latestStateRef = useRef<{
     stage: Stage;
     attemptId: number | null;
-    hasQuestions: boolean;
-    answersMap: Map<number, QuestionAnswer>;
+    ready: boolean;
+    state: AttemptProgressState | null;
   }>({
     stage: 'pre-test',
     attemptId: null,
-    hasQuestions: false,
-    answersMap: new Map(),
+    ready: false,
+    state: null,
   });
 
   const canFetchQuestions = attemptId !== null;
   const questionsQuery = useTestQuestionsQuery(canFetchQuestions ? testItemId : undefined, attemptId);
   const startAttemptMutation = useStartAttemptMutation(testItemId);
   const submitAttemptMutation = useSubmitAttemptMutation(attemptId ?? 0);
+
+  const savedAttemptQuery = useQuery({
+    queryKey: savedAttemptQueryKey(testItemId),
+    queryFn: () => getStudentTestItemSavedAttempt({ testItemId }),
+    enabled: stage === 'pre-test',
+    refetchOnMount: 'always',
+    staleTime: 0,
+    retry: 1,
+  });
+  const savedAttempt = savedAttemptQuery.data?.attempt ?? null;
 
   // Derived data from questions query
   const subjectWiseTiming = questionsQuery.data?.subjectWiseTiming ?? false;
@@ -146,13 +218,17 @@ export const TestAttemptInterface: React.FC<TestAttemptInterfaceProps> = ({
     onSubjectExpired: useCallback((subjectName: string) => {
       handleSubjectExpiredRef.current?.(subjectName);
     }, []),
+    initialStates: restoreState?.subjectTimerStates ?? null,
   });
 
   // Keep ref up-to-date on every render
   // Reset and handle question timer when current question changes
   useEffect(() => {
     if (stage === 'testing' && questionWiseTiming && currentQuestion) {
-      if (!expiredQuestionIds.has(currentQuestion.id)) {
+      if (pendingQuestionTimerRef.current !== null) {
+        setQuestionTimerSeconds(pendingQuestionTimerRef.current);
+        pendingQuestionTimerRef.current = null;
+      } else if (!expiredQuestionIds.has(currentQuestion.id)) {
         setQuestionTimerSeconds(currentQuestion.durationSeconds ?? 0);
       } else {
         setQuestionTimerSeconds(0);
@@ -193,15 +269,107 @@ export const TestAttemptInterface: React.FC<TestAttemptInterfaceProps> = ({
     return () => clearInterval(timer);
   }, [stage, questionWiseTiming, currentQuestion, currentQuestionIndex, orderedQuestions.length]);
 
+  // Once the questions are in, apply a resumed attempt's saved state and start
+  // counting the time spent in this sitting.
+  useEffect(() => {
+    if (stage !== 'testing' || !questionsQuery.isSuccess || questionsQuery.isFetching) return;
+    if (segmentStartRef.current !== null) return;
+
+    const saved = restoreState;
+    if (saved) {
+      const ids = new Set(orderedQuestions.map((q) => q.id));
+      setAnswers(new Map(saved.answers.filter(([id]) => ids.has(id)) as Array<[number, QuestionAnswer]>));
+      setMarkedForReview(new Set(saved.markedForReview.filter((id) => ids.has(id))));
+      setVisitedQuestionIds(new Set(saved.visitedQuestionIds.filter((id) => ids.has(id))));
+      setExpiredQuestionIds(new Set(saved.expiredQuestionIds.filter((id) => ids.has(id))));
+      const savedIndex = saved.currentQuestionId
+        ? orderedQuestions.findIndex((q) => q.id === saved.currentQuestionId)
+        : -1;
+      if (savedIndex >= 0) setCurrentQuestionIndex(savedIndex);
+      setTimeRemaining(isNoTimeLimit ? saved.timeRemaining : Math.min(saved.timeRemaining, durationMinutes * 60));
+      if (saved.activeSubjectName && subjectGroups.some((g) => g.name === saved.activeSubjectName)) {
+        setActiveSubjectName(saved.activeSubjectName);
+      }
+      pendingQuestionTimerRef.current = saved.questionTimerSeconds;
+    }
+
+    segmentStartRef.current = Date.now();
+    setProgressReady(true);
+  }, [stage, questionsQuery.isSuccess, questionsQuery.isFetching, restoreState, orderedQuestions, subjectGroups, isNoTimeLimit, durationMinutes]);
+
   // Keep ref up-to-date on every render
   useEffect(() => {
     latestStateRef.current = {
       stage,
       attemptId,
-      hasQuestions: !!questionsQuery.data,
-      answersMap: answers,
+      ready: progressReady,
+      state: {
+        v: 1,
+        answers: Array.from(answers.entries()),
+        currentQuestionId: currentQuestion?.id ?? null,
+        markedForReview: Array.from(markedForReview),
+        visitedQuestionIds: Array.from(visitedQuestionIds),
+        timeRemaining: Math.max(0, Math.round(timeRemaining)),
+        subjectTimerStates,
+        activeSubjectName,
+        expiredQuestionIds: Array.from(expiredQuestionIds),
+        questionTimerSeconds: questionTimerSeconds === null ? null : Math.max(0, Math.round(questionTimerSeconds)),
+      },
     };
   });
+
+  const buildSavePayload = useCallback((): SaveProgressInput | null => {
+    const { stage, attemptId, ready, state } = latestStateRef.current;
+    if (pausedRef.current || stage !== 'testing' || !attemptId || !ready || !state) return null;
+    const segmentSeconds = segmentStartRef.current === null
+      ? 0
+      : Math.floor((Date.now() - segmentStartRef.current) / 1000);
+    return { attemptId, elapsedSeconds: elapsedBaseRef.current + segmentSeconds, state };
+  }, []);
+
+  const saveProgress = useCallback(async (): Promise<boolean> => {
+    const payload = buildSavePayload();
+    if (!payload) return true;
+    try {
+      await postStudentTestItemSaveProgress(payload);
+      return true;
+    } catch (error) {
+      console.error('[saveProgress] Could not save test progress:', error);
+      return false;
+    }
+  }, [buildSavePayload]);
+
+  // Autosave shortly after each change, and every few seconds for the timers
+  useEffect(() => {
+    if (stage !== 'testing' || !progressReady) return;
+    const timeout = setTimeout(() => void saveProgress(), AUTOSAVE_DEBOUNCE_MS);
+    return () => clearTimeout(timeout);
+  }, [stage, progressReady, answers, markedForReview, currentQuestionIndex, expiredQuestionIds, activeSubjectName, saveProgress]);
+
+  useEffect(() => {
+    if (stage !== 'testing' || !progressReady) return;
+    // floot-polling-ok: a write, not a fetch; runs only while the student is sitting a test, so a crash loses at most 30s of timer
+    const interval = setInterval(() => void saveProgress(), AUTOSAVE_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [stage, progressReady, saveProgress]);
+
+  // Save as the tab is hidden, refreshed or closed
+  useEffect(() => {
+    if (stage !== 'testing') return;
+    const saveOnExit = () => {
+      const payload = buildSavePayload();
+      if (payload) sendProgressOnExit(payload);
+    };
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') saveOnExit();
+    };
+    window.addEventListener('pagehide', saveOnExit);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => {
+      window.removeEventListener('pagehide', saveOnExit);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, [stage, buildSavePayload]);
 
   // Global timer (non-subject-wise)
   useEffect(() => {
@@ -247,10 +415,11 @@ export const TestAttemptInterface: React.FC<TestAttemptInterfaceProps> = ({
 
     submitAttemptMutation.mutate({ attemptId, answers: formattedAnswers }, {
       onSuccess: () => {
-        // Mark submitted before navigating so the unmount cleanup below cannot submit the attempt a second time.
+        // Mark submitted before navigating so the unmount cleanup below does not save the attempt as paused.
         latestStateRef.current.stage = 'submitted';
         setStage('submitted');
         queryClient.invalidateQueries({ queryKey: ENROLLED_TESTS_QUERY_KEY });
+        queryClient.removeQueries({ queryKey: savedAttemptQueryKey(testItemId) });
         // Results are cached for 5 minutes; drop them so the page cannot show an earlier attempt.
         queryClient.removeQueries({ queryKey: [TEST_RESULTS_QUERY_KEY, testItemId] });
         navigate(`/portal/${testItemId}/results`, { replace: true, state: { justSubmitted: true } });
@@ -331,6 +500,8 @@ export const TestAttemptInterface: React.FC<TestAttemptInterfaceProps> = ({
   const handleStartTest = () => {
     startAttemptMutation.mutate({ testItemId }, {
       onSuccess: (data) => {
+        elapsedBaseRef.current = 0;
+        setRestoreState(null);
         setAttemptId(data.attemptId);
         setStage('testing');
         queryClient.invalidateQueries({ queryKey: ENROLLED_TESTS_QUERY_KEY });
@@ -342,11 +513,69 @@ export const TestAttemptInterface: React.FC<TestAttemptInterfaceProps> = ({
     });
   };
 
-  // Warn user before leaving during an active test
+  const handleResume = () => {
+    if (!savedAttempt) return;
+    setIsResuming(true);
+    postStudentTestItemResumeAttempt({ attemptId: savedAttempt.attemptId })
+      .then((data) => {
+        elapsedBaseRef.current = data.elapsedSeconds;
+        setRestoreState(data.state);
+        setAttemptId(data.attemptId);
+        setStage('testing');
+      })
+      .catch((error) => {
+        console.error('[handleResume] Error resuming attempt:', error);
+        alert(`Error: ${error instanceof Error ? error.message : 'Could not resume the test.'}`);
+        void savedAttemptQuery.refetch();
+      })
+      .finally(() => setIsResuming(false));
+  };
+
+  const handleStartOver = async () => {
+    if (savedAttempt) {
+      setIsDiscarding(true);
+      try {
+        await postStudentTestItemDiscardAttempt({ attemptId: savedAttempt.attemptId });
+        queryClient.invalidateQueries({ queryKey: savedAttemptQueryKey(testItemId) });
+      } catch (error) {
+        console.error('[handleStartOver] Error clearing paused attempt:', error);
+        alert(`Error: ${error instanceof Error ? error.message : 'Could not start a new test.'}`);
+        return;
+      } finally {
+        setIsDiscarding(false);
+      }
+    }
+    handleStartTest();
+  };
+
+  // Leave the test: save, then go back past the history entry the Back guard added
+  const handlePauseAndLeave = async () => {
+    setPauseError(null);
+    setIsPausing(true);
+    leavingRef.current = true;
+    const saved = await saveProgress();
+    if (!saved) {
+      leavingRef.current = false;
+      setIsPausing(false);
+      setPauseError('Your progress could not be saved. Check your connection and try again.');
+      return;
+    }
+    pausedRef.current = true;
+    queryClient.removeQueries({ queryKey: savedAttemptQueryKey(testItemId) });
+    queryClient.invalidateQueries({ queryKey: ENROLLED_TESTS_QUERY_KEY });
+    const here = window.location.href;
+    window.history.go(-2);
+    setTimeout(() => {
+      if (window.location.href === here) navigate('/student/dashboard', { replace: true });
+    }, 500);
+  };
+
+  // Ask before a refresh or tab close; the browser shows its own leave prompt
   useEffect(() => {
     if (stage !== 'testing') return;
 
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (leavingRef.current) return;
       e.preventDefault();
       e.returnValue = '';
       return '';
@@ -356,22 +585,55 @@ export const TestAttemptInterface: React.FC<TestAttemptInterfaceProps> = ({
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [stage]);
 
-  // Auto-submit test on component unmount during active test
+  // Browser Back: an extra history entry absorbs the first Back press, which
+  // opens the leave dialog instead of leaving.
+  useEffect(() => {
+    if (stage !== 'testing') return;
+
+    const pushGuard = () => {
+      window.history.pushState({ ...(window.history.state ?? {}), testkartTestGuard: true }, '', window.location.href);
+    };
+    if (!window.history.state?.testkartTestGuard) pushGuard();
+
+    const handlePopState = () => {
+      if (leavingRef.current) return;
+      pushGuard();
+      setPauseError(null);
+      setIsLeaveDialogOpen(true);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [stage]);
+
+  // Leaving the page inside the app pauses the attempt instead of submitting it
   useEffect(() => {
     return () => {
-      const { stage, attemptId, hasQuestions, answersMap } = latestStateRef.current;
-      if (stage === 'testing' && attemptId && hasQuestions) {
-        const formattedAnswers = Array.from(answersMap.entries())
-          .map(([questionId, answer]) => convertAnswerForSubmission(questionId, answer))
-          .filter((a): a is NonNullable<typeof a> => a !== null) as Parameters<typeof postStudentTestItemSubmitAttempt>[0]['answers'];
-
-        console.log('[Cleanup] Auto-submitting test on unmount:', { attemptId, answersCount: formattedAnswers.length });
-        postStudentTestItemSubmitAttempt({ attemptId, answers: formattedAnswers }).catch((err) => {
-          console.error('[Cleanup] Auto-submit failed:', err);
-        });
-      }
+      const payload = buildSavePayload();
+      if (payload) sendProgressOnExit(payload);
     };
-  }, []);
+  }, [buildSavePayload]);
+
+  const pausedSummary = useMemo((): PausedAttemptSummary | null => {
+    if (!savedAttempt) return null;
+    const { state } = savedAttempt;
+    const subjectStates = Object.values(state.subjectTimerStates);
+    let timeLabel: string | null;
+    if (subjectStates.length > 0) {
+      const left = subjectStates.filter((s) => !s.submitted).reduce((sum, s) => sum + s.remaining, 0);
+      timeLabel = `${describeSeconds(left)} left`;
+    } else if (isNoTimeLimit) {
+      timeLabel = `${describeSeconds(state.timeRemaining)} spent`;
+    } else {
+      timeLabel = `${describeSeconds(state.timeRemaining)} left`;
+    }
+    return {
+      answeredCount: savedAttempt.answeredCount,
+      totalQuestions: savedAttempt.totalQuestions || totalQuestions,
+      timeLabel,
+      savedAt: savedAttempt.savedAt,
+    };
+  }, [savedAttempt, isNoTimeLimit, totalQuestions]);
 
   const handleAnswerChange = (questionId: number, answer: QuestionAnswer | undefined) => {
     if (answer === undefined) {
@@ -396,11 +658,16 @@ export const TestAttemptInterface: React.FC<TestAttemptInterfaceProps> = ({
             durationMinutes={durationMinutes}
             totalQuestions={totalQuestions}
             onStartTest={handleStartTest}
-            isStarting={startAttemptMutation.isPending}
+            isStarting={startAttemptMutation.isPending || isDiscarding}
+            isCheckingPaused={savedAttemptQuery.isLoading}
+            pausedAttempt={pausedSummary}
+            onResume={handleResume}
+            onStartOver={() => void handleStartOver()}
+            isResuming={isResuming}
           />
         );
       case 'testing': {
-        if (questionsQuery.isFetching) {
+        if (questionsQuery.isFetching || (questionsQuery.isSuccess && !progressReady)) {
           return <TestingSkeleton />;
         }
         if (questionsQuery.isError || !questionsQuery.data) {
@@ -431,6 +698,10 @@ export const TestAttemptInterface: React.FC<TestAttemptInterfaceProps> = ({
             questionTimerSeconds={questionTimerSeconds ?? undefined}
             expiredQuestionIds={expiredQuestionIds}
             isNoTimeLimit={isNoTimeLimit}
+            onPause={() => {
+              setPauseError(null);
+              setIsLeaveDialogOpen(true);
+            }}
           />
         );
       }
@@ -439,5 +710,33 @@ export const TestAttemptInterface: React.FC<TestAttemptInterfaceProps> = ({
     }
   };
 
-  return <div className={`${styles.container} ${className || ''}`}>{renderContent()}</div>;
+  return (
+    <div className={`${styles.container} ${className || ''}`}>
+      {renderContent()}
+      <Dialog
+        open={isLeaveDialogOpen && stage === 'testing'}
+        onOpenChange={(open) => {
+          if (!isPausing) setIsLeaveDialogOpen(open);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Leave the test?</DialogTitle>
+            <DialogDescription>
+              Your answers and remaining time are saved, and the timer stops while you are away. When you open this test again, you can resume where you left off or start a new attempt.
+            </DialogDescription>
+          </DialogHeader>
+          {pauseError && <p className={styles.pauseError}>{pauseError}</p>}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsLeaveDialogOpen(false)} disabled={isPausing}>
+              Continue test
+            </Button>
+            <Button onClick={() => void handlePauseAndLeave()} disabled={isPausing}>
+              {isPausing ? 'Saving...' : 'Pause and leave'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
 };

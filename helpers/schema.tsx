@@ -2110,6 +2110,16 @@ export interface TestAttemptAnswers {
   testAttemptId: number;
 }
 
+export interface TestAttemptProgress {
+  answeredCount: Generated<number>;
+  attemptId: number;
+  elapsedSeconds: Generated<number>;
+  state: Generated<Json>;
+  studentId: number;
+  testId: number;
+  updatedAt: Generated<Timestamp>;
+}
+
 export interface TestAttempts {
   completedAt: Timestamp | null;
   id: Generated<number>;
@@ -2396,6 +2406,7 @@ export interface DB {
   teacherWithdrawals: TeacherWithdrawals;
   teacherWorkExperiences: TeacherWorkExperiences;
   testAttemptAnswers: TestAttemptAnswers;
+  testAttemptProgress: TestAttemptProgress;
   testAttempts: TestAttempts;
   testItemSubjects: TestItemSubjects;
   testQuestions: TestQuestions;
