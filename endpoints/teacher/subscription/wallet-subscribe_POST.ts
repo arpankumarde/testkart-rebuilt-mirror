@@ -9,6 +9,7 @@ import { createHash, randomUUID } from "crypto";
 import { PAYU_MODE } from "../../../helpers/_publicConfigs";
 import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
 import { assertPlanRenewable } from "../../../helpers/teacherPlanRenewal";
+import { getOrderClientInfo } from "../../../helpers/orderClientInfo";
 import {
   validatePromoCodeForPlan,
   computePromoDiscountAmount,
@@ -105,6 +106,7 @@ export async function handle(request: Request) {
     const PAYU_MERCHANT_KEY = process.env.PAYU_MERCHANT_KEY;
     const PAYU_MERCHANT_SALT = process.env.PAYU_MERCHANT_SALT;
     const payuTxnId = `testkart-sub-${randomUUID()}`;
+    const clientInfo = getOrderClientInfo(request);
 
     // The wallet balance is read and spent in one transaction under the wallet
     // lock, so a parallel withdrawal, sponsorship or renewal can't spend it too.
@@ -159,6 +161,7 @@ export async function handle(request: Request) {
             status: "completed",
             paymentMethod: "wallet",
             transactionId: txnid,
+            ...clientInfo,
           })
           .execute();
 
@@ -235,6 +238,7 @@ export async function handle(request: Request) {
             paymentMethod: "wallet",
             transactionId: walletTxnId,
             notes: `Partial wallet payment mapped to PayU Txn: ${payuTxnId}`,
+            ...clientInfo,
           })
           .execute();
       }
@@ -249,6 +253,7 @@ export async function handle(request: Request) {
           paymentMethod: "payu",
           transactionId: payuTxnId,
           ...(promo ? { promoCodeId: promo.id, discountAmount: String(promoDiscountAmount) } : {}),
+          ...clientInfo,
         })
         .execute();
 

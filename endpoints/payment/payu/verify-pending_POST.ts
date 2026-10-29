@@ -1,4 +1,5 @@
 import { db } from "../../../helpers/db";
+import { normalizePaymentMode } from "../../../helpers/orderAttribution";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { verifyPayUPayment } from "../../../helpers/verifyPayUPayment";
 import { ensureOrderCompletionSideEffects } from "../../../helpers/ensureOrderCompletionSideEffects";
@@ -107,7 +108,7 @@ export async function handle(request: Request) {
             if (lockedOrder?.status === "pending") {
               await trx
                 .updateTable("orders")
-                .set({ status: "completed" })
+                .set({ status: "completed", paymentMode: normalizePaymentMode(verificationResult.mode) })
                 .where("id", "=", order.id)
                 .execute();
 

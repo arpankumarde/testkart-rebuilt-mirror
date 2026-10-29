@@ -16,6 +16,7 @@ import {
   revokeSubscriptionMandate,
 } from "./teacherMandate";
 import { effectiveRenewalAmount } from "./subscriptionPromoCodes";
+import { inheritedSubscriptionClient } from "./subscriptionClientInfo";
 
 export async function subscriptionRenew(): Promise<void> {
   console.log("[subscriptionRenew] Starting scheduled job...");
@@ -236,6 +237,7 @@ export async function subscriptionRenew(): Promise<void> {
 
         try {
           const chargeAmount = effectiveRenewalAmount(sub);
+          const inherited = await inheritedSubscriptionClient(db, sub.teacherId, sub.id);
 
           // Create pending transaction record
           const insertedTx = await db
@@ -248,6 +250,7 @@ export async function subscriptionRenew(): Promise<void> {
               status: "pending",
               paymentMethod: "payu_recurring",
               transactionId: txnid,
+              ...inherited,
             })
             .returning("id")
             .executeTakeFirst();
@@ -489,6 +492,7 @@ export async function subscriptionRenew(): Promise<void> {
                   `Wallet balance (${lockedBalance.availableBalance}) no longer covers renewal price ${price}`
                 );
               }
+              const inherited = await inheritedSubscriptionClient(trx, sub.teacherId, sub.id);
 
               await trx
                 .insertInto("subscriptionTransactions")
@@ -500,6 +504,7 @@ export async function subscriptionRenew(): Promise<void> {
                   status: "completed",
                   paymentMethod: "wallet",
                   transactionId: txnid,
+                  ...inherited,
                 })
                 .execute();
                 

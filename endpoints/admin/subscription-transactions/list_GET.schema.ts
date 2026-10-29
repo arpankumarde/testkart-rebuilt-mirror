@@ -2,6 +2,7 @@ import { z } from "zod";
 import superjson from "superjson";
 import { TransactionStatus } from "../../../helpers/schema";
 import type { PaymentFailureDetails } from "../../../helpers/paymentFailureReason";
+import type { AdminOrderClient } from "../orders/search_POST.schema";
 
 export const schema = z.object({});
 
@@ -20,6 +21,10 @@ export type SubscriptionTransactionItem = {
   invoiceNumber: string | null;
   // Only for failed payments with a PayU reason on record
   paymentFailure: PaymentFailureDetails | null;
+  /** Where the payment was started from; null for payments before 2026-11-09. */
+  client: AdminOrderClient | null;
+  /** Set on server-started renewals: the transaction whose source was copied. */
+  clientInheritedFrom: number | null;
 };
 
 export type OutputType = SubscriptionTransactionItem[];

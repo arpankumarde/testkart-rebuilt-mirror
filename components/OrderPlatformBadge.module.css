@@ -1,0 +1,51 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  max-width: 100%;
+  padding: 0 0.4375rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background-color: var(--surface);
+  color: var(--foreground);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.muted {
+  border-style: dashed;
+  color: var(--muted-foreground);
+}
+
+.icon {
+  flex-shrink: 0;
+  width: 0.8125rem;
+  height: 0.8125rem;
+}
+
+/* Brand ink for the two native apps; the web platforms stay in text colour. */
+.android_app {
+  color: hsl(142 72% 29%);
+}
+
+.ios_app {
+  color: var(--foreground);
+}
+
+.mobile_web,
+.tablet_web,
+.desktop_web {
+  color: var(--foreground);
+}
+
+.unknown {
+  color: var(--muted-foreground);
+}
+
+:global(.dark) .android_app {
+  color: hsl(142 60% 60%);
+}

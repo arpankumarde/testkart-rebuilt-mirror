@@ -7,6 +7,7 @@ import { createHash } from "crypto";
 import { PAYU_MODE } from "../../../../helpers/_publicConfigs";
 import { NotAuthenticatedError } from "../../../../helpers/getSetServerSession";
 import { assertPlanRenewable } from "../../../../helpers/teacherPlanRenewal";
+import { getOrderClientInfo } from "../../../../helpers/orderClientInfo";
 
 export async function handle(request: Request) {
   try {
@@ -75,6 +76,7 @@ export async function handle(request: Request) {
           status: "pending",
           paymentMethod: "payu",
           transactionId: txnid,
+          ...getOrderClientInfo(request),
         })
         .execute();
 

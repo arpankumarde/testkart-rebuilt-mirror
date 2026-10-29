@@ -683,29 +683,25 @@ export const CurrentAffairsHub: React.FC<{ archive?: ArchiveType; className?: st
               </div>
             </section>
 
-            <section className={styles.sideSection} aria-labelledby="ca-months-title">
-              <div className={styles.sideHead}>
-                <h2 id="ca-months-title" className={styles.sideHeading}>
-                  Monthly Current Affairs
-                </h2>
-                {monthTotal > monthCards.length && (
-                  <Link to={withLang(currentAffairsMeta.archivePath("monthly"))} {...tabLinkProps} className={styles.sideMore}>
-                    View all
-                  </Link>
-                )}
-              </div>
-              {months.isPending ? (
-                <Skeleton style={{ height: "17rem", borderRadius: "var(--radius-lg)" }} />
-              ) : monthCards.length > 0 ? (
+            {monthCards.length > 0 && (
+              <section className={styles.sideSection} aria-labelledby="ca-months-title">
+                <div className={styles.sideHead}>
+                  <h2 id="ca-months-title" className={styles.sideHeading}>
+                    Monthly Current Affairs
+                  </h2>
+                  {monthTotal > monthCards.length && (
+                    <Link to={withLang(currentAffairsMeta.archivePath("monthly"))} {...tabLinkProps} className={styles.sideMore}>
+                      View all
+                    </Link>
+                  )}
+                </div>
                 <ul className={styles.monthList}>
                   {monthCards.map((card) => (
                     <MonthCard key={card.id} card={card} />
                   ))}
                 </ul>
-              ) : (
-                <p className={`${styles.sideCard} ${styles.sideEmpty}`}>Monthly digests appear here once published.</p>
-              )}
-            </section>
+              </section>
+            )}
 
             {weekly && <WeeklyCard card={weekly} />}
 

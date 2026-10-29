@@ -10,6 +10,7 @@ import { executeSITransaction } from "../../../../helpers/payuSIApi";
 import { extractPayUFailure } from "../../../../helpers/extractPayUFailure";
 import { CHARGE_TXNID_PATTERNS, newChargeTxnid } from "../../../../helpers/teacherMandate";
 import { effectiveRenewalAmount } from "../../../../helpers/subscriptionPromoCodes";
+import { inheritedSubscriptionClient } from "../../../../helpers/subscriptionClientInfo";
 
 export async function handle(request: Request) {
   try {
@@ -98,6 +99,8 @@ export async function handle(request: Request) {
 
       const txnid = newChargeTxnid();
       const chargeAmount = effectiveRenewalAmount(subscription);
+      // An auto-renewal: attributed to the sign-up, not the tab that happened to trigger it.
+      const inherited = await inheritedSubscriptionClient(trx, subscription.teacherId, subscription.id);
       await trx
         .insertInto("subscriptionTransactions")
         .values({
@@ -108,6 +111,7 @@ export async function handle(request: Request) {
           status: "pending",
           paymentMethod: "payu_recurring",
           transactionId: txnid,
+          ...inherited,
         })
         .execute();
 

@@ -3,13 +3,15 @@
  * so the page content lines up with the search field above it, and the measure
  * is the list width - 1440 is for the dashboards, where extra width buys
  * another card per row rather than just stretching a table.
+ * This page takes 88rem: the student ledger has eight columns, and the
+ * narrower measure would push it into the card layout on most laptops.
  */
 .page {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-4);
   width: 100%;
-  max-width: 80rem;
+  max-width: 88rem;
   margin: 0 auto;
   padding: var(--spacing-6) var(--spacing-6) var(--spacing-8);
   box-sizing: border-box;

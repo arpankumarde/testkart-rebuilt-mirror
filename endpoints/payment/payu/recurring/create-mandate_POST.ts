@@ -8,6 +8,7 @@ import { NotAuthenticatedError } from "../../../../helpers/getSetServerSession";
 import { newMandateTxnid } from "../../../../helpers/teacherMandate";
 import { INTRO_OFFER_PRICE, planQualifiesForIntroOffer, isEligibleForIntroOffer } from "../../../../helpers/teacherIntroOffer";
 import { validatePromoCodeForPlan, applyPromoDiscount, computePromoDiscountAmount } from "../../../../helpers/subscriptionPromoCodes";
+import { getOrderClientInfo } from "../../../../helpers/orderClientInfo";
 
 function formatDate(date: Date): string {
   const year = date.getFullYear();
@@ -88,6 +89,7 @@ export async function handle(request: Request) {
             promoCodeId: promo.id,
             discountAmount: String(discountAmount),
             notes: `Promo ${promo.code}: ₹${discountAmount} off this cycle${promo.recurringScope === "every_month" ? ", every renewal" : ""}`,
+            ...getOrderClientInfo(request),
           })
           .execute();
 
@@ -153,6 +155,7 @@ export async function handle(request: Request) {
           paymentMethod: "payu_recurring",
           transactionId: txnid,
           ...(introOffer ? { notes: `Intro offer: first cycle at ₹${amount}, renews at ₹${fullPrice}` } : {}),
+          ...getOrderClientInfo(request),
         })
         .execute();
 

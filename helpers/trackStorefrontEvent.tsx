@@ -9,7 +9,7 @@ import type { ShareAssetKind, SharePlatformId } from "./shareLinks";
 
 const ATTRIBUTION_KEY = "tk_first_touch";
 
-type Attribution = {
+export type Attribution = {
   utmSource: string | null;
   utmMedium: string | null;
   utmCampaign: string | null;
@@ -19,9 +19,10 @@ type Attribution = {
 /**
  * The tab's first-touch source: the UTM tags and referrer of the page the
  * visitor landed on, kept in sessionStorage so moving around the site does
- * not turn a WhatsApp visit into an internal one.
+ * not turn a WhatsApp visit into an internal one. helpers/clientContextCookie
+ * also reads it to tag orders with their source.
  */
-function readAttribution(): Attribution {
+export function readAttribution(): Attribution {
   try {
     const stored = window.sessionStorage.getItem(ATTRIBUTION_KEY);
     if (stored) return JSON.parse(stored) as Attribution;

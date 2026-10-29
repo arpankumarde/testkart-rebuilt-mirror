@@ -1,0 +1,298 @@
+/* The open state is the turned chevron; the Button keeps its own colours so hover text stays readable. */
+.chevron {
+  color: var(--muted-foreground);
+  transition: transform var(--animation-duration-fast) ease;
+}
+
+.triggerOpen .chevron {
+  transform: rotate(180deg);
+}
+
+.popup {
+  display: flex;
+  flex-direction: column;
+  width: min(46rem, calc(100vw - 2rem));
+  /* The base popover caps width at 24rem; this popup holds a five-column table. */
+  max-width: calc(100vw - 2rem);
+  max-height: min(36rem, calc(var(--radix-popover-content-available-height, 80vh) - 0.5rem));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--popup);
+  color: var(--popup-foreground);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4) var(--spacing-4) var(--spacing-3);
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background-color: var(--surface);
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.close:hover {
+  background-color: var(--muted);
+}
+
+.close:focus-visible,
+.rowButton:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.segmentsWrap {
+  padding: 0 var(--spacing-4) var(--spacing-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.segments {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.segments button {
+  height: 1.75rem;
+  padding: 0 var(--spacing-3);
+  font-size: 0.8125rem;
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--spacing-2) var(--spacing-4);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: var(--spacing-2);
+  border-bottom: 1px solid var(--border);
+  background-color: var(--popup);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 0.4375rem var(--spacing-2);
+  border-bottom: 1px solid var(--border);
+  color: var(--foreground);
+  white-space: nowrap;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table th:first-child,
+.table td:first-child {
+  padding-left: 0;
+}
+
+.table th:last-child,
+.table td:last-child {
+  padding-right: 0;
+}
+
+.num {
+  width: 6rem;
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.rowLabel {
+  max-width: 15rem;
+}
+
+.rowButton,
+.rowStatic {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  max-width: 100%;
+  margin-left: -0.25rem;
+  padding: 0.125rem 0.25rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--foreground);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+}
+
+.rowButton {
+  cursor: pointer;
+}
+
+.rowButton:hover .rowLabelText {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.rowButton svg,
+.rowStatic svg {
+  flex-shrink: 0;
+}
+
+.rowLabelText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.barCol {
+  width: 32%;
+  min-width: 5rem;
+}
+
+.barTrack {
+  display: block;
+  width: 100%;
+  height: 0.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--muted);
+  overflow: hidden;
+}
+
+.bar {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  border-radius: var(--radius-full);
+  background-color: var(--primary);
+}
+
+.empty {
+  padding: var(--spacing-6) 0 !important;
+  color: var(--muted-foreground) !important;
+  text-align: center;
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin: var(--spacing-3) 0;
+  color: var(--error-text);
+  font-size: 0.875rem;
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  padding: var(--spacing-3) var(--spacing-4);
+  border-top: 1px solid var(--border);
+  background-color: var(--surface);
+}
+
+.totals {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.totals strong {
+  color: var(--foreground);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.footnote {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--muted-foreground);
+}
+
+.footnote svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 560px) {
+  .barCol {
+    display: none;
+  }
+
+  .num {
+    width: auto;
+  }
+
+  .table td,
+  .table th {
+    padding-left: var(--spacing-1);
+    padding-right: var(--spacing-1);
+  }
+
+  .rowLabel {
+    max-width: 9rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron {
+    transition: none;
+  }
+}

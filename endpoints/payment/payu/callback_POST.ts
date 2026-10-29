@@ -1,4 +1,5 @@
 import { db } from "../../../helpers/db";
+import { normalizePaymentMode } from "../../../helpers/orderAttribution";
 import { schema } from "./callback_POST.schema";
 import { createHash } from "crypto";
 import crypto from "crypto";
@@ -207,7 +208,11 @@ export async function handle(request: Request) {
       // Atomic order claim - only update if status is still 'pending'
       const claimedOrder = await trx
         .updateTable("orders")
-        .set(newStatus === "failed" ? { status: newStatus, ...failureColumns } : { status: newStatus })
+        .set(
+          newStatus === "failed"
+            ? { status: newStatus, ...failureColumns }
+            : { status: newStatus, paymentMode: normalizePaymentMode(validatedData.mode) }
+        )
         .where("paymentTransactionId", "=", txnid)
         .where("status", "=", "pending")
         .returningAll()

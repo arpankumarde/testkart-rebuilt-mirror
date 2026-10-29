@@ -1,4 +1,5 @@
 import { db } from "../../../helpers/db";
+import { normalizePaymentMode } from "../../../helpers/orderAttribution";
 import { schema, OutputType } from "./verify-and-complete_POST.schema";
 import superjson from 'superjson';
 import { createHash } from "crypto";
@@ -23,6 +24,7 @@ type PayUVerifyResponse = {
       error_code?: string;
       error_Message?: string;
       field9?: string;
+      mode?: string;
       // ... other fields
     };
   };
@@ -173,7 +175,7 @@ export async function handle(request: Request): Promise<Response> {
         // Atomic update to prevent race conditions with the callback
         const updatedOrder = await trx
           .updateTable("orders")
-          .set({ status: "completed" })
+          .set({ status: "completed", paymentMode: normalizePaymentMode(transactionDetails.mode) })
           .where("id", "=", order.id)
           .where("status", "=", "pending")
           .returningAll()

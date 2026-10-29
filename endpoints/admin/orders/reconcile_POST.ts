@@ -1,4 +1,5 @@
 import { db } from "../../../helpers/db";
+import { normalizePaymentMode } from "../../../helpers/orderAttribution";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { verifyPayUPayment } from "../../../helpers/verifyPayUPayment";
 import { ensureOrderCompletionSideEffects } from "../../../helpers/ensureOrderCompletionSideEffects";
@@ -106,7 +107,7 @@ export async function handle(request: Request) {
         // Payment Successful
         await trx
           .updateTable("orders")
-          .set({ status: "completed" })
+          .set({ status: "completed", paymentMode: normalizePaymentMode(verificationResult.mode) })
           .where("id", "=", orderId)
           .execute();
 

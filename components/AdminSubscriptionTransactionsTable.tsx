@@ -1,41 +1,61 @@
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import Papa from "papaparse";
+import { toast } from "sonner";
+import { AlertCircle, Archive, Ban, ChevronDown, Download, FileSpreadsheet, Loader2, Receipt, RefreshCw, Search, X } from "lucide-react";
 import { useAdminSubscriptionTransactions } from "../helpers/useAdminSubscriptionTransactions";
-import { SubscriptionTransactionItem } from "../endpoints/admin/subscription-transactions/list_GET.schema";
+import type { SubscriptionTransactionItem } from "../endpoints/admin/subscription-transactions/list_GET.schema";
 import { postReconcileSubscriptionTransaction } from "../endpoints/admin/subscription-transactions/reconcile_POST.schema";
 import { postMarkSubscriptionTransactionFailed } from "../endpoints/admin/subscription-transactions/mark-failed_POST.schema";
 import { getAdminSubscriptionTransactionInvoice } from "../endpoints/admin/subscription-transactions/invoice_GET.schema";
-import { TransactionStatus } from "../helpers/schema";
+import { postAdminSubscriptionInvoiceZip } from "../endpoints/admin/subscription-transactions/invoice-zip_POST.schema";
+import type { TransactionStatus } from "../helpers/schema";
 import { useTableSort, SortAccessors } from "../helpers/useTableSort";
 import { useDebouncedInput } from "../helpers/useDebouncedInput";
+import {
+  matchesSubscriptionFilters,
+  useSubscriptionTxFilters,
+  type SubListKey,
+} from "../helpers/useSubscriptionTxFilters";
+import { NOT_CAPTURED } from "../helpers/adminOrderFilters";
+import {
+  ORDER_DEVICE_TYPE_LABELS,
+  ORDER_DEVICE_TYPES,
+  ORDER_PLATFORM_LABELS,
+  ORDER_PLATFORMS,
+  type OrderClientDeviceType,
+  type OrderPlatform,
+} from "../helpers/orderAttribution";
+import { deviceLabel, deviceSummary, formatDateTime, formatInr, toCsvDateTime } from "../helpers/transactionDisplay";
 import { SortableTh } from "./SortableTh";
 import { Skeleton } from "./Skeleton";
 import { Badge } from "./Badge";
 import { Button } from "./Button";
 import { Input } from "./Input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./Select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./Tooltip";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./DropdownMenu";
 import { ConsoleListEmpty } from "./ConsoleListEmpty";
 import { PaymentFailureReason } from "./PaymentFailureReason";
-import { AlertCircle, Ban, Search, X, Loader2, RefreshCw, Download, FileSpreadsheet, Archive, Receipt } from "lucide-react";
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "./Pagination";
-import { toast } from "sonner";
-import Papa from "papaparse";
-import { postAdminSubscriptionInvoiceZip } from "../endpoints/admin/subscription-transactions/invoice-zip_POST.schema";
+import { AdminFacetSelect, type FacetSelectOption } from "./AdminFacetSelect";
+import { OrderPlatformBadge, OrderPlatformIcon } from "./OrderPlatformBadge";
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "./Sheet";
+import { ClientSourceSection, DetailSection, detailSheetClasses } from "./AdminTransactionDetailSheet";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "./Pagination";
 import styles from "./AdminSubscriptionTransactionsTable.module.css";
+
+const PAGE_SIZE = 100;
 
 const sentenceCase = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
 
-const SORT_ACCESSORS: SortAccessors<
-  SubscriptionTransactionItem,
-  "id" | "date" | "teacher" | "plan" | "amount" | "status"
-> = {
+const SORT_ACCESSORS: SortAccessors<SubscriptionTransactionItem, "id" | "date" | "teacher" | "plan" | "amount" | "status"> = {
   id: (t) => t.id,
   date: (t) => (t.transactionDate ? new Date(t.transactionDate) : null),
   teacher: (t) => t.teacherName,
@@ -51,6 +71,24 @@ const STATUS_VARIANTS: Record<TransactionStatus, "success" | "warning" | "destru
   refunded: "outline",
 };
 
+const METHOD_LABELS: Record<string, string> = {
+  payu: "PayU",
+  payu_recurring: "PayU autopay",
+  wallet: "Testkart wallet",
+};
+
+const methodLabel = (method: string | null) => (method ? METHOD_LABELS[method] ?? method : "No method");
+
+const FIELD_LABELS: Record<SubListKey, string> = {
+  sstatus: "Status",
+  splan: "Plan",
+  splatform: "Platform",
+  sos: "OS",
+  sbrowser: "Browser",
+  sdevice: "Device type",
+  sbrand: "Device brand",
+};
+
 const TransactionStatusBadge: React.FC<{ status: TransactionStatus }> = ({ status }) => (
   <Badge variant={STATUS_VARIANTS[status]} className={styles.flag}>
     {sentenceCase(status)}
@@ -58,10 +96,10 @@ const TransactionStatusBadge: React.FC<{ status: TransactionStatus }> = ({ statu
 );
 
 const formatDay = (date: Date): string =>
-  new Date(date).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" });
+  new Date(date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
 
 const formatTime = (date: Date): string =>
-  new Date(date).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  new Date(date).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
 
 const renderDate = (date: Date | null) =>
   date ? (
@@ -73,6 +111,17 @@ const renderDate = (date: Date | null) =>
     <span className={styles.emptyLine}>Not recorded</span>
   );
 
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 /* Shared by the loading and loaded tables so the columns do not jump. */
 const TableColumns = () => (
   <colgroup>
@@ -80,6 +129,7 @@ const TableColumns = () => (
     <col className={styles.colDate} />
     <col />
     <col className={styles.colPlan} />
+    <col className={styles.colSource} />
     <col className={styles.colAmount} />
     <col className={styles.colStatus} />
     <col className={styles.colActions} />
@@ -99,6 +149,7 @@ const TableRowSkeleton: React.FC = () => (
     <td><StackSkeleton top="5rem" bottom="3rem" /></td>
     <td><StackSkeleton top="60%" bottom="80%" /></td>
     <td><Skeleton style={{ height: "0.875rem", width: "70%" }} /></td>
+    <td><StackSkeleton top="5rem" bottom="80%" /></td>
     <td>
       <div className={styles.stack}>
         <Skeleton style={{ height: "0.875rem", width: "3.5rem", marginLeft: "auto" }} />
@@ -127,204 +178,155 @@ const TransactionCardSkeleton: React.FC = () => (
   </div>
 );
 
-interface FilterState {
-  search: string;
-  status: string;
-  plan: string;
+/** Counted options for a facet, from the loaded rows, with Not captured last. */
+function countedOptions(
+  rows: SubscriptionTransactionItem[],
+  value: (t: SubscriptionTransactionItem) => string | null | undefined,
+  noneLabel: string
+): FacetSelectOption[] {
+  const counts = new Map<string, number>();
+  for (const t of rows) {
+    const v = value(t) ?? NOT_CAPTURED;
+    counts.set(v, (counts.get(v) ?? 0) + 1);
+  }
+  const options = [...counts.entries()]
+    .filter(([v]) => v !== NOT_CAPTURED)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([v, count]) => ({ value: v, label: v, count }));
+  options.push({ value: NOT_CAPTURED, label: noneLabel, count: counts.get(NOT_CAPTURED) ?? 0 });
+  return options;
 }
-
-const FilterSection: React.FC<{
-  filters: FilterState;
-  onFilterChange: (filters: FilterState) => void;
-  plans: string[];
-}> = ({ filters, onFilterChange, plans }) => {
-  const search = useDebouncedInput(filters.search, (value) => onFilterChange({ ...filters, search: value }));
-
-  const handleClearFilters = () => {
-    onFilterChange({ search: "", status: "__all", plan: "__all" });
-  };
-
-  const hasActiveFilters =
-    filters.search ||
-    filters.status !== "__all" ||
-    filters.plan !== "__all";
-
-  return (
-    <div className={styles.filterSection}>
-      <div className={styles.filterGrid}>
-        <div className={styles.filterItem}>
-          <label className={styles.filterLabel}>Search</label>
-          <div className={styles.searchInputWrapper}>
-            <Search size={18} className={styles.searchIcon} />
-            <Input
-              type="search"
-              placeholder="Teacher name or email..."
-              value={search.value}
-              onChange={(e) => search.onChange(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") search.flush();
-              }}
-              className={styles.searchInput}
-            />
-          </div>
-        </div>
-
-        <div className={styles.filterItem}>
-          <label className={styles.filterLabel}>Status</label>
-          <Select
-            value={filters.status}
-            onValueChange={(value) =>
-              onFilterChange({ ...filters, status: value })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="All statuses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__all">All Statuses</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="failed">Failed</SelectItem>
-              <SelectItem value="refunded">Refunded</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className={styles.filterItem}>
-          <label className={styles.filterLabel}>Plan</label>
-          <Select
-            value={filters.plan}
-            onValueChange={(value) =>
-              onFilterChange({ ...filters, plan: value })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="All plans" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__all">All Plans</SelectItem>
-              {plans.map((plan) => (
-                <SelectItem key={plan} value={plan}>
-                  {plan}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className={styles.filterItemButton}>
-          <Button
-            variant="outline"
-            onClick={handleClearFilters}
-            disabled={!hasActiveFilters}
-          >
-            <X size={16} />
-            Clear Filters
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 interface Props {
   className?: string;
 }
 
-export const AdminSubscriptionTransactionsTable: React.FC<Props> = ({
-  className,
-}) => {
+export const AdminSubscriptionTransactionsTable: React.FC<Props> = ({ className }) => {
   const queryClient = useQueryClient();
-  const [currentPage, setCurrentPage] = useState(1);
-  const PAGE_SIZE = 100;
-  const { data: transactions, isFetching, isError, error } =
-    useAdminSubscriptionTransactions();
+  const { data: transactions, isPending, isError, error } = useAdminSubscriptionTransactions();
+  const api = useSubscriptionTxFilters();
+  const { state, update, setList, clearAll, hasAnyFilter } = api;
+  const currentPage = state.page;
 
   const [reconcilingId, setReconcilingId] = useState<number | null>(null);
   const [markingFailedId, setMarkingFailedId] = useState<number | null>(null);
   const [downloadingInvoiceId, setDownloadingInvoiceId] = useState<number | null>(null);
   const [isDownloadingZip, setIsDownloadingZip] = useState(false);
+  const [detail, setDetail] = useState<SubscriptionTransactionItem | null>(null);
 
-  const handleExportCSV = () => {
-    // Mirrors AdminTransactionsTable's sales CSV export. Only transactions
-    // with an assigned invoice_number are part of the gapless GST invoice
-    // series, so unnumbered ones (free, or not yet processed by the sweep)
-    // are excluded rather than shown with a made-up number.
-    const eligibleTransactions = filteredTransactions.filter(
-      (t) => t.status === "completed" && t.amount > 0 && !!t.invoiceNumber
-    );
+  const search = useDebouncedInput(state.search, (value) => update({ sq: value || null }));
 
-    const dataRows = eligibleTransactions.map((t, index) => {
+  const all = useMemo(() => transactions ?? [], [transactions]);
+  const filteredTransactions = useMemo(() => all.filter((t) => matchesSubscriptionFilters(t, state)), [all, state]);
+
+  useEffect(() => {
+    if (!detail || !transactions) return;
+    const fresh = transactions.find((t) => t.id === detail.id);
+    if (fresh && fresh !== detail) setDetail(fresh);
+  }, [transactions, detail]);
+
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["admin", "subscription-transactions"] });
+
+  const reconcileMutation = useMutation({
+    mutationFn: (transactionId: number) => postReconcileSubscriptionTransaction({ transactionId }),
+    onMutate: (transactionId) => setReconcilingId(transactionId),
+    onSuccess: (result) => {
+      if (result.success) toast.success(result.message);
+      else toast.info(result.message);
+      invalidate();
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Reconciliation failed"),
+    onSettled: () => setReconcilingId(null),
+  });
+
+  const markFailedMutation = useMutation({
+    mutationFn: (transactionId: number) => postMarkSubscriptionTransactionFailed({ transactionId }),
+    onMutate: (transactionId) => setMarkingFailedId(transactionId),
+    onSuccess: (result) => {
+      if (result.success) toast.success(result.message);
+      else toast.error(result.message);
+      invalidate();
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to mark transaction as failed"),
+    onSettled: () => setMarkingFailedId(null),
+  });
+
+  /* The accountant's GST register: only invoiced transactions, in the existing layout. */
+  const handleExportGst = () => {
+    const eligible = filteredTransactions.filter((t) => t.status === "completed" && t.amount > 0 && !!t.invoiceNumber);
+    if (eligible.length === 0) {
+      toast.error("No invoiced transactions match the current filters.");
+      return;
+    }
+    const dataRows = eligible.map((t, index) => {
       const total = t.amount;
       const baseAmount = total / 1.18;
       const igst = total - baseAmount;
-
       const date = new Date(t.transactionDate || Date.now());
-      const day = String(date.getDate()).padStart(2, "0");
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const year = date.getFullYear();
-      const formattedDate = `${day}/${month}/${year}`;
-
-      return [
-        index + 1,
-        formattedDate,
-        t.invoiceNumber!,
-        "",
-        t.teacherName,
-        t.planName,
-        `  ${baseAmount.toFixed(2)} `,
-        "18",
-        "",
-        "",
-        `  ${igst.toFixed(2)} `,
-        "",
-        `  ${total.toFixed(2)} `,
-      ];
+      const formattedDate = `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
+      return [index + 1, formattedDate, t.invoiceNumber!, "", t.teacherName, t.planName, `  ${baseAmount.toFixed(2)} `, "18", "", "", `  ${igst.toFixed(2)} `, "", `  ${total.toFixed(2)} `];
     });
-
-    const header1 = "S.No.,Date,Invoice No,Supplier GSTIN number,Teacher Name,Plan,Invoice Base Amount (Rs.),Rate of tax (%),GST,,,Exempted/Nill rated sales (Rs.)  ,Invoice Total (Rs.)\n";
+    const header1 =
+      "S.No.,Date,Invoice No,Supplier GSTIN number,Teacher Name,Plan,Invoice Base Amount (Rs.),Rate of tax (%),GST,,,Exempted/Nill rated sales (Rs.)  ,Invoice Total (Rs.)\n";
     const header2 = ",,,,,,,SGST (Rs.),CGST (Rs.),IGST (Rs.),,\n";
+    const csv = header1 + header2 + Papa.unparse(dataRows, { header: false });
+    downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8;" }), "GST_Subscription_Report.csv");
+  };
 
-    const csvData = Papa.unparse(dataRows, { header: false });
-    const finalCsv = header1 + header2 + csvData;
-
-    const filename = "GST_Subscription_Report.csv";
-    const blob = new Blob([finalCsv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+  const handleExportTransactions = () => {
+    if (filteredTransactions.length === 0) {
+      toast.error("No transactions match the current filters.");
+      return;
+    }
+    const csv = Papa.unparse(
+      filteredTransactions.map((t) => ({
+        "Transaction ID": t.id,
+        "Gateway transaction ID": t.transactionId ?? "",
+        Date: toCsvDateTime(t.transactionDate),
+        Status: sentenceCase(t.status),
+        Teacher: t.teacherName,
+        Email: t.teacherEmail ?? "",
+        Plan: t.planName,
+        "Amount (Rs.)": t.amount.toFixed(2),
+        "Payment method": methodLabel(t.paymentMethod),
+        "Invoice number": t.invoiceNumber ?? "",
+        Platform: t.client ? ORDER_PLATFORM_LABELS[t.client.platform] : "Not captured",
+        "Source copied from": t.clientInheritedFrom ? `#${t.clientInheritedFrom}` : "",
+        OS: t.client?.osName ?? "",
+        "OS version": t.client?.osVersion ?? "",
+        "Device type": t.client ? ORDER_DEVICE_TYPE_LABELS[t.client.deviceType] : "",
+        Device: t.client ? deviceLabel(t.client) : "",
+        "Device brand": t.client?.deviceBrand ?? "",
+        "Device model": t.client?.deviceModel ?? "",
+        Browser: t.client?.browserName ?? "",
+        "Browser version": t.client?.browserVersion ?? "",
+        "App version": t.client?.appVersion ?? "",
+        Screen: t.client?.screen ?? "",
+        Source: t.client?.referrer ?? "",
+        "IP address": t.client?.ip ?? "",
+        "User agent": t.client?.userAgent ?? "",
+      }))
+    );
+    downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8;" }), "Subscription_Transactions.csv");
+    toast.success(`Exported ${filteredTransactions.length.toLocaleString("en-IN")} transactions`);
   };
 
   const handleDownloadAllInvoicesZip = async () => {
     const eligibleIds = filteredTransactions
       .filter((t) => t.status === "completed" && t.amount > 0 && !!t.invoiceNumber)
       .map((t) => t.id);
-
     if (eligibleIds.length === 0) {
       toast.error("No invoiced transactions match the current filters.");
       return;
     }
-
     try {
       setIsDownloadingZip(true);
       const blob = await postAdminSubscriptionInvoiceZip({ transactionIds: eligibleIds });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "subscription-invoices.zip";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      downloadBlob(blob, "subscription-invoices.zip");
       toast.success(`Downloaded ${eligibleIds.length} invoices`);
-    } catch (error) {
-      console.error("Failed to download invoices zip:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to download invoices");
+    } catch (err) {
+      console.error("Failed to download invoices zip:", err);
+      toast.error(err instanceof Error ? err.message : "Failed to download invoices");
     } finally {
       setIsDownloadingZip(false);
     }
@@ -334,215 +336,165 @@ export const AdminSubscriptionTransactionsTable: React.FC<Props> = ({
     try {
       setDownloadingInvoiceId(transactionId);
       const blob = await getAdminSubscriptionTransactionInvoice({ transactionId });
-
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `invoice-subscription-${transactionId}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-
+      downloadBlob(blob, `invoice-subscription-${transactionId}.pdf`);
       toast.success("Invoice downloaded successfully");
-    } catch (error) {
-      console.error("Failed to download invoice:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to download invoice");
+    } catch (err) {
+      console.error("Failed to download invoice:", err);
+      toast.error(err instanceof Error ? err.message : "Failed to download invoice");
     } finally {
       setDownloadingInvoiceId(null);
     }
   };
-
-  const reconcileMutation = useMutation({
-    mutationFn: (transactionId: number) =>
-      postReconcileSubscriptionTransaction({ transactionId }),
-    onMutate: (transactionId) => {
-      setReconcilingId(transactionId);
-    },
-    onSuccess: (data) => {
-      if (data.success) {
-        toast.success(data.message);
-      } else {
-        toast.info(data.message);
-      }
-      queryClient.invalidateQueries({
-        queryKey: ["admin", "subscription-transactions"],
-      });
-    },
-    onError: (error) => {
-      toast.error(
-        error instanceof Error ? error.message : "Reconciliation failed"
-      );
-    },
-    onSettled: () => {
-      setReconcilingId(null);
-    },
-  });
-
-  const markFailedMutation = useMutation({
-    mutationFn: (transactionId: number) =>
-      postMarkSubscriptionTransactionFailed({ transactionId }),
-    onMutate: (transactionId) => {
-      setMarkingFailedId(transactionId);
-    },
-    onSuccess: (data) => {
-      if (data.success) {
-        toast.success(data.message);
-      } else {
-        toast.error(data.message);
-      }
-      queryClient.invalidateQueries({
-        queryKey: ["admin", "subscription-transactions"],
-      });
-    },
-    onError: (error) => {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to mark transaction as failed"
-      );
-    },
-    onSettled: () => {
-      setMarkingFailedId(null);
-    },
-  });
-
-  const handleReconcile = (transactionId: number) => {
-    reconcileMutation.mutate(transactionId);
-  };
-
-  const handleMarkAsFailed = (transactionId: number) => {
-    markFailedMutation.mutate(transactionId);
-  };
-
-  const [filters, setFilters] = useState<FilterState>({
-    search: "",
-    status: "__all",
-    plan: "__all",
-  });
-
-  const handleFilterChange = (newFilters: FilterState) => {
-    setFilters(newFilters);
-    setCurrentPage(1);
-  };
-
-  const plans = useMemo(() => {
-    if (!transactions) return [];
-    const planSet = new Set<string>();
-    transactions.forEach((t) => planSet.add(t.planName));
-    return Array.from(planSet).sort();
-  }, [transactions]);
-
-  const filteredTransactions = useMemo(() => {
-    if (!transactions) return [];
-    return transactions.filter((t) => {
-      if (filters.search) {
-        const searchLower = filters.search.toLowerCase();
-        const nameMatch = t.teacherName.toLowerCase().includes(searchLower);
-        const emailMatch =
-          t.teacherEmail?.toLowerCase().includes(searchLower) ?? false;
-        if (!nameMatch && !emailMatch) return false;
-      }
-      if (filters.status !== "__all" && t.status !== filters.status) {
-        return false;
-      }
-      if (filters.plan !== "__all" && t.planName !== filters.plan) {
-        return false;
-      }
-      return true;
-    });
-  }, [transactions, filters]);
 
   const { sorted: sortedTransactions, ...sortState } = useTableSort(filteredTransactions, SORT_ACCESSORS);
   const sort = {
     ...sortState,
     toggleSort: (column: Parameters<typeof sortState.toggleSort>[0]) => {
       sortState.toggleSort(column);
-      setCurrentPage(1);
+      update({ spage: null }, true);
     },
   };
 
+  const totalPages = Math.max(1, Math.ceil(filteredTransactions.length / PAGE_SIZE));
   const paginatedTransactions = useMemo(() => {
     const start = (currentPage - 1) * PAGE_SIZE;
     return sortedTransactions.slice(start, start + PAGE_SIZE);
   }, [sortedTransactions, currentPage]);
 
-  const totalPages = Math.ceil(filteredTransactions.length / PAGE_SIZE);
+  const goToPage = (page: number) => {
+    if (page < 1 || page > totalPages || page === currentPage) return;
+    update({ spage: page === 1 ? null : page }, true);
+  };
 
-  const formatCurrency = (amount: number): string =>
-    `₹${amount.toLocaleString("en-IN")}`;
+  const options: Record<SubListKey, FacetSelectOption[]> = {
+    sstatus: (["completed", "pending", "failed", "refunded"] as const).map((s) => ({
+      value: s,
+      label: sentenceCase(s),
+      count: all.filter((t) => t.status === s).length,
+    })),
+    splan: [...new Set(all.map((t) => t.planName))].sort().map((p) => ({ value: p, label: p, count: all.filter((t) => t.planName === p).length })),
+    splatform: ORDER_PLATFORMS.map((p) => ({
+      value: p,
+      label: ORDER_PLATFORM_LABELS[p],
+      icon: <OrderPlatformIcon platform={p} />,
+      count: all.filter((t) => (t.client?.platform ?? "unknown") === p).length,
+    })),
+    sos: countedOptions(all, (t) => t.client?.osName, "Not captured"),
+    sbrowser: countedOptions(all, (t) => t.client?.browserName, "Not captured or app"),
+    sdevice: ORDER_DEVICE_TYPES.map((d) => ({
+      value: d,
+      label: ORDER_DEVICE_TYPE_LABELS[d],
+      count: all.filter((t) => (t.client?.deviceType ?? "unknown") === d).length,
+    })),
+    sbrand: countedOptions(all, (t) => t.client?.deviceBrand, "Not captured"),
+  };
 
-  const renderActions = (t: SubscriptionTransactionItem) => (
-    <div className={styles.rowActions}>
-      {t.status === "completed" && t.amount > 0 && (
-        <Tooltip>
+  const valueLabel = (key: SubListKey, value: string) => {
+    if (key === "splatform") return ORDER_PLATFORM_LABELS[value as OrderPlatform] ?? value;
+    if (key === "sdevice") return ORDER_DEVICE_TYPE_LABELS[value as OrderClientDeviceType] ?? value;
+    if (key === "sstatus") return sentenceCase(value);
+    return value === NOT_CAPTURED ? "Not captured" : value;
+  };
+
+  const chips: { id: string; label: string; onRemove: () => void }[] = [];
+  if (state.search) chips.push({ id: "sq", label: `Search: ${state.search}`, onRemove: () => update({ sq: null }) });
+  for (const key of Object.keys(FIELD_LABELS) as SubListKey[]) {
+    for (const value of state.lists[key]) {
+      chips.push({
+        id: `${key}:${value}`,
+        label: `${FIELD_LABELS[key]}: ${valueLabel(key, value)}`,
+        onRemove: () => setList(key, state.lists[key].filter((v) => v !== value)),
+      });
+    }
+  }
+
+  const facet = (key: SubListKey, allLabel = "All") => (
+    <AdminFacetSelect
+      id={`stx-filter-${key}`}
+      label={FIELD_LABELS[key]}
+      options={options[key]}
+      selected={state.lists[key]}
+      onChange={(values) => setList(key, values)}
+      allLabel={allLabel}
+      searchable={key === "splan" || key === "sos" || key === "sbrowser" || key === "sbrand" ? undefined : false}
+    />
+  );
+
+  const renderActions = (t: SubscriptionTransactionItem, withLabels = false) => {
+    const action = (key: string, label: string, icon: React.ReactNode, onClick: () => void, disabled: boolean, danger = false) =>
+      withLabels ? (
+        <Button key={key} variant="outline" size="sm" onClick={onClick} disabled={disabled} className={danger ? styles.dangerButton : undefined}>
+          {icon}
+          {label}
+        </Button>
+      ) : (
+        <Tooltip key={key}>
           <TooltipTrigger asChild>
             <Button
               variant="ghost"
               size="icon-md"
-              className={styles.iconButton}
-              aria-label={`Download invoice for transaction #${t.id}`}
-              onClick={() => handleDownloadInvoice(t.id)}
-              disabled={downloadingInvoiceId === t.id}
+              className={`${styles.iconButton} ${danger ? styles.iconButtonDanger : ""}`}
+              aria-label={`${label} for transaction #${t.id}`}
+              onClick={onClick}
+              disabled={disabled}
             >
-              {downloadingInvoiceId === t.id ? <Loader2 className={styles.spinner} /> : <Download />}
+              {icon}
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Download invoice</TooltipContent>
+          <TooltipContent>{label}</TooltipContent>
         </Tooltip>
-      )}
-      {t.status === "pending" && t.transactionId && (
-        <>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-md"
-                className={styles.iconButton}
-                aria-label={`Reconcile transaction #${t.id}`}
-                onClick={() => handleReconcile(t.id)}
-                disabled={reconcilingId === t.id || markingFailedId === t.id}
-              >
-                {reconcilingId === t.id ? <Loader2 className={styles.spinner} /> : <RefreshCw />}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Reconcile transaction</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-md"
-                className={`${styles.iconButton} ${styles.iconButtonDanger}`}
-                aria-label={`Mark transaction #${t.id} as failed`}
-                onClick={() => handleMarkAsFailed(t.id)}
-                disabled={markingFailedId === t.id || reconcilingId === t.id}
-              >
-                {markingFailedId === t.id ? <Loader2 className={styles.spinner} /> : <Ban />}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Mark as failed</TooltipContent>
-          </Tooltip>
-        </>
+      );
+    const spinner = <Loader2 className={styles.spinner} />;
+    const items: React.ReactNode[] = [];
+    if (t.status === "completed" && t.amount > 0) {
+      items.push(action("invoice", "Download invoice", downloadingInvoiceId === t.id ? spinner : <Download />, () => handleDownloadInvoice(t.id), downloadingInvoiceId === t.id));
+    }
+    if (t.status === "pending" && t.transactionId) {
+      const busy = reconcilingId === t.id || markingFailedId === t.id;
+      items.push(
+        action("reconcile", "Reconcile transaction", reconcilingId === t.id ? spinner : <RefreshCw />, () => reconcileMutation.mutate(t.id), busy),
+        action("fail", "Mark as failed", markingFailedId === t.id ? spinner : <Ban />, () => markFailedMutation.mutate(t.id), busy, true)
+      );
+    }
+    return <div className={styles.rowActions}>{items}</div>;
+  };
+
+  const renderSource = (t: SubscriptionTransactionItem) => (
+    <div className={styles.stack}>
+      <OrderPlatformBadge platform={t.client?.platform ?? "unknown"} className={styles.platformBadge} />
+      {t.client && (
+        <span className={styles.secondaryLine} title={t.clientInheritedFrom ? `${deviceSummary(t.client)}, from the sign-up #${t.clientInheritedFrom}` : deviceSummary(t.client)}>
+          {deviceSummary(t.client)}
+        </span>
       )}
     </div>
   );
 
+  const openFromRow = (event: React.MouseEvent<HTMLTableRowElement>, t: SubscriptionTransactionItem) => {
+    const target = event.target as HTMLElement;
+    if (target.closest("a, button, input, [role='dialog']")) return;
+    if (window.getSelection()?.toString()) return;
+    setDetail(t);
+  };
+
   const renderContent = () => {
-    if (isFetching) {
+    if (isPending) {
       return (
         <>
           <div className={styles.tableContainer}>
             <table className={styles.table}>
               <TableColumns />
               <tbody>
-                {Array.from({ length: 10 }).map((_, i) => <TableRowSkeleton key={i} />)}
+                {Array.from({ length: 10 }).map((_, i) => (
+                  <TableRowSkeleton key={i} />
+                ))}
               </tbody>
             </table>
           </div>
           <div className={styles.cardsContainer}>
-            {Array.from({ length: 4 }).map((_, i) => <TransactionCardSkeleton key={i} />)}
+            {Array.from({ length: 4 }).map((_, i) => (
+              <TransactionCardSkeleton key={i} />
+            ))}
           </div>
         </>
       );
@@ -559,17 +511,13 @@ export const AdminSubscriptionTransactionsTable: React.FC<Props> = ({
       );
     }
 
-    if (!transactions || transactions.length === 0) {
+    if (all.length === 0) {
       return <ConsoleListEmpty icon={<Receipt size={24} />} title="No subscription transactions found" />;
     }
 
     if (filteredTransactions.length === 0) {
       return (
-        <ConsoleListEmpty
-          icon={<Receipt size={24} />}
-          title="No transactions match your filters"
-          description="Try adjusting your search criteria."
-        />
+        <ConsoleListEmpty icon={<Receipt size={24} />} title="No transactions match your filters" description="Remove a filter to see more." />
       );
     }
 
@@ -584,6 +532,7 @@ export const AdminSubscriptionTransactionsTable: React.FC<Props> = ({
                 <SortableTh column="date" sort={sort}>Date</SortableTh>
                 <SortableTh column="teacher" sort={sort}>Teacher</SortableTh>
                 <SortableTh column="plan" sort={sort}>Plan</SortableTh>
+                <th>Source</th>
                 <SortableTh column="amount" sort={sort} className={styles.num}>Amount</SortableTh>
                 <SortableTh column="status" sort={sort}>Status</SortableTh>
                 <th><span className={styles.srOnly}>Actions</span></th>
@@ -591,10 +540,12 @@ export const AdminSubscriptionTransactionsTable: React.FC<Props> = ({
             </thead>
             <tbody>
               {paginatedTransactions.map((t) => (
-                <tr key={t.id}>
+                <tr key={t.id} className={styles.clickableRow} onClick={(e) => openFromRow(e, t)}>
                   <td>
                     <div className={styles.stack}>
-                      <span className={styles.valueLine}>#{t.id}</span>
+                      <button type="button" className={styles.idButton} onClick={() => setDetail(t)} aria-label={`Open details for transaction #${t.id}`}>
+                        #{t.id}
+                      </button>
                       <span className={styles.secondaryLine} title={t.transactionId || undefined}>
                         {t.transactionId || "No transaction ID"}
                       </span>
@@ -612,12 +563,11 @@ export const AdminSubscriptionTransactionsTable: React.FC<Props> = ({
                     </div>
                   </td>
                   <td title={t.planName}>{t.planName}</td>
+                  <td>{renderSource(t)}</td>
                   <td className={styles.num}>
                     <div className={styles.stack}>
-                      <span className={styles.valueLine}>{formatCurrency(t.amount)}</span>
-                      <span className={styles.secondaryLine} title={t.paymentMethod || undefined}>
-                        {t.paymentMethod || "No method"}
-                      </span>
+                      <span className={styles.valueLine}>{formatInr(t.amount)}</span>
+                      <span className={styles.secondaryLine}>{methodLabel(t.paymentMethod)}</span>
                     </div>
                   </td>
                   <td>
@@ -650,16 +600,22 @@ export const AdminSubscriptionTransactionsTable: React.FC<Props> = ({
               <dl className={styles.cardStats}>
                 <div className={styles.cardStat}><dt>Transaction</dt><dd>#{t.id}</dd></div>
                 <div className={styles.cardStat}><dt>Plan</dt><dd>{t.planName}</dd></div>
-                <div className={styles.cardStat}><dt>Amount</dt><dd>{formatCurrency(t.amount)}</dd></div>
-                <div className={styles.cardStat}><dt>Method</dt><dd>{t.paymentMethod || "No method"}</dd></div>
+                <div className={styles.cardStat}><dt>Amount</dt><dd>{formatInr(t.amount)}</dd></div>
+                <div className={styles.cardStat}><dt>Method</dt><dd>{methodLabel(t.paymentMethod)}</dd></div>
                 <div className={styles.cardStat}>
                   <dt>Date</dt>
                   <dd>{t.transactionDate ? `${formatDay(t.transactionDate)}, ${formatTime(t.transactionDate)}` : "Not recorded"}</dd>
                 </div>
                 <div className={styles.cardStat}>
-                  <dt>Transaction ID</dt>
-                  <dd>{t.transactionId || "No transaction ID"}</dd>
+                  <dt>Source</dt>
+                  <dd>{t.client ? ORDER_PLATFORM_LABELS[t.client.platform] : "Not captured"}</dd>
                 </div>
+                {t.client && (
+                  <div className={`${styles.cardStat} ${styles.cardStatWide}`}>
+                    <dt>Device</dt>
+                    <dd>{deviceSummary(t.client)}</dd>
+                  </div>
+                )}
                 {t.paymentFailure && (
                   <div className={`${styles.cardStat} ${styles.cardStatWide}`}>
                     <dt>Reason</dt>
@@ -667,6 +623,9 @@ export const AdminSubscriptionTransactionsTable: React.FC<Props> = ({
                   </div>
                 )}
               </dl>
+              <Button variant="outline" size="sm" onClick={() => setDetail(t)} className={styles.cardDetails}>
+                View details
+              </Button>
             </article>
           ))}
         </div>
@@ -674,25 +633,17 @@ export const AdminSubscriptionTransactionsTable: React.FC<Props> = ({
     );
   };
 
-  const totalCount = transactions?.length ?? 0;
   const filteredCount = filteredTransactions.length;
-  const showingFiltered = totalCount !== filteredCount && totalCount > 0;
-
-  const startItem = (currentPage - 1) * PAGE_SIZE + 1;
+  const startItem = filteredCount > 0 ? (currentPage - 1) * PAGE_SIZE + 1 : 0;
   const endItem = Math.min(currentPage * PAGE_SIZE, filteredCount);
 
   const renderPagination = () => {
     if (totalPages <= 1) return null;
-
-    const pages = [];
+    const pages: (number | "...")[] = [];
     for (let i = 1; i <= totalPages; i++) {
-      if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
-        pages.push(i);
-      } else if (pages[pages.length - 1] !== "...") {
-        pages.push("...");
-      }
+      if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) pages.push(i);
+      else if (pages[pages.length - 1] !== "...") pages.push("...");
     }
-
     return (
       <div className={styles.paginationWrapper}>
         <Pagination>
@@ -702,7 +653,7 @@ export const AdminSubscriptionTransactionsTable: React.FC<Props> = ({
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
-                  if (currentPage > 1) setCurrentPage(currentPage - 1);
+                  goToPage(currentPage - 1);
                 }}
                 className={currentPage === 1 ? styles.disabledPagination : ""}
               />
@@ -717,7 +668,7 @@ export const AdminSubscriptionTransactionsTable: React.FC<Props> = ({
                     isActive={p === currentPage}
                     onClick={(e) => {
                       e.preventDefault();
-                      setCurrentPage(p as number);
+                      goToPage(p);
                     }}
                   >
                     {p}
@@ -730,7 +681,7 @@ export const AdminSubscriptionTransactionsTable: React.FC<Props> = ({
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
-                  if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+                  goToPage(currentPage + 1);
                 }}
                 className={currentPage === totalPages ? styles.disabledPagination : ""}
               />
@@ -743,35 +694,90 @@ export const AdminSubscriptionTransactionsTable: React.FC<Props> = ({
 
   return (
     <div className={`${styles.container} ${className ?? ""}`}>
-      <FilterSection
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        plans={plans}
-      />
+      <section className={styles.filterCard} aria-label="Subscription payment filters">
+        <div className={styles.filterGrid}>
+          <div className={`${styles.field} ${styles.searchField}`}>
+            <label className={styles.fieldLabel} htmlFor="stx-search">
+              Search
+            </label>
+            <div className={styles.searchWrapper}>
+              <Search size={16} className={styles.searchIcon} aria-hidden="true" />
+              <Input
+                id="stx-search"
+                type="search"
+                placeholder="Teacher, email or transaction ID"
+                value={search.value}
+                onChange={(e) => search.onChange(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") search.flush();
+                }}
+                className={styles.searchInput}
+              />
+            </div>
+          </div>
+          {(["sstatus", "splan", "splatform", "sos", "sbrowser", "sdevice", "sbrand"] as const).map((key) => (
+            <div key={key} className={styles.field}>
+              <label className={styles.fieldLabel} htmlFor={`stx-filter-${key}`}>
+                {key === "sos" ? "Operating system" : FIELD_LABELS[key]}
+              </label>
+              {facet(key, key === "sstatus" ? "All statuses" : key === "splan" ? "All plans" : key === "splatform" ? "All platforms" : "All")}
+            </div>
+          ))}
+        </div>
 
-      {!isFetching && transactions && transactions.length > 0 && (
+        {chips.length > 0 && (
+          <div className={styles.chips} aria-label="Active filters">
+            {chips.map((chip) => (
+              <span key={chip.id} className={styles.chip}>
+                <span className={styles.chipLabel} title={chip.label}>
+                  {chip.label}
+                </span>
+                <button type="button" className={styles.chipRemove} onClick={chip.onRemove} aria-label={`Remove ${chip.label}`}>
+                  <X size={12} aria-hidden="true" />
+                </button>
+              </span>
+            ))}
+            {hasAnyFilter && (
+              <button type="button" className={styles.clearAll} onClick={clearAll}>
+                Clear all
+              </button>
+            )}
+          </div>
+        )}
+      </section>
+
+      {!isPending && all.length > 0 && (
         <div className={styles.resultsCount}>
           <p>
-            Showing <strong>{filteredCount > 0 ? startItem : 0}-{endItem}</strong> of{" "}
-            <strong>{filteredCount}</strong> transactions
-            {showingFiltered && ` (filtered from ${totalCount})`}
+            Showing <strong>{startItem}-{endItem}</strong> of <strong>{filteredCount}</strong> transactions
+            {filteredCount !== all.length && ` (filtered from ${all.length})`}
           </p>
           <div className={styles.headerActions}>
-            <Button onClick={handleExportCSV} variant="outline" size="sm">
-              <FileSpreadsheet size={16} />
-              Download CSV
-            </Button>
-            <Button
-              onClick={handleDownloadAllInvoicesZip}
-              variant="outline"
-              size="sm"
-              disabled={isDownloadingZip}
-            >
-              {isDownloadingZip ? (
-                <Loader2 size={16} className={styles.spinner} />
-              ) : (
-                <Archive size={16} />
-              )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" disabled={filteredCount === 0}>
+                  <FileSpreadsheet size={16} />
+                  Download CSV
+                  <ChevronDown size={14} aria-hidden="true" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className={styles.exportMenu}>
+                <DropdownMenuItem onSelect={handleExportTransactions}>
+                  <span className={styles.exportItem}>
+                    <strong>Transactions</strong>
+                    <span>Every matching payment with source, device and payment details</span>
+                  </span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={handleExportGst}>
+                  <span className={styles.exportItem}>
+                    <strong>GST subscription report</strong>
+                    <span>Invoiced payments in the accountant's register layout</span>
+                  </span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button onClick={handleDownloadAllInvoicesZip} variant="outline" size="sm" disabled={isDownloadingZip}>
+              {isDownloadingZip ? <Loader2 size={16} className={styles.spinner} /> : <Archive size={16} />}
               Download All Invoices (ZIP)
             </Button>
           </div>
@@ -780,6 +786,54 @@ export const AdminSubscriptionTransactionsTable: React.FC<Props> = ({
 
       <div className={styles.results}>{renderContent()}</div>
       {renderPagination()}
+
+      <Sheet open={!!detail} onOpenChange={(open) => !open && setDetail(null)}>
+        <SheetContent side="right" className={detailSheetClasses.sheet}>
+          {detail && (
+            <>
+              <SheetHeader className={detailSheetClasses.header}>
+                <div className={detailSheetClasses.headerTop}>
+                  <SheetTitle>Subscription payment #{detail.id}</SheetTitle>
+                  <Badge variant={STATUS_VARIANTS[detail.status]} className={detailSheetClasses.status}>
+                    {sentenceCase(detail.status)}
+                  </Badge>
+                </div>
+                <SheetDescription>
+                  {formatInr(detail.amount)} by {detail.teacherName}, {formatDateTime(detail.transactionDate)}
+                </SheetDescription>
+              </SheetHeader>
+              <div className={detailSheetClasses.body}>
+                <DetailSection
+                  title="Transaction"
+                  rows={[
+                    ["Transaction ID", `#${detail.id}`],
+                    ["Gateway transaction ID", detail.transactionId ?? "None", { muted: !detail.transactionId, mono: !!detail.transactionId }],
+                    ["Date", formatDateTime(detail.transactionDate)],
+                    ["Amount", formatInr(detail.amount)],
+                    ["Payment method", methodLabel(detail.paymentMethod), { muted: !detail.paymentMethod }],
+                    ["Invoice number", detail.invoiceNumber ?? "Not issued", { muted: !detail.invoiceNumber, mono: !!detail.invoiceNumber }],
+                    ...(detail.paymentFailure
+                      ? ([["Failure reason", <PaymentFailureReason key="reason" failure={detail.paymentFailure} variant="card" />]] as [string, React.ReactNode][])
+                      : []),
+                  ]}
+                />
+                <DetailSection
+                  title="Teacher and plan"
+                  rows={[
+                    ["Teacher", detail.teacherName],
+                    ["Email", detail.teacherEmail ?? "Not on file", { muted: !detail.teacherEmail }],
+                    ["Plan", detail.planName],
+                  ]}
+                />
+                <ClientSourceSection client={detail.client} inheritedFrom={detail.clientInheritedFrom} capturedFrom="payments started" />
+              </div>
+              {((detail.status === "completed" && detail.amount > 0) || (detail.status === "pending" && !!detail.transactionId)) && (
+                <SheetFooter className={detailSheetClasses.footer}>{renderActions(detail, true)}</SheetFooter>
+              )}
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };

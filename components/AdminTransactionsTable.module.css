@@ -1,7 +1,7 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-6);
+  gap: var(--spacing-4);
 }
 
 .tableHeader {
@@ -9,11 +9,13 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: var(--spacing-4);
-  padding: 0 var(--spacing-2);
+  gap: var(--spacing-3);
+  padding: var(--spacing-2) var(--spacing-1) 0;
+  scroll-margin-top: 5rem;
 }
 
 .resultsCount {
+  margin: 0;
   font-size: 0.875rem;
   color: var(--muted-foreground);
 }
@@ -23,11 +25,44 @@
   font-weight: 600;
 }
 
+.updating {
+  margin-left: var(--spacing-2);
+  padding: 0 var(--spacing-2);
+  border-radius: var(--radius-full);
+  background-color: var(--muted);
+  color: var(--foreground);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+}
+
 .headerActions {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: var(--spacing-4);
+  gap: var(--spacing-3);
+}
+
+.exportMenu {
+  width: 19rem;
+}
+
+.exportItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  white-space: normal;
+}
+
+.exportItem strong {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.exportItem span {
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--muted-foreground);
 }
 
 /* Compact list - see pages/admin.teachers.module.css. Kept in step with
@@ -54,15 +89,19 @@
 }
 
 .colOrder {
-  width: 10.25rem;
+  width: 8.75rem;
 }
 
 .colDate {
-  width: 6.75rem;
+  width: 6.5rem;
 }
 
 .colItem {
-  width: 13.5rem;
+  width: 12rem;
+}
+
+.colSource {
+  width: 10rem;
 }
 
 .colAmount {
@@ -70,7 +109,7 @@
 }
 
 .colStatus {
-  width: 10rem;
+  width: 8.5rem;
 }
 
 .colActions {
@@ -122,6 +161,10 @@
   --payment-failure-reason-color: var(--foreground);
 }
 
+.clickableRow {
+  cursor: pointer;
+}
+
 .table .num {
   text-align: right;
   font-variant-numeric: tabular-nums;
@@ -169,6 +212,36 @@
 .secondaryLine {
   font-size: 0.75rem;
   color: var(--muted-foreground);
+}
+
+/* The order number opens the detail sheet; a real button keeps it keyboard reachable. */
+.orderButton {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  font: inherit;
+  font-weight: 700;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--foreground) 35%, transparent);
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.orderButton:hover {
+  text-decoration-color: currentColor;
+}
+
+.orderButton:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.platformBadge {
+  align-self: flex-start;
 }
 
 /* Coral chip with its paired ink; plain coral text is under 4.5:1 on white. */
@@ -299,6 +372,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 2px;
 }
 
@@ -307,12 +381,13 @@
   height: 1rem;
 }
 
-.iconButtonDanger {
+.iconButtonDanger,
+.dangerButton {
   color: var(--error-text);
 }
 
 .iconButtonDanger:hover {
-  background-color: color-mix(in srgb, var(--error) 12%, transparent);
+  background-color: color-mix(in srgb, var(--error) 12%, var(--surface));
   color: var(--error-text);
 }
 
@@ -405,91 +480,19 @@
   grid-column: 1 / -1;
 }
 
-/* Where the order was placed from: a link-style trigger under the date opens the full details. */
-.clientTrigger {
+.cardDetails {
   align-self: flex-start;
-  max-width: 100%;
-  margin-top: 2px;
-  padding: 0;
-  overflow: hidden;
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: none;
-  font: inherit;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--foreground);
-  text-align: left;
-  text-decoration: underline;
-  text-decoration-color: var(--muted-foreground);
-  text-underline-offset: 2px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.clientTrigger:hover {
-  text-decoration-color: currentColor;
-}
-
-.clientTrigger:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus);
-}
-
-.clientPopover {
-  width: 24rem;
-  max-width: calc(100vw - 2rem);
-}
-
-.clientPopoverTitle {
-  margin: 0 0 var(--spacing-2);
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--foreground);
-}
-
-.clientDetails {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: var(--spacing-1) var(--spacing-3);
-  margin: 0;
-}
-
-.clientDetailRow {
-  display: contents;
-}
-
-.clientDetails dt {
-  font-size: 0.75rem;
-  line-height: 1.25rem;
-  color: var(--muted-foreground);
-}
-
-.clientDetails dd {
-  margin: 0;
-  font-size: 0.8125rem;
-  line-height: 1.25rem;
-  font-weight: 600;
-  color: var(--foreground);
-  overflow-wrap: anywhere;
-}
-
-.clientDetails .clientUserAgent {
-  font-family: var(--font-family-monospace);
-  font-size: 0.75rem;
-  font-weight: 400;
 }
 
 .paginationWrapper {
   display: flex;
   justify-content: center;
-  margin-top: var(--spacing-4);
+  margin-top: var(--spacing-2);
 }
 
 .disabledPagination {
   pointer-events: none;
-  opacity: 0.5;
+  color: var(--muted-foreground);
 }
 
 @keyframes spin {
@@ -502,8 +505,13 @@
 }
 
 @media (max-width: 768px) {
-  .resultsCount {
-    text-align: center;
+  .tableHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .headerActions > * {
+    flex: 1 1 auto;
   }
 }
 
@@ -513,9 +521,9 @@
   }
 }
 
-/* The six fixed columns take 52.75rem; 65rem leaves the Student column at
-   least 12rem. Narrower than that, the same data reads as cards. */
-@container results (min-width: 65rem) {
+/* The seven fixed columns take 58rem; 66rem leaves the Student column at
+   least 8rem. Narrower than that, the same data reads as cards. */
+@container results (min-width: 66rem) {
   .tableContainer {
     display: block;
   }

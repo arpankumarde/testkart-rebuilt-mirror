@@ -2,6 +2,7 @@ import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { OutputType } from "./list_GET.schema";
 import { paymentFailureReason } from "../../../helpers/paymentFailureReason";
+import { orderPlatform, type OrderClientDeviceType, type OrderClientSource } from "../../../helpers/orderAttribution";
 import superjson from "superjson";
 
 export async function handle(request: Request) {
@@ -29,6 +30,20 @@ export async function handle(request: Request) {
         "st.paymentErrorMessage",
         "st.paymentBankMessage",
         "st.paymentGatewayStatus",
+        "st.clientSource",
+        "st.clientDeviceType",
+        "st.clientOsName",
+        "st.clientOsVersion",
+        "st.clientBrowserName",
+        "st.clientBrowserVersion",
+        "st.clientDeviceBrand",
+        "st.clientDeviceModel",
+        "st.clientAppVersion",
+        "st.clientScreen",
+        "st.clientReferrer",
+        "st.clientUserAgent",
+        "st.clientIp",
+        "st.clientInheritedFrom",
       ])
       .orderBy("st.createdAt", "desc")
       .execute();
@@ -54,6 +69,25 @@ export async function handle(request: Request) {
               paymentGatewayStatus: t.paymentGatewayStatus,
             })
           : null,
+      client: t.clientSource
+        ? {
+            source: t.clientSource as OrderClientSource,
+            platform: orderPlatform(t.clientSource, t.clientDeviceType),
+            deviceType: (t.clientDeviceType ?? "unknown") as OrderClientDeviceType,
+            osName: t.clientOsName,
+            osVersion: t.clientOsVersion,
+            browserName: t.clientBrowserName,
+            browserVersion: t.clientBrowserVersion,
+            deviceBrand: t.clientDeviceBrand,
+            deviceModel: t.clientDeviceModel,
+            appVersion: t.clientAppVersion,
+            screen: t.clientScreen,
+            referrer: t.clientReferrer,
+            userAgent: t.clientUserAgent,
+            ip: t.clientIp,
+          }
+        : null,
+      clientInheritedFrom: t.clientInheritedFrom,
     }));
 
     return new Response(superjson.stringify(responseData), {

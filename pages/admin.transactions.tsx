@@ -1,47 +1,43 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Helmet } from "react-helmet";
 import { AdminTransactionsTable } from "../components/AdminTransactionsTable";
 import { AdminSubscriptionTransactionsTable } from "../components/AdminSubscriptionTransactionsTable";
 import { AdminPromoAnalytics } from "../components/AdminPromoAnalytics";
-import { useTransactionsListParams } from "../components/AdminTransactionsTableFilter";
+import { AdminTransactionsBreakdown } from "../components/AdminTransactionsBreakdown";
 import { ConsolePageHeader } from "../components/ConsolePageHeader";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/Tabs";
+import { useListUrlParams } from "../helpers/useListUrlParams";
 import styles from "./admin.transactions.module.css";
 
+const VIEWS = ["student", "subscription", "promo"] as const;
+type View = (typeof VIEWS)[number];
+
+/*
+ * The open tab is ?view= (absent means Student payments), so dashboard links
+ * that only carry student filters always land on the student list, and the
+ * student filters stay in the URL while another tab is open. The Breakdown
+ * popup follows the open ledger and its filters; Promo codes has its own.
+ */
 const AdminTransactionsPage: React.FC = () => {
-  const { status, listFilter, promo, write } = useTransactionsListParams();
-  const [tab, setTab] = useState("student");
+  const { read, write } = useListUrlParams();
+  const view = read<View>("view", VIEWS, "student");
 
-  /* A link that narrows the student list always opens on Student payments. */
-  const narrowedByUrl = status !== "__all" || listFilter !== "" || promo !== "";
+  const handleTabChange = (next: string) => write({ view: next === "student" ? null : next });
 
-  useEffect(() => {
-    if (narrowedByUrl) setTab("student");
-  }, [narrowedByUrl]);
-
-  const handleTabChange = (next: string) => {
-    setTab(next);
-    if (next !== "student" && narrowedByUrl) write({ status: null, filter: null, promo: null });
-  };
-
-  const viewPromoOrders = (code: string) => {
-    write({ status: null, filter: null, promo: code });
-    setTab("student");
-  };
+  const viewPromoOrders = (code: string) => write({ view: null, promo: code, page: null });
 
   return (
     <>
       <Helmet>
         <title>Transactions - Testkart Admin</title>
-        <meta
-          name="description"
-          content="Student and subscription payments across the platform."
-        />
+        <meta name="description" content="Student and subscription payments across the platform." />
       </Helmet>
       <div className={styles.page}>
-        <ConsolePageHeader title="Transactions" />
+        <ConsolePageHeader title="Transactions">
+          {view !== "promo" && <AdminTransactionsBreakdown key={view} scope={view} />}
+        </ConsolePageHeader>
 
-        <Tabs value={narrowedByUrl ? "student" : tab} onValueChange={handleTabChange} className={styles.tabs}>
+        <Tabs value={view} onValueChange={handleTabChange} className={styles.tabs}>
           <TabsList className={styles.tabsList}>
             <TabsTrigger value="student">Student payments</TabsTrigger>
             <TabsTrigger value="subscription">Subscription payments</TabsTrigger>

@@ -1317,9 +1317,17 @@ export interface Orders {
   bundleId: number | null;
   clientAppVersion: string | null;
   clientBrowser: string | null;
+  clientBrowserName: string | null;
+  clientBrowserVersion: string | null;
+  clientDeviceBrand: string | null;
+  clientDeviceModel: string | null;
   clientDeviceType: string | null;
   clientIp: string | null;
   clientOs: string | null;
+  clientOsName: string | null;
+  clientOsVersion: string | null;
+  clientReferrer: string | null;
+  clientScreen: string | null;
   clientSource: string | null;
   clientUserAgent: string | null;
   createdAt: Generated<Timestamp | null>;
@@ -1328,11 +1336,13 @@ export interface Orders {
   id: Generated<number>;
   invoiceEmailSentAt: Timestamp | null;
   invoiceNumber: string | null;
+  paidAt: Timestamp | null;
   paymentBankMessage: string | null;
   paymentErrorCode: string | null;
   paymentErrorMessage: string | null;
   paymentGatewayStatus: string | null;
   paymentMethod: string | null;
+  paymentMode: string | null;
   paymentTransactionId: string | null;
   platformFeePercentage: Numeric | null;
   promoCodeId: number | null;
@@ -1813,6 +1823,22 @@ export interface SubscriptionPlans {
 
 export interface SubscriptionTransactions {
   amount: Numeric;
+  clientAppVersion: string | null;
+  clientBrowser: string | null;
+  clientBrowserName: string | null;
+  clientBrowserVersion: string | null;
+  clientDeviceBrand: string | null;
+  clientDeviceModel: string | null;
+  clientDeviceType: string | null;
+  clientInheritedFrom: number | null;
+  clientIp: string | null;
+  clientOs: string | null;
+  clientOsName: string | null;
+  clientOsVersion: string | null;
+  clientReferrer: string | null;
+  clientScreen: string | null;
+  clientSource: string | null;
+  clientUserAgent: string | null;
   createdAt: Generated<Timestamp | null>;
   discountAmount: Numeric | null;
   id: Generated<number>;

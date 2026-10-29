@@ -8,6 +8,7 @@ import { executeSITransaction } from "../../../helpers/payuSIApi";
 import { extractPayUFailure } from "../../../helpers/extractPayUFailure";
 import { CHARGE_TXNID_PATTERNS, newChargeTxnid } from "../../../helpers/teacherMandate";
 import { effectiveRenewalAmount } from "../../../helpers/subscriptionPromoCodes";
+import { inheritedSubscriptionClient } from "../../../helpers/subscriptionClientInfo";
 
 /**
  * Admin-triggered equivalent of endpoints/payment/payu/recurring/charge-mandate_POST.ts.
@@ -85,6 +86,8 @@ export async function handle(request: Request) {
 
       const txnid = newChargeTxnid();
       const chargeAmount = effectiveRenewalAmount(subscription);
+      // Attributed to the teacher's sign-up, never to the admin who pressed retry.
+      const inherited = await inheritedSubscriptionClient(trx, subscription.teacherId, subscription.id);
       await trx
         .insertInto("subscriptionTransactions")
         .values({
@@ -96,6 +99,7 @@ export async function handle(request: Request) {
           paymentMethod: "payu_recurring",
           transactionId: txnid,
           notes: "Admin-triggered manual charge",
+          ...inherited,
         })
         .execute();
 
