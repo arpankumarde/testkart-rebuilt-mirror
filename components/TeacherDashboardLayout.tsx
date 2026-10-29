@@ -6,6 +6,7 @@ import { TeacherSidebar } from './TeacherSidebar';
 import { TeacherMasterclassBanner } from './TeacherMasterclassBanner';
 import { Button } from './Button';
 import { MissingContactInfoDialog } from './MissingContactInfoDialog';
+import { RequiredBillingStateDialog } from './RequiredBillingStateDialog';
 import { LogoutConfirmDialog } from './LogoutConfirmDialog';
 import {
   DropdownMenu,
@@ -16,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from './DropdownMenu';
 import { useAuth } from '../helpers/useAuth';
+import { useBillingStateRequired } from '../helpers/useBillingStateRequired';
 import { useDarkModeObserver } from '../helpers/useDarkModeObserver';
 import { BRAND_FAVICON, getBrandLogo } from '../helpers/brandAssets';
 import styles from './TeacherDashboardLayout.module.css';
@@ -63,6 +65,7 @@ export const TeacherDashboardLayout: React.FC<TeacherDashboardLayoutProps> = ({ 
   const navigate = useNavigate();
   const user = authState.type === 'authenticated' ? authState.user : null;
   const isManager = user?.role === 'teacher' && user.teacherRole === 'manager';
+  const billingStateRequired = useBillingStateRequired();
 
   // Same sign-out as the sidebar footer: confirmed through LogoutConfirmDialog,
   // then back to the home page.
@@ -85,7 +88,8 @@ export const TeacherDashboardLayout: React.FC<TeacherDashboardLayoutProps> = ({ 
 
   return (
     <>
-      <MissingContactInfoDialog />
+      {/* The billing state gate comes first; the optional contact steps wait until it is done. */}
+      {billingStateRequired ? <RequiredBillingStateDialog /> : <MissingContactInfoDialog />}
       <Helmet>
         <link rel="icon" type="image/png" sizes="32x32" href={BRAND_FAVICON} />
         <link rel="icon" type="image/png" sizes="16x16" href={BRAND_FAVICON} />
@@ -182,7 +186,7 @@ export const TeacherDashboardLayout: React.FC<TeacherDashboardLayoutProps> = ({ 
             </nav>
           </div>
         )}
-        <div className={styles.pageBody}>{children}</div>
+        <div className={styles.pageBody}>{billingStateRequired ? null : children}</div>
       </main>
       </div>
     </>

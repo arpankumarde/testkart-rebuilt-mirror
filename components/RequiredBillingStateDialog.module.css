@@ -1,0 +1,72 @@
+.dialogContent {
+  max-width: 26rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  width: 100%;
+  margin-top: var(--spacing-4);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.requiredTag {
+  color: var(--error-text);
+  font-weight: 600;
+}
+
+.errorText {
+  font-size: 0.8125rem;
+  color: var(--error-text);
+  margin: 0;
+}
+
+.submitButton {
+  width: 100%;
+  min-height: 2.75rem;
+}
+
+.loadingText {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+}
+
+.spinner {
+  color: currentColor;
+}
+
+.footer {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--spacing-2);
+}
+
+.logoutButton {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.logoutButton:hover {
+  color: var(--foreground);
+}
+
+@media (max-width: 480px) {
+  .form {
+    gap: var(--spacing-3);
+    margin-top: var(--spacing-3);
+  }
+}

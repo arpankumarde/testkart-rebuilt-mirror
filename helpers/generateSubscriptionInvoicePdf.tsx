@@ -146,7 +146,8 @@ export async function generateSubscriptionInvoicePdf(
             fallbackName: txn.academyName || txn.teacherName,
             fallbackEmail: txn.teacherEmail,
             fallbackPhone: txn.teacherPhone,
-            secondaryLine: !billingDetails && txn.academyName ? txn.teacherName : null,
+            // A state-only record (saved from the dashboard popup) has no name, so it still falls back.
+            secondaryLine: !billingDetails?.name && txn.academyName ? txn.teacherName : null,
           }),
         },
       ],

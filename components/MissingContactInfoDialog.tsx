@@ -9,10 +9,8 @@ import { Button } from "./Button";
 import { Spinner } from "./Spinner";
 import { useAuth } from "../helpers/useAuth";
 import { sanitizeMobileInput } from "../helpers/normalizePhoneNumber";
-import { isPlaceholderDisplayName } from "../helpers/isPlaceholderDisplayName";
 import { useSendOtpMutation, useVerifyOtpMutation } from "../helpers/useMobileVerification";
 import { useSendEmailOtpMutation, useVerifyEmailOtpMutation } from "../helpers/useEmailVerification";
-import { useStudentProfileMutations } from "../helpers/useStudentProfileMutations";
 import { useSaveExamFocusMutation } from "../helpers/useExamFocus";
 import type { ExamFocusItem } from "../helpers/examFocusShared";
 import { ExamFocusPicker } from "./ExamFocusPicker";
@@ -22,8 +20,12 @@ const RESEND_COOLDOWN_SECONDS = 30;
 const DISMISSAL_DAYS = 7;
 const DISMISSAL_MS = DISMISSAL_DAYS * 24 * 60 * 60 * 1000;
 
-/** Collected in this order: phone, then email, then name, then exam focus. */
-type StepKey = "mobile" | "email" | "name" | "exam";
+/**
+ * Collected in this order: phone, then email, then exam focus. A student's
+ * name is not asked here: RequiredNameDialog blocks the student dashboard
+ * until it is set, and this dialog only mounts after that.
+ */
+type StepKey = "mobile" | "email" | "exam";
 
 const emailSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -42,18 +44,6 @@ const mobileSchema = z.object({
 
 const mobileOtpSchema = z.object({
   otpCode: z.string().length(4, "OTP must be 4 digits").regex(/^\d{4}$/, "OTP must be 4 digits"),
-});
-
-const nameSchema = z.object({
-  displayName: z
-    .string()
-    .trim()
-    .min(2, "Please enter your full name")
-    .max(100, "Name must be 100 characters or less")
-    // Stops the generated placeholder being typed straight back in.
-    .refine((value) => !isPlaceholderDisplayName(value), {
-      message: "Please enter your real full name",
-    }),
 });
 
 export const MissingContactInfoDialog: React.FC = () => {
@@ -75,27 +65,17 @@ export const MissingContactInfoDialog: React.FC = () => {
   const verifyEmailOtpMutation = useVerifyEmailOtpMutation();
   const sendMobileOtpMutation = useSendOtpMutation();
   const verifyMobileOtpMutation = useVerifyOtpMutation();
-  const { useUpdateStudentProfileMutation } = useStudentProfileMutations();
-  const updateProfileMutation = useUpdateStudentProfileMutation();
   const saveExamFocusMutation = useSaveExamFocusMutation();
 
   const emailForm = useForm({ defaultValues: { email: "" }, schema: emailSchema });
   const emailOtpForm = useForm({ defaultValues: { otpCode: "" }, schema: emailOtpSchema });
   const mobileForm = useForm({ defaultValues: { mobileNumber: "" }, schema: mobileSchema });
   const mobileOtpForm = useForm({ defaultValues: { otpCode: "" }, schema: mobileOtpSchema });
-  // Deliberately empty, never seeded from the user: the whole point is to
-  // replace a generated name, so offering it back as a default defeats the ask.
-  const nameForm = useForm({ defaultValues: { displayName: "" }, schema: nameSchema });
 
   const userId = authState.type === "authenticated" ? authState.user.id : null;
   const userEmail = authState.type === "authenticated" ? authState.user.email : null;
   const userMobileNumber =
     authState.type === "authenticated" ? authState.user.mobileNumber : null;
-  const userDisplayName =
-    authState.type === "authenticated" ? authState.user.displayName : null;
-  // The name step writes through /_api/student/profile/update, which rejects
-  // teachers - and this dialog is mounted by the teacher shell too.
-  const isStudent = authState.type === "authenticated" && authState.user.role === "student";
   const isTeacher = authState.type === "authenticated" && authState.user.role === "teacher";
   // The session decides who is asked: students and academy owners past onboarding, never while impersonating.
   const examDue = authState.type === "authenticated" && authState.user.examFocusPromptDue === true;
@@ -109,10 +89,9 @@ export const MissingContactInfoDialog: React.FC = () => {
     const steps: StepKey[] = [];
     if (!userMobileNumber) steps.push("mobile");
     if (!userEmail) steps.push("email");
-    if (isStudent && isPlaceholderDisplayName(userDisplayName)) steps.push("name");
     if (examDue) steps.push("exam");
     return steps;
-  }, [userMobileNumber, userEmail, userDisplayName, isStudent, examDue]);
+  }, [userMobileNumber, userEmail, examDue]);
 
   const remainingSteps = pendingSteps.filter((step) => !skippedSteps.includes(step));
   const currentStep: StepKey | null = remainingSteps[0] ?? null;
@@ -156,11 +135,7 @@ export const MissingContactInfoDialog: React.FC = () => {
   useEffect(() => {
     if (userId === null) return;
 
-    const hasMissing =
-      !userMobileNumber ||
-      !userEmail ||
-      (isStudent && isPlaceholderDisplayName(userDisplayName)) ||
-      examDue;
+    const hasMissing = !userMobileNumber || !userEmail || examDue;
 
     if (!hasMissing) {
       setIsOpen(false);
@@ -183,14 +158,13 @@ export const MissingContactInfoDialog: React.FC = () => {
       const steps: StepKey[] = [];
       if (!userMobileNumber) steps.push("mobile");
       if (!userEmail) steps.push("email");
-      if (isStudent && isPlaceholderDisplayName(userDisplayName)) steps.push("name");
       if (examDue) steps.push("exam");
       totalStepsRef.current = steps.length;
       setIsOpen(true);
     }, 1500);
 
     return () => clearTimeout(timer);
-  }, [userId, userEmail, userMobileNumber, userDisplayName, isStudent, examDue]);
+  }, [userId, userEmail, userMobileNumber, examDue]);
 
   if (authState.type !== "authenticated" || currentStep === null) {
     return null;
@@ -212,7 +186,6 @@ export const MissingContactInfoDialog: React.FC = () => {
       mobileForm.setValues({ mobileNumber: "" });
       emailOtpForm.setValues({ otpCode: "" });
       mobileOtpForm.setValues({ otpCode: "" });
-      nameForm.setValues({ displayName: "" });
     }, 300);
   };
 
@@ -277,17 +250,6 @@ export const MissingContactInfoDialog: React.FC = () => {
     );
   };
 
-  const handleSaveName = (data: { displayName: string }) => {
-    setError(null);
-    updateProfileMutation.mutate(
-      { displayName: data.displayName.trim() },
-      {
-        onSuccess: () => nameForm.setValues({ displayName: "" }),
-        onError: (err) => setError(err.message),
-      }
-    );
-  };
-
   const handleSaveExams = () => {
     setError(null);
     saveExamFocusMutation.mutate(
@@ -320,8 +282,7 @@ export const MissingContactInfoDialog: React.FC = () => {
 
   const isSending = sendEmailOtpMutation.isPending || sendMobileOtpMutation.isPending;
   const isVerifying = verifyEmailOtpMutation.isPending || verifyMobileOtpMutation.isPending;
-  const isLoading =
-    isSending || isVerifying || updateProfileMutation.isPending || saveExamFocusMutation.isPending;
+  const isLoading = isSending || isVerifying || saveExamFocusMutation.isPending;
 
   const hasLaterStep = remainingSteps.length > 1;
 
@@ -333,10 +294,6 @@ export const MissingContactInfoDialog: React.FC = () => {
     email: {
       title: "Add your email address",
       description: "So we can send you important updates about your tests and account.",
-    },
-    name: {
-      title: "What should we call you?",
-      description: "Your account is still using an auto-generated name. Enter your full name.",
     },
     exam: {
       title: isTeacher ? "Which exams do you prepare students for?" : "Which exams are you preparing for?",
@@ -425,38 +382,6 @@ export const MissingContactInfoDialog: React.FC = () => {
                     </span>
                   ) : (
                     "Send OTP"
-                  )}
-                </Button>
-              </form>
-            </Form>
-          )}
-
-          {currentStep === "name" && (
-            <Form {...nameForm}>
-              <form onSubmit={nameForm.handleSubmit(handleSaveName)} className={styles.form}>
-                <FormItem name="displayName">
-                  <FormLabel>Full Name</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Enter your full name"
-                      type="text"
-                      autoComplete="off"
-                      autoFocus
-                      disabled={isLoading}
-                      value={nameForm.values.displayName}
-                      onChange={(e) => nameForm.setValues({ displayName: e.target.value })}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-                <Button type="submit" disabled={isLoading} className={styles.submitButton}>
-                  {isLoading ? (
-                    <span className={styles.loadingText}>
-                      <Spinner className={styles.spinner} size="sm" />
-                      Saving...
-                    </span>
-                  ) : (
-                    "Save Name"
                   )}
                 </Button>
               </form>

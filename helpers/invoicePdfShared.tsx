@@ -1,5 +1,6 @@
 import type { BillingDetails } from "../endpoints/account/billing-details_GET.schema";
 import { BRAND_LOGO_LIGHT } from "./brandAssets";
+import { GST_STATE_CODES, isIndianState } from "./indianLocationsData";
 
 const BIHAR_REGISTRATION = {
   companyAddress: "Sonvarsha Ghat, Chatham, Khagaria, Bihar, 851201",
@@ -109,6 +110,7 @@ export function buildBilledToStack(params: {
   const email = billingDetails?.email || fallbackEmail || null;
   const phone = billingDetails?.phone || fallbackPhone || null;
   const address = billingDetails?.address || null;
+  const state = isIndianState(billingDetails?.state) ? billingDetails.state : null;
   const gstin = billingDetails?.gstin || null;
 
   const stack: any[] = [
@@ -127,6 +129,9 @@ export function buildBilledToStack(params: {
   }
   if (address) {
     stack.push({ text: address, margin: [0, 0, 0, 4] });
+  }
+  if (state) {
+    stack.push({ text: `State: ${state} (Code ${GST_STATE_CODES[state]}), India`, margin: [0, 0, 0, 4] });
   }
   if (gstin) {
     stack.push({ text: `GSTIN: ${gstin}`, margin: [0, 0, 0, 0] });

@@ -1,0 +1,68 @@
+.dialogContent {
+  max-width: 26rem;
+}
+
+.container {
+  width: 100%;
+  margin-top: var(--spacing-4);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  width: 100%;
+}
+
+.errorMessage {
+  background-color: color-mix(in srgb, var(--error) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--error) 40%, transparent);
+  color: var(--error-text);
+  padding: var(--spacing-3);
+  border-radius: var(--radius);
+  margin-bottom: var(--spacing-4);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.submitButton {
+  width: 100%;
+  min-height: 2.75rem;
+}
+
+.loadingText {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+}
+
+.spinner {
+  color: currentColor;
+}
+
+.footer {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--spacing-4);
+}
+
+.logoutButton {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.logoutButton:hover {
+  color: var(--foreground);
+}
+
+@media (max-width: 480px) {
+  .container {
+    margin-top: var(--spacing-3);
+  }
+
+  .form {
+    gap: var(--spacing-3);
+  }
+}

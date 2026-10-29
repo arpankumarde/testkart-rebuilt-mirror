@@ -1,7 +1,10 @@
 import { z } from "zod";
 import superjson from "superjson";
 import { BillingDetails } from "./billing-details_GET.schema";
+import { INDIAN_STATES } from "../../helpers/indianLocationsData";
 
+// State is optional here on purpose: the web UI enforces it, and the API stays
+// lenient for other callers. When sent it must be one of INDIAN_STATES.
 export const schema = z
   .object({
     name: z.string().min(2, "Name must be at least 2 characters.").max(200),
@@ -11,6 +14,9 @@ export const schema = z
       .default(""),
     phone: z.string().max(30).optional().default(""),
     address: z.string().min(5, "Address must be at least 5 characters.").max(500),
+    state: z
+      .enum(INDIAN_STATES, { errorMap: () => ({ message: "Please select a valid Indian state." }) })
+      .optional(),
     gstin: z
       .union([
         z

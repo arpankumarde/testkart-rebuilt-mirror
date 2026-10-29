@@ -5,10 +5,12 @@ import { Input } from "./Input";
 import { Textarea } from "./Textarea";
 import { Button } from "./Button";
 import { Skeleton } from "./Skeleton";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./Select";
 import {
   useBillingDetailsQuery,
   useUpdateBillingDetailsMutation,
 } from "../helpers/useBillingDetails";
+import { INDIAN_STATES, isIndianState, stateForGstin } from "../helpers/indianLocationsData";
 import styles from "./BillingDetailsSection.module.css";
 
 interface FormState {
@@ -16,6 +18,7 @@ interface FormState {
   email: string;
   phone: string;
   address: string;
+  state: string;
   gstin: string;
 }
 
@@ -24,22 +27,26 @@ const emptyState: FormState = {
   email: "",
   phone: "",
   address: "",
+  state: "",
   gstin: "",
 };
 
 const GSTIN_REGEX = /^[0-9A-Z]{15}$/;
 
+type FieldErrors = Partial<Record<"name" | "address" | "state" | "gstin", string>>;
+
 /**
  * Private billing information used only to populate the "Billed To" section
  * of GST tax invoices (order/subscription PDFs). Shown on both the student
- * and teacher profile pages. Not part of the public profile.
+ * and teacher profile pages. Not part of the public profile. The state is
+ * required and stored as one of INDIAN_STATES, separate from the address text.
  */
 export const BillingDetailsSection: React.FC = () => {
   const { data, isFetching } = useBillingDetailsQuery();
   const updateMutation = useUpdateBillingDetailsMutation();
 
   const [form, setForm] = useState<FormState>(emptyState);
-  const [gstinError, setGstinError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<FieldErrors>({});
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
   useEffect(() => {
@@ -50,6 +57,7 @@ export const BillingDetailsSection: React.FC = () => {
         email: details?.email ?? "",
         phone: details?.phone ?? "",
         address: details?.address ?? "",
+        state: isIndianState(details?.state) ? details.state : "",
         gstin: details?.gstin ?? "",
       });
       setHasLoadedOnce(true);
@@ -58,22 +66,39 @@ export const BillingDetailsSection: React.FC = () => {
 
   const handleChange = (field: keyof FormState, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
-    if (field === "gstin") setGstinError(null);
+    if (field === "name" || field === "address" || field === "state" || field === "gstin") {
+      setErrors((prev) => ({ ...prev, [field]: undefined, ...(field === "state" ? { gstin: undefined } : {}) }));
+    }
   };
 
   const handleSave = () => {
+    const name = form.name.trim();
+    const address = form.address.trim();
     const trimmedGstin = form.gstin.trim().toUpperCase();
+    const nextErrors: FieldErrors = {};
+    if (name.length < 2) nextErrors.name = "Please enter the name for your invoices.";
+    if (address.length < 5) nextErrors.address = "Please enter your full address.";
+    if (!isIndianState(form.state)) nextErrors.state = "Please select your state.";
     if (trimmedGstin && !GSTIN_REGEX.test(trimmedGstin)) {
-      setGstinError("GSTIN must be 15 characters (numbers and uppercase letters).");
-      return;
+      nextErrors.gstin = "GSTIN must be 15 characters (numbers and uppercase letters).";
+    } else if (trimmedGstin && isIndianState(form.state)) {
+      const gstinState = stateForGstin(trimmedGstin);
+      if (gstinState !== form.state) {
+        nextErrors.gstin = gstinState
+          ? `This GSTIN is registered in ${gstinState}. Select that state or check the GSTIN.`
+          : "This GSTIN does not start with a valid state code.";
+      }
     }
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0 || !isIndianState(form.state)) return;
 
     toast.promise(
       updateMutation.mutateAsync({
-        name: form.name.trim(),
+        name,
         email: form.email.trim(),
         phone: form.phone.trim(),
-        address: form.address.trim(),
+        address,
+        state: form.state,
         gstin: trimmedGstin || "",
       }),
       {
@@ -121,12 +146,15 @@ export const BillingDetailsSection: React.FC = () => {
       <div className={styles.cardContent}>
         <div className={styles.row}>
           <div className={styles.field}>
-            <label className={styles.label}>Full Name</label>
+            <label className={styles.label}>
+              Full Name <span className={styles.requiredTag}>*</span>
+            </label>
             <Input
               value={form.name}
               onChange={(e) => handleChange("name", e.target.value)}
               placeholder="Name as it should appear on invoices"
             />
+            {errors.name && <p className={styles.errorText}>{errors.name}</p>}
           </div>
           <div className={styles.field}>
             <label className={styles.label}>Email</label>
@@ -159,19 +187,50 @@ export const BillingDetailsSection: React.FC = () => {
               placeholder="15-character GSTIN"
               maxLength={15}
             />
-            {gstinError && <p className={styles.errorText}>{gstinError}</p>}
+            {errors.gstin && <p className={styles.errorText}>{errors.gstin}</p>}
           </div>
         </div>
 
         <div className={styles.field}>
-          <label className={styles.label}>Billing Address</label>
+          <label className={styles.label}>
+            Billing Address <span className={styles.requiredTag}>*</span>
+          </label>
           <Textarea
             value={form.address}
             onChange={(e) => handleChange("address", e.target.value)}
-            placeholder="Street, city, state, PIN code"
+            placeholder="House or street, area, city, PIN code"
             rows={3}
           />
-          <p className={styles.helpText}>Full address to be printed on your invoices.</p>
+          {errors.address ? (
+            <p className={styles.errorText}>{errors.address}</p>
+          ) : (
+            <p className={styles.helpText}>Full address to be printed on your invoices.</p>
+          )}
+        </div>
+
+        <div className={styles.row}>
+          <div className={styles.field}>
+            <label className={styles.label}>
+              State <span className={styles.requiredTag}>*</span>
+            </label>
+            <Select value={form.state || undefined} onValueChange={(next) => handleChange("state", next)}>
+              <SelectTrigger aria-invalid={errors.state ? true : undefined}>
+                <SelectValue placeholder="Select state" />
+              </SelectTrigger>
+              <SelectContent>
+                {INDIAN_STATES.map((state) => (
+                  <SelectItem key={state} value={state}>
+                    {state}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.state && <p className={styles.errorText}>{errors.state}</p>}
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label}>Country</label>
+            <Input value="India" readOnly disabled />
+          </div>
         </div>
       </div>
       <div className={styles.footer}>

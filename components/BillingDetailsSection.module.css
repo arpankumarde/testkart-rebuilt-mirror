@@ -76,6 +76,11 @@
   font-weight: 400;
 }
 
+.requiredTag {
+  color: var(--error-text);
+  font-weight: 600;
+}
+
 .helpText {
   font-size: 0.8125rem;
   color: var(--muted-foreground);

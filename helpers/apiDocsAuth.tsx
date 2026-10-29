@@ -511,7 +511,7 @@ export const apiDocsAuth: ApiEndpoint[] = [
     category: "Account",
     usedBy: ["web"],
     responseFields: [
-      { name: "billingDetails", type: "object", description: "{ name, email, phone, address, gstin }, or null when nothing is saved" },
+      { name: "billingDetails", type: "object", description: "{ name, email, phone, address, state, gstin }, or null when nothing is saved. state is missing or null on details saved before it became required" },
     ],
     notes: [
       "A teacher team manager gets the owner teacher's details.",
@@ -528,15 +528,35 @@ export const apiDocsAuth: ApiEndpoint[] = [
     bodyParams: [
       { name: "name", type: "string", required: true, description: "2 to 200 characters" },
       { name: "address", type: "string", required: true, description: "5 to 500 characters" },
+      { name: "state", type: "string", required: true, description: "Indian state or union territory, spelled exactly as in the state list (e.g. Uttar Pradesh, Delhi)" },
       { name: "email", type: "string", required: false, description: "Email address or an empty string" },
       { name: "phone", type: "string", required: false, description: "Up to 30 characters" },
-      { name: "gstin", type: "string", required: false, description: "15 uppercase letters or digits. An empty value is stored as null" },
+      { name: "gstin", type: "string", required: false, description: "15 uppercase letters or digits whose first two digits match the state's GST code. An empty value is stored as null" },
     ],
     responseFields: [
-      { name: "billingDetails", type: "object", description: "The saved { name, email, phone, address, gstin }" },
+      { name: "billingDetails", type: "object", description: "The saved { name, email, phone, address, state, gstin }" },
     ],
     notes: [
       "Replaces any saved details completely. Unknown fields are rejected with 400.",
+      "A teacher team manager writes the owner teacher's record. Returns 401 without a valid session.",
+      "state is optional here; a save without it keeps the stored state. The web dashboards require it through their own popup. country is stored as India whenever a state is set.",
+    ],
+  },
+  {
+    method: "POST",
+    route: "/_api/account/billing-state",
+    description: "Save only the billing state (country India), keeping every other saved billing field",
+    auth: "any",
+    category: "Account",
+    usedBy: ["web"],
+    bodyParams: [
+      { name: "state", type: "string", required: true, description: "Indian state or union territory, spelled exactly as in the state list" },
+    ],
+    responseFields: [
+      { name: "billingDetails", type: "object", description: "The saved { name, email, phone, address, state, country, gstin }" },
+    ],
+    notes: [
+      "Used by the web dashboard popup shown to students and teachers with no billing state.",
       "A teacher team manager writes the owner teacher's record. Returns 401 without a valid session.",
     ],
   },

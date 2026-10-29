@@ -77,6 +77,7 @@ async function enrollInFreeTest(
       orderId: newOrder.id,
       mockTestId: mockTestId,
       priceAtPurchase: "0",
+      platformFeePercentage: "0",
     })
     .execute();
 

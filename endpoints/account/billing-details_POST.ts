@@ -5,6 +5,7 @@ import { BillingDetails } from "./billing-details_GET.schema";
 import superjson from "superjson";
 import { NotAuthenticatedError } from "../../helpers/getSetServerSession";
 import { ZodError } from "zod";
+import { readStoredBillingDetails } from "../../helpers/billingDetailsStore";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -21,11 +22,16 @@ export async function handle(request: Request): Promise<Response> {
 
     const targetUserId = user.role === "teacher" ? effectiveTeacherId : user.id;
 
+    // A save without a state keeps the one already stored rather than wiping it.
+    const state = validatedInput.state ?? (await readStoredBillingDetails(targetUserId))?.state ?? null;
+
     const billingDetails: BillingDetails = {
       name: validatedInput.name,
       email: validatedInput.email || "",
       phone: validatedInput.phone || "",
       address: validatedInput.address,
+      state,
+      country: state ? "India" : null,
       gstin: validatedInput.gstin ? validatedInput.gstin.toUpperCase() : null,
     };
 

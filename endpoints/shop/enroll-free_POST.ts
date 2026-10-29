@@ -64,6 +64,7 @@ async function enrollInFreeProduct(
       orderId: newOrder.id,
       digitalProductId: digitalProductId,
       priceAtPurchase: "0",
+      platformFeePercentage: "0",
     })
     .execute();
 

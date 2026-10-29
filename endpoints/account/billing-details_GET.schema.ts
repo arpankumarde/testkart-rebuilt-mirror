@@ -10,6 +10,10 @@ export type BillingDetails = {
   email: string;
   phone: string;
   address: string;
+  /** One of INDIAN_STATES. Missing or null on details saved before the state was collected. */
+  state?: string | null;
+  /** Always "India" when a state is stored. */
+  country?: string | null;
   gstin: string | null;
 };
 

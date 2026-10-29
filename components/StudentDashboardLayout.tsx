@@ -6,6 +6,10 @@ import { StudentSidebar } from './StudentSidebar';
 import { MobileBottomNav } from './MobileBottomNav';
 import { Button } from './Button';
 import { MissingContactInfoDialog } from './MissingContactInfoDialog';
+import { RequiredNameDialog } from './RequiredNameDialog';
+import { RequiredBillingStateDialog } from './RequiredBillingStateDialog';
+import { useStudentNameRequired } from '../helpers/useStudentNameRequired';
+import { useBillingStateRequired } from '../helpers/useBillingStateRequired';
 import { useDarkModeObserver } from '../helpers/useDarkModeObserver';
 import { BRAND_FAVICON, getBrandLogo } from '../helpers/brandAssets';
 import styles from './StudentDashboardLayout.module.css';
@@ -13,6 +17,9 @@ import styles from './StudentDashboardLayout.module.css';
 export const StudentDashboardLayout: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const isDarkMode = useDarkModeObserver();
+  const nameRequired = useStudentNameRequired();
+  const billingStateRequired = useBillingStateRequired();
+  const isLocked = nameRequired || billingStateRequired;
 
   const toggleMobileSidebar = () => {
     setIsMobileSidebarOpen(!isMobileSidebarOpen);
@@ -24,7 +31,14 @@ export const StudentDashboardLayout: React.FC<{ children: React.ReactNode; class
 
   return (
     <>
-      <MissingContactInfoDialog />
+      {/* Required gates first (name, then billing state); the optional contact steps wait until both are done. */}
+      {nameRequired ? (
+        <RequiredNameDialog />
+      ) : billingStateRequired ? (
+        <RequiredBillingStateDialog />
+      ) : (
+        <MissingContactInfoDialog />
+      )}
       <Helmet>
         <link rel="icon" type="image/png" sizes="32x32" href={BRAND_FAVICON} />
         <link rel="icon" type="image/png" sizes="16x16" href={BRAND_FAVICON} />
@@ -67,7 +81,7 @@ export const StudentDashboardLayout: React.FC<{ children: React.ReactNode; class
           onMobileClose={closeMobileSidebar}
         />
         <main className={styles.mainContent}>
-          {children}
+          {isLocked ? null : children}
         </main>
       </div>
       <MobileBottomNav />
