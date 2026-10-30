@@ -13,7 +13,7 @@ export type ApiResponseField = {
 
 /*
  * none: never reads a session. optional: public, personalised when a session is sent.
- * signature: no user session, a provider hash or signature carries the trust (PayU, Mux).
+ * signature: no user session, a provider hash or signature carries the trust (PayU).
  * oauth: an MCP connector access token.
  */
 export type ApiAuth = "none" | "optional" | "student" | "teacher" | "any" | "admin" | "signature" | "oauth";

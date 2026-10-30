@@ -7,6 +7,7 @@ import {
   SessionExpirationSeconds,
 } from "../../../helpers/getSetServerSession";
 import { addTeacherToSalesContacts } from "../../../helpers/addTeacherToSalesContacts";
+import { sendTeacherOnboardingWhatsApp } from "../../../helpers/sendTeacherOnboardingWhatsApp";
 import { assignUserSlug } from "../../../helpers/assignUserSlug";
 import { randomUUID } from "crypto";
 import { getClientIp } from "../../../helpers/getClientIp";
@@ -164,6 +165,11 @@ export async function handle(request: Request) {
 
       if (newUser.role === "teacher") {
         addTeacherToSalesContacts(newUser.id);
+        await sendTeacherOnboardingWhatsApp({
+          userId: newUser.id,
+          mobileNumber: newUser.mobileNumber,
+          name: null,
+        });
       }
 
       user = {

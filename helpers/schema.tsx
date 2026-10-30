@@ -103,8 +103,6 @@ export type MentorshipBookingStatus = "cancelled" | "completed" | "no_show" | "s
 
 export type MentorshipSubscriptionStatus = "active" | "cancelled" | "expired";
 
-export type MuxPushStatus = "failed" | "ready" | "submitted";
-
 export type Numeric = ColumnType<string, number | string, number | string>;
 
 export type OrderStatus = "cancelled" | "completed" | "failed" | "pending" | "refunded";
@@ -440,11 +438,6 @@ export interface CourseLessons {
   gumletStatus: GumletPushStatus | null;
   id: Generated<number>;
   isPreview: Generated<boolean>;
-  muxAssetId: string | null;
-  muxError: string | null;
-  muxPlaybackId: string | null;
-  muxSourceUrl: string | null;
-  muxStatus: MuxPushStatus | null;
   orderIndex: number;
   sectionId: number;
   textContent: string | null;
@@ -2609,7 +2602,6 @@ export const WalletTransactionTypeArrayValues: [WalletTransactionType, ...Wallet
 export const WithdrawalStatusArrayValues: [WithdrawalStatus, ...WithdrawalStatus[]] = ["cancelled","completed","failed","pending"];
 export const GumletPushStatusArrayValues: [GumletPushStatus, ...GumletPushStatus[]] = ["failed","ready","submitted"];
 export const TeacherAssetKindArrayValues: [TeacherAssetKind, ...TeacherAssetKind[]] = ["pdf","video"];
-export const MuxPushStatusArrayValues: [MuxPushStatus, ...MuxPushStatus[]] = ["failed","ready","submitted"];
 export const TeacherCampaignClaimStatusArrayValues: [TeacherCampaignClaimStatus, ...TeacherCampaignClaimStatus[]] = ["claimed","credited","declined","reversed","withdrawn"];
 export const OrganizationTypeArrayValues: [OrganizationType, ...OrganizationType[]] = ["coaching","college","other","school","university"];
 export const OrganizationMembershipStatusArrayValues: [OrganizationMembershipStatus, ...OrganizationMembershipStatus[]] = ["approved","pending","rejected"];

@@ -771,28 +771,6 @@ export const apiDocsSite: ApiEndpoint[] = [
   // Webhooks and jobs
   {
     method: "POST",
-    route: "/_api/webhooks/mux",
-    description: "Receive Mux video events and update the status of DRM lesson videos",
-    auth: "signature",
-    category: "Webhooks and jobs",
-    usedBy: [],
-    bodyParams: [
-      { name: "type", type: "string", required: true, description: "Mux event type. video.asset.ready, video.asset.errored and video.asset.deleted are handled. Others are accepted and ignored" },
-      { name: "id", type: "string", required: false, description: "Mux event id" },
-      { name: "data", type: "object", required: true, description: "{ id (the Mux asset id), status, passthrough, errors }" },
-    ],
-    responseFields: [
-      { name: "received", type: "boolean", description: "Always true when the event was accepted" },
-    ],
-    notes: [
-      "Mux calls it. The body and response are plain JSON, not superjson.",
-      "The Mux-Signature header (t=<seconds>,v1=<hex>) must be an HMAC-SHA256 of '<t>.<raw body>' with the webhook secret, within 5 minutes of the server clock. Otherwise 401.",
-      "Returns 503 when the webhook secret is not configured, 400 for a bad payload and 500 when the update fails, so Mux retries.",
-      "The Mux DRM setup is dormant until its credentials are set, so no events are expected yet.",
-    ],
-  },
-  {
-    method: "POST",
     route: "/_api/maintenance/approve-review-temp",
     description: "Retired one-off maintenance route",
     auth: "none",

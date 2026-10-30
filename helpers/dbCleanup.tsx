@@ -3,7 +3,6 @@ import { sql } from "kysely";
 import { syncMockTestAggregates } from "./syncMockTestAggregates";
 import { deleteFromR2 } from "./r2Client";
 import { releaseGumletAssets } from "./syncLessonVideoToGumlet";
-import { releaseMuxAssets } from "./syncLessonVideoToMux";
 import { clearOpenReviews } from "./contentReviewQueue";
 import { withdrawClaimsForDeletedContent } from "./teacherCampaign";
 
@@ -174,15 +173,15 @@ export async function dbCleanup(): Promise<void> {
           .execute();
 
         const sectionIds = sections.map((s) => s.id);
-        let lessonAssetIds: { gumlet: Array<string | null>; mux: Array<string | null> } = { gumlet: [], mux: [] };
+        let lessonAssetIds: { gumlet: Array<string | null> } = { gumlet: [] };
 
         if (sectionIds.length > 0) {
           const lessons = await trx
             .selectFrom("courseLessons")
-            .select(["gumletAssetId", "muxAssetId"])
+            .select(["gumletAssetId"])
             .where("sectionId", "in", sectionIds)
             .execute();
-          lessonAssetIds = { gumlet: lessons.map((l) => l.gumletAssetId), mux: lessons.map((l) => l.muxAssetId) };
+          lessonAssetIds = { gumlet: lessons.map((l) => l.gumletAssetId) };
 
           await trx
             .deleteFrom("courseLessons")
@@ -217,7 +216,6 @@ export async function dbCleanup(): Promise<void> {
       });
 
       await releaseGumletAssets(drmAssetIds.gumlet);
-      await releaseMuxAssets(drmAssetIds.mux);
       deletedAbandonedCoursesCount++;
     }
     console.log(`[Cleanup] Permanently deleted ${deletedAbandonedCoursesCount} abandoned course drafts older than 7 days.`);

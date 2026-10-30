@@ -21,6 +21,7 @@ import {
   recordOtpVerifyFailure,
 } from "../../../helpers/otpVerifyGuard";
 import { checkTeacherSecondContact } from "../../../helpers/teacherSignupContact";
+import { sendTeacherOnboardingWhatsApp } from "../../../helpers/sendTeacherOnboardingWhatsApp";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -288,6 +289,15 @@ export async function handle(request: Request): Promise<Response> {
       }
     } catch (err) {
       console.error("Failed to sync contact to Resend:", err);
+    }
+
+    if (role === "teacher") {
+      await sendTeacherOnboardingWhatsApp({
+        userId: updatedUser.id,
+        mobileNumber: updatedUser.mobileNumber,
+        name: updatedUser.displayName,
+        email: updatedUser.email,
+      });
     }
 
     return response;
