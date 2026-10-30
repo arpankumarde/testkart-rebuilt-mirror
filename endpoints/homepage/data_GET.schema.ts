@@ -1,5 +1,6 @@
 import { z } from "zod";
 import superjson from "superjson";
+import type { CourseCouponOffer } from "../../helpers/courseCouponOffer";
 
 export const schema = z.object({});
 
@@ -43,6 +44,8 @@ export type HomepageCourseItem = {
   teacherYearsOfExperience: number | null;
   teacherIsVerified: boolean;
   views: number;
+  /** The teacher's automatic offer, priced by the server. Absent from older builders. */
+  couponOffer?: CourseCouponOffer | null;
 };
 
 export type HomepageFeaturedCourseItem = {
@@ -58,6 +61,8 @@ export type HomepageFeaturedCourseItem = {
   teacherName: string;
   teacherAvatarUrl: string | null;
   teacherIsVerified: boolean;
+  /** The teacher's automatic offer, priced by the server. Absent from older builders. */
+  couponOffer?: CourseCouponOffer | null;
 };
 
 export type HomepageNoteItem = {

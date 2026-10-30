@@ -12,7 +12,14 @@ import { countPromoCodeUses } from "../../../helpers/promoCodeUsage";
 import { courseEffectivePriceSql } from "../../../helpers/coursePricing";
 import { productEffectivePriceSql } from "../../../helpers/digitalProductPricing";
 import { planTcoinsForOrder } from "../../../helpers/tcoins";
+import { ONE_OFFER_MESSAGE } from "../../../helpers/tcoinsMath";
 import { getOrderClientInfo } from "../../../helpers/orderClientInfo";
+import {
+  assertAutoOfferUnchanged,
+  cartCourseLines,
+  lockPromoCode,
+  resolveCartAutoCoupon,
+} from "../../../helpers/courseCouponOffersServer";
 import {
   applySpinCouponOrThrow,
   asEligibleItemIds,
@@ -29,6 +36,12 @@ export async function handle(request: Request) {
     const { user } = await getServerUserSession(request);
     const body = superjson.parse(await request.text());
     const input = schema.parse(body);
+    if (input.promoCodeId && input.useTcoins) {
+      return new Response(
+        superjson.stringify({ error: "Failed to initiate payment.", details: ONE_OFFER_MESSAGE }),
+        { status: 400 }
+      );
+    }
 
     const PAYU_MERCHANT_KEY = process.env.PAYU_MERCHANT_KEY;
     const PAYU_MERCHANT_SALT = process.env.PAYU_MERCHANT_SALT;
@@ -95,11 +108,14 @@ export async function handle(request: Request) {
       let discountAmount = 0;
       let finalAmount = totalAmount;
       let validatedPromoCodeId: number | null = null;
+      let appliedPromoCode: string | null = null;
+      let autoApplied = false;
       let eligibleItemIds: Array<{ type: 'test' | 'course' | 'digitalProduct'; id: number }> = [];
       let spinApplied: AppliedSpinCoupon | null = null;
 
       // Validate and apply promo code if provided
       if (input.promoCodeId) {
+        await lockPromoCode(trx, input.promoCodeId);
         const promoCode = await trx
           .selectFrom("promoCodes")
           .where("id", "=", input.promoCodeId)
@@ -248,8 +264,21 @@ export async function handle(request: Request) {
         }
 
         validatedPromoCodeId = input.promoCodeId;
+        appliedPromoCode = promoCode.code;
 
         console.log(`Promo code ${promoCode.code} applied. Discount: ₹${discountAmount.toFixed(2)}`);
+      } else if (!input.useTcoins) {
+        // No typed code: the teacher's best public offer on the cart's courses applies by itself.
+        const auto = await resolveCartAutoCoupon({ userId: user.id, lines: cartCourseLines(cartItems), trx });
+        assertAutoOfferUnchanged(input.autoPromoCodeId, auto);
+        if (auto) {
+          validatedPromoCodeId = auto.promoCodeId;
+          appliedPromoCode = auto.code;
+          autoApplied = true;
+          discountAmount = auto.discountAmount;
+          finalAmount = totalAmount - discountAmount;
+          eligibleItemIds = auto.eligibleCourseIds.map((id) => ({ type: 'course' as const, id }));
+        }
       }
 
       const tcoins = await planTcoinsForOrder(trx, {
@@ -283,6 +312,8 @@ export async function handle(request: Request) {
           totalAmount: finalAmount.toFixed(2),
           discountAmount: discountAmount.toFixed(2),
           promoCodeId: validatedPromoCodeId,
+          promoCodeSnapshot: appliedPromoCode,
+          promoAutoApplied: validatedPromoCodeId ? autoApplied : null,
           status: "pending",
           paymentMethod: "payu",
           paymentTransactionId: txnid,

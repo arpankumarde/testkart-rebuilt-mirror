@@ -1348,7 +1348,9 @@ export interface Orders {
   paymentMode: string | null;
   paymentTransactionId: string | null;
   platformFeePercentage: Numeric | null;
+  promoAutoApplied: boolean | null;
   promoCodeId: number | null;
+  promoCodeSnapshot: string | null;
   refundedAt: Timestamp | null;
   refundReason: string | null;
   status: Generated<OrderStatus>;

@@ -3,6 +3,7 @@ import { db } from "./db";
 import { sanitizeUrl } from "./sanitizeUrl";
 import { courseDiscountPrice } from "./coursePricing";
 import type { HomepageFeaturedCourseItem } from "../endpoints/homepage/data_GET.schema";
+import { loadCourseCouponOffers } from "./courseCouponOffersServer";
 
 /**
  * The homepage "Featured courses" strip, in display order. Hand-picked for now:
@@ -43,6 +44,7 @@ export async function homepageFetchFeaturedCourses(): Promise<HomepageFeaturedCo
     .execute();
 
   const order = new Map(FEATURED_COURSE_SLUGS.map((slug, i) => [slug, i]));
+  const offers = await loadCourseCouponOffers(courses.map((c) => c.id));
 
   return courses
     .sort((a, b) => (order.get(a.slug) ?? 0) - (order.get(b.slug) ?? 0))
@@ -59,5 +61,6 @@ export async function homepageFetchFeaturedCourses(): Promise<HomepageFeaturedCo
       teacherName: c.teacherName,
       teacherAvatarUrl: sanitizeUrl(c.teacherAvatarUrl),
       teacherIsVerified: c.teacherIsVerified,
+      couponOffer: offers.get(c.id) ?? null,
     }));
 }

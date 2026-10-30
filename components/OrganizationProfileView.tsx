@@ -38,6 +38,7 @@ import { FaFacebook, FaInstagram, FaLinkedin, FaXTwitter, FaYoutube } from "reac
 import { useAuth } from "../helpers/useAuth";
 import { sanitizeHtml } from "../helpers/sanitizeHtml";
 import { wrapContentTables } from "../helpers/contentTables";
+import { coursePriceView, formatOfferInr } from "../helpers/courseCouponOffer";
 import { Avatar, AvatarImage, AvatarFallback } from "./Avatar";
 import { VerifiedBadge } from "./VerifiedBadge";
 import { Badge } from "./Badge";
@@ -992,7 +993,7 @@ const RESOURCE_KIND_TONES: Record<OrgCatalogueKind, string> = {
 
 const THUMB_RATIO = 16 / 9;
 
-const formatRupees = (amount: number) => `₹${amount.toLocaleString("en-IN")}`;
+const formatRupees = (amount: number) => formatOfferInr(amount);
 
 /**
  * Thumbnails sit in a fixed 16:9 frame. An image close to that shape fills
@@ -1039,9 +1040,12 @@ const ResourceThumb: React.FC<{ item: OrgCatalogueItem }> = ({ item }) => {
 };
 
 const ResourceCard: React.FC<{ item: OrgCatalogueItem }> = ({ item }) => {
-  const sellingPrice = item.discountPrice ?? item.price;
-  const originalPrice = item.discountPrice !== null ? item.price : null;
-  const percentOff = originalPrice ? Math.round((1 - sellingPrice / originalPrice) * 100) : 0;
+  const courseView = item.kind === "course" ? coursePriceView(item.price, item.discountPrice, item.couponOffer) : null;
+  const sellingPrice = courseView ? courseView.finalPrice : item.discountPrice ?? item.price;
+  const originalPrice = courseView ? courseView.originalPrice : item.discountPrice !== null ? item.price : null;
+  const percentOff = courseView
+    ? courseView.percentOff
+    : originalPrice ? Math.round((1 - sellingPrice / originalPrice) * 100) : 0;
 
   return (
     <Link to={catalogueLink(item)} className={styles.resourceCard}>

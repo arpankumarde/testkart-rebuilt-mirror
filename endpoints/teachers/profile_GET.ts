@@ -6,6 +6,7 @@ import { hasStudentEnrolledInMockTest } from "../../helpers/hasStudentEnrolledIn
 import { slugify } from "../../helpers/slugify";
 import { sql } from "kysely";
 import { courseDiscountPrice } from "../../helpers/coursePricing";
+import { withCourseCouponOffers } from "../../helpers/courseCouponOffersServer";
 import { productDiscountPrice } from "../../helpers/digitalProductPricing";
 import { liveTestDiscountPrice } from "../../helpers/liveTestPricing";
 import { SocialLinks, AwardCertificate, WorkExperience } from "../../helpers/teacherProfileTypes";
@@ -499,7 +500,7 @@ export async function handle(request: Request) {
         yearsOfExperience: teacher.yearsOfExperience,
         joinedAt: teacher.createdAt,
       },
-      courses: coursesData,
+      courses: await withCourseCouponOffers(coursesData),
       tests: regularTests,
       liveTests: liveTestsData,
       products: productsData,

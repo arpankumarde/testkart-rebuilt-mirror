@@ -40,6 +40,7 @@ import { MobileStickyPurchaseBar } from './MobileStickyPurchaseBar';
 import { AssetTopRow } from './AssetTopRow';
 import { PublicCouponsCard } from './PublicCouponsCard';
 import { TcoinsCheckoutOption, tcoinsToSpend } from './TcoinsCheckoutOption';
+import { ONE_OFFER_MESSAGE, tcoinsRupeeValue } from '../helpers/tcoinsMath';
 import { useStudentTcoins } from '../helpers/useTcoins';
 import { NotFoundState } from './NotFoundState';
 import { isNotFoundError } from '../helpers/isNotFoundError';
@@ -342,6 +343,7 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
   const { data: tcoins } = useStudentTcoins(isStudent);
 
   const [promoCodeId, setPromoCodeId] = useState<number | null>(null);
+  const [promoCodeText, setPromoCodeText] = useState<string | null>(null);
   const [discountAmount, setDiscountAmount] = useState(0);
   const [wantsTcoins, setWantsTcoins] = useState(false);
   const [isStickyBarVisible, setIsStickyBarVisible] = useState(false);
@@ -427,7 +429,13 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
   }
 
   const tcoinsUsed = tcoinsToSpend(tcoins, bundle.price, wantsTcoins, promoCodeId !== null);
-  const finalPrice = Math.max(0, Math.round((bundle.price - discountAmount - tcoinsUsed) * 100) / 100);
+  const finalPrice = Math.max(0, Math.round((bundle.price - discountAmount - tcoinsRupeeValue(tcoinsUsed)) * 100) / 100);
+
+  const clearPromo = () => {
+    setPromoCodeId(null);
+    setPromoCodeText(null);
+    setDiscountAmount(0);
+  };
   const totalItemsValue = bundle.items.reduce((sum, item) => sum + item.price, 0);
   const hasDiscount = totalItemsValue > finalPrice;
   const totalSavings = totalItemsValue - finalPrice;
@@ -639,15 +647,17 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
                 <PromoCodeInput
                   items={[{ id: bundle.id, type: 'bundle' as const, price: bundle.price }]}
                   totalAmount={bundle.price}
-                  onApply={(id, amount) => {
+                  appliedDiscount={promoCodeId !== null && promoCodeText ? { code: promoCodeText, amount: discountAmount } : undefined}
+                  onApply={(id, amount, code) => {
+                    const replacedTcoins = tcoinsUsed > 0;
                     setWantsTcoins(false);
                     setPromoCodeId(id);
+                    setPromoCodeText(code);
                     setDiscountAmount(amount);
-                    toast.success(`Promo code applied! You saved ₹${amount}.`);
+                    toast.success(replacedTcoins ? `${code} applied in place of Tcoins. You saved ₹${amount}.` : `Promo code applied! You saved ₹${amount}.`);
                   }}
                   onRemove={() => {
-                    setPromoCodeId(null);
-                    setDiscountAmount(0);
+                    clearPromo();
                     toast.info('Promo code removed.');
                   }}
                 />
@@ -659,8 +669,14 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
                   orderValue={bundle.price}
                   amountToPay={finalPrice}
                   checked={wantsTcoins}
-                  onCheckedChange={setWantsTcoins}
-                  couponApplied={promoCodeId !== null}
+                  onCheckedChange={(checked) => {
+                    if (checked && promoCodeId !== null) {
+                      toast.info(`${promoCodeText ?? 'Promo code'} removed. ${ONE_OFFER_MESSAGE}`);
+                      clearPromo();
+                    }
+                    setWantsTcoins(checked);
+                  }}
+                  appliedCouponCode={promoCodeId !== null ? promoCodeText ?? 'applied' : null}
                 />
               )}
             </div>

@@ -27,6 +27,8 @@ export async function handle(request: Request) {
         "orders.paymentBankMessage",
         "orders.paymentGatewayStatus",
         "orders.promoCodeId",
+        "orders.promoCodeSnapshot",
+        "orders.promoAutoApplied",
         "orders.discountAmount",
         "orders.clientSource",
         "orders.clientDeviceType",
@@ -312,7 +314,8 @@ export async function handle(request: Request) {
         paymentTransactionId: o.paymentTransactionId,
         invoiceNumber: o.invoiceNumber,
         promoCodeId: o.promoCodeId,
-        promoCode: o.promoCode,
+        promoCode: o.promoCodeSnapshot ?? o.promoCode,
+        promoAutoApplied: o.promoAutoApplied,
         discountAmount: o.discountAmount !== null ? parseFloat(o.discountAmount as unknown as string) || 0 : 0,
         paymentFailure:
           o.status === "failed" || o.status === "cancelled"

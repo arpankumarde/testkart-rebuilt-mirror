@@ -24,7 +24,9 @@ const keyOf = (r: ExamResource) => `${r.kind}-${r.id}`;
 const ResourceRow: React.FC<{ resource: ExamResource }> = ({ resource }) => {
   const [broken, setBroken] = useState(false);
   const { label, icon: Icon } = KINDS[resource.kind];
-  const price = Number.isFinite(resource.price) ? itemPriceProps(resource.price, resource.discountPrice) : null;
+  const price = Number.isFinite(resource.price)
+    ? itemPriceProps(resource.price, resource.discountPrice, resource.kind === "course" ? resource.couponOffer ?? null : undefined)
+    : null;
   return (
     <li>
       <Link to={resource.href} className={styles.row} title={resource.title}>

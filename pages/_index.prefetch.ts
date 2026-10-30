@@ -5,7 +5,6 @@ import { fetchExamBySlugServer } from "../helpers/fetchExamBySlugServer";
 import { fetchTestsListServer } from "../helpers/fetchTestsListServer";
 import { fetchShopProductsListServer } from "../helpers/fetchShopProductsListServer";
 import { fetchCourseDetailsServer } from "../helpers/fetchCourseDetailsServer";
-import { loadPublicPromoCodes } from "../helpers/publicPromoCodesServer";
 import {
   UGC_NET_EXAM_SLUG,
   UGC_NET_FEATURED_TEACHER_SLUG,
@@ -36,8 +35,8 @@ const prefetchUgcNetSpotlight: PagePrefetchFn = async ({ qc }) => {
   ]);
 };
 
-// The featured course, its details (lesson count, pricing) and its public
-// coupons, under the course page's own keys so both pages share the cache.
+// The featured course and its details (lesson count, pricing and the teacher's
+// automatic offer), under the course page's own key so both pages share the cache.
 const prefetchUgcNetFeaturedCourse: PagePrefetchFn = async ({ qc }) => {
   const profile = await qc.fetchQuery({
     queryKey: ["teacherProfile", UGC_NET_FEATURED_TEACHER_SLUG],
@@ -45,16 +44,10 @@ const prefetchUgcNetFeaturedCourse: PagePrefetchFn = async ({ qc }) => {
   });
   const featured = pickFeaturedCourse(profile.courses);
   if (!featured) return;
-  await Promise.all([
-    qc.prefetchQuery({
-      queryKey: ["public", "courses", "details", featured.slug],
-      queryFn: () => fetchCourseDetailsServer(featured.slug),
-    }),
-    qc.prefetchQuery({
-      queryKey: ["public", "promo-codes", "course", featured.id],
-      queryFn: async () => ({ promoCodes: await loadPublicPromoCodes("course", featured.id) }),
-    }),
-  ]);
+  await qc.prefetchQuery({
+    queryKey: ["public", "courses", "details", featured.slug],
+    queryFn: () => fetchCourseDetailsServer(featured.slug),
+  });
 };
 
 export const prefetch: PagePrefetchFn = async (ctx) => {

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import superjson from "superjson";
+import type { CartAutoCoupon } from "../../helpers/courseCouponOffer";
 
 export const schema = z.object({});
 
@@ -45,6 +46,11 @@ export type CartItem = CartItemTest | CartItemCourse | CartItemDigitalProduct;
 
 export type OutputType = {
   items: CartItem[];
+  /**
+   * The teacher offer checkout applies by itself when no code is typed and no
+   * Tcoins are used, or null. Only one coupon works per order.
+   */
+  autoCoupon: CartAutoCoupon | null;
 };
 
 export const getCartItems = async (

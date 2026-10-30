@@ -11,7 +11,14 @@ import { countPromoCodeUses } from "../../../helpers/promoCodeUsage";
 import { courseEffectivePriceSql } from "../../../helpers/coursePricing";
 import { productEffectivePriceSql } from "../../../helpers/digitalProductPricing";
 import { planTcoinsForOrder } from "../../../helpers/tcoins";
+import { ONE_OFFER_MESSAGE } from "../../../helpers/tcoinsMath";
 import { getOrderClientInfo } from "../../../helpers/orderClientInfo";
+import {
+  assertAutoOfferUnchanged,
+  cartCourseLines,
+  lockPromoCode,
+  resolveCartAutoCoupon,
+} from "../../../helpers/courseCouponOffersServer";
 import {
   applySpinCouponOrThrow,
   asEligibleItemIds,
@@ -126,10 +133,20 @@ export async function handle(request: Request) {
     const promoCodeIdParam = url.searchParams.get("promoCodeId");
     const promoCodeId = promoCodeIdParam ? parseInt(promoCodeIdParam, 10) : null;
     const useTcoins = url.searchParams.get("useTcoins") === "1";
+    const autoPromoCodeIdParam = url.searchParams.get("autoPromoCodeId");
+    const autoPromoCodeId = autoPromoCodeIdParam ? parseInt(autoPromoCodeIdParam, 10) : null;
 
     // Validate promoCodeId if provided
     if (promoCodeIdParam && (isNaN(promoCodeId!) || promoCodeId! <= 0)) {
       const errorHtml = generateErrorHtml("Invalid promo code parameter.", "/cart");
+      return new Response(errorHtml, { status: 400, headers: { "Content-Type": "text/html" } });
+    }
+    if (autoPromoCodeIdParam && (autoPromoCodeId === null || isNaN(autoPromoCodeId) || autoPromoCodeId < 0)) {
+      const errorHtml = generateErrorHtml("Invalid offer parameter.", "/cart");
+      return new Response(errorHtml, { status: 400, headers: { "Content-Type": "text/html" } });
+    }
+    if (promoCodeId && useTcoins) {
+      const errorHtml = generateErrorHtml(ONE_OFFER_MESSAGE, "/cart");
       return new Response(errorHtml, { status: 400, headers: { "Content-Type": "text/html" } });
     }
 
@@ -200,11 +217,14 @@ export async function handle(request: Request) {
       let discountAmount = 0;
       let finalAmount = totalAmount;
       let validatedPromoCodeId: number | null = null;
+      let appliedPromoCode: string | null = null;
+      let autoApplied = false;
       let eligibleItemIds: Array<{ type: 'test' | 'course' | 'digitalProduct'; id: number }> = [];
       let spinApplied: AppliedSpinCoupon | null = null;
 
       // Validate and apply promo code if provided
       if (promoCodeId) {
+        await lockPromoCode(trx, promoCodeId);
         const promoCode = await trx
           .selectFrom("promoCodes")
           .where("id", "=", promoCodeId)
@@ -353,8 +373,21 @@ export async function handle(request: Request) {
         }
 
         validatedPromoCodeId = promoCodeId;
+        appliedPromoCode = promoCode.code;
 
         console.log(`Promo code ${promoCode.code} applied. Discount: ₹${discountAmount.toFixed(2)}`);
+      } else if (!useTcoins) {
+        // No typed code: the teacher's best public offer on the cart's courses applies by itself.
+        const auto = await resolveCartAutoCoupon({ userId: user.id, lines: cartCourseLines(cartItems), trx });
+        assertAutoOfferUnchanged(autoPromoCodeId, auto);
+        if (auto) {
+          validatedPromoCodeId = auto.promoCodeId;
+          appliedPromoCode = auto.code;
+          autoApplied = true;
+          discountAmount = auto.discountAmount;
+          finalAmount = totalAmount - discountAmount;
+          eligibleItemIds = auto.eligibleCourseIds.map((id) => ({ type: 'course' as const, id }));
+        }
       }
 
       // Clamp finalAmount to 0 to prevent negative totals
@@ -417,6 +450,8 @@ export async function handle(request: Request) {
             totalAmount: "0.00",
             discountAmount: discountAmount.toFixed(2),
             promoCodeId: validatedPromoCodeId,
+            promoCodeSnapshot: appliedPromoCode,
+            promoAutoApplied: validatedPromoCodeId ? autoApplied : null,
             status: "completed",
             paymentMethod: "free",
             paymentTransactionId: null,
@@ -588,6 +623,8 @@ export async function handle(request: Request) {
           totalAmount: finalAmount.toFixed(2),
           discountAmount: discountAmount.toFixed(2),
           promoCodeId: validatedPromoCodeId,
+          promoCodeSnapshot: appliedPromoCode,
+          promoAutoApplied: validatedPromoCodeId ? autoApplied : null,
           status: "pending",
           paymentMethod: "payu",
           paymentTransactionId: txnid,

@@ -6,6 +6,8 @@ import {
   parseTcoinsConfig,
   tcoinsCashbackFor,
   tcoinsRedeemableFor,
+  tcoinsRupeeValue,
+  ONE_OFFER_MESSAGE,
   type TcoinsConfig,
 } from "./tcoinsMath";
 
@@ -110,7 +112,7 @@ export async function planTcoinsForOrder(
       throw new Error("Tcoins are not available right now.");
     }
     if (input.hasCoupon) {
-      throw new Error("Tcoins cannot be combined with a coupon. Remove the coupon to use Tcoins.");
+      throw new Error(ONE_OFFER_MESSAGE);
     }
     await lockTcoins(trx, input.userId);
     // A new checkout supersedes any unpaid one still holding coins.
@@ -125,7 +127,7 @@ export async function planTcoinsForOrder(
     tcoinsRedeemed = tcoinsRedeemableFor(config, input.orderValue, balance);
   }
 
-  const amountToPay = Math.max(0, Math.round((input.amountBeforeTcoins - tcoinsRedeemed) * 100) / 100);
+  const amountToPay = Math.max(0, Math.round((input.amountBeforeTcoins - tcoinsRupeeValue(tcoinsRedeemed)) * 100) / 100);
   return {
     tcoinsRedeemed,
     tcoinsCashback: tcoinsCashbackFor(config, amountToPay),

@@ -5,6 +5,11 @@ export const schema = z.object({
   promoCodeId: z.number().optional(),
   /** Pay part of the order with Tcoins. Rejected together with a promo code. */
   useTcoins: z.boolean().optional(),
+  /**
+   * The automatic teacher offer the cart showed (0 for none), from cart/items autoCoupon.
+   * The purchase stops if that offer is gone or replaced; the server still prices it itself.
+   */
+  autoPromoCodeId: z.number().int().nonnegative().optional(),
 });
 
 export type InputType = z.infer<typeof schema>;

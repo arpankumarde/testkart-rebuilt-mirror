@@ -519,6 +519,17 @@ a.card:hover .cardArrow {
   white-space: nowrap;
 }
 
+.offerBadge {
+  align-self: center;
+  padding: 0.0625rem 0.4375rem;
+  border: 1px solid var(--exam-sage-border);
+  border-radius: var(--radius-full);
+  background-color: var(--exam-sage-tint);
+  color: var(--exam-sage-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
 .originalPrice {
   font-size: 0.8125rem;
   font-weight: 500;

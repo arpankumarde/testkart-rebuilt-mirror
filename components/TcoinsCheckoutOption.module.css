@@ -47,6 +47,22 @@
     color: var(--muted-foreground);
   }
 
+  .oneOffer {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-2);
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--foreground);
+  }
+
+  .oneOffer svg {
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+    color: var(--tk-brand-text);
+  }
+
   .earn {
     margin: 0;
     padding: var(--spacing-2) var(--spacing-3);

@@ -6,6 +6,7 @@ import { contentInExam } from "./contentExams";
 import { matchesAnyLanguage } from "./languageFilter";
 import { pinnedTeacherFirst, sortPinsTeachers } from "./pinnedTeachers";
 import { courseDiscountPrice, courseEffectivePriceSql } from "./coursePricing";
+import { withCourseCouponOffers } from "./courseCouponOffersServer";
 
 /**
  * Direct-DB counterpart to endpoints/courses/list_GET.ts, for use ONLY from
@@ -132,7 +133,7 @@ export async function fetchCoursesListServer(filters: InputType = {}): Promise<O
   const totalPages = Math.ceil(totalCount / limit);
 
   return {
-    courses: courses.map((course) => ({
+    courses: (await withCourseCouponOffers(courses)).map((course) => ({
       ...course,
       price: Number(course.price),
       discountPrice: courseDiscountPrice(course.price, course.discountPrice),

@@ -7,6 +7,7 @@ import {
   Archive,
   Ban,
   ChevronDown,
+  Coins,
   Download,
   ExternalLink,
   FileSpreadsheet,
@@ -55,6 +56,7 @@ import { toDayString, useTransactionFilters } from "../helpers/useTransactionFil
 import type { OrderSortColumn } from "../helpers/adminOrderFilters";
 import type { SortOrder } from "../helpers/useTableSort";
 import { ORDER_DEVICE_TYPE_LABELS, ORDER_PLATFORM_LABELS, paymentMethodLabel, paymentModeLabel } from "../helpers/orderAttribution";
+import { discountMethodLine, ORDER_DISCOUNT_METHOD_LABELS } from "../helpers/orderDiscountMethod";
 import {
   browserLabel,
   deviceLabel,
@@ -351,10 +353,14 @@ export const AdminTransactionsTable: React.FC = () => {
           Items: o.purchasedItemDetails.map((d) => d.title).join(" | ") || o.purchasedItems || "",
           "Item types": [...new Set(o.purchasedItemDetails.map((d) => ITEM_TYPE_LABELS[d.type] ?? d.type))].join(" | "),
           Teacher: o.teacherName ?? "",
-          "Amount (Rs.)": o.totalAmount.toFixed(2),
-          "Discount (Rs.)": o.discountAmount.toFixed(2),
-          "Promo code": o.promoCode ?? "",
-          "Tcoins redeemed": o.tcoinsRedeemed || "",
+          "Original amount (Rs.)": o.originalAmount.toFixed(2),
+          "Discount method": ORDER_DISCOUNT_METHOD_LABELS[o.discountMethod],
+          "Promo code": o.discountMethod === "promo_code" ? o.promoCode ?? "Not available" : "",
+          "Promo applied": o.promoCode ? (o.promoAutoApplied ? "Automatic" : o.promoAutoApplied === false ? "Typed" : "") : "",
+          "Promo discount (Rs.)": o.discountMethod === "promo_code" ? o.discountAmount.toFixed(2) : "",
+          "Tcoins redeemed": o.tcoinsRedeemed > 0 ? o.tcoinsRedeemed : "",
+          "Tcoin discount value (Rs.)": o.tcoinsRedeemed > 0 ? o.tcoinsValue.toFixed(2) : "",
+          "Final paid amount (Rs.)": o.totalAmount.toFixed(2),
           Gateway: o.paymentMethod === "payu" ? "PayU" : "",
           "Payment method": paymentMethodLabel(o.paymentMethod),
           "Payment mode": paymentModeLabel(o.paymentMode) ?? "",
@@ -702,6 +708,15 @@ export const AdminTransactionsTable: React.FC = () => {
                             {order.promoCode}
                           </span>
                         )}
+                        {order.tcoinsRedeemed > 0 && (
+                          <span
+                            className={styles.tcoinsLine}
+                            title={`${order.tcoinsRedeemed.toLocaleString("en-IN")} Tcoins used, ${formatInr(order.tcoinsValue)} off`}
+                          >
+                            <Coins aria-hidden="true" />
+                            {order.tcoinsRedeemed.toLocaleString("en-IN")} Tcoins used
+                          </span>
+                        )}
                       </div>
                     </td>
                     <td>
@@ -754,6 +769,10 @@ export const AdminTransactionsTable: React.FC = () => {
                     <dd>{order.createdAt ? `${formatDay(order.createdAt)}, ${formatTime(order.createdAt)}` : "Not recorded"}</dd>
                   </div>
                   <div className={styles.cardStat}><dt>Teacher</dt><dd>{order.teacherName || "No teacher"}</dd></div>
+                  <div className={styles.cardStat}>
+                    <dt>Discount</dt>
+                    <dd>{discountMethodLine({ method: order.discountMethod, tcoinsRedeemed: order.tcoinsRedeemed }, order.promoCode)}</dd>
+                  </div>
                   <div className={styles.cardStat}>
                     <dt>Source</dt>
                     <dd>{order.client ? ORDER_PLATFORM_LABELS[order.client.platform] : "Not captured"}</dd>

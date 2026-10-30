@@ -6,6 +6,7 @@ import {
   ORDER_PAYMENT_MODES,
   ORDER_PLATFORMS,
 } from "./orderAttribution";
+import { ORDER_DISCOUNT_METHODS } from "./orderDiscountMethod";
 
 /**
  * The filters the admin Transactions page sends to the admin/orders search,
@@ -52,7 +53,8 @@ export const adminOrderFiltersSchema = z.object({
   productTypes: z.array(z.enum(ORDER_PRODUCT_TYPES)).max(ORDER_PRODUCT_TYPES.length).optional(),
   teacherIds: z.array(z.number().int().positive()).max(50).optional(),
   promoCodes: z.array(z.string().trim().min(1).max(64)).max(20).optional(),
-  discount: z.enum(["with", "without"]).optional(),
+  /** How the order was discounted at checkout: a promo code, Tcoins, or neither. */
+  discount: z.enum(ORDER_DISCOUNT_METHODS).optional(),
   amountMin: z.number().min(0).max(10_000_000).optional(),
   amountMax: z.number().min(0).max(10_000_000).optional(),
 });

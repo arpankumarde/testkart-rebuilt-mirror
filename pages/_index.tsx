@@ -135,7 +135,7 @@ const HomePage: React.FC = () => {
                 teacherIsVerified={item.teacherIsVerified}
                 productTitle={item.title}
                 stats={`${item.totalLessons} lessons`}
-                {...itemPriceProps(item.price, item.discountPrice)}
+                {...itemPriceProps(item.price, item.discountPrice, item.couponOffer ?? null)}
                 thumbnailUrl={item.thumbnailUrl}
                 placeholderUrl={Placeholder.COURSE}
               />

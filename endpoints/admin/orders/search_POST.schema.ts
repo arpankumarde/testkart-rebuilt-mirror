@@ -5,6 +5,7 @@ import type { PaymentFailureDetails } from "../../../helpers/paymentFailureReaso
 import type { OrderClientDeviceType, OrderClientSource, OrderPlatform } from "../../../helpers/orderAttribution";
 import { adminOrderFiltersSchema, adminOrderSortSchema } from "../../../helpers/adminOrderFilters";
 import type { PurchasedItemDetail } from "../orders_GET.schema";
+import type { OrderDiscountMethod } from "../../../helpers/orderDiscountMethod";
 
 export const schema = z.object({
   filters: adminOrderFiltersSchema,
@@ -49,13 +50,22 @@ export type AdminOrderRow = {
   totalAmount: number;
   discountAmount: number;
   tcoinsRedeemed: number;
+  /** Promo code or Tcoins (never both), else none; derived from the order's own columns. */
+  discountMethod: OrderDiscountMethod;
+  /** The order value before the promo code or Tcoins: totalAmount + discountAmount + tcoinsValue. */
+  originalAmount: number;
+  /** Rupee value of tcoinsRedeemed. */
+  tcoinsValue: number;
   status: OrderStatus;
   paymentMethod: string | null;
   paymentMode: string | null;
   paymentTransactionId: string | null;
   invoiceNumber: string | null;
   promoCodeId: number | null;
+  /** The code as it was at purchase, else (older orders) its current text. */
   promoCode: string | null;
+  /** True for a teacher offer applied without a code, false for a typed code, null when unknown or none. */
+  promoAutoApplied: boolean | null;
   refundedAt: Date | null;
   refundReason: string | null;
   /** Only for failed and cancelled orders with a PayU reason on record. */

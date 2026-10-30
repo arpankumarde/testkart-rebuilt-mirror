@@ -27,8 +27,6 @@ import { useExamDetailQuery } from "../helpers/useExamDetail";
 import { TESTS_QUERY_KEY } from "../helpers/useTestsQuery";
 import { SHOP_PRODUCTS_QUERY_KEY } from "../helpers/useShopQuery";
 import { PUBLIC_COURSE_DETAILS_QUERY_KEY } from "../helpers/useStudentCoursesQuery";
-import { usePublicPromoCodesQuery } from "../helpers/usePublicPromoCodes";
-import { bestPromoCode } from "../helpers/promoCodeDiscount";
 import {
   UGC_NET_EXAM_SLUG,
   UGC_NET_FEATURED_TEACHER_SLUG,
@@ -39,7 +37,7 @@ import {
   ugcNetTestsFilters,
 } from "../helpers/ugcNetSpotlightQueries";
 import { itemPriceProps, type ItemPriceProps } from "../helpers/homepageItemUtils";
-import { courseDiscountPrice } from "../helpers/coursePricing";
+import { coursePriceView } from "../helpers/courseCouponOffer";
 import { Placeholder } from "../helpers/placeholderImages";
 import { Avatar, AvatarFallback, AvatarImage } from "./Avatar";
 import { VerifiedBadge } from "./VerifiedBadge";
@@ -326,10 +324,9 @@ function SpotlightIllustration() {
    an e-commerce style price breakdown on the right. Lessons and pricing come
    from the course page's own details query (same key, so the cache is
    shared), falling back to the profile's list values until it loads. The
-   course's own discount counts only when courseDiscountPrice accepts it. On
-   top of that, the public coupon that takes the most off (the coupons the
-   course page lists, same query) is applied with promoDiscountFor, which
-   mirrors checkout, and its code is shown so the student can use it. */
+   price is coursePriceView over the server's couponOffer: the teacher's best
+   public coupon, which checkout applies by itself, so its code is shown as
+   already applied rather than as something to type. */
 
 function FeaturedCourseCard({ course }: { course: CourseListItem }) {
   const detailsQuery = useQuery({
@@ -339,14 +336,16 @@ function FeaturedCourseCard({ course }: { course: CourseListItem }) {
   });
   const details = detailsQuery.data;
   const lessons = details ? details.sections.reduce((sum, section) => sum + section.lessons.length, 0) : 0;
-  const couponsQuery = usePublicPromoCodesQuery("course", course.id);
 
   const listPrice = toCount(details ? details.price : course.price);
-  const discountPrice = courseDiscountPrice(listPrice, details ? details.discountPrice : course.discountPrice);
-  const sellingPrice = discountPrice ?? listPrice;
-  const isFree = sellingPrice <= 0;
-  const coupon = isFree ? null : bestPromoCode(couponsQuery.data?.promoCodes ?? [], sellingPrice);
-  const finalPrice = Math.round((sellingPrice - (coupon?.discount ?? 0)) * 100) / 100;
+  const priceView = coursePriceView(
+    listPrice,
+    details ? details.discountPrice : course.discountPrice,
+    details ? details.couponOffer : course.couponOffer ?? null
+  );
+  const isFree = priceView.isFree;
+  const coupon = priceView.offer;
+  const finalPrice = priceView.finalPrice;
   const savings = Math.round((listPrice - finalPrice) * 100) / 100;
   const hasSaving = !isFree && savings > 0;
   const savingsPercent = hasSaving ? Math.round((savings / listPrice) * 100) : 0;
@@ -416,7 +415,7 @@ function FeaturedCourseCard({ course }: { course: CourseListItem }) {
           <span className={styles.couponLine}>
             <Tag size={13} aria-hidden className={styles.couponIcon} />
             <span>
-              Use code <span className={styles.couponCode}>{coupon.promo.code}</span>
+              Offer <span className={styles.couponCode}>{coupon.code}</span> applied automatically
             </span>
           </span>
         )}

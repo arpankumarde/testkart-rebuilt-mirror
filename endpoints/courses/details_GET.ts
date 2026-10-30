@@ -9,6 +9,7 @@ import { PRODUCT_DISCLAIMER } from "../../helpers/productDisclaimer";
 import { computeCourseSeo } from "../../helpers/seoIndexability";
 import { courseDiscountPrice } from "../../helpers/coursePricing";
 import { isBearerRequest } from "../../helpers/requestAuthTransport";
+import { loadCourseCouponOffers } from "../../helpers/courseCouponOffersServer";
 
 
 
@@ -62,8 +63,10 @@ export async function handle(request: Request): Promise<Response> {
       });
 
     let isEnrolled = false;
+    let viewerId: number | null = null;
     try {
       const { user } = await getServerUserSession(request);
+      viewerId = user.id;
       const enrollment = await db
         .selectFrom("courseEnrollments")
         .select("id")
@@ -145,12 +148,15 @@ export async function handle(request: Request): Promise<Response> {
         }),
     }));
 
+    const couponOffers = await loadCourseCouponOffers([course.id], { userId: viewerId });
+
     const output: OutputType = {
       ...course,
       category: course.examName || "Course",
       description: course.description,
       price: Number(course.price),
       discountPrice: courseDiscountPrice(course.price, course.discountPrice),
+      couponOffer: couponOffers.get(course.id) ?? null,
       teacher: {
         id: course.teacherId,
         displayName: course.teacherDisplayName,

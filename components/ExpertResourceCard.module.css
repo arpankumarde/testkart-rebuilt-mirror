@@ -228,6 +228,10 @@
   color: var(--sp-muted);
 }
 
+.offerBadge {
+  align-self: center;
+}
+
 .priceValue,
 .priceFree {
   font-family: var(--font-family-heading);

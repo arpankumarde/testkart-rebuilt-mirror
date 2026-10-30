@@ -2,6 +2,7 @@ import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
 import { Courses, CourseSections, CourseLessons, Users } from "../../helpers/schema";
+import type { CourseCouponOffer } from "../../helpers/courseCouponOffer";
 
 export const schema = z.object({
   slug: z.string(),
@@ -41,6 +42,8 @@ export type OutputType = Omit<Selectable<Courses>, "price" | "discountPrice"> & 
   price: number;
   /** Valid discounted price (between 0 and price), or null. */
   discountPrice: number | null;
+  /** The teacher's automatic offer, priced by the server; checkout applies it without a code. */
+  couponOffer: CourseCouponOffer | null;
   /** Mobile builds up to 4.7.2 show this as a badge; it carries the primary exam name. */
   category: string;
   seo: CourseSeo;

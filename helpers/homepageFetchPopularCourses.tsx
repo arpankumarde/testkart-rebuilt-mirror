@@ -3,6 +3,7 @@ import { db } from "./db";
 import { sanitizeUrl } from "./sanitizeUrl";
 import { courseDiscountPrice } from "./coursePricing";
 import { HomepageCourseItem } from "../endpoints/homepage/data_GET.schema";
+import { loadCourseCouponOffers } from "./courseCouponOffersServer";
 
 export async function homepageFetchPopularCourses(): Promise<HomepageCourseItem[]> {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
@@ -44,6 +45,8 @@ export async function homepageFetchPopularCourses(): Promise<HomepageCourseItem[
     .limit(8)
     .execute();
 
+  const offers = await loadCourseCouponOffers(courses.map((c) => c.id));
+
   return courses.map((c) => ({
     id: c.id,
     title: c.title,
@@ -61,5 +64,6 @@ export async function homepageFetchPopularCourses(): Promise<HomepageCourseItem[
     teacherYearsOfExperience: c.teacherYearsOfExperience,
     teacherIsVerified: c.teacherIsVerified,
    views: Number((c as any).views ?? 0),
+    couponOffer: offers.get(c.id) ?? null,
   }));
 }

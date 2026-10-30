@@ -3,6 +3,7 @@ import { db } from "./db";
 import { NOT_CAPTURED, type AdminOrderFilters, type AdminOrderSort } from "./adminOrderFilters";
 import { orderPlatform, PAYMENT_MODE_GROUP_CODES, type OrderClientDeviceType, type OrderClientSource } from "./orderAttribution";
 import { paymentFailureReason } from "./paymentFailureReason";
+import { orderDiscountBreakdown } from "./orderDiscountMethod";
 import type { AdminOrderRow } from "../endpoints/admin/orders/search_POST.schema";
 import type { PurchasedItemDetail } from "../endpoints/admin/orders_GET.schema";
 
@@ -168,12 +169,14 @@ export function orderWhere(f: AdminOrderFilters): RawBuilder<SqlBool> {
   if (f.promoCodes?.length) {
     const codes = f.promoCodes.map((code) => code.toLowerCase());
     conditions.push(
-      sql<SqlBool>`exists (select 1 from promo_codes pc where pc.id = orders.promo_code_id and lower(pc.code) in (${sql.join(codes)}))`
+      sql<SqlBool>`(lower(orders.promo_code_snapshot) in (${sql.join(codes)}) or exists (select 1 from promo_codes pc where pc.id = orders.promo_code_id and lower(pc.code) in (${sql.join(codes)})))`
     );
   }
 
-  if (f.discount === "with") conditions.push(sql<SqlBool>`orders.discount_amount > 0`);
-  if (f.discount === "without") conditions.push(sql<SqlBool>`orders.discount_amount = 0`);
+  // Same rule as orderDiscountBreakdown: a promo code wins, then Tcoins, else none.
+  if (f.discount === "promo_code") conditions.push(sql<SqlBool>`orders.promo_code_id is not null`);
+  if (f.discount === "tcoins") conditions.push(sql<SqlBool>`(orders.promo_code_id is null and orders.tcoins_redeemed > 0)`);
+  if (f.discount === "none") conditions.push(sql<SqlBool>`(orders.promo_code_id is null and orders.tcoins_redeemed = 0)`);
   if (f.amountMin !== undefined) conditions.push(sql<SqlBool>`orders.total_amount >= ${f.amountMin}`);
   if (f.amountMax !== undefined) conditions.push(sql<SqlBool>`orders.total_amount <= ${f.amountMax}`);
 
@@ -283,6 +286,8 @@ export async function loadOrderRows(ids: number[]): Promise<AdminOrderRow[]> {
         "orders.paymentBankMessage",
         "orders.paymentGatewayStatus",
         "orders.promoCodeId",
+        "orders.promoCodeSnapshot",
+        "orders.promoAutoApplied",
         "orders.refundedAt",
         "orders.refundReason",
         "orders.clientSource",
@@ -409,6 +414,12 @@ export async function loadOrderRows(ids: number[]): Promise<AdminOrderRow[]> {
     const teacherId = teacherByOrder.get(o.id) ?? null;
     const source = (o.clientSource ?? null) as OrderClientSource | null;
     const deviceType = (o.clientDeviceType ?? "unknown") as OrderClientDeviceType;
+    const breakdown = orderDiscountBreakdown({
+      totalAmount: num(o.totalAmount),
+      discountAmount: num(o.discountAmount),
+      tcoinsRedeemed: o.tcoinsRedeemed ?? 0,
+      promoCodeId: o.promoCodeId,
+    });
 
     byId.set(o.id, {
       id: o.id,
@@ -426,13 +437,17 @@ export async function loadOrderRows(ids: number[]): Promise<AdminOrderRow[]> {
       totalAmount: num(o.totalAmount),
       discountAmount: num(o.discountAmount),
       tcoinsRedeemed: o.tcoinsRedeemed ?? 0,
+      discountMethod: breakdown.method,
+      originalAmount: breakdown.originalAmount,
+      tcoinsValue: breakdown.tcoinsValue,
       status: o.status,
       paymentMethod: o.paymentMethod,
       paymentMode: o.paymentMode,
       paymentTransactionId: o.paymentTransactionId,
       invoiceNumber: o.invoiceNumber,
       promoCodeId: o.promoCodeId,
-      promoCode: o.promoCode,
+      promoCode: o.promoCodeSnapshot ?? o.promoCode,
+      promoAutoApplied: o.promoAutoApplied,
       refundedAt: o.refundedAt,
       refundReason: o.refundReason,
       paymentFailure:

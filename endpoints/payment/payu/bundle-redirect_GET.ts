@@ -11,6 +11,7 @@ import { DB, PromoCodes } from "../../../helpers/schema";
 import { countPromoCodeUses } from "../../../helpers/promoCodeUsage";
 import { getSpinCouponRuleOrThrow } from "../../../helpers/spinWinServer";
 import { planTcoinsForOrder } from "../../../helpers/tcoins";
+import { ONE_OFFER_MESSAGE } from "../../../helpers/tcoinsMath";
 import { getOrderClientInfo } from "../../../helpers/orderClientInfo";
 
 const generateErrorHtml = (errorMessage: string, backUrl: string) => `
@@ -226,6 +227,10 @@ export async function handle(request: Request) {
 
     if (promoCodeId !== null && (isNaN(promoCodeId) || promoCodeId <= 0)) {
       const errorHtml = generateErrorHtml("Invalid promo code ID parameter.", "/bundles");
+      return new Response(errorHtml, { status: 400, headers: { "Content-Type": "text/html" } });
+    }
+    if (promoCodeId !== null && useTcoins) {
+      const errorHtml = generateErrorHtml(ONE_OFFER_MESSAGE, "/bundles");
       return new Response(errorHtml, { status: 400, headers: { "Content-Type": "text/html" } });
     }
 

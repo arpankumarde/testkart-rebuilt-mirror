@@ -248,7 +248,7 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
       examName={course.examName}
       rating={course.avgRating}
       ratingsCount={course.ratingsCount}
-      price={itemPriceProps(course.price, course.discountPrice)}
+      price={itemPriceProps(course.price, course.discountPrice, course.couponOffer ?? null)}
       thumbnailUrl={course.thumbnailImageUrl}
       placeholderUrl={Placeholder.COURSE}
     />

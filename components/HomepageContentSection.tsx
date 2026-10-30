@@ -29,6 +29,8 @@ interface TeacherProductCardProps {
   // List price shown struck through beside priceLabel when a discount applies.
   originalPriceLabel?: string;
   isFree?: boolean;
+  // "25% OFF" when a teacher's automatic course offer sets the price.
+  offerLabel?: string;
   examName?: string | null;
 }
 
@@ -47,6 +49,7 @@ export function TeacherProductCard({
   priceLabel,
   originalPriceLabel,
   isFree,
+  offerLabel,
   examName,
 }: TeacherProductCardProps) {
   const navigate = useNavigate();
@@ -106,6 +109,7 @@ export function TeacherProductCard({
               <span className={`${styles.priceTag} ${isFree ? styles.priceTagFree : styles.priceTagPaid}`}>
                 {priceLabel}
               </span>
+              {offerLabel && <span className={styles.offerBadge}>{offerLabel}</span>}
             </span>
           )}
         </p>

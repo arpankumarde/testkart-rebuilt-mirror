@@ -1,6 +1,7 @@
 import { db } from "./db";
 import { sql } from "kysely";
 import { courseDiscountPrice } from "./coursePricing";
+import { withCourseCouponOffers } from "./courseCouponOffersServer";
 import { productDiscountPrice } from "./digitalProductPricing";
 import { liveTestDiscountPrice } from "./liveTestPricing";
 import type {
@@ -435,7 +436,7 @@ export async function fetchTeacherProfileServer(teacherSlug: string): Promise<Ou
       yearsOfExperience: teacher.yearsOfExperience,
       joinedAt: teacher.createdAt,
     },
-    courses: coursesData,
+    courses: await withCourseCouponOffers(coursesData),
     tests: regularTests,
     liveTests: liveTestsData,
     products: productsData,

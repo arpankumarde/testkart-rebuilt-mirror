@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Check, Copy, Tag } from "lucide-react";
+import { Check, CheckCircle, Copy, Tag } from "lucide-react";
 import { toast } from "sonner";
 import { usePublicPromoCodesQuery } from "../helpers/usePublicPromoCodes";
 import type { PromoItemType } from "../helpers/promoCodeEligibility";
@@ -14,6 +14,8 @@ interface PublicCouponsCardProps {
   spaced?: boolean;
   /** Copy button wears the playful button skin (live competition page). */
   playful?: boolean;
+  /** The coupon checkout applies by itself (a course's teacher offer); it needs no copying. */
+  autoAppliedPromoCodeId?: number | null;
 }
 
 const formatRupees = (amount: number) => `₹${new Intl.NumberFormat("en-IN").format(amount)}`;
@@ -40,7 +42,14 @@ const getFinePrint = (promo: PublicPromoCode) => {
   return parts.join(" - ");
 };
 
-export const PublicCouponsCard: React.FC<PublicCouponsCardProps> = ({ itemType, itemId, className, spaced = true, playful = false }) => {
+export const PublicCouponsCard: React.FC<PublicCouponsCardProps> = ({
+  itemType,
+  itemId,
+  className,
+  spaced = true,
+  playful = false,
+  autoAppliedPromoCodeId = null,
+}) => {
   const { data } = usePublicPromoCodesQuery(itemType, itemId);
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const resetTimer = useRef<number | null>(null);
@@ -76,6 +85,21 @@ export const PublicCouponsCard: React.FC<PublicCouponsCardProps> = ({ itemType, 
         {promoCodes.map((promo) => {
           const finePrint = getFinePrint(promo);
           const isCopied = copiedId === promo.id;
+          if (promo.id === autoAppliedPromoCodeId) {
+            return (
+              <li key={promo.id} className={styles.item}>
+                <span className={styles.code}>{promo.code}</span>
+                <div className={styles.details}>
+                  <div className={styles.headline}>{getHeadline(promo)}</div>
+                  {finePrint && <div className={styles.finePrint}>{finePrint}</div>}
+                </div>
+                <span className={styles.autoApplied}>
+                  <CheckCircle size={16} aria-hidden="true" />
+                  Applied automatically
+                </span>
+              </li>
+            );
+          }
           return (
             <li key={promo.id} className={styles.item}>
               <span className={styles.code}>{promo.code}</span>

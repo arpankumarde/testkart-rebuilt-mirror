@@ -40,10 +40,10 @@ export async function handle(request: Request) {
       );
     }
 
-    // Resolve the promo code (if any) so we can show the student why the
-    // total they paid is less than the sum of the item prices.
-    let promoCode: string | null = null;
-    if (order.promoCodeId) {
+    // The code as it was at purchase (a teacher can rename it later); older
+    // orders have no snapshot and fall back to the code's current text.
+    let promoCode: string | null = order.promoCodeSnapshot ?? null;
+    if (!promoCode && order.promoCodeId) {
       const promo = await db
         .selectFrom("promoCodes")
         .select("code")

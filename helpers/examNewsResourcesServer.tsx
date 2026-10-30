@@ -4,6 +4,8 @@ import { examNewsServer } from "./examNewsServer";
 import { fetchHotExamIds } from "./fetchExamDirectoryServer";
 import { PINNED_TEACHER_IDS } from "./pinnedTeachers";
 import { courseDiscountPrice } from "./coursePricing";
+import { loadCourseCouponOffers } from "./courseCouponOffersServer";
+import type { CourseCouponOffer } from "./courseCouponOffer";
 import { slugify } from "./slugify";
 import type {
   ExamResource,
@@ -43,6 +45,7 @@ type Row = {
   teacherName: string | null;
   teacherSlug: string | null;
   teacherAvatarUrl: string | null;
+  couponOffer?: CourseCouponOffer | null;
 };
 
 const VERIFIED_TEACHER = sql`u.is_verified = true AND u.is_active = true`;
@@ -83,7 +86,8 @@ async function loadRows(examIds: number[]): Promise<Row[]> {
         AND m.price > 0 AND (m.discount_price IS NULL OR m.discount_price > 0)
         AND ex.exam_id IN (${ids})`.execute(db),
   ]);
-  return [...courses.rows, ...tests.rows];
+  const offers = await loadCourseCouponOffers(courses.rows.map((row) => row.id));
+  return [...courses.rows.map((row) => ({ ...row, couponOffer: offers.get(row.id) ?? null })), ...tests.rows];
 }
 
 const num = (value: number | string | null) => {
@@ -107,6 +111,7 @@ function toResource(row: Row): ExamResource {
     price,
     // Same price rules as the catalogue cards for each type.
     discountPrice: row.kind === "course" ? courseDiscountPrice(row.price, row.discountPrice) : num(row.discountPrice),
+    ...(row.kind === "course" && { couponOffer: row.couponOffer ?? null }),
   };
 }
 

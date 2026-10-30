@@ -13,6 +13,14 @@ import {
   type AdminOrderFilters,
   type AdminOrderSort,
 } from "./adminOrderFilters";
+import { ORDER_DISCOUNT_METHODS, type OrderDiscountMethod } from "./orderDiscountMethod";
+
+/** ?discount=promo_code|tcoins|none; links saved before 10-11-2026 used with/without. */
+function parseDiscountParam(value: string | null): OrderDiscountMethod | null {
+  if (value === "with") return "promo_code";
+  if (value === "without") return "none";
+  return (ORDER_DISCOUNT_METHODS as readonly string[]).includes(value ?? "") ? (value as OrderDiscountMethod) : null;
+}
 
 /*
  * Every Transactions filter lives in the URL, so a filtered view can be
@@ -141,7 +149,7 @@ export type TransactionUrlState = {
   to: string | null;
   paidFrom: string | null;
   paidTo: string | null;
-  discount: "with" | "without" | null;
+  discount: OrderDiscountMethod | null;
   amountMin: number | undefined;
   amountMax: number | undefined;
   sort: AdminOrderSort;
@@ -184,7 +192,7 @@ export function useTransactionFilters() {
       to: params.get("to"),
       paidFrom: params.get("paidFrom"),
       paidTo: params.get("paidTo"),
-      discount: discount === "with" || discount === "without" ? discount : null,
+      discount: parseDiscountParam(discount),
       amountMin: numberParam(params.get("min")),
       amountMax: numberParam(params.get("max")),
       sort: {

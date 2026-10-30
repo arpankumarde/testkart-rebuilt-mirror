@@ -4,6 +4,7 @@ import superjson from "superjson";
 import { sql, type RawBuilder } from "kysely";
 import { slugify } from "../../helpers/slugify";
 import { courseDiscountPrice } from "../../helpers/coursePricing";
+import { withCourseCouponOffers } from "../../helpers/courseCouponOffersServer";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -96,7 +97,7 @@ export async function handle(request: Request): Promise<Response> {
       .execute();
 
     const output: OutputType = {
-      courses: courses.map(({ teacherSlugCol, ...course }) => ({
+      courses: (await withCourseCouponOffers(courses)).map(({ teacherSlugCol, ...course }) => ({
         ...course,
         price: Number(course.price),
         discountPrice: courseDiscountPrice(course.price, course.discountPrice),

@@ -3,6 +3,7 @@ import superjson from "superjson";
 import type { OrganizationTypeValue } from "../teacher/organizations/create_POST.schema";
 import type { OrganizationSocialLinks, InstituteSizeValue } from "../teacher/organizations/update_POST.schema";
 import type { OrganizationGalleryItem } from "../teacher/organizations/gallery/list_GET.schema";
+import type { CourseCouponOffer } from "../../helpers/courseCouponOffer";
 
 export const schema = z.object({
   orgSlug: z.string(),
@@ -46,6 +47,8 @@ export type OrgCatalogueItem = {
   teacherTagline: string | null;
   teacherYearsOfExperience: number | null;
   teacherIsVerified: boolean;
+  // Courses only: the teacher's automatic offer, priced by the server.
+  couponOffer?: CourseCouponOffer | null;
 };
 
 export type OrganizationPost = {

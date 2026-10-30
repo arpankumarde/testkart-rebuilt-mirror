@@ -1,5 +1,6 @@
 import { z } from "zod";
 import superjson from "superjson";
+import type { CourseCouponOffer } from "../../helpers/courseCouponOffer";
 
 export const schema = z.object({
   /* The exam being read about. Without one, the exams marked Hot on /exams are used. */
@@ -20,6 +21,8 @@ export type ExamResource = {
   thumbnailUrl: string | null;
   price: number;
   discountPrice: number | null;
+  /* Courses only: the teacher's automatic offer, priced by the server. */
+  couponOffer?: CourseCouponOffer | null;
 };
 
 export type ExamResourceTeacher = {

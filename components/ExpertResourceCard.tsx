@@ -134,6 +134,7 @@ export const ExpertResourceCard: React.FC<ExpertResourceCardProps> = ({
         <span className={styles.price}>
           {price.originalPriceLabel && <s className={styles.originalPrice}>{price.originalPriceLabel}</s>}
           <span className={price.isFree ? styles.priceFree : styles.priceValue}>{price.priceLabel}</span>
+          {price.offerLabel && <span className={`${styles.save} ${styles.offerBadge}`}>{price.offerLabel}</span>}
         </span>
       </div>
     </Link>

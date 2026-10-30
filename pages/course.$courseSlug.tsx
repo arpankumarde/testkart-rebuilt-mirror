@@ -13,6 +13,7 @@ import { TeacherProfileCard } from '../components/TeacherProfileCard';
 import { TeacherCtaBanner } from '../components/TeacherCtaBanner';
 import { MobileStickyPurchaseBar } from '../components/MobileStickyPurchaseBar';
 import { PublicCouponsCard } from '../components/PublicCouponsCard';
+import { coursePriceView } from '../helpers/courseCouponOffer';
 import { BundleSuggestions } from '../components/BundleSuggestions';
 import { CourseCard } from '../components/CourseCard';
 import { AlertCircle, FileText, Info, Sparkles, Star, User } from "lucide-react";
@@ -134,7 +135,7 @@ export default function CourseDetailsPage() {
     }
     const lessonCount = course.sections.reduce((sum, section) => sum + section.lessons.length, 0);
     const lessonsText = lessonCount > 0 ? `${lessonCount} lesson${lessonCount > 1 ? "s" : ""}` : "a structured curriculum";
-    const priceText = course.price === 0 ? "Free" : `₹${course.discountPrice ?? course.price}`;
+    const priceText = course.price === 0 ? "Free" : `₹${coursePriceView(course.price, course.discountPrice, course.couponOffer).finalPrice}`;
     const examText = course.examName ? `Prepare for ${course.examName} with` : "Learn with";
     return `${course.title} - ${lessonsText} by ${course.teacher?.displayName || "expert educators"} | ${priceText} | ${examText} this course on Testkart`;
   }, [course]);
@@ -151,6 +152,7 @@ export default function CourseDetailsPage() {
       : null;
     const courseLanguages = itemLanguages(course);
 
+    const priceView = coursePriceView(course.price, course.discountPrice, course.couponOffer);
     const courseSchema: any = {
       "@type": "Course",
       "name": course.title,
@@ -164,10 +166,13 @@ export default function CourseDetailsPage() {
       "image": course.thumbnailImageUrl || course.thumbnailUrl || Placeholder.COURSE,
       "offers": {
         "@type": "Offer",
-        "price": course.price === 0 ? "0" : (course.discountPrice ?? course.price).toString(),
+        "price": priceView.finalPrice.toString(),
         "priceCurrency": "INR",
         "availability": "https://schema.org/InStock",
         "url": canonicalUrl,
+        ...(priceView.offer?.validUntil && {
+          "priceValidUntil": new Date(priceView.offer.validUntil).toISOString().slice(0, 10),
+        }),
       },
       "hasCourseInstance": {
         "@type": "CourseInstance",
@@ -262,7 +267,12 @@ export default function CourseDetailsPage() {
       <div className={styles.contentWrapper}>
         <main className={styles.mainColumn}>
           {!course.isEnrolled && !isFree && (
-            <PublicCouponsCard itemType="course" itemId={course.id} className={styles.couponsCard} />
+            <PublicCouponsCard
+              itemType="course"
+              itemId={course.id}
+              className={styles.couponsCard}
+              autoAppliedPromoCodeId={course.couponOffer?.promoCodeId ?? null}
+            />
           )}
 
           <section className={styles.section}>
@@ -426,6 +436,7 @@ export default function CourseDetailsPage() {
           id: course.id,
           price: course.price,
           discountPrice: course.discountPrice,
+          couponOffer: course.couponOffer,
           isEnrolled: course.isEnrolled,
         }}
         isVisible={isStickyBarVisible}

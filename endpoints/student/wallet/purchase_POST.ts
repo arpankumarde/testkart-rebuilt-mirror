@@ -11,7 +11,14 @@ import { lockWallet } from "../../../helpers/walletLock";
 import { courseEffectivePriceSql } from "../../../helpers/coursePricing";
 import { productEffectivePriceSql } from "../../../helpers/digitalProductPricing";
 import { planTcoinsForOrder } from "../../../helpers/tcoins";
+import { ONE_OFFER_MESSAGE } from "../../../helpers/tcoinsMath";
 import { getOrderClientInfo } from "../../../helpers/orderClientInfo";
+import {
+  assertAutoOfferUnchanged,
+  cartCourseLines,
+  lockPromoCode,
+  resolveCartAutoCoupon,
+} from "../../../helpers/courseCouponOffersServer";
 import {
   applySpinCouponOrThrow,
   asEligibleItemIds,
@@ -32,7 +39,10 @@ export async function handle(request: Request) {
 
     const text = await request.text();
     const json = superjson.parse(text);
-    const { promoCodeId, useTcoins } = schema.parse(json);
+    const { promoCodeId, useTcoins, autoPromoCodeId } = schema.parse(json);
+    if (promoCodeId && useTcoins) {
+      throw new Error(ONE_OFFER_MESSAGE);
+    }
 
     const result = await db.transaction().execute(async (trx) => {
       // Held until commit, so a parallel purchase or withdrawal request sees this debit
@@ -92,11 +102,14 @@ export async function handle(request: Request) {
       let discountAmount = 0;
       let finalAmount = totalAmount;
       let validatedPromoCodeId: number | null = null;
+      let appliedPromoCode: string | null = null;
+      let autoApplied = false;
       let eligibleItemIds: Array<{ type: "test" | "course" | "digitalProduct"; id: number }> = [];
       let spinApplied: AppliedSpinCoupon | null = null;
 
       // 4. Validate and apply promo code if provided
       if (promoCodeId) {
+        await lockPromoCode(trx, promoCodeId);
         const promoCode = await trx
           .selectFrom("promoCodes")
           .where("id", "=", promoCodeId)
@@ -221,6 +234,19 @@ export async function handle(request: Request) {
           finalAmount = totalAmount - discountAmount;
         }
         validatedPromoCodeId = promoCodeId;
+        appliedPromoCode = promoCode.code;
+      } else if (!useTcoins) {
+        // No typed code: the teacher's best public offer on the cart's courses applies by itself.
+        const auto = await resolveCartAutoCoupon({ userId: user.id, lines: cartCourseLines(cartItems), trx });
+        assertAutoOfferUnchanged(autoPromoCodeId, auto);
+        if (auto) {
+          validatedPromoCodeId = auto.promoCodeId;
+          appliedPromoCode = auto.code;
+          autoApplied = true;
+          discountAmount = auto.discountAmount;
+          finalAmount = totalAmount - discountAmount;
+          eligibleItemIds = auto.eligibleCourseIds.map((id) => ({ type: "course" as const, id }));
+        }
       }
 
       finalAmount = Math.max(0, finalAmount);
@@ -277,6 +303,8 @@ export async function handle(request: Request) {
           totalAmount: finalAmount.toFixed(2),
           discountAmount: discountAmount.toFixed(2),
           promoCodeId: validatedPromoCodeId,
+          promoCodeSnapshot: appliedPromoCode,
+          promoAutoApplied: validatedPromoCodeId ? autoApplied : null,
           status: "completed",
           paymentMethod: "wallet",
           paymentTransactionId: null,

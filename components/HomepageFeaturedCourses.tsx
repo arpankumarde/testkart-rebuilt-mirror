@@ -150,7 +150,11 @@ export function HomepageFeaturedCourses({ courses, isLoading = false }: Homepage
 }
 
 function FeaturedCourseCard({ course }: { course: HomepageFeaturedCourseItem }) {
-  const { priceLabel, originalPriceLabel, isFree } = itemPriceProps(course.price, course.discountPrice);
+  const { priceLabel, originalPriceLabel, isFree, offerLabel } = itemPriceProps(
+    course.price,
+    course.discountPrice,
+    course.couponOffer ?? null
+  );
 
   return (
     <Link to={`/course/${course.slug}`} className={styles.card}>
@@ -196,6 +200,7 @@ function FeaturedCourseCard({ course }: { course: HomepageFeaturedCourseItem }) 
           <span className={styles.priceGroup}>
             {originalPriceLabel && <s className={styles.originalPrice}>{originalPriceLabel}</s>}
             <span className={isFree ? styles.priceFree : styles.price}>{priceLabel}</span>
+            {offerLabel && <span className={styles.offerBadge}>{offerLabel}</span>}
           </span>
           <span className={styles.cardArrow} aria-hidden>
             <ArrowRight size={16} />

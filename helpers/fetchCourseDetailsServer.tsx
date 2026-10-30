@@ -5,6 +5,7 @@ import { slugify } from "./slugify";
 import { PRODUCT_DISCLAIMER } from "./productDisclaimer";
 import { computeCourseSeo } from "./seoIndexability";
 import { courseDiscountPrice } from "./coursePricing";
+import { loadCourseCouponOffers } from "./courseCouponOffersServer";
 
 export async function fetchCourseDetailsServer(slug: string): Promise<OutputType> {
   const course = await db
@@ -112,12 +113,15 @@ export async function fetchCourseDetailsServer(slug: string): Promise<OutputType
       }),
   }));
 
+  const couponOffers = await loadCourseCouponOffers([course.id]);
+
   return {
     ...course,
     category: course.examName || "Course",
     description: course.description,
     price: Number(course.price),
     discountPrice: courseDiscountPrice(course.price, course.discountPrice),
+    couponOffer: couponOffers.get(course.id) ?? null,
     teacher: {
       id: course.teacherId,
       displayName: course.teacherDisplayName,

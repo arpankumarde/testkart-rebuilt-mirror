@@ -41,7 +41,10 @@ export type Order = {
   paymentTransactionId: string | null;
   invoiceNumber: string | null;
   promoCodeId: number | null;
+  /** The code as it was at purchase, else (older orders) its current text. */
   promoCode: string | null;
+  /** True for a teacher offer applied without a code, false for a typed code, null when unknown or none. */
+  promoAutoApplied: boolean | null;
   discountAmount: number;
   // Only for failed and cancelled orders with a PayU reason on record
   paymentFailure: PaymentFailureDetails | null;

@@ -278,7 +278,7 @@ export default function SearchPage() {
                       teacherSlug={course.teacherSlug}
                       teacherIsVerified={course.teacherIsVerified}
                       productTitle={course.title}
-                      {...itemPriceProps(course.price, course.discountPrice)}
+                      {...itemPriceProps(course.price, course.discountPrice, course.couponOffer ?? null)}
                       thumbnailUrl={course.thumbnailUrl}
                       placeholderUrl={Placeholder.COURSE}
                     />

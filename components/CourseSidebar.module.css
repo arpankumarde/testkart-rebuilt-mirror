@@ -228,6 +228,25 @@
   margin-bottom: var(--spacing-4);
 }
 
+.offerNote {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  margin: var(--spacing-3) 0 0;
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--exam-sage-border);
+  border-radius: 0.75rem;
+  background-color: var(--exam-sage-tint);
+  color: var(--exam-sage-ink);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.offerNote svg {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
 /* PurchaseCardTeacher is shared with the other detail pages; only this card's
    copy gets the dashed seam and the sky hover. The wrapper's extra class
    outweighs the component's own single-class rule. */

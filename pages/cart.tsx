@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ShoppingCart, AlertCircle } from "lucide-react";
-import { useCartItemsQuery, useRemoveFromCartMutation } from "../helpers/useCartQuery";
+import { CART_QUERY_KEY, useCartItemsQuery, useRemoveFromCartMutation } from "../helpers/useCartQuery";
 import { useInitiatePaymentMutation } from "../helpers/usePaymentQuery";
 import { useStudentWalletBalance } from "../helpers/useStudentWallet";
 import { useStudentWalletPurchase } from "../helpers/useStudentWalletPurchase";
@@ -17,11 +18,14 @@ import { TcoinsCheckoutOption, tcoinsToSpend } from "../components/TcoinsCheckou
 import { useStudentTcoins } from "../helpers/useTcoins";
 import { useValidatePromoCodeMutation } from "../helpers/usePromoCodeMutations";
 import { paymentFailureReason } from "../helpers/paymentFailureReason";
+import { formatOfferInr } from "../helpers/courseCouponOffer";
+import { ONE_OFFER_MESSAGE, tcoinsRupeeValue } from "../helpers/tcoinsMath";
 import styles from "./cart.module.css";
 
 const CartPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { authState } = useAuth();
   const isStudent = authState.type === "authenticated" && authState.user.role === "student";
   const [appliedPromoCode, setAppliedPromoCode] = useState<{
@@ -39,6 +43,13 @@ const CartPage: React.FC = () => {
   const { mutate: purchaseWithWallet, isPending: isWalletProcessing } = useStudentWalletPurchase();
   const { mutate: validateCode, isPending: isValidatingCode } = useValidatePromoCodeMutation();
   const { data: tcoins } = useStudentTcoins(isStudent);
+
+  // The cart is cached for 15 minutes; a teacher offer can end sooner, so re-check on arrival.
+  useEffect(() => {
+    if (authState.type === "authenticated") {
+      queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
+    }
+  }, [authState.type, queryClient]);
 
   // Handle URL messages (payment failure, cancellation, etc.)
   useEffect(() => {
@@ -78,13 +89,32 @@ const CartPage: React.FC = () => {
   // Calculations
   const subtotal = data?.items.reduce((acc, item) => acc + item.price, 0) ?? 0;
   const itemDiscounts = data?.items.reduce((acc, item) => acc + (item.price - (item.discountPrice ?? item.price)), 0) ?? 0;
-  const promoDiscount = appliedPromoCode?.discountAmount ?? 0;
-  
-  // Total logic: (Price - ItemDiscount) - PromoDiscount
   const totalBeforePromo = subtotal - itemDiscounts;
-  const totalBeforeTcoins = Math.max(0, totalBeforePromo - promoDiscount);
   const tcoinsUsed = tcoinsToSpend(tcoins, totalBeforePromo, wantsTcoins, appliedPromoCode !== null);
-  const finalTotal = Math.max(0, Math.round((totalBeforeTcoins - tcoinsUsed) * 100) / 100);
+
+  // A typed code replaces the teacher's automatic offer, and so do Tcoins, since neither combines with it.
+  const autoCoupon = data?.autoCoupon ?? null;
+  const autoOfferActive = autoCoupon !== null && appliedPromoCode === null && tcoinsUsed === 0;
+  const promoDiscount = appliedPromoCode?.discountAmount ?? (autoOfferActive ? autoCoupon.discountAmount : 0);
+
+  // Total logic: (Price - ItemDiscount) - PromoDiscount, or - Tcoins value; never both.
+  const totalBeforeTcoins = Math.max(0, totalBeforePromo - promoDiscount);
+  const tcoinsValue = tcoinsRupeeValue(tcoinsUsed);
+  const finalTotal = Math.max(0, Math.round((totalBeforeTcoins - tcoinsValue) * 100) / 100);
+
+  const offerNote = (() => {
+    if (!autoCoupon) return undefined;
+    const autoSaving = formatOfferInr(autoCoupon.discountAmount);
+    if (appliedPromoCode) {
+      return appliedPromoCode.discountAmount < autoCoupon.discountAmount
+        ? `${appliedPromoCode.code} replaces the automatic offer ${autoCoupon.code}, which saves ${autoSaving}. Remove ${appliedPromoCode.code} to get it back.`
+        : `${appliedPromoCode.code} replaces the automatic offer ${autoCoupon.code}. Only one coupon works per order.`;
+    }
+    if (tcoinsUsed > 0) {
+      return `Tcoins replace the automatic offer ${autoCoupon.code}, which saves ${autoSaving}. Untick Tcoins to get it back.`;
+    }
+    return undefined;
+  })();
 
   // Promo Code Input Props
   const promoInputItems = data?.items.map(item => {
@@ -109,6 +139,7 @@ const CartPage: React.FC = () => {
     eligibleItemIds: number[]
   ) => {
     // Coins never combine with a coupon, so applying one turns them off.
+    const replacedTcoins = tcoinsUsed > 0;
     setWantsTcoins(false);
     setAppliedPromoCode({
       code,
@@ -116,12 +147,27 @@ const CartPage: React.FC = () => {
       discountAmount,
       eligibleItemIds,
     });
-    toast.success(`Coupon applied successfully! You saved ₹${discountAmount.toFixed(2).replace(/\.00$/, "")} on this order.`);
+    toast.success(
+      replacedTcoins
+        ? `${code} applied in place of Tcoins. You saved ${formatOfferInr(discountAmount)} on this order.`
+        : autoCoupon
+          ? `${code} applied in place of the automatic offer. You saved ${formatOfferInr(discountAmount)} on this order.`
+          : `Coupon applied successfully! You saved ${formatOfferInr(discountAmount)} on this order.`
+    );
+  };
+
+  // Ticking Tcoins while a code is applied swaps the code out instead of being blocked.
+  const handleTcoinsChange = (checked: boolean) => {
+    if (checked && appliedPromoCode) {
+      setAppliedPromoCode(null);
+      toast.info(`${appliedPromoCode.code} removed. ${ONE_OFFER_MESSAGE}`);
+    }
+    setWantsTcoins(checked);
   };
 
   const handlePromoRemove = () => {
     setAppliedPromoCode(null);
-    toast.info("Coupon removed");
+    toast.info(autoCoupon ? `Coupon removed. The automatic offer ${autoCoupon.code} is back.` : "Coupon removed");
   };
 
   // Applying from the coupon list goes through the same server validation as a typed code.
@@ -144,10 +190,15 @@ const CartPage: React.FC = () => {
     );
   };
 
+  // The server picks and prices the automatic offer itself; the id only lets it stop if the offer changed.
+  const expectedAutoPromoCodeId =
+    appliedPromoCode === null && tcoinsUsed === 0 ? autoCoupon?.promoCodeId ?? 0 : undefined;
+
   const handlePayment = () => {
     initiatePayment({
       promoCodeId: appliedPromoCode?.promoCodeId,
       useTcoins: tcoinsUsed > 0,
+      autoPromoCodeId: expectedAutoPromoCodeId,
     });
   };
 
@@ -155,6 +206,7 @@ const CartPage: React.FC = () => {
     purchaseWithWallet({
       promoCodeId: appliedPromoCode?.promoCodeId,
       useTcoins: tcoinsUsed > 0,
+      autoPromoCodeId: expectedAutoPromoCodeId,
     }, {
       onSuccess: (data) => {
         toast.success(`Purchase successful! ₹${data.amountDeducted} deducted from wallet.`);
@@ -169,6 +221,7 @@ const CartPage: React.FC = () => {
       },
       onError: (err) => {
         toast.error(err.message || "Wallet purchase failed. Please try again.");
+        queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
       }
     });
   };
@@ -224,6 +277,9 @@ const CartPage: React.FC = () => {
               const id = item.type === 'test' ? item.mockTestId : 
                          item.type === 'course' ? item.courseId : 
                          item.digitalProductId;
+              const isEligibleForPromo = appliedPromoCode
+                ? appliedPromoCode.eligibleItemIds.includes(id)
+                : autoOfferActive && item.type === 'course' && autoCoupon.eligibleCourseIds.includes(item.courseId);
 
               return (
                 <CartItem
@@ -231,7 +287,7 @@ const CartPage: React.FC = () => {
                   item={item}
                   onRemove={(cartItemId) => removeFromCart({ cartItemId })}
                   isRemoving={isRemoving}
-                  isEligibleForPromo={appliedPromoCode?.eligibleItemIds.includes(id)}
+                  isEligibleForPromo={isEligibleForPromo}
                 />
               );
             })}
@@ -247,11 +303,14 @@ const CartPage: React.FC = () => {
               finalTotal={finalTotal}
               onProceed={handlePayment}
               isProcessing={isInitiatingPayment}
-              appliedPromoCode={appliedPromoCode?.code}
+              appliedPromoCode={appliedPromoCode?.code ?? (autoOfferActive ? autoCoupon.code : undefined)}
+              promoAutoApplied={appliedPromoCode === null && autoOfferActive}
+              offerNote={offerNote}
               walletBalance={isStudent ? walletData?.availableBalance : undefined}
               onPayWithWallet={handleWalletPayment}
               isWalletProcessing={isWalletProcessing}
               tcoinsUsed={tcoinsUsed}
+              tcoinsValue={tcoinsValue}
               tcoinsOption={
                 tcoins?.enabled ? (
                   <TcoinsCheckoutOption
@@ -259,8 +318,8 @@ const CartPage: React.FC = () => {
                     orderValue={totalBeforePromo}
                     amountToPay={finalTotal}
                     checked={wantsTcoins}
-                    onCheckedChange={setWantsTcoins}
-                    couponApplied={appliedPromoCode !== null}
+                    onCheckedChange={handleTcoinsChange}
+                    appliedCouponCode={appliedPromoCode?.code ?? null}
                   />
                 ) : undefined
               }

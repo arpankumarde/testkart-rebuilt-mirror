@@ -2,6 +2,7 @@ import { z } from "zod";
 import superjson from "superjson";
 import type { OrganizationTypeValue } from "../teacher/organizations/create_POST.schema";
 import type { PublicExamNewsCard } from "../exam-news/list_GET.schema";
+import type { CourseCouponOffer } from "../../helpers/courseCouponOffer";
 
 export const schema = z.object({
   q: z.string().min(1, "Search query is required"),
@@ -31,6 +32,8 @@ export type SearchResultItem = {
   examName?: string | null;
   rating?: number | null;
   reviewsCount?: number;
+  /** Courses only: the teacher's automatic offer, priced by the server. */
+  couponOffer?: CourseCouponOffer | null;
 };
 
 export type SearchTeacherItem = {

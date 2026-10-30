@@ -222,7 +222,7 @@ export const SwmgCatalogSections = ({ emptyTitle, emptyText }: CatalogProps) => 
             productTitle={course.title}
             examName={course.examName}
             stats="Course"
-            {...itemPriceProps(course.price, course.discountPrice)}
+            {...itemPriceProps(course.price, course.discountPrice, course.couponOffer ?? null)}
             thumbnailUrl={course.thumbnailImageUrl}
             placeholderUrl={Placeholder.COURSE}
           />

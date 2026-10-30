@@ -118,6 +118,20 @@
   box-shadow: var(--shadow-focus);
 }
 
+.autoApplied {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-height: 44px;
+  padding: 0 var(--spacing-4);
+  border: 2px solid var(--success-text);
+  border-radius: var(--radius);
+  color: var(--success-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 @media (max-width: 991px) {
   .spaced {
     margin-bottom: var(--spacing-6);
@@ -147,6 +161,11 @@
   }
 
   .copyButton {
+    order: 2;
+    margin-left: auto;
+  }
+
+  .autoApplied {
     order: 2;
     margin-left: auto;
   }

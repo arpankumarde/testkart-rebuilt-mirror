@@ -6,6 +6,7 @@ import { courseDiscountPrice } from "../../helpers/coursePricing";
 import { productDiscountPrice } from "../../helpers/digitalProductPricing";
 import { searchTeachers } from "../../helpers/searchTeachers";
 import { examNewsPublicServer } from "../../helpers/examNewsPublicServer";
+import { loadCourseCouponOffers } from "../../helpers/courseCouponOffersServer";
 
 /* Content from verified teachers ranks above everything else; popularity orders within each half. */
 const verifiedTeacherFirst = sql`coalesce(users.is_verified, false)`;
@@ -277,6 +278,7 @@ export async function handle(request: Request): Promise<Response> {
       reviewsCount: Number(t.reviewsCount ?? 0),
     }));
 
+    const courseOffers = await loadCourseCouponOffers(courses.map((c) => c.id));
     const formattedCourses: OutputType["courses"] = courses.map((c) => ({
       id: c.id,
       slug: c.slug,
@@ -293,6 +295,7 @@ export async function handle(request: Request): Promise<Response> {
       views: Number(c.views ?? 0),
      category: c.examName ?? null,
      type: "course",
+      couponOffer: courseOffers.get(c.id) ?? null,
     }));
 
     const formattedBundles: OutputType["bundles"] = bundles.map((b) => ({

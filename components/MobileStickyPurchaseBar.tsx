@@ -11,11 +11,12 @@ import { postShopEnrollFree } from '../endpoints/shop/enroll-free_POST.schema';
 import { STUDENT_PURCHASES_QUERY_KEY } from '../helpers/useShopQuery';
 import { toast } from 'sonner';
 import { Button } from './Button';
+import { coursePriceView, formatOfferInr, type CourseCouponOffer } from '../helpers/courseCouponOffer';
 import styles from './MobileStickyPurchaseBar.module.css';
 
 export type ProductData = 
   | { type: 'test'; id: number; price: number; discountPrice: number | null; isEnrolled: boolean }
-  | { type: 'course'; id: number; price: number; discountPrice?: number | null; isEnrolled: boolean }
+  | { type: 'course'; id: number; price: number; discountPrice?: number | null; couponOffer?: CourseCouponOffer | null; isEnrolled: boolean }
   | { type: 'digitalProduct'; id: number; price: number; discountPrice?: number | null; isEnrolled: boolean }
   | { type: 'bundle'; id: number; price: number; originalPrice?: number; isEnrolled: boolean; slug?: string; promoCodeId?: number | null; useTcoins?: boolean }
   | { type: 'liveTest'; id: number; price: number; isEnrolled: boolean; canEnroll?: boolean };
@@ -147,7 +148,12 @@ export const MobileStickyPurchaseBar: React.FC<MobileStickyPurchaseBarProps> = (
   let formattedOriginalPrice: string | null = null;
   let discountPercentage = 0;
 
-  if (product.type === 'bundle' && product.originalPrice !== undefined && product.originalPrice > product.price && !isFree) {
+  if (product.type === 'course' && !isFree) {
+    const view = coursePriceView(product.price, product.discountPrice, product.couponOffer);
+    displayPrice = view.finalPrice;
+    formattedOriginalPrice = view.originalPrice !== null ? formatOfferInr(view.originalPrice) : null;
+    discountPercentage = view.percentOff;
+  } else if (product.type === 'bundle' && product.originalPrice !== undefined && product.originalPrice > product.price && !isFree) {
     displayPrice = product.price;
     formattedOriginalPrice = new Intl.NumberFormat("en-IN", {
         style: "currency",
@@ -173,11 +179,13 @@ export const MobileStickyPurchaseBar: React.FC<MobileStickyPurchaseBarProps> = (
 
   const formattedPrice = isFree
     ? "Free"
-    : new Intl.NumberFormat("en-IN", {
-        style: "currency",
-        currency: "INR",
-        minimumFractionDigits: 0,
-      }).format(Number(displayPrice));
+    : product.type === 'course'
+      ? formatOfferInr(Number(displayPrice))
+      : new Intl.NumberFormat("en-IN", {
+          style: "currency",
+          currency: "INR",
+          minimumFractionDigits: 0,
+        }).format(Number(displayPrice));
 
   // Determine loading state based on product type
   const isEnrollmentPending = product.type === 'test' 

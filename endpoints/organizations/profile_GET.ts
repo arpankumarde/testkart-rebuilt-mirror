@@ -10,6 +10,7 @@ import {
 import superjson from "superjson";
 import { sql } from "kysely";
 import { courseDiscountPrice } from "../../helpers/coursePricing";
+import { loadCourseCouponOffers } from "../../helpers/courseCouponOffersServer";
 
 const CATALOGUE_LIMIT_PER_KIND = 24;
 const POSTS_LIMIT = 20;
@@ -224,6 +225,7 @@ export async function handle(request: Request) {
           .execute(),
       ]);
 
+      const courseOffers = await loadCourseCouponOffers(courses.map((c) => c.id));
       for (const c of courses) {
         catalogue.push({
           kind: "course",
@@ -242,6 +244,7 @@ export async function handle(request: Request) {
           teacherTagline: c.teacherTagline,
           teacherYearsOfExperience: c.teacherYearsOfExperience,
           teacherIsVerified: !!c.teacherIsVerified,
+          couponOffer: courseOffers.get(c.id) ?? null,
         });
       }
       for (const t of tests) {

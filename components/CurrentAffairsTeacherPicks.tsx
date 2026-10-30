@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { ClipboardCheck, GraduationCap } from "lucide-react";
 import { useTestsQuery } from "../helpers/useTestsQuery";
 import { usePublicCoursesQuery } from "../helpers/useStudentCoursesQuery";
-import { formatItemPrice } from "../helpers/homepageItemUtils";
+import { formatItemPrice, itemPriceProps } from "../helpers/homepageItemUtils";
 import { Skeleton } from "./Skeleton";
 import styles from "./CurrentAffairsTeacherPicks.module.css";
 
@@ -53,7 +53,7 @@ export const CurrentAffairsTeacherPicks: React.FC<{ examId: number | null }> = (
       href: `/course/${course.slug}`,
       title: course.title,
       teacherName: course.teacherName,
-      price: formatItemPrice(Number(course.price), course.discountPrice === null ? null : Number(course.discountPrice)),
+      price: itemPriceProps(Number(course.price), course.discountPrice, course.couponOffer ?? null).priceLabel,
       thumbnailUrl: course.thumbnailImageUrl || course.thumbnailUrl,
       kind: "Course" as const,
     })),

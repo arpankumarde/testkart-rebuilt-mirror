@@ -23,16 +23,3 @@ export function promoDiscountFor(terms: PromoDiscountTerms, amount: number): num
   discount = Math.round(Math.min(discount, amount) * 100) / 100;
   return discount > 0 ? discount : null;
 }
-
-/** The coupon that takes the most off this amount, with that discount. */
-export function bestPromoCode<T extends PromoDiscountTerms>(
-  promoCodes: T[],
-  amount: number,
-): { promo: T; discount: number } | null {
-  let best: { promo: T; discount: number } | null = null;
-  for (const promo of promoCodes) {
-    const discount = promoDiscountFor(promo, amount);
-    if (discount !== null && (!best || discount > best.discount)) best = { promo, discount };
-  }
-  return best;
-}

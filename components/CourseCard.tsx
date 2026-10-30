@@ -8,7 +8,7 @@ import { useAuth } from '../helpers/useAuth';
 import { VideoPreview } from './VideoPreview';
 import { VerifiedBadge } from "./VerifiedBadge";
 import { Placeholder } from '../helpers/placeholderImages';
-import { courseDiscountPrice } from '../helpers/coursePricing';
+import { coursePriceView, formatOfferInr } from '../helpers/courseCouponOffer';
 import { formatLanguages } from '../helpers/itemLanguages';
 import styles from './CourseCard.module.css';
 
@@ -33,17 +33,10 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, className }) => 
   const detailsUrl = `/course/${course.slug}`;
 
   const isFree = course.price === 0;
-  const discountPrice = isFree ? null : courseDiscountPrice(course.price, course.discountPrice);
-  const formatInr = (amount: number) =>
-    new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  const formattedPrice = isFree ? 'Free' : formatInr(discountPrice ?? course.price);
-  const formattedOriginalPrice = discountPrice !== null ? formatInr(course.price) : null;
-  const discountPercentage =
-    discountPrice !== null ? Math.round(((course.price - discountPrice) / course.price) * 100) : 0;
+  const priceView = coursePriceView(course.price, course.discountPrice, course.couponOffer);
+  const formattedPrice = isFree ? 'Free' : formatOfferInr(priceView.finalPrice);
+  const formattedOriginalPrice = priceView.originalPrice !== null ? formatOfferInr(priceView.originalPrice) : null;
+  const discountPercentage = priceView.percentOff;
 
   const levelInfo = levelDisplay[course.level] || { text: course.level, icon: <BarChart3 size={16} /> };
 
@@ -153,7 +146,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, className }) => 
               {formattedOriginalPrice && (
                 <div className={styles.originalPriceRow}>
                   <span className={styles.originalPrice}>{formattedOriginalPrice}</span>
-                  <span className={styles.discountBadge}>{discountPercentage}% off</span>
+                  {discountPercentage > 0 && <span className={styles.discountBadge}>{discountPercentage}% OFF</span>}
                 </div>
               )}
               <div className={`${styles.price} ${isFree ? styles.freePrice : ''}`}>

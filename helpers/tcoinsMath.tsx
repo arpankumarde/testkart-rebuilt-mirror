@@ -5,6 +5,16 @@
 
 export const TCOINS_SETTING_KEY = "tcoins_config";
 
+/** Rupees one Tcoin is worth. Every coin-to-rupee conversion goes through tcoinsRupeeValue. */
+export const TCOIN_RUPEE_VALUE = 1;
+
+export function tcoinsRupeeValue(coins: number): number {
+  return Math.round(coins * TCOIN_RUPEE_VALUE * 100) / 100;
+}
+
+/** Shown wherever a student or the server explains that the two never combine. */
+export const ONE_OFFER_MESSAGE = "Only one offer can be applied per purchase. Choose either a Promo Code or TCoins.";
+
 export type TcoinsConfig = {
   enabled: boolean;
   redeemPercent: number;
@@ -48,10 +58,10 @@ const wholeCoins = (value: number): number => Math.max(0, Math.floor(value + 1e-
 
 export function tcoinsRedeemableFor(config: TcoinsConfig, orderValue: number, balance: number): number {
   if (!config.enabled) return 0;
-  return Math.min(wholeCoins((orderValue * config.redeemPercent) / 100), config.maxRedeem, wholeCoins(balance));
+  return Math.min(wholeCoins((orderValue * config.redeemPercent) / 100 / TCOIN_RUPEE_VALUE), config.maxRedeem, wholeCoins(balance));
 }
 
 export function tcoinsCashbackFor(config: TcoinsConfig, amountPaid: number): number {
   if (!config.enabled) return 0;
-  return Math.min(config.maxCashback, wholeCoins((amountPaid * config.cashbackPercent) / 100));
+  return Math.min(config.maxCashback, wholeCoins((amountPaid * config.cashbackPercent) / 100 / TCOIN_RUPEE_VALUE));
 }

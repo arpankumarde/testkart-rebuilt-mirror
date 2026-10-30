@@ -29,6 +29,7 @@ import {
 } from "../helpers/orderAttribution";
 import { NOT_CAPTURED, ORDER_PRODUCT_TYPE_LABELS, ORDER_PRODUCT_TYPES, type OrderProductType } from "../helpers/adminOrderFilters";
 import { OrderStatusArrayValues } from "../helpers/schema";
+import { ORDER_DISCOUNT_METHOD_LABELS } from "../helpers/orderDiscountMethod";
 import type { OutputType as Facets, FacetOption } from "../endpoints/admin/orders/facets_GET.schema";
 import styles from "./AdminTransactionsFilters.module.css";
 
@@ -206,7 +207,7 @@ export const AdminTransactionsFilters: React.FC<AdminTransactionsFiltersProps> =
   if (state.discount) {
     chips.push({
       id: "discount",
-      label: state.discount === "with" ? "With promo discount" : "No promo discount",
+      label: `Discount: ${state.discount === "none" ? "None" : ORDER_DISCOUNT_METHOD_LABELS[state.discount]}`,
       onRemove: () => update({ discount: null }),
     });
   }
@@ -372,7 +373,7 @@ export const AdminTransactionsFilters: React.FC<AdminTransactionsFiltersProps> =
                   { searchable: true }
                 )}
               </Field>
-              <Field label="Promo discount" htmlFor="tx-discount">
+              <Field label="Discount method" htmlFor="tx-discount">
                 <Select
                   value={state.discount ?? "any"}
                   onValueChange={(value) => update({ discount: value === "any" ? null : value })}
@@ -382,8 +383,9 @@ export const AdminTransactionsFilters: React.FC<AdminTransactionsFiltersProps> =
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="any">Any</SelectItem>
-                    <SelectItem value="with">Discount applied</SelectItem>
-                    <SelectItem value="without">No discount</SelectItem>
+                    <SelectItem value="promo_code">Promo code</SelectItem>
+                    <SelectItem value="tcoins">Tcoins used</SelectItem>
+                    <SelectItem value="none">No discount</SelectItem>
                   </SelectContent>
                 </Select>
               </Field>

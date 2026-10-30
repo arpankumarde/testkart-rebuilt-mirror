@@ -19,6 +19,7 @@ import {
   NOT_CAPTURED_LABEL,
   osLabel,
 } from "../helpers/transactionDisplay";
+import { ORDER_DISCOUNT_METHOD_LABELS } from "../helpers/orderDiscountMethod";
 import styles from "./AdminTransactionDetailSheet.module.css";
 
 const STATUS_VARIANTS = {
@@ -104,6 +105,36 @@ export const ClientSourceSection: React.FC<{ client: AdminOrderClient | null; in
 const missing = (value: string | null | undefined, fallback = NOT_CAPTURED_LABEL): [React.ReactNode, { muted: boolean } | undefined] =>
   value ? [value, undefined] : [fallback, { muted: true }];
 
+/** Original amount, the one discount method used (promo code or Tcoins, never both) and what was paid. */
+const paymentBreakdownRows = (order: AdminOrderRow): Row[] => {
+  const rows: Row[] = [
+    ["Discount method", ORDER_DISCOUNT_METHOD_LABELS[order.discountMethod], { muted: order.discountMethod === "none" }],
+    ["Original amount", formatInr(order.originalAmount)],
+  ];
+  if (order.discountMethod === "promo_code") {
+    rows.push(
+      [
+        "Promo code",
+        order.promoCode
+          ? `${order.promoCode}${order.promoAutoApplied ? " (teacher offer, applied automatically)" : ""}`
+          : "Not available",
+        { muted: !order.promoCode },
+      ],
+      ["Promo discount", `-${formatInr(order.discountAmount)}`]
+    );
+  } else if (order.discountAmount > 0) {
+    rows.push(["Discount", `-${formatInr(order.discountAmount)}`]);
+  }
+  if (order.tcoinsRedeemed > 0) {
+    rows.push(
+      ["Tcoins redeemed", `${order.tcoinsRedeemed.toLocaleString("en-IN")} Tcoins`],
+      ["Tcoin value", `-${formatInr(order.tcoinsValue)}`]
+    );
+  }
+  rows.push(["Final paid amount", formatInr(order.totalAmount)]);
+  return rows;
+};
+
 interface AdminTransactionDetailSheetProps {
   order: AdminOrderRow | null;
   onOpenChange: (open: boolean) => void;
@@ -146,7 +177,6 @@ export const AdminTransactionDetailSheet: React.FC<AdminTransactionDetailSheetPr
                     order.paidAt ? formatDateTime(order.paidAt) : order.status === "completed" || order.status === "refunded" ? "Time not recorded" : "Not paid",
                     { muted: !order.paidAt },
                   ],
-                  ["Amount", formatInr(order.totalAmount)],
                   ["Gateway", order.paymentMethod === "payu" ? "PayU" : "No gateway"],
                   ["Payment method", paymentMethodLabel(order.paymentMethod), { muted: !order.paymentMethod }],
                   row(
@@ -154,15 +184,6 @@ export const AdminTransactionDetailSheet: React.FC<AdminTransactionDetailSheetPr
                     paymentModeLabel(order.paymentMode),
                     order.paymentMethod === "payu" ? "Not recorded" : "Not applicable"
                   ),
-                  [
-                    "Promo code",
-                    order.promoCode ? `${order.promoCode}, ${formatInr(order.discountAmount)} off` : "None",
-                    { muted: !order.promoCode },
-                  ],
-                  ...(order.discountAmount > 0 && !order.promoCode
-                    ? ([["Discount", formatInr(order.discountAmount)]] as Row[])
-                    : []),
-                  ...(order.tcoinsRedeemed > 0 ? ([["Tcoins redeemed", order.tcoinsRedeemed.toLocaleString("en-IN")]] as Row[]) : []),
                   row("Invoice number", order.invoiceNumber, "Not issued", true),
                   ...(order.status === "refunded"
                     ? ([
@@ -175,6 +196,8 @@ export const AdminTransactionDetailSheet: React.FC<AdminTransactionDetailSheetPr
                     : []),
                 ]}
               />
+
+              <Section title="Payment breakdown" rows={paymentBreakdownRows(order)} />
 
               <Section
                 title="Student"

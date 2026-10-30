@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle, Share2, Info } from 'lucide-react';
+import { CheckCircle, Share2, Info, Tag } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '../helpers/useAuth';
@@ -10,7 +10,7 @@ import { VideoPreview } from './VideoPreview';
 import { PurchaseCardTeacher } from './PurchaseCardTeacher';
 import { ShareAssetDialog } from './ShareAssetDialog';
 import { PUBLIC_PAGE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
-import { courseDiscountPrice } from '../helpers/coursePricing';
+import { coursePriceView, formatOfferInr, type CourseCouponOffer } from '../helpers/courseCouponOffer';
 import { courseReturnState } from '../helpers/courseReturnTarget';
 import styles from './CourseSidebar.module.css';
 
@@ -23,6 +23,8 @@ export type PublicCourseDetails = {
   introVideoUrl?: string | null;
   price: number;
   discountPrice?: number | null;
+  /** The teacher's automatic offer, priced by the server. */
+  couponOffer?: CourseCouponOffer | null;
   level: 'beginner' | 'intermediate' | 'advanced';
   estimatedDurationMinutes: number | null;
   teacher: {
@@ -128,19 +130,10 @@ export const CourseSidebar: React.FC<CourseSidebarProps> = ({
     return addToCartMutation.isPending ? 'Adding...' : 'Add to Cart';
   };
 
-  const formatInr = (amount: number) =>
-    new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      minimumFractionDigits: 0,
-    }).format(amount);
-  const discountPrice = isFree ? null : courseDiscountPrice(course.price, course.discountPrice);
-  const hasDiscount = discountPrice !== null;
-  const formattedPrice = isFree ? "Free" : formatInr(discountPrice ?? course.price);
-  const formattedOriginalPrice = hasDiscount ? formatInr(course.price) : null;
-  const discountPercentage = hasDiscount
-    ? Math.round(((course.price - discountPrice) / course.price) * 100)
-    : 0;
+  const priceView = coursePriceView(course.price, course.discountPrice, course.couponOffer);
+  const formattedPrice = isFree ? "Free" : formatOfferInr(priceView.finalPrice);
+  const formattedOriginalPrice = priceView.originalPrice !== null ? formatOfferInr(priceView.originalPrice) : null;
+  const discountPercentage = priceView.percentOff;
 
   return (
     <div className={`${styles.sidebar} ${className || ''}`}>
@@ -194,10 +187,19 @@ export const CourseSidebar: React.FC<CourseSidebarProps> = ({
                     {formattedOriginalPrice && (
                       <>
                         <span className={styles.originalPrice}>{formattedOriginalPrice}</span>
-                        <span className={styles.discount}>{discountPercentage}% off</span>
+                        {discountPercentage > 0 && <span className={styles.discount}>{discountPercentage}% OFF</span>}
                       </>
                     )}
                   </div>
+                  {priceView.offer && (
+                    <p className={styles.offerNote}>
+                      <Tag size={14} aria-hidden="true" />
+                      <span>
+                        Special offer automatically applied: <strong>{priceView.offer.code}</strong> saves{' '}
+                        {formatOfferInr(priceView.offer.discountAmount)}
+                      </span>
+                    </p>
+                  )}
                 </div>
               )}
 

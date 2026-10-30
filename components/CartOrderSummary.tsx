@@ -12,14 +12,20 @@ interface CartOrderSummaryProps {
   onProceed: () => void;
   isProcessing: boolean;
   promoInputProps: React.ComponentProps<typeof PromoCodeInput>;
+  /** The coupon behind promoDiscount: a typed code, or the automatic teacher offer. */
   appliedPromoCode?: string;
+  /** True when appliedPromoCode is the teacher's offer, applied without a code being typed. */
+  promoAutoApplied?: boolean;
+  /** Explains why the automatic offer is not the one applied (a typed code or Tcoins replaced it). */
+  offerNote?: string;
   walletBalance?: number;
   onPayWithWallet?: () => void;
   isWalletProcessing?: boolean;
   /** Lists the student's own coupons that fit this cart. */
   couponPicker?: React.ReactNode;
-  /** Coins taken off finalTotal, which is already net of them. */
+  /** Coins redeemed; finalTotal is already net of their rupee value (tcoinsValue). */
   tcoinsUsed?: number;
+  tcoinsValue?: number;
   tcoinsOption?: React.ReactNode;
 }
 
@@ -32,11 +38,14 @@ export const CartOrderSummary: React.FC<CartOrderSummaryProps> = ({
   isProcessing,
   promoInputProps,
   appliedPromoCode,
+  promoAutoApplied = false,
+  offerNote,
   walletBalance,
   onPayWithWallet,
   isWalletProcessing,
   couponPicker,
   tcoinsUsed = 0,
+  tcoinsValue = 0,
   tcoinsOption,
 }) => {
   const [isPromoOpen, setIsPromoOpen] = useState(false);
@@ -49,7 +58,7 @@ export const CartOrderSummary: React.FC<CartOrderSummaryProps> = ({
     }).format(amount);
 
   const discountPercentage = subtotal > 0 ? Math.round((itemDiscounts / subtotal) * 100) : 0;
-  const checkoutSavings = promoDiscount + tcoinsUsed;
+  const checkoutSavings = promoDiscount + tcoinsValue;
 
   return (
     <div className={styles.container}>
@@ -71,18 +80,26 @@ export const CartOrderSummary: React.FC<CartOrderSummaryProps> = ({
         )}
 
         {promoDiscount > 0 && (
-          <div className={`${styles.row} ${styles.promoRow}`}>
-            <span className={styles.label}>
-              Coupon discount ({appliedPromoCode})
-            </span>
-            <span className={styles.promoValue}>-{formatPrice(promoDiscount)}</span>
-          </div>
+          <>
+            <div className={`${styles.row} ${styles.promoRow}`}>
+              <span className={styles.label}>
+                {promoAutoApplied ? "Teacher coupon discount" : "Coupon discount"} ({appliedPromoCode})
+              </span>
+              <span className={styles.promoValue}>-{formatPrice(promoDiscount)}</span>
+            </div>
+            {promoAutoApplied && (
+              <p className={styles.autoOfferNote}>
+                <CheckCircle size={14} aria-hidden="true" />
+                Special offer automatically applied. No code needed.
+              </p>
+            )}
+          </>
         )}
 
         {tcoinsUsed > 0 && (
           <div className={`${styles.row} ${styles.discountRow}`}>
-            <span className={styles.label}>Paid with Tcoins</span>
-            <span className={styles.discountValue}>-{formatPrice(tcoinsUsed)}</span>
+            <span className={styles.label}>Tcoins redeemed ({tcoinsUsed.toLocaleString("en-IN")} Tcoins)</span>
+            <span className={styles.discountValue}>-{formatPrice(tcoinsValue)}</span>
           </div>
         )}
 
@@ -101,7 +118,9 @@ export const CartOrderSummary: React.FC<CartOrderSummaryProps> = ({
       </div>
 
       <div className={styles.promoSection}>
-        {!appliedPromoCode ? (
+        {offerNote ? <p className={styles.offerReplacedNote}>{offerNote}</p> : null}
+
+        {!appliedPromoCode || promoAutoApplied ? (
           <button 
             className={styles.promoToggle}
             onClick={() => setIsPromoOpen(!isPromoOpen)}
@@ -109,13 +128,13 @@ export const CartOrderSummary: React.FC<CartOrderSummaryProps> = ({
           >
             <div className={styles.promoToggleLeft}>
               <Tag size={16} />
-              <span>Have a coupon?</span>
+              <span>{promoAutoApplied ? "Have a different coupon?" : "Have a coupon?"}</span>
             </div>
             {isPromoOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
           </button>
         ) : null}
 
-        {(isPromoOpen || appliedPromoCode) && (
+        {(isPromoOpen || (appliedPromoCode && !promoAutoApplied)) && (
           <div className={styles.promoInputWrapper}>
             <PromoCodeInput {...promoInputProps} className={styles.promoInput} />
           </div>

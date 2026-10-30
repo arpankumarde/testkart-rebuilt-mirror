@@ -1,5 +1,6 @@
 import type { HomepageMixedItem } from "../endpoints/homepage/data_GET.schema";
 import { liveTestPath } from "./liveTestRoutes";
+import { coursePriceView, formatOfferInr, type CourseCouponOffer } from "./courseCouponOffer";
 
 export function getProductLink(item: HomepageMixedItem): string {
   switch (item.type) {
@@ -35,13 +36,30 @@ export type ItemPriceProps = {
   priceLabel: string;
   originalPriceLabel?: string;
   isFree: boolean;
+  /** "25% OFF" when a teacher's automatic course offer sets the price. */
+  offerLabel?: string;
 };
 
 /**
  * Price props for a product card: the price the student pays, plus the list
- * price to strike through when a discount brings it lower.
+ * price to strike through when a discount brings it lower. Pass a course's
+ * couponOffer (null when it has none) to price it with the teacher's automatic
+ * offer; other item types leave it out.
  */
-export function itemPriceProps(price: number, discountPrice?: number | null): ItemPriceProps {
+export function itemPriceProps(
+  price: number,
+  discountPrice?: number | null,
+  couponOffer?: CourseCouponOffer | null
+): ItemPriceProps {
+  if (couponOffer !== undefined) {
+    const view = coursePriceView(price, discountPrice, couponOffer);
+    return {
+      priceLabel: view.isFree ? "Free" : formatOfferInr(view.finalPrice),
+      originalPriceLabel: view.originalPrice !== null ? formatInr(view.originalPrice) : undefined,
+      isFree: view.isFree,
+      offerLabel: view.offer && view.percentOff > 0 ? `${view.percentOff}% OFF` : undefined,
+    };
+  }
   const activePrice = discountPrice != null ? discountPrice : price;
   return {
     priceLabel: formatItemPrice(price, discountPrice),

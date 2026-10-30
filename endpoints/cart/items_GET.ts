@@ -2,8 +2,9 @@ import { db } from "../../helpers/db";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { OutputType, CartItem } from "./items_GET.schema";
 import superjson from "superjson";
-import { courseDiscountPrice } from "../../helpers/coursePricing";
+import { courseDiscountPrice, courseEffectivePrice } from "../../helpers/coursePricing";
 import { productDiscountPrice } from "../../helpers/digitalProductPricing";
+import { resolveCartAutoCoupon } from "../../helpers/courseCouponOffersServer";
 
 export async function handle(request: Request) {
   try {
@@ -32,6 +33,7 @@ export async function handle(request: Request) {
         "courses.discountPrice as courseDiscountPrice",
         "courses.thumbnailUrl as courseThumbnailUrl",
         "courses.thumbnailImageUrl as courseThumbnailImageUrl",
+        "courses.teacherId as courseTeacherId",
         "users.displayName as courseTeacherName",
         "cartItems.digitalProductId",
         "digitalProducts.title as digitalProductTitle",
@@ -83,8 +85,20 @@ export async function handle(request: Request) {
       }
     });
 
+    // The same pick checkout makes when no code is typed and no Tcoins are used.
+    const autoCoupon = await resolveCartAutoCoupon({
+      userId: user.id,
+      lines: cartItems
+        .filter((item) => item.courseId !== null && !item.mockTestId)
+        .map((item) => ({
+          courseId: item.courseId as number,
+          teacherId: item.courseTeacherId,
+          price: courseEffectivePrice(item.coursePrice, item.courseDiscountPrice),
+        })),
+    });
+
     return new Response(
-      superjson.stringify({ items } satisfies OutputType)
+      superjson.stringify({ items, autoCoupon } satisfies OutputType)
     );
   } catch (error) {
     console.error("Failed to fetch cart items:", error);

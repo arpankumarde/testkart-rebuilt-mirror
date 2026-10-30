@@ -2,6 +2,7 @@ import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
 import { Courses, Users } from "../../helpers/schema";
+import type { CourseCouponOffer } from "../../helpers/courseCouponOffer";
 
 export const schema = z.object({
   search: z.string().optional(),
@@ -49,6 +50,8 @@ export type CourseListItem = Pick<
   teacherYearsOfExperience: number | null;
   /** Every language of the course; language keeps the readable summary. Absent from older builders. */
   languages?: string[];
+  /** The teacher's automatic offer, priced by the server. Absent from older builders. */
+  couponOffer?: CourseCouponOffer | null;
 };
 
 export type OutputType = {

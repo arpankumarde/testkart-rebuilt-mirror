@@ -7,6 +7,7 @@ import { contentInExam } from "../../helpers/contentExams";
 import { matchesAnyLanguage } from "../../helpers/languageFilter";
 import { pinnedTeacherFirst, sortPinsTeachers } from "../../helpers/pinnedTeachers";
 import { courseDiscountPrice, courseEffectivePriceSql } from "../../helpers/coursePricing";
+import { withCourseCouponOffers } from "../../helpers/courseCouponOffersServer";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -156,7 +157,7 @@ export async function handle(request: Request): Promise<Response> {
     const totalPages = Math.ceil(totalCount / limit);
 
     const output: OutputType = {
-      courses: courses.map((course) => ({
+      courses: (await withCourseCouponOffers(courses)).map((course) => ({
         ...course,
         price: Number(course.price),
         discountPrice: courseDiscountPrice(course.price, course.discountPrice),
