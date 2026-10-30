@@ -148,7 +148,7 @@
   border: 0;
 }
 
-@media (max-width: 768px) {
+@container (max-width: 768px) {
   .row {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }

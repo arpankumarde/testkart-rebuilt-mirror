@@ -1,6 +1,17 @@
 import React from "react";
-import { AlarmClock, CircleCheck, CircleDashed, CircleDot, Clock3, Hourglass } from "lucide-react";
-import type { GecStatus, GecStatusTone, GecTable } from "../helpers/govtExamsCalendarData";
+import { Link } from "react-router-dom";
+import {
+  AlarmClock,
+  CalendarClock,
+  CalendarPlus,
+  CircleCheck,
+  CircleDashed,
+  CircleDot,
+  Clock3,
+  Hourglass,
+  RefreshCw,
+} from "lucide-react";
+import type { GecStatusBadge, GecStatusTone, GecTable } from "../helpers/gecView";
 import { daysUntil, isFiltering, rowMatches, type GecFilters } from "../helpers/govtExamsCalendarFilter";
 import styles from "./GovtExamsTable.module.css";
 
@@ -10,9 +21,12 @@ const TONE_ICON: Record<GecStatusTone, React.ElementType> = {
   progress: CircleDot,
   concluded: CircleDashed,
   awaited: Hourglass,
+  tentative: CalendarClock,
+  revised: RefreshCw,
+  extended: CalendarPlus,
 };
 
-export const GovtExamsStatus: React.FC<{ status: GecStatus }> = ({ status }) => {
+export const GovtExamsStatus: React.FC<{ status: GecStatusBadge }> = ({ status }) => {
   const Icon = TONE_ICON[status.tone];
   return (
     <span className={`${styles.status} ${styles[status.tone]}`}>
@@ -29,16 +43,17 @@ const deadlineNote = (days: number) => {
 };
 
 /**
- * The last date as a chip. Red with a countdown at 3 days or fewer, grey "Closed" once
+ * The last date as a chip. Red with a countdown at `urgentDays` or fewer, grey "Closed" once
  * past. `today` is null on the server and on first paint, so SSR and hydration agree.
  */
-export const GovtExamsDeadline: React.FC<{ label: string; deadline: string; today: string | null }> = ({
+export const GovtExamsDeadline: React.FC<{ label: string; deadline: string; today: string | null; urgentDays: number }> = ({
   label,
   deadline,
   today,
+  urgentDays,
 }) => {
   const days = today ? daysUntil(deadline, today) : null;
-  const urgent = days !== null && days >= 0 && days <= 3;
+  const urgent = days !== null && days >= 0 && days <= urgentDays;
   const closed = days !== null && days < 0;
   return (
     <span className={styles.deadlineWrap}>
@@ -53,22 +68,39 @@ export const GovtExamsDeadline: React.FC<{ label: string; deadline: string; toda
   );
 };
 
+/** A cell's text, linked when the row carries a link for it: internal pages in-app, official sites in a new tab. */
+const CellText: React.FC<{ text: string; href: string | null | undefined }> = ({ text, href }) => {
+  if (!href) return <>{text}</>;
+  if (href.startsWith("/")) {
+    return (
+      <Link to={href} className={styles.cellLink}>
+        {text}
+      </Link>
+    );
+  }
+  return (
+    <a href={href} className={styles.cellLink} target="_blank" rel="noopener noreferrer nofollow">
+      {text}
+    </a>
+  );
+};
+
 interface GovtExamsTableProps {
   table: GecTable;
   filters: GecFilters;
   today: string | null;
+  urgentDays: number;
   onClearFilters: () => void;
   /** Extra content under the table, such as a legend. */
   children?: React.ReactNode;
 }
 
 /** One calendar section: H2, intro, the filtered table in its own sideways scroller, then the note. */
-export const GovtExamsTable: React.FC<GovtExamsTableProps> = ({ table, filters, today, onClearFilters, children }) => {
+export const GovtExamsTable: React.FC<GovtExamsTableProps> = ({ table, filters, today, urgentDays, onClearFilters, children }) => {
   const titleId = `${table.id}-title`;
   const rows = table.rows.filter((row) => rowMatches(table, row, filters));
   const filtering = isFiltering(filters);
-  const hasStatus = table.rows.some((row) => row.status);
-  const dataColumns = hasStatus ? table.columns.slice(0, -1) : table.columns;
+  const dataColumns = table.statusColumn ? table.columns.slice(0, -1) : table.columns;
 
   return (
     <section id={table.id} data-gec-section className={styles.section} aria-labelledby={titleId}>
@@ -84,7 +116,11 @@ export const GovtExamsTable: React.FC<GovtExamsTableProps> = ({ table, filters, 
       </div>
       {table.intro && <p className={styles.intro}>{table.intro}</p>}
 
-      {rows.length === 0 ? (
+      {table.rows.length === 0 ? (
+        <div className={styles.empty}>
+          <p>Nothing to list here right now. Check back after the next update.</p>
+        </div>
+      ) : rows.length === 0 ? (
         <div className={styles.empty}>
           <p>Nothing in this table matches your search and filters.</p>
           <button type="button" className={styles.emptyClear} onClick={onClearFilters}>
@@ -105,18 +141,20 @@ export const GovtExamsTable: React.FC<GovtExamsTableProps> = ({ table, filters, 
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.cells.join("|")}>
+                <tr key={row.key}>
                   <th scope="row">
                     {row.deadline ? (
-                      <GovtExamsDeadline label={row.cells[0]} deadline={row.deadline} today={today} />
+                      <GovtExamsDeadline label={row.cells[0]} deadline={row.deadline} today={today} urgentDays={urgentDays} />
                     ) : (
-                      row.cells[0]
+                      <CellText text={row.cells[0]} href={row.links[0]} />
                     )}
                   </th>
                   {dataColumns.slice(1).map((column, index) => (
-                    <td key={column}>{row.cells[index + 1]}</td>
+                    <td key={column}>
+                      <CellText text={row.cells[index + 1]} href={row.links[index + 1]} />
+                    </td>
                   ))}
-                  {hasStatus && <td>{row.status && <GovtExamsStatus status={row.status} />}</td>}
+                  {table.statusColumn && <td>{row.status && <GovtExamsStatus status={row.status} />}</td>}
                 </tr>
               ))}
             </tbody>

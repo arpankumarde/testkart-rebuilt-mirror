@@ -1,0 +1,83 @@
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.fileName {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.875rem;
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.result {
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--pastel-powder);
+  border-radius: var(--radius-md);
+  color: var(--pastel-powder-ink);
+}
+
+.resultTitle {
+  margin: 0 0 var(--spacing-2);
+  font-weight: 700;
+}
+
+.counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2) var(--spacing-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+}
+
+.issues {
+  max-height: 12rem;
+  margin: var(--spacing-3) 0 0;
+  padding: var(--spacing-2) var(--spacing-3);
+  overflow-y: auto;
+  background-color: var(--surface);
+  border-radius: var(--radius);
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  list-style: none;
+}
+
+.issues li + li {
+  margin-top: var(--spacing-1);
+}
+
+.error {
+  margin: 0;
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--error);
+  border-radius: var(--radius);
+  background-color: color-mix(in srgb, var(--error) 10%, var(--surface));
+  color: var(--error-text);
+  font-size: 0.875rem;
+}

@@ -1,0 +1,139 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  width: 100%;
+  max-width: 90rem;
+  margin: 0 auto;
+  padding: var(--spacing-6);
+  box-sizing: border-box;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.select {
+  width: 18rem;
+  max-width: 100%;
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.devices {
+  display: inline-flex;
+  padding: 2px;
+  background-color: var(--muted);
+  border-radius: var(--radius);
+}
+
+.device {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: 0.375rem 0.75rem;
+  background: none;
+  border: none;
+  border-radius: calc(var(--radius) - 2px);
+  color: var(--muted-foreground);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.device:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 1px;
+}
+
+.deviceOn {
+  background-color: var(--surface);
+  color: var(--foreground);
+  box-shadow: 0 1px 2px hsl(0 0% 0% / 0.08);
+}
+
+.toolbarEnd {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-1);
+  margin-left: auto;
+}
+
+.stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-4);
+  background-color: var(--muted);
+  border-radius: var(--radius-lg);
+}
+
+.frameWrap {
+  --site-notice-offset: 0px;
+  --header-height: 0px;
+  position: relative;
+  height: calc(100vh - 16rem);
+  min-height: 32rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  transition: width var(--animation-duration-normal, 200ms) ease;
+}
+
+.banner {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  padding: var(--spacing-1) var(--spacing-4);
+  background-color: var(--pastel-lavender);
+  color: var(--pastel-lavender-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.caption {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: var(--spacing-4);
+  }
+
+  .toolbarEnd {
+    margin-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frameWrap {
+    transition: none;
+  }
+}

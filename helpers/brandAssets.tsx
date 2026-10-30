@@ -6,6 +6,7 @@
 
 export const BRAND_LOGO_LIGHT = "https://cdn.testkart.in/branding/logo-light.png";
 export const BRAND_LOGO_DARK = "https://cdn.testkart.in/branding/logo-dark.png";
+/** Round brand mark for in-app UI. The page's favicon links come from helpers/BrandFavicons. */
 export const BRAND_FAVICON = "https://cdn.testkart.in/branding/favicon.png";
 /** Default share image (og:image / twitter:image): the homepage hero, captured 11-10-2026. */
 export const BRAND_OG_IMAGE = "https://cdn.testkart.in/branding/og-image-v2.png";

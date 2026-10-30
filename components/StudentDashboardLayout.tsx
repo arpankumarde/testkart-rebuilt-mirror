@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Helmet } from 'react-helmet';
 import { Link } from 'react-router-dom';
 import { Menu } from 'lucide-react';
 import { StudentSidebar } from './StudentSidebar';
@@ -11,7 +10,8 @@ import { RequiredBillingStateDialog } from './RequiredBillingStateDialog';
 import { useStudentNameRequired } from '../helpers/useStudentNameRequired';
 import { useBillingStateRequired } from '../helpers/useBillingStateRequired';
 import { useDarkModeObserver } from '../helpers/useDarkModeObserver';
-import { BRAND_FAVICON, getBrandLogo } from '../helpers/brandAssets';
+import { getBrandLogo } from '../helpers/brandAssets';
+import { BrandFavicons } from '../helpers/BrandFavicons';
 import styles from './StudentDashboardLayout.module.css';
 
 export const StudentDashboardLayout: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => {
@@ -39,12 +39,7 @@ export const StudentDashboardLayout: React.FC<{ children: React.ReactNode; class
       ) : (
         <MissingContactInfoDialog />
       )}
-      <Helmet>
-        <link rel="icon" type="image/png" sizes="32x32" href={BRAND_FAVICON} />
-        <link rel="icon" type="image/png" sizes="16x16" href={BRAND_FAVICON} />
-        <link rel="apple-touch-icon" href={BRAND_FAVICON} />
-        <link rel="shortcut icon" href={BRAND_FAVICON} />
-      </Helmet>
+      <BrandFavicons />
       
       {/* Mobile-only top bar: hamburger left, brand centred, an equal-width
           spacer on the right keeps the brand optically centred. Hidden above

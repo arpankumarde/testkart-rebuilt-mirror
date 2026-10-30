@@ -1,25 +1,25 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { CalendarPlus, FileDown, ListChecks } from "lucide-react";
-import { GEC_ON_THIS_PAGE, type GecSectionId } from "../helpers/govtExamsCalendarData";
+import type { GecPageContent, GecSectionId } from "../helpers/gecModel";
 import styles from "./GovtExamsSidebar.module.css";
 
 interface GovtExamsSidebarProps {
+  items: { id: GecSectionId; label: string }[];
+  card: GecPageContent["sidebar"];
   active: GecSectionId | null;
   onNavigate: (event: React.MouseEvent<HTMLAnchorElement>, id: GecSectionId) => void;
 }
 
-/**
- * Desktop-only sticky sidebar: On this page, a mock test card and Get updates. The mock
- * test button and both update actions are placeholders until their targets exist.
- */
-export const GovtExamsSidebar: React.FC<GovtExamsSidebarProps> = ({ active, onNavigate }) => (
+/** Desktop-only sticky sidebar: On this page, the mock test card and Get updates (both update actions are still to come). */
+export const GovtExamsSidebar: React.FC<GovtExamsSidebarProps> = ({ items, card, active, onNavigate }) => (
   <aside className={styles.sidebar} aria-label="Page tools">
     <nav className={styles.card} aria-labelledby="gec-toc-title">
       <h2 id="gec-toc-title" className={styles.cardTitle}>
         On this page
       </h2>
       <ul className={styles.toc}>
-        {GEC_ON_THIS_PAGE.map(({ id, label }) => (
+        {items.map(({ id, label }) => (
           <li key={id}>
             <a
               href={`#${id}`}
@@ -39,12 +39,22 @@ export const GovtExamsSidebar: React.FC<GovtExamsSidebarProps> = ({ active, onNa
         <ListChecks size={22} strokeWidth={2.25} />
       </span>
       <h2 id="gec-mock-title" className={styles.cardTitle}>
-        Free mock test
+        {card.title}
       </h2>
-      <p className={styles.cardText}>See where you stand before exam day, in the real exam format.</p>
-      <button type="button" className={styles.mockButton}>
-        Try a free mock test
-      </button>
+      {card.text && <p className={styles.cardText}>{card.text}</p>}
+      {card.url ? (
+        card.url.startsWith("/") ? (
+          <Link to={card.url} className={styles.mockButton}>
+            {card.buttonLabel}
+          </Link>
+        ) : (
+          <a href={card.url} className={styles.mockButton} target="_blank" rel="noopener noreferrer">
+            {card.buttonLabel}
+          </a>
+        )
+      ) : (
+        <span className={styles.mockButton}>{card.buttonLabel}</span>
+      )}
     </section>
 
     <section className={styles.card} aria-labelledby="gec-updates-title">

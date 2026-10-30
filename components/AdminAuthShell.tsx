@@ -1,7 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet";
-import { BRAND_APP_ICON, BRAND_FAVICON } from "../helpers/brandAssets";
+import { BRAND_APP_ICON } from "../helpers/brandAssets";
+import { BrandFavicons } from "../helpers/BrandFavicons";
 import styles from "./AdminAuthShell.module.css";
 
 export type AdminAuthNotice = {
@@ -30,11 +31,8 @@ export const AdminAuthShell = ({
   <div className={`${styles.page} ${className ?? ""}`}>
     <Helmet>
       <meta name="robots" content="noindex, nofollow" />
-      <link rel="icon" type="image/png" sizes="32x32" href={BRAND_FAVICON} />
-      <link rel="icon" type="image/png" sizes="16x16" href={BRAND_FAVICON} />
-      <link rel="apple-touch-icon" href={BRAND_FAVICON} />
-      <link rel="shortcut icon" href={BRAND_FAVICON} />
     </Helmet>
+    <BrandFavicons />
     <div className={styles.card} aria-busy={busy || undefined}>
       <div className={styles.header}>
         <img src={BRAND_APP_ICON} alt="Testkart" className={styles.logo} />

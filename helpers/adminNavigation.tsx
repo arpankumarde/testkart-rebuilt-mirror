@@ -39,6 +39,7 @@ import {
   BellRing,
   Video,
   Ticket,
+  CalendarRange,
 } from "lucide-react";
 import { ANY_ADMIN, EXTRA_PAGE_RULES, hasAdminModule, type AdminModule } from "./adminPermissions";
 import { ARTICLE_TABS } from "./adminContentSurfaces";
@@ -197,6 +198,13 @@ const groups: AdminNavGroup[] = [
     items: [
       { href: "/admin/careers", label: "Careers", icon: Briefcase, modules: ["careers"], keywords: "jobs applications" },
       { href: "/admin/press", label: "Press", icon: Newspaper, modules: ["news"], keywords: "press coverage media mentions news events" },
+      {
+        href: "/admin/govt-exams-calendar",
+        label: "Exam Calendar",
+        icon: CalendarRange,
+        modules: ["govt_exams_calendar"],
+        keywords: "government govt sarkari exam dates calendar upsc ssc ibps rrb state open applications last date deadlines",
+      },
       { href: "/admin/static-pages", label: "Static pages", icon: Layout, modules: ["static_pages"], keywords: "terms privacy about" },
       { href: "/admin/email-templates", label: "Email templates", icon: Mail, modules: ["email_templates"], keywords: "resend notifications" },
       { href: "/admin/api-docs", label: "API docs", icon: FileCode2, modules: ["api_docs"], keywords: "endpoints reference" },

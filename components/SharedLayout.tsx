@@ -16,7 +16,8 @@ import { MoreResourcesMenu } from "./MoreResourcesMenu";
 import { DiwaliSiteLayer } from "./DiwaliSiteLayer";
 import { SpinWinLauncher } from "./SpinWinLauncher";
 import { useDarkModeObserver } from "../helpers/useDarkModeObserver";
-import { BRAND_FAVICON, getBrandLogo } from "../helpers/brandAssets";
+import { getBrandLogo } from "../helpers/brandAssets";
+import { BrandFavicons } from "../helpers/BrandFavicons";
 import { ORGANIZATION_PATH_PATTERN } from "../helpers/organizationRoutes";
 import { MORE_RESOURCES, isMoreResourcePath } from "../helpers/moreResources";
 import styles from "./SharedLayout.module.css";
@@ -204,12 +205,8 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
         <link rel="preconnect" href="https://assets.floot.app" />
         <link rel="dns-prefetch" href="https://cdn.testkart.in" />
         <link rel="dns-prefetch" href="https://assets.floot.app" />
-        
-        <link rel="icon" type="image/png" sizes="32x32" href={BRAND_FAVICON} />
-        <link rel="icon" type="image/png" sizes="16x16" href={BRAND_FAVICON} />
-        <link rel="apple-touch-icon" href={BRAND_FAVICON} />
-        <link rel="shortcut icon" href={BRAND_FAVICON} />
       </Helmet>
+      <BrandFavicons />
       <div className={styles.layoutContainer}>
       <DiwaliSiteLayer />
       <header

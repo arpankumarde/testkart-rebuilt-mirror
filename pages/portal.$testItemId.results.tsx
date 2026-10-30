@@ -6,7 +6,7 @@ import { Button } from "../components/Button";
 import { TestResultsDisplay } from "../components/TestResultsDisplay";
 import { Skeleton } from "../components/Skeleton";
 import { ReviewDialog } from "../components/ReviewDialog";
-import { BRAND_FAVICON } from "../helpers/brandAssets";
+import { BrandFavicons } from "../helpers/BrandFavicons";
 import styles from "./portal.$testItemId.results.module.css";
 
 export default function TestResultsPage() {
@@ -118,11 +118,8 @@ export default function TestResultsPage() {
       <Helmet>
         <title>Test Results | Testkart</title>
         <meta name="description" content="View your latest test attempt results on Testkart." />
-        <link rel="icon" type="image/png" sizes="32x32" href={BRAND_FAVICON} />
-        <link rel="icon" type="image/png" sizes="16x16" href={BRAND_FAVICON} />
-        <link rel="apple-touch-icon" href={BRAND_FAVICON} />
-        <link rel="shortcut icon" href={BRAND_FAVICON} />
       </Helmet>
+      <BrandFavicons />
       {renderContent()}
     </div>
   );

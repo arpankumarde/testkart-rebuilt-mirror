@@ -1,8 +1,8 @@
 import React from "react";
 import { Search, X } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./Select";
-import { GEC_CATEGORIES, type GecCategory } from "../helpers/govtExamsCalendarData";
-import { ALL, GEC_MONTH_OPTIONS, isFiltering, type GecFilters } from "../helpers/govtExamsCalendarFilter";
+import { GEC_CATEGORIES, type GecCategory } from "../helpers/gecModel";
+import { ALL, isFiltering, type GecFilters } from "../helpers/govtExamsCalendarFilter";
 import styles from "./GovtExamsFilters.module.css";
 
 interface GovtExamsFiltersProps {
@@ -10,10 +10,19 @@ interface GovtExamsFiltersProps {
   onChange: (filters: GecFilters) => void;
   matchCount: number;
   totalCount: number;
+  monthOptions: { value: string; label: string }[];
+  placeholder: string;
 }
 
 /** Search box plus Category and Month selects. Filtering happens in place; nothing reloads. */
-export const GovtExamsFilters: React.FC<GovtExamsFiltersProps> = ({ filters, onChange, matchCount, totalCount }) => {
+export const GovtExamsFilters: React.FC<GovtExamsFiltersProps> = ({
+  filters,
+  onChange,
+  matchCount,
+  totalCount,
+  monthOptions,
+  placeholder,
+}) => {
   const filtering = isFiltering(filters);
 
   return (
@@ -28,7 +37,7 @@ export const GovtExamsFilters: React.FC<GovtExamsFiltersProps> = ({ filters, onC
             id="gec-search"
             type="search"
             className={styles.input}
-            placeholder="Search exam, e.g. SSC CGL, IBPS Clerk, RRB JE"
+            placeholder={placeholder || "Search exams"}
             value={filters.query}
             autoComplete="off"
             onChange={(event) => onChange({ ...filters, query: event.target.value })}
@@ -68,7 +77,7 @@ export const GovtExamsFilters: React.FC<GovtExamsFiltersProps> = ({ filters, onC
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={ALL}>All months</SelectItem>
-            {GEC_MONTH_OPTIONS.map(({ value, label }) => (
+            {monthOptions.map(({ value, label }) => (
               <SelectItem key={value} value={value}>
                 {label}
               </SelectItem>

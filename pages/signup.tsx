@@ -6,7 +6,7 @@ import { MobileOTPSignupForm } from "../components/MobileOTPSignupForm";
 import { EmailOTPSignupForm } from "../components/EmailOTPSignupForm";
 import { Button } from "../components/Button";
 import { validateRedirectPath } from "../helpers/validateRedirectPath";
-import { BRAND_FAVICON } from "../helpers/brandAssets";
+import { BrandFavicons } from "../helpers/BrandFavicons";
 import styles from "./signup.module.css";
 
 const SignupPage: React.FC = () => {
@@ -23,27 +23,8 @@ const SignupPage: React.FC = () => {
           content="Create a student account on Testkart to start taking mock tests and prepare for your exams."
         />
         <meta name="robots" content="noindex, nofollow" />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="32x32"
-          href={BRAND_FAVICON}
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="16x16"
-          href={BRAND_FAVICON}
-        />
-        <link
-          rel="apple-touch-icon"
-          href={BRAND_FAVICON}
-        />
-        <link
-          rel="shortcut icon"
-          href={BRAND_FAVICON}
-        />
       </Helmet>
+      <BrandFavicons />
       <div className={styles.pageContainer}>
         <div className={styles.formCard}>
           <div className={styles.header}>

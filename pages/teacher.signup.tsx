@@ -6,7 +6,7 @@ import { MobileOTPSignupForm } from "../components/MobileOTPSignupForm";
 import { EmailOTPSignupForm } from "../components/EmailOTPSignupForm";
 import { Target, BarChart, BadgeDollarSign, Brain, ShoppingBag } from "lucide-react";
 import { validateRedirectPath } from "../helpers/validateRedirectPath";
-import { BRAND_FAVICON } from "../helpers/brandAssets";
+import { BrandFavicons } from "../helpers/BrandFavicons";
 import { R2_PUBLIC_URL } from "../helpers/_publicConfigs";
 import styles from "./teacher.signup.module.css";
 
@@ -35,27 +35,8 @@ const TeacherSignupPage: React.FC = () => {
           content="Join Testkart as a teacher to create, sell, and manage your mock tests for a wide audience of students."
         />
         <meta name="robots" content="noindex, nofollow" />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="32x32"
-          href={BRAND_FAVICON}
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="16x16"
-          href={BRAND_FAVICON}
-        />
-        <link
-          rel="apple-touch-icon"
-          href={BRAND_FAVICON}
-        />
-        <link
-          rel="shortcut icon"
-          href={BRAND_FAVICON}
-        />
       </Helmet>
+      <BrandFavicons />
       <div className={styles.pageContainer}>
         <div className={styles.contentWrapper}>
           <div className={styles.benefitsPanel}>

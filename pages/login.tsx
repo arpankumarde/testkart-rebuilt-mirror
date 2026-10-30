@@ -7,7 +7,7 @@ import { EmailOTPLoginForm } from "../components/EmailOTPLoginForm";
 import { useAuth } from "../helpers/useAuth";
 import { validateRedirectPath } from "../helpers/validateRedirectPath";
 import { getRoleHomePath } from "../helpers/roleHomePath";
-import { BRAND_FAVICON } from "../helpers/brandAssets";
+import { BrandFavicons } from "../helpers/BrandFavicons";
 import styles from "./login.module.css";
 
 const LoginPage: React.FC = () => {
@@ -37,11 +37,8 @@ const LoginPage: React.FC = () => {
         <title>Login | Testkart</title>
         <meta name="description" content="Log in to your Testkart account." />
         <meta name="robots" content="noindex, nofollow" />
-        <link rel="icon" type="image/png" sizes="32x32" href={BRAND_FAVICON} />
-        <link rel="icon" type="image/png" sizes="16x16" href={BRAND_FAVICON} />
-        <link rel="apple-touch-icon" href={BRAND_FAVICON} />
-        <link rel="shortcut icon" href={BRAND_FAVICON} />
       </Helmet>
+      <BrandFavicons />
       <div className={styles.pageContainer}>
         <div className={styles.loginCard}>
           <div className={styles.cardHeader}>

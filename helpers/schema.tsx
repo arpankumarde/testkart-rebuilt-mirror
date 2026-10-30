@@ -51,6 +51,22 @@ export type ExamNewsStatus = "archived" | "draft" | "published" | "scheduled";
 
 export type ExamNewsType = "admit_card" | "answer_key" | "cut_off" | "date_change" | "notification" | "result" | "syllabus";
 
+export type GecCategory = "banking" | "central" | "railway" | "ssc" | "state" | "upsc";
+
+export type GecDateStatus = "confirmed" | "tba" | "tentative";
+
+export type GecEventType = "admit_card" | "answer_key" | "application_deadline" | "application_start" | "correction_window" | "exam" | "exam_city" | "interview" | "mains" | "notification" | "other" | "prelims" | "result" | "skill_test";
+
+export type GecLogKind = "auto" | "manual" | "publish";
+
+export type GecOverride = "auto" | "exclude" | "include";
+
+export type GecRecordType = "exam" | "recruitment";
+
+export type GecStatus = "concluded" | "extended" | "in_progress" | "open" | "revised" | "tba" | "tentative" | "upcoming";
+
+export type GecVerification = "needs_update" | "unverified" | "verified";
+
 export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
@@ -884,6 +900,92 @@ export interface ExamSubjects {
   subjectSlug: string;
   syllabusTopics: string | null;
   updatedAt: Generated<Timestamp | null>;
+}
+
+export interface GecEvents {
+  concludedOverride: Generated<GecOverride>;
+  createdAt: Generated<Timestamp>;
+  dateLabel: string | null;
+  dateStatus: Generated<GecDateStatus>;
+  endDate: Timestamp | null;
+  eventType: GecEventType;
+  gecExamId: number;
+  id: Generated<number>;
+  listingOverride: Generated<GecOverride>;
+  mode: string | null;
+  notes: string | null;
+  resultStatus: string | null;
+  resultUrl: string | null;
+  sortOrder: Generated<number>;
+  sourceUrl: string | null;
+  stage: string | null;
+  startDate: Timestamp | null;
+  statusOverride: GecStatus | null;
+  title: string | null;
+  updatedAt: Generated<Timestamp>;
+  watchNext: string | null;
+}
+
+export interface GecExams {
+  applyUrl: string | null;
+  category: GecCategory;
+  cellOverrides: Generated<Json>;
+  conductingBody: string;
+  createdAt: Generated<Timestamp>;
+  createdByAdminId: number | null;
+  id: Generated<number>;
+  isHidden: Generated<boolean>;
+  keywords: string | null;
+  name: string;
+  noticeNumber: string | null;
+  notificationUrl: string | null;
+  officialUrl: string | null;
+  postName: string | null;
+  postsDescription: string | null;
+  recordType: Generated<GecRecordType>;
+  reviewNote: string | null;
+  shortName: string | null;
+  slug: string;
+  sortOrder: Generated<number>;
+  sourceNote: string | null;
+  statusLabel: string | null;
+  statusOverride: GecStatus | null;
+  tableName: string | null;
+  testkartExamId: number | null;
+  updatedAt: Generated<Timestamp>;
+  updatedByAdminId: number | null;
+  vacancies: number | null;
+  verification: Generated<GecVerification>;
+  verifiedAt: Timestamp | null;
+  verifiedByAdminId: number | null;
+}
+
+export interface GecPage {
+  draft: Json;
+  draftUpdatedAt: Generated<Timestamp>;
+  draftUpdatedByAdminId: number | null;
+  id: Generated<number>;
+}
+
+export interface GecPublications {
+  id: Generated<number>;
+  lastUpdated: Timestamp;
+  publishedAt: Generated<Timestamp>;
+  publishedByAdminId: number | null;
+  snapshot: Json;
+  summary: string | null;
+}
+
+export interface GecUpdateLog {
+  adminId: number | null;
+  createdAt: Generated<Timestamp>;
+  id: Generated<number>;
+  isPublic: Generated<boolean>;
+  kind: GecLogKind;
+  logDate: Generated<Timestamp>;
+  publicationId: number | null;
+  section: string;
+  summary: string;
 }
 
 export interface GlossaryTermRelations {
@@ -2361,6 +2463,11 @@ export interface DB {
   examNewsSources: ExamNewsSources;
   exams: Exams;
   examSubjects: ExamSubjects;
+  gecEvents: GecEvents;
+  gecExams: GecExams;
+  gecPage: GecPage;
+  gecPublications: GecPublications;
+  gecUpdateLog: GecUpdateLog;
   glossaryTermRelations: GlossaryTermRelations;
   glossaryTerms: GlossaryTerms;
   gumletFolders: GumletFolders;
@@ -2518,6 +2625,14 @@ export const ExamNewsTypeArrayValues: [ExamNewsType, ...ExamNewsType[]] = ["admi
 export const ContentVisibilityArrayValues: [ContentVisibility, ...ContentVisibility[]] = ["public","unlisted"];
 export const GlossaryCategoryArrayValues: [GlossaryCategory, ...GlossaryCategory[]] = ["delivery_and_creation","scoring_and_assessment","test_types"];
 export const GlossaryTermStatusArrayValues: [GlossaryTermStatus, ...GlossaryTermStatus[]] = ["draft","published"];
+export const GecCategoryArrayValues: [GecCategory, ...GecCategory[]] = ["banking","central","railway","ssc","state","upsc"];
+export const GecRecordTypeArrayValues: [GecRecordType, ...GecRecordType[]] = ["exam","recruitment"];
+export const GecStatusArrayValues: [GecStatus, ...GecStatus[]] = ["concluded","extended","in_progress","open","revised","tba","tentative","upcoming"];
+export const GecEventTypeArrayValues: [GecEventType, ...GecEventType[]] = ["admit_card","answer_key","application_deadline","application_start","correction_window","exam","exam_city","interview","mains","notification","other","prelims","result","skill_test"];
+export const GecDateStatusArrayValues: [GecDateStatus, ...GecDateStatus[]] = ["confirmed","tba","tentative"];
+export const GecOverrideArrayValues: [GecOverride, ...GecOverride[]] = ["auto","exclude","include"];
+export const GecVerificationArrayValues: [GecVerification, ...GecVerification[]] = ["needs_update","unverified","verified"];
+export const GecLogKindArrayValues: [GecLogKind, ...GecLogKind[]] = ["auto","manual","publish"];
 // Table/column names whose snake_case spelling kysely's default CamelCasePlugin
 // cannot recover from the camelCase name used in code (an underscore directly
 // before a digit, e.g. reminder_48h_sent ⇄ reminder48hSent). The db helper's

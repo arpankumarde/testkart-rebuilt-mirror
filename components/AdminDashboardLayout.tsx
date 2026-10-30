@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Helmet } from "react-helmet";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   LogOut,
@@ -33,6 +32,7 @@ import {
 import { ThemeModeSwitch } from "./ThemeModeSwitch";
 import { AdminCommandPalette } from "./AdminCommandPalette";
 import { BRAND_FAVICON, getBrandLogo } from "../helpers/brandAssets";
+import { BrandFavicons } from "../helpers/BrandFavicons";
 import { useDarkModeObserver } from "../helpers/useDarkModeObserver";
 import styles from "./AdminDashboardLayout.module.css";
 
@@ -432,12 +432,7 @@ export const AdminDashboardLayout: React.FC<{ children: React.ReactNode }> = ({ 
 
   return (
     <AdminLayoutContext.Provider value={{ setHeaderHidden }}>
-      <Helmet>
-        <link rel="icon" type="image/png" sizes="32x32" href={BRAND_FAVICON} />
-        <link rel="icon" type="image/png" sizes="16x16" href={BRAND_FAVICON} />
-        <link rel="apple-touch-icon" href={BRAND_FAVICON} />
-        <link rel="shortcut icon" href={BRAND_FAVICON} />
-      </Helmet>
+      <BrandFavicons />
       <div className={`${styles.layout} ${rail ? styles.railLayout : ""}`}>
         <AdminSidebar
           isOpen={isSidebarOpen}

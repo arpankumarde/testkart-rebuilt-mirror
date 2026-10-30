@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Helmet } from 'react-helmet';
 import { Menu, HelpCircle, Headset, BookOpen, LogOut, UserCircle } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { TeacherSidebar } from './TeacherSidebar';
@@ -19,7 +18,8 @@ import {
 import { useAuth } from '../helpers/useAuth';
 import { useBillingStateRequired } from '../helpers/useBillingStateRequired';
 import { useDarkModeObserver } from '../helpers/useDarkModeObserver';
-import { BRAND_FAVICON, getBrandLogo } from '../helpers/brandAssets';
+import { getBrandLogo } from '../helpers/brandAssets';
+import { BrandFavicons } from '../helpers/BrandFavicons';
 import styles from './TeacherDashboardLayout.module.css';
 
 interface TeacherDashboardLayoutProps {
@@ -90,12 +90,7 @@ export const TeacherDashboardLayout: React.FC<TeacherDashboardLayoutProps> = ({ 
     <>
       {/* The billing state gate comes first; the optional contact steps wait until it is done. */}
       {billingStateRequired ? <RequiredBillingStateDialog /> : <MissingContactInfoDialog />}
-      <Helmet>
-        <link rel="icon" type="image/png" sizes="32x32" href={BRAND_FAVICON} />
-        <link rel="icon" type="image/png" sizes="16x16" href={BRAND_FAVICON} />
-        <link rel="apple-touch-icon" href={BRAND_FAVICON} />
-        <link rel="shortcut icon" href={BRAND_FAVICON} />
-      </Helmet>
+      <BrandFavicons />
 
       {/* Mobile-only top bar: hamburger left, brand centred, an equal-width
           spacer on the right keeps the brand optically centred. Hidden above

@@ -7,7 +7,7 @@ import { EmailOTPLoginForm } from "../components/EmailOTPLoginForm";
 import { useAuth } from "../helpers/useAuth";
 import { validateRedirectPath } from "../helpers/validateRedirectPath";
 import { getRoleHomePath } from "../helpers/roleHomePath";
-import { BRAND_FAVICON } from "../helpers/brandAssets";
+import { BrandFavicons } from "../helpers/BrandFavicons";
 import styles from "./teacher.login.module.css";
 
 const TeacherLoginPage: React.FC = () => {
@@ -40,11 +40,8 @@ const TeacherLoginPage: React.FC = () => {
           content="Log in to your Testkart teacher account to create and manage your mock tests."
         />
         <meta name="robots" content="noindex, nofollow" />
-        <link rel="icon" type="image/png" sizes="32x32" href={BRAND_FAVICON} />
-        <link rel="icon" type="image/png" sizes="16x16" href={BRAND_FAVICON} />
-        <link rel="apple-touch-icon" href={BRAND_FAVICON} />
-        <link rel="shortcut icon" href={BRAND_FAVICON} />
       </Helmet>
+      <BrandFavicons />
       <div className={styles.pageContainer}>
         <div className={styles.formCard}>
           <div className={styles.header}>

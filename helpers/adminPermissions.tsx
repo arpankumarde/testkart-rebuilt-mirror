@@ -55,6 +55,7 @@ export const ADMIN_MODULES = [
   { key: "glossary", label: "Glossary", group: "Content", hint: "Glossary terms, definitions and their SEO" },
   { key: "careers", label: "Careers", group: "Site", hint: "Job postings and applications" },
   { key: "news", label: "Press", group: "Site", hint: "Press coverage and events" },
+  { key: "govt_exams_calendar", label: "Govt Exams Calendar", group: "Site", hint: "Exam dates, open applications and the /govt-exams-calendar page" },
   { key: "static_pages", label: "Static pages", group: "Site", hint: "Terms, privacy, about" },
   { key: "email_templates", label: "Email templates", group: "Site", hint: "Transactional emails" },
   { key: "api_docs", label: "API docs", group: "Site", hint: "Endpoint reference" },
@@ -181,6 +182,7 @@ const API_RULES: Record<string, ApiRule> = {
 
   "admin/careers": ["careers"],
   "admin/news": ["news"],
+  "admin/govt-exams-calendar": ["govt_exams_calendar"],
   "admin/static-pages": ["static_pages"],
   "admin/email-templates": ["email_templates"],
   "admin/settings/ai-provider": ["settings"],

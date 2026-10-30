@@ -125,6 +125,12 @@ const paymentLine = (order: AdminOrderRow) => {
   return paymentMethodLabel(order.paymentMethod);
 };
 
+/* 1,000 and up as "1K" so the Tcoins chip fits the 7rem Amount column; the tooltip keeps the exact count. */
+const compactCoins = (coins: number) =>
+  coins >= 1000
+    ? new Intl.NumberFormat("en-IN", { notation: "compact", maximumFractionDigits: 1 }).format(coins)
+    : coins.toLocaleString("en-IN");
+
 /* Shared by the loading and loaded tables so the columns do not jump. */
 const TableColumns = () => (
   <colgroup>
@@ -712,9 +718,10 @@ export const AdminTransactionsTable: React.FC = () => {
                           <span
                             className={styles.tcoinsLine}
                             title={`${order.tcoinsRedeemed.toLocaleString("en-IN")} Tcoins used, ${formatInr(order.tcoinsValue)} off`}
+                            aria-label={`${order.tcoinsRedeemed.toLocaleString("en-IN")} Tcoins used, ${formatInr(order.tcoinsValue)} off`}
                           >
                             <Coins aria-hidden="true" />
-                            {order.tcoinsRedeemed.toLocaleString("en-IN")} Tcoins used
+                            <span className={styles.tcoinsText}>{compactCoins(order.tcoinsRedeemed)} Tcoins</span>
                           </span>
                         )}
                       </div>
