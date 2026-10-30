@@ -1,11 +1,12 @@
 import { db } from "../../helpers/db";
-import { schema, OutputType, StudyNoteFileSummary } from "./details_GET.schema";
+import { schema, OutputType, StudyNoteFileSummary, fileSummaryPreviewPages } from "./details_GET.schema";
 import superjson from "superjson";
 import { sql } from "kysely";
 import { slugify } from "../../helpers/slugify";
 import { PRODUCT_DISCLAIMER } from "../../helpers/productDisclaimer";
 import { getServerSessionOrThrow } from "../../helpers/getSetServerSession";
 import { computeStudyNoteSeo } from "../../helpers/seoIndexability";
+import { productDiscountPrice } from "../../helpers/digitalProductPricing";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -32,6 +33,7 @@ export async function handle(request: Request): Promise<Response> {
         "digitalProducts.description",
         "digitalProducts.shortDescription",
         "digitalProducts.price",
+        "digitalProducts.discountPrice",
         "digitalProducts.thumbnailUrl",
         "digitalProducts.pdfUrl",
         "digitalProducts.previewPages",
@@ -105,9 +107,10 @@ export async function handle(request: Request): Promise<Response> {
     // mirrors the "test items" list on the mock test detail page.
     const fileRows = await db
       .selectFrom("digitalProductFiles")
-      .select(["id", "title", "pageCount", "fileSizeBytes", "orderIndex"])
+      .select(["id", "title", "pageCount", "fileSizeBytes", "orderIndex", "previewEnabled", "previewPages"])
       .where("productId", "=", product.id)
       .orderBy("orderIndex", "asc")
+      .orderBy("id", "asc")
       .execute();
 
     let files: StudyNoteFileSummary[] = fileRows.map(f => ({
@@ -116,6 +119,7 @@ export async function handle(request: Request): Promise<Response> {
       pageCount: f.pageCount,
       fileSizeBytes: f.fileSizeBytes ? Number(f.fileSizeBytes) : null,
       orderIndex: f.orderIndex,
+      previewPages: fileSummaryPreviewPages(f.previewEnabled, f.previewPages, f.pageCount),
     }));
 
     // Legacy single-file products predate the multi-file feature and store
@@ -129,6 +133,7 @@ export async function handle(request: Request): Promise<Response> {
         pageCount: product.pageCount,
         fileSizeBytes: product.fileSizeBytes ? Number(product.fileSizeBytes) : null,
         orderIndex: 0,
+        previewPages: fileSummaryPreviewPages(true, product.previewPages, product.pageCount),
       }];
     }
 
@@ -176,6 +181,7 @@ export async function handle(request: Request): Promise<Response> {
         description: product.description,
         shortDescription: product.shortDescription,
         price: Number(product.price),
+        discountPrice: productDiscountPrice(product.price, product.discountPrice),
         thumbnailUrl: product.thumbnailUrl,
                 previewUrl: null,
         previewPages: product.previewPages,

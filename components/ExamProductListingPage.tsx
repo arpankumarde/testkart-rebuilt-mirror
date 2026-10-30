@@ -307,8 +307,7 @@ const StudyNotesBody: React.FC<{ examId: number; examName: string }> = ({ examId
               product.pageCount ? `${product.pageCount} pages` : null,
               product.fileCount > 1 ? `${product.fileCount} files` : null,
             ].filter(Boolean).join(" · ")}
-            priceLabel={formatItemPrice(product.price)}
-            isFree={product.price === 0}
+            {...itemPriceProps(product.price, product.discountPrice)}
             // Study note / digital product thumbnails are discontinued
             // site-wide — never pass thumbnailUrl/placeholderUrl here.
             // See the note on TeacherProductCard in HomepageContentSection.tsx.

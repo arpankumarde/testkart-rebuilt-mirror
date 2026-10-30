@@ -90,7 +90,49 @@ export type IncomingFile = {
   fileId?: string | null;
   fileSizeBytes?: number | null;
   pageCount?: number | null;
+  /** Omitted keeps a saved file's setting; a new file starts with the preview off. */
+  previewEnabled?: boolean;
+  previewPages?: number | null;
 };
+
+/** Why a file's preview setting is invalid, or null when it is fine. */
+export function filePreviewError(
+  title: string,
+  previewEnabled: boolean | undefined,
+  previewPages: number | null | undefined,
+  pageCount: number | null | undefined
+): string | null {
+  if (!previewEnabled) return null;
+  const label = `"${title.trim() || "This file"}"`;
+  if (!Number.isInteger(previewPages) || (previewPages as number) < 1) {
+    return `${label}: set at least 1 free preview page, or turn the preview off.`;
+  }
+  if (pageCount && pageCount > 0 && (previewPages as number) > pageCount) {
+    return `${label} has ${pageCount} ${pageCount === 1 ? "page" : "pages"}, so it cannot preview ${previewPages}.`;
+  }
+  return null;
+}
+
+// Clients that predate per-file previews send one product-wide count. It
+// applies to every file, capped at each file's length, as it always did.
+export function applyLegacyPreviewPages(files: IncomingFile[], previewPages: number | null | undefined): IncomingFile[] {
+  if (previewPages === undefined || files.some((f) => f.previewEnabled !== undefined)) return files;
+  const pages = previewPages ?? 0;
+  return files.map((f) => ({
+    ...f,
+    previewEnabled: pages > 0,
+    previewPages: pages > 0 ? (f.pageCount && f.pageCount > 0 ? Math.min(pages, f.pageCount) : pages) : null,
+  }));
+}
+
+/** The product-level preview count older readers use: the largest enabled file preview, or 0. */
+export const productPreviewPagesFromFiles = (files: DigitalProductFileItem[]): number =>
+  files.reduce((max, f) => (f.previewEnabled && isRealFileUrl(f.fileUrl) ? Math.max(max, f.previewPages ?? 0) : max), 0);
+
+const previewColumns = (file: IncomingFile) =>
+  file.previewEnabled === undefined
+    ? {}
+    : { previewEnabled: file.previewEnabled, previewPages: file.previewEnabled ? file.previewPages ?? null : null };
 
 export type FileSyncPlan = {
   updates: { id: number; file: IncomingFile; orderIndex: number }[];
@@ -150,6 +192,8 @@ const toFileItem = (f: {
   fileSizeBytes: string | number | bigint | null;
   pageCount: number | null;
   orderIndex: number;
+  previewEnabled: boolean;
+  previewPages: number | null;
 }): DigitalProductFileItem => ({
   id: f.id,
   title: f.title,
@@ -158,6 +202,8 @@ const toFileItem = (f: {
   fileSizeBytes: f.fileSizeBytes ? Number(f.fileSizeBytes) : null,
   pageCount: f.pageCount,
   orderIndex: f.orderIndex,
+  previewEnabled: f.previewEnabled,
+  previewPages: f.previewEnabled ? f.previewPages : null,
 });
 
 export async function listProductFiles(trx: Kysely<DB>, productId: number): Promise<DigitalProductFileItem[]> {
@@ -181,6 +227,12 @@ export async function syncProductFiles(
     .select(["id", "fileUrl"])
     .where("productId", "=", productId)
     .execute();
+
+  for (const file of incoming) {
+    if (!isRealFileUrl(file.fileUrl)) continue;
+    const error = filePreviewError(file.title, file.previewEnabled, file.previewPages, file.pageCount);
+    if (error) throw new ProductRuleError(error);
+  }
 
   const plan = planProductFileSync(existing, incoming);
   if (plan.hadRealFiles && !plan.keepsRealFiles) {
@@ -207,6 +259,7 @@ export async function syncProductFiles(
         fileSizeBytes: file.fileSizeBytes?.toString() ?? null,
         pageCount: file.pageCount ?? null,
         orderIndex,
+        ...previewColumns(file),
       })
       .where("id", "=", id)
       .where("productId", "=", productId)
@@ -225,10 +278,17 @@ export async function syncProductFiles(
           fileSizeBytes: file.fileSizeBytes?.toString() ?? null,
           pageCount: file.pageCount ?? null,
           orderIndex,
+          ...previewColumns(file),
         }))
       )
       .execute();
   }
 
-  return listProductFiles(trx, productId);
+  const files = await listProductFiles(trx, productId);
+  // A replaced file keeps its saved preview, so it is re-checked against the new page count.
+  for (const file of files) {
+    const error = filePreviewError(file.title, file.previewEnabled, file.previewPages, file.pageCount);
+    if (error) throw new ProductRuleError(error);
+  }
+  return files;
 }

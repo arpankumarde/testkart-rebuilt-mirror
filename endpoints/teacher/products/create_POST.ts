@@ -7,8 +7,16 @@ import { DEFAULT_CONTENT_VISIBILITY } from "../../../helpers/contentVisibility";
 import { sanitizeOptionalHtml } from "../../../helpers/sanitizeHtml";
 import { DigitalProductFileItem } from "../../../helpers/digitalProductFileTypes";
 import { languagesSummary, normalizeLanguages } from "../../../helpers/itemLanguages";
-import { isRealFileUrl, PLACEHOLDER_PDF_URL, ProductRuleError } from "../../../helpers/digitalProductRules";
+import {
+  applyLegacyPreviewPages,
+  filePreviewError,
+  isRealFileUrl,
+  PLACEHOLDER_PDF_URL,
+  ProductRuleError,
+  type IncomingFile,
+} from "../../../helpers/digitalProductRules";
 import { assertStudyNoteFilesArePdfs } from "../../../helpers/studyNoteFileCheck";
+import { productDiscountError } from "../../../helpers/digitalProductPricing";
 import {
   ContentExamError,
   primaryExamFields,
@@ -60,6 +68,11 @@ export async function handle(request: Request): Promise<Response> {
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);
 
+    const discountError = productDiscountError(input.price, input.discountPrice);
+    if (discountError) {
+      return new Response(superjson.stringify({ error: discountError }), { status: 400 });
+    }
+
     const exams = (await resolveExamSelection({ examNames: input.examNames, examName: input.examName })) ?? [];
 
     const slug = await generateUniqueSlug(input.title);
@@ -67,14 +80,8 @@ export async function handle(request: Request): Promise<Response> {
     // Only real uploads become file rows. A product created before its PDF
     // exists gets no row at all, so nothing can mistake it for a finished one.
     const realFiles = (input.files ?? []).filter((f) => isRealFileUrl(f.fileUrl));
-    const filesToInsert = realFiles.length > 0
-      ? realFiles.map((file) => ({
-          title: file.title,
-          fileUrl: file.fileUrl,
-          fileId: file.fileId ?? null,
-          fileSizeBytes: file.fileSizeBytes ?? null,
-          pageCount: file.pageCount ?? null,
-        }))
+    const incomingFiles: IncomingFile[] = realFiles.length > 0
+      ? realFiles
       : input.pdfUrl && isRealFileUrl(input.pdfUrl)
         ? [{
             title: input.title,
@@ -84,12 +91,29 @@ export async function handle(request: Request): Promise<Response> {
             pageCount: input.pageCount ?? null,
           }]
         : [];
+    const filesToInsert = applyLegacyPreviewPages(incomingFiles, input.previewPages).map((file) => ({
+      title: file.title,
+      fileUrl: file.fileUrl,
+      fileId: file.fileId ?? null,
+      fileSizeBytes: file.fileSizeBytes ?? null,
+      pageCount: file.pageCount ?? null,
+      previewEnabled: file.previewEnabled ?? false,
+      previewPages: file.previewEnabled ? file.previewPages ?? null : null,
+    }));
+    for (const file of filesToInsert) {
+      const error = filePreviewError(file.title, file.previewEnabled, file.previewPages, file.pageCount);
+      if (error) throw new ProductRuleError(error);
+    }
 
     await assertStudyNoteFilesArePdfs(filesToInsert);
 
     const firstFile = filesToInsert[0];
     const totalBytes = filesToInsert.reduce((sum, f) => sum + (f.fileSizeBytes ?? 0), 0);
     const totalPages = filesToInsert.reduce((sum, f) => sum + (f.pageCount ?? 0), 0);
+    // Older readers (the mobile app, admin review) still read one product-wide count.
+    const productPreviewPages = filesToInsert.length > 0
+      ? filesToInsert.reduce((max, f) => (f.previewEnabled ? Math.max(max, f.previewPages ?? 0) : max), 0)
+      : input.previewPages ?? null;
 
     const { newProduct, insertedFiles } = await db.transaction().execute(async (trx) => {
       const product = await trx
@@ -102,11 +126,12 @@ export async function handle(request: Request): Promise<Response> {
           visibility: input.visibility ?? DEFAULT_CONTENT_VISIBILITY,
           shortDescription: input.shortDescription ?? null,
           price: input.price.toString(),
+          discountPrice: input.discountPrice == null ? null : input.discountPrice.toString(),
           thumbnailUrl: input.thumbnailUrl ?? null,
           thumbnailFileId: input.thumbnailFileId ?? null,
           pdfUrl: firstFile?.fileUrl ?? PLACEHOLDER_PDF_URL,
           pdfFileId: firstFile?.fileId ?? null,
-          previewPages: input.previewPages ?? null,
+          previewPages: productPreviewPages,
           pageCount: totalPages || null,
           fileSizeBytes: firstFile ? totalBytes.toString() : null,
           allowDownload: input.allowDownload ?? true,
@@ -136,6 +161,8 @@ export async function handle(request: Request): Promise<Response> {
                 fileSizeBytes: file.fileSizeBytes?.toString() ?? null,
                 pageCount: file.pageCount,
                 orderIndex,
+                previewEnabled: file.previewEnabled,
+                previewPages: file.previewPages,
               }))
             )
             .returningAll()
@@ -153,11 +180,14 @@ export async function handle(request: Request): Promise<Response> {
       fileSizeBytes: f.fileSizeBytes ? Number(f.fileSizeBytes) : null,
       pageCount: f.pageCount,
       orderIndex: f.orderIndex,
+      previewEnabled: f.previewEnabled,
+      previewPages: f.previewEnabled ? f.previewPages : null,
     }));
 
     const output: OutputType = {
       ...newProduct,
       price: Number(newProduct.price),
+      discountPrice: newProduct.discountPrice === null ? null : Number(newProduct.discountPrice),
       rating: newProduct.rating ? Number(newProduct.rating) : null,
       fileSizeBytes: newProduct.fileSizeBytes ? Number(newProduct.fileSizeBytes) : null,
       files,

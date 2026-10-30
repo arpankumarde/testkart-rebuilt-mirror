@@ -25,6 +25,8 @@ export type ShopProductListItem = Pick<
   // Only set by the teacher profile endpoints for now.
   language?: string | null;
   price: number;
+  /** What the student pays instead of price, or null when there is no valid discount. */
+  discountPrice?: number | null;
   rating: number | null;
   ratingsCount: number;
   examName: string | null;

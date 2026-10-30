@@ -110,6 +110,53 @@
   align-items: start;
 }
 
+.rupeeInput {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.rupee {
+  position: absolute;
+  top: 50%;
+  left: var(--spacing-3);
+  transform: translateY(-50%);
+  font-weight: 600;
+  color: var(--muted-foreground);
+  pointer-events: none;
+}
+
+.rupeeInput input {
+  padding-left: 1.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.discountRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.discountPercent {
+  flex: 0 0 auto;
+  padding: 0.1875rem 0.625rem;
+  border: 1px solid var(--exam-sage-border);
+  border-radius: var(--radius-full);
+  background-color: var(--exam-sage-tint);
+  color: var(--exam-sage-ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.discountProblem {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--error-text);
+}
+
 .fileList {
   display: flex;
   flex-direction: column;
@@ -166,6 +213,81 @@
   align-items: flex-start;
   gap: var(--spacing-2);
   padding: var(--spacing-2) var(--spacing-3);
+}
+
+.filePreview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--spacing-2) var(--spacing-6);
+  padding: var(--spacing-2) var(--spacing-3) var(--spacing-3) calc(var(--spacing-3) + 16px + var(--spacing-2));
+  border-top: 1px solid var(--border);
+}
+
+.filePreviewToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-height: 2.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.filePreviewPages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  min-width: 0;
+}
+
+.filePreviewPagesRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.filePreviewPagesLabel {
+  white-space: nowrap;
+}
+
+.filePreviewPagesInput {
+  width: 5rem;
+  height: 2.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.filePreviewPagesOf {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+.filePreviewProblem {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--error-text);
+}
+
+.previewSummary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.previewSummaryLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--foreground);
+}
+
+.previewSummaryHint {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
 }
 
 .dragHandle {

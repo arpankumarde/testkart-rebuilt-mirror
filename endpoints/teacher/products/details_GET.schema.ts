@@ -11,8 +11,10 @@ export const schema = z.object({
 
 export type InputType = z.infer<typeof schema>;
 
-export type OutputType = Omit<Selectable<DigitalProducts>, "price" | "rating" | "fileSizeBytes"> & {
+export type OutputType = Omit<Selectable<DigitalProducts>, "price" | "discountPrice" | "rating" | "fileSizeBytes"> & {
   price: number;
+  /** As stored, so the form shows what the teacher entered. */
+  discountPrice: number | null;
   rating: number | null;
   fileSizeBytes: number | null;
   files: DigitalProductFileItem[];

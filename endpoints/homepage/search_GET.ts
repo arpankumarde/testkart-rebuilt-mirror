@@ -3,6 +3,7 @@ import { sql } from "kysely";
 import { OutputType, SearchOrganizationItem, schema } from "./search_GET.schema";
 import superjson from "superjson";
 import { courseDiscountPrice } from "../../helpers/coursePricing";
+import { productDiscountPrice } from "../../helpers/digitalProductPricing";
 import { searchTeachers } from "../../helpers/searchTeachers";
 import { examNewsPublicServer } from "../../helpers/examNewsPublicServer";
 
@@ -173,7 +174,8 @@ export async function handle(request: Request): Promise<Response> {
         "digitalProducts.title",
         "digitalProducts.thumbnailUrl",
         "digitalProducts.price",
-                "digitalProducts.views",
+        "digitalProducts.discountPrice",
+        "digitalProducts.views",
         "digitalProducts.category",
         "digitalProducts.examName",
         "users.displayName as teacherName",
@@ -318,6 +320,7 @@ export async function handle(request: Request): Promise<Response> {
       title: p.title,
       thumbnailUrl: p.thumbnailUrl,
       price: Number(p.price),
+      discountPrice: productDiscountPrice(p.price, p.discountPrice),
       teacherName: p.teacherName,
       teacherIsVerified: !!p.teacherIsVerified,
       teacherAvatarUrl: p.teacherAvatarUrl ?? null,

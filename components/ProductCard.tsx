@@ -4,6 +4,7 @@ import { Star } from 'lucide-react';
 import type { ShopProductListItem } from '../endpoints/shop/list_GET.schema';
 import { Avatar, AvatarImage, AvatarFallback } from './Avatar';
 import { VerifiedBadge } from './VerifiedBadge';
+import { itemPriceProps } from '../helpers/homepageItemUtils';
 import styles from './ProductCard.module.css';
 
 interface ProductCardProps {
@@ -17,15 +18,7 @@ const formatCount = (count: number, singular: string, plural: string) =>
 export const ProductCard: React.FC<ProductCardProps> = ({ product, className }) => {
   const navigate = useNavigate();
   const detailsUrl = `/study-notes/${product.slug}`;
-  const isFree = product.price === 0;
-
-  const formattedPrice = isFree
-    ? 'Free'
-    : new Intl.NumberFormat('en-IN', {
-        style: 'currency',
-        currency: 'INR',
-        minimumFractionDigits: 0,
-      }).format(product.price);
+  const { priceLabel: formattedPrice, originalPriceLabel, isFree } = itemPriceProps(product.price, product.discountPrice);
 
   const hasRating = product.rating !== null && product.rating !== undefined;
   const hasExam = !!product.examName && product.examName !== 'Unspecified';
@@ -88,8 +81,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, className }) 
               <span>{formatCount(product.fileCount, 'file', 'files')}</span>
             )}
           </p>
-          <span className={`${styles.price} ${isFree ? styles.freePrice : ''}`}>
-            {formattedPrice}
+          <span className={styles.priceGroup}>
+            {originalPriceLabel && <s className={styles.originalPrice}>{originalPriceLabel}</s>}
+            <span className={`${styles.price} ${isFree ? styles.freePrice : ''}`}>
+              {formattedPrice}
+            </span>
           </span>
         </div>
       </div>

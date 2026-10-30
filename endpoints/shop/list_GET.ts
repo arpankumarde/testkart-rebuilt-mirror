@@ -6,6 +6,7 @@ import { slugify } from "../../helpers/slugify";
 import { contentInExam } from "../../helpers/contentExams";
 import { matchesAnyLanguage } from "../../helpers/languageFilter";
 import { pinnedTeacherFirst, sortPinsTeachers } from "../../helpers/pinnedTeachers";
+import { productDiscountPrice, productEffectivePriceSql } from "../../helpers/digitalProductPricing";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -70,6 +71,7 @@ export async function handle(request: Request): Promise<Response> {
         "digitalProducts.title",
         "digitalProducts.slug",
         "digitalProducts.price",
+        "digitalProducts.discountPrice",
         "digitalProducts.thumbnailUrl",
         "digitalProducts.category",
        "digitalProducts.examName",
@@ -102,11 +104,11 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     if (input.priceMin !== undefined) {
-      query = query.where("digitalProducts.price", ">=", input.priceMin.toString());
+      query = query.where(productEffectivePriceSql, ">=", input.priceMin.toString());
     }
 
     if (input.priceMax !== undefined) {
-      query = query.where("digitalProducts.price", "<=", input.priceMax.toString());
+      query = query.where(productEffectivePriceSql, "<=", input.priceMax.toString());
     }
 
     if (input.language) {
@@ -135,10 +137,10 @@ export async function handle(request: Request): Promise<Response> {
         )`, "desc").orderBy(sql`COALESCE(digital_products.views, 0)`, "desc");
         break;
       case "price_asc":
-        query = query.orderBy("digitalProducts.price", "asc");
+        query = query.orderBy(productEffectivePriceSql, "asc");
         break;
       case "price_desc":
-        query = query.orderBy("digitalProducts.price", "desc");
+        query = query.orderBy(productEffectivePriceSql, "desc");
         break;
       case "newest":
       default:
@@ -165,6 +167,7 @@ export async function handle(request: Request): Promise<Response> {
         title: p.title,
         slug: p.slug,
         price: Number(p.price),
+        discountPrice: productDiscountPrice(p.price, p.discountPrice),
         thumbnailUrl: p.thumbnailUrl,
         category: p.category,
         publishedAt: p.publishedAt,

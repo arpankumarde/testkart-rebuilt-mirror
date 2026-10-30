@@ -154,10 +154,24 @@
   white-space: nowrap;
 }
 
+.priceGroup {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--spacing-1);
+  flex-shrink: 0;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.originalPrice {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
 /* Deep brand text, not --primary: the coral is 2.1:1 on the card surface. */
 .price {
   flex-shrink: 0;
-  margin-left: auto;
   font-family: var(--font-family-heading);
   font-size: 1.125rem;
   font-weight: 700;

@@ -1,6 +1,7 @@
 import { sql } from "kysely";
 import { db } from "./db";
 import { sanitizeUrl } from "./sanitizeUrl";
+import { productDiscountPrice } from "./digitalProductPricing";
 import { HomepageNoteItem } from "../endpoints/homepage/data_GET.schema";
 
 export async function homepageFetchPopularNotes(): Promise<HomepageNoteItem[]> {
@@ -15,8 +16,10 @@ export async function homepageFetchPopularNotes(): Promise<HomepageNoteItem[]> {
       "digitalProducts.title",
       "digitalProducts.slug",
       "digitalProducts.price",
+      "digitalProducts.discountPrice",
       "digitalProducts.totalPurchases",
       "digitalProducts.rating",
+      "digitalProducts.reviewsCount",
       "digitalProducts.pageCount",
       "digitalProducts.views",
       "digitalProducts.examName",
@@ -38,8 +41,10 @@ export async function homepageFetchPopularNotes(): Promise<HomepageNoteItem[]> {
     title: n.title,
     slug: n.slug,
     price: Number(n.price),
+    discountPrice: productDiscountPrice(n.price, n.discountPrice),
     totalPurchases: n.totalPurchases || 0,
     rating: n.rating != null ? Number(n.rating) : null,
+    reviewsCount: Number(n.reviewsCount ?? 0),
     pageCount: n.pageCount,
     teacherName: n.teacherName,
     teacherSlug: n.teacherSlug,

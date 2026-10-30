@@ -6,6 +6,7 @@ import { hasStudentEnrolledInMockTest } from "../../helpers/hasStudentEnrolledIn
 import { slugify } from "../../helpers/slugify";
 import { sql } from "kysely";
 import { courseDiscountPrice } from "../../helpers/coursePricing";
+import { productDiscountPrice } from "../../helpers/digitalProductPricing";
 import { liveTestDiscountPrice } from "../../helpers/liveTestPricing";
 import { SocialLinks, AwardCertificate, WorkExperience } from "../../helpers/teacherProfileTypes";
 import { getLiveTestStatus } from "../../helpers/liveTestStatus";
@@ -165,6 +166,7 @@ export async function handle(request: Request) {
         "digitalProducts.pageCount",
         "digitalProducts.language",
         "digitalProducts.price",
+        "digitalProducts.discountPrice",
         "digitalProducts.rating",
         "digitalProducts.totalPurchases",
         "digitalProducts.publishedAt",
@@ -204,6 +206,7 @@ export async function handle(request: Request) {
       pageCount: p.pageCount ?? null,
       language: p.language ?? null,
       price: Number(p.price),
+      discountPrice: productDiscountPrice(p.price, p.discountPrice),
       rating: p.rating ? Number(p.rating) : null,
       totalPurchases: p.totalPurchases ?? 0,
       publishedAt: p.publishedAt,

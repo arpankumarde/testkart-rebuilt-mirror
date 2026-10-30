@@ -3,57 +3,65 @@
 import React from "react";
 import { PdfReaderDialog } from "./PdfReaderDialog";
 import { useProtectedDocument } from "../helpers/useProtectedDocument";
+import type { StudyNoteFileSummary } from "../endpoints/shop/details_GET.schema";
 
 interface ProductPDFPreviewProps {
   product: {
     id: number;
     title: string;
-    previewPages: number | null;
   };
   isOpen: boolean;
   onClose: () => void;
-  // When set, previews this specific file within a multi-file product
-  // (e.g. one chapter of a study notes set) instead of the product's main
-  // file. previewTitle overrides the dialog heading to name that file
-  // rather than the whole product.
-  fileId?: number | null;
-  previewTitle?: string;
+  // The file being previewed. Each file has its own free preview; null shows nothing.
+  file: StudyNoteFileSummary | null;
 }
 
+const pagesLabel = (count: number) => `${count} ${count === 1 ? "page" : "pages"}`;
+
 // Preview pages arrive as images rendered and marked as a preview on the server, so the PDF itself never
-// reaches the browser.
-export const ProductPDFPreview: React.FC<ProductPDFPreviewProps> = ({
-  product,
-  isOpen,
-  onClose,
-  fileId,
-  previewTitle,
-}) => {
-  const previewPages = product.previewPages ?? 0;
+// reaches the browser. The server also stops at the file's own preview limit.
+export const ProductPDFPreview: React.FC<ProductPDFPreviewProps> = ({ product, isOpen, onClose, file }) => {
+  const previewPages = file?.previewPages ?? 0;
   const { source, totalPages, isLoading, error, refetch } = useProtectedDocument(
-    previewPages > 0 ? { type: "notePreview", productId: product.id, ...(fileId ? { fileId } : {}) } : null,
+    file && previewPages > 0
+      ? { type: "notePreview", productId: product.id, ...(file.id > 0 ? { fileId: file.id } : {}) }
+      : null,
     isOpen,
   );
-  const pageCount = totalPages ?? previewPages;
+  const shownPages = totalPages ?? previewPages;
 
   let message: string | null = null;
-  if (previewPages < 1) {
-    message = "No preview pages are available for this document.";
+  if (!file || previewPages < 1) {
+    message = "This file has no free preview.";
   } else if (error) {
     message = error.message || "The preview could not be loaded. Try again in a moment.";
   }
 
+  const fullPages = file?.pageCount ?? null;
+  const note =
+    fullPages && fullPages > shownPages
+      ? `Free preview - ${shownPages} of ${pagesLabel(fullPages)}`
+      : `Free preview - ${pagesLabel(shownPages)}`;
+
   return (
     <PdfReaderDialog
+      // A new reader per file, so switching files starts on page 1 with no pages from the last one.
+      key={file ? `${product.id}:${file.id}` : "none"}
       isOpen={isOpen}
       onClose={onClose}
-      title={previewTitle || product.title}
-      note={`Preview - ${pageCount} ${pageCount === 1 ? "page" : "pages"}`}
+      title={file?.title || product.title}
+      note={note}
       source={source}
       loading={isLoading}
       error={message}
-      onRetry={previewPages > 0 ? refetch : undefined}
+      onRetry={file && previewPages > 0 ? refetch : undefined}
       restricted
+      endNote={
+        <>
+          <strong>End of the free preview</strong>
+          Purchase this product to access the complete PDF.
+        </>
+      }
     />
   );
 };

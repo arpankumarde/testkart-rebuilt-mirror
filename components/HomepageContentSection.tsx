@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
+import { Star } from "lucide-react";
 import { Skeleton } from "./Skeleton";
 import { Avatar, AvatarImage, AvatarFallback } from "./Avatar";
 import { VerifiedBadge } from "./VerifiedBadge";
@@ -110,6 +111,25 @@ export function TeacherProductCard({
         </p>
       </div>
     </Link>
+  );
+}
+
+export function hasRating(rating: number | null | undefined): rating is number {
+  return rating != null && rating > 0;
+}
+
+export function RatingStat({ rating, reviewsCount = 0 }: { rating: number | null | undefined; reviewsCount?: number }) {
+  if (!hasRating(rating)) {
+    return null;
+  }
+  const value = Number(rating).toFixed(1);
+  const countLabel = `${reviewsCount.toLocaleString("en-IN")} ${reviewsCount === 1 ? "rating" : "ratings"}`;
+  return (
+    <span className={styles.ratingStat} aria-label={`Rated ${value} out of 5 from ${countLabel}`}>
+      <Star className={styles.ratingStar} fill="currentColor" aria-hidden="true" />
+      <span className={styles.ratingValue}>{value}</span>
+      {reviewsCount > 0 && <span aria-hidden="true">({reviewsCount.toLocaleString("en-IN")})</span>}
+    </span>
   );
 }
 

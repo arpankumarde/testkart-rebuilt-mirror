@@ -12,14 +12,26 @@ export type InputType = z.infer<typeof schema>;
 // A single file within a (possibly multi-file) study notes product, as
 // shown in the public "Files" list on the detail page — deliberately
 // excludes fileUrl/fileId, which are never sent to the client directly;
-// previewing a specific file goes through preview-page_GET with a fileId
-// instead.
+// previewing a specific file goes through the reader (web) or
+// preview-page_GET (app) with a fileId instead.
 export type StudyNoteFileSummary = {
   id: number;
   title: string;
   pageCount: number | null;
   fileSizeBytes: number | null;
   orderIndex: number;
+  /** Free preview pages for this file, capped at its length; null when it has no preview. */
+  previewPages: number | null;
+};
+
+/** A file's free preview pages as students see them, or null when it has none. */
+export const fileSummaryPreviewPages = (
+  previewEnabled: boolean,
+  previewPages: number | null,
+  pageCount: number | null
+): number | null => {
+  if (!previewEnabled || !previewPages || previewPages < 1) return null;
+  return pageCount && pageCount > 0 ? Math.min(previewPages, pageCount) : previewPages;
 };
 
 export type ShopProductSeo = {
@@ -31,6 +43,7 @@ export type ShopProductSeo = {
 export type ShopProductDetails = Omit<
   Selectable<DigitalProducts>,
   | "price"
+  | "discountPrice"
   | "rating"
   | "totalPurchases"
   | "reviewsCount"
@@ -48,7 +61,10 @@ export type ShopProductDetails = Omit<
   allowDownload: boolean;
   /** Slug of the linked exam (digitalProducts.examId), for the /exams/{slug} link; null when no exam is linked. */
   examSlug: string | null;
+  /** List price. */
   price: number;
+  /** What the student pays instead, or null when there is no valid discount. */
+  discountPrice: number | null;
   rating: number | null;
   totalPurchases: number;
   reviewsCount: number;

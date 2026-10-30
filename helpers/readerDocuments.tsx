@@ -2,6 +2,7 @@ import superjson from "superjson";
 import { db } from "./db";
 import { getServerUserSession } from "./getServerUserSession";
 import { PdfPreviewUnavailableError } from "./pdfPreviewRender";
+import { isRealFileUrl } from "./digitalProductRules";
 import type { ReaderDocumentRef } from "./readerDocumentRef";
 import type { User } from "./User";
 
@@ -44,6 +45,57 @@ async function productFile(productId: number, fileId: number) {
     throw new ReaderAccessError(404, "This file is not part of the study notes.");
   }
   return file;
+}
+
+export type NotePreview = { sourceUrl: string; title: string; lastPage: number };
+
+// Each file carries its own free preview. A request without a file previews
+// the first file that has one. Notes saved before files had rows keep the
+// product-wide count on their single PDF.
+export async function resolveNotePreview(productId: number, fileId?: number): Promise<NotePreview> {
+  const product = await db
+    .selectFrom("digitalProducts")
+    .select(["pdfUrl", "title", "previewPages"])
+    .where("id", "=", productId)
+    .where("status", "=", "published")
+    .executeTakeFirst();
+  if (!product) {
+    throw new ReaderAccessError(404, "Study notes not found.");
+  }
+  const files = (
+    await db
+      .selectFrom("digitalProductFiles")
+      .select(["id", "title", "fileUrl", "pageCount", "previewEnabled", "previewPages"])
+      .where("productId", "=", productId)
+      .orderBy("orderIndex", "asc")
+      .orderBy("id", "asc")
+      .execute()
+  ).filter((f) => isRealFileUrl(f.fileUrl));
+
+  if (files.length === 0) {
+    const pages = product.previewPages ?? 0;
+    if (fileId) throw new ReaderAccessError(404, "This file is not part of the study notes.");
+    if (pages < 1) throw new ReaderAccessError(404, "No preview pages are available for this document.");
+    return { sourceUrl: product.pdfUrl, title: product.title, lastPage: pages };
+  }
+
+  const hasPreview = (f: (typeof files)[number]) => f.previewEnabled && (f.previewPages ?? 0) >= 1;
+  const file = fileId ? files.find((f) => f.id === fileId) : files.find(hasPreview);
+  if (!file) {
+    throw new ReaderAccessError(
+      404,
+      fileId ? "This file is not part of the study notes." : "No preview pages are available for this document."
+    );
+  }
+  if (!hasPreview(file)) {
+    throw new ReaderAccessError(404, "This file has no free preview.");
+  }
+  const previewPages = file.previewPages as number;
+  return {
+    sourceUrl: file.fileUrl,
+    title: file.title || product.title,
+    lastPage: file.pageCount && file.pageCount > 0 ? Math.min(previewPages, file.pageCount) : previewPages,
+  };
 }
 
 async function pdfLesson(courseId: number, lessonId: number) {
@@ -95,26 +147,8 @@ export async function resolveReaderDocument(request: Request, ref: ReaderDocumen
       };
     }
     case "notePreview": {
-      const product = await db
-        .selectFrom("digitalProducts")
-        .select(["pdfUrl", "title", "previewPages"])
-        .where("id", "=", ref.productId)
-        .where("status", "=", "published")
-        .executeTakeFirst();
-      if (!product) {
-        throw new ReaderAccessError(404, "Study notes not found.");
-      }
-      const previewPages = product.previewPages ?? 0;
-      if (previewPages < 1) {
-        throw new ReaderAccessError(404, "No preview pages are available for this document.");
-      }
-      const file = ref.fileId ? await productFile(ref.productId, ref.fileId) : null;
-      return {
-        sourceUrl: file?.fileUrl ?? product.pdfUrl,
-        title: file?.title || product.title,
-        lastPage: previewPages,
-        viewer: null,
-      };
+      const preview = await resolveNotePreview(ref.productId, ref.fileId);
+      return { ...preview, viewer: null };
     }
     case "lesson": {
       const viewer = await requireViewer(request);

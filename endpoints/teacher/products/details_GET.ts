@@ -59,11 +59,14 @@ export async function handle(request: Request): Promise<Response> {
       fileSizeBytes: f.fileSizeBytes ? Number(f.fileSizeBytes) : null,
       pageCount: f.pageCount,
       orderIndex: f.orderIndex,
+      previewEnabled: f.previewEnabled,
+      previewPages: f.previewEnabled ? f.previewPages : null,
     }));
 
     const output: OutputType = {
       ...product,
       price: Number(product.price),
+      discountPrice: product.discountPrice === null ? null : Number(product.discountPrice),
       rating: product.rating ? Number(product.rating) : null,
       fileSizeBytes: product.fileSizeBytes ? Number(product.fileSizeBytes) : null,
       files,

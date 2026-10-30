@@ -18,7 +18,8 @@ export { TCOINS_SETTING_KEY, type TcoinsConfig } from "./tcoinsMath";
  * Earning: every paid order earns cashbackPercent of the cash actually paid, capped at maxCashback.
  * Coins never combine with a coupon (Spin & Win included), but a coupon order still earns cashback.
  *
- * There is no ledger table. Each order stores tcoins_redeemed and tcoins_cashback, and the balance is
+ * There is no full ledger. Manual admin grants live in tcoin_grants and always count toward the balance.
+ * Each order stores tcoins_redeemed and tcoins_cashback, and the rest of the balance is
  * derived from order status, so every completion, failure, cancel and refund path moves coins with no
  * extra code: cashback counts once its order is completed, and spent coins count while the order is
  * pending or completed, so a failed, cancelled or refunded order hands them back.
@@ -43,18 +44,25 @@ export type TcoinBalance = {
 };
 
 export async function getTcoinBalance(userId: number, q: Queryable = db): Promise<TcoinBalance> {
-  const row = await q
-    .selectFrom("orders")
-    .where("userId", "=", userId)
-    .where((eb) => eb.or([eb("tcoinsRedeemed", ">", 0), eb("tcoinsCashback", ">", 0)]))
-    .select([
-      sql<string>`coalesce(sum(case when status = 'completed' then tcoins_cashback else 0 end), 0)`.as("earned"),
-      sql<string>`coalesce(sum(case when status in ('pending', 'completed') then tcoins_redeemed else 0 end), 0)`.as("spent"),
-      sql<string>`coalesce(sum(case when status = 'pending' then tcoins_cashback else 0 end), 0)`.as("pending"),
-    ])
-    .executeTakeFirst();
+  const [row, grantRow] = await Promise.all([
+    q
+      .selectFrom("orders")
+      .where("userId", "=", userId)
+      .where((eb) => eb.or([eb("tcoinsRedeemed", ">", 0), eb("tcoinsCashback", ">", 0)]))
+      .select([
+        sql<string>`coalesce(sum(case when status = 'completed' then tcoins_cashback else 0 end), 0)`.as("earned"),
+        sql<string>`coalesce(sum(case when status in ('pending', 'completed') then tcoins_redeemed else 0 end), 0)`.as("spent"),
+        sql<string>`coalesce(sum(case when status = 'pending' then tcoins_cashback else 0 end), 0)`.as("pending"),
+      ])
+      .executeTakeFirst(),
+    q
+      .selectFrom("tcoinGrants")
+      .where("userId", "=", userId)
+      .select(sql<string>`coalesce(sum(coins), 0)`.as("granted"))
+      .executeTakeFirst(),
+  ]);
 
-  const totalEarned = Number(row?.earned ?? 0);
+  const totalEarned = Number(row?.earned ?? 0) + Number(grantRow?.granted ?? 0);
   const totalSpent = Number(row?.spent ?? 0);
   // A refund can take back cashback that was already spent, so the raw figure can dip below zero.
   return {

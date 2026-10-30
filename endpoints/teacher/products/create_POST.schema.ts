@@ -13,6 +13,10 @@ const fileEntrySchema = z.object({
   fileId: z.string().optional().nullable(),
   fileSizeBytes: z.number().int().min(0).optional().nullable(),
   pageCount: z.number().int().min(0).optional().nullable(),
+  /** Free preview for this file. Omitted keeps a saved file's setting; new files start with it off. */
+  previewEnabled: z.boolean().optional(),
+  /** Free preview pages, 1 up to the file's page count. Ignored while the preview is off. */
+  previewPages: z.number().int().min(1, "Preview pages must be at least 1.").optional().nullable(),
 });
 
 export const fileEntrySchemaRef = fileEntrySchema;
@@ -25,10 +29,13 @@ export const schema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters long."),
   shortDescription: z.string().max(255).optional().nullable(),
   price: z.number().min(0, "Price cannot be negative."),
+  // Optional. Must sit between 0 and price; null or omitted means no discount.
+  discountPrice: z.number().min(0, "Discounted price cannot be negative.").optional().nullable(),
   thumbnailUrl: z.string().url("Must be a valid URL.").optional().nullable(),
   thumbnailFileId: z.string().optional().nullable(),
   pdfUrl: z.string().url("Must be a valid URL.").optional(),
   pdfFileId: z.string().optional().nullable(),
+  /** Legacy product-wide preview count, applied to every file when no file sends its own setting. */
   previewPages: z.number().int().min(0).optional().nullable(),
   pageCount: z.number().int().min(0).optional().nullable(),
   fileSizeBytes: z.number().int().min(0).optional().nullable(),
@@ -54,8 +61,9 @@ export const schema = z.object({
 
 export type InputType = z.infer<typeof schema>;
 
-export type OutputType = Omit<Selectable<DigitalProducts>, "price" | "rating" | "fileSizeBytes"> & {
+export type OutputType = Omit<Selectable<DigitalProducts>, "price" | "discountPrice" | "rating" | "fileSizeBytes"> & {
   price: number;
+  discountPrice: number | null;
   rating: number | null;
   fileSizeBytes: number | null;
   files: DigitalProductFileItem[];

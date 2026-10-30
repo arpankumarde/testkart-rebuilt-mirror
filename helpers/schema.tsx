@@ -651,6 +651,8 @@ export interface DigitalProductFiles {
   id: Generated<number>;
   orderIndex: Generated<number>;
   pageCount: number | null;
+  previewEnabled: Generated<boolean>;
+  previewPages: number | null;
   productId: number;
   title: string;
 }
@@ -670,6 +672,7 @@ export interface DigitalProducts {
   category: string | null;
   createdAt: Generated<Timestamp | null>;
   description: string | null;
+  discountPrice: Numeric | null;
   examId: number | null;
   examName: string | null;
   fileSizeBytes: Int8 | null;
@@ -1890,6 +1893,15 @@ export interface SupportThreads {
   updatedAt: Generated<Timestamp>;
 }
 
+export interface TcoinGrants {
+  coins: number;
+  createdAt: Generated<Timestamp>;
+  grantedBy: string | null;
+  id: Generated<number>;
+  reason: string | null;
+  userId: number;
+}
+
 export interface TeacherAssets {
   createdAt: Generated<Timestamp>;
   durationSeconds: number | null;
@@ -2414,6 +2426,7 @@ export interface DB {
   supportMessageAttachments: SupportMessageAttachments;
   supportMessages: SupportMessages;
   supportThreads: SupportThreads;
+  tcoinGrants: TcoinGrants;
   teacherAssets: TeacherAssets;
   teacherBankDetails: TeacherBankDetails;
   teacherCampaignClaims: TeacherCampaignClaims;

@@ -16,6 +16,7 @@ import { getTeacherAvailableBalance } from "../../../helpers/getTeacherAvailable
 import { lockWallet } from "../../../helpers/walletLock";
 import { getTeacherPlatformFee } from "../../../helpers/getTeacherPlatformFee";
 import { courseDiscountPrice } from "../../../helpers/coursePricing";
+import { productDiscountPrice } from "../../../helpers/digitalProductPricing";
 import { getOrderClientInfo } from "../../../helpers/orderClientInfo";
 
 function isEmailIdentifier(identifier: string): boolean {
@@ -88,7 +89,7 @@ async function resolveContent(
   if (contentType === "product") {
     const row = await trx
       .selectFrom("digitalProducts")
-      .select(["id", "title", "price", "teacherId", "isPublished"])
+      .select(["id", "title", "price", "discountPrice", "teacherId", "isPublished"])
       .where("id", "=", contentId)
       .executeTakeFirst();
     if (!row) return null;
@@ -96,7 +97,7 @@ async function resolveContent(
       id: row.id,
       title: row.title,
       price: Number(row.price),
-      discountPrice: null,
+      discountPrice: productDiscountPrice(row.price, row.discountPrice),
       teacherId: row.teacherId,
       isPublished: row.isPublished ?? false,
       isFree: Number(row.price) === 0,

@@ -236,6 +236,25 @@
   flex: 1 1 auto;
 }
 
+.ratingStat {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+  vertical-align: bottom;
+}
+
+.ratingStar {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+  color: hsl(40 100% 46%);
+}
+
+.ratingValue {
+  font-weight: 600;
+  color: var(--card-foreground);
+}
+
 .priceGroup {
   display: inline-flex;
   align-items: baseline;

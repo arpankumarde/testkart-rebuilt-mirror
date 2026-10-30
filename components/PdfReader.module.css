@@ -214,6 +214,27 @@
   display: contents;
 }
 
+.endNote {
+  box-sizing: border-box;
+  width: min(36rem, calc(100vw - 32px));
+  margin-top: 4px;
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+  color: var(--surface-foreground);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.endNote strong {
+  display: block;
+  margin-bottom: 4px;
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+}
+
 .slot {
   position: relative;
   flex-shrink: 0;

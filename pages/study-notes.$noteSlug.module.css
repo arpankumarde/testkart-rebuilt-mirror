@@ -289,6 +289,29 @@ opacity: 0.5;
   color: var(--exam-sage-ink);
 }
 
+.priceGroup {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.originalPrice {
+  font-size: 1.0625rem;
+  color: var(--muted-foreground);
+}
+
+.discount {
+  align-self: center;
+  padding: 0.1875rem 0.625rem;
+  border: 1px solid var(--exam-sage-border);
+  border-radius: var(--radius-full);
+  background-color: var(--exam-sage-tint);
+  color: var(--exam-sage-ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
 .ratingChip {
   display: inline-flex;
   align-items: center;

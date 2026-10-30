@@ -9,6 +9,7 @@ import { ensureOrderCompletionSideEffects } from "../../../helpers/ensureOrderCo
 import { promoCodeCoversTeacher } from "../../../helpers/promoCodeEligibility";
 import { countPromoCodeUses } from "../../../helpers/promoCodeUsage";
 import { courseEffectivePriceSql } from "../../../helpers/coursePricing";
+import { productEffectivePriceSql } from "../../../helpers/digitalProductPricing";
 import { planTcoinsForOrder } from "../../../helpers/tcoins";
 import { getOrderClientInfo } from "../../../helpers/orderClientInfo";
 import {
@@ -174,7 +175,8 @@ export async function handle(request: Request) {
           courseEffectivePriceSql.as("coursePrice"),
           "courses.teacherId as courseTeacherId",
           "digitalProducts.title as digitalProductTitle",
-          "digitalProducts.price as digitalProductPrice",
+          // Effective price: the discounted price when valid, else the list price.
+          productEffectivePriceSql.as("digitalProductPrice"),
           "digitalProducts.teacherId as digitalProductTeacherId",
         ])
         .execute();

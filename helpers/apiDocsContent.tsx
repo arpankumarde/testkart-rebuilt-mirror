@@ -359,7 +359,7 @@ export const apiDocsContent: ApiEndpoint[] = [
       { name: "slug", type: "string", required: true, description: "Study note slug" },
     ],
     responseFields: [
-      { name: "product", type: "object", description: "{ id, title, slug, description, shortDescription, price, thumbnailUrl, previewUrl, previewPages, pageCount, fileSizeBytes, language, category, tags, examName, examId, rating, reviewsCount, totalPurchases, views, fileCount, files: [{ id, title, pageCount, fileSizeBytes, orderIndex }], isPurchased, publishedAt, teacherId, teacherName, teacherSlug, teacherAvatar, teacherBio, teacherVerified, teacherAcademyName, disclaimer, seo }" },
+      { name: "product", type: "object", description: "{ id, title, slug, description, shortDescription, price, discountPrice, thumbnailUrl, previewUrl, previewPages (largest file preview), pageCount, fileSizeBytes, language, category, tags, examName, examId, rating, reviewsCount, totalPurchases, views, fileCount, files: [{ id, title, pageCount, fileSizeBytes, orderIndex, previewPages (null when the file has no free preview) }], isPurchased, publishedAt, teacherId, teacherName, teacherSlug, teacherAvatar, teacherBio, teacherVerified, teacherAcademyName, disclaimer, seo }" },
       { name: "reviews", type: "array", description: "Newest first: { id, reviewerName, rating, reviewText, createdAt, userId }" },
     ],
     notes: [
@@ -528,19 +528,19 @@ export const apiDocsContent: ApiEndpoint[] = [
     deprecated: "Use /_api/reader/info and /_api/reader/page with type=notePreview instead. The web has moved to those pages, and only the shipped mobile app still calls this route.",
     queryParams: [
       { name: "productId", type: "number", required: true, description: "Id of a published study note" },
-      { name: "fileId", type: "number", required: false, description: "One file of a multi-file note. The main file when omitted" },
+      { name: "fileId", type: "number", required: false, description: "One file of the note. The first file with a free preview when omitted" },
       { name: "page", type: "number", required: false, description: "Page within the preview, default 1" },
     ],
     responseFields: [
       { name: "page", type: "number", description: "Page returned" },
-      { name: "totalPages", type: "number", description: "Preview pages, capped at the file's real page count" },
+      { name: "totalPages", type: "number", description: "The file's free preview pages, capped at its real page count" },
       { name: "imageUrl", type: "string", description: "Public CDN URL of the rendered page image" },
       { name: "width", type: "number", description: "Image width in pixels" },
       { name: "height", type: "number", description: "Image height in pixels" },
     ],
     notes: [
-      "Only pages up to the note's previewPages are served, as images.",
-      "Returns 400 for bad parameters, 404 for an unknown note or file or a page past the preview, and 422 when the file cannot be rendered.",
+      "Each file has its own free preview. Only files with the preview on are served, and only up to that file's preview pages, as images.",
+      "Returns 400 for bad parameters, 404 for an unknown note or file, a file without a free preview, or a page past the preview, and 422 when the file cannot be rendered.",
       "The first request for a page renders it, so it can take a few seconds.",
     ],
   },

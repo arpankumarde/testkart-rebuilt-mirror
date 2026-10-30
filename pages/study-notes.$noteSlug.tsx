@@ -41,6 +41,7 @@ import { VerifiedBadge } from "../components/VerifiedBadge";
 
 const ProductPDFPreview = React.lazy(() => import("../components/ProductPDFPreview").then(m => ({ default: m.ProductPDFPreview })));
 import { MobileStickyPurchaseBar } from "../components/MobileStickyPurchaseBar";
+import { productDiscountPercent } from "../helpers/digitalProductPricing";
 import { toast } from "sonner";
 import { AssetTopRow } from "../components/AssetTopRow";
 import { useTrackStorefrontView } from "../helpers/trackStorefrontEvent";
@@ -52,10 +53,8 @@ import styles from "./study-notes.$noteSlug.module.css";
 const ProductDetailsPage: React.FC = () => {
   // 1. useState hooks
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  // Which file within the product is currently being previewed — null means
-  // "the product's main file" (the sidebar Preview button's behavior).
-  // Clicking Preview on a specific row in the Files list sets this so the
-  // dialog fetches and shows that file instead.
+  // The file being previewed. Each file has its own free preview: a row's
+  // Preview button opens that file, the sidebar button the only file with one.
   const [previewFile, setPreviewFile] = useState<StudyNoteFileSummary | null>(null);
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
   const [isStickyBarVisible, setIsStickyBarVisible] = useState(false);
@@ -165,7 +164,7 @@ const ProductDetailsPage: React.FC = () => {
       },
       "offers": {
         "@type": "Offer",
-        "price": product.price,
+        "price": product.discountPrice ?? product.price,
         "priceCurrency": "INR",
         "availability": "https://schema.org/InStock",
       },
@@ -238,8 +237,14 @@ const ProductDetailsPage: React.FC = () => {
     }
   };
 
+  // The sidebar offers a preview only when exactly one file has one. With
+  // several, each is previewed from its own row in the Files list.
+  const previewableFiles = (product?.files ?? []).filter((f) => (f.previewPages ?? 0) > 0);
+  const sidebarPreviewFile = previewableFiles.length === 1 ? previewableFiles[0] : null;
+
   const handlePreviewMain = () => {
-    setPreviewFile(null);
+    if (!sidebarPreviewFile) return;
+    setPreviewFile(sidebarPreviewFile);
     setIsPreviewOpen(true);
   };
 
@@ -296,11 +301,16 @@ const ProductDetailsPage: React.FC = () => {
 
   // 8. Variables that depend on product being defined (after early returns)
   const isFree = product.price === 0;
-  const formattedPrice = new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 0,
-  }).format(product.price);
+  const discountPrice = isFree ? null : product.discountPrice ?? null;
+  const formatPrice = (amount: number) =>
+    new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 0,
+    }).format(amount);
+  const formattedPrice = formatPrice(discountPrice ?? product.price);
+  const formattedOriginalPrice = discountPrice !== null ? formatPrice(product.price) : null;
+  const discountPercentage = productDiscountPercent(product.price, discountPrice);
 
   // Falls back to a content-derived description instead of an empty
   // <meta name="description"> when the teacher never wrote a short/long
@@ -422,7 +432,6 @@ const ProductDetailsPage: React.FC = () => {
                   <h2>{product.files.length > 1 ? `Files (${product.files.length})` : 'File'}</h2>
                   <StudyNotesFileList
                     files={product.files}
-                    previewPages={product.previewPages}
                     onPreview={handlePreviewFile}
                   />
                 </div>
@@ -603,8 +612,18 @@ const ProductDetailsPage: React.FC = () => {
                 </Link>
 
                 <div className={styles.priceRow}>
-                  <span className={`${styles.price} ${isFree ? styles.freePrice : ''}`}>
-                    {isFree ? 'Free' : formattedPrice}
+                  <span className={styles.priceGroup}>
+                    <span className={`${styles.price} ${isFree ? styles.freePrice : ''}`}>
+                      {isFree ? 'Free' : formattedPrice}
+                    </span>
+                    {formattedOriginalPrice && (
+                      <>
+                        <s className={styles.originalPrice}>{formattedOriginalPrice}</s>
+                        {discountPercentage !== null && (
+                          <span className={styles.discount}>{discountPercentage}% off</span>
+                        )}
+                      </>
+                    )}
                   </span>
                   <button type="button" className={styles.ratingChip} onClick={handleScrollToReviews}>
                     <Star size={14} fill="currentColor" className={styles.starIcon} aria-hidden="true" />
@@ -684,14 +703,15 @@ const ProductDetailsPage: React.FC = () => {
                   )
                 )}
 
-                {product.previewPages != null && product.previewPages > 0 && (
+                {sidebarPreviewFile && (
                   <Button
                     size="lg"
                     variant="outline"
                     className={styles.previewCta}
                     onClick={handlePreviewMain}
                   >
-                    <Eye size={18} /> Preview {product.previewPages} {product.previewPages === 1 ? "page" : "pages"}
+                    <Eye size={18} /> Preview {sidebarPreviewFile.previewPages}{" "}
+                    {sidebarPreviewFile.previewPages === 1 ? "page" : "pages"}
                   </Button>
                 )}
 
@@ -749,9 +769,8 @@ const ProductDetailsPage: React.FC = () => {
               <ProductPDFPreview 
                 product={product} 
                 isOpen={isPreviewOpen} 
-                onClose={() => { setIsPreviewOpen(false); setPreviewFile(null); }}
-                fileId={previewFile && previewFile.id > 0 ? previewFile.id : undefined}
-                previewTitle={previewFile?.title}
+                onClose={() => setIsPreviewOpen(false)}
+                file={previewFile}
               />
             </React.Suspense>
             
@@ -773,6 +792,7 @@ const ProductDetailsPage: React.FC = () => {
               type: 'digitalProduct',
               id: product.id,
               price: product.price,
+              discountPrice: product.discountPrice ?? null,
               isEnrolled: hasPurchased,
             }}
             isVisible={isStickyBarVisible}

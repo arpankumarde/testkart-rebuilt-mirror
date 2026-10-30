@@ -66,7 +66,10 @@ export type HomepageNoteItem = {
   slug: string;
   price: number;
   totalPurchases: number;
+  /** What the student pays instead of price, or null when there is no valid discount. */
+  discountPrice?: number | null;
   rating: number | null;
+  reviewsCount: number;
   pageCount: number | null;
   teacherName: string;
   teacherSlug: string | null;

@@ -65,6 +65,8 @@ export interface PdfReaderProps {
   restricted?: boolean;
   titleComponent?: React.ElementType;
   className?: string;
+  /** Shown after the last page once the document has loaded, e.g. where a free preview stops. */
+  endNote?: React.ReactNode;
 }
 
 const MIN_ZOOM = 0.5;
@@ -223,6 +225,7 @@ export const PdfReader: React.FC<PdfReaderProps> = ({
   restricted = false,
   titleComponent,
   className,
+  endNote,
 }) => {
   const Title = titleComponent ?? "h2";
   const rootRef = useRef<HTMLDivElement>(null);
@@ -638,6 +641,9 @@ export const PdfReader: React.FC<PdfReaderProps> = ({
         >
           <div ref={pagesFrameRef} className={styles.frame}>
             {body}
+            {endNote && source && !loading && !error && numPages > 0 ? (
+              <div className={styles.endNote} role="note">{endNote}</div>
+            ) : null}
           </div>
         </div>
       </div>

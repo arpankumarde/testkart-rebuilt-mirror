@@ -1,6 +1,7 @@
 import { db } from "./db";
 import { sql } from "kysely";
 import { courseDiscountPrice } from "./coursePricing";
+import { productDiscountPrice } from "./digitalProductPricing";
 import { liveTestDiscountPrice } from "./liveTestPricing";
 import type {
   OutputType,
@@ -159,6 +160,7 @@ export async function fetchTeacherProfileServer(teacherSlug: string): Promise<Ou
       "digitalProducts.pageCount",
       "digitalProducts.language",
       "digitalProducts.price",
+      "digitalProducts.discountPrice",
       "digitalProducts.rating",
       "digitalProducts.totalPurchases",
       "digitalProducts.publishedAt",
@@ -198,6 +200,7 @@ export async function fetchTeacherProfileServer(teacherSlug: string): Promise<Ou
     pageCount: p.pageCount ?? null,
     language: p.language ?? null,
     price: Number(p.price),
+    discountPrice: productDiscountPrice(p.price, p.discountPrice),
     rating: p.rating ? Number(p.rating) : null,
     totalPurchases: p.totalPurchases ?? 0,
     publishedAt: p.publishedAt,

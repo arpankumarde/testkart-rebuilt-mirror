@@ -5,6 +5,7 @@ import { slugify } from "./slugify";
 import { contentInExam } from "./contentExams";
 import { matchesAnyLanguage } from "./languageFilter";
 import { pinnedTeacherFirst, sortPinsTeachers } from "./pinnedTeachers";
+import { productDiscountPrice, productEffectivePriceSql } from "./digitalProductPricing";
 
 /**
  * Direct-DB counterpart to endpoints/shop/list_GET.ts, for use ONLY from
@@ -57,6 +58,7 @@ export async function fetchShopProductsListServer(rawInput: Partial<InputType> =
       "digitalProducts.title",
       "digitalProducts.slug",
       "digitalProducts.price",
+      "digitalProducts.discountPrice",
       "digitalProducts.thumbnailUrl",
       "digitalProducts.category",
       "digitalProducts.examName",
@@ -84,8 +86,8 @@ export async function fetchShopProductsListServer(rawInput: Partial<InputType> =
       contentInExam("digital_product", "digitalProducts.id", "digitalProducts.examId", input.examId)
     );
   }
-  if (input.priceMin !== undefined) query = query.where("digitalProducts.price", ">=", input.priceMin.toString());
-  if (input.priceMax !== undefined) query = query.where("digitalProducts.price", "<=", input.priceMax.toString());
+  if (input.priceMin !== undefined) query = query.where(productEffectivePriceSql, ">=", input.priceMin.toString());
+  if (input.priceMax !== undefined) query = query.where(productEffectivePriceSql, "<=", input.priceMax.toString());
   if (input.language) query = query.where(matchesAnyLanguage("digitalProducts", [input.language]));
 
   if (input.search) {
@@ -109,10 +111,10 @@ export async function fetchShopProductsListServer(rawInput: Partial<InputType> =
       )`, "desc").orderBy(sql`COALESCE(digital_products.views, 0)`, "desc");
       break;
     case "price_asc":
-      query = query.orderBy("digitalProducts.price", "asc");
+      query = query.orderBy(productEffectivePriceSql, "asc");
       break;
     case "price_desc":
-      query = query.orderBy("digitalProducts.price", "desc");
+      query = query.orderBy(productEffectivePriceSql, "desc");
       break;
     case "newest":
     default:
@@ -134,6 +136,7 @@ export async function fetchShopProductsListServer(rawInput: Partial<InputType> =
       title: p.title,
       slug: p.slug,
       price: Number(p.price),
+      discountPrice: productDiscountPrice(p.price, p.discountPrice),
       thumbnailUrl: p.thumbnailUrl,
       category: p.category,
       publishedAt: p.publishedAt,

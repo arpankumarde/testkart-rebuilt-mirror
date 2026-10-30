@@ -3,6 +3,7 @@ import { schema, OutputType } from "./related_GET.schema";
 import superjson from "superjson";
 import { slugify } from "../../helpers/slugify";
 import { sql, type RawBuilder } from "kysely";
+import { productDiscountPrice } from "../../helpers/digitalProductPricing";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -63,6 +64,7 @@ export async function handle(request: Request): Promise<Response> {
         "digitalProducts.title",
         "digitalProducts.slug",
         "digitalProducts.price",
+        "digitalProducts.discountPrice",
         "digitalProducts.thumbnailUrl",
         "digitalProducts.category",
         "digitalProducts.examName",
@@ -133,6 +135,7 @@ export async function handle(request: Request): Promise<Response> {
         title: p.title,
         slug: p.slug,
         price: Number(p.price),
+        discountPrice: productDiscountPrice(p.price, p.discountPrice),
         thumbnailUrl: p.thumbnailUrl,
         category: p.category,
         publishedAt: p.publishedAt,

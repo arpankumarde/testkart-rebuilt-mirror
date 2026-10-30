@@ -3,6 +3,7 @@ import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { OutputType, CartItem } from "./items_GET.schema";
 import superjson from "superjson";
 import { courseDiscountPrice } from "../../helpers/coursePricing";
+import { productDiscountPrice } from "../../helpers/digitalProductPricing";
 
 export async function handle(request: Request) {
   try {
@@ -36,6 +37,7 @@ export async function handle(request: Request) {
         "digitalProducts.title as digitalProductTitle",
         "digitalProducts.slug as digitalProductSlug",
         "digitalProducts.price as digitalProductPrice",
+        "digitalProducts.discountPrice as digitalProductDiscountPrice",
         "digitalProducts.thumbnailUrl as digitalProductThumbnailUrl",
       ])
       .orderBy("cartItems.addedAt", "desc")
@@ -75,7 +77,7 @@ export async function handle(request: Request) {
           slug: item.digitalProductSlug!,
           title: item.digitalProductTitle!,
           price: parseFloat(item.digitalProductPrice!),
-          discountPrice: null,
+          discountPrice: productDiscountPrice(item.digitalProductPrice, item.digitalProductDiscountPrice),
           thumbnailUrl: item.digitalProductThumbnailUrl,
         };
       }

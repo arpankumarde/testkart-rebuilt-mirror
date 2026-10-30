@@ -297,7 +297,7 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
       examName={product.examName}
       rating={product.rating}
       ratingsCount={product.ratingsCount}
-      price={itemPriceProps(product.price)}
+      price={itemPriceProps(product.price, product.discountPrice)}
     />
   ));
 

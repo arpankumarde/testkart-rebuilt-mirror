@@ -1,9 +1,10 @@
 import { db } from "./db";
 import { sql } from "kysely";
-import type { OutputType, StudyNoteFileSummary } from "../endpoints/shop/details_GET.schema";
+import { fileSummaryPreviewPages, type OutputType, type StudyNoteFileSummary } from "../endpoints/shop/details_GET.schema";
 import { slugify } from "./slugify";
 import { PRODUCT_DISCLAIMER } from "./productDisclaimer";
 import { computeStudyNoteSeo } from "./seoIndexability";
+import { productDiscountPrice } from "./digitalProductPricing";
 
 export async function fetchShopProductDetailsServer(slug: string): Promise<OutputType> {
   const product = await db
@@ -17,6 +18,7 @@ export async function fetchShopProductDetailsServer(slug: string): Promise<Outpu
       "digitalProducts.description",
       "digitalProducts.shortDescription",
       "digitalProducts.price",
+      "digitalProducts.discountPrice",
       "digitalProducts.thumbnailUrl",
       "digitalProducts.pdfUrl",
       "digitalProducts.previewPages",
@@ -68,9 +70,10 @@ export async function fetchShopProductDetailsServer(slug: string): Promise<Outpu
   // Fetch the individual files (chapters) for the product's Files list.
   const fileRows = await db
     .selectFrom("digitalProductFiles")
-    .select(["id", "title", "pageCount", "fileSizeBytes", "orderIndex"])
+    .select(["id", "title", "pageCount", "fileSizeBytes", "orderIndex", "previewEnabled", "previewPages"])
     .where("productId", "=", product.id)
     .orderBy("orderIndex", "asc")
+    .orderBy("id", "asc")
     .execute();
 
   let files: StudyNoteFileSummary[] = fileRows.map(f => ({
@@ -79,6 +82,7 @@ export async function fetchShopProductDetailsServer(slug: string): Promise<Outpu
     pageCount: f.pageCount,
     fileSizeBytes: f.fileSizeBytes ? Number(f.fileSizeBytes) : null,
     orderIndex: f.orderIndex,
+    previewPages: fileSummaryPreviewPages(f.previewEnabled, f.previewPages, f.pageCount),
   }));
 
   // Legacy single-file products predate the multi-file feature and store
@@ -92,6 +96,7 @@ export async function fetchShopProductDetailsServer(slug: string): Promise<Outpu
       pageCount: product.pageCount,
       fileSizeBytes: product.fileSizeBytes ? Number(product.fileSizeBytes) : null,
       orderIndex: 0,
+      previewPages: fileSummaryPreviewPages(true, product.previewPages, product.pageCount),
     }];
   }
 
@@ -141,6 +146,7 @@ export async function fetchShopProductDetailsServer(slug: string): Promise<Outpu
       description: product.description,
       shortDescription: product.shortDescription,
       price: Number(product.price),
+      discountPrice: productDiscountPrice(product.price, product.discountPrice),
       thumbnailUrl: product.thumbnailUrl,
       previewUrl: null,
       previewPages: product.previewPages,

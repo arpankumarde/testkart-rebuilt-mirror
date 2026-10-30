@@ -14,12 +14,19 @@ export async function handle(request: Request) {
       sql<{ outstandingCoins: string | null; studentsWithCoins: string | null }>`
         SELECT coalesce(sum(balance), 0) AS outstanding_coins, count(*) FILTER (WHERE balance > 0) AS students_with_coins
         FROM (
-          SELECT greatest(0,
-            sum(CASE WHEN status = 'completed' THEN tcoins_cashback ELSE 0 END)
-            - sum(CASE WHEN status IN ('pending', 'completed') THEN tcoins_redeemed ELSE 0 END)
-          ) AS balance
-          FROM orders
-          WHERE tcoins_redeemed > 0 OR tcoins_cashback > 0
+          SELECT greatest(0, sum(earned) - sum(spent)) AS balance
+          FROM (
+            SELECT user_id,
+              sum(CASE WHEN status = 'completed' THEN tcoins_cashback ELSE 0 END) AS earned,
+              sum(CASE WHEN status IN ('pending', 'completed') THEN tcoins_redeemed ELSE 0 END) AS spent
+            FROM orders
+            WHERE tcoins_redeemed > 0 OR tcoins_cashback > 0
+            GROUP BY user_id
+            UNION ALL
+            SELECT user_id, sum(coins) AS earned, 0 AS spent
+            FROM tcoin_grants
+            GROUP BY user_id
+          ) movements
           GROUP BY user_id
         ) per_student
       `.execute(db),

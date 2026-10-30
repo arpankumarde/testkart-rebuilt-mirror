@@ -1,12 +1,12 @@
-import { db } from "../../helpers/db";
 import { getPublicUrl } from "../../helpers/r2Client";
+import { ReaderAccessError, resolveNotePreview, type NotePreview } from "../../helpers/readerDocuments";
 import { PdfPreviewUnavailableError } from "../../helpers/pdfPreviewRender";
 import { ensureStoredPage, type StoredPage } from "../../helpers/documentPages";
 import { schema, OutputType } from "./preview-page_GET.schema";
 import superjson from "superjson";
 
-// Preview pages are served as rendered images, never as the PDF itself, so only the first previewPages pages
-// of a paid file ever leave the server. The mobile app reads this; the web uses the
+// Preview pages are served as rendered images, never as the PDF itself, so only the first preview pages
+// set on that file ever leave the server. The mobile app reads this; the web uses the
 // endpoints/reader pages instead.
 function toOutput(stored: StoredPage, page: number, previewPages: number): OutputType {
   return {
@@ -35,20 +35,17 @@ export async function handle(request: Request): Promise<Response> {
     }
     const input = parsed.data;
 
-    const product = await db
-      .selectFrom("digitalProducts")
-      .select(["id", "pdfUrl", "previewPages"])
-      .where("id", "=", input.productId)
-      .where("status", "=", "published")
-      .executeTakeFirst();
-    if (!product) {
-      return new Response(
-        superjson.stringify({ error: "Product not found" }),
-        { status: 404 }
-      );
+    let preview: NotePreview;
+    try {
+      preview = await resolveNotePreview(input.productId, input.fileId);
+    } catch (error) {
+      if (error instanceof ReaderAccessError) {
+        return new Response(superjson.stringify({ error: error.message }), { status: error.status });
+      }
+      throw error;
     }
 
-    const previewPages = product.previewPages ?? 0;
+    const previewPages = preview.lastPage;
     if (input.page > previewPages) {
       return new Response(
         superjson.stringify({ error: "This page is not part of the preview" }),
@@ -56,24 +53,7 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
-    let sourceUrl = product.pdfUrl;
-    if (input.fileId) {
-      const file = await db
-        .selectFrom("digitalProductFiles")
-        .select("fileUrl")
-        .where("id", "=", input.fileId)
-        .where("productId", "=", product.id)
-        .executeTakeFirst();
-      if (!file) {
-        return new Response(
-          superjson.stringify({ error: "File not found" }),
-          { status: 404 }
-        );
-      }
-      sourceUrl = file.fileUrl;
-    }
-
-    const stored = await ensureStoredPage(sourceUrl, input.page, previewPages);
+    const stored = await ensureStoredPage(preview.sourceUrl, input.page, previewPages);
     if (!stored) {
       return new Response(
         superjson.stringify({ error: "This page is not part of the preview" }),

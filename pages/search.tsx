@@ -11,7 +11,7 @@ import { useDebounce } from '../helpers/useDebounce';
 import { SearchTeacherItem, SearchOrganizationItem } from '../endpoints/homepage/search_GET.schema';
 import { TeacherProductCard } from '../components/HomepageContentSection';
 import { Placeholder } from '../helpers/placeholderImages';
-import { bundlePriceProps, formatItemPrice, itemPriceProps } from '../helpers/homepageItemUtils';
+import { bundlePriceProps, itemPriceProps } from '../helpers/homepageItemUtils';
 import { getOrganizationProfilePath } from '../helpers/organizationRoutes';
 import styles from './search.module.css';
 
@@ -302,8 +302,7 @@ export default function SearchPage() {
                       teacherIsVerified={product.teacherIsVerified}
                       productTitle={product.title}
                       examName={product.examName}
-                      priceLabel={formatItemPrice(product.price)}
-                      isFree={product.price === 0}
+                      {...itemPriceProps(product.price, product.discountPrice)}
                     />
                   ))}
                 </div>

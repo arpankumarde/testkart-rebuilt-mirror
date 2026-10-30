@@ -8,9 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useDebounce } from "../helpers/useDebounce";
 import { Skeleton } from "../components/Skeleton";
 import { SEOHead } from "../components/SEOHead";
-import { TeacherProductCard } from "../components/HomepageContentSection";
+import { TeacherProductCard, RatingStat, hasRating } from "../components/HomepageContentSection";
 import { Placeholder } from "../helpers/placeholderImages";
-import { formatItemPrice } from "../helpers/homepageItemUtils";
+import { itemPriceProps } from "../helpers/homepageItemUtils";
 import {
   Pagination,
   PaginationContent,
@@ -182,12 +182,14 @@ const ShopPage: React.FC = () => {
                       teacherIsVerified={product.teacherIsVerified}
                       productTitle={product.title}
                       examName={product.examName}
-                      stats={[
-                        product.pageCount ? `${product.pageCount} pages` : null,
-                        product.fileCount > 1 ? `${product.fileCount} files` : null,
-                      ].filter(Boolean).join(' · ')}
-                      priceLabel={formatItemPrice(product.price)}
-                      isFree={product.price === 0}
+                      stats={
+                        <>
+                          <RatingStat rating={product.rating} reviewsCount={product.ratingsCount} />
+                          {hasRating(product.rating) && product.fileCount > 1 ? " · " : null}
+                          {product.fileCount > 1 ? `${product.fileCount} files` : null}
+                        </>
+                      }
+                      {...itemPriceProps(product.price, product.discountPrice)}
                     />
                   ))}
                 </div>

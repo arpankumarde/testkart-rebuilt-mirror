@@ -6,13 +6,17 @@ import superjson from "superjson";
 import { sanitizeOptionalHtml } from "../../../helpers/sanitizeHtml";
 import { DigitalProductFileItem } from "../../../helpers/digitalProductFileTypes";
 import { languagesSummary, normalizeLanguages } from "../../../helpers/itemLanguages";
+import { sql } from "kysely";
 import {
+  applyLegacyPreviewPages,
   isRealFileUrl,
   listProductFiles,
+  productPreviewPagesFromFiles,
   syncProductFiles,
   ProductRuleError,
 } from "../../../helpers/digitalProductRules";
 import { assertStudyNoteFilesArePdfs } from "../../../helpers/studyNoteFileCheck";
+import { productDiscountError } from "../../../helpers/digitalProductPricing";
 import {
   ContentExamError,
   loadContentExamList,
@@ -69,7 +73,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const existingProduct = await db
       .selectFrom("digitalProducts")
-      .select(["id", "title", "slug", "isPublished"])
+      .select(["id", "title", "slug", "isPublished", "price", "discountPrice"])
       .where("id", "=", input.id)
       .where("teacherId", "=", effectiveTeacherId)
       .executeTakeFirst();
@@ -93,12 +97,33 @@ export async function handle(request: Request): Promise<Response> {
       description: sanitizeOptionalHtml(input.description),
       shortDescription: input.shortDescription,
       price: input.price?.toString(),
-      previewPages: input.previewPages,
       language: input.language,
       category: input.category,
       tags: input.tags,
       updatedAt: new Date(),
     };
+
+    // Discounted price: an omitted value keeps the stored one, but it is
+    // re-checked against the (possibly new) price. Making a note free
+    // clears its discount.
+    const nextPrice = input.price ?? Number(existingProduct.price);
+    if (nextPrice === 0 && input.discountPrice === undefined) {
+      updateSet.discountPrice = null;
+    } else {
+      const nextDiscount =
+        input.discountPrice !== undefined
+          ? input.discountPrice
+          : existingProduct.discountPrice === null
+            ? null
+            : Number(existingProduct.discountPrice);
+      const discountError = productDiscountError(nextPrice, nextDiscount);
+      if (discountError) {
+        return new Response(superjson.stringify({ error: discountError }), { status: 400 });
+      }
+      if (input.discountPrice !== undefined) {
+        updateSet.discountPrice = input.discountPrice === null ? null : input.discountPrice.toString();
+      }
+    }
 
     // The form has no thumbnail uploader, so an omitted field leaves the stored value alone.
     if (input.thumbnailUrl !== undefined) updateSet.thumbnailUrl = input.thumbnailUrl;
@@ -140,7 +165,7 @@ export async function handle(request: Request): Promise<Response> {
       let syncedFiles: DigitalProductFileItem[] | null = null;
 
       if (Array.isArray(input.files)) {
-        syncedFiles = await syncProductFiles(trx, input.id, input.files);
+        syncedFiles = await syncProductFiles(trx, input.id, applyLegacyPreviewPages(input.files, input.previewPages));
       } else if (input.pdfUrl !== undefined && isRealFileUrl(input.pdfUrl)) {
         // Older clients send a single file as pdfUrl. A placeholder URL is
         // ignored so it can never overwrite a real file.
@@ -180,12 +205,33 @@ export async function handle(request: Request): Promise<Response> {
         syncedFiles = await listProductFiles(trx, input.id);
       }
 
+      // A client without per-file previews sent one product-wide count and no file list.
+      if (!Array.isArray(input.files) && input.previewPages !== undefined) {
+        const pages = input.previewPages ?? 0;
+        await trx
+          .updateTable("digitalProductFiles")
+          .set({
+            previewEnabled: pages > 0,
+            previewPages: pages > 0 ? sql<number>`least(${pages}, coalesce(nullif(page_count, 0), ${pages}))` : null,
+          })
+          .where("productId", "=", input.id)
+          .execute();
+        syncedFiles = await listProductFiles(trx, input.id);
+      }
+
       const realFiles = (syncedFiles ?? []).filter((f) => isRealFileUrl(f.fileUrl));
       if (realFiles.length > 0) {
         updateSet.pdfUrl = realFiles[0].fileUrl;
         updateSet.pdfFileId = realFiles[0].fileId;
         updateSet.fileSizeBytes = realFiles.reduce((sum, f) => sum + (f.fileSizeBytes ?? 0), 0).toString();
         updateSet.pageCount = realFiles.reduce((sum, f) => sum + (f.pageCount ?? 0), 0) || null;
+      }
+      // Older readers (the mobile app, admin review) still read one product-wide count.
+      const currentFiles = syncedFiles ?? (await listProductFiles(trx, input.id));
+      if (currentFiles.some((f) => isRealFileUrl(f.fileUrl))) {
+        updateSet.previewPages = productPreviewPagesFromFiles(currentFiles);
+      } else if (input.previewPages !== undefined) {
+        updateSet.previewPages = input.previewPages;
       }
 
       const product = await trx
@@ -206,6 +252,7 @@ export async function handle(request: Request): Promise<Response> {
     const output: OutputType = {
       ...updatedProduct,
       price: Number(updatedProduct.price),
+      discountPrice: updatedProduct.discountPrice === null ? null : Number(updatedProduct.discountPrice),
       rating: updatedProduct.rating ? Number(updatedProduct.rating) : null,
       fileSizeBytes: updatedProduct.fileSizeBytes ? Number(updatedProduct.fileSizeBytes) : null,
       files,

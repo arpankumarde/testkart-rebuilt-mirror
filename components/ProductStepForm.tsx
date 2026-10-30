@@ -25,7 +25,7 @@ import { useUploadLimits } from '../helpers/useUploadLimits';
 import { useUnsavedChangesGuard } from '../helpers/useUnsavedChangesGuard';
 import { uploadFileToR2, type UploadStatus } from '../helpers/useR2Upload';
 import { parseErrorMessage } from '../helpers/parseErrorMessage';
-import { DIGITAL_PRODUCT_CATEGORIES, isRealFileUrl, PDF_UNREADABLE_MESSAGE, STUDY_NOTES_PDF_MAX_MB } from '../helpers/digitalProductRules';
+import { DIGITAL_PRODUCT_CATEGORIES, filePreviewError, isRealFileUrl, PDF_UNREADABLE_MESSAGE, STUDY_NOTES_PDF_MAX_MB } from '../helpers/digitalProductRules';
 import { checkStudyNotesPdf } from '../helpers/studyNotesPdfCheck';
 import { schema as createSchema } from '../endpoints/teacher/products/create_POST.schema';
 import { postTeacherProductsPdfPageCount, PdfRejectedError } from '../endpoints/teacher/products/pdf-page-count_POST.schema';
@@ -35,6 +35,7 @@ import { WithdrawReviewButton } from './WithdrawReviewButton';
 import { ContentVisibilityPanel } from './ContentVisibilityPanel';
 import { useAdminContentEdit } from '../helpers/useAdminContentEdit';
 import { noEmoji } from '../helpers/emojiText';
+import { productDiscountError, productDiscountPercent } from '../helpers/digitalProductPricing';
 
 const LazyPdfReaderDialog = React.lazy(() => import('./PdfReaderDialog').then(m => ({ default: m.PdfReaderDialog })));
 import styles from './ProductStepForm.module.css';
@@ -64,11 +65,22 @@ const fileRowSchema = z.object({
   fileId: z.string().optional().nullable(),
   fileSizeBytes: z.number().int().min(0).optional().nullable(),
   pageCount: z.number().int().min(0).optional().nullable(),
+  // Off for every new file until the teacher turns it on.
+  previewEnabled: z.boolean().optional().default(false),
+  previewPages: z.number().int().optional().nullable(),
 }).superRefine((file, ctx) => {
   if (isRealFileUrl(file.fileUrl) && !file.title.trim()) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['title'], message: 'File title is required.' });
   }
+  const previewError = isRealFileUrl(file.fileUrl)
+    ? filePreviewError(file.title, file.previewEnabled, file.previewPages, file.pageCount)
+    : null;
+  if (previewError) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['previewPages'], message: previewError });
+  }
 });
+
+const DEFAULT_PREVIEW_PAGES = 3;
 
 const formSchema = createSchema.extend({
   tagsString: z.string().optional(),
@@ -84,17 +96,17 @@ const FIELD_LABELS: Record<string, string> = {
   title: 'Title',
   shortDescription: 'Short description',
   description: 'Full description',
-  price: 'Price',
+  price: 'Original price',
+  discountPrice: 'Discounted price',
   category: 'Category',
   language: 'Language',
   languages: 'Languages',
   examName: 'Exam name',
   examNames: 'Exams',
   tagsString: 'Tags',
-  previewPages: 'Preview pages',
 };
 
-const FILES_TAB_FIELDS = new Set(['files', 'previewPages', 'pageCount', 'allowDownload']);
+const FILES_TAB_FIELDS = new Set(['files', 'pageCount', 'allowDownload']);
 
 // What counts as an unsaved change. Page counts are left out because they
 // are filled in in the background after load.
@@ -104,13 +116,15 @@ const snapshotValues = (v: FormValues, isFree: boolean) =>
     v.description,
     v.shortDescription || '',
     isFree ? 0 : v.price,
+    isFree ? null : v.discountPrice ?? null,
     v.category || '',
     v.languages ?? [],
     v.examNames ?? [],
-    v.previewPages || 0,
     v.tagsString || '',
     !!v.allowDownload,
-    (v.files || []).filter((f) => isRealFileUrl(f.fileUrl)).map((f) => [f.title, f.fileUrl]),
+    (v.files || [])
+      .filter((f) => isRealFileUrl(f.fileUrl))
+      .map((f) => [f.title, f.fileUrl, !!f.previewEnabled, f.previewEnabled ? f.previewPages ?? null : null]),
   ]);
 
 // Uploads finish out of order, so results are matched to rows by this key
@@ -135,8 +149,9 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
   const [extractedPdfText, setExtractedPdfText] = useState<string | null>(null);
   // Edit mode only. Opens on Files for a product with nothing uploaded yet.
   const [activeStepTab, setActiveStepTab] = useState<'details' | 'files'>('details');
-  // The price typed before "Keep this free" was ticked, restored when unticked.
+  // The prices typed before "Keep this free" was ticked, restored when unticked.
   const lastPriceRef = useRef<number>(0);
+  const lastDiscountRef = useRef<number | null>(null);
   // Its own state rather than price === 0, so unticking always re-enables the
   // price input even while the price is still 0.
   const [isFreeChecked, setIsFreeChecked] = useState(true);
@@ -170,11 +185,11 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
       description: '',
       shortDescription: '',
       price: 0,
+      discountPrice: null,
       category: '',
       languages: [],
       examName: '',
       examNames: [],
-      previewPages: 0,
       pageCount: 0,
       allowDownload: true,
       tagsString: '',
@@ -186,8 +201,10 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
   useEffect(() => {
     if (isEditMode && productDetails && !isFormInitialized) {
       let files = productDetails.files || [];
-      // Legacy single-file products keep their file on pdfUrl with no file row.
+      // Legacy single-file products keep their file on pdfUrl with no file row,
+      // and their preview as the product-wide count. Saving gives them a row.
       if (files.length === 0 && isRealFileUrl(productDetails.pdfUrl)) {
+        const legacyPreview = productDetails.previewPages ?? 0;
         files = [{
           id: 0,
           title: productDetails.title || 'File 1',
@@ -196,6 +213,10 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
           fileSizeBytes: productDetails.fileSizeBytes,
           pageCount: productDetails.pageCount,
           orderIndex: 0,
+          previewEnabled: legacyPreview > 0,
+          previewPages: legacyPreview > 0
+            ? Math.min(legacyPreview, productDetails.pageCount || legacyPreview)
+            : null,
         }];
       }
 
@@ -209,11 +230,11 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
         description: productDetails.description || '',
         shortDescription: productDetails.shortDescription || '',
         price: productDetails.price,
+        discountPrice: productDetails.discountPrice ?? null,
         category: productDetails.category || '',
         languages: itemLanguages(productDetails),
         examName: savedExamNames[0] ?? '',
         examNames: savedExamNames,
-        previewPages: productDetails.previewPages || 0,
         pageCount: files.reduce((sum: number, f: any) => sum + (f.pageCount || 0), 0),
         allowDownload: !!productDetails.allowDownload,
         tagsString: productDetails.tags ? productDetails.tags.join(', ') : '',
@@ -225,6 +246,8 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
           fileId: f.fileId,
           fileSizeBytes: f.fileSizeBytes,
           pageCount: f.pageCount,
+          previewEnabled: !!f.previewEnabled,
+          previewPages: f.previewEnabled ? f.previewPages : null,
         })),
       });
       setIsFormInitialized(true);
@@ -456,6 +479,23 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
     };
   }, [form.values]);
 
+  const uploadedFiles = (form.values.files || []).filter((f) => isRealFileUrl(f.fileUrl));
+  const previewedCount = uploadedFiles.filter((f) => f.previewEnabled).length;
+  const previewSummary =
+    uploadedFiles.length === 0
+      ? 'No PDFs uploaded'
+      : previewedCount === 0
+        ? 'Off for every file'
+        : `On for ${previewedCount} of ${uploadedFiles.length} ${uploadedFiles.length === 1 ? 'file' : 'files'}`;
+
+  const discountPercent = isFreeChecked ? null : productDiscountPercent(form.values.price, form.values.discountPrice);
+  const discountProblem =
+    isFreeChecked || form.values.discountPrice == null
+      ? null
+      : !(form.values.price > 0)
+        ? 'Enter the original price first.'
+        : productDiscountError(form.values.price, form.values.discountPrice);
+
   const buildPayload = useCallback((rows: FileRow[] = form.values.files || []) => {
     const tags = form.values.tagsString
       ? form.values.tagsString.split(',').map(t => t.trim()).filter(Boolean)
@@ -471,6 +511,8 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
         fileId: f.fileId ?? null,
         fileSizeBytes: f.fileSizeBytes ?? null,
         pageCount: f.pageCount ?? null,
+        previewEnabled: !!f.previewEnabled,
+        previewPages: f.previewEnabled ? f.previewPages ?? null : null,
       }));
 
     return {
@@ -478,6 +520,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
       description: form.values.description,
       shortDescription: form.values.shortDescription || null,
       price: isFreeChecked ? 0 : form.values.price,
+      discountPrice: isFreeChecked ? null : form.values.discountPrice ?? null,
       category: form.values.category || null,
       languages: form.values.languages ?? [],
       examName: form.values.examNames?.[0] ?? null,
@@ -485,7 +528,6 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
       tags,
       files,
       pageCount: files.reduce((sum, f) => sum + (f.pageCount || 0), 0) || null,
-      previewPages: form.values.previewPages || 0,
       allowDownload: !!form.values.allowDownload,
     };
   }, [form.values, isFreeChecked]);
@@ -561,6 +603,14 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
   const handleSave = async (action: 'save' | 'publish') => {
     if (!form.validateForm()) {
       revealFirstError();
+      return;
+    }
+    const discountError = isFreeChecked ? null : productDiscountError(form.values.price, form.values.discountPrice);
+    if (discountError) {
+      if (isEditMode) setActiveStepTab('details');
+      form.setFieldError('discountPrice', discountError);
+      toast.error(`Discounted price: ${discountError}`);
+      setErrorFocusTick((n) => n + 1);
       return;
     }
     if (action === 'publish' && !readiness.isReadyToPublish) {
@@ -841,12 +891,17 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
                         const checked = e.target.checked;
                         setIsFreeChecked(checked);
                         if (checked) {
-                          // Remember whatever price was there so unchecking
-                          // restores it instead of leaving 0 behind.
+                          // Remember whatever prices were there so unchecking
+                          // restores them instead of leaving 0 behind.
                           if (form.values.price > 0) lastPriceRef.current = form.values.price;
-                          form.setValues(prev => ({ ...prev, price: 0 }));
+                          lastDiscountRef.current = form.values.discountPrice ?? null;
+                          form.setValues(prev => ({ ...prev, price: 0, discountPrice: null }));
                         } else {
-                          form.setValues(prev => ({ ...prev, price: lastPriceRef.current || prev.price || 0 }));
+                          form.setValues(prev => ({
+                            ...prev,
+                            price: lastPriceRef.current || prev.price || 0,
+                            discountPrice: lastDiscountRef.current,
+                          }));
                         }
                       }}
                     />
@@ -858,23 +913,66 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
 
               <div className={styles.grid2}>
                 <FormItem name="price">
-                  <FormLabel>Set price (0 to keep the product free)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min="0"
-                      placeholder="0 for free"
-                      value={form.values.price}
-                      // Editing happens through the checkbox above once it's
-                      // free — disable direct entry so the two controls can't
-                      // disagree (e.g. checkbox unchecked but price still 0).
-                      disabled={isFreeChecked}
-                      onChange={(e) => form.setValues(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
-                    />
-                  </FormControl>
+                  <FormLabel>Original price</FormLabel>
+                  <div className={styles.rupeeInput}>
+                    <span className={styles.rupee} aria-hidden="true">₹</span>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        inputMode="decimal"
+                        min="0"
+                        placeholder={isFreeChecked ? '0' : 'e.g., 999'}
+                        value={form.values.price > 0 ? form.values.price : isFreeChecked ? 0 : ''}
+                        // Editing happens through the checkbox above once it's
+                        // free - disable direct entry so the two controls can't
+                        // disagree (e.g. checkbox unchecked but price still 0).
+                        disabled={isFreeChecked}
+                        onChange={(e) => form.setValues(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+                      />
+                    </FormControl>
+                  </div>
+                  <FormDescription>The full price, shown struck through when there is a discount.</FormDescription>
                   <FormMessage />
                 </FormItem>
 
+                <FormItem name="discountPrice">
+                  <FormLabel>Discounted price (optional)</FormLabel>
+                  <div className={styles.discountRow}>
+                    <div className={styles.rupeeInput}>
+                      <span className={styles.rupee} aria-hidden="true">₹</span>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          inputMode="decimal"
+                          min="0"
+                          placeholder={isFreeChecked ? '' : 'e.g., 799'}
+                          value={form.values.discountPrice ?? ''}
+                          disabled={isFreeChecked}
+                          onChange={(e) => {
+                            const next = parseFloat(e.target.value);
+                            form.setValues(prev => ({ ...prev, discountPrice: Number.isFinite(next) ? next : null }));
+                          }}
+                        />
+                      </FormControl>
+                    </div>
+                    {discountPercent !== null && (
+                      <span className={styles.discountPercent}>{discountPercent}% off</span>
+                    )}
+                  </div>
+                  {discountProblem ? (
+                    <p className={styles.discountProblem} role="alert">{discountProblem}</p>
+                  ) : (
+                    <>
+                      <FormDescription>
+                        Students pay this instead. Leave empty to sell at the original price.
+                      </FormDescription>
+                      <FormMessage />
+                    </>
+                  )}
+                </FormItem>
+              </div>
+
+              <div>
                 <FormItem name="tagsString">
                   <FormLabel>Tags</FormLabel>
                   <FormControl>
@@ -912,7 +1010,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
                     <Button type="button" variant="outline" size="sm" onClick={() => {
                       handleFilesChange(prevFiles => [
                         ...prevFiles,
-                        { clientKey: generateClientKey(), id: null, title: `File ${prevFiles.length + 1}`, fileUrl: '', fileId: null, fileSizeBytes: null, pageCount: null },
+                        { clientKey: generateClientKey(), id: null, title: `File ${prevFiles.length + 1}`, fileUrl: '', fileId: null, fileSizeBytes: null, pageCount: null, previewEnabled: false, previewPages: null },
                       ]);
                     }}>
                       <Plus size={16} /> Add File
@@ -948,6 +1046,18 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
                         [next[from], next[to]] = [next[to], next[from]];
                         return next;
                       });
+                    const setPreviewEnabled = (on: boolean) =>
+                      handleFilesChange(prevFiles => prevFiles.map(f => {
+                        if (f.clientKey !== clientKey) return f;
+                        if (!on) return { ...f, previewEnabled: false };
+                        const fallback = Math.min(DEFAULT_PREVIEW_PAGES, f.pageCount || DEFAULT_PREVIEW_PAGES);
+                        return { ...f, previewEnabled: true, previewPages: f.previewPages ?? fallback };
+                      }));
+                    const setPreviewPages = (pages: number | null) =>
+                      handleFilesChange(prevFiles => prevFiles.map(f => (f.clientKey === clientKey ? { ...f, previewPages: pages } : f)));
+                    const previewProblem = file.previewEnabled
+                      ? filePreviewError(file.title, true, file.previewPages, file.pageCount)
+                      : null;
                     const meta = [
                       file.pageCount ? `${file.pageCount} pages` : '',
                       file.fileSizeBytes ? `${(file.fileSizeBytes / (1024 * 1024)).toFixed(2)} MB` : '',
@@ -964,6 +1074,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
                         onDragEnd={() => setDraggedIndex(null)}
                       >
                         {uploaded ? (
+                          <>
                           <div className={styles.fileRow}>
                             <GripVertical size={16} className={styles.dragHandle} aria-hidden="true" />
                             <div className={styles.fileRowIcon}>
@@ -1026,6 +1137,46 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
                               </Button>
                             </div>
                           </div>
+                          <div className={styles.filePreview}>
+                            <label className={styles.filePreviewToggle}>
+                              <Switch
+                                checked={!!file.previewEnabled}
+                                onCheckedChange={setPreviewEnabled}
+                                aria-label={`Enable free preview for ${file.title || `file ${index + 1}`}`}
+                              />
+                              <span>Enable free preview</span>
+                            </label>
+                            {file.previewEnabled && (
+                              <FormItem name={`files.${index}.previewPages`} className={styles.filePreviewPages}>
+                                <div className={styles.filePreviewPagesRow}>
+                                  <FormLabel className={styles.filePreviewPagesLabel}>Preview pages</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      inputMode="numeric"
+                                      min={1}
+                                      max={file.pageCount || undefined}
+                                      className={styles.filePreviewPagesInput}
+                                      value={file.previewPages ?? ''}
+                                      onChange={(e) => {
+                                        const next = parseInt(e.target.value, 10);
+                                        setPreviewPages(Number.isFinite(next) ? next : null);
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <span className={styles.filePreviewPagesOf}>
+                                    {file.pageCount ? `of ${file.pageCount}` : 'Page count pending'}
+                                  </span>
+                                </div>
+                                {previewProblem ? (
+                                  <p className={styles.filePreviewProblem} role="alert">{previewProblem}</p>
+                                ) : (
+                                  <FormMessage />
+                                )}
+                              </FormItem>
+                            )}
+                          </div>
+                          </>
                         ) : (
                           <div className={styles.fileEntryEmpty}>
                             <div className={styles.fileEntryEmptyHeader}>
@@ -1108,20 +1259,15 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
                   <FormMessage />
                 </FormItem>
 
-                <FormItem name="previewPages">
-                  <FormLabel>Preview Pages</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min="0"
-                      placeholder="e.g., 3"
-                      value={form.values.previewPages || ''}
-                      onChange={(e) => form.setValues(prev => ({ ...prev, previewPages: parseInt(e.target.value) || 0 }))}
-                    />
-                  </FormControl>
-                  <FormDescription>Number of pages available for free preview.</FormDescription>
-                  <FormMessage />
-                </FormItem>
+                <div className={styles.previewSummary}>
+                  <span className={styles.previewSummaryLabel}>Free preview</span>
+                  <div className={styles.pageCountDisplay}>
+                    {previewSummary}
+                  </div>
+                  <p className={styles.previewSummaryHint}>
+                    Set it on each PDF above. Students see only those pages, and only for files with the preview on.
+                  </p>
+                </div>
               </div>
 
               <FormItem name="allowDownload" className={styles.downloadToggle}>

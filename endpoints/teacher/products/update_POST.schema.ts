@@ -19,10 +19,13 @@ export const schema = z.object({
   description: z.string().min(10).optional(),
   shortDescription: z.string().max(255).optional().nullable(),
   price: z.number().min(0).optional(),
+  // Omitted keeps the stored discount; null clears it. Must sit between 0 and price.
+  discountPrice: z.number().min(0, "Discounted price cannot be negative.").optional().nullable(),
   thumbnailUrl: z.string().url().optional().nullable(),
   thumbnailFileId: z.string().optional().nullable(),
   pdfUrl: z.string().url().optional(),
   pdfFileId: z.string().optional().nullable(),
+  /** Legacy product-wide preview count, applied to every file when no file sends its own setting. */
   previewPages: z.number().int().min(0).optional().nullable(),
   pageCount: z.number().int().min(0).optional().nullable(),
   fileSizeBytes: z.number().int().min(0).optional().nullable(),
@@ -47,8 +50,9 @@ export const schema = z.object({
 
 export type InputType = z.infer<typeof schema>;
 
-export type OutputType = Omit<Selectable<DigitalProducts>, "price" | "rating" | "fileSizeBytes"> & {
+export type OutputType = Omit<Selectable<DigitalProducts>, "price" | "discountPrice" | "rating" | "fileSizeBytes"> & {
   price: number;
+  discountPrice: number | null;
   rating: number | null;
   fileSizeBytes: number | null;
   files: DigitalProductFileItem[];

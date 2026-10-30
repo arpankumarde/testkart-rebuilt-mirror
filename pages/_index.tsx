@@ -6,11 +6,11 @@ import { HomepageTopExams } from "../components/HomepageTopExams";
 import { HomepageFeaturedCourses } from "../components/HomepageFeaturedCourses";
 import { HomepageUgcNetSpotlight } from "../components/HomepageUgcNetSpotlight";
 import { HomepageTeacherSpotlight } from "../components/HomepageTeacherSpotlight";
-import { HomepageContentSection, TeacherProductCard } from "../components/HomepageContentSection";
+import { HomepageContentSection, TeacherProductCard, RatingStat, hasRating } from "../components/HomepageContentSection";
 import { JoinTestkart } from "../components/JoinTestkart";
 import { DiwaliHomeSection } from "../components/DiwaliHomeSection";
 import type { HomepageTestItem, HomepageCourseItem, HomepageNoteItem } from "../endpoints/homepage/data_GET.schema";
-import { formatItemPrice, itemPriceProps } from "../helpers/homepageItemUtils";
+import { itemPriceProps } from "../helpers/homepageItemUtils";
 import { Placeholder } from "../helpers/placeholderImages";
 import styles from "./_index.module.css";
 
@@ -161,12 +161,14 @@ const HomePage: React.FC = () => {
                 teacherIsVerified={item.teacherIsVerified}
                                 productTitle={item.title}
                 examName={item.examName}
-                stats={[
-                  `${item.views.toLocaleString("en-IN")} views`,
-                  item.pageCount ? `${item.pageCount} pages` : null,
-                ].filter(Boolean).join(" · ")}
-                priceLabel={formatItemPrice(item.price)}
-                isFree={item.price === 0}
+                stats={
+                  <>
+                    <RatingStat rating={item.rating} reviewsCount={item.reviewsCount} />
+                    {hasRating(item.rating) && item.pageCount ? " · " : null}
+                    {item.pageCount ? `${item.pageCount} ${item.pageCount === 1 ? "page" : "pages"}` : null}
+                  </>
+                }
+                {...itemPriceProps(item.price, item.discountPrice)}
               />
             )}
           />
