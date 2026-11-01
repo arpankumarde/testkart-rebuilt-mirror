@@ -403,7 +403,7 @@ const MasterclassEditorDialog: React.FC<{
                   <FormLabel>Cover image (optional)</FormLabel>
                   <FormControl>
                     <ImageUploader
-                      folder="masterclass-covers"
+                      folder="platform/masterclass"
                       label="Upload cover image"
                       aspectRatio="16 / 9"
                       currentImageUrl={form.values.coverImageUrl || undefined}

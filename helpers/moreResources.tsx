@@ -1,4 +1,4 @@
-import { BellRing, CalendarDays, PenLine, type LucideIcon } from "lucide-react";
+import { BellRing, CalendarDays, GraduationCap, PenLine, type LucideIcon } from "lucide-react";
 
 export type MoreResource = {
   href: string;
@@ -8,6 +8,7 @@ export type MoreResource = {
 
 /** The public reading sections behind the More menu in the navbar and the phone tab bar. */
 export const MORE_RESOURCES: MoreResource[] = [
+  { href: "/exams", label: "Exams", icon: GraduationCap },
   { href: "/current-affairs", label: "Current Affairs", icon: CalendarDays },
   { href: "/exam-news", label: "Exam News", icon: BellRing },
   { href: "/blog", label: "Blogs", icon: PenLine },

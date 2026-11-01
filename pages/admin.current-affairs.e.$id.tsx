@@ -738,7 +738,7 @@ const AdminCurrentAffairsEditorPage: React.FC = () => {
                         <FormItem name="coverImageUrl" className={styles.coverUpload}>
                           <FormLabel>Cover image</FormLabel>
                           <ImageUploader
-                            folder="current-affairs"
+                            folder="platform/current-affairs"
                             currentImageUrl={values.coverImageUrl || undefined}
                             currentFileId={values.coverImageFileId || undefined}
                             aspectRatio="16 / 9"
@@ -835,7 +835,7 @@ const AdminCurrentAffairsEditorPage: React.FC = () => {
                       <FormItem name="ogImageUrl" className={styles.ogField}>
                         <FormLabel>Social sharing image</FormLabel>
                         <ImageUploader
-                          folder="current-affairs"
+                          folder="platform/current-affairs"
                           currentImageUrl={values.ogImageUrl || undefined}
                           currentFileId={values.ogImageFileId || undefined}
                           aspectRatio="1200 / 630"

@@ -225,6 +225,11 @@
   color: var(--pastel-peach-ink);
 }
 
+.tagNews {
+  background-color: var(--pastel-mint);
+  color: var(--pastel-mint-ink);
+}
+
 .review {
   display: inline-flex;
   align-items: center;

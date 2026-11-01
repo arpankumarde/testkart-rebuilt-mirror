@@ -58,6 +58,7 @@ export const GEC_CSV_HEADER = [
   "short_name",
   "conducting_body",
   "testkart_exam_slug",
+  "news_post_slug",
   "notice_number",
   "posts_description",
   "vacancies",

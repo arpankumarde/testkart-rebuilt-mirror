@@ -104,69 +104,69 @@ const PRINCIPLES: {
 
 type Person = { name: string; role: string; photo: string | null };
 
-/* Portraits live at https://cdn.testkart.in/team/<name-slug>.jpg. A card falls
+/* Portraits live at https://cdn.testkart.in/platform/team/<name-slug>.jpg. A card falls
    back to initials when photo is null and also when the file is not there yet,
    so a link can be written ahead of the upload. */
 const PEOPLE: Person[] = [
   {
     name: "Hamraj Kumar",
     role: "Founder & CEO",
-    photo: "https://cdn.testkart.in/team/hamraj-kumar.jpg",
+    photo: "https://cdn.testkart.in/platform/team/hamraj-kumar.jpg",
   },
   {
     name: "Shivangi Malviya",
     role: "Product Marketing Lead",
-    photo: "https://cdn.testkart.in/team/shivangi-malviya.jpg",
+    photo: "https://cdn.testkart.in/platform/team/shivangi-malviya.jpg",
   },
   {
     name: "Arpan Kumar De",
     role: "Software Engineer",
-    photo: "https://cdn.testkart.in/team/arpan.webp",
+    photo: "https://cdn.testkart.in/platform/team/arpan.webp",
   },
   {
     name: "Suman Samal",
     role: "SEO Manager",
-    photo: "https://cdn.testkart.in/team/suman-samal.jpg",
+    photo: "https://cdn.testkart.in/platform/team/suman-samal.jpg",
   },
   {
     name: "Balraj Kumar",
     role: "PR Advisor",
-    photo: "https://cdn.testkart.in/team/balraj-singh.jpeg",
+    photo: "https://cdn.testkart.in/platform/team/balraj-singh.jpeg",
   },
   {
     name: "Param Grewal",
     role: "Creator Partnership Manager",
-    photo: "https://cdn.testkart.in/team/param-grewal.jpg",
+    photo: "https://cdn.testkart.in/platform/team/param-grewal.jpg",
   },
   {
     name: "Soumya Yadav",
     role: "Social Media Executive",
-    photo: "https://cdn.testkart.in/team/soumya-yadav.jpg",
+    photo: "https://cdn.testkart.in/platform/team/soumya-yadav.jpg",
   },
   {
     name: "Abhishek Gupta",
     role: "Customer Support Intern",
-    photo: "https://cdn.testkart.in/team/abhishek-gupta.jpg",
+    photo: "https://cdn.testkart.in/platform/team/abhishek-gupta.jpg",
   },
   {
     name: "Meet Tomar",
     role: "Associate Product Manager",
-    photo: "https://cdn.testkart.in/team/meet-tomar.jpg",
+    photo: "https://cdn.testkart.in/platform/team/meet-tomar.jpg",
   },
   {
     name: "Pranjal Gautam",
     role: "Content Creator Executive",
-    photo: "https://cdn.testkart.in/team/pranjal-gautam.jpg",
+    photo: "https://cdn.testkart.in/platform/team/pranjal-gautam.jpg",
   },
   {
     name: "Sanjay Kumar",
     role: "Jr. Content Writer",
-    photo: "https://cdn.testkart.in/team/sanjay-kumar.jpg",
+    photo: "https://cdn.testkart.in/platform/team/sanjay-kumar.jpg",
   },
   {
     name: "Priya Mahato",
     role: "Software Developer Intern",
-    photo: "https://cdn.testkart.in/team/priya-mahato.jpg",
+    photo: "https://cdn.testkart.in/platform/team/priya-mahato.jpg",
   },
 ];
 

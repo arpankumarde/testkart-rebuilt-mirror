@@ -161,7 +161,7 @@ const ItemFields: React.FC<{
           <h4 className={styles.subsectionTitle}>Image (optional)</h4>
             <div className={styles.imageGrid}>
               <ImageUploader
-                folder="current-affairs"
+                folder="platform/current-affairs"
                 currentImageUrl={item.imageUrl || undefined}
                 currentFileId={item.imageFileId || undefined}
                 aspectRatio="16 / 9"

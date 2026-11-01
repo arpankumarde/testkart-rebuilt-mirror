@@ -172,7 +172,12 @@ export interface GecExam {
   tableName: string | null;
   shortName: string | null;
   conductingBody: string;
+  /** Used only to suggest news stories in the editor; the page no longer links to exam pages. */
   testkartExam: { id: number; name: string; slug: string } | null;
+  /** The Exam News story the exam name links to (exam_news_posts.id). */
+  newsPostId: number | null;
+  /** Filled at read time from Exam News. Null on the public page unless the story is published right now. */
+  newsPost?: GecNewsLink | null;
   noticeNumber: string | null;
   postsDescription: string | null;
   vacancies: number | null;
@@ -313,6 +318,17 @@ export interface GecPublicPayload {
   /** YYYY-MM-DD in India, so the server render and hydration derive the same rows. */
   today: string;
 }
+
+/** A linked Exam News story. The page links only when `status` is published. */
+export interface GecNewsLink {
+  id: number;
+  slug: string;
+  title: string;
+  status: "published" | "draft" | "scheduled" | "archived";
+}
+
+/** Exam News story URL, the same /exam-news/{slug} rule as helpers/examNewsPublicMeta. */
+export const gecNewsPath = (slug: string) => `/exam-news/${slug}`;
 
 /** The 18 blocks of the public page, in page order. `keys` are the parts of the page draft each block owns. */
 export const GEC_BLOCKS = [

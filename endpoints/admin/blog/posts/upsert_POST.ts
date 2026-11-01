@@ -33,7 +33,7 @@ export async function handle(request: Request) {
       throw new Error("Post with this slug already exists.");
     }
 
-    const imageFolder = `${input.type === "knowledge_base" ? "help" : "blog"}/${targetSlug}`;
+    const imageFolder = `${input.type === "knowledge_base" ? "platform/help" : "platform/blog"}/${targetSlug}`;
     const content = await offloadDataImages(input.content, imageFolder);
     const readingTime = calculateReadingTime(content);
     

@@ -17,6 +17,7 @@ import { postAdminGecLogAdd, type InputType as LogAddInput } from "../endpoints/
 import { postAdminGecLogDelete } from "../endpoints/admin/govt-exams-calendar/log-delete_POST.schema";
 import { getAdminGecTestkartExams } from "../endpoints/admin/govt-exams-calendar/testkart-exams_GET.schema";
 import { getAdminGecTestkartPages } from "../endpoints/admin/govt-exams-calendar/testkart-pages_GET.schema";
+import { getAdminGecNewsPosts } from "../endpoints/admin/govt-exams-calendar/news-posts_GET.schema";
 import { postAdminGecImport, type InputType as ImportInput } from "../endpoints/admin/govt-exams-calendar/import_POST.schema";
 import type { GecExamInput } from "./gecExamInput";
 import { GEC_PUBLIC_QUERY_KEY } from "./useGovtExamsCalendar";
@@ -88,6 +89,16 @@ export const useAdminGecTestkartPages = (examId: number | null) =>
     queryFn: () => getAdminGecTestkartPages({ examId: examId! }),
     enabled: examId !== null,
     staleTime: 5 * 60_000,
+  });
+
+/** Published Exam News articles for the picker: matches for `q`, or suggestions for the linked Testkart exam. */
+export const useAdminGecNewsPosts = (q: string, examId: number | null, enabled: boolean) =>
+  useQuery({
+    queryKey: [...ADMIN_GEC_KEY, "news-posts", q, examId],
+    queryFn: () => getAdminGecNewsPosts({ q: q.trim() || undefined, examId: examId ?? undefined }),
+    enabled: enabled && (q.trim().length >= 2 || examId !== null),
+    placeholderData: (previous) => previous,
+    staleTime: 60_000,
   });
 
 /** Field errors are left to the editor, which maps them onto its inputs. */

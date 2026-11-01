@@ -4,7 +4,7 @@ import type { MasterclassListItem, OutputType } from "../endpoints/masterclasses
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
 const now = Date.now();
-const COVER = "https://cdn.testkart.in/masterclass-covers/ec91d84b-809e-4db7-85fe-5c17ef251507.png";
+const COVER = "https://cdn.testkart.in/platform/masterclass/ec91d84b-809e-4db7-85fe-5c17ef251507.png";
 
 const item = (id: number, overrides: Partial<MasterclassListItem>): MasterclassListItem => ({
   id,

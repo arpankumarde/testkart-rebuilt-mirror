@@ -456,7 +456,7 @@ const AdminBlogEditorPage = () => {
                       <FormLabel>Social image</FormLabel>
                       <FormControl>
                         <ImageUploader
-                          folder="blog-images"
+                          folder="platform/blog-images"
                           currentImageUrl={form.values.ogImage || undefined}
                           onSuccess={({ url }) => form.setValues((prev) => ({ ...prev, ogImage: url }))}
                           label="Upload social image"

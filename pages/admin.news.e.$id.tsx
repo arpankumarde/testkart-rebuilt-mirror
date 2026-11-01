@@ -732,7 +732,7 @@ const AdminExamNewsEditorPage: React.FC = () => {
                     <FormItem name="heroImageUrl" className={styles.coverUpload}>
                       <FormLabel>Hero image</FormLabel>
                       <ImageUploader
-                        folder="exam-news"
+                        folder="platform/exam-news"
                         currentImageUrl={values.heroImageUrl || undefined}
                         currentFileId={values.heroImageFileId || undefined}
                         aspectRatio="16 / 9"
@@ -898,7 +898,7 @@ const AdminExamNewsEditorPage: React.FC = () => {
                     <FormItem name="ogImageUrl" className={styles.ogField}>
                       <FormLabel>Sharing image</FormLabel>
                       <ImageUploader
-                        folder="exam-news"
+                        folder="platform/exam-news"
                         currentImageUrl={values.ogImageUrl || undefined}
                         currentFileId={values.ogImageFileId || undefined}
                         aspectRatio="1200 / 630"

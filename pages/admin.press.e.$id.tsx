@@ -464,7 +464,7 @@ const AdminNewsEditorPage: React.FC = () => {
                     {/* Not wrapped in FormControl: that slots props onto its
                         child, and ImageUploader is not a DOM-forwarding input. */}
                     <ImageUploader
-                      folder="news-coverage"
+                      folder="platform/press"
                       currentImageUrl={form.values.imageUrl || undefined}
                       currentFileId={form.values.imageFileId || undefined}
                       aspectRatio="16 / 9"

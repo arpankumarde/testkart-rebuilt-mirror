@@ -1,0 +1,141 @@
+.picker {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+}
+
+.chosen {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  align-self: stretch;
+  padding: var(--spacing-2) var(--spacing-1) var(--spacing-2) var(--spacing-3);
+  background-color: var(--pastel-mint);
+  border-radius: var(--radius);
+  color: var(--pastel-mint-ink);
+}
+
+.chosenWarn {
+  background-color: var(--pastel-butter);
+  color: var(--pastel-butter-ink);
+}
+
+.chosenText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.chosenTitle {
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.slug {
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+  opacity: 0.85;
+}
+
+.warn {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.trigger {
+  align-self: flex-start;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  width: min(30rem, 92vw);
+  max-height: 22rem;
+  overflow-y: auto;
+}
+
+.searchWrap {
+  position: relative;
+}
+
+.icon {
+  position: absolute;
+  top: 50%;
+  left: var(--spacing-3);
+  transform: translateY(-50%);
+  color: var(--muted-foreground);
+  pointer-events: none;
+}
+
+.input {
+  padding-left: 2.25rem;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  padding: var(--spacing-2) var(--spacing-3);
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--foreground);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.option:hover,
+.option:focus-visible {
+  background-color: var(--muted);
+  outline: none;
+}
+
+.optionOn {
+  background-color: var(--pastel-peach);
+  color: var(--pastel-peach-ink);
+}
+
+.optionTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.option .slug {
+  color: var(--muted-foreground);
+  opacity: 1;
+}
+
+.badge {
+  margin-left: var(--spacing-2);
+  padding: 0.0625rem 0.4375rem;
+  background-color: var(--pastel-powder);
+  border-radius: var(--radius-full);
+  color: var(--pastel-powder-ink);
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.empty {
+  margin: 0;
+  padding: var(--spacing-2) var(--spacing-1);
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}

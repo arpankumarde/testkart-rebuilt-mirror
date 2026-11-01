@@ -12,7 +12,7 @@ import styles from "./teacher.signup.module.css";
 
 /* Built from R2_PUBLIC_URL like the other marketing images (TeacherCtaBanner,
    BookDemoPopup), rather than hardcoding the CDN host. */
-const BENEFITS_IMAGE_URL = `https://${R2_PUBLIC_URL}/marketing-assets/teacher-signup-benefits.png`;
+const BENEFITS_IMAGE_URL = `https://${R2_PUBLIC_URL}/platform/marketing/teacher-signup-benefits.png`;
 
 const TeacherSignupPage: React.FC = () => {
   const [otpMethod, setOtpMethod] = React.useState<"mobile" | "email">("mobile");

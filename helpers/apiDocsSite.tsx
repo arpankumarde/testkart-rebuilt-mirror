@@ -1,7 +1,7 @@
 import { ApiEndpoint } from "./apiDocsTypes";
 
 const UPLOAD_FOLDER_RULES =
-  "Folders the web uses: students upload to /avatars/students and kyc/students (PAN image). Teachers use avatars/teacher, kyc/teachers, test-thumbnails, test-videos, thumbnails/live-tests, live-test-videos, bundle-thumbnails, bundle-videos, course/<courseId>, course-intros, products/files, library/<teacherId>, editor-images and editor-videos. Admins use avatars/admin, blog-images, news-coverage, editor-images and editor-videos.";
+  "Folders the web uses: students upload to /avatars/students and kyc/students (PAN image). Teachers use avatars/teacher, kyc/teachers, test-thumbnails, test-videos, thumbnails/live-tests, live-test-videos, bundle-thumbnails, bundle-videos, course/<courseId>, course-intros, products/files, library/<teacherId>, editor-images and editor-videos. Admins use avatars/admin, platform/blog-images, platform/current-affairs, platform/press, platform/exam-news, platform/masterclass, editor-images and editor-videos.";
 
 export const apiDocsSite: ApiEndpoint[] = [
   // Site

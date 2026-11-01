@@ -5,7 +5,7 @@ import type { OutputType as Session } from "../endpoints/auth/session_GET.schema
 const DAY = 24 * 60 * 60 * 1000;
 const now = Date.now();
 const route = "/expert/priya-sharma";
-const THUMB = "https://cdn.testkart.in/masterclass-covers/ec91d84b-809e-4db7-85fe-5c17ef251507.png";
+const THUMB = "https://cdn.testkart.in/platform/masterclass/ec91d84b-809e-4db7-85fe-5c17ef251507.png";
 
 const course = (id: number, title: string, extra: Record<string, unknown> = {}) => ({
   id,

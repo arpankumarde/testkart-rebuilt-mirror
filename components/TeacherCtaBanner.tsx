@@ -14,7 +14,7 @@ import styles from "./TeacherCtaBanner.module.css";
  * than two unrelated components. Host comes from the shared R2 config so it
  * follows the CDN, not this file.
  */
-const ART_URL = `https://${R2_PUBLIC_URL}/marketing-assets/home-demo-cta-popup.png`;
+const ART_URL = `https://${R2_PUBLIC_URL}/platform/marketing/home-demo-cta-popup.png`;
 /** Intrinsic size of the asset — set on the <img> so the banner reserves space. */
 const ART_WIDTH = 400;
 const ART_HEIGHT = 300;

@@ -13,7 +13,7 @@ const base: MasterclassDetail = {
   subtitle: "A free live masterclass for teachers",
   description:
     "Join Hamraj Kumar, Founder of Testkart, for a live session on growing your teaching business online, with a special focus on using AI tools effectively.\n\n## What you'll learn\n- Turn your notes into sellable study material\n- Price mock tests and bundles for your exam\n- Use AI to draft questions and check them faster\n- Grow followers on your Testkart profile\n\n## About the host\nHamraj founded Testkart to help teachers earn from what they teach.\n\n## Before you join\nKeep a notebook ready. The session ends with a Q&A.",
-  coverImageUrl: "https://cdn.testkart.in/masterclass-covers/ec91d84b-809e-4db7-85fe-5c17ef251507.png",
+  coverImageUrl: "https://cdn.testkart.in/platform/masterclass/ec91d84b-809e-4db7-85fe-5c17ef251507.png",
   hostName: "Hamraj Kumar",
   hostTitle: "Founder, Testkart",
   hostImageUrl: null,

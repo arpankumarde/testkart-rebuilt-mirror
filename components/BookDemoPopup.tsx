@@ -49,7 +49,7 @@ const STORAGE_KEY = "tk_demo_popup_v1";
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** Host comes from the shared R2 config so it follows the CDN, not this file. */
-const DEMO_IMAGE_URL = `https://${R2_PUBLIC_URL}/marketing-assets/home-demo-cta-popup.png`;
+const DEMO_IMAGE_URL = `https://${R2_PUBLIC_URL}/platform/marketing/home-demo-cta-popup.png`;
 /** Intrinsic size of the asset — set on the <img> so the card reserves space. */
 const DEMO_IMAGE_WIDTH = 400;
 const DEMO_IMAGE_HEIGHT = 300;

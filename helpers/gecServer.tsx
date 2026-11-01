@@ -58,6 +58,31 @@ async function loadSnapshot(includeAdmin: boolean, executor: Executor = db): Pro
   return result.rows[0].snapshot;
 }
 
+/**
+ * Resolves each record's linked Exam News story from exam_news_posts at read time, so a story that is
+ * later unpublished, archived or deleted stops being linked without a republish. `publicOnly` drops any
+ * story that is not published right now, so its title never reaches the page.
+ */
+async function attachNews(snapshot: GecSnapshot, publicOnly: boolean, executor: Executor = db): Promise<GecSnapshot> {
+  const ids = [...new Set(snapshot.exams.map((exam) => exam.newsPostId).filter((id): id is number => typeof id === "number"))];
+  const posts = ids.length
+    ? await executor.selectFrom("examNewsPosts").select(["id", "slug", "title", "status"]).where("id", "in", ids).execute()
+    : [];
+  const byId = new Map(posts.map((post) => [post.id, post]));
+  return {
+    ...snapshot,
+    exams: snapshot.exams.map((exam) => {
+      const post = exam.newsPostId ? byId.get(exam.newsPostId) : undefined;
+      const usable = post && (!publicOnly || post.status === "published");
+      return {
+        ...exam,
+        newsPostId: exam.newsPostId ?? null,
+        newsPost: usable ? { id: post.id, slug: post.slug, title: post.title, status: post.status } : null,
+      };
+    }),
+  };
+}
+
 async function latestPublication(executor: Executor = db) {
   return executor
     .selectFrom("gecPublications")
@@ -80,13 +105,14 @@ async function latestPublication(executor: Executor = db) {
 async function loadPublic(): Promise<GecPublicPayload> {
   const publication = await latestPublication();
   if (!publication) throw new Error("The calendar has not been published yet");
-  return { snapshot: publication.snapshot as unknown as GecSnapshot, lastUpdated: publication.lastUpdated, today: todayInIndia() };
+  const snapshot = await attachNews(publication.snapshot as unknown as GecSnapshot, true);
+  return { snapshot, lastUpdated: publication.lastUpdated, today: todayInIndia() };
 }
 
 /** The working copy as the public page would show it after Publish, for previews. */
 async function loadDraftPayload(): Promise<GecPublicPayload> {
   const today = todayInIndia();
-  return { snapshot: await loadSnapshot(false), lastUpdated: today, today };
+  return { snapshot: await attachNews(await loadSnapshot(false), true), lastUpdated: today, today };
 }
 
 async function pendingChangeCount(since: Date | null, executor: Executor = db) {
@@ -212,6 +238,7 @@ export interface GecAdminRow {
   category: GecCategory;
   conductingBody: string;
   testkartExamName: string | null;
+  news: { title: string; slug: string; published: boolean } | null;
   isHidden: boolean;
   verification: GecVerification;
   verifiedAt: string | null;
@@ -227,7 +254,7 @@ export interface GecAdminRow {
 const normalise = (text: string) => text.toLowerCase().replace(/[–—-]/g, " ").replace(/\s+/g, " ").trim();
 
 async function listExams(input: GecAdminListInput) {
-  const snapshot = await loadSnapshot(true);
+  const snapshot = await attachNews(await loadSnapshot(true), false);
   const today = todayInIndia();
   const view = buildGecView(snapshot, today, today);
   const membership = gecMembership(view);
@@ -267,6 +294,7 @@ async function listExams(input: GecAdminListInput) {
       category: exam.category,
       conductingBody: exam.conductingBody,
       testkartExamName: exam.testkartExam?.name ?? null,
+      news: exam.newsPost ? { title: exam.newsPost.title, slug: exam.newsPost.slug, published: exam.newsPost.status === "published" } : null,
       isHidden: exam.isHidden ?? false,
       verification: exam.verification ?? "unverified",
       verifiedAt: exam.verifiedAt ?? null,
@@ -344,7 +372,7 @@ async function listExams(input: GecAdminListInput) {
 const GEC_STAGE = new Set(["prelims", "mains", "exam", "skill_test", "interview"]);
 
 async function getExam(id: number): Promise<GecExam> {
-  const snapshot = await loadSnapshot(true);
+  const snapshot = await attachNews(await loadSnapshot(true), false);
   const exam = snapshot.exams.find((item) => item.id === id);
   if (!exam) throw new GecNotFoundError("This record no longer exists");
   return exam;
@@ -400,6 +428,16 @@ async function checkExam(executor: Executor, raw: GecExamInput): Promise<GecExam
     const linked = await executor.selectFrom("exams").select("id").where("id", "=", input.testkartExamId).executeTakeFirst();
     if (!linked) issues.push({ path: "testkartExamId", message: "That Testkart exam no longer exists" });
   }
+  if (input.newsPostId) {
+    const post = await executor.selectFrom("examNewsPosts").select(["id", "status"]).where("id", "=", input.newsPostId).executeTakeFirst();
+    const current = input.id
+      ? (await executor.selectFrom("gecExams").select("newsPostId").where("id", "=", input.id).executeTakeFirst())?.newsPostId
+      : null;
+    if (!post) issues.push({ path: "newsPostId", message: "That Exam News article no longer exists. Pick another or remove the link." });
+    else if (post.status !== "published" && current !== input.newsPostId) {
+      issues.push({ path: "newsPostId", message: "Only published Exam News articles can be linked" });
+    }
+  }
   if (issues.length) throw new GecInputError(`${issues.length} field${issues.length === 1 ? " needs" : "s need"} attention`, issues);
   return input;
 }
@@ -413,6 +451,7 @@ const describeChanges = (before: GecExam | null, after: GecExamParsed) => {
     ["tableName", "table name"],
     ["category", "category"],
     ["conductingBody", "body"],
+    ["newsPostId", "linked news"],
     ["noticeNumber", "notice number"],
     ["vacancies", "vacancies"],
     ["postName", "post"],
@@ -453,6 +492,7 @@ async function saveExamWith(trx: Transaction<DB>, input: GecExamParsed, adminId:
     shortName: input.shortName,
     conductingBody: input.conductingBody,
     testkartExamId: input.testkartExamId,
+    newsPostId: input.newsPostId,
     noticeNumber: input.noticeNumber,
     postsDescription: input.postsDescription,
     vacancies: input.vacancies,
@@ -672,6 +712,39 @@ async function pendingSummary() {
 
 // ---- Testkart exam pages ---------------------------------------------------
 
+/**
+ * Published Exam News articles for the record editor's picker, matched on title or slug. With `examId`,
+ * articles tagged with that Testkart exam come first as suggestions; nothing is linked automatically.
+ */
+async function searchNewsPosts(input: { q?: string; examId?: number }) {
+  const term = input.q?.trim();
+  let query = db
+    .selectFrom("examNewsPosts as p")
+    .leftJoin("exams as e", "e.id", "p.examId")
+    .select([
+      "p.id",
+      "p.slug",
+      "p.title",
+      "p.newsType",
+      "p.publishedAt",
+      "e.examName",
+      sql<boolean>`${input.examId ?? null}::int is not null and p.exam_id = ${input.examId ?? null}::int`.as("suggested"),
+    ])
+    .where("p.status", "=", "published");
+  if (term) {
+    const like = `%${term}%`;
+    query = query.where((eb) => eb.or([eb("p.title", "ilike", like), eb("p.slug", "ilike", like)]));
+  } else if (input.examId) {
+    query = query.where("p.examId", "=", input.examId);
+  }
+  const rows = await query
+    .orderBy(sql`(${input.examId ?? null}::int is not null and p.exam_id = ${input.examId ?? null}::int)`, "desc")
+    .orderBy("p.publishedAt", "desc")
+    .limit(20)
+    .execute();
+  return rows.map((row) => ({ ...row, publishedAt: row.publishedAt ? new Date(row.publishedAt).toISOString() : null }));
+}
+
 const PAGE_LINKS: Record<string, { label: string; slug: string }> = {
   syllabus: { label: "Syllabus", slug: "syllabus" },
   exam_pattern: { label: "Exam pattern", slug: "exam-pattern" },
@@ -716,7 +789,7 @@ async function testkartPages(examId: number) {
 // ---- Import and export -----------------------------------------------------
 
 async function exportData(format: "csv" | "json") {
-  const snapshot = await loadSnapshot(true);
+  const snapshot = await attachNews(await loadSnapshot(true), false);
   const content = await getContent();
   const date = todayInIndia();
   if (format === "json") {
@@ -737,6 +810,7 @@ async function exportData(format: "csv" | "json") {
       exam.shortName,
       exam.conductingBody,
       exam.testkartExam?.slug ?? "",
+      exam.newsPost?.slug ?? "",
       exam.noticeNumber,
       exam.postsDescription,
       exam.vacancies,
@@ -782,7 +856,11 @@ async function exportData(format: "csv" | "json") {
   };
 }
 
-type ImportRecord = { slug: string; fields: Partial<GecExamInput> & { testkartExamSlug?: string | null }; events: GecExamInput["events"] };
+type ImportRecord = {
+  slug: string;
+  fields: Partial<GecExamInput> & { testkartExamSlug?: string | null; newsPostSlug?: string | null };
+  events: GecExamInput["events"];
+};
 
 const nullable = (value: string | undefined) => (value === undefined ? undefined : value.trim() === "" ? null : value.trim());
 
@@ -818,6 +896,7 @@ function parseCsvRecords(text: string): { records: ImportRecord[]; issues: GecIs
           shortName: nullable(get("short_name")),
           conductingBody: nullable(get("conducting_body")) ?? undefined,
           testkartExamSlug: nullable(get("testkart_exam_slug")),
+          newsPostSlug: nullable(get("news_post_slug")),
           noticeNumber: nullable(get("notice_number")),
           postsDescription: nullable(get("posts_description")),
           vacancies: vacancies === undefined ? undefined : vacancies === null ? null : Number(vacancies.replace(/,/g, "")),
@@ -893,8 +972,19 @@ async function importData(input: { format: "csv" | "json"; content: string; dryR
     const snapshot = await loadSnapshot(true, trx);
     for (const record of parsed.records) {
       const existing = snapshot.exams.find((exam) => exam.slug === record.slug);
-      const { testkartExamSlug, ...fields } = record.fields;
+      const { testkartExamSlug, newsPostSlug, ...fields } = record.fields;
       let testkartExamId = existing?.testkartExam?.id ?? null;
+      let newsPostId = fields.newsPostId !== undefined ? fields.newsPostId : existing?.newsPostId ?? null;
+      if (newsPostSlug !== undefined) {
+        const post = newsPostSlug
+          ? await trx.selectFrom("examNewsPosts").select("id").where("slug", "=", newsPostSlug).where("status", "=", "published").executeTakeFirst()
+          : undefined;
+        newsPostId = post?.id ?? null;
+        if (newsPostSlug && !post) {
+          newsPostId = existing?.newsPostId ?? null;
+          issues.push({ path: record.slug, message: `No published Exam News article "${newsPostSlug}"; the link was left as it was` });
+        }
+      }
       if (testkartExamSlug !== undefined) {
         testkartExamId = testkartExamSlug
           ? (await trx.selectFrom("exams").select("id").where("examSlug", "=", testkartExamSlug).executeTakeFirst())?.id ?? null
@@ -923,7 +1013,7 @@ async function importData(input: { format: "csv" | "json"; content: string; dryR
           summary.eventsAdded += 1;
         }
       }
-      const candidate: GecExamInput = { ...baseInput, ...fields, testkartExamId, events, id: existing?.id };
+      const candidate: GecExamInput = { ...baseInput, ...fields, testkartExamId, newsPostId, events, id: existing?.id };
       try {
         const checked = await checkExam(trx, candidate);
         if (!input.dryRun) await saveExamWith(trx, checked, adminId, { log: false });
@@ -972,6 +1062,7 @@ const emptyRecord = (): GecExamInput => ({
   shortName: null,
   conductingBody: "",
   testkartExamId: null,
+  newsPostId: null,
   noticeNumber: null,
   postsDescription: null,
   vacancies: null,
@@ -1024,6 +1115,7 @@ export const gecServer = {
   addLogNote,
   deleteLogNote,
   searchTestkartExams,
+  searchNewsPosts,
   testkartPages,
   exportData,
   importData,

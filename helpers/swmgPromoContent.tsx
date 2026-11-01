@@ -29,12 +29,12 @@ export const swmgPromoContent = {
   name: "Dr. Mukesh Goyal",
   academy: "SWMG - Success with Mukesh Goyal",
   portrait: {
-    src900: "https://cdn.testkart.in/marketing/swmg/0079bd4c-c425-4dde-9138-43313c0d8bc2.webp",
-    src600: "https://cdn.testkart.in/marketing/swmg/64366e1a-0034-4dfb-8f4f-bae8a77f114b.webp",
+    src900: "https://cdn.testkart.in/platform/marketing/swmg/0079bd4c-c425-4dde-9138-43313c0d8bc2.webp",
+    src600: "https://cdn.testkart.in/platform/marketing/swmg/64366e1a-0034-4dfb-8f4f-bae8a77f114b.webp",
     width: 900,
     height: 1125,
   },
-  shareImage: "https://cdn.testkart.in/marketing/swmg/af6f563d-9896-4333-876e-72e65c2fe84f.jpg",
+  shareImage: "https://cdn.testkart.in/platform/marketing/swmg/af6f563d-9896-4333-876e-72e65c2fe84f.jpg",
   credentials: [
     { value: "JRF", label: "UGC NET qualified" },
     { value: "Ph.D.", label: "Environmental Science" },

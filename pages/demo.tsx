@@ -19,7 +19,7 @@ import styles from "./demo.module.css";
 const DEFAULT_VIDEO = ALL_TEACHER_VIDEOS[0];
 
 /** The Book-a-demo dialog's own artwork, so the hero and the dialog read as one ask. 400x300, transparent. */
-const HERO_ART_URL = `https://${R2_PUBLIC_URL}/marketing-assets/home-demo-cta-popup.png`;
+const HERO_ART_URL = `https://${R2_PUBLIC_URL}/platform/marketing/home-demo-cta-popup.png`;
 
 const ListThumb = ({ video }: { video: TeacherVideo }) =>
   video.source === "youtube" ? (

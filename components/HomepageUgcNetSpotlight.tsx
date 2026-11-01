@@ -73,7 +73,7 @@ function initials(name: string) {
   return name.replace(/^Dr\.?\s+/i, "").substring(0, 2).toUpperCase();
 }
 
-/* Resources: mock tests and study notes normalised into one card model. */
+/* Resources: paid mock tests and study notes normalised into one card model. */
 
 type ResourceMeta = { icon: LucideIcon; text: string };
 
@@ -184,11 +184,10 @@ function mixResources(tests: Resource[], notes: Resource[]): Resource[] {
 /**
  * Compact UGC NET hub on the homepage: a header, one featured course from Dr.
  * Mukesh Goyal (his public profile) with its real discount when it has one,
- * and a single carousel mixing the most popular UGC NET mock tests and study
- * notes from every teacher (tests/list and shop/list filtered to the UGC NET
- * exam, each spread across teachers, then alternated, verified teachers
- * first). All of it, including
- * the featured course's details, is prefetched in pages/_index.prefetch.ts
+ * and a single carousel mixing the most popular paid UGC NET mock tests and
+ * study notes from every teacher (tests/list and shop/list filtered to the UGC
+ * NET exam, free items dropped, each spread across teachers, then alternated,
+ * verified teachers first). All of it, including the featured course's details, is prefetched in pages/_index.prefetch.ts
  * with the keys in helpers/ugcNetSpotlightQueries. The featured card and the
  * carousel each have their own loading, empty and error state; the section
  * hides only when both are settled and empty.
@@ -219,11 +218,13 @@ export function HomepageUgcNetSpotlight() {
 
   const resources = useMemo(() => {
     const tests = verifiedFirstByTeacher(testsQuery.data?.tests ?? [], (t) => t.teacherSlug ?? t.teacherName)
-      .slice(0, MAX_PER_TYPE)
-      .map(testResource);
+      .map(testResource)
+      .filter((item) => !item.isFree)
+      .slice(0, MAX_PER_TYPE);
     const notes = verifiedFirstByTeacher(notesQuery.data?.products ?? [], (n) => n.teacherSlug)
-      .slice(0, MAX_PER_TYPE)
-      .map(noteResource);
+      .map(noteResource)
+      .filter((item) => !item.isFree)
+      .slice(0, MAX_PER_TYPE);
     return mixResources(tests, notes);
   }, [testsQuery.data, notesQuery.data]);
 

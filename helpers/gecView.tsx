@@ -5,6 +5,7 @@ import {
   GEC_STAGE_TYPES,
   GEC_STATUSES,
   gecLabel,
+  gecNewsPath,
   type GecCategory,
   type GecEvent,
   type GecExam,
@@ -279,7 +280,8 @@ const CALENDAR_TONES: Record<GecCategory, string> = {
 
 const count = new Intl.NumberFormat("en-IN");
 
-const examLink = (exam: GecExam) => (exam.testkartExam ? `/exams/${exam.testkartExam.slug}` : null);
+/** An exam name links only to its linked Exam News story, and only while that story is published. No other fallback. */
+const examLink = (exam: GecExam) => (exam.newsPost?.status === "published" ? gecNewsPath(exam.newsPost.slug) : null);
 
 const keywordsOf = (exam: GecExam) =>
   [exam.keywords, exam.conductingBody, exam.noticeNumber, exam.shortName].filter(Boolean).join(" ");
@@ -503,7 +505,7 @@ export function buildGecView(snapshot: GecSnapshot, today: string, lastUpdated: 
         exam.postName || exam.tableName || exam.name,
         exam.vacancies !== null ? count.format(exam.vacancies) : "–",
       ],
-      links: [null, null, exam.applyUrl || exam.notificationUrl || examLink(exam), null],
+      links: [null, null, examLink(exam), null],
     }));
 
   // Recently concluded: each record's latest finished sitting, kept for the retention window.

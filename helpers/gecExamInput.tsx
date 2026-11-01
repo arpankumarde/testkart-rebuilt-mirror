@@ -58,6 +58,7 @@ export const gecExamInputSchema = z.object({
   shortName: optionalText(120),
   conductingBody: z.string().trim().min(1, "Conducting body is required").max(80),
   testkartExamId: z.number().int().positive().nullable(),
+  newsPostId: z.number().int().positive().nullable(),
   noticeNumber: optionalText(60),
   postsDescription: optionalText(300),
   vacancies: z.number().int().min(0).max(10_000_000).nullable(),
@@ -141,6 +142,7 @@ export const emptyGecExam = (): GecExamInput => ({
   shortName: null,
   conductingBody: "",
   testkartExamId: null,
+  newsPostId: null,
   noticeNumber: null,
   postsDescription: null,
   vacancies: null,
@@ -170,6 +172,7 @@ export const gecExamToInput = (exam: GecExam): GecExamInput => ({
   shortName: exam.shortName,
   conductingBody: exam.conductingBody,
   testkartExamId: exam.testkartExam?.id ?? null,
+  newsPostId: exam.newsPostId ?? null,
   noticeNumber: exam.noticeNumber,
   postsDescription: exam.postsDescription,
   vacancies: exam.vacancies,
@@ -208,7 +211,11 @@ export const gecExamToInput = (exam: GecExam): GecExamInput => ({
 });
 
 /** Editor input as a record, so the editor can show where the record would appear before it is saved. */
-export const gecInputToExam = (input: GecExamInput, testkartExam: GecExam["testkartExam"]): GecExam => ({
+export const gecInputToExam = (
+  input: GecExamInput,
+  testkartExam: GecExam["testkartExam"],
+  newsPost: GecExam["newsPost"] = null
+): GecExam => ({
   id: input.id ?? -1,
   slug: "",
   recordType: input.recordType,
@@ -218,6 +225,8 @@ export const gecInputToExam = (input: GecExamInput, testkartExam: GecExam["testk
   shortName: input.shortName || null,
   conductingBody: input.conductingBody || "-",
   testkartExam,
+  newsPostId: input.newsPostId,
+  newsPost,
   noticeNumber: input.noticeNumber || null,
   postsDescription: input.postsDescription || null,
   vacancies: input.vacancies,

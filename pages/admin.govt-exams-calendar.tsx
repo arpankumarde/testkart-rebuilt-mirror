@@ -290,6 +290,16 @@ const AdminGovtExamsCalendarPage: React.FC = () => {
                     <span className={styles.tag}>{gecLabel(GEC_CATEGORIES, row.category)}</span>
                     {row.conductingBody}
                     {row.recordType === "recruitment" && <span className={styles.tag}>Recruitment only</span>}
+                    {row.news &&
+                      (row.news.published ? (
+                        <span className={`${styles.tag} ${styles.tagNews}`} title={row.news.title}>
+                          News linked
+                        </span>
+                      ) : (
+                        <span className={`${styles.tag} ${styles.tagHidden}`} title={`${row.news.title} is no longer published`}>
+                          News unpublished
+                        </span>
+                      ))}
                     {row.isHidden && <span className={`${styles.tag} ${styles.tagHidden}`}>Hidden</span>}
                   </span>
                   {row.reviewNote && (

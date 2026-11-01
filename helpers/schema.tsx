@@ -930,6 +930,7 @@ export interface GecExams {
   isHidden: Generated<boolean>;
   keywords: string | null;
   name: string;
+  newsPostId: number | null;
   noticeNumber: string | null;
   notificationUrl: string | null;
   officialUrl: string | null;
