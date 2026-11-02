@@ -17,17 +17,26 @@ export const useEarningsBalance = () => {
   });
 };
 
+/**
+ * One lookup per Check press: `requestId` changes on every press and on every account pick,
+ * so the dialog only ever shows the response for the request it last made.
+ */
 export const useSponsorCheck = (
   identifier: string,
   contentId: number | null,
   contentType: "test" | "course" | "product" | "bundle",
-  enabled = true
+  enabled = true,
+  requestId = 0,
+  studentUserId?: number
 ) => {
   return useQuery({
-    queryKey: [...TEACHER_SPONSOR_CHECK_QUERY_KEY, identifier, contentType, contentId],
-    queryFn: () => checkSponsorStudent({ identifier, contentId: contentId!, contentType }),
+    queryKey: [...TEACHER_SPONSOR_CHECK_QUERY_KEY, identifier, contentType, contentId, requestId, studentUserId ?? 0],
+    queryFn: () => checkSponsorStudent({ identifier, contentId: contentId!, contentType, studentUserId }),
     enabled: identifier.length >= 3 && !!contentId && enabled,
     retry: false,
+    staleTime: Infinity,
+    gcTime: 0,
+    refetchOnWindowFocus: false,
   });
 };
 

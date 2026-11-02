@@ -58,6 +58,85 @@
   min-width: 80px;
 }
 
+.fieldHint {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--error-text);
+}
+
+.alertWithAction {
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.alertText {
+  flex: 1;
+  min-width: 12rem;
+}
+
+.candidatePanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background-color: var(--muted);
+}
+
+.candidateHeading {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.candidate {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  color: var(--foreground);
+  text-align: left;
+  cursor: pointer;
+}
+
+.candidate:hover:not(:disabled) {
+  border-color: var(--primary);
+}
+
+.candidate:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.candidate:disabled {
+  cursor: not-allowed;
+}
+
+.candidateSelected {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.candidateName {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.candidateMeta {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  overflow-wrap: anywhere;
+}
+
 .loadingItem {
   padding: var(--spacing-2);
   display: flex;

@@ -16,6 +16,7 @@ import {
   ariaSort,
   PerformanceFacts,
   PerformanceFact,
+  PerformanceCards,
   openRow,
   OpenCell,
   OpenHead,
@@ -142,6 +143,53 @@ export const TeacherPerformanceStudents = ({ toolbar, scope, onClearScope, onOpe
       <SortHeader label={label} active={sort.key === key} direction={sort.direction} onSort={() => toggleSort(key)} />
     </th>
   );
+
+  // Cell contents shared by the table and the phone cards, so the two views
+  // cannot drift apart.
+  const papersCell = (row: PerformanceStudentRow) =>
+    row.papersStarted === 0 ? (
+      <span className={styles.none}>-</span>
+    ) : (
+      <>
+        {row.papersFinished}
+        <span className={styles.muted}> of {row.papersStarted}</span>
+      </>
+    );
+  const courseCell = (row: PerformanceStudentRow) =>
+    row.courses === 0 ? (
+      <span className={styles.none}>-</span>
+    ) : row.lessonsDone === 0 ? (
+      <span className={styles.muted}>Not started</span>
+    ) : (
+      <ProgressBar value={row.courseProgress ?? 0} />
+    );
+  const notesCell = (row: PerformanceStudentRow) =>
+    row.notes === 0 ? (
+      <span className={styles.none}>-</span>
+    ) : row.notePagesRead === 0 ? (
+      <span className={styles.muted}>Not opened</span>
+    ) : (
+      <ProgressBar value={row.noteProgress ?? 0} />
+    );
+  const lastActiveCell = (row: PerformanceStudentRow) =>
+    row.lastActiveAt ? (
+      <span title={dateText(row.lastActiveAt)}>{adminFormat.relativeTime(row.lastActiveAt)}</span>
+    ) : (
+      <span className={styles.none}>Not yet</span>
+    );
+
+  const sortOptions: { key: SortKey; label: string }[] = [
+    { key: "name", label: "Student" },
+    ...(showTests
+      ? [
+          { key: "papersFinished" as const, label: "Papers done" },
+          { key: "averageScore" as const, label: "Average score" },
+        ]
+      : []),
+    ...(showCourses ? [{ key: "courseProgress" as const, label: "Course progress" }] : []),
+    ...(showNotes ? [{ key: "noteProgress" as const, label: "Notes read" }] : []),
+    { key: "lastActiveAt", label: "Last active" },
+  ];
 
   const exportCsv = () => {
     downloadCsv(
@@ -301,15 +349,12 @@ export const TeacherPerformanceStudents = ({ toolbar, scope, onClearScope, onOpe
       ) : (
         <>
           <div className={`${styles.panel} ${isFetching ? styles.busy : ""}`} aria-busy={isFetching}>
-            <table className={styles.table}>
+            <table className={`${styles.table} ${styles.wideOnly}`}>
               <thead>
                 <tr>
-                  {header("name", "Student")}
-                  {showTests && header("papersFinished", "Papers done", true)}
-                  {showTests && header("averageScore", "Average score")}
-                  {showCourses && header("courseProgress", "Course progress")}
-                  {showNotes && header("noteProgress", "Notes read")}
-                  {header("lastActiveAt", "Last active")}
+                  {sortOptions.map(({ key, label }) => (
+                    <React.Fragment key={key}>{header(key, label, key === "papersFinished")}</React.Fragment>
+                  ))}
                   <OpenHead />
                 </tr>
               </thead>
@@ -319,57 +364,54 @@ export const TeacherPerformanceStudents = ({ toolbar, scope, onClearScope, onOpe
                     <td>
                       <StudentName name={row.name} avatarUrl={row.avatarUrl} />
                     </td>
-                    {showTests && (
-                      <td className={styles.num}>
-                        {row.papersStarted === 0 ? (
-                          <span className={styles.none}>-</span>
-                        ) : (
-                          <>
-                            {row.papersFinished}
-                            <span className={styles.muted}> of {row.papersStarted}</span>
-                          </>
-                        )}
-                      </td>
-                    )}
+                    {showTests && <td className={styles.num}>{papersCell(row)}</td>}
                     {showTests && (
                       <td>
                         <ScoreBar value={row.averageScore} />
                       </td>
                     )}
-                    {showCourses && (
-                      <td>
-                        {row.courses === 0 ? (
-                          <span className={styles.none}>-</span>
-                        ) : row.lessonsDone === 0 ? (
-                          <span className={styles.muted}>Not started</span>
-                        ) : (
-                          <ProgressBar value={row.courseProgress ?? 0} />
-                        )}
-                      </td>
-                    )}
-                    {showNotes && (
-                      <td>
-                        {row.notes === 0 ? (
-                          <span className={styles.none}>-</span>
-                        ) : row.notePagesRead === 0 ? (
-                          <span className={styles.muted}>Not opened</span>
-                        ) : (
-                          <ProgressBar value={row.noteProgress ?? 0} />
-                        )}
-                      </td>
-                    )}
-                    <td className={styles.num}>
-                      {row.lastActiveAt ? (
-                        <span title={dateText(row.lastActiveAt)}>{adminFormat.relativeTime(row.lastActiveAt)}</span>
-                      ) : (
-                        <span className={styles.none}>Not yet</span>
-                      )}
-                    </td>
+                    {showCourses && <td>{courseCell(row)}</td>}
+                    {showNotes && <td>{notesCell(row)}</td>}
+                    <td className={styles.num}>{lastActiveCell(row)}</td>
                     <OpenCell label={`Open ${row.name}'s results`} onOpen={() => onOpenStudent(row.studentId)} />
                   </tr>
                 ))}
               </tbody>
             </table>
+
+            <PerformanceCards
+              header={
+                <div className={styles.sortPills} role="group" aria-label="Sort students by">
+                  {sortOptions.map(({ key, label }) => (
+                    <SortHeader
+                      key={key}
+                      label={label}
+                      active={sort.key === key}
+                      direction={sort.direction}
+                      onSort={() => toggleSort(key)}
+                    />
+                  ))}
+                </div>
+              }
+              items={pageRows.map((row) => ({
+                key: row.studentId,
+                name: row.name,
+                avatarUrl: row.avatarUrl,
+                onOpen: () => onOpenStudent(row.studentId),
+                openLabel: `Open ${row.name}'s results`,
+                figures: [
+                  ...(showTests
+                    ? [
+                        { label: "Papers done", value: papersCell(row) },
+                        { label: "Average score", value: <ScoreBar value={row.averageScore} /> },
+                      ]
+                    : []),
+                  ...(showCourses ? [{ label: "Course progress", value: courseCell(row) }] : []),
+                  ...(showNotes ? [{ label: "Notes read", value: notesCell(row) }] : []),
+                  { label: "Last active", value: lastActiveCell(row) },
+                ],
+              }))}
+            />
           </div>
           {totalPages > 1 && <ConsoleListPagination page={currentPage} totalPages={totalPages} onPageChange={setPage} />}
           {showTests && <p className={styles.footnote}>Average score uses each student's best attempt on each paper.</p>}

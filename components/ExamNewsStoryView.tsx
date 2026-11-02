@@ -286,6 +286,27 @@ export const ExamNewsStoryView: React.FC<{ slug: string }> = ({ slug }) => {
                   </tbody>
                 </table>
               </div>
+              {/* Phones: the same rows as a list. base.css pins th/td to table-cell, so
+                  the table cannot be restacked, and two columns squeeze every date onto
+                  two lines. */}
+              <ul className={styles.dateRows}>
+                {keyDates.map((row, index) => (
+                  <li key={`${row.eventName}-${index}`} className={styles.dateRow}>
+                    <p className={styles.dateEvent}>
+                      {row.eventName}
+                      {row.note && <span className={styles.rowNote}>{row.note}</span>}
+                    </p>
+                    <dl className={styles.dateValues}>
+                      {DATE_COLUMNS.filter((c) => row[c.key]).map((c) => (
+                        <div key={c.key}>
+                          <dt>{c.label}</dt>
+                          <dd>{row[c.key]}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </li>
+                ))}
+              </ul>
             </section>
           )}
 

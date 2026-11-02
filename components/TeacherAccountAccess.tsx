@@ -7,6 +7,7 @@ import { RiOpenaiFill } from "react-icons/ri";
 import { Button } from "./Button";
 import { Skeleton } from "./Skeleton";
 import { ConsoleConfirmDialog } from "./ConsoleConfirmDialog";
+import { AI_CONNECTOR_ANCHOR } from "./AiConnectorCard";
 import { useAiConnections, useRevokeAiConnection } from "../helpers/useAiConnections";
 import { useSignOutOtherDevices, useTeacherSignIns } from "../helpers/useTeacherSignIns";
 import type { AiConnectorAudience } from "../helpers/aiConnectors";
@@ -60,14 +61,17 @@ const APPS_COPY: Record<AiConnectorAudience, AppsCopy> = {
 
 type ConnectedAppsProps = SectionProps & {
   audience?: AiConnectorAudience;
-  /** Overrides where "Connect an app" goes; null hides it for viewers who cannot open that page. */
+  /** Overrides which dashboard "Connect an app" goes to; null hides it for viewers who cannot open that page. */
   connectHref?: string | null;
 };
 
 export const ConnectedAppsSection = ({ id, audience = "teacher", connectHref }: ConnectedAppsProps) => {
   const titleId = useId();
   const copy = APPS_COPY[audience];
-  const connectTo = connectHref === undefined ? copy.connectHref : connectHref;
+  // The dashboard's connector card opens and scrolls into view on this hash, so the
+  // link lands on the setup rather than the top of the dashboard.
+  const dashboard = connectHref === undefined ? copy.connectHref : connectHref;
+  const connectTo = dashboard ? `${dashboard}#${AI_CONNECTOR_ANCHOR}` : null;
   const { data, isPending, isError, refetch, isRefetching } = useAiConnections(audience);
   const revoke = useRevokeAiConnection(audience);
   const [pendingApp, setPendingApp] = useState<string | null>(null);

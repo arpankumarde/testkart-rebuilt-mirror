@@ -1,5 +1,7 @@
+/* minmax(0, 1fr): an implicit auto column grows to the one-line share URL and pushes every row out of the card. */
 .panel {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--spacing-3);
   min-width: 0;
 }
@@ -74,6 +76,7 @@
   align-items: center;
   gap: var(--spacing-2);
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .shareUrl {

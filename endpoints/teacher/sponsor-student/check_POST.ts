@@ -3,15 +3,11 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType, InputType } from "./check_POST.schema";
 import superjson from "superjson";
 import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
-import { normalizePhoneNumber } from "../../../helpers/normalizePhoneNumber";
 import { getTeacherAvailableBalance } from "../../../helpers/getTeacherAvailableBalance";
 import { getTeacherPlatformFee } from "../../../helpers/getTeacherPlatformFee";
 import { courseDiscountPrice } from "../../../helpers/coursePricing";
 import { productDiscountPrice } from "../../../helpers/digitalProductPricing";
-
-function isEmailIdentifier(identifier: string): boolean {
-  return identifier.includes("@");
-}
+import { resolveSponsorAccount } from "../../../helpers/sponsorStudentAccount";
 
 type ContentInfo = {
   id: number;
@@ -188,46 +184,22 @@ export async function handle(request: Request): Promise<Response> {
     const errors: string[] = [];
     let userCreationMessage: string | undefined;
 
-    // Determine lookup strategy based on identifier type
-    const isEmail = isEmailIdentifier(input.identifier);
-    let lookupPhone: string | undefined;
-    let lookupEmail: string | undefined;
+    // 1. Resolve the account: every match is read, and only an active student account is eligible.
+    const account = await resolveSponsorAccount(db, input.identifier, input.studentUserId);
 
-    if (isEmail) {
-      lookupEmail = input.identifier.trim().toLowerCase();
-    } else {
-      try {
-        lookupPhone = normalizePhoneNumber(input.identifier);
-      } catch {
-        return new Response(
-          superjson.stringify({ error: "Invalid phone number format. Please enter a valid 10-digit number or email address." }),
-          { status: 400 }
-        );
-      }
+    if (account.kind === "invalid") {
+      return new Response(superjson.stringify({ error: account.message }), { status: 400 });
     }
 
-    // 1. Check if user exists
-    const studentUserQuery = db
-      .selectFrom("users")
-      .select(["id", "displayName", "role", "mobileNumber", "email"]);
+    const studentUser = account.kind === "student" ? account.student : undefined;
+    const userExists = account.kind !== "not_found";
 
-    const studentUser = isEmail
-      ? await studentUserQuery
-          .where(db.fn("lower", ["users.email"]), "=", lookupEmail!)
-          .executeTakeFirst()
-      : await studentUserQuery
-          .where("mobileNumber", "=", lookupPhone!)
-          .executeTakeFirst();
-
-    const userExists = !!studentUser;
-    const isStudent = studentUser?.role === "student";
-
-    if (userExists && !isStudent) {
-      errors.push("User exists but is not a student account.");
+    if (account.kind === "not_student") {
+      errors.push(account.message);
     }
 
-    if (!userExists) {
-      userCreationMessage = "This identifier is not registered. A new student account will be created.";
+    if (account.kind === "not_found") {
+      userCreationMessage = `No account uses this ${account.isEmail ? "email" : "mobile number"}. A new student account will be created.`;
     }
 
     // 2. Get Content Details
@@ -255,15 +227,15 @@ export async function handle(request: Request): Promise<Response> {
       errors.push("Cannot sponsor free content.");
     }
 
-    // 3. Check if student already enrolled (only applicable if user exists)
-    if (userExists && studentUser && isStudent) {
+    // 3. Check if the resolved student is already enrolled
+    if (studentUser) {
       const alreadyEnrolled = await checkExistingEnrollment(
         input.contentType,
         input.contentId,
         studentUser.id
       );
       if (alreadyEnrolled) {
-        errors.push("Student is already enrolled in this content.");
+        errors.push(`${studentUser.displayName} is already enrolled in this content.`);
       }
     }
 
@@ -293,15 +265,22 @@ export async function handle(request: Request): Promise<Response> {
 
     // Construct Response
     const responseData: OutputType = {
-      isValid: errors.length === 0,
+      isValid: errors.length === 0 && (account.kind === "student" || account.kind === "not_found"),
       ...(userCreationMessage && { message: userCreationMessage }),
       user: {
+        status: account.kind,
+        ...(account.kind === "not_student" || account.kind === "multiple_students"
+          ? { statusMessage: account.message }
+          : {}),
+        ...(account.kind === "multiple_students" || (account.kind === "student" && account.candidates)
+          ? { candidates: account.candidates }
+          : {}),
         exists: userExists,
         id: studentUser?.id,
         name: studentUser?.displayName,
-        isStudent: isStudent,
-        phoneNumber: studentUser?.mobileNumber ?? lookupPhone,
-        email: studentUser?.email ?? lookupEmail,
+        isStudent: !!studentUser,
+        phoneNumber: studentUser?.mobileNumber ?? account.phone,
+        email: studentUser?.email ?? account.email,
       },
       content: {
         title: content.title,

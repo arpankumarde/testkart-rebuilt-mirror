@@ -27,7 +27,8 @@ import { useTeacherTestsQuery } from "../helpers/useTeacherTestsQuery";
 import { useTeacherCoursesQuery } from "../helpers/useTeacherCoursesQuery";
 import { useTeacherProductsQuery } from "../helpers/useTeacherProductsQuery";
 import { useTeacherBundlesQuery } from "../helpers/useTeacherBundlesQuery";
-import { CheckCircle2, XCircle, Info, ExternalLink } from "lucide-react";
+import { parseSponsorIdentifier, type SponsorAccountCandidate } from "../helpers/sponsorStudentAccount";
+import { CheckCircle2, XCircle, Info, ExternalLink, RefreshCw, Users } from "lucide-react";
 import { toast } from "sonner";
 import {
   SponsorPaymentMethodSelector,
@@ -54,7 +55,12 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
   const [selectedContentId, setSelectedContentId] = useState<string>(
     initialMockTestId ? initialMockTestId.toString() : ""
   );
-  const [checkTriggered, setCheckTriggered] = useState(false);
+  // 0 means no check requested for the current inputs; each Check press bumps it.
+  const [checkRequestId, setCheckRequestId] = useState(0);
+  const [selectedStudentId, setSelectedStudentId] = useState<number | undefined>(undefined);
+  // Kept apart from the query so the account list stays put while a pick is re-checked.
+  const [candidates, setCandidates] = useState<SponsorAccountCandidate[] | null>(null);
+  const [identifierTouched, setIdentifierTouched] = useState(false);
 
   // New user creation state
   const [studentName, setStudentName] = useState("");
@@ -123,23 +129,32 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
   // Derived state for check query
   const contentIdToUse = selectedContentId ? parseInt(selectedContentId) : null;
 
-  // Identifier is valid if it's a 10-digit number or contains @
-  const isIdentifierValid =
-    identifier.includes("@")
-      ? identifier.length >= 3
-      : identifier.replace(/\D/g, "").length === 10;
+  // Same parsing as the server: a valid email, or a 10-digit number (+91 allowed).
+  const parsedIdentifier = parseSponsorIdentifier(identifier);
+  const isIdentifierValid = parsedIdentifier.ok;
+  const identifierHint =
+    identifierTouched && identifier.trim().length > 0 && !parsedIdentifier.ok ? parsedIdentifier.message : null;
 
   const isEmailIdentifier = identifier.includes("@");
 
   const shouldCheck =
-    checkTriggered && isIdentifierValid && contentIdToUse !== null;
+    checkRequestId > 0 && isIdentifierValid && contentIdToUse !== null;
 
   const {
     data: checkData,
-    isLoading: isChecking,
+    isFetching: isChecking,
     error: checkError,
     isError: isCheckError,
-  } = useSponsorCheck(identifier, contentIdToUse, contentType, shouldCheck);
+    refetch: retryCheck,
+  } = useSponsorCheck(identifier, contentIdToUse, contentType, shouldCheck, checkRequestId, selectedStudentId);
+
+  useEffect(() => {
+    if (checkData?.user.candidates) {
+      setCandidates(checkData.user.candidates);
+    } else if (checkData) {
+      setCandidates(null);
+    }
+  }, [checkData]);
 
   // Mutation
   const { mutate: enrollStudent, isPending: isEnrolling } = useSponsorEnroll();
@@ -163,7 +178,10 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
   useEffect(() => {
     if (open) {
       setIdentifier("");
-      setCheckTriggered(false);
+      setCheckRequestId(0);
+      setSelectedStudentId(undefined);
+      setCandidates(null);
+      setIdentifierTouched(false);
       setStudentName("");
       setStudentEmail("");
       setStudentPhone("");
@@ -182,9 +200,11 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
     }
   }, [open, initialMockTestId]);
 
-  // Reset check trigger when inputs change
+  // Any input change drops the previous result, the account pick and the new-student fields.
   useEffect(() => {
-    setCheckTriggered(false);
+    setCheckRequestId(0);
+    setSelectedStudentId(undefined);
+    setCandidates(null);
     setStudentName("");
     setStudentEmail("");
     setStudentPhone("");
@@ -207,19 +227,21 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
   const handleContentTypeChange = (newType: 'test' | 'course' | 'product' | 'bundle') => {
     setContentType(newType);
     setSelectedContentId("");
-    setCheckTriggered(false);
+    setCheckRequestId(0);
   };
 
   const handleCheck = () => {
+    setIdentifierTouched(true);
     if (!isIdentifierValid) {
-      toast.error("Please enter a valid 10-digit mobile number or email address");
       return;
     }
     if (!selectedContentId) {
       toast.error(`Please select a ${contentLabel.toLowerCase()}`);
       return;
     }
-    setCheckTriggered(true);
+    setSelectedStudentId(undefined);
+    setCandidates(null);
+    setCheckRequestId((n) => n + 1);
   };
 
   const handlePayURedirection = (payuData: {
@@ -245,7 +267,9 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
   };
 
   const isBalanceSufficient = checkData?.teacher.hasSufficientBalance ?? false;
-  const isNewUser = checkData && !checkData.user.exists;
+  const accountStatus = checkData?.user.status;
+  const isNewUser = accountStatus === "not_found";
+  const checkErrors = checkData?.errors ?? [];
   const isNameValid =
     !isNewUser || (isNewUser && studentName.trim().length > 0);
   const isFreeEnrollment = checkData?.isFreeEnrollment ?? false;
@@ -253,7 +277,10 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
   const effectivePaymentMethod: PaymentMethod = isFreeEnrollment ? "balance" : paymentMethod;
 
   const canEnroll =
+    shouldCheck &&
+    !isCheckError &&
     checkData?.isValid &&
+    (accountStatus === "student" || accountStatus === "not_found") &&
     (isFreeEnrollment || effectivePaymentMethod === "online" || isBalanceSufficient) &&
     !isChecking &&
     !isEnrolling &&
@@ -261,14 +288,15 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
     isNameValid;
 
   const handleEnroll = () => {
-    if (!checkData?.isValid || !contentIdToUse) return;
+    if (!canEnroll || !checkData || !contentIdToUse) return;
 
-    const isNewUserLocal = !checkData.user.exists;
+    const isNewUserLocal = checkData.user.status === "not_found";
     const payload = {
       identifier,
       contentId: contentIdToUse,
       contentType,
       paymentMethod: effectivePaymentMethod,
+      ...(checkData.user.status === "student" && checkData.user.id ? { studentUserId: checkData.user.id } : {}),
       ...(isNewUserLocal && {
         studentName,
         studentEmail: studentEmail || undefined,
@@ -313,6 +341,9 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
       maximumFractionDigits: 0,
     }).format(amount);
   };
+
+  const formatJoined = (date: Date | null) =>
+    date ? new Date(date).toLocaleDateString("en-IN", { month: "short", year: "numeric" }) : null;
 
   // Success View for New User
   if (enrollmentSuccess) {
@@ -417,9 +448,12 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
                 type="text"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
+                onBlur={() => setIdentifierTouched(true)}
                 placeholder="Enter mobile number or email"
                 disabled={isChecking || isEnrolling || isRedirecting}
                 className={styles.identifierInput}
+                aria-invalid={identifierHint ? true : undefined}
+                aria-describedby={identifierHint ? "sponsor-identifier-hint" : undefined}
               />
               <Button
                 type="button"
@@ -433,58 +467,99 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
                   isRedirecting
                 }
                 className={styles.checkButton}
+                aria-busy={isChecking || undefined}
               >
-                {isChecking ? <Spinner size="sm" /> : "Check"}
+                {isChecking ? (
+                  <>
+                    <Spinner size="sm" className={styles.buttonSpinner} />
+                    Checking
+                  </>
+                ) : (
+                  "Check"
+                )}
               </Button>
             </div>
+            {identifierHint && (
+              <p id="sponsor-identifier-hint" className={styles.fieldHint} role="alert">
+                {identifierHint}
+              </p>
+            )}
           </div>
 
-          {/* Validation Results */}
+          {/* Account picker: kept on screen while a pick is being re-checked */}
+          {shouldCheck && !isCheckError && candidates && candidates.length > 1 && (
+            <div className={styles.candidatePanel} role="radiogroup" aria-label="Choose a student account">
+              <div className={styles.candidateHeading}>
+                <Users size={16} />
+                <span>
+                  {candidates.length} student accounts use this {isEmailIdentifier ? "email" : "mobile number"}. Choose the one to sponsor.
+                </span>
+              </div>
+              {candidates.map((c) => {
+                const selected = selectedStudentId === c.id;
+                const joined = formatJoined(c.joinedAt);
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    className={`${styles.candidate} ${selected ? styles.candidateSelected : ""}`}
+                    onClick={() => setSelectedStudentId(c.id)}
+                    disabled={isChecking || isEnrolling || isRedirecting}
+                  >
+                    <span className={styles.candidateName}>{c.name}</span>
+                    <span className={styles.candidateMeta}>
+                      {[c.maskedEmail, c.maskedPhone, joined ? `Joined ${joined}` : null, `ID ${c.id}`]
+                        .filter(Boolean)
+                        .join(" - ")}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Validation result: exactly one state per lookup */}
           {shouldCheck && !isChecking && (
-            <div className={styles.validationResult}>
+            <div className={styles.validationResult} aria-live="polite">
               {isCheckError ? (
-                <div className={`${styles.alert} ${styles.error}`}>
+                <div className={`${styles.alert} ${styles.error} ${styles.alertWithAction}`}>
                   <XCircle size={16} />
-                  <span>
-                    {(checkError as Error)?.message || "Validation failed"}
+                  <span className={styles.alertText}>
+                    {(checkError as Error)?.message || "Could not check this account. Please try again."}
                   </span>
+                  <Button type="button" variant="outline" size="sm" onClick={() => retryCheck()}>
+                    <RefreshCw size={14} />
+                    Try again
+                  </Button>
                 </div>
               ) : checkData ? (
                 <>
-                  {/* User Status */}
-                  <div
-                    className={`${styles.alert} ${
-                      checkData.user.exists ? styles.success : styles.info
-                    }`}
-                  >
-                    {checkData.user.exists ? (
-                      <>
-                        <CheckCircle2 size={16} />
-                        <span>
-                          User Found: <strong>{checkData.user.name}</strong>
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <Info size={16} />
-                        <span>
-                          {checkData.message ||
-                            "This identifier is not registered. A new student account will be created."}
-                        </span>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Errors */}
-                  {checkData.errors && checkData.errors.length > 0 && (
+                  {checkErrors.length > 0 ? (
                     <div className={`${styles.alert} ${styles.error}`}>
                       <XCircle size={16} />
-                      <span>{checkData.errors.join(" ")}</span>
+                      <span>{checkErrors.join(" ")}</span>
                     </div>
-                  )}
+                  ) : accountStatus === "student" ? (
+                    <div className={`${styles.alert} ${styles.success}`}>
+                      <CheckCircle2 size={16} />
+                      <span>
+                        Student account found: <strong>{checkData.user.name}</strong>
+                      </span>
+                    </div>
+                  ) : accountStatus === "not_found" ? (
+                    <div className={`${styles.alert} ${styles.info}`}>
+                      <Info size={16} />
+                      <span>
+                        {checkData.message ||
+                          "No account uses this identifier. A new student account will be created."}
+                      </span>
+                    </div>
+                  ) : null}
 
                   {/* New User Fields */}
-                  {isNewUser && (
+                  {isNewUser && checkData.isValid && (
                     <div className={styles.newUserFields}>
                       <div className={styles.fieldGroup}>
                         <label className={styles.label}>

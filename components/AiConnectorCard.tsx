@@ -1,5 +1,5 @@
-import React, { useEffect, useId, useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useId, useRef, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { Check, ChevronDown, Copy, ExternalLink, Plug } from "lucide-react";
 import { SiClaude, SiPerplexity } from "react-icons/si";
@@ -12,6 +12,9 @@ import { adminFormat } from "../helpers/adminFormat";
 import styles from "./AiConnectorCard.module.css";
 
 type ClientKey = "claude" | "chatgpt" | "perplexity" | "other";
+
+/** The card's id. A link to the dashboard with this hash opens the setup and scrolls to it. */
+export const AI_CONNECTOR_ANCHOR = "connect-ai";
 
 type Guide = {
   steps: React.ReactNode[];
@@ -150,11 +153,14 @@ type Props = {
  *
  * Opens by itself only for someone with nothing connected who has not hidden it. Once an app is
  * connected it stays a single status row, so the dashboard does not keep asking.
+ * Arriving on #connect-ai (Settings' "Connect another app") opens it and scrolls to it.
  */
 export const AiConnectorCard = ({ audience, className }: Props) => {
   const titleId = useId();
   const bodyId = useId();
   const urlLabelId = useId();
+  const sectionRef = useRef<HTMLElement>(null);
+  const location = useLocation();
   const links = aiConnectorLinks(audience);
   const storageKey = `ai_connector_card_hidden_${audience}`;
 
@@ -175,6 +181,16 @@ export const AiConnectorCard = ({ audience, className }: Props) => {
     }
     setPreferenceRead(true);
   }, [storageKey]);
+
+  useEffect(() => {
+    if (location.hash !== `#${AI_CONNECTOR_ANCHOR}`) return;
+    setOpened(true);
+    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const frame = window.requestAnimationFrame(() => {
+      sectionRef.current?.scrollIntoView({ block: "start", behavior: reduceMotion ? "auto" : "smooth" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [location.hash, location.key]);
 
   // Compact until both the stored preference and the connection list are in, so neither a viewer
   // who hid the card nor one already connected sees the setup open and then snap shut.
@@ -197,7 +213,12 @@ export const AiConnectorCard = ({ audience, className }: Props) => {
   const urlBreak = links.url.lastIndexOf("/") + 1;
 
   return (
-    <section className={`${styles.card} ${className ?? ""}`.trim()} aria-labelledby={titleId}>
+    <section
+      ref={sectionRef}
+      id={AI_CONNECTOR_ANCHOR}
+      className={`${styles.card} ${className ?? ""}`.trim()}
+      aria-labelledby={titleId}
+    >
       <div className={styles.head}>
         <span className={styles.marks} aria-hidden="true">
           <SiClaude />

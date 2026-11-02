@@ -6,6 +6,8 @@ export const schema = z.object({
   contentId: z.number(),
   contentType: z.enum(["test", "course", "product", "bundle"]),
   paymentMethod: z.enum(["balance", "online"]),
+  /** The student account picked in the dialog when several share the identifier; revalidated here. */
+  studentUserId: z.number().int().positive().optional(),
   studentName: z.string().optional(),
   studentEmail: z.string().email().optional().or(z.literal("")),
   studentPhone: z.string().optional(),

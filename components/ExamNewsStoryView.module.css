@@ -248,6 +248,11 @@
   color: var(--muted-foreground);
 }
 
+/* Phone list of the same dates; hidden until the 640px breakpoint swaps it in. */
+.dateRows {
+  display: none;
+}
+
 .prose {
   font-size: 1.0625rem;
   line-height: 1.75;
@@ -560,5 +565,82 @@
 
   .table tbody th {
     width: 50%;
+  }
+
+  .tableWrap {
+    display: none;
+  }
+
+  .dateRows {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border: 1px solid var(--tk-table-line);
+    border-radius: var(--radius-md);
+    background-color: var(--surface);
+    overflow: hidden;
+  }
+
+  .dateRow {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    padding: 0.625rem 0.75rem;
+    border-top: 1px solid var(--tk-table-line);
+  }
+
+  .dateRow:first-child {
+    border-top: none;
+  }
+
+  .dateEvent {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    line-height: 1.35;
+    color: var(--foreground);
+    overflow-wrap: anywhere;
+  }
+
+  .dateValues {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0.375rem 0.625rem;
+    border-radius: var(--radius-sm);
+    background-color: color-mix(in srgb, var(--tk-brand) 10%, var(--surface));
+  }
+
+  /* One line per date: the label left, the date right. */
+  .dateValues > div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-width: 0;
+  }
+
+  .dateValues dt {
+    flex-shrink: 0;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  .dateValues dd {
+    min-width: 0;
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--foreground);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
   }
 }

@@ -19,6 +19,8 @@ export type OrderItem = {
   courseId: number | null;
   digitalProductId: number | null;
   bundleId: number | null;
+  // Only on bundle orders, so Retry Payment can send the student back to the bundle page.
+  bundleSlug?: string | null;
   title: string;
   thumbnailUrl: string | null;
   priceAtPurchase: number;

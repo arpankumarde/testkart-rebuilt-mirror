@@ -18,10 +18,7 @@ import { getTeacherPlatformFee } from "../../../helpers/getTeacherPlatformFee";
 import { courseDiscountPrice } from "../../../helpers/coursePricing";
 import { productDiscountPrice } from "../../../helpers/digitalProductPricing";
 import { getOrderClientInfo } from "../../../helpers/orderClientInfo";
-
-function isEmailIdentifier(identifier: string): boolean {
-  return identifier.includes("@");
-}
+import { parseSponsorIdentifier, resolveSponsorAccount } from "../../../helpers/sponsorStudentAccount";
 
 function generateTxnId(enrollmentId: number): string {
   return `sponsor-${enrollmentId}-${Date.now()}`;
@@ -258,14 +255,15 @@ export async function handle(request: Request): Promise<Response> {
     const json = superjson.parse<InputType>(await request.text());
     const input = schema.parse(json);
 
-    const isEmail = isEmailIdentifier(input.identifier);
-
-    // Resolve phone and email from identifier
-    let resolvedPhone: string | undefined;
-    let resolvedEmail: string | undefined;
+    const parsedIdentifier = parseSponsorIdentifier(input.identifier);
+    if (!parsedIdentifier.ok) {
+      return new Response(superjson.stringify({ error: parsedIdentifier.message }), { status: 400 });
+    }
+    const isEmail = parsedIdentifier.isEmail;
+    let resolvedPhone: string | undefined = parsedIdentifier.phone;
+    const resolvedEmail: string | undefined = parsedIdentifier.email;
 
     if (isEmail) {
-      resolvedEmail = input.identifier.trim().toLowerCase();
       if (input.studentPhone && input.studentPhone.trim() !== "") {
         try {
           resolvedPhone = normalizePhoneNumber(input.studentPhone.trim());
@@ -276,33 +274,23 @@ export async function handle(request: Request): Promise<Response> {
           );
         }
       }
-    } else {
-      try {
-        resolvedPhone = normalizePhoneNumber(input.identifier);
-      } catch {
-        return new Response(
-          superjson.stringify({ error: "Invalid phone number format. Please enter a valid 10-digit number or email address." }),
-          { status: 400 }
-        );
-      }
     }
 
     const studentPhoneForRecord = resolvedPhone ?? `email:${resolvedEmail}`;
 
     // Phase 1 transaction: user creation + validation
     const prepResult = await db.transaction().execute(async (trx) => {
-      // Look up existing user by identifier
-      let studentUser = isEmail
-        ? await trx
-            .selectFrom("users")
-            .select(["id", "displayName", "role", "mobileNumber", "email"])
-            .where(db.fn("lower", ["users.email"]), "=", resolvedEmail!)
-            .executeTakeFirst()
-        : await trx
-            .selectFrom("users")
-            .select(["id", "displayName", "role", "mobileNumber", "email"])
-            .where("mobileNumber", "=", resolvedPhone!)
-            .executeTakeFirst();
+      // Re-resolve the account here rather than trusting the dialog's earlier check.
+      const account = await resolveSponsorAccount(trx, input.identifier, input.studentUserId);
+      if (account.kind === "invalid" || account.kind === "not_student" || account.kind === "multiple_students") {
+        throw new Error(account.message);
+      }
+      if (account.kind === "not_found" && input.studentUserId !== undefined) {
+        throw new Error("The selected student account could not be found. Check the account again.");
+      }
+
+      let studentUser: { id: number; displayName: string; mobileNumber: string | null; email: string | null } | undefined =
+        account.kind === "student" ? account.student : undefined;
 
       let wasNewUser = false;
       let tempPassword: string | undefined;
@@ -349,10 +337,6 @@ export async function handle(request: Request): Promise<Response> {
         studentUser = newUser;
         wasNewUser = true;
         console.log(`Created new student user: ${newUser.displayName} (identifier: ${input.identifier})`);
-      } else {
-        if (studentUser.role !== "student") {
-          throw new Error("User exists but is not a student account.");
-        }
       }
 
       // Clean up stale online_pending records

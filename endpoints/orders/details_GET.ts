@@ -83,7 +83,7 @@ export async function handle(request: Request) {
     if (order.bundleId) {
       const bundle = await db
         .selectFrom("courseBundles")
-        .select(["id", "title", "thumbnailUrl", "price"])
+        .select(["id", "slug", "title", "thumbnailUrl", "price"])
         .where("id", "=", order.bundleId)
         .executeTakeFirst();
 
@@ -94,6 +94,7 @@ export async function handle(request: Request) {
           courseId: null,
           digitalProductId: null,
           bundleId: bundle.id,
+          bundleSlug: bundle.slug,
           itemType: "bundle" as const,
           title: bundle.title,
           thumbnailUrl: bundle.thumbnailUrl,

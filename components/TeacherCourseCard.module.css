@@ -248,3 +248,46 @@
     transition: none;
   }
 }
+
+/* Phones: tighter padding, titles that break long unspaced words, stats that
+   wrap a whole item at a time, and a footer that wraps rather than squeezing
+   the actions. */
+@media (max-width: 640px) {
+  .content {
+    gap: 0.625rem;
+    padding: 0.875rem;
+  }
+
+  .titleLink,
+  .description {
+    overflow-wrap: anywhere;
+  }
+
+  .stats {
+    gap: 0.375rem 0.875rem;
+    font-size: 0.75rem;
+  }
+
+  .stat {
+    white-space: nowrap;
+  }
+
+  .stat svg {
+    flex-shrink: 0;
+  }
+
+  .footer {
+    flex-wrap: wrap;
+    padding: 0.625rem 0.875rem;
+    gap: var(--spacing-2);
+  }
+
+  .price {
+    flex-wrap: wrap;
+    column-gap: 0.375rem;
+  }
+
+  .actions {
+    margin-left: auto;
+  }
+}

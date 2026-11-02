@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Helmet } from "react-helmet";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { getOrdersDetails, type ItemType } from "../endpoints/orders/details_GET.schema";
+import { getOrdersDetails, type ItemType, type OrderItem } from "../endpoints/orders/details_GET.schema";
 import { postPaymentPayuVerifyAndComplete } from "../endpoints/payment/payu/verify-and-complete_POST.schema";
+import { postCartAdd } from "../endpoints/cart/add_POST.schema";
+import { CART_QUERY_KEY } from "../helpers/useCartQuery";
 import { trackGTMEvent } from "../helpers/trackGTMEvent";
 import { Button } from "../components/Button";
 import { Badge } from "../components/Badge";
@@ -37,6 +39,7 @@ const OrderDetailsSkeleton: React.FC = () => (
 
 const OrderConfirmationPage: React.FC = () => {
   const { orderId } = useParams();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const numericOrderId = Number(orderId);
@@ -87,6 +90,52 @@ const OrderConfirmationPage: React.FC = () => {
       console.error('Payment verification error:', error);
       setVerificationAttempted(true);
       toast.error('Failed to verify payment. Please wait while we check with the payment gateway.');
+    },
+  });
+
+  // Payment starts from the cart, so a retry puts the order's items back in it and opens /cart,
+  // where current prices and offers are applied. Bundles are bought from their own page.
+  const retryPaymentMutation = useMutation({
+    mutationFn: async (items: OrderItem[]) => {
+      const bundle = items.find((item) => item.itemType === "bundle");
+      if (bundle) {
+        return { kind: "bundle" as const, slug: bundle.bundleSlug ?? null };
+      }
+      let added = 0;
+      const problems: string[] = [];
+      for (const item of items) {
+        const input = item.mockTestId
+          ? { mockTestId: item.mockTestId }
+          : item.courseId
+            ? { courseId: item.courseId }
+            : item.digitalProductId
+              ? { digitalProductId: item.digitalProductId }
+              : null;
+        if (!input) continue;
+        try {
+          await postCartAdd(input);
+          added += 1;
+        } catch (err) {
+          problems.push(`${item.title}: ${err instanceof Error ? err.message : "could not be added"}`);
+        }
+      }
+      return { kind: "cart" as const, added, problems };
+    },
+    onSuccess: (result) => {
+      if (result.kind === "bundle") {
+        navigate(result.slug ? `/bundles/${result.slug}` : "/bundles");
+        return;
+      }
+      queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
+      result.problems.forEach((problem) => toast.error(problem));
+      if (result.added > 0) {
+        navigate("/cart");
+      } else if (result.problems.length === 0) {
+        toast.error("These items can no longer be purchased.");
+      }
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : "Could not restart payment. Please try again.");
     },
   });
 
@@ -317,7 +366,7 @@ const OrderConfirmationPage: React.FC = () => {
       case "pending":
         return {
           icon: <AlertTriangle size={20} />,
-          text: "Payment pending. Return to checkout to complete payment.",
+          text: "Payment pending. Use Retry Payment to complete it from your cart.",
           className: styles.warningMessage,
         };
       case "failed":
@@ -488,11 +537,14 @@ const OrderConfirmationPage: React.FC = () => {
               <span>{formattedTotal}</span>
             </div>
             {showRetryButton && (
-              <Button asChild size="lg" className={styles.dashboardButton}>
-                <Link to="/checkout">
-                  <IndianRupee size={18} />
-                  Retry Payment
-                </Link>
+              <Button
+                size="lg"
+                className={styles.dashboardButton}
+                onClick={() => retryPaymentMutation.mutate(data.items)}
+                disabled={retryPaymentMutation.isPending}
+              >
+                {retryPaymentMutation.isPending ? <Spinner size="sm" /> : <IndianRupee size={18} />}
+                {retryPaymentMutation.isPending ? "Preparing checkout..." : "Retry Payment"}
               </Button>
             )}
             {data.status.toLowerCase() === "completed" && (

@@ -12,6 +12,7 @@ import {
   ScoreBar,
   RankBadge,
   PerformanceFacts,
+  PerformanceCards,
   openRow,
   OpenCell,
   OpenHead,
@@ -247,7 +248,9 @@ export const TeacherPerformanceLeaderboard = ({ toolbar, selection, onSelect, on
           </div>
 
           {board.kind === "series" && board.rows.length > 1 && (
-            <SegmentedControl value={rankBy} onValueChange={setRankBy} options={RANK_OPTIONS} aria-label="Rank by" />
+            <div className={styles.segmentScroll}>
+              <SegmentedControl value={rankBy} onValueChange={setRankBy} options={RANK_OPTIONS} aria-label="Rank by" />
+            </div>
           )}
         </div>
 
@@ -288,7 +291,8 @@ export const TeacherPerformanceLeaderboard = ({ toolbar, selection, onSelect, on
         ) : (board.kind === "series" ? visibleSeries.length : visibleAttempts.length) === 0 ? (
           <p className={styles.empty}>No student on this leaderboard matches "{search}".</p>
         ) : board.kind === "series" ? (
-          <table className={styles.table}>
+          <>
+          <table className={`${styles.table} ${styles.wideOnly}`}>
             <thead>
               <tr>
                 <th className={styles.rankCol}>Rank</th>
@@ -327,8 +331,36 @@ export const TeacherPerformanceLeaderboard = ({ toolbar, selection, onSelect, on
               ))}
             </tbody>
           </table>
+          <PerformanceCards
+            items={visibleSeries.map((row) => ({
+              key: row.studentId,
+              name: row.name,
+              avatarUrl: row.avatarUrl,
+              lead: <RankBadge rank={row.rank} />,
+              onOpen: () => onOpenStudent(row.studentId),
+              openLabel: `Open ${row.name}'s results`,
+              figures:
+                rankBy === "average"
+                  ? [
+                      { label: "Average score", value: <ScoreBar value={row.averageScore} /> },
+                      { label: "Total score", value: row.totalScore.toFixed(1) },
+                      { label: "Papers done", value: <>{row.papersDone}<span className={styles.muted}> of {board.paperCount}</span></> },
+                      { label: "Best score", value: scoreText(row.bestScore) },
+                      { label: "Last attempt", value: dateText(row.lastAt) },
+                    ]
+                  : [
+                      { label: "Total score", value: <strong>{row.totalScore.toFixed(1)}</strong> },
+                      { label: "Average score", value: scoreText(row.averageScore) },
+                      { label: "Papers done", value: <>{row.papersDone}<span className={styles.muted}> of {board.paperCount}</span></> },
+                      { label: "Best score", value: scoreText(row.bestScore) },
+                      { label: "Last attempt", value: dateText(row.lastAt) },
+                    ],
+            }))}
+          />
+          </>
         ) : (
-          <table className={styles.table}>
+          <>
+          <table className={`${styles.table} ${styles.wideOnly}`}>
             <thead>
               <tr>
                 <th className={styles.rankCol}>Rank</th>
@@ -374,6 +406,40 @@ export const TeacherPerformanceLeaderboard = ({ toolbar, selection, onSelect, on
               })}
             </tbody>
           </table>
+          <PerformanceCards
+            items={visibleAttempts.map((row) => ({
+              key: row.studentId,
+              name: row.name,
+              avatarUrl: row.avatarUrl,
+              lead: <RankBadge rank={row.rank} />,
+              onOpen: () =>
+                onOpenStudent(row.studentId, {
+                  itemId: row.itemId,
+                  attemptId: board.kind === "live" ? row.attemptId : undefined,
+                }),
+              openLabel: `Open ${row.name}'s answers`,
+              figures: [
+                ...(board.maxMarks
+                  ? [
+                      {
+                        label: "Marks",
+                        value: (
+                          <>
+                            <strong>{marksText(row.marks)}</strong>
+                            <span className={styles.muted}> / {marksText(board.maxMarks)}</span>
+                          </>
+                        ),
+                      },
+                    ]
+                  : []),
+                { label: "Score", value: <ScoreBar value={row.score} /> },
+                { label: "Time taken", value: durationText(row.timeTakenMinutes) },
+                ...(board.kind === "paper" ? [{ label: "Attempts", value: row.attempts ?? "-" }] : []),
+                { label: "Finished on", value: dateText(row.completedAt) },
+              ],
+            }))}
+          />
+          </>
         )}
       </section>
     </div>

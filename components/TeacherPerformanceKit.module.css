@@ -67,7 +67,12 @@
   color: var(--muted-foreground);
 }
 
+/* position: relative makes the panel the containing block for the absolute
+   .srOnly head label in its last column. Without it that label escaped the
+   panel's own scroll and widened whatever held it, so the student dialog
+   scrolled sideways on phones. */
 .panel {
+  position: relative;
   background-color: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -474,5 +479,195 @@
 @media (prefers-reduced-motion: reduce) {
   .busy {
     transition: none;
+  }
+}
+
+/* A table with a phone card view beside it (PerformanceCards) marks the
+   table .wideOnly and the cards .phoneOnly; one shows at a time. */
+.phoneOnly {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fact {
+    padding: 0.75rem 0.875rem;
+  }
+
+  .fact dt {
+    font-size: 0.75rem;
+  }
+
+  .fact dd {
+    font-size: 1.25rem;
+    overflow-wrap: anywhere;
+  }
+
+  .table.wideOnly {
+    display: none;
+  }
+
+  .phoneOnly {
+    display: block;
+  }
+
+  /* The same SortHeader buttons as the table head, as pills in a row that
+     scrolls sideways. */
+  .sortPills {
+    display: flex;
+    gap: 0.375rem;
+    padding: 0.625rem 0.75rem;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--border);
+    background-color: var(--muted);
+    scrollbar-width: none;
+  }
+
+  .sortPills::-webkit-scrollbar {
+    display: none;
+  }
+
+  .sortPills .sort {
+    flex: 0 0 auto;
+    height: 2rem;
+    padding: 0 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    background-color: var(--surface);
+    color: var(--foreground);
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .sortPills .sortActive {
+    border-color: var(--tk-brand-text);
+    background-color: var(--tk-brand-tint);
+    color: var(--tk-brand-text);
+  }
+
+  .sortPills .sort:focus-visible {
+    outline-offset: -2px;
+    border-radius: var(--radius-full);
+  }
+
+  .cards {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.875rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .card:last-child {
+    border-bottom: none;
+  }
+
+  .cardLink {
+    cursor: pointer;
+  }
+
+  .cardLink:hover {
+    background-color: var(--muted);
+  }
+
+  .cardHead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-2);
+    min-width: 0;
+  }
+
+  .cardHead .name {
+    max-width: none;
+    flex: 1 1 auto;
+  }
+
+  .cardHead .nameText {
+    font-size: 0.9375rem;
+  }
+
+  .cardLink:hover .openButton {
+    color: var(--tk-brand-text);
+  }
+
+  .cardFigures {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem 0.875rem;
+    margin: 0;
+    padding: 0.75rem;
+    border-radius: var(--radius);
+    background-color: var(--background);
+  }
+
+  .cardFigures > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3125rem;
+    min-width: 0;
+  }
+
+  .cardFigures dt {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  .cardFigures dd {
+    min-width: 0;
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--foreground);
+    overflow-wrap: anywhere;
+  }
+
+  .cardFigures .meter {
+    grid-template-columns: auto minmax(0, 1fr);
+    width: 100%;
+  }
+
+  .cardFigures .meterValue {
+    text-align: left;
+  }
+
+  .cardFigures .meterCaption {
+    grid-column: 1 / -1;
+  }
+
+  /* Pickers and a segmented control share the panel header; the control
+     scrolls sideways when its options outrun the screen. */
+  .panelHeader {
+    padding: 0.75rem;
+  }
+
+  .panelHeader > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .segmentScroll {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .segmentScroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .segmentScroll > * {
+    flex-shrink: 0;
   }
 }

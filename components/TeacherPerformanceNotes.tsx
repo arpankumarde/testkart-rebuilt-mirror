@@ -12,6 +12,7 @@ import {
   StudentName,
   ProgressBar,
   PerformanceFacts,
+  PerformanceCards,
   openRow,
   OpenCell,
   OpenHead,
@@ -162,7 +163,9 @@ export const TeacherPerformanceNotes = ({ toolbar, productId, onSelect, onOpenSt
             </SelectContent>
           </Select>
           {note.rows.length > 0 && (
-            <SegmentedControl value={status} onValueChange={setStatus} options={statusOptions} aria-label="Reading status" />
+            <div className={styles.segmentScroll}>
+              <SegmentedControl value={status} onValueChange={setStatus} options={statusOptions} aria-label="Reading status" />
+            </div>
           )}
         </div>
 
@@ -181,7 +184,8 @@ export const TeacherPerformanceNotes = ({ toolbar, productId, onSelect, onOpenSt
         ) : rows.length === 0 ? (
           <p className={styles.empty}>No student matches these filters.</p>
         ) : (
-          <table className={styles.table}>
+          <>
+          <table className={`${styles.table} ${styles.wideOnly}`}>
             <thead>
               <tr>
                 <th>Student</th>
@@ -223,6 +227,39 @@ export const TeacherPerformanceNotes = ({ toolbar, productId, onSelect, onOpenSt
               ))}
             </tbody>
           </table>
+          <PerformanceCards
+            items={rows.map((row) => ({
+              key: row.studentId,
+              name: row.name,
+              avatarUrl: row.avatarUrl,
+              onOpen: () => onOpenStudent(row.studentId),
+              openLabel: `Open ${row.name}'s results`,
+              figures: [
+                {
+                  label: "Pages read",
+                  value:
+                    row.pagesRead === 0 ? (
+                      <span className={styles.none}>-</span>
+                    ) : row.pagesTotal > 0 ? (
+                      <ProgressBar value={row.progress} caption={`${row.pagesRead} of ${row.pagesTotal} pages`} />
+                    ) : (
+                      `${row.pagesRead} pages`
+                    ),
+                },
+                { label: "Status", value: <Badge variant={NOTE_STATUS[row.status].variant}>{NOTE_STATUS[row.status].label}</Badge> },
+                {
+                  label: "Last opened",
+                  value: row.lastOpenedAt ? (
+                    <span title={dateText(row.lastOpenedAt)}>{adminFormat.relativeTime(row.lastOpenedAt)}</span>
+                  ) : (
+                    <span className={styles.none}>-</span>
+                  ),
+                },
+                { label: "Bought on", value: dateText(row.boughtAt) },
+              ],
+            }))}
+          />
+          </>
         )}
       </section>
       <p className={styles.footnote}>Counts pages read on the website. Reading in the app is not counted.</p>

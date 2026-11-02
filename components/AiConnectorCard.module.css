@@ -4,6 +4,7 @@
  * URL socket, step numbers, the Connected chip) and the one solid action is set in ink.
  */
 .card {
+  scroll-margin-top: var(--spacing-4);
   container-type: inline-size;
   display: flex;
   flex-direction: column;

@@ -12,6 +12,7 @@ import {
   StudentName,
   ProgressBar,
   PerformanceFacts,
+  PerformanceCards,
   openRow,
   OpenCell,
   OpenHead,
@@ -166,7 +167,9 @@ export const TeacherPerformanceCourses = ({ toolbar, courseId, onSelect, onOpenS
             </SelectContent>
           </Select>
           {course.rows.length > 0 && (
-            <SegmentedControl value={status} onValueChange={setStatus} options={statusOptions} aria-label="Progress status" />
+            <div className={styles.segmentScroll}>
+              <SegmentedControl value={status} onValueChange={setStatus} options={statusOptions} aria-label="Progress status" />
+            </div>
           )}
         </div>
 
@@ -185,7 +188,8 @@ export const TeacherPerformanceCourses = ({ toolbar, courseId, onSelect, onOpenS
         ) : rows.length === 0 ? (
           <p className={styles.empty}>No student matches these filters.</p>
         ) : (
-          <table className={styles.table}>
+          <>
+          <table className={`${styles.table} ${styles.wideOnly}`}>
             <thead>
               <tr>
                 <th>Student</th>
@@ -225,6 +229,37 @@ export const TeacherPerformanceCourses = ({ toolbar, courseId, onSelect, onOpenS
               ))}
             </tbody>
           </table>
+          <PerformanceCards
+            items={rows.map((row) => ({
+              key: row.studentId,
+              name: row.name,
+              avatarUrl: row.avatarUrl,
+              onOpen: () => onOpenStudent(row.studentId),
+              openLabel: `Open ${row.name}'s results`,
+              figures: [
+                {
+                  label: "Progress",
+                  value:
+                    row.lessonsDone > 0 ? (
+                      <ProgressBar value={row.progress} caption={`${row.lessonsDone} of ${row.lessonsTotal} lessons`} />
+                    ) : (
+                      <span className={styles.none}>-</span>
+                    ),
+                },
+                { label: "Status", value: <Badge variant={STATUS_VARIANT[row.status]}>{STATUS_LABELS[row.status]}</Badge> },
+                {
+                  label: "Last lesson",
+                  value: row.lastLessonAt ? (
+                    <span title={dateText(row.lastLessonAt)}>{adminFormat.relativeTime(row.lastLessonAt)}</span>
+                  ) : (
+                    <span className={styles.none}>-</span>
+                  ),
+                },
+                { label: "Enrolled on", value: dateText(row.enrolledAt) },
+              ],
+            }))}
+          />
+          </>
         )}
       </section>
       <p className={styles.footnote}>Progress is counted against the lessons the course has today.</p>

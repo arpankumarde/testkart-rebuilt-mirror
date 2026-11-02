@@ -170,3 +170,61 @@ export const PerformanceFacts = ({ items, busy, flat }: { items: PerformanceFact
     ))}
   </dl>
 );
+
+export type PerformanceCardItem = {
+  key: React.Key;
+  name: string;
+  avatarUrl?: string | null;
+  /** Shown before the name, such as a RankBadge. */
+  lead?: React.ReactNode;
+  figures: { label: string; value: React.ReactNode }[];
+  onOpen?: (() => void) | null;
+  openLabel: string;
+};
+
+/**
+ * The phone stand-in for a Performance table: one card per row, the name on
+ * top and the figures in two labelled columns. Render it after the table and
+ * give the table perfStyles.wideOnly; one of the two shows at a time. base.css
+ * pins th/td to table-cell, so the table itself cannot be restacked.
+ */
+export const PerformanceCards = ({ items, header }: { items: PerformanceCardItem[]; header?: React.ReactNode }) => (
+  <div className={styles.phoneOnly}>
+    {header}
+    <ul className={styles.cards}>
+      {items.map((item) => (
+        <li
+          key={item.key}
+          className={`${styles.card} ${item.onOpen ? styles.cardLink : ""}`}
+          onClick={item.onOpen ?? undefined}
+        >
+          <div className={styles.cardHead}>
+            {item.lead}
+            <StudentName name={item.name} avatarUrl={item.avatarUrl} />
+            {item.onOpen ? (
+              <button
+                type="button"
+                className={styles.openButton}
+                aria-label={item.openLabel}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  item.onOpen?.();
+                }}
+              >
+                <ChevronRight size={16} aria-hidden="true" />
+              </button>
+            ) : null}
+          </div>
+          <dl className={styles.cardFigures}>
+            {item.figures.map((figure) => (
+              <div key={figure.label}>
+                <dt>{figure.label}</dt>
+                <dd>{figure.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </li>
+      ))}
+    </ul>
+  </div>
+);

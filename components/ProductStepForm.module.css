@@ -1,6 +1,9 @@
+/* Sized on the form's own width, not the window: the teacher nav stays open down to 768px. */
 .container {
   width: 100%;
   padding-bottom: var(--spacing-8);
+  container-type: inline-size;
+  container-name: product-form;
 }
 
 .card {
@@ -16,7 +19,7 @@
 
 .pageLayout {
   display: grid;
-  grid-template-columns: 1fr 320px;
+  grid-template-columns: minmax(0, 1fr) 320px;
   gap: var(--spacing-6);
   align-items: start;
 }
@@ -184,10 +187,10 @@
   color: var(--foreground);
 }
 
-/* Many files flow into a grid on wide screens instead of a tall column. */
+/* Many files flow into a grid on wide screens instead of a tall column; min() keeps one column inside a phone-width card. */
 .fileGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
   gap: var(--spacing-3);
   align-items: start;
 }
@@ -525,6 +528,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-4);
+  min-width: 0;
   position: sticky;
   top: var(--spacing-6);
 }
@@ -635,7 +639,15 @@
   color: var(--muted-foreground);
 }
 
-@media (max-width: 900px) {
+@container product-form (max-width: 64rem) {
+  .pageLayout {
+    grid-template-columns: minmax(0, 1fr) 18rem;
+    gap: var(--spacing-4);
+  }
+}
+
+/* Too narrow for a side column next to a usable editor: stack. */
+@container product-form (max-width: 52rem) {
   .pageLayout {
     display: flex;
     flex-direction: column;

@@ -259,9 +259,31 @@
   }
 }
 
-/* Phones only: drop the "Need help?" label; the guide and support links stay. */
+/* Phones only: drop the "Need help?" label; the guide and support links stay,
+   splitting the row in two equal halves so neither can push past the edge. */
 @media (max-width: 640px) {
   .supportText {
+    display: none;
+  }
+
+  .supportActions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .supportLink {
+    justify-content: center;
+    min-width: 0;
+    height: 2rem;
+    padding: 0 var(--spacing-2);
+    overflow: hidden;
+  }
+}
+
+@media (max-width: 359px) {
+  .supportActionIcon {
     display: none;
   }
 }

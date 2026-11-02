@@ -4,6 +4,7 @@
   padding: 0;
   min-width: 0;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--spacing-1);
 }
 
@@ -22,6 +23,7 @@
 /* A plain radio list, no cards: the choice should not compete with the publish action. */
 .options {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--spacing-1);
 }
 
