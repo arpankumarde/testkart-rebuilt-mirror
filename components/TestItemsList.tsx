@@ -88,11 +88,13 @@ export const TestItemsList: React.FC<TestItemsListProps> = ({ className, items, 
               {/* Second Row: Metadata + Chevron */}
               <div className={styles.itemHeaderBottom}>
                 <div className={styles.metadata}>
-                  <div className={styles.metadataItem}>
-                    <BookOpen size={16} />
-                    <span>{item.totalQuestions} Questions</span>
-                  </div>
-                  {item.durationMinutes !== undefined && item.durationMinutes !== null && (
+                  {!isFuture && (
+                    <div className={styles.metadataItem}>
+                      <BookOpen size={16} />
+                      <span>{item.totalQuestions} Questions</span>
+                    </div>
+                  )}
+                  {item.durationMinutes !== undefined && item.durationMinutes !== null && (!isFuture || item.durationMinutes > 0) && (
                     <div className={styles.metadataItem}>
                       <Clock size={16} />
                       <span>{item.durationMinutes > 0 ? `${item.durationMinutes} mins` : "No Time Limit"}</span>
@@ -134,7 +136,7 @@ export const TestItemsList: React.FC<TestItemsListProps> = ({ className, items, 
                           variant="secondary" 
                           className={styles.subjectBadge}
                         >
-                          {subject.subjectName} ({subject.actualQuestionCount})
+                          {isFuture ? subject.subjectName : `${subject.subjectName} (${subject.actualQuestionCount})`}
                         </Badge>
                       ))}
                     </div>

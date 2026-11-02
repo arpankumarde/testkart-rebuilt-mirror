@@ -12,6 +12,7 @@ import {
   countCourseLessons,
   formatCourseMinutes,
   getCourseReadiness,
+  isVideoLessonWithFile,
   lessonHasContent,
   pluralize,
   sumLessonMinutes,
@@ -24,7 +25,7 @@ import { CourseCardPreview } from "./CourseCardPreview";
 import { CourseSubmitDialog } from "./CourseSubmitDialog";
 import { CreatorBonusClaimCard } from "./CreatorBonusClaimCard";
 import { ContentVisibilityPanel } from "./ContentVisibilityPanel";
-import { ContentExpiryPanel } from "./ContentExpiryPanel";
+// import { ContentExpiryPanel } from "./ContentExpiryPanel";
 import { TeacherListingBadges } from "./TeacherListingBadges";
 import { ConsoleConfirmDialog } from "./ConsoleConfirmDialog";
 import { WithdrawReviewButton } from "./WithdrawReviewButton";
@@ -43,6 +44,7 @@ const tabFromParams = (params: URLSearchParams): EditorTab =>
 
 const FIX_LABELS: Record<CourseReadinessKey, string> = {
   lessons: "Add",
+  video: "Upload",
   cover: "Add",
   description: "Write",
 };
@@ -101,7 +103,7 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
 
   const goTo = (key: CourseReadinessKey) => {
     setSubmitOpen(false);
-    if (key === "lessons") {
+    if (key === "lessons" || key === "video") {
       setTab("content");
       return;
     }
@@ -167,6 +169,7 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
     thumbnailImageUrl: live.thumbnailImageUrl,
     introVideoUrl: live.introVideoUrl,
     lessonsCount,
+    videoLessonsCount: lessons.filter(isVideoLessonWithFile).length,
   });
   const doneCount = readiness.filter((item) => item.done).length;
   const isReady = doneCount === readiness.length;
@@ -408,9 +411,10 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
                 ) : null}
               </section>
             )}
-            {/* With the publish checks, so visibility and expiry are set at the publish step. */}
+            {/* With the publish checks, so visibility is set at the publish step. */}
             <ContentVisibilityPanel contentType="course" contentId={courseId} />
-            <ContentExpiryPanel contentType="course" contentId={courseId} />
+            {/* Course expiry is switched off for now; restore this line (and its import) to bring it back. */}
+            {/* <ContentExpiryPanel contentType="course" contentId={courseId} /> */}
             {!adminEdit && !isPublished && !isInReview && !isUnlisted && (
               <CreatorBonusClaimCard
                 type="course"

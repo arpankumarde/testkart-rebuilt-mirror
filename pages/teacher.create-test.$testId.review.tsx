@@ -27,6 +27,8 @@ import {
   XCircle,
 } from "lucide-react";
 import { sanitizeHtml } from "../helpers/sanitizeHtml";
+import { MIN_SERIES_QUESTIONS } from "../helpers/testSeriesMinimum";
+import { isScheduledAhead, isTestAvailableNow } from "../helpers/testSchedule";
 import styles from "./teacher.create-test.$testId.review.module.css";
 
 const parseJsonArray = (val: unknown): string[] => {
@@ -59,14 +61,14 @@ const effectiveDuration = (item: TestItemWithQuestionsCount) =>
     : item.durationMinutes;
 
 // Subjects with different question counts are normal and not flagged; only a
-// genuinely empty subject is.
+// genuinely empty subject is. A test scheduled for later may still be empty.
 const itemIssues = (item: TestItemWithQuestionsCount): string[] => {
-  if (item.questionsCount === 0) return ["No questions yet"];
+  if (item.questionsCount === 0) return isScheduledAhead(item.scheduledDate) ? [] : ["No questions yet"];
   const issues: string[] = [];
   if (item.missingAnswerCount > 0) {
     issues.push(`${plural(item.missingAnswerCount, "question")} without a correct answer`);
   }
-  if (item.subjectsCount > 1 && item.minSubjectQuestionCount === 0) {
+  if (item.subjectsCount > 1 && item.minSubjectQuestionCount === 0 && !isScheduledAhead(item.scheduledDate)) {
     issues.push("A subject has no questions");
   }
   return issues;
@@ -223,11 +225,28 @@ const Page = () => {
       action: { label: "Add a test", to: testItemsLink },
     });
   } else {
-    const emptyItems = orderedItems.filter((item) => item.questionsCount === 0);
+    if (!isLiveTest) {
+      const availableNow = orderedItems.some((item) =>
+        isTestAvailableNow({ totalQuestions: item.questionsCount, scheduledDate: item.scheduledDate })
+      );
+      checks.push({
+        id: "availableNow",
+        label: "At least one test is open now",
+        state: availableNow ? "pass" : "fail",
+        note: availableNow
+          ? undefined
+          : "Add questions to a test that is not scheduled for later. Scheduled tests can stay empty until they open.",
+        action: availableNow ? undefined : { label: "Open tests", to: testItemsLink },
+      });
+    }
+    // Tests scheduled for later may be published empty; they fill in before they open.
+    const emptyItems = orderedItems.filter(
+      (item) => item.questionsCount === 0 && (isLiveTest || !isScheduledAhead(item.scheduledDate))
+    );
     const unansweredItems = orderedItems.filter((item) => item.questionsCount > 0 && item.missingAnswerCount > 0);
     checks.push({
       id: "questions",
-      label: "Every test has questions",
+      label: isLiveTest ? "Every test has questions" : "Every open test has questions",
       state: emptyItems.length > 0 ? "fail" : "pass",
       items: emptyItems.map((item) => ({
         id: item.id,
@@ -236,6 +255,17 @@ const Page = () => {
         to: questionsLink(item.id),
       })),
     });
+    if (!isLiveTest) {
+      const seriesQuestions = orderedItems.reduce((sum, item) => sum + item.questionsCount, 0);
+      const enough = seriesQuestions >= MIN_SERIES_QUESTIONS;
+      checks.push({
+        id: "minQuestions",
+        label: `At least ${MIN_SERIES_QUESTIONS} questions in the series`,
+        state: enough ? "pass" : "fail",
+        note: enough ? undefined : `It has ${plural(seriesQuestions, "question")} so far.`,
+        action: enough ? undefined : { label: "Add questions", to: testItemsLink },
+      });
+    }
     checks.push({
       id: "answers",
       label: "Every question has a correct answer",
@@ -250,7 +280,11 @@ const Page = () => {
     });
     if (orderedItems.some((item) => item.subjectsCount > 1)) {
       const emptySubjectItems = orderedItems.filter(
-        (item) => item.questionsCount > 0 && item.subjectsCount > 1 && item.minSubjectQuestionCount === 0,
+        (item) =>
+          item.questionsCount > 0 &&
+          item.subjectsCount > 1 &&
+          item.minSubjectQuestionCount === 0 &&
+          (isLiveTest || !isScheduledAhead(item.scheduledDate)),
       );
       checks.push({
         id: "subjects",

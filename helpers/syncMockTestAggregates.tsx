@@ -24,7 +24,9 @@ export async function syncMockTestAggregates(mockTestId: number): Promise<void> 
     `.execute(db);
 
     // 1. Get total tests and free tests count for the mock test package.
-    // Tests with no questions are not shown to students, so they are not counted.
+    // Tests with no questions are not shown to students, so they are not
+    // counted, unless they are scheduled to open later (helpers/testSchedule).
+    const now = new Date();
     const testItemsStats = await db
       .selectFrom("mockTestItems")
       .select([
@@ -35,7 +37,7 @@ export async function syncMockTestAggregates(mockTestId: number): Promise<void> 
       ])
       .where("packageId", "=", mockTestId)
       .where("deletedAt", "is", null)
-      .where("totalQuestions", ">", 0)
+      .where((eb) => eb.or([eb("totalQuestions", ">", 0), eb("scheduledDate", ">", now)]))
       .executeTakeFirst();
 
     const totalTests = testItemsStats?.totalTests || 0;

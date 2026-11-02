@@ -57,14 +57,19 @@ export const TestPreTestScreen: React.FC<TestPreTestScreenProps> = ({
     <div className={styles.preTestContainer}>
       <h1 className={styles.preTestTitle}>{testItemTitle}</h1>
       <div className={styles.preTestDetails}>
-        <div>
-          <Clock className={styles.detailIcon} />
-          <span>{durationMinutes > 0 ? `${durationMinutes} Minutes` : "No Time Limit"}</span>
-        </div>
-        <div>
-          <HelpCircle className={styles.detailIcon} />
-          <span>{totalQuestions} Questions</span>
-        </div>
+        {(!isScheduledFuture || durationMinutes > 0) && (
+          <div>
+            <Clock className={styles.detailIcon} />
+            <span>{durationMinutes > 0 ? `${durationMinutes} Minutes` : "No Time Limit"}</span>
+          </div>
+        )}
+        {/* A test scheduled for later keeps its question count hidden until it opens. */}
+        {!isScheduledFuture && (
+          <div>
+            <HelpCircle className={styles.detailIcon} />
+            <span>{totalQuestions} Questions</span>
+          </div>
+        )}
       </div>
 
       {isScheduledFuture ? (

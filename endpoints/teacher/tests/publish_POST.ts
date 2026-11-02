@@ -9,6 +9,12 @@ import {
   queueContentReview,
 } from "../../../helpers/contentReviewQueue";
 import { submitForReview } from "../../../helpers/teacherCampaignSubmit";
+import {
+  MIN_SERIES_QUESTIONS,
+  NO_TEST_AVAILABLE_MESSAGE,
+  seriesQuestionsShortMessage,
+} from "../../../helpers/testSeriesMinimum";
+import { countSeriesQuestions, hasTestAvailableNow } from "../../../helpers/testSeriesMinimumServer";
 import { schema, OutputType } from "./publish_POST.schema";
 import superjson from "superjson";
 
@@ -132,6 +138,15 @@ export async function handle(request: Request): Promise<Response> {
         }),
         { status: 400 }
       );
+    }
+
+    if (!(await hasTestAvailableNow(db, input.testId))) {
+      return new Response(superjson.stringify({ error: NO_TEST_AVAILABLE_MESSAGE }), { status: 400 });
+    }
+
+    const questionCount = await countSeriesQuestions(db, input.testId);
+    if (questionCount < MIN_SERIES_QUESTIONS) {
+      return new Response(superjson.stringify({ error: seriesQuestionsShortMessage(questionCount) }), { status: 400 });
     }
 
     // Ensure aggregate fields are fresh before publishing

@@ -7,7 +7,8 @@ import {
   publishesWithoutReview,
   queueContentReview,
 } from "../../../helpers/contentReviewQueue";
-import { hasCourseDescription } from "../../../helpers/courseDraft";
+import { COURSE_VIDEO_REQUIRED_MESSAGE, hasCourseDescription } from "../../../helpers/courseDraft";
+import { courseHasVideoLesson } from "../../../helpers/courseVideoRequirement";
 import { submitForReview } from "../../../helpers/teacherCampaignSubmit";
 import { schema, OutputType } from "./publish_POST.schema";
 import superjson from "superjson";
@@ -103,6 +104,10 @@ export async function handle(request: Request): Promise<Response> {
         }),
         { status: 400 }
       );
+    }
+
+    if (!(await courseHasVideoLesson(db, courseId))) {
+      return new Response(superjson.stringify({ error: COURSE_VIDEO_REQUIRED_MESSAGE }), { status: 400 });
     }
 
     if (needsReview) {

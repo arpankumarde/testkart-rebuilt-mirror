@@ -4,6 +4,7 @@ import { OutputType, EnrolledTest } from "./enrolled-tests_GET.schema";
 import superjson from "superjson";
 import { slugify } from "../../helpers/slugify";
 import { loadEffectiveDurations } from "../../helpers/testItemEffectiveDuration";
+import { isTestOfferedToStudents } from "../../helpers/testSchedule";
 
 type EnrolledTestRow = {
   id: number;
@@ -157,9 +158,11 @@ export async function handle(request: Request) {
 
    // Group test items by packageId in JavaScript
    const testItemsByPackage = new Map<number, (typeof testItemsData)[number][]>();
+    const now = new Date();
     for (const item of testItemsData) {
-      // A test with no questions cannot be taken, so it is not listed yet.
-      if (Number(item.actualTotalQuestions ?? 0) === 0) continue;
+      // A test with no questions cannot be taken, so it is not listed yet,
+      // unless it is scheduled to open later (helpers/testSchedule).
+      if (!isTestOfferedToStudents({ totalQuestions: Number(item.actualTotalQuestions ?? 0), scheduledDate: item.scheduledDate }, now)) continue;
       const items = testItemsByPackage.get(item.packageId) || [];
       items.push(item);
       testItemsByPackage.set(item.packageId, items);

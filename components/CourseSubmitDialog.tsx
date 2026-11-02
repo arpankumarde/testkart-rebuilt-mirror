@@ -39,6 +39,7 @@ interface CourseSubmitDialogProps {
 
 const FIX_LABELS: Record<CourseReadinessKey, string> = {
   lessons: 'Add lessons',
+  video: 'Upload a video',
   cover: 'Add a cover',
   description: 'Write it',
 };

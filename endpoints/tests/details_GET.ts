@@ -11,6 +11,7 @@ import { slugify } from "../../helpers/slugify";
 import { PRODUCT_DISCLAIMER } from "../../helpers/productDisclaimer";
 import { computeMockTestSeo, isMeaningfulSubjectName } from "../../helpers/seoIndexability";
 import { isExpired } from "../../helpers/contentExpiry";
+import { isTestOfferedToStudents } from "../../helpers/testSchedule";
 
 const inputSchema = z
   .object({
@@ -215,11 +216,11 @@ export async function handle(request: Request) {
       })
     );
 
-    // Tests with no questions are not offered to students. Keep in sync with
+    // Tests with no questions are not offered to students, unless they are
+    // scheduled to open later (helpers/testSchedule). Keep in sync with
     // helpers/fetchTestDetailsServer.tsx.
-    const itemsWithSubjects = allItemsWithSubjects.filter(
-      (item) => item.totalQuestions > 0
-    );
+    const now = new Date();
+    const itemsWithSubjects = allItemsWithSubjects.filter((item) => isTestOfferedToStudents(item, now));
 
     // Generate fallback exam slug if examSlug is null
     let finalExamSlug = test.examSlug;

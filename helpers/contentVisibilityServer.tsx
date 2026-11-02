@@ -10,6 +10,9 @@ import {
   queueContentReview,
 } from "./contentReviewQueue";
 import { CONTENT_NOUNS } from "./contentReviewStatus";
+import { courseHasVideoLesson } from "./courseVideoRequirement";
+import { MIN_SERIES_QUESTIONS } from "./testSeriesMinimum";
+import { countSeriesQuestions, hasTestAvailableNow } from "./testSeriesMinimumServer";
 import {
   countUnavailableBundleItems,
   findPublishedBundlesContaining,
@@ -29,7 +32,9 @@ type Executor = Kysely<DB> | Transaction<DB>;
  * - Unlisted to public on a live item goes through review like any public
  *   publish. The item stays live and unlisted until the review is approved;
  *   publishApprovedContent then sets it public. Verified teachers, admins and
- *   bundles (whose items must all be public) switch at once.
+ *   bundles (whose items must all be public) switch at once. A course needs a
+ *   video lesson first and a test series its minimum question count, as they
+ *   do to publish (helpers/courseVideoRequirement, helpers/testSeriesMinimum).
  * - Asking again while a request waits is not an error: nothing new is queued
  *   and the teacher is told it is already with the team. A rejected request can
  *   be sent again; the item stays live and unlisted throughout.
@@ -245,6 +250,26 @@ export async function changeContentVisibility(input: {
 
   if (contentType === "live_test" && state.endTime && state.endTime <= new Date()) {
     throw new VisibilityChangeError("This live test has already ended, so it cannot be made public.");
+  }
+
+  if (contentType === "course" && !(await courseHasVideoLesson(db, contentId))) {
+    throw new VisibilityChangeError(
+      "Upload at least one video lesson before making this course public. It stays live as unlisted until then."
+    );
+  }
+
+  if (contentType === "mock_test") {
+    if (!(await hasTestAvailableNow(db, contentId))) {
+      throw new VisibilityChangeError(
+        "At least one test must be open now, with questions, before this test series can be made public. It stays live as unlisted until then."
+      );
+    }
+    const questionCount = await countSeriesQuestions(db, contentId);
+    if (questionCount < MIN_SERIES_QUESTIONS) {
+      throw new VisibilityChangeError(
+        `A test series needs at least ${MIN_SERIES_QUESTIONS} questions before it can be made public. This one has ${questionCount}, so it stays live as unlisted until then.`
+      );
+    }
   }
 
   if (await publishesWithoutReview(db, input.role, state.teacherId)) {

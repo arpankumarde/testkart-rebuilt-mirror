@@ -6,6 +6,7 @@ import { slugify } from "./slugify";
 import { PRODUCT_DISCLAIMER } from "./productDisclaimer";
 import { computeMockTestSeo, isMeaningfulSubjectName } from "./seoIndexability";
 import { isExpired } from "./contentExpiry";
+import { isTestOfferedToStudents } from "./testSchedule";
 
 export async function fetchTestDetailsServer(slug: string): Promise<OutputType> {
   const test = await db
@@ -158,11 +159,11 @@ export async function fetchTestDetailsServer(slug: string): Promise<OutputType> 
     })
   );
 
-  // Tests with no questions are not offered to students. Keep in sync with
+  // Tests with no questions are not offered to students, unless they are
+  // scheduled to open later (helpers/testSchedule). Keep in sync with
   // tests/details_GET.ts.
-  const itemsWithSubjects = allItemsWithSubjects.filter(
-    (item) => item.totalQuestions > 0
-  );
+  const now = new Date();
+  const itemsWithSubjects = allItemsWithSubjects.filter((item) => isTestOfferedToStudents(item, now));
 
   // Generate fallback exam slug if examSlug is null
   let finalExamSlug = test.examSlug;

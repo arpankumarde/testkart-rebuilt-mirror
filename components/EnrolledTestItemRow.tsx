@@ -67,14 +67,18 @@ export const EnrolledTestItemRow: React.FC<EnrolledTestItemRowProps> = ({ item, 
           {item.subject && <span className={styles.subject}>{item.subject}</span>}
         </div>
         <div className={styles.meta}>
-          <span className={styles.metaItem}>
-            <Clock size={13} aria-hidden="true" />
-            {item.durationMinutes > 0 ? `${item.durationMinutes} min` : 'No time limit'}
-          </span>
-          <span className={styles.metaItem}>
-            <FileQuestion size={13} aria-hidden="true" />
-            {item.totalQuestions} Qs
-          </span>
+          {(!isScheduled || item.durationMinutes > 0) && (
+            <span className={styles.metaItem}>
+              <Clock size={13} aria-hidden="true" />
+              {item.durationMinutes > 0 ? `${item.durationMinutes} min` : 'No time limit'}
+            </span>
+          )}
+          {!isScheduled && (
+            <span className={styles.metaItem}>
+              <FileQuestion size={13} aria-hidden="true" />
+              {item.totalQuestions} Qs
+            </span>
+          )}
           {hasAttempted && (
             <span className={styles.metaItem}>
               <Repeat size={13} aria-hidden="true" />

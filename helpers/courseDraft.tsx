@@ -21,7 +21,7 @@ export const hasCourseDescription = (html: string | null | undefined): boolean =
   return text.length >= MIN_COURSE_DESCRIPTION_CHARS && !PLACEHOLDER_DESCRIPTIONS.has(text.toLowerCase());
 };
 
-export type CourseReadinessKey = "lessons" | "cover" | "description";
+export type CourseReadinessKey = "lessons" | "video" | "cover" | "description";
 
 export type CourseReadinessItem = {
   key: CourseReadinessKey;
@@ -29,13 +29,21 @@ export type CourseReadinessItem = {
   done: boolean;
 };
 
+export const COURSE_VIDEO_REQUIRED_MESSAGE =
+  "Upload at least one video lesson before submitting this course for review.";
+
+export const isVideoLessonWithFile = (lesson: { contentType: string; contentUrl: string | null }): boolean =>
+  lesson.contentType === "video" && !!lesson.contentUrl;
+
 export const getCourseReadiness = (course: {
   description: string | null | undefined;
   thumbnailImageUrl: string | null | undefined;
   introVideoUrl: string | null | undefined;
   lessonsCount: number;
+  videoLessonsCount: number;
 }): CourseReadinessItem[] => [
   { key: "lessons", label: "At least one lesson", done: course.lessonsCount > 0 },
+  { key: "video", label: "At least one video lesson", done: course.videoLessonsCount > 0 },
   {
     key: "cover",
     label: "Cover image or intro video",
