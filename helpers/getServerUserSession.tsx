@@ -4,6 +4,7 @@ import { TeacherRoleContext } from "./getTeacherContext";
 import { ADMIN_EDIT_MODULES, isAdminEditRouteAllowed, isAdminEditType } from "./adminContentEdit";
 import { getAdminServerSessionOrThrow } from "./getAdminSession";
 import { hasAdminModule } from "./adminPermissions";
+import { getAccountStatus } from "./accountStatus";
 
 import {
   CleanupProbability,
@@ -67,6 +68,7 @@ export async function getServerUserSession(request: Request) {
         .onRef("teacherTeamMembers.memberUserId", "=", "users.id")
         .on("teacherTeamMembers.status", "=", "active")
     )
+    .leftJoin("users as teamOwners", "teamOwners.id", "teacherTeamMembers.teacherId")
   .select([
     "sessions.id as sessionId",
     "sessions.createdAt as sessionCreatedAt",
@@ -81,6 +83,12 @@ export async function getServerUserSession(request: Request) {
     "users.mobileNumber",
     "users.mobileVerified",
     "teacherTeamMembers.teacherId as teamOwnerTeacherId",
+    "users.isActive",
+    "users.suspensionKind",
+    "users.suspendedUntil",
+    "teamOwners.isActive as ownerIsActive",
+    "teamOwners.suspensionKind as ownerSuspensionKind",
+    "teamOwners.suspendedUntil as ownerSuspendedUntil",
   ])
     .where("sessions.id", "=", session.id)
     .limit(1)
@@ -91,6 +99,22 @@ export async function getServerUserSession(request: Request) {
   }
 
   const result = results[0];
+
+  // Suspended or banned accounts, and team members of a suspended teacher, are signed out
+  // everywhere. Admins signed in as the user (impersonation, admin editing) are let through.
+  if (result.sessionImpersonatorAdminId == null) {
+    const ownerBlocked =
+      result.ownerIsActive != null &&
+      getAccountStatus({
+        isActive: result.ownerIsActive,
+        suspensionKind: result.ownerSuspensionKind,
+        suspendedUntil: result.ownerSuspendedUntil,
+      }) !== "active";
+    if (getAccountStatus(result) !== "active" || ownerBlocked) {
+      throw new NotAuthenticatedError("Not authenticated: this account is suspended");
+    }
+  }
+
   const userRole: User["role"] = result.role;
 
   // Resolve teacher context if the user is a teacher

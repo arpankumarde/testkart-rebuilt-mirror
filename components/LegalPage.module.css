@@ -1,5 +1,6 @@
-/* Legal pages (/terms, /privacy, /refund): an ivory header band like the
-   help pages, then the policy on a white card beside a sticky TOC. Each
+/* Legal pages (/terms, /privacy, /refund, /content-guidelines,
+   /account-suspension): an ivory header band like the help pages, then the
+   policy on a white card beside a sticky TOC. Each
    policy gets one pastel tone for its icon tile; coral is kept to links
    and the current policy pill. */
 .pageWrapper {
@@ -24,6 +25,16 @@
 .peach {
   --lg-tint: var(--sp-peach-tint);
   --lg-ink: var(--tk-brand-text);
+}
+
+.blue {
+  --lg-tint: var(--sp-blue-tint);
+  --lg-ink: var(--sp-blue-ink);
+}
+
+.mint {
+  --lg-tint: var(--sp-mint-tint);
+  --lg-ink: var(--sp-sage-ink);
 }
 
 /* Header */
@@ -137,7 +148,7 @@
   font-weight: 500;
 }
 
-.metaVersion {
+.metaEffective {
   border-color: transparent;
   background-color: var(--lg-tint);
   color: var(--lg-ink);

@@ -148,7 +148,7 @@ const API_RULES: Record<string, ApiRule> = {
   // Organisations are created and run by teacher accounts, so the Teachers module covers them.
   "admin/organizations": ["teachers"],
   "admin/user/toggle-verified": ["teachers"],
-  "admin/user/toggle-status": ["teachers", "students"],
+  "admin/user/account-status": ["teachers", "students"],
   "admin/impersonate": ["teachers", "students"],
   "admin/students": ["students"],
   "admin/inquiries": ["teacher_inquiries"],

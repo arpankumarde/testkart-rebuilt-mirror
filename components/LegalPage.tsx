@@ -1,7 +1,7 @@
 import React, { useMemo, useRef } from "react";
 import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
-import { CalendarDays, FileText, ReceiptText, ShieldCheck, type LucideIcon } from "lucide-react";
+import { Ban, CalendarDays, ClipboardCheck, FileText, ReceiptText, ShieldCheck, type LucideIcon } from "lucide-react";
 import { useStaticPageQuery } from "../helpers/useStaticPages";
 import { wrapContentTables } from "../helpers/contentTables";
 import { sanitizeHtml } from "../helpers/sanitizeHtml";
@@ -11,7 +11,7 @@ import { Skeleton } from "./Skeleton";
 import { HelpArticleToc } from "./HelpArticleToc";
 import styles from "./LegalPage.module.css";
 
-export type LegalSlug = "terms" | "privacy" | "refund";
+export type LegalSlug = "terms" | "privacy" | "refund" | "content-guidelines" | "account-suspension";
 
 interface PolicyMeta {
   path: string;
@@ -21,7 +21,7 @@ interface PolicyMeta {
   seoTitle: string;
   seoDescription: string;
   icon: LucideIcon;
-  tone: "lavender" | "sage" | "peach";
+  tone: "lavender" | "sage" | "peach" | "blue" | "mint";
 }
 
 const POLICIES: Record<LegalSlug, PolicyMeta> = {
@@ -55,23 +55,50 @@ const POLICIES: Record<LegalSlug, PolicyMeta> = {
     icon: ReceiptText,
     tone: "peach",
   },
+  "content-guidelines": {
+    path: "/content-guidelines",
+    label: "Content Guidelines",
+    fallbackTitle: "Content Guidelines",
+    intro: "What teachers can publish on Testkart, and how students and teachers should write reviews, comments and messages.",
+    seoTitle: "Content Guidelines - Testkart",
+    seoDescription: "Read the Testkart Content Guidelines for teachers and students: original and accurate content, honest product pages, reviews and reporting.",
+    icon: ClipboardCheck,
+    tone: "blue",
+  },
+  "account-suspension": {
+    path: "/account-suspension",
+    label: "Account Suspension",
+    fallbackTitle: "Account Suspension Policy",
+    intro: "When Testkart may warn, restrict, suspend or ban an account, what happens next, and how to appeal.",
+    seoTitle: "Account Suspension Policy - Testkart",
+    seoDescription: "Read the Testkart Account Suspension Policy: what can lead to a warning, suspension or ban, what happens to purchases and earnings, and how to appeal.",
+    icon: Ban,
+    tone: "mint",
+  },
 };
 
-const POLICY_ORDER: LegalSlug[] = ["terms", "privacy", "refund"];
+const POLICY_ORDER: LegalSlug[] = ["terms", "privacy", "refund", "content-guidelines", "account-suspension"];
 
 /** Fewer sections than this and the page is short enough to read without a TOC. */
 const MIN_TOC_SECTIONS = 3;
 
-/* A policy whose content opens with a bold "Version 2.0 - effective from ..."
-   paragraph shows that line, verbatim, in the header instead of as the first
+/* A policy whose content opens with a bold "Effective from ..." (or older
+   "Version 2.0 - effective from ...") paragraph shows it in the header as
+   "Effective from ...", without the version number, instead of as the first
    body paragraph. Anything else stays in the body untouched. */
-const VERSION_LINE = /^\s*<p>\s*<strong>\s*(Version\s[^<]{1,80}?)\s*<\/strong>\s*<\/p>/i;
+const EFFECTIVE_LINE = /^\s*<p>\s*<strong>\s*((?:Version|Effective)\s[^<]{1,80}?)\s*<\/strong>\s*<\/p>/i;
+
+const toEffectiveLabel = (line: string) => {
+  const text = line.trim().replace(/^Version\s+[\w.]+\s*[-:]\s*/i, "");
+  return text.charAt(0).toUpperCase() + text.slice(1);
+};
 
 const formatDate = (value: Date | string) =>
   new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "long", year: "numeric" }).format(new Date(value));
 
 /**
- * Shared layout for /terms, /privacy and /refund. The legal text comes from
+ * Shared layout for /terms, /privacy, /refund, /content-guidelines and
+ * /account-suspension. The legal text comes from
  * the admin-edited static_pages row for the slug and is rendered as stored
  * (sanitised, headings given stable ids, tables wrapped); this component
  * only adds the header, policy switcher and table of contents around it.
@@ -82,10 +109,10 @@ export const LegalPage = ({ slug }: { slug: LegalSlug }) => {
   const { data: page, isFetching, error } = useStaticPageQuery(slug);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const { markup, headings, versionLine } = useMemo(() => {
-    if (!page?.content) return { markup: { __html: "" }, headings: [] as ExtractedHeading[], versionLine: null };
+  const { markup, headings, effectiveLine } = useMemo(() => {
+    if (!page?.content) return { markup: { __html: "" }, headings: [] as ExtractedHeading[], effectiveLine: null };
     let html = sanitizeHtml(page.content);
-    const match = html.match(VERSION_LINE);
+    const match = html.match(EFFECTIVE_LINE);
     if (match) html = html.slice(match[0].length);
     const extracted = extractHeadingsWithIds(html);
     // One stable object: React re-applies innerHTML whenever this prop's
@@ -93,7 +120,7 @@ export const LegalPage = ({ slug }: { slug: LegalSlug }) => {
     return {
       markup: { __html: wrapContentTables(extracted.html) },
       headings: extracted.headings,
-      versionLine: match ? match[1].trim() : null,
+      effectiveLine: match ? toEffectiveLabel(match[1]) : null,
     };
   }, [page?.content]);
 
@@ -137,9 +164,9 @@ export const LegalPage = ({ slug }: { slug: LegalSlug }) => {
               </div>
             </div>
 
-            {page && (versionLine || page.updatedAt) && (
+            {page && (effectiveLine || page.updatedAt) && (
               <div className={styles.metaRow}>
-                {versionLine && <span className={`${styles.metaChip} ${styles.metaVersion}`}>{versionLine}</span>}
+                {effectiveLine && <span className={`${styles.metaChip} ${styles.metaEffective}`}>{effectiveLine}</span>}
                 {page.updatedAt && (
                   <span className={styles.metaChip}>
                     <CalendarDays size={14} aria-hidden="true" />

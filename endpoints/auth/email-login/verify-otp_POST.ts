@@ -10,6 +10,7 @@ import {
 import { addTeacherToSalesContacts } from "../../../helpers/addTeacherToSalesContacts";
 import { randomUUID } from "crypto";
 import { getClientIp } from "../../../helpers/getClientIp";
+import { getAccountBlockMessage } from "../../../helpers/accountSuspension";
 import {
   checkOtpVerifyLimit,
   claimOtpAttempt,
@@ -82,6 +83,13 @@ export async function handle(request: Request) {
       .where("email", "=", email)
       .where("emailVerified", "=", true)
       .executeTakeFirst();
+
+    if (user) {
+      const blockedMessage = await getAccountBlockMessage(user.id);
+      if (blockedMessage) {
+        return new Response(superjson.stringify({ error: blockedMessage }), { status: 403 });
+      }
+    }
 
     // 5. If no user exists, create a new account (signup flow)
     if (!user) {

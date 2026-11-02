@@ -2345,6 +2345,16 @@ export interface UploadLimits {
   updatedAt: Generated<Timestamp>;
 }
 
+export interface UserAccountActions {
+  action: string;
+  adminName: string;
+  createdAt: Generated<Timestamp>;
+  id: Generated<number>;
+  reason: string | null;
+  suspendedUntil: Timestamp | null;
+  userId: number;
+}
+
 export interface UserExamFocus {
   createdAt: Generated<Timestamp>;
   examId: number;
@@ -2399,6 +2409,11 @@ export interface Users {
   signupSource: string | null;
   slug: string | null;
   socialLinks: Generated<Json | null>;
+  suspendedAt: Timestamp | null;
+  suspendedBy: string | null;
+  suspendedUntil: Timestamp | null;
+  suspensionKind: string | null;
+  suspensionReason: string | null;
   tagline: string | null;
   targetExams: Json | null;
   teachingCategories: Json | null;
@@ -2570,6 +2585,7 @@ export interface DB {
   testQuestions: TestQuestions;
   uploadedFiles: UploadedFiles;
   uploadLimits: UploadLimits;
+  userAccountActions: UserAccountActions;
   userExamFocus: UserExamFocus;
   userPasswords: UserPasswords;
   users: Users;

@@ -1,6 +1,7 @@
 import { db } from "../../helpers/db";
 import { schema } from "./establish_session_POST.schema";
 import { setServerSession } from "../../helpers/getSetServerSession";
+import { getAccountBlockMessage } from "../../helpers/accountSuspension";
 import { randomBytes } from "crypto";
 
 export async function handle(request: Request) {
@@ -45,6 +46,12 @@ export async function handle(request: Request) {
 
     if (!user) {
       return Response.json({ error: "User not found" }, { status: 400 });
+    }
+
+    const blockedMessage = await getAccountBlockMessage(user.id);
+    if (blockedMessage) {
+      await db.deleteFrom("sessions").where("id", "=", tempSession.id).execute();
+      return Response.json({ error: blockedMessage }, { status: 403 });
     }
 
     // Delete the temp session immediately to make it single-use

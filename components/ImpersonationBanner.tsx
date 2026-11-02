@@ -28,11 +28,12 @@ export const ImpersonationBanner = () => {
   const role = user.role.charAt(0).toUpperCase() + user.role.slice(1);
 
   return (
-    <div className={styles.banner}>
+    <div className={styles.banner} data-impersonation-banner="">
       <div className={styles.content}>
         <AlertTriangle className={styles.icon} />
-        <p>
-          You are viewing as <strong>{user.displayName}</strong> ({role}).
+        <p className={styles.message}>
+          <span className={styles.longOnly}>You are viewing</span>
+          <span className={styles.shortOnly}>Viewing</span> as <strong>{user.displayName}</strong> ({role}).
         </p>
       </div>
       <Button
@@ -42,7 +43,12 @@ export const ImpersonationBanner = () => {
         disabled={stopImpersonatingMutation.isPending}
         className={styles.button}
       >
-        {stopImpersonatingMutation.isPending ? 'Switching...' : 'Switch Back to Admin'}
+        {stopImpersonatingMutation.isPending ? 'Switching...' : (
+          <>
+            <span className={styles.longOnly}>Switch Back to Admin</span>
+            <span className={styles.shortOnly}>Back to Admin</span>
+          </>
+        )}
       </Button>
     </div>
   );

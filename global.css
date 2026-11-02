@@ -45,13 +45,26 @@
   /* layout */
   --header-height: 72px;
   /* SiteNoticeStrip's height. Sticky and fixed layout chrome offsets by
-     --site-notice-offset, which stays 0 unless the strip is on the page. */
+     --site-notice-offset, which stays 0 unless the strip is on the page.
+     Up to 968px, where the site header turns fixed, the offset also covers
+     ImpersonationBanner (--impersonation-banner-height) while it shows. */
   --site-notice-height: 2.25rem;
+  --impersonation-banner-height: 2.75rem;
   --site-notice-offset: 0px;
 }
 
 :root:has([data-site-notice]) {
   --site-notice-offset: var(--site-notice-height);
+}
+
+@media (max-width: 968px) {
+  :root:has([data-impersonation-banner]) {
+    --site-notice-offset: var(--impersonation-banner-height);
+  }
+
+  :root:has([data-site-notice]):has([data-impersonation-banner]) {
+    --site-notice-offset: calc(var(--site-notice-height) + var(--impersonation-banner-height));
+  }
 }
 
 :root {

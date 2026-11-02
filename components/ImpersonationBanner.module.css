@@ -21,6 +21,14 @@
   gap: var(--spacing-2);
 }
 
+.message {
+  margin: 0;
+}
+
+.shortOnly {
+  display: none;
+}
+
 .icon {
   width: 1.25rem;
   height: 1.25rem;
@@ -42,4 +50,58 @@
 
 .button:focus-visible {
   box-shadow: 0 0 0 2px var(--warning), 0 0 0 4px var(--warning-foreground);
+}
+
+/* Up to 968px the site header is fixed and offsets below this banner by
+   --impersonation-banner-height (base.css), so the banner holds that exact
+   height on one line and sits under the site notice strip, if any. */
+@media (max-width: 968px) {
+  .banner {
+    top: 0;
+    box-sizing: border-box;
+    height: var(--impersonation-banner-height);
+    gap: var(--spacing-3);
+    padding: 0 var(--spacing-4);
+    font-size: 0.8125rem;
+    box-shadow: none;
+  }
+
+  :global(:root:has([data-site-notice])) .banner {
+    top: var(--site-notice-height);
+  }
+
+  .content {
+    min-width: 0;
+  }
+
+  .message {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .button {
+    flex-shrink: 0;
+    height: 1.875rem;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 639px) {
+  .banner {
+    padding: 0 0.75rem;
+  }
+
+  .icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .longOnly {
+    display: none;
+  }
+
+  .shortOnly {
+    display: inline;
+  }
 }

@@ -3,6 +3,7 @@ import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { OutputType } from "./list_GET.schema";
 import superjson from "superjson";
 import { sql } from "kysely";
+import { getAccountStatus } from "../../../helpers/accountStatus";
 
 function getStudentSortExpression(sortBy: string) {
   switch (sortBy) {
@@ -98,6 +99,11 @@ export async function handle(request: Request): Promise<Response> {
         mobileNumber: s.mobileNumber,
         createdAt: s.createdAt,
         isActive: s.isActive,
+        accountStatus: getAccountStatus(s),
+        suspendedUntil: s.suspendedUntil,
+        suspensionReason: s.suspensionReason,
+        suspendedAt: s.suspendedAt,
+        suspendedBy: s.suspendedBy,
         enrolledTestsCount: parseInt(s.enrolledTestsCount as any, 10),
         totalSpent: parseFloat(s.totalSpent as any),
       })),

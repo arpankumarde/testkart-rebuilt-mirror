@@ -9,6 +9,7 @@ import {
   SessionExpirationSeconds,
 } from "../../helpers/getSetServerSession";
 import { User } from "../../helpers/User";
+import { getAccountBlockMessage } from "../../helpers/accountSuspension";
 
 // Configuration constants
 const RATE_LIMIT_CONFIG = {
@@ -146,6 +147,11 @@ export async function handle(request: Request) {
         };
       }
 
+      const blockedMessage = await getAccountBlockMessage(user.id, trx);
+      if (blockedMessage) {
+        return { type: "blocked" as const, message: blockedMessage };
+      }
+
       // Password is valid - log successful attempt
       await trx
         .insertInto("loginAttempts")
@@ -221,6 +227,10 @@ export async function handle(request: Request) {
         { message: "Invalid email or password" },
         { status: 401 }
       );
+    }
+
+    if (result.type === "blocked") {
+      return Response.json({ message: result.message }, { status: 403 });
     }
 
     // Success case - session was already created in transaction

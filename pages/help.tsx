@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, ChevronRight, FileText, Flame, LayoutGrid, LifeBuoy, Search, SearchX, X } from 'lucide-react';
 import { useBlogCategoriesQuery, useBlogPostsQuery } from '../helpers/useBlogQuery';
@@ -23,6 +23,7 @@ export default function HelpPage() {
   const isFiltered = !!categoryFilter || !!debouncedSearch;
 
   const { data: categoriesData } = useBlogCategoriesQuery({ type: "knowledge_base" });
+  const chipsRef = useRef<HTMLElement>(null);
 
   // The unfiltered list, seeded by help.prefetch.ts. It feeds the topic cards,
   // shortcuts and popular guides, so it stays loaded while a filter is on.
@@ -112,6 +113,17 @@ export default function HelpPage() {
     setSearchParams({});
   };
 
+  // On phones the topic chips scroll sideways; bring the selected one into view.
+  useEffect(() => {
+    const nav = chipsRef.current;
+    if (!nav || nav.scrollWidth <= nav.clientWidth) return;
+    const active = nav.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!active) return;
+    const navBox = nav.getBoundingClientRect();
+    const chipBox = active.getBoundingClientRect();
+    nav.scrollLeft += chipBox.left - navBox.left - (navBox.width - chipBox.width) / 2;
+  }, [categoryFilter, isFiltered, shortcuts.length]);
+
   const results = filteredData?.posts ?? [];
   const resultsTitle = debouncedSearch
     ? `Results for "${debouncedSearch}"${activeCategory ? ` in ${activeCategory.name}` : ''}`
@@ -126,7 +138,7 @@ export default function HelpPage() {
         url={canonicalUrl}
       />
       <div className={styles.pageWrapper}>
-        <section className={styles.hero} aria-labelledby="help-title">
+        <section className={`${styles.hero} ${isFiltered ? styles.heroFiltered : ''}`} aria-labelledby="help-title">
           <span className={`${styles.shape} ${styles.shapeMint}`} aria-hidden="true" />
           <span className={`${styles.shape} ${styles.shapeRing}`} aria-hidden="true" />
           <span className={`${styles.shape} ${styles.shapeBlue}`} aria-hidden="true" />
@@ -170,7 +182,7 @@ export default function HelpPage() {
             </form>
 
             {shortcuts.length > 0 && (
-              <nav aria-label="Help topics" className={styles.chips}>
+              <nav ref={chipsRef} aria-label="Help topics" className={styles.chips}>
                 <Link
                   to="/help"
                   onClick={() => setSearch("")}

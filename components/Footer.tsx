@@ -81,6 +81,8 @@ export const Footer: React.FC = () => {
               <li><Link to="/terms" className={styles.footerLink}>Terms & Conditions</Link></li>
               <li><Link to="/privacy" className={styles.footerLink}>Privacy Policy</Link></li>
               <li><Link to="/refund" className={styles.footerLink}>Refund Policy</Link></li>
+              <li><Link to="/content-guidelines" className={styles.footerLink}>Content Guidelines</Link></li>
+              <li><Link to="/account-suspension" className={styles.footerLink}>Account Suspension Policy</Link></li>
             </ul>
           </div>
 

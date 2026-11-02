@@ -4,6 +4,7 @@ import { OutputType } from "./list_GET.schema";
 import superjson from "superjson";
 import { sql, RawBuilder } from "kysely";
 import { buildTeacherNetEarningsSql } from "../../../helpers/teacherEarningsSql";
+import { getAccountStatus } from "../../../helpers/accountStatus";
 
 // Re-wrap the shared { total: string }-typed builder as a plain string-typed scalar
 // expression for use as a single column in this paginated SELECT list.
@@ -157,6 +158,11 @@ export async function handle(request: Request): Promise<Response> {
         academyName: t.academyName,
         createdAt: t.createdAt,
         isActive: t.isActive,
+        accountStatus: getAccountStatus(t),
+        suspendedUntil: t.suspendedUntil,
+        suspensionReason: t.suspensionReason,
+        suspendedAt: t.suspendedAt,
+        suspendedBy: t.suspendedBy,
         isVerified: t.isVerified,
         drmEnabled: t.drmEnabled,
         relationshipManagerId: t.relationshipManagerAdminId,

@@ -11,6 +11,7 @@ import { sendTeacherOnboardingWhatsApp } from "../../../helpers/sendTeacherOnboa
 import { assignUserSlug } from "../../../helpers/assignUserSlug";
 import { randomUUID } from "crypto";
 import { getClientIp } from "../../../helpers/getClientIp";
+import { getAccountBlockMessage } from "../../../helpers/accountSuspension";
 import {
   checkOtpVerifyLimit,
   claimOtpAttempt,
@@ -83,6 +84,13 @@ export async function handle(request: Request) {
       .where("mobileNumber", "=", mobileNumber)
       .where("mobileVerified", "=", true)
       .executeTakeFirst();
+
+    if (user) {
+      const blockedMessage = await getAccountBlockMessage(user.id);
+      if (blockedMessage) {
+        return new Response(superjson.stringify({ error: blockedMessage }), { status: 403 });
+      }
+    }
 
     // 5. If no user exists, create a new student account (signup flow)
     if (!user) {

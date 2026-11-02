@@ -20,6 +20,7 @@ import { SignJWT } from "jose";
 import { SessionExpirationSeconds } from "../../helpers/getSetServerSession";
 import { validateRedirectPath } from "../../helpers/validateRedirectPath";
 import { isAppDeepLink } from "../../helpers/isAppDeepLink";
+import { getAccountBlockMessage } from "../../helpers/accountSuspension";
 
 export async function handle(request: Request) {
   try {
@@ -416,6 +417,27 @@ export async function handle(request: Request) {
     // Determine if this is a mobile deep link redirect flow
     const isMobileDeepLink =
       actualRedirectPath !== null && isAppDeepLink(actualRedirectPath);
+
+    const blockedMessage = isNewUser ? null : await getAccountBlockMessage(user.id);
+    if (blockedMessage) {
+      await db.deleteFrom("oauthStates").where("id", "=", oauthState.id).execute();
+      if (isMobileDeepLink) {
+        // Back to the app without a token, so its browser sheet closes instead of stalling here.
+        const deepLinkUrl = new URL(actualRedirectPath);
+        deepLinkUrl.searchParams.set("error", "account_suspended");
+        deepLinkUrl.searchParams.set("message", blockedMessage);
+        return new Response("Redirecting...", { status: 302, headers: { Location: deepLinkUrl.toString() } });
+      }
+      const errorMessage: OAuthErrorMessage = {
+        type: "OAUTH_ERROR",
+        provider: providerName,
+        error: { message: blockedMessage, code: "account_suspended" },
+      };
+      return new Response(createOAuthPopupResponseHtml(errorMessage), {
+        status: 403,
+        headers: { "Content-Type": "text/html" },
+      });
+    }
 
     if (isMobileDeepLink) {
       console.log(

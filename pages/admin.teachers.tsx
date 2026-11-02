@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { useSearchParams } from "react-router-dom";
 import { useAdminTeachersQuery } from "../helpers/useAdminTeachers";
-import { useToggleUserStatusMutation } from "../helpers/useAdminUserActions";
 import { useImpersonateMutation } from "../helpers/useImpersonation";
 import { Button } from "../components/Button";
 import { Badge } from "../components/Badge";
@@ -54,6 +53,8 @@ import {
 import { useAdminToggleVerifiedMutation } from "../helpers/useAdminToggleVerified";
 import { useAdminToggleTeacherDrmMutation } from "../helpers/useAdminToggleTeacherDrm";
 import { TeacherProfileDialog } from "../components/TeacherProfileDialog";
+import { AdminAccountStatusDialog, AccountStatusTarget } from "../components/AdminAccountStatusDialog";
+import { formatIstDateTime } from "../helpers/accountStatus";
 import { TeacherAdminView } from "../endpoints/admin/teachers/list_GET.schema";
 import styles from "./admin.teachers.module.css";
 
@@ -196,7 +197,7 @@ const AdminTeachersPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<SortableColumn>("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [selectedTeacher, setSelectedTeacher] = useState<TeacherAdminView | null>(null);
-  const [statusTarget, setStatusTarget] = useState<{ id: number; name: string; isActive: boolean } | null>(null);
+  const [statusTarget, setStatusTarget] = useState<AccountStatusTarget | null>(null);
   const [verifyTarget, setVerifyTarget] = useState<{ id: number; name: string; isVerified: boolean } | null>(null);
   const [drmTarget, setDrmTarget] = useState<{ id: number; name: string; drmEnabled: boolean } | null>(null);
   const [managerFilter, setManagerFilter] = useState("all");
@@ -212,7 +213,6 @@ const AdminTeachersPage: React.FC = () => {
   const { data: adminOptions } = useAdminOptionsQuery();
   const activeAdmins = (adminOptions?.admins ?? []).filter((admin) => admin.isActive);
 
-  const toggleStatusMutation = useToggleUserStatusMutation();
   const toggleVerifiedMutation = useAdminToggleVerifiedMutation();
   const toggleDrmMutation = useAdminToggleTeacherDrmMutation();
   const impersonateMutation = useImpersonateMutation();
@@ -240,13 +240,17 @@ const AdminTeachersPage: React.FC = () => {
     }
   };
 
-  const confirmToggleStatus = () => {
-    if (!statusTarget) return;
-    toggleStatusMutation.mutate(
-      { userId: statusTarget.id, isActive: !statusTarget.isActive },
-      { onSuccess: () => setStatusTarget(null) }
-    );
-  };
+  const openStatusDialog = (teacher: TeacherAdminView) =>
+    setStatusTarget({
+      id: teacher.id,
+      name: teacher.fullName,
+      role: "teacher",
+      accountStatus: teacher.accountStatus,
+      suspendedUntil: teacher.suspendedUntil,
+      suspensionReason: teacher.suspensionReason,
+      suspendedAt: teacher.suspendedAt,
+      suspendedBy: teacher.suspendedBy,
+    });
 
   const confirmToggleVerified = () => {
     if (!verifyTarget) return;
@@ -285,8 +289,17 @@ const AdminTeachersPage: React.FC = () => {
       <span className={styles.truncate} title={teacher.fullName}>{teacher.fullName}</span>
       <VerifiedBadge isVerified={teacher.isVerified} size="sm" className={styles.verified} />
       {teacher.drmEnabled && <DrmBadge />}
-      {!teacher.isActive && (
-        <Badge variant="destructive" className={styles.flag}>Inactive</Badge>
+      {teacher.accountStatus === "banned" && (
+        <Badge variant="destructive" className={styles.flag}>Banned</Badge>
+      )}
+      {teacher.accountStatus === "suspended" && (
+        <Badge
+          variant="destructive"
+          className={styles.flag}
+          title={teacher.suspendedUntil ? `Until ${formatIstDateTime(teacher.suspendedUntil)}` : "Until lifted"}
+        >
+          Suspended
+        </Badge>
       )}
     </span>
   );
@@ -371,14 +384,13 @@ const AdminTeachersPage: React.FC = () => {
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            className={`${styles.menuItem} ${teacher.isActive ? styles.menuItemDanger : ""}`}
-            disabled={toggleStatusMutation.isPending}
-            onSelect={() => setStatusTarget({ id: teacher.id, name: teacher.fullName, isActive: teacher.isActive })}
+            className={`${styles.menuItem} ${teacher.accountStatus === "active" ? styles.menuItemDanger : ""}`}
+            onSelect={() => openStatusDialog(teacher)}
           >
-            {teacher.isActive ? (
-              <><Ban size={16} /> Deactivate</>
+            {teacher.accountStatus === "active" ? (
+              <><Ban size={16} /> Suspend or ban</>
             ) : (
-              <><UserCheck size={16} /> Activate</>
+              <><UserCheck size={16} /> Reactivate</>
             )}
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -620,21 +632,7 @@ const AdminTeachersPage: React.FC = () => {
         onClose={() => setManagerTarget(null)}
       />
 
-      <ConsoleConfirmDialog
-        open={!!statusTarget}
-        onOpenChange={(open) => !open && setStatusTarget(null)}
-        tone={statusTarget?.isActive ? "destructive" : "default"}
-        title={statusTarget?.isActive ? "Deactivate this teacher?" : "Activate this teacher?"}
-        description={
-          statusTarget?.isActive
-            ? `${statusTarget.name} will not be able to sign in, and their published content comes off the site.`
-            : `${statusTarget?.name} will be able to sign in again, and their published content goes back on the site.`
-        }
-        confirmLabel={statusTarget?.isActive ? "Deactivate" : "Activate"}
-        pendingLabel={statusTarget?.isActive ? "Deactivating..." : "Activating..."}
-        isPending={toggleStatusMutation.isPending}
-        onConfirm={confirmToggleStatus}
-      />
+      <AdminAccountStatusDialog target={statusTarget} onClose={() => setStatusTarget(null)} />
 
       <ConsoleConfirmDialog
         open={!!verifyTarget}

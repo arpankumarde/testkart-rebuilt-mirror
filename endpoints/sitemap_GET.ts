@@ -81,6 +81,8 @@ export async function handle(request: Request) {
       { loc: `${BASE_URL}/privacy`, changefreq: "yearly", priority: 0.2 },
       { loc: `${BASE_URL}/terms`, changefreq: "yearly", priority: 0.2 },
       { loc: `${BASE_URL}/refund`, changefreq: "yearly", priority: 0.2 },
+      { loc: `${BASE_URL}/content-guidelines`, changefreq: "yearly", priority: 0.2 },
+      { loc: `${BASE_URL}/account-suspension`, changefreq: "yearly", priority: 0.2 },
     ];
 
     const [

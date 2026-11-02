@@ -1,5 +1,6 @@
 import { z } from "zod";
 import superjson from "superjson";
+import type { AccountStatus } from "../../../helpers/accountStatus";
 
 export const schema = z.object({
   search: z.string().optional(),
@@ -18,6 +19,11 @@ export type StudentAdminView = {
   mobileNumber: string | null;
   createdAt: Date | null;
   isActive: boolean;
+  accountStatus: AccountStatus;
+  suspendedUntil: Date | null;
+  suspensionReason: string | null;
+  suspendedAt: Date | null;
+  suspendedBy: string | null;
   enrolledTestsCount: number;
   totalSpent: number;
 };

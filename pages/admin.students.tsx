@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { useAdminStudentsQuery } from "../helpers/useAdminStudents";
-import { useToggleUserStatusMutation } from "../helpers/useAdminUserActions";
 import { useImpersonateMutation } from "../helpers/useImpersonation";
 import { Button } from "../components/Button";
 import { Badge } from "../components/Badge";
@@ -10,7 +9,7 @@ import { ConsolePageHeader } from "../components/ConsolePageHeader";
 import { ConsoleListToolbar, consoleToolbarControlClass } from "../components/ConsoleListToolbar";
 import { ConsoleListEmpty } from "../components/ConsoleListEmpty";
 import { ConsoleListPagination } from "../components/ConsoleListPagination";
-import { ConsoleConfirmDialog } from "../components/ConsoleConfirmDialog";
+import { AdminAccountStatusDialog, AccountStatusTarget } from "../components/AdminAccountStatusDialog";
 import {
   Select,
   SelectContent,
@@ -30,6 +29,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import { StudentAdminView } from "../endpoints/admin/students/list_GET.schema";
+import { formatIstDateTime } from "../helpers/accountStatus";
 import styles from "./admin.students.module.css";
 
 type SortableColumn = "name" | "email" | "createdAt" | "enrolledTestsCount" | "totalSpent";
@@ -134,7 +134,7 @@ const AdminStudentsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<SortableColumn>("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  const [statusTarget, setStatusTarget] = useState<{ id: number; name: string; isActive: boolean } | null>(null);
+  const [statusTarget, setStatusTarget] = useState<AccountStatusTarget | null>(null);
 
   const { data, isFetching, isError, error, refetch } = useAdminStudentsQuery({
     page,
@@ -143,7 +143,6 @@ const AdminStudentsPage: React.FC = () => {
     sortOrder,
   });
 
-  const toggleStatusMutation = useToggleUserStatusMutation();
   const impersonateMutation = useImpersonateMutation();
 
   useEffect(() => {
@@ -163,13 +162,17 @@ const AdminStudentsPage: React.FC = () => {
     }
   };
 
-  const confirmToggleStatus = () => {
-    if (!statusTarget) return;
-    toggleStatusMutation.mutate(
-      { userId: statusTarget.id, isActive: !statusTarget.isActive },
-      { onSuccess: () => setStatusTarget(null) }
-    );
-  };
+  const openStatusDialog = (student: StudentAdminView) =>
+    setStatusTarget({
+      id: student.id,
+      name: student.fullName,
+      role: "student",
+      accountStatus: student.accountStatus,
+      suspendedUntil: student.suspendedUntil,
+      suspensionReason: student.suspensionReason,
+      suspendedAt: student.suspendedAt,
+      suspendedBy: student.suspendedBy,
+    });
 
   const renderSortableHeader = (column: SortableColumn, label: string, numeric = false) => {
     const isActive = sortBy === column;
@@ -189,13 +192,25 @@ const AdminStudentsPage: React.FC = () => {
   const renderIdentity = (student: StudentAdminView) => (
     <span className={styles.primaryLine}>
       <span className={styles.truncate} title={student.fullName}>{student.fullName}</span>
-      {!student.isActive && (
-        <Badge variant="destructive" className={styles.flag}>Inactive</Badge>
+      {student.accountStatus === "banned" && (
+        <Badge variant="destructive" className={styles.flag}>Banned</Badge>
+      )}
+      {student.accountStatus === "suspended" && (
+        <Badge
+          variant="destructive"
+          className={styles.flag}
+          title={student.suspendedUntil ? `Until ${formatIstDateTime(student.suspendedUntil)}` : "Until lifted"}
+        >
+          Suspended
+        </Badge>
       )}
     </span>
   );
 
-  const renderActions = (student: StudentAdminView) => (
+  const renderActions = (student: StudentAdminView) => {
+    const blocked = student.accountStatus !== "active";
+    const statusLabel = blocked ? "Reactivate" : "Suspend or ban";
+    return (
     <div className={styles.rowActions}>
       <Tooltip>
         <TooltipTrigger asChild>
@@ -217,18 +232,18 @@ const AdminStudentsPage: React.FC = () => {
           <Button
             variant="ghost"
             size="icon-md"
-            className={`${styles.iconButton} ${student.isActive ? styles.iconButtonDanger : ""}`}
-            aria-label={`${student.isActive ? "Deactivate" : "Activate"} ${student.fullName}`}
-            onClick={() => setStatusTarget({ id: student.id, name: student.fullName, isActive: student.isActive })}
-            disabled={toggleStatusMutation.isPending}
+            className={`${styles.iconButton} ${blocked ? "" : styles.iconButtonDanger}`}
+            aria-label={`${statusLabel} ${student.fullName}`}
+            onClick={() => openStatusDialog(student)}
           >
-            {student.isActive ? <Ban /> : <UserCheck />}
+            {blocked ? <UserCheck /> : <Ban />}
           </Button>
         </TooltipTrigger>
-        <TooltipContent>{student.isActive ? "Deactivate" : "Activate"}</TooltipContent>
+        <TooltipContent>{statusLabel}</TooltipContent>
       </Tooltip>
     </div>
-  );
+    );
+  };
 
   const renderContent = () => {
     if (isFetching) {
@@ -425,21 +440,7 @@ const AdminStudentsPage: React.FC = () => {
         )}
       </div>
 
-      <ConsoleConfirmDialog
-        open={!!statusTarget}
-        onOpenChange={(open) => !open && setStatusTarget(null)}
-        tone={statusTarget?.isActive ? "destructive" : "default"}
-        title={statusTarget?.isActive ? "Deactivate this student?" : "Activate this student?"}
-        description={
-          statusTarget?.isActive
-            ? `${statusTarget.name} will not be able to sign in. Their purchases and results are kept.`
-            : `${statusTarget?.name} will be able to sign in again.`
-        }
-        confirmLabel={statusTarget?.isActive ? "Deactivate" : "Activate"}
-        pendingLabel={statusTarget?.isActive ? "Deactivating..." : "Activating..."}
-        isPending={toggleStatusMutation.isPending}
-        onConfirm={confirmToggleStatus}
-      />
+      <AdminAccountStatusDialog target={statusTarget} onClose={() => setStatusTarget(null)} />
     </>
   );
 };

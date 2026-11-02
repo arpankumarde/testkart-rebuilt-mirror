@@ -21,8 +21,8 @@ export type EmailTemplateWiring = {
 export const EMAIL_TEMPLATE_WIRING: Record<string, EmailTemplateWiring> = {
   // Read from the database at send time - admin edits take effect.
   account_closure_confirmation: { status: "live", source: "endpoints/account/close-request_POST" },
-  account_reactivated: { status: "live", source: "endpoints/admin/user/toggle-status_POST" },
-  account_suspended: { status: "live", source: "endpoints/admin/user/toggle-status_POST" },
+  account_reactivated: { status: "live", source: "endpoints/admin/user/account-status_POST" },
+  account_suspended: { status: "live", source: "endpoints/admin/user/account-status_POST (suspensions and bans)" },
   bank_details_rejected: { status: "live", source: "endpoints/admin/bank-details/verify_POST" },
   bank_details_verified: { status: "live", source: "endpoints/admin/bank-details/verify_POST" },
   contact_form_acknowledgment: { status: "live", source: "endpoints/contact/submit_POST" },
