@@ -10,6 +10,7 @@ import { getTeacherPlatformFee, DEFAULT_TEACHER_PLATFORM_FEE } from "../../helpe
 import { sanitizePayuText } from "../../helpers/sanitizePayuText";
 import { liveTestEffectivePrice } from "../../helpers/liveTestPricing";
 import { getOrderClientInfo } from "../../helpers/orderClientInfo";
+import { expiredPurchaseError } from "../../helpers/contentExpiryServer";
 
 export async function handle(request: Request) {
   try {
@@ -42,6 +43,8 @@ export async function handle(request: Request) {
       if (!liveTest.isActive) {
         throw new Error("This live test is no longer active.");
       }
+      const expired = await expiredPurchaseError(trx, "live_test", liveTestId);
+      if (expired) throw new Error(expired);
       if (liveTest.endTime && new Date(liveTest.endTime) < new Date()) {
         throw new Error("This live test has already ended.");
       }

@@ -10,6 +10,7 @@ import { getTeacherPlatformFee } from "../../helpers/getTeacherPlatformFee";
 import { followTeacher } from "../../helpers/ensureTeacherFollow";
 import { planTcoinsForOrder } from "../../helpers/tcoins";
 import { getOrderClientInfo } from "../../helpers/orderClientInfo";
+import { expiredPurchaseError } from "../../helpers/contentExpiryServer";
 
 export async function handle(request: Request): Promise<Response> {
   const PAYU_MERCHANT_KEY = process.env.PAYU_MERCHANT_KEY;
@@ -41,6 +42,11 @@ export async function handle(request: Request): Promise<Response> {
         }),
         { status: 404 }
       );
+    }
+
+    const expired = await expiredPurchaseError(db, "course_bundle", bundle.id);
+    if (expired) {
+      return new Response(superjson.stringify({ error: expired }), { status: 400 });
     }
 
     const existingEnrollment = await db

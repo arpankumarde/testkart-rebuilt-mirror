@@ -12,10 +12,12 @@ interface TestItemsListProps {
   className?: string;
   items: TestItem[];
   isEnrolled: boolean;
+  /** The series has expired, so locked tests can no longer be bought. */
+  isExpired?: boolean;
   packageId: number;
 }
 
-export const TestItemsList: React.FC<TestItemsListProps> = ({ className, items, isEnrolled, packageId }) => {
+export const TestItemsList: React.FC<TestItemsListProps> = ({ className, items, isEnrolled, isExpired = false, packageId }) => {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -165,6 +167,10 @@ export const TestItemsList: React.FC<TestItemsListProps> = ({ className, items, 
                           </Link>
                         </Button>
                       )
+                    ) : isExpired ? (
+                      <Button size="lg" disabled>
+                        No longer available
+                      </Button>
                     ) : (
                       <Button 
                         size="lg" 

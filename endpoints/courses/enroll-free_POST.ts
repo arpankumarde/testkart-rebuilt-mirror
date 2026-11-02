@@ -5,6 +5,7 @@ import superjson from "superjson";
 import { sendEmail } from "../../helpers/sendEmail";
 import { emailTemplatesExtra } from "../../helpers/emailTemplatesExtra";
 import { followTeacher } from "../../helpers/ensureTeacherFollow";
+import { expiredPurchaseError } from "../../helpers/contentExpiryServer";
 
 
 
@@ -31,6 +32,11 @@ export async function handle(request: Request): Promise<Response> {
 
     if (Number(course.price) !== 0) {
       return new Response(superjson.stringify({ error: "This course is not free." }), { status: 400 });
+    }
+
+    const expired = await expiredPurchaseError(db, "course", courseId);
+    if (expired) {
+      return new Response(superjson.stringify({ error: expired }), { status: 400 });
     }
 
     const existingEnrollment = await db

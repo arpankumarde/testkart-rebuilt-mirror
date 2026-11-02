@@ -12,6 +12,7 @@ import { ShareAssetDialog } from './ShareAssetDialog';
 import { PUBLIC_PAGE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
 import { coursePriceView, formatOfferInr, type CourseCouponOffer } from '../helpers/courseCouponOffer';
 import { courseReturnState } from '../helpers/courseReturnTarget';
+import { ExpiredProductNotice } from './ExpiredProductNotice';
 import styles from './CourseSidebar.module.css';
 
 export type PublicCourseDetails = {
@@ -37,6 +38,8 @@ export type PublicCourseDetails = {
     academyName?: string | null;
   };
   isEnrolled: boolean;
+  /** Past its expiry date: no longer on sale, though enrolled students keep access. */
+  isExpired?: boolean;
   studentsEnrolled?: number;
   sections?: Array<{ lessons: Array<any> }>;
 };
@@ -164,6 +167,8 @@ export const CourseSidebar: React.FC<CourseSidebarProps> = ({
                 Go to My Courses
               </Button>
             </>
+          ) : course.isExpired ? (
+            <ExpiredProductNotice />
           ) : isTeacher ? (
             <>
               <div className={styles.teacherInfo}>

@@ -86,7 +86,7 @@ const sample: Reviews = {
 export default defineScreens({
   backend: {
     "auth/session_GET": { error: "Not authenticated" } as Session,
-    "cart/items_GET": { items: [], autoCoupon: null } as Cart,
+    "cart/items_GET": { items: [], autoCoupon: null, autoCoupons: [] } as Cart,
     "spin-win/active_GET": { active: null },
   },
   screens: [

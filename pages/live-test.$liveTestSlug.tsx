@@ -85,6 +85,7 @@ const LiveTestDetailsPage: React.FC = () => {
   }
 
   const status = getLiveTestStatus(data);
+  const purchaseClosed = !!data.isExpired && !data.isEnrolled;
   const formatCurrency = (amount: number) => `₹${amount.toLocaleString('en-IN')}`;
 
   const ruleCards: RuleCardData[] = [
@@ -187,7 +188,7 @@ const LiveTestDetailsPage: React.FC = () => {
         <LiveTestHero liveTest={data} />
 
         <div className={styles.contentContainer}>
-          {!data.isEnrolled && data.price > 0 && (
+          {!data.isEnrolled && !purchaseClosed && data.price > 0 && (
             <PublicCouponsCard itemType="live_test" itemId={data.id} playful />
           )}
           <div className={styles.tabs} role="group" aria-label="Competition sections">

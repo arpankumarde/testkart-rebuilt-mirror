@@ -80,6 +80,8 @@ export type OutputType = Omit<
   };
   items: BundleItem[];
   isEnrolled: boolean;
+  /** Past its expiry date (helpers/contentExpiry): no longer on sale, though buyers keep access. */
+  isExpired: boolean;
   disclaimer: string;
 };
 

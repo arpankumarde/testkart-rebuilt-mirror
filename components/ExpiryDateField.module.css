@@ -1,0 +1,60 @@
+.field {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+/* A form field, not a call to action: keep the Input look in every state (Button rules sit in @layer base). */
+.trigger,
+.trigger:hover,
+.trigger:active,
+.trigger[data-state="open"] {
+  min-width: 11rem;
+  justify-content: flex-start;
+  font-weight: 500;
+  color: var(--foreground);
+  background-color: var(--card);
+  border-color: var(--border);
+}
+
+.trigger:hover,
+.trigger[data-state="open"] {
+  border-color: var(--tk-brand-text);
+}
+
+.trigger:focus-visible {
+  border-color: var(--tk-brand-text);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tk-brand) 35%, transparent);
+}
+
+.trigger:disabled {
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+}
+
+.trigger svg {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+
+.placeholder {
+  color: var(--muted-foreground);
+  font-weight: 400;
+}
+
+.clear {
+  color: var(--muted-foreground);
+}
+
+.clear:hover {
+  color: var(--foreground);
+}
+
+.calendar {
+  max-height: var(--radix-popover-content-available-height);
+  overflow-y: auto;
+  border-radius: var(--radius);
+  background-color: var(--card);
+}

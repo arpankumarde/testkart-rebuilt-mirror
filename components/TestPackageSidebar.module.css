@@ -101,6 +101,10 @@
   flex-shrink: 0;
 }
 
+.expiredNotice {
+  margin-bottom: var(--spacing-4);
+}
+
 .teacherInfo {
   display: flex;
   gap: var(--spacing-4);

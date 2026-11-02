@@ -1,0 +1,80 @@
+.panel {
+  display: grid;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.card {
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--card);
+}
+
+.skeleton {
+  height: 5.5rem;
+  border-radius: var(--radius-md);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.legend {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.optional {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.help {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+}
+
+.callout {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-1);
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid color-mix(in srgb, var(--error) 40%, transparent);
+  border-radius: var(--radius-md);
+  background-color: color-mix(in srgb, var(--error) 8%, var(--card));
+}
+
+.calloutIcon {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+  color: var(--error-text);
+}
+
+.calloutBody {
+  display: grid;
+  justify-items: start;
+  gap: var(--spacing-2);
+  min-width: 0;
+}
+
+.calloutTitle {
+  margin: 0;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.calloutText {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--foreground);
+}

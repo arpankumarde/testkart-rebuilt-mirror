@@ -5,6 +5,7 @@ import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { PRODUCT_DISCLAIMER } from "../../helpers/productDisclaimer";
 import { computeBundleSeo } from "../../helpers/seoIndexability";
 import { slugify } from "../../helpers/slugify";
+import { isExpired } from "../../helpers/contentExpiry";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -211,6 +212,7 @@ export async function handle(request: Request): Promise<Response> {
       },
       items,
       isEnrolled,
+      isExpired: isExpired(bundle),
       disclaimer: PRODUCT_DISCLAIMER,
       seo: {
         indexable: seoResult.indexable,

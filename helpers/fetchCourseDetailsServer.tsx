@@ -6,6 +6,7 @@ import { PRODUCT_DISCLAIMER } from "./productDisclaimer";
 import { computeCourseSeo } from "./seoIndexability";
 import { courseDiscountPrice } from "./coursePricing";
 import { loadCourseCouponOffers } from "./courseCouponOffersServer";
+import { isExpired } from "./contentExpiry";
 
 export async function fetchCourseDetailsServer(slug: string): Promise<OutputType> {
   const course = await db
@@ -134,6 +135,7 @@ export async function fetchCourseDetailsServer(slug: string): Promise<OutputType
     sections: sectionsWithLessons,
     reviews,
     isEnrolled: false,
+    isExpired: isExpired(course),
     disclaimer: PRODUCT_DISCLAIMER,
     seo: {
       indexable: seoResult.indexable,

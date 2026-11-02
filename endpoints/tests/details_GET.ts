@@ -10,6 +10,7 @@ import { getTestSeriesLeaderboardAccess } from "../../helpers/testSeriesLeaderbo
 import { slugify } from "../../helpers/slugify";
 import { PRODUCT_DISCLAIMER } from "../../helpers/productDisclaimer";
 import { computeMockTestSeo, isMeaningfulSubjectName } from "../../helpers/seoIndexability";
+import { isExpired } from "../../helpers/contentExpiry";
 
 const inputSchema = z
   .object({
@@ -284,6 +285,7 @@ export async function handle(request: Request) {
       createdAt: test.createdAt,
       updatedAt: test.updatedAt,
       isEnrolled: isEnrolled,
+      isExpired: isExpired(test),
       canViewLeaderboard,
       language: test.language,
       languages: test.languages,

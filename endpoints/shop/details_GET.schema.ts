@@ -2,6 +2,7 @@ import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
 import { DigitalProducts, Users, Reviews } from "../../helpers/schema";
+import type { CourseCouponOffer } from "../../helpers/courseCouponOffer";
 
 export const schema = z.object({
   slug: z.string(),
@@ -56,6 +57,9 @@ export type ShopProductDetails = Omit<
   | "status"
   | "thumbnailFileId"
   | "allowDownload"
+  | "expiresAt"
+  | "expiredAt"
+  | "preExpiryVisibility"
 > & {
   /** The teacher lets buyers download this note's PDFs. A flag only, never a link. */
   allowDownload: boolean;
@@ -65,6 +69,8 @@ export type ShopProductDetails = Omit<
   price: number;
   /** What the student pays instead, or null when there is no valid discount. */
   discountPrice: number | null;
+  /** The teacher's automatic offer, priced by the server; checkout applies it without a code. */
+  couponOffer: CourseCouponOffer | null;
   rating: number | null;
   totalPurchases: number;
   reviewsCount: number;
@@ -72,6 +78,8 @@ export type ShopProductDetails = Omit<
   fileCount: number;
   files: StudyNoteFileSummary[];
   isPurchased: boolean;
+  /** Past its expiry date (helpers/contentExpiry): no longer on sale, though buyers keep access. */
+  isExpired: boolean;
   teacherName: string;
   teacherSlug: string;
   teacherAvatar: string | null;

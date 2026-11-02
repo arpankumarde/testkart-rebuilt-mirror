@@ -15,7 +15,8 @@ import {
   ChevronRight,
   Files,
   Info,
-  Download
+  Download,
+  Tag
 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useShopProductDetails, useRelatedProductsQuery, SHOP_PRODUCT_DETAILS_QUERY_KEY } from "../helpers/useShopQuery";
@@ -41,11 +42,12 @@ import { VerifiedBadge } from "../components/VerifiedBadge";
 
 const ProductPDFPreview = React.lazy(() => import("../components/ProductPDFPreview").then(m => ({ default: m.ProductPDFPreview })));
 import { MobileStickyPurchaseBar } from "../components/MobileStickyPurchaseBar";
-import { productDiscountPercent } from "../helpers/digitalProductPricing";
+import { coursePriceView, formatOfferInr } from "../helpers/courseCouponOffer";
 import { toast } from "sonner";
 import { AssetTopRow } from "../components/AssetTopRow";
 import { useTrackStorefrontView } from "../helpers/trackStorefrontEvent";
 import { PublicCouponsCard } from "../components/PublicCouponsCard";
+import { ExpiredProductNotice } from "../components/ExpiredProductNotice";
 import { NotFoundState } from "../components/NotFoundState";
 import { isNotFoundError } from "../helpers/isNotFoundError";
 import styles from "./study-notes.$noteSlug.module.css";
@@ -164,9 +166,12 @@ const ProductDetailsPage: React.FC = () => {
       },
       "offers": {
         "@type": "Offer",
-        "price": product.discountPrice ?? product.price,
+        "price": coursePriceView(product.price, product.discountPrice, product.couponOffer).finalPrice,
         "priceCurrency": "INR",
         "availability": "https://schema.org/InStock",
+        ...(product.couponOffer?.validUntil && {
+          "priceValidUntil": new Date(product.couponOffer.validUntil).toISOString().slice(0, 10),
+        }),
       },
     };
 
@@ -301,16 +306,14 @@ const ProductDetailsPage: React.FC = () => {
 
   // 8. Variables that depend on product being defined (after early returns)
   const isFree = product.price === 0;
-  const discountPrice = isFree ? null : product.discountPrice ?? null;
-  const formatPrice = (amount: number) =>
-    new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  const formattedPrice = formatPrice(discountPrice ?? product.price);
-  const formattedOriginalPrice = discountPrice !== null ? formatPrice(product.price) : null;
-  const discountPercentage = productDiscountPercent(product.price, discountPrice);
+  const purchaseClosed = !!product.isExpired && !hasPurchased;
+  // Sale price and the teacher's automatic offer, both priced by the server; checkout charges the same.
+  const priceView = coursePriceView(product.price, product.discountPrice, product.couponOffer);
+  const formattedPrice = formatOfferInr(priceView.finalPrice);
+  const formattedOriginalPrice = priceView.originalPrice !== null ? formatOfferInr(priceView.originalPrice) : null;
+  const discountPercentage = priceView.percentOff > 0 ? priceView.percentOff : null;
+  const savings = priceView.originalPrice !== null ? Math.round((priceView.originalPrice - priceView.finalPrice) * 100) / 100 : 0;
+  const showOffer = priceView.offer !== null && !hasPurchased && !purchaseClosed && !isTeacher;
 
   // Falls back to a content-derived description instead of an empty
   // <meta name="description"> when the teacher never wrote a short/long
@@ -424,8 +427,13 @@ const ProductDetailsPage: React.FC = () => {
 
           <div className={styles.mainContent}>
             <div className={styles.contentSections}>
-              {!hasPurchased && !isFree && (
-                <PublicCouponsCard itemType="digital_product" itemId={product.id} spaced={false} />
+              {!hasPurchased && !purchaseClosed && !isFree && (
+                <PublicCouponsCard
+                  itemType="digital_product"
+                  itemId={product.id}
+                  spaced={false}
+                  autoAppliedPromoCodeId={product.couponOffer?.promoCodeId ?? null}
+                />
               )}
               {product.files && product.files.length > 0 && (
                 <div className={styles.section}>
@@ -620,7 +628,7 @@ const ProductDetailsPage: React.FC = () => {
                       <>
                         <s className={styles.originalPrice}>{formattedOriginalPrice}</s>
                         {discountPercentage !== null && (
-                          <span className={styles.discount}>{discountPercentage}% off</span>
+                          <span className={styles.discount}>{discountPercentage}% OFF</span>
                         )}
                       </>
                     )}
@@ -636,7 +644,21 @@ const ProductDetailsPage: React.FC = () => {
                   </button>
                 </div>
 
-                {isTeacher ? (
+                {showOffer && priceView.offer && (
+                  <div className={styles.offerNote}>
+                    <Tag size={15} aria-hidden="true" className={styles.offerNoteIcon} />
+                    <div>
+                      <p className={styles.offerSaving}>You save {formatOfferInr(savings)}</p>
+                      <p className={styles.offerText}>
+                        Teacher offer <strong>{priceView.offer.code}</strong> applied automatically. No code needed.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {purchaseClosed ? (
+                  <ExpiredProductNotice />
+                ) : isTeacher ? (
                   <div className={styles.studentsNotice} role="note">
                     <span className={styles.studentsNoticeIcon} aria-hidden="true">
                       <Info size={16} />
@@ -657,7 +679,7 @@ const ProductDetailsPage: React.FC = () => {
                   </div>
                 ) : null}
 
-                {!isTeacher && (
+                {!isTeacher && !purchaseClosed && (
                   hasPurchased ? (
                     <Button asChild size="lg" className={`${styles.primaryCta} ${styles.ownedCta}`}>
                       <Link to="/student/shop">
@@ -786,13 +808,14 @@ const ProductDetailsPage: React.FC = () => {
           </>
         )}
 
-        {product && (
+        {product && !purchaseClosed && (
           <MobileStickyPurchaseBar
             product={{
               type: 'digitalProduct',
               id: product.id,
               price: product.price,
               discountPrice: product.discountPrice ?? null,
+              couponOffer: product.couponOffer,
               isEnrolled: hasPurchased,
             }}
             isVisible={isStickyBarVisible}

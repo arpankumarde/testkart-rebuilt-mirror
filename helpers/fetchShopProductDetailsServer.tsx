@@ -5,6 +5,8 @@ import { slugify } from "./slugify";
 import { PRODUCT_DISCLAIMER } from "./productDisclaimer";
 import { computeStudyNoteSeo } from "./seoIndexability";
 import { productDiscountPrice } from "./digitalProductPricing";
+import { isExpired } from "./contentExpiry";
+import { loadDigitalProductCouponOffers } from "./courseCouponOffersServer";
 
 export async function fetchShopProductDetailsServer(slug: string): Promise<OutputType> {
   const product = await db
@@ -35,6 +37,8 @@ export async function fetchShopProductDetailsServer(slug: string): Promise<Outpu
       "digitalProducts.publishedAt",
       "digitalProducts.allowDownload",
       "digitalProducts.visibility",
+      "digitalProducts.expiresAt",
+      "digitalProducts.expiredAt",
      "digitalProducts.examName",
      "digitalProducts.examId",
      "exams.examSlug as examSlug",
@@ -138,6 +142,8 @@ export async function fetchShopProductDetailsServer(slug: string): Promise<Outpu
     .limit(5)
     .execute();
 
+  const couponOffers = await loadDigitalProductCouponOffers([product.id]);
+
   return {
     product: {
       id: product.id,
@@ -147,6 +153,7 @@ export async function fetchShopProductDetailsServer(slug: string): Promise<Outpu
       shortDescription: product.shortDescription,
       price: Number(product.price),
       discountPrice: productDiscountPrice(product.price, product.discountPrice),
+      couponOffer: couponOffers.get(product.id) ?? null,
       thumbnailUrl: product.thumbnailUrl,
       previewUrl: null,
       previewPages: product.previewPages,
@@ -165,6 +172,7 @@ export async function fetchShopProductDetailsServer(slug: string): Promise<Outpu
       files,
       allowDownload: product.allowDownload === true,
      isPurchased: false,
+     isExpired: isExpired(product),
      publishedAt: product.publishedAt,
      examName: product.examName ?? null,
      examId: product.examId ?? null,

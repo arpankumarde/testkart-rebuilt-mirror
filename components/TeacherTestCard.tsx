@@ -19,7 +19,7 @@ import { TeacherTest } from '../endpoints/teacher/tests/list_GET.schema';
 import { Button } from './Button';
 import { TeacherCardInsights } from './TeacherCardInsights';
 import { TeacherRejectionNote } from './TeacherRejectionNote';
-import { UnlistedBadge } from './UnlistedBadge';
+import { TeacherListingBadges } from './TeacherListingBadges';
 import { performanceHref } from '../helpers/teacherPerformanceFormat';
 import { useTeacherTestMutations } from '../helpers/useTeacherTestMutations';
 import { usePublishesWithoutReview } from '../helpers/usePublishesWithoutReview';
@@ -112,9 +112,14 @@ export const TeacherTestCard: React.FC<TeacherTestCardProps> = ({
             {test.title}
           </Link>
         </h3>
-        {test.visibility === 'unlisted' && (
-          <UnlistedBadge live={isPublished} inReview={test.inReview} rejected={!!test.rejection} />
-        )}
+        <TeacherListingBadges
+          visibility={test.visibility}
+          live={isPublished}
+          inReview={test.inReview}
+          rejected={!!test.rejection}
+          expiresAt={test.expiresAt}
+          expiredAt={test.expiredAt}
+        />
 
         <dl className={styles.meta}>
           <div className={styles.metaItem}>

@@ -1,0 +1,83 @@
+/*
+ * Painted pastel shapes and hand-drawn marks for the /app landing page.
+ * Each tone is a solid fill plus a deeper fleck of the same hue. Light mode
+ * runs a step stronger than the --pastel-* tokens so a shape still holds its
+ * own against the warm page; dark mode drops to deep muted fills that sit
+ * behind a phone without glowing.
+ */
+.blob {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.fill {
+  fill: var(--blob-fill);
+}
+
+.grain {
+  fill: var(--blob-grain);
+}
+
+.peach {
+  --blob-fill: hsl(22 95% 86%);
+  --blob-grain: hsl(18 82% 76%);
+}
+
+.lavender {
+  --blob-fill: hsl(258 72% 88%);
+  --blob-grain: hsl(258 52% 79%);
+}
+
+.mint {
+  --blob-fill: hsl(154 46% 83%);
+  --blob-grain: hsl(156 34% 71%);
+}
+
+.butter {
+  --blob-fill: hsl(44 92% 81%);
+  --blob-grain: hsl(38 78% 69%);
+}
+
+.powder {
+  --blob-fill: hsl(208 72% 87%);
+  --blob-grain: hsl(210 52% 77%);
+}
+
+:global(.dark) .peach {
+  --blob-fill: hsl(16 30% 25%);
+  --blob-grain: hsl(16 32% 33%);
+}
+
+:global(.dark) .lavender {
+  --blob-fill: hsl(258 22% 27%);
+  --blob-grain: hsl(258 22% 36%);
+}
+
+:global(.dark) .mint {
+  --blob-fill: hsl(158 22% 22%);
+  --blob-grain: hsl(158 22% 30%);
+}
+
+:global(.dark) .butter {
+  --blob-fill: hsl(40 26% 23%);
+  --blob-grain: hsl(40 28% 31%);
+}
+
+:global(.dark) .powder {
+  --blob-fill: hsl(211 26% 25%);
+  --blob-grain: hsl(211 26% 34%);
+}
+
+.doodle {
+  display: block;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}

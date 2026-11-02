@@ -1,9 +1,13 @@
 @layer base {
+  .page {
+    background-color: var(--co-page);
+    min-height: 60vh;
+  }
+
   .pageContainer {
     max-width: 1200px;
     margin: 0 auto;
-    padding: var(--spacing-8) var(--spacing-4);
-    min-height: 60vh;
+    padding: var(--spacing-8) var(--spacing-4) var(--spacing-12);
   }
 
   /* minmax(0, 1fr) so a long product title in the items column can't floor
@@ -21,73 +25,79 @@
   }
 
   .itemsHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
     margin-bottom: var(--spacing-4);
-    padding-bottom: var(--spacing-2);
-    border-bottom: 1px solid var(--border);
   }
 
-  .itemsHeader h2 {
-    font-family: var(--font-family-heading);
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--foreground);
+  .heading {
     margin: 0;
+    font-family: var(--font-family-heading);
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--sp-ink);
   }
 
-  .itemsHeader span {
-    font-size: 1.125rem;
-    color: var(--muted-foreground);
-    font-weight: 500;
-    margin-left: var(--spacing-2);
+  .itemCount {
+    padding: 2px var(--spacing-3);
+    border-radius: var(--radius-full);
+    background-color: var(--sp-peach-tint);
+    color: var(--sp-peach-ink);
+    font-size: 0.8125rem;
+    font-weight: 700;
   }
 
   .itemsList {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-4);
+    gap: var(--spacing-3);
   }
 
-  /* Sticky behavior for sidebar */
   .stickySummary {
     position: sticky;
     top: calc(var(--header-height, 0px) + var(--spacing-6) + var(--site-notice-offset));
   }
 
-  /* Empty State Styles */
   .emptyState {
-    text-align: center;
-    padding: var(--spacing-16) 0;
-    background-color: var(--surface);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border);
     max-width: 600px;
     margin: 0 auto;
+    padding: var(--spacing-16) var(--spacing-6);
+    text-align: center;
+    background-color: var(--sp-card);
+    border: 1px solid var(--sp-line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--sp-shadow);
   }
 
   .emptyState h2 {
+    margin: var(--spacing-4) 0;
     font-family: var(--font-family-heading);
     font-size: 1.75rem;
-    margin: var(--spacing-4) 0;
-    color: var(--foreground);
+    color: var(--sp-ink);
   }
 
   .emptyState p {
-    color: var(--muted-foreground);
     margin-bottom: var(--spacing-6);
+    color: var(--sp-muted);
   }
 
   .emptyIcon {
-    color: var(--primary);
+    color: var(--tk-brand-text);
   }
 
   .errorIcon {
     color: var(--error);
   }
 
-  /* Responsive Design */
+  /* Phone checkout bar, above the 60px bottom nav. */
+  .mobileBar {
+    display: none;
+  }
+
   @media (max-width: 1024px) {
     .cartLayout {
-      grid-template-columns: 1fr 320px;
+      grid-template-columns: minmax(0, 1fr) 340px;
       gap: var(--spacing-6);
     }
   }
@@ -97,22 +107,107 @@
       padding-top: var(--spacing-6);
     }
 
+    .pageWithBar .pageContainer {
+      padding-bottom: calc(var(--spacing-16) + var(--spacing-12));
+    }
+
+    .heading {
+      font-size: 1.5rem;
+    }
+
     .cartLayout {
       display: flex;
       flex-direction: column;
-      gap: var(--spacing-8);
-    }
-
-    .itemsColumn {
-      width: 100%;
+      gap: var(--spacing-6);
     }
 
     .summaryColumn {
       width: 100%;
+      scroll-margin-top: calc(var(--header-height, 0px) + var(--spacing-4));
     }
-    
+
     .stickySummary {
       position: static;
     }
+
+    .mobileBar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 60px;
+      z-index: var(--z-nav-sticky);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--spacing-3);
+      padding: var(--spacing-3) var(--spacing-4);
+      background-color: var(--co-card);
+      border-top: 1px solid var(--co-line);
+      box-shadow: 0 -6px 16px -10px hsl(30 25% 20% / 0.35);
+    }
+
+    .mobileBarTotals {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .mobileBarAmount {
+      font-family: var(--font-family-heading);
+      font-size: 1.125rem;
+      font-weight: 800;
+      color: var(--sp-ink);
+      white-space: nowrap;
+    }
+
+    .mobileBarSavings {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--success-text);
+      white-space: nowrap;
+    }
+
+    .mobileBarLink {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--tk-brand-text);
+    }
+
+    .mobileBarButton {
+      flex-shrink: 0;
+      min-height: 44px;
+      font-weight: 700;
+    }
   }
+}
+
+/* Outside the layer so it wins over Button's own (layered) colours; matches the summary's CTA. */
+.mobileBarButton {
+  background-color: var(--co-cta);
+  border-color: var(--co-cta);
+  color: var(--co-cta-ink);
+}
+
+.mobileBarButton:hover:not(:disabled) {
+  background-color: var(--co-cta-hover);
+  border-color: var(--co-cta-hover);
+  color: var(--co-cta-ink);
+}
+
+.mobileBarButton:active:not(:disabled) {
+  background-color: var(--co-cta-active);
+  border-color: var(--co-cta-active);
+}
+
+.mobileBarButton:disabled {
+  background-color: var(--co-cta-disabled);
+  border-color: var(--co-cta-disabled);
+  color: var(--co-cta-disabled-ink);
+  opacity: 1;
+}
+
+.mobileBarButton:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--co-card),
+    0 0 0 4px var(--co-focus);
 }

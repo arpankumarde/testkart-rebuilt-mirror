@@ -16,6 +16,8 @@ export type CartItemTest = {
   discountPrice: number | null;
   thumbnailUrl: string | null;
   creatorName: string | null;
+  /** Past its expiry: checkout refuses the cart until it is removed. */
+  expired?: boolean;
 };
 
 export type CartItemCourse = {
@@ -29,6 +31,7 @@ export type CartItemCourse = {
   thumbnailUrl: string | null;
   thumbnailImageUrl: string | null;
   teacherName: string | null;
+  expired?: boolean;
 };
 
 export type CartItemDigitalProduct = {
@@ -40,17 +43,22 @@ export type CartItemDigitalProduct = {
   price: number;
   discountPrice: number | null;
   thumbnailUrl: string | null;
+  teacherName: string | null;
+  expired?: boolean;
 };
 
 export type CartItem = CartItemTest | CartItemCourse | CartItemDigitalProduct;
 
 export type OutputType = {
   items: CartItem[];
-  /**
-   * The teacher offer checkout applies by itself when no code is typed and no
-   * Tcoins are used, or null. Only one coupon works per order.
-   */
+  /** The largest of autoCoupons, or null. Kept for clients that read a single offer. */
   autoCoupon: CartAutoCoupon | null;
+  /**
+   * The teacher offers checkout applies by itself unless Tcoins are used, at
+   * most one per course or study note. A coupon the student chooses is added
+   * on top; the cart/quote endpoint prices that combination.
+   */
+  autoCoupons: CartAutoCoupon[];
 };
 
 export const getCartItems = async (

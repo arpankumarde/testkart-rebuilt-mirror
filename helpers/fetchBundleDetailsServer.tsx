@@ -3,6 +3,7 @@ import type { OutputType } from "../endpoints/bundles/details_GET.schema";
 import { PRODUCT_DISCLAIMER } from "./productDisclaimer";
 import { computeBundleSeo } from "./seoIndexability";
 import { slugify } from "./slugify";
+import { isExpired } from "./contentExpiry";
 
 export async function fetchBundleDetailsServer(slug: string): Promise<OutputType> {
   const bundle = await db
@@ -174,6 +175,7 @@ export async function fetchBundleDetailsServer(slug: string): Promise<OutputType
     },
     items,
     isEnrolled: false,
+    isExpired: isExpired(bundle),
     disclaimer: PRODUCT_DISCLAIMER,
     seo: {
       indexable: seoResult.indexable,

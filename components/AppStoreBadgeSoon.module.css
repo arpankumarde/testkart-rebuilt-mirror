@@ -1,0 +1,90 @@
+/*
+ * Disabled App Store badge. Same box as PlayStoreBadge (3.375 x --badge-h,
+ * radius 0.2h, 1px outline) but on a soft warm-neutral fill instead of black,
+ * so it reads as "not yet" rather than as a second live button. Type and logo
+ * stay at full strength (no opacity) so they remain clearly legible.
+ */
+/* Default height at zero specificity, so a caller's size class always wins
+   whatever order the stylesheets load in. */
+:where(.badge) {
+  --badge-h: 3.25rem;
+}
+
+.badge {
+  --soon-fill: var(--sp-lavender-tint);
+  --soon-ink: var(--sp-lavender-ink);
+  --soon-line: var(--sp-lavender-line);
+
+  position: relative;
+  box-sizing: border-box;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: calc(var(--badge-h) * 0.2);
+  width: calc(var(--badge-h) * 3.375);
+  height: var(--badge-h);
+  padding: 0 calc(var(--badge-h) * 0.3);
+  border: 1px solid hsl(36 16% 80%);
+  border-radius: calc(var(--badge-h) * 0.2);
+  background: hsl(38 30% 93%);
+  color: hsl(224 18% 34%);
+  cursor: default;
+  user-select: none;
+}
+
+:global(.dark) .badge {
+  border-color: hsl(222 12% 32%);
+  background: hsl(222 16% 19%);
+  color: hsl(220 14% 78%);
+}
+
+.logo {
+  flex: none;
+  width: calc(var(--badge-h) * 0.46);
+  height: calc(var(--badge-h) * 0.46);
+  fill: currentColor;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1;
+}
+
+.small {
+  font-family: var(--font-family-base);
+  font-size: calc(var(--badge-h) * 0.2);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.large {
+  margin-top: calc(var(--badge-h) * 0.04);
+  font-family: var(--font-family-base);
+  font-size: calc(var(--badge-h) * 0.38);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+}
+
+/* Sits on the top edge, right-aligned, half above the badge, like a tag
+   clipped on rather than a notification dot. */
+.soon {
+  position: absolute;
+  top: 0;
+  right: calc(var(--badge-h) * 0.22);
+  transform: translateY(-55%);
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--soon-line);
+  border-radius: var(--radius-full);
+  background: var(--soon-fill);
+  color: var(--soon-ink);
+  font-family: var(--font-family-base);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  white-space: nowrap;
+}

@@ -414,6 +414,10 @@
   margin-top: 2px;
 }
 
+.expiredNotice {
+  flex: 1 1 16rem;
+}
+
 .teacherInfoBoxContent {
   display: flex;
   flex-direction: column;

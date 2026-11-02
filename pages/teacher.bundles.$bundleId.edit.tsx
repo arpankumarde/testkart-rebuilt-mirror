@@ -5,6 +5,7 @@ import { BundleEditor } from '../components/BundleEditor';
 import { TeacherFormHeader } from '../components/TeacherFormHeader';
 import { TeacherRejectionBanner } from '../components/TeacherRejectionBanner';
 import { ContentVisibilityPanel } from '../components/ContentVisibilityPanel';
+import { ContentExpiryPanel } from '../components/ContentExpiryPanel';
 import { useTeacherBundleDetailsQuery } from '../helpers/useTeacherBundleDetailsQuery';
 import styles from './teacher.bundles.$bundleId.edit.module.css';
 
@@ -34,8 +35,9 @@ export default function EditBundlePage() {
           <BundleEditor bundleId={id} exitTo="/teacher/bundles" exitLabel="Bundles" />
         </div>
 
-        {/* Bundles publish from the list; visibility sits after the details, out of the editing flow. */}
+        {/* Bundles publish from the list; visibility and expiry sit after the details, out of the editing flow. */}
         <ContentVisibilityPanel contentType="course_bundle" contentId={id} />
+        <ContentExpiryPanel contentType="course_bundle" contentId={id} />
       </div>
     </>
   );

@@ -13,6 +13,7 @@ import { getSpinCouponRuleOrThrow } from "../../../helpers/spinWinServer";
 import { planTcoinsForOrder } from "../../../helpers/tcoins";
 import { ONE_OFFER_MESSAGE } from "../../../helpers/tcoinsMath";
 import { getOrderClientInfo } from "../../../helpers/orderClientInfo";
+import { expiredPurchaseError } from "../../../helpers/contentExpiryServer";
 
 const generateErrorHtml = (errorMessage: string, backUrl: string) => `
 <!DOCTYPE html>
@@ -257,6 +258,8 @@ export async function handle(request: Request) {
       if (!bundle || !bundle.isPublished) {
         throw new Error("Bundle not found or not available for purchase.");
       }
+      const expired = await expiredPurchaseError(trx, "course_bundle", bundle.id);
+      if (expired) throw new Error(expired);
 
       const existingEnrollment = await trx
         .selectFrom("bundleEnrollments")

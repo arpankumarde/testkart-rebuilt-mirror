@@ -33,6 +33,7 @@ import { Plus, GripVertical, ArrowUp, ArrowDown, X, Eye, Sparkles, AlertTriangle
 import { AIRewriteButton } from './AIRewriteButton';
 import { WithdrawReviewButton } from './WithdrawReviewButton';
 import { ContentVisibilityPanel } from './ContentVisibilityPanel';
+import { ContentExpiryPanel } from './ContentExpiryPanel';
 import { useAdminContentEdit } from '../helpers/useAdminContentEdit';
 import { noEmoji } from '../helpers/emojiText';
 import { productDiscountError, productDiscountPercent } from '../helpers/digitalProductPricing';
@@ -1332,6 +1333,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
             </div>
 
             {isEditMode && <ContentVisibilityPanel contentType="digital_product" contentId={productId} />}
+            {isEditMode && <ContentExpiryPanel contentType="digital_product" contentId={productId} />}
 
             <div className={styles.actionsCard}>
               {isPublished && (

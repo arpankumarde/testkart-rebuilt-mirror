@@ -291,35 +291,35 @@ export async function sendOrderConfirmationEmails(orderId: number, userId: numbe
     }
   }
 
-  // Send promo code used notification to teacher
+  // Tell each teacher whose coupon the order used; an order can carry teacher offers plus one Testkart coupon.
   let usedPromoCodeString: string | null = null;
   try {
-    const orderWithPromo = await db.selectFrom("orders").select("promoCodeId").where("id", "=", orderId).executeTakeFirst();
-    if (orderWithPromo?.promoCodeId) {
-      const promoCode = await db.selectFrom("promoCodes")
-        .innerJoin("users as teacher", "promoCodes.createdByTeacherId", "teacher.id")
-        .select(["promoCodes.code", "teacher.email as teacherEmail", "teacher.displayName as teacherName"])
-        .where("promoCodes.id", "=", orderWithPromo.promoCodeId)
-        .executeTakeFirst();
+    const usages = await db.selectFrom("promoCodeUsages")
+      .innerJoin("promoCodes", "promoCodes.id", "promoCodeUsages.promoCodeId")
+      .leftJoin("users as teacher", "promoCodes.createdByTeacherId", "teacher.id")
+      .select([
+        "promoCodes.code",
+        "promoCodeUsages.discountAmount",
+        "teacher.id as teacherId",
+        "teacher.email as teacherEmail",
+        "teacher.displayName as teacherName",
+      ])
+      .where("promoCodeUsages.orderId", "=", orderId)
+      .orderBy("promoCodeUsages.id", "asc")
+      .execute();
 
-      if (promoCode) {
-        usedPromoCodeString = promoCode.code;
+    if (usages.length > 0) {
+      usedPromoCodeString = usages.map((u) => u.code).join(" + ");
+    }
 
-        if (promoCode.teacherEmail) {
-          const discountResult = await db.selectFrom("orderItems")
-            .select([sql<string>`COALESCE(SUM(discount_amount), 0)`.as("totalDiscount")])
-            .where("orderId", "=", orderId)
-            .executeTakeFirst();
-          const discountAmount = Number(discountResult?.totalDiscount || 0);
-
-                    await sendTemplateEmail("promo_code_used", promoCode.teacherEmail, {
-            teacherName: promoCode.teacherName,
-            studentName: studentName,
-            promoCode: promoCode.code,
-            discountAmount: String(discountAmount),
-          }).catch(err => console.error("[sendOrderConfirmationEmails] Failed to send promo code used notification:", err));
-        }
-      }
+    for (const usage of usages) {
+      if (usage.teacherId === null || !usage.teacherEmail) continue;
+      await sendTemplateEmail("promo_code_used", usage.teacherEmail, {
+        teacherName: usage.teacherName ?? "Teacher",
+        studentName: studentName,
+        promoCode: usage.code,
+        discountAmount: String(Number(usage.discountAmount)),
+      }).catch(err => console.error("[sendOrderConfirmationEmails] Failed to send promo code used notification:", err));
     }
   } catch (err) {
     console.error("[sendOrderConfirmationEmails] Failed to process promo code notification:", err);

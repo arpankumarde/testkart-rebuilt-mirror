@@ -1,4 +1,4 @@
-import { BellRing, CalendarDays, GraduationCap, PenLine, type LucideIcon } from "lucide-react";
+import { BellRing, CalendarDays, GraduationCap, PenLine, Presentation, type LucideIcon } from "lucide-react";
 
 export type MoreResource = {
   href: string;
@@ -12,6 +12,7 @@ export const MORE_RESOURCES: MoreResource[] = [
   { href: "/current-affairs", label: "Current Affairs", icon: CalendarDays },
   { href: "/exam-news", label: "Exam News", icon: BellRing },
   { href: "/blog", label: "Blogs", icon: PenLine },
+  { href: "/masterclass", label: "Masterclass", icon: Presentation },
 ];
 
 export const isMoreResourcePath = (pathname: string, href: string) => pathname === href || pathname.startsWith(`${href}/`);

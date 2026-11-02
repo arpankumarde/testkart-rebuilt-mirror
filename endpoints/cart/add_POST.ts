@@ -1,7 +1,10 @@
 import { db } from "../../helpers/db";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
+import { expiredPurchaseError } from "../../helpers/contentExpiryServer";
 import { schema, OutputType } from "./add_POST.schema";
 import superjson from "superjson";
+
+const expiredResponse = (message: string) => new Response(superjson.stringify({ error: message }), { status: 400 });
 
 export async function handle(request: Request) {
   try {
@@ -50,6 +53,9 @@ export async function handle(request: Request) {
           { status: 404 }
         );
       }
+
+      const testExpired = await expiredPurchaseError(db, "mock_test", mockTestId);
+      if (testExpired) return expiredResponse(testExpired);
 
       // Block free items from being added to cart
       if (parseFloat(String(test.discountPrice ?? test.price)) === 0) {
@@ -145,6 +151,9 @@ export async function handle(request: Request) {
         );
       }
 
+      const courseExpired = await expiredPurchaseError(db, "course", courseId);
+      if (courseExpired) return expiredResponse(courseExpired);
+
       // Block free items from being added to cart
       if (parseFloat(String(course.price)) === 0) {
         return new Response(
@@ -235,6 +244,9 @@ export async function handle(request: Request) {
           { status: 404 }
         );
       }
+
+      const productExpired = await expiredPurchaseError(db, "digital_product", digitalProductId);
+      if (productExpired) return expiredResponse(productExpired);
 
       // Block free items from being added to cart
       if (parseFloat(String(product.price)) === 0) {

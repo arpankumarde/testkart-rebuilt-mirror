@@ -301,6 +301,42 @@
   --fc-butter-ink: hsl(36 70% 20%);
 
   --fc-price: #176b68;
+
+  /*
+   * Checkout summary (cart Order Summary, Tcoins option, coupon popup):
+   * warm-white card, one pastel per job, coral only as a quiet accent.
+   *   lavender  the final payable amount
+   *   blue      the Tcoins card
+   *   mint      savings (text on the card uses --co-saving)
+   *   cta       the soft peach checkout button with navy label (9:1)
+   * Every fill is solid; each -ink is text on its own fill (7:1+).
+   */
+  --co-page: hsl(42 45% 98%);
+  --co-card: #fffdf9;
+  --co-surface: #faf6f0;
+  --co-ink: #252c3d;
+  --co-text: hsl(222 16% 30%);
+  --co-muted: #5f6878;
+  --co-line: hsl(36 20% 87%);
+  --co-lavender: #eae4f7;
+  --co-lavender-line: #eae4f7;
+  --co-lavender-ink: hsl(258 34% 28%);
+  --co-blue: #dfedfa;
+  --co-blue-line: #dfedfa;
+  --co-blue-ink: hsl(212 52% 26%);
+  --co-mint: #ddf2e8;
+  --co-mint-line: #ddf2e8;
+  --co-mint-ink: hsl(158 58% 19%);
+  --co-saving: hsl(152 62% 24%);
+  --co-coral: hsl(16 64% 38%);
+  --co-coral-hover: hsl(16 70% 30%);
+  --co-cta: #fdba91;
+  --co-cta-hover: #fca777;
+  --co-cta-active: #f9965f;
+  --co-cta-ink: #252c3d;
+  --co-cta-disabled: hsl(30 26% 90%);
+  --co-cta-disabled-ink: #5f6878;
+  --co-focus: hsl(16 64% 38%);
 }
 
 .dark {
@@ -426,6 +462,35 @@
   --sp-blue-tint: hsl(212 24% 23%);
   --sp-blue-edge: hsl(210 35% 58%);
   --sp-blue-ink: hsl(210 60% 85%);
+
+  /* Checkout summary, dark: deep tinted surfaces with a hairline in their own
+     hue (not greyed mixes), and light accent text on them, all 7:1 or more. */
+  --co-page: #151a22;
+  --co-card: #202733;
+  --co-surface: #293545;
+  --co-ink: #f4f5f7;
+  --co-text: #dde2e9;
+  --co-muted: #b8c1ce;
+  --co-line: #394555;
+  --co-lavender: #2d2847;
+  --co-lavender-line: #4a4278;
+  --co-lavender-ink: #ddd3fa;
+  --co-blue: #1c2f45;
+  --co-blue-line: #30506f;
+  --co-blue-ink: #d3e5f8;
+  --co-mint: #18382b;
+  --co-mint-line: #2c5a45;
+  --co-mint-ink: #aeeac8;
+  --co-saving: #8dd6ac;
+  --co-coral: #ffa17a;
+  --co-coral-hover: #ffbb9e;
+  --co-cta: #ffa17a;
+  --co-cta-hover: #ffb594;
+  --co-cta-active: #f48d63;
+  --co-cta-ink: #202733;
+  --co-cta-disabled: #394555;
+  --co-cta-disabled-ink: #b8c1ce;
+  --co-focus: #ffa17a;
 
   /* Homepage showcase, dark: a muted sage panel with dark ink and tonal blobs,
      so the panel stands out from the dark page, and darker card accents. */

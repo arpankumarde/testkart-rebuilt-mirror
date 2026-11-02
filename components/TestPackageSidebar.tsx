@@ -13,6 +13,7 @@ import { VideoPreview } from './VideoPreview';
 import { PurchaseCardTeacher } from './PurchaseCardTeacher';
 import type { PackageDetails } from '../endpoints/tests/details_GET.schema';
 import { formatLanguages } from '../helpers/itemLanguages';
+import { ExpiredProductNotice } from './ExpiredProductNotice';
 import styles from './TestPackageSidebar.module.css';
 
 interface TestPackageSidebarProps {
@@ -34,6 +35,7 @@ export const TestPackageSidebar: React.FC<TestPackageSidebarProps> = ({ classNam
   const freeEnrollmentMutation = useFreeEnrollmentMutation();
   const cartQuery = useCartItemsQuery();
   const isEnrolled = testPackage.isEnrolled;
+  const purchaseClosed = !!testPackage.isExpired && !isEnrolled;
   
   // Check if this test is already in the cart (only for paid tests)
   const isFree = Number(testPackage.price) === 0;
@@ -165,7 +167,9 @@ export const TestPackageSidebar: React.FC<TestPackageSidebarProps> = ({ classNam
           </div>
 
           <div className={styles.pricingContent}>
-            {isTeacher ? (
+            {purchaseClosed ? (
+              <ExpiredProductNotice className={styles.expiredNotice} />
+            ) : isTeacher ? (
               <>
                 <div className={styles.teacherInfo}>
                   <div className={styles.teacherInfoIcon}>

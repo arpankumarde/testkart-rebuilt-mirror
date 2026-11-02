@@ -47,6 +47,8 @@ export type OutputType = Omit<Selectable<LiveTests>, "price" | "discountPrice" |
   isEnrolled: boolean;
   canEnroll: boolean;
   hasAttempted: boolean;
+  /** Past its expiry date (helpers/contentExpiry): no longer on sale, though buyers keep access. */
+  isExpired: boolean;
   examSlug: string | null;
   /** The live test's public URL slug, /live-test/:slug (stored on its own mock test package). */
   slug: string;

@@ -10,6 +10,8 @@ interface TestLeaderboardCtaProps {
   canViewLeaderboard: boolean;
   /* Brings the purchase or free-enrol action into view. */
   onEnrol: () => void;
+  /* False once the series has expired and can no longer be enrolled in. */
+  canEnrol?: boolean;
   className?: string;
 }
 
@@ -22,6 +24,7 @@ export const TestLeaderboardCta: React.FC<TestLeaderboardCtaProps> = ({
   seriesId,
   canViewLeaderboard,
   onEnrol,
+  canEnrol = true,
   className,
 }) => {
   const { authState } = useAuth();
@@ -55,10 +58,14 @@ export const TestLeaderboardCta: React.FC<TestLeaderboardCtaProps> = ({
         <Link to={`/student/tests/leaderboards?series=${seriesId}`}>Open leaderboard</Link>
       </Button>
     );
-  } else {
+  } else if (canEnrol) {
     headline = 'Enrol to unlock the leaderboard';
     text = 'Rankings are open only to students enrolled in this series or who have attempted one of its tests.';
     actions = <Button onClick={onEnrol}>Enrol now</Button>;
+  } else {
+    headline = 'Leaderboard locked';
+    text = 'Rankings are open only to students enrolled in this series or who have attempted one of its tests.';
+    actions = null;
   }
 
   return (

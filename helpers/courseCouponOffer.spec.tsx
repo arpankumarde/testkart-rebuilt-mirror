@@ -1,8 +1,10 @@
 import {
   bestCourseCouponOffer,
+  bestItemCouponOffer,
   coursePriceView,
+  describeOfferItems,
   formatOfferInr,
-  rankCartCourseCoupons,
+  rankCartAutoCoupons,
   type CourseCouponCandidate,
 } from "./courseCouponOffer";
 
@@ -67,24 +69,64 @@ describe("bestCourseCouponOffer", () => {
   });
 });
 
-describe("rankCartCourseCoupons", () => {
+describe("bestItemCouponOffer for study notes", () => {
+  const note = { id: 40, teacherId: 7, price: 599, discountPrice: null };
+
+  it("applies a percentage coupon scoped to all items or to study notes", () => {
+    const offer = bestItemCouponOffer([coupon({ discountValue: 20, minPurchaseAmount: 499, maxDiscountAmount: 600 })], "digitalProduct", note);
+    expect(offer?.discountAmount).toBe(119.8);
+    expect(offer?.finalPrice).toBe(479.2);
+    expect(offer?.percentOff).toBe(20);
+    expect(bestItemCouponOffer([coupon({ appliesTo: "digital_products" })], "digitalProduct", note)).not.toBeNull();
+  });
+
+  it("applies a fixed coupon and caps a percentage one", () => {
+    expect(bestItemCouponOffer([coupon({ discountType: "fixed", discountValue: 100 })], "digitalProduct", note)?.finalPrice).toBe(499);
+    expect(bestItemCouponOffer([coupon({ discountValue: 50, maxDiscountAmount: 150 })], "digitalProduct", note)?.finalPrice).toBe(449);
+  });
+
+  it("ignores a course-only coupon, another teacher's coupon, an unmet minimum and other notes", () => {
+    expect(bestItemCouponOffer([coupon({ appliesTo: "courses" })], "digitalProduct", note)).toBeNull();
+    expect(bestItemCouponOffer([coupon({ createdByTeacherId: 8 })], "digitalProduct", note)).toBeNull();
+    expect(bestItemCouponOffer([coupon({ minPurchaseAmount: 600 })], "digitalProduct", note)).toBeNull();
+    expect(bestItemCouponOffer([coupon({ appliesTo: "digital_products", targetItemIds: [41] })], "digitalProduct", note)).toBeNull();
+  });
+
+  it("does not let a notes-only coupon discount a course", () => {
+    expect(bestCourseCouponOffer([coupon({ appliesTo: "digital_products" })], course)).toBeNull();
+  });
+});
+
+describe("rankCartAutoCoupons", () => {
   it("spreads one coupon across the teacher's courses and caps it per order", () => {
     const lines = [
-      { courseId: 10, teacherId: 7, price: 1000 },
-      { courseId: 11, teacherId: 7, price: 500 },
-      { courseId: 12, teacherId: 9, price: 800 },
+      { kind: "course" as const, id: 10, teacherId: 7, price: 1000 },
+      { kind: "course" as const, id: 11, teacherId: 7, price: 500 },
+      { kind: "course" as const, id: 12, teacherId: 9, price: 800 },
     ];
-    const [best] = rankCartCourseCoupons([coupon({ discountValue: 20, maxDiscountAmount: 250 })], lines);
+    const [best] = rankCartAutoCoupons([coupon({ discountValue: 20, maxDiscountAmount: 250 })], lines);
     expect(best.discountAmount).toBe(250);
     expect(best.eligibleCourseIds).toEqual([10, 11]);
+    expect(best.eligibleDigitalProductIds).toEqual([]);
+  });
+
+  it("covers the teacher's courses and study notes together", () => {
+    const lines = [
+      { kind: "course" as const, id: 10, teacherId: 7, price: 1000 },
+      { kind: "digitalProduct" as const, id: 40, teacherId: 7, price: 599 },
+    ];
+    const [best] = rankCartAutoCoupons([coupon({ discountValue: 20 })], lines);
+    expect(best.discountAmount).toBe(319.8);
+    expect(best.eligibleCourseIds).toEqual([10]);
+    expect(best.eligibleDigitalProductIds).toEqual([40]);
   });
 
   it("returns a single best offer when two teachers both have one", () => {
     const lines = [
-      { courseId: 10, teacherId: 7, price: 1000 },
-      { courseId: 12, teacherId: 9, price: 800 },
+      { kind: "course" as const, id: 10, teacherId: 7, price: 1000 },
+      { kind: "course" as const, id: 12, teacherId: 9, price: 800 },
     ];
-    const ranked = rankCartCourseCoupons(
+    const ranked = rankCartAutoCoupons(
       [coupon({ id: 1, code: "A", discountValue: 10 }), coupon({ id: 2, code: "B", createdByTeacherId: 9, discountValue: 50 })],
       lines
     );
@@ -92,10 +134,13 @@ describe("rankCartCourseCoupons", () => {
     expect(ranked[0].eligibleCourseIds).toEqual([12]);
   });
 
-  it("checks the minimum purchase against the eligible courses", () => {
-    const lines = [{ courseId: 10, teacherId: 7, price: 400 }, { courseId: 11, teacherId: 7, price: 400 }];
-    expect(rankCartCourseCoupons([coupon({ minPurchaseAmount: 700 })], lines).length).toBe(1);
-    expect(rankCartCourseCoupons([coupon({ minPurchaseAmount: 900 })], lines).length).toBe(0);
+  it("checks the minimum purchase against the eligible items", () => {
+    const lines = [
+      { kind: "course" as const, id: 10, teacherId: 7, price: 400 },
+      { kind: "digitalProduct" as const, id: 40, teacherId: 7, price: 400 },
+    ];
+    expect(rankCartAutoCoupons([coupon({ minPurchaseAmount: 700 })], lines).length).toBe(1);
+    expect(rankCartAutoCoupons([coupon({ minPurchaseAmount: 900 })], lines).length).toBe(0);
   });
 });
 
@@ -119,5 +164,11 @@ describe("coursePriceView", () => {
   it("formats paise only when present", () => {
     expect(formatOfferInr(1499)).toBe("₹1,499");
     expect(formatOfferInr(1619.1)).toBe("₹1,619.10");
+  });
+
+  it("names the items an offer covers", () => {
+    expect(describeOfferItems(2, 0)).toBe("2 courses");
+    expect(describeOfferItems(0, 1)).toBe("1 study note");
+    expect(describeOfferItems(1, 2)).toBe("1 course and 2 study notes");
   });
 });

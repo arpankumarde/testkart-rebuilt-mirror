@@ -185,11 +185,11 @@ const AdminContentReviewsPage: React.FC = () => {
     setSelectedId(neighbour?.id ?? null);
   };
 
-  const confirmApprove = (creditBonus = false) => {
+  const confirmApprove = () => {
     if (!approveTarget) return;
     const target = approveTarget;
     reviewMutation.mutate(
-      { reviewId: target.id, action: "approve", creditBonus },
+      { reviewId: target.id, action: "approve" },
       {
         onSuccess: () => {
           setApproveTarget(null);
@@ -565,7 +565,7 @@ const AdminContentReviewsPage: React.FC = () => {
         confirmLabel="Approve"
         pendingLabel="Approving..."
         isPending={reviewMutation.isPending}
-        onConfirm={() => confirmApprove(false)}
+        onConfirm={confirmApprove}
       />
 
       <AdminBonusApproveDialog

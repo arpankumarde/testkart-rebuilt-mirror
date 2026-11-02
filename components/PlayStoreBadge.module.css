@@ -1,0 +1,46 @@
+/* Crop ratios match pages/student.dashboard.module.css (135x40 window on a
+   156x61 image at -10px), expressed as multiples of the height. */
+.link {
+  --badge-h: 3.25rem;
+
+  display: inline-block;
+  flex-shrink: 0;
+  border-radius: calc(var(--badge-h) * 0.2);
+  transition: transform var(--animation-duration-fast) ease;
+}
+
+.link:hover {
+  transform: translateY(-2px);
+}
+
+.link:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px var(--sp-surface),
+    0 0 0 5px var(--tk-brand-text);
+}
+
+.crop {
+  position: relative;
+  display: block;
+  width: calc(var(--badge-h) * 3.375);
+  height: var(--badge-h);
+  overflow: hidden;
+  border-radius: calc(var(--badge-h) * 0.2);
+}
+
+.image {
+  position: absolute;
+  top: calc(var(--badge-h) * -0.25);
+  left: calc(var(--badge-h) * -0.25);
+  display: block;
+  width: calc(var(--badge-h) * 3.9);
+  height: auto;
+  max-width: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .link:hover {
+    transform: none;
+  }
+}

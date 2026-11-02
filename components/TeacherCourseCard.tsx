@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Edit, Trash2, Eye, Users, Layers, BookOpen, MoreVertical, Globe, AlertCircle, Share2, TrendingUp, Wrench, Gift } from 'lucide-react';
 import { TeacherCardInsights } from './TeacherCardInsights';
 import { TeacherRejectionNote } from './TeacherRejectionNote';
-import { UnlistedBadge } from './UnlistedBadge';
+import { TeacherListingBadges } from './TeacherListingBadges';
 import { performanceHref } from '../helpers/teacherPerformanceFormat';
 import { Button } from './Button';
 import {
@@ -113,9 +113,14 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
             {course.title}
           </Link>
         </h3>
-        {course.visibility === 'unlisted' && (
-          <UnlistedBadge live={status === 'published'} inReview={course.inReview} rejected={!!course.rejection} />
-        )}
+        <TeacherListingBadges
+          visibility={course.visibility}
+          live={status === 'published'}
+          inReview={course.inReview}
+          rejected={!!course.rejection}
+          expiresAt={course.expiresAt}
+          expiredAt={course.expiredAt}
+        />
         {plainDescription ? <p className={styles.description}>{plainDescription}</p> : null}
 
         <div className={styles.stats}>

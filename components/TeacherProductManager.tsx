@@ -44,7 +44,7 @@ import { TeacherListPagination } from './TeacherListPagination';
 import { ShareAssetDialog } from './ShareAssetDialog';
 import { WithdrawReviewButton } from './WithdrawReviewButton';
 import { TeacherRejectionNote } from './TeacherRejectionNote';
-import { UnlistedBadge } from './UnlistedBadge';
+import { TeacherListingBadges } from './TeacherListingBadges';
 import { buildPublicAssetUrl, TEACHER_CONSOLE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
 import { performanceHref } from '../helpers/teacherPerformanceFormat';
 import { DIGITAL_PRODUCT_CATEGORIES } from '../helpers/digitalProductRules';
@@ -172,9 +172,14 @@ const ProductRow: React.FC<ProductRowProps> = ({
           <Link to={editPath} className={styles.titleLink}>
             {product.title}
           </Link>
-          {product.visibility === 'unlisted' && (
-            <UnlistedBadge live={state === 'published'} inReview={product.inReview} rejected={!!product.rejection} />
-          )}
+          <TeacherListingBadges
+            visibility={product.visibility}
+            live={state === 'published'}
+            inReview={product.inReview}
+            rejected={!!product.rejection}
+            expiresAt={product.expiresAt}
+            expiredAt={product.expiredAt}
+          />
           <span
             className={styles.productMeta}
             title={getItemExamNames(product).length > 1 ? `Exams: ${getItemExamNames(product).join(', ')}` : undefined}

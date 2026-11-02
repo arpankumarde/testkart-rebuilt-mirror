@@ -8,22 +8,20 @@ const PAYMENT_QUERY_KEY = ["payment", "initiate"] as const;
  * A React Query mutation hook to initiate a payment with PayU.
  * It navigates the user directly to the redirect endpoint which handles
  * the payment initiation and form submission server-side.
- * 
- * @param promoCodeId - Optional promo code ID to apply discount during payment
+ *
+ * @param promoCodeId - The coupon the student chose, added on top of the teacher offers
  * @param useTcoins - Pay part of the order with Tcoins
- * @param autoPromoCodeId - The automatic teacher offer the cart showed (0 for none)
+ * @param autoPromoCodeIds - The automatic teacher offers the cart showed
  */
 export const useInitiatePaymentMutation = () => {
-  return useMutation<void, Error, { promoCodeId?: number; useTcoins?: boolean; autoPromoCodeId?: number }>({
+  return useMutation<void, Error, { promoCodeId?: number; useTcoins?: boolean; autoPromoCodeIds?: number[] }>({
     mutationKey: PAYMENT_QUERY_KEY,
-    mutationFn: async ({ promoCodeId, useTcoins, autoPromoCodeId }) => {
-      // Simply navigate to the redirect endpoint
-      // The endpoint will handle payment initiation and redirect to PayU
+    mutationFn: async ({ promoCodeId, useTcoins, autoPromoCodeIds }) => {
+      // The endpoint starts the payment server-side and redirects to PayU.
       toast.loading("Redirecting to payment gateway...");
-      window.location.href = getPaymentPayuRedirectUrl(promoCodeId, useTcoins, autoPromoCodeId);
-      
-      // Return a promise that never resolves since we're navigating away
-      // This prevents any onSuccess/onError callbacks from firing
+      window.location.href = getPaymentPayuRedirectUrl(promoCodeId, useTcoins, autoPromoCodeIds);
+
+      // Never resolves: the page is navigating away, so no onSuccess/onError should fire.
       return new Promise<void>(() => {});
     },
   });

@@ -4,6 +4,7 @@ import { schema, OutputType } from "./enroll_POST.schema";
 import { emailTemplatesExtra } from "../../helpers/emailTemplatesExtra";
 import { sendEmail } from "../../helpers/sendEmail";
 import { followTeacher } from "../../helpers/ensureTeacherFollow";
+import { expiredPurchaseError } from "../../helpers/contentExpiryServer";
 
 
 import superjson from "superjson";
@@ -53,6 +54,12 @@ export async function handle(request: Request) {
       }
       if (!isFreeTest && !isPaidEnrollment) {
         throw new Error("This is a paid test. Please complete payment first.");
+      }
+
+      // A completed payment still enrols; expiry only stops new free registrations here.
+      if (!isPaidEnrollment) {
+        const expired = await expiredPurchaseError(trx, "live_test", liveTestId);
+        if (expired) throw new Error(expired);
       }
 
       // For paid tests, validate the order

@@ -62,8 +62,11 @@ function windowFilter(column: string, window?: TeacherEarningsWindow) {
 /**
  * The part of an order item's promo discount the teacher bears. A Spin & Win coupon from a
  * campaign set to Testkart-funded (spin_campaigns.discount_funding = 'platform_funded') costs
- * the teacher nothing: the sale is settled on the full price and Testkart's commission absorbs
- * the whole discount. Every other discount is shared pro rata through the platform fee.
+ * the teacher nothing: the sale is settled on the price before that coupon and Testkart's
+ * commission absorbs it. When that coupon was stacked on an automatic teacher offer,
+ * order_items.auto_discount_amount is the teacher offer's share, which the teacher still bears.
+ * The Spin & Win coupon is always the order's promo_code_id when present. Every other discount
+ * is shared pro rata through the platform fee.
  * `item` and `order` are the aliases of order_items and orders in the calling query.
  */
 export function teacherItemDiscountSql(item: string, order: string) {
@@ -72,7 +75,7 @@ export function teacherItemDiscountSql(item: string, order: string) {
       JOIN spin_campaigns fund_c ON fund_c.id = fund_sc.campaign_id
       WHERE fund_sc.promo_code_id = ${sql.ref(`${order}.promo_code_id`)}
         AND fund_c.discount_funding = 'platform_funded'
-    ) THEN 0 ELSE COALESCE(${sql.ref(`${item}.discount_amount`)}, 0) END)`;
+    ) THEN COALESCE(${sql.ref(`${item}.auto_discount_amount`)}, 0) ELSE COALESCE(${sql.ref(`${item}.discount_amount`)}, 0) END)`;
 }
 
 /**

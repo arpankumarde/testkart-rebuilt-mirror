@@ -12,7 +12,7 @@ import { Badge } from './Badge';
 import { ShareAssetDialog } from './ShareAssetDialog';
 import { TeacherCardInsights } from './TeacherCardInsights';
 import { TeacherRejectionNote } from './TeacherRejectionNote';
-import { UnlistedBadge } from './UnlistedBadge';
+import { TeacherListingBadges } from './TeacherListingBadges';
 import { TEACHER_CONSOLE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
 import { Placeholder } from '../helpers/placeholderImages';
 import { performanceHref } from '../helpers/teacherPerformanceFormat';
@@ -141,9 +141,14 @@ export const TeacherLiveTestCard: React.FC<TeacherLiveTestCardProps> = ({
 
         <div className={styles.content}>
           <h3 className={styles.title}>{liveTest.title}</h3>
-          {liveTest.visibility === 'unlisted' && (
-            <UnlistedBadge live={liveTest.isActive} inReview={liveTest.inReview} rejected={!!liveTest.rejection} />
-          )}
+          <TeacherListingBadges
+            visibility={liveTest.visibility}
+            live={liveTest.isActive}
+            inReview={liveTest.inReview}
+            rejected={!!liveTest.rejection}
+            expiresAt={liveTest.expiresAt}
+            expiredAt={liveTest.expiredAt}
+          />
           <p className={styles.description}>{stripHtmlClient(liveTest.description)}</p>
 
           {rejection && <TeacherRejectionNote rejection={rejection} />}

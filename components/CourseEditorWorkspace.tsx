@@ -24,7 +24,8 @@ import { CourseCardPreview } from "./CourseCardPreview";
 import { CourseSubmitDialog } from "./CourseSubmitDialog";
 import { CreatorBonusClaimCard } from "./CreatorBonusClaimCard";
 import { ContentVisibilityPanel } from "./ContentVisibilityPanel";
-import { UnlistedBadge } from "./UnlistedBadge";
+import { ContentExpiryPanel } from "./ContentExpiryPanel";
+import { TeacherListingBadges } from "./TeacherListingBadges";
 import { ConsoleConfirmDialog } from "./ConsoleConfirmDialog";
 import { WithdrawReviewButton } from "./WithdrawReviewButton";
 import { TeacherRejectionNote } from "./TeacherRejectionNote";
@@ -260,7 +261,14 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
               )}
               <p className={styles.meta}>
                 <span className={`${styles.status} ${status.className}`}>{status.label}</span>
-                {isUnlisted && <UnlistedBadge live={isPublished} inReview={course.inReview} rejected={false} />}
+                <TeacherListingBadges
+                  visibility={course.visibility}
+                  live={isPublished}
+                  inReview={course.inReview}
+                  rejected={false}
+                  expiresAt={course.expiresAt}
+                  expiredAt={course.expiredAt}
+                />
                 <span>{summary}</span>
               </p>
             </div>
@@ -400,8 +408,9 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
                 ) : null}
               </section>
             )}
-            {/* With the publish checks, so visibility is picked at the publish step. */}
+            {/* With the publish checks, so visibility and expiry are set at the publish step. */}
             <ContentVisibilityPanel contentType="course" contentId={courseId} />
+            <ContentExpiryPanel contentType="course" contentId={courseId} />
             {!adminEdit && !isPublished && !isInReview && !isUnlisted && (
               <CreatorBonusClaimCard
                 type="course"

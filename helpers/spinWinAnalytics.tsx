@@ -105,8 +105,9 @@ function scope(campaignId: number | null, range: SpinRange | null) {
       SELECT sc.* FROM spin_coupons sc WHERE true ${campaign("sc.campaign_id")} ${window("sc.issued_at")}
     ),
     red AS (
+      -- discount_amount is the Spin & Win coupon's own share; a stacked teacher offer is left out.
       SELECT DISTINCT ON (o.id)
-        o.id AS order_id, o.user_id, o.total_amount, o.discount_amount, o.created_at,
+        o.id AS order_id, o.user_id, o.total_amount, u.discount_amount, o.created_at,
         sc.id AS coupon_id, sc.reward_id, sc.campaign_id
       FROM spin_coupons sc
       JOIN promo_code_usages u ON u.promo_code_id = sc.promo_code_id
@@ -161,13 +162,20 @@ export async function loadSpinFinance(campaignId: number | null, range: SpinRang
   const result = await sql<Record<string, unknown>>`
     WITH ${scope(campaignId, range)}
     SELECT
-      coalesce(sum(oi.price_at_purchase), 0) AS original_value,
-      coalesce(sum(oi.discount_amount), 0) AS discount,
-      coalesce(sum(oi.price_at_purchase * oi.platform_fee_percentage / 100), 0) AS commission_on_original,
-      coalesce(sum((oi.price_at_purchase - oi.discount_amount) * oi.platform_fee_percentage / 100), 0) AS commission_on_paid,
-      coalesce(sum((oi.price_at_purchase - oi.discount_amount) * (1 - oi.platform_fee_percentage / 100)), 0) AS teacher_payout_current,
-      coalesce(sum(oi.price_at_purchase * (1 - oi.platform_fee_percentage / 100)), 0) AS teacher_payout_proposed
-    FROM red JOIN order_items oi ON oi.order_id = red.order_id
+      coalesce(sum(li.base), 0) AS original_value,
+      coalesce(sum(li.spin), 0) AS discount,
+      coalesce(sum(li.base * li.fee), 0) AS commission_on_original,
+      coalesce(sum((li.base - li.spin) * li.fee), 0) AS commission_on_paid,
+      coalesce(sum((li.base - li.spin) * (1 - li.fee)), 0) AS teacher_payout_current,
+      coalesce(sum(li.base * (1 - li.fee)), 0) AS teacher_payout_proposed
+    FROM red
+    JOIN order_items oi ON oi.order_id = red.order_id
+    -- Priced after any automatic teacher offer on the same order, which is not the coupon's cost.
+    CROSS JOIN LATERAL (
+      SELECT oi.price_at_purchase - coalesce(oi.auto_discount_amount, 0) AS base,
+             oi.discount_amount - coalesce(oi.auto_discount_amount, 0) AS spin,
+             oi.platform_fee_percentage / 100 AS fee
+    ) li
   `.execute(db);
   const row = result.rows[0] ?? {};
   const originalValue = n(row.originalValue);

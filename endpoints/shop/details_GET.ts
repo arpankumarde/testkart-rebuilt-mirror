@@ -7,6 +7,8 @@ import { PRODUCT_DISCLAIMER } from "../../helpers/productDisclaimer";
 import { getServerSessionOrThrow } from "../../helpers/getSetServerSession";
 import { computeStudyNoteSeo } from "../../helpers/seoIndexability";
 import { productDiscountPrice } from "../../helpers/digitalProductPricing";
+import { isExpired } from "../../helpers/contentExpiry";
+import { loadDigitalProductCouponOffers } from "../../helpers/courseCouponOffersServer";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -54,6 +56,8 @@ export async function handle(request: Request): Promise<Response> {
         "digitalProducts.publishedAt",
         "digitalProducts.allowDownload",
         "digitalProducts.visibility",
+        "digitalProducts.expiresAt",
+        "digitalProducts.expiredAt",
         "users.displayName as teacherName",
         "users.avatarUrl as teacherAvatar",
         "users.bio as teacherBio",
@@ -74,6 +78,7 @@ export async function handle(request: Request): Promise<Response> {
 
     // Try to get the current user session (don't fail if not authenticated)
     let isPurchased = false;
+    let viewerId: number | null = null;
     try {
       const session = await getServerSessionOrThrow(request);
       const userId = (await db
@@ -82,6 +87,7 @@ export async function handle(request: Request): Promise<Response> {
         .where("id", "=", session.id)
         .executeTakeFirst())?.userId;
       if (userId) {
+        viewerId = userId;
         const purchase = await db
           .selectFrom("digitalProductPurchases")
           .select("id")
@@ -173,6 +179,8 @@ export async function handle(request: Request): Promise<Response> {
        .orderBy("createdAt", "desc")
        .execute();
 
+   const couponOffers = await loadDigitalProductCouponOffers([product.id], { userId: viewerId });
+
    const output: OutputType = {
       product: {
         id: product.id,
@@ -182,6 +190,7 @@ export async function handle(request: Request): Promise<Response> {
         shortDescription: product.shortDescription,
         price: Number(product.price),
         discountPrice: productDiscountPrice(product.price, product.discountPrice),
+        couponOffer: couponOffers.get(product.id) ?? null,
         thumbnailUrl: product.thumbnailUrl,
                 previewUrl: null,
         previewPages: product.previewPages,
@@ -202,6 +211,7 @@ export async function handle(request: Request): Promise<Response> {
         files,
         allowDownload: product.allowDownload === true,
         isPurchased,
+        isExpired: isExpired(product),
         publishedAt: product.publishedAt,
         visibility: product.visibility,
        teacherId: product.teacherId,

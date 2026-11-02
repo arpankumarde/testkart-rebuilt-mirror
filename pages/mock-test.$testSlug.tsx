@@ -244,6 +244,7 @@ const TestDetailsPage: React.FC = () => {
 
   const { package: testPackage, items } = data;
   const totalQuestions = items.reduce((sum, item) => sum + item.totalQuestions, 0);
+  const purchaseClosed = !!testPackage.isExpired && !testPackage.isEnrolled;
 
   // Ensure whatYouLearn and requirements are arrays (may come as JSON strings from DB)
   const whatYouLearn = Array.isArray(testPackage.whatYouLearn)
@@ -292,13 +293,13 @@ const TestDetailsPage: React.FC = () => {
 
       <div className={styles.contentWrapper}>
         <main className={styles.mainColumn}>
-          {!testPackage.isEnrolled && testPackage.price > 0 && (
+          {!testPackage.isEnrolled && !purchaseClosed && testPackage.price > 0 && (
             <PublicCouponsCard itemType="test" itemId={testPackage.id} className={styles.couponsCard} />
           )}
 
           <section className={styles.section}>
             <SectionHeading tone="peach" icon={<ClipboardList />}>Tests in this series</SectionHeading>
-            <TestItemsList items={items} isEnrolled={testPackage.isEnrolled} packageId={testPackage.id} />
+            <TestItemsList items={items} isEnrolled={testPackage.isEnrolled} isExpired={purchaseClosed} packageId={testPackage.id} />
             {!testPackage.longDescription && updatedLine}
           </section>
 
@@ -340,6 +341,7 @@ const TestDetailsPage: React.FC = () => {
             <TestLeaderboardCta
               seriesId={testPackage.id}
               canViewLeaderboard={!!testPackage.canViewLeaderboard}
+              canEnrol={!purchaseClosed}
               onEnrol={() => sidebarRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
             />
           </section>
@@ -395,16 +397,18 @@ const TestDetailsPage: React.FC = () => {
       </div>
       </div>
 
-      <MobileStickyPurchaseBar 
-        product={{
-          type: 'test',
-          id: testPackage.id,
-          price: testPackage.price,
-          discountPrice: testPackage.discountPrice,
-          isEnrolled: testPackage.isEnrolled,
-        }} 
-        isVisible={isStickyBarVisible} 
-      />
+      {!purchaseClosed && (
+        <MobileStickyPurchaseBar 
+          product={{
+            type: 'test',
+            id: testPackage.id,
+            price: testPackage.price,
+            discountPrice: testPackage.discountPrice,
+            isEnrolled: testPackage.isEnrolled,
+          }} 
+          isVisible={isStickyBarVisible} 
+        />
+      )}
     </>
   );
 };

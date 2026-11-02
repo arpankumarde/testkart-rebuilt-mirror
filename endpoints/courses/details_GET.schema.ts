@@ -59,6 +59,8 @@ export type OutputType = Omit<Selectable<Courses>, "price" | "discountPrice"> & 
   sections: PublicSectionWithLessons[];
   reviews: CourseReview[];
   isEnrolled: boolean;
+  /** Past its expiry date (helpers/contentExpiry): no longer on sale, though buyers keep access. */
+  isExpired: boolean;
   disclaimer: string;
 };
 

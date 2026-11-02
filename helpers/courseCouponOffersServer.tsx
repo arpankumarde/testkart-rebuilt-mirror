@@ -4,9 +4,10 @@ import type { DB } from "./schema";
 import { countPromoCodeUses, HELD_ORDER_STATUSES, promoCodeUsesSql } from "./promoCodeUsage";
 import {
   bestCourseCouponOffer,
-  rankCartCourseCoupons,
+  bestItemCouponOffer,
+  rankCartAutoCoupons,
   type CartAutoCoupon,
-  type CartCourseLine,
+  type CartOfferLine,
   type CourseCouponCandidate,
   type CourseCouponOffer,
 } from "./courseCouponOffer";
@@ -31,12 +32,13 @@ export async function lockPromoCode(trx: Transaction<DB>, promoCodeId: number): 
 }
 
 /**
- * Teacher coupons that can apply to these teachers' courses on their own:
- * public, active, inside their dates, scoped to all items or to courses, under
- * their usage limit, and (for a known student) under the per-student limit.
- * Private codes stay manual, and Spin & Win and admin codes are never automatic.
+ * Teacher coupons that can apply to these teachers' courses and study notes on
+ * their own: public, active, inside their dates, scoped to all items, courses
+ * or study notes, under their usage limit, and (for a known student) under the
+ * per-student limit. Private codes stay manual, and Spin & Win and admin codes
+ * are never automatic.
  */
-export async function loadCourseCouponCandidates(
+export async function loadAutoCouponCandidates(
   executor: Executor,
   teacherIds: number[],
   userId?: number | null
@@ -52,7 +54,7 @@ export async function loadCourseCouponCandidates(
     .where("createdByTeacherId", "in", ids)
     .where("isPublic", "=", true)
     .where("isActive", "=", true)
-    .where("appliesTo", "in", ["all", "courses"])
+    .where("appliesTo", "in", ["all", "courses", "digital_products"])
     .where("validFrom", "<=", now)
     .where((eb) => eb.or([eb("validUntil", "is", null), eb("validUntil", ">", now)]))
     .where((eb) => eb.not(eb.exists(eb.selectFrom("spinCoupons").select("spinCoupons.id").whereRef("spinCoupons.promoCodeId", "=", "promoCodes.id"))))
@@ -108,7 +110,7 @@ export async function loadCourseCouponOffers(
     .select(["id", "teacherId", "price", "discountPrice"])
     .where("id", "in", ids)
     .execute();
-  const candidates = await loadCourseCouponCandidates(
+  const candidates = await loadAutoCouponCandidates(
     executor,
     courses.map((c) => c.teacherId),
     options.userId
@@ -118,6 +120,39 @@ export async function loadCourseCouponOffers(
   for (const course of courses) {
     const offer = bestCourseCouponOffer(candidates, course);
     if (offer) offers.set(course.id, offer);
+  }
+  return offers;
+}
+
+/**
+ * The automatic offer on each study note, keyed by note id. Same rules as
+ * loadCourseCouponOffers: prices come from the table, and with a userId codes
+ * the student has used up are left out.
+ */
+export async function loadDigitalProductCouponOffers(
+  productIds: number[],
+  options: { userId?: number | null; executor?: Executor } = {}
+): Promise<Map<number, CourseCouponOffer>> {
+  const offers = new Map<number, CourseCouponOffer>();
+  const ids = [...new Set(productIds)].filter((id) => Number.isInteger(id) && id > 0);
+  if (ids.length === 0) return offers;
+  const executor = options.executor ?? db;
+
+  const products = await executor
+    .selectFrom("digitalProducts")
+    .select(["id", "teacherId", "price", "discountPrice"])
+    .where("id", "in", ids)
+    .execute();
+  const candidates = await loadAutoCouponCandidates(
+    executor,
+    products.map((p) => p.teacherId),
+    options.userId
+  );
+  if (candidates.length === 0) return offers;
+
+  for (const product of products) {
+    const offer = bestItemCouponOffer(candidates, "digitalProduct", product);
+    if (offer) offers.set(product.id, offer);
   }
   return offers;
 }
@@ -138,70 +173,60 @@ export async function withCourseCouponOffers<T>(
   });
 }
 
-/** Course lines of a cart row set as the checkout endpoints select it. */
-export function cartCourseLines(
-  items: Array<{ courseId: number | null; courseTeacherId: number | null; coursePrice: string | number | null }>
-): CartCourseLine[] {
-  return items
-    .filter((item) => item.courseId !== null)
-    .map((item) => ({
-      courseId: item.courseId as number,
-      teacherId: item.courseTeacherId,
-      price: parseFloat(String(item.coursePrice ?? 0)) || 0,
-    }));
-}
-
 /**
- * The automatic offer for a cart. Read-only for the cart preview; with `trx`
- * (checkout) each candidate is locked and its limits recounted before it is
- * taken, so concurrent purchases never overrun a usage limit.
+ * Automatic-offer candidates for a cart's course and study note lines.
+ * Read-only for the cart preview; with `trx` (checkout) every candidate is
+ * locked and its limits recounted under the lock, so concurrent purchases
+ * never overrun a usage limit.
  */
-export async function resolveCartAutoCoupon(
-  input: { userId: number; lines: CartCourseLine[]; trx?: Transaction<DB> }
-): Promise<CartAutoCoupon | null> {
+export async function loadCartAutoCandidates(
+  input: { userId: number; lines: CartOfferLine[]; trx?: Transaction<DB> }
+): Promise<CourseCouponCandidate[]> {
   const executor: Executor = input.trx ?? db;
   const lines = input.lines.filter((l) => l.price > 0);
-  if (lines.length === 0) return null;
+  if (lines.length === 0) return [];
 
-  const candidates = await loadCourseCouponCandidates(
+  const candidates = await loadAutoCouponCandidates(
     executor,
     lines.map((l) => l.teacherId).filter((id): id is number => id !== null),
     input.userId
   );
-  const ranked = rankCartCourseCoupons(candidates, lines);
-  if (!input.trx) return ranked[0] ?? null;
+  const useful = candidates.filter((c) => rankCartAutoCoupons([c], lines).length > 0);
+  if (!input.trx) return useful;
 
-  // Locks go in id order whatever the ranking, so two checkouts never wait on each other in a cycle.
-  for (const id of ranked.map((offer) => offer.promoCodeId).sort((a, b) => a - b)) {
+  // Locks go in id order, so two checkouts never wait on each other in a cycle.
+  for (const id of useful.map((c) => c.id).sort((a, b) => a - b)) {
     await lockPromoCode(input.trx, id);
   }
-  const byId = new Map(candidates.map((c) => [c.id, c]));
-  for (const offer of ranked) {
+  const open: CourseCouponCandidate[] = [];
+  for (const candidate of useful) {
     const terms = await input.trx
       .selectFrom("promoCodes")
       .select(["usageLimit", "perUserLimit", "isActive"])
-      .where("id", "=", offer.promoCodeId)
+      .where("id", "=", candidate.id)
       .executeTakeFirst();
-    if (!terms?.isActive || !byId.has(offer.promoCodeId)) continue;
-    if (terms.usageLimit !== null && (await countPromoCodeUses(input.trx, offer.promoCodeId)) >= terms.usageLimit) continue;
-    if (terms.perUserLimit !== null && (await countPromoCodeUses(input.trx, offer.promoCodeId, input.userId)) >= terms.perUserLimit) continue;
-    return offer;
+    if (!terms?.isActive) continue;
+    if (terms.usageLimit !== null && (await countPromoCodeUses(input.trx, candidate.id)) >= terms.usageLimit) continue;
+    if (terms.perUserLimit !== null && (await countPromoCodeUses(input.trx, candidate.id, input.userId)) >= terms.perUserLimit) continue;
+    open.push(candidate);
   }
-  return null;
+  return open;
 }
 
-/** Thrown when the offer the student saw at the cart is no longer the one checkout would apply. */
+/** Thrown when the offers the student saw at the cart are no longer the ones checkout would apply. */
 export const AUTO_OFFER_CHANGED_MESSAGE =
   "The automatic offer on your cart has changed or ended. Review the updated price and try again.";
 
 /**
- * Checkout guard. `expectedPromoCodeId` is the automatic offer the cart showed
- * (0 for none). Losing or swapping the offer stops checkout so the student sees
- * the new price first; gaining one just charges less. Older clients send nothing.
+ * Checkout guard. `expectedPromoCodeIds` are the automatic offers the cart
+ * showed. Losing or swapping one stops checkout so the student sees the new
+ * price first; gaining one just charges less. Older clients send nothing.
  */
-export function assertAutoOfferUnchanged(expectedPromoCodeId: number | null | undefined, resolved: CartAutoCoupon | null): void {
-  if (!expectedPromoCodeId) return;
-  if (resolved?.promoCodeId !== expectedPromoCodeId) {
+export function assertAutoOffersUnchanged(expectedPromoCodeIds: number[] | undefined, resolved: CartAutoCoupon[]): void {
+  const expected = (expectedPromoCodeIds ?? []).filter((id) => id > 0);
+  if (expected.length === 0) return;
+  const applied = new Set(resolved.map((offer) => offer.promoCodeId));
+  if (expected.some((id) => !applied.has(id))) {
     throw new Error(AUTO_OFFER_CHANGED_MESSAGE);
   }
 }

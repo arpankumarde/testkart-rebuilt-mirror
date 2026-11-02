@@ -5,6 +5,7 @@ import type { SocialLinks, AwardCertificate } from "./teacherProfileTypes";
 import { slugify } from "./slugify";
 import { PRODUCT_DISCLAIMER } from "./productDisclaimer";
 import { computeMockTestSeo, isMeaningfulSubjectName } from "./seoIndexability";
+import { isExpired } from "./contentExpiry";
 
 export async function fetchTestDetailsServer(slug: string): Promise<OutputType> {
   const test = await db
@@ -226,6 +227,7 @@ export async function fetchTestDetailsServer(slug: string): Promise<OutputType> 
     createdAt: test.createdAt,
     updatedAt: test.updatedAt,
     isEnrolled: false,
+    isExpired: isExpired(test),
     canViewLeaderboard: false,
     language: test.language,
     languages: test.languages,

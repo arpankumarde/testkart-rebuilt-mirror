@@ -312,6 +312,36 @@ opacity: 0.5;
   font-weight: 700;
 }
 
+/* The teacher's automatic offer: a compact sage note under the price, same
+   tokens as the discount badge so it reads in light and dark themes. */
+.offerNote {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--exam-sage-border);
+  border-radius: var(--radius-md);
+  background-color: var(--exam-sage-tint);
+  color: var(--exam-sage-ink);
+}
+
+.offerNoteIcon {
+  flex-shrink: 0;
+  margin-top: 0.1875rem;
+}
+
+.offerSaving {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.offerText {
+  margin: 2px 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
 .ratingChip {
   display: inline-flex;
   align-items: center;

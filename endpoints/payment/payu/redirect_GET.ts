@@ -6,27 +6,22 @@ import { nanoid } from "nanoid";
 import { sql } from "kysely";
 import { getTeacherPlatformFee, DEFAULT_TEACHER_PLATFORM_FEE } from "../../../helpers/getTeacherPlatformFee";
 import { ensureOrderCompletionSideEffects } from "../../../helpers/ensureOrderCompletionSideEffects";
-import { promoCodeCoversTeacher } from "../../../helpers/promoCodeEligibility";
-import { countPromoCodeUses } from "../../../helpers/promoCodeUsage";
 import { courseEffectivePriceSql } from "../../../helpers/coursePricing";
 import { productEffectivePriceSql } from "../../../helpers/digitalProductPricing";
 import { planTcoinsForOrder } from "../../../helpers/tcoins";
 import { ONE_OFFER_MESSAGE } from "../../../helpers/tcoinsMath";
 import { getOrderClientInfo } from "../../../helpers/orderClientInfo";
+import { assertAutoOffersUnchanged } from "../../../helpers/courseCouponOffersServer";
 import {
-  assertAutoOfferUnchanged,
-  cartCourseLines,
-  lockPromoCode,
-  resolveCartAutoCoupon,
-} from "../../../helpers/courseCouponOffersServer";
-import {
-  applySpinCouponOrThrow,
-  asEligibleItemIds,
-  getSpinCouponRuleOrThrow,
-  recordSpinRedemption,
-  spinCartLines,
-  type AppliedSpinCoupon,
-} from "../../../helpers/spinWinServer";
+  cartRowKey,
+  checkoutLines,
+  orderCouponColumns,
+  orderItemDiscount,
+  priceCartForCheckout,
+  recordCouponUsages,
+} from "../../../helpers/cartCouponStackServer";
+import { recordSpinRedemption } from "../../../helpers/spinWinServer";
+import { assertCartNotExpired } from "../../../helpers/contentExpiryServer";
 
 const generateErrorHtml = (errorMessage: string, backUrl: string) => `
 <!DOCTYPE html>
@@ -135,6 +130,13 @@ export async function handle(request: Request) {
     const useTcoins = url.searchParams.get("useTcoins") === "1";
     const autoPromoCodeIdParam = url.searchParams.get("autoPromoCodeId");
     const autoPromoCodeId = autoPromoCodeIdParam ? parseInt(autoPromoCodeIdParam, 10) : null;
+    // The teacher offers the cart showed; autoPromoCodeId is the older single-offer form.
+    const autoPromoCodeIdsParam = url.searchParams.get("autoPromoCodeIds");
+    const expectedAutoOfferIds = autoPromoCodeIdsParam
+      ? autoPromoCodeIdsParam.split(",").map((id) => parseInt(id, 10)).filter((id) => Number.isInteger(id) && id > 0)
+      : autoPromoCodeId
+        ? [autoPromoCodeId]
+        : [];
 
     // Validate promoCodeId if provided
     if (promoCodeIdParam && (isNaN(promoCodeId!) || promoCodeId! <= 0)) {
@@ -201,6 +203,7 @@ export async function handle(request: Request) {
       if (cartItems.length === 0) {
         throw new Error("Your cart is empty.");
       }
+      await assertCartNotExpired(trx, user.id);
 
       // Calculate total amount for all item types
       const totalAmount = cartItems.reduce((sum, item) => {
@@ -214,216 +217,28 @@ export async function handle(request: Request) {
         return sum;
       }, 0);
 
-      let discountAmount = 0;
-      let finalAmount = totalAmount;
-      let validatedPromoCodeId: number | null = null;
-      let appliedPromoCode: string | null = null;
-      let autoApplied = false;
-      let eligibleItemIds: Array<{ type: 'test' | 'course' | 'digitalProduct'; id: number }> = [];
-      let spinApplied: AppliedSpinCoupon | null = null;
-
-      // Validate and apply promo code if provided
-      if (promoCodeId) {
-        await lockPromoCode(trx, promoCodeId);
-        const promoCode = await trx
-          .selectFrom("promoCodes")
-          .where("id", "=", promoCodeId)
-          .where("isActive", "=", true)
-          .selectAll()
-          .executeTakeFirst();
-
-        if (!promoCode) {
-          throw new Error("Invalid or inactive promo code.");
-        }
-
-        // Check if promo code is valid (time-based)
-        const now = new Date();
-        if (promoCode.validFrom && new Date(promoCode.validFrom) > now) {
-          throw new Error("This promo code is not yet valid.");
-        }
-        if (promoCode.validUntil && new Date(promoCode.validUntil) < now) {
-          throw new Error("This promo code has expired.");
-        }
-
-        // Check usage limits
-        if (promoCode.usageLimit !== null && (await countPromoCodeUses(trx, promoCodeId)) >= promoCode.usageLimit) {
-          throw new Error("This promo code has reached its usage limit.");
-        }
-
-        // Check per-user limit
-        if (promoCode.perUserLimit !== null && (await countPromoCodeUses(trx, promoCodeId, user.id)) >= promoCode.perUserLimit) {
-          throw new Error("You have reached the usage limit for this promo code.");
-        }
-
-        // Check minimum purchase amount
-        if (promoCode.minPurchaseAmount !== null && totalAmount < parseFloat(String(promoCode.minPurchaseAmount))) {
-          throw new Error(`Minimum purchase amount of ₹${promoCode.minPurchaseAmount} is required for this promo code.`);
-        }
-
-        // Check if promo code applies to cart items
-        let hasApplicableItems = false;
-
-        if (promoCode.appliesTo === "all") {
-          hasApplicableItems = true;
-        } else if (promoCode.appliesTo === "tests") {
-          hasApplicableItems = cartItems.some(item => item.mockTestId !== null);
-        } else if (promoCode.appliesTo === "courses") {
-          hasApplicableItems = cartItems.some(item => item.courseId !== null);
-        } else if (promoCode.appliesTo === "live_tests") {
-          // Live tests are not in the cart, so this would be false
-          hasApplicableItems = false;
-        }
-
-        if (!hasApplicableItems) {
-          throw new Error("This promo code is not applicable to the items in your cart.");
-        }
-
-        // Build eligible items list based on appliesTo and targetItemIds
-        for (const item of cartItems) {
-          let isEligible = false;
-
-          if (promoCode.appliesTo === "all") {
-            isEligible = true;
-          } else if (promoCode.appliesTo === "tests" && item.mockTestId) {
-            isEligible = true;
-          } else if (promoCode.appliesTo === "courses" && item.courseId) {
-            isEligible = true;
-          }
-
-          // Further filter by targetItemIds if specified
-          if (isEligible && promoCode.targetItemIds && promoCode.targetItemIds.length > 0) {
-            if (item.mockTestId) {
-              isEligible = promoCode.targetItemIds.includes(item.mockTestId);
-            } else if (item.courseId) {
-              isEligible = promoCode.targetItemIds.includes(item.courseId);
-            } else if (item.digitalProductId) {
-              isEligible = promoCode.targetItemIds.includes(item.digitalProductId);
-            } else {
-              isEligible = false;
-            }
-          }
-
-          const itemTeacherId = item.mockTestId
-            ? item.testTeacherId
-            : item.courseId
-              ? item.courseTeacherId
-              : item.digitalProductTeacherId;
-          if (isEligible && !promoCodeCoversTeacher(promoCode.createdByTeacherId, itemTeacherId)) {
-            isEligible = false;
-          }
-
-          if (isEligible) {
-            if (item.mockTestId) {
-              eligibleItemIds.push({ type: 'test', id: item.mockTestId });
-            } else if (item.courseId) {
-              eligibleItemIds.push({ type: 'course', id: item.courseId });
-            } else if (item.digitalProductId) {
-              eligibleItemIds.push({ type: 'digitalProduct', id: item.digitalProductId });
-            }
-          }
-        }
-
-        if (eligibleItemIds.length === 0) {
-          throw new Error("This promo code is not applicable to any items in your cart.");
-        }
-
-        // Calculate eligible items total
-        const eligibleItemsTotal = cartItems.reduce((sum, item) => {
-          const isEligible = eligibleItemIds.some(eligible => {
-            if (eligible.type === 'test' && item.mockTestId === eligible.id) return true;
-            if (eligible.type === 'course' && item.courseId === eligible.id) return true;
-            if (eligible.type === 'digitalProduct' && item.digitalProductId === eligible.id) return true;
-            return false;
-          });
-
-          if (!isEligible) return sum;
-
-          if (item.mockTestId) {
-            return sum + parseFloat(String(item.testDiscountPrice ?? item.testPrice!));
-          } else if (item.courseId) {
-            return sum + parseFloat(String(item.coursePrice!));
-          } else if (item.digitalProductId) {
-            return sum + parseFloat(String(item.digitalProductPrice!));
-          }
-          return sum;
-        }, 0);
-
-        // Calculate discount
-        if (promoCode.discountType === "percentage") {
-          discountAmount = (eligibleItemsTotal * parseFloat(String(promoCode.discountValue))) / 100;
-          if (promoCode.maxDiscountAmount !== null) {
-            discountAmount = Math.min(discountAmount, parseFloat(String(promoCode.maxDiscountAmount)));
-          }
-        } else {
-          // fixed discount
-          discountAmount = parseFloat(String(promoCode.discountValue));
-        }
-
-        // Ensure discount doesn't exceed eligible items total
-        discountAmount = Math.min(discountAmount, eligibleItemsTotal);
-        finalAmount = totalAmount - discountAmount;
-
-        // Spin & Win coupons: owner, expiry, single use, categories, minimum and the 18% cap.
-        const spinRule = await getSpinCouponRuleOrThrow(trx, promoCodeId, user.id);
-        if (spinRule) {
-          spinApplied = applySpinCouponOrThrow(spinRule, spinCartLines(cartItems));
-          eligibleItemIds = asEligibleItemIds(spinApplied.eligible);
-          discountAmount = spinApplied.discount;
-          finalAmount = totalAmount - discountAmount;
-        }
-
-        validatedPromoCodeId = promoCodeId;
-        appliedPromoCode = promoCode.code;
-
-        console.log(`Promo code ${promoCode.code} applied. Discount: ₹${discountAmount.toFixed(2)}`);
-      } else if (!useTcoins) {
-        // No typed code: the teacher's best public offer on the cart's courses applies by itself.
-        const auto = await resolveCartAutoCoupon({ userId: user.id, lines: cartCourseLines(cartItems), trx });
-        assertAutoOfferUnchanged(autoPromoCodeId, auto);
-        if (auto) {
-          validatedPromoCodeId = auto.promoCodeId;
-          appliedPromoCode = auto.code;
-          autoApplied = true;
-          discountAmount = auto.discountAmount;
-          finalAmount = totalAmount - discountAmount;
-          eligibleItemIds = auto.eligibleCourseIds.map((id) => ({ type: 'course' as const, id }));
-        }
+      // Teacher offers apply by themselves; the chosen coupon (if any) is priced on what is left.
+      const { stack, spinApplied } = await priceCartForCheckout(trx, {
+        userId: user.id,
+        lines: checkoutLines(cartItems),
+        chosen: promoCodeId ? { promoCodeId } : null,
+        useTcoins,
+      });
+      if (!useTcoins) {
+        assertAutoOffersUnchanged(expectedAutoOfferIds, stack.autoOffers);
       }
-
-      // Clamp finalAmount to 0 to prevent negative totals
-      finalAmount = Math.max(0, finalAmount);
+      const coupons = orderCouponColumns(stack);
+      const discountAmount = stack.discountAmount;
+      let finalAmount = Math.max(0, totalAmount - discountAmount);
 
       const tcoins = await planTcoinsForOrder(trx, {
         userId: user.id,
         orderValue: totalAmount,
         amountBeforeTcoins: finalAmount,
         useTcoins,
-        hasCoupon: validatedPromoCodeId !== null,
+        hasCoupon: coupons.promoCodeId !== null,
       });
       finalAmount = tcoins.amountToPay;
-
-      // Calculate per-item discount amounts for eligible items (needed for both free and paid paths)
-      const eligibleItemsTotal = validatedPromoCodeId && eligibleItemIds.length > 0
-        ? cartItems
-            .filter(item => {
-              return eligibleItemIds.some(eligible => {
-                if (eligible.type === 'test' && item.mockTestId === eligible.id) return true;
-                if (eligible.type === 'course' && item.courseId === eligible.id) return true;
-                if (eligible.type === 'digitalProduct' && item.digitalProductId === eligible.id) return true;
-                return false;
-              });
-            })
-            .reduce((sum, item) => {
-              if (item.mockTestId) {
-                return sum + parseFloat(String(item.testDiscountPrice ?? item.testPrice!));
-              } else if (item.courseId) {
-                return sum + parseFloat(String(item.coursePrice!));
-              } else if (item.digitalProductId) {
-                return sum + parseFloat(String(item.digitalProductPrice!));
-              }
-              return sum;
-            }, 0)
-        : 0;
 
       // Cache platform fee per teacherId to avoid redundant DB queries
       const platformFeeCache = new Map<number, number>();
@@ -448,10 +263,7 @@ export async function handle(request: Request) {
             userId: user.id,
             ...getOrderClientInfo(request),
             totalAmount: "0.00",
-            discountAmount: discountAmount.toFixed(2),
-            promoCodeId: validatedPromoCodeId,
-            promoCodeSnapshot: appliedPromoCode,
-            promoAutoApplied: validatedPromoCodeId ? autoApplied : null,
+            ...coupons,
             status: "completed",
             paymentMethod: "free",
             paymentTransactionId: null,
@@ -471,17 +283,7 @@ export async function handle(request: Request) {
             itemPrice = parseFloat(String(item.digitalProductPrice!));
           }
 
-          let itemDiscount = 0;
-          const isEligible = eligibleItemIds.some(eligible => {
-            if (eligible.type === 'test' && item.mockTestId === eligible.id) return true;
-            if (eligible.type === 'course' && item.courseId === eligible.id) return true;
-            if (eligible.type === 'digitalProduct' && item.digitalProductId === eligible.id) return true;
-            return false;
-          });
-
-          if (validatedPromoCodeId && isEligible && eligibleItemsTotal > 0) {
-            itemDiscount = (itemPrice / eligibleItemsTotal) * discountAmount;
-          }
+          const discount = orderItemDiscount(stack, cartRowKey(item));
 
           let platformFeePercentage = DEFAULT_TEACHER_PLATFORM_FEE;
           if (item.mockTestId && item.testTeacherId) {
@@ -498,25 +300,14 @@ export async function handle(request: Request) {
             courseId: item.courseId || null,
             digitalProductId: item.digitalProductId || null,
             priceAtPurchase: itemPrice.toFixed(2),
-            discountAmount: itemDiscount.toFixed(2),
+            ...discount,
             platformFeePercentage: platformFeePercentage.toFixed(2),
           };
         }));
 
         await trx.insertInto("orderItems").values(orderItems).execute();
 
-        // Record promo code usage if applicable
-        if (validatedPromoCodeId) {
-          await trx
-            .insertInto("promoCodeUsages")
-            .values({
-              promoCodeId: validatedPromoCodeId,
-              userId: user.id,
-              orderId: newOrder.id,
-              discountAmount: discountAmount.toFixed(2),
-            })
-            .execute();
-        }
+        await recordCouponUsages(trx, stack, user.id, newOrder.id);
 
         if (spinApplied) {
           await recordSpinRedemption(trx, spinApplied, { id: newOrder.id, userId: user.id, finalAmount: 0, paymentMethod: "free" });
@@ -621,10 +412,7 @@ export async function handle(request: Request) {
           userId: user.id,
           ...getOrderClientInfo(request),
           totalAmount: finalAmount.toFixed(2),
-          discountAmount: discountAmount.toFixed(2),
-          promoCodeId: validatedPromoCodeId,
-          promoCodeSnapshot: appliedPromoCode,
-          promoAutoApplied: validatedPromoCodeId ? autoApplied : null,
+          ...coupons,
           status: "pending",
           paymentMethod: "payu",
           paymentTransactionId: txnid,
@@ -644,20 +432,7 @@ export async function handle(request: Request) {
           itemPrice = parseFloat(String(item.digitalProductPrice!));
         }
 
-        let itemDiscount = 0;
-
-        // Check if this item is eligible for discount
-        const isEligible = eligibleItemIds.some(eligible => {
-          if (eligible.type === 'test' && item.mockTestId === eligible.id) return true;
-          if (eligible.type === 'course' && item.courseId === eligible.id) return true;
-          if (eligible.type === 'digitalProduct' && item.digitalProductId === eligible.id) return true;
-          return false;
-        });
-
-        // Calculate proportional discount for eligible items only
-        if (validatedPromoCodeId && isEligible && eligibleItemsTotal > 0) {
-          itemDiscount = (itemPrice / eligibleItemsTotal) * discountAmount;
-        }
+        const discount = orderItemDiscount(stack, cartRowKey(item));
 
         // Determine teacherId for this item and look up platform fee
         let platformFeePercentage = DEFAULT_TEACHER_PLATFORM_FEE;
@@ -675,7 +450,7 @@ export async function handle(request: Request) {
           courseId: item.courseId || null,
           digitalProductId: item.digitalProductId || null,
           priceAtPurchase: itemPrice.toFixed(2),
-          discountAmount: itemDiscount.toFixed(2),
+          ...discount,
           platformFeePercentage: platformFeePercentage.toFixed(2),
         };
       }));
@@ -689,18 +464,7 @@ export async function handle(request: Request) {
         console.warn(`Discount distribution mismatch: order total ${discountAmount.toFixed(2)} vs items total ${totalItemDiscounts.toFixed(2)}`);
       }
 
-      // Record promo code usage
-      if (validatedPromoCodeId) {
-        await trx
-          .insertInto("promoCodeUsages")
-          .values({
-            promoCodeId: validatedPromoCodeId,
-            userId: user.id,
-            orderId: newOrder.id,
-            discountAmount: discountAmount.toFixed(2),
-          })
-          .execute();
-      }
+      await recordCouponUsages(trx, stack, user.id, newOrder.id);
 
       if (spinApplied) {
         await recordSpinRedemption(trx, spinApplied, { id: newOrder.id, userId: user.id, finalAmount, paymentMethod: "payu" });

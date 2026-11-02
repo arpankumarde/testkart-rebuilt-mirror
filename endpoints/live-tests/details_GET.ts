@@ -8,6 +8,7 @@ import { sql } from "kysely";
 import { slugify } from "../../helpers/slugify";
 import { PRODUCT_DISCLAIMER } from "../../helpers/productDisclaimer";
 import { liveTestDiscountPrice } from "../../helpers/liveTestPricing";
+import { isExpired } from "../../helpers/contentExpiry";
 
 
 
@@ -168,10 +169,12 @@ export async function handle(request: Request) {
     const aggregatedSubject = subjectData?.aggregatedSubject || null;
 
     const now = new Date();
+    const expired = isExpired(liveTest, now);
         // If registrationDeadline is set, use it; otherwise allow enrollment until test ends
     const enrollmentCutoff = liveTest.registrationDeadline ?? liveTest.endTime;
     const canEnroll =
       !isEnrolled &&
+      !expired &&
       now < enrollmentCutoff &&
       liveTest.enrolledCount < liveTest.maxSeats &&
       now < liveTest.endTime;
@@ -191,6 +194,7 @@ export async function handle(request: Request) {
       isEnrolled,
       canEnroll,
       hasAttempted,
+      isExpired: expired,
       examSlug,
       slug: liveTest.mockTestSlug,
             teacherIsVerified: !!liveTest.teacherIsVerified,

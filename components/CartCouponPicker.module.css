@@ -1,0 +1,257 @@
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--co-coral);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: color var(--animation-duration-fast) ease;
+}
+
+.trigger:hover {
+  color: var(--co-coral-hover);
+}
+
+.trigger:focus-visible,
+.toggle:focus-visible,
+.remove:focus-visible {
+  outline: 2px solid var(--co-focus);
+  outline-offset: 2px;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.sectionHead {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--co-ink);
+}
+
+.sectionNote {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--co-muted);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3);
+  border: 1px solid var(--co-line);
+  border-radius: var(--radius-md);
+  background: var(--co-card);
+  transition: border-color var(--animation-duration-fast) ease;
+}
+
+.itemTeacher {
+  border-color: var(--co-mint-line);
+  background: var(--co-mint);
+}
+
+.itemTeacher .value,
+.itemTeacher .code,
+.itemTeacher .meta,
+.itemTeacher .saving {
+  color: var(--co-mint-ink);
+}
+
+.itemApplied {
+  border: 2px solid var(--co-coral);
+}
+
+.itemOff {
+  background: var(--co-surface);
+}
+
+.itemMain {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.value {
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: var(--co-ink);
+}
+
+.code {
+  font-family: var(--font-family-monospace);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--co-ink);
+  background: none;
+  padding: 0;
+}
+
+.meta,
+.reason {
+  font-size: 0.75rem;
+  color: var(--co-muted);
+}
+
+.reason {
+  color: var(--co-text);
+  font-weight: 600;
+}
+
+.itemAction {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--spacing-1);
+  flex-shrink: 0;
+}
+
+.saving {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--co-saving);
+}
+
+.remove {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--co-coral);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.remove:hover {
+  color: var(--co-coral-hover);
+}
+
+.notice,
+.empty {
+  margin: 0;
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+}
+
+.notice {
+  background: var(--co-blue);
+  color: var(--co-blue-ink);
+}
+
+.empty {
+  background: var(--co-surface);
+  color: var(--co-text);
+}
+
+.toggle {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--co-text);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.applyButton {
+  background-color: var(--co-cta);
+  border-color: var(--co-cta);
+  color: var(--co-cta-ink);
+  font-weight: 700;
+}
+
+.applyButton:hover:not(:disabled) {
+  background-color: var(--co-cta-hover);
+  border-color: var(--co-cta-hover);
+  color: var(--co-cta-ink);
+}
+
+.applyButton:active:not(:disabled) {
+  background-color: var(--co-cta-active);
+  border-color: var(--co-cta-active);
+}
+
+.applyButton:disabled {
+  background-color: var(--co-cta-disabled);
+  border-color: var(--co-cta-disabled);
+  color: var(--co-cta-disabled-ink);
+  opacity: 1;
+}
+
+.applyButton:focus-visible,
+.closeButton:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--co-card),
+    0 0 0 4px var(--co-focus);
+}
+
+.closeButton {
+  background-color: var(--co-card);
+  border-color: var(--co-line);
+  color: var(--co-ink);
+}
+
+.closeButton:hover {
+  background-color: var(--co-surface);
+  border-color: var(--co-line);
+  color: var(--co-ink);
+}
+
+@media (max-width: 480px) {
+  .item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .itemAction {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+}

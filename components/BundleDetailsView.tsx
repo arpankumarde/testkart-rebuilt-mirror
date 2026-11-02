@@ -39,6 +39,7 @@ import type { OutputType as BundleDetails } from '../endpoints/bundles/details_G
 import { MobileStickyPurchaseBar } from './MobileStickyPurchaseBar';
 import { AssetTopRow } from './AssetTopRow';
 import { PublicCouponsCard } from './PublicCouponsCard';
+import { ExpiredProductNotice } from './ExpiredProductNotice';
 import { TcoinsCheckoutOption, tcoinsToSpend } from './TcoinsCheckoutOption';
 import { ONE_OFFER_MESSAGE, tcoinsRupeeValue } from '../helpers/tcoinsMath';
 import { useStudentTcoins } from '../helpers/useTcoins';
@@ -429,6 +430,7 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
   }
 
   const tcoinsUsed = tcoinsToSpend(tcoins, bundle.price, wantsTcoins, promoCodeId !== null);
+  const purchaseClosed = !!bundle.isExpired && !bundle.isEnrolled;
   const finalPrice = Math.max(0, Math.round((bundle.price - discountAmount - tcoinsRupeeValue(tcoinsUsed)) * 100) / 100);
 
   const clearPromo = () => {
@@ -609,7 +611,9 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
                   </div>
                 )}
 
-                {isTeacher ? (
+                {purchaseClosed ? (
+                  <ExpiredProductNotice />
+                ) : isTeacher ? (
                   <div className={styles.notice}>
                     <Info size={20} className={styles.noticeIcon} aria-hidden="true" />
                     <div>
@@ -643,7 +647,7 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
                 )}
               </div>
 
-              {!isTeacher && !bundle.isEnrolled && bundle.price > 0 && (
+              {!isTeacher && !bundle.isEnrolled && !purchaseClosed && bundle.price > 0 && (
                 <PromoCodeInput
                   items={[{ id: bundle.id, type: 'bundle' as const, price: bundle.price }]}
                   totalAmount={bundle.price}
@@ -663,7 +667,7 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
                 />
               )}
 
-              {!isTeacher && !bundle.isEnrolled && bundle.price > 0 && tcoins?.enabled && (
+              {!isTeacher && !bundle.isEnrolled && !purchaseClosed && bundle.price > 0 && tcoins?.enabled && (
                 <TcoinsCheckoutOption
                   summary={tcoins}
                   orderValue={bundle.price}
@@ -684,7 +688,7 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
         </aside>
 
         <div className={styles.main}>
-          {!bundle.isEnrolled && bundle.price > 0 && (
+          {!bundle.isEnrolled && !purchaseClosed && bundle.price > 0 && (
             <PublicCouponsCard itemType="bundle" itemId={bundle.id} spaced={false} />
           )}
 
@@ -726,18 +730,20 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
           )}
         </div>
       </div>
-      <MobileStickyPurchaseBar
-        product={{
-          type: 'bundle',
-          id: bundle.id,
-          price: bundle.price,
-          originalPrice: bundle.originalPrice,
-          isEnrolled: bundle.isEnrolled,
-          promoCodeId,
-          useTcoins: tcoinsUsed > 0,
-        }}
-        isVisible={isStickyBarVisible}
-      />
+      {!purchaseClosed && (
+        <MobileStickyPurchaseBar
+          product={{
+            type: 'bundle',
+            id: bundle.id,
+            price: bundle.price,
+            originalPrice: bundle.originalPrice,
+            isEnrolled: bundle.isEnrolled,
+            promoCodeId,
+            useTcoins: tcoinsUsed > 0,
+          }}
+          isVisible={isStickyBarVisible}
+        />
+      )}
     </>
   );
 };

@@ -17,7 +17,7 @@ import styles from './MobileStickyPurchaseBar.module.css';
 export type ProductData = 
   | { type: 'test'; id: number; price: number; discountPrice: number | null; isEnrolled: boolean }
   | { type: 'course'; id: number; price: number; discountPrice?: number | null; couponOffer?: CourseCouponOffer | null; isEnrolled: boolean }
-  | { type: 'digitalProduct'; id: number; price: number; discountPrice?: number | null; isEnrolled: boolean }
+  | { type: 'digitalProduct'; id: number; price: number; discountPrice?: number | null; couponOffer?: CourseCouponOffer | null; isEnrolled: boolean }
   | { type: 'bundle'; id: number; price: number; originalPrice?: number; isEnrolled: boolean; slug?: string; promoCodeId?: number | null; useTcoins?: boolean }
   | { type: 'liveTest'; id: number; price: number; isEnrolled: boolean; canEnroll?: boolean };
 
@@ -148,7 +148,8 @@ export const MobileStickyPurchaseBar: React.FC<MobileStickyPurchaseBarProps> = (
   let formattedOriginalPrice: string | null = null;
   let discountPercentage = 0;
 
-  if (product.type === 'course' && !isFree) {
+  const takesAutoOffer = product.type === 'course' || product.type === 'digitalProduct';
+  if (takesAutoOffer && !isFree) {
     const view = coursePriceView(product.price, product.discountPrice, product.couponOffer);
     displayPrice = view.finalPrice;
     formattedOriginalPrice = view.originalPrice !== null ? formatOfferInr(view.originalPrice) : null;
@@ -179,7 +180,7 @@ export const MobileStickyPurchaseBar: React.FC<MobileStickyPurchaseBarProps> = (
 
   const formattedPrice = isFree
     ? "Free"
-    : product.type === 'course'
+    : takesAutoOffer
       ? formatOfferInr(Number(displayPrice))
       : new Intl.NumberFormat("en-IN", {
           style: "currency",

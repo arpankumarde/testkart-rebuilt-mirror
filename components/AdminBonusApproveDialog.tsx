@@ -13,14 +13,12 @@ interface AdminBonusApproveDialogProps {
   amount: number;
   bonusTitle: string;
   isPending: boolean;
-  /** creditBonus true credits the requested bonus along with the approval. */
-  onApprove: (creditBonus: boolean) => void;
+  onApprove: () => void;
 }
 
 /*
- * Approve step for a submission that carries a bonus claim. Approval
- * puts the content live; crediting the bonus is a separate quality call, so the
- * two buttons stay side by side and approving alone leaves the claim open.
+ * Approve step for a submission that carries a bonus claim. Approval puts the content live and
+ * leaves the claim open; the bonus is credited or declined separately from Bonus claims.
  */
 export const AdminBonusApproveDialog: React.FC<AdminBonusApproveDialogProps> = ({
   open,
@@ -55,8 +53,8 @@ export const AdminBonusApproveDialog: React.FC<AdminBonusApproveDialogProps> = (
         <div>
           <p className={styles.bonusTitle}>The teacher requested the {formatRupees(amount)} {bonusTitle}</p>
           <p className={styles.bonusText}>
-            Credit it only if this is high quality work. Approving alone keeps the request open, so you can credit or
-            decline it later from Bonus claims.
+            Approving keeps the request open. Credit it or decline it later from Bonus claims, and credit it only for
+            high quality work.
           </p>
         </div>
       </div>
@@ -65,11 +63,8 @@ export const AdminBonusApproveDialog: React.FC<AdminBonusApproveDialogProps> = (
         <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={isPending}>
           Cancel
         </Button>
-        <Button type="button" variant="outline" onClick={() => onApprove(false)} disabled={isPending}>
-          Approve only
-        </Button>
-        <Button type="button" variant="primary" onClick={() => onApprove(true)} disabled={isPending}>
-          {isPending ? "Saving..." : `Approve and credit ${formatRupees(amount)}`}
+        <Button type="button" variant="primary" onClick={onApprove} disabled={isPending}>
+          {isPending ? "Approving..." : "Approve"}
         </Button>
       </DialogFooter>
     </DialogContent>

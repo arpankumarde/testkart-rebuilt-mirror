@@ -55,29 +55,42 @@ export const TcoinsCheckoutOption: React.FC<TcoinsCheckoutOptionProps> = ({
   const cashback = tcoinsCashbackFor(summary, amountToPay);
 
   const hint = summary.balance <= 0
-    ? "You have no Tcoins yet. Earn them as cashback on paid orders."
+    ? "You don't have any Tcoins yet. Earn them as cashback on paid orders."
     : !canUse
-      ? `Balance ${summary.balance} Tcoins. This order is too small to use them.`
+      ? "This order is too small to use your Tcoins."
       : couponApplied
-        ? `Balance ${summary.balance} Tcoins. Ticking this removes the promo code ${appliedCouponCode}.`
-        : `Balance ${summary.balance} Tcoins. Pay up to ${summary.redeemPercent}% of an order (at most ${summary.maxRedeem} Tcoins) with Tcoins.`;
+        ? `Ticking this removes the promo code ${appliedCouponCode}.`
+        : `Pay up to ${summary.redeemPercent}% of an order (at most ${summary.maxRedeem} Tcoins) with Tcoins.`;
 
   return (
     <div className={`${styles.box} ${className ?? ""}`}>
-      <label className={`${styles.useRow} ${canUse ? "" : styles.useRowDisabled}`}>
-        <Checkbox
-          checked={checked && canUse && !couponApplied}
-          disabled={!canUse}
-          onChange={(e) => onCheckedChange(e.target.checked)}
-        />
-        <span className={styles.useText}>
-          <span className={styles.useTitle}>
-            <Coins size={16} aria-hidden="true" />
-            {canUse ? `Use ${redeemable} Tcoins and save ₹${tcoinsRupeeValue(redeemable)}` : "Tcoins"}
-          </span>
-          <span className={styles.useHint}>{hint}</span>
+      <div className={styles.head}>
+        <span className={styles.headTitle}>
+          <Coins size={18} aria-hidden="true" />
+          Tcoins
         </span>
-      </label>
+        {summary.balance > 0 ? (
+          <span className={styles.balance}>{summary.balance.toLocaleString("en-IN")} available</span>
+        ) : null}
+      </div>
+
+      {canUse ? (
+        <label className={styles.useRow}>
+          <Checkbox
+            checked={checked && !couponApplied}
+            onChange={(e) => onCheckedChange(e.target.checked)}
+          />
+          <span className={styles.useText}>
+            <span className={styles.useTitle}>
+              Use {redeemable} Tcoins and save ₹{tcoinsRupeeValue(redeemable)}
+            </span>
+            <span className={styles.useHint}>{hint}</span>
+          </span>
+        </label>
+      ) : (
+        <p className={styles.useHint}>{hint}</p>
+      )}
+
       {canUse && (
         <p className={styles.oneOffer}>
           <Info size={14} aria-hidden="true" />
@@ -86,7 +99,7 @@ export const TcoinsCheckoutOption: React.FC<TcoinsCheckoutOptionProps> = ({
       )}
       {cashback > 0 && (
         <p className={styles.earn}>
-          You earn <strong>{cashback} Tcoins</strong> cashback on this order
+          Earn <strong>{cashback} Tcoins</strong> cashback on this order.
         </p>
       )}
     </div>

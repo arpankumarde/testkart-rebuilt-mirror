@@ -11,6 +11,12 @@ interface PromoCodeInputProps {
   onApply: (promoCodeId: number, discountAmount: number, code: string, eligibleItemIds: number[], ineligibleItemIds: number[]) => void;
   onRemove: () => void;
   appliedDiscount?: { code: string; amount: number };
+  /**
+   * Replaces the promo-codes/validate check (and onApply) when the caller prices
+   * the code itself, as the cart does with its stacked coupons. Resolves to an
+   * error message, or null when the code was applied.
+   */
+  onSubmitCode?: (code: string) => Promise<string | null>;
   className?: string;
 }
 
@@ -20,10 +26,12 @@ export const PromoCodeInput: React.FC<PromoCodeInputProps> = ({
   onApply,
   onRemove,
   appliedDiscount,
+  onSubmitCode,
   className,
 }) => {
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { mutate: validateCode, isPending } = useValidatePromoCodeMutation();
 
   const handleApply = () => {
@@ -32,6 +40,18 @@ export const PromoCodeInput: React.FC<PromoCodeInputProps> = ({
       return;
     }
     setError(null);
+
+    if (onSubmitCode) {
+      setIsSubmitting(true);
+      onSubmitCode(code.trim())
+        .then((message) => {
+          if (message) setError(message);
+          else setCode('');
+        })
+        .catch((err) => setError(err instanceof Error ? err.message : 'An unexpected error occurred.'))
+        .finally(() => setIsSubmitting(false));
+      return;
+    }
 
     validateCode(
       { code, items, totalAmount },
@@ -66,6 +86,8 @@ export const PromoCodeInput: React.FC<PromoCodeInputProps> = ({
     onRemove();
   };
 
+  const busy = isPending || isSubmitting;
+
   if (appliedDiscount) {
     return (
       <div className={`${styles.container} ${styles.appliedContainer} ${className || ''}`}>
@@ -96,8 +118,8 @@ export const PromoCodeInput: React.FC<PromoCodeInputProps> = ({
           onKeyDown={(e) => e.key === 'Enter' && handleApply()}
           className={styles.input}
         />
-        <Button onClick={handleApply} disabled={isPending} className={styles.applyButton}>
-          {isPending ? <Loader size={16} className={styles.spinner} /> : 'Apply'}
+        <Button onClick={handleApply} disabled={busy} className={styles.applyButton}>
+          {busy ? <Loader size={16} className={styles.spinner} /> : 'Apply'}
         </Button>
       </div>
       {error && <p className={styles.errorMessage}>{error}</p>}

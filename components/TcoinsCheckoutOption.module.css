@@ -2,11 +2,40 @@
   .box {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-3);
-    padding: var(--spacing-4);
-    background-color: var(--muted);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
+    gap: var(--spacing-2);
+    padding: var(--spacing-3) var(--spacing-4);
+    background-color: var(--co-blue);
+    border: 1px solid var(--co-blue-line);
+    border-radius: var(--radius-md);
+    color: var(--co-blue-ink);
+  }
+
+  .head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-2);
+  }
+
+  .headTitle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    font-family: var(--font-family-heading);
+    font-size: 0.9375rem;
+    font-weight: 800;
+    color: var(--co-blue-ink);
+  }
+
+  .headTitle svg {
+    flex-shrink: 0;
+  }
+
+  .balance {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--co-blue-ink);
+    font-variant-numeric: tabular-nums;
   }
 
   .useRow {
@@ -16,35 +45,24 @@
     cursor: pointer;
   }
 
-  .useRowDisabled {
-    cursor: default;
-  }
-
   .useText {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-1);
+    gap: 2px;
     min-width: 0;
   }
 
   .useTitle {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--spacing-2);
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
     font-weight: 700;
-    color: var(--foreground);
-  }
-
-  .useTitle svg {
-    color: var(--tk-brand-text);
-    flex-shrink: 0;
+    color: var(--co-blue-ink);
   }
 
   .useHint {
+    margin: 0;
     font-size: 0.8125rem;
     line-height: 1.45;
-    color: var(--muted-foreground);
+    color: var(--co-blue-ink);
   }
 
   .oneOffer {
@@ -52,25 +70,24 @@
     align-items: flex-start;
     gap: var(--spacing-2);
     margin: 0;
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
     line-height: 1.45;
-    color: var(--foreground);
+    color: var(--co-blue-ink);
   }
 
   .oneOffer svg {
     flex-shrink: 0;
     margin-top: 0.125rem;
-    color: var(--tk-brand-text);
   }
 
   .earn {
-    margin: 0;
+    margin: var(--spacing-1) 0 0;
     padding: var(--spacing-2) var(--spacing-3);
+    border: 1px solid var(--co-mint-line);
     border-radius: var(--radius);
-    background-color: var(--pastel-mint);
-    color: var(--pastel-mint-ink);
-    font-size: 0.875rem;
+    background-color: var(--co-mint);
+    color: var(--co-mint-ink);
+    font-size: 0.8125rem;
     font-weight: 600;
-    text-align: center;
   }
 }

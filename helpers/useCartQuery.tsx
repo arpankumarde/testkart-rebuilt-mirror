@@ -1,5 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { getCartItems, CartItem } from "../endpoints/cart/items_GET.schema";
+import { postCartQuote } from "../endpoints/cart/quote_POST.schema";
 import { postCartAdd } from "../endpoints/cart/add_POST.schema";
 import { postCartRemove } from "../endpoints/cart/remove_POST.schema";
 import { trackStorefrontEvent } from "./trackStorefrontEvent";
@@ -19,6 +20,19 @@ export const useCartItemsQuery = () => {
     staleTime: 15 * 60 * 1000, // 15 minutes - cart changes infrequently during a session
   });
 };
+
+/** Under CART_QUERY_KEY, so every cart change re-prices the coupons too. */
+export const cartQuoteKey = (promoCodeId: number | null) => [...CART_QUERY_KEY, "quote", promoCodeId ?? 0];
+
+/** The cart's teacher offers, the chosen coupon on top, and the Testkart coupons that could be picked. */
+export const useCartQuoteQuery = (promoCodeId: number | null, enabled: boolean) =>
+  useQuery({
+    queryKey: cartQuoteKey(promoCodeId),
+    queryFn: () => postCartQuote(promoCodeId ? { promoCodeId } : {}),
+    enabled,
+    staleTime: 60 * 1000,
+    placeholderData: keepPreviousData,
+  });
 
 export const useAddToCartMutation = () => {
   const queryClient = useQueryClient();

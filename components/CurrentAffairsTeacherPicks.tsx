@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { ClipboardCheck, GraduationCap } from "lucide-react";
 import { useTestsQuery } from "../helpers/useTestsQuery";
 import { usePublicCoursesQuery } from "../helpers/useStudentCoursesQuery";
-import { formatItemPrice, itemPriceProps } from "../helpers/homepageItemUtils";
+import { itemPriceProps } from "../helpers/homepageItemUtils";
 import { Skeleton } from "./Skeleton";
 import styles from "./CurrentAffairsTeacherPicks.module.css";
 
@@ -20,13 +20,14 @@ type Pick = {
 };
 
 /*
- * "From teachers on Testkart": popular mock tests and courses for the exam the latest digest is
- * tagged with, or across all exams when it has none. Shows a short note when nothing comes back.
+ * "From teachers on Testkart": popular paid mock tests and courses for the exam the latest digest
+ * is tagged with, or across all exams when it has none. Free items are excluded, including ones a
+ * discount or coupon offer brings down to zero. Shows a short note when nothing comes back.
  */
 export const CurrentAffairsTeacherPicks: React.FC<{ examId: number | null }> = ({ examId }) => {
   const filter = examId ? { examId: String(examId) } : {};
-  const tests = useTestsQuery({ ...filter, limit: "2", sortBy: "popular" });
-  const courses = usePublicCoursesQuery({ ...filter, limit: "2", sortBy: "popular" });
+  const tests = useTestsQuery({ ...filter, limit: "2", sortBy: "popular", priceType: "paid" });
+  const courses = usePublicCoursesQuery({ ...filter, limit: "2", sortBy: "popular", priceType: "paid" });
 
   if (tests.isLoading || courses.isLoading) {
     return (
@@ -39,24 +40,33 @@ export const CurrentAffairsTeacherPicks: React.FC<{ examId: number | null }> = (
   }
 
   const picks: Pick[] = [
-    ...(tests.data?.tests ?? []).map((test) => ({
-      key: `t-${test.id}`,
-      href: `/mock-test/${test.slug}`,
-      title: test.title,
-      teacherName: test.teacherName,
-      price: formatItemPrice(test.price, test.discountPrice),
-      thumbnailUrl: test.thumbnailUrl,
-      kind: "Mock test" as const,
-    })),
-    ...(courses.data?.courses ?? []).map((course) => ({
-      key: `c-${course.id}`,
-      href: `/course/${course.slug}`,
-      title: course.title,
-      teacherName: course.teacherName,
-      price: itemPriceProps(Number(course.price), course.discountPrice, course.couponOffer ?? null).priceLabel,
-      thumbnailUrl: course.thumbnailImageUrl || course.thumbnailUrl,
-      kind: "Course" as const,
-    })),
+    ...(tests.data?.tests ?? [])
+      .map((test) => ({ test, priced: itemPriceProps(test.price, test.discountPrice) }))
+      .filter(({ priced }) => !priced.isFree)
+      .map(({ test, priced }) => ({
+        key: `t-${test.id}`,
+        href: `/mock-test/${test.slug}`,
+        title: test.title,
+        teacherName: test.teacherName,
+        price: priced.priceLabel,
+        thumbnailUrl: test.thumbnailUrl,
+        kind: "Mock test" as const,
+      })),
+    ...(courses.data?.courses ?? [])
+      .map((course) => ({
+        course,
+        priced: itemPriceProps(Number(course.price), course.discountPrice, course.couponOffer ?? null),
+      }))
+      .filter(({ priced }) => !priced.isFree)
+      .map(({ course, priced }) => ({
+        key: `c-${course.id}`,
+        href: `/course/${course.slug}`,
+        title: course.title,
+        teacherName: course.teacherName,
+        price: priced.priceLabel,
+        thumbnailUrl: course.thumbnailImageUrl || course.thumbnailUrl,
+        kind: "Course" as const,
+      })),
   ].slice(0, MAX_PICKS);
 
   if (picks.length === 0) {

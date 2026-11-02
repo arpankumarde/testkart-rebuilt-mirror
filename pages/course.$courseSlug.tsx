@@ -243,6 +243,7 @@ export default function CourseDetailsPage() {
 
   const totalLessons = course.sections.reduce((sum, section) => sum + section.lessons.length, 0);
   const isFree = course.price === 0;
+  const purchaseClosed = !!course.isExpired && !course.isEnrolled;
 
   return (
     <>
@@ -266,7 +267,7 @@ export default function CourseDetailsPage() {
       {/* Main Content */}
       <div className={styles.contentWrapper}>
         <main className={styles.mainColumn}>
-          {!course.isEnrolled && !isFree && (
+          {!course.isEnrolled && !purchaseClosed && !isFree && (
             <PublicCouponsCard
               itemType="course"
               itemId={course.id}
@@ -430,17 +431,19 @@ export default function CourseDetailsPage() {
         />
       )}
 
-      <MobileStickyPurchaseBar
-        product={{
-          type: 'course',
-          id: course.id,
-          price: course.price,
-          discountPrice: course.discountPrice,
-          couponOffer: course.couponOffer,
-          isEnrolled: course.isEnrolled,
-        }}
-        isVisible={isStickyBarVisible}
-      />
+      {!purchaseClosed && (
+        <MobileStickyPurchaseBar
+          product={{
+            type: 'course',
+            id: course.id,
+            price: course.price,
+            discountPrice: course.discountPrice,
+            couponOffer: course.couponOffer,
+            isEnrolled: course.isEnrolled,
+          }}
+          isVisible={isStickyBarVisible}
+        />
+      )}
     </>
   );
 }

@@ -179,7 +179,7 @@ const AdminBonusClaimsPage: React.FC = () => {
           </span>
           <p>
             Teachers request the bonus when they submit a test series or course for review. Approving the content does
-            not pay it. Credit it here, or with "Approve and credit" in the review queue, only for high quality work.
+            not pay it. Credit it here, only for high quality work.
             Once credited, the request shows as Claimed.
             {data ? <strong> {formatRupees(data.creditedTotal)} credited so far.</strong> : null}
           </p>

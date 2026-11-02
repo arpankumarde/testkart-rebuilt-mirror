@@ -12,6 +12,7 @@ import { Badge } from '../components/Badge';
 import { WithdrawReviewButton } from '../components/WithdrawReviewButton';
 import { TeacherRejectionBanner } from '../components/TeacherRejectionBanner';
 import { ContentVisibilityPanel } from '../components/ContentVisibilityPanel';
+import { ContentExpiryPanel } from '../components/ContentExpiryPanel';
 import { CreatorBonusClaimCard } from '../components/CreatorBonusClaimCard';
 import type { TestItemWithQuestionsCount } from "../endpoints/teacher/test-items/list_GET.schema";
 import {
@@ -438,8 +439,14 @@ const Page = () => {
                 )}
               </div>
 
-              {/* Visibility is chosen here, beside the publish action, not during creation. */}
+              {/* Visibility and expiry are set here, beside the publish action, not during creation. */}
               <ContentVisibilityPanel
+                variant="inline"
+                className={styles.visibility}
+                contentType={isLiveTest && liveTest ? "live_test" : "mock_test"}
+                contentId={isLiveTest && liveTest ? liveTest.id : packageId}
+              />
+              <ContentExpiryPanel
                 variant="inline"
                 className={styles.visibility}
                 contentType={isLiveTest && liveTest ? "live_test" : "mock_test"}

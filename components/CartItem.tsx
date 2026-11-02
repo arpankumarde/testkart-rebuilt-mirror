@@ -1,129 +1,130 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Trash2, Tag, IndianRupee, FileText } from "lucide-react";
+import { Trash2, Tag, FileText, CalendarX } from "lucide-react";
 import { Button } from "./Button";
 import { CartItem as CartItemType } from "../endpoints/cart/items_GET.schema";
 import { Skeleton } from "./Skeleton";
 import { Placeholder } from "../helpers/placeholderImages";
+import { formatOfferInr } from "../helpers/courseCouponOffer";
+import type { CartItemPricing } from "../helpers/cartItemPricing";
 import styles from "./CartItem.module.css";
 
 interface CartItemProps {
   item: CartItemType;
+  /** The item's prices from the cart quote; see helpers/cartItemPricing. */
+  pricing: CartItemPricing;
   onRemove: (cartItemId: number) => void;
   isRemoving: boolean;
-  isEligibleForPromo?: boolean;
 }
 
-export const CartItem: React.FC<CartItemProps> = ({
-  item,
-  onRemove,
-  isRemoving,
-  isEligibleForPromo = false,
-}) => {
+const TYPE_LABEL: Record<CartItemType["type"], string> = {
+  course: "Course",
+  test: "Mock Test",
+  digitalProduct: "Notes",
+};
+
+export const CartItem: React.FC<CartItemProps> = ({ item, pricing, onRemove, isRemoving }) => {
   let itemLink: string;
-  let creatorName: string;
-  let typeLabel: string | null = null;
+  let teacherName: string | null;
   let thumbnail = item.thumbnailUrl;
 
-        if (item.type === 'test') {
-    creatorName = item.creatorName || "Testkart Creator";
-    // Tests use /{examSlug}/{testSlug} format, but the slug returned is already "examSlug.testSlug" 
-    // which maps to /{slug with . replaced by /}
-    itemLink = item.slug ? `/${item.slug.replace('.', '/')}` : `/mock-test`;
+  if (item.type === "test") {
+    teacherName = item.creatorName;
+    // The slug is "examSlug.testSlug" and the page lives at /examSlug/testSlug.
+    itemLink = item.slug ? `/${item.slug.replace(".", "/")}` : "/mock-test";
     if (!thumbnail) thumbnail = Placeholder.TEST;
-  } else if (item.type === 'course') {
-    creatorName = item.teacherName || "Testkart Creator";
-    // Courses use /course/{slug} format
-    itemLink = item.slug ? `/course/${item.slug}` : `/course`;
+  } else if (item.type === "course") {
+    teacherName = item.teacherName;
+    itemLink = item.slug ? `/course/${item.slug}` : "/course";
     if (item.thumbnailImageUrl) thumbnail = item.thumbnailImageUrl;
     if (!thumbnail) thumbnail = Placeholder.COURSE;
   } else {
-    // Digital Product - uses /shop/{slug} format
-    creatorName = "Testkart Creator";
-    typeLabel = "Study Notes";
-    itemLink = item.slug ? `/study-notes/${item.slug}` : `/study-notes`;
-    thumbnail = null; // Do not use image for digital products
+    teacherName = item.teacherName;
+    itemLink = item.slug ? `/study-notes/${item.slug}` : "/study-notes";
+    // Study notes have no thumbnail anywhere on the site.
+    thumbnail = null;
   }
 
+  const hasSaving = pricing.savings > 0;
+
   return (
-    <div className={styles.card}>
-      <Link to={itemLink} className={styles.imageLink}>
+    <article className={styles.card}>
+      <Link to={itemLink} className={styles.imageLink} tabIndex={-1} aria-hidden="true">
         {thumbnail ? (
-          <img src={thumbnail} alt={item.title} className={styles.image} />
+          <img src={thumbnail} alt="" className={styles.image} loading="lazy" />
         ) : (
           <div className={styles.iconPlaceholder}>
-            <FileText size={32} className={styles.placeholderIcon} />
+            <FileText size={28} />
           </div>
         )}
       </Link>
-      
-      <div className={styles.content}>
+
+      <div className={styles.body}>
         <div className={styles.details}>
-          <div className={styles.header}>
-            <Link to={itemLink} className={styles.titleLink}>
-              <h3 className={styles.title}>{item.title}</h3>
-            </Link>
-            
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className={styles.removeButton}
-              onClick={() => onRemove(item.cartItemId)}
-              disabled={isRemoving}
-              aria-label={`Remove ${item.title} from cart`}
-            >
-              <Trash2 size={16} />
-            </Button>
-          </div>
-
-          <p className={styles.creator}>by {creatorName}</p>
-
-          <div className={styles.badges}>
-            {typeLabel && (
-              <span className={styles.typeBadge}>{typeLabel}</span>
-            )}
-            {isEligibleForPromo && (
-              <span className={styles.promoBadge}>
-                <Tag size={12} />
-                <span>Offer Applied</span>
+          <span className={`${styles.typeBadge} ${styles[`type_${item.type}`]}`}>{TYPE_LABEL[item.type]}</span>
+          <Link to={itemLink} className={styles.titleLink}>
+            <h3 className={styles.title}>{item.title}</h3>
+          </Link>
+          {teacherName ? <p className={styles.creator}>by {teacherName}</p> : null}
+          {item.expired ? (
+            <p className={styles.expired}>
+              <CalendarX size={13} aria-hidden="true" />
+              <span>Expired. No longer available for purchase. Remove it to check out.</span>
+            </p>
+          ) : null}
+          {pricing.teacherDiscount > 0 ? (
+            <p className={styles.offer}>
+              <Tag size={13} aria-hidden="true" />
+              <span>
+                {pricing.teacherCode ? <strong>{pricing.teacherCode}</strong> : "Teacher offer"} applied
+                {" · "}
+                {formatOfferInr(pricing.teacherDiscount)} off
               </span>
-            )}
-          </div>
+            </p>
+          ) : null}
         </div>
 
-        <div className={styles.priceContainer}>
-          {item.discountPrice && item.discountPrice < item.price ? (
+        <div className={styles.priceBlock}>
+          <div className={styles.priceRow}>
+            <span className={styles.finalPrice}>{formatOfferInr(pricing.finalPrice)}</span>
+            {hasSaving ? <span className={styles.percentBadge}>{pricing.percentOff}% OFF</span> : null}
+          </div>
+          {hasSaving ? (
             <>
               <span className={styles.originalPrice}>
-                <IndianRupee size={12} />
-                {item.price.toFixed(2)}
+                <span className={styles.srOnly}>Original price </span>
+                {formatOfferInr(pricing.mrp)}
               </span>
-              <span className={styles.finalPrice}>
-                <IndianRupee size={16} />
-                {(item.discountPrice).toFixed(2)}
-              </span>
+              <span className={styles.savings}>You save {formatOfferInr(pricing.savings)}</span>
             </>
-          ) : (
-            <span className={styles.finalPrice}>
-              <IndianRupee size={16} />
-              {item.price.toFixed(2)}
-            </span>
-          )}
+          ) : null}
         </div>
       </div>
-    </div>
+
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        className={styles.removeButton}
+        onClick={() => onRemove(item.cartItemId)}
+        disabled={isRemoving}
+        aria-label={`Remove ${item.title} from cart`}
+      >
+        <Trash2 size={16} />
+      </Button>
+    </article>
   );
 };
 
 export const CartItemSkeleton: React.FC = () => (
   <div className={styles.card}>
     <Skeleton className={styles.imageSkeleton} />
-    <div className={styles.content}>
+    <div className={styles.body}>
       <div className={styles.details}>
-        <Skeleton style={{ width: '70%', height: '1.25rem', marginBottom: '0.5rem' }} />
-        <Skeleton style={{ width: '40%', height: '1rem', marginBottom: '0.5rem' }} />
+        <Skeleton style={{ width: "4rem", height: "1.125rem", marginBottom: "0.5rem" }} />
+        <Skeleton style={{ width: "70%", height: "1.25rem", marginBottom: "0.5rem" }} />
+        <Skeleton style={{ width: "40%", height: "1rem" }} />
       </div>
-      <Skeleton style={{ width: '80px', height: '1.5rem', alignSelf: 'flex-start' }} />
+      <Skeleton style={{ width: "6rem", height: "1.5rem" }} />
     </div>
   </div>
 );

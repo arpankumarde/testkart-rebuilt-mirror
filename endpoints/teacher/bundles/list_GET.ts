@@ -41,6 +41,8 @@ export async function handle(request: Request): Promise<Response> {
         "courseBundles.createdAt",
         "courseBundles.publishedAt",
         "courseBundles.thumbnailUrl",
+        "courseBundles.expiresAt",
+        "courseBundles.expiredAt",
         sql<number>`(SELECT COUNT(*) FROM course_bundle_items WHERE course_bundle_items.bundle_id = course_bundles.id)`.as("itemCount"),
         sql<number>`(SELECT COUNT(DISTINCT student_id) FROM bundle_enrollments WHERE bundle_enrollments.bundle_id = course_bundles.id)`.as("studentsEnrolled"),
         sql<string>`(

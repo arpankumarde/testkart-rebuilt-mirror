@@ -5,6 +5,7 @@ import { slugify } from "./slugify";
 import type { SocialLinks, AwardCertificate } from "./teacherProfileTypes";
 import { PRODUCT_DISCLAIMER } from "./productDisclaimer";
 import { liveTestDiscountPrice } from "./liveTestPricing";
+import { isExpired } from "./contentExpiry";
 
 export async function fetchLiveTestDetailsServer(lookup: InputType): Promise<OutputType> {
   const liveTest = await db
@@ -97,6 +98,7 @@ export async function fetchLiveTestDetailsServer(lookup: InputType): Promise<Out
     isEnrolled: false,
     canEnroll: false,
     hasAttempted: false,
+    isExpired: isExpired(liveTest),
     examSlug,
     slug: liveTest.mockTestSlug,
     teacherIsVerified: !!liveTest.teacherIsVerified,

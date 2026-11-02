@@ -383,6 +383,17 @@ export async function handle(request: Request): Promise<Response> {
       .innerJoin("users as u", "u.id", "cr.teacherId")
       .select(db.fn.countAll<string>().as("count"));
 
+    // A resubmission adds a new review row, so an item rejected and later approved
+    // keeps its old rejected row. Only each item's latest review reflects its status.
+    const isLatestReview = sql<boolean>`NOT EXISTS (
+      SELECT 1 FROM content_reviews newer
+      WHERE newer.content_type = cr.content_type
+        AND newer.content_id = cr.content_id
+        AND newer.id > cr.id
+    )`;
+    query = query.where(isLatestReview);
+    countQuery = countQuery.where(isLatestReview);
+
     if (status) {
       query = query.where("cr.status", "=", status as any);
       countQuery = countQuery.where("cr.status", "=", status as any);

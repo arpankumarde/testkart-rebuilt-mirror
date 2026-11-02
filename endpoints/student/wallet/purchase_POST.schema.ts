@@ -3,13 +3,15 @@ import superjson from "superjson";
 
 export const schema = z.object({
   promoCodeId: z.number().optional(),
-  /** Pay part of the order with Tcoins. Rejected together with a promo code. */
+  /** Pay part of the order with Tcoins. Rejected together with a promo code; Tcoins also replace the teacher offers. */
   useTcoins: z.boolean().optional(),
-  /**
-   * The automatic teacher offer the cart showed (0 for none), from cart/items autoCoupon.
-   * The purchase stops if that offer is gone or replaced; the server still prices it itself.
-   */
+  /** Older single-offer form of autoPromoCodeIds (0 for none). */
   autoPromoCodeId: z.number().int().nonnegative().optional(),
+  /**
+   * The automatic teacher offers the cart showed (cart/quote autoOffers). The purchase stops if
+   * one is gone or replaced; the server still prices them itself. promoCodeId is added on top.
+   */
+  autoPromoCodeIds: z.array(z.number().int().positive()).optional(),
 });
 
 export type InputType = z.infer<typeof schema>;

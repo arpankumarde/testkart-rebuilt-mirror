@@ -16,6 +16,11 @@
   --ca-blue-ink: var(--fc-blue-ink);
   --ca-shadow: var(--sp-shadow);
   --ca-shadow-hover: var(--sp-shadow-hover);
+  /* The selected tab and topic, and the Telegram CTA. Redefined for dark mode below. */
+  --ca-on: var(--fc-panel);
+  --ca-on-ink: var(--fc-panel-ink);
+  --ca-telegram: var(--ca-blue-ink);
+  --ca-telegram-hover: color-mix(in srgb, var(--ca-blue-ink) 85%, #000000);
 
   display: flex;
   flex-direction: column;
@@ -25,6 +30,20 @@
   margin: 0 auto;
   padding: 1.5rem 1.5rem 3.5rem;
   box-sizing: border-box;
+}
+
+/* Dark mode: cards sit clearly above the page, text is brighter, and the selected tab and topic
+   turn coral. The intro keeps the sage showcase panel. */
+:global(.dark) .page {
+  --surface: hsl(217 23% 16%);
+  --muted: hsl(215 25% 22%);
+  --border: hsl(215 19% 28%);
+  --foreground: hsl(220 14% 96%);
+  --muted-foreground: hsl(215 14% 68%);
+  --ca-on: var(--tk-brand);
+  --ca-on-ink: var(--tk-brand-ink);
+  --ca-telegram: hsl(204 72% 40%);
+  --ca-telegram-hover: hsl(204 74% 34%);
 }
 
 .srOnly {
@@ -211,8 +230,8 @@
 
 .tabOn,
 .tabOn:hover {
-  background-color: var(--fc-panel);
-  color: var(--fc-panel-ink);
+  background-color: var(--ca-on);
+  color: var(--ca-on-ink);
 }
 
 .main {
@@ -960,7 +979,7 @@
   color: var(--muted-foreground);
 }
 
-/* Topic filter: pastel pills in five rotating tones; the active one turns solid pine. */
+/* Topic filter: pastel pills in five rotating tones; the active one turns solid pine (coral in dark mode). */
 .topicCard {
   display: flex;
   flex-direction: column;
@@ -1044,9 +1063,9 @@
 
 .topicChipOn,
 .topicChipOn:hover {
-  border-color: var(--fc-panel);
-  background-color: var(--fc-panel);
-  color: var(--fc-panel-ink);
+  border-color: var(--ca-on);
+  background-color: var(--ca-on);
+  color: var(--ca-on-ink);
 }
 
 .topicMore {
@@ -1116,6 +1135,11 @@
   color: var(--foreground);
 }
 
+:global(.dark) .dailyCard {
+  background-color: var(--surface);
+  border-color: hsl(204 38% 34%);
+}
+
 .telegramButton {
   width: 100%;
   min-height: 2.5rem;
@@ -1123,14 +1147,19 @@
   gap: 0.5rem;
   font-size: 0.875rem;
   font-weight: 700;
-  border-color: var(--ca-blue-ink);
-  background-color: var(--ca-blue-ink);
+  border-color: var(--ca-telegram);
+  background-color: var(--ca-telegram);
   color: #ffffff;
 }
 
+.telegramButton svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
 .telegramButton:hover {
-  border-color: color-mix(in srgb, var(--ca-blue-ink) 85%, #000000);
-  background-color: color-mix(in srgb, var(--ca-blue-ink) 85%, #000000);
+  border-color: var(--ca-telegram-hover);
+  background-color: var(--ca-telegram-hover);
   color: #ffffff;
 }
 

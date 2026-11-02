@@ -14,11 +14,12 @@ export const apiDocsCommerce: ApiEndpoint[] = [
     usedBy: ["web", "mobile"],
     responseFields: [
       { name: "items", type: "array", description: "Newest first: { type: 'test' | 'course' | 'digitalProduct', cartItemId, slug, title, price, discountPrice, thumbnailUrl }, plus mockTestId and creatorName for tests, courseId, thumbnailImageUrl and teacherName for courses, or digitalProductId for study notes" },
-      { name: "autoCoupon", type: "object | null", description: "The teacher offer checkout applies without a code: { promoCodeId, code, discountType, discountValue, discountAmount, eligibleCourseIds }. Null when none applies" },
+      { name: "autoCoupons", type: "array", description: "The teacher offers checkout applies without a code, at most one per course or study note: { promoCodeId, code, teacherId, discountType, discountValue, discountAmount, eligibleCourseIds, eligibleDigitalProductIds }" },
+      { name: "autoCoupon", type: "object | null", description: "The largest of autoCoupons, for older clients. Null when none applies" },
     ],
     notes: [
-      "discountPrice is null when no discount is active, and always null for study notes.",
-      "autoCoupon is the teacher's best public, active coupon for the cart's courses, priced on the courses only. One coupon works per order: a typed promoCodeId or Tcoins replace it at checkout. Send its promoCodeId (or 0) as autoPromoCodeId so checkout stops if the offer changed.",
+      "discountPrice is null when no discount is active.",
+      "Each teacher's best public, active coupon applies to their courses and study notes by itself, priced on those items only. The student can add one more coupon (promoCodeId) on top; Tcoins replace all coupons, teacher offers included. Send the offers' ids as autoPromoCodeIds so checkout stops if one changed. POST /_api/cart/quote prices the combination.",
       "A signed-out request returns 500 with details 'Not authenticated'.",
     ],
   },
@@ -131,8 +132,9 @@ export const apiDocsCommerce: ApiEndpoint[] = [
     category: "Payments",
     usedBy: ["web"],
     queryParams: [
-      { name: "promoCodeId", type: "number", required: false, description: "Promo code id from /_api/promo-codes/validate, not the code text" },
-      { name: "autoPromoCodeId", type: "number", required: false, description: "The automatic teacher offer the cart showed (cart/items autoCoupon.promoCodeId, 0 for none). Checkout stops if that offer has ended or changed" },
+      { name: "promoCodeId", type: "number", required: false, description: "The coupon the student chose (id, not the code text), added on top of the teacher offers" },
+      { name: "autoPromoCodeIds", type: "string", required: false, description: "Comma-separated ids of the teacher offers the cart showed (cart/quote autoOffers). Checkout stops if one has ended or changed" },
+      { name: "autoPromoCodeId", type: "number", required: false, description: "Older single-offer form of autoPromoCodeIds (0 for none)" },
     ],
     responseFields: [
       { name: "(html)", type: "page", description: "An auto-submitting form to PayU, or for a zero total a page that sends the browser to /student/dashboard?order_id=<id>&free=true" },
@@ -142,7 +144,7 @@ export const apiDocsCommerce: ApiEndpoint[] = [
       "Errors are HTML pages with a link back to the cart: 400 for a bad promoCodeId, 500 for an empty cart, an invalid promo code or a missing session.",
       "Cancels the user's other pending orders and creates a new one. A zero total is completed as a free order straight away.",
       "promoCodeId together with useTcoins=1 returns a 400 page before anything is written: only one offer works per purchase.",
-      "With no promoCodeId and no Tcoins, the teacher's best public coupon on the cart's courses applies by itself (the cart/items autoCoupon); the server picks and prices it. The order stores promo_code_snapshot and promo_auto_applied.",
+      "Unless Tcoins are used, each teacher's best public coupon applies to their courses by itself (cart/items autoCoupons), and promoCodeId is priced on what is left. A teacher code as promoCodeId replaces the teacher offer on the items it covers. The order stores promo_code_id (the chosen coupon, else the largest teacher offer), promo_code_snapshot (all codes joined with ' + '), promo_auto_applied, one promo_code_usages row per coupon, and order_items.auto_discount_amount (the teacher-offer share of each item's discount).",
       "Has no deep link support. The mobile app uses POST /_api/payment/payu/initiate.",
     ],
   },
@@ -156,7 +158,8 @@ export const apiDocsCommerce: ApiEndpoint[] = [
     bodyParams: [
       { name: "promoCodeId", type: "number", required: false, description: "Promo code id from /_api/promo-codes/validate, not the code text" },
       { name: "deepLinkUrl", type: "string", required: false, description: "App link such as testkart://payment/callback, signed into the request as udf1 so the callback can return to the app" },
-      { name: "autoPromoCodeId", type: "number", required: false, description: "The automatic teacher offer the cart showed (cart/items autoCoupon.promoCodeId, 0 for none). Checkout stops if that offer has ended or changed" },
+      { name: "autoPromoCodeIds", type: "number[]", required: false, description: "The teacher offers the cart showed (cart/items autoCoupons ids). Checkout stops if one has ended or changed" },
+      { name: "autoPromoCodeId", type: "number", required: false, description: "Older single-offer form of autoPromoCodeIds (0 for none)" },
     ],
     responseFields: [
       { name: "key", type: "string", description: "PayU merchant key" },
@@ -175,7 +178,7 @@ export const apiDocsCommerce: ApiEndpoint[] = [
     notes: [
       "The app posts these fields as a form to payuUrl inside a WebView.",
       "Prices come from the database, not the client. The cart is cleared only after payment succeeds. Promo usage is recorded straight away.",
-      "With no promoCodeId and no useTcoins, the teacher's best public coupon on the cart's courses applies by itself (the cart/items autoCoupon), so the amount can be lower than a client that ignores autoCoupon shows.",
+      "Unless useTcoins is set, each teacher's best public coupon applies to their courses by itself (cart/items autoCoupons), and promoCodeId is added on top, so the amount can be lower than a client that ignores autoCoupons shows.",
       "Cancels the user's other pending orders first.",
       "promoCodeId together with useTcoins returns 400 with details 'Only one offer can be applied per purchase. Choose either a Promo Code or TCoins.' before anything is written.",
       "With a deep link, the callback ends with a 302 to that link carrying status, order_id, txnid, and on success a fresh 30-day token, on failure a reason.",
@@ -545,7 +548,8 @@ export const apiDocsCommerce: ApiEndpoint[] = [
     bodyParams: [
       { name: "promoCodeId", type: "number", required: false, description: "Promo code id to apply, not the code text" },
       { name: "useTcoins", type: "boolean", required: false, description: "Pay part of the order with Tcoins; never together with a coupon" },
-      { name: "autoPromoCodeId", type: "number", required: false, description: "The automatic teacher offer the cart showed (cart/items autoCoupon.promoCodeId, 0 for none). The purchase stops if that offer has ended or changed" },
+      { name: "autoPromoCodeIds", type: "number[]", required: false, description: "The teacher offers the cart showed. The purchase stops if one has ended or changed" },
+      { name: "autoPromoCodeId", type: "number", required: false, description: "Older single-offer form of autoPromoCodeIds (0 for none)" },
     ],
     responseFields: [
       { name: "orderId", type: "number", description: "The new completed order" },
@@ -554,7 +558,7 @@ export const apiDocsCommerce: ApiEndpoint[] = [
     ],
     notes: [
       "Buys the whole cart. The order is created completed, the wallet is debited, enrollments are made and the cart is cleared in one transaction.",
-      "With no promoCodeId and no useTcoins, the teacher's best public coupon on the cart's courses applies by itself (the cart/items autoCoupon).",
+      "Unless useTcoins is set, each teacher's best public coupon applies to their courses by itself (cart/items autoCoupons), and promoCodeId is added on top.",
       "promoCodeId together with useTcoins is rejected with 400 before anything is written: only one offer works per purchase.",
       "Every error returns 400, including non-students, an empty cart, a bad promo code, 'Insufficient wallet balance' and a missing session.",
       "The wallet is locked during the purchase, so a parallel purchase or withdrawal cannot spend the same money.",

@@ -10,6 +10,7 @@ import { computeCourseSeo } from "../../helpers/seoIndexability";
 import { courseDiscountPrice } from "../../helpers/coursePricing";
 import { isBearerRequest } from "../../helpers/requestAuthTransport";
 import { loadCourseCouponOffers } from "../../helpers/courseCouponOffersServer";
+import { isExpired } from "../../helpers/contentExpiry";
 
 
 
@@ -169,6 +170,7 @@ export async function handle(request: Request): Promise<Response> {
       sections: sectionsWithLessons,
       reviews,
       isEnrolled,
+      isExpired: isExpired(course),
       disclaimer: PRODUCT_DISCLAIMER,
       seo: {
         indexable: seoResult.indexable,

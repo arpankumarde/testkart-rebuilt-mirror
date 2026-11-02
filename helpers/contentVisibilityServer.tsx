@@ -1,6 +1,7 @@
-import type { Kysely, Transaction } from "kysely";
+import { sql, type Kysely, type Transaction } from "kysely";
 import { db } from "./db";
 import type { ContentType, ContentVisibility, DB } from "./schema";
+import { CONTENT_TABLES, isExpired } from "./contentExpiry";
 import {
   clearOpenReviews,
   hasPendingReview,
@@ -32,6 +33,8 @@ type Executor = Kysely<DB> | Transaction<DB>;
  * - Asking again while a request waits is not an error: nothing new is queued
  *   and the teacher is told it is already with the team. A rejected request can
  *   be sent again; the item stays live and unlisted throughout.
+ * - An expired item (helpers/contentExpiry) does not switch here at all: it
+ *   goes back on sale only through Relist, which restores its old visibility.
  */
 
 export class VisibilityChangeError extends Error {
@@ -149,6 +152,15 @@ export async function changeContentVisibility(input: {
     throw new VisibilityChangeError(`This ${noun} was not found in your account.`, 404);
   }
   const pending = await hasPendingReview(db, contentType, contentId);
+
+  const { rows: expiryRows } = await sql<{ expiresAt: Date | null; expiredAt: Date | null }>`
+    select expires_at, expired_at from ${sql.table(CONTENT_TABLES[contentType])} where id = ${contentId}
+  `.execute(db);
+  if (expiryRows[0] && isExpired(expiryRows[0])) {
+    throw new VisibilityChangeError(
+      `This ${noun} has expired, so its visibility is locked. Set a new expiry date or remove it, then use Relist to put it back on sale.`
+    );
+  }
 
   if (visibility === "unlisted") {
     if (state.visibility === "unlisted" && !pending) {

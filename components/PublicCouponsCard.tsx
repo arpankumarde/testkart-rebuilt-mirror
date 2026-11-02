@@ -14,7 +14,7 @@ interface PublicCouponsCardProps {
   spaced?: boolean;
   /** Copy button wears the playful button skin (live competition page). */
   playful?: boolean;
-  /** The coupon checkout applies by itself (a course's teacher offer); it needs no copying. */
+  /** The coupon checkout applies by itself (a course's or study note's teacher offer); it needs no copying. */
   autoAppliedPromoCodeId?: number | null;
 }
 
@@ -60,7 +60,9 @@ export const PublicCouponsCard: React.FC<PublicCouponsCardProps> = ({
     };
   }, []);
 
-  const promoCodes = data?.promoCodes ?? [];
+  const promoCodes = [...(data?.promoCodes ?? [])].sort(
+    (a, b) => Number(b.id === autoAppliedPromoCodeId) - Number(a.id === autoAppliedPromoCodeId)
+  );
   if (promoCodes.length === 0) return null;
 
   const handleCopy = async (promo: PublicPromoCode) => {
@@ -93,9 +95,9 @@ export const PublicCouponsCard: React.FC<PublicCouponsCardProps> = ({
                   <div className={styles.headline}>{getHeadline(promo)}</div>
                   {finePrint && <div className={styles.finePrint}>{finePrint}</div>}
                 </div>
-                <span className={styles.autoApplied}>
+                <span className={styles.autoApplied} title="Applied automatically at checkout. No code needed.">
                   <CheckCircle size={16} aria-hidden="true" />
-                  Applied automatically
+                  Applied
                 </span>
               </li>
             );

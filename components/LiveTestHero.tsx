@@ -23,6 +23,7 @@ import { LIVE_TEST_DETAILS_QUERY_KEY_PREFIX } from '../helpers/useLiveTestDetail
 import { LIVE_TESTS_QUERY_KEY } from '../helpers/useLiveTestsQuery';
 import { AssetTopRow } from './AssetTopRow';
 import { VideoPreview } from "./VideoPreview";
+import { ExpiredProductNotice } from './ExpiredProductNotice';
 import styles from './LiveTestHero.module.css';
 
 interface LiveTestHeroProps {
@@ -367,6 +368,7 @@ export const LiveTestHero: React.FC<LiveTestHeroProps> = ({ liveTest, className 
     .filter((prize) => prize.amount > 0);
   const showPrizes = liveTest.hasPrizes && liveTest.totalPrizePool > 0;
   const isTeacher = authState.type === 'authenticated' && authState.user.role === 'teacher';
+  const purchaseClosed = !!liveTest.isExpired && !liveTest.isEnrolled;
 
   return (
     <div className={`${styles.hero} ${className || ''}`}>
@@ -411,7 +413,9 @@ export const LiveTestHero: React.FC<LiveTestHeroProps> = ({ liveTest, className 
           {status === 'live' && <CountdownTimer target={liveTest.endTime} label="Test Ends In" />}
 
           <div className={styles.actionBlock}>
-            {isTeacher ? (
+            {purchaseClosed ? (
+              <ExpiredProductNotice className={styles.expiredNotice} />
+            ) : isTeacher ? (
               <div className={styles.teacherInfoBox}>
                 <Info size={20} />
                 <div className={styles.teacherInfoBoxContent}>

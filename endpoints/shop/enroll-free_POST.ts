@@ -8,6 +8,7 @@ import { sendEmail } from "../../helpers/sendEmail";
 import { emailTemplatesExtra } from "../../helpers/emailTemplatesExtra";
 import { followTeachersForOrder } from "../../helpers/ensureTeacherFollow";
 import { getOrderClientInfo, type OrderClientInfo } from "../../helpers/orderClientInfo";
+import { expiredPurchaseError } from "../../helpers/contentExpiryServer";
 
 
 
@@ -108,6 +109,11 @@ export async function handle(request: Request) {
 
     const json = superjson.parse(await request.text());
     const { digitalProductId } = schema.parse(json);
+
+    const expired = await expiredPurchaseError(db, "digital_product", digitalProductId);
+    if (expired) {
+      return new Response(superjson.stringify({ error: expired }), { status: 400 });
+    }
 
     const orderId = await db
       .transaction()

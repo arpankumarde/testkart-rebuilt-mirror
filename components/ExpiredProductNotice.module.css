@@ -1,0 +1,45 @@
+@layer base {
+  .notice {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-3);
+    padding: var(--spacing-3) var(--spacing-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background-color: var(--card);
+    color: var(--card-foreground);
+  }
+
+  .icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--radius-full);
+    background-color: var(--muted);
+    color: var(--error-text);
+  }
+
+  .body {
+    display: grid;
+    gap: var(--spacing-1);
+    min-width: 0;
+  }
+
+  .title {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    line-height: 1.35;
+    color: var(--card-foreground);
+  }
+
+  .text {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.45;
+    color: var(--foreground);
+  }
+}

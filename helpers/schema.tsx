@@ -390,11 +390,14 @@ export interface CourseBundles {
   createdAt: Generated<Timestamp>;
   description: string | null;
   discountPercentage: Generated<Numeric | null>;
+  expiredAt: Timestamp | null;
+  expiresAt: Timestamp | null;
   id: Generated<number>;
   introVideoFileId: string | null;
   introVideoUrl: string | null;
   isPublished: Generated<boolean>;
   originalPrice: Numeric;
+  preExpiryVisibility: ContentVisibility | null;
   price: Numeric;
   publishedAt: Timestamp | null;
   slug: string;
@@ -469,12 +472,15 @@ export interface Courses {
   estimatedDurationMinutes: Generated<number | null>;
   examId: number | null;
   examName: string | null;
+  expiredAt: Timestamp | null;
+  expiresAt: Timestamp | null;
   id: Generated<number>;
   introVideoFileId: string | null;
   introVideoUrl: string | null;
   language: string | null;
   languages: Generated<string[]>;
   level: Generated<CourseLevel>;
+  preExpiryVisibility: ContentVisibility | null;
   price: Generated<Numeric>;
   publishedAt: Timestamp | null;
   rating: Numeric | null;
@@ -684,6 +690,8 @@ export interface DigitalProducts {
   discountPrice: Numeric | null;
   examId: number | null;
   examName: string | null;
+  expiredAt: Timestamp | null;
+  expiresAt: Timestamp | null;
   fileSizeBytes: Int8 | null;
   id: Generated<number>;
   isPublished: Generated<boolean | null>;
@@ -692,6 +700,7 @@ export interface DigitalProducts {
   pageCount: number | null;
   pdfFileId: string | null;
   pdfUrl: string;
+  preExpiryVisibility: ContentVisibility | null;
   previewPages: Generated<number | null>;
   price: Generated<Numeric>;
   publishedAt: Timestamp | null;
@@ -1068,6 +1077,8 @@ export interface LiveTests {
   discountPrice: Numeric | null;
   endTime: Timestamp;
   enrolledCount: Generated<number>;
+  expiredAt: Timestamp | null;
+  expiresAt: Timestamp | null;
   firstPrize: Generated<Numeric>;
   hasPrizes: Generated<boolean>;
   id: Generated<number>;
@@ -1077,6 +1088,7 @@ export interface LiveTests {
   isFree: Generated<boolean>;
   maxSeats: number;
   mockTestId: number;
+  preExpiryVisibility: ContentVisibility | null;
   price: Generated<Numeric>;
   prizeDistributionStatus: Generated<PrizeDistributionStatus>;
   prizeFundSource: PrizeFundSource | null;
@@ -1326,6 +1338,8 @@ export interface MockTests {
   durationMinutes: Generated<number>;
   examId: number | null;
   examName: string | null;
+  expiredAt: Timestamp | null;
+  expiresAt: Timestamp | null;
   freeTestsCount: Generated<number>;
   id: Generated<number>;
   introVideoFileId: string | null;
@@ -1335,6 +1349,7 @@ export interface MockTests {
   language: string | null;
   languages: Generated<string[]>;
   longDescription: string | null;
+  preExpiryVisibility: ContentVisibility | null;
   price: Generated<Numeric>;
   rating: Numeric | null;
   requirements: Json | null;
@@ -1397,6 +1412,7 @@ export interface OauthStates {
 }
 
 export interface OrderItems {
+  autoDiscountAmount: Numeric | null;
   courseId: number | null;
   createdAt: Generated<Timestamp | null>;
   digitalProductId: number | null;

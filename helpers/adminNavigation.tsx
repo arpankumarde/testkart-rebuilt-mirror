@@ -40,6 +40,7 @@ import {
   Video,
   Ticket,
   CalendarRange,
+  CalendarClock,
 } from "lucide-react";
 import { ANY_ADMIN, EXTRA_PAGE_RULES, hasAdminModule, type AdminModule } from "./adminPermissions";
 import { ARTICLE_TABS } from "./adminContentSurfaces";
@@ -158,6 +159,13 @@ const groups: AdminNavGroup[] = [
       { href: "/admin/test-series", label: "Test series", icon: ListChecks, modules: ["test_series"], keywords: "mock tests" },
       { href: "/admin/live-tests", label: "Live tests", icon: Radio, modules: ["live_tests"], countKeys: ["prizesUndistributed"], keywords: "competitions prizes" },
       { href: "/admin/bundles", label: "Bundles", icon: Package, modules: ["bundles"] },
+      {
+        href: "/admin/product-expiry",
+        label: "Product expiry",
+        icon: CalendarClock,
+        modules: ["courses", "notes", "test_series", "live_tests", "bundles"],
+        keywords: "expiry expired expiring unlisted relist auto unlist end date",
+      },
     ],
   },
   {

@@ -1,15 +1,29 @@
 import { courseEffectivePrice } from "./coursePricing";
-import { promoCodeAppliesToItem } from "./promoCodeEligibility";
+import { promoCodeAppliesToItem, type PromoItemType } from "./promoCodeEligibility";
 import { promoDiscountFor } from "./promoCodeDiscount";
 
 /*
- * Teacher offers on courses. A teacher's public, active coupon is applied to
- * their courses automatically: listings, the course page and checkout all show
- * the same coupon-adjusted price, and the server picks and charges it. Only one
- * coupon works per order, so a cart gets the single offer that takes the most
- * off. The automatic offer only discounts courses, even when the coupon also
- * covers the teacher's tests or notes; typing the code still applies it to all.
+ * Teacher offers on courses and study notes. A teacher's public, active coupon
+ * is applied to their courses and notes automatically: course listings, the
+ * course and study note pages, the cart and checkout all show the same
+ * coupon-adjusted price, and the server picks and charges it. A cart gets at most one automatic offer per item (see
+ * helpers/cartCouponStack), and the student can add one coupon of their own on
+ * top. Tests, live tests and bundles never get an automatic offer, even when
+ * the coupon also covers them; typing the code still applies it to them.
  */
+
+/** Cart line kinds that take an automatic teacher offer. */
+export type AutoOfferKind = "course" | "digitalProduct";
+
+export const AUTO_OFFER_KINDS: readonly AutoOfferKind[] = ["course", "digitalProduct"];
+
+const PROMO_ITEM_TYPE: Record<AutoOfferKind, PromoItemType> = {
+  course: "course",
+  digitalProduct: "digital_product",
+};
+
+export const isAutoOfferKind = (kind: string): kind is AutoOfferKind =>
+  (AUTO_OFFER_KINDS as readonly string[]).includes(kind);
 
 export type CourseCouponCandidate = {
   id: number;
@@ -24,15 +38,15 @@ export type CourseCouponCandidate = {
   validUntil: Date | null;
 };
 
-/** The automatic offer on one course, priced by the server. */
+/** The automatic offer on one course or study note, priced by the server. */
 export type CourseCouponOffer = {
   promoCodeId: number;
   code: string;
   discountType: "percentage" | "fixed";
   discountValue: number;
-  /** The course's list price. */
+  /** The item's list price. */
   originalPrice: number;
-  /** What the course costs before the coupon: its sale price, else the list price. */
+  /** What the item costs before the coupon: its sale price, else the list price. */
   basePrice: number;
   discountAmount: number;
   finalPrice: number;
@@ -41,19 +55,24 @@ export type CourseCouponOffer = {
   validUntil: Date | null;
 };
 
-/** The one automatic offer a cart gets, as the server will charge it. */
+/** An automatic teacher offer on a cart, as the server will charge it. */
 export type CartAutoCoupon = {
   promoCodeId: number;
   code: string;
+  /** The teacher who created the coupon; it only covers their items. */
+  teacherId: number;
   discountType: "percentage" | "fixed";
   discountValue: number;
   discountAmount: number;
   /** Courses in the cart the discount is spread across. */
   eligibleCourseIds: number[];
+  /** Study notes in the cart the discount is spread across. */
+  eligibleDigitalProductIds: number[];
 };
 
-export type CartCourseLine = {
-  courseId: number;
+export type CartOfferLine = {
+  kind: AutoOfferKind;
+  id: number;
   teacherId: number | null;
   /** Effective price: the sale price when valid, else the list price. */
   price: number;
@@ -65,21 +84,34 @@ const roundPaise = (amount: number) => Math.round(amount * 100) / 100;
 const byDiscountThenId = (a: { discount: number; id: number }, b: { discount: number; id: number }) =>
   b.discount - a.discount || a.id - b.id;
 
-export function courseCouponCovers(candidate: CourseCouponCandidate, courseId: number, teacherId: number | null): boolean {
-  return candidate.createdByTeacherId === teacherId && promoCodeAppliesToItem(candidate, "course", courseId);
+export function couponCoversItem(
+  candidate: CourseCouponCandidate,
+  kind: AutoOfferKind,
+  itemId: number,
+  teacherId: number | null
+): boolean {
+  return candidate.createdByTeacherId === teacherId && promoCodeAppliesToItem(candidate, PROMO_ITEM_TYPE[kind], itemId);
 }
 
-/** The best automatic offer for one course, or null when none gives a discount. */
-export function bestCourseCouponOffer(
+/** Whether a cart offer's discount is spread over this line. */
+export function offerCoversLine(offer: CartAutoCoupon, line: { kind: string; id: number }): boolean {
+  if (line.kind === "course") return offer.eligibleCourseIds.includes(line.id);
+  if (line.kind === "digitalProduct") return offer.eligibleDigitalProductIds.includes(line.id);
+  return false;
+}
+
+/** The best automatic offer for one course or study note, or null when none gives a discount. */
+export function bestItemCouponOffer(
   candidates: CourseCouponCandidate[],
-  course: { id: number; teacherId: number | null; price: number | string; discountPrice: number | string | null }
+  kind: AutoOfferKind,
+  item: { id: number; teacherId: number | null; price: number | string; discountPrice: number | string | null }
 ): CourseCouponOffer | null {
-  const originalPrice = Number(course.price) || 0;
-  const basePrice = courseEffectivePrice(course.price, course.discountPrice);
+  const originalPrice = Number(item.price) || 0;
+  const basePrice = courseEffectivePrice(item.price, item.discountPrice);
   if (!(basePrice > 0)) return null;
 
   const ranked = candidates
-    .filter((c) => courseCouponCovers(c, course.id, course.teacherId))
+    .filter((c) => couponCoversItem(c, kind, item.id, item.teacherId))
     .map((c) => ({ candidate: c, id: c.id, discount: promoDiscountFor(c, basePrice) ?? 0 }))
     .filter((r) => r.discount > 0)
     .sort(byDiscountThenId);
@@ -101,18 +133,25 @@ export function bestCourseCouponOffer(
   };
 }
 
+export function bestCourseCouponOffer(
+  candidates: CourseCouponCandidate[],
+  course: { id: number; teacherId: number | null; price: number | string; discountPrice: number | string | null }
+): CourseCouponOffer | null {
+  return bestItemCouponOffer(candidates, "course", course);
+}
+
 /**
  * Every offer that would discount this cart, best first. The minimum purchase
- * is checked against the cart's eligible courses, and a percentage cap applies
+ * is checked against the cart's eligible items, and a percentage cap applies
  * to the whole order, as it does for a typed code.
  */
-export function rankCartCourseCoupons(
+export function rankCartAutoCoupons(
   candidates: CourseCouponCandidate[],
-  lines: CartCourseLine[]
+  lines: CartOfferLine[]
 ): CartAutoCoupon[] {
   const ranked: Array<CartAutoCoupon & { id: number; discount: number }> = [];
   for (const c of candidates) {
-    const eligible = lines.filter((l) => l.price > 0 && courseCouponCovers(c, l.courseId, l.teacherId));
+    const eligible = lines.filter((l) => l.price > 0 && couponCoversItem(c, l.kind, l.id, l.teacherId));
     if (eligible.length === 0) continue;
     const eligibleTotal = eligible.reduce((sum, l) => sum + l.price, 0);
     const discount = promoDiscountFor(c, eligibleTotal);
@@ -122,13 +161,24 @@ export function rankCartCourseCoupons(
       discount,
       promoCodeId: c.id,
       code: c.code,
+      teacherId: c.createdByTeacherId,
       discountType: c.discountType,
       discountValue: c.discountValue,
       discountAmount: discount,
-      eligibleCourseIds: eligible.map((l) => l.courseId),
+      eligibleCourseIds: eligible.filter((l) => l.kind === "course").map((l) => l.id),
+      eligibleDigitalProductIds: eligible.filter((l) => l.kind === "digitalProduct").map((l) => l.id),
     });
   }
   return ranked.sort(byDiscountThenId).map(({ id: _id, discount: _discount, ...offer }) => offer);
+}
+
+/** "2 courses", "1 study note", "1 course and 2 study notes". */
+export function describeOfferItems(courseCount: number, noteCount: number): string {
+  const parts = [
+    courseCount > 0 ? `${courseCount} course${courseCount === 1 ? "" : "s"}` : null,
+    noteCount > 0 ? `${noteCount} study note${noteCount === 1 ? "" : "s"}` : null,
+  ].filter(Boolean);
+  return parts.length > 0 ? parts.join(" and ") : "0 items";
 }
 
 /** Rupees with paise only when there are any: 1499 -> "₹1,499", 1619.1 -> "₹1,619.10". */
@@ -155,8 +205,8 @@ export type CoursePriceView = {
 };
 
 /**
- * The one way a course price is shown: list price, sale price and the server's
- * automatic offer. Never recomputes the coupon; it only reads couponOffer.
+ * The one way a course or study note price is shown: list price, sale price
+ * and the server's automatic offer. Never recomputes the coupon; it only reads couponOffer.
  */
 export function coursePriceView(
   price: number | string,

@@ -1,145 +1,312 @@
 @layer base {
   .container {
-    background-color: var(--card);
-    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-4);
+    padding: 1.25rem;
+    background-color: var(--co-card);
+    border: 1px solid var(--co-line);
     border-radius: var(--radius-lg);
-    padding: var(--spacing-6);
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--sp-shadow);
+    color: var(--co-text);
+  }
+
+  .head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--spacing-2);
   }
 
   .title {
+    margin: 0;
     font-family: var(--font-family-heading);
     font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--co-ink);
+  }
+
+  .count {
+    padding: 1px var(--spacing-2);
+    border-radius: var(--radius-sm);
+    background-color: var(--co-lavender);
+    color: var(--co-lavender-ink);
+    font-size: 0.75rem;
     font-weight: 700;
-    margin: 0 0 var(--spacing-4) 0;
-    padding-bottom: var(--spacing-4);
-    border-bottom: 1px solid var(--border);
   }
 
-  .rows {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-3);
+  /* Item-wise breakdown: collapsed by default so a 10-item cart stays short. */
+  .breakdown {
+    border: 1px solid var(--co-line);
+    border-radius: var(--radius-md);
+    background-color: var(--co-surface);
   }
 
-  .row {
+  .breakdownToggle {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    font-size: 0.9375rem;
+    justify-content: space-between;
+    gap: var(--spacing-2);
+    width: 100%;
+    padding: var(--spacing-3);
+    border: 0;
+    border-radius: var(--radius-md);
+    background: none;
+    color: var(--co-ink);
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color var(--animation-duration-fast) ease;
   }
 
-  .label {
-    color: var(--muted-foreground);
+  .breakdownToggle:hover {
+    background-color: var(--co-lavender);
   }
 
-  .value {
-    font-weight: 500;
-    color: var(--foreground);
+  .breakdownToggle:focus-visible,
+  .promoToggle:focus-visible {
+    outline: 2px solid var(--co-focus);
+    outline-offset: 2px;
   }
 
-  .discountRow .label {
-    color: var(--success-text);
-    display: flex;
+  .breakdownToggleLabel {
+    display: inline-flex;
     align-items: center;
     gap: var(--spacing-2);
   }
 
-  .percentageBadge {
-    background-color: color-mix(in srgb, var(--success) 10%, transparent);
-    color: var(--success-text);
-    font-size: 0.7rem;
-    padding: 1px 6px;
-    border-radius: 999px;
+  .breakdownToggleLabel svg {
+    color: var(--co-lavender-ink);
+  }
+
+  .chevron {
+    flex-shrink: 0;
+    transition: transform var(--animation-duration-normal) ease;
+  }
+
+  .chevronOpen {
+    transform: rotate(180deg);
+  }
+
+  .collapse {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows var(--animation-duration-normal) ease;
+  }
+
+  .collapseOpen {
+    grid-template-rows: 1fr;
+  }
+
+  .collapseInner {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .itemList {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0 var(--spacing-3) var(--spacing-3);
+    list-style: none;
+  }
+
+  .itemBlock {
+    padding: var(--spacing-3) 0;
+    border-top: 1px dashed var(--co-line);
+  }
+
+  .itemTitle {
+    margin: 0 0 var(--spacing-2);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--co-ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .itemRows,
+  .rows {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+  }
+
+  .itemRows {
+    gap: var(--spacing-1);
+  }
+
+  .rows {
+    gap: var(--spacing-2);
+  }
+
+  .itemRow,
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--spacing-3);
+  }
+
+  .itemRow dt,
+  .itemRow dd,
+  .row dt,
+  .row dd {
+    margin: 0;
+  }
+
+  .itemRow {
+    font-size: 0.8125rem;
+    color: var(--co-muted);
+  }
+
+  .itemRow dd,
+  .row dd {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .itemFinal {
+    padding-top: var(--spacing-1);
+    color: var(--co-ink);
     font-weight: 700;
   }
 
-  .discountValue {
-    color: var(--success-text);
+  .row {
+    font-size: 0.9375rem;
+    color: var(--co-text);
+  }
+
+  .row dd {
     font-weight: 600;
+    color: var(--co-ink);
   }
 
-  .promoRow .label {
-    color: var(--secondary-text);
+  .saving,
+  .saving dd {
+    color: var(--co-saving);
   }
 
-  .promoValue {
-    color: var(--secondary-text);
-    font-weight: 600;
+  .saving dd {
+    font-weight: 700;
   }
 
-  .autoOfferNote {
+  .code {
+    margin-left: var(--spacing-2);
+    padding: 0 6px;
+    border: 1px dashed var(--co-line);
+    border-radius: var(--radius-sm);
+    background-color: var(--co-surface);
+    color: var(--co-ink);
+    font-family: var(--font-family-monospace);
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .payable {
+    padding: var(--spacing-3) var(--spacing-4);
+    border: 1px solid var(--co-lavender-line);
+    border-radius: var(--radius-md);
+    background-color: var(--co-lavender);
+  }
+
+  .payableRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-3);
+  }
+
+  .payableLabel {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--co-ink);
+  }
+
+  .payableValue {
+    font-family: var(--font-family-heading);
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--co-ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .taxNote {
+    margin: 2px 0 0;
+    font-size: 0.75rem;
+    color: var(--co-lavender-ink);
+    text-align: right;
+  }
+
+  .savingsNote {
     display: flex;
     align-items: center;
-    gap: var(--spacing-1);
-    margin: calc(var(--spacing-2) * -1) 0 0 0;
+    gap: var(--spacing-2);
+    margin: calc(var(--spacing-2) * -1) 0 0;
+    padding: var(--spacing-2) var(--spacing-3);
+    border: 1px solid var(--co-mint-line);
+    border-radius: var(--radius);
+    background-color: var(--co-mint);
+    color: var(--co-mint-ink);
     font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--success-text);
+    font-weight: 700;
   }
 
-  .offerReplacedNote {
-    margin: 0 0 var(--spacing-3) 0;
+  .savingsNote svg {
+    flex-shrink: 0;
+  }
+
+  .promoSection {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+    padding-top: var(--spacing-4);
+    border-top: 1px solid var(--co-line);
+  }
+
+  .blockedNote {
+    margin: 0;
+    padding: var(--spacing-2) var(--spacing-3);
+    border: 1px solid color-mix(in srgb, var(--error) 40%, transparent);
+    border-radius: var(--radius-md);
+    background-color: color-mix(in srgb, var(--error) 8%, var(--co-card));
+    color: var(--error-text);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.45;
+  }
+
+  .offerNote {
+    margin: 0;
     padding: var(--spacing-2) var(--spacing-3);
     border-radius: var(--radius);
-    border: 1px solid var(--border);
-    background-color: var(--muted);
-    color: var(--foreground);
+    background-color: var(--co-surface);
+    border: 1px solid var(--co-line);
+    color: var(--co-text);
     font-size: 0.8125rem;
     line-height: 1.45;
   }
 
-  .separator {
-    height: 1px;
-    background-color: var(--border);
-    margin: var(--spacing-2) 0;
-  }
-
-  .totalRow {
-    margin-top: var(--spacing-1);
-  }
-
-  .totalLabel {
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: var(--foreground);
-  }
-
-  .totalValue {
-    font-size: 1.25rem;
-    font-weight: 800;
-    color: var(--foreground);
-  }
-
-  .taxNote {
-    font-size: 0.75rem;
-    color: var(--muted-foreground);
-    margin: 0;
-    text-align: right;
-  }
-
-  .promoSection {
-    margin: var(--spacing-6) 0;
-  }
-
   .promoToggle {
-    width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: none;
-    border: none;
+    width: 100%;
     padding: 0;
-    cursor: pointer;
-    font-family: var(--font-family-base);
+    border: none;
+    background: none;
+    color: var(--co-coral);
+    font: inherit;
     font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--tk-brand-text);
-    transition: color var(--animation-duration-fast);
+    font-weight: 600;
+    cursor: pointer;
+    transition: color var(--animation-duration-fast) ease;
   }
-  
+
   .promoToggle:hover {
-    color: var(--tk-brand-hover);
+    color: var(--co-coral-hover);
   }
 
   .promoToggleLeft {
@@ -148,83 +315,144 @@
     gap: var(--spacing-2);
   }
 
-  .promoInputWrapper {
-    margin-top: var(--spacing-3);
-  }
-
-  .pickerRow {
-    margin-top: var(--spacing-3);
-  }
-
-  .tcoinsRow {
-    margin-bottom: var(--spacing-4);
-  }
-
-  .savings {
-    margin: 0;
-    padding: var(--spacing-2) var(--spacing-3);
-    border-radius: var(--radius);
-    background-color: var(--pastel-mint);
-    color: var(--pastel-mint-ink);
-    font-size: 0.875rem;
-    font-weight: 700;
-    text-align: center;
-  }
-  
-  /* Override PromoCodeInput styles to fit better */
   .promoInput :global(input) {
     height: 2.25rem;
     font-size: 0.875rem;
   }
-  
+
   .promoInput :global(button) {
     height: 2.25rem;
     padding: 0 var(--spacing-3);
   }
 
   .walletSection {
-    margin-top: var(--spacing-4);
-    margin-bottom: var(--spacing-4);
-    padding: var(--spacing-4);
-    background-color: var(--muted);
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
+    padding: var(--spacing-3) var(--spacing-4) var(--spacing-4);
+    border: 1px solid var(--co-line);
+    border-radius: var(--radius-md);
+    background-color: var(--co-surface);
   }
 
   .walletHeader {
     display: flex;
     align-items: center;
     gap: var(--spacing-2);
-    font-weight: 600;
-    color: var(--foreground);
     margin-bottom: var(--spacing-3);
+    font-weight: 700;
+    color: var(--co-ink);
   }
 
-  .walletButton {
-    width: 100%;
-    font-size: 1rem;
-    font-weight: 600;
-  }
-
-  .insufficientBalance {
-    font-size: 0.875rem;
-    color: var(--muted-foreground);
-    text-align: center;
-  }
-
+  .walletButton,
   .checkoutButton {
     width: 100%;
     font-size: 1rem;
-    font-weight: 600;
+    font-weight: 700;
+  }
+
+  .insufficientBalance {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--co-muted);
+    text-align: center;
   }
 
   .securityNote {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: var(--spacing-2);
-    margin-top: var(--spacing-4);
-    color: var(--muted-foreground);
+    gap: var(--spacing-1);
+    margin: calc(var(--spacing-2) * -1) 0 0;
+    color: var(--co-muted);
     font-size: 0.75rem;
   }
+
+  .spinner {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .collapse,
+    .chevron {
+      transition: none;
+    }
+
+    .spinner {
+      animation: none;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .container {
+      padding: var(--spacing-4);
+    }
+
+    .payableValue {
+      font-size: 1.375rem;
+    }
+  }
+}
+
+/* Outside the layer so it wins over Button's own (layered) variant colours. */
+.ctaButton {
+  background-color: var(--co-cta);
+  border-color: var(--co-cta);
+  color: var(--co-cta-ink);
+  box-shadow: 0 1px 2px hsl(20 40% 30% / 0.12);
+}
+
+.ctaButton:hover:not(:disabled) {
+  background-color: var(--co-cta-hover);
+  border-color: var(--co-cta-hover);
+  color: var(--co-cta-ink);
+}
+
+.ctaButton:active:not(:disabled) {
+  background-color: var(--co-cta-active);
+  border-color: var(--co-cta-active);
+  transform: translateY(1px);
+}
+
+.ctaButton:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--co-card),
+    0 0 0 4px var(--co-focus);
+}
+
+.ctaButton:disabled {
+  background-color: var(--co-cta-disabled);
+  border-color: var(--co-cta-disabled);
+  color: var(--co-cta-disabled-ink);
+  box-shadow: none;
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  background-color: var(--co-card);
+  border-color: var(--co-line);
+  color: var(--co-ink);
+}
+
+.secondaryButton:hover:not(:disabled) {
+  background-color: var(--co-blue);
+  border-color: var(--co-line);
+  color: var(--co-blue-ink);
+}
+
+.secondaryButton:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--co-card),
+    0 0 0 4px var(--co-focus);
+}
+
+.secondaryButton:disabled {
+  background-color: var(--co-surface);
+  color: var(--co-muted);
+  opacity: 1;
+  cursor: not-allowed;
 }
