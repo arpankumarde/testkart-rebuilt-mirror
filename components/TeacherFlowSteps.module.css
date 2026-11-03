@@ -1,0 +1,209 @@
+/* Equal steps, each with a bar on top: sage when done, coral for the current
+   step, a plain line for the ones still ahead. A step with data-tone uses its
+   own colour for both instead (see the tone rules at the end). */
+.track {
+  width: 100%;
+}
+
+.list {
+  display: grid;
+  grid-template-columns: repeat(var(--step-count, 4), minmax(0, 1fr));
+  gap: var(--spacing-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  min-width: 0;
+  border-top: 4px solid var(--tc-line-strong, var(--border));
+  border-radius: 2px;
+}
+
+.step[data-state="done"] {
+  border-top-color: var(--fc-sage-edge);
+}
+
+.step[data-state="current"] {
+  border-top-color: var(--tk-brand);
+}
+
+.stepInner {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  width: 100%;
+  padding: var(--spacing-3) var(--spacing-1) 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+}
+
+a.stepInner,
+button.stepInner {
+  cursor: pointer;
+}
+
+a.stepInner:hover .label,
+button.stepInner:hover .label {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+button.stepInner[aria-current="step"] {
+  cursor: default;
+}
+
+button.stepInner[aria-current="step"]:hover .label {
+  text-decoration: none;
+}
+
+a.stepInner:focus-visible,
+button.stepInner:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.dot {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  border: 2px solid var(--tc-line-strong, var(--border));
+  background-color: var(--tc-card, var(--surface));
+  color: var(--tc-muted, var(--muted-foreground));
+}
+
+.step[data-state="done"] .dot {
+  border-color: var(--fc-sage-edge);
+  background-color: var(--fc-sage-tint);
+  color: var(--fc-sage-ink);
+}
+
+.step[data-state="current"] .dot {
+  border-color: var(--tk-brand);
+  background-color: var(--tk-brand);
+  color: var(--tk-brand-ink);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--tc-ink, var(--foreground));
+}
+
+.step[data-state="todo"] .label {
+  color: var(--tc-muted, var(--muted-foreground));
+}
+
+.hint {
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--tc-muted, var(--muted-foreground));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+/* Toned steps, the /app page palette: done is the tint with an edge ring and a
+   check, current is a solid ink dot with tint numerals and an ink label. Ink on
+   tint holds contrast in both themes because the tokens swap together. */
+.step[data-tone="lavender"] {
+  --step-tint: var(--sp-lavender-tint);
+  --step-edge: var(--sp-lavender-edge);
+  --step-ink: var(--sp-lavender-ink);
+}
+
+.step[data-tone="mint"] {
+  --step-tint: var(--fc-mint-tint);
+  --step-edge: var(--fc-mint-edge);
+  --step-ink: var(--fc-mint-ink);
+}
+
+.step[data-tone="butter"] {
+  --step-tint: var(--fc-butter-tint);
+  --step-edge: var(--fc-butter-edge);
+  --step-ink: var(--fc-butter-ink);
+}
+
+.step[data-tone="peach"] {
+  --step-tint: var(--fc-peach-tint);
+  --step-edge: var(--fc-peach-edge);
+  --step-ink: var(--fc-peach-ink);
+}
+
+.step[data-tone="blue"] {
+  --step-tint: var(--fc-blue-tint);
+  --step-edge: var(--fc-blue-edge);
+  --step-ink: var(--fc-blue-ink);
+}
+
+.step[data-tone][data-state="done"],
+.step[data-tone][data-state="current"] {
+  border-top-color: var(--step-edge);
+}
+
+.step[data-tone][data-state="done"] .dot {
+  border-color: var(--step-edge);
+  background-color: var(--step-tint);
+  color: var(--step-ink);
+}
+
+.step[data-tone][data-state="current"] .dot {
+  border-color: var(--step-ink);
+  background-color: var(--step-ink);
+  color: var(--step-tint);
+}
+
+.step[data-tone][data-state="current"] .label {
+  color: var(--step-ink);
+}
+
+@media (max-width: 720px) {
+  .hint {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .list {
+    gap: var(--spacing-1);
+  }
+
+  .stepInner {
+    flex-direction: column;
+    gap: var(--spacing-1);
+    padding-top: var(--spacing-2);
+    text-align: center;
+  }
+
+  .label {
+    font-size: 0.75rem;
+  }
+}

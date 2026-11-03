@@ -123,6 +123,8 @@ export async function handle(request: Request): Promise<Response> {
         "reviews.id",
         "reviews.rating",
         "reviews.reviewText",
+        "reviews.teacherReply",
+        "reviews.teacherRepliedAt",
         "reviews.createdAt",
         "reviews.userId",
         "users.displayName as reviewerName",

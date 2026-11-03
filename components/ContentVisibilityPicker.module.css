@@ -87,6 +87,18 @@
   color: var(--tk-brand-text);
 }
 
+/* In the test series flow (tk-flow) the radio and Default tag use the flow's
+   blue selection colour instead of orange; elsewhere they keep the brand. */
+:global(.tk-flow) .radio {
+  --primary: var(--fc-blue-edge);
+}
+
+:global(.tk-flow) .defaultTag {
+  border-color: var(--fc-blue-line);
+  background-color: var(--fc-blue-tint);
+  color: var(--fc-blue-ink);
+}
+
 .lockedTag {
   border: 1px solid var(--warning);
   background-color: var(--card);

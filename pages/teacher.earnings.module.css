@@ -1,3 +1,75 @@
+.firstSteps {
+  padding: 1.75rem;
+  background-color: var(--tc-card);
+  border: 1px solid var(--tc-line);
+  border-radius: var(--tc-radius-card);
+}
+
+.firstStepsTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--tc-ink);
+}
+
+.firstStepsText {
+  margin: 0.375rem 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--tc-muted);
+}
+
+/* A real sequence, so the numbers carry meaning. */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.steps li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 1rem;
+  background-color: var(--tc-bg);
+  border: 1px solid var(--tc-line);
+  border-radius: 0.875rem;
+  counter-increment: step;
+}
+
+.steps li::before {
+  content: counter(step);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-bottom: 0.25rem;
+  border-radius: 999px;
+  background-color: var(--tc-panel);
+  color: var(--tc-panel-ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.stepName {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--tc-ink);
+}
+
+.stepDetail {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--tc-muted);
+}
 /* The console shell. No padding of its own - TeacherDashboardLayout's
    .pageBody owns the gutter - and the page gap spaces the panels. It is also
    the container the summary row sizes itself against. */
@@ -53,10 +125,10 @@
 }
 
 /*
- * The page's one coral thing, in TeacherCtaBanner's clothes: flat --tk-brand
- * with --tk-brand-ink for everything on it (6.2:1), fixed in both themes. It
- * holds the balance and the two things a teacher does with it - withdraw, and
- * open the bank account it goes to. The account itself stays off the page.
+ * The console's money panel, the same pine block as the Overview's: panel ink
+ * for the figures, panel text for notes, and Withdraw as the page's one coral
+ * action. It holds the balance and the two things a teacher does with it -
+ * withdraw, and open the bank account it goes to. The account stays off the page.
  */
 .balance {
   display: flex;
@@ -64,10 +136,9 @@
   justify-content: space-between;
   gap: var(--spacing-6);
   padding: var(--spacing-6);
-  background-color: var(--tk-brand);
-  color: var(--tk-brand-ink);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
+  background-color: var(--tc-panel);
+  color: var(--tc-panel-ink);
+  border-radius: var(--tc-radius-panel);
 }
 
 .balanceHead {
@@ -82,7 +153,7 @@
   font-family: var(--font-family-base);
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--tk-brand-ink);
+  color: var(--tc-panel-text);
 }
 
 /* Sized off the page's width, so it grows on a wide console and still fits a
@@ -96,24 +167,23 @@
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1.05;
-  color: var(--tk-brand-ink);
+  color: var(--tc-panel-ink);
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
 
-/* Full-strength ink - small type on coral needs the whole 6.2:1. */
 .balanceNote {
   margin: var(--spacing-1) 0 0;
   max-width: 46ch;
   font-size: 0.8125rem;
   line-height: 1.5;
-  color: var(--tk-brand-ink);
+  color: var(--tc-panel-text);
 }
 
-/* A deeper coral, not the grey kit skeleton, which reads as a hole in the block. */
+/* The panel's muted tone, not the grey kit skeleton, which reads as a hole in the block. */
 .balance .balanceSkeleton,
 .balance .statusSkeleton {
-  background-color: hsl(20 90% 62%);
+  background-color: var(--tc-panel-muted);
 }
 
 .balance .balanceSkeleton {
@@ -136,7 +206,7 @@
   justify-content: space-between;
   gap: var(--spacing-4);
   padding-top: var(--spacing-4);
-  border-top: 1px solid var(--tk-brand-ink);
+  border-top: 1px solid var(--tc-panel-muted);
 }
 
 .bankStatus {
@@ -149,7 +219,7 @@
   font-size: 0.875rem;
   font-weight: 600;
   line-height: 1.45;
-  color: var(--tk-brand-ink);
+  color: var(--tc-panel-ink);
 }
 
 .bankStatus svg {
@@ -179,18 +249,21 @@
   height: 1.125rem;
 }
 
-/* The darkest thing on the block, so the eye lands on it. A white fill would
-   separate from the coral at only 2.1:1. */
+/* Coral with the console's ledge: the one primary action on the page. */
 .balance .withdrawButton {
-  background-color: var(--tk-brand-ink);
+  background-color: var(--tk-brand);
   border-color: var(--tk-brand-ink);
-  color: #fff;
+  border-width: 1px;
+  box-shadow: var(--tc-cta-ledge);
+  color: var(--tk-brand-ink);
 }
 
 .balance .withdrawButton:hover:not(:disabled) {
-  background-color: var(--tk-brand-ink-hover);
-  border-color: var(--tk-brand-ink-hover);
-  color: #fff;
+  background-color: var(--tk-brand);
+  border-color: var(--tk-brand-ink);
+  color: var(--tk-brand-ink);
+  box-shadow: 0 4px 0 var(--tk-brand-ink);
+  transform: translateY(-1px);
 }
 
 /* Unavailable reads as an empty dashed slot in full ink, not a faded button -
@@ -198,33 +271,33 @@
 .balance .withdrawButton:disabled {
   opacity: 1;
   background-color: transparent;
+  border-width: 2px;
   border-style: dashed;
-  border-color: var(--tk-brand-ink);
-  color: var(--tk-brand-ink);
+  border-color: var(--tc-panel-muted);
+  box-shadow: none;
+  color: var(--tc-panel-ink);
 }
 
-/* Button's outline variant is keyed to --primary, which is this coral - it
-   would vanish. Ink outline, and a white fill on hover. */
+/* Button's outline variant is keyed to --primary; on pine it takes the panel ink instead. */
 .balance .bankButton {
   background-color: transparent;
-  border-color: var(--tk-brand-ink);
-  color: var(--tk-brand-ink);
+  border-color: var(--tc-panel-muted);
+  color: var(--tc-panel-ink);
 }
 
 .balance .bankButton:hover {
-  background-color: #fff;
-  border-color: var(--tk-brand-ink);
-  color: var(--tk-brand-ink);
+  background-color: transparent;
+  border-color: var(--tc-panel-ink);
+  color: var(--tc-panel-ink);
 }
 
-/* Button's ring is --background then --primary; the second is the coral itself
-   and disappears here. Ink outside a coral gap instead. */
+/* Button's ring is --background then --primary; on pine, a panel-ink ring outside a pine gap. */
 .balance .withdrawButton:focus-visible,
 .balance .bankButton:focus-visible {
   outline: none;
   box-shadow:
-    0 0 0 2px var(--tk-brand),
-    0 0 0 4px var(--tk-brand-ink);
+    0 0 0 2px var(--tc-panel),
+    0 0 0 4px var(--tc-panel-ink);
 }
 
 /* Totals: a ruled ledger, label left and figure right. */
@@ -291,9 +364,10 @@
 
 .error {
   padding: var(--spacing-3) var(--spacing-4);
-  border: 1px solid color-mix(in srgb, var(--error) 30%, transparent);
+  border: 1px solid var(--error-text);
+  border-left-width: 4px;
   border-radius: var(--radius);
-  background-color: color-mix(in srgb, var(--error) 10%, transparent);
+  background-color: var(--sp-card);
   color: var(--error-text);
   font-size: 0.875rem;
 }
@@ -377,33 +451,33 @@
 }
 
 .sale {
-  background-color: color-mix(in srgb, var(--success) 15%, transparent);
-  color: var(--success-text);
+  background-color: var(--fc-sage-tint);
+  color: var(--fc-sage-ink);
 }
 
 .withdrawal {
-  background-color: color-mix(in srgb, var(--warning) 18%, transparent);
-  color: var(--warning-text);
+  background-color: var(--fc-butter-tint);
+  color: var(--fc-butter-ink);
 }
 
 .sponsored {
-  background-color: color-mix(in srgb, var(--info) 15%, transparent);
-  color: var(--info-text);
+  background-color: var(--fc-blue-tint);
+  color: var(--fc-blue-ink);
 }
 
 .prize_deduction {
-  background-color: color-mix(in srgb, var(--error) 12%, transparent);
-  color: var(--error-text);
+  background-color: var(--fc-peach-tint);
+  color: var(--fc-peach-ink);
 }
 
 .subscription {
-  background-color: color-mix(in srgb, var(--chart-color-5) 18%, transparent);
-  color: color-mix(in srgb, var(--chart-color-5), var(--foreground) 60%);
+  background-color: var(--sp-lavender-tint);
+  color: var(--sp-lavender-ink);
 }
 
 .refunded {
-  background-color: color-mix(in srgb, var(--error) 12%, transparent);
-  color: var(--error-text);
+  background-color: var(--error-text);
+  color: var(--sp-card);
 }
 
 .campaign_bonus {

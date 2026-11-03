@@ -56,13 +56,13 @@
 .screen {
   position: relative;
   overflow: hidden;
-  aspect-ratio: 9 / 16;
+  aspect-ratio: 9 / 18;
   border-radius: 2.15em;
   background: #15110f;
 }
 
-/* The screenshots run 720 x 1259-1285, within 1.7% of 9:16, so filling the
-   screen shows every pixel with no crop and no visible stretch. */
+/* The screenshots are 1080 x 2160, exactly 9:18, so filling the screen shows
+   every pixel with no crop and no stretch. */
 .shot {
   display: block;
   width: 100%;

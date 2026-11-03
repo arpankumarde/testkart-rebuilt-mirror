@@ -277,7 +277,7 @@ const TeacherAssetsPage: React.FC = () => {
           </TeacherListToolbar>
         )}
 
-        <main className={styles.content}>{renderContent()}</main>
+        <div className={styles.content}>{renderContent()}</div>
       </div>
 
       <TeacherAssetUpload open={isUploadOpen} onOpenChange={setUploadOpen} />

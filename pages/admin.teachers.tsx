@@ -43,6 +43,7 @@ import {
   LockOpen,
   ShieldCheck,
   Handshake,
+  Link2,
 } from "lucide-react";
 import { VerifiedBadge } from "../components/VerifiedBadge";
 import { useAdminOptionsQuery } from "../helpers/useAdminOptions";
@@ -54,6 +55,7 @@ import { useAdminToggleVerifiedMutation } from "../helpers/useAdminToggleVerifie
 import { useAdminToggleTeacherDrmMutation } from "../helpers/useAdminToggleTeacherDrm";
 import { TeacherProfileDialog } from "../components/TeacherProfileDialog";
 import { AdminAccountStatusDialog, AccountStatusTarget } from "../components/AdminAccountStatusDialog";
+import { AdminLoginLinkDialog, LoginLinkTarget } from "../components/AdminLoginLinkDialog";
 import { formatIstDateTime } from "../helpers/accountStatus";
 import { TeacherAdminView } from "../endpoints/admin/teachers/list_GET.schema";
 import styles from "./admin.teachers.module.css";
@@ -198,6 +200,7 @@ const AdminTeachersPage: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [selectedTeacher, setSelectedTeacher] = useState<TeacherAdminView | null>(null);
   const [statusTarget, setStatusTarget] = useState<AccountStatusTarget | null>(null);
+  const [linkTarget, setLinkTarget] = useState<LoginLinkTarget | null>(null);
   const [verifyTarget, setVerifyTarget] = useState<{ id: number; name: string; isVerified: boolean } | null>(null);
   const [drmTarget, setDrmTarget] = useState<{ id: number; name: string; drmEnabled: boolean } | null>(null);
   const [managerFilter, setManagerFilter] = useState("all");
@@ -381,6 +384,13 @@ const AdminTeachersPage: React.FC = () => {
             }
           >
             <Handshake size={16} /> Change relationship manager
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className={styles.menuItem}
+            disabled={teacher.accountStatus !== "active"}
+            onSelect={() => setLinkTarget({ id: teacher.id, name: teacher.fullName, role: "teacher" })}
+          >
+            <Link2 size={16} /> Sign-in link
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
@@ -633,6 +643,7 @@ const AdminTeachersPage: React.FC = () => {
       />
 
       <AdminAccountStatusDialog target={statusTarget} onClose={() => setStatusTarget(null)} />
+      <AdminLoginLinkDialog target={linkTarget} onClose={() => setLinkTarget(null)} />
 
       <ConsoleConfirmDialog
         open={!!verifyTarget}

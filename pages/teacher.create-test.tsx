@@ -1,13 +1,12 @@
 import { Helmet } from "react-helmet";
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useTeacherBulkMutations } from "../helpers/useTeacherBulkMutations";
 import { useAuth } from "../helpers/useAuth";
-import { AIContentPrompt } from "../components/AIContentPrompt";
+import { TeacherAIFillPanel } from "../components/TeacherAIFillPanel";
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
 import { Textarea } from "../components/Textarea";
-import { Checkbox } from "../components/Checkbox";
 import { ExamMultiPicker } from "../components/ExamMultiPicker";
 import { LanguageMultiPicker } from "../components/LanguageMultiPicker";
 import { itemLanguages } from "../helpers/itemLanguages";
@@ -18,7 +17,8 @@ import { AIRewriteButton } from "../components/AIRewriteButton";
 import { AIListGenerateButton } from "../components/AIListGenerateButton";
 import { RichTextEditor } from "../components/RichTextEditor";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "../components/Collapsible";
-import { X, Plus, ChevronDown, ArrowLeft } from "lucide-react";
+import { TestSeriesSteps } from "../components/TestSeriesSteps";
+import { X, Plus, Minus, ChevronDown } from "lucide-react";
 import {
   Form,
   FormItem,
@@ -32,14 +32,16 @@ import { schema } from "../endpoints/teacher/tests/create-with-items_POST.schema
 import { z } from "zod";
 import styles from "./teacher.create-test.module.css";
 
+const QUICK_TEST_COUNTS = [1, 5, 10, 20];
+
 export default function CreateTestPage() {
   const navigate = useNavigate();
   const { authState } = useAuth();
   const user = authState.type === "authenticated" ? authState.user : null;
   const teacherName = user?.displayName;
 
-  const [showAIPrompt, setShowAIPrompt] = useState(true);
-  const [showForm, setShowForm] = useState(false);
+  // The form is always on screen; AI only fills it when asked.
+  const showForm = true;
   const [aiData, setAiData] = useState<any>(null);
   const [languages, setLanguages] = useState<string[]>([]);
   const [isStorefrontOpen, setIsStorefrontOpen] = useState(false);
@@ -124,32 +126,16 @@ export default function CreateTestPage() {
     });
   };
 
-  if (showAIPrompt) {
-    return (
-      <>
-        <Helmet>
-          <title>Create a test series - Testkart for Teachers</title>
-        </Helmet>
-        <AIContentPrompt
-          contentType="test"
-          teacherName={teacherName}
-          onGenerated={(data) => {
-            setAiData(data);
-            setShowAIPrompt(false);
-            setShowForm(true);
-          }}
-          onSkip={() => {
-            setShowAIPrompt(false);
-            setShowForm(true);
-          }}
-        />
-      </>
-    );
-  }
-
-  if (!showForm) return null;
-
   const itemCount = Number(form.values.itemCount) || 0;
+  const setItemCount = (next: number) =>
+    form.setValues((prev) => ({ ...prev, itemCount: Math.min(50, Math.max(1, next)) }));
+  const setFree = (isFree: boolean) =>
+    form.setValues((p) => ({
+      ...p,
+      isFree,
+      price: isFree ? 0 : p.price,
+      discountPrice: isFree ? null : p.discountPrice,
+    }));
 
   return (
     <>
@@ -160,19 +146,15 @@ export default function CreateTestPage() {
           content="Build and customize a new mock test series for your students on Testkart."
         />
       </Helmet>
-      <div className={styles.container}>
-        <Link to="/teacher/test-series" className={styles.backLink}>
-          <ArrowLeft size={15} aria-hidden="true" />
-          Test series
-        </Link>
+      <div className={`${styles.container} tk-flow`}>
+        <TestSeriesSteps current="details" back="/teacher/test-series" />
 
-        <div className={styles.header}>
-          <h1 className={styles.title}>Create a test series</h1>
-          <p className={styles.subtitle}>
-            Set up the series details here. You will add the individual tests and their questions in
-            the next step.
-          </p>
-        </div>
+        <TeacherAIFillPanel
+          contentType="test"
+          fills="title, description, exam, language and price"
+          placeholder="e.g., 20 full mocks for SSC CGL Tier 1 in English and Hindi, latest pattern"
+          onGenerated={setAiData}
+        />
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className={styles.form}>
@@ -240,28 +222,27 @@ export default function CreateTestPage() {
               </div>
 
               <FormItem name="isFree">
-                <div className={styles.freeToggle}>
-                  <Checkbox
-                    id="isFree"
-                    checked={form.values.isFree}
-                    onChange={(e) => {
-                      const isChecked = e.target.checked;
-                      form.setValues((p) => ({
-                        ...p,
-                        isFree: isChecked,
-                        price: isChecked ? 0 : p.price,
-                        discountPrice: isChecked ? null : p.discountPrice
-                      }));
-                    }}
-                  />
-                  <span className={styles.freeToggleText}>
-                    <label htmlFor="isFree" className={styles.freeToggleLabel}>
-                      Give this series away free
-                    </label>
-                    <span className={styles.freeToggleHint}>
-                      Sets the price and discount to zero. Good for building an audience.
-                    </span>
-                  </span>
+                <div className={styles.choiceGroup} role="radiogroup" aria-label="Pricing">
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={!form.values.isFree}
+                    className={styles.choice}
+                    onClick={() => setFree(false)}
+                  >
+                    <span className={styles.choiceTitle}>Paid</span>
+                    <span className={styles.choiceHint}>Students buy the series</span>
+                  </button>
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={form.values.isFree}
+                    className={styles.choice}
+                    onClick={() => setFree(true)}
+                  >
+                    <span className={styles.choiceTitle}>Free</span>
+                    <span className={styles.choiceHint}>Good for building an audience</span>
+                  </button>
                 </div>
                 <FormMessage />
               </FormItem>
@@ -313,25 +294,63 @@ export default function CreateTestPage() {
 
               <FormItem name="itemCount">
                 <FormLabel>Number of tests</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={50}
-                    value={form.values.itemCount}
-                    onChange={(e) => {
-                      const val = parseInt(e.target.value, 10);
-                      form.setValues((prev) => ({
-                        ...prev,
-                        itemCount: isNaN(val) ? ("" as any) : val,
-                      }));
-                    }}
-                  />
-                </FormControl>
+                <div className={styles.countRow}>
+                  <div className={styles.counter}>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-md"
+                      onClick={() => setItemCount(itemCount - 1)}
+                      disabled={itemCount <= 1}
+                      aria-label="One test fewer"
+                    >
+                      <Minus size={16} />
+                    </Button>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={50}
+                        className={styles.counterInput}
+                        value={form.values.itemCount}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value, 10);
+                          form.setValues((prev) => ({
+                            ...prev,
+                            itemCount: isNaN(val) ? ("" as any) : val,
+                          }));
+                        }}
+                      />
+                    </FormControl>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-md"
+                      onClick={() => setItemCount(itemCount + 1)}
+                      disabled={itemCount >= 50}
+                      aria-label="One test more"
+                    >
+                      <Plus size={16} />
+                    </Button>
+                  </div>
+                  <div className={styles.quickCounts} aria-label="Quick picks">
+                    {QUICK_TEST_COUNTS.map((n) => (
+                      <button
+                        key={n}
+                        type="button"
+                        className={styles.quickCount}
+                        aria-pressed={itemCount === n}
+                        onClick={() => setItemCount(n)}
+                      >
+                        {n}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <FormDescription>
                   We will create {itemCount > 0 ? itemCount : "these"}{" "}
-                  {itemCount === 1 ? "empty test" : "empty tests"} for you to fill in next. You can
-                  add more later.
+                  {itemCount === 1 ? "empty test" : "empty tests"}, named Test 1, Test 2 and so on.
+                  You can rename them and add more later.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -576,7 +595,7 @@ export default function CreateTestPage() {
             <div className={styles.actions}>
               <p className={styles.actionsNote}>Nothing goes live until you publish it.</p>
               <Button type="submit" disabled={createTestMutation.isPending}>
-                {createTestMutation.isPending ? "Creating..." : "Create and add tests"}
+                {createTestMutation.isPending ? "Creating..." : "Next: Add tests"}
               </Button>
             </div>
           </form>

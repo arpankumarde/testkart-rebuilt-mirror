@@ -10,6 +10,8 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '.
 import { Checkbox } from './Checkbox';
 import { Switch } from './Switch';
 import { Spinner } from './Spinner';
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from './Collapsible';
+import { TeacherFlowSteps, type TeacherFlowStep } from './TeacherFlowSteps';
 import { FileUploader } from './FileUploader';
 import { ExamMultiPicker } from './ExamMultiPicker';
 import { LanguageMultiPicker } from './LanguageMultiPicker';
@@ -29,11 +31,12 @@ import { DIGITAL_PRODUCT_CATEGORIES, filePreviewError, isRealFileUrl, PDF_UNREAD
 import { checkStudyNotesPdf } from '../helpers/studyNotesPdfCheck';
 import { schema as createSchema } from '../endpoints/teacher/products/create_POST.schema';
 import { postTeacherProductsPdfPageCount, PdfRejectedError } from '../endpoints/teacher/products/pdf-page-count_POST.schema';
-import { Plus, GripVertical, ArrowUp, ArrowDown, X, Eye, Sparkles, AlertTriangle, AlertCircle, CheckCircle, FileText, RefreshCw } from 'lucide-react';
+import { Plus, GripVertical, ArrowUp, ArrowDown, X, Eye, Sparkles, AlertTriangle, AlertCircle, CheckCircle, FileText, RefreshCw, ChevronDown, Upload } from 'lucide-react';
 import { AIRewriteButton } from './AIRewriteButton';
 import { WithdrawReviewButton } from './WithdrawReviewButton';
 import { ContentVisibilityPanel } from './ContentVisibilityPanel';
 import { ContentExpiryPanel } from './ContentExpiryPanel';
+import type { ContentVisibility } from '../helpers/schema';
 import { useAdminContentEdit } from '../helpers/useAdminContentEdit';
 import { noEmoji } from '../helpers/emojiText';
 import { productDiscountError, productDiscountPercent } from '../helpers/digitalProductPricing';
@@ -43,6 +46,8 @@ import styles from './ProductStepForm.module.css';
 
 interface ProductStepFormProps {
   productId?: number;
+  /** Create only: the visibility chosen above the form, sent with the new draft. */
+  visibility?: ContentVisibility;
   aiInitialValues?: {
     title?: string;
     shortDescription?: string;
@@ -108,6 +113,8 @@ const FIELD_LABELS: Record<string, string> = {
 };
 
 const FILES_TAB_FIELDS = new Set(['files', 'pageCount', 'allowDownload']);
+// Optional fields the teacher form folds under "More details".
+const MORE_DETAILS_FIELDS = new Set(['shortDescription', 'tagsString']);
 
 // What counts as an unsaved change. Page counts are left out because they
 // are filled in in the background after load.
@@ -135,11 +142,14 @@ const generateClientKey = () =>
     ? crypto.randomUUID()
     : `f_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 
-export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiInitialValues }) => {
+export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, visibility, aiInitialValues }) => {
   const navigate = useNavigate();
   const isEditMode = !!productId;
   // Inside the admin panel the form only saves; status changes stay on the admin preview page.
   const adminEdit = useAdminContentEdit();
+  // Teachers get the step track, Paid/Free cards and folded optional fields;
+  // the admin editor keeps its tabs and checkbox.
+  const guided = !adminEdit;
   const exitTo = adminEdit?.exitTo ?? '/teacher/products';
 
   const [isSubmittingAction, setIsSubmittingAction] = useState<'save' | 'publish' | null>(null);
@@ -150,6 +160,8 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
   const [extractedPdfText, setExtractedPdfText] = useState<string | null>(null);
   // Edit mode only. Opens on Files for a product with nothing uploaded yet.
   const [activeStepTab, setActiveStepTab] = useState<'details' | 'files'>('details');
+  const [moreDetailsOpen, setMoreDetailsOpen] = useState(false);
+  const actionsRef = useRef<HTMLDivElement>(null);
   // The prices typed before "Keep this free" was ticked, restored when unticked.
   const lastPriceRef = useRef<number>(0);
   const lastDiscountRef = useRef<number | null>(null);
@@ -157,6 +169,19 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
   // price input even while the price is still 0.
   const [isFreeChecked, setIsFreeChecked] = useState(true);
   const [replacing, setReplacing] = useState<{ clientKey: string; progress: number; checking: boolean; status?: UploadStatus } | null>(null);
+  // Rows whose first PDF is still being checked or uploaded. Saving now would
+  // drop them, so saving waits and leaving asks first.
+  const [uploadingKeys, setUploadingKeys] = useState<ReadonlySet<string>>(() => new Set());
+  const setRowUploading = useCallback((key: string, busy: boolean) => {
+    setUploadingKeys((prev) => {
+      if (prev.has(key) === busy) return prev;
+      const next = new Set(prev);
+      if (busy) next.add(key);
+      else next.delete(key);
+      return next;
+    });
+  }, []);
+  const isUploadingNew = uploadingKeys.size > 0;
   const replaceInputRef = useRef<HTMLInputElement>(null);
   const replaceKeyRef = useRef<string | null>(null);
   const formRootRef = useRef<HTMLFormElement>(null);
@@ -224,6 +249,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
       const hasRealFiles = files.some((f: any) => isRealFileUrl(f.fileUrl));
       setActiveStepTab(hasRealFiles ? 'details' : 'files');
       setIsFreeChecked(productDetails.price === 0);
+      if (productDetails.shortDescription || productDetails.tags?.length) setMoreDetailsOpen(true);
 
       const savedExamNames = getItemExamNames(productDetails);
       form.setValues({
@@ -274,6 +300,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
         // with the price that will be saved.
         setIsFreeChecked(!(suggestedPrice > 0));
         if (suggestedPrice > 0) lastPriceRef.current = suggestedPrice;
+        if (aiInitialValues.shortDescription || aiInitialValues.tags?.length) setMoreDetailsOpen(true);
       }
       setIsFormInitialized(true);
     }
@@ -536,8 +563,10 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
   const isDirty = baselineRef.current !== null && snapshotValues(form.values, isFreeChecked) !== baselineRef.current;
   const isSubmitting = createProductMutation.isPending || updateProductMutation.isPending || publishProductMutation.isPending || isSubmittingAction !== null;
   const guard = useUnsavedChangesGuard(
-    isDirty && !isSubmitting,
-    isEditMode
+    (isDirty && !isSubmitting) || isUploadingNew,
+    isUploadingNew
+      ? 'A PDF is still uploading. If you leave now, it is lost.'
+      : isEditMode
       ? 'Your changes on this page are not saved yet, including any PDFs you uploaded here. If you leave now, they are lost.'
       : undefined
   );
@@ -557,6 +586,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
     }
     const [field, index] = issue.path;
     if (isEditMode) setActiveStepTab(FILES_TAB_FIELDS.has(String(field)) ? 'files' : 'details');
+    if (MORE_DETAILS_FIELDS.has(String(field))) setMoreDetailsOpen(true);
     const label = field === 'files' && typeof index === 'number'
       ? `File ${index + 1}`
       : FIELD_LABELS[String(field)] ?? 'Form';
@@ -636,6 +666,12 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
       setIsSubmittingAction(null);
       navigate(exitTo);
     };
+    // A plain save keeps the teacher in the editor, so uploading files and then
+    // submitting does not mean reopening the note from the list.
+    const stayAfterSave = () => {
+      markSaved();
+      setIsSubmittingAction(null);
+    };
 
     if (isEditMode && productId) {
       updateProductMutation.mutate({ ...payload, id: productId }, {
@@ -672,7 +708,8 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
                 : adminEdit ? 'Changes saved'
                 : 'Draft saved'
             );
-            leaveAfterSave();
+            if (adminEdit) leaveAfterSave();
+            else stayAfterSave();
           }
         },
         onError: (error) => {
@@ -681,9 +718,9 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
         },
       });
     } else {
-      // Creating only collects details and starts public; files and visibility
-      // are set on the edit page next.
-      createProductMutation.mutate(payload, {
+      // Creating collects details and the chosen visibility; files are added
+      // on the edit page next.
+      createProductMutation.mutate(visibility ? { ...payload, visibility } : payload, {
         onSuccess: (data) => {
           markSaved();
           setIsSubmittingAction(null);
@@ -739,12 +776,96 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
     );
   }
 
+  const setFree = (checked: boolean) => {
+    setIsFreeChecked(checked);
+    if (checked) {
+      // Remember whatever prices were there so switching back to paid
+      // restores them instead of leaving 0 behind.
+      if (form.values.price > 0) lastPriceRef.current = form.values.price;
+      lastDiscountRef.current = form.values.discountPrice ?? null;
+      form.setValues(prev => ({ ...prev, price: 0, discountPrice: null }));
+    } else {
+      form.setValues(prev => ({
+        ...prev,
+        price: lastPriceRef.current || prev.price || 0,
+        discountPrice: lastDiscountRef.current,
+      }));
+    }
+  };
+
+  const addFileRow = () =>
+    handleFilesChange(prevFiles => [
+      ...prevFiles,
+      { clientKey: generateClientKey(), id: null, title: `File ${prevFiles.length + 1}`, fileUrl: '', fileId: null, fileSizeBytes: null, pageCount: null, previewEnabled: false, previewPages: null },
+    ]);
+
+  const shortDescriptionItem = (
+    <FormItem name="shortDescription">
+      <div className={styles.labelRow}>
+        <FormLabel>Short description</FormLabel>
+        <AIRewriteButton
+          field="shortDescription"
+          contentType="product"
+          currentValue={form.values.shortDescription || ''}
+          context={{ ...getRewriteContext(), title: form.values.title, description: form.values.description }}
+          onAccept={(suggestion) => form.setValues(prev => ({ ...prev, shortDescription: suggestion }))}
+        />
+      </div>
+      <FormControl>
+        <Input
+          placeholder="One line for the card students see (max 255 characters)"
+          value={form.values.shortDescription || ''}
+          onChange={(e) => form.setValues(prev => ({ ...prev, shortDescription: e.target.value }))}
+        />
+      </FormControl>
+      <FormMessage />
+    </FormItem>
+  );
+
+  const tagsItem = (
+    <FormItem name="tagsString">
+      <FormLabel>Tags</FormLabel>
+      <FormControl>
+        <Input
+          placeholder="e.g., physics, formulas, class 12 (comma separated)"
+          value={form.values.tagsString || ''}
+          onChange={(e) => form.setValues(prev => ({ ...prev, tagsString: e.target.value }))}
+        />
+      </FormControl>
+      <FormMessage />
+    </FormItem>
+  );
+
+  const showActions = () => {
+    actionsRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    actionsRef.current?.querySelector<HTMLButtonElement>('button:last-of-type:not(:disabled)')?.focus({ preventScroll: true });
+  };
+  // The create page draws its own track under its title.
+  const flowSteps: TeacherFlowStep[] = [
+        {
+          key: 'details', label: 'Details', hint: 'Title, exam and price',
+          state: activeStepTab === 'details' ? 'current' : readiness.required.length === 0 ? 'done' : 'todo',
+          onSelect: () => setActiveStepTab('details'),
+        },
+        {
+          key: 'files', label: 'PDFs', hint: 'Upload your files',
+          state: activeStepTab === 'files' ? 'current' : readiness.fileIssue ? 'todo' : 'done',
+          onSelect: () => setActiveStepTab('files'),
+        },
+        {
+          key: 'publish', label: 'Publish', hint: publishesDirectly ? 'Go live' : 'Send for review',
+          state: isPublished || isInReview ? 'done' : 'todo',
+          onSelect: showActions,
+        },
+      ];
+
   return (
     <div className={styles.container}>
       <Form {...form}>
         <form ref={formRootRef} onSubmit={(e) => e.preventDefault()} className={styles.pageLayout}>
           <div className={styles.mainColumn}>
-            {isEditMode && (
+            {guided && isEditMode && <TeacherFlowSteps label="Study note steps" steps={flowSteps} />}
+            {isEditMode && !guided && (
               <div className={styles.stepTabs}>
                 <button
                   type="button"
@@ -767,7 +888,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
             <div className={styles.section}>
               <FormItem name="title">
                 <div className={styles.labelRow}>
-                  <FormLabel>Product Title *</FormLabel>
+                  <FormLabel>Title</FormLabel>
                   <AIRewriteButton
                     field="title"
                     contentType="product"
@@ -786,30 +907,11 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
                 <FormMessage />
               </FormItem>
 
-              <FormItem name="shortDescription">
-                <div className={styles.labelRow}>
-                  <FormLabel>Short Description</FormLabel>
-                  <AIRewriteButton
-                    field="shortDescription"
-                    contentType="product"
-                    currentValue={form.values.shortDescription || ''}
-                    context={{ ...getRewriteContext(), title: form.values.title, description: form.values.description }}
-                    onAccept={(suggestion) => form.setValues(prev => ({ ...prev, shortDescription: suggestion }))}
-                  />
-                </div>
-                <FormControl>
-                  <Input
-                    placeholder="Brief summary for the card view (max 255 chars)"
-                    value={form.values.shortDescription || ''}
-                    onChange={(e) => form.setValues(prev => ({ ...prev, shortDescription: e.target.value }))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+              {!guided && shortDescriptionItem}
 
               <FormItem name="description">
                 <div className={styles.labelRow}>
-                  <FormLabel>Full Description *</FormLabel>
+                  <FormLabel>Description</FormLabel>
                   <AIRewriteButton
                     field="description"
                     contentType="product"
@@ -883,35 +985,45 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
                 <FormMessage />
               </FormItem>
 
+              {guided ? (
+                <div className={styles.choiceGroup} role="radiogroup" aria-label="Pricing">
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={!isFreeChecked}
+                    className={styles.choice}
+                    onClick={() => isFreeChecked && setFree(false)}
+                  >
+                    <span className={styles.choiceTitle}>Paid</span>
+                    <span className={styles.choiceHint}>Students buy this note</span>
+                  </button>
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={isFreeChecked}
+                    className={styles.choice}
+                    onClick={() => !isFreeChecked && setFree(true)}
+                  >
+                    <span className={styles.choiceTitle}>Free</span>
+                    <span className={styles.choiceHint}>Students get it at no charge</span>
+                  </button>
+                </div>
+              ) : (
               <FormItem name="isFree">
                 <div className={styles.checkboxRow}>
                   <FormControl>
                     <Checkbox
                       checked={isFreeChecked}
-                      onChange={(e) => {
-                        const checked = e.target.checked;
-                        setIsFreeChecked(checked);
-                        if (checked) {
-                          // Remember whatever prices were there so unchecking
-                          // restores them instead of leaving 0 behind.
-                          if (form.values.price > 0) lastPriceRef.current = form.values.price;
-                          lastDiscountRef.current = form.values.discountPrice ?? null;
-                          form.setValues(prev => ({ ...prev, price: 0, discountPrice: null }));
-                        } else {
-                          form.setValues(prev => ({
-                            ...prev,
-                            price: lastPriceRef.current || prev.price || 0,
-                            discountPrice: lastDiscountRef.current,
-                          }));
-                        }
-                      }}
+                      onChange={(e) => setFree(e.target.checked)}
                     />
                   </FormControl>
                   <FormLabel>Keep this free for students</FormLabel>
                 </div>
                 <FormDescription>No charge - students can get it for free instead of adding it to cart.</FormDescription>
               </FormItem>
+              )}
 
+              {!(guided && isFreeChecked) && (
               <div className={styles.grid2}>
                 <FormItem name="price">
                   <FormLabel>Original price</FormLabel>
@@ -972,20 +1084,23 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
                   )}
                 </FormItem>
               </div>
+              )}
 
-              <div>
-                <FormItem name="tagsString">
-                  <FormLabel>Tags</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="e.g., physics, formulas, class 12 (comma separated)"
-                      value={form.values.tagsString || ''}
-                      onChange={(e) => form.setValues(prev => ({ ...prev, tagsString: e.target.value }))}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              </div>
+              {guided ? (
+                <Collapsible open={moreDetailsOpen} onOpenChange={setMoreDetailsOpen} className={styles.moreDetails}>
+                  <CollapsibleTrigger className={styles.moreDetailsTrigger}>
+                    More details
+                    <span className={styles.moreDetailsHint}>Short description and tags. Optional.</span>
+                    <ChevronDown size={16} aria-hidden="true" className={styles.moreDetailsChevron} />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className={styles.moreDetailsContent}>
+                    {shortDescriptionItem}
+                    {tagsItem}
+                  </CollapsibleContent>
+                </Collapsible>
+              ) : (
+                <div>{tagsItem}</div>
+              )}
             </div>
             )}
 
@@ -994,7 +1109,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
             <div className={styles.section}>
               <div className={styles.fileList}>
                 <div className={styles.fileListHeader}>
-                  <span className={styles.fileListLabel}>Product files (PDF)</span>
+                  <span className={styles.fileListLabel}>PDF files</span>
                   <div className={styles.fileListHeaderActions}>
                     {extractedPdfText && !adminEdit && (
                       <Button
@@ -1008,22 +1123,22 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
                         Suggest details from PDF
                       </Button>
                     )}
-                    <Button type="button" variant="outline" size="sm" onClick={() => {
-                      handleFilesChange(prevFiles => [
-                        ...prevFiles,
-                        { clientKey: generateClientKey(), id: null, title: `File ${prevFiles.length + 1}`, fileUrl: '', fileId: null, fileSizeBytes: null, pageCount: null, previewEnabled: false, previewPages: null },
-                      ]);
-                    }}>
-                      <Plus size={16} /> Add File
-                    </Button>
+                    {(form.values.files || []).length > 0 && (
+                      <Button type="button" variant="outline" size="sm" onClick={addFileRow}>
+                        <Plus size={16} /> Add another PDF
+                      </Button>
+                    )}
                   </div>
                 </div>
 
                 {(form.values.files || []).length === 0 && (
                   <div className={styles.filesEmptyState}>
                     <FileText size={28} className={styles.filesEmptyStateIcon} />
-                    <p>No files uploaded yet.</p>
-                    <span>Click "Add File" above to upload your first PDF.</span>
+                    <p>No PDFs yet</p>
+                    <span>Upload the PDF students get when they buy this note. You can add more than one.</span>
+                    <Button type="button" onClick={addFileRow}>
+                      <Upload size={16} /> Upload a PDF
+                    </Button>
                   </div>
                 )}
 
@@ -1202,6 +1317,9 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
                               label={`Upload PDF (up to ${pdfMaxMb} MB, no password)`}
                               validateFile={(picked) => checkStudyNotesPdf(picked, pdfMaxMb)}
                               onError={(error) => toast.error(error.message)}
+                              onUploadingChange={(busy) => {
+                                if (clientKey) setRowUploading(clientKey, busy);
+                              }}
                               onSuccess={async (res) => {
                                 if (!res.url) return;
                                 handleFilesChange(prevFiles => prevFiles.map(f =>
@@ -1335,7 +1453,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
             {isEditMode && <ContentVisibilityPanel contentType="digital_product" contentId={productId} />}
             {isEditMode && <ContentExpiryPanel contentType="digital_product" contentId={productId} />}
 
-            <div className={styles.actionsCard}>
+            <div className={styles.actionsCard} ref={actionsRef}>
               {isPublished && (
                 <p className={styles.liveNote}>This product is live. Saving updates it for students straight away.</p>
               )}
@@ -1350,6 +1468,11 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
                   />
                 </>
               )}
+              {isUploadingNew && (
+                <p className={styles.liveNote} role="status">
+                  Saving waits until your PDF finishes uploading.
+                </p>
+              )}
               <Button type="button" variant="outline" onClick={() => guard.leave(exitTo)} disabled={isSubmitting}>
                 Cancel
               </Button>
@@ -1357,10 +1480,10 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
                 <Button
                   type="button"
                   onClick={() => handleSave('save')}
-                  disabled={!readiness.isReadyToSave || isSubmitting || replacing !== null}
+                  disabled={!readiness.isReadyToSave || isSubmitting || replacing !== null || isUploadingNew}
                 >
                   {isSubmittingAction === 'save' && <Spinner size="sm" />}
-                  {isEditMode ? 'Save changes' : <>Save &amp; Continue to Files</>}
+                  {isEditMode ? 'Save changes' : 'Next: Upload PDFs'}
                 </Button>
               ) : (
                 <>
@@ -1368,7 +1491,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
                     type="button"
                     variant="outline"
                     onClick={() => handleSave('save')}
-                    disabled={!readiness.isReadyToSave || isSubmitting || replacing !== null}
+                    disabled={!readiness.isReadyToSave || isSubmitting || replacing !== null || isUploadingNew}
                   >
                     {isSubmittingAction === 'save' && <Spinner size="sm" />}
                     {productDetails?.status === 'archived' ? 'Save changes' : 'Save as Draft'}
@@ -1376,7 +1499,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, aiI
                   <Button
                     type="button"
                     onClick={() => handleSave('publish')}
-                    disabled={!readiness.isReadyToPublish || isSubmitting || replacing !== null}
+                    disabled={!readiness.isReadyToPublish || isSubmitting || replacing !== null || isUploadingNew}
                     title={readiness.fileIssue || undefined}
                   >
                     {isSubmittingAction === 'publish' && <Spinner size="sm" />}

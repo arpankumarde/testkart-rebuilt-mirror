@@ -302,7 +302,7 @@
   width: 100%;
   max-width: 26rem;
   margin-inline: auto;
-  aspect-ratio: 1 / 0.9;
+  aspect-ratio: 1 / 0.98;
 }
 
 .featureBlob {
@@ -314,10 +314,10 @@
 }
 
 .featurePhone {
-  --phone-w: 46cqi;
+  --phone-w: 44cqi;
   position: absolute;
   top: 3%;
-  left: 27%;
+  left: 28%;
   z-index: 1;
   transform: rotate(-4deg);
 }
@@ -492,7 +492,7 @@
   width: 100%;
   max-width: 68rem;
   margin: 3rem auto 0;
-  aspect-ratio: 100 / 90;
+  aspect-ratio: 100 / 96;
 }
 
 .stageBlobLeft,
@@ -563,7 +563,7 @@
 
 @media (min-width: 640px) {
   .stage {
-    aspect-ratio: 100 / 56;
+    aspect-ratio: 100 / 58;
   }
 
   .stageBlobLeft {

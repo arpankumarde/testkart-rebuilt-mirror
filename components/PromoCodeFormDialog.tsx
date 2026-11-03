@@ -26,6 +26,17 @@ interface PromoCodeFormDialogProps {
   promoCode?: Selectable<PromoCodes> | null;
 }
 
+// Names the teacher console uses for each kind of listing. Subscription codes
+// are admin-only, so that option is never offered here.
+const APPLIES_TO_LABELS: Partial<Record<(typeof PromoCodeAppliesToArrayValues)[number], string>> = {
+  all: 'Everything I sell',
+  tests: 'Test series',
+  courses: 'Courses',
+  live_tests: 'Live tests',
+  bundles: 'Bundles',
+  digital_products: 'Notes and PDFs',
+};
+
 const formSchema = z.object({
   code: z.string().min(3, "Code must be at least 3 characters").max(50, "Code cannot exceed 50 characters").toUpperCase(),
   discountType: z.enum(DiscountTypeArrayValues),
@@ -227,7 +238,7 @@ export const PromoCodeFormDialog: React.FC<PromoCodeFormDialogProps> = ({ isOpen
           <form onSubmit={form.handleSubmit(onSubmit)} className={styles.form}>
             <div className={styles.grid}>
               <FormItem name="code">
-                <FormLabel>Promo Code</FormLabel>
+                <FormLabel>Promo code (required)</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="e.g., LAUNCH20"
@@ -240,13 +251,13 @@ export const PromoCodeFormDialog: React.FC<PromoCodeFormDialogProps> = ({ isOpen
               </FormItem>
               <div className={styles.discountFields}>
                 <FormItem name="discountType" className={styles.flexItem}>
-                  <FormLabel>Discount Type</FormLabel>
+                  <FormLabel>Discount type</FormLabel>
                   <FormControl>
                     <Select
                       value={form.values.discountType}
                       onValueChange={(v) => form.setValues((p: FormValues) => ({ ...p, discountType: v as FormValues['discountType'] }))}
                     >
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectTrigger aria-label="Discount type"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {DiscountTypeArrayValues.map(dt => (
                           <SelectItem key={dt} value={dt}>{dt.charAt(0).toUpperCase() + dt.slice(1)}</SelectItem>
@@ -257,7 +268,7 @@ export const PromoCodeFormDialog: React.FC<PromoCodeFormDialogProps> = ({ isOpen
                   <FormMessage />
                 </FormItem>
                 <FormItem name="discountValue" className={styles.flexItem}>
-                  <FormLabel>Value</FormLabel>
+                  <FormLabel>Discount (required)</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -273,16 +284,16 @@ export const PromoCodeFormDialog: React.FC<PromoCodeFormDialogProps> = ({ isOpen
 
             <div className={styles.grid}>
               <FormItem name="appliesTo">
-                <FormLabel>Applies To</FormLabel>
+                <FormLabel>Applies to</FormLabel>
                 <FormControl>
                   <Select
                     value={form.values.appliesTo}
                     onValueChange={(v) => form.setValues((p: FormValues) => ({ ...p, appliesTo: v as FormValues['appliesTo'], targetItemIds: [] }))}
                   >
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger aria-label="Applies to"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {PromoCodeAppliesToArrayValues.map(at => (
-                        <SelectItem key={at} value={at}>{at.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</SelectItem>
+                      {PromoCodeAppliesToArrayValues.filter(at => at !== 'subscription').map(at => (
+                        <SelectItem key={at} value={at}>{APPLIES_TO_LABELS[at] ?? at.replace('_', ' ')}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -291,7 +302,7 @@ export const PromoCodeFormDialog: React.FC<PromoCodeFormDialogProps> = ({ isOpen
               </FormItem>
               {form.values.appliesTo !== 'all' && (
                 <FormItem name="targetItemIds">
-                  <FormLabel>Specific Items</FormLabel>
+                  <FormLabel>Specific items</FormLabel>
                   <FormControl>
                     <MultiSelectPopover
                       label={form.values.appliesTo.replace('_', ' ')}
@@ -308,7 +319,7 @@ export const PromoCodeFormDialog: React.FC<PromoCodeFormDialogProps> = ({ isOpen
 
             <div className={styles.grid}>
               <FormItem name="minPurchaseAmount">
-                <FormLabel>Min Purchase (₹)</FormLabel>
+                <FormLabel>Minimum order (₹)</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -321,7 +332,7 @@ export const PromoCodeFormDialog: React.FC<PromoCodeFormDialogProps> = ({ isOpen
               </FormItem>
               {form.values.discountType === 'percentage' && (
                 <FormItem name="maxDiscountAmount">
-                  <FormLabel>Max Discount (₹)</FormLabel>
+                  <FormLabel>Largest discount (₹)</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -337,7 +348,7 @@ export const PromoCodeFormDialog: React.FC<PromoCodeFormDialogProps> = ({ isOpen
 
             <div className={styles.grid}>
               <FormItem name="usageLimit">
-                <FormLabel>Total Usage Limit</FormLabel>
+                <FormLabel>How many times it can be used</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -349,7 +360,7 @@ export const PromoCodeFormDialog: React.FC<PromoCodeFormDialogProps> = ({ isOpen
                 <FormMessage />
               </FormItem>
               <FormItem name="perUserLimit">
-                <FormLabel>Limit Per User</FormLabel>
+                <FormLabel>Uses per student</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -364,7 +375,7 @@ export const PromoCodeFormDialog: React.FC<PromoCodeFormDialogProps> = ({ isOpen
 
             <div className={styles.grid}>
               <FormItem name="validFrom">
-                <FormLabel>Starts On</FormLabel>
+                <FormLabel>Starts on</FormLabel>
                 <FormControl>
                   <DatePicker
                     value={form.values.validFrom}
@@ -374,7 +385,7 @@ export const PromoCodeFormDialog: React.FC<PromoCodeFormDialogProps> = ({ isOpen
                 <FormMessage />
               </FormItem>
               <FormItem name="validUntil">
-                <FormLabel>Expires On</FormLabel>
+                <FormLabel>Ends on</FormLabel>
                 <FormControl>
                   <DatePicker
                     value={form.values.validUntil || undefined}

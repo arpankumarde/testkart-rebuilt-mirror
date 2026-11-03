@@ -422,8 +422,117 @@
   margin: 0;
 }
 
-.filesEmptyState span {
+.filesEmptyState > span {
+  max-width: 34rem;
   font-size: 0.8125rem;
+  line-height: 1.5;
+  margin-bottom: var(--spacing-2);
+}
+
+/* Teacher form: Paid or Free as two cards; the chosen one takes the coral rim. */
+.choiceGroup {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-3);
+}
+
+.choice {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--spacing-3) var(--spacing-4);
+  text-align: left;
+  font-family: var(--font-family-base);
+  background-color: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color var(--animation-duration-fast) ease;
+}
+
+.choice:hover {
+  border-color: var(--tc-line-strong, var(--border));
+}
+
+.choice[aria-checked="true"] {
+  border-color: var(--tk-brand-text);
+  background-color: var(--fc-peach-tint);
+}
+
+.choice:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.choiceTitle {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.choiceHint {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--muted-foreground);
+}
+
+.moreDetails {
+  border-top: 1px solid var(--border);
+  padding-top: var(--spacing-2);
+}
+
+.moreDetailsTrigger {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--spacing-1) var(--spacing-2);
+  width: 100%;
+  padding: var(--spacing-2) 0;
+  font-family: var(--font-family-base);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--foreground);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.moreDetailsTrigger:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--radius-sm);
+}
+
+.moreDetailsHint {
+  font-weight: 400;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.moreDetailsChevron {
+  margin-left: auto;
+  align-self: center;
+  color: var(--muted-foreground);
+  transition: transform var(--animation-duration-fast) ease;
+}
+
+.moreDetailsTrigger[data-state="open"] .moreDetailsChevron {
+  transform: rotate(180deg);
+}
+
+.moreDetailsContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding-top: var(--spacing-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .choice,
+  .moreDetailsChevron {
+    transition: none;
+  }
 }
 
 /* The empty-row uploader only needs to be as tall as its prompt. */

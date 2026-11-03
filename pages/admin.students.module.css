@@ -48,7 +48,7 @@
 }
 
 .colActions {
-  width: 5.25rem;
+  width: 7.5rem;
 }
 
 .table th,
@@ -314,7 +314,7 @@
   }
 }
 
-/* The five fixed columns take 30.5rem; 48rem leaves the Student column at least 17.5rem. */
+/* The five fixed columns take 32.75rem; 48rem leaves the Student column at least 15.25rem. */
 @container results (min-width: 48rem) {
   .tableContainer {
     display: block;

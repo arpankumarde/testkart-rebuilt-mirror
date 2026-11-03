@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Helmet } from "react-helmet";
-import { RefreshCw } from "lucide-react";
+import { BarChart3, Plus, RefreshCw } from "lucide-react";
 import { useAuth } from "../helpers/useAuth";
 import { useListUrlParams } from "../helpers/useListUrlParams";
 import { AnalyticsRange, AnalyticsRangeValues } from "../helpers/teacherAnalyticsTime";
@@ -17,6 +17,10 @@ import { TeacherAnalyticsSales } from "../components/TeacherAnalyticsSales";
 import { TeacherAnalyticsProducts } from "../components/TeacherAnalyticsProducts";
 import { TeacherAnalyticsStudents } from "../components/TeacherAnalyticsStudents";
 import { TeacherAnalyticsReviews } from "../components/TeacherAnalyticsReviews";
+import { TeacherListEmpty } from "../components/TeacherListEmpty";
+import { useTeacherCreateChooser } from "../components/TeacherCreateChooser";
+import { useTeacherDashboardOverview } from "../helpers/useTeacherDashboardOverview";
+import { publishedCount } from "../helpers/teacherStage";
 import styles from "./teacher.analytics.module.css";
 
 // Academy opens first: visits, share links and payments are what a teacher
@@ -38,18 +42,22 @@ const RANGE_OPTIONS = AnalyticsRangeValues.map((value) => ({
 }));
 
 // Opens on 30 days every visit, as Overview does: a remembered range read as
-// the default being wrong.
+// the default being wrong. A chosen range lives in the URL, so a reload or a
+// shared link keeps it while the sidebar link still opens on 30 days.
 const DEFAULT_RANGE: AnalyticsRange = "30d";
 
 const TeacherAnalyticsPage: React.FC = () => {
   const { authState } = useAuth();
-  const [range, setRange] = useState<AnalyticsRange>(DEFAULT_RANGE);
   const { read, write } = useListUrlParams();
+  const range = read<AnalyticsRange>("range", AnalyticsRangeValues, DEFAULT_RANGE);
+  const setRange = (next: AnalyticsRange) => write({ range: next === DEFAULT_RANGE ? null : next });
   const tab = read<AnalyticsTab>("tab", TABS, "academy");
   const refresh = useRefreshTeacherAnalytics();
 
   const enabled = authState.type === "authenticated";
   const summary = useTeacherAnalyticsSummary(range, enabled);
+  const { data: overview } = useTeacherDashboardOverview("30d", enabled);
+  const { openChooser } = useTeacherCreateChooser();
 
   if (authState.type !== "authenticated") {
     return (
@@ -63,6 +71,32 @@ const TeacherAnalyticsPage: React.FC = () => {
   // Labels follow the data on screen, which is the previous range's until the new one arrives.
   const rangeLabel = ANALYTICS_RANGE_LABELS[summary.data?.range ?? range];
   const summaryBusy = summary.isFetching && !!summary.data;
+  // Nothing live and nobody enrolled: every figure would be zero, so say what fills them instead.
+  const nothingToMeasure =
+    !!overview && publishedCount(overview.totals) === 0 && overview.totals.students === 0;
+
+  if (nothingToMeasure) {
+    return (
+      <>
+        <Helmet>
+          <title>Analytics - Testkart for Teachers</title>
+        </Helmet>
+        <div className={styles.page}>
+          <ConsolePageHeader title="Analytics" />
+          <TeacherListEmpty
+            icon={<BarChart3 size={26} />}
+            title="Nothing to measure yet"
+            description="Analytics fill in once something you made is live: profile visits, share links, sales and how your students score."
+          >
+            <Button onClick={openChooser}>
+              <Plus size={16} />
+              Create something
+            </Button>
+          </TeacherListEmpty>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

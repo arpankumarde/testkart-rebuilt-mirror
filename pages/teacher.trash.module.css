@@ -158,8 +158,8 @@
 }
 
 .urgent {
-  background-color: color-mix(in srgb, var(--error) 12%, transparent);
-  color: var(--error-text);
+  background-color: var(--error-text);
+  color: var(--sp-card);
 }
 
 .actions {
@@ -186,8 +186,9 @@
   gap: var(--spacing-3);
   padding: var(--spacing-3);
   border-radius: var(--radius);
-  background-color: color-mix(in srgb, var(--error) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--error) 25%, transparent);
+  background-color: var(--sp-card);
+  border: 1px solid var(--error-text);
+  border-left-width: 4px;
   color: var(--foreground);
 }
 

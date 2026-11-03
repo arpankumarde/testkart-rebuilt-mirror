@@ -370,8 +370,8 @@ button.walletSwitch:focus-visible {
   margin: 0;
   padding: var(--spacing-3);
   border-radius: var(--radius);
-  background-color: color-mix(in srgb, var(--warning) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent);
+  background-color: var(--fc-butter-tint);
+  border: 1px solid var(--fc-butter-line);
   color: var(--foreground);
   font-size: 0.8125rem;
   line-height: 1.5;

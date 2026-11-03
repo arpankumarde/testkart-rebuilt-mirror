@@ -120,19 +120,19 @@
 }
 
 .freeBadge {
-  background-color: color-mix(in srgb, var(--success) 15%, transparent);
-  color: var(--success-text);
+  background-color: var(--fc-sage-tint);
+  color: var(--fc-sage-ink);
 }
 
 .subjectTimingBadge {
-  background-color: color-mix(in srgb, var(--info) 15%, transparent);
-  color: var(--info-text);
+  background-color: var(--fc-blue-tint);
+  color: var(--fc-blue-ink);
 }
 
 .questionTimingBadge,
 .scheduledBadge {
-  background-color: color-mix(in srgb, var(--warning) 18%, transparent);
-  color: var(--warning-text);
+  background-color: var(--fc-butter-tint);
+  color: var(--fc-butter-ink);
 }
 
 .itemActions {
@@ -190,8 +190,8 @@
   width: 3.25rem;
   height: 3.25rem;
   border-radius: var(--radius-full);
-  background-color: color-mix(in srgb, var(--error) 12%, transparent);
-  color: var(--error-text);
+  background-color: var(--error-text);
+  color: var(--sp-card);
 }
 
 .dialogForm {
@@ -222,6 +222,94 @@
   min-width: 0;
 }
 
+/* Guided form: the timer as one three-way choice instead of two checkboxes. */
+.timerChoices {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-1);
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--muted);
+}
+
+.timerChoice {
+  min-height: 2.25rem;
+  padding: 0 var(--spacing-2);
+  font-family: var(--font-family-base);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--foreground);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: calc(var(--radius) - 2px);
+  cursor: pointer;
+}
+
+/* The Tests step's mint, not orange; this switch only shows in the guided teacher dialog. */
+.timerChoice[aria-checked="true"] {
+  background-color: var(--fc-mint-tint);
+  border-color: var(--fc-mint-edge);
+  color: var(--fc-mint-ink);
+  font-weight: 700;
+}
+
+.timerChoice:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.moreOptions {
+  border-top: 1px solid var(--border);
+  padding-top: var(--spacing-2);
+}
+
+.moreOptionsTrigger {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-2);
+  width: 100%;
+  padding: var(--spacing-2) 0;
+  font-family: var(--font-family-base);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--foreground);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.moreOptionsTrigger:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--radius-sm);
+}
+
+.moreOptionsHint {
+  font-weight: 400;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.moreOptionsChevron {
+  margin-left: auto;
+  align-self: center;
+  color: var(--muted-foreground);
+  transition: transform var(--animation-duration-fast) ease;
+}
+
+.moreOptionsTrigger[data-state="open"] .moreOptionsChevron {
+  transform: rotate(180deg);
+}
+
+.moreOptionsContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding-top: var(--spacing-2);
+}
+
 @media (max-width: 640px) {
   .itemCard {
     padding: var(--spacing-3);
@@ -242,7 +330,7 @@
     margin-top: var(--spacing-2);
   }
 
-  .itemActions > button:first-child {
+  .itemActions > :first-child {
     flex: 1 1 auto;
     justify-content: center;
     min-height: 2.75rem;
@@ -260,7 +348,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .itemCard,
-  .dragHandle {
+  .dragHandle,
+  .moreOptionsChevron {
     transition: none;
   }
 }

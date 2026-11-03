@@ -93,9 +93,9 @@ export const BundleCard: React.FC<BundleCardProps> = ({
     <div className={styles.card}>
       <div className={styles.thumbnailWrapper}>
         {bundle.thumbnailUrl ? (
-          <img src={bundle.thumbnailUrl} alt={bundle.title} className={styles.thumbnailImage} />
+          <img src={bundle.thumbnailUrl} alt="" className={styles.thumbnailImage} />
         ) : (
-          <Package size={32} className={styles.bundleIcon} />
+          <Package size={32} className={styles.bundleIcon} aria-hidden="true" />
         )}
         {/* Overlaid on the thumbnail, as on every other teacher card. */}
         <span className={`${styles.status} ${statusClass}`}>{statusText}</span>
@@ -107,14 +107,17 @@ export const BundleCard: React.FC<BundleCardProps> = ({
           <div className={styles.header}>
             <div className={styles.badgeGroup}>
               {discountPercentage > 0 && (
-                <Badge className={styles.discountBadge}>{discountPercentage}% OFF</Badge>
+                <Badge className={styles.discountBadge}>{discountPercentage}% off</Badge>
               )}
             </div>
             {!isPublished && deleteMenu('icon-sm')}
           </div>
         )}
 
-        <h3 className={styles.title}>{bundle.title}</h3>
+        <h3 className={styles.title}>
+          {bundle.title}
+          <span className={styles.visuallyHidden}>, {statusText}</span>
+        </h3>
         <TeacherListingBadges
           visibility={bundle.visibility}
           live={isPublished}
@@ -146,8 +149,8 @@ export const BundleCard: React.FC<BundleCardProps> = ({
         </div>
         {isPublished ? (
           <div className={styles.actions}>
-            <Button size="sm" variant="outline" onClick={onEdit}>
-              <Edit size={14} />
+            <Button size="sm" variant="outline" onClick={onEdit} aria-label={`Edit ${bundle.title}`}>
+              <Edit size={14} aria-hidden="true" />
               Edit
             </Button>
             {deleteMenu('icon')}
@@ -164,20 +167,20 @@ export const BundleCard: React.FC<BundleCardProps> = ({
                 aria-label={WITHDRAW_REVIEW_LABEL}
                 className={styles.copyButton}
               >
-                <Undo2 size={16} />
+                <Undo2 size={16} aria-hidden="true" />
               </Button>
             ) : (
-              <Button size="sm" variant="outline" onClick={onPublishToggle}>
+              <Button size="sm" variant="outline" onClick={onPublishToggle} aria-label={`Publish ${bundle.title}`}>
                 Publish
               </Button>
             )}
             {rejection ? (
-              <Button size="sm" variant="primary" onClick={onEdit}>
-                <Wrench size={14} />
+              <Button size="sm" variant="primary" onClick={onEdit} aria-label={`Fix ${bundle.title}`}>
+                <Wrench size={14} aria-hidden="true" />
                 Fix it
               </Button>
             ) : (
-              <Button size="sm" variant="outline" onClick={onEdit}>
+              <Button size="sm" variant="outline" onClick={onEdit} aria-label={`Edit ${bundle.title}`}>
                 Edit
               </Button>
             )}

@@ -1,383 +1,342 @@
+/* Rendered inside teacher.onboarding, which sets the console tokens (--tc-*). */
 .quizContainer {
-  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-6);
+  gap: var(--spacing-5, 1.25rem);
+  width: 100%;
 }
 
-.progressContainer {
+.track {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trackStep {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-2);
+  gap: 0.5rem;
+  min-width: 0;
 }
 
-.progressText {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--muted-foreground);
+.trackBar {
+  height: 6px;
+  border-radius: 999px;
+  background-color: var(--tc-line);
 }
 
-.progressTrack {
-  width: 100%;
-  height: 4px;
-  background-color: var(--border);
-  border-radius: var(--radius-full);
+.trackDone .trackBar {
+  background-color: var(--fc-sage-edge);
+}
+
+.trackCurrent .trackBar {
+  background-color: var(--tc-panel);
+}
+
+.trackLabel {
   overflow: hidden;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--tc-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.progressFill {
-  height: 100%;
-  background-color: var(--primary);
-  transition: width var(--animation-duration-normal) ease;
+.trackCurrent .trackLabel {
+  color: var(--tc-ink);
 }
 
 .card {
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-8);
-  box-shadow: var(--shadow-md);
-  min-height: 400px;
   display: flex;
   flex-direction: column;
-  position: relative;
-  overflow: hidden;
+  min-height: 26rem;
+  padding: 2rem;
+  background-color: var(--tc-card);
+  border: 1px solid var(--tc-line);
+  border-radius: var(--tc-radius-panel);
 }
 
-@media (max-width: 640px) {
-  .card {
-    padding: var(--spacing-6) var(--spacing-4);
-    border-radius: var(--radius-md);
-    min-height: 350px;
-  }
-}
-
-.questionContainer {
+.question {
   flex: 1;
-  animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
 }
 
 .questionTitle {
+  margin: 0;
   font-family: var(--font-family-heading);
-  font-size: 1.5rem;
+  font-size: 1.625rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--tc-ink);
+}
+
+.questionHint {
+  margin: 0.5rem 0 1.5rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--tc-muted);
+}
+
+.subTitle {
+  margin: 1.75rem 0 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
-  color: var(--surface-foreground);
-  margin: 0 0 var(--spacing-6);
-  line-height: 1.3;
-  text-align: center;
+  color: var(--tc-ink);
 }
 
-@media (max-width: 480px) {
-  .questionTitle {
-    font-size: 1.25rem;
-  }
-}
-
-/* Card Actions */
-.cardActions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: var(--spacing-8);
-  padding-top: var(--spacing-4);
-  border-top: 1px solid var(--border);
-}
-
-.cardActionsLeft {
-  display: flex;
-  align-items: center;
-}
-
-.cardActionsRight {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
-}
-
-.skipButton {
-  color: var(--muted-foreground);
-}
-
-.skipButton:hover {
-  color: var(--foreground);
-}
-
-/* Chips & Selectors */
-.languageChips {
+.chips {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--spacing-3);
+  gap: 0.5rem;
 }
 
-.languageChip {
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-full);
-  padding: var(--spacing-2) var(--spacing-4);
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  height: 2.5rem;
+  padding: 0 1rem;
+  background-color: var(--tc-card);
+  border: 1.5px solid var(--tc-line-strong);
+  border-radius: 999px;
+  color: var(--tc-ink);
+  font-family: var(--font-family-base);
   font-size: 0.9375rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all var(--animation-duration-fast) ease;
-  background: transparent;
-  color: var(--foreground);
-  font-family: var(--font-family-base);
 }
 
-.languageChip:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-  background-color: color-mix(in srgb, var(--primary) 5%, transparent);
+.chip:hover {
+  border-color: var(--tc-ink);
 }
 
-.languageChip.selected {
-  border-color: var(--primary);
-  background-color: var(--primary);
-  color: #fff;
+.chipOn,
+.chipOn:hover {
+  background-color: var(--tc-panel);
+  border-color: var(--tc-panel);
+  color: var(--tc-panel-ink);
+  font-weight: 600;
 }
 
-/* Institute Types */
-.instituteTypeGrid {
+.chip:focus-visible,
+.kindCard:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.kindGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-3);
-  margin-bottom: var(--spacing-4);
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.75rem;
 }
 
-@media (max-width: 480px) {
-  .instituteTypeGrid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.instituteTypeCard {
-  border: 2px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-4);
-  cursor: pointer;
-  transition: all var(--animation-duration-fast) ease;
-  background-color: transparent;
+.kindCard {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+  padding: 1rem;
+  background-color: var(--tc-card);
+  border: 1.5px solid var(--tc-line);
+  border-radius: var(--tc-radius-card);
+  color: var(--tc-ink);
+  font-family: var(--font-family-base);
   text-align: left;
+  cursor: pointer;
+}
+
+.kindCard:hover {
+  border-color: var(--tc-line-strong);
+}
+
+.kindCardOn,
+.kindCardOn:hover {
+  background-color: var(--tc-bg);
+  border: 2px solid var(--tc-ink);
+  padding: calc(1rem - 0.5px);
+}
+
+.kindText {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-2);
+  gap: 0.25rem;
+  min-width: 0;
+  padding-right: 1.5rem;
 }
 
-.instituteTypeCard:hover {
-  border-color: color-mix(in srgb, var(--primary) 60%, transparent);
-  background-color: color-mix(in srgb, var(--primary) 4%, transparent);
+.kindLabel {
+  font-size: 1rem;
+  font-weight: 700;
 }
 
-.instituteTypeCard.selected {
-  border-color: var(--primary);
-  background-color: color-mix(in srgb, var(--primary) 6%, transparent);
+.kindPitch {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--tc-muted);
 }
 
-.instituteTypeIcon {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: var(--radius);
-  background-color: color-mix(in srgb, var(--primary) 15%, transparent);
-  color: var(--primary);
-  display: flex;
+.kindCheck {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: 999px;
+  background-color: var(--tc-panel);
+  color: var(--tc-panel-ink);
 }
 
-.instituteTypeCard.selected .instituteTypeIcon {
-  background-color: var(--primary);
-  color: #fff;
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-.instituteTypeName {
-  font-family: var(--font-family-heading);
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--surface-foreground);
-  margin: 0;
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
 }
 
-.instituteTypeDesc {
+.fieldLabel {
   font-size: 0.875rem;
-  color: var(--muted-foreground);
-  margin: 0;
-  line-height: 1.4;
+  font-weight: 600;
+  color: var(--tc-ink);
 }
 
-.affiliateSection {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-4);
-  background-color: color-mix(in srgb, var(--muted) 50%, transparent);
-  margin-top: var(--spacing-4);
-  animation: slideIn 0.3s ease forwards;
-}
-
-/* Tags Input */
 .tagsContainer {
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: var(--spacing-2);
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-2);
+  gap: 0.5rem;
   min-height: 3rem;
-  background-color: var(--card);
+  margin-top: 0.75rem;
+  padding: 0.5rem;
+  background-color: var(--tc-card);
+  border: 1px solid var(--tc-line-strong);
+  border-radius: 0.75rem;
   cursor: text;
-  transition: border-color var(--animation-duration-normal) ease,
-    box-shadow var(--animation-duration-normal) ease;
 }
 
 .tagsContainer:focus-within {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
+  border-color: var(--tc-ink);
 }
 
 .tag {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-1);
-  background-color: color-mix(in srgb, var(--primary) 12%, transparent);
-  color: var(--primary);
+  gap: 0.25rem;
+  padding: 0.25rem 0.75rem;
+  background-color: var(--tc-panel);
+  border-radius: 999px;
+  color: var(--tc-panel-ink);
   font-size: 0.875rem;
-  font-weight: 500;
-  padding: var(--spacing-1) var(--spacing-3);
-  border-radius: var(--radius-full);
+  font-weight: 600;
 }
 
 .tagRemove {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
   display: flex;
   align-items: center;
+  padding: 0;
+  background: none;
+  border: none;
   color: inherit;
-  opacity: 0.7;
   line-height: 1;
-}
-
-.tagRemove:hover {
-  opacity: 1;
+  cursor: pointer;
 }
 
 .tagInput {
+  flex: 1;
+  min-width: 12rem;
+  padding: 0.25rem 0.5rem;
+  background: transparent;
   border: none;
   outline: none;
-  background: transparent;
-  font-size: 1rem;
-  color: var(--foreground);
+  color: var(--tc-ink);
   font-family: var(--font-family-base);
-  flex: 1;
-  min-width: 150px;
-  padding: var(--spacing-1) var(--spacing-2);
+  font-size: 0.9375rem;
 }
 
 .tagInput::placeholder {
-  color: var(--muted-foreground);
-  opacity: 0.7;
-}
-
-/* Social Toggle */
-.socialToggleRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-4);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  margin-bottom: var(--spacing-6);
-  background-color: var(--muted);
-}
-
-.socialToggleLabel {
-  font-size: 1rem;
-  font-weight: 500;
-  color: var(--surface-foreground);
-}
-
-.socialToggleDesc {
-  font-size: 0.875rem;
-  color: var(--muted-foreground);
-  margin-top: var(--spacing-1);
-}
-
-.socialLinksGrid {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4);
-  animation: slideIn 0.3s ease forwards;
-}
-
-.socialInputRow {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
-}
-
-.socialIcon {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: var(--radius);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-size: 1.25rem;
-}
-
-.socialIconYoutube {
-  background-color: #fee2e2;
-  color: #dc2626;
-}
-
-.socialIconInstagram {
-  background-color: #fce7f3;
-  color: #db2777;
-}
-
-.socialIconFacebook {
-  background-color: #dbeafe;
-  color: #2563eb;
-}
-
-.socialIconTwitter {
-  background-color: #e0f2fe;
-  color: #0284c7;
-}
-
-.socialIconLinkedin {
-  background-color: #dbeafe;
-  color: #1d4ed8;
-}
-
-.charCount {
-  font-size: 0.75rem;
-  color: var(--muted-foreground);
-  text-align: right;
-  margin-top: var(--spacing-1);
-}
-
-.charCount.warn {
-  color: var(--warning-text);
+  color: var(--tc-muted);
 }
 
 .otherInputContainer {
-  margin-top: var(--spacing-6);
-  max-width: 400px;
-  margin-left: auto;
-  margin-right: auto;
-  width: 100%;
-  animation: slideIn 0.3s ease forwards;
+  max-width: 24rem;
+  margin-top: 0.75rem;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--tc-line);
+}
+
+.continue {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  min-width: 10rem;
+  height: 3rem;
+  margin-bottom: 3px;
+  padding: 0 1.5rem;
+  background-color: var(--tk-brand);
+  border: 1px solid var(--tk-brand-ink);
+  border-radius: 0.875rem;
+  box-shadow: var(--tc-cta-ledge);
+  color: var(--tk-brand-ink);
+  font-family: var(--font-family-base);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.continue:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+
+.continue:disabled {
+  cursor: progress;
+}
+
+.continue:focus-visible {
+  outline: 2px solid var(--tc-ink);
+  outline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .card {
+    min-height: 0;
+    padding: 1.5rem 1.125rem;
+    border-radius: var(--tc-radius-card);
+  }
+
+  .questionTitle {
+    font-size: 1.375rem;
+  }
+
+  .trackLabel {
+    display: none;
+  }
+
+  .trackCurrent .trackLabel {
+    display: block;
+    overflow: visible;
+  }
+
+  .continue {
+    flex: 1;
+  }
 }

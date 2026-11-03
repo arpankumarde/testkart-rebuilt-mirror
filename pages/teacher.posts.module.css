@@ -94,8 +94,22 @@
   color: var(--sp-lavender-ink);
 }
 
-.hiddenInput {
-  display: none;
+/* Visually hidden, not display:none, so the file picker stays reachable by
+   keyboard through its label; the label shows the focus ring. */
+.hiddenInput,
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.imageButton:focus-within {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
 }
 
 .charCount {

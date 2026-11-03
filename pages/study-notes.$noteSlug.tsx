@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
+import { ReviewTeacherReply } from "../components/ReviewTeacherReply";
 import { Helmet } from "react-helmet";
 import { 
   ShoppingCart, 
@@ -535,6 +536,7 @@ const ProductDetailsPage: React.FC = () => {
                         </div>
                       </div>
                       {review.reviewText && <p className={styles.reviewText}>{review.reviewText}</p>}
+                      <ReviewTeacherReply reply={review.teacherReply} repliedAt={review.teacherRepliedAt} />
                     </div>
                   ))}
                 </div>

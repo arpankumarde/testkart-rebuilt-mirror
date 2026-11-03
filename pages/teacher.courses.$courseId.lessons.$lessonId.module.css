@@ -64,8 +64,8 @@
     width: 3.25rem;
     height: 3.25rem;
     border-radius: var(--radius-full);
-    background-color: color-mix(in srgb, var(--error) 12%, transparent);
-    color: var(--error-text);
+    background-color: var(--error-text);
+    color: var(--sp-card);
   }
 
   /* Panel heading scale. This was 2rem/600 - larger than the page's own h1. */

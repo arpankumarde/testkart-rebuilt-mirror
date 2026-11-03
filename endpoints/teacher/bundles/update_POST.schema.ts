@@ -18,18 +18,10 @@ export const schema = z.object({
   thumbnailFileId: z.string().optional().nullable(),
   introVideoUrl: z.string().optional().nullable(),
   introVideoFileId: z.string().optional().nullable(),
-}).refine((data) => {
-  // Only validate total items if any item arrays are provided
-  if (data.courseIds !== undefined || data.testIds !== undefined || data.digitalProductIds !== undefined) {
-    const courseCount = data.courseIds?.length ?? 0;
-    const testCount = data.testIds?.length ?? 0;
-    const digitalProductCount = data.digitalProductIds?.length ?? 0;
-    return courseCount + testCount + digitalProductCount >= 2;
-  }
-  return true;
-}, {
-  message: "A bundle must contain at least 2 items total (courses, tests, and/or digital products).",
 });
+// Drafts may hold any number of items; bundles/publish enforces 2+ items, all
+// live, and the price rule. Item changes on a published bundle are refused in
+// the handler.
 
 export type InputType = z.infer<typeof schema>;
 

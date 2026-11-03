@@ -46,7 +46,7 @@
 }
 
 .busy {
-  opacity: 0.65;
+  cursor: progress;
   transition: opacity var(--animation-duration-fast) ease;
 }
 

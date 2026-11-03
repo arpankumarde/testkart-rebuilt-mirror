@@ -53,10 +53,8 @@ const ExamOffer: React.FC<ExamOfferProps> = ({ option, checked, onCheckedChange,
           {option.slotsLeft} of {option.totalSlots} slots left · ends {formatEndDate(option.endsAt)}
         </span>
         <span className={styles.text}>
-          Slots are shared by all teachers, and one is yours once you submit. A test series earns one bonus, so this
-          takes the place of the Creator Bonus. Our team credits it only for high quality work.
-          {publishesDirectly &&
-            " Claiming sends it to our team for review first; without the claim it goes live straight away."}
+          Replaces the Creator Bonus. Paid only for high quality work.
+          {publishesDirectly && " Claiming sends it for review first."}
         </span>
         <span className={styles.tick}>
           <input
@@ -65,7 +63,7 @@ const ExamOffer: React.FC<ExamOfferProps> = ({ option, checked, onCheckedChange,
             disabled={disabled}
             onChange={(event) => onCheckedChange(event.target.checked)}
           />
-          <span>Yes, claim {amount} with this submission</span>
+          <span>Claim {amount}</span>
         </span>
       </span>
     </label>
@@ -180,10 +178,8 @@ const CreatorOffer: React.FC<CreatorOfferProps> = ({
         <span className={styles.body}>
           <span className={styles.title}>Claim the {amount} {data.title}</span>
           <span className={styles.text}>
-            This qualifies. Tick to claim it with this submission. Approval and the bonus are separate: our team
-            credits it only for high quality work.
-            {publishesDirectly &&
-              " Claiming sends it to our team for review first; without the claim it goes live straight away."}
+            Paid only for high quality work.
+            {publishesDirectly && " Claiming sends it for review first."}
           </span>
           <span className={styles.tick}>
             <input
@@ -192,7 +188,7 @@ const CreatorOffer: React.FC<CreatorOfferProps> = ({
               disabled={disabled}
               onChange={(event) => onCheckedChange(event.target.checked)}
             />
-            <span>Yes, claim {amount} with this submission</span>
+            <span>Claim {amount}</span>
           </span>
         </span>
       </label>

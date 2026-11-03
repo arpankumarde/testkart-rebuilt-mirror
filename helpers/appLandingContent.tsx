@@ -19,8 +19,9 @@ export const PLAY_BADGE_IMAGE =
  *   1-2  hero, left (front) and right (back)
  *   3-6  feature sections, top to bottom
  *   7-9  closing section, left, centre and right
- * Each is shown whole on AppPhoneMockup's 9:16 screen. width and height are a
- * 9:16 size hint so the browser reserves the box before the image arrives.
+ * Each is 1080 x 2160 (9:18) and is shown whole on AppPhoneMockup's 9:18
+ * screen. width and height let the browser reserve the box before the image
+ * arrives.
  */
 export interface AppScreen {
   src: string;
@@ -32,8 +33,8 @@ export interface AppScreen {
 const screen = (n: number, alt: string): AppScreen => ({
   src: `https://${R2_PUBLIC_URL}/platform/app/screen${n}.png`,
   alt,
-  width: 720,
-  height: 1280,
+  width: 1080,
+  height: 2160,
 });
 
 export const HERO_SCREENS = {

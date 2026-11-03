@@ -66,7 +66,7 @@ const Page = () => {
     return filterSubjectId != null ? allSubjects.filter((s) => s.id === filterSubjectId) : allSubjects;
   }, [allSubjects, filterSubjectId]);
 
-  // useQueries needs a stable `queries` array reference — reconstructing it
+  // useQueries needs a stable `queries` array reference - reconstructing it
   // inline on every render (via a fresh .map()) makes it tear down and
   // recreate every query observer on every render, which pegs the main
   // thread. Memoize on subject ids only.
@@ -129,21 +129,19 @@ const Page = () => {
   const handleNext = () => setCurrentIndex((i) => Math.min(total - 1, i + 1));
 
   const handleClose = () => {
-    // Works when the tab was opened via window.open/target="_blank" from
-    // our own app; falls back to sending the tab back to the questions list
-    // if the browser won't allow a script-closed tab (e.g. user bookmarked it).
+    // Only closes a tab the app opened itself; otherwise the browser ignores
+    // it and "Back to editing" is the way out.
     window.close();
   };
+
+  const pageTitle = currentItem
+    ? `Preview: ${currentItem.title}${activeSubject ? ` - ${activeSubject.subjectName}` : ""}`
+    : "Test preview";
 
   return (
     <>
       <Helmet>
-        <title>
-          {currentItem
-            ? `Preview: ${currentItem.title}${activeSubject ? ` — ${activeSubject.subjectName}` : ""}`
-            : "Preview Test"}{" "}
-          | Testkart
-        </title>
+        <title>{`${pageTitle} | Testkart`}</title>
         <meta name="description" content="Read-only preview of this subject's questions as students will see them." />
       </Helmet>
 
@@ -151,19 +149,19 @@ const Page = () => {
         <header className={styles.header}>
           <div className={styles.headerLeft}>
             <span className={styles.previewBadge}>
-              <Eye size={13} /> Preview
+              <Eye size={13} aria-hidden="true" /> Preview
             </span>
             <span className={styles.testTitle}>
-              {currentItem?.title ?? "Test Preview"}
-              {activeSubject ? ` — ${activeSubject.subjectName}` : ""}
+              {currentItem?.title ?? "Test preview"}
+              {activeSubject ? ` - ${activeSubject.subjectName}` : ""}
             </span>
           </div>
           <div className={styles.headerRight}>
             <Button variant="outline" asChild>
               <Link to={questionsListUrl}>Back to editing</Link>
             </Button>
-            <Button variant="ghost" size="icon" onClick={handleClose} title="Close preview tab">
-              <X size={18} />
+            <Button variant="ghost" size="icon" onClick={handleClose} title="Close preview tab" aria-label="Close preview tab">
+              <X size={18} aria-hidden="true" />
             </Button>
           </div>
         </header>
@@ -184,7 +182,7 @@ const Page = () => {
               <p>Add questions to this test item to preview them here.</p>
               <Button asChild variant="outline">
                 <Link to={questionsListUrl}>
-                  <ChevronLeft size={16} /> Back to editing
+                  <ChevronLeft size={16} aria-hidden="true" /> Back to editing
                 </Link>
               </Button>
             </div>
@@ -201,7 +199,7 @@ const Page = () => {
                       size="sm"
                       onClick={() => handleAnswerChange(currentQuestion.id, undefined)}
                     >
-                      <Eraser size={14} /> Clear response
+                      <Eraser size={14} aria-hidden="true" /> Clear response
                     </Button>
                   )}
                   <span className={styles.questionCounter}>
@@ -227,13 +225,13 @@ const Page = () => {
         {!isLoading && total > 0 && (
           <footer className={styles.footer}>
             <Button variant="outline" onClick={handlePrev} disabled={currentIndex === 0}>
-              <ChevronLeft size={16} /> Previous
+              <ChevronLeft size={16} aria-hidden="true" /> Previous
             </Button>
-            <span className={styles.footerCounter}>
+            <span className={styles.footerCounter} aria-live="polite">
               {currentIndex + 1} / {total}
             </span>
             <Button onClick={handleNext} disabled={currentIndex >= total - 1}>
-              Next <ChevronRight size={16} />
+              Next <ChevronRight size={16} aria-hidden="true" />
             </Button>
           </footer>
         )}

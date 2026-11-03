@@ -1,7 +1,23 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Edit, Trash2, Eye, Users, Layers, BookOpen, MoreVertical, Globe, AlertCircle, Share2, TrendingUp, Wrench, Gift } from 'lucide-react';
-import { TeacherCardInsights } from './TeacherCardInsights';
+import {
+  Edit,
+  Trash2,
+  Eye,
+  Users,
+  Layers,
+  BookOpen,
+  MoreVertical,
+  Globe,
+  AlertCircle,
+  Share2,
+  TrendingUp,
+  Wrench,
+  Gift,
+  CalendarClock,
+  CalendarX,
+  Archive,
+} from 'lucide-react';
 import { TeacherRejectionNote } from './TeacherRejectionNote';
 import { TeacherListingBadges } from './TeacherListingBadges';
 import { performanceHref } from '../helpers/teacherPerformanceFormat';
@@ -22,6 +38,9 @@ import { useTeacherCourseMutations } from '../helpers/useTeacherCoursesQuery';
 import { useBundleUnpublishGuard } from '../helpers/useBundleUnpublishGuard';
 import { courseDiscountPrice } from '../helpers/coursePricing';
 import { formatRupees } from '../helpers/teacherCampaignRules';
+import { getItemExamNames, summarizeExamNames } from '../helpers/itemExams';
+import { expiryLastDay, formatExpiryDay, isExpired, isExpiringSoon } from '../helpers/contentExpiry';
+import { Placeholder } from '../helpers/placeholderImages';
 import styles from './TeacherCourseCard.module.css';
 
 interface TeacherCourseCardProps {
@@ -33,10 +52,14 @@ interface TeacherCourseCardProps {
   bonus?: { state: string; amount: number };
 }
 
-const STATUS_CLASS: Record<string, string> = {
-  published: styles.published,
-  draft: styles.draft,
-  archived: styles.archived,
+type CardStatus = 'published' | 'draft' | 'archived' | 'inReview' | 'rejected';
+
+const STATUS_LABEL: Record<CardStatus, string> = {
+  published: 'Published',
+  draft: 'Draft',
+  archived: 'Archived',
+  inReview: 'In review',
+  rejected: 'Rejected',
 };
 
 const bonusLabel = (bonus?: { state: string; amount: number }) => {
@@ -46,6 +69,11 @@ const bonusLabel = (bonus?: { state: string; amount: number }) => {
   if (bonus.state === 'credited') return `${formatRupees(bonus.amount)} bonus earned`;
   return null;
 };
+
+const formatInr = (amount: number) =>
+  new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }).format(amount);
+
+const plural = (count: number, one: string, many: string) => `${count.toLocaleString('en-IN')} ${count === 1 ? one : many}`;
 
 export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
   course,
@@ -73,77 +101,85 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
   const status = course.status ?? 'draft';
   const isInReview = status !== 'published' && course.inReview;
   const rejection = status === 'draft' && !isInReview ? course.rejection : null;
-  const statusClass = isInReview
-    ? styles.inReview
+  const cardStatus: CardStatus = isInReview
+    ? 'inReview'
     : rejection
-      ? styles.rejected
-      : STATUS_CLASS[status] ?? styles.draft;
-  const statusText = isInReview ? 'in review' : rejection ? 'rejected' : status;
+      ? 'rejected'
+      : status === 'published' || status === 'archived'
+        ? status
+        : 'draft';
+  const statusLabel = STATUS_LABEL[cardStatus];
 
-  const formatInr = (amount: number) =>
-    new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 0,
-    }).format(amount);
+  const expiry = { expiresAt: course.expiresAt ?? null, expiredAt: course.expiredAt ?? null };
+  const expired = isExpired(expiry);
+  const expiringSoon = !expired && isExpiringSoon(expiry);
+  const expiryDay = expiry.expiresAt ? formatExpiryDay(expiryLastDay(expiry.expiresAt)) : null;
+
   const discountPrice = courseDiscountPrice(course.price, course.discountPrice);
-  const formattedPrice = formatInr(discountPrice ?? course.price);
-
+  const effectivePrice = discountPrice ?? course.price;
+  const exams = summarizeExamNames(getItemExamNames(course));
+  const languages = formatLanguages(course);
   const plainDescription = course.description
     ?.replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
     .replace(/\s+/g, ' ')
     .trim();
   const bonusText = bonusLabel(bonus);
+  const editPath = `/teacher/courses/${course.id}/edit`;
+  const views = course.views ?? 0;
+  const showResults = status !== 'draft';
 
   return (
-    <div className={styles.card}>
-      <div className={styles.thumbnailWrapper}>
+    <article className={styles.card}>
+      <div className={styles.cover}>
         <VideoPreview
           videoUrl={course.introVideoUrl || course.thumbnailUrl}
-          thumbnailUrl={course.thumbnailImageUrl}
+          thumbnailUrl={course.thumbnailImageUrl || Placeholder.COURSE}
           title={course.title}
           className={styles.thumbnail}
         />
-        <span className={`${styles.status} ${statusClass}`}>{statusText}</span>
+        <span className={`${styles.status} ${styles[cardStatus]}`}>
+          <span className={styles.statusDot} />
+          {statusLabel}
+        </span>
+        {(expired || expiringSoon) && (
+          <span
+            className={`${styles.expiry} ${expired ? styles.expired : styles.expiringSoon}`}
+            title={expired ? 'Expired: no longer on sale.' : `On sale until the end of ${expiryDay} (IST).`}
+          >
+            {expired ? <CalendarX size={12} aria-hidden="true" /> : <CalendarClock size={12} aria-hidden="true" />}
+            {expired ? 'Expired' : 'Expiring soon'}
+          </span>
+        )}
       </div>
 
-      <div className={styles.content}>
+      <div className={styles.body}>
+        {exams.label && (
+          <p className={styles.eyebrow} title={exams.fullList}>
+            {exams.label}
+          </p>
+        )}
         <h3 className={styles.title}>
-          <Link to={`/teacher/courses/${course.id}/edit`} className={styles.titleLink}>
+          <Link to={editPath} className={styles.titleLink}>
             {course.title}
           </Link>
+          <span className={styles.srOnly}>
+            , {statusLabel}
+            {expired ? ', expired' : expiringSoon ? ', expiring soon' : ''}
+          </span>
         </h3>
-        <TeacherListingBadges
-          visibility={course.visibility}
-          live={status === 'published'}
-          inReview={course.inReview}
-          rejected={!!course.rejection}
-          expiresAt={course.expiresAt}
-          expiredAt={course.expiredAt}
-        />
         {plainDescription ? <p className={styles.description}>{plainDescription}</p> : null}
-
-        <div className={styles.stats}>
-          <div className={styles.stat}>
-            <BookOpen size={14} />
-            <span>{course.lessonsCount} {course.lessonsCount === 1 ? 'lesson' : 'lessons'}</span>
-          </div>
-          <div className={styles.stat}>
-            <Layers size={14} />
-            <span>{course.sectionsCount} {course.sectionsCount === 1 ? 'section' : 'sections'}</span>
-          </div>
-          <div className={styles.stat}>
-            <Eye size={14} />
-            <span>{course.views ?? 0} views</span>
-          </div>
-          {formatLanguages(course) && (
-            <div className={styles.stat}>
-              <Globe size={14} />
-              <span>{formatLanguages(course)}</span>
-            </div>
-          )}
-        </div>
-
+        {!expired && (
+          <TeacherListingBadges
+            visibility={course.visibility}
+            live={status === 'published'}
+            inReview={course.inReview}
+            rejected={!!course.rejection}
+            expiresAt={null}
+            expiredAt={null}
+          />
+        )}
         {rejection && <TeacherRejectionNote rejection={rejection} />}
         {bonusText && (
           <Link to="/teacher/creator-bonus" className={styles.bonus}>
@@ -153,39 +189,67 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
         )}
       </div>
 
+      <ul className={styles.stats}>
+        <li>
+          <BookOpen size={13} aria-hidden="true" />
+          {plural(course.lessonsCount, 'lesson', 'lessons')}
+        </li>
+        <li>
+          <Layers size={13} aria-hidden="true" />
+          {plural(course.sectionsCount, 'section', 'sections')}
+        </li>
+        <li>
+          <Eye size={13} aria-hidden="true" />
+          {plural(views, 'view', 'views')}
+        </li>
+        {languages && (
+          <li>
+            <Globe size={13} aria-hidden="true" />
+            {languages}
+          </li>
+        )}
+        {expiryDay && !expired && (
+          <li>
+            <CalendarClock size={13} aria-hidden="true" />
+            Until {expiryDay}
+          </li>
+        )}
+      </ul>
+
       <div className={styles.footer}>
         <p className={styles.price}>
-          {formattedPrice}
-          {discountPrice !== null && <span className={styles.wasPrice}>{formatInr(course.price)}</span>}
+          {effectivePrice > 0 ? (
+            <>
+              {formatInr(effectivePrice)}
+              {discountPrice !== null && <span className={styles.wasPrice}>{formatInr(course.price)}</span>}
+            </>
+          ) : (
+            <span className={styles.free}>Free</span>
+          )}
         </p>
         <div className={styles.actions}>
-          {status === 'published' && (
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => setShareOpen(true)}
-              title="Share"
-              aria-label={`Share ${course.title}`}
-            >
-              <Share2 size={16} />
-            </Button>
-          )}
-
-          <Button asChild size="sm" variant={rejection ? 'primary' : 'outline'}>
-            <Link to={`/teacher/courses/${course.id}/edit`}>
-              {rejection ? <Wrench size={14} /> : <Edit size={14} />}
-              {rejection ? 'Fix it' : 'Edit'}
-            </Link>
-          </Button>
+          <Link
+            to={editPath}
+            className={`${styles.editButton} ${rejection ? styles.fixButton : ''}`}
+            aria-label={`${rejection ? 'Fix' : 'Edit'} ${course.title}`}
+          >
+            {rejection ? <Wrench size={14} aria-hidden="true" /> : <Edit size={14} aria-hidden="true" />}
+            {rejection ? 'Fix it' : 'Edit'}
+          </Link>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon-sm" aria-label={`More actions for ${course.title}`}>
-                <MoreVertical size={16} />
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={`More actions for ${course.title}`}
+                className={styles.iconButton}
+              >
+                <MoreVertical size={16} aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
-                <Link to={`/teacher/courses/${course.id}/edit`} className={styles.menuItem}>
+                <Link to={editPath} className={styles.menuItem}>
                   <Edit size={16} />
                   <span>Edit course</span>
                 </Link>
@@ -202,21 +266,39 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
                       <span>View public page</span>
                     </Link>
                   </DropdownMenuItem>
+                </>
+              )}
+              {showResults && (
+                <>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleUnpublish} className={styles.unpublishItem}>
-                    <AlertCircle size={16} />
-                    <span>Unpublish</span>
+                  <DropdownMenuItem asChild>
+                    <Link to={performanceHref('courses', { course: course.id })} className={styles.menuItem}>
+                      <TrendingUp size={16} />
+                      <span>Progress</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to={performanceHref('students', { course: course.id })} className={styles.menuItem}>
+                      <Users size={16} />
+                      <span>Students</span>
+                    </Link>
                   </DropdownMenuItem>
                 </>
               )}
               <DropdownMenuSeparator />
+              {status === 'published' && (
+                <DropdownMenuItem onClick={handleUnpublish} className={styles.menuItem}>
+                  <AlertCircle size={16} />
+                  <span>Unpublish</span>
+                </DropdownMenuItem>
+              )}
               {status !== 'archived' && onArchive && (
                 <DropdownMenuItem onClick={onArchive} className={styles.menuItem}>
-                  <Trash2 size={16} />
+                  <Archive size={16} />
                   <span>Archive</span>
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem onClick={onDelete} className={styles.deleteItem}>
+              <DropdownMenuItem onClick={onDelete} className={`${styles.menuItem} ${styles.deleteItem}`}>
                 <Trash2 size={16} />
                 <span>Delete</span>
               </DropdownMenuItem>
@@ -224,16 +306,6 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
           </DropdownMenu>
         </div>
       </div>
-
-      {status !== 'draft' && (
-        <TeacherCardInsights
-          itemTitle={course.title}
-          items={[
-            { to: performanceHref('courses', { course: course.id }), label: 'Progress', icon: TrendingUp },
-            { to: performanceHref('students', { course: course.id }), label: 'Students', icon: Users },
-          ]}
-        />
-      )}
 
       {bundleUnpublishDialog}
 
@@ -248,6 +320,6 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
           title={course.title}
         />
       )}
-    </div>
+    </article>
   );
 };

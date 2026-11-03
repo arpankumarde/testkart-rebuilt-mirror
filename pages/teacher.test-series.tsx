@@ -3,15 +3,13 @@ import { getItemExamNames } from '../helpers/itemExams';
 import { Helmet } from 'react-helmet';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
-import { Plus, Search, ListChecks } from 'lucide-react';
+import { BookCopy, Plus } from 'lucide-react';
 import { useTeacherTestsQuery } from '../helpers/useTeacherTestsQuery';
 import { useTeacherLiveTestsQuery } from '../helpers/useTeacherLiveTestsQuery';
 import { useListUrlParams } from '../helpers/useListUrlParams';
 import { useRefetchOnLinkArrival } from '../helpers/useRefetchOnLinkArrival';
 import { TeacherTest } from '../endpoints/teacher/tests/list_GET.schema';
 import { Button } from '../components/Button';
-import { Input } from '../components/Input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/Select';
 import { TeacherTestCard } from '../components/TeacherTestCard';
 import { DeleteTestDialog } from '../components/DeleteTestDialog';
 import { UnpublishTestDialog } from '../components/UnpublishTestDialog';
@@ -19,7 +17,10 @@ import { ConvertTestToDraftDialog } from '../components/ConvertTestToDraftDialog
 import { useBundleUnpublishGuard } from '../helpers/useBundleUnpublishGuard';
 import { useTeacherTestMutations } from '../helpers/useTeacherTestMutations';
 import { bundleCascadeNote } from '../helpers/bundleCascadeNote';
-import { TestCardSkeleton } from '../components/TestCardSkeleton';
+import { TeacherTestCardSkeleton } from '../components/TeacherTestCardSkeleton';
+import { TeacherPageHeader } from '../components/TeacherPageHeader';
+import { TeacherListEmpty } from '../components/TeacherListEmpty';
+import { TeacherContentToolbar } from '../components/TeacherContentToolbar';
 import styles from './teacher.test-series.module.css';
 
 type TestStatus = 'published' | 'draft' | 'unpublished';
@@ -150,9 +151,9 @@ const TeacherTestSeriesPage: React.FC = () => {
   const renderContent = () => {
     if (isFetching && !tests) {
       return (
-        <div className={styles.grid}>
+        <div className={styles.grid} aria-busy="true" aria-label="Loading test series">
           {Array.from({ length: 6 }).map((_, index) => (
-            <TestCardSkeleton key={index} />
+            <TeacherTestCardSkeleton key={index} />
           ))}
         </div>
       );
@@ -160,60 +161,57 @@ const TeacherTestSeriesPage: React.FC = () => {
 
     if (error) {
       return (
-        <div className={styles.empty} role="alert">
-          <h2 className={styles.emptyTitle}>Your test series could not be loaded</h2>
-          <p className={styles.emptyText}>
-            The list did not come back from the server. Check your connection and try again.
-          </p>
+        <TeacherListEmpty
+          tone="error"
+          title="Your test series could not be loaded"
+          description="The list did not come back from the server. Check your connection and try again."
+        >
           <Button onClick={() => refetch()}>Try again</Button>
-        </div>
+        </TeacherListEmpty>
       );
     }
 
     if (!hasAnyTests) {
       return (
-        <div className={styles.empty}>
-          <span className={styles.emptyIcon} aria-hidden="true">
-            <ListChecks size={26} />
-          </span>
-          <h2 className={styles.emptyTitle}>No test series yet</h2>
-          <p className={styles.emptyText}>
-            A test series is a set of mock tests students buy as one package. Build your first one to
-            start selling.
-          </p>
+        <TeacherListEmpty
+          kind="mock_test"
+          title="No test series yet"
+          description="A test series is a set of mock tests students buy as one package. Build your first one to start selling."
+        >
           <Button asChild>
             <Link to="/teacher/create-test">
               <Plus size={16} />
               Create a test series
             </Link>
           </Button>
-        </div>
+        </TeacherListEmpty>
       );
     }
 
     if (visibleTests.length === 0) {
       return (
-        <div className={styles.empty}>
-          <h2 className={styles.emptyTitle}>
-            {isSearching
+        <TeacherListEmpty
+          title={
+            isSearching
               ? activeTab === 'all'
                 ? `No test series matches "${searchQuery.trim()}"`
                 : `Nothing in ${TAB_LABELS[activeTab].toLowerCase()} matches "${searchQuery.trim()}"`
-              : `No ${TAB_LABELS[activeTab].toLowerCase()} test series`}
-          </h2>
-          <p className={styles.emptyText}>
-            {isSearching
+              : `No ${TAB_LABELS[activeTab].toLowerCase()} test series`
+          }
+          description={
+            isSearching
               ? activeTab === 'all'
                 ? 'Try a different word.'
                 : 'Try a different word, or check the other tabs.'
-              : 'Nothing here yet. The other tabs may have what you are looking for.'}
-          </p>
+              : 'Nothing here yet. The other tabs may have what you are looking for.'
+          }
+        >
           {isSearching && (
             <Button variant="outline" onClick={() => setSearchQuery('')}>
               Clear search
             </Button>
           )}
-        </div>
+        </TeacherListEmpty>
       );
     }
 
@@ -245,62 +243,48 @@ const TeacherTestSeriesPage: React.FC = () => {
         <meta name="description" content="Manage your mock test series on Testkart." />
       </Helmet>
       <div className={styles.page}>
-        <header className={styles.header}>
-          <h1 className={styles.title}>Test series</h1>
-          <Button asChild>
-            <Link to="/teacher/create-test">
-              <Plus size={16} />
-              New test series
-            </Link>
-          </Button>
-        </header>
+        <TeacherPageHeader
+          title="Test series"
+          description="Create, organise and manage your mock tests in one place."
+          leading={
+            <span className={styles.headerIcon} aria-hidden="true">
+              <BookCopy size={18} strokeWidth={2.25} />
+            </span>
+          }
+        >
+          <Link to="/teacher/create-test" className={styles.newButton}>
+            <Plus size={18} strokeWidth={2.5} aria-hidden="true" />
+            New test series
+          </Link>
+        </TeacherPageHeader>
 
         {hasAnyTests && (
-          <div className={styles.toolbar}>
-            <div className={styles.tabs} role="tablist" aria-label="Filter by status">
-              {TAB_ORDER.map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  role="tab"
-                  aria-selected={activeTab === tab}
-                  className={`${styles.tab} ${activeTab === tab ? styles.tabActive : ''}`}
-                  onClick={() => setActiveTab(tab)}
-                >
-                  {TAB_LABELS[tab]}
-                  <span className={styles.tabCount}>{counts[tab]}</span>
-                </button>
-              ))}
-            </div>
-
-            <div className={styles.filters}>
-              <div className={styles.searchWrapper}>
-                <Search size={16} className={styles.searchIcon} aria-hidden="true" />
-                <Input
-                  type="search"
-                  placeholder="Search by title or exam"
-                  aria-label="Search test series"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className={styles.searchInput}
-                />
-              </div>
-              <Select value={sortOption} onValueChange={setSortOption}>
-                <SelectTrigger className={styles.sort} aria-label="Sort test series">
-                  <SelectValue placeholder="Sort" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="recent">Newest first</SelectItem>
-                  <SelectItem value="popular">Most students</SelectItem>
-                  <SelectItem value="price-desc">Price: high to low</SelectItem>
-                  <SelectItem value="price-asc">Price: low to high</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          <TeacherContentToolbar
+            tabs={TAB_ORDER.map((tab) => ({ value: tab, label: TAB_LABELS[tab], count: counts[tab] }))}
+            value={activeTab}
+            onValueChange={(tab) => setActiveTab(tab as StatusTab)}
+            tabsLabel="Filter by status"
+            search={{
+              value: searchQuery,
+              onChange: setSearchQuery,
+              placeholder: 'Search by title or exam',
+              label: 'Search test series',
+            }}
+            sort={{
+              value: sortOption,
+              onChange: setSortOption,
+              label: 'Sort test series',
+              options: [
+                { value: 'recent', label: 'Newest first' },
+                { value: 'popular', label: 'Most students' },
+                { value: 'price-desc', label: 'Price: high to low' },
+                { value: 'price-asc', label: 'Price: low to high' },
+              ],
+            }}
+          />
         )}
 
-        <main className={styles.content}>{renderContent()}</main>
+        <div className={styles.content}>{renderContent()}</div>
       </div>
 
       {testToDelete && (

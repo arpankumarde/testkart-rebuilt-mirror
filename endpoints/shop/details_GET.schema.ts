@@ -91,7 +91,10 @@ export type ShopProductDetails = Omit<
   seo: ShopProductSeo;
 };
 
-export type PublicReview = Pick<Selectable<Reviews>, "id" | "reviewerName" | "reviewText" | "createdAt" | "userId"> & {
+export type PublicReview = Pick<
+  Selectable<Reviews>,
+  "id" | "reviewerName" | "reviewText" | "createdAt" | "userId" | "teacherReply" | "teacherRepliedAt"
+> & {
   rating: number;
 };
 

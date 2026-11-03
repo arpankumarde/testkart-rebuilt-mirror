@@ -22,7 +22,7 @@ export default function EditBundlePage() {
         description="Edit your course bundle details and pricing." 
       />
       <div className={styles.page}>
-        <TeacherFormHeader
+        <TeacherFormHeader kind="bundle"
           backTo="/teacher/bundles"
           backLabel="Bundles"
           title="Edit bundle"

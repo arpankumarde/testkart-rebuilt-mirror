@@ -3,11 +3,11 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType, InputType } from "./check_POST.schema";
 import superjson from "superjson";
 import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
-import { getTeacherAvailableBalance } from "../../../helpers/getTeacherAvailableBalance";
-import { getTeacherPlatformFee } from "../../../helpers/getTeacherPlatformFee";
+import { SPONSORSHIP_FEE_WAIVED_NOTE } from "../../../helpers/sponsorshipFee";
 import { courseDiscountPrice } from "../../../helpers/coursePricing";
 import { productDiscountPrice } from "../../../helpers/digitalProductPricing";
 import { resolveSponsorAccount } from "../../../helpers/sponsorStudentAccount";
+import { getSponsorshipAccess, SPONSORSHIP_PLAN_REQUIRED_MESSAGE } from "../../../helpers/teacherPlanAccess";
 
 type ContentInfo = {
   id: number;
@@ -169,11 +169,18 @@ async function checkExistingEnrollment(
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    const { user, effectiveTeacherId, teacherRole } = await getServerUserSession(request);
+    const { user, effectiveTeacherId } = await getServerUserSession(request);
 
     if (user.role !== "teacher" && user.role !== "admin") {
       return new Response(
         superjson.stringify({ error: "Unauthorized" }),
+        { status: 403 }
+      );
+    }
+
+    if (user.role !== "admin" && !(await getSponsorshipAccess(effectiveTeacherId)).allowed) {
+      return new Response(
+        superjson.stringify({ error: SPONSORSHIP_PLAN_REQUIRED_MESSAGE }),
         { status: 403 }
       );
     }
@@ -239,29 +246,11 @@ export async function handle(request: Request): Promise<Response> {
       }
     }
 
-    // 4. Calculate Commission Cost — shared lookup so this preview always
-    // matches what enroll_POST actually charges (that endpoint had its own
-    // copy of this query which ignored platformFeeOverride; fixed to use
-    // the same helper as this preview).
-    const platformFeePercentage = await getTeacherPlatformFee(effectiveTeacherId);
-
+    // 4. Cost: the platform fee is waived for sponsored enrollments, so the teacher pays nothing.
     const testPrice = content.price;
     const discountPrice = content.discountPrice !== null && content.discountPrice < testPrice
       ? content.discountPrice
       : null;
-    const effectivePrice = discountPrice !== null ? discountPrice : testPrice;
-    const rawCommission = (effectivePrice * platformFeePercentage) / 100;
-    const commissionAmount = rawCommission * 0.95;
-    const isFreeEnrollment = commissionAmount < 1;
-
-    // 5. Get Teacher's Available Balance. Managers cannot see or spend the
-    // owner's earnings, so for them the balance is 0 and only online payment is offered.
-    const isManager = teacherRole === "manager";
-    const availableBalance = isManager
-      ? 0
-      : (await getTeacherAvailableBalance(effectiveTeacherId)).availableBalance;
-
-    const hasSufficientBalance = isFreeEnrollment || availableBalance >= commissionAmount;
 
     // Construct Response
     const responseData: OutputType = {
@@ -290,17 +279,17 @@ export async function handle(request: Request): Promise<Response> {
       },
       cost: {
         testPrice,
-        platformFeePercentage,
-        commissionAmount: isFreeEnrollment ? 0 : commissionAmount,
-        formula: `(${effectivePrice} * ${platformFeePercentage}%) * 0.95`,
+        platformFeePercentage: 0,
+        commissionAmount: 0,
+        formula: SPONSORSHIP_FEE_WAIVED_NOTE,
         discountPrice,
       },
       teacher: {
-        availableBalance,
-        hasSufficientBalance,
-        requiresPayment: !hasSufficientBalance,
+        availableBalance: 0,
+        hasSufficientBalance: true,
+        requiresPayment: false,
       },
-      isFreeEnrollment,
+      isFreeEnrollment: true,
       errors: errors.length > 0 ? errors : undefined,
     };
 

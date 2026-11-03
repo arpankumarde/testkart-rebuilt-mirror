@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import { TeacherTest } from '../endpoints/teacher/tests/list_GET.schema';
 import { Button } from './Button';
-import { TeacherCardInsights } from './TeacherCardInsights';
 import { TeacherRejectionNote } from './TeacherRejectionNote';
 import { TeacherListingBadges } from './TeacherListingBadges';
 import { performanceHref } from '../helpers/teacherPerformanceFormat';
@@ -32,6 +31,7 @@ import {
 } from './DropdownMenu';
 import { ShareAssetDialog } from './ShareAssetDialog';
 import { buildPublicAssetUrl, TEACHER_CONSOLE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
+import { getItemExamNames, summarizeExamNames } from '../helpers/itemExams';
 import { Placeholder } from '../helpers/placeholderImages';
 import styles from './TeacherTestCard.module.css';
 
@@ -43,12 +43,49 @@ interface TeacherTestCardProps {
   className?: string;
 }
 
-const formatPrice = (test: TeacherTest) => {
-  if (test.isFree) return 'Free';
+const priceOf = (test: TeacherTest): number | null => {
+  if (test.isFree) return null;
   const price = Number(test.discountPrice ?? test.price);
-  if (!price) return 'Free';
-  return `₹${price.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+  return price ? price : null;
 };
+
+const formatRupees = (value: number) =>
+  `₹${value.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+
+const plural = (count: number, one: string, many: string) => (count === 1 ? one : many);
+
+/* A generated placeholder-service URL is not a real cover, so it gets the default. */
+const coverUrl = (thumbnailUrl: string | null) =>
+  thumbnailUrl && !/placehold\.co|placeholder\.com|via\.placeholder/i.test(thumbnailUrl)
+    ? thumbnailUrl
+    : Placeholder.TEST;
+
+/* `subject` is saved either as plain text or as a JSON array string ("[]", '["Physics"]'). */
+const subjectLabel = (value: string | null): string | null => {
+  const raw = value?.trim() ?? '';
+  if (!raw) return null;
+  if (raw.startsWith('[')) {
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        const names = parsed.filter((item): item is string => typeof item === 'string' && item.trim() !== '');
+        return names.length ? names.map((name) => name.trim()).join(', ') : null;
+      }
+    } catch {
+      return null;
+    }
+  }
+  return raw;
+};
+
+/* Descriptions may be saved as rich text; the card only needs the words. */
+const plainText = (value: string | null) =>
+  (value ?? '')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/\s+/g, ' ')
+    .trim();
 
 export const TeacherTestCard: React.FC<TeacherTestCardProps> = ({
   test,
@@ -58,8 +95,9 @@ export const TeacherTestCard: React.FC<TeacherTestCardProps> = ({
   className,
 }) => {
   const [isShareOpen, setShareOpen] = React.useState(false);
+  const [coverFailed, setCoverFailed] = React.useState(false);
   // Toasts its own success and error and refreshes the list, so the card
-  // moves to In review (or Live, for a verified teacher) once it lands.
+  // moves to In review (or Published, for a verified teacher) once it lands.
   const publishMutation = useTeacherTestMutations().usePublishTestMutation();
   const publishesDirectly = usePublishesWithoutReview();
   const testUrl = buildPublicAssetUrl('test-series', test.slug);
@@ -71,11 +109,12 @@ export const TeacherTestCard: React.FC<TeacherTestCardProps> = ({
   const canDelete = !isPublished;
   const canConvertToDraft = isPublished && !hasEnrollments;
   const canUnpublish = isPublished && hasEnrollments;
+  const showResults = isPublished || test.wasEverPublished || hasEnrollments;
 
   const isInReview = !isPublished && test.inReview;
   const rejection = !isPublished && !isInReview ? test.rejection : null;
   const status = isPublished
-    ? 'live'
+    ? 'published'
     : isInReview
       ? 'inReview'
       : rejection
@@ -83,35 +122,64 @@ export const TeacherTestCard: React.FC<TeacherTestCardProps> = ({
         : test.wasEverPublished
           ? 'unpublished'
           : 'draft';
-  const statusLabel = isPublished
-    ? 'Live'
-    : isInReview
-      ? 'In review'
-      : rejection
-        ? 'Rejected'
-        : test.wasEverPublished
-          ? 'Unpublished'
-          : 'Draft';
-  const discounted = !test.isFree && test.discountPrice != null && Number(test.discountPrice) < Number(test.price);
+  const statusLabel = {
+    published: 'Published',
+    inReview: 'In review',
+    rejected: 'Rejected',
+    unpublished: 'Unpublished',
+    draft: 'Draft',
+  }[status];
+
+  const price = priceOf(test);
+  const discounted =
+    price !== null && test.discountPrice != null && Number(test.discountPrice) < Number(test.price);
+  const exams = summarizeExamNames(
+    getItemExamNames(test).filter((name) => name.toLowerCase() !== 'unspecified')
+  );
+  const subject = subjectLabel(test.subject);
+  const eyebrow = [exams.label, subject].filter(Boolean).join(' · ');
+  const description = plainText(test.description);
+  const editPath = `/teacher/test/${test.id}/edit`;
+  const views = test.views ?? 0;
+  const hasManageItems =
+    canUnpublish || (canConvertToDraft && !!onConvertToDraft) || status === 'unpublished' || canDelete;
+
+  const stats = [
+    { icon: FileText, value: test.testItemsCount, one: 'test', many: 'tests' },
+    { icon: Users, value: test.studentsEnrolled, one: 'student', many: 'students' },
+    { icon: Eye, value: views, one: 'view', many: 'views' },
+  ];
 
   return (
     <article className={`${styles.card} ${className || ''}`}>
-      <Link to={`/teacher/test/${test.id}/edit`} className={styles.thumbnailLink} tabIndex={-1} aria-hidden="true">
+      <Link to={editPath} className={styles.cover} tabIndex={-1} aria-hidden="true">
         <img
-          src={test.thumbnailUrl || Placeholder.TEST}
+          src={coverFailed ? Placeholder.TEST : coverUrl(test.thumbnailUrl)}
           alt=""
           className={styles.thumbnail}
           loading="lazy"
+          onError={() => setCoverFailed(true)}
         />
-        <span className={`${styles.status} ${styles[status]}`}>{statusLabel}</span>
+        <span className={`${styles.status} ${styles[status]}`}>
+          <span className={styles.statusDot} />
+          {statusLabel}
+        </span>
       </Link>
 
-      <div className={styles.content}>
+      <div className={styles.body}>
+        {eyebrow && (
+          <p className={styles.eyebrow} title={exams.fullList || undefined}>
+            {eyebrow}
+          </p>
+        )}
         <h3 className={styles.title}>
-          <Link to={`/teacher/test/${test.id}/edit`} className={styles.titleLink}>
+          <Link to={editPath} className={styles.titleLink}>
             {test.title}
           </Link>
+          {/* The badge on the cover sits in a link hidden from screen readers. */}
+          <span className={styles.srOnly}>, {statusLabel}</span>
         </h3>
+        {description && <p className={styles.description}>{description}</p>}
         <TeacherListingBadges
           visibility={test.visibility}
           live={isPublished}
@@ -120,58 +188,50 @@ export const TeacherTestCard: React.FC<TeacherTestCardProps> = ({
           expiresAt={test.expiresAt}
           expiredAt={test.expiredAt}
         />
-
-        <dl className={styles.meta}>
-          <div className={styles.metaItem}>
-            <FileText size={14} aria-hidden="true" />
-            <dt className={styles.metaLabel}>Tests</dt>
-            <dd className={styles.metaValue}>{test.testItemsCount}</dd>
-          </div>
-          <div className={styles.metaItem}>
-            <Users size={14} aria-hidden="true" />
-            <dt className={styles.metaLabel}>Students</dt>
-            <dd className={styles.metaValue}>{test.studentsEnrolled}</dd>
-          </div>
-          <div className={styles.metaItem}>
-            <Eye size={14} aria-hidden="true" />
-            <dt className={styles.metaLabel}>Views</dt>
-            <dd className={styles.metaValue}>{test.views ?? 0}</dd>
-          </div>
-        </dl>
-
         {rejection && <TeacherRejectionNote rejection={rejection} />}
       </div>
 
+      <ul className={styles.stats}>
+        {stats.map(({ icon: Icon, value, one, many }) => (
+          <li key={one}>
+            <Icon size={13} aria-hidden="true" />
+            <strong>{value.toLocaleString('en-IN')}</strong>
+            {plural(value, one, many)}
+          </li>
+        ))}
+      </ul>
+
       <div className={styles.footer}>
         <p className={styles.price}>
-          {formatPrice(test)}
-          {discounted && <span className={styles.wasPrice}>₹{Number(test.price).toLocaleString('en-IN')}</span>}
+          {price === null ? (
+            <span className={styles.free}>Free</span>
+          ) : (
+            <>
+              {formatRupees(price)}
+              {discounted && <span className={styles.wasPrice}>{formatRupees(Number(test.price))}</span>}
+            </>
+          )}
         </p>
 
         <div className={styles.actions}>
-          {isPublished && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShareOpen(true)}
-              title="Share"
-              aria-label={`Share ${test.title}`}
-            >
-              <Share2 size={16} />
-            </Button>
-          )}
-
-          <Button asChild variant={rejection ? 'primary' : 'outline'} size="sm">
-            <Link to={`/teacher/test/${test.id}/edit`}>
-              {rejection ? <Wrench size={14} /> : <Edit size={14} />}
-              {rejection ? 'Fix it' : 'Edit'}
-            </Link>
-          </Button>
+          <Link
+            to={editPath}
+            className={`${styles.editButton} ${rejection ? styles.fixButton : ''}`}
+            aria-label={`${rejection ? 'Fix' : 'Edit'} ${test.title}`}
+          >
+            {rejection ? <Wrench size={14} aria-hidden="true" /> : <Edit size={14} aria-hidden="true" />}
+            {rejection ? 'Fix it' : 'Edit'}
+          </Link>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label={`More actions for ${test.title}`}>
-                <MoreVertical size={16} />
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={`More actions for ${test.title}`}
+                className={styles.iconButton}
+              >
+                <MoreVertical size={16} aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -185,9 +245,27 @@ export const TeacherTestCard: React.FC<TeacherTestCardProps> = ({
                     <a href={testUrl} target="_blank" rel="noreferrer">
                       <ExternalLink size={16} />
                       <span>View public page</span>
+                      <span className={styles.srOnly}> (opens in a new tab)</span>
                     </a>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
+                  {(showResults || hasManageItems) && <DropdownMenuSeparator />}
+                </>
+              )}
+              {showResults && (
+                <>
+                  <DropdownMenuItem asChild className={styles.menuItem}>
+                    <Link to={performanceHref('leaderboards', { series: test.id })}>
+                      <Trophy size={16} />
+                      <span>Leaderboard</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className={styles.menuItem}>
+                    <Link to={performanceHref('students', { series: test.id })}>
+                      <Users size={16} />
+                      <span>Students</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  {hasManageItems && <DropdownMenuSeparator />}
                 </>
               )}
               {canUnpublish && (
@@ -226,16 +304,6 @@ export const TeacherTestCard: React.FC<TeacherTestCardProps> = ({
           </DropdownMenu>
         </div>
       </div>
-
-      {(isPublished || test.wasEverPublished || hasEnrollments) && (
-        <TeacherCardInsights
-          itemTitle={test.title}
-          items={[
-            { to: performanceHref('leaderboards', { series: test.id }), label: 'Leaderboard', icon: Trophy },
-            { to: performanceHref('students', { series: test.id }), label: 'Students', icon: Users },
-          ]}
-        />
-      )}
 
       {isPublished && (
         <ShareAssetDialog

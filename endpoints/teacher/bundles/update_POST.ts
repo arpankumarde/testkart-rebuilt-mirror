@@ -102,19 +102,16 @@ export async function handle(request: Request): Promise<Response> {
         }
       }
 
-      if (itemsBeingChanged) {
-        const totalItems = next.courseIds.length + next.testIds.length + next.digitalProductIds.length;
-        if (totalItems < 2) {
-          throw new BundleRuleError("A bundle must contain at least 2 items total (courses, tests, and/or digital products).");
-        }
-      }
+      const totalItems = next.courseIds.length + next.testIds.length + next.digitalProductIds.length;
 
       // Original price always comes from the items' current prices, not the
       // value stored when the bundle was last saved.
       const itemPrices = await loadBundleItemPrices(trx, effectiveTeacherId, next, itemsBeingChanged);
       const price = input.price !== undefined ? input.price : Number(bundle.price);
       const pricing = computeBundlePricing(itemPrices, price);
-      if (pricing.priceError) {
+      // A draft with fewer than 2 items has no meaningful combined price yet;
+      // publishing checks it once the bundle is complete.
+      if (pricing.priceError && totalItems >= 2) {
         throw new BundleRuleError(pricing.priceError);
       }
 

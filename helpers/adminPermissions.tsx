@@ -149,6 +149,7 @@ const API_RULES: Record<string, ApiRule> = {
   "admin/organizations": ["teachers"],
   "admin/user/toggle-verified": ["teachers"],
   "admin/user/account-status": ["teachers", "students"],
+  "admin/user/login-links": ["teachers", "students"],
   "admin/impersonate": ["teachers", "students"],
   "admin/students": ["students"],
   "admin/inquiries": ["teacher_inquiries"],

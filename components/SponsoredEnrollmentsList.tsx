@@ -24,7 +24,22 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
+import { SPONSORSHIP_FEE_WAIVED_METHOD } from "../helpers/sponsorshipFee";
 import styles from "./SponsoredEnrollmentsList.module.css";
+
+/** Plain words for the stored payment method, instead of "online_pending" or "balance_deduction". Fee-waived rows show no label. */
+const paymentLabel = (method: string) => {
+  switch (method) {
+    case "balance_deduction":
+      return "Paid from your balance";
+    case "online_payment":
+      return "Paid online";
+    case "online_pending":
+      return "Online payment not finished";
+    default:
+      return method.replace(/_/g, " ");
+  }
+};
 
 // Helper component for Stat Cards
 const StatCard = ({
@@ -284,6 +299,7 @@ export const SponsoredEnrollmentsList: React.FC<SponsoredEnrollmentsListProps> =
               <Search className={styles.searchIcon} size={16} />
               <Input
                 placeholder="Search by student, phone, or test..."
+                aria-label="Search sponsored students"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className={styles.searchInput}
@@ -305,18 +321,19 @@ export const SponsoredEnrollmentsList: React.FC<SponsoredEnrollmentsListProps> =
               <Filter size={14} className={styles.filterIcon} />
 
               <Select value={paymentFilter} onValueChange={setPaymentFilter}>
-                <SelectTrigger className={styles.selectTrigger}>
+                <SelectTrigger className={styles.selectTrigger} aria-label="Filter by how it was paid">
                   <SelectValue placeholder="Payment" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Methods</SelectItem>
-                  <SelectItem value="balance">Wallet Balance</SelectItem>
-                  <SelectItem value="online">Online Payment</SelectItem>
+                  <SelectItem value={SPONSORSHIP_FEE_WAIVED_METHOD}>Platform fee waived</SelectItem>
+                  <SelectItem value="balance">From your balance</SelectItem>
+                  <SelectItem value="online">Paid online</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={dateFilter} onValueChange={setDateFilter}>
-                <SelectTrigger className={styles.selectTrigger}>
+                <SelectTrigger className={styles.selectTrigger} aria-label="Filter by date">
                   <SelectValue placeholder="Date Range" />
                 </SelectTrigger>
                 <SelectContent>
@@ -328,7 +345,7 @@ export const SponsoredEnrollmentsList: React.FC<SponsoredEnrollmentsListProps> =
               </Select>
 
               <Select value={testFilter} onValueChange={setTestFilter}>
-                <SelectTrigger className={styles.selectTrigger}>
+                <SelectTrigger className={styles.selectTrigger} aria-label="Filter by content">
                   <SelectValue placeholder="All Content" />
                 </SelectTrigger>
                 <SelectContent>
@@ -345,7 +362,7 @@ export const SponsoredEnrollmentsList: React.FC<SponsoredEnrollmentsListProps> =
             <div className={styles.sortGroup}>
               <ArrowUpDown size={14} className={styles.filterIcon} />
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className={styles.selectTrigger}>
+                <SelectTrigger className={styles.selectTrigger} aria-label="Sort sponsored students">
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
@@ -379,7 +396,7 @@ export const SponsoredEnrollmentsList: React.FC<SponsoredEnrollmentsListProps> =
               dateFilter !== "all" ||
               testFilter !== "all"
                 ? "Try adjusting your filters or search terms"
-                : "Sponsor your first student to help them access your test series"}
+                : "Sponsor your first student to give them free access to your content. There is no platform fee."}
             </p>
             {searchTerm === "" &&
               paymentFilter === "all" &&
@@ -452,9 +469,11 @@ export const SponsoredEnrollmentsList: React.FC<SponsoredEnrollmentsListProps> =
                           <span className={styles.amount}>
                             {formatCurrency(enrollment.commissionAmount)}
                           </span>
-                          <span className={styles.paymentMethod}>
-                            via {enrollment.paymentMethod}
-                          </span>
+                          {enrollment.paymentMethod !== SPONSORSHIP_FEE_WAIVED_METHOD && (
+                            <span className={styles.paymentMethod}>
+                              {paymentLabel(enrollment.paymentMethod)}
+                            </span>
+                          )}
                         </div>
                       </td>
                       <td>
@@ -545,9 +564,11 @@ export const SponsoredEnrollmentsList: React.FC<SponsoredEnrollmentsListProps> =
                         <span className={styles.amount}>
                           {formatCurrency(enrollment.commissionAmount)}
                         </span>
-                        <span className={styles.paymentMethod}>
-                          ({enrollment.paymentMethod})
-                        </span>
+                        {enrollment.paymentMethod !== SPONSORSHIP_FEE_WAIVED_METHOD && (
+                          <span className={styles.paymentMethod}>
+                            ({paymentLabel(enrollment.paymentMethod)})
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

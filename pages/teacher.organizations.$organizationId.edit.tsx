@@ -240,7 +240,7 @@ const EditOrganizationPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Edit {myOrg.name} - Testkart for Teachers</title>
+        <title>{`Edit ${myOrg.name} - Testkart for Teachers`}</title>
       </Helmet>
       <div className={styles.page}>
         <ConsolePageHeader title={`Edit ${myOrg.name}`}>

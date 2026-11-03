@@ -1,0 +1,99 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  background-color: var(--tc-card, var(--surface));
+  border: 1px solid var(--tc-line, var(--border));
+  border-radius: 1rem;
+  box-shadow: var(--sp-shadow);
+}
+
+.cover {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  max-height: 190px;
+  overflow: hidden;
+  border-bottom: 1px solid var(--tc-line, var(--border));
+}
+
+.fill {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+}
+
+.badge {
+  position: absolute;
+  top: 0.625rem;
+  left: 0.625rem;
+  width: 4rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  background-color: var(--tc-card, var(--surface));
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex-grow: 1;
+  padding: 0.875rem 1rem 0;
+}
+
+.eyebrow {
+  width: 35%;
+  height: 0.6875rem;
+}
+
+.line {
+  height: 1.0625rem;
+}
+
+.lineShort {
+  width: 65%;
+}
+
+.metrics {
+  display: flex;
+  gap: 0.875rem;
+  padding: 0.75rem 1rem;
+}
+
+.metric {
+  width: 3.5rem;
+  height: 0.75rem;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: 0.5rem 0.625rem 0.5rem 1rem;
+  background-color: var(--tc-bg, var(--surface));
+  border-top: 1px solid var(--tc-line, var(--border));
+}
+
+.price {
+  width: 3rem;
+  height: 1.125rem;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.edit {
+  width: 4rem;
+  height: 2rem;
+  border-radius: 0.625rem;
+}
+
+.more {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.625rem;
+}

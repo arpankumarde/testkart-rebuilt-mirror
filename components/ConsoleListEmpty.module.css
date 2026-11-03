@@ -6,9 +6,9 @@
   gap: var(--spacing-3);
   text-align: center;
   padding: var(--spacing-16) var(--spacing-4);
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  background-color: var(--tc-card, var(--surface));
+  border: 1px solid var(--tc-line, var(--border));
+  border-radius: var(--tc-radius-card, var(--radius-md));
 }
 
 .icon {
@@ -18,8 +18,8 @@
   width: 3.25rem;
   height: 3.25rem;
   border-radius: var(--radius-full);
-  background-color: var(--tk-brand-tint);
-  color: var(--tk-brand-text);
+  background-color: var(--tc-accent-tint, var(--tk-brand-tint));
+  color: var(--tc-accent-ink, var(--tk-brand-text));
 }
 
 .iconError {
@@ -33,15 +33,15 @@
   font-size: 1.125rem;
   font-weight: 700;
   letter-spacing: -0.01em;
-  color: var(--foreground);
+  color: var(--tc-ink, var(--foreground));
   max-width: 34rem;
 }
 
 .text {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   line-height: 1.5;
-  color: var(--muted-foreground);
+  color: var(--tc-muted, var(--muted-foreground));
   max-width: 34rem;
 }
 

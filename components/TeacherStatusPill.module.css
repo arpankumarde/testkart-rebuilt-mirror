@@ -1,0 +1,72 @@
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  height: 1.5rem;
+  padding: 0 0.625rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-family: var(--font-family-base);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.dot {
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.live {
+  background-color: var(--fc-sage-tint);
+  border-color: var(--fc-sage-line);
+  color: var(--fc-sage-ink);
+}
+
+.live .dot {
+  background-color: var(--fc-sage-edge);
+}
+
+.draft {
+  background-color: var(--sp-card);
+  border-style: dashed;
+  border-color: var(--sp-line-strong);
+  color: var(--sp-text);
+}
+
+.draft .dot {
+  border: 1.5px solid var(--sp-muted);
+}
+
+.review {
+  background-color: var(--fc-butter-tint);
+  border-color: var(--fc-butter-line);
+  color: var(--fc-butter-ink);
+}
+
+.review .dot {
+  background-color: var(--fc-butter-edge);
+}
+
+.rejected {
+  background-color: color-mix(in srgb, var(--error) 12%, var(--sp-card));
+  border-color: color-mix(in srgb, var(--error) 40%, var(--sp-card));
+  color: var(--error-text);
+}
+
+.rejected .dot {
+  background-color: var(--error);
+}
+
+.scheduled {
+  background-color: var(--fc-blue-tint);
+  border-color: var(--fc-blue-line);
+  color: var(--fc-blue-ink);
+}
+
+.scheduled .dot {
+  background-color: var(--fc-blue-edge);
+}

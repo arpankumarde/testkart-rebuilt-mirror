@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
+import { ReviewTeacherReply } from "../components/ReviewTeacherReply";
 import { usePublicCourseDetailsQuery, useRelatedCoursesQuery } from '../helpers/useStudentCoursesQuery';
 import { SEOHead } from '../components/SEOHead';
 import { Placeholder } from '../helpers/placeholderImages';
@@ -379,6 +380,7 @@ export default function CourseDetailsPage() {
                         </div>
                       </div>
                       {review.reviewText && <p className={styles.reviewText}>{review.reviewText}</p>}
+                      <ReviewTeacherReply reply={review.teacherReply} repliedAt={review.teacherRepliedAt} />
                     </div>
                   ))}
                 </div>

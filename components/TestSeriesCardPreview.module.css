@@ -58,6 +58,24 @@
   flex-shrink: 0;
 }
 
+/* In the test series flow (tk-flow) the stage is the lavender block of the /app
+   palette instead of coral; the card on it is unchanged. */
+:global(.tk-flow) .stage {
+  background-color: var(--sp-lavender-tint);
+  color: var(--sp-lavender-ink);
+  border: 1px solid var(--sp-lavender-line);
+}
+
+:global(.tk-flow) .stageTitle,
+:global(.tk-flow) .pageLink,
+:global(.tk-flow) .pageLink:hover {
+  color: var(--sp-lavender-ink);
+}
+
+:global(.tk-flow) .pageLink:focus-visible {
+  outline-color: var(--sp-lavender-ink);
+}
+
 .card {
   display: flex;
   flex-direction: column;

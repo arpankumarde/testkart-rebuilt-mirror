@@ -279,7 +279,7 @@ const SubscriptionPage: React.FC = () => {
         setPendingPlan(null);
       } else if (result.status === "payment_required") {
         if (result.walletDeducted > 0) {
-          toast.loading(`₹${result.walletDeducted} deducted from wallet. Redirecting to pay ₹${result.payuData.amount} via PayU...`, { id: loadingToast });
+          toast.loading(`₹${result.walletDeducted} taken from your balance. Opening the payment page for the remaining ₹${result.payuData.amount}...`, { id: loadingToast });
         } else {
           toast.success("Redirecting to payment gateway...", { id: loadingToast });
         }
@@ -540,7 +540,7 @@ const SubscriptionPage: React.FC = () => {
                     </strong>
                   </div>
                   <div className={styles.breakdownRow}>
-                    <span>To Pay via PayU:</span>
+                    <span>To pay online:</span>
                     {walletBalance >= (appliedPromo?.finalPrice ?? pendingPlan.price) ? (
                       <strong className={styles.successText}>No additional payment needed</strong>
                     ) : (
@@ -550,7 +550,7 @@ const SubscriptionPage: React.FC = () => {
                 </>
               ) : (
                 <div className={styles.breakdownRow}>
-                  <span>Full payment via PayU:</span>
+                  <span>Pay online in full:</span>
                   <strong>₹{formatInr(appliedPromo?.finalPrice ?? pendingPlan.price)}</strong>
                 </div>
               )}

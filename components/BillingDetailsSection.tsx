@@ -146,19 +146,24 @@ export const BillingDetailsSection: React.FC = () => {
       <div className={styles.cardContent}>
         <div className={styles.row}>
           <div className={styles.field}>
-            <label className={styles.label}>
-              Full Name <span className={styles.requiredTag}>*</span>
+            <label className={styles.label} htmlFor="billing-name">
+              Full name <span className={styles.requiredTag} aria-hidden="true">*</span>
             </label>
             <Input
+              id="billing-name"
+              aria-required="true"
+              aria-invalid={errors.name ? true : undefined}
+              aria-describedby={errors.name ? "billing-name-error" : undefined}
               value={form.name}
               onChange={(e) => handleChange("name", e.target.value)}
               placeholder="Name as it should appear on invoices"
             />
-            {errors.name && <p className={styles.errorText}>{errors.name}</p>}
+            {errors.name && <p id="billing-name-error" className={styles.errorText}>{errors.name}</p>}
           </div>
           <div className={styles.field}>
-            <label className={styles.label}>Email</label>
+            <label className={styles.label} htmlFor="billing-email">Email</label>
             <Input
+              id="billing-email"
               type="email"
               value={form.email}
               onChange={(e) => handleChange("email", e.target.value)}
@@ -169,8 +174,9 @@ export const BillingDetailsSection: React.FC = () => {
 
         <div className={styles.row}>
           <div className={styles.field}>
-            <label className={styles.label}>Phone</label>
+            <label className={styles.label} htmlFor="billing-phone">Phone</label>
             <Input
+              id="billing-phone"
               type="tel"
               value={form.phone}
               onChange={(e) => handleChange("phone", e.target.value)}
@@ -178,43 +184,58 @@ export const BillingDetailsSection: React.FC = () => {
             />
           </div>
           <div className={styles.field}>
-            <label className={styles.label}>
-              GSTIN <span className={styles.optionalTag}>(optional)</span>
+            <label className={styles.label} htmlFor="billing-gstin">
+              GST number <span className={styles.optionalTag}>(optional)</span>
             </label>
             <Input
+              id="billing-gstin"
+              aria-invalid={errors.gstin ? true : undefined}
+              aria-describedby={errors.gstin ? "billing-gstin-error" : "billing-gstin-help"}
               value={form.gstin}
               onChange={(e) => handleChange("gstin", e.target.value.toUpperCase())}
               placeholder="15-character GSTIN"
               maxLength={15}
             />
-            {errors.gstin && <p className={styles.errorText}>{errors.gstin}</p>}
+            {errors.gstin ? (
+              <p id="billing-gstin-error" className={styles.errorText}>{errors.gstin}</p>
+            ) : (
+              <p id="billing-gstin-help" className={styles.helpText}>Only if your business is registered for GST.</p>
+            )}
           </div>
         </div>
 
         <div className={styles.field}>
-          <label className={styles.label}>
-            Billing Address <span className={styles.requiredTag}>*</span>
+          <label className={styles.label} htmlFor="billing-address">
+            Billing address <span className={styles.requiredTag} aria-hidden="true">*</span>
           </label>
           <Textarea
+            id="billing-address"
+            aria-required="true"
+            aria-invalid={errors.address ? true : undefined}
+            aria-describedby="billing-address-note"
             value={form.address}
             onChange={(e) => handleChange("address", e.target.value)}
             placeholder="House or street, area, city, PIN code"
             rows={3}
           />
           {errors.address ? (
-            <p className={styles.errorText}>{errors.address}</p>
+            <p id="billing-address-note" className={styles.errorText}>{errors.address}</p>
           ) : (
-            <p className={styles.helpText}>Full address to be printed on your invoices.</p>
+            <p id="billing-address-note" className={styles.helpText}>Full address to be printed on your invoices.</p>
           )}
         </div>
 
         <div className={styles.row}>
           <div className={styles.field}>
-            <label className={styles.label}>
-              State <span className={styles.requiredTag}>*</span>
+            <label className={styles.label} id="billing-state-label">
+              State <span className={styles.requiredTag} aria-hidden="true">*</span>
             </label>
             <Select value={form.state || undefined} onValueChange={(next) => handleChange("state", next)}>
-              <SelectTrigger aria-invalid={errors.state ? true : undefined}>
+              <SelectTrigger
+                aria-labelledby="billing-state-label"
+                aria-required="true"
+                aria-invalid={errors.state ? true : undefined}
+              >
                 <SelectValue placeholder="Select state" />
               </SelectTrigger>
               <SelectContent>
@@ -228,8 +249,8 @@ export const BillingDetailsSection: React.FC = () => {
             {errors.state && <p className={styles.errorText}>{errors.state}</p>}
           </div>
           <div className={styles.field}>
-            <label className={styles.label}>Country</label>
-            <Input value="India" readOnly disabled />
+            <label className={styles.label} htmlFor="billing-country">Country</label>
+            <Input id="billing-country" value="India" readOnly disabled />
           </div>
         </div>
       </div>

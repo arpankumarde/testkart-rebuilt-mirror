@@ -13,15 +13,15 @@ const TeacherEditProductPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Edit Product - Teacher Dashboard | Testkart</title>
-        <meta name="description" content="Edit an existing digital product." />
+        <title>Edit note or PDF | Testkart</title>
+        <meta name="description" content="Edit your study notes or PDF on Testkart." />
       </Helmet>
       <div className={styles.page}>
-        <TeacherFormHeader
+        <TeacherFormHeader kind="digital_product"
           backTo="/teacher/products"
-          backLabel="Notes & PDFs"
+          backLabel="Notes and PDFs"
           title="Edit note or PDF"
-          subtitle="Update the details or files, then save the changes or publish."
+          subtitle="Update the details or PDFs, then save or publish."
         />
 
         <TeacherRejectionBanner contentType="digital_product" contentId={parsedId} />

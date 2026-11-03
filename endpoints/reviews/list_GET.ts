@@ -18,6 +18,8 @@ export async function handle(request: Request) {
         "reviews.id",
         "reviews.rating",
         "reviews.reviewText",
+        "reviews.teacherReply",
+        "reviews.teacherRepliedAt",
         "reviews.createdAt",
         "reviews.testItemId",
         "users.displayName as reviewerName",

@@ -20,7 +20,14 @@ export type SponsoredEnrollment = {
   orderStatus: string | null;
 };
 
+export type SponsorshipAccessInfo = {
+  /** False on the Free plan: sponsoring needs Starter or higher. */
+  allowed: boolean;
+  planBaseName: "Free" | "Starter" | "Individual" | "Business";
+};
+
 export type OutputType = {
+  sponsorship: SponsorshipAccessInfo;
   sponsoredEnrollments: SponsoredEnrollment[];
 };
 

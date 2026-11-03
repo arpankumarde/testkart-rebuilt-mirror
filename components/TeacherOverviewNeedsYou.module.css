@@ -1,0 +1,94 @@
+.card {
+  padding: 1.25rem 1.25rem 0.5rem;
+  background-color: var(--tc-card);
+  border: 1px solid var(--tc-line);
+  border-radius: var(--tc-radius-card);
+}
+
+.title {
+  margin: 0 0 0.375rem;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--tc-ink);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list li + li {
+  border-top: 1px solid var(--tc-line);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+  margin: 0 -0.5rem;
+  padding: 0.625rem 0.5rem;
+  border-radius: 0.625rem;
+  color: var(--tc-ink);
+  text-decoration: none;
+}
+
+.row:hover {
+  background-color: var(--tc-bg);
+}
+
+.row:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: -2px;
+}
+
+.icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 1px solid var(--tc-line);
+  border-radius: 0.5rem;
+  background-color: var(--tc-bg);
+  color: var(--tc-ink);
+}
+
+.rowTitle {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status {
+  flex-shrink: 0;
+  padding: 0.1875rem 0.625rem;
+  background-color: var(--fc-butter-tint);
+  border: 1px solid var(--fc-butter-line);
+  border-radius: 999px;
+  color: var(--fc-butter-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.statusFix {
+  background-color: var(--fc-peach-tint);
+  border-color: var(--fc-peach-line);
+  color: var(--fc-peach-ink);
+}
+
+.chevron {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: var(--tc-muted);
+}

@@ -57,13 +57,6 @@ export async function handle(request: Request): Promise<Response> {
     const digitalProductIds = input.digitalProductIds ?? [];
     const totalItems = courseIds.length + testIds.length + digitalProductIds.length;
 
-    if (totalItems < 2) {
-      return new Response(
-        superjson.stringify({ error: "A bundle must contain at least 2 items total (courses, tests, and/or digital products)." }),
-        { status: 400 }
-      );
-    }
-
     const slug = await generateUniqueSlug(input.title);
 
     const newBundle = await db.transaction().execute(async (trx) => {
@@ -74,7 +67,9 @@ export async function handle(request: Request): Promise<Response> {
         true
       );
       const pricing = computeBundlePricing(itemPrices, input.price);
-      if (pricing.priceError) {
+      // With fewer than 2 items the combined price is not meaningful yet;
+      // publishing checks the price once the bundle is complete.
+      if (pricing.priceError && totalItems >= 2) {
         throw new BundleRuleError(pricing.priceError);
       }
 

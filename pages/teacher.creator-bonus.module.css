@@ -37,16 +37,23 @@
   letter-spacing: -0.02em;
 }
 
-/* Hero: the coral block from the New Teacher CTA. */
+/*
+ * Hero: the sage money block, matching the Overview's Creator Bonus band. The
+ * brand ink variables are re-pointed here so every rule inside that reads them
+ * (meter, coins, chip) takes the sage ink instead; coral stays on actions.
+ */
 .hero {
+  --tk-brand-ink: var(--fc-sage-ink);
+  --tk-brand-deep: var(--fc-sage-ink);
+
   position: relative;
   display: grid;
   gap: var(--spacing-6);
   padding: 2rem 1.5rem;
-  border-radius: 1.875rem;
-  background: var(--tk-brand);
-  color: var(--tk-brand-ink);
-  box-shadow: 0 12px 28px -8px hsl(20 60% 35% / 0.4);
+  border-radius: var(--tc-radius-panel, 1.5rem);
+  background: var(--fc-sage-tint);
+  border: 1px solid var(--fc-sage-line);
+  color: var(--fc-sage-ink);
   overflow: hidden;
 }
 
@@ -61,12 +68,10 @@
   align-self: flex-start;
   padding: 0.3125rem 0.75rem;
   border-radius: var(--radius-full);
-  background: hsl(0 0% 100%);
+  background: var(--sp-card);
   color: var(--tk-brand-deep);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
   transform: rotate(-2deg);
 }
 
@@ -117,7 +122,7 @@
   height: 0.875rem;
   border: 2px solid var(--tk-brand-ink);
   border-radius: var(--radius-full);
-  background: hsl(0 0% 100%);
+  background: var(--sp-card);
   overflow: hidden;
 }
 
@@ -138,7 +143,7 @@
   display: grid;
   place-items: center;
   border: 3px solid var(--tk-brand-ink);
-  background: hsl(0 0% 100%);
+  background: var(--sp-card);
   color: var(--tk-brand-ink);
   font-family: var(--font-family-heading);
   font-weight: 800;
@@ -240,7 +245,7 @@
   flex-direction: column;
   gap: 1.25rem;
   padding: 1.5rem;
-  border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+  border: 1px solid var(--border);
   border-radius: 1.875rem;
   background: var(--card);
   color: var(--card-foreground);
@@ -578,6 +583,7 @@
 }
 
 .readyBadge {
+  flex-shrink: 0;
   padding: 0.25rem 0.75rem;
   border-radius: var(--radius-full);
   background: var(--tk-brand);
@@ -638,7 +644,7 @@
   flex-direction: column;
   gap: var(--spacing-3);
   padding: 1.125rem 1.25rem;
-  border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+  border: 1px solid var(--border);
   border-radius: 1.5rem;
   background: var(--card);
   color: var(--card-foreground);
@@ -652,11 +658,16 @@
 }
 
 .itemKind {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--tk-brand-text);
+}
+
+.titleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2) var(--spacing-3);
 }
 
 .itemTitle {

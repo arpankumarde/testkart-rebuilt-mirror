@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Plus, Edit, Trash2, FileText, Clock, Layers, AlertTriangle, ChevronDown, ChevronUp, GripVertical, CalendarClock, Zap, X } from "lucide-react";
+import { Plus, Edit, Trash2, FileText, Clock, Layers, AlertTriangle, ChevronDown, ChevronUp, GripVertical, CalendarClock, Zap, X, PenLine } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -45,6 +46,7 @@ import {
 import { Input } from "./Input";
 import { Checkbox } from "./Checkbox";
 import { DatePicker } from "./DatePicker";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "./Collapsible";
 import { TestItemSubjectsPanel } from "./TestItemSubjectsPanel";
 import { useTeacherTestItemsQuery } from "../helpers/useTeacherTestsQuery";
 import { useTeacherTestMutations } from "../helpers/useTeacherTestMutations";
@@ -57,6 +59,9 @@ import styles from "./TestSeriesItemsEditor.module.css";
 /*
  * The tests inside one test series: add, edit, reorder and trash them, and open
  * each one's subjects. Shared by the teacher test items page and the admin editor.
+ * `guided` (teacher page only) puts an Add questions button on each card and
+ * shows the simpler settings form: one Timer choice, with calculator and
+ * schedule folded under More options.
  */
 
 const formatSchedule = (date: Date | string): string =>
@@ -66,14 +71,48 @@ const formatSchedule = (date: Date | string): string =>
 const isScheduledAhead = (date: Date | string | null | undefined): date is Date | string =>
   !!date && new Date(date).getTime() > Date.now();
 
+type TimerMode = "test" | "subject" | "question";
+
+const MoreOptions = ({
+  guided,
+  open,
+  onOpenChange,
+  children,
+}: {
+  guided: boolean;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  children: React.ReactNode;
+}) => {
+  if (!guided) return <>{children}</>;
+  return (
+    <Collapsible open={open} onOpenChange={onOpenChange} className={styles.moreOptions}>
+      <CollapsibleTrigger className={styles.moreOptionsTrigger}>
+        More options
+        <span className={styles.moreOptionsHint}>Calculator and schedule</span>
+        <ChevronDown size={16} aria-hidden="true" className={styles.moreOptionsChevron} />
+      </CollapsibleTrigger>
+      <CollapsibleContent className={styles.moreOptionsContent}>{children}</CollapsibleContent>
+    </Collapsible>
+  );
+};
+
+const TIMER_MODES: { key: TimerMode; label: string; hint: string }[] = [
+  { key: "test", label: "Whole test", hint: "One countdown for the whole test." },
+  { key: "subject", label: "Per subject", hint: "Set a time for each subject on the questions page." },
+  { key: "question", label: "Per question", hint: "Set a time for each question on the questions page." },
+];
+
 const TestItemForm = ({
   packageId,
   item,
-  onSuccess
+  onSuccess,
+  guided = false,
 }: {
   packageId: number;
   item?: TestItemWithQuestionsCount;
   onSuccess: () => void;
+  guided?: boolean;
 }) => {
   const isEditMode = !!item;
   const { useCreateTestItemMutation, useUpdateTestItemMutation } = useTeacherTestMutations();
@@ -138,6 +177,14 @@ const TestItemForm = ({
   const isLoading = createMutation.isPending || updateMutation.isPending;
 
   const scheduledDate = form.values.scheduledDate ?? null;
+  const timerMode: TimerMode = form.values.subjectWiseTiming
+    ? "subject"
+    : form.values.questionWiseTiming
+      ? "question"
+      : "test";
+  const [moreOpen, setMoreOpen] = useState(
+    !!item && (item.calculatorEnabled || isScheduledAhead(item.scheduledDate))
+  );
   const scheduleHint = (() => {
     if (!scheduledDate) {
       return item?.scheduledDate
@@ -163,6 +210,34 @@ const TestItemForm = ({
           </FormControl>
           <FormMessage />
         </FormItem>
+        {guided ? (
+          <FormItem name="subjectWiseTiming">
+            <FormLabel>Timer</FormLabel>
+            <div className={styles.timerChoices} role="radiogroup" aria-label="Timer">
+              {TIMER_MODES.map((mode) => (
+                <button
+                  key={mode.key}
+                  type="button"
+                  role="radio"
+                  aria-checked={timerMode === mode.key}
+                  className={styles.timerChoice}
+                  onClick={() =>
+                    form.setValues((p) => ({
+                      ...p,
+                      subjectWiseTiming: mode.key === "subject",
+                      questionWiseTiming: mode.key === "question",
+                    }))
+                  }
+                >
+                  {mode.label}
+                </button>
+              ))}
+            </div>
+            <FormDescription>{TIMER_MODES.find((m) => m.key === timerMode)?.hint}</FormDescription>
+            <FormMessage />
+          </FormItem>
+        ) : (
+        <>
         <FormItem name="subjectWiseTiming" className={styles.checkboxFormItem}>
           <div className={styles.checkboxWrapper}>
             <FormControl>
@@ -207,6 +282,8 @@ const TestItemForm = ({
           </FormDescription>
           <FormMessage />
         </FormItem>
+        </>
+        )}
         {!(form.values.subjectWiseTiming || form.values.questionWiseTiming) && (
           <FormItem name="durationMinutes">
             <FormLabel>Duration (minutes)</FormLabel>
@@ -235,6 +312,7 @@ const TestItemForm = ({
           </FormDescription>
           <FormMessage />
         </FormItem>
+        <MoreOptions guided={guided} open={moreOpen} onOpenChange={setMoreOpen}>
         <FormItem name="calculatorEnabled" className={styles.checkboxFormItem}>
           <div className={styles.checkboxWrapper}>
             <FormControl>
@@ -275,6 +353,7 @@ const TestItemForm = ({
           <FormDescription>{scheduleHint}</FormDescription>
           <FormMessage />
         </FormItem>
+        </MoreOptions>
         <DialogFooter>
           <DialogClose asChild>
             <Button type="button" variant="outline">Cancel</Button>
@@ -358,21 +437,21 @@ const BulkCreateTestItemsForm = ({
   );
 };
 
-/* The "Add Test Items" button and its dialog, placed by each page in its own header. */
+/* The "Add tests" button and its dialog, placed by each page in its own header. */
 export const AddTestItemsButton = ({ packageId }: { packageId: number }) => {
   const [open, setOpen] = useState(false);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
-          <Plus size={16} /> Add Test Items
+          <Plus size={16} /> Add tests
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Test Items</DialogTitle>
+          <DialogTitle>Add tests</DialogTitle>
           <DialogDescription>
-            Add one or multiple test items to this package. You'll add questions in the next step.
+            Add one or more tests to this series. You will add questions in the next step.
           </DialogDescription>
         </DialogHeader>
         <BulkCreateTestItemsForm packageId={packageId} onSuccess={() => setOpen(false)} />
@@ -394,14 +473,17 @@ const getEffectiveDurationLabel = (item: TestItemWithQuestionsCount): string => 
 };
 
 // Same checks the review/publish step blocks on, surfaced here so a teacher
-// gets a sense of what needs attention without opening every item.
+// gets a sense of what needs attention without opening every item. A test
+// scheduled to open later may stay empty, as on the review page.
 const getItemIssues = (item: TestItemWithQuestionsCount): { blocking: string | null } => {
   let blocking: string | null = null;
+  const opensLater = isScheduledAhead(item.scheduledDate);
   if (item.questionsCount === 0) {
+    if (opensLater) return { blocking: null };
     blocking = "Empty - add questions before you publish";
   } else if (item.missingAnswerCount > 0) {
     blocking = `${item.missingAnswerCount} question${item.missingAnswerCount === 1 ? "" : "s"} missing a correct answer`;
-  } else if (item.subjectsCount > 1 && item.minSubjectQuestionCount === 0) {
+  } else if (item.subjectsCount > 1 && item.minSubjectQuestionCount === 0 && !opensLater) {
     blocking = "One or more subjects have no questions yet";
   }
 
@@ -413,11 +495,13 @@ const SortableItemCard = ({
   packageId,
   onEdit,
   onDelete,
+  guided,
 }: {
   item: TestItemWithQuestionsCount;
   packageId: number;
   onEdit: (item: TestItemWithQuestionsCount) => void;
   onDelete: (item: TestItemWithQuestionsCount) => void;
+  guided: boolean;
 }) => {
   const {
     attributes,
@@ -445,40 +529,60 @@ const SortableItemCard = ({
       className={`${styles.itemCard} ${isDragging ? styles.dragging : ""} ${blocking ? styles.itemCardBlocking : ""}`}
     >
       <div className={styles.itemRow}>
-        <div className={styles.dragHandle} {...attributes} {...listeners}>
-          <GripVertical size={20} />
+        <div className={styles.dragHandle} {...attributes} {...listeners} aria-label={`Move ${item.title}`}>
+          <GripVertical size={20} aria-hidden="true" />
         </div>
         <div className={styles.itemContent}>
           <h4 className={styles.itemTitle}>{item.title}</h4>
           <div className={styles.itemMeta}>
-            <span><FileText size={14} /> {item.questionsCount} Questions</span>
-            <span><Layers size={14} /> {item.subjectsCount} Subject{item.subjectsCount === 1 ? "" : "s"}</span>
-            <span><Clock size={14} /> {getEffectiveDurationLabel(item)}</span>
+            <span><FileText size={14} aria-hidden="true" /> {item.questionsCount} question{item.questionsCount === 1 ? "" : "s"}</span>
+            <span><Layers size={14} aria-hidden="true" /> {item.subjectsCount} subject{item.subjectsCount === 1 ? "" : "s"}</span>
+            <span><Clock size={14} aria-hidden="true" /> {getEffectiveDurationLabel(item)}</span>
             {item.isFree && <span className={styles.freeBadge}>Free</span>}
-            {item.subjectWiseTiming && <span className={styles.subjectTimingBadge}>Subject-wise Timing</span>}
-            {item.questionWiseTiming && <span className={styles.questionTimingBadge}>Question-wise Timing</span>}
+            {item.subjectWiseTiming && <span className={styles.subjectTimingBadge}>Subject-wise timing</span>}
+            {item.questionWiseTiming && <span className={styles.questionTimingBadge}>Question-wise timing</span>}
             {isScheduledAhead(item.scheduledDate) && (
               <span className={styles.scheduledBadge}>
-                <CalendarClock size={14} />
+                <CalendarClock size={14} aria-hidden="true" />
                 Scheduled {formatSchedule(item.scheduledDate)}
               </span>
             )}
           </div>
           {blocking && (
             <p className={styles.itemIssueBlocking}>
-              <AlertTriangle size={13} /> {blocking}
+              <AlertTriangle size={13} aria-hidden="true" /> {blocking}
             </p>
           )}
         </div>
         <div className={styles.itemActions}>
-          <Button variant="outline" onClick={() => setIsSubjectsOpen((open) => !open)}>
-            Subjects {isSubjectsOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          {guided && (
+            <Button asChild variant={item.questionsCount === 0 ? "primary" : "outline"}>
+              <Link to={`/teacher/create-test/${packageId}/test-items/${item.id}/questions`}>
+                {item.questionsCount === 0 ? <Plus size={16} aria-hidden="true" /> : <PenLine size={16} aria-hidden="true" />}
+                {item.questionsCount === 0 ? "Add questions" : "Edit questions"}
+              </Link>
+            </Button>
+          )}
+          <Button
+            variant={guided ? "ghost" : "outline"}
+            aria-expanded={isSubjectsOpen}
+            aria-label={`Subjects in ${item.title}`}
+            onClick={() => setIsSubjectsOpen((open) => !open)}
+          >
+            Subjects {isSubjectsOpen ? <ChevronUp size={16} aria-hidden="true" /> : <ChevronDown size={16} aria-hidden="true" />}
           </Button>
-          <Button variant="ghost" size="icon-md" onClick={() => onEdit(item)}>
-            <Edit size={16} />
+          <Button variant="ghost" size="icon-md" onClick={() => onEdit(item)} aria-label={`Edit ${item.title}`} title="Edit">
+            <Edit size={16} aria-hidden="true" />
           </Button>
-          <Button variant="ghost" size="icon-md" className={styles.deleteButton} onClick={() => onDelete(item)}>
-            <Trash2 size={16} />
+          <Button
+            variant="ghost"
+            size="icon-md"
+            className={styles.deleteButton}
+            onClick={() => onDelete(item)}
+            aria-label={`Move ${item.title} to Trash`}
+            title="Move to Trash"
+          >
+            <Trash2 size={16} aria-hidden="true" />
           </Button>
         </div>
       </div>
@@ -493,7 +597,7 @@ const SortableItemCard = ({
   );
 };
 
-export const TestSeriesItemsList = ({ packageId }: { packageId: number }) => {
+export const TestSeriesItemsList = ({ packageId, guided = false }: { packageId: number; guided?: boolean }) => {
   const [editingItem, setEditingItem] = useState<TestItemWithQuestionsCount | null>(null);
   const [deletingItem, setDeletingItem] = useState<TestItemWithQuestionsCount | null>(null);
   const [orderedItems, setOrderedItems] = useState<TestItemWithQuestionsCount[]>([]);
@@ -598,19 +702,19 @@ export const TestSeriesItemsList = ({ packageId }: { packageId: number }) => {
     if (visibleItems.length === 0) {
       return (
         <div className={styles.emptyState}>
-          <h3>No Test Items Yet</h3>
-          <p>Add the first test item to your package. Each item is a separate test within the package.</p>
+          <h3>No tests in this series yet</h3>
+          <p>Add the first test. Each one is a separate paper that students take on its own.</p>
           <Dialog open={isCreateDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button>
-                <Plus size={16} /> Add Test Items
+                <Plus size={16} aria-hidden="true" /> Add tests
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add Test Items</DialogTitle>
+                <DialogTitle>Add tests</DialogTitle>
                 <DialogDescription>
-                  Add one or multiple test items to this package. You'll add questions in the next step.
+                  Add one or more tests to this series. You will add questions in the next step.
                 </DialogDescription>
               </DialogHeader>
               <BulkCreateTestItemsForm packageId={packageId} onSuccess={() => setCreateDialogOpen(false)} />
@@ -641,13 +745,14 @@ export const TestSeriesItemsList = ({ packageId }: { packageId: number }) => {
                 packageId={packageId}
                 onEdit={setEditingItem}
                 onDelete={setDeletingItem}
+                guided={guided}
               />
             ))}
           </div>
         </SortableContext>
         <DragOverlay>
           {activeItem ? (
-            <div className={`${styles.itemCard} ${styles.dragOverlay}`}>
+            <div className={`${styles.itemCard} ${styles.dragOverlay}`} aria-hidden="true" inert>
               <div className={styles.itemRow}>
                 <div className={styles.dragHandle}>
                   <GripVertical size={20} />
@@ -655,12 +760,12 @@ export const TestSeriesItemsList = ({ packageId }: { packageId: number }) => {
                 <div className={styles.itemContent}>
                   <h4 className={styles.itemTitle}>{activeItem.title}</h4>
                   <div className={styles.itemMeta}>
-                    <span><FileText size={14} /> {activeItem.questionsCount} Questions</span>
-                    <span><Layers size={14} /> {activeItem.subjectsCount} Subject{activeItem.subjectsCount === 1 ? "" : "s"}</span>
+                    <span><FileText size={14} /> {activeItem.questionsCount} question{activeItem.questionsCount === 1 ? "" : "s"}</span>
+                    <span><Layers size={14} /> {activeItem.subjectsCount} subject{activeItem.subjectsCount === 1 ? "" : "s"}</span>
                     <span><Clock size={14} /> {getEffectiveDurationLabel(activeItem)}</span>
                     {activeItem.isFree && <span className={styles.freeBadge}>Free</span>}
-                    {activeItem.subjectWiseTiming && <span className={styles.subjectTimingBadge}>Subject-wise Timing</span>}
-                    {activeItem.questionWiseTiming && <span className={styles.questionTimingBadge}>Question-wise Timing</span>}
+                    {activeItem.subjectWiseTiming && <span className={styles.subjectTimingBadge}>Subject-wise timing</span>}
+                    {activeItem.questionWiseTiming && <span className={styles.questionTimingBadge}>Question-wise timing</span>}
                     {isScheduledAhead(activeItem.scheduledDate) && (
                       <span className={styles.scheduledBadge}>
                         <CalendarClock size={14} />
@@ -693,12 +798,13 @@ export const TestSeriesItemsList = ({ packageId }: { packageId: number }) => {
       <Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Test Item</DialogTitle>
+            <DialogTitle>{guided ? "Test settings" : "Edit Test Item"}</DialogTitle>
           </DialogHeader>
           {editingItem && (
             <TestItemForm
               packageId={packageId}
               item={editingItem}
+              guided={guided}
               onSuccess={() => setEditingItem(null)} />
           )}
         </DialogContent>

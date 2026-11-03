@@ -4,13 +4,13 @@
   justify-content: center;
   gap: var(--spacing-4);
   padding-top: var(--spacing-4);
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--tc-line, var(--border));
 }
 
 .pageInfo {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--muted-foreground);
+  color: var(--tc-muted, var(--muted-foreground));
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }

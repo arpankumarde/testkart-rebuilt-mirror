@@ -12,7 +12,7 @@ interface AppPhoneMockupProps {
 
 /**
  * An Android handset with one of the app's Play Store screenshots filling its
- * 9:16 screen, whole and uncropped. Every measurement is in em off a
+ * 9:18 screen, whole and uncropped. Every measurement is in em off a
  * font-size derived from --phone-w, so the frame scales as one piece.
  */
 export const AppPhoneMockup = ({ screen, priority = false, className }: AppPhoneMockupProps) => (

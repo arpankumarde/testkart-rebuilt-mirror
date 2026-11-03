@@ -1,3 +1,14 @@
+.studentLink {
+  color: var(--fc-blue-ink);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: var(--fc-blue-line);
+  text-underline-offset: 3px;
+}
+
+.studentLink:hover {
+  text-decoration-color: currentColor;
+}
 /* The console shell. No padding of its own - TeacherDashboardLayout's
    .pageBody owns the gutter, and the old --spacing-8 here doubled it. */
 .page {
@@ -16,9 +27,9 @@
   flex-wrap: wrap;
   gap: var(--spacing-2) var(--spacing-3);
   padding: var(--spacing-3) var(--spacing-4);
-  border: 1px solid color-mix(in srgb, var(--info) 30%, transparent);
+  border: 1px solid var(--fc-blue-line);
   border-radius: var(--radius-md);
-  background-color: color-mix(in srgb, var(--info) 8%, transparent);
+  background-color: var(--fc-blue-tint);
   color: var(--foreground);
   font-size: 0.875rem;
 }
@@ -39,9 +50,10 @@
    as the error strip on Overview. */
 .error {
   padding: var(--spacing-3) var(--spacing-4);
-  border: 1px solid color-mix(in srgb, var(--error) 30%, transparent);
+  border: 1px solid var(--error-text);
+  border-left-width: 4px;
   border-radius: var(--radius-md);
-  background-color: color-mix(in srgb, var(--error) 10%, transparent);
+  background-color: var(--sp-card);
   color: var(--error-text);
   font-size: 0.875rem;
 }

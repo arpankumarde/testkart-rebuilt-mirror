@@ -6,8 +6,7 @@
 }
 
 .busy {
-  opacity: 0.65;
-  transition: opacity var(--animation-duration-fast) ease;
+  cursor: progress;
 }
 
 /* Summary figures: one bordered strip, like the Analytics student facts. */
@@ -432,9 +431,10 @@
 
 .error {
   padding: var(--spacing-3) var(--spacing-4);
-  border: 1px solid color-mix(in srgb, var(--error) 30%, transparent);
+  border: 1px solid var(--error-text);
+  border-left-width: 4px;
   border-radius: var(--radius-md);
-  background-color: color-mix(in srgb, var(--error) 10%, transparent);
+  background-color: var(--sp-card);
   color: var(--error-text);
   font-size: 0.875rem;
 }
@@ -621,8 +621,7 @@
   .cardFigures dt {
     font-size: 0.6875rem;
     font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+    letter-spacing: 0;
     color: var(--muted-foreground);
   }
 

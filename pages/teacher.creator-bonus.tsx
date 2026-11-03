@@ -59,52 +59,53 @@ const editHref = (item: CampaignItem) =>
 const buildHref = (item: CampaignItem) =>
   item.type === "mock_test" ? `/teacher/create-test/${item.id}/test-items` : `/teacher/courses/${item.id}/edit`;
 
+/** Published without a claim: the bonus can no longer be ticked, so the list leaves it out. */
+const isPublishedUnclaimed = (item: CampaignItem) =>
+  item.live && (item.state === "ready" || item.state === "building" || item.state === "full");
+
+/** Qualifies, but was already submitted for review without the bonus. */
+const isSubmittedWithout = (item: CampaignItem) => item.state === "ready" && item.inReview;
+
 /** What the teacher should do next with one item, in plain words. */
 function nextStep(item: CampaignItem, slots: CampaignSlots): { text: string; action?: { label: string; to: string } } {
   const amount = formatRupees(slots.amount);
   switch (item.state) {
     case "ready":
       if (item.inReview) {
-        return { text: "In review without the bonus. Take it back from review, then submit again with the bonus ticked." };
-      }
-      if (item.live) {
-        return { text: "It went live without the bonus. To claim it, unpublish it and submit it again with the bonus ticked." };
+        return { text: "Submitted without the bonus." };
       }
       if (item.examBonus && slots.used >= slots.limit) {
         return {
-          text: `Your ${slots.limit} Creator Bonus slots are used, but the ${item.examBonus.title} is open. Pick it when you submit for review.`,
+          text: `Pick the ${item.examBonus.title} when you submit.`,
           action: { label: "Submit with bonus", to: editHref(item) },
         };
       }
       return {
-        text: `Tick the ${amount} bonus when you submit it for review.`,
+        text: `Tick the ${amount} bonus when you submit.`,
         action: { label: "Submit with bonus", to: editHref(item) },
       };
     case "building": {
       const missing = item.progress.filter((p) => p.have < p.need).map(shortfallText);
       const skipped =
         item.uncountedVideos > 0
-          ? ` ${item.uncountedVideos} of its ${item.uncountedVideos === 1 ? "videos does" : "videos do"} not count yet; open the course to see why.`
+          ? ` ${item.uncountedVideos} ${item.uncountedVideos === 1 ? "video does" : "videos do"} not count yet.`
           : "";
-      const exam = item.examBonus ? ` It also counts for the ${item.examBonus.title}.` : "";
-      return { text: `Add ${missing.join(" and ")} to unlock ${amount}.${skipped}${exam}`, action: { label: "Keep building", to: buildHref(item) } };
+      return { text: `Add ${missing.join(" and ")} to unlock ${amount}.${skipped}`, action: { label: "Keep building", to: buildHref(item) } };
     }
     case "claimed":
       return {
-        text: item.approved
-          ? "Approved. Our team is deciding on the bonus."
-          : "Waiting for content review. The bonus is decided after approval.",
+        text: item.approved ? "Approved. Bonus decision pending." : "In review.",
       };
     case "credited":
       return { text: item.claimedExamBonus ? `The ${item.claimedExamBonus} is in your wallet.` : `${amount} is in your wallet.` };
     case "reversed":
-      return { text: item.note ? `Reversed: ${item.note}` : "This bonus was reversed." };
+      return { text: item.note ? `Reversed: ${item.note}` : "Bonus reversed." };
     case "final":
       return { text: item.note ? `Not selected: ${item.note}` : "Not selected for the bonus." };
     case "excluded":
-      return { text: "This went live before the Creator Bonus started, so it cannot claim it." };
+      return { text: "Live before the bonus started." };
     case "full":
-      return { text: `You have used all ${slots.limit} bonuses for this type.` };
+      return { text: `All ${slots.limit} slots used.` };
   }
 }
 
@@ -196,14 +197,19 @@ const TeacherCreatorBonusPage: React.FC = () => {
   const { data, isFetching, error, refetch } = useCreatorBonusOverview();
   const [filter, setFilter] = useState<Filter>("all");
 
-  const items = data && data.campaign ? data.items : [];
+  const allItems = data && data.campaign ? data.items : [];
+  const items = useMemo(() => allItems.filter((i) => !isPublishedUnclaimed(i)), [allItems]);
   const visibleItems = useMemo(() => {
     const states = FILTERS.find((f) => f.value === filter)?.states ?? [];
-    const shown = states.length === 0 ? items.filter((i) => i.state !== "excluded") : items.filter((i) => states.includes(i.state));
+    const shown =
+      states.length === 0
+        ? items.filter((i) => i.state !== "excluded")
+        : items.filter((i) => states.includes(i.state) && !(filter === "ready" && isSubmittedWithout(i)));
     const rank: Record<CampaignItemState, number> = {
       ready: 0, claimed: 1, building: 2, credited: 3, reversed: 4, final: 5, full: 6, excluded: 7,
     };
-    return [...shown].sort((a, b) => rank[a.state] - rank[b.state]);
+    const order = (i: CampaignItem) => (isSubmittedWithout(i) ? 6 : rank[i.state]);
+    return [...shown].sort((a, b) => order(a) - order(b));
   }, [items, filter]);
 
   if (!data) {
@@ -238,7 +244,7 @@ const TeacherCreatorBonusPage: React.FC = () => {
             <Gift size={20} />
           </span>
           <h1 className={styles.quietTitle}>The Creator Bonus is not running right now</h1>
-          <p>Bonuses you already earned stay in your wallet. We will let you know when the next one starts.</p>
+          <p>Bonuses you earned stay in your wallet.</p>
           <Button asChild variant="outline">
             <Link to="/teacher/earnings">Open Earnings</Link>
           </Button>
@@ -251,13 +257,13 @@ const TeacherCreatorBonusPage: React.FC = () => {
   const req = campaign.requirements;
   const maxTotal = slots.mock_test.limit * slots.mock_test.amount + slots.course.limit * slots.course.amount;
   const earnedShare = maxTotal > 0 ? Math.min(100, (earned / maxTotal) * 100) : 0;
-  const readyCount = items.filter((i) => i.state === "ready").length;
+  const readyCount = items.filter((i) => i.state === "ready" && !i.inReview).length;
 
   const steps = [
-    { icon: Hammer, tone: "peach", title: "Build it", text: `A test series with ${req.minTests}+ tests and ${req.minQuestions}+ questions, or a course with ${req.minVideos}+ uploaded videos of ${req.minMinutesPerVideo}+ minutes each, ${req.minVideoMinutes}+ minutes in all.` },
-    { icon: Send, tone: "mint", title: "Submit and claim", text: "Tick the Creator Bonus when you submit it for review. It counts only for content that was never live before." },
-    { icon: Sparkles, tone: "lavender", title: "We pick quality", text: "Approval puts it live. The bonus is a separate call: our team credits it only for high quality work." },
-    { icon: Wallet, tone: "sky", title: "Money in your wallet", text: "The bonus joins your balance and is withdrawn with your earnings." },
+    { icon: Hammer, tone: "peach", title: "Build it", text: `Test series: ${req.minTests}+ tests, ${req.minQuestions}+ questions. Course: ${req.minVideos}+ uploaded videos of ${req.minMinutesPerVideo}+ min.` },
+    { icon: Send, tone: "mint", title: "Tick the bonus", text: "Tick it when you submit." },
+    { icon: Sparkles, tone: "lavender", title: "We check quality", text: "Paid only for high quality work." },
+    { icon: Wallet, tone: "sky", title: "Get paid", text: "Added to your wallet." },
   ];
 
   return (
@@ -275,8 +281,7 @@ const TeacherCreatorBonusPage: React.FC = () => {
               Get paid {formatRupees(slots.mock_test.amount)} for every great test series and course
             </h1>
             <p className={styles.heroLead}>
-              Up to {slots.mock_test.limit} test series and {slots.course.limit} courses, so up to {formatRupees(maxTotal)} on top of
-              your sales. Each item can earn it once.
+              Up to {slots.mock_test.limit} test series and {slots.course.limit} courses. Earn up to {formatRupees(maxTotal)}.
             </p>
             <div className={styles.meter}>
               <div className={styles.meterHead}>
@@ -300,15 +305,13 @@ const TeacherCreatorBonusPage: React.FC = () => {
         {examCampaigns.length > 0 && (
           <section className={styles.examBonus} aria-labelledby="exam-bonus-title">
             <div className={styles.examHead}>
-              <h2 id="exam-bonus-title" className={styles.sectionTitle}>
-                Exam Bonus
+              <div className={styles.titleRow}>
+                <h2 id="exam-bonus-title" className={styles.sectionTitle}>Exam Bonus</h2>
                 <span className={styles.readyBadge}>Limited slots</span>
-              </h2>
+              </div>
               <p className={styles.examLead}>
-                These exams are in the news. A new test series tagged with the exam can claim the bonus, even if your
-                Creator Bonus slots are used up. Slots are shared by all teachers, and each test series earns one bonus,
-                so you pick one when you submit.
-                {examEarned > 0 && ` You have earned ${formatRupees(examEarned)} from Exam Bonuses so far.`}
+                Extra bonus for a new test series on these exams. Limited slots for all teachers.
+                {examEarned > 0 && ` Earned so far: ${formatRupees(examEarned)}.`}
               </p>
             </div>
             <div className={styles.tracks}>
@@ -378,10 +381,10 @@ const TeacherCreatorBonusPage: React.FC = () => {
 
         <section className={styles.content} aria-labelledby="creator-bonus-content">
           <div className={styles.contentHead}>
-            <h2 id="creator-bonus-content" className={styles.sectionTitle}>
-              Your content
+            <div className={styles.titleRow}>
+              <h2 id="creator-bonus-content" className={styles.sectionTitle}>Your content</h2>
               {readyCount > 0 && <span className={styles.readyBadge}>{readyCount} ready to claim</span>}
-            </h2>
+            </div>
             <div className={styles.filters} role="group" aria-label="Show">
               {FILTERS.map((f) => (
                 <button
@@ -400,9 +403,11 @@ const TeacherCreatorBonusPage: React.FC = () => {
           {visibleItems.length === 0 ? (
             <div className={styles.emptyList}>
               <p>
-                {items.length === 0
-                  ? "You have no test series or courses yet. Build one to start earning the bonus."
-                  : "Nothing here for this filter."}
+                {allItems.length === 0
+                  ? "No test series or courses yet."
+                  : items.length === 0
+                    ? "Nothing to claim yet. Content published without the bonus does not count."
+                    : "Nothing here for this filter."}
               </p>
               {items.length === 0 && (
                 <div className={styles.emptyActions}>
@@ -419,6 +424,7 @@ const TeacherCreatorBonusPage: React.FC = () => {
             <ul className={styles.itemList} aria-busy={isFetching}>
               {visibleItems.map((item) => {
                 const sticker = STATE_STICKERS[item.state];
+                const stickerShown = isSubmittedWithout(item) ? { label: "Not claimed", tone: "grey" } : sticker;
                 const step = nextStep(item, slots[item.type]);
                 return (
                   <li key={`${item.type}-${item.id}`} className={styles.item}>
@@ -446,7 +452,9 @@ const TeacherCreatorBonusPage: React.FC = () => {
                       <p className={styles.itemNext}>{step.text}</p>
                     </div>
                     <div className={styles.itemSide}>
-                      <span className={`${styles.sticker} ${styles[`tone_${sticker.tone}`]}`}>{sticker.label}</span>
+                      {item.state !== "building" && (
+                        <span className={`${styles.sticker} ${styles[`tone_${stickerShown.tone}`]}`}>{stickerShown.label}</span>
+                      )}
                       {(item.claimedExamBonus || item.examBonus) && (
                         <span className={`${styles.sticker} ${styles.examSticker} ${styles.tone_lavender}`}>
                           {item.claimedExamBonus ?? "Exam Bonus open"}
@@ -466,27 +474,12 @@ const TeacherCreatorBonusPage: React.FC = () => {
         </section>
 
         <section className={styles.rules} aria-labelledby="creator-bonus-rules">
-          <h2 id="creator-bonus-rules" className={styles.sectionTitle}>The fine print, in plain words</h2>
+          <h2 id="creator-bonus-rules" className={styles.sectionTitle}>Good to know</h2>
           <ul>
-            <li>Approval and the bonus are separate. Approved content goes live; the bonus is credited only when our team picks it for quality.</li>
-            <li>Each test series or course can earn the bonus once. Unpublishing and submitting again does not earn it twice.</li>
-            <li>Only content that was never live before {new Date(campaign.startsAt).toLocaleDateString("en-IN")} can claim it.</li>
-            <li>If a bonus is not selected, you can improve the item and claim once more with its next submission.</li>
-            <li>If content is taken down or turns out not to meet the rules, our team can reverse a bonus.</li>
-            <li>
-              An Exam Bonus runs for a short time for one exam in the news, for test series only. The series must be
-              tagged with that exam and must never have been public. Each test series earns one bonus in all: the
-              Creator Bonus or an Exam Bonus.
-            </li>
-            <li>
-              An Exam Bonus slot is taken when you submit. It comes back if the review is rejected or taken back, or the
-              bonus is not selected. If a campaign ends while you are waiting, your claim still counts.
-            </li>
-            <li>
-              For courses, only videos you upload to Testkart count: not YouTube or other links, each file once, and
-              only videos of {req.minMinutesPerVideo} minutes or more. A video counts at the length you entered or the
-              length of the uploaded file, whichever is shorter.
-            </li>
+            <li>One bonus per test series or course.</li>
+            <li>Approval does not guarantee the bonus.</li>
+            <li>Content live before {new Date(campaign.startsAt).toLocaleDateString("en-IN")} does not count.</li>
+            <li>Courses: only videos uploaded to Testkart count.</li>
           </ul>
         </section>
       </div>

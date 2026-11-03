@@ -65,7 +65,7 @@ export default function TeacherSupportPage() {
           />
         )}
 
-        <main className={`${styles.workspace} ${unreadOnly ? styles.workspaceWithNotice : ""}`}>
+        <div className={`${styles.workspace} ${unreadOnly ? styles.workspaceWithNotice : ""}`}>
           {/* List pane: hidden on a phone once a thread is open. */}
           <div
             className={`${styles.listPane} ${
@@ -106,7 +106,7 @@ export default function TeacherSupportPage() {
               </div>
             )}
           </div>
-        </main>
+        </div>
       </div>
 
       <TeacherSupportNewDialog

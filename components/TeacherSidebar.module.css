@@ -1,16 +1,15 @@
 /*
- * Teacher shell navigation, built on the admin console's sidebar language so
- * the two consoles read as one product: a --surface panel on a hairline
- * border, and brand coral used only as a BLOCK — the active item's 3px bar and
- * its tint — never as a solid fill behind a label. The tracked "Teacher" chip
- * mirrors the admin chip and the teacher CTA's.
+ * Teacher shell navigation on the console tokens (--tc-*, set by
+ * TeacherConsoleTheme on the layout root). The Create button, the one primary
+ * action, is the site's peach Create Account CTA (as in the .tk-flow buttons);
+ * coral marks only the active item's 3px bar and tint. Content items carry
+ * their kind's colour tile; the pine "Teacher" chip matches the Overview's
+ * stage panel.
  */
 .sidebar {
   --tk-nav-coral: var(--tk-brand);
-  --tk-nav-ink: var(--tk-brand-ink);
-  --tk-nav-coral-ink: var(--tk-brand-text);
   --tk-nav-coral-tint: var(--tk-brand-tint);
-  --tk-nav-active-text: var(--tk-nav-ink);
+  --tk-nav-active-text: var(--tc-ink);
   --tk-nav-width: 256px;
 
   position: sticky;
@@ -22,8 +21,8 @@
   width: var(--tk-nav-width);
   height: calc(100vh - var(--site-notice-offset));
   overflow: hidden;
-  background-color: var(--surface);
-  border-right: 1px solid var(--border);
+  background-color: var(--tc-card);
+  border-right: 1px solid var(--tc-line);
   transition: width var(--animation-duration-fast) ease, transform var(--animation-duration-normal) ease-in-out;
 }
 
@@ -46,7 +45,7 @@
   min-height: var(--header-height);
   box-sizing: border-box;
   padding: 0 var(--spacing-4);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--tc-line);
 }
 
 .brand {
@@ -83,15 +82,13 @@
 .chip {
   display: inline-block;
   flex-shrink: 0;
-  padding: 0.25rem 0.5rem;
-  background-color: var(--tk-nav-coral-tint);
-  color: var(--tk-nav-coral-ink);
-  border-radius: var(--radius-sm);
+  padding: 0.3125rem 0.5rem;
+  background-color: var(--tc-panel);
+  color: var(--tc-panel-ink);
+  border-radius: 999px;
   font-family: var(--font-family-base);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
   line-height: 1;
 }
 
@@ -114,6 +111,70 @@
   flex-shrink: 0;
 }
 
+.createRow {
+  flex-shrink: 0;
+  padding: var(--spacing-3) var(--spacing-3) var(--spacing-1);
+}
+
+.createButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  width: 100%;
+  height: 2.75rem;
+  margin-bottom: 2px;
+  padding: 0 var(--spacing-4);
+  background-color: var(--sp-cta);
+  border: 1px solid var(--sp-peach-edge);
+  border-radius: 1.25rem 1.25rem 1.25rem 0.5rem;
+  box-shadow: 0 2px 0 var(--sp-peach-edge);
+  color: var(--sp-cta-ink);
+  font-family: var(--font-family-base);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease;
+}
+
+.createButton:hover {
+  background-color: var(--sp-cta-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 0 var(--sp-peach-edge);
+}
+
+.createButton:active {
+  background-color: var(--sp-cta-hover);
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 var(--sp-peach-edge);
+}
+
+.createButton:focus-visible {
+  outline: none;
+  box-shadow:
+    0 2px 0 var(--sp-peach-edge),
+    0 0 0 2px var(--tc-card),
+    0 0 0 4px var(--fc-blue-edge);
+}
+
+.rail .createRow {
+  padding: var(--spacing-3) var(--spacing-2) var(--spacing-1);
+}
+
+.rail .createButton {
+  width: 2.75rem;
+  margin-inline: auto;
+  padding: 0;
+  border-radius: 0.875rem;
+}
+
+.rail .createLabel {
+  display: none;
+}
+
 .nav {
   display: flex;
   flex-direction: column;
@@ -131,6 +192,14 @@
   gap: 2px;
 }
 
+.groupHeading {
+  padding: var(--spacing-2) var(--spacing-2) var(--spacing-1);
+  color: var(--tc-muted);
+  font-family: var(--font-family-base);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
 .groupHeader {
   display: flex;
   align-items: center;
@@ -140,7 +209,7 @@
   background: none;
   border: none;
   border-radius: var(--radius-sm);
-  color: var(--muted-foreground);
+  color: var(--tc-muted);
   font-family: var(--font-family-base);
   font-size: 0.75rem;
   font-weight: 600;
@@ -150,8 +219,8 @@
 }
 
 .groupHeader:hover {
-  color: var(--foreground);
-  background-color: var(--muted);
+  color: var(--tc-ink);
+  background-color: var(--tc-bg);
 }
 
 .groupHeader:focus-visible {
@@ -187,7 +256,7 @@
   min-width: 0;
   padding: 0.4375rem var(--spacing-3);
   border-radius: var(--radius);
-  color: var(--sidebar-foreground);
+  color: var(--tc-text);
   font-size: 0.875rem;
   font-weight: 500;
   text-decoration: none;
@@ -195,8 +264,8 @@
 }
 
 .navLink:hover {
-  background-color: var(--muted);
-  color: var(--foreground);
+  background-color: var(--tc-bg);
+  color: var(--tc-ink);
 }
 
 .navLink:focus-visible {
@@ -225,6 +294,11 @@
   flex-shrink: 0;
 }
 
+/* The 28px tile sits where the 18px icon would; the row padding shrinks to match. */
+.navTile {
+  margin: -0.25rem -0.3125rem;
+}
+
 .navLabel {
   flex: 1;
   min-width: 0;
@@ -233,19 +307,46 @@
   text-overflow: ellipsis;
 }
 
-/* Solid deep orange, so it holds against white in either theme and still
-   reads on the coral tint of the active row. */
 .navBadge {
   flex-shrink: 0;
-  padding: 3px 6px;
-  border-radius: var(--radius-sm);
-  background-color: var(--tk-brand-deep);
-  color: #fff;
-  font-size: 0.625rem;
+  padding: 0.1875rem 0.4375rem;
+  border: 1px solid var(--sp-mint-line);
+  border-radius: 999px;
+  background-color: var(--fc-mint-tint);
+  color: var(--fc-mint-ink);
+  font-size: 0.6875rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   line-height: 1;
+}
+
+.navCount {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.375rem;
+  height: 1.375rem;
+  padding: 0 0.375rem;
+  border: 1px solid var(--fc-butter-line);
+  border-radius: 999px;
+  background-color: var(--fc-butter-tint);
+  color: var(--fc-butter-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .rail .nav {
@@ -258,7 +359,8 @@
 }
 
 .rail .navLabel,
-.rail .navBadge {
+.rail .navBadge,
+.rail .navCount {
   display: none;
 }
 
@@ -275,14 +377,14 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: var(--tk-nav-coral);
-  box-shadow: 0 0 0 2px var(--surface);
+  background-color: var(--fc-butter-edge);
+  box-shadow: 0 0 0 2px var(--tc-card);
 }
 
 .railDivider {
   height: 1px;
   margin: var(--spacing-1) var(--spacing-2) var(--spacing-2);
-  background-color: var(--border);
+  background-color: var(--tc-line);
 }
 
 .railTooltip {
@@ -295,9 +397,6 @@
 .railTooltipBadge {
   font-size: 0.6875rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--tk-brand-text);
 }
 
 .sidebarFooter {
@@ -306,7 +405,7 @@
   gap: var(--spacing-1);
   flex-shrink: 0;
   padding: var(--spacing-2) var(--spacing-3);
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--tc-line);
 }
 
 .sidebarUser {
@@ -317,14 +416,14 @@
   min-width: 0;
   padding: var(--spacing-2);
   border-radius: var(--radius);
-  color: var(--foreground);
+  color: var(--tc-ink);
   text-decoration: none;
   transition: background-color var(--animation-duration-fast) ease;
 }
 
 /* Only the owner's card is a link; a manager's card is a plain label. */
 a.sidebarUser:hover {
-  background-color: var(--muted);
+  background-color: var(--tc-bg);
 }
 
 .sidebarUser:focus-visible {
@@ -342,7 +441,7 @@ a.sidebarUser:hover {
 
 .sidebarUserIcon {
   flex-shrink: 0;
-  color: var(--muted-foreground);
+  color: var(--tc-muted);
 }
 
 .sidebarUserMeta {
@@ -361,7 +460,7 @@ a.sidebarUser:hover {
 
 .sidebarUserRole {
   font-size: 0.75rem;
-  color: var(--muted-foreground);
+  color: var(--tc-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -369,22 +468,22 @@ a.sidebarUser:hover {
 
 .sidebarFooter .sidebarLogout {
   flex-shrink: 0;
-  color: var(--muted-foreground);
+  color: var(--tc-muted);
 }
 
 .sidebarFooter .sidebarLogout:hover {
-  color: var(--foreground);
-  background-color: var(--muted);
+  color: var(--tc-ink);
+  background-color: var(--tc-bg);
 }
 
 .sidebarFooter .railToggle {
   flex-shrink: 0;
-  color: var(--muted-foreground);
+  color: var(--tc-muted);
 }
 
 .sidebarFooter .railToggle:hover {
-  color: var(--foreground);
-  background-color: var(--muted);
+  color: var(--tc-ink);
+  background-color: var(--tc-bg);
 }
 
 /* In the rail only the collapse control remains; identity and sign-out return
@@ -453,6 +552,24 @@ a.sidebarUser:hover {
     display: inline-block;
   }
 
+  .rail .navCount {
+    display: inline-flex;
+  }
+
+  .rail .createRow {
+    padding: var(--spacing-3) var(--spacing-3) var(--spacing-1);
+  }
+
+  .rail .createButton {
+    width: 100%;
+    padding: 0 var(--spacing-4);
+    border-radius: 1.25rem 1.25rem 1.25rem 0.5rem;
+  }
+
+  .rail .createLabel {
+    display: inline;
+  }
+
   .rail .navLink.active::before {
     left: calc(-1 * var(--spacing-3));
   }
@@ -485,7 +602,13 @@ a.sidebarUser:hover {
   .navLink,
   .groupHeader,
   .groupChevron,
-  .sidebarUser {
+  .sidebarUser,
+  .createButton {
     transition: none;
+  }
+
+  .createButton:hover,
+  .createButton:active {
+    transform: none;
   }
 }

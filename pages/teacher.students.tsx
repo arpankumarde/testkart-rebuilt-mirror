@@ -90,6 +90,7 @@ const TeacherStudentsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isSponsorDialogOpen, setIsSponsorDialogOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const sponsorLocked = sponsoredData?.sponsorship.allowed === false;
 
   const filteredStudents = useMemo(() => {
     if (!students) return [];
@@ -219,7 +220,7 @@ const TeacherStudentsPage: React.FC = () => {
           description="Students appear here the moment they buy or enrol in one of your test series, courses, bundles or notes."
         >
           <Button onClick={() => setIsSponsorDialogOpen(true)}>
-            <UserPlus size={16} />
+            {sponsorLocked ? <Lock size={16} /> : <UserPlus size={16} />}
             Sponsor a student
           </Button>
         </TeacherListEmpty>
@@ -247,7 +248,15 @@ const TeacherStudentsPage: React.FC = () => {
               ) : (
                 paginatedStudents.map((student: TeacherStudent) => (
                   <tr key={`${student.studentId}-${student.itemId}-${student.enrolledAt}`}>
-                    <td>{student.studentName}</td>
+                    <td>
+                      <Link
+                        to={`/teacher/students/performance?student=${student.studentId}`}
+                        className={styles.studentLink}
+                        title="See how this student is doing"
+                      >
+                        {student.studentName}
+                      </Link>
+                    </td>
                     <td>
                       {student.studentEmail ? (
                         student.studentEmail
@@ -265,7 +274,7 @@ const TeacherStudentsPage: React.FC = () => {
                           <Lock size={12} /> Hidden
                         </span>
                       ) : (
-                        '—'
+                        '-'
                       )}
                     </td>
                     <td>
@@ -338,8 +347,11 @@ const TeacherStudentsPage: React.FC = () => {
           >
             <RotateCcw size={16} />
           </Button>
-          <Button onClick={() => setIsSponsorDialogOpen(true)}>
-            <UserPlus size={16} />
+          <Button
+            onClick={() => setIsSponsorDialogOpen(true)}
+            title={sponsorLocked ? 'Available on the Starter plan and above' : undefined}
+          >
+            {sponsorLocked ? <Lock size={16} /> : <UserPlus size={16} />}
             Sponsor a student
           </Button>
         </TeacherPageHeader>
@@ -357,7 +369,7 @@ const TeacherStudentsPage: React.FC = () => {
                     setSearchTerm(value);
                     setCurrentPage(1);
                   },
-                  placeholder: 'Search name, email, mobile or item',
+                  placeholder: 'Search students or items',
                   label: 'Search enrollments',
                 }
               : undefined
@@ -387,6 +399,7 @@ const TeacherStudentsPage: React.FC = () => {
         <SponsorStudentDialog
           open={isSponsorDialogOpen}
           onOpenChange={setIsSponsorDialogOpen}
+          access={sponsoredData?.sponsorship}
         />
       </div>
     </>

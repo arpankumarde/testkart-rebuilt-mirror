@@ -446,8 +446,8 @@ const ACTIONS: Record<string, TeacherAction> = {
   "questions/generate-ai": write(questionsGenerateAi, questionsGenerateAiSchema, "AI: draft up to 20 questions for a subject. Saves nothing - pass the drafts the teacher keeps to questions/accept-ai.", { plainJson: true }),
   "questions/reorder": write(questionsReorder, questionsReorderSchema, "Reorder questions."),
   "questions/update": write(questionsUpdate, questionsUpdateSchema, "Update a question."),
-  "sponsor-student/check": write(sponsorStudentCheck, sponsorStudentCheckSchema, "Look up a student and the cost of sponsoring them into your content. Changes nothing."),
-  "sponsor-student/enroll": write(sponsorStudentEnroll, sponsorStudentEnrollSchema, "Sponsor a student into your content, paid from your balance or online. Can create the student's account.", CONFIRM),
+  "sponsor-student/check": write(sponsorStudentCheck, sponsorStudentCheckSchema, "Look up a student before sponsoring them into your content. Changes nothing."),
+  "sponsor-student/enroll": write(sponsorStudentEnroll, sponsorStudentEnrollSchema, "Sponsor a student into your content. Free for the teacher: no platform fee is charged and paymentMethod is ignored. Can create the student's account.", CONFIRM),
   "subject-sections/create": write(subjectSectionsCreate, subjectSectionsCreateSchema, "Add a section to a test subject."),
   "subject-sections/delete": write(subjectSectionsDelete, subjectSectionsDeleteSchema, "Delete a test subject section.", CONFIRM),
   "subject-sections/reorder": write(subjectSectionsReorder, subjectSectionsReorderSchema, "Reorder sections in a test subject."),
@@ -499,52 +499,68 @@ export const BLOCKED_ACTIONS: Readonly<Record<string, string>> = {
 
 const SESSION_TTL = "5m";
 
-function lookup(action: string, kind?: TeacherActionKind): TeacherAction {
+function lookup(action: string): TeacherAction {
   if (Object.prototype.hasOwnProperty.call(BLOCKED_ACTIONS, action)) {
     throw new McpTeacherToolError(
       `Refused: ${action} is not available through this connector. ${BLOCKED_ACTIONS[action]}`
     );
   }
   if (!Object.prototype.hasOwnProperty.call(ACTIONS, action)) {
-    throw new McpTeacherToolError(`Unknown action "${action}". Call teacher_actions to list them.`);
+    throw new McpTeacherToolError(`Unknown action "${action}".`);
   }
-  const definition = ACTIONS[action];
-  if (kind && definition.kind !== kind) {
-    throw new McpTeacherToolError(`${action} is a ${definition.kind} action; use teacher_${definition.kind}.`);
-  }
-  return definition;
+  return ACTIONS[action];
 }
 
-export function teacherActionNames(kind: TeacherActionKind): string[] {
-  return Object.keys(ACTIONS)
-    .filter((action) => ACTIONS[action].kind === kind)
-    .sort();
-}
-
-export function listTeacherActions(kind?: TeacherActionKind) {
-  const actions = Object.entries(ACTIONS)
-    .filter(([, definition]) => !kind || definition.kind === kind)
-    .map(([action, definition]) => ({
-      action,
-      kind: definition.kind,
-      summary: definition.summary,
-      ...(definition.confirm ? { requiresConfirm: true } : {}),
-    }))
-    .sort((a, b) => a.action.localeCompare(b.action));
-  return { actions, unavailable: BLOCKED_ACTIONS };
-}
+export type TeacherActionInfo = {
+  action: string;
+  kind: TeacherActionKind;
+  summary: string;
+  confirm: boolean;
+  /** questions/* and question-bank/* writes take rich-text HTML; see teacher_docs "question-format". */
+  questionFormat: boolean;
+  inputSchema: Record<string, unknown>;
+};
 
 function toJsonSchema(schema: ZodTypeAny | null): Record<string, unknown> {
-  if (!schema) return { type: "object", properties: {} };
+  if (!schema) return { type: "object", properties: {}, additionalProperties: false };
   const converted = zodToJsonSchema(schema, {
     $refStrategy: "none",
     dateStrategy: "format:date-time",
     effectStrategy: "input",
   }) as Record<string, unknown>;
   delete converted.$schema;
-  return converted;
+  return converted.type === "object" ? converted : { ...converted, type: "object" };
 }
 
+/** Every action the connector runs, sorted by name, with its input as JSON Schema. */
+export function teacherActionCatalog(): TeacherActionInfo[] {
+  return Object.keys(ACTIONS)
+    .sort()
+    .map((action) => {
+      const definition = ACTIONS[action];
+      return {
+        action,
+        kind: definition.kind,
+        summary: definition.summary,
+        confirm: definition.confirm,
+        questionFormat: definition.kind === "write" && QUESTION_ACTION.test(action),
+        inputSchema: toJsonSchema(definition.schema),
+      };
+    });
+}
+
+/** Action summaries for the admin connector's content editing (helpers/mcpAdminContentEdit). */
+export function listTeacherActions() {
+  const actions = teacherActionCatalog().map(({ action, kind, summary, confirm }) => ({
+    action,
+    kind,
+    summary,
+    ...(confirm ? { requiresConfirm: true } : {}),
+  }));
+  return { actions, unavailable: BLOCKED_ACTIONS };
+}
+
+/** One action's input schema for the admin connector, which sets its own input wording. */
 export function describeTeacherAction(action: string) {
   const definition = lookup(action);
   return {
@@ -552,10 +568,6 @@ export function describeTeacherAction(action: string) {
     kind: definition.kind,
     summary: definition.summary,
     requiresConfirm: definition.confirm,
-    input:
-      definition.kind === "read"
-        ? "Pass these as teacher_read query parameters."
-        : "Pass this as the teacher_write body. Dates are ISO 8601 strings.",
     schema: toJsonSchema(definition.schema),
     ...(definition.kind === "write" && QUESTION_ACTION.test(action) ? { formatDocs: QUESTION_FORMAT_POINTER } : {}),
   };
@@ -739,7 +751,7 @@ async function execute(
     payload = prepareQuestionFields(payload, report, "");
     if (report.errors.length > 0) {
       throw new McpTeacherToolError(
-        `${action} was not saved. Fix the question HTML (see formatDocs in this action's schema) and try again:\n- ` +
+        `${action} was not saved. Fix the question HTML (see teacher_docs, topic "question-format") and try again:\n- ` +
           report.errors.join("\n- ")
       );
     }
@@ -793,26 +805,26 @@ export async function describeTeacherAccount(access: TeacherAccess) {
   };
 }
 
-export async function callTeacherRead(
+/**
+ * Runs one action for its per-action tool. A read's arguments are its query parameters and a
+ * write's are its body; confirm is the connector's own flag and is never forwarded.
+ */
+export async function callTeacherAction(
   access: TeacherAccess,
   action: string,
-  query?: Record<string, unknown>
+  args: Record<string, unknown>
 ): Promise<unknown> {
-  return execute(lookup(action, "read"), action, query, await connectionHeaders(access));
-}
-
-export async function callTeacherWrite(
-  access: TeacherAccess,
-  action: string,
-  body: Record<string, unknown> | undefined,
-  confirm: boolean
-): Promise<unknown> {
-  const definition = lookup(action, "write");
-  if (definition.confirm && !confirm) {
-    throw new McpTeacherToolError(
-      `Refused: ${action} needs confirmation. Show the teacher exactly what will happen - the ` +
-        "record, amount or plan - then call again with confirm: true once they approve."
-    );
+  const definition = lookup(action);
+  let input = args;
+  if (definition.confirm) {
+    const { confirm, ...rest } = args;
+    if (confirm !== true) {
+      throw new McpTeacherToolError(
+        `Refused: ${action} needs confirmation. Show the teacher exactly what will happen - the ` +
+          "record, amount or plan - then call again with confirm: true once they approve."
+      );
+    }
+    input = rest;
   }
-  return execute(definition, action, body, await connectionHeaders(access));
+  return execute(definition, action, input, await connectionHeaders(access));
 }

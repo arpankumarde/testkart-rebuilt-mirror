@@ -9,7 +9,7 @@ export const schema = z.object({
 
 export type InputType = z.infer<typeof schema>;
 
-type Review = Pick<Selectable<Reviews>, 'id' | 'rating' | 'reviewText' | 'createdAt' | 'testItemId'> & {
+type Review = Pick<Selectable<Reviews>, 'id' | 'rating' | 'reviewText' | 'createdAt' | 'testItemId' | 'teacherReply' | 'teacherRepliedAt'> & {
   reviewerName: string;
   reviewerAvatarUrl: string | null;
   testItemTitle: string | null;

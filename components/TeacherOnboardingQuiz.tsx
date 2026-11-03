@@ -7,25 +7,32 @@ import { toast } from "sonner";
 import { Button } from "./Button";
 import { Input } from "./Input";
 import { Spinner } from "./Spinner";
+import { TeacherKindTile } from "./TeacherKindTile";
 import type { InputType } from "../endpoints/teacher/onboarding/complete_POST.schema";
 import type { ExamFocusItem } from "../helpers/examFocusShared";
+import { teacherContentKind, type TeacherContentKind } from "../helpers/teacherContentKinds";
 import { ExamFocusPicker } from "./ExamFocusPicker";
-import { ChevronRight, ChevronLeft, CheckCircle2, X } from "lucide-react";
+import { Check, ChevronLeft, X } from "lucide-react";
 import styles from "./TeacherOnboardingQuiz.module.css";
 
-// --- Constants ---
 const TEACHING_CATEGORIES = ["School", "College", "Government Exams", "Competitive Exams", "Skills", "Language", "Other"];
 const COMMON_SUBJECTS = ["Mathematics", "Physics", "Chemistry", "Biology", "English", "Reasoning", "Aptitude", "History", "Geography", "Political Science", "Economics", "Computer Science", "General Knowledge", "Hindi", "Accountancy"];
-const EXPERIENCE_LEVELS = ["Beginner", "Less than 1 year", "1–3 years", "3–5 years", "5–10 years", "10+ years"];
-const OCCUPATIONS = ["School Teacher", "Coaching Teacher", "College Faculty", "Full-time Educator", "Freelancer", "Student", "Other"];
-const CONTENT_TYPES = ["Mock Tests", "Practice Questions", "Study Notes", "Courses", "Live Tests", "PDFs", "E-books"];
 const TEACHING_LANGUAGES = ["English", "Hindi", "Hinglish", "Bengali", "Marathi", "Tamil", "Telugu", "Kannada", "Malayalam", "Gujarati", "Punjabi", "Other"];
-const GOALS = ["Earn extra income", "Build my personal brand", "Reach more students", "Sell my existing content", "Conduct live tests", "Create AI-generated mock tests"];
-const DISCOVERY_SOURCES = ["YouTube", "Facebook", "Instagram", "Google", "Friend", "WhatsApp", "Workshop", "Referral", "Other"];
 const MOBILE_PATTERN = /^[6-9]\d{9}$/;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// --- Tags Input Component ---
+/*
+ * The answer is saved to product_interest under the labels the earlier quiz
+ * used, which the Overview reads (overview_GET firstContentTypeFrom) to pick
+ * the first thing it asks the teacher to create.
+ */
+const FIRST_LISTING_OPTIONS: { kind: TeacherContentKind; value: string }[] = [
+  { kind: "mock_test", value: "Mock Tests" },
+  { kind: "digital_product", value: "Study Notes" },
+  { kind: "course", value: "Courses" },
+  { kind: "live_test", value: "Live Tests" },
+];
+
 interface TagsInputProps {
   value: string[];
   onChange: (tags: string[]) => void;
@@ -84,9 +91,12 @@ function TagsInput({ value, onChange, placeholder }: TagsInputProps) {
     setInputValue("");
   };
 
+  // Chips cover the common subjects; the field lists only the ones typed in.
+  const custom = value.filter((tag) => !COMMON_SUBJECTS.includes(tag));
+
   return (
     <div className={styles.tagsContainer} onClick={() => inputRef.current?.focus()}>
-      {value.map((tag) => (
+      {custom.map((tag) => (
         <span key={tag} className={styles.tag}>
           {tag}
           <button
@@ -114,42 +124,76 @@ function TagsInput({ value, onChange, placeholder }: TagsInputProps) {
           addTags(inputValue);
           setInputValue("");
         }}
-        placeholder={value.length === 0 ? placeholder : "Add more..."}
+        aria-label="Add another subject"
+        placeholder={placeholder}
       />
     </div>
   );
 }
 
-// --- Other Input Component ---
 interface OtherInputProps {
   value: string;
   onChange: (value: string) => void;
   onCommit: () => void;
+  label: string;
 }
 
-function OtherInput({ value, onChange, onCommit }: OtherInputProps) {
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      onCommit();
-    }
-  };
-
+function OtherInput({ value, onChange, onCommit, label }: OtherInputProps) {
   return (
     <div className={styles.otherInputContainer}>
       <Input
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        onKeyDown={handleKeyDown}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            onCommit();
+          }
+        }}
         onBlur={onCommit}
-        placeholder="Please specify..."
+        aria-label={label}
+        placeholder="Type it here"
         autoFocus
       />
     </div>
   );
 }
 
-// --- Main Quiz Component ---
+const Chips = ({
+  options,
+  selected,
+  onToggle,
+  label,
+}: {
+  options: string[];
+  selected: string[];
+  onToggle: (value: string) => void;
+  label: string;
+}) => (
+  <div className={styles.chips} role="group" aria-label={label}>
+    {options.map((option) => {
+      const on = selected.includes(option);
+      return (
+        <button
+          key={option}
+          type="button"
+          className={`${styles.chip} ${on ? styles.chipOn : ""}`}
+          aria-pressed={on}
+          onClick={() => onToggle(option)}
+        >
+          {on && <Check size={14} strokeWidth={3} aria-hidden="true" />}
+          {option}
+        </button>
+      );
+    })}
+  </div>
+);
+
+/**
+ * Four questions between signup and the dashboard: what you teach, which
+ * exams, what you will publish first and which language. Experience,
+ * occupation and social links are asked later from the profile checklist.
+ */
 export function TeacherOnboardingQuiz() {
   const { authState } = useAuth();
   const authUser = authState.type === "authenticated" ? authState.user : null;
@@ -159,167 +203,61 @@ export function TeacherOnboardingQuiz() {
     mobile: !authUser?.mobileNumber,
     email: !authUser?.email,
   }));
-  const contactOffset = contactNeeds.mobile || contactNeeds.email ? 1 : 0;
+  const hasContactStep = contactNeeds.mobile || contactNeeds.email;
+  const stepLabels = [...(hasContactStep ? ["Contact"] : []), "What you teach", "Exams", "First listing", "Language"];
+  const contactOffset = hasContactStep ? 1 : 0;
 
   const [currentStep, setCurrentStep] = useState(0);
-  const totalSteps = 10 + contactOffset;
+  const totalSteps = stepLabels.length;
   const quizStep = currentStep - contactOffset;
   const navigate = useNavigate();
   const completeMutation = useCompleteOnboardingMutation();
 
-  // State
   const [mobileNumber, setMobileNumber] = useState("");
   const [email, setEmail] = useState("");
   const [teachingCategories, setTeachingCategories] = useState<string[]>([]);
   const [subjects, setSubjects] = useState<string[]>([]);
   const [examFocus, setExamFocus] = useState<ExamFocusItem[]>([]);
-  const [teachingExperienceLevel, setTeachingExperienceLevel] = useState<string>("");
-  const [currentOccupation, setCurrentOccupation] = useState<string>("");
-  const [contentTypes, setContentTypes] = useState<string[]>([]);
+  const [firstListing, setFirstListing] = useState<string>("");
   const [languages, setLanguages] = useState<string[]>([]);
-  const [goals, setGoals] = useState<string>("");
-  const [discoverySource, setDiscoverySource] = useState<string>("");
-
-  // Step 9 (Optional) form fields
-  const [academyName, setAcademyName] = useState("");
-  const [schoolCollegeName, setSchoolCollegeName] = useState("");
-  const [location, setLocation] = useState("");
-  const [websiteUrl, setWebsiteUrl] = useState("");
-  const [youtube, setYoutube] = useState("");
-  const [telegram, setTelegram] = useState("");
-  const [instagram, setInstagram] = useState("");
-  const [linkedin, setLinkedin] = useState("");
-
-  // "Other" input states
   const [otherCategory, setOtherCategory] = useState("");
-  const [otherOccupation, setOtherOccupation] = useState("");
   const [otherLanguage, setOtherLanguage] = useState("");
-  const [otherDiscovery, setOtherDiscovery] = useState("");
 
-  const toggleMulti = (state: string[], setter: (v: string[]) => void, value: string) => {
-    if (state.includes(value)) {
-      setter(state.filter((v) => v !== value));
-    } else {
-      setter([...state, value]);
+  const toggle = (state: string[], setter: (v: string[]) => void) => (value: string) =>
+    setter(state.includes(value) ? state.filter((v) => v !== value) : [...state, value]);
+
+  const commitOther = (value: string, list: string[], setList: (v: string[]) => void, clear: () => void) => {
+    const trimmed = value.trim();
+    if (trimmed && !list.includes(trimmed)) {
+      setList([...list, trimmed]);
+      clear();
     }
   };
 
-  const commitOtherCategory = () => {
-    const trimmed = otherCategory.trim();
-    if (trimmed && !teachingCategories.includes(trimmed)) {
-      setTeachingCategories([...teachingCategories, trimmed]);
-      setOtherCategory("");
+  const stepError = (): string | null => {
+    if (hasContactStep && currentStep === 0) {
+      if (contactNeeds.mobile && !MOBILE_PATTERN.test(mobileNumber)) return "Enter a valid 10-digit mobile number";
+      if (contactNeeds.email && !EMAIL_PATTERN.test(email.trim())) return "Enter a valid email address";
+      return null;
     }
-  };
-
-  const commitOtherOccupation = () => {
-    const trimmed = otherOccupation.trim();
-    if (trimmed) {
-      setCurrentOccupation(`Other: ${trimmed}`);
-      setOtherOccupation(trimmed);
+    if (quizStep === 0) {
+      if (teachingCategories.filter((c) => c !== "Other").length === 0) return "Pick at least one thing you teach";
+      if (subjects.length === 0) return "Pick or type at least one subject";
     }
-  };
-
-  const commitOtherLanguage = () => {
-    const trimmed = otherLanguage.trim();
-    if (trimmed && !languages.includes(trimmed)) {
-      setLanguages([...languages, trimmed]);
-      setOtherLanguage("");
-    }
-  };
-
-  const commitOtherDiscovery = () => {
-    const trimmed = otherDiscovery.trim();
-    if (trimmed) {
-      setDiscoverySource(`Other: ${trimmed}`);
-      setOtherDiscovery(trimmed);
-    }
-  };
-
-  const handleNext = () => {
-    if (contactOffset && currentStep === 0) {
-      if (contactNeeds.mobile && !MOBILE_PATTERN.test(mobileNumber)) {
-        toast.error("Please enter a valid 10-digit mobile number");
-        return;
-      }
-      if (contactNeeds.email && !EMAIL_PATTERN.test(email.trim())) {
-        toast.error("Please enter a valid email address");
-        return;
-      }
-    }
-    if (quizStep === 0 && teachingCategories.length === 0) {
-      toast.error("Please select at least one option");
-      return;
-    }
-    if (quizStep === 1 && subjects.length === 0) {
-      toast.error("Please select at least one option");
-      return;
-    }
-    if (quizStep === 2 && examFocus.length === 0) {
-      toast.error("Please pick at least one exam");
-      return;
-    }
-    if (quizStep === 3 && !teachingExperienceLevel) {
-      toast.error("Please select an option");
-      return;
-    }
-    if (quizStep === 4 && !currentOccupation) {
-      toast.error("Please select an option");
-      return;
-    }
-    if (quizStep === 5 && contentTypes.length === 0) {
-      toast.error("Please select at least one option");
-      return;
-    }
-    if (quizStep === 6 && languages.length === 0) {
-      toast.error("Please select at least one option");
-      return;
-    }
-    if (quizStep === 7 && !goals) {
-      toast.error("Please select an option");
-      return;
-    }
-    // Step 8 (Social Proof) is optional, no validation required
-
-    if (currentStep < totalSteps - 1) {
-      setCurrentStep((s) => s + 1);
-    }
-  };
-
-  const handleBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep((s) => s - 1);
-    }
+    if (quizStep === 1 && examFocus.length === 0) return "Pick at least one exam";
+    if (quizStep === 2 && !firstListing) return "Pick what you will publish first";
+    if (quizStep === 3 && languages.filter((l) => l !== "Other").length === 0) return "Pick at least one language";
+    return null;
   };
 
   const onSubmit = async () => {
-    if (!discoverySource) {
-      toast.error("Please select an option");
-      return;
-    }
-
     const signupSource = localStorage.getItem("testkart_signup_source") || undefined;
-
     const payload: InputType = {
-      teachingCategories,
+      teachingCategories: teachingCategories.filter((c) => c !== "Other"),
       subjects,
       examIds: examFocus.map((exam) => exam.id),
-      teachingExperienceLevel,
-      currentOccupation,
-      contentTypes,
-      languages,
-      goals,
-      discoverySource,
-      academyName: academyName || undefined,
-      schoolCollegeName: schoolCollegeName || undefined,
-      location: location || undefined,
-      websiteUrl: websiteUrl || undefined,
-      socialLinks: (youtube || telegram || instagram || linkedin) ? {
-        youtube: youtube || undefined,
-        telegram: telegram || undefined,
-        instagram: instagram || undefined,
-        linkedin: linkedin || undefined,
-      } : undefined,
+      contentTypes: [firstListing],
+      languages: languages.filter((l) => l !== "Other"),
       signupSource,
       mobileNumber: contactNeeds.mobile ? mobileNumber : undefined,
       email: contactNeeds.email ? email.trim().toLowerCase() : undefined,
@@ -327,352 +265,194 @@ export function TeacherOnboardingQuiz() {
 
     try {
       await completeMutation.mutateAsync(payload);
-      toast.success("Profile set up successfully! Welcome to Testkart 🎉");
+      toast.success("Welcome to Testkart. Your dashboard is ready.");
       localStorage.removeItem("testkart_signup_source");
       navigate("/teacher/dashboard");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Something went wrong";
-      toast.error(message);
+      toast.error(error instanceof Error ? error.message : "Your answers were not saved. Try again.");
     }
   };
 
   const isLastStep = currentStep === totalSteps - 1;
 
-  const formLabelStyle: React.CSSProperties = {
-    display: "block",
-    marginBottom: "var(--spacing-1)",
-    fontWeight: 500,
-    fontSize: "0.875rem",
-    color: "var(--foreground)",
+  const handleContinue = () => {
+    const error = stepError();
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    if (isLastStep) {
+      void onSubmit();
+    } else {
+      setCurrentStep((s) => s + 1);
+    }
   };
 
   return (
     <div className={styles.quizContainer}>
-      <div className={styles.progressContainer}>
-        <div className={styles.progressText}>
-          Question {currentStep + 1} of {totalSteps}
-        </div>
-        <div className={styles.progressTrack}>
-          <div className={styles.progressFill} style={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }} />
-        </div>
-      </div>
+      <ol className={styles.track} aria-label={`Step ${currentStep + 1} of ${totalSteps}`}>
+        {stepLabels.map((label, index) => (
+          <li
+            key={label}
+            className={`${styles.trackStep} ${index < currentStep ? styles.trackDone : ""} ${index === currentStep ? styles.trackCurrent : ""}`}
+            aria-current={index === currentStep ? "step" : undefined}
+          >
+            <span className={styles.trackBar} aria-hidden="true" />
+            <span className={styles.trackLabel}>{label}</span>
+          </li>
+        ))}
+      </ol>
 
       <div className={styles.card}>
-        <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-          
-          {contactOffset === 1 && currentStep === 0 && (
-            <div className={styles.questionContainer} key="contact">
-              <h2 className={styles.questionTitle}>
-                How can we reach you?
-                <span style={{ display: "block", fontSize: "0.875rem", fontWeight: 400, color: "var(--muted-foreground)", marginTop: "var(--spacing-2)" }}>
-                  Required to set up your teacher account
-                </span>
-              </h2>
-              <div style={{ display: "flex", flexDirection: "column", gap: "var(--spacing-4)" }}>
-                {contactNeeds.mobile && (
-                  <div>
-                    <label style={formLabelStyle} htmlFor="onboarding-mobile">Mobile Number</label>
-                    <Input
-                      id="onboarding-mobile"
-                      type="tel"
-                      autoComplete="tel"
-                      value={mobileNumber}
-                      onChange={(e) => setMobileNumber(sanitizeMobileInput(e.target.value))}
-                      placeholder="Enter your 10-digit mobile number"
-                    />
-                  </div>
-                )}
-                {contactNeeds.email && (
-                  <div>
-                    <label style={formLabelStyle} htmlFor="onboarding-email">Email Address</label>
-                    <Input
-                      id="onboarding-email"
-                      type="email"
-                      autoComplete="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter your email address"
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Step 1: What do you teach? */}
-          {quizStep === 0 && (
-            <div className={styles.questionContainer} key="step1">
-              <h2 className={styles.questionTitle}>What do you teach?</h2>
-              <div className={styles.languageChips}>
-                {TEACHING_CATEGORIES.map((cat) => (
-                  <button
-                    key={cat}
-                    type="button"
-                    className={`${styles.languageChip} ${teachingCategories.includes(cat) ? styles.selected : ""}`}
-                    onClick={() => toggleMulti(teachingCategories, setTeachingCategories, cat)}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-              {teachingCategories.includes("Other") && (
-                <OtherInput
-                  value={otherCategory}
-                  onChange={setOtherCategory}
-                  onCommit={commitOtherCategory}
-                />
+        {hasContactStep && currentStep === 0 && (
+          <div className={styles.question} key="contact">
+            <h2 className={styles.questionTitle}>How can we reach you?</h2>
+            <p className={styles.questionHint}>We need this to set up your teacher account.</p>
+            <div className={styles.fields}>
+              {contactNeeds.mobile && (
+                <label className={styles.field}>
+                  <span className={styles.fieldLabel}>Mobile number</span>
+                  <Input
+                    type="tel"
+                    autoComplete="tel"
+                    value={mobileNumber}
+                    onChange={(e) => setMobileNumber(sanitizeMobileInput(e.target.value))}
+                    placeholder="10-digit mobile number"
+                  />
+                </label>
               )}
-            </div>
-          )}
-
-          {/* Step 2: Select Subjects */}
-          {quizStep === 1 && (
-            <div className={styles.questionContainer} key="step2">
-              <h2 className={styles.questionTitle}>Select Subjects</h2>
-              <div className={styles.languageChips} style={{ marginBottom: "var(--spacing-6)" }}>
-                {COMMON_SUBJECTS.map((sub) => (
-                  <button
-                    key={sub}
-                    type="button"
-                    className={`${styles.languageChip} ${subjects.includes(sub) ? styles.selected : ""}`}
-                    onClick={() => toggleMulti(subjects, setSubjects, sub)}
-                  >
-                    {sub}
-                  </button>
-                ))}
-              </div>
-              <TagsInput
-                value={subjects}
-                onChange={setSubjects}
-                placeholder="Type a custom subject and press Enter..."
-              />
-            </div>
-          )}
-
-          {/* Step 3: Target Exams */}
-          {quizStep === 2 && (
-            <div className={styles.questionContainer} key="step3">
-              <h2 className={styles.questionTitle}>Target Exams</h2>
-              <ExamFocusPicker value={examFocus} onChange={setExamFocus} />
-            </div>
-          )}
-
-          {/* Step 4: Teaching Experience */}
-          {quizStep === 3 && (
-            <div className={styles.questionContainer} key="step4">
-              <h2 className={styles.questionTitle}>Teaching Experience</h2>
-              <div className={styles.languageChips}>
-                {EXPERIENCE_LEVELS.map((level) => (
-                  <button
-                    key={level}
-                    type="button"
-                    className={`${styles.languageChip} ${teachingExperienceLevel === level ? styles.selected : ""}`}
-                    onClick={() => setTeachingExperienceLevel(level)}
-                  >
-                    {level}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Step 5: Current Occupation */}
-          {quizStep === 4 && (
-            <div className={styles.questionContainer} key="step5">
-              <h2 className={styles.questionTitle}>Current Occupation</h2>
-              <div className={styles.languageChips}>
-                {OCCUPATIONS.map((occ) => (
-                  <button
-                    key={occ}
-                    type="button"
-                    className={`${styles.languageChip} ${currentOccupation === occ || currentOccupation.startsWith("Other:") ? styles.selected : ""}`}
-                    onClick={() => setCurrentOccupation(occ)}
-                  >
-                    {occ}
-                  </button>
-                ))}
-              </div>
-              {(currentOccupation === "Other" || currentOccupation.startsWith("Other:")) && (
-                <OtherInput
-                  value={otherOccupation}
-                  onChange={setOtherOccupation}
-                  onCommit={commitOtherOccupation}
-                />
-              )}
-            </div>
-          )}
-
-          {/* Step 6: What would you like to publish first? */}
-          {quizStep === 5 && (
-            <div className={styles.questionContainer} key="step6">
-              <h2 className={styles.questionTitle}>
-                What would you like to publish first?
-                <span style={{ display: "block", fontSize: "0.875rem", fontWeight: 400, color: "var(--muted-foreground)", marginTop: "var(--spacing-2)" }}>
-                  This lets us personalize your dashboard
-                </span>
-              </h2>
-              <div className={styles.languageChips}>
-                {CONTENT_TYPES.map((type) => (
-                  <button
-                    key={type}
-                    type="button"
-                    className={`${styles.languageChip} ${contentTypes.includes(type) ? styles.selected : ""}`}
-                    onClick={() => toggleMulti(contentTypes, setContentTypes, type)}
-                  >
-                    {type}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Step 7: Which language do you teach in? */}
-          {quizStep === 6 && (
-            <div className={styles.questionContainer} key="step7">
-              <h2 className={styles.questionTitle}>Which language do you teach in?</h2>
-              <div className={styles.languageChips}>
-                {TEACHING_LANGUAGES.map((lang) => (
-                  <button
-                    key={lang}
-                    type="button"
-                    className={`${styles.languageChip} ${languages.includes(lang) ? styles.selected : ""}`}
-                    onClick={() => toggleMulti(languages, setLanguages, lang)}
-                  >
-                    {lang}
-                  </button>
-                ))}
-              </div>
-              {languages.includes("Other") && (
-                <OtherInput
-                  value={otherLanguage}
-                  onChange={setOtherLanguage}
-                  onCommit={commitOtherLanguage}
-                />
-              )}
-            </div>
-          )}
-
-          {/* Step 8: What do you want to achieve with Testkart? */}
-          {quizStep === 7 && (
-            <div className={styles.questionContainer} key="step8">
-              <h2 className={styles.questionTitle}>What do you want to achieve with Testkart?</h2>
-              <div className={styles.languageChips}>
-                {GOALS.map((goal) => (
-                  <button
-                    key={goal}
-                    type="button"
-                    className={`${styles.languageChip} ${goals === goal ? styles.selected : ""}`}
-                    onClick={() => setGoals(goal)}
-                  >
-                    {goal}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Step 9: Social Proof (Optional) */}
-          {quizStep === 8 && (
-            <div className={styles.questionContainer} key="step9">
-              <h2 className={styles.questionTitle}>
-                Social Proof <span style={{ fontSize: "1rem", color: "var(--muted-foreground)", fontWeight: 400 }}>(Optional)</span>
-                <span style={{ display: "block", fontSize: "0.875rem", fontWeight: 400, color: "var(--muted-foreground)", marginTop: "var(--spacing-2)" }}>
-                  These increase student trust
-                </span>
-              </h2>
-              <div style={{ display: "flex", flexDirection: "column", gap: "var(--spacing-4)" }}>
-                <div>
-                  <label style={formLabelStyle}>Coaching Institute Name</label>
-                  <Input value={academyName} onChange={(e) => setAcademyName(e.target.value)} placeholder="e.g. Testkart Academy" />
-                </div>
-                <div>
-                  <label style={formLabelStyle}>School/College Name</label>
-                  <Input value={schoolCollegeName} onChange={(e) => setSchoolCollegeName(e.target.value)} placeholder="e.g. Delhi Public School" />
-                </div>
-                <div>
-                  <label style={formLabelStyle}>City</label>
-                  <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. New Delhi" />
-                </div>
-                <div>
-                  <label style={formLabelStyle}>Website</label>
-                  <Input value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} placeholder="https://yourwebsite.com" type="url" />
-                </div>
-                <div>
-                  <label style={formLabelStyle}>YouTube Channel</label>
-                  <Input value={youtube} onChange={(e) => setYoutube(e.target.value)} placeholder="https://youtube.com/@yourchannel" type="url" />
-                </div>
-                <div>
-                  <label style={formLabelStyle}>Telegram</label>
-                  <Input value={telegram} onChange={(e) => setTelegram(e.target.value)} placeholder="https://t.me/yourchannel" type="url" />
-                </div>
-                <div>
-                  <label style={formLabelStyle}>Instagram</label>
-                  <Input value={instagram} onChange={(e) => setInstagram(e.target.value)} placeholder="https://instagram.com/yourhandle" type="url" />
-                </div>
-                <div>
-                  <label style={formLabelStyle}>LinkedIn</label>
-                  <Input value={linkedin} onChange={(e) => setLinkedin(e.target.value)} placeholder="https://linkedin.com/in/yourprofile" type="url" />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Step 10: How did you hear about Testkart? */}
-          {quizStep === 9 && (
-            <div className={styles.questionContainer} key="step10">
-              <h2 className={styles.questionTitle}>How did you hear about Testkart?</h2>
-              <div className={styles.languageChips}>
-                {DISCOVERY_SOURCES.map((source) => (
-                  <button
-                    key={source}
-                    type="button"
-                    className={`${styles.languageChip} ${discoverySource === source || discoverySource.startsWith("Other:") ? styles.selected : ""}`}
-                    onClick={() => setDiscoverySource(source)}
-                  >
-                    {source}
-                  </button>
-                ))}
-              </div>
-              {(discoverySource === "Other" || discoverySource.startsWith("Other:")) && (
-                <OtherInput
-                  value={otherDiscovery}
-                  onChange={setOtherDiscovery}
-                  onCommit={commitOtherDiscovery}
-                />
-              )}
-            </div>
-          )}
-
-          {/* Navigation Actions */}
-          <div className={styles.cardActions}>
-            <div className={styles.cardActionsLeft}>
-              {currentStep > 0 && (
-                <Button type="button" variant="ghost" onClick={handleBack}>
-                  <ChevronLeft size={18} /> Back
-                </Button>
-              )}
-            </div>
-            <div className={styles.cardActionsRight}>
-              {!isLastStep ? (
-                <Button type="button" size="lg" onClick={handleNext}>
-                  Continue <ChevronRight size={18} />
-                </Button>
-              ) : (
-                <Button type="button" size="lg" disabled={completeMutation.isPending} onClick={onSubmit}>
-                  {completeMutation.isPending ? (
-                    <>
-                      <Spinner size="sm" /> Saving...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 size={18} /> Complete Setup
-                    </>
-                  )}
-                </Button>
+              {contactNeeds.email && (
+                <label className={styles.field}>
+                  <span className={styles.fieldLabel}>Email address</span>
+                  <Input
+                    type="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                  />
+                </label>
               )}
             </div>
           </div>
+        )}
 
+        {quizStep === 0 && (
+          <div className={styles.question} key="teach">
+            <h2 className={styles.questionTitle}>What do you teach?</h2>
+            <p className={styles.questionHint}>Pick all that fit. Students use these to find you.</p>
+            <Chips
+              label="Where you teach"
+              options={TEACHING_CATEGORIES}
+              selected={teachingCategories}
+              onToggle={toggle(teachingCategories, setTeachingCategories)}
+            />
+            {teachingCategories.includes("Other") && (
+              <OtherInput
+                label="Something else you teach"
+                value={otherCategory}
+                onChange={setOtherCategory}
+                onCommit={() => commitOther(otherCategory, teachingCategories, setTeachingCategories, () => setOtherCategory(""))}
+              />
+            )}
+            <h3 className={styles.subTitle}>Subjects</h3>
+            <Chips
+              label="Subjects"
+              options={COMMON_SUBJECTS}
+              selected={subjects}
+              onToggle={toggle(subjects, setSubjects)}
+            />
+            <TagsInput value={subjects} onChange={setSubjects} placeholder="Another subject? Type it and press Enter" />
+          </div>
+        )}
+
+        {quizStep === 1 && (
+          <div className={styles.question} key="exams">
+            <h2 className={styles.questionTitle}>Which exams do you prepare students for?</h2>
+            <p className={styles.questionHint}>Your listings show up on these exams' pages.</p>
+            <ExamFocusPicker value={examFocus} onChange={setExamFocus} />
+          </div>
+        )}
+
+        {quizStep === 2 && (
+          <div className={styles.question} key="first">
+            <h2 className={styles.questionTitle}>What will you publish first?</h2>
+            <p className={styles.questionHint}>Your dashboard starts you on this. You can make any of them later.</p>
+            <div className={styles.kindGrid} role="radiogroup" aria-label="First listing">
+              {FIRST_LISTING_OPTIONS.map((option) => {
+                const meta = teacherContentKind(option.kind);
+                const on = firstListing === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={on}
+                    className={`${styles.kindCard} ${on ? styles.kindCardOn : ""}`}
+                    onClick={() => setFirstListing(option.value)}
+                  >
+                    <TeacherKindTile kind={option.kind} />
+                    <span className={styles.kindText}>
+                      <span className={styles.kindLabel}>{meta.label}</span>
+                      <span className={styles.kindPitch}>{meta.pitch}</span>
+                    </span>
+                    {on && (
+                      <span className={styles.kindCheck} aria-hidden="true">
+                        <Check size={14} strokeWidth={3} />
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {quizStep === 3 && (
+          <div className={styles.question} key="language">
+            <h2 className={styles.questionTitle}>Which language do you teach in?</h2>
+            <p className={styles.questionHint}>Pick all you use.</p>
+            <Chips
+              label="Teaching languages"
+              options={TEACHING_LANGUAGES}
+              selected={languages}
+              onToggle={toggle(languages, setLanguages)}
+            />
+            {languages.includes("Other") && (
+              <OtherInput
+                label="Another language"
+                value={otherLanguage}
+                onChange={setOtherLanguage}
+                onCommit={() => commitOther(otherLanguage, languages, setLanguages, () => setOtherLanguage(""))}
+              />
+            )}
+          </div>
+        )}
+
+        <div className={styles.actions}>
+          {currentStep > 0 ? (
+            <Button type="button" variant="ghost" onClick={() => setCurrentStep((s) => s - 1)}>
+              <ChevronLeft size={18} /> Back
+            </Button>
+          ) : (
+            <span />
+          )}
+          <button
+            type="button"
+            className={styles.continue}
+            onClick={handleContinue}
+            disabled={completeMutation.isPending}
+          >
+            {completeMutation.isPending ? (
+              <>
+                <Spinner size="sm" /> Saving
+              </>
+            ) : isLastStep ? (
+              "Go to my dashboard"
+            ) : (
+              "Continue"
+            )}
+          </button>
         </div>
       </div>
     </div>

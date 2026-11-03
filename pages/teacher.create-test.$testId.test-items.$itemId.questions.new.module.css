@@ -132,8 +132,8 @@
   width: 3.25rem;
   height: 3.25rem;
   border-radius: var(--radius-full);
-  background-color: color-mix(in srgb, var(--warning) 15%, transparent);
-  color: var(--warning-text);
+  background-color: var(--fc-butter-tint);
+  color: var(--fc-butter-ink);
 }
 
 @media (max-width: 768px) {

@@ -18,15 +18,9 @@ export const schema = z.object({
   introVideoUrl: z.string().optional().nullable(),
   introVideoFileId: z.string().optional().nullable(),
   visibility: visibilityInputSchema,
-}).refine((data) => {
-  const totalItems =
-    (data.courseIds?.length ?? 0) +
-    (data.testIds?.length ?? 0) +
-    (data.digitalProductIds?.length ?? 0);
-  return totalItems >= 2;
-}, {
-  message: "A bundle must contain at least 2 items total (courses, tests, and/or digital products).",
 });
+// A draft may hold any number of items, published or not; bundles/publish
+// enforces 2+ items, all live, and the price rule.
 
 export type InputType = z.infer<typeof schema>;
 

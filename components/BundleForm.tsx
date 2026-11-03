@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { z } from 'zod';
-import { useForm, Form, FormItem, FormLabel, FormControl, FormMessage } from './Form';
+import { useForm, Form, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from './Form';
 import { Input } from './Input';
 import { RichTextEditor } from './RichTextEditor';
 import { Button } from './Button';
@@ -107,8 +107,9 @@ export const BundleForm: React.FC<BundleFormProps> = ({
     const fromDetails = new Map(selectedItems.map((item) => [`${item.itemType}:${item.id}`, item]));
     const build = (type: ItemType, listed: ItemOption[], selectedIds: number[]) => {
       const options = new Map<number, ItemOption>();
+      // Drafts may hold items that are not live yet; publishing waits for them.
       for (const item of listed) {
-        if (item.isPublished || selectedIds.includes(item.id)) options.set(item.id, item);
+        options.set(item.id, item);
       }
       for (const id of selectedIds) {
         const detail = fromDetails.get(`${type}:${id}`);
@@ -173,8 +174,8 @@ export const BundleForm: React.FC<BundleFormProps> = ({
   };
 
   const handleFormSubmit = (values: BundleFormValues) => {
-    if (totalItemsSelected < 2 || isLoadingItems || isUploading) return;
-    if (pricing.priceError) {
+    if (isLoadingItems || isUploading) return;
+    if (pricing.priceError && totalItemsSelected >= 2) {
       priceInputRef.current?.focus();
       return;
     }
@@ -219,7 +220,7 @@ export const BundleForm: React.FC<BundleFormProps> = ({
                 {type === 'digital_product' && <BookOpen size={16} className={styles.itemIcon} />}
                 <span className={styles.courseTitle}>
                   {item.title}
-                  {!item.isPublished && <span className={styles.itemNote}>Not published</span>}
+                  {!item.isPublished && <span className={styles.itemNote}>Not live yet</span>}
                 </span>
                 <span className={styles.coursePrice}>{formatInr(item.price)}</span>
               </label>
@@ -319,7 +320,7 @@ export const BundleForm: React.FC<BundleFormProps> = ({
             <p>
               {isPublished
                 ? `${totalItemsSelected} items in this bundle.`
-                : 'Select at least 2 items to form your bundle.'}
+                : 'Pick what to sell together. You can save a draft any time; to publish, it needs 2 or more items, all live.'}
             </p>
           </div>
 
@@ -330,14 +331,13 @@ export const BundleForm: React.FC<BundleFormProps> = ({
             </div>
           )}
 
-          {renderItemList('Select Courses', 'course', 'courseIds', isLoadingCourses, 'No published courses available')}
-          {renderItemList('Select Tests', 'test', 'testIds', isLoadingTests, 'No published tests available')}
-          {renderItemList('Select Notes', 'digital_product', 'digitalProductIds', isLoadingProducts, 'No published notes available')}
+          {renderItemList('Courses', 'course', 'courseIds', isLoadingCourses, 'No courses yet')}
+          {renderItemList('Test series', 'test', 'testIds', isLoadingTests, 'No test series yet')}
+          {renderItemList('Notes and PDFs', 'digital_product', 'digitalProductIds', isLoadingProducts, 'No notes or PDFs yet')}
 
-          {totalItemsSelected < 2 && (
+          {!isPublished && totalItemsSelected < 2 && (
             <div className={styles.validationMessage}>
-              Please select at least 2 items (courses, tests, or notes) to create a bundle.
-              Currently selected: {totalItemsSelected}
+              {totalItemsSelected} of 2 items picked. You can save the draft now and add more later.
             </div>
           )}
         </div>
@@ -364,6 +364,7 @@ export const BundleForm: React.FC<BundleFormProps> = ({
                 }}
               />
             </FormControl>
+            <FormDescription>0 means the bundle is free.</FormDescription>
             <FormMessage />
           </FormItem>
           {/* Under the price field, in a row of its own, so a message never changes
@@ -405,7 +406,7 @@ export const BundleForm: React.FC<BundleFormProps> = ({
           <Button type="button" variant="outline" onClick={() => guard.leave(cancelTo)} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button type="submit" disabled={isSubmitting || totalItemsSelected < 2 || isLoadingItems || isUploading}>
+          <Button type="submit" disabled={isSubmitting || isLoadingItems || isUploading}>
             {isSubmitting && <Spinner />}
             {isUploading ? 'Waiting for upload...' : submitText}
           </Button>

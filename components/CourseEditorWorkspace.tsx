@@ -8,6 +8,7 @@ import { usePublishesWithoutReview } from "../helpers/usePublishesWithoutReview"
 import { useBundleUnpublishGuard } from "../helpers/useBundleUnpublishGuard";
 import { useAdminContentEdit } from "../helpers/useAdminContentEdit";
 import { useContentRejection } from "../helpers/useContentRejection";
+import { useUnsavedChangesGuard } from "../helpers/useUnsavedChangesGuard";
 import {
   countCourseLessons,
   formatCourseMinutes,
@@ -84,15 +85,13 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
   const [isUnpublishOpen, setUnpublishOpen] = useState(false);
   const [claimBonus, setClaimBonus] = useState(false);
 
-  useEffect(() => {
-    if (!detailsDirty && !detailsUploading) return;
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-      event.returnValue = "";
-    };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [detailsDirty, detailsUploading]);
+  // Covers the back link and the sidebar as well as closing the tab.
+  const unsavedGuard = useUnsavedChangesGuard(
+    detailsDirty || detailsUploading,
+    detailsUploading
+      ? "A file on the Details tab is still uploading. If you leave now, it is lost."
+      : "Your changes on the Details tab are not saved yet. If you leave now, they are lost."
+  );
 
   const setTab = (next: EditorTab) => {
     const params = new URLSearchParams(searchParams);
@@ -471,6 +470,7 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
           />
 
           {bundleUnpublishDialog}
+          {unsavedGuard.dialog}
         </>
       )}
     </>

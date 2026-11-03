@@ -1,29 +1,19 @@
 import React, { useState, useMemo } from 'react';
 import { Helmet } from 'react-helmet';
 import { Link } from 'react-router-dom';
-import { Plus, GraduationCap } from 'lucide-react';
+import { Plus, GraduationCap, BookOpen } from 'lucide-react';
 import { useTeacherCoursesQuery } from '../helpers/useTeacherCoursesQuery';
 import { useListUrlParams } from '../helpers/useListUrlParams';
 import { useRefetchOnLinkArrival } from '../helpers/useRefetchOnLinkArrival';
 import { TeacherCourseListItem } from '../endpoints/teacher/courses/list_GET.schema';
 import { Button } from '../components/Button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../components/Select';
 import { TeacherPageHeader } from '../components/TeacherPageHeader';
-import {
-  TeacherListToolbar,
-  teacherToolbarControlClass,
-} from '../components/TeacherListToolbar';
+import { TeacherContentToolbar } from '../components/TeacherContentToolbar';
 import { TeacherListEmpty } from '../components/TeacherListEmpty';
 import { TeacherCourseCard } from '../components/TeacherCourseCard';
 import { useCreatorBonusOverview } from '../helpers/useCreatorBonus';
 import { DeleteCourseDialog } from '../components/DeleteCourseDialog';
-import { TestCardSkeleton } from '../components/TestCardSkeleton';
+import { TeacherTestCardSkeleton } from '../components/TeacherTestCardSkeleton';
 import styles from './teacher.courses.module.css';
 
 type StatusTab = 'all' | 'published' | 'draft' | 'archived';
@@ -113,9 +103,9 @@ const TeacherCoursesPage: React.FC = () => {
   const renderContent = () => {
     if (isFetching && !courses) {
       return (
-        <div className={styles.grid}>
+        <div className={styles.grid} aria-busy="true" aria-label="Loading courses">
           {Array.from({ length: 6 }).map((_, index) => (
-            <TestCardSkeleton key={index} />
+            <TeacherTestCardSkeleton key={index} />
           ))}
         </div>
       );
@@ -136,6 +126,7 @@ const TeacherCoursesPage: React.FC = () => {
     if (!hasAnyCourses) {
       return (
         <TeacherListEmpty
+          kind="course"
           icon={<GraduationCap size={26} />}
           title="No courses yet"
           description="A course is a set of video lessons students buy once and keep. Build your first one to start selling."
@@ -194,22 +185,24 @@ const TeacherCoursesPage: React.FC = () => {
         <meta name="description" content="Manage your courses on Testkart." />
       </Helmet>
       <div className={styles.page}>
-        <TeacherPageHeader title="Courses">
-          <Button asChild>
-            <Link to="/teacher/courses/create">
-              <Plus size={16} />
-              New course
-            </Link>
-          </Button>
+        <TeacherPageHeader
+          title="Courses"
+          description="Create, organise and manage your courses in one place."
+          leading={
+            <span className={styles.headerIcon} aria-hidden="true">
+              <BookOpen size={18} strokeWidth={2.25} />
+            </span>
+          }
+        >
+          <Link to="/teacher/courses/create" className={styles.newButton}>
+            <Plus size={18} strokeWidth={2.5} aria-hidden="true" />
+            New course
+          </Link>
         </TeacherPageHeader>
 
         {hasAnyCourses && (
-          <TeacherListToolbar
-            tabs={TAB_ORDER.map((tab) => ({
-              value: tab,
-              label: TAB_LABELS[tab],
-              count: counts[tab],
-            }))}
+          <TeacherContentToolbar
+            tabs={TAB_ORDER.map((tab) => ({ value: tab, label: TAB_LABELS[tab], count: counts[tab] }))}
             value={activeTab}
             onValueChange={setActiveTab}
             tabsLabel="Filter by status"
@@ -219,21 +212,20 @@ const TeacherCoursesPage: React.FC = () => {
               placeholder: 'Search by title',
               label: 'Search courses',
             }}
-          >
-            <Select value={sortOption} onValueChange={setSortOption}>
-              <SelectTrigger className={teacherToolbarControlClass} aria-label="Sort courses">
-                <SelectValue placeholder="Sort" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="recent">Newest first</SelectItem>
-                <SelectItem value="price-desc">Price: high to low</SelectItem>
-                <SelectItem value="price-asc">Price: low to high</SelectItem>
-              </SelectContent>
-            </Select>
-          </TeacherListToolbar>
+            sort={{
+              value: sortOption,
+              onChange: setSortOption,
+              label: 'Sort courses',
+              options: [
+                { value: 'recent', label: 'Newest first' },
+                { value: 'price-desc', label: 'Price: high to low' },
+                { value: 'price-asc', label: 'Price: low to high' },
+              ],
+            }}
+          />
         )}
 
-        <main className={styles.content}>{renderContent()}</main>
+        <div className={styles.content}>{renderContent()}</div>
       </div>
 
       {courseToDelete && (

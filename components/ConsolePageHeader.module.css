@@ -6,6 +6,13 @@
   gap: var(--spacing-3);
 }
 
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  min-width: 0;
+}
+
 .title {
   margin: 0;
   font-family: var(--font-family-heading);
@@ -13,7 +20,21 @@
   font-weight: 800;
   letter-spacing: -0.015em;
   line-height: 1.2;
-  color: var(--foreground);
+  color: var(--tc-ink, var(--foreground));
+}
+
+.titleText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.description {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  color: var(--tc-muted, var(--muted-foreground));
 }
 
 .actions {

@@ -1,3 +1,48 @@
+.progress {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin: 0;
+  padding: 0.875rem 1.125rem;
+  list-style: none;
+  background-color: var(--tc-card, var(--surface));
+  border: 1px solid var(--tc-line, var(--border));
+  border-radius: var(--tc-radius-card, var(--radius-md));
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+}
+
+.progress li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.progressDone {
+  color: var(--fc-sage-ink);
+}
+
+.progressTodo {
+  color: var(--tc-ink, var(--foreground));
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
 /* The console workspace shell. .pageBody owns the gutter. The list's styles live in
    components/TestSeriesItemsEditor.module.css. */
 .page {

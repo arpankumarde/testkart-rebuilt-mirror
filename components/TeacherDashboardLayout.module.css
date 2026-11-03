@@ -1,7 +1,31 @@
+.skipLink {
+  position: absolute;
+  top: var(--spacing-2);
+  left: var(--spacing-2);
+  z-index: calc(var(--z-nav) + 1);
+  padding: 0.625rem 1rem;
+  border-radius: 0.75rem;
+  background-color: var(--tc-ink);
+  color: var(--tc-card);
+  font-weight: 700;
+  text-decoration: none;
+  transform: translateY(-200%);
+}
+
+.skipLink:focus-visible {
+  transform: translateY(0);
+  outline: 2px solid var(--tk-brand);
+  outline-offset: 2px;
+}
+
+.mainContent:focus {
+  outline: none;
+}
+
 .layout {
   display: flex;
   min-height: calc(100vh - var(--site-notice-offset));
-  background-color: var(--background);
+  background-color: var(--tc-bg);
 }
 
 /* No padding of its own: the support bar needs to run edge to edge, so the
@@ -28,8 +52,8 @@
   flex-wrap: wrap;
   gap: var(--spacing-2) var(--spacing-4);
   padding: var(--spacing-2) var(--spacing-8);
-  background-color: var(--surface);
-  border-bottom: 1px solid var(--border);
+  background-color: var(--tc-card);
+  border-bottom: 1px solid var(--tc-line);
   font-size: 0.8125rem;
 }
 
@@ -38,11 +62,11 @@
   align-items: center;
   gap: var(--spacing-2);
   font-weight: 600;
-  color: var(--foreground);
+  color: var(--tc-ink);
 }
 
 .supportIcon {
-  color: var(--tk-brand-text);
+  color: var(--fc-blue-edge);
   flex-shrink: 0;
 }
 
@@ -58,9 +82,9 @@
   gap: var(--spacing-2);
   height: 1.75rem;
   padding: 0 var(--spacing-3);
-  border: 1px solid var(--border);
+  border: 1px solid var(--tc-line);
   border-radius: var(--radius-full);
-  color: var(--foreground);
+  color: var(--tc-ink);
   text-decoration: none;
   font-weight: 600;
   white-space: nowrap;
@@ -68,8 +92,8 @@
 }
 
 .supportLink:hover {
-  border-color: var(--tk-brand-text);
-  color: var(--tk-brand-text);
+  border-color: var(--tc-line-strong);
+  background-color: var(--tc-bg);
 }
 
 .supportLink:focus-visible {
@@ -92,24 +116,24 @@
   position: sticky;
   top: var(--site-notice-offset);
   z-index: calc(var(--z-nav) - 2);
-  grid-template-columns: 40px 1fr 40px;
+  grid-template-columns: 40px 1fr auto;
   align-items: center;
   gap: 1px;
   height: 56px;
   box-sizing: border-box;
   padding: 0 var(--spacing-3);
-  background-color: var(--surface);
-  border-bottom: 1px solid var(--border);
+  background-color: var(--tc-card);
+  border-bottom: 1px solid var(--tc-line);
 }
 
 .mobileMenuButton {
   width: 40px;
   height: 40px;
-  color: var(--foreground);
+  color: var(--tc-ink);
 }
 
 .mobileMenuButton:hover {
-  background-color: var(--muted);
+  background-color: var(--tc-bg);
 }
 
 .mobileBrand {
@@ -136,18 +160,48 @@
   object-fit: contain;
 }
 
-/* Matches the chip in the sidebar header. */
+/* Matches the pine chip in the sidebar header. */
 .mobileChip {
   flex-shrink: 0;
-  padding: 0.25rem 0.5rem;
-  background-color: var(--tk-brand-tint);
-  color: var(--tk-brand-text);
-  border-radius: var(--radius-sm);
-  font-size: 0.625rem;
+  padding: 0.3125rem 0.5rem;
+  background-color: var(--tc-panel);
+  color: var(--tc-panel-ink);
+  border-radius: 999px;
+  font-size: 0.6875rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
   line-height: 1;
+}
+
+.mobileHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.mobileCreateButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-bottom: 2px;
+  padding: 0;
+  background-color: var(--tk-brand);
+  border: 1px solid var(--tk-brand-ink);
+  border-radius: 999px;
+  box-shadow: 0 2px 0 var(--tk-brand-ink);
+  color: var(--tk-brand-ink);
+  cursor: pointer;
+}
+
+.mobileCreateButton:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+.mobileCreateButton:focus-visible {
+  outline: 2px solid var(--tc-ink);
+  outline-offset: 2px;
 }
 
 .mobileHeaderSpacer {

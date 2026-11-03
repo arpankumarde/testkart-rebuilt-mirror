@@ -2,9 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
 import {
+  Home,
   LayoutDashboard,
-  ListChecks,
-  BookOpenCheck,
   Users,
   BarChart3,
   Star,
@@ -14,10 +13,7 @@ import {
   LogOut,
   X,
   ChevronRight,
-  Zap,
-  Package,
   Tag,
-  FileText,
   Library,
   FolderOpen,
   Trash2,
@@ -30,13 +26,19 @@ import {
   Gift,
   Megaphone,
   Building2,
+  Plus,
 } from 'lucide-react';
 import { useAuth } from '../helpers/useAuth';
 import { Button } from './Button';
 import { LogoutConfirmDialog } from './LogoutConfirmDialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from './Tooltip';
+import { TeacherKindTile } from './TeacherKindTile';
+import { useTeacherCreateChooser } from './TeacherCreateChooser';
 import { useDarkModeObserver } from '../helpers/useDarkModeObserver';
 import { getBrandLogo, BRAND_FAVICON } from '../helpers/brandAssets';
+import { teacherContentKind, type TeacherContentKind } from '../helpers/teacherContentKinds';
+import { useTeacherDashboardOverview } from '../helpers/useTeacherDashboardOverview';
+import type { TeacherAttentionCounts } from '../endpoints/teacher/dashboard/overview_GET.schema';
 import styles from './TeacherSidebar.module.css';
 
 const RAIL_KEY = 'teacher_sidebar_rail';
@@ -64,8 +66,12 @@ const writeJson = (key: string, value: unknown) => {
 type TeacherNavItem = {
   href: string;
   label: string;
-  icon: LucideIcon;
+  icon?: LucideIcon;
+  /** Content items draw their kind's colour tile instead of a plain icon. */
+  kind?: TeacherContentKind;
   badge?: string;
+  /** A live count from the overview's attention block, shown when above zero. */
+  count?: { read: (attention: TeacherAttentionCounts) => number; noun: string };
   /** Hidden from team managers, who do not own the academy's money, plan or public profile. */
   ownerOnly?: boolean;
   /** For items that stay active across a whole flow, not just one path. */
@@ -74,44 +80,69 @@ type TeacherNavItem = {
 
 type TeacherNavGroup = {
   key: string;
-  label: string;
-  /** The first group carries the daily work and never collapses, as in admin. */
+  /** Omitted for the Dashboard group, which needs no heading. */
+  label?: string;
+  /** Home and Content never collapse; they are the daily work. */
   alwaysOpen?: boolean;
   items: TeacherNavItem[];
 };
 
+const contentItem = (
+  kind: TeacherContentKind,
+  readCount: (attention: TeacherAttentionCounts) => number,
+  isActiveFor: (pathname: string) => boolean
+): TeacherNavItem => {
+  const meta = teacherContentKind(kind);
+  return {
+    href: meta.listPath,
+    label: meta.plural,
+    kind,
+    count: { read: readCount, noun: 'in review' },
+    isActiveFor,
+  };
+};
+
 const NAV_GROUPS: TeacherNavGroup[] = [
   {
-    key: 'application',
-    label: 'Application',
+    key: 'home',
     alwaysOpen: true,
     items: [
+      { href: '/', label: 'Home', icon: Home },
       { href: '/teacher/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-      { href: '/teacher/analytics', label: 'Analytics', icon: TrendingUp, ownerOnly: true },
-      { href: '/teacher/creator-bonus', label: 'Creator Bonus', icon: Gift, badge: 'New' },
-      {
-        href: '/teacher/test-series',
-        label: 'Test Series',
-        icon: ListChecks,
-        isActiveFor: (p) =>
-          p === '/teacher/test-series' || p.startsWith('/teacher/create-test') || p.startsWith('/teacher/test/'),
-      },
-      { href: '/teacher/products', label: 'Notes & PDFs', icon: FileText },
-      {
-        href: '/teacher/live-tests',
-        label: 'Live Tests',
-        icon: Zap,
-        isActiveFor: (p) => p === '/teacher/live-tests' || p.startsWith('/teacher/create-live-test'),
-      },
-      { href: '/teacher/courses', label: 'Courses', icon: BookOpenCheck },
-      { href: '/teacher/bundles', label: 'Bundles', icon: Package },
+    ],
+  },
+  {
+    key: 'content',
+    label: 'Content',
+    alwaysOpen: true,
+    items: [
+      contentItem(
+        'mock_test',
+        (a) => a.reviewsPendingTests,
+        (p) => p === '/teacher/test-series' || p.startsWith('/teacher/create-test') || p.startsWith('/teacher/test/')
+      ),
+      contentItem('course', (a) => a.reviewsPendingCourses, (p) => p.startsWith('/teacher/courses')),
+      contentItem('digital_product', (a) => a.reviewsPendingProducts, (p) => p.startsWith('/teacher/products')),
+      contentItem(
+        'live_test',
+        (a) => a.reviewsPendingLiveTests,
+        (p) =>
+          p === '/teacher/live-tests' || p.startsWith('/teacher/create-live-test') || p.startsWith('/teacher/live-test/')
+      ),
+      contentItem('bundle', (a) => a.reviewsPendingBundles, (p) => p.startsWith('/teacher/bundles')),
+    ],
+  },
+  {
+    key: 'library',
+    label: 'Library',
+    items: [
       {
         href: '/teacher/question-bank',
-        label: 'Question Bank',
+        label: 'Question bank',
         icon: Library,
         isActiveFor: (p) => p.startsWith('/teacher/question-bank'),
       },
-      { href: '/teacher/assets', label: 'Asset Library', icon: FolderOpen },
+      { href: '/teacher/assets', label: 'Asset library', icon: FolderOpen },
       { href: '/teacher/trash', label: 'Trash', icon: Trash2 },
     ],
   },
@@ -121,16 +152,31 @@ const NAV_GROUPS: TeacherNavGroup[] = [
     items: [
       { href: '/teacher/students', label: 'Enrollments', icon: Users },
       { href: '/teacher/students/performance', label: 'Performance', icon: Trophy },
-      { href: '/teacher/promo-codes', label: 'Promo Codes', icon: Tag },
       { href: '/teacher/reviews', label: 'Reviews', icon: Star },
-      { href: '/teacher/posts', label: 'Community Posts', icon: Megaphone },
+      { href: '/teacher/posts', label: 'Community posts', icon: Megaphone },
     ],
   },
   {
-    key: 'management',
-    label: 'Management',
+    key: 'grow',
+    label: 'Grow',
+    items: [
+      { href: '/teacher/creator-bonus', label: 'Creator Bonus', icon: Gift, badge: 'New' },
+      { href: '/teacher/promo-codes', label: 'Promo codes', icon: Tag },
+      { href: '/teacher/analytics', label: 'Analytics', icon: TrendingUp, ownerOnly: true },
+    ],
+  },
+  {
+    key: 'money',
+    label: 'Money',
     items: [
       { href: '/teacher/earnings', label: 'Earnings', icon: BarChart3, ownerOnly: true },
+      { href: '/teacher/subscription', label: 'Fees and billing', icon: CreditCard, ownerOnly: true },
+    ],
+  },
+  {
+    key: 'account',
+    label: 'Account',
+    items: [
       { href: '/teacher/edit-profile', label: 'Profile', icon: UserCog, ownerOnly: true },
       {
         href: '/teacher/organizations',
@@ -139,8 +185,12 @@ const NAV_GROUPS: TeacherNavGroup[] = [
         isActiveFor: (p) => p.startsWith('/teacher/organizations'),
       },
       { href: '/teacher/settings', label: 'Settings', icon: Settings, ownerOnly: true },
-      { href: '/teacher/subscription', label: 'Fees & billing', icon: CreditCard, ownerOnly: true },
-      { href: '/teacher/support', label: 'Contact support', icon: Headset },
+      {
+        href: '/teacher/support',
+        label: 'Contact support',
+        icon: Headset,
+        count: { read: (a) => a.supportUnread, noun: 'unread' },
+      },
     ],
   },
 ];
@@ -148,10 +198,12 @@ const NAV_GROUPS: TeacherNavGroup[] = [
 const NavItemLink = ({
   item,
   rail,
+  attention,
   onNavigate,
 }: {
   item: TeacherNavItem;
   rail: boolean;
+  attention: TeacherAttentionCounts | null;
   onNavigate: () => void;
 }) => {
   const location = useLocation();
@@ -159,6 +211,8 @@ const NavItemLink = ({
   const isActive = item.isActiveFor
     ? item.isActiveFor(location.pathname)
     : location.pathname === item.href;
+  const count = item.count && attention ? item.count.read(attention) : 0;
+  const countText = count > 0 && item.count ? `${count} ${item.count.noun}` : null;
 
   const link = (
     <NavLink
@@ -166,12 +220,23 @@ const NavItemLink = ({
       className={`${styles.navLink} ${isActive ? styles.active : ''}`}
       onClick={onNavigate}
       aria-current={isActive ? 'page' : undefined}
-      aria-label={rail ? item.label : undefined}
-      data-badge={item.badge ? 'true' : undefined}
+      aria-label={rail ? [item.label, countText].filter(Boolean).join(', ') : undefined}
+      data-badge={item.badge || countText ? 'true' : undefined}
     >
-      <Icon size={18} className={styles.navIcon} aria-hidden="true" />
+      {item.kind ? (
+        <TeacherKindTile kind={item.kind} size="sm" className={styles.navTile} />
+      ) : (
+        Icon && <Icon size={18} className={styles.navIcon} aria-hidden="true" />
+      )}
       <span className={styles.navLabel}>{item.label}</span>
-      {item.badge && <span className={styles.navBadge}>{item.badge}</span>}
+      {countText ? (
+        <span className={styles.navCount} title={countText}>
+          <span aria-hidden="true">{count}</span>
+          <span className={styles.visuallyHidden}>{countText}</span>
+        </span>
+      ) : (
+        item.badge && <span className={styles.navBadge}>{item.badge}</span>
+      )}
     </NavLink>
   );
 
@@ -182,7 +247,7 @@ const NavItemLink = ({
       <TooltipTrigger asChild>{link}</TooltipTrigger>
       <TooltipContent side="right" className={styles.railTooltip}>
         {item.label}
-        {item.badge && <span className={styles.railTooltipBadge}>{item.badge}</span>}
+        {(countText || item.badge) && <span className={styles.railTooltipBadge}>{countText ?? item.badge}</span>}
       </TooltipContent>
     </Tooltip>
   );
@@ -211,9 +276,14 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
   const location = useLocation();
   const navigate = useNavigate();
   const isDarkMode = useDarkModeObserver();
+  const { openChooser } = useTeacherCreateChooser();
 
   const user = authState.type === 'authenticated' ? authState.user : null;
   const isManager = user?.role === 'teacher' && user.teacherRole === 'manager';
+  // The Overview's own cached request; with the app-wide no-refetch-on-mount
+  // default this is one fetch per session, shared with the dashboard.
+  const { data: overview } = useTeacherDashboardOverview('30d', user?.role === 'teacher');
+  const attention = overview?.attention ?? null;
 
   const groups = useMemo(
     () =>
@@ -262,6 +332,20 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
 
   const handleNavigate = () => onMobileClose?.();
 
+  const handleCreate = () => {
+    onMobileClose?.();
+    openChooser();
+  };
+
+  // One button in every mode: the rail hides only its label, so the mobile
+  // drawer (never a rail) shows the full button even if the rail is remembered.
+  const createButton = (
+    <button type="button" className={styles.createButton} onClick={handleCreate}>
+      <Plus size={18} aria-hidden="true" />
+      <span className={styles.createLabel}>Create</span>
+    </button>
+  );
+
   const handleLogout = async () => {
     await logout();
     onMobileClose?.();
@@ -290,6 +374,17 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
         </Button>
       </div>
 
+      <div className={styles.createRow}>
+        {rail ? (
+          <Tooltip>
+            <TooltipTrigger asChild>{createButton}</TooltipTrigger>
+            <TooltipContent side="right">Create</TooltipContent>
+          </Tooltip>
+        ) : (
+          createButton
+        )}
+      </div>
+
       <nav className={styles.nav} aria-label="Teacher sections">
         {groups.map((group, index) => {
           const isExpanded = group.alwaysOpen || !!expandedGroups[group.key];
@@ -299,7 +394,7 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
               <div key={group.key} className={styles.navGroup}>
                 {index > 0 && <div className={styles.railDivider} aria-hidden="true" />}
                 {group.items.map((item) => (
-                  <NavItemLink key={item.href} item={item} rail onNavigate={handleNavigate} />
+                  <NavItemLink key={item.href} item={item} rail attention={attention} onNavigate={handleNavigate} />
                 ))}
               </div>
             );
@@ -307,7 +402,8 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
 
           return (
             <div key={group.key} className={styles.navGroup}>
-              {!group.alwaysOpen && (
+              {group.label && group.alwaysOpen && <div className={styles.groupHeading}>{group.label}</div>}
+              {group.label && !group.alwaysOpen && (
                 <button
                   type="button"
                   className={styles.groupHeader}
@@ -326,7 +422,13 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
               {isExpanded && (
                 <div className={styles.groupItems}>
                   {group.items.map((item) => (
-                    <NavItemLink key={item.href} item={item} rail={false} onNavigate={handleNavigate} />
+                    <NavItemLink
+                      key={item.href}
+                      item={item}
+                      rail={false}
+                      attention={attention}
+                      onNavigate={handleNavigate}
+                    />
                   ))}
                 </div>
               )}

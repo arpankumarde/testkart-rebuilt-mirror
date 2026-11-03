@@ -134,6 +134,8 @@ export async function fetchShopProductDetailsServer(slug: string): Promise<Outpu
       "reviewerName",
       "rating",
       "reviewText",
+      "teacherReply",
+      "teacherRepliedAt",
       "createdAt",
       "userId",
     ])

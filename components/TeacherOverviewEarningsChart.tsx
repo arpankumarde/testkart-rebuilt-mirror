@@ -89,14 +89,14 @@ export const TeacherOverviewEarningsChart = ({ daily, days, isLoading, className
           <div className={styles.chartFill}>
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={data} margin={{ top: 8, right: 4, left: 0, bottom: 0 }} barCategoryGap="32%">
-                <CartesianGrid vertical={false} stroke="var(--border)" />
+                <CartesianGrid vertical={false} stroke="var(--tc-line)" />
                 <XAxis
                   dataKey="label"
                   tickLine={false}
                   axisLine={false}
                   interval={days <= 7 ? 0 : "preserveStartEnd"}
                   minTickGap={18}
-                  tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                  tick={{ fontSize: 11, fill: "var(--tc-muted)" }}
                 />
                 <YAxis
                   yAxisId="left"
@@ -104,7 +104,7 @@ export const TeacherOverviewEarningsChart = ({ daily, days, isLoading, className
                   tickLine={false}
                   axisLine={false}
                   width={52}
-                  tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                  tick={{ fontSize: 11, fill: "var(--tc-muted)" }}
                 />
                 <YAxis
                   yAxisId="right"
@@ -113,18 +113,18 @@ export const TeacherOverviewEarningsChart = ({ daily, days, isLoading, className
                   tickLine={false}
                   axisLine={false}
                   width={30}
-                  tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                  tick={{ fontSize: 11, fill: "var(--tc-muted)" }}
                 />
-                <Tooltip cursor={{ fill: "var(--muted)" }} content={<ChartTip />} />
-                <Bar yAxisId="left" dataKey="earnings" fill="var(--chart-color-1)" radius={[3, 3, 0, 0]} maxBarSize={28} />
+                <Tooltip cursor={{ fill: "var(--tc-bg)" }} content={<ChartTip />} />
+                <Bar yAxisId="left" dataKey="earnings" fill="var(--tc-panel)" radius={[3, 3, 0, 0]} maxBarSize={28} />
                 <Line
                   yAxisId="right"
                   type="monotone"
                   dataKey="sales"
-                  stroke="var(--foreground)"
-                  strokeWidth={1.5}
+                  stroke="var(--fc-peach-edge)"
+                  strokeWidth={2}
                   dot={false}
-                  activeDot={{ r: 3, strokeWidth: 0, fill: "var(--foreground)" }}
+                  activeDot={{ r: 3.5, strokeWidth: 0, fill: "var(--fc-peach-edge)" }}
                 />
               </ComposedChart>
             </ResponsiveContainer>

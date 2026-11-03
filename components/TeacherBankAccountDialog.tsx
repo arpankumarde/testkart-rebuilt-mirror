@@ -16,7 +16,7 @@ interface TeacherBankAccountDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   bankDetails: Selectable<TeacherBankDetails> | null;
-  /* True once the available balance reaches ₹100. A verified account can be edited below that too. */
+  /* True once the available balance reaches ₹100; bank-details/add refuses any add or edit below that. */
   canManage: boolean;
   onEdit: () => void;
 }
@@ -50,7 +50,7 @@ export const TeacherBankAccountDialog: React.FC<TeacherBankAccountDialogProps> =
 }) => {
   const status = bankDetails ? STATUS[bankDetails.verificationStatus] : null;
   const isVerified = bankDetails?.verificationStatus === "verified";
-  const canEdit = canManage || isVerified;
+  const canEdit = canManage;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -113,6 +113,13 @@ export const TeacherBankAccountDialog: React.FC<TeacherBankAccountDialogProps> =
                   ? "You can change these details once your available balance reaches ₹100."
                   : "You can add a bank account once your available balance reaches ₹100."}
               </p>
+            </div>
+          )}
+
+          {canEdit && isVerified && (
+            <div className={`${styles.note} ${styles.noteInfo}`}>
+              <Info size={16} aria-hidden="true" />
+              <p>Changing these details pauses withdrawals until we verify them again.</p>
             </div>
           )}
         </ConsoleDialogBody>

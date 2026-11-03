@@ -11,12 +11,14 @@ export const schema = z
   // exam names in targetExams instead.
   examIds: z.array(z.number().int().positive()).min(1).max(MAX_EXAM_FOCUS).optional(),
   targetExams: z.array(z.string()).min(1).max(MAX_EXAM_FOCUS).optional(),
-  teachingExperienceLevel: z.string(),
-  currentOccupation: z.string(),
+  // Asked by the original 10-step quiz; the 4-step quiz leaves them out and
+  // older MCP callers may still send them.
+  teachingExperienceLevel: z.string().optional(),
+  currentOccupation: z.string().optional(),
   contentTypes: z.array(z.string()).min(1),
   languages: z.array(z.string()).min(1),
-  goals: z.string(),
-  discoverySource: z.string(),
+  goals: z.string().optional(),
+  discoverySource: z.string().optional(),
   
   academyName: z.string().optional(),
   schoolCollegeName: z.string().optional(),

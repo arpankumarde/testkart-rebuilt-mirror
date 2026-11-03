@@ -90,6 +90,8 @@ export async function fetchCourseDetailsServer(slug: string): Promise<OutputType
       "reviews.id",
       "reviews.rating",
       "reviews.reviewText",
+      "reviews.teacherReply",
+      "reviews.teacherRepliedAt",
       "reviews.createdAt",
       "reviews.userId",
       "users.displayName as reviewerName",

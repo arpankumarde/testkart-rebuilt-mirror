@@ -4,6 +4,7 @@ import { OutputType } from "./list_GET.schema";
 import superjson from "superjson";
 import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
 import { sql } from "kysely";
+import { getSponsorshipAccess } from "../../../helpers/teacherPlanAccess";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -53,7 +54,13 @@ export async function handle(request: Request): Promise<Response> {
       .orderBy("teacherSponsoredEnrollments.enrolledAt", "desc")
       .execute();
 
+    const access = await getSponsorshipAccess(effectiveTeacherId);
+
     const output: OutputType = {
+      sponsorship: {
+        allowed: user.role === "admin" || access.allowed,
+        planBaseName: access.planBaseName,
+      },
       sponsoredEnrollments: enrollments.map((e) => ({
         id: e.id,
         studentName: e.studentName,

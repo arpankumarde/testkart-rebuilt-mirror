@@ -1,224 +1,103 @@
-/* No padding of its own — TeacherDashboardLayout's .pageBody owns the gutter.
-   The old rule added --spacing-8 on top of it. */
+/* No padding of its own - TeacherDashboardLayout's .pageBody owns the gutter.
+   70rem is exactly three 360px cards and their gaps, so the header and
+   toolbar share the grid's edges. Headings and selected text take the deep
+   forest green in light mode; dark mode keeps the console's light ink. */
 .page {
+  --tc-ink: var(--fc-panel);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-6);
+  gap: 1.25rem;
   width: 100%;
-  max-width: 1440px;
+  max-width: 70rem;
   margin: 0 auto;
   box-sizing: border-box;
 }
 
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--spacing-3);
+:global(.dark) .page {
+  --tc-ink: var(--sp-ink);
 }
 
-.title {
-  margin: 0;
-  font-family: var(--font-family-heading);
-  font-size: 1.5rem;
-  font-weight: 800;
-  letter-spacing: -0.015em;
-  line-height: 1.2;
-  color: var(--foreground);
-}
-
-/*
- * One band instead of three. The page used to stack a header, a search/sort
- * row and a tab row before any content appeared.
- */
-.toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--spacing-3) var(--spacing-4);
-  padding: var(--spacing-2) var(--spacing-3);
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
-}
-
-.tabs {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  min-width: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.tabs::-webkit-scrollbar {
-  display: none;
-}
-
-.tab {
+.headerIcon {
   display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-2);
   flex-shrink: 0;
-  height: 2rem;
-  padding: 0 var(--spacing-3);
-  border: none;
-  border-radius: var(--radius);
-  background: none;
-  color: var(--muted-foreground);
-  font-family: var(--font-family-base);
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color var(--animation-duration-fast) ease, color var(--animation-duration-fast) ease;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--fc-sage-line);
+  border-radius: 0.875rem;
+  background-color: var(--fc-sage-tint);
+  color: var(--fc-sage-ink);
 }
 
-.tab:hover {
-  background-color: var(--muted);
-  color: var(--foreground);
-}
-
-.tab:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus);
-}
-
-/* Coral as a block, matching the sidebar's active row. */
-.tabActive {
-  background-color: var(--tk-brand-tint);
-  color: var(--tk-brand-text);
-}
-
-.tabCount {
+/* The console CTA shape (block with a ledge) in soft peach rather than the
+   full coral, the same as on /teacher/courses. */
+.newButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 1.25rem;
-  height: 1.125rem;
-  padding: 0 0.375rem;
-  border-radius: var(--radius-full);
-  background-color: var(--muted);
-  color: var(--muted-foreground);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-
-.tabActive .tabCount {
-  background-color: var(--tk-brand-deep);
-  color: #fff;
-}
-
-.filters {
-  display: flex;
-  align-items: center;
   gap: var(--spacing-2);
-  flex: 1;
-  min-width: 0;
-  justify-content: flex-end;
+  height: 2.75rem;
+  margin-bottom: 3px;
+  padding: 0 1.125rem;
+  background-color: var(--fc-peach-tint);
+  border: 1px solid var(--fc-peach-edge);
+  border-radius: 0.875rem;
+  box-shadow: 0 3px 0 var(--fc-peach-edge);
+  color: var(--fc-peach-ink);
+  font-family: var(--font-family-base);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    transform var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease,
+    background-color var(--animation-duration-fast) ease;
 }
 
-.searchWrapper {
-  position: relative;
-  flex: 1;
-  min-width: 0;
-  max-width: 20rem;
+.newButton:hover {
+  transform: translateY(-1px);
+  background-color: var(--fc-peach-hover);
+  box-shadow: 0 4px 0 var(--fc-peach-edge);
 }
 
-.searchIcon {
-  position: absolute;
-  left: var(--spacing-3);
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--muted-foreground);
-  pointer-events: none;
+.newButton:active {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 var(--fc-peach-edge);
 }
 
-.searchInput {
-  width: 100%;
-  padding-left: var(--spacing-8);
-}
-
-.sort {
-  flex-shrink: 0;
-  width: auto;
-  min-width: 10.5rem;
+.newButton:focus-visible {
+  outline: 2px solid var(--tc-ink);
+  outline-offset: 3px;
 }
 
 .content {
-  min-height: 20rem;
+  container-type: inline-size;
+  min-height: 16rem;
 }
 
+/* Cards are never wider than 360px. Three columns at most; container queries
+   so the open sidebar counts: two below 52rem of list width, one below 30rem. */
 .grid {
+  --grid-gap: 1.25rem;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(17.5rem, 1fr));
-  gap: var(--spacing-4);
+  grid-template-columns: repeat(3, minmax(0, 22.5rem));
+  justify-content: start;
+  gap: var(--grid-gap);
 }
 
-.empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-3);
-  text-align: center;
-  padding: var(--spacing-16) var(--spacing-4);
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-}
-
-/* Replaces an <img> pointing at /assets/illustrations/create_test.svg, which
-   returns 403 — every teacher with no tests saw a broken image. */
-.emptyIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 3.25rem;
-  height: 3.25rem;
-  border-radius: var(--radius-full);
-  background-color: var(--tk-brand-tint);
-  color: var(--tk-brand-text);
-}
-
-.emptyTitle {
-  margin: 0;
-  font-family: var(--font-family-heading);
-  font-size: 1.125rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--foreground);
-  max-width: 34rem;
-}
-
-.emptyText {
-  margin: 0;
-  font-size: 0.875rem;
-  line-height: 1.5;
-  color: var(--muted-foreground);
-  max-width: 34rem;
-}
-
-/* Stacked, the band must not wrap: a wrapping column flexbox sizes each line
-   to its content, so the tab row grew past the band (and the page) instead of
-   scrolling inside it. Same rule as ConsoleListToolbar. */
-@media (max-width: 900px) {
-  .toolbar {
-    align-items: stretch;
-    flex-direction: column;
-    flex-wrap: nowrap;
+@container (max-width: 52rem) {
+  .grid {
+    --grid-gap: var(--spacing-4);
+    grid-template-columns: repeat(2, minmax(0, 22.5rem));
   }
+}
 
-  .filters {
-    justify-content: stretch;
-  }
-
-  .searchWrapper {
-    max-width: none;
+@container (max-width: 30rem) {
+  .grid {
+    --grid-gap: 0.875rem;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -227,46 +106,18 @@
     gap: var(--spacing-4);
   }
 
-  .header {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .toolbar {
-    gap: var(--spacing-2);
-  }
-
-  .filters {
-    flex-wrap: wrap;
-  }
-
-  .searchWrapper {
-    flex: 1 1 100%;
-  }
-
-  .sort {
-    flex: 1;
-    min-width: 8rem;
-  }
-
-  .tab {
-    gap: 0.375rem;
-    height: 2.25rem;
-    padding: 0 0.625rem;
-    font-size: 0.8125rem;
-  }
-
-  .grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .empty {
-    padding: var(--spacing-12) var(--spacing-4);
+  .newButton {
+    width: 100%;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tab {
+  .newButton {
     transition: none;
+  }
+
+  .newButton:hover,
+  .newButton:active {
+    transform: none;
   }
 }

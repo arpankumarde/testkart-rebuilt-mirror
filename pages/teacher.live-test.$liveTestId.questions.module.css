@@ -79,9 +79,9 @@
 }
 
 .publishWarning {
-  background-color: color-mix(in srgb, var(--warning) 15%, transparent);
-  border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent);
-  color: var(--warning-text);
+  background-color: var(--fc-butter-tint);
+  border: 1px solid var(--fc-butter-line);
+  color: var(--fc-butter-ink);
 }
 
 /*
@@ -90,9 +90,9 @@
  * tint is the background; the type has to be the themed --success-text.
  */
 .publishSuccess {
-  background-color: color-mix(in srgb, var(--success) 15%, transparent);
-  border: 1px solid color-mix(in srgb, var(--success) 30%, transparent);
-  color: var(--success-text);
+  background-color: var(--fc-sage-tint);
+  border: 1px solid var(--fc-sage-line);
+  color: var(--fc-sage-ink);
 }
 
 .publishConfirmWarning {
@@ -101,8 +101,8 @@
   gap: var(--spacing-3);
   margin-top: var(--spacing-4);
   padding: var(--spacing-4);
-  background-color: color-mix(in srgb, var(--warning) 15%, transparent);
-  border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent);
+  background-color: var(--fc-butter-tint);
+  border: 1px solid var(--fc-butter-line);
   border-radius: var(--radius);
   color: var(--warning-text);
   text-align: left;

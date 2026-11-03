@@ -15,6 +15,7 @@ const JSON_HEADERS = { "Content-Type": "application/json" };
 
 export type ToolDefinition = {
   name: string;
+  title?: string;
   description: string;
   inputSchema: Record<string, unknown>;
   annotations?: Record<string, unknown>;

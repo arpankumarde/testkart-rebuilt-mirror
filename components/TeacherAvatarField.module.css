@@ -146,7 +146,7 @@
 
 .remove:hover:not(:disabled) {
   color: var(--error-text);
-  background-color: color-mix(in srgb, var(--error) 12%, transparent);
+  background-color: var(--fc-peach-tint);
 }
 
 .error {

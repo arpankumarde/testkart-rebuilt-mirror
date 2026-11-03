@@ -162,6 +162,21 @@ export interface AdminLoginFailures {
   ipAddress: string | null;
 }
 
+export interface AdminLoginLinks {
+  createdAt: Generated<Timestamp>;
+  createdBy: string;
+  expiresAt: Timestamp;
+  id: Generated<number>;
+  lastUsedAt: Timestamp | null;
+  note: string | null;
+  revokedAt: Timestamp | null;
+  revokedBy: string | null;
+  singleUse: Generated<boolean>;
+  tokenHash: string;
+  useCount: Generated<number>;
+  userId: number;
+}
+
 export interface AdminPasswordResets {
   adminId: number;
   createdAt: Generated<Timestamp>;
@@ -1678,6 +1693,8 @@ export interface Reviews {
   rating: number;
   reviewerName: string;
   reviewText: string | null;
+  teacherRepliedAt: Timestamp | null;
+  teacherReply: string | null;
   testItemId: number | null;
   updatedAt: Generated<Timestamp | null>;
   userId: number;
@@ -2433,6 +2450,7 @@ export interface WellKnownFiles {
 
 export interface DB {
   adminLoginFailures: AdminLoginFailures;
+  adminLoginLinks: AdminLoginLinks;
   adminPasswordResets: AdminPasswordResets;
   admins: Admins;
   aiGenerationLogs: AiGenerationLogs;

@@ -40,7 +40,7 @@ const AccessDenied: React.FC<{ message: string; role: User["role"] }> = ({ messa
 // Do not use this in pageLayout
 const MakeProtectedRoute: (
   roles: User["role"][],
-  customCheck?: ((user: User) => string | null) | null,
+  customCheck?: ((user: User, pathname: string) => string | null) | null,
   options?: { checkOnboarding?: boolean }
 ) => React.FC<{
   children: React.ReactNode;
@@ -77,7 +77,7 @@ const MakeProtectedRoute: (
     }
 
     if (customCheck) {
-      const errorMessage = customCheck(authState.user);
+      const errorMessage = customCheck(authState.user, location.pathname);
       if (errorMessage) {
         return <AccessDenied role={authState.user.role} message={errorMessage} />;
       }
@@ -97,15 +97,32 @@ const MakeProtectedRoute: (
     return <>{children}</>;
   };
 
+// Sections a team manager may not open; they belong to the academy owner.
+const TEACHER_OWNER_ONLY_PATHS = [
+  "/teacher/analytics",
+  "/teacher/earnings",
+  "/teacher/subscription",
+  "/teacher/edit-profile",
+  "/teacher/settings",
+  "/teacher/support",
+];
+
+const isTeacherOwnerOnlyPath = (pathname: string) =>
+  TEACHER_OWNER_ONLY_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+
 // Create protected routes here, then import them in pageLayout
 export const AdminRoute = MakeProtectedRoute(["admin"]);
-export const TeacherRoute = MakeProtectedRoute(["teacher", "admin"], null, { checkOnboarding: true });
+// Every teacher console page uses this one guard, owner-only sections included: React keeps
+// the console shell (and its sidebar) mounted between pages only while each pageLayout
+// starts with the same component, so a separate owner guard would rebuild it on every move.
+export const TeacherRoute = MakeProtectedRoute(
+  ["teacher", "admin"],
+  (user, pathname) =>
+    user.role === "teacher" && user.teacherRole === "manager" && isTeacherOwnerOnlyPath(pathname)
+      ? "This section is only accessible by account owners."
+      : null,
+  { checkOnboarding: true }
+);
 export const TeacherRouteNoOnboardingCheck = MakeProtectedRoute(["teacher", "admin"]);
-export const TeacherOwnerRoute = MakeProtectedRoute(["teacher", "admin"], (user) => {
-  if (user.role === "teacher" && user.teacherRole === "manager") {
-    return "This section is only accessible by account owners.";
-  }
-  return null;
-}, { checkOnboarding: true });
 export const StudentRoute = MakeProtectedRoute(["student", "admin"]);
 export const AuthenticatedRoute = MakeProtectedRoute(["teacher", "student", "admin"]);

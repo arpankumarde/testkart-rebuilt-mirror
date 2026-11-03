@@ -48,8 +48,7 @@
 .eyebrow {
   font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: 0;
   color: var(--tk-brand-text);
 }
 
@@ -237,8 +236,7 @@
   border-bottom: 1px solid var(--border);
   font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: 0;
   color: var(--muted-foreground);
   white-space: nowrap;
 }

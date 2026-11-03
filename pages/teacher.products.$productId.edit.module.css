@@ -11,9 +11,10 @@
 
 .error {
   padding: var(--spacing-3) var(--spacing-4);
-  border: 1px solid color-mix(in srgb, var(--error) 30%, transparent);
+  border: 1px solid var(--error-text);
+  border-left-width: 4px;
   border-radius: var(--radius-md);
-  background-color: color-mix(in srgb, var(--error) 10%, transparent);
+  background-color: var(--sp-card);
   color: var(--error-text);
   font-size: 0.875rem;
 }

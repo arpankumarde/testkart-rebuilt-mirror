@@ -6,6 +6,13 @@ import { ZodError } from "zod";
 import { Selectable } from "kysely";
 import { PromoCodes } from "../../../helpers/schema";
 
+/** A refusal the teacher can act on; sent with its own message and status. */
+class PromoCodeRefusal extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message);
+  }
+}
+
 async function verifyItemOwnership(
   teacherId: number,
   appliesTo: "courses" | "tests" | "live_tests" | "bundles" | "digital_products",
@@ -59,7 +66,7 @@ async function verifyItemOwnership(
   }
 
   if (ownedItems.length !== itemIds.length) {
-    throw new Error("You do not own all the specified items.");
+    throw new PromoCodeRefusal("Some of the items you picked are not yours. Pick them again and save.", 403);
   }
 }
 
@@ -73,6 +80,11 @@ export async function handle(request: Request): Promise<Response> {
     const json = superjson.parse(await request.text());
     const data = schema.parse(json);
 
+    // Subscription codes discount Testkart's own plans and are made by admins only.
+    if (data.appliesTo === "subscription") {
+      throw new PromoCodeRefusal("Promo codes for Testkart subscriptions are set by Testkart. Pick what of yours it applies to.", 400);
+    }
+
     const existingCode = await db
       .selectFrom("promoCodes")
       .select("id")
@@ -80,7 +92,7 @@ export async function handle(request: Request): Promise<Response> {
       .executeTakeFirst();
 
     if (existingCode) {
-      throw new Error("A promo code with this code already exists.");
+      throw new PromoCodeRefusal(`The code ${data.code} is already taken on Testkart. Try another, for example by adding your name or a number.`, 409);
     }
 
     if (data.appliesTo !== "all" && data.targetItemIds && data.targetItemIds.length > 0) {
@@ -103,7 +115,14 @@ export async function handle(request: Request): Promise<Response> {
   } catch (error) {
     console.error("Failed to create promo code:", error);
     if (error instanceof ZodError) {
-      return new Response(superjson.stringify({ error: "Invalid input", details: error.issues }), { status: 400 });
+      const first = error.issues[0];
+      return new Response(
+        superjson.stringify({ error: first ? first.message : "Check the form and try again.", details: error.issues }),
+        { status: 400 }
+      );
+    }
+    if (error instanceof PromoCodeRefusal) {
+      return new Response(superjson.stringify({ error: error.message }), { status: error.status });
     }
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
     return new Response(superjson.stringify({ error: "Failed to create promo code", details: errorMessage }), { status: 500 });

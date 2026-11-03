@@ -28,27 +28,27 @@ import { useTeacherCoursesQuery } from "../helpers/useTeacherCoursesQuery";
 import { useTeacherProductsQuery } from "../helpers/useTeacherProductsQuery";
 import { useTeacherBundlesQuery } from "../helpers/useTeacherBundlesQuery";
 import { parseSponsorIdentifier, type SponsorAccountCandidate } from "../helpers/sponsorStudentAccount";
-import { CheckCircle2, XCircle, Info, ExternalLink, RefreshCw, Users } from "lucide-react";
+import { Link } from "react-router-dom";
+import { CheckCircle2, XCircle, Info, RefreshCw, Users, Lock } from "lucide-react";
+import type { SponsorshipAccessInfo } from "../endpoints/teacher/sponsor-student/list_GET.schema";
 import { toast } from "sonner";
-import {
-  SponsorPaymentMethodSelector,
-  PaymentMethod,
-} from "./SponsorPaymentMethodSelector";
 import { SponsorCostBreakdown } from "./SponsorCostBreakdown";
 import { SponsorSuccessView } from "./SponsorSuccessView";
-import { postPaymentPayuRedirect } from "../endpoints/payment/payu/redirect_POST.schema";
 import styles from "./SponsorStudentDialog.module.css";
 
 interface SponsorStudentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   mockTestId?: number; // Optional pre-selected test
+  /** Plan gate from the sponsored list; when not allowed the dialog shows the upgrade prompt. */
+  access?: SponsorshipAccessInfo;
 }
 
 export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
   open,
   onOpenChange,
   mockTestId: initialMockTestId,
+  access,
 }) => {
   const [contentType, setContentType] = useState<'test' | 'course' | 'product' | 'bundle'>('test');
   const [identifier, setIdentifier] = useState("");
@@ -73,10 +73,6 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
     temporaryPassword?: string;
     credentialsSent?: boolean;
   } | null>(null);
-
-  // Payment state
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("balance");
-  const [isRedirecting, setIsRedirecting] = useState(false);
 
   // Queries
   const { data: teacherTests, isLoading: isLoadingTests } = useTeacherTestsQuery();
@@ -159,21 +155,6 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
   // Mutation
   const { mutate: enrollStudent, isPending: isEnrolling } = useSponsorEnroll();
 
-  // Check for payment callback params on mount
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const status = params.get("sponsored");
-    if (status === "success") {
-      toast.success("Payment successful! Student has been enrolled.");
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, "", newUrl);
-    } else if (status === "failed") {
-      toast.error("Payment failed or was cancelled.");
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, "", newUrl);
-    }
-  }, []);
-
   // Reset state when dialog opens/closes
   useEffect(() => {
     if (open) {
@@ -187,8 +168,6 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
       setStudentPhone("");
       setSendCredentials(true);
       setEnrollmentSuccess(null);
-      setIsRedirecting(false);
-      setPaymentMethod("balance");
 
       if (initialMockTestId) {
         setContentType('test');
@@ -211,19 +190,6 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
     setEnrollmentSuccess(null);
   }, [identifier, selectedContentId, contentType]);
 
-  // Auto-select payment method based on balance
-  useEffect(() => {
-    if (checkData && !checkData.teacher.hasSufficientBalance) {
-      setPaymentMethod("online");
-    } else if (checkData && checkData.teacher.hasSufficientBalance) {
-      setPaymentMethod((prev) =>
-        prev === "online" && !checkData.teacher.hasSufficientBalance
-          ? "online"
-          : "balance"
-      );
-    }
-  }, [checkData]);
-
   const handleContentTypeChange = (newType: 'test' | 'course' | 'product' | 'bundle') => {
     setContentType(newType);
     setSelectedContentId("");
@@ -244,47 +210,20 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
     setCheckRequestId((n) => n + 1);
   };
 
-  const handlePayURedirection = (payuData: {
-    payuUrl: string;
-    key: string;
-    txnid: string;
-    amount: string;
-    productinfo: string;
-    firstname: string;
-    email: string;
-    phone: string;
-    surl: string;
-    furl: string;
-    hash: string;
-  }) => {
-    try {
-      postPaymentPayuRedirect(payuData);
-    } catch (error) {
-      console.error("Payment redirection failed:", error);
-      toast.error("Failed to redirect to payment gateway");
-      setIsRedirecting(false);
-    }
-  };
-
-  const isBalanceSufficient = checkData?.teacher.hasSufficientBalance ?? false;
   const accountStatus = checkData?.user.status;
   const isNewUser = accountStatus === "not_found";
   const checkErrors = checkData?.errors ?? [];
   const isNameValid =
     !isNewUser || (isNewUser && studentName.trim().length > 0);
-  const isFreeEnrollment = checkData?.isFreeEnrollment ?? false;
-  // Force balance payment for free enrollments
-  const effectivePaymentMethod: PaymentMethod = isFreeEnrollment ? "balance" : paymentMethod;
 
+  // No payment step: the platform fee is waived, so a valid check is all enrolling needs.
   const canEnroll =
     shouldCheck &&
     !isCheckError &&
     checkData?.isValid &&
     (accountStatus === "student" || accountStatus === "not_found") &&
-    (isFreeEnrollment || effectivePaymentMethod === "online" || isBalanceSufficient) &&
     !isChecking &&
     !isEnrolling &&
-    !isRedirecting &&
     isNameValid;
 
   const handleEnroll = () => {
@@ -295,7 +234,6 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
       identifier,
       contentId: contentIdToUse,
       contentType,
-      paymentMethod: effectivePaymentMethod,
       ...(checkData.user.status === "student" && checkData.user.id ? { studentUserId: checkData.user.id } : {}),
       ...(isNewUserLocal && {
         studentName,
@@ -307,7 +245,7 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
 
     enrollStudent(payload, {
       onSuccess: (data) => {
-        if (!data.requiresPayment && data.newUserCreated) {
+        if (data.newUserCreated) {
           setEnrollmentSuccess({
             phone: isEmailIdentifier ? studentPhone : (checkData.user.phoneNumber ?? identifier),
             email: isEmailIdentifier ? identifier : studentEmail,
@@ -315,9 +253,6 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
             credentialsSent: data.credentialsSent,
           });
           toast.success("Student account created and enrolled!");
-        } else if (data.requiresPayment && data.paymentData) {
-          setIsRedirecting(true);
-          handlePayURedirection(data.paymentData);
         } else {
           const contentTitle = currentOptions.find(
             (c) => c.id === contentIdToUse
@@ -329,7 +264,6 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
       },
       onError: (error) => {
         toast.error(error.message || "Failed to enroll student");
-        setIsRedirecting(false);
       },
     });
   };
@@ -357,6 +291,47 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
     );
   }
 
+  if (access && !access.allowed) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className={styles.dialogContent}>
+          <DialogHeader>
+            <DialogTitle>Sponsor Student Enrollment</DialogTitle>
+            <DialogDescription>
+              Enroll a student in your paid content for free. There is no
+              platform fee on sponsored enrollments.
+            </DialogDescription>
+          </DialogHeader>
+          <div className={styles.upgradePanel}>
+            <span className={styles.upgradeIcon} aria-hidden="true">
+              <Lock size={18} />
+            </span>
+            <div className={styles.upgradeBody}>
+              <p className={styles.upgradeTitle}>Available on the Starter plan and above</p>
+              <p className={styles.upgradeText}>
+                {isManager
+                  ? "Sponsoring and directly enrolling students is not included in the Free plan. Ask the account owner to upgrade to Starter, Individual or Business."
+                  : "Sponsoring and directly enrolling students is not included in the Free plan. Upgrade to Starter, Individual or Business to enroll students yourself."}
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => onOpenChange(false)}>
+              Close
+            </Button>
+            {!isManager && (
+              <Button asChild>
+                <Link to="/teacher/subscription" onClick={() => onOpenChange(false)}>
+                  See plans
+                </Link>
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   // Enrollment Form View
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -364,8 +339,8 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Sponsor Student Enrollment</DialogTitle>
           <DialogDescription>
-            Enroll a student in your content by paying the platform fee on
-            their behalf.
+            Enroll a student in your paid content for free. There is no
+            platform fee on sponsored enrollments.
           </DialogDescription>
         </DialogHeader>
 
@@ -414,7 +389,7 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
               <Select
                 value={selectedContentId}
                 onValueChange={setSelectedContentId}
-                disabled={isChecking || isEnrolling || isRedirecting}
+                disabled={isChecking || isEnrolling}
               >
                 <SelectTrigger>
                   <SelectValue placeholder={`Select a paid ${contentType}...`} />
@@ -450,7 +425,7 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
                 onChange={(e) => setIdentifier(e.target.value)}
                 onBlur={() => setIdentifierTouched(true)}
                 placeholder="Enter mobile number or email"
-                disabled={isChecking || isEnrolling || isRedirecting}
+                disabled={isChecking || isEnrolling}
                 className={styles.identifierInput}
                 aria-invalid={identifierHint ? true : undefined}
                 aria-describedby={identifierHint ? "sponsor-identifier-hint" : undefined}
@@ -463,8 +438,7 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
                   !isIdentifierValid ||
                   !selectedContentId ||
                   isChecking ||
-                  isEnrolling ||
-                  isRedirecting
+                  isEnrolling
                 }
                 className={styles.checkButton}
                 aria-busy={isChecking || undefined}
@@ -506,7 +480,7 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
                     aria-checked={selected}
                     className={`${styles.candidate} ${selected ? styles.candidateSelected : ""}`}
                     onClick={() => setSelectedStudentId(c.id)}
-                    disabled={isChecking || isEnrolling || isRedirecting}
+                    disabled={isChecking || isEnrolling}
                   >
                     <span className={styles.candidateName}>{c.name}</span>
                     <span className={styles.candidateMeta}>
@@ -570,7 +544,7 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
                           value={studentName}
                           onChange={(e) => setStudentName(e.target.value)}
                           placeholder="Enter student's full name"
-                          disabled={isEnrolling || isRedirecting}
+                          disabled={isEnrolling}
                         />
                       </div>
 
@@ -586,7 +560,7 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
                             value={studentPhone}
                             onChange={(e) => setStudentPhone(e.target.value)}
                             placeholder="10-digit mobile number"
-                            disabled={isEnrolling || isRedirecting}
+                            disabled={isEnrolling}
                             maxLength={10}
                           />
                         </div>
@@ -602,7 +576,7 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
                             value={studentEmail}
                             onChange={(e) => setStudentEmail(e.target.value)}
                             placeholder="student@example.com"
-                            disabled={isEnrolling || isRedirecting}
+                            disabled={isEnrolling}
                           />
                         </div>
                       )}
@@ -612,7 +586,7 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
                           id="send-credentials"
                           checked={sendCredentials}
                           onChange={(e) => setSendCredentials(e.target.checked)}
-                          disabled={isEnrolling || isRedirecting}
+                          disabled={isEnrolling}
                         />
                         <label
                           htmlFor="send-credentials"
@@ -624,28 +598,10 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
                     </div>
                   )}
 
-                  {/* Cost Breakdown */}
                   {checkData.isValid && (
                     <SponsorCostBreakdown
                       testPrice={checkData.cost.testPrice}
-                      commissionAmount={checkData.cost.commissionAmount}
                       discountPrice={checkData.cost.discountPrice}
-                      isFreeEnrollment={checkData.isFreeEnrollment}
-                    />
-                  )}
-
-                  {/* Payment Selection — hidden for free enrollments */}
-                  {checkData.isValid && !checkData.isFreeEnrollment && (
-                    <SponsorPaymentMethodSelector
-                      paymentMethod={paymentMethod}
-                      setPaymentMethod={setPaymentMethod}
-                      isBalanceSufficient={
-                        checkData.teacher.hasSufficientBalance
-                      }
-                      availableBalance={checkData.teacher.availableBalance}
-                      commissionAmount={checkData.cost.commissionAmount}
-                      disabled={isEnrolling || isRedirecting}
-                      showBalanceOption={!isManager}
                     />
                   )}
                 </>
@@ -658,7 +614,7 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
           <Button
             variant="secondary"
             onClick={() => onOpenChange(false)}
-            disabled={isEnrolling || isRedirecting}
+            disabled={isEnrolling}
           >
             Cancel
           </Button>
@@ -666,34 +622,17 @@ export const SponsorStudentDialog: React.FC<SponsorStudentDialogProps> = ({
             onClick={handleEnroll}
             disabled={!canEnroll}
             className={styles.enrollButton}
-            variant={effectivePaymentMethod === "online" ? "primary" : "secondary"}
+            variant="primary"
           >
-            {isEnrolling || isRedirecting ? (
+            {isEnrolling ? (
               <>
                 <Spinner size="sm" className={styles.buttonSpinner} />
-                {isRedirecting ? "Redirecting..." : "Processing..."}
+                Enrolling...
               </>
+            ) : isNewUser ? (
+              "Create & Enroll"
             ) : (
-              <>
-                {isFreeEnrollment ? (
-                  isNewUser ? "Create & Enroll" : "Enroll Student"
-                ) : effectivePaymentMethod === "online" ? (
-                  <>
-                    Pay Now{" "}
-                    <ExternalLink size={14} className={styles.btnIcon} />
-                  </>
-                ) : isNewUser ? (
-                  "Create & Sponsor"
-                ) : (
-                  "Sponsor Student"
-                )}
-                {checkData?.isValid && !isFreeEnrollment && (
-                  <span className={styles.buttonAmount}>
-                    {" "}
-                    - {formatCurrency(checkData.cost.commissionAmount)}
-                  </span>
-                )}
-              </>
+              "Enroll Student"
             )}
           </Button>
         </DialogFooter>

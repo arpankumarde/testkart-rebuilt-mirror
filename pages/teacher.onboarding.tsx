@@ -5,6 +5,7 @@ import { useAuth } from "../helpers/useAuth";
 import { Skeleton } from "../components/Skeleton";
 import { TeacherOnboardingQuiz } from "../components/TeacherOnboardingQuiz";
 import { TeamStatusBanner } from "../components/TeamStatusBanner";
+import { teacherConsoleClass } from "../components/TeacherConsoleTheme";
 import { BRAND_LOGO_LIGHT } from "../helpers/brandAssets";
 import styles from "./teacher.onboarding.module.css";
 
@@ -24,7 +25,7 @@ export default function TeacherOnboardingPage() {
 
   if (authState.type === "loading") {
     return (
-      <div className={styles.pageContainer}>
+      <div className={`${teacherConsoleClass} ${styles.pageContainer}`}>
         <div className={styles.content}>
           <Skeleton style={{ height: "3rem", marginBottom: "2rem" }} />
           <Skeleton style={{ height: "400px", borderRadius: "var(--radius-md)" }} />
@@ -36,14 +37,14 @@ export default function TeacherOnboardingPage() {
   return (
     <>
       <Helmet>
-        <title>Set Up Your Profile | Testkart</title>
+        <title>Set up your teacher account | Testkart</title>
         <meta
           name="description"
-          content="Complete your teacher profile setup on Testkart to start creating and selling mock tests."
+          content="A few quick questions to set up your Testkart teacher account."
         />
       </Helmet>
 
-      <div className={styles.pageContainer}>
+      <div className={`${teacherConsoleClass} ${styles.pageContainer}`}>
         <header className={styles.topBar}>
           <Link to="/" className={styles.logo}>
             <img
@@ -56,6 +57,8 @@ export default function TeacherOnboardingPage() {
 
         <div className={styles.content}>
           <TeamStatusBanner className={styles.teamInvites} />
+          <h1 className={styles.welcome}>Set up your teacher account</h1>
+          <p className={styles.welcomeText}>A few questions, about a minute. Your answers shape your dashboard and where students find you.</p>
           <TeacherOnboardingQuiz />
         </div>
       </div>

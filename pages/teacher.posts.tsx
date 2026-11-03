@@ -7,6 +7,7 @@ import { TeacherListEmpty } from "../components/TeacherListEmpty";
 import { Button } from "../components/Button";
 import { Textarea } from "../components/Textarea";
 import { Skeleton } from "../components/Skeleton";
+import { ConsoleConfirmDialog } from "../components/ConsoleConfirmDialog";
 import { uploadFileToR2, deleteR2File } from "../helpers/useR2Upload";
 import styles from "./teacher.posts.module.css";
 
@@ -27,6 +28,7 @@ const TeacherPostsPage: React.FC = () => {
   const { data, isFetching, isError, error } = useTeacherPostsQuery();
   const createMutation = useCreateTeacherPostMutation();
   const deleteMutation = useDeleteTeacherPostMutation();
+  const [postToDelete, setPostToDelete] = useState<number | null>(null);
 
   const [body, setBody] = useState("");
   const [image, setImage] = useState<{ url: string; fileId: string } | null>(null);
@@ -105,6 +107,8 @@ const TeacherPostsPage: React.FC = () => {
                 value={body}
                 onChange={(e) => setBody(e.target.value.slice(0, MAX_BODY_LENGTH))}
                 placeholder="Share an update with your followers..."
+                aria-label="New post"
+                aria-describedby="post-char-count"
                 rows={4}
                 className={styles.textarea}
               />
@@ -121,8 +125,9 @@ const TeacherPostsPage: React.FC = () => {
                       className={styles.hiddenInput}
                     />
                   </label>
-                  <span className={styles.charCount}>
+                  <span id="post-char-count" className={styles.charCount}>
                     {body.length}/{MAX_BODY_LENGTH}
+                    <span className={styles.srOnly}> characters used</span>
                   </span>
                 </div>
                 <Button
@@ -184,7 +189,7 @@ const TeacherPostsPage: React.FC = () => {
                         type="button"
                         variant="ghost"
                         size="icon-sm"
-                        onClick={() => deleteMutation.mutate(post.id)}
+                        onClick={() => setPostToDelete(post.id)}
                         disabled={deleteMutation.isPending}
                         aria-label="Delete post"
                         className={styles.deleteButton}
@@ -221,6 +226,20 @@ const TeacherPostsPage: React.FC = () => {
           </aside>
         </div>
       </div>
+      <ConsoleConfirmDialog
+        open={postToDelete !== null}
+        onOpenChange={(open) => !open && setPostToDelete(null)}
+        tone="destructive"
+        title="Delete this post?"
+        description="It disappears from your profile for everyone, along with its likes. This cannot be undone."
+        confirmLabel="Delete post"
+        pendingLabel="Deleting"
+        isPending={deleteMutation.isPending}
+        onConfirm={() => {
+          if (postToDelete === null) return;
+          deleteMutation.mutate(postToDelete, { onSettled: () => setPostToDelete(null) });
+        }}
+      />
     </>
   );
 };

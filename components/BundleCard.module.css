@@ -1,44 +1,54 @@
+.status::first-letter {
+  text-transform: uppercase;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
 /*
- * Matches the console's card language, as on TeacherTestCard: a --surface panel
- * on a hairline border with --radius-md and the flat --shadow. Hover moves the
- * border rather than lifting the card - a translate on every card jitters the
- * grid.
+ * The console card, as on TeacherTestCard: --tc-card on a hairline border, no
+ * shadow. Hover moves the border rather than lifting the card.
  */
 .card {
   display: flex;
   flex-direction: column;
   min-width: 0;
   height: 100%;
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
+  background-color: var(--tc-card, var(--surface));
+  border: 1px solid var(--tc-line, var(--border));
+  border-radius: var(--tc-radius-card, var(--radius-md));
   overflow: hidden;
   transition: border-color var(--animation-duration-fast) ease;
 }
 
 .card:hover {
-  border-color: color-mix(in srgb, var(--foreground) 22%, var(--border));
+  border-color: var(--tc-line-strong, var(--border));
 }
 
 .card:focus-within {
   border-color: var(--tk-brand-text);
 }
 
-/* Flat --muted, not a diagonal coral gradient - the thumbnail well matches the
-   other teacher cards. */
+/* A bundle without a cover shows its mint kind colour, not a grey well. */
 .thumbnailWrapper {
   position: relative;
   aspect-ratio: 16 / 9;
-  border-bottom: 1px solid var(--border);
-  background-color: var(--muted);
+  border-bottom: 1px solid var(--tc-line, var(--border));
+  background-color: var(--fc-mint-tint);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .bundleIcon {
-  color: var(--muted-foreground);
+  color: var(--fc-mint-ink);
 }
 
 .status {
@@ -46,28 +56,30 @@
   top: var(--spacing-2);
   left: var(--spacing-2);
   z-index: var(--z-content);
-  padding: 0.1875rem 0.4375rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.6875rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   line-height: 1;
 }
 
 .published {
-  background-color: var(--success);
-  color: var(--success-foreground);
+  background-color: var(--fc-sage-tint);
+  border-color: var(--fc-sage-line);
+  color: var(--fc-sage-ink);
 }
 
 .draft {
-  background-color: var(--foreground);
-  color: var(--background);
+  background-color: var(--sp-card);
+  border-color: var(--sp-line-strong);
+  color: var(--sp-ink);
 }
 
 .inReview {
-  background-color: var(--info);
-  color: var(--info-foreground);
+  background-color: var(--fc-blue-tint);
+  border-color: var(--fc-blue-line);
+  color: var(--fc-blue-ink);
 }
 
 /* --error-text, not --error: white on the raw red is under 4:1. */
@@ -83,9 +95,9 @@
 }
 
 .discountBadge {
-  background-color: var(--primary);
-  color: var(--primary-foreground);
-  border: 1px solid var(--primary);
+  background-color: var(--fc-mint-tint);
+  color: var(--fc-mint-ink);
+  border: 1px solid var(--sp-mint-line);
   font-weight: 700;
 }
 
@@ -156,7 +168,7 @@
 
 .footer {
   padding: var(--spacing-3) var(--spacing-4);
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--tc-line, var(--border));
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -175,17 +187,13 @@
   flex-shrink: 0;
 }
 
-/*
- * The deep brand orange, not --primary. The coral --primary was being used as
- * text on this white card at about 2.1:1; --tk-brand-text is the themed token
- * meant for orange type on a surface.
- */
+/* Money in the console's teal, the same as on the Overview and Earnings. */
 .price {
   font-family: var(--font-family-heading);
   font-size: 1.0625rem;
   font-weight: 800;
   letter-spacing: -0.01em;
-  color: var(--tk-brand-text);
+  color: var(--tc-money, var(--tk-brand-text));
   font-variant-numeric: tabular-nums;
 }
 

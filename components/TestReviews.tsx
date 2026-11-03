@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Star, MessageSquare } from 'lucide-react';
 import { useReviewsQuery } from '../helpers/useReviewsQuery';
 import { Skeleton } from './Skeleton';
+import { ReviewTeacherReply } from './ReviewTeacherReply';
 import styles from './TestReviews.module.css';
 
 const formatTimeAgo = (date: Date): string => {
@@ -123,6 +124,7 @@ export const TestReviews: React.FC<TestReviewsProps> = ({ mockTestId, rating, re
           {review.testItemTitle ? `Test: ${review.testItemTitle}` : 'Overall Package Review'}
         </span>
         {review.reviewText && <p className={styles.reviewBody}>{review.reviewText}</p>}
+        <ReviewTeacherReply reply={review.teacherReply} repliedAt={review.teacherRepliedAt} />
       </div>
     ));
   };

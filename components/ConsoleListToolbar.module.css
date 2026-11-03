@@ -5,10 +5,10 @@
   flex-wrap: wrap;
   gap: var(--spacing-3) var(--spacing-4);
   padding: var(--spacing-2) var(--spacing-3);
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
+  background-color: var(--tc-card, var(--surface));
+  border: 1px solid var(--tc-line, var(--border));
+  border-radius: var(--tc-radius-card, var(--radius-md));
+  box-shadow: var(--tc-elevation, var(--shadow));
 }
 
 .tabs {
@@ -34,7 +34,7 @@
   border: none;
   border-radius: var(--radius);
   background: none;
-  color: var(--muted-foreground);
+  color: var(--tc-muted, var(--muted-foreground));
   font-family: var(--font-family-base);
   font-size: 0.875rem;
   font-weight: 600;
@@ -43,8 +43,8 @@
 }
 
 .tab:hover {
-  background-color: var(--muted);
-  color: var(--foreground);
+  background-color: var(--tc-bg, var(--muted));
+  color: var(--tc-ink, var(--foreground));
 }
 
 .tab:focus-visible {
@@ -53,10 +53,15 @@
   outline-offset: -2px;
 }
 
-/* Coral as a block, matching the sidebar's active row. */
+/* A solid block: pine in the teacher console, coral tint elsewhere. */
 .tabActive {
-  background-color: var(--tk-brand-tint);
-  color: var(--tk-brand-text);
+  background-color: var(--tc-tab-active-bg, var(--tk-brand-tint));
+  color: var(--tc-tab-active-ink, var(--tk-brand-text));
+}
+
+.tabActive:hover {
+  background-color: var(--tc-tab-active-bg, var(--tk-brand-tint));
+  color: var(--tc-tab-active-ink, var(--tk-brand-text));
 }
 
 .tabCount {
@@ -77,8 +82,8 @@
 }
 
 .tabActive .tabCount {
-  background-color: var(--tk-brand-deep);
-  color: #fff;
+  background-color: var(--tc-tab-count-bg, var(--tk-brand-deep));
+  color: var(--tc-tab-count-ink, #fff);
 }
 
 .filters {
@@ -207,7 +212,7 @@
 .aside {
   min-width: 0;
   padding: var(--spacing-3);
-  border-left: 1px solid var(--border);
+  border-left: 1px solid var(--tc-line, var(--border));
 }
 
 @container (max-width: 81rem) {
@@ -217,7 +222,7 @@
 
   .aside {
     border-left: none;
-    border-top: 1px solid var(--border);
+    border-top: 1px solid var(--tc-line, var(--border));
   }
 }
 

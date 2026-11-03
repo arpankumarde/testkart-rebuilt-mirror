@@ -175,8 +175,8 @@
 }
 
 .summaryCardWarning {
-  background-color: color-mix(in srgb, var(--error) 12%, transparent);
-  color: var(--error-text);
+  background-color: var(--fc-peach-tint);
+  color: var(--fc-peach-ink);
 }
 
 .required {

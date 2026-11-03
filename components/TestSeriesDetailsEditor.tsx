@@ -18,10 +18,9 @@ import {
 import { Input } from "./Input";
 import { Textarea } from "./Textarea";
 import { Button } from "./Button";
-import { Badge } from "./Badge";
 import { Skeleton } from "./Skeleton";
 import { ThumbnailUploader } from "./ThumbnailUploader";
-import { TeacherFormHeader } from "./TeacherFormHeader";
+import { TestSeriesSteps } from "./TestSeriesSteps";
 import { TestSeriesCardPreview } from "./TestSeriesCardPreview";
 import { AIRewriteButton } from "./AIRewriteButton";
 import { AIListGenerateButton } from "./AIListGenerateButton";
@@ -142,7 +141,7 @@ export const TestSeriesDetailsEditor = ({ testId }: { testId: number }) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const adminEdit = useAdminContentEdit();
-  const rootClass = adminEdit ? styles.embedded : styles.page;
+  const rootClass = adminEdit ? styles.embedded : `${styles.page} tk-flow`;
 
   // Refetch on arrival: the form is seeded once from this data, so it has to be current.
   const {
@@ -320,7 +319,7 @@ export const TestSeriesDetailsEditor = ({ testId }: { testId: number }) => {
       return (
         <div className={rootClass}>
           {!adminEdit && (
-            <TeacherFormHeader backTo="/teacher/test-series" backLabel="Test series" title="Edit series details" />
+            <TestSeriesSteps current="details" packageId={testId} back="/teacher/test-series" />
           )}
           <div className={styles.statePanel}>
             <h2>{notFound ? "This test series could not be found" : "Could not load this test series"}</h2>
@@ -345,12 +344,7 @@ export const TestSeriesDetailsEditor = ({ testId }: { testId: number }) => {
 
     return (
       <div className={rootClass} aria-busy="true">
-        {!adminEdit && (
-          <>
-            <Skeleton style={{ height: "1rem", width: "5rem" }} />
-            <Skeleton style={{ height: "2rem", width: "18rem" }} />
-          </>
-        )}
+        {!adminEdit && <TestSeriesSteps current="details" packageId={testId} back={leave} />}
         <div className={styles.workspace}>
           <div className={styles.grid}>
             <div className={styles.sheetSkeleton}>
@@ -386,8 +380,6 @@ export const TestSeriesDetailsEditor = ({ testId }: { testId: number }) => {
   const gaps = checklist.filter((item) => !item.done);
 
   const isLive = !!testPackage?.isPublished;
-  const statusLabel = isLive ? "Live" : testPackage?.wasEverPublished ? "Unpublished" : "Draft";
-  const statusVariant = isLive ? "success" : testPackage?.wasEverPublished ? "warning" : "outline";
   const publicUrl =
     testPackage && isLive && testPackage.slug ? buildPublicAssetUrl("test-series", testPackage.slug) : undefined;
 
@@ -434,16 +426,7 @@ export const TestSeriesDetailsEditor = ({ testId }: { testId: number }) => {
         </Helmet>
       )}
       <div className={rootClass}>
-        {!adminEdit && (
-          <TeacherFormHeader
-            onBack={leave}
-            backLabel="Review"
-            title="Edit series details"
-            subtitle={testPackage?.title ?? values.title}
-          >
-            <Badge variant={statusVariant}>{statusLabel}</Badge>
-          </TeacherFormHeader>
-        )}
+        {!adminEdit && <TestSeriesSteps current="details" packageId={testId} back={leave} />}
 
         <Form {...form}>
           <form ref={formRef} onSubmit={handleSubmit} className={styles.workspace} noValidate>

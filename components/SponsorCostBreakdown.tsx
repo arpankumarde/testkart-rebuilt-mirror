@@ -3,16 +3,13 @@ import styles from "./SponsorCostBreakdown.module.css";
 
 interface SponsorCostBreakdownProps {
   testPrice: number;
-  commissionAmount: number;
   discountPrice?: number | null;
-  isFreeEnrollment?: boolean;
 }
 
+/** Item price plus the platform fee row, which is always waived for sponsored enrollments. */
 export const SponsorCostBreakdown: React.FC<SponsorCostBreakdownProps> = ({
   testPrice,
-  commissionAmount,
   discountPrice,
-  isFreeEnrollment,
 }) => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-IN", {
@@ -43,14 +40,8 @@ export const SponsorCostBreakdown: React.FC<SponsorCostBreakdownProps> = ({
         )}
       </div>
       <div className={`${styles.costRow} ${styles.totalRow}`}>
-        <span>Enrollment Fee</span>
-        {isFreeEnrollment ? (
-          <span className={styles.freeAmount}>FREE</span>
-        ) : (
-          <span className={styles.highlightAmount}>
-            {formatCurrency(commissionAmount)}
-          </span>
-        )}
+        <span>Platform fee</span>
+        <span className={styles.freeAmount}>Waived - you pay {formatCurrency(0)}</span>
       </div>
     </div>
   );

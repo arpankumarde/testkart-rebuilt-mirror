@@ -5,7 +5,8 @@ export const schema = z.object({
   identifier: z.string().min(3, "Identifier must be at least 3 characters"),
   contentId: z.number(),
   contentType: z.enum(["test", "course", "product", "bundle"]),
-  paymentMethod: z.enum(["balance", "online"]),
+  /** Ignored: the platform fee is waived, so nothing is charged. Kept so older clients still validate. */
+  paymentMethod: z.enum(["balance", "online"]).optional(),
   /** The student account picked in the dialog when several share the identifier; revalidated here. */
   studentUserId: z.number().int().positive().optional(),
   studentName: z.string().optional(),
@@ -16,43 +17,22 @@ export const schema = z.object({
 
 export type InputType = z.infer<typeof schema>;
 
-// Discriminated union based on payment method
-export type OutputType =
-  | {
-      requiresPayment: false;
-      success: boolean;
-      message: string;
-      enrollment: {
-        studentName: string;
-        contentTitle: string;
-        commissionAmount: number;
-        enrolledAt: Date;
-      };
-      newBalance: number;
-      newUserCreated: boolean;
-      temporaryPassword?: string;
-      credentialsSent?: boolean;
-    }
-  | {
-      requiresPayment: true;
-      paymentData: {
-        key: string;
-        txnid: string;
-        amount: string;
-        productinfo: string;
-        firstname: string;
-        email: string;
-        phone: string;
-        surl: string;
-        furl: string;
-        hash: string;
-        payuUrl: string;
-      };
-      enrollmentId: number;
-      orderId: number;
-      newUserCreated: boolean;
-      temporaryPassword?: string;
-    };
+// Sponsorship is free for the teacher, so the student is always enrolled immediately.
+export type OutputType = {
+  requiresPayment: false;
+  success: boolean;
+  message: string;
+  enrollment: {
+    studentName: string;
+    contentTitle: string;
+    /** Always 0: the platform fee is waived. */
+    commissionAmount: number;
+    enrolledAt: Date;
+  };
+  newUserCreated: boolean;
+  temporaryPassword?: string;
+  credentialsSent?: boolean;
+};
 
 export const postSponsorStudentEnroll = async (
   body: InputType,

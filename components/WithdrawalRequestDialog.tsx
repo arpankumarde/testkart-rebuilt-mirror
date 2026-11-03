@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -41,23 +41,31 @@ export const WithdrawalRequestDialog: React.FC<WithdrawalRequestDialogProps> = (
   availableBalance,
 }) => {
   const { mutate: requestWithdrawal, isPending } = useRequestWithdrawal();
-  
+  // Most teachers withdraw everything, so the full balance is filled in.
+  const fullBalance = Math.floor(availableBalance * 100) / 100;
+
   const {
     register,
     handleSubmit,
     reset,
+    setError,
+    setValue,
     formState: { errors },
   } = useForm<WithdrawalFormValues>({
     resolver: zodResolver(withdrawalSchema),
     defaultValues: {
-      amount: undefined,
+      amount: fullBalance >= 100 ? fullBalance : undefined,
       notes: "",
     },
   });
 
+  useEffect(() => {
+    if (open && fullBalance >= 100) setValue("amount", fullBalance);
+  }, [open, fullBalance, setValue]);
+
   const onSubmit = (data: WithdrawalFormValues) => {
     if (data.amount > availableBalance) {
-      toast.error("Withdrawal amount cannot exceed available balance");
+      setError("amount", { message: `You can withdraw up to ₹${fullBalance.toFixed(2)}.` });
       return;
     }
 
@@ -90,9 +98,9 @@ export const WithdrawalRequestDialog: React.FC<WithdrawalRequestDialogProps> = (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className={styles.dialogContent}>
         <DialogHeader>
-          <DialogTitle>Request Withdrawal</DialogTitle>
+          <DialogTitle>Withdraw to your bank</DialogTitle>
           <DialogDescription>
-            Enter the amount you wish to withdraw. The minimum amount is ₹100.
+            Your full available balance is filled in. Change it to withdraw less; the minimum is ₹100.
           </DialogDescription>
         </DialogHeader>
 
@@ -114,6 +122,11 @@ export const WithdrawalRequestDialog: React.FC<WithdrawalRequestDialogProps> = (
             )}
             <div className={styles.balanceHint}>
               Available Balance: <strong>₹{availableBalance.toFixed(2)}</strong>
+              {fullBalance >= 100 && (
+                <button type="button" className={styles.allButton} onClick={() => setValue("amount", fullBalance, { shouldValidate: true })}>
+                  Withdraw all
+                </button>
+              )}
             </div>
           </div>
 

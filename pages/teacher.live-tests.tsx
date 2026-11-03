@@ -162,6 +162,7 @@ const TeacherLiveTestsPage: React.FC = () => {
       const isFirstDraftPage = status === DEFAULT_STATUS && page === 1;
       return (
         <TeacherListEmpty
+          kind={isFirstDraftPage ? "live_test" : undefined}
           icon={<CalendarPlus size={26} />}
           title={isFirstDraftPage ? "No live tests yet" : `No ${activeTabLabel} live tests`}
           description={
@@ -209,7 +210,7 @@ const TeacherLiveTestsPage: React.FC = () => {
         <meta name="description" content="Schedule and manage your live tests on Testkart." />
       </Helmet>
       <div className={styles.page}>
-        <TeacherPageHeader title="Live tests">
+        <TeacherPageHeader title="Live tests" kind="live_test">
           <Button asChild>
             <Link to="/teacher/create-live-test">
               <Plus size={16} />
@@ -234,7 +235,7 @@ const TeacherLiveTestsPage: React.FC = () => {
           />
         )}
 
-        <main className={styles.content}>{renderContent()}</main>
+        <div className={styles.content}>{renderContent()}</div>
 
         {data && data.total > data.limit && (
           <TeacherListPagination

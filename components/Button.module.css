@@ -70,6 +70,20 @@
     border-radius: var(--radius-md);
   }
 
+  /* Inside the teacher console every button is at least a 36px touch target. */
+  :global(.tk-teacher-console) .sm {
+    height: auto;
+    min-height: 2.25rem;
+    padding: 0 var(--spacing-3);
+  }
+
+  :global(.tk-teacher-console) .icon,
+  :global(.tk-teacher-console) .icon-md,
+  :global(.tk-teacher-console) .icon-sm {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
   /* Icon sizing */
   .button svg {
     flex-shrink: 0;
@@ -258,5 +272,79 @@
 
   .dark .link:focus-visible {
     box-shadow: 0 0 0 2px var(--primary);
+  }
+
+  /* Inside a guided creation flow (.tk-flow on the page root) the solid button
+     is the site's peach Create Account CTA - soft fill, ink label, edge and a
+     2px ledge - and outline and ghost buttons go neutral with a blue hover, so
+     orange marks only the main action. A panel can retint the outline through
+     --flow-outline-bg/-line/-ink. */
+  :global(.tk-flow) .primary {
+    background-color: var(--sp-cta);
+    border-color: var(--sp-peach-edge);
+    color: var(--sp-cta-ink);
+    font-weight: 700;
+    box-shadow: 0 2px 0 var(--sp-peach-edge);
+    transition:
+      background-color var(--animation-duration-fast) ease,
+      box-shadow var(--animation-duration-fast) ease,
+      transform var(--animation-duration-fast) ease;
+    --spinner-color: var(--sp-cta-ink);
+  }
+
+  :global(.tk-flow) .primary:hover {
+    background-color: var(--sp-cta-hover);
+    border-color: var(--sp-peach-edge);
+    color: var(--sp-cta-ink);
+    box-shadow: 0 3px 0 var(--sp-peach-edge);
+    transform: translateY(-1px);
+  }
+
+  :global(.tk-flow) .primary:active {
+    background-color: var(--sp-cta-hover);
+    border-color: var(--sp-peach-edge);
+    color: var(--sp-cta-ink);
+    box-shadow: 0 1px 0 var(--sp-peach-edge);
+    transform: translateY(1px);
+  }
+
+  :global(.tk-flow) .outline {
+    background-color: var(--flow-outline-bg, var(--sp-card));
+    border-color: var(--flow-outline-line, var(--sp-line-strong));
+    color: var(--flow-outline-ink, var(--sp-ink));
+    font-weight: 600;
+    --spinner-color: var(--flow-outline-ink, var(--sp-ink));
+  }
+
+  :global(.tk-flow) .primary:not(.icon, .icon-sm, .icon-md, .icon-lg),
+  :global(.tk-flow) .outline:not(.icon, .icon-sm, .icon-md, .icon-lg) {
+    border-radius: 1.25rem 1.25rem 1.25rem 0.5rem;
+  }
+
+  :global(.tk-flow) .outline:hover,
+  :global(.tk-flow) .outline:active,
+  :global(.tk-flow) .ghost:hover,
+  :global(.tk-flow) .ghost:active {
+    background-color: var(--fc-blue-tint);
+    border-color: var(--fc-blue-edge);
+    color: var(--fc-blue-ink);
+  }
+
+  :global(.tk-flow) .ghost:hover,
+  :global(.tk-flow) .ghost:active {
+    border-color: transparent;
+  }
+
+  :global(.tk-flow) .button:focus-visible {
+    box-shadow:
+      0 0 0 2px var(--background),
+      0 0 0 4px var(--fc-blue-edge);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(.tk-flow) .primary:hover,
+    :global(.tk-flow) .primary:active {
+      transform: none;
+    }
   }
 }

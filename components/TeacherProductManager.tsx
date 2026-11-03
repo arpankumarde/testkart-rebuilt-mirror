@@ -501,12 +501,13 @@ export const TeacherProductManager: React.FC = () => {
       const isEmptyOverall = !searchTerm && statusFilter === 'all' && categoryFilter === 'all';
       return (
         <TeacherListEmpty
+          kind={!searchTerm && isEmptyOverall ? 'digital_product' : undefined}
           icon={<FileText size={26} />}
           title={
             searchTerm
               ? `No products match "${searchTerm}"`
               : isEmptyOverall
-                ? 'No products yet'
+                ? 'No notes or PDFs yet'
                 : `No ${activeTabLabel} products`
           }
           description={
@@ -634,7 +635,7 @@ export const TeacherProductManager: React.FC = () => {
     <div className={styles.page}>
       {/* Titled as the sidebar names it, so the page you land on matches the
           row you clicked. */}
-      <TeacherPageHeader title="Notes & PDFs">
+      <TeacherPageHeader title="Notes and PDFs" kind="digital_product">
         <Button onClick={handleCreate}>
           <Plus size={16} />
           New product

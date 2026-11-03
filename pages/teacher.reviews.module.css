@@ -1,3 +1,113 @@
+/* The "waiting for your reply" stat doubles as a filter shortcut. */
+.statButton {
+  width: 100%;
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.statButton:disabled {
+  cursor: default;
+}
+
+.statButton:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+/* The teacher's public reply, set apart from the review it answers. */
+.reply {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-top: 0.25rem;
+  padding: 0.75rem 1rem;
+  border-left: 3px solid var(--fc-sage-edge);
+  border-radius: 0 0.75rem 0.75rem 0;
+  background-color: var(--fc-sage-tint);
+  color: var(--fc-sage-ink);
+}
+
+.replyHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.replyTitle {
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.replyDate {
+  font-size: 0.75rem;
+}
+
+.replyText {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.replyLinks {
+  display: flex;
+  gap: 1rem;
+}
+
+.linkButton {
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.linkButton:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.replyButton {
+  align-self: flex-start;
+}
+
+.replyEditor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.replyLabel {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--tc-ink, var(--foreground));
+}
+
+.replyActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.replyCount {
+  margin-right: auto;
+  font-size: 0.75rem;
+  color: var(--tc-muted, var(--muted-foreground));
+  font-variant-numeric: tabular-nums;
+}
 /* The console shell. No padding of its own - TeacherDashboardLayout's
    .pageBody owns the gutter. Pastel tones follow TeacherCtaBanner's soft tone,
    as solid fills so text on them keeps its contrast. */

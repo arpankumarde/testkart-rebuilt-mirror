@@ -19,6 +19,7 @@ import {
   TeacherTopSeller,
   TeacherRecentSale,
   TeacherOverviewTotals,
+  TeacherStageItem,
 } from "./overview_GET.schema";
 
 const RANGE_DAYS = { "7d": 7, "30d": 30, "90d": 90 } as const;
@@ -27,6 +28,43 @@ const MIX_KINDS = new Set<string>(["mock_test", "live_test", "course", "digital_
 const asMixKind = (value: unknown): TeacherMixKind => {
   const kind = str(value);
   return (MIX_KINDS.has(kind) ? kind : "mock_test") as TeacherMixKind;
+};
+
+/** content_reviews.content_type names bundles course_bundle; the Overview calls them bundle. */
+const reviewKind = (contentType: unknown): TeacherMixKind =>
+  str(contentType) === "course_bundle" ? "bundle" : asMixKind(contentType);
+
+/**
+ * users.product_interest holds the onboarding "what will you publish" answers,
+ * written over time as both labels ("Study Notes", "Mock Tests", "PDFs") and
+ * keys ("study_notes", "mock_test"), as a jsonb array or occasionally a string.
+ */
+const firstContentTypeFrom = (raw: unknown): TeacherMixKind => {
+  let values: unknown = raw;
+  if (typeof values === "string") {
+    try {
+      values = JSON.parse(values);
+    } catch {
+      values = [values];
+    }
+  }
+  const first = Array.isArray(values) ? values.find((v) => typeof v === "string" && v.trim()) : null;
+  const key = typeof first === "string" ? first.toLowerCase().replace(/[^a-z]/g, "") : "";
+  if (/note|pdf|ebook|book/.test(key)) return "digital_product";
+  if (/course/.test(key)) return "course";
+  if (/live/.test(key)) return "live_test";
+  return "mock_test";
+};
+
+const stageItem = (row: Row, kind: TeacherMixKind, withNote: boolean): TeacherStageItem => {
+  const note = get(row, "admin_notes");
+  return {
+    kind,
+    id: num(get(row, "id")),
+    title: str(get(row, "title"), "Untitled").trim() || "Untitled",
+    at: date(get(row, "at")),
+    note: withNote && note ? str(note).trim() || null : null,
+  };
 };
 
 /**
@@ -76,7 +114,7 @@ export async function handle(request: Request): Promise<Response> {
     // window's first day. Day boundaries are local midnight, so the split is
     // exact — and it halves the number of times the earnings fragment and the
     // enrollment union have to run.
-    const [attentionRows, saleRows, activityRows, recentRows, totalRows] = await Promise.all([
+    const [attentionRows, saleRows, activityRows, recentRows, totalRows, reviewRows, draftRows] = await Promise.all([
       sql<Row>`
         SELECT
           (SELECT count(*) FROM content_reviews WHERE teacher_id = ${teacherId} AND status IN ('pending', 'senior_review') AND content_type = 'mock_test') AS reviews_pending_tests,
@@ -222,7 +260,65 @@ export async function handle(request: Request): Promise<Response> {
            ) all_students) AS students,
           (SELECT count(*) FROM teacher_follows WHERE teacher_id = ${teacherId}) AS followers,
           ${buildTeacherNetEarningsSql(teacherId)} AS lifetime_earnings,
-          ${buildTeacherAvailableBalanceSql(teacherId)} AS available_balance
+          ${buildTeacherAvailableBalanceSql(teacherId)} AS available_balance,
+          (SELECT product_interest FROM users WHERE id = ${teacherId}) AS product_interest
+      `.execute(db),
+
+      // The latest review per item decides its state, so an item rejected and
+      // then resubmitted shows as in review, not as both.
+      sql<Row>`
+        WITH latest AS (
+          SELECT DISTINCT ON (cr.content_type, cr.content_id)
+                 cr.content_type::text AS content_type, cr.content_id AS id, cr.status::text AS status,
+                 cr.admin_notes,
+                 coalesce(cr.reviewed_at::timestamptz, cr.updated_at::timestamptz, cr.created_at::timestamptz) AS at
+          FROM content_reviews cr
+          WHERE cr.teacher_id = ${teacherId}
+          ORDER BY cr.content_type, cr.content_id, cr.created_at DESC, cr.id DESC
+        ),
+        titled AS (
+          SELECT latest.*, CASE latest.content_type
+              WHEN 'mock_test' THEN (SELECT title FROM mock_tests WHERE id = latest.id AND deleted_at IS NULL)
+              WHEN 'course' THEN (SELECT title FROM courses WHERE id = latest.id)
+              WHEN 'digital_product' THEN (SELECT title FROM digital_products WHERE id = latest.id)
+              WHEN 'course_bundle' THEN (SELECT title FROM course_bundles WHERE id = latest.id)
+              WHEN 'live_test' THEN (SELECT title FROM live_tests WHERE id = latest.id)
+            END::text AS title
+          FROM latest
+        )
+        SELECT content_type, id, status, admin_notes, at, title
+        FROM titled
+        WHERE title IS NOT NULL
+          AND (status IN ('pending', 'senior_review') OR (status = 'rejected' AND at > now() - interval '90 days'))
+        ORDER BY at DESC
+        LIMIT 12
+      `.execute(db),
+
+      sql<Row>`
+        SELECT kind, id, title, at FROM (
+          SELECT 'mock_test'::text AS kind, mt.id, mt.title::text AS title, mt.updated_at::timestamptz AS at
+          FROM mock_tests mt
+          WHERE mt.teacher_id = ${teacherId} AND mt.deleted_at IS NULL AND mt.is_published = false
+            AND mt.was_ever_published = false
+            AND NOT EXISTS (SELECT 1 FROM live_tests lt WHERE lt.teacher_id = ${teacherId} AND lt.mock_test_id = mt.id)
+          UNION ALL
+          SELECT 'course', id, title::text, updated_at::timestamptz FROM courses
+          WHERE teacher_id = ${teacherId} AND status = 'draft'
+          UNION ALL
+          SELECT 'digital_product', id, title::text, updated_at::timestamptz FROM digital_products
+          WHERE teacher_id = ${teacherId} AND status = 'draft'
+          UNION ALL
+          SELECT 'bundle', id, title::text, updated_at::timestamptz FROM course_bundles
+          WHERE teacher_id = ${teacherId} AND is_published = false
+        ) drafts
+        WHERE NOT EXISTS (
+          SELECT 1 FROM content_reviews cr
+          WHERE cr.teacher_id = ${teacherId} AND cr.content_id = drafts.id
+            AND cr.content_type::text = (CASE drafts.kind WHEN 'bundle' THEN 'course_bundle' ELSE drafts.kind END)
+            AND cr.status IN ('pending', 'senior_review')
+        )
+        ORDER BY at DESC NULLS LAST
+        LIMIT 1
       `.execute(db),
     ]);
 
@@ -387,6 +483,18 @@ export async function handle(request: Request): Promise<Response> {
       availableBalance: Math.max(0, Math.round(num(get(t, "available_balance")) * 100) / 100),
     };
 
+    const inReview: TeacherStageItem[] = [];
+    const rejected: TeacherStageItem[] = [];
+    for (const row of reviewRows.rows) {
+      const status = str(get(row, "status"));
+      const kind = reviewKind(get(row, "content_type"));
+      if (status === "rejected") rejected.push(stageItem(row, kind, true));
+      else inReview.push(stageItem(row, kind, false));
+    }
+
+    const draftRow = draftRows.rows[0];
+    const lastDraft = draftRow ? stageItem(draftRow, asMixKind(get(draftRow, "kind")), false) : null;
+
     const output: OutputType = {
       range,
       days,
@@ -397,6 +505,10 @@ export async function handle(request: Request): Promise<Response> {
       topSellers,
       recentSales,
       totals,
+      lastDraft,
+      inReview,
+      rejected,
+      firstContentType: firstContentTypeFrom(get(t, "product_interest")),
     };
 
     return new Response(superjson.stringify(isManager ? withoutOwnerMoney(output) : output), {

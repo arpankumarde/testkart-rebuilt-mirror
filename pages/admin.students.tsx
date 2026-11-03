@@ -10,6 +10,7 @@ import { ConsoleListToolbar, consoleToolbarControlClass } from "../components/Co
 import { ConsoleListEmpty } from "../components/ConsoleListEmpty";
 import { ConsoleListPagination } from "../components/ConsoleListPagination";
 import { AdminAccountStatusDialog, AccountStatusTarget } from "../components/AdminAccountStatusDialog";
+import { AdminLoginLinkDialog, LoginLinkTarget } from "../components/AdminLoginLinkDialog";
 import {
   Select,
   SelectContent,
@@ -21,6 +22,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../components/Tooltip";
 import {
   UserX,
   LogIn,
+  Link2,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
@@ -135,6 +137,7 @@ const AdminStudentsPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<SortableColumn>("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [statusTarget, setStatusTarget] = useState<AccountStatusTarget | null>(null);
+  const [linkTarget, setLinkTarget] = useState<LoginLinkTarget | null>(null);
 
   const { data, isFetching, isError, error, refetch } = useAdminStudentsQuery({
     page,
@@ -226,6 +229,21 @@ const AdminStudentsPage: React.FC = () => {
           </Button>
         </TooltipTrigger>
         <TooltipContent>Log in as</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon-md"
+            className={styles.iconButton}
+            aria-label={`Sign-in link for ${student.fullName}`}
+            onClick={() => setLinkTarget({ id: student.id, name: student.fullName, role: "student" })}
+            disabled={blocked}
+          >
+            <Link2 />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{blocked ? "Reactivate the account to make a sign-in link" : "Sign-in link"}</TooltipContent>
       </Tooltip>
       <Tooltip>
         <TooltipTrigger asChild>
@@ -441,6 +459,7 @@ const AdminStudentsPage: React.FC = () => {
       </div>
 
       <AdminAccountStatusDialog target={statusTarget} onClose={() => setStatusTarget(null)} />
+      <AdminLoginLinkDialog target={linkTarget} onClose={() => setLinkTarget(null)} />
     </>
   );
 };

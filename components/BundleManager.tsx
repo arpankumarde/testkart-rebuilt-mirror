@@ -124,6 +124,7 @@ export const BundleManager: React.FC = () => {
       const isEmptyOverall = !isSearching && status === 'all' && page === 1;
       return (
         <TeacherListEmpty
+          kind={!isSearching && isEmptyOverall ? 'bundle' : undefined}
           icon={<Package size={26} />}
           title={
             isSearching
@@ -171,7 +172,7 @@ export const BundleManager: React.FC = () => {
 
   return (
     <div className={styles.page}>
-      <TeacherPageHeader title="Bundles">
+      <TeacherPageHeader title="Bundles" kind="bundle">
         <Button onClick={handleCreate}>
           <Plus size={16} />
           New bundle
@@ -191,7 +192,7 @@ export const BundleManager: React.FC = () => {
         }}
       />
 
-      <main className={styles.content}>{renderContent()}</main>
+      <div className={styles.content}>{renderContent()}</div>
 
       {data && data.total > BUNDLES_PER_PAGE && (
         <TeacherListPagination

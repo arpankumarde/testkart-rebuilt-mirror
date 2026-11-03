@@ -4,6 +4,8 @@ import styles from "./ConsoleListEmpty.module.css";
 interface ConsoleListEmptyProps {
   /* A lucide icon element. Shown in a brand-tinted circle. */
   icon?: React.ReactNode;
+  /* A ready-made visual drawn as is, in place of the icon circle. */
+  visual?: React.ReactNode;
   title: string;
   description?: React.ReactNode;
   /* The recovery action - create, retry, clear the search. */
@@ -20,6 +22,7 @@ interface ConsoleListEmptyProps {
  */
 export const ConsoleListEmpty: React.FC<ConsoleListEmptyProps> = ({
   icon,
+  visual,
   title,
   description,
   children,
@@ -30,14 +33,14 @@ export const ConsoleListEmpty: React.FC<ConsoleListEmptyProps> = ({
     className={`${styles.empty} ${className ?? ""}`}
     role={tone === "error" ? "alert" : undefined}
   >
-    {icon ? (
+    {visual ?? (icon ? (
       <span
         className={`${styles.icon} ${tone === "error" ? styles.iconError : ""}`}
         aria-hidden="true"
       >
         {icon}
       </span>
-    ) : null}
+    ) : null)}
     <h2 className={styles.title}>{title}</h2>
     {description ? <p className={styles.text}>{description}</p> : null}
     {children ? <div className={styles.actions}>{children}</div> : null}

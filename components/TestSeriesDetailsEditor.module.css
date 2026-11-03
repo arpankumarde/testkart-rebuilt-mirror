@@ -488,3 +488,48 @@
     transition: none;
   }
 }
+
+/* The teacher page (not the admin embed) uses the /app palette instead of
+   orange: the access switch in the Details step's lavender, the checklist count
+   and meter in mint, the missing-field chips and unsaved note in butter. */
+.page .accessInput:not(:checked) + .accessLabel:hover,
+.page .accessInput:checked + .accessLabel {
+  color: var(--sp-lavender-ink);
+}
+
+.page .accessInput:checked + .accessLabel {
+  background-color: var(--sp-lavender-tint);
+  box-shadow: 0 0 0 1px var(--sp-lavender-edge);
+}
+
+.page .accessInput:focus-visible + .accessLabel {
+  outline-color: var(--sp-lavender-edge);
+}
+
+.page .checklistCount {
+  color: var(--fc-mint-ink);
+}
+
+.page .meterStepDone {
+  background-color: var(--fc-mint-edge);
+}
+
+.page .saveNoteDirty {
+  color: var(--fc-butter-ink);
+}
+
+.page .gapButton {
+  border-color: var(--fc-butter-edge);
+  background-color: var(--fc-butter-tint);
+  color: var(--fc-butter-ink);
+}
+
+.page .gapButton:hover {
+  border-color: var(--fc-butter-ink);
+  background-color: var(--fc-butter-line);
+  color: var(--fc-butter-ink);
+}
+
+.page .gapButton:focus-visible {
+  outline-color: var(--fc-butter-edge);
+}

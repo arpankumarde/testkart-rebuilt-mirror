@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import {
   Building2,
   Plus,
@@ -15,6 +16,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { ConsolePageHeader } from "../components/ConsolePageHeader";
+import { ConsoleConfirmDialog } from "../components/ConsoleConfirmDialog";
 import { TeacherListEmpty } from "../components/TeacherListEmpty";
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
@@ -63,7 +65,9 @@ const STATUS_BADGE_VARIANT: Record<string, "success" | "warning" | "destructive"
 };
 
 const formatDate = (value: Date | string) =>
-  new Date(value).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  new Date(value).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+
+const errorText = (err: unknown, fallback: string) => (err instanceof Error ? err.message : fallback);
 
 const CreateOrganizationDialog: React.FC<{ open: boolean; onOpenChange: (open: boolean) => void }> = ({
   open,
@@ -209,6 +213,7 @@ const JoinOrganizationSection: React.FC = () => {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by institute name..."
+            aria-label="Search institutes"
             className={styles.searchInput}
           />
         </div>
@@ -248,8 +253,14 @@ const JoinOrganizationSection: React.FC = () => {
                   type="button"
                   size="sm"
                   variant="outline"
-                  onClick={() => joinMutation.mutate(org.id)}
+                  onClick={() =>
+                    joinMutation.mutate(org.id, {
+                      onSuccess: () => toast.success(`Request sent to ${org.name}.`),
+                      onError: (err) => toast.error(errorText(err, "Could not send the request.")),
+                    })
+                  }
                   disabled={joinMutation.isPending}
+                  aria-label={`Request to join ${org.name}`}
                 >
                   Request to join
                 </Button>
@@ -267,6 +278,27 @@ const TeacherOrganizationsPage: React.FC = () => {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const respondMutation = useRespondRequestMutation();
   const leaveMutation = useLeaveOrganizationMutation();
+  const [leaving, setLeaving] = useState<{ id: string; name: string } | null>(null);
+
+  const respond = (membershipId: (typeof pendingRequests)[number]["membershipId"], approve: boolean, teacherName: string) =>
+    respondMutation.mutate(
+      { membershipId, approve },
+      {
+        onSuccess: () => toast.success(approve ? `${teacherName} joined.` : `Request from ${teacherName} declined.`),
+        onError: (err) => toast.error(errorText(err, "Could not answer the request.")),
+      }
+    );
+
+  const confirmLeave = () => {
+    if (!leaving) return;
+    leaveMutation.mutate(leaving.id, {
+      onSuccess: () => {
+        toast.success(`You left ${leaving.name}.`);
+        setLeaving(null);
+      },
+      onError: (err) => toast.error(errorText(err, "Could not leave the organisation.")),
+    });
+  };
 
   const organizations = data?.organizations ?? [];
   const pendingRequests = data?.pendingRequests ?? [];
@@ -364,8 +396,9 @@ const TeacherOrganizationsPage: React.FC = () => {
                           variant="ghost"
                           size="sm"
                           className={styles.leaveButton}
-                          onClick={() => leaveMutation.mutate(org.id)}
+                          onClick={() => setLeaving({ id: org.id, name: org.name })}
                           disabled={leaveMutation.isPending}
+                          aria-label={`Leave ${org.name}`}
                         >
                           <LogOut size={14} aria-hidden="true" />
                           Leave
@@ -400,21 +433,21 @@ const TeacherOrganizationsPage: React.FC = () => {
                           type="button"
                           size="icon-sm"
                           variant="outline"
-                          aria-label="Approve"
-                          onClick={() => respondMutation.mutate({ membershipId: req.membershipId, approve: true })}
+                          aria-label={`Approve ${req.teacherName}`}
+                          onClick={() => respond(req.membershipId, true, req.teacherName)}
                           disabled={respondMutation.isPending}
                         >
-                          <Check size={14} />
+                          <Check size={14} aria-hidden="true" />
                         </Button>
                         <Button
                           type="button"
                           size="icon-sm"
                           variant="ghost"
-                          aria-label="Reject"
-                          onClick={() => respondMutation.mutate({ membershipId: req.membershipId, approve: false })}
+                          aria-label={`Reject ${req.teacherName}`}
+                          onClick={() => respond(req.membershipId, false, req.teacherName)}
                           disabled={respondMutation.isPending}
                         >
-                          <X size={14} />
+                          <X size={14} aria-hidden="true" />
                         </Button>
                       </div>
                     </li>
@@ -441,6 +474,17 @@ const TeacherOrganizationsPage: React.FC = () => {
       </div>
 
       <CreateOrganizationDialog open={isCreateOpen} onOpenChange={setIsCreateOpen} />
+      <ConsoleConfirmDialog
+        open={!!leaving}
+        onOpenChange={(open) => !open && setLeaving(null)}
+        tone="destructive"
+        title={leaving ? `Leave ${leaving.name}?` : "Leave organisation?"}
+        description="You will no longer appear on its page. To come back, you need to request to join again and wait for approval."
+        confirmLabel="Leave"
+        pendingLabel="Leaving..."
+        isPending={leaveMutation.isPending}
+        onConfirm={confirmLeave}
+      />
     </>
   );
 };

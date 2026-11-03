@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { UploadCloud, FileText, X, AlertCircle, CheckCircle, RotateCw } from 'lucide-react';
 import { uploadFileToR2, UploadInterruptedError, type UploadStatus } from '../helpers/useR2Upload';
 import { Button } from './Button';
@@ -10,6 +10,8 @@ export interface FileUploaderProps {
   onSuccess: (result: { url: string; fileId: string; size: number; name: string }) => void;
   onError?: (error: Error) => void;
   onUploadStart?: () => void;
+  /** True while the picked file is being checked or uploaded, false once it lands or fails. */
+  onUploadingChange?: (busy: boolean) => void;
   currentFileUrl?: string;
   // Kept for callers; the uploader never deletes the saved file. A replacement
   // is only an upload until the form is saved, and a saved file stays live.
@@ -27,6 +29,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   onSuccess,
   onError,
   onUploadStart,
+  onUploadingChange,
   currentFileUrl,
   acceptedTypes = 'application/pdf',
   maxSizeInMB = 40,
@@ -46,6 +49,15 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>('uploading');
   // The checked file whose upload stopped on a dropped connection; Resume sends it again.
   const [resumeFile, setResumeFile] = useState<File | null>(null);
+
+  const busy = isUploading || isChecking;
+  const onUploadingChangeRef = useRef(onUploadingChange);
+  onUploadingChangeRef.current = onUploadingChange;
+  useEffect(() => {
+    onUploadingChangeRef.current?.(busy);
+  }, [busy]);
+  // A row removed mid-upload must not leave the form thinking it is still busy.
+  useEffect(() => () => onUploadingChangeRef.current?.(false), []);
 
   const uploadChecked = useCallback(async (fileToUpload: File) => {
     setError(null);

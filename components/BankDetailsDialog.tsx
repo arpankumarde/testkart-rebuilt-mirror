@@ -187,9 +187,11 @@ export const BankDetailsDialog: React.FC<BankDetailsDialogProps> = ({
           >
             <div className={styles.formGrid}>
               <FormItem name="bankAccountHolderName">
-                <FormLabel>Bank Account Holder Name</FormLabel>
+                <FormLabel>Account holder name (as on your bank account)</FormLabel>
                 <FormControl>
                   <Input
+                    aria-required="true"
+                    autoComplete="name"
                     placeholder="e.g. John Doe"
                     value={form.values.bankAccountHolderName}
                     onChange={(e) =>
@@ -204,9 +206,12 @@ export const BankDetailsDialog: React.FC<BankDetailsDialogProps> = ({
               </FormItem>
 
               <FormItem name="bankAccountNumber">
-                <FormLabel>Bank Account Number</FormLabel>
+                <FormLabel>Account number</FormLabel>
                 <FormControl>
                   <Input
+                    aria-required="true"
+                    inputMode="numeric"
+                    autoComplete="off"
                     placeholder="Enter your account number"
                     value={form.values.bankAccountNumber}
                     onChange={(e) =>
@@ -232,7 +237,7 @@ export const BankDetailsDialog: React.FC<BankDetailsDialogProps> = ({
               />
 
               <FormItem name="upiId">
-                <FormLabel>UPI ID (Optional)</FormLabel>
+                <FormLabel>UPI ID (optional)</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="e.g. yourname@upi"
@@ -249,15 +254,18 @@ export const BankDetailsDialog: React.FC<BankDetailsDialogProps> = ({
               </FormItem>
 
               <FormItem name="panNumber">
-                <FormLabel>PAN Number</FormLabel>
+                <FormLabel>PAN number</FormLabel>
                 <FormControl>
                   <Input
+                    aria-required="true"
+                    autoComplete="off"
                     placeholder="e.g. ABCDE1234F"
                     value={form.values.panNumber}
                     onChange={(e) =>
                       form.setValues((prev) => ({
                         ...prev,
-                        panNumber: e.target.value,
+                        // PANs are upper case; typing in lower case used to fail only on submit.
+                        panNumber: e.target.value.toUpperCase().replace(/\s+/g, ''),
                       }))
                     }
                   />
@@ -270,7 +278,7 @@ export const BankDetailsDialog: React.FC<BankDetailsDialogProps> = ({
             </div>
 
             <FormItem name="panCardImageBase64">
-              <FormLabel>PAN Card Image</FormLabel>
+              <FormLabel>Photo of your PAN card</FormLabel>
               <FormControl>
                 <R2FileUploader
                   folder="kyc/teachers"

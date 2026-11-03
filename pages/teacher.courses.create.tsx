@@ -1,7 +1,6 @@
 import React, { useId, useRef, useState } from "react";
 import { Helmet } from "react-helmet";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
 import { Spinner } from "../components/Spinner";
 import { useTeacherCourseMutations } from "../helpers/useTeacherCoursesQuery";
 import type { InputType as CreateCourseInput } from "../endpoints/teacher/courses/create_POST.schema";
@@ -12,11 +11,10 @@ import { ExamMultiPicker } from "../components/ExamMultiPicker";
 import { useExamNameSuggestions } from "../helpers/useExamNameSuggestions";
 import { addSuggestedExam } from "../helpers/itemExams";
 import { CourseCardPreview } from "../components/CourseCardPreview";
-import { AIContentPrompt } from "../components/AIContentPrompt";
+import { TeacherAIFillPanel, type TeacherAIFillValues } from "../components/TeacherAIFillPanel";
 import { useAuth } from "../helpers/useAuth";
 import styles from "./teacher.courses.create.module.css";
 
-type Mode = "ai" | "manual" | "creating";
 type PriceMode = "free" | "paid";
 type CourseCreateRequest = CreateCourseInput & { examNames?: string[] };
 type StartValues = {
@@ -31,30 +29,24 @@ const PRICE_OPTIONS = [
   { value: "paid", label: "Paid" },
 ] as const;
 
-type AiCourseValues = {
-  title: string;
-  shortDescription?: string;
-  description: string;
-  examName?: string;
-  language?: string;
-  suggestedPrice?: number;
-  level?: string;
-};
+/** What the AI suggested beyond the start form's own fields; sent with the create call. */
+type AiExtras = Pick<CreateCourseInput, "description" | "level" | "language">;
 
 const StartForm: React.FC<{
   teacherName: string | null;
   isPending: boolean;
-  onBack: () => void;
+  initial?: StartValues;
+  onAiFilled: (values: TeacherAIFillValues) => void;
   onCreate: (values: StartValues) => void;
-}> = ({ teacherName, isPending, onBack, onCreate }) => {
+}> = ({ teacherName, isPending, initial, onAiFilled, onCreate }) => {
   const titleId = useId();
   const titleErrorId = useId();
   const priceErrorId = useId();
   const priceInputRef = useRef<HTMLInputElement>(null);
-  const [title, setTitle] = useState("");
-  const [examNames, setExamNames] = useState<string[]>([]);
-  const [priceMode, setPriceMode] = useState<PriceMode>("free");
-  const [price, setPrice] = useState("");
+  const [title, setTitle] = useState(initial?.title ?? "");
+  const [examNames, setExamNames] = useState<string[]>(initial?.examNames ?? []);
+  const [priceMode, setPriceMode] = useState<PriceMode>(initial && initial.price > 0 ? "paid" : "free");
+  const [price, setPrice] = useState(initial && initial.price > 0 ? String(initial.price) : "");
   const [errors, setErrors] = useState<{ title?: string; price?: string }>({});
 
   const priceValue = priceMode === "paid" ? Number(price) : 0;
@@ -73,14 +65,18 @@ const StartForm: React.FC<{
     <div className={styles.startWrap}>
       <div className={styles.start}>
         <div className={styles.startMain}>
-          <button type="button" className={styles.backLink} onClick={onBack}>
-            <ArrowLeft size={15} aria-hidden="true" />
-            Describe it for AI instead
-          </button>
           <h1 className={styles.startTitle}>Start your course</h1>
           <p className={styles.startLead}>
-            Name it to begin. Chapters, videos and the rest come next, and you can change anything later.
+            Name it to begin. Chapters and videos come next - a course needs at least one video lesson before it
+            can go live. You can change anything later.
           </p>
+
+          <TeacherAIFillPanel
+            contentType="course"
+            fills="title, exams, price and description"
+            placeholder="e.g., Full Class 10 Physics course in Hindi with chapter-wise video lessons"
+            onGenerated={onAiFilled}
+          />
 
           <form className={styles.form} onSubmit={handleSubmit} noValidate>
             <div className={styles.field}>
@@ -187,41 +183,32 @@ export default function CreateCoursePage() {
   const teacherName = authState.type === "authenticated" ? authState.user.displayName : null;
   const { officialExams } = useExamNameSuggestions();
 
-  const [mode, setMode] = useState<Mode>("ai");
-  const lastRequest = useRef<{ input: CourseCreateRequest; fromAi: boolean } | null>(null);
+  // AI fills the start form for the teacher to check; nothing is created until they press Create.
+  const [aiFill, setAiFill] = useState<{ key: number; values: StartValues; extras: AiExtras } | null>(null);
 
-  const create = (input: CourseCreateRequest, fromAi: boolean) => {
-    lastRequest.current = { input, fromAi };
-    // The manual form stays on screen with its own pending button.
-    if (fromAi) setMode("creating");
+  const handleAiFilled = (ai: TeacherAIFillValues) => {
+    const level = ai.level === "advanced" || ai.level === "intermediate" ? ai.level : "beginner";
+    const examNames = addSuggestedExam([], ai.examName, officialExams);
+    setAiFill((prev) => ({
+      key: (prev?.key ?? 0) + 1,
+      values: {
+        title: ai.title?.trim() ?? "",
+        examName: examNames[0] ?? null,
+        examNames,
+        price: ai.suggestedPrice && ai.suggestedPrice > 0 ? ai.suggestedPrice : 0,
+      },
+      extras: { description: ai.description || ai.shortDescription || "", level, language: ai.language || null },
+    }));
+  };
+
+  const handleCreate = (values: StartValues) => {
+    const input: CourseCreateRequest = { level: "beginner", ...aiFill?.extras, ...values };
     createCourseMutation.mutate(input, {
       onSuccess: (data) => {
-        navigate(`/teacher/courses/${data.id}/edit?${fromAi ? "tab=details&from=ai" : "tab=content"}`, {
-          replace: true,
-        });
+        navigate(`/teacher/courses/${data.id}/edit?tab=content`, { replace: true });
       },
     });
   };
-
-  const handleGenerated = (ai: AiCourseValues) => {
-    const level = ai.level === "advanced" || ai.level === "intermediate" ? ai.level : "beginner";
-    const examNames = addSuggestedExam([], ai.examName, officialExams);
-    create(
-      {
-        title: ai.title?.trim() || "Untitled course",
-        description: ai.description || ai.shortDescription || "",
-        level,
-        price: ai.suggestedPrice && ai.suggestedPrice > 0 ? ai.suggestedPrice : 0,
-        language: ai.language || null,
-        examName: examNames[0] ?? null,
-        examNames,
-      },
-      true
-    );
-  };
-
-  const handleManualCreate = (values: StartValues) =>
-    create({ ...values, level: "beginner" }, false);
 
   return (
     <>
@@ -232,53 +219,19 @@ export default function CreateCoursePage() {
           content="Create a new course on Testkart. Start building your curriculum and publish it to students."
         />
       </Helmet>
-      {mode === "ai" ? (
-        <AIContentPrompt
-          contentType="course"
-          teacherName={teacherName ?? undefined}
-          onGenerated={handleGenerated}
-          onSkip={() => setMode("manual")}
-        />
-      ) : mode === "manual" ? (
-        <>
-          {createCourseMutation.isError ? (
-            <p className={styles.bannerError} role="alert">
-              Could not create the course. Nothing was saved. Check your connection and try again.
-            </p>
-          ) : null}
-          <StartForm
-            teacherName={teacherName}
-            isPending={createCourseMutation.isPending}
-            onBack={() => {
-              createCourseMutation.reset();
-              setMode("ai");
-            }}
-            onCreate={handleManualCreate}
-          />
-        </>
-      ) : (
-        <div className={styles.status}>
-          {createCourseMutation.isError ? (
-            <>
-              <p className={styles.bannerError} role="alert">
-                Could not create the course. Nothing was saved.
-              </p>
-              <Button
-                onClick={() => {
-                  if (lastRequest.current) create(lastRequest.current.input, lastRequest.current.fromAi);
-                }}
-              >
-                Try again
-              </Button>
-            </>
-          ) : (
-            <>
-              <Spinner size="lg" />
-              <p className={styles.statusText}>Setting up your course...</p>
-            </>
-          )}
-        </div>
-      )}
+      {createCourseMutation.isError ? (
+        <p className={styles.bannerError} role="alert">
+          Could not create the course. Nothing was saved. Check your connection and try again.
+        </p>
+      ) : null}
+      <StartForm
+        key={aiFill?.key ?? 0}
+        teacherName={teacherName}
+        isPending={createCourseMutation.isPending}
+        initial={aiFill?.values}
+        onAiFilled={handleAiFilled}
+        onCreate={handleCreate}
+      />
     </>
   );
 }

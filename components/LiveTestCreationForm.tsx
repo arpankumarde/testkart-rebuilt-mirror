@@ -201,10 +201,10 @@ export const LiveTestCreationForm: React.FC<LiveTestCreationFormProps> = ({ clas
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create Live Test?</DialogTitle>
+            <DialogTitle>Create this live test as a draft?</DialogTitle>
             <DialogDescription>
-              This creates your live test as a draft and takes you straight to the question manager. It won&apos;t be
-              visible to students until you add questions and publish it. You choose Public or Unlisted when you publish.
+              You go straight to adding questions next. Students cannot see it until you add questions and publish it,
+              and you can change everything on this form until then.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -212,7 +212,7 @@ export const LiveTestCreationForm: React.FC<LiveTestCreationFormProps> = ({ clas
               <Button variant="ghost">Cancel</Button>
             </DialogClose>
             <Button onClick={handleConfirmCreate} disabled={createLiveTest.isPending}>
-              {createLiveTest.isPending ? 'Creating...' : 'Confirm & Create'}
+              {createLiveTest.isPending ? 'Creating...' : 'Create and add questions'}
             </Button>
           </DialogFooter>
         </DialogContent>

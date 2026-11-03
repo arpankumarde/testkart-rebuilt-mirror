@@ -48,6 +48,34 @@ const LedgerRow = ({ label, value, isLoading }: { label: string; value: string; 
   </div>
 );
 
+/** Shown in place of an empty balance and an empty table until the first money arrives. */
+const FirstEarningSteps = () => (
+  <section className={styles.firstSteps} aria-labelledby="first-earning-title">
+    <h2 id="first-earning-title" className={styles.firstStepsTitle}>How you get paid</h2>
+    <p className={styles.firstStepsText}>Nothing has been earned yet. This is what happens after your first sale.</p>
+    <ol className={styles.steps}>
+      <li>
+        <span className={styles.stepName}>A student buys one of your listings</span>
+        <span className={styles.stepDetail}>Free listings bring students in; paid ones earn.</span>
+      </li>
+      <li>
+        <span className={styles.stepName}>What you keep lands in your balance</span>
+        <span className={styles.stepDetail}>
+          That is the price after the platform fee (<Link to="/teacher/subscription" className={styles.introLink}>see your fee</Link>). A live test sale counts once the test ends.
+        </span>
+      </li>
+      <li>
+        <span className={styles.stepName}>Add your bank account at ₹{MIN_WITHDRAWAL}</span>
+        <span className={styles.stepDetail}>We verify it once; after that it stays on file.</span>
+      </li>
+      <li>
+        <span className={styles.stepName}>Withdraw to your bank</span>
+        <span className={styles.stepDetail}>Request any amount from ₹{MIN_WITHDRAWAL} and track it on this page.</span>
+      </li>
+    </ol>
+  </section>
+);
+
 const TeacherEarningsPage: React.FC = () => {
   const { data: transactions, isFetching, error } = useTeacherEarningsQuery();
   const { data: bankDetails, isFetching: isFetchingBankDetails } = useTeacherBankDetailsQuery();
@@ -99,6 +127,11 @@ const TeacherEarningsPage: React.FC = () => {
   const isBalanceLoading = isFetchingBalance && !balanceData;
   const isTransactionsLoading = isFetching && !transactions;
   const isBankLoading = isFetchingBankDetails && bankDetails === undefined;
+  // No money has ever moved. Free enrolments still list as ₹0 sales, so the
+  // transactions table stays whenever it has rows.
+  const neverEarned =
+    !!balanceData && summary.totalEarnings === 0 && summary.availableBalance === 0 && summary.totalWithdrawn === 0;
+  const showTransactions = !neverEarned || (transactions?.length ?? 0) > 0;
 
   const hasMinimum = summary.availableBalance >= MIN_WITHDRAWAL;
   const bankStatusName = bankDetails?.verificationStatus ?? 'none';
@@ -214,6 +247,10 @@ const TeacherEarningsPage: React.FC = () => {
           </Button>
         </TeacherPageHeader>
 
+        {neverEarned ? (
+          <FirstEarningSteps />
+        ) : (
+        <>
         <div className={styles.summary}>
           <section className={styles.balance} aria-labelledby="balance-label">
             <div className={styles.balanceHead}>
@@ -275,7 +312,10 @@ const TeacherEarningsPage: React.FC = () => {
         </div>
 
         <TeacherWithdrawalSection isLayoutPending={isBalanceLoading || isTransactionsLoading || isBankLoading} />
+        </>
+        )}
 
+        {showTransactions && (
         <section className={styles.panel} aria-labelledby="transactions-title">
           <div className={styles.panelHead}>
             <h2 id="transactions-title" className={styles.panelTitle}>Transactions</h2>
@@ -295,7 +335,7 @@ const TeacherEarningsPage: React.FC = () => {
           )}
 
           <div className={styles.results}>
-            <table className={styles.table}>
+            <table className={styles.table} aria-labelledby="transactions-title">
               <colgroup>
                 <col className={styles.colDate} />
                 <col className={styles.colType} />
@@ -309,8 +349,8 @@ const TeacherEarningsPage: React.FC = () => {
                   <th>Date</th>
                   <th>Type</th>
                   <th>Details</th>
-                  <th className={styles.numeric}>Gross</th>
-                  <th className={styles.numeric}>Fee</th>
+                  <th className={styles.numeric}>Price paid</th>
+                  <th className={styles.numeric}>Testkart fee</th>
                   <th className={styles.numeric}>You keep</th>
                 </tr>
               </thead>
@@ -347,7 +387,21 @@ const TeacherEarningsPage: React.FC = () => {
                         <td className={styles.date}>{tx.transactionDate ? format(new Date(tx.transactionDate), 'MMM dd, yyyy') : 'N/A'}</td>
                         <td>
                           <span className={`${styles.typeBadge} ${isRefunded ? styles.refunded : styles[txType]}`}>
-                            {isRefunded ? 'Refunded' : txType === 'sponsored' ? 'Sponsored' : txType === 'prize_deduction' ? 'Prize deduction' : txType === 'subscription' ? 'Subscription' : isBonus ? 'Bonus' : txType}
+                            {isRefunded
+                              ? 'Refunded'
+                              : txType === 'sponsored'
+                                ? 'Sponsored'
+                                : txType === 'prize_deduction'
+                                  ? 'Live test prize'
+                                  : txType === 'subscription'
+                                    ? 'Subscription'
+                                    : isBonus
+                                      ? 'Bonus'
+                                      : txType === 'withdrawal'
+                                        ? 'Withdrawal'
+                                        : txType === 'sale'
+                                          ? 'Sale'
+                                          : txType.replace(/_/g, ' ')}
                           </span>
                         </td>
                         <td>
@@ -399,7 +453,7 @@ const TeacherEarningsPage: React.FC = () => {
                         </td>
                         <td className={styles.numeric} data-label="Gross">
                           {rupees.format(tx.grossAmount)}
-                          {txType === 'sponsored' && <span className={styles.cellNote}>commission</span>}
+                          {txType === 'sponsored' && <span className={styles.cellNote}>Testkart's share</span>}
                         </td>
                         <td className={styles.numeric} data-label="Fee">
                           {hasNoFee ? '-' : `${tx.platformFeePercentage.toFixed(0)}%`}
@@ -419,6 +473,7 @@ const TeacherEarningsPage: React.FC = () => {
             </table>
           </div>
         </section>
+        )}
 
         <TeacherBankAccountDialog
           open={openDialog === 'account'}

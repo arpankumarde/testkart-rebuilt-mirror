@@ -1,6 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import { TeacherKindTile } from "./TeacherKindTile";
+import type { TeacherContentKind } from "../helpers/teacherContentKinds";
 import styles from "./TeacherFormHeader.module.css";
 
 interface TeacherFormHeaderProps {
@@ -12,6 +14,8 @@ interface TeacherFormHeaderProps {
      arrow already carries that. */
   backLabel?: string;
   title: string;
+  /* The content kind being made or edited; draws its colour tile by the title. */
+  kind?: TeacherContentKind;
   /* Form pages take a subtitle, unlike the list pages - it says what this step
      produces, which the sidebar cannot. */
   subtitle?: React.ReactNode;
@@ -32,6 +36,7 @@ export const TeacherFormHeader: React.FC<TeacherFormHeaderProps> = ({
   onBack,
   backLabel,
   title,
+  kind,
   subtitle,
   children,
   className,
@@ -52,7 +57,10 @@ export const TeacherFormHeader: React.FC<TeacherFormHeaderProps> = ({
     ) : null}
 
     <div className={styles.titleRow}>
-      <h1 className={styles.title}>{title}</h1>
+      <div className={styles.titleGroup}>
+        {kind && <TeacherKindTile kind={kind} />}
+        <h1 className={styles.title}>{title}</h1>
+      </div>
       {children ? <div className={styles.actions}>{children}</div> : null}
     </div>
 

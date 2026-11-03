@@ -17,7 +17,7 @@ const EditLiveTestContent: React.FC<{ liveTestIdParam: string | undefined }> = (
 
   return (
     <div className={styles.page}>
-      <TeacherFormHeader
+      <TeacherFormHeader kind="live_test"
         backTo="/teacher/live-tests"
         backLabel="Live tests"
         title="Edit live test"

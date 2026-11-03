@@ -263,7 +263,7 @@ const TeacherQuestionBankPage: React.FC = () => {
                     <Layers size={14} aria-hidden="true" />
                     {q.sourceTestSeriesTitle
                       ? q.sourceTestItemTitle
-                        ? `${q.sourceTestSeriesTitle} → ${q.sourceTestItemTitle}`
+                        ? `${q.sourceTestSeriesTitle} - ${q.sourceTestItemTitle}`
                         : q.sourceTestSeriesTitle
                       : 'Directly uploaded'}
                   </span>
@@ -280,7 +280,7 @@ const TeacherQuestionBankPage: React.FC = () => {
                   {q.createdAt && (
                     <span className={styles.metaItem} title="Added">
                       <Clock size={14} aria-hidden="true" />
-                      {new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(q.createdAt))}
+                      {new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(q.createdAt))}
                     </span>
                   )}
                 </div>
@@ -291,17 +291,23 @@ const TeacherQuestionBankPage: React.FC = () => {
               </div>
 
               <div>
-                <Button variant="outline" size="sm" onClick={() => toggleOptions(q.id)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  aria-expanded={expandedOptions.has(q.id)}
+                  aria-controls={`qb-answer-${q.id}`}
+                  onClick={() => toggleOptions(q.id)}
+                >
                   {expandedOptions.has(q.id) ? (
-                    <><ChevronUp size={14} /> Hide answer</>
+                    <><ChevronUp size={14} aria-hidden="true" /> Hide answer</>
                   ) : (
-                    <><ChevronDown size={14} /> Show answer</>
+                    <><ChevronDown size={14} aria-hidden="true" /> Show answer</>
                   )}
                 </Button>
               </div>
 
               {expandedOptions.has(q.id) && (
-                <>
+                <div id={`qb-answer-${q.id}`} className={styles.answer}>
                   <div className={styles.options}>{renderOptions(q)}</div>
                   {hasExplanation(q.explanation) && (
                     <div className={styles.explanation}>
@@ -309,7 +315,7 @@ const TeacherQuestionBankPage: React.FC = () => {
                       <MathMLContent html={q.explanation as string} />
                     </div>
                   )}
-                </>
+                </div>
               )}
 
               <div className={styles.cardFooter}>
@@ -458,7 +464,9 @@ const TeacherQuestionBankPage: React.FC = () => {
             <DialogHeader>
               <DialogTitle>{questionToEdit ? 'Edit question' : 'Add question'}</DialogTitle>
               <DialogDescription>
-                {questionToEdit ? 'Changes apply everywhere this question is used.' : 'Add a question you can reuse across your mock tests.'}
+                {questionToEdit
+                  ? 'This changes the copy in your question bank. Tests that already use it keep their own copy.'
+                  : 'Add a question you can reuse across your mock tests.'}
               </DialogDescription>
             </DialogHeader>
             <BankQuestionForm

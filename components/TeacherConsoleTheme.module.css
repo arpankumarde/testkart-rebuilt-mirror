@@ -1,0 +1,83 @@
+/*
+ * Semantic layer for the teacher console over the shared palette tokens. No
+ * colour is defined here: every value points at an --sp-* / --fc-* token that
+ * base.css already themes for dark mode.
+ */
+.console {
+  --tc-bg: var(--sp-surface);
+  --tc-card: var(--sp-card);
+  --tc-ink: var(--sp-ink);
+  --tc-text: var(--sp-text);
+  --tc-muted: var(--sp-muted);
+  --tc-line: var(--sp-line);
+  --tc-line-strong: var(--sp-line-strong);
+
+  --tc-panel: var(--fc-panel);
+  --tc-panel-ink: var(--fc-panel-ink);
+  --tc-panel-text: var(--fc-panel-text);
+  --tc-panel-muted: var(--fc-panel-muted);
+
+  --tc-money: var(--fc-price);
+
+  --tc-radius-panel: 1.5rem;
+  --tc-radius-card: 1rem;
+  --tc-radius-tile: 0.75rem;
+
+  /* The hard ledge under the one primary action on a screen */
+  --tc-cta-ledge: 0 3px 0 var(--tk-brand-ink);
+
+  /*
+   * Accessibility overrides for every teacher page. The site-wide focus token
+   * is a 20%-alpha coral ring (about 1.1:1, effectively invisible), and grey
+   * labels on grey chips measured 4.4:1; both are lifted here.
+   */
+  --shadow-focus: 0 0 0 2px var(--sp-card), 0 0 0 4px var(--tk-brand-text);
+  --muted-foreground: var(--sp-muted);
+
+  /*
+   * Read by the shared Console* list kit, which the student console also
+   * uses; each falls back to the student value where these are not set.
+   */
+  --tc-elevation: none;
+  --tc-tab-active-bg: var(--fc-panel);
+  --tc-tab-active-ink: var(--fc-panel-ink);
+  --tc-tab-count-bg: var(--fc-mint-tint);
+  --tc-tab-count-ink: var(--fc-mint-ink);
+  --tc-accent-tint: var(--fc-sage-tint);
+  --tc-accent-ink: var(--fc-sage-ink);
+}
+
+.mock_test {
+  --tone-tint: var(--fc-blue-tint);
+  --tone-line: var(--fc-blue-line);
+  --tone-edge: var(--fc-blue-edge);
+  --tone-ink: var(--fc-blue-ink);
+}
+
+.course {
+  --tone-tint: var(--sp-lavender-tint);
+  --tone-line: var(--sp-lavender-line);
+  --tone-edge: var(--sp-lavender-edge);
+  --tone-ink: var(--sp-lavender-ink);
+}
+
+.digital_product {
+  --tone-tint: var(--fc-butter-tint);
+  --tone-line: var(--fc-butter-line);
+  --tone-edge: var(--fc-butter-edge);
+  --tone-ink: var(--fc-butter-ink);
+}
+
+.live_test {
+  --tone-tint: var(--fc-peach-tint);
+  --tone-line: var(--fc-peach-line);
+  --tone-edge: var(--fc-peach-edge);
+  --tone-ink: var(--fc-peach-ink);
+}
+
+.bundle {
+  --tone-tint: var(--fc-mint-tint);
+  --tone-line: var(--sp-mint-line);
+  --tone-edge: var(--fc-mint-edge);
+  --tone-ink: var(--fc-mint-ink);
+}

@@ -21,6 +21,26 @@
   --review-advisory: var(--warning);
 }
 
+/* Section tones from the /app palette, set with data-tone: the heading marker,
+   bullet markers and test numbers take them. */
+.page [data-tone="lavender"] {
+  --tone-tint: var(--sp-lavender-tint);
+  --tone-edge: var(--sp-lavender-edge);
+  --tone-ink: var(--sp-lavender-ink);
+}
+
+.page [data-tone="mint"] {
+  --tone-tint: var(--fc-mint-tint);
+  --tone-edge: var(--fc-mint-edge);
+  --tone-ink: var(--fc-mint-ink);
+}
+
+.page [data-tone="butter"] {
+  --tone-tint: var(--fc-butter-tint);
+  --tone-edge: var(--fc-butter-edge);
+  --tone-ink: var(--fc-butter-ink);
+}
+
 /* TeacherDashboardLayout's main is overflow:auto but never scrolls, which leaves
    the sticky rail inert. Same page-scoped fix as the series edit page. */
 :global(main):has(.page) {
@@ -97,20 +117,26 @@
 }
 
 /*
- * The brand block from TeacherCtaBanner: flat coral and ink type, fixed in both
- * themes. Re-declaring the button tokens turns every Button inside into the ink
- * solid or the ink outline with no per-button rules.
+ * The ready-to-submit verdict: the console's pine panel, like the Overview's
+ * stage panel. Re-declaring the button tokens makes the primary Button coral
+ * with ink text and the outline Button panel ink, with no per-button rules; in
+ * the test series flow (tk-flow) the primary is the peach CTA and the outline
+ * reads the --flow-outline tokens instead. Falls back to the old coral block
+ * outside the teacher console.
  */
 .verdictBrand {
-  --primary: var(--tk-brand-ink);
-  --primary-foreground: hsl(0 0% 100%);
-  --tk-brand-text: var(--tk-brand-ink);
-  --tk-brand-hover: var(--tk-brand-ink-hover);
-  --tk-brand-hover-foreground: hsl(0 0% 100%);
-  --background: var(--tk-brand);
+  --flow-outline-bg: transparent;
+  --flow-outline-line: var(--tc-panel-ink, var(--tk-brand-ink));
+  --flow-outline-ink: var(--tc-panel-ink, var(--tk-brand-ink));
+  --primary: var(--tk-brand);
+  --primary-foreground: var(--tk-brand-ink);
+  --tk-brand-text: var(--tc-panel-ink, var(--tk-brand-ink));
+  --tk-brand-hover: var(--tk-brand);
+  --tk-brand-hover-foreground: var(--tk-brand-ink);
+  --background: var(--tc-panel, var(--tk-brand));
 
-  background-color: var(--tk-brand);
-  color: var(--tk-brand-ink);
+  background-color: var(--tc-panel, var(--tk-brand));
+  color: var(--tc-panel-ink, var(--tk-brand-ink));
 }
 
 /* A series that cannot be submitted gets a solid red rule, not a wash. */
@@ -289,7 +315,7 @@
   font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.45;
-  color: var(--tk-brand-text);
+  color: var(--fc-blue-ink);
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.2em;
@@ -301,7 +327,7 @@
 }
 
 .fixLink:focus-visible {
-  outline: 2px solid var(--tk-brand-text);
+  outline: 2px solid var(--fc-blue-edge);
   outline-offset: 2px;
 }
 
@@ -341,6 +367,60 @@
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--foreground);
+}
+
+.block[data-tone] .blockHeader h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.block[data-tone] .blockHeader h2::before {
+  content: "";
+  flex-shrink: 0;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 0.25rem;
+  background-color: var(--tone-edge);
+}
+
+.sectionToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.sectionToggle:focus-visible {
+  outline: 2px solid var(--fc-blue-edge);
+  outline-offset: 2px;
+}
+
+.sectionToggle:hover .summaryIcon {
+  color: var(--foreground);
+}
+
+.sectionToggle[aria-expanded="true"] .summaryIcon {
+  transform: rotate(180deg);
+}
+
+.sectionCount {
+  font-family: var(--font-family-base);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.testList[hidden] {
+  display: none;
 }
 
 .muted {
@@ -506,7 +586,7 @@
 }
 
 .bullets li::marker {
-  color: var(--tk-brand-text);
+  color: var(--tone-edge, var(--tk-brand-text));
 }
 
 .longDescription {
@@ -533,7 +613,7 @@
 }
 
 .longDescription summary:focus-visible {
-  outline: 2px solid var(--tk-brand-text);
+  outline: 2px solid var(--fc-blue-edge);
   outline-offset: 2px;
 }
 
@@ -617,6 +697,7 @@
   box-shadow: inset 3px 0 0 var(--review-fail);
 }
 
+/* A tinted chip in the section's tone; the plain deep-orange numeral outside one. */
 .testNumber {
   font-family: var(--font-family-heading);
   font-size: 1.125rem;
@@ -624,6 +705,21 @@
   line-height: 1.3;
   color: var(--tk-brand-text);
   font-variant-numeric: tabular-nums;
+}
+
+.block[data-tone] .testNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: start;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 1px solid var(--tone-edge);
+  border-radius: 999px;
+  background-color: var(--tone-tint);
+  color: var(--tone-ink);
+  font-size: 0.8125rem;
+  line-height: 1;
 }
 
 .testMain {

@@ -1,3 +1,15 @@
+.allButton {
+  margin-left: var(--spacing-2);
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--fc-blue-ink);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
 .dialogContent {
   width: 100%;
   max-width: 400px;

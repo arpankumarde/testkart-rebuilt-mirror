@@ -120,6 +120,19 @@ export type TeacherOverviewTotals = {
   availableBalance: number;
 };
 
+/**
+ * One piece of the teacher's own work the Overview names by title: the draft
+ * to continue, the item waiting on review, or one sent back. `note` is the
+ * admin's review note and is only set on rejections.
+ */
+export type TeacherStageItem = {
+  kind: TeacherMixKind;
+  id: number;
+  title: string;
+  at: Date;
+  note: string | null;
+};
+
 export type OutputType = {
   range: TeacherOverviewRange;
   days: number;
@@ -130,6 +143,14 @@ export type OutputType = {
   topSellers: TeacherTopSeller[];
   recentSales: TeacherRecentSale[];
   totals: TeacherOverviewTotals;
+  /** Most recently edited draft that is not waiting on review. */
+  lastDraft: TeacherStageItem | null;
+  /** Items whose latest review is pending, newest first. */
+  inReview: TeacherStageItem[];
+  /** Items whose latest review is a rejection from the last 90 days, newest first. */
+  rejected: TeacherStageItem[];
+  /** What the teacher said in onboarding they would publish first; test series when unknown. */
+  firstContentType: TeacherMixKind;
 };
 
 export const getTeacherDashboardOverview = async (

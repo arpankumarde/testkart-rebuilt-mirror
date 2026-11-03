@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Send } from 'lucide-react';
 import { Button } from './Button';
 import { Skeleton } from './Skeleton';
 import { BundleForm, BundleFormValues } from './BundleForm';
@@ -10,16 +10,21 @@ import styles from './BundleEditor.module.css';
 
 interface BundleEditorProps {
   bundleId: number | undefined;
-  /** Where Cancel and a finished save go. */
+  /** Where Cancel goes; the admin edit page also returns there after a save. */
   exitTo: string;
   exitLabel: string;
 }
 
-/* Loads a saved bundle into BundleForm and saves it. Shared by the teacher and admin edit pages. */
+/*
+ * Loads a saved bundle into BundleForm and saves it. Shared by the teacher and
+ * admin edit pages. Teachers stay on the page after saving and can publish a
+ * draft from here, instead of finding the Publish action on the list card.
+ */
 export const BundleEditor = ({ bundleId, exitTo, exitLabel }: BundleEditorProps) => {
   const navigate = useNavigate();
   const { data: bundle, isLoading, isError, refetch, isFetching } = useTeacherBundleDetailsQuery(bundleId);
-  const { updateBundleMutation } = useBundleMutations();
+  const { updateBundleMutation, publishBundleMutation } = useBundleMutations();
+  const isAdminEdit = exitTo.startsWith('/admin');
 
   const handleSubmit = (values: BundleFormValues) => {
     if (!bundle) return;
@@ -39,7 +44,12 @@ export const BundleEditor = ({ bundleId, exitTo, exitLabel }: BundleEditorProps)
           ? {}
           : { courseIds: values.courseIds, testIds: values.testIds, digitalProductIds: values.digitalProductIds }),
       },
-      { onSuccess: () => navigate(exitTo) }
+      {
+        onSuccess: () => {
+          if (isAdminEdit) navigate(exitTo);
+          else refetch();
+        },
+      }
     );
   };
 
@@ -79,6 +89,26 @@ export const BundleEditor = ({ bundleId, exitTo, exitLabel }: BundleEditorProps)
   }
 
   return (
+    <>
+    {!isAdminEdit && !bundle.isPublished && (
+      <div className={styles.publishBar}>
+        <div className={styles.publishText}>
+          <strong>This bundle is a draft.</strong>
+          <span>
+            Publish it once it holds 2 or more of your published items. Save any changes below first.
+          </span>
+        </div>
+        <Button
+          onClick={() =>
+            publishBundleMutation.mutate({ bundleId: bundle.id, publish: true }, { onSuccess: () => refetch() })
+          }
+          disabled={publishBundleMutation.isPending || updateBundleMutation.isPending}
+        >
+          <Send size={16} aria-hidden="true" />
+          {publishBundleMutation.isPending ? 'Publishing' : 'Publish bundle'}
+        </Button>
+      </div>
+    )}
     <BundleForm
       key={bundle.id}
       initialValues={{
@@ -100,5 +130,6 @@ export const BundleEditor = ({ bundleId, exitTo, exitLabel }: BundleEditorProps)
       isSubmitting={updateBundleMutation.isPending}
       submitText="Save changes"
     />
+    </>
   );
 };

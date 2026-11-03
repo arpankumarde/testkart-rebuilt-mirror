@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, HelpCircle, Headset, BookOpen, LogOut, UserCircle } from 'lucide-react';
+import { Menu, HelpCircle, Headset, BookOpen, LogOut, UserCircle, Plus } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { TeacherSidebar } from './TeacherSidebar';
 import { TeacherMasterclassBanner } from './TeacherMasterclassBanner';
@@ -7,6 +7,8 @@ import { Button } from './Button';
 import { MissingContactInfoDialog } from './MissingContactInfoDialog';
 import { RequiredBillingStateDialog } from './RequiredBillingStateDialog';
 import { LogoutConfirmDialog } from './LogoutConfirmDialog';
+import { TeacherCreateChooserProvider, useTeacherCreateChooser } from './TeacherCreateChooser';
+import { teacherConsoleClass } from './TeacherConsoleTheme';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,6 +58,16 @@ const FOCUSED_LAYOUT_ROUTE_PATTERNS: RegExp[] = [
   /^\/teacher\/products\/\d+\/edit\/?$/,
 ];
 
+/** Lives inside the chooser provider, which the layout itself sits outside of. */
+const MobileCreateButton = () => {
+  const { openChooser } = useTeacherCreateChooser();
+  return (
+    <button type="button" className={styles.mobileCreateButton} onClick={openChooser} aria-label="Create">
+      <Plus size={20} aria-hidden="true" />
+    </button>
+  );
+};
+
 export const TeacherDashboardLayout: React.FC<TeacherDashboardLayoutProps> = ({ children, className, hideSupportBar = false, sidebarDefaultCollapsed = false }) => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const location = useLocation();
@@ -65,7 +77,9 @@ export const TeacherDashboardLayout: React.FC<TeacherDashboardLayoutProps> = ({ 
   const navigate = useNavigate();
   const user = authState.type === 'authenticated' ? authState.user : null;
   const isManager = user?.role === 'teacher' && user.teacherRole === 'manager';
-  const billingStateRequired = useBillingStateRequired();
+  // Support stays reachable behind the billing gate, so a stuck teacher can ask for help.
+  const isSupportRoute = location.pathname.startsWith('/teacher/support');
+  const billingStateRequired = useBillingStateRequired() && !isSupportRoute;
 
   // Same sign-out as the sidebar footer: confirmed through LogoutConfirmDialog,
   // then back to the home page.
@@ -77,6 +91,8 @@ export const TeacherDashboardLayout: React.FC<TeacherDashboardLayoutProps> = ({ 
   const isFocusedRoute = FOCUSED_LAYOUT_ROUTE_PATTERNS.some((pattern) => pattern.test(location.pathname));
   const effectiveHideSupportBar = hideSupportBar || isFocusedRoute;
   const effectiveSidebarDefaultCollapsed = sidebarDefaultCollapsed || isFocusedRoute;
+  // The Overview carries guides and support in its own side panel.
+  const isOverview = location.pathname === '/teacher/dashboard';
 
   const toggleMobileSidebar = () => {
     setIsMobileSidebarOpen(!isMobileSidebarOpen);
@@ -87,14 +103,20 @@ export const TeacherDashboardLayout: React.FC<TeacherDashboardLayoutProps> = ({ 
   };
 
   return (
-    <>
-      {/* The billing state gate comes first; the optional contact steps wait until it is done. */}
-      {billingStateRequired ? <RequiredBillingStateDialog /> : <MissingContactInfoDialog />}
+    <TeacherCreateChooserProvider>
+    <div className={teacherConsoleClass}>
+      {/* First stop for keyboard users: jumps past the 20-odd sidebar links. */}
+      <a href="#teacher-main" className={styles.skipLink}>
+        Skip to content
+      </a>
+      {/* The billing state gate comes first; the optional contact steps wait until it is done,
+          and never open over an editor the teacher is working in. */}
+      {billingStateRequired ? <RequiredBillingStateDialog /> : !isFocusedRoute && <MissingContactInfoDialog />}
       <BrandFavicons />
 
-      {/* Mobile-only top bar: hamburger left, brand centred, an equal-width
-          spacer on the right keeps the brand optically centred. Hidden above
-          768px, where the sidebar is always visible. */}
+      {/* Mobile-only top bar: hamburger and brand on the left, Create and the
+          account menu on the right. Hidden above 768px, where the sidebar is
+          always visible. */}
       <header className={styles.mobileHeader}>
         <Button
           variant="ghost"
@@ -109,6 +131,8 @@ export const TeacherDashboardLayout: React.FC<TeacherDashboardLayoutProps> = ({ 
           <img src={getBrandLogo(isDarkMode)} alt="Testkart" className={styles.mobileLogo} />
           <span className={styles.mobileChip}>Teacher</span>
         </Link>
+        <div className={styles.mobileHeaderActions}>
+        {!billingStateRequired && <MobileCreateButton />}
         {user ? (
           // modal={false}: the menu hands off to a Dialog, and a modal menu
           // would leave the body's pointer lock behind when it closes.
@@ -137,6 +161,7 @@ export const TeacherDashboardLayout: React.FC<TeacherDashboardLayoutProps> = ({ 
         ) : (
           <span className={styles.mobileHeaderSpacer} aria-hidden="true" />
         )}
+        </div>
       </header>
 
       <LogoutConfirmDialog
@@ -161,9 +186,9 @@ export const TeacherDashboardLayout: React.FC<TeacherDashboardLayoutProps> = ({ 
         onMobileClose={closeMobileSidebar}
         defaultCollapsed={effectiveSidebarDefaultCollapsed}
       />
-      <main className={styles.mainContent}>
+      <main id="teacher-main" tabIndex={-1} className={styles.mainContent}>
         {!effectiveHideSupportBar && <TeacherMasterclassBanner />}
-        {!effectiveHideSupportBar && (
+        {!effectiveHideSupportBar && !isOverview && (
           <div className={styles.supportBar}>
             <span className={styles.supportText}>
               <HelpCircle size={15} className={styles.supportIcon} aria-hidden="true" />
@@ -184,6 +209,7 @@ export const TeacherDashboardLayout: React.FC<TeacherDashboardLayoutProps> = ({ 
         <div className={styles.pageBody}>{billingStateRequired ? null : children}</div>
       </main>
       </div>
-    </>
+    </div>
+    </TeacherCreateChooserProvider>
   );
 };

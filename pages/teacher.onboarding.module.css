@@ -9,7 +9,7 @@
  */
 .pageContainer {
   min-height: 100vh;
-  background-color: var(--background);
+  background-color: var(--tc-bg);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -29,8 +29,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--spacing-8);
-  background-color: var(--surface);
-  border-bottom: 1px solid var(--border);
+  background-color: var(--tc-card);
+  border-bottom: 1px solid var(--tc-line);
   z-index: var(--z-nav);
 }
 
@@ -65,9 +65,31 @@
   margin-bottom: var(--spacing-6);
 }
 
+.welcome {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--tc-ink);
+}
+
+.welcomeText {
+  max-width: 52ch;
+  margin: 0.5rem 0 1.5rem;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--tc-muted);
+}
+
 @media (max-width: 640px) {
   .content {
     padding-top: var(--spacing-6);
+  }
+
+  .welcome {
+    font-size: 1.5rem;
   }
 }
 

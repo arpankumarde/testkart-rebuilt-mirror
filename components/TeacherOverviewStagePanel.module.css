@@ -1,0 +1,317 @@
+/*
+ * The Overview's one bold element: a pine panel with the progress track and
+ * the single next step. --tc-panel turns light sage in dark mode, with dark
+ * ink, so every text colour here comes from the panel's own ink tokens.
+ */
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 1.75rem 2rem 2rem;
+  background-color: var(--tc-panel);
+  color: var(--tc-panel-ink);
+  border-radius: var(--tc-radius-panel);
+}
+
+.track {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin: 0 0 1.25rem;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--tc-panel-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.stepMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1.5px solid var(--tc-panel-muted);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.stepDone {
+  color: var(--tc-panel-text);
+}
+
+.stepDone .stepMark {
+  background-color: var(--fc-mint-tint);
+  border-color: var(--fc-mint-tint);
+  color: var(--fc-mint-ink);
+}
+
+.stepCurrent {
+  color: var(--tc-panel-ink);
+}
+
+.stepCurrent .stepMark {
+  border-color: var(--tc-panel-ink);
+  border-width: 2px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-6);
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.headline {
+  max-width: 30ch;
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.875rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--tc-panel-ink);
+  overflow-wrap: anywhere;
+}
+
+.line {
+  margin: 0.5rem 0 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--tc-panel-text);
+}
+
+.note {
+  max-width: 60ch;
+  margin: 0.875rem 0 0;
+  padding: 0.75rem 1rem;
+  background-color: var(--tc-card);
+  border-left: 4px solid var(--fc-peach-edge);
+  border-radius: 0.625rem;
+  color: var(--tc-ink);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.noteLabel {
+  font-weight: 700;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-3);
+  margin-top: 1.375rem;
+}
+
+.primary,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  height: 3rem;
+  padding: 0 1.5rem;
+  border-radius: 0.875rem;
+  font-family: var(--font-family-base);
+  font-size: 1rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.primary {
+  margin-bottom: 3px;
+  background-color: var(--tk-brand);
+  border: 1px solid var(--tk-brand-ink);
+  box-shadow: var(--tc-cta-ledge);
+  color: var(--tk-brand-ink);
+  transition:
+    transform var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease;
+}
+
+.primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 var(--tk-brand-ink);
+}
+
+.primary:active {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+
+.secondary {
+  background-color: transparent;
+  border: 1.5px solid var(--tc-panel-muted);
+  color: var(--tc-panel-ink);
+}
+
+.secondary:hover {
+  border-color: var(--tc-panel-ink);
+}
+
+.primary:focus-visible,
+.secondary:focus-visible {
+  outline: 2px solid var(--tc-panel-ink);
+  outline-offset: 3px;
+}
+
+.kindTile {
+  width: 5.5rem;
+  height: 5.5rem;
+  margin-right: 0.5rem;
+  border-width: 1.5px;
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 0 var(--tone-edge);
+  transform: rotate(-6deg);
+}
+
+/* First-item picker: one big tile per kind, a click opens that creator. */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.875rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tile {
+  position: relative;
+  display: flex;
+  height: 100%;
+  box-sizing: border-box;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  padding: 1.125rem;
+  background-color: var(--tc-card);
+  border: 1.5px solid var(--tone-line);
+  border-radius: 1.125rem;
+  box-shadow: 0 4px 0 var(--tone-edge);
+  color: var(--tc-ink);
+  text-decoration: none;
+  transition:
+    transform var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease;
+}
+
+.tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--tone-edge);
+}
+
+.tile:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--tone-edge);
+}
+
+.tile:focus-visible {
+  outline: 3px solid var(--tc-panel-ink);
+  outline-offset: 3px;
+}
+
+.tileLabel {
+  margin-top: 0.75rem;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.tileHint {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--tc-muted);
+}
+
+.tilePick {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  padding: 0.1875rem 0.5rem;
+  background-color: var(--tk-brand);
+  border: 1px solid var(--tk-brand-ink);
+  border-radius: 999px;
+  color: var(--tk-brand-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+@container overview-main (max-width: 48rem) {
+  .tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container overview-main (max-width: 36rem) {
+  .panel {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .headline {
+    font-size: 1.5rem;
+  }
+
+  .kindTile {
+    display: none;
+  }
+
+  .actions > * {
+    flex: 1 1 100%;
+  }
+
+  .tiles {
+    gap: 0.625rem;
+  }
+
+  .tile {
+    padding: 0.875rem;
+  }
+
+  .tilePick {
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primary,
+  .tile {
+    transition: none;
+  }
+
+  .primary:hover,
+  .primary:active,
+  .tile:hover,
+  .tile:active {
+    transform: none;
+  }
+}

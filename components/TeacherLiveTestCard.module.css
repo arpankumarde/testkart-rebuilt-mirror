@@ -1,25 +1,23 @@
 /*
- * Matches the console's card language, as on TeacherTestCard: a --surface panel
- * on a hairline border with --radius-md and the flat --shadow. Hover moves the
- * border rather than lifting the card - a translate on every card jitters the
- * grid. The left edge stays as the status accent.
+ * The console card, as on TeacherTestCard: --tc-card on a hairline border, no
+ * shadow. Hover moves the border rather than lifting the card. The left edge
+ * stays as the status accent.
  */
 .card {
   display: flex;
   flex-direction: column;
   min-width: 0;
   height: 100%;
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
+  background-color: var(--tc-card, var(--surface));
+  border: 1px solid var(--tc-line, var(--border));
+  border-left: 4px solid var(--tc-line, var(--border));
+  border-radius: var(--tc-radius-card, var(--radius-md));
   overflow: hidden;
   transition: border-color var(--animation-duration-fast) ease;
 }
 
 .card:hover {
-  border-color: color-mix(in srgb, var(--foreground) 22%, var(--border));
+  border-color: var(--tc-line-strong, var(--border));
 }
 
 .card:focus-within {
@@ -33,11 +31,11 @@
 }
 
 .upcoming {
-  border-left-color: var(--info);
+  border-left-color: var(--fc-blue-edge);
 }
 
 .live {
-  border-left-color: var(--tk-brand-deep);
+  border-left-color: var(--fc-peach-edge);
 }
 
 .ended {
@@ -53,11 +51,11 @@
 }
 
 .card.upcoming:hover {
-  border-left-color: var(--info);
+  border-left-color: var(--fc-blue-edge);
 }
 
 .card.live:hover {
-  border-left-color: var(--tk-brand-deep);
+  border-left-color: var(--fc-peach-edge);
 }
 
 .card.closed:hover, .card.full:hover {
@@ -151,8 +149,8 @@
   align-items: flex-start;
   gap: var(--spacing-2);
   font-size: 0.8125rem;
-  color: var(--muted-foreground);
-  background-color: color-mix(in srgb, var(--info) 10%, transparent);
+  color: var(--fc-blue-ink);
+  background-color: var(--fc-blue-tint);
   padding: var(--spacing-2) var(--spacing-3);
   border-radius: var(--radius);
   border-left: 3px solid var(--info);

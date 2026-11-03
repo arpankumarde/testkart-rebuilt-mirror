@@ -28,20 +28,20 @@
 }
 
 .statusPending {
-  background-color: color-mix(in srgb, var(--warning) 15%, transparent);
-  color: var(--warning-text);
+  background-color: var(--fc-butter-tint);
+  color: var(--fc-butter-ink);
   border-color: var(--warning);
 }
 
 .statusVerified {
-  background-color: color-mix(in srgb, var(--success) 15%, transparent);
-  color: var(--success-text);
+  background-color: var(--fc-sage-tint);
+  color: var(--fc-sage-ink);
   border-color: var(--success);
 }
 
 .statusRejected {
-  background-color: color-mix(in srgb, var(--error) 15%, transparent);
-  color: var(--error-text);
+  background-color: var(--error-text);
+  color: var(--sp-card);
   border-color: var(--error);
 }
 

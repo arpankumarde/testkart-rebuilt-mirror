@@ -7,11 +7,14 @@ const MCP_ENDPOINT = "https://testkart.in/_api/mcp/teacher";
 
 const tools = [
   { name: "teacher_whoami", description: "Confirm which Testkart teacher account is connected." },
-  { name: "teacher_actions", description: "Discover available teacher account actions." },
-  { name: "teacher_action_schema", description: "Check the required fields before using an action." },
   { name: "teacher_docs", description: "Read Testkart's question-writing and math-format guidance." },
-  { name: "teacher_read", description: "Read the teacher's courses, tests, questions, students, and account information." },
-  { name: "teacher_write", description: "Create or update content and perform supported teacher actions." },
+  { name: "teacher_tests_*, teacher_test_items_*", description: "List, create, update, submit for review and delete test series and their papers." },
+  { name: "teacher_questions_*, teacher_question_bank_*", description: "Read, write, reorder and bulk-edit questions, and manage the question bank." },
+  { name: "teacher_live_tests_*", description: "Schedule, update and submit live tests, and read their analytics." },
+  { name: "teacher_courses_*, teacher_course_sections_*, teacher_course_lessons_*", description: "Build courses, their sections and lessons." },
+  { name: "teacher_products_*, teacher_bundles_*", description: "Manage study notes and bundles." },
+  { name: "teacher_students_list, teacher_reviews_latest, teacher_certificates_issued", description: "Read enrolled students, reviews and issued certificates." },
+  { name: "teacher_earnings_*, teacher_withdrawal_*, teacher_subscription_*", description: "Read earnings, payouts and plan status, and request a withdrawal with confirmation." },
 ];
 
 const MCPPage: React.FC = () => (
@@ -78,12 +81,12 @@ const MCPPage: React.FC = () => (
             <span className={`${styles.iconTile} ${styles.iconMint}`}><LockKeyhole size={20} aria-hidden="true" /></span>
             <div>
               <p className={styles.kicker}>MCP tools</p>
-              <h2 id="tools-title">A small, schema-guided tool set</h2>
+              <h2 id="tools-title">One tool per teacher action</h2>
             </div>
           </div>
           <p className={styles.sectionIntro}>
-            The server publishes these tools. Clients discover the available actions and read each action's
-            input schema before using it.
+            Every supported teacher action is its own tool with a typed input schema and read-only,
+            destructive, idempotent and open-world hints. The main tool groups are below.
           </p>
           <ul className={styles.toolList}>
             {tools.map((tool) => (

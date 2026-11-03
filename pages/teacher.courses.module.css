@@ -1,23 +1,103 @@
 /* No padding of its own - TeacherDashboardLayout's .pageBody owns the gutter.
-   The old rule added --spacing-8 on top of it. */
+   The same shell as /teacher/test-series: 70rem fits three 360px cards and
+   their gaps; headings take the deep forest green in light mode. */
 .page {
+  --tc-ink: var(--fc-panel);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-6);
+  gap: 1.25rem;
   width: 100%;
-  max-width: 1440px;
+  max-width: 70rem;
   margin: 0 auto;
   box-sizing: border-box;
 }
 
-.content {
-  min-height: 20rem;
+:global(.dark) .page {
+  --tc-ink: var(--sp-ink);
 }
 
+.headerIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--sp-lavender-line);
+  border-radius: 0.875rem;
+  background-color: var(--sp-lavender-tint);
+  color: var(--sp-lavender-ink);
+}
+
+/* The console CTA shape (block with a ledge) in soft peach rather than the
+   full coral. */
+.newButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  height: 2.75rem;
+  margin-bottom: 3px;
+  padding: 0 1.125rem;
+  background-color: var(--fc-peach-tint);
+  border: 1px solid var(--fc-peach-edge);
+  border-radius: 0.875rem;
+  box-shadow: 0 3px 0 var(--fc-peach-edge);
+  color: var(--fc-peach-ink);
+  font-family: var(--font-family-base);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    transform var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease,
+    background-color var(--animation-duration-fast) ease;
+}
+
+.newButton:hover {
+  transform: translateY(-1px);
+  background-color: var(--fc-peach-hover);
+  box-shadow: 0 4px 0 var(--fc-peach-edge);
+}
+
+.newButton:active {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 var(--fc-peach-edge);
+}
+
+.newButton:focus-visible {
+  outline: 2px solid var(--tc-ink);
+  outline-offset: 3px;
+}
+
+.content {
+  container-type: inline-size;
+  min-height: 16rem;
+}
+
+/* Cards are never wider than 360px. Three columns at most; container queries
+   so the open sidebar counts: two below 52rem of list width, one below 30rem. */
 .grid {
+  --grid-gap: 1.25rem;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(17.5rem, 1fr));
-  gap: var(--spacing-4);
+  grid-template-columns: repeat(3, minmax(0, 22.5rem));
+  justify-content: start;
+  gap: var(--grid-gap);
+}
+
+@container (max-width: 52rem) {
+  .grid {
+    --grid-gap: var(--spacing-4);
+    grid-template-columns: repeat(2, minmax(0, 22.5rem));
+  }
+}
+
+@container (max-width: 30rem) {
+  .grid {
+    --grid-gap: 0.875rem;
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 640px) {
@@ -25,7 +105,18 @@
     gap: var(--spacing-4);
   }
 
-  .grid {
-    grid-template-columns: minmax(0, 1fr);
+  .newButton {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .newButton {
+    transition: none;
+  }
+
+  .newButton:hover,
+  .newButton:active {
+    transform: none;
   }
 }

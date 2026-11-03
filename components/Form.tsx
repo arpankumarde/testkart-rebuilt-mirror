@@ -276,7 +276,7 @@ export const FormControl = React.forwardRef<
   any,
   React.ComponentPropsWithoutRef<typeof Slot>
 >(({ className, onBlur: onBlurProp, ...props }, ref) => {
-  const { formItemId, error, formMessageId, onBlur } = useFormField();
+  const { formItemId, error, formMessageId, formDescriptionId, onBlur } = useFormField();
   
   const handleBlur = (e: React.FocusEvent<HTMLElement>) => {
     // Call the original onBlur if provided
@@ -292,7 +292,9 @@ export const FormControl = React.forwardRef<
       id={formItemId}
       className={`${styles.formControl} ${error ? styles.error : ""} ${className || ""}`}
       aria-invalid={!!error}
-      aria-describedby={error ? formMessageId : undefined}
+      // The hint under a field is read with it, and the error after the hint.
+      // A missing description id is ignored by assistive tech.
+      aria-describedby={error ? `${formDescriptionId} ${formMessageId}` : formDescriptionId}
       onBlur={handleBlur}
       {...props}
     />

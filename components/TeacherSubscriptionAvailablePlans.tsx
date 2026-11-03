@@ -155,12 +155,11 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
       )}
 
       {!onTopTier && renewOnlyPlanId === undefined && (
-      <div className={styles.toolbar} role="tablist" aria-label="Billing period">
+      <div className={styles.toolbar} role="group" aria-label="Billing period">
         <div className={styles.billingToggle}>
           <button
             type="button"
-            role="tab"
-            aria-selected={!isYearly}
+            aria-pressed={!isYearly}
             className={`${styles.toggleBtn} ${!isYearly ? styles.active : ""}`}
             onClick={() => setIsYearly(false)}
           >
@@ -168,8 +167,7 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
           </button>
           <button
             type="button"
-            role="tab"
-            aria-selected={isYearly}
+            aria-pressed={isYearly}
             className={`${styles.toggleBtn} ${isYearly ? styles.active : ""}`}
             onClick={() => setIsYearly(true)}
           >
@@ -182,7 +180,7 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
       {paymentMode === "normal" && walletBalance > 0 && (
         <div className={styles.walletCard}>
           <div className={styles.walletInfo}>
-            <span className={styles.walletLabel}>Wallet balance</span>
+            <span className={styles.walletLabel}>Available balance</span>
             <span className={styles.walletAmount}>₹{walletBalance.toLocaleString("en-IN")}</span>
           </div>
           <div className={styles.walletToggle}>
@@ -277,7 +275,7 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
                         ) : (
                           <span>
                             Wallet pays: ₹{walletBalance.toLocaleString("en-IN")} <br/>
-                            PayU: ₹{(plan.price - walletBalance).toLocaleString("en-IN")}
+                            Pay online: ₹{(plan.price - walletBalance).toLocaleString("en-IN")}
                           </span>
                         )}
                       </div>
@@ -364,7 +362,7 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
               <div>
                 <p>
                   Starter and Individual (monthly) are ₹{INTRO_OFFER_PRICE} for the first month on autopay.
-                  Your UPI Autopay mandate is set up for the plan's full price, and renews automatically at
+                  Your automatic UPI payment is set up for the plan's full price, and renews automatically at
                   that price from the second month unless you cancel first.
                 </p>
               </div>

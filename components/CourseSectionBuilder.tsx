@@ -560,7 +560,8 @@ const NewChapterForm: React.FC<{ courseId: number; mutations: Mutations; isFirst
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    const next = title.trim();
+    // A first chapter needs no name to get started; it can be renamed later.
+    const next = title.trim() || (isFirst ? 'Chapter 1' : '');
     if (!next || isPending) return;
     mutations.createSectionMutation.mutate(
       { courseId, title: next, description: null },
@@ -578,11 +579,12 @@ const NewChapterForm: React.FC<{ courseId: number; mutations: Mutations; isFirst
   return (
     <form className={`${styles.newChapter} ${isFirst ? styles.newChapterFirst : ''}`} onSubmit={handleSubmit}>
       <label htmlFor={inputId} className={styles.newChapterLabel}>
-        {isFirst ? 'Name your first chapter' : 'Add a chapter'}
+        {isFirst ? 'Start your first chapter' : 'Add a chapter'}
       </label>
       {isFirst ? (
         <p id={hintId} className={styles.newChapterHint}>
-          Chapters group your lessons, like "Motion" or "Algebra basics". You can rename and reorder them any time.
+          Chapters group your video lessons, like "Motion" or "Algebra basics". Leave the name empty to use "Chapter 1" -
+          you can rename and reorder chapters any time.
         </p>
       ) : null}
       <div className={styles.newChapterRow}>
@@ -591,11 +593,11 @@ const NewChapterForm: React.FC<{ courseId: number; mutations: Mutations; isFirst
           id={inputId}
           value={title}
           onChange={(event) => setTitle(event.target.value)}
-          placeholder={isFirst ? 'e.g., Introduction' : 'Chapter name, then press Enter'}
+          placeholder={isFirst ? 'Chapter 1' : 'Chapter name, then press Enter'}
           aria-describedby={isFirst ? hintId : undefined}
         />
-        <Button type="submit" variant={isFirst ? 'primary' : 'outline'} disabled={!title.trim() || isPending}>
-          <Plus size={16} /> {isPending ? 'Adding...' : 'Add chapter'}
+        <Button type="submit" variant={isFirst ? 'primary' : 'outline'} disabled={(!isFirst && !title.trim()) || isPending}>
+          <Plus size={16} /> {isPending ? 'Adding...' : isFirst ? 'Start chapter' : 'Add chapter'}
         </Button>
       </div>
     </form>

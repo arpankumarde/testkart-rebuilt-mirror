@@ -12,18 +12,18 @@
 }
 
 .statusPending {
-  background-color: color-mix(in srgb, var(--warning) 18%, transparent);
-  color: var(--warning-text);
+  background-color: var(--fc-butter-tint);
+  color: var(--fc-butter-ink);
 }
 
 .statusVerified {
-  background-color: color-mix(in srgb, var(--success) 15%, transparent);
-  color: var(--success-text);
+  background-color: var(--fc-sage-tint);
+  color: var(--fc-sage-ink);
 }
 
 .statusRejected {
-  background-color: color-mix(in srgb, var(--error) 12%, transparent);
-  color: var(--error-text);
+  background-color: var(--error-text);
+  color: var(--sp-card);
 }
 
 /* Label left, value right, one ruled line per field - read like a passbook
@@ -101,8 +101,8 @@
 }
 
 .noteInfo {
-  background-color: color-mix(in srgb, var(--info) 8%, transparent);
-  border: 1px solid color-mix(in srgb, var(--info) 25%, transparent);
+  background-color: var(--fc-blue-tint);
+  border: 1px solid var(--fc-blue-line);
 }
 
 .noteInfo svg {
@@ -110,8 +110,9 @@
 }
 
 .noteError {
-  background-color: color-mix(in srgb, var(--error) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--error) 25%, transparent);
+  background-color: var(--sp-card);
+  border: 1px solid var(--error-text);
+  border-left-width: 4px;
 }
 
 .noteError svg {

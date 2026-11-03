@@ -29,6 +29,7 @@ import {
 import { sanitizeHtml } from "../helpers/sanitizeHtml";
 import { MIN_SERIES_QUESTIONS } from "../helpers/testSeriesMinimum";
 import { isScheduledAhead, isTestAvailableNow } from "../helpers/testSchedule";
+import { TestSeriesSteps } from "../components/TestSeriesSteps";
 import styles from "./teacher.create-test.$testId.review.module.css";
 
 const parseJsonArray = (val: unknown): string[] => {
@@ -120,6 +121,7 @@ const Page = () => {
   const publishMutation = usePublishTestMutation();
   const publishLiveMutation = usePublishLiveTestMutation();
   const [claimBonus, setClaimBonus] = useState(false);
+  const [testsOpen, setTestsOpen] = useState(false);
   const [examCampaignId, setExamCampaignId] = useState<number | null>(null);
   const publishesDirectly = usePublishesWithoutReview();
   const invalidateCreatorBonus = useInvalidateCreatorBonus();
@@ -141,12 +143,12 @@ const Page = () => {
   }, [isAnyFetching]);
   const isInitialLoading = !hasArrived && isAnyFetching;
 
-  // Both publish hooks toast their own success and error, so this only navigates.
+  // Both publish hooks toast their own success and error. The page stays put:
+  // the refetch that follows shows "Live on Testkart" or "In review" here, with
+  // the next action, instead of dropping the teacher on the list.
   const handlePublish = () => {
     if (isLiveTest && liveTest) {
-      publishLiveMutation.mutate({ testId: packageId }, {
-        onSuccess: () => navigate("/teacher/live-tests"),
-      });
+      publishLiveMutation.mutate({ testId: packageId });
     } else {
       const listed = testPackage?.visibility !== "unlisted";
       publishMutation.mutate(
@@ -156,7 +158,6 @@ const Page = () => {
           examBonusCampaignId: (listed && examCampaignId) || undefined,
         },
         {
-          onSuccess: () => navigate("/teacher/test-series"),
           // The last slot may have gone: refresh what the card offers.
           onError: () => invalidateCreatorBonus(),
         }
@@ -352,20 +353,24 @@ const Page = () => {
         <title>Review and submit | Testkart</title>
         <meta name="description" content="Review your mock test package and submit it for publishing." />
       </Helmet>
-      <div className={styles.page}>
-        <header className={styles.header}>
-          <div className={styles.headerTitle}>
-            <h1>{isAlreadyLive || isInReview ? "Review" : "Review and submit"}</h1>
-            {isLiveTest && <Badge variant="secondary">Live test</Badge>}
-          </div>
-          <p>
-            {isAlreadyLive
-              ? "Check what students see and fix anything flagged."
-              : isInReview
-              ? `Your ${kindLabel} is with our team for review.`
-              : `Check your ${kindLabel} the way students will see it, then submit it for review.`}
-          </p>
-        </header>
+      <div className={isLiveTest ? styles.page : `${styles.page} tk-flow`}>
+        {isLiveTest ? (
+          <header className={styles.header}>
+            <div className={styles.headerTitle}>
+              <h1>{isAlreadyLive || isInReview ? "Review" : "Review and submit"}</h1>
+              <Badge variant="secondary">Live test</Badge>
+            </div>
+            <p>
+              {isAlreadyLive
+                ? "Check what students see and fix anything flagged."
+                : isInReview
+                ? `Your ${kindLabel} is with our team for review.`
+                : `Check your ${kindLabel} the way students will see it, then submit it for review.`}
+            </p>
+          </header>
+        ) : (
+          <TestSeriesSteps current="publish" packageId={packageId} back={`/teacher/create-test/${packageId}/test-items`} />
+        )}
 
         <TeacherRejectionBanner
           contentType={isLiveTest && liveTest ? "live_test" : "mock_test"}
@@ -574,7 +579,7 @@ const Page = () => {
                 </section>
               )}
 
-              <section className={styles.block} aria-labelledby="review-listing">
+              <section className={styles.block} data-tone="lavender" aria-labelledby="review-listing">
                 <div className={styles.blockHeader}>
                   <h2 id="review-listing">Storefront listing</h2>
                   <Button asChild variant="outline" size="sm">
@@ -625,7 +630,7 @@ const Page = () => {
                 {(whatYouLearn.length > 0 || requirements.length > 0) && (
                   <div className={styles.listColumns}>
                     {whatYouLearn.length > 0 && (
-                      <div>
+                      <div data-tone="mint">
                         <h3 className={styles.subheading}>What you'll master</h3>
                         <ul className={styles.bullets}>
                           {whatYouLearn.map((item, idx) => (
@@ -635,7 +640,7 @@ const Page = () => {
                       </div>
                     )}
                     {requirements.length > 0 && (
-                      <div>
+                      <div data-tone="butter">
                         <h3 className={styles.subheading}>Requirements</h3>
                         <ul className={styles.bullets}>
                           {requirements.map((item, idx) => (
@@ -661,9 +666,25 @@ const Page = () => {
                 )}
               </section>
 
-              <section className={styles.block} aria-labelledby="review-tests">
+              <section className={styles.block} data-tone="mint" aria-labelledby="review-tests">
                 <div className={styles.blockHeader}>
-                  <h2 id="review-tests">Tests</h2>
+                  <h2 id="review-tests">
+                    {orderedItems.length === 0 ? (
+                      "Tests"
+                    ) : (
+                      <button
+                        type="button"
+                        className={styles.sectionToggle}
+                        aria-expanded={testsOpen}
+                        aria-controls="review-test-list"
+                        onClick={() => setTestsOpen((open) => !open)}
+                      >
+                        Tests
+                        <span className={styles.sectionCount}>{orderedItems.length}</span>
+                        <ChevronDown size={18} className={styles.summaryIcon} aria-hidden="true" />
+                      </button>
+                    )}
+                  </h2>
                   <Button asChild variant="outline" size="sm">
                     <Link to={testItemsLink} aria-label="Edit tests">
                       <Edit size={14} /> Edit
@@ -675,7 +696,8 @@ const Page = () => {
                   <p className={styles.muted}>No tests in this {kindLabel} yet.</p>
                 ) : (
                   <>
-                    <ol className={styles.testList}>
+                    {/* Collapsing hides only the rows; the total stays in view. */}
+                    <ol id="review-test-list" className={styles.testList} hidden={!testsOpen}>
                       {orderedItems.map((item, index) => {
                         const duration = effectiveDuration(item);
                         const issues = itemIssues(item);

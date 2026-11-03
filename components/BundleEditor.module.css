@@ -1,3 +1,25 @@
+.publishBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+  padding: 1rem 1.25rem;
+  background-color: var(--fc-mint-tint);
+  border: 1px solid var(--sp-mint-line);
+  border-radius: var(--tc-radius-card, 1rem);
+  color: var(--fc-mint-ink);
+}
+
+.publishText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  max-width: 60ch;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
 .skeletonContainer {
   display: flex;
   flex-direction: column;
@@ -32,8 +54,8 @@
   width: 3.25rem;
   height: 3.25rem;
   border-radius: var(--radius-full);
-  background-color: color-mix(in srgb, var(--error) 12%, transparent);
-  color: var(--error-text);
+  background-color: var(--error-text);
+  color: var(--sp-card);
 }
 
 .errorTitle {

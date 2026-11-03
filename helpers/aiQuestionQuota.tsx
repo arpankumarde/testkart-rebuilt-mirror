@@ -1,10 +1,11 @@
 import { Kysely, Transaction, sql } from "kysely";
 import { db } from "./db";
 import { DB } from "./schema";
+import { getTeacherPlanBaseName } from "./teacherPlanAccess";
 
 /**
  * Daily cap on AI-generated questions, per plan. null = unlimited.
- * Keyed by the plan's base name (see getPlanBaseName below).
+ * Keyed by the plan's base name (getPlanBaseName in teacherPlanAccess).
  */
 const DAILY_QUESTION_LIMITS: Record<string, number | null> = {
   Free: 50,
@@ -13,40 +14,7 @@ const DAILY_QUESTION_LIMITS: Record<string, number | null> = {
   Business: null,
 };
 
-/**
- * Maps a subscription_plans.name value (e.g. "Starter Plan", billed monthly
- * or yearly) to the base tier name used as the key into DAILY_QUESTION_LIMITS.
- */
-export function getPlanBaseName(planName: string): string {
-  const lower = planName.toLowerCase();
-  if (lower.includes("business")) return "Business";
-  if (lower.includes("individual")) return "Individual";
-  if (lower.includes("starter")) return "Starter";
-  return "Free";
-}
-
-/**
- * The teacher's current active plan name, or "Free" if they have no active
- * subscription row at all (shouldn't normally happen - every teacher gets a
- * Free plan row - but this is the safe fallback).
- */
-async function getTeacherPlanBaseName(
-  teacherId: number,
-  trx?: Transaction<DB> | Kysely<DB>
-): Promise<string> {
-  const queryBuilder = trx ?? db;
-  const result = await queryBuilder
-    .selectFrom("teacherSubscriptions")
-    .innerJoin("subscriptionPlans", "subscriptionPlans.id", "teacherSubscriptions.planId")
-    .select("subscriptionPlans.name")
-    .where("teacherSubscriptions.teacherId", "=", teacherId)
-    .where("teacherSubscriptions.status", "=", "active")
-    .where("teacherSubscriptions.endDate", ">", new Date())
-    .orderBy("teacherSubscriptions.createdAt", "desc")
-    .limit(1)
-    .executeTakeFirst();
-  return getPlanBaseName(result?.name ?? "Free Plan");
-}
+export { getPlanBaseName } from "./teacherPlanAccess";
 
 /**
  * Sum of numberOfQuestions across this teacher's completed AI question

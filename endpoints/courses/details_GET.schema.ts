@@ -26,6 +26,9 @@ type CourseReview = {
   id: number;
   rating: number;
   reviewText: string | null;
+  /** The teacher's public reply, if any. */
+  teacherReply: string | null;
+  teacherRepliedAt: Date | null;
   createdAt: Date | null;
   userId: number;
   reviewerName: string;

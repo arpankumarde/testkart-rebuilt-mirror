@@ -172,6 +172,8 @@ export async function handle(request: Request): Promise<Response> {
         "reviewerName",
         "rating",
         "reviewText",
+        "teacherReply",
+        "teacherRepliedAt",
         "createdAt",
         "userId",
       ])

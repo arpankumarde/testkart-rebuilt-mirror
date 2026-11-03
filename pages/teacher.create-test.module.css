@@ -12,53 +12,6 @@
     box-sizing: border-box;
   }
 
-  .backLink {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--spacing-2);
-    align-self: flex-start;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--muted-foreground);
-    text-decoration: none;
-    transition: color var(--animation-duration-fast) ease;
-  }
-
-  .backLink:hover {
-    color: var(--foreground);
-  }
-
-  .backLink:focus-visible {
-    outline: none;
-    box-shadow: var(--shadow-focus);
-    border-radius: var(--radius-sm);
-  }
-
-  /* Left-aligned, matching every other console page. The old header was
-     centred at 2rem, which read as a marketing page rather than a tool. */
-  .header {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-2);
-  }
-
-  .title {
-    margin: 0;
-    font-family: var(--font-family-heading);
-    font-size: 1.5rem;
-    font-weight: 800;
-    letter-spacing: -0.015em;
-    line-height: 1.2;
-    color: var(--foreground);
-  }
-
-  .subtitle {
-    margin: 0;
-    font-size: 0.875rem;
-    line-height: 1.5;
-    color: var(--muted-foreground);
-  }
-
   .form {
     display: flex;
     flex-direction: column;
@@ -113,36 +66,122 @@
     gap: var(--spacing-2);
   }
 
-  /* A switch-like row rather than an empty <FormLabel>&nbsp;</FormLabel>,
-     which is what used to hold this control's place in the grid. */
-  .freeToggle {
-    display: flex;
-    align-items: flex-start;
+  /* Paid or Free as two cards; the chosen one takes the Details step's lavender. */
+  .choiceGroup {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--spacing-3);
-    padding: var(--spacing-3);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background-color: var(--background);
   }
 
-  .freeToggleText {
+  .choice {
     display: flex;
     flex-direction: column;
     gap: 2px;
-    min-width: 0;
+    padding: var(--spacing-3) var(--spacing-4);
+    text-align: left;
+    font-family: var(--font-family-base);
+    background-color: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: border-color var(--animation-duration-fast) ease;
   }
 
-  .freeToggleLabel {
-    font-size: 0.875rem;
-    font-weight: 600;
+  .choice:hover {
+    border-color: var(--tc-line-strong, var(--border));
+  }
+
+  .choice[aria-checked="true"] {
+    border-color: var(--sp-lavender-edge);
+    background-color: var(--sp-lavender-tint);
+  }
+
+  .choice[aria-checked="true"] .choiceTitle {
+    color: var(--sp-lavender-ink);
+  }
+
+  .choice:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+  }
+
+  .choiceTitle {
+    font-size: 0.9375rem;
+    font-weight: 700;
     color: var(--foreground);
+  }
+
+  .choiceHint {
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--muted-foreground);
+  }
+
+  .countRow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spacing-3);
+  }
+
+  .counter {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-1);
+    padding: 2px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background-color: var(--surface);
+  }
+
+  .counterInput {
+    width: 4rem;
+    text-align: center;
+    font-weight: 700;
+    border: none;
+    box-shadow: none;
+    -moz-appearance: textfield;
+  }
+
+  .counterInput::-webkit-outer-spin-button,
+  .counterInput::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .quickCounts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-2);
+  }
+
+  .quickCount {
+    min-width: 2.75rem;
+    height: 2.25rem;
+    padding: 0 var(--spacing-3);
+    font-family: var(--font-family-base);
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--foreground);
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
     cursor: pointer;
   }
 
-  .freeToggleHint {
-    font-size: 0.75rem;
-    line-height: 1.4;
-    color: var(--muted-foreground);
+  .quickCount:hover {
+    border-color: var(--tc-line-strong, var(--border));
+  }
+
+  .quickCount[aria-pressed="true"] {
+    border-color: var(--sp-lavender-ink);
+    background-color: var(--sp-lavender-ink);
+    color: var(--sp-lavender-tint);
+  }
+
+  .quickCount:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
   }
 
   .storefront {
@@ -225,9 +264,10 @@
 
   .error {
     padding: var(--spacing-3) var(--spacing-4);
-    border: 1px solid color-mix(in srgb, var(--error) 30%, transparent);
+    border: 1px solid var(--error-text);
+    border-left-width: 4px;
     border-radius: var(--radius);
-    background-color: color-mix(in srgb, var(--error) 10%, transparent);
+    background-color: var(--sp-card);
     color: var(--error-text);
     font-size: 0.875rem;
   }
@@ -275,7 +315,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     .storefrontChevron,
-    .backLink {
+    .choice {
       transition: none;
     }
   }
