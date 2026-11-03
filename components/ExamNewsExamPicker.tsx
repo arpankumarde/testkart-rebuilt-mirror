@@ -14,7 +14,7 @@ interface ExamNewsExamPickerProps {
   value: ExamNewsExamChoice | null;
   onChange: (value: ExamNewsExamChoice | null) => void;
   placeholder?: string;
-  /* "Any exam" row and a clear button, for the list filter. */
+  /* A clearLabel row and a clear button, for the list filter and the optional exam on a story. */
   allowClear?: boolean;
   clearLabel?: string;
   invalid?: boolean;
@@ -72,7 +72,7 @@ export const ExamNewsExamPicker: React.FC<ExamNewsExamPickerProps> = ({
           </button>
         </PopoverTrigger>
         {allowClear && value && (
-          <button type="button" className={styles.clear} onClick={() => choose(null)} aria-label="Clear exam filter">
+          <button type="button" className={styles.clear} onClick={() => choose(null)} aria-label="Clear exam">
             <X size={14} />
           </button>
         )}

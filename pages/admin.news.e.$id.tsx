@@ -469,8 +469,8 @@ const AdminExamNewsEditorPage: React.FC = () => {
     { label: "Standfirst", state: rootIssues("summary") === 0 ? "ok" : "todo", target: "en-basics" },
     {
       label: "Exam",
-      state: rootIssues("examId") === 0 ? "ok" : "todo",
-      detail: examChoice?.name,
+      state: rootIssues("examId") > 0 ? "todo" : examChoice ? "ok" : "optional",
+      detail: examChoice?.name ?? "Optional",
       target: "en-basics",
     },
     { label: "Author", state: rootIssues("authorId") === 0 ? "ok" : "todo", target: "en-basics" },
@@ -684,9 +684,12 @@ const AdminExamNewsEditorPage: React.FC = () => {
                     </FormItem>
 
                     <FormItem name="examId">
-                      <FormLabel>Exam</FormLabel>
+                      <FormLabel>Exam (optional)</FormLabel>
                       <ExamNewsExamPicker
                         value={examChoice}
+                        placeholder="No exam"
+                        allowClear
+                        clearLabel="No exam"
                         invalid={typeof errors.examId === "string"}
                         onChange={(choice) => {
                           setExamChoice(choice);

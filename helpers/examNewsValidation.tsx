@@ -21,8 +21,8 @@ const KEY_DATE_FIELDS = ["startDate", "endDate", "examDate", "resultDate"] as co
 
 /**
  * Field-level checks keyed by the editor's form paths. A draft only needs a headline and well-formed
- * values; scheduling or publishing also needs the standfirst, exam, author and story. Key dates,
- * sources and corrections stay optional, but any row that is filled in must be complete.
+ * values; scheduling or publishing also needs the standfirst, author and story. The exam link, key
+ * dates, sources and corrections stay optional, but any row that is filled in must be complete.
  */
 export function validateExamNews(input: InputType, now: Date = new Date()): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
@@ -75,7 +75,6 @@ export function validateExamNews(input: InputType, now: Date = new Date()): Vali
 
   if (strict) {
     if (!input.summary.trim()) add("summary", "Write a one or two line standfirst");
-    if (!input.examId) add("examId", "Choose the exam this story is about");
     if (!input.authorId) add("authorId", "Choose an author");
     if (isBlank(input.body)) add("body", "Write the story");
     if (input.heroImageUrl && !input.heroImageAlt.trim()) add("heroImageAlt", "Describe the image for screen readers");

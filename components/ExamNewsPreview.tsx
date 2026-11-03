@@ -63,7 +63,7 @@ export const ExamNewsPreview: React.FC<ExamNewsPreviewProps> = ({ post, examName
 
       <div className={styles.tags}>
         <span className={`${styles.typeBadge} ${styles[`type_${post.newsType}`] ?? ""}`}>{examNewsMeta.newsTypeLabel(post.newsType)}</span>
-        {examName ? <span className={styles.examTag}>{examName}</span> : <span className={styles.missing}>No exam chosen</span>}
+        {examName && <span className={styles.examTag}>{examName}</span>}
       </div>
 
       <h1 className={styles.headline}>{post.title.trim() || <span className={styles.missing}>Headline goes here</span>}</h1>
