@@ -22,8 +22,6 @@ import type { McpAccess } from "./mcpOauth";
 import { extractEndpointError, unwrapEndpointPayload } from "./mcpServer";
 import { SITE_ORIGIN } from "./shareLinks";
 
-import { handle as bankDetails } from "../endpoints/teacher/bank-details_GET";
-import * as bankDetailsSchema from "../endpoints/teacher/bank-details_GET.schema";
 import { handle as creatorBonusCheck } from "../endpoints/teacher/creator-bonus/check_GET";
 import * as creatorBonusCheckSchema from "../endpoints/teacher/creator-bonus/check_GET.schema";
 import { handle as bundlesDetails } from "../endpoints/teacher/bundles/details_GET";
@@ -111,8 +109,6 @@ import { handle as aiGenerateList } from "../endpoints/teacher/ai/generate-list_
 import * as aiGenerateListSchema from "../endpoints/teacher/ai/generate-list_POST.schema";
 import { handle as aiRewrite } from "../endpoints/teacher/ai/rewrite_POST";
 import * as aiRewriteSchema from "../endpoints/teacher/ai/rewrite_POST.schema";
-import { handle as bankDetailsAdd } from "../endpoints/teacher/bank-details/add_POST";
-import * as bankDetailsAddSchema from "../endpoints/teacher/bank-details/add_POST.schema";
 import { handle as bundlesCreate } from "../endpoints/teacher/bundles/create_POST";
 import * as bundlesCreateSchema from "../endpoints/teacher/bundles/create_POST.schema";
 import { handle as bundlesDelete } from "../endpoints/teacher/bundles/delete_POST";
@@ -341,7 +337,6 @@ const CONFIRM = { confirm: true };
 
 /** Action name to endpoint. The name is the endpoint's path under /_api/teacher/. */
 const ACTIONS: Record<string, TeacherAction> = {
-  "bank-details": read(bankDetails, bankDetailsSchema, "Your saved bank account, UPI and PAN details for payouts."),
   "bundles/details": read(bundlesDetails, bundlesDetailsSchema, "One bundle with the tests, courses and study notes in it."),
   "bundles/list": read(bundlesList, bundlesListSchema, "Your bundles."),
   "certificates/issued": read(certificatesIssued, certificatesIssuedSchema, "Certificates issued to students for your courses and tests (page, limit)."),
@@ -386,7 +381,6 @@ const ACTIONS: Record<string, TeacherAction> = {
   "ai/generate-distractors": write(aiGenerateDistractors, aiGenerateDistractorsSchema, "AI: suggest wrong answer options for a question. Saves nothing."),
   "ai/generate-list": write(aiGenerateList, aiGenerateListSchema, "AI: suggest list items for a content field. Saves nothing."),
   "ai/rewrite": write(aiRewrite, aiRewriteSchema, "AI: rewrite a piece of text. Saves nothing."),
-  "bank-details/add": write(bankDetailsAdd, bankDetailsAddSchema, "Save or replace the bank account, UPI and PAN details payouts go to.", CONFIRM),
   "bundles/create": write(bundlesCreate, bundlesCreateSchema, "Create a bundle."),
   "bundles/delete": write(bundlesDelete, bundlesDeleteSchema, "Delete a bundle.", CONFIRM),
   "bundles/publish": write(bundlesPublish, bundlesPublishSchema, "Publish a bundle, or unpublish it. It goes live at once without review; every item in it must already be published."),
@@ -413,12 +407,12 @@ const ACTIONS: Record<string, TeacherAction> = {
   "editor-images/upload-url": write(editorImagesUploadUrl, editorImagesUploadUrlSchema, "Get a 15-minute link to PUT one image file to, for clients that can run code with internet access. Use the returned url only after the PUT succeeds."),
   inquiry: write(inquiry, inquirySchema, "Send an inquiry to the Testkart team."),
   "live-test/publish": write(liveTestPublish, liveTestPublishSchema, "Submit a live test for review by liveTestId. It goes live once an admin approves it."),
-  "live-tests/create": write(liveTestsCreate, liveTestsCreateSchema, "Create a live test."),
+  "live-tests/create": write(liveTestsCreate, liveTestsCreateSchema, "Create a live test: a paper students register for and take in one scheduled window, with price, seats and optional cash prize tiers (hasPrizes, prizeTiers). Prizes go to the top-ranked students and are paid from the live test's own entry revenue, scaled down if revenue falls short; the teacher pays nothing up front."),
   "live-tests/delete": write(liveTestsDelete, liveTestsDeleteSchema, "Delete a live test.", CONFIRM),
   "live-tests/duplicate": write(liveTestsDuplicate, liveTestsDuplicateSchema, "Duplicate a live test."),
   "live-tests/publish": write(liveTestsPublish, liveTestsPublishSchema, "Submit a live test for review. It goes live once an admin approves it."),
   "live-tests/unpublish": write(liveTestsUnpublish, liveTestsUnpublishSchema, "Take a live test off the site.", CONFIRM),
-  "live-tests/update": write(liveTestsUpdate, liveTestsUpdateSchema, "Update a live test."),
+  "live-tests/update": write(liveTestsUpdate, liveTestsUpdateSchema, "Update a live test by id. Only the fields sent are changed. Once the live test is published its exam, timing, pricing, seats, schedule and prize tiers can no longer be changed. Prizes are paid from the live test's own entry revenue."),
   "onboarding/complete": write(onboardingComplete, onboardingCompleteSchema, "Complete teacher onboarding."),
   "products/analyze-pdf": write(productsAnalyzePdf, productsAnalyzePdfSchema, "AI: suggest category, tags and exam from text taken from a PDF. Saves nothing."),
   "products/bulk": write(productsBulk, productsBulkSchema, "Submit for review, unpublish or archive several study notes at once.", CONFIRM),
@@ -453,7 +447,7 @@ const ACTIONS: Record<string, TeacherAction> = {
   "subject-sections/reorder": write(subjectSectionsReorder, subjectSectionsReorderSchema, "Reorder sections in a test subject."),
   "subject-sections/update": write(subjectSectionsUpdate, subjectSectionsUpdateSchema, "Update a test subject section."),
   "subscription/subscribe": write(subscriptionSubscribe, subscriptionSubscribeSchema, "Switch to a free plan. Paid plans are bought with subscription/wallet-subscribe.", CONFIRM),
-  "subscription/wallet-subscribe": write(subscriptionWalletSubscribe, subscriptionWalletSubscribeSchema, "Renew your current paid plan using your wallet balance, with any remainder paid online. Buying a new or different plan is refused.", CONFIRM),
+  "subscription/wallet-subscribe": write(subscriptionWalletSubscribe, subscriptionWalletSubscribeSchema, "Renew your current paid plan (planId) using your wallet balance, with any remainder paid online. When the wallet does not cover it, the result is payment_required with PayU payment data the teacher completes in a browser on testkart.in; the connector collects no card, UPI or bank payment. Buying a new or different plan is refused.", CONFIRM),
   "support/attachments/upload": write(supportAttachmentsUpload, supportAttachmentsUploadSchema, "Upload one file (base64, 4 MB at most: images, PDF, Word, Excel, PowerPoint, CSV or text) to attach to a support message. Pass the returned objects, up to 5, as attachments on support/thread/create or support/thread/reply."),
   "support/thread/create": write(supportThreadCreate, supportThreadCreateSchema, "Open a support thread with the Testkart team."),
   "support/thread/reply": write(supportThreadReply, supportThreadReplySchema, "Reply in a support thread."),
@@ -485,6 +479,10 @@ const ACTIONS: Record<string, TeacherAction> = {
 
 /** Teacher endpoints the connector refuses, with the reason given to the model. */
 export const BLOCKED_ACTIONS: Readonly<Record<string, string>> = {
+  "bank-details":
+    "Bank account, UPI and PAN details are sensitive, so they are only viewed on the Testkart website.",
+  "bank-details/add":
+    "Bank account, UPI and PAN details are sensitive, so they are only saved or changed on the Testkart website.",
   "subscription/cancel":
     "Cancelling a subscription is only available on the Testkart website.",
   "subscription/mandate/cancel":

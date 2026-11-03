@@ -59,21 +59,18 @@ const editHref = (item: CampaignItem) =>
 const buildHref = (item: CampaignItem) =>
   item.type === "mock_test" ? `/teacher/create-test/${item.id}/test-items` : `/teacher/courses/${item.id}/edit`;
 
-/** Published without a claim: the bonus can no longer be ticked, so the list leaves it out. */
-const isPublishedUnclaimed = (item: CampaignItem) =>
-  item.live && (item.state === "ready" || item.state === "building" || item.state === "full");
-
-/** Qualifies, but was already submitted for review without the bonus. */
-const isSubmittedWithout = (item: CampaignItem) => item.state === "ready" && item.inReview;
+/**
+ * Published or sent for review without a claim: the bonus cannot be ticked now, so
+ * the list leaves it out. A rejected review brings it back.
+ */
+const isSubmittedUnclaimed = (item: CampaignItem) =>
+  (item.live || item.inReview) && (item.state === "ready" || item.state === "building" || item.state === "full");
 
 /** What the teacher should do next with one item, in plain words. */
 function nextStep(item: CampaignItem, slots: CampaignSlots): { text: string; action?: { label: string; to: string } } {
   const amount = formatRupees(slots.amount);
   switch (item.state) {
     case "ready":
-      if (item.inReview) {
-        return { text: "Submitted without the bonus." };
-      }
       if (item.examBonus && slots.used >= slots.limit) {
         return {
           text: `Pick the ${item.examBonus.title} when you submit.`,
@@ -198,18 +195,17 @@ const TeacherCreatorBonusPage: React.FC = () => {
   const [filter, setFilter] = useState<Filter>("all");
 
   const allItems = data && data.campaign ? data.items : [];
-  const items = useMemo(() => allItems.filter((i) => !isPublishedUnclaimed(i)), [allItems]);
+  const items = useMemo(() => allItems.filter((i) => !isSubmittedUnclaimed(i)), [allItems]);
   const visibleItems = useMemo(() => {
     const states = FILTERS.find((f) => f.value === filter)?.states ?? [];
     const shown =
       states.length === 0
         ? items.filter((i) => i.state !== "excluded")
-        : items.filter((i) => states.includes(i.state) && !(filter === "ready" && isSubmittedWithout(i)));
+        : items.filter((i) => states.includes(i.state));
     const rank: Record<CampaignItemState, number> = {
       ready: 0, claimed: 1, building: 2, credited: 3, reversed: 4, final: 5, full: 6, excluded: 7,
     };
-    const order = (i: CampaignItem) => (isSubmittedWithout(i) ? 6 : rank[i.state]);
-    return [...shown].sort((a, b) => order(a) - order(b));
+    return [...shown].sort((a, b) => rank[a.state] - rank[b.state]);
   }, [items, filter]);
 
   if (!data) {
@@ -257,7 +253,7 @@ const TeacherCreatorBonusPage: React.FC = () => {
   const req = campaign.requirements;
   const maxTotal = slots.mock_test.limit * slots.mock_test.amount + slots.course.limit * slots.course.amount;
   const earnedShare = maxTotal > 0 ? Math.min(100, (earned / maxTotal) * 100) : 0;
-  const readyCount = items.filter((i) => i.state === "ready" && !i.inReview).length;
+  const readyCount = items.filter((i) => i.state === "ready").length;
 
   const steps = [
     { icon: Hammer, tone: "peach", title: "Build it", text: `Test series: ${req.minTests}+ tests, ${req.minQuestions}+ questions. Course: ${req.minVideos}+ uploaded videos of ${req.minMinutesPerVideo}+ min.` },
@@ -406,7 +402,7 @@ const TeacherCreatorBonusPage: React.FC = () => {
                 {allItems.length === 0
                   ? "No test series or courses yet."
                   : items.length === 0
-                    ? "Nothing to claim yet. Content published without the bonus does not count."
+                    ? "Nothing to claim yet. Content published or sent for review without the bonus does not count."
                     : "Nothing here for this filter."}
               </p>
               {items.length === 0 && (
@@ -424,7 +420,6 @@ const TeacherCreatorBonusPage: React.FC = () => {
             <ul className={styles.itemList} aria-busy={isFetching}>
               {visibleItems.map((item) => {
                 const sticker = STATE_STICKERS[item.state];
-                const stickerShown = isSubmittedWithout(item) ? { label: "Not claimed", tone: "grey" } : sticker;
                 const step = nextStep(item, slots[item.type]);
                 return (
                   <li key={`${item.type}-${item.id}`} className={styles.item}>
@@ -453,7 +448,7 @@ const TeacherCreatorBonusPage: React.FC = () => {
                     </div>
                     <div className={styles.itemSide}>
                       {item.state !== "building" && (
-                        <span className={`${styles.sticker} ${styles[`tone_${stickerShown.tone}`]}`}>{stickerShown.label}</span>
+                        <span className={`${styles.sticker} ${styles[`tone_${sticker.tone}`]}`}>{sticker.label}</span>
                       )}
                       {(item.claimedExamBonus || item.examBonus) && (
                         <span className={`${styles.sticker} ${styles.examSticker} ${styles.tone_lavender}`}>

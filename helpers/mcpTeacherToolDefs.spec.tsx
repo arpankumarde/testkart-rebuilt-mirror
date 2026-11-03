@@ -76,6 +76,46 @@ describe("teacher MCP tool definitions", () => {
     );
   });
 
+  it("never exposes bank account, UPI or PAN details", () => {
+    const names = tools().map((definition) => definition.name);
+    expect(names.filter((name) => name.includes("bank_details"))).toEqual([]);
+    expect(defs.teacherActionForTool("teacher_bank_details")).toBeNull();
+    expect(defs.teacherActionForTool("teacher_bank_details_add")).toBeNull();
+    for (const definition of tools()) {
+      const schema = JSON.stringify(definition.inputSchema).toLowerCase();
+      for (const field of ["pannumber", "ifsc", "accountnumber", "upiid"]) {
+        expect(schema.includes(field)).withContext(`${definition.name} ${field}`).toBe(false);
+      }
+    }
+    expect(defs.TEACHER_SERVER_INSTRUCTIONS).not.toContain("teacher_bank_details");
+  });
+
+  it("marks marketplace and public profile writes as open world", () => {
+    for (const name of [
+      "teacher_bundles_create",
+      "teacher_courses_create",
+      "teacher_live_tests_create",
+      "teacher_live_tests_update",
+      "teacher_profile_update",
+      "teacher_tests_create",
+      "teacher_tests_create_with_items",
+      "teacher_work_experiences_create",
+      "teacher_work_experiences_update",
+    ]) {
+      expect(tool(name).annotations?.openWorldHint).withContext(name).toBe(true);
+    }
+  });
+
+  it("refers to other tools by tool name, not action path", () => {
+    expect(tool("teacher_questions_generate_ai").description).toContain("teacher_questions_accept_ai");
+    expect(tool("teacher_subscription_subscribe").description).toContain("teacher_subscription_wallet_subscribe");
+    for (const definition of tools()) {
+      expect(/(?<![\w/-])[a-z-]+\/[a-z-]+(?![\w/-])/.test(definition.description))
+        .withContext(definition.name)
+        .toBe(false);
+    }
+  });
+
   it("adds a confirm argument only to tools that need it", () => {
     const properties = (name: string) => tool(name).inputSchema.properties as Record<string, unknown>;
     expect(properties("teacher_courses_delete").confirm).toBeDefined();

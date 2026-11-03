@@ -104,8 +104,9 @@ const MCPPage: React.FC = () => (
             <h2 id="access-title">Access, approvals, and payments</h2>
             <ul>
               <li>Connect by signing in to Testkart and authorizing access for the MCP client. The connection acts within the signed-in teacher account's permissions.</li>
-              <li>Responses are returned to the connected MCP client and can contain student contact information or the teacher's payout and tax details. Use a trusted client and request only the data needed for the task.</li>
-              <li>Deletes, unpublishing, withdrawals, bank-detail changes, sponsorship, and other sensitive actions require the teacher's explicit confirmation.</li>
+              <li>Responses are returned to the connected MCP client and can contain student contact information. Use a trusted client and request only the data needed for the task.</li>
+              <li>Bank account, UPI and PAN details are never shown or changed through the MCP connection; teachers manage them on Testkart. Withdrawals are paid only to the bank account Testkart has verified.</li>
+              <li>Deletes, unpublishing, withdrawals, plan changes, sponsorship, and other sensitive actions require the teacher's explicit confirmation.</li>
               <li>Publishing eligible content can submit it for Testkart review; it is not live until the result confirms publication or an administrator approves it.</li>
               <li>Teachers sell notes, mock tests, and courses on Testkart, where students complete checkout. Teachers can request a wallet withdrawal and use supported subscription actions; any online payment is completed on Testkart. The MCP connection does not complete checkout or subscription cancellation.</li>
             </ul>
