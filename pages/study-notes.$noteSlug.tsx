@@ -44,6 +44,7 @@ import { VerifiedBadge } from "../components/VerifiedBadge";
 const ProductPDFPreview = React.lazy(() => import("../components/ProductPDFPreview").then(m => ({ default: m.ProductPDFPreview })));
 import { MobileStickyPurchaseBar } from "../components/MobileStickyPurchaseBar";
 import { coursePriceView, formatOfferInr } from "../helpers/courseCouponOffer";
+import { DIGITAL_OFFER_SHIPPING_DETAILS } from "../helpers/digitalOfferShipping";
 import { toast } from "sonner";
 import { AssetTopRow } from "../components/AssetTopRow";
 import { useTrackStorefrontView } from "../helpers/trackStorefrontEvent";
@@ -156,22 +157,28 @@ const ProductDetailsPage: React.FC = () => {
       return text.replace(/[&<>"']/g, (m) => map[m] || m);
     };
 
+    const priceView = coursePriceView(product.price, product.discountPrice, product.couponOffer);
     const productData = {
       "@context": "https://schema.org",
       "@type": "Product",
       "name": escapeHtml(product.title),
       "description": escapeHtml(product.shortDescription || product.description?.replace(/<[^>]*>/g, '').slice(0, 200) || ""),
+      "image": product.thumbnailUrl || Placeholder.NOTE,
       "brand": {
         "@type": "Brand",
         "name": escapeHtml(product.teacherName),
       },
       "offers": {
         "@type": "Offer",
-        "price": coursePriceView(product.price, product.discountPrice, product.couponOffer).finalPrice,
+        "price": priceView.finalPrice,
         "priceCurrency": "INR",
         "availability": "https://schema.org/InStock",
-        ...(product.couponOffer?.validUntil && {
-          "priceValidUntil": new Date(product.couponOffer.validUntil).toISOString().slice(0, 10),
+        "shippingDetails": DIGITAL_OFFER_SHIPPING_DETAILS,
+        ...(priceView.offer?.validFrom && {
+          "validFrom": new Date(priceView.offer.validFrom).toISOString(),
+        }),
+        ...(priceView.offer?.validUntil && {
+          "priceValidUntil": new Date(priceView.offer.validUntil).toISOString(),
         }),
       },
     };

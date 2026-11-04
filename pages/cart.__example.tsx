@@ -85,6 +85,7 @@ const teacherCoupon = (id: number, code: string, teacherId: number, discountValu
   maxDiscountAmount: 600,
   appliesTo: "all",
   targetItemIds: null,
+  validFrom: new Date(0),
   createdByTeacherId: teacherId,
   validUntil: null,
 });

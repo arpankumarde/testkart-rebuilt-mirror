@@ -23,6 +23,7 @@ import { PublicCouponsCard } from "../components/PublicCouponsCard";
 import { useTrackStorefrontView } from "../helpers/trackStorefrontEvent";
 import { NotFoundState } from "../components/NotFoundState";
 import { isNotFoundError } from "../helpers/isNotFoundError";
+import { DIGITAL_OFFER_SHIPPING_DETAILS } from "../helpers/digitalOfferShipping";
 import styles from "./mock-test.$testSlug.module.css";
 
 type SectionTone = "peach" | "mint" | "lavender" | "sky" | "butter";
@@ -119,7 +120,7 @@ const TestDetailsPage: React.FC = () => {
       "@type": "Product",
       "name": testPackage.title,
       "description": testPackage.description || `Comprehensive mock test series for ${testPackage.examName || 'exam preparation'}`,
-      ...(testPackage.thumbnailUrl && { "image": testPackage.thumbnailUrl || testPackage.thumbnailUrl }),
+      "image": testPackage.thumbnailUrl || Placeholder.TEST,
       "brand": {
         "@type": "Organization",
         "name": "Testkart"
@@ -129,15 +130,25 @@ const TestDetailsPage: React.FC = () => {
         "price": (testPackage.discountPrice ?? testPackage.price).toString(),
         "priceCurrency": "INR",
         "availability": "https://schema.org/InStock",
-        "url": canonicalUrl
+        "url": canonicalUrl,
+        "shippingDetails": DIGITAL_OFFER_SHIPPING_DETAILS
       },
       "sku": `TEST-${testPackage.id}`,
       "identifier": testPackage.id.toString()
     };
 
-    // Add category if available
-    if (testPackage.examName || testPackage.subject) {
-      productSchema.category = testPackage.examName || testPackage.subject;
+    // subject holds a JSON list of subject names; untagged series store "[]"
+    const subjectNames = (() => {
+      try {
+        const parsed: unknown = JSON.parse(testPackage.subject || "[]");
+        return Array.isArray(parsed) ? parsed.filter((s): s is string => typeof s === "string" && s.trim() !== "") : [];
+      } catch {
+        return testPackage.subject?.trim() ? [testPackage.subject.trim()] : [];
+      }
+    })();
+    const category = testPackage.examName?.trim() || subjectNames.join(", ");
+    if (category) {
+      productSchema.category = category;
     }
 
     // Add aggregate rating if available

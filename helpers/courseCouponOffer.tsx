@@ -35,6 +35,7 @@ export type CourseCouponCandidate = {
   appliesTo: string;
   targetItemIds: number[] | null;
   createdByTeacherId: number;
+  validFrom: Date;
   validUntil: Date | null;
 };
 
@@ -52,6 +53,7 @@ export type CourseCouponOffer = {
   finalPrice: number;
   /** Total saving against the list price, in whole percent. */
   percentOff: number;
+  validFrom: Date;
   validUntil: Date | null;
 };
 
@@ -129,6 +131,7 @@ export function bestItemCouponOffer(
     discountAmount: best.discount,
     finalPrice,
     percentOff: originalPrice > 0 ? Math.round(((originalPrice - finalPrice) / originalPrice) * 100) : 0,
+    validFrom: best.candidate.validFrom,
     validUntil: best.candidate.validUntil,
   };
 }

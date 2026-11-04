@@ -87,6 +87,7 @@ export async function loadAutoCouponCandidates(
     appliesTo: row.appliesTo,
     targetItemIds: row.targetItemIds,
     createdByTeacherId: row.createdByTeacherId as number,
+    validFrom: row.validFrom,
     validUntil: row.validUntil,
   }));
 }

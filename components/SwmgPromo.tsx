@@ -504,7 +504,8 @@ export const swmgVideoJsonLd = (video: SwmgVideo) => ({
   name: video.title,
   description: video.summary,
   thumbnailUrl: [`https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`],
-  uploadDate: video.uploadDate,
+  // Google rejects a bare date here; it needs a time and a timezone (IST).
+  uploadDate: `${video.uploadDate}T00:00:00+05:30`,
   duration: `PT${Math.floor(video.durationSeconds / 60)}M${video.durationSeconds % 60}S`,
   embedUrl: `https://www.youtube-nocookie.com/embed/${video.id}`,
   contentUrl: `https://www.youtube.com/watch?v=${video.id}`,

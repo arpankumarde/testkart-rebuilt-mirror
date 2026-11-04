@@ -171,8 +171,11 @@ export default function CourseDetailsPage() {
         "priceCurrency": "INR",
         "availability": "https://schema.org/InStock",
         "url": canonicalUrl,
+        ...(priceView.offer?.validFrom && {
+          "validFrom": new Date(priceView.offer.validFrom).toISOString(),
+        }),
         ...(priceView.offer?.validUntil && {
-          "priceValidUntil": new Date(priceView.offer.validUntil).toISOString().slice(0, 10),
+          "priceValidUntil": new Date(priceView.offer.validUntil).toISOString(),
         }),
       },
       "hasCourseInstance": {
