@@ -9,6 +9,7 @@ import { emailTemplatesExtra } from "../../helpers/emailTemplatesExtra";
 import { followTeachersForOrder } from "../../helpers/ensureTeacherFollow";
 import { getOrderClientInfo, type OrderClientInfo } from "../../helpers/orderClientInfo";
 import { expiredPurchaseError } from "../../helpers/contentExpiryServer";
+import { recordFunnelEvent } from "../../helpers/recordFunnelEvent";
 
 
 
@@ -132,6 +133,7 @@ export async function handle(request: Request) {
     const orderId = await db
       .transaction()
       .execute((trx) => enrollInFreeTest(trx, user.id, mockTestId, getOrderClientInfo(request)));
+    await recordFunnelEvent({ event: "free_claimed", request, userId: user.id, entityType: "mock_test", entityId: mockTestId, orderId, amount: 0 });
 
     // Send enrollment emails
     try {

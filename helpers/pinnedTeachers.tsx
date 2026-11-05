@@ -3,7 +3,8 @@ import { sql } from "kysely";
 /**
  * Teachers whose published courses and study notes list first on the public
  * catalogue (courses/list, shop/list and their SSR counterparts) under the
- * popular and newest sorts. Price sorts stay strictly by price.
+ * popular and newest sorts, after the paid-before-free key in helpers/paidFirst.
+ * Price sorts stay strictly by price.
  * 15752: Dr. Mukesh Goyal (SWMG).
  */
 export const PINNED_TEACHER_IDS = [15752];

@@ -56,8 +56,7 @@
   padding: var(--spacing-4) 1.25rem;
   background-color: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
+  border-radius: 1.25rem;
 }
 
 .headerIcon {
@@ -66,9 +65,9 @@
   justify-content: center;
   width: 2.75rem;
   height: 2.75rem;
-  border-radius: var(--radius);
-  background-color: var(--primary);
-  color: var(--primary-foreground);
+  border-radius: 0.875rem;
+  background-color: var(--fc-butter-tint);
+  color: var(--fc-butter-ink);
 }
 
 .headerText {
@@ -78,21 +77,22 @@
   min-width: 0;
 }
 
+/* A handwritten line over the title, as on /app. */
 .eyebrow {
-  font-size: 0.6875rem;
+  font-family: var(--font-family-cursive);
+  font-size: 1.25rem;
   font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  line-height: 1;
   color: var(--tk-brand-text);
 }
 
 .title {
   margin: 0;
   font-family: var(--font-family-heading);
-  font-size: 1.375rem;
+  font-size: 1.5rem;
   font-weight: 800;
-  letter-spacing: -0.015em;
-  line-height: 1.25;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
   color: var(--foreground);
   overflow-wrap: anywhere;
 }
@@ -132,8 +132,8 @@
   gap: var(--spacing-2);
   height: 2.5rem;
   padding: 0 var(--spacing-4);
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
+  border-radius: 1.25rem 1.25rem 1.25rem 0.5rem;
+  border: 1px solid var(--sp-line-strong);
   font-size: 0.875rem;
   font-weight: 600;
   white-space: nowrap;
@@ -152,18 +152,22 @@
 }
 
 .secondaryButton:hover {
-  background-color: var(--muted);
+  background-color: var(--fc-blue-tint);
+  border-color: var(--fc-blue-edge);
+  color: var(--fc-blue-ink);
 }
 
-/* Dark neutral fill, as on the series page's test rows. */
+/* The peach CTA, as on the series page. */
 .solidButton {
-  background-color: var(--foreground);
-  border-color: var(--foreground);
-  color: var(--surface);
+  background-color: var(--sp-cta);
+  border-color: var(--sp-peach-edge);
+  color: var(--sp-cta-ink);
+  font-weight: 700;
+  box-shadow: 0 2px 0 var(--sp-peach-edge);
 }
 
 .solidButton:hover {
-  background-color: color-mix(in srgb, var(--foreground), var(--surface) 18%);
+  background-color: var(--sp-cta-hover);
 }
 
 .secondaryButton:focus-visible,

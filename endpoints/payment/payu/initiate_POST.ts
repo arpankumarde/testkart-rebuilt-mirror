@@ -12,6 +12,8 @@ import { productEffectivePriceSql } from "../../../helpers/digitalProductPricing
 import { planTcoinsForOrder } from "../../../helpers/tcoins";
 import { ONE_OFFER_MESSAGE } from "../../../helpers/tcoinsMath";
 import { getOrderClientInfo } from "../../../helpers/orderClientInfo";
+import { getOrderAttribution } from "../../../helpers/getOrderAttribution";
+import { recordFunnelEvent } from "../../../helpers/recordFunnelEvent";
 import { assertAutoOffersUnchanged } from "../../../helpers/courseCouponOffersServer";
 import {
   cartRowKey,
@@ -46,6 +48,7 @@ export async function handle(request: Request) {
       throw new Error("Payment gateway is not configured.");
     }
 
+    let createdOrderId: number | null = null;
     const orderId = await db.transaction().execute(async (trx) => {
       // Cancel any existing pending orders for this user before creating a new one.
       // This prevents accumulation of multiple pending orders when users retry payments.
@@ -143,6 +146,7 @@ export async function handle(request: Request) {
         .values({
           userId: user.id,
           ...getOrderClientInfo(request),
+          ...getOrderAttribution(request),
           totalAmount: finalAmount.toFixed(2),
           ...coupons,
           status: "pending",
@@ -153,6 +157,7 @@ export async function handle(request: Request) {
         })
         .returning("id")
         .executeTakeFirstOrThrow();
+      createdOrderId = newOrder.id;
 
       // Cache platform fee per teacherId to avoid redundant DB queries
       const platformFeeCache = new Map<number, number>();
@@ -240,7 +245,7 @@ export async function handle(request: Request) {
         productinfo: sanitizedProductInfo,
         firstname,
         email,
-        phone: "9999999999", // Default phone as per requirements
+        phone: user.mobileNumber || "9999999999",
         surl: `https://testkart.in/_api/payment/payu/callback`,
         furl: `https://testkart.in/_api/payment/payu/callback`,
         hash,
@@ -251,6 +256,9 @@ export async function handle(request: Request) {
       return responsePayload;
     });
 
+    if (createdOrderId !== null) {
+      await recordFunnelEvent({ event: "checkout_started", request, userId: user.id, orderId: createdOrderId, amount: orderId.amount, props: { path: "cart_app" } });
+    }
     return new Response(superjson.stringify(orderId));
   } catch (error) {
     console.error("Failed to initiate payment:", error);

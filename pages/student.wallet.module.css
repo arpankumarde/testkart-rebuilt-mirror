@@ -1,6 +1,8 @@
 /*
  * 64rem, not the 1440 workspace measure: wallet is a balance and two short
- * lists. It is also the container the summary row sizes itself against.
+ * lists. It is also the container the summary row sizes itself against. The
+ * cash balance and the Tcoins block sit side by side on top; the lists below
+ * show one at a time behind tabs.
  */
 .page {
   container: wallet / inline-size;
@@ -23,12 +25,17 @@
   .summary {
     grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
   }
+
+  /* Tcoins switched off: the balance block takes the row. */
+  .summary[data-single="true"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 /*
- * The page's one coral thing, the same block as the teacher Earnings page:
- * flat --tk-brand with --tk-brand-ink for everything on it (6.2:1), fixed in
- * both themes. It holds the balance and the two things a student does with it.
+ * A solid mint block (themed) with --fc-mint-ink for everything on it. It
+ * holds the balance and the two things a student does with it; the buttons
+ * are the student layout's peach CTA and neutral outline.
  */
 .balance {
   display: flex;
@@ -36,10 +43,9 @@
   justify-content: space-between;
   gap: var(--spacing-6);
   padding: var(--spacing-6);
-  background-color: var(--tk-brand);
-  color: var(--tk-brand-ink);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
+  background-color: var(--fc-mint-tint);
+  color: var(--fc-mint-ink);
+  border-radius: 1.5rem;
 }
 
 .balanceHead {
@@ -54,7 +60,7 @@
   font-family: var(--font-family-base);
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--tk-brand-ink);
+  color: var(--fc-mint-ink);
 }
 
 /* The first size is the fallback where container units are unsupported. */
@@ -66,7 +72,7 @@
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1.05;
-  color: var(--tk-brand-ink);
+  color: var(--fc-mint-ink);
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
@@ -76,13 +82,13 @@
   max-width: 46ch;
   font-size: 0.8125rem;
   line-height: 1.5;
-  color: var(--tk-brand-ink);
+  color: var(--fc-mint-ink);
 }
 
-/* A deeper coral, not the grey kit skeleton, which reads as a hole in the block. */
+/* The card colour, not the grey kit skeleton, which reads as a hole in the block. */
 .balance .balanceSkeleton,
 .balance .statusSkeleton {
-  background-color: hsl(20 90% 62%);
+  background-color: var(--sp-card);
 }
 
 .balance .balanceSkeleton {
@@ -105,7 +111,7 @@
   justify-content: space-between;
   gap: var(--spacing-4);
   padding-top: var(--spacing-4);
-  border-top: 1px solid var(--tk-brand-ink);
+  border-top: 1px solid var(--fc-mint-edge);
 }
 
 .bankStatus {
@@ -118,7 +124,7 @@
   font-size: 0.875rem;
   font-weight: 600;
   line-height: 1.45;
-  color: var(--tk-brand-ink);
+  color: var(--fc-mint-ink);
 }
 
 .bankStatus svg {
@@ -135,8 +141,6 @@
 .balance .withdrawButton,
 .balance .bankButton {
   flex: 1 1 auto;
-  border-width: 2px;
-  border-style: solid;
   font-weight: 700;
 }
 
@@ -146,87 +150,41 @@
   height: 1.125rem;
 }
 
-.balance .withdrawButton {
-  background-color: var(--tk-brand-ink);
-  border-color: var(--tk-brand-ink);
-  color: #fff;
-}
-
-.balance .withdrawButton:hover:not(:disabled) {
-  background-color: var(--tk-brand-ink-hover);
-  border-color: var(--tk-brand-ink-hover);
-  color: #fff;
-}
-
 /* Unavailable reads as an empty dashed slot in full ink, not a faded button -
    the status line beside it says why. */
 .balance .withdrawButton:disabled {
   opacity: 1;
   background-color: transparent;
-  border-style: dashed;
-  border-color: var(--tk-brand-ink);
-  color: var(--tk-brand-ink);
+  border: 1.5px dashed var(--fc-mint-ink);
+  color: var(--fc-mint-ink);
+  box-shadow: none;
+  transform: none;
 }
 
-/* Button's outline variant is keyed to --primary, which is this coral. */
-.balance .bankButton {
-  background-color: transparent;
-  border-color: var(--tk-brand-ink);
-  color: var(--tk-brand-ink);
-}
-
-.balance .bankButton:hover {
-  background-color: #fff;
-  border-color: var(--tk-brand-ink);
-  color: var(--tk-brand-ink);
-}
-
-.balance .withdrawButton:focus-visible,
-.balance .bankButton:focus-visible {
-  outline: none;
-  box-shadow:
-    0 0 0 2px var(--tk-brand),
-    0 0 0 4px var(--tk-brand-ink);
-}
-
-/* Totals: a ruled ledger, label left and figure right. */
+/* Totals: three figures in one strip above the transactions. */
 .totals {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: var(--spacing-6);
+  padding: var(--spacing-4) var(--spacing-6);
   background-color: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
+  border-radius: 1.25rem;
 }
 
 .ledger {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-4);
   margin: 0;
 }
 
 .ledgerRow {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--spacing-4);
-  padding: var(--spacing-3) 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.ledgerRow:first-child {
-  padding-top: 0;
-}
-
-.ledgerRow:last-child {
-  padding-bottom: 0;
-  border-bottom: none;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .ledgerRow dt {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
 }
 
@@ -236,9 +194,22 @@
   font-size: 1.125rem;
   font-weight: 700;
   letter-spacing: -0.01em;
-  text-align: right;
   color: var(--foreground);
   font-variant-numeric: tabular-nums;
+}
+
+@container wallet (max-width: 34rem) {
+  .ledger {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--spacing-2);
+  }
+
+  .ledgerRow {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--spacing-4);
+  }
 }
 
 @media (max-width: 768px) {

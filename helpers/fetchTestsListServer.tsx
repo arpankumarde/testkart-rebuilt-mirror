@@ -4,6 +4,8 @@ import type { InputType, OutputType } from "../endpoints/tests/list_GET.schema";
 import { slugify } from "./slugify";
 import { contentInExam } from "./contentExams";
 import { matchesAnyLanguage } from "./languageFilter";
+import { mockTestShownPriceSql, paidFirst, sortPutsPaidFirst } from "./paidFirst";
+import { mockTestValueScoreSql, relatedToMockTest } from "./mockTestRecommendation";
 
 /**
  * Direct-DB counterpart to endpoints/tests/list_GET.ts, for use ONLY from
@@ -102,6 +104,12 @@ export async function fetchTestsListServer(filters: InputType = {}): Promise<Out
     )
   );
 
+  const relatedToId = parseInt(filters.relatedTo || "", 10);
+  if (Number.isFinite(relatedToId)) {
+    const source = await db.selectFrom("mockTests").select("title").where("id", "=", relatedToId).executeTakeFirst();
+    query = query.where(relatedToMockTest(relatedToId, source?.title));
+  }
+
   if (search) {
     const searchPattern = `%${search}%`;
     query = query.where((eb) =>
@@ -143,6 +151,9 @@ export async function fetchTestsListServer(filters: InputType = {}): Promise<Out
   const countResult = await countQuery.executeTakeFirst();
   const totalCount = Number(countResult?.count ?? 0);
 
+  if (sortPutsPaidFirst(sortBy)) {
+    query = query.orderBy(paidFirst(mockTestShownPriceSql));
+  }
   switch (sortBy) {
     case "price_asc":
       query = query.orderBy("mockTests.price", "asc");
@@ -154,7 +165,10 @@ export async function fetchTestsListServer(filters: InputType = {}): Promise<Out
       query = query.orderBy(sql`(
         (SELECT COUNT(*) FROM mock_test_enrollments WHERE mock_test_id = mock_tests.id AND enrolled_at > NOW() - INTERVAL '7 days') * 3 +
         (SELECT COUNT(*) FROM mock_test_enrollments WHERE mock_test_id = mock_tests.id AND enrolled_at > NOW() - INTERVAL '30 days')
-      )`, "desc").orderBy(sql`COALESCE(mock_tests.views, 0)`, "desc");
+      )`, "desc").orderBy(mockTestValueScoreSql, "desc").orderBy(sql`COALESCE(mock_tests.views, 0)`, "desc");
+      break;
+    case "recommended":
+      query = query.orderBy(mockTestValueScoreSql, "desc").orderBy(sql`COALESCE(mock_tests.views, 0)`, "desc");
       break;
     case "rating":
       query = query.orderBy(sql`"mock_tests"."rating" desc nulls last`);

@@ -1,3 +1,45 @@
+/*
+ * The student palette. Every /student page, the sidebar and the bottom nav sit
+ * inside .shell, which points the kit's surface tokens at the warm --sp-*
+ * showcase tokens used by /app: ivory page, white cards, warm hairlines, softer
+ * corners and a blue focus ring. Pages keep using --surface, --border and the
+ * rest, so they follow this without rules of their own. Dialogs and menus
+ * render outside .shell and keep the site defaults.
+ */
+.shell {
+  --background: var(--sp-surface);
+  --surface: var(--sp-card);
+  --surface-foreground: var(--sp-ink);
+  --card: var(--sp-card);
+  --card-foreground: var(--sp-ink);
+  --foreground: var(--sp-ink);
+  --sidebar-foreground: var(--sp-text);
+  --muted: hsl(38 32% 93%);
+  --muted-foreground: var(--sp-muted);
+  --border: var(--sp-line);
+  --radius: 0.625rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.25rem;
+  --tk-brand-tint: var(--sp-peach-tint);
+  --shadow-focus: 0 0 0 2px var(--sp-card), 0 0 0 4px var(--fc-blue-edge);
+
+  /* Shared console pieces (list toolbar, empty state) read these. */
+  --tc-radius-card: 1.25rem;
+  --tc-elevation: none;
+  --tc-tab-active-bg: var(--pastel-peach);
+  --tc-tab-active-ink: var(--pastel-peach-ink);
+  --tc-tab-count-bg: var(--sp-card);
+  --tc-tab-count-ink: var(--pastel-peach-ink);
+  --tc-accent-tint: var(--sp-lavender-tint);
+  --tc-accent-ink: var(--sp-lavender-ink);
+
+  color: var(--sp-ink);
+}
+
+:global(.dark) .shell {
+  --muted: hsl(222 16% 21%);
+}
+
 .layout {
   display: flex;
   min-height: calc(100vh - var(--site-notice-offset));

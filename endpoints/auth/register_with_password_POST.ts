@@ -9,6 +9,7 @@ import {
 import { generatePasswordHash } from "../../helpers/generatePasswordHash";
 import { sendTemplateEmail } from "../../helpers/sendTemplateEmail";
 import { assignUserSlug } from "../../helpers/assignUserSlug";
+import { recordSignIn } from "../../helpers/recordSignIn";
 
 export async function handle(request: Request) {
   try {
@@ -88,6 +89,8 @@ export async function handle(request: Request) {
       createdAt: now.getTime(),
       lastAccessed: now.getTime(),
     });
+
+    await recordSignIn(request, newUser.id, "signup", "password");
 
         // Send welcome email
     await sendTemplateEmail("welcome_student", email, { displayName, email }).catch(err => console.error("Failed to send welcome email:", err));

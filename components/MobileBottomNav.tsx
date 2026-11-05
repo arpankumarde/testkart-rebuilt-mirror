@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Radio, User, GraduationCap, FileText, UserPlus, ShoppingBag, LayoutGrid } from 'lucide-react';
+import { Users, User, GraduationCap, FileText, UserPlus, ShoppingBag, LayoutGrid } from 'lucide-react';
 import { useAuth } from '../helpers/useAuth';
 import { MORE_RESOURCES, isMoreResourcePath } from '../helpers/moreResources';
 import { Avatar, AvatarImage, AvatarFallback } from './Avatar';
@@ -11,7 +11,7 @@ import styles from './MobileBottomNav.module.css';
 const navItems = [
   { path: '/course', label: 'Courses', icon: GraduationCap },
   { path: '/mock-test', label: 'Tests', icon: FileText },
-  { path: '/live-test', label: 'Live', icon: Radio },
+  { path: '/expert', label: 'Tutors', icon: Users },
   { path: '/study-notes', label: 'Notes', icon: ShoppingBag },
   { path: '/more', label: 'More', icon: LayoutGrid },
   { path: '/profile', label: 'Profile', icon: User },
@@ -36,22 +36,12 @@ export const MobileBottomNav: React.FC = () => {
     return '#';
   };
 
-  const getLivePath = () => {
-    if (authState.type === 'authenticated' && authState.user.role === 'student') {
-      return '/student/live';
-    }
-    return '/live-test';
-  };
-
     const isActive = (path: string) => {
     if (path === '/') {
       return pathname === '/';
     }
     if (path === '/profile') {
         return pathname.startsWith('/student/') || pathname.startsWith('/teacher/');
-    }
-    if (path === '/live-test') {
-      return pathname.startsWith('/live-test') || pathname.startsWith('/student/live');
     }
     if (path === '/more') {
       return MORE_RESOURCES.some(({ href }) => isMoreResourcePath(pathname, href));
@@ -64,7 +54,7 @@ export const MobileBottomNav: React.FC = () => {
       <nav className={styles.navContainer}>
         <div className={styles.navContent}>
           {navItems.map((item) => {
-            const path = item.path === '/profile' ? getProfilePath() : item.path === '/live-test' ? getLivePath() : item.path;
+            const path = item.path === '/profile' ? getProfilePath() : item.path;
             const active = isActive(item.path);
             let Icon = item.icon;
             let label = item.label;
@@ -134,7 +124,6 @@ export const MobileBottomNav: React.FC = () => {
               <Link to={path} key={item.label} className={`${styles.navItem} ${active ? styles.active : ''}`}>
                 <div className={styles.iconWrapper}>
                   <Icon size={20} />
-                  {item.label === 'Live' && <span className={styles.liveDot}></span>}
                 </div>
                 <span className={styles.label}>{label}</span>
               </Link>

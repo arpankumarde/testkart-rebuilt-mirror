@@ -144,6 +144,7 @@
 }
 
 .meta {
+  margin: 0;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -243,4 +244,84 @@
   background-color: var(--muted);
   color: var(--muted-foreground);
   cursor: not-allowed;
+}
+
+/* Student pages (.tk-student): see EnrolledTestCard.module.css for the rules.
+   The file tile and category go butter, the study notes colour on the dashboard. */
+:global(.tk-student) .card {
+  border-top: 1px solid var(--border);
+  border-radius: 1.25rem;
+  box-shadow: none;
+  transition:
+    border-color var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
+}
+
+:global(.tk-student) .card:hover {
+  border-color: var(--sp-line-strong);
+  box-shadow: var(--sp-shadow-hover);
+  transform: translateY(-2px);
+}
+
+:global(.tk-student) .cardMain {
+  padding: var(--spacing-4);
+  gap: var(--spacing-3);
+}
+
+:global(.tk-student) .iconContainer {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  background-color: var(--fc-butter-tint);
+  color: var(--fc-butter-ink);
+}
+
+:global(.tk-student) .title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+:global(.tk-student) .category {
+  color: var(--fc-butter-ink);
+}
+
+:global(.tk-student) .actionButton,
+:global(.tk-student) .secondaryButton {
+  box-sizing: border-box;
+  height: 2.25rem;
+  border: 1px solid var(--sp-line-strong);
+  border-radius: 1.25rem 1.25rem 1.25rem 0.5rem;
+}
+
+:global(.tk-student) .actionButton:not(:disabled) {
+  background-color: var(--sp-cta);
+  color: var(--sp-cta-ink);
+  border-color: var(--sp-peach-edge);
+  box-shadow: 0 2px 0 var(--sp-peach-edge);
+  font-weight: 700;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
+}
+
+:global(.tk-student) .actionButton:hover:not(:disabled) {
+  background-color: var(--sp-cta-hover);
+  color: var(--sp-cta-ink);
+  box-shadow: 0 3px 0 var(--sp-peach-edge);
+  transform: translateY(-1px);
+}
+
+:global(.tk-student) .secondaryButton:hover:not(:disabled) {
+  background-color: var(--fc-blue-tint);
+  border-color: var(--fc-blue-edge);
+  color: var(--fc-blue-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global(.tk-student) .card:hover,
+  :global(.tk-student) .actionButton:hover:not(:disabled) {
+    transform: none;
+  }
 }

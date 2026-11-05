@@ -38,6 +38,7 @@ import { VerifiedBadge } from "./VerifiedBadge";
 import { TeacherCtaBanner } from "./TeacherCtaBanner";
 import { FollowTeacherButton } from "./FollowTeacherButton";
 import { TeacherPostsSection } from "./TeacherPostsSection";
+import { TeacherLiveTeachingCard } from "./TeacherLiveTeachingCard";
 import { Button } from "./Button";
 import styles from "./ExpertProfileView.module.css";
 
@@ -614,6 +615,8 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
           )}
         </div>
       </section>
+
+      {variant === "page" && <TeacherLiveTeachingCard teacherId={teacher.id} />}
 
       <section className={styles.section} ref={catalogueRef} id="resources">
         <h2 className={styles.sectionTitle}>Learn with {shortName}</h2>

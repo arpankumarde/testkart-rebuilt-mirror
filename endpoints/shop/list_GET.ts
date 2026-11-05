@@ -6,6 +6,7 @@ import { slugify } from "../../helpers/slugify";
 import { contentInExam } from "../../helpers/contentExams";
 import { matchesAnyLanguage } from "../../helpers/languageFilter";
 import { pinnedTeacherFirst, sortPinsTeachers } from "../../helpers/pinnedTeachers";
+import { paidFirst, sortPutsPaidFirst } from "../../helpers/paidFirst";
 import { productDiscountPrice, productEffectivePriceSql } from "../../helpers/digitalProductPricing";
 
 export async function handle(request: Request): Promise<Response> {
@@ -126,6 +127,9 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     // Sorting
+    if (sortPutsPaidFirst(input.sort)) {
+      query = query.orderBy(paidFirst(productEffectivePriceSql));
+    }
     if (sortPinsTeachers(input.sort)) {
       query = query.orderBy(pinnedTeacherFirst("digital_products.teacher_id"));
     }

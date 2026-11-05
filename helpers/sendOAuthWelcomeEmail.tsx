@@ -14,7 +14,8 @@ export type SendOAuthWelcomeEmailParams = {
 /**
  * Syncs a new OAuth user to Resend and sends students their welcome email.
  * Teachers get theirs as email 1 of the onboarding sequence (helpers/teacherOnboarding).
- * This function is non-blocking and logs errors without throwing.
+ * Await it before the handler returns: Floot drops work left running after the
+ * response. Runs both sends together and logs errors without throwing.
  */
 export async function sendOAuthWelcomeEmail({
   userDisplayName,
@@ -22,9 +23,8 @@ export async function sendOAuthWelcomeEmail({
   userId,
   role,
 }: SendOAuthWelcomeEmailParams): Promise<void> {
-  // Sync contact to Resend (non-blocking)
   const firstName = userDisplayName.split(" ")[0];
-  addContactToAudience(userEmail, firstName, role, userId)
+  const contactSync = addContactToAudience(userEmail, firstName, role, userId)
     .then((result) => {
       if (result.success) {
         console.log(`OAuth contact synced to Resend: ${userEmail}`);
@@ -36,10 +36,12 @@ export async function sendOAuthWelcomeEmail({
       console.error("Failed to sync OAuth contact to Resend:", err)
     );
 
-  if (role !== "student") return;
+  if (role !== "student") {
+    await contactSync;
+    return;
+  }
 
-  // Send welcome email (non-blocking)
-  const sendEmail_async = async () => {
+  const sendWelcome = async () => {
     try {
       const templateKey = "welcome_student";
 
@@ -110,5 +112,5 @@ export async function sendOAuthWelcomeEmail({
     }
   };
 
-  sendEmail_async();
+  await Promise.all([contactSync, sendWelcome()]);
 }

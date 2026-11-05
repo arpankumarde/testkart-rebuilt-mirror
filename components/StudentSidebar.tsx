@@ -2,9 +2,11 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
 import {
+  Home,
   LayoutDashboard,
   ClipboardCheck,
   Radio,
+  Video,
   FileText,
   BookOpenCheck,
   Award,
@@ -72,7 +74,10 @@ const NAV_GROUPS: StudentNavGroup[] = [
     key: 'overview',
     label: 'Overview',
     alwaysOpen: true,
-    items: [{ href: '/student/dashboard', label: 'Dashboard', icon: LayoutDashboard }],
+    items: [
+      { href: '/', label: 'Home', icon: Home },
+      { href: '/student/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    ],
   },
   {
     key: 'learning',
@@ -85,6 +90,7 @@ const NAV_GROUPS: StudentNavGroup[] = [
         isActiveFor: (p) => p === '/student/tests' || p.startsWith('/student/tests/'),
       },
       { href: '/student/live', label: 'Live Mock Tests', icon: Radio },
+      { href: '/student/live-teaching', label: 'Live Teaching', icon: Video },
       {
         href: '/student/shop',
         label: 'Study Notes & PDFs',

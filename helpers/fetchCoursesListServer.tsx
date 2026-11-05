@@ -5,6 +5,7 @@ import { slugify } from "./slugify";
 import { contentInExam } from "./contentExams";
 import { matchesAnyLanguage } from "./languageFilter";
 import { pinnedTeacherFirst, sortPinsTeachers } from "./pinnedTeachers";
+import { paidFirst, sortPutsPaidFirst } from "./paidFirst";
 import { courseDiscountPrice, courseEffectivePriceSql } from "./coursePricing";
 import { withCourseCouponOffers } from "./courseCouponOffersServer";
 
@@ -104,6 +105,9 @@ export async function fetchCoursesListServer(filters: InputType = {}): Promise<O
   const countResult = await countQuery.executeTakeFirst();
   const totalCount = Number(countResult?.count ?? 0);
 
+  if (sortPutsPaidFirst(sortBy)) {
+    query = query.orderBy(paidFirst(courseEffectivePriceSql));
+  }
   if (sortPinsTeachers(sortBy)) {
     query = query.orderBy(pinnedTeacherFirst("courses.teacher_id"));
   }

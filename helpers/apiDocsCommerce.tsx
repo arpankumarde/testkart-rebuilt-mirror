@@ -68,7 +68,7 @@ export const apiDocsCommerce: ApiEndpoint[] = [
     category: "Cart and orders",
     usedBy: ["web", "mobile"],
     responseFields: [
-      { name: "orders", type: "array", description: "{ id, createdAt, status: 'pending' | 'completed' | 'failed' | 'cancelled' | 'refunded', totalAmount (decimal text such as '499.00'), itemCount }" },
+      { name: "orders", type: "array", description: "{ id, createdAt, status: 'pending' | 'completed' | 'failed' | 'cancelled' | 'refunded', totalAmount (decimal text such as '499.00'), itemCount, title (the bundle's name, or the first item's name with 'and N more'; 'Order #id' when nothing resolves) }" },
     ],
     notes: [
       "Not paged and has no total field. The page and limit the mobile app sends are ignored.",
@@ -168,7 +168,7 @@ export const apiDocsCommerce: ApiEndpoint[] = [
       { name: "productinfo", type: "string", description: "Item titles, at most 100 characters" },
       { name: "firstname", type: "string", description: "Display name, or 'Student'" },
       { name: "email", type: "string", description: "User email, or <mobile>@mail.testkart.in" },
-      { name: "phone", type: "string", description: "Always 9999999999" },
+      { name: "phone", type: "string", description: "The student's mobile number, or 9999999999 when the account has none" },
       { name: "surl", type: "string", description: "/_api/payment/payu/callback" },
       { name: "furl", type: "string", description: "/_api/payment/payu/callback" },
       { name: "hash", type: "string", description: "SHA-512 request hash" },

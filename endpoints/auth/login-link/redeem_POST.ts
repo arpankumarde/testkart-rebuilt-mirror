@@ -6,6 +6,7 @@ import { setServerSession, SessionExpirationSeconds } from "../../../helpers/get
 import { getAccountBlockMessage } from "../../../helpers/accountSuspension";
 import { hashLoginLinkToken, LOGIN_LINK_TOKEN_PATTERN } from "../../../helpers/loginLinkToken";
 import { schema, OutputType } from "./redeem_POST.schema";
+import { recordSignIn } from "../../../helpers/recordSignIn";
 
 const json = (body: unknown, status = 200) =>
   new Response(superjson.stringify(body), {
@@ -70,6 +71,7 @@ export async function handle(request: Request): Promise<Response> {
       createdAt: now.getTime(),
       lastAccessed: now.getTime(),
     });
+    await recordSignIn(request, userId, "login", "login_link");
     return response;
   } catch (error) {
     if (error instanceof BlockedAccountError) return json({ error: error.message }, 403);

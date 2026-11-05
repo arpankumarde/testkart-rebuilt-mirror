@@ -17,14 +17,14 @@ interface EnrolledCourseCardProps {
 
 const getCourseStatus = (
   completionPercentage: number
-): { label: string; variant: 'success' | 'warning' | 'outline'; accentVar: string } => {
+): { label: string; action: string; variant: 'success' | 'warning' | 'outline'; accentVar: string } => {
   if (completionPercentage >= 100) {
-    return { label: 'Completed', variant: 'success', accentVar: 'var(--success)' };
+    return { label: 'Completed', action: 'Watch again', variant: 'success', accentVar: 'var(--success)' };
   }
   if (completionPercentage > 0) {
-    return { label: 'In progress', variant: 'warning', accentVar: 'var(--warning)' };
+    return { label: 'In progress', action: 'Continue', variant: 'warning', accentVar: 'var(--warning)' };
   }
-  return { label: 'Not started', variant: 'outline', accentVar: 'var(--border)' };
+  return { label: 'Not started', action: 'Start course', variant: 'outline', accentVar: 'var(--border)' };
 };
 
 export const EnrolledCourseCard: React.FC<EnrolledCourseCardProps> = ({ course, className }) => {
@@ -81,18 +81,18 @@ export const EnrolledCourseCard: React.FC<EnrolledCourseCardProps> = ({ course, 
             </button>
           )}
         </div>
-        <p className={styles.creator}>By: {course.teacherName}</p>
+        <p className={styles.creator}>by {course.teacherName}</p>
 
         <div className={styles.progressContainer}>
           <Progress value={course.completionPercentage} className={styles.progressBar} />
-          <span className={styles.progressText}>{Math.round(course.completionPercentage)}% Complete</span>
+          <span className={styles.progressText}>{Math.round(course.completionPercentage)}% done</span>
         </div>
       </div>
 
       <div className={styles.cardFooter}>
         <Link to={coursePlayerUrl} state={returnState} className={styles.continueButton}>
           <PlayCircle size={18} />
-          <span>Continue Learning</span>
+          <span>{courseStatus.action}</span>
         </Link>
       </div>
 

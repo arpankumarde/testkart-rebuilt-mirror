@@ -3,6 +3,7 @@ import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { expiredPurchaseError } from "../../helpers/contentExpiryServer";
 import { schema, OutputType } from "./add_POST.schema";
 import superjson from "superjson";
+import { recordFunnelEvent } from "../../helpers/recordFunnelEvent";
 
 const expiredResponse = (message: string) => new Response(superjson.stringify({ error: message }), { status: 400 });
 
@@ -124,6 +125,7 @@ export async function handle(request: Request) {
           courseId: null,
         })
         .execute();
+      await recordFunnelEvent({ event: "cart_add", request, userId: user.id, entityType: "mock_test", entityId: mockTestId });
 
       return new Response(
         superjson.stringify({
@@ -218,6 +220,7 @@ export async function handle(request: Request) {
           courseId: courseId,
         })
         .execute();
+      await recordFunnelEvent({ event: "cart_add", request, userId: user.id, entityType: "course", entityId: courseId });
 
       return new Response(
         superjson.stringify({
@@ -299,6 +302,7 @@ export async function handle(request: Request) {
           digitalProductId: digitalProductId,
         })
         .execute();
+      await recordFunnelEvent({ event: "cart_add", request, userId: user.id, entityType: "digital_product", entityId: digitalProductId });
 
       return new Response(
         superjson.stringify({

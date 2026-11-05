@@ -9,6 +9,7 @@ import { emailTemplatesExtra } from "../../helpers/emailTemplatesExtra";
 import { followTeachersForOrder } from "../../helpers/ensureTeacherFollow";
 import { getOrderClientInfo, type OrderClientInfo } from "../../helpers/orderClientInfo";
 import { expiredPurchaseError } from "../../helpers/contentExpiryServer";
+import { recordFunnelEvent } from "../../helpers/recordFunnelEvent";
 
 
 
@@ -120,6 +121,7 @@ export async function handle(request: Request) {
       .execute((trx) =>
         enrollInFreeProduct(trx, user.id, digitalProductId, getOrderClientInfo(request))
       );
+    await recordFunnelEvent({ event: "free_claimed", request, userId: user.id, entityType: "digital_product", entityId: digitalProductId, orderId, amount: 0 });
 
     // Send enrollment emails
     try {

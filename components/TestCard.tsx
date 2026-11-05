@@ -10,6 +10,8 @@ import { VerifiedBadge } from "./VerifiedBadge";
 import { Placeholder } from "../helpers/placeholderImages";
 import { VideoPreview } from "./VideoPreview";
 import { itemLanguages } from "../helpers/itemLanguages";
+import { trackFunnelEvent } from "../helpers/trackFunnelEvent";
+import { keepForCheckout } from "../helpers/guestCart";
 import styles from "./TestCard.module.css";
 
 /* Two language badges fit beside the exam; the rest collapse into a +N badge. */
@@ -37,8 +39,11 @@ export const TestCard: React.FC<TestCardProps> = ({ test, className }) => {
       return;
     }
 
+    trackFunnelEvent("add_to_cart_click", { entity: "mock_test", id: test.id }, { signedIn: authState.type === "authenticated", action: "add", from: "card" });
+
     // Check if user is authenticated
     if (authState.type !== "authenticated") {
+      keepForCheckout("test", test.id);
       const currentPath = location.pathname + location.search;
       navigate(`/login?redirectTo=${encodeURIComponent(currentPath)}`);
       return;

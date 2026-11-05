@@ -1,0 +1,57 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.infoCard {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  padding: var(--spacing-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.infoCardHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--muted-foreground);
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: var(--spacing-3);
+}
+
+.infoGrid > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  font-size: var(--text-sm);
+}
+
+.infoLabel {
+  font-size: var(--text-xs);
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.mockBadgeWrap {
+  display: inline-flex;
+}
+
+.filterRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.filterSelect {
+  width: 10rem;
+}

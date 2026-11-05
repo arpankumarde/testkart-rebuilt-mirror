@@ -10,7 +10,9 @@ export const schema = z.object({
   priceType: z.enum(['all', 'free', 'paid']).optional(),
   minPrice: z.string().optional(),
   maxPrice: z.string().optional(),
-  sortBy: z.enum(['newest', 'price_asc', 'price_desc', 'popular', 'rating']).optional(),
+  sortBy: z.enum(['newest', 'price_asc', 'price_desc', 'popular', 'rating', 'recommended']).optional(),
+  /** A series id: lists the other series that share an exam with it. */
+  relatedTo: z.string().optional(),
   page: z.string().optional(),
   limit: z.string().optional(),
 });
@@ -82,6 +84,7 @@ export const getTestsList = async (
   if (filters.minPrice) params.append('minPrice', filters.minPrice);
   if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
   if (filters.sortBy) params.append('sortBy', filters.sortBy);
+  if (filters.relatedTo) params.append('relatedTo', filters.relatedTo);
   if (filters.page) params.append('page', filters.page);
   if (filters.limit) params.append('limit', filters.limit);
 

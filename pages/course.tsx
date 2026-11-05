@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { SEOHead } from "../components/SEOHead";
+import { GROUP_LESSON_LIST_PATH } from "../helpers/groupLessonRoutes";
 import { Search } from "lucide-react";
 import { Input } from "../components/Input";
 import { useDebounce } from "../helpers/useDebounce";
@@ -273,6 +274,14 @@ const CoursesPage: React.FC = () => {
           <p>
             Master new skills with comprehensive courses designed by expert educators.
           </p>
+          <div className={styles.sectionTabs} role="tablist" aria-label="Course sections">
+            <span className={`${styles.sectionTab} ${styles.sectionTabActive}`} role="tab" aria-selected="true">
+              All Courses
+            </span>
+            <Link to={GROUP_LESSON_LIST_PATH} className={styles.sectionTab}>
+              Live Classes
+            </Link>
+          </div>
         </header>
 
         <main className={styles.mainContent}>

@@ -28,6 +28,32 @@
   margin: 0 auto;
 }
 
+.sectionTabs {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-6);
+}
+
+.sectionTab {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background-color: var(--background);
+  color: var(--muted-foreground);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.sectionTabActive {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
 .mainContent {
   width: 100%;
 }

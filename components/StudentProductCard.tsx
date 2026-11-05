@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Download, Eye, FileText, ChevronRight, Layers, Star } from 'lucide-react';
+import { BookOpen, Download, FileText, ChevronRight, Layers, Star } from 'lucide-react';
 import { Badge } from './Badge';
 import { ReviewDialog } from './ReviewDialog';
 import { StudentShopPdfViewer } from './StudentShopPdfViewer';
@@ -19,19 +19,8 @@ export const StudentProductCard: React.FC<StudentProductCardProps> = ({ purchase
   const hasMultipleFiles = purchase.fileCount > 1;
   const downloadMutation = useStudyNoteDownload();
 
-  const lastViewed = purchase.lastDownloadedAt
-    ? new Date(purchase.lastDownloadedAt).toLocaleDateString()
-    : 'Never';
-
-  const statusBadge = purchase.lastDownloadedAt
-    ? { label: 'Viewed', variant: 'success' as const, accentVar: 'var(--success)' }
-    : { label: 'Not Viewed', variant: 'outline' as const, accentVar: 'var(--border)' };
-
   return (
-    <div
-      className={`${styles.card} ${className || ''}`}
-      style={{ '--card-accent': statusBadge.accentVar } as React.CSSProperties}
-    >
+    <div className={`${styles.card} ${className || ''}`}>
       <div className={styles.cardMain}>
         <div className={styles.iconContainer}>
           {hasMultipleFiles ? (
@@ -69,27 +58,15 @@ export const StudentProductCard: React.FC<StudentProductCardProps> = ({ purchase
             </div>
             <div className={styles.categoryRow}>
               <span className={styles.category}>{purchase.category}</span>
-              <Badge variant={statusBadge.variant} className={styles.statusBadge}>
-                {statusBadge.label}
-              </Badge>
               {hasMultipleFiles && (
                 <Badge variant="secondary" className={styles.fileCountBadge}>
-                  {purchase.fileCount} Files
+                  {purchase.fileCount} files
                 </Badge>
               )}
             </div>
           </div>
 
-          <div className={styles.meta}>
-            <div className={styles.metaItem}>
-              <span className={styles.label}>Teacher:</span>
-              <span className={styles.value}>{purchase.teacherName}</span>
-            </div>
-            <div className={styles.metaItem}>
-              <span className={styles.label}>Last Viewed:</span>
-              <span className={styles.value}>{lastViewed}</span>
-            </div>
-          </div>
+          <p className={styles.meta}>by {purchase.teacherName}</p>
 
           {/* Multi-file notes route to a detail page with one row per file;
               single-file notes open the reader directly. Download
@@ -97,8 +74,8 @@ export const StudentProductCard: React.FC<StudentProductCardProps> = ({ purchase
           <div className={styles.footer}>
             {hasMultipleFiles ? (
               <Link to={`/student/shop/${purchase.productId}`} className={styles.actionButton}>
-                <Layers size={16} />
-                View Files
+                <BookOpen size={16} />
+                Open
                 <ChevronRight size={16} />
               </Link>
             ) : (
@@ -108,8 +85,8 @@ export const StudentProductCard: React.FC<StudentProductCardProps> = ({ purchase
                   onClick={() => setIsViewerOpen(true)}
                   className={styles.actionButton}
                 >
-                  <Eye size={16} />
-                  View PDF
+                  <BookOpen size={16} />
+                  Read
                 </button>
                 {purchase.allowDownload && (
                   <button
@@ -119,7 +96,7 @@ export const StudentProductCard: React.FC<StudentProductCardProps> = ({ purchase
                     className={styles.secondaryButton}
                   >
                     <Download size={16} />
-                    {downloadMutation.isPending ? 'Preparing...' : 'Download PDF'}
+                    {downloadMutation.isPending ? 'Preparing...' : 'Download'}
                   </button>
                 )}
               </>

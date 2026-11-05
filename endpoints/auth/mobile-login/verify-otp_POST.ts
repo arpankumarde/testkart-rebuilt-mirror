@@ -17,6 +17,7 @@ import {
   claimOtpAttempt,
   recordOtpVerifyFailure,
 } from "../../../helpers/otpVerifyGuard";
+import { recordSignIn } from "../../../helpers/recordSignIn";
 
 export async function handle(request: Request) {
   try {
@@ -93,6 +94,7 @@ export async function handle(request: Request) {
     }
 
     // 5. If no user exists, create a new student account (signup flow)
+    const isNewUser = !user;
     if (!user) {
       const newUser = await db
         .insertInto("users")
@@ -221,6 +223,7 @@ export async function handle(request: Request) {
     const token = setCookieHeader.split("=").slice(1).join("=").split(";")[0] || "";
 
     console.log(`OTP login successful for mobile: ${mobileNumber}, userId: ${user.id}`);
+    await recordSignIn(request, user.id, isNewUser ? "signup" : "login", "mobile_otp");
 
     const response = new Response(
       superjson.stringify({

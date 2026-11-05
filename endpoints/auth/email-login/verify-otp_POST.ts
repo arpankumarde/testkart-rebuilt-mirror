@@ -16,6 +16,9 @@ import {
   claimOtpAttempt,
   recordOtpVerifyFailure,
 } from "../../../helpers/otpVerifyGuard";
+import { recordSignIn } from "../../../helpers/recordSignIn";
+import { sendTemplateEmail } from "../../../helpers/sendTemplateEmail";
+import { addContactToAudience } from "../../../helpers/resendContacts";
 
 export async function handle(request: Request) {
   try {
@@ -92,6 +95,7 @@ export async function handle(request: Request) {
     }
 
     // 5. If no user exists, create a new account (signup flow)
+    const isNewUser = !user;
     if (!user) {
       const newUser = await db
         .insertInto("users")
@@ -213,6 +217,8 @@ export async function handle(request: Request) {
     // The cookie format is: <cookieName>=<token>; HttpOnly; ...
     const token = setCookieHeader.split("=").slice(1).join("=").split(";")[0] || "";
 
+    await recordSignIn(request, user.id, isNewUser ? "signup" : "login", "email_otp");
+
     const response = new Response(
       superjson.stringify({
         user: {
@@ -229,6 +235,24 @@ export async function handle(request: Request) {
     );
 
     response.headers.set("Set-Cookie", setCookieHeader);
+
+    // New students have only a placeholder name here, so greet them generically.
+    // Awaited because Floot drops work left running after the response; never throws.
+    if (isNewUser && user.role === "student" && user.email) {
+      const studentEmail = user.email;
+      await Promise.all([
+        sendTemplateEmail("welcome_student", studentEmail, { displayName: "friend", email: studentEmail }).then(
+          (result) => {
+            if (!result.success) console.error(`Failed to send welcome email to ${studentEmail}`);
+          }
+        ),
+        addContactToAudience(studentEmail, "", "student", user.id)
+          .then((result) => {
+            if (!result.success) console.error("Failed to sync contact to Resend:", result.error);
+          })
+          .catch((err) => console.error("Failed to sync contact to Resend:", err)),
+      ]);
+    }
 
     return response;
   } catch (error) {

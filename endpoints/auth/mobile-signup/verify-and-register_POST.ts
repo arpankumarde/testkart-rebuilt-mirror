@@ -22,6 +22,7 @@ import {
 } from "../../../helpers/otpVerifyGuard";
 import { checkTeacherSecondContact } from "../../../helpers/teacherSignupContact";
 import { sendTeacherOnboardingWhatsApp } from "../../../helpers/sendTeacherOnboardingWhatsApp";
+import { recordSignIn } from "../../../helpers/recordSignIn";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -204,6 +205,7 @@ export async function handle(request: Request): Promise<Response> {
     const token = setCookieHeader.split("=").slice(1).join("=").split(";")[0] || "";
 
     console.log(`Mobile signup successful for mobile: ${mobileNumber}, userId: ${updatedUser.id}`);
+    await recordSignIn(request, updatedUser.id, "signup", "mobile_otp");
 
     const response = new Response(
       superjson.stringify({
@@ -222,8 +224,9 @@ export async function handle(request: Request): Promise<Response> {
 
     response.headers.set("Set-Cookie", setCookieHeader);
 
-    // Welcome email for students who gave an email (non-blocking). Teachers get
-    // theirs as email 1 of the onboarding sequence (helpers/teacherOnboarding).
+    // Welcome email for students who gave an email, awaited before returning
+    // because Floot drops work left running after the response. Never throws.
+    // Teachers get theirs as email 1 of the onboarding sequence (helpers/teacherOnboarding).
     if (updatedUser.email) {
       const sendWelcomeEmail = async () => {
         try {
@@ -281,7 +284,7 @@ export async function handle(request: Request): Promise<Response> {
         }
       };
 
-      if (role === "student") sendWelcomeEmail();
+      const welcomeEmail = role === "student" ? sendWelcomeEmail() : null;
 
       try {
         const firstName = updatedUser.displayName.split(" ")[0];
@@ -294,6 +297,8 @@ export async function handle(request: Request): Promise<Response> {
       } catch (err) {
         console.error("Failed to sync contact to Resend:", err);
       }
+
+      await welcomeEmail;
     }
 
     if (role === "teacher") {

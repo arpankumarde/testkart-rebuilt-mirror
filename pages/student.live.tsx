@@ -36,7 +36,7 @@ export default function StudentLivePage() {
           tone="error"
           icon={<AlertTriangle size={24} />}
           title="Could not load your live tests"
-          description="The request did not come back. Check your connection and try again."
+          description="Check your connection and try again."
         >
           <Button variant="outline" onClick={() => refetch()}>Try again</Button>
         </ConsoleListEmpty>
@@ -48,7 +48,7 @@ export default function StudentLivePage() {
         <ConsoleListEmpty
           icon={<Radio size={24} />}
           title="No live tests yet"
-          description="Live tests run to a schedule and rank every entrant. Join one and it shows up here."
+          description="Live tests you join show up here."
         >
           <Button asChild>
             <Link to="/live-test">Browse live tests</Link>
@@ -63,8 +63,7 @@ export default function StudentLivePage() {
           <section className={styles.panel}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionTitle}>
-                Active and upcoming
-                <span className={styles.sectionCount}>{activeLiveTests.length}</span>
+                Live and upcoming
               </h2>
             </div>
             <div className={styles.grid}>
@@ -78,10 +77,7 @@ export default function StudentLivePage() {
         <section className={styles.panel}>
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>
-              Past results
-              {endedLiveTests.length > 0 && (
-                <span className={styles.sectionCount}>{endedLiveTests.length}</span>
-              )}
+              Past tests
             </h2>
           </div>
           {endedLiveTests.length === 0 ? (
@@ -89,10 +85,8 @@ export default function StudentLivePage() {
               <span className={styles.stateIcon} aria-hidden="true">
                 <Radio size={20} />
               </span>
-              <h3 className={styles.stateTitle}>No results yet</h3>
-              <p className={styles.stateHint}>
-                Your rank and score appear here once a live test you entered has ended.
-              </p>
+              <h3 className={styles.stateTitle}>No past tests yet</h3>
+              <p className={styles.stateHint}>Your rank and score show up here after a live test ends.</p>
             </div>
           ) : (
             <div className={styles.grid}>

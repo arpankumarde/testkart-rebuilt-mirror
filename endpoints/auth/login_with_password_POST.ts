@@ -10,6 +10,7 @@ import {
 } from "../../helpers/getSetServerSession";
 import { User } from "../../helpers/User";
 import { getAccountBlockMessage } from "../../helpers/accountSuspension";
+import { recordSignIn } from "../../helpers/recordSignIn";
 
 // Configuration constants
 const RATE_LIMIT_CONFIG = {
@@ -258,6 +259,8 @@ export async function handle(request: Request) {
       createdAt: result.sessionCreatedAt.getTime(),
       lastAccessed: result.sessionCreatedAt.getTime(),
     });
+
+    await recordSignIn(request, user.id, "login", "password");
 
     return response;
   } catch (error) {

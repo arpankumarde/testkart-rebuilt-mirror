@@ -1,7 +1,7 @@
 /*
- * On the shared console language - see student.tests.module.css for the rules.
- * The category label lost its tracked-out ALL-CAPS treatment, and the two
- * coral-on-muted icon tiles became the --tk-brand-tint / --tk-brand-text pair.
+ * On the student palette - see student.dashboard.module.css. Butter is the
+ * study notes colour: the icon tiles and the category label use it. Read is
+ * the peach CTA.
  */
 /*
  * 64rem, not the 1440 workspace measure: a header card over a single column of
@@ -42,8 +42,7 @@
 .headerCard {
   background-color: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
+  border-radius: 1.25rem;
   overflow: hidden;
 }
 
@@ -61,9 +60,9 @@
   width: 56px;
   height: 56px;
   flex-shrink: 0;
-  border-radius: var(--radius);
-  background-color: var(--tk-brand-tint);
-  color: var(--tk-brand-text);
+  border-radius: 1rem;
+  background-color: var(--fc-butter-tint);
+  color: var(--fc-butter-ink);
 }
 
 .headerContent {
@@ -77,7 +76,7 @@
 .category {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--tk-brand-text);
+  color: var(--fc-butter-ink);
 }
 
 .title {
@@ -85,7 +84,7 @@
   font-family: var(--font-family-heading);
   font-size: 1.5rem;
   font-weight: 800;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.025em;
   line-height: 1.2;
   color: var(--foreground);
 }
@@ -120,9 +119,9 @@
   gap: var(--spacing-1);
   height: 2.5rem;
   padding: 0 var(--spacing-4);
-  border-radius: var(--radius);
+  border-radius: 1.25rem 1.25rem 1.25rem 0.5rem;
   background-color: transparent;
-  border: 1px solid var(--border);
+  border: 1px solid var(--sp-line-strong);
   color: var(--foreground);
   font-family: var(--font-family-base);
   font-size: 0.875rem;
@@ -133,8 +132,9 @@
 }
 
 .reviewButton:hover {
-  background-color: var(--muted);
-  border-color: color-mix(in srgb, var(--border), black 10%);
+  background-color: var(--fc-blue-tint);
+  border-color: var(--fc-blue-edge);
+  color: var(--fc-blue-ink);
 }
 
 .reviewButton:focus-visible {
@@ -149,8 +149,7 @@
   padding: var(--spacing-4);
   background-color: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
+  border-radius: 1.25rem;
 }
 
 .fileItem {
@@ -172,8 +171,8 @@
   width: 2rem;
   height: 2rem;
   border-radius: var(--radius);
-  background-color: var(--tk-brand-tint);
-  color: var(--tk-brand-text);
+  background-color: var(--fc-butter-tint);
+  color: var(--fc-butter-ink);
 }
 
 .fileItemInfo {
@@ -198,8 +197,7 @@
   color: var(--muted-foreground);
 }
 
-/* Ink on coral, 6.2:1 - the pairing base.css defines. Hover drops to the deep
-   orange with a white label. */
+/* The peach CTA from the navbar's Create Account button. */
 .fileViewButton {
   flex-shrink: 0;
   display: inline-flex;
@@ -207,21 +205,23 @@
   gap: var(--spacing-1);
   height: 2.25rem;
   padding: 0 var(--spacing-3);
-  border: none;
-  border-radius: var(--radius);
-  background-color: var(--primary);
-  color: var(--primary-foreground);
+  box-sizing: border-box;
+  border: 1px solid var(--sp-peach-edge);
+  border-radius: 1.25rem 1.25rem 1.25rem 0.5rem;
+  background-color: var(--sp-cta);
+  color: var(--sp-cta-ink);
+  box-shadow: 0 2px 0 var(--sp-peach-edge);
   font-family: var(--font-family-base);
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 700;
   white-space: nowrap;
   cursor: pointer;
   transition: background-color var(--animation-duration-fast) ease, color var(--animation-duration-fast) ease;
 }
 
 .fileViewButton:hover {
-  background-color: var(--tk-brand-hover);
-  color: var(--tk-brand-hover-foreground);
+  background-color: var(--sp-cta-hover);
+  color: var(--sp-cta-ink);
 }
 
 .fileViewButton:focus-visible {
@@ -242,8 +242,9 @@
   gap: var(--spacing-1);
   height: 2.25rem;
   padding: 0 var(--spacing-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  box-sizing: border-box;
+  border: 1px solid var(--sp-line-strong);
+  border-radius: 1.25rem 1.25rem 1.25rem 0.5rem;
   background-color: var(--surface);
   color: var(--foreground);
   font-family: var(--font-family-base);
@@ -255,8 +256,9 @@
 }
 
 .fileDownloadButton:hover:not(:disabled) {
-  background-color: var(--muted);
-  border-color: color-mix(in srgb, var(--border), black 10%);
+  background-color: var(--fc-blue-tint);
+  border-color: var(--fc-blue-edge);
+  color: var(--fc-blue-ink);
 }
 
 .fileDownloadButton:focus-visible {
@@ -278,20 +280,20 @@
   gap: var(--spacing-2);
   padding: var(--spacing-8) var(--spacing-4);
   text-align: center;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border: 1.5px dashed var(--sp-line-strong);
+  border-radius: 1.25rem;
 }
 
 .stateIcon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 3rem;
+  height: 3rem;
   margin-bottom: var(--spacing-1);
-  border-radius: var(--radius-full);
-  background-color: var(--tk-brand-tint);
-  color: var(--tk-brand-text);
+  border-radius: 1rem;
+  background-color: var(--fc-butter-tint);
+  color: var(--fc-butter-ink);
 }
 
 .stateTitle {

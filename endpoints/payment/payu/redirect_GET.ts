@@ -11,6 +11,8 @@ import { productEffectivePriceSql } from "../../../helpers/digitalProductPricing
 import { planTcoinsForOrder } from "../../../helpers/tcoins";
 import { ONE_OFFER_MESSAGE } from "../../../helpers/tcoinsMath";
 import { getOrderClientInfo } from "../../../helpers/orderClientInfo";
+import { getOrderAttribution } from "../../../helpers/getOrderAttribution";
+import { recordFunnelEvent } from "../../../helpers/recordFunnelEvent";
 import { assertAutoOffersUnchanged } from "../../../helpers/courseCouponOffersServer";
 import {
   cartRowKey,
@@ -162,7 +164,7 @@ export async function handle(request: Request) {
     }
 
     // Use a union type to distinguish between paid and free order results
-    type PaidOrderResult = { kind: 'paid'; formData: { [key: string]: string } };
+    type PaidOrderResult = { kind: 'paid'; orderId: number; amount: string; formData: { [key: string]: string } };
     type FreeOrderResult = { kind: 'free'; orderId: number };
     type TransactionResult = PaidOrderResult | FreeOrderResult;
 
@@ -262,6 +264,7 @@ export async function handle(request: Request) {
           .values({
             userId: user.id,
             ...getOrderClientInfo(request),
+            ...getOrderAttribution(request),
             totalAmount: "0.00",
             ...coupons,
             status: "completed",
@@ -411,6 +414,7 @@ export async function handle(request: Request) {
         .values({
           userId: user.id,
           ...getOrderClientInfo(request),
+          ...getOrderAttribution(request),
           totalAmount: finalAmount.toFixed(2),
           ...coupons,
           status: "pending",
@@ -489,6 +493,8 @@ export async function handle(request: Request) {
 
       return {
         kind: 'paid' as const,
+        orderId: newOrder.id,
+        amount,
         formData: {
           key: PAYU_MERCHANT_KEY,
           txnid,
@@ -506,6 +512,7 @@ export async function handle(request: Request) {
     });
 
     if (result.kind === 'free') {
+      await recordFunnelEvent({ event: "checkout_started", request, userId: user.id, orderId: result.orderId, amount: 0, props: { path: "cart_web" } });
             // Await side effects to prevent Lambda timer leak
       await ensureOrderCompletionSideEffects(result.orderId).catch((error) => {
         console.error(`[redirect_GET] Failed to run side effects for free order ${result.orderId}:`, error);
@@ -517,6 +524,7 @@ export async function handle(request: Request) {
       return new Response(html, { headers: { "Content-Type": "text/html" } });
     }
 
+    await recordFunnelEvent({ event: "checkout_started", request, userId: user.id, orderId: result.orderId, amount: result.amount, props: { path: "cart_web" } });
     const html = generateRedirectHtml(result.formData);
     return new Response(html, { headers: { "Content-Type": "text/html" } });
 

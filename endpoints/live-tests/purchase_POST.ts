@@ -10,6 +10,8 @@ import { getTeacherPlatformFee, DEFAULT_TEACHER_PLATFORM_FEE } from "../../helpe
 import { sanitizePayuText } from "../../helpers/sanitizePayuText";
 import { liveTestEffectivePrice } from "../../helpers/liveTestPricing";
 import { getOrderClientInfo } from "../../helpers/orderClientInfo";
+import { getOrderAttribution } from "../../helpers/getOrderAttribution";
+import { recordFunnelEvent } from "../../helpers/recordFunnelEvent";
 import { expiredPurchaseError } from "../../helpers/contentExpiryServer";
 
 export async function handle(request: Request) {
@@ -30,6 +32,7 @@ export async function handle(request: Request) {
       throw new Error("Payment gateway is not configured.");
     }
 
+    let createdOrderId: number | null = null;
     const payuFormData = await db.transaction().execute(async (trx) => {
       const liveTest = await trx
         .selectFrom("liveTests")
@@ -88,6 +91,7 @@ export async function handle(request: Request) {
         .values({
           userId: user.id,
           ...getOrderClientInfo(request),
+          ...getOrderAttribution(request),
           totalAmount: amount,
           status: "pending",
           paymentMethod: "payu",
@@ -95,6 +99,7 @@ export async function handle(request: Request) {
         })
         .returning("id")
         .executeTakeFirstOrThrow();
+      createdOrderId = newOrder.id;
 
       // Look up the mock test's teacher to get the correct platform fee
       const mockTest = await trx
@@ -139,7 +144,7 @@ export async function handle(request: Request) {
         productinfo: sanitizedProductInfo,
         firstname,
         email,
-        phone: "9999999999", // Default phone as per requirements
+        phone: user.mobileNumber || "9999999999",
         surl: `https://testkart.in/_api/payment/payu/callback`,
         furl: `https://testkart.in/_api/payment/payu/callback`,
         hash,
@@ -150,6 +155,9 @@ export async function handle(request: Request) {
       return responsePayload;
     });
 
+    if (createdOrderId !== null) {
+      await recordFunnelEvent({ event: "checkout_started", request, userId: user.id, orderId: createdOrderId, entityType: "live_test", entityId: liveTestId, amount: payuFormData.amount, props: { path: "live_test" } });
+    }
     return new Response(superjson.stringify(payuFormData));
   } catch (error) {
     console.error("Failed to initiate live test purchase:", error);

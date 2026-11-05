@@ -9,38 +9,30 @@ import { Skeleton } from "../components/Skeleton";
 import { ConsolePageHeader } from "../components/ConsolePageHeader";
 import { ConsoleListEmpty } from "../components/ConsoleListEmpty";
 import { toast } from "sonner";
-import {
-  AlertTriangle,
-  ShoppingBag,
-  FileText,
-  Calendar,
-  Hash,
-  IndianRupee,
-  Download,
-} from "lucide-react";
+import { AlertTriangle, ChevronRight, Download, ShoppingBag } from "lucide-react";
 import styles from "./student.orders.module.css";
 
+type OrderStatus = "pending" | "completed" | "failed" | "cancelled" | "refunded";
+
+const STATUS: Record<OrderStatus, { label: string; variant: "warning" | "success" | "destructive" | "outline" }> = {
+  completed: { label: "Completed", variant: "success" },
+  pending: { label: "Payment pending", variant: "warning" },
+  failed: { label: "Payment failed", variant: "destructive" },
+  cancelled: { label: "Cancelled", variant: "outline" },
+  refunded: { label: "Refunded", variant: "outline" },
+};
+
+const rupees = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 });
+const shortDate = new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", year: "numeric" });
+
+/*
+ * One list, newest first. A row reads the way a student thinks of it: what was
+ * bought, when, what it cost and whether it went through. The order number is
+ * kept small for support conversations.
+ */
 const StudentOrdersPage: React.FC = () => {
   const { data, isFetching, error, refetch } = useStudentOrdersQuery();
   const [downloadingOrderId, setDownloadingOrderId] = useState<number | null>(null);
-
-  const getStatusVariant = (
-    status: "pending" | "completed" | "failed" | "cancelled" | "refunded"
-  ): "warning" | "success" | "destructive" | "outline" => {
-    switch (status) {
-      case "completed":
-        return "success";
-      case "pending":
-        return "warning";
-      case "failed":
-        return "destructive";
-      case "cancelled":
-      case "refunded":
-        return "outline";
-      default:
-        return "outline";
-    }
-  };
 
   const handleDownloadInvoice = async (orderId: number) => {
     setDownloadingOrderId(orderId);
@@ -62,11 +54,13 @@ const StudentOrdersPage: React.FC = () => {
   };
 
   const renderContent = () => {
-    if (isFetching) {
+    if (isFetching && !data) {
       return (
-        <div className={styles.ordersGrid}>
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className={styles.cardSkeleton} />
+        <div className={styles.list}>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className={styles.row}>
+              <Skeleton className={styles.rowSkeleton} />
+            </div>
           ))}
         </div>
       );
@@ -78,7 +72,7 @@ const StudentOrdersPage: React.FC = () => {
           tone="error"
           icon={<AlertTriangle size={24} />}
           title="Could not load your orders"
-          description="The request did not come back. Check your connection and try again."
+          description="Check your connection and try again."
         >
           <Button variant="outline" onClick={() => refetch()}>Try again</Button>
         </ConsoleListEmpty>
@@ -90,7 +84,7 @@ const StudentOrdersPage: React.FC = () => {
         <ConsoleListEmpty
           icon={<ShoppingBag size={24} />}
           title="No orders yet"
-          description="Every purchase you make lands here with its invoice and status."
+          description="Your purchases and invoices show up here."
         >
           <Button asChild>
             <Link to="/mock-test">Browse tests</Link>
@@ -100,66 +94,55 @@ const StudentOrdersPage: React.FC = () => {
     }
 
     return (
-      <div className={styles.ordersGrid}>
-        {data.orders.map((order) => (
-          <div key={order.id} className={styles.orderCard}>
-            <div className={styles.cardHeader}>
-              <h2 className={styles.orderId}>Order #{order.id}</h2>
-              <Badge variant={getStatusVariant(order.status)}>
-                {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-              </Badge>
-            </div>
-            <div className={styles.cardBody}>
-              <div className={styles.infoItem}>
-                <Calendar size={16} />
-                <span className={styles.infoValue}>
-                  {order.createdAt
-                    ? new Date(order.createdAt).toLocaleDateString("en-IN", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })
-                    : "Date unavailable"}
-                </span>
+      <ul className={styles.list}>
+        {data.orders.map((order) => {
+          const status = STATUS[order.status as OrderStatus] ?? { label: order.status, variant: "outline" as const };
+          const amount = Number(order.totalAmount);
+          const hasInvoice = order.status === "completed" && amount > 0;
+
+          return (
+            <li key={order.id} className={styles.row}>
+              <div className={styles.main}>
+                <h2 className={styles.title}>
+                  <Link to={`/order/${order.id}`} className={styles.titleLink}>
+                    {order.title}
+                  </Link>
+                </h2>
+                <p className={styles.meta}>
+                  {order.createdAt ? shortDate.format(new Date(order.createdAt)) : "Date unavailable"}
+                  <span aria-hidden="true"> &middot; </span>
+                  Order #{order.id}
+                </p>
               </div>
-              <div className={styles.infoItem}>
-                <IndianRupee size={16} />
-                <span className={styles.infoValue}>
-                  {new Intl.NumberFormat("en-IN", {
-                    style: "currency",
-                    currency: "INR",
-                  }).format(Number(order.totalAmount))}
-                </span>
-              </div>
-              <div className={styles.infoItem}>
-                <Hash size={16} />
-                <span className={styles.infoValue}>
-                  {order.itemCount} item{order.itemCount !== 1 ? "s" : ""}
-                </span>
-              </div>
-            </div>
-            <div className={styles.cardFooter}>
-              <Button asChild variant="outline" size="sm">
-                <Link to={`/order/${order.id}`}>
-                  <FileText size={16} />
-                  View order
-                </Link>
-              </Button>
-              {order.status === "completed" && Number(order.totalAmount) > 0 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDownloadInvoice(order.id)}
-                  disabled={downloadingOrderId === order.id}
-                >
-                  <Download size={16} />
-                  {downloadingOrderId === order.id ? "Downloading..." : "Download invoice"}
+
+              <span className={styles.amount}>{amount > 0 ? rupees.format(amount) : "Free"}</span>
+
+              <span className={styles.status}>
+                <Badge variant={status.variant}>{status.label}</Badge>
+              </span>
+
+              <div className={styles.actions}>
+                {hasInvoice && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDownloadInvoice(order.id)}
+                    disabled={downloadingOrderId === order.id}
+                  >
+                    <Download size={15} />
+                    {downloadingOrderId === order.id ? "Downloading..." : "Invoice"}
+                  </Button>
+                )}
+                <Button asChild variant="outline" size="sm">
+                  <Link to={`/order/${order.id}`}>
+                    View <ChevronRight size={15} />
+                  </Link>
                 </Button>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
     );
   };
 

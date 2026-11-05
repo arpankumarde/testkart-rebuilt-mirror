@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Menu, X, Radio } from "lucide-react";
+import { Menu, X, Users } from "lucide-react";
 import { Button } from "./Button";
 import styles from "./MobileNav.module.css";
 
@@ -48,17 +48,14 @@ export const MobileNav: React.FC = () => {
                 Test Series
               </NavLink>
               <NavLink
-                to="/live-test"
+                to="/expert"
                 className={({ isActive }) =>
-                  `${styles.mobileNavLink} ${styles.liveTestsLink} ${isActive ? styles.active : ""}`
+                  `${styles.mobileNavLink} ${isActive ? styles.active : ""}`
                 }
                 onClick={closeMenu}
               >
-                <div className={styles.liveIndicatorWrapper}>
-                  <Radio size={20} className={styles.liveIcon} />
-                  <span className={styles.liveDot}></span>
-                </div>
-                <span>Live Competitions</span>
+                <Users size={20} />
+                <span>Tutors</span>
               </NavLink>
             </div>
           </nav>

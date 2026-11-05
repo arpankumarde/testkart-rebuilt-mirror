@@ -1,0 +1,215 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.rowInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  min-width: 0;
+}
+
+.rowTitle {
+  font-weight: var(--font-weight-medium);
+  color: var(--foreground);
+}
+
+.rowMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: var(--text-sm);
+  color: var(--muted-foreground);
+}
+
+.rowActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-shrink: 0;
+}
+
+.emptyState,
+.emptyStateSmall {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  color: var(--muted-foreground);
+  font-size: var(--text-sm);
+  padding: var(--spacing-4) 0;
+}
+
+.emptyStateSmall {
+  padding: var(--spacing-2) 0;
+}
+
+.dialogFields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  flex: 1;
+}
+
+.fieldRow {
+  display: flex;
+  gap: var(--spacing-3);
+}
+
+.label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--foreground);
+}
+
+.switchRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+}
+
+.sectionTitle {
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--foreground);
+  margin: 0;
+}
+
+.sectionHint {
+  font-size: var(--text-sm);
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.timezoneField {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  color: var(--muted-foreground);
+}
+
+.timezoneInput {
+  width: 14rem;
+}
+
+.dayRow {
+  display: flex;
+  gap: var(--spacing-4);
+  padding: var(--spacing-3) 0;
+  border-top: 1px solid var(--border);
+}
+
+.dayName {
+  width: 6.5rem;
+  flex-shrink: 0;
+  font-weight: var(--font-weight-medium);
+  padding-top: var(--spacing-2);
+}
+
+.dayWindows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  flex: 1;
+}
+
+.dayUnavailable {
+  font-size: var(--text-sm);
+  color: var(--muted-foreground);
+  padding-top: var(--spacing-2);
+}
+
+.windowRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.timeInput {
+  width: 8rem;
+}
+
+.saveRow {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--spacing-3);
+  border-top: 1px solid var(--border);
+}
+
+.blockedDateForm {
+  display: flex;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+.dateInput {
+  width: 10rem;
+}
+
+.reasonInput {
+  flex: 1;
+  min-width: 10rem;
+}
+
+.blockedList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.blockedRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--text-sm);
+  padding: var(--spacing-2) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.blockedRow:last-child {
+  border-bottom: none;
+}
+
+.blockedReason {
+  color: var(--muted-foreground);
+  flex: 1;
+}

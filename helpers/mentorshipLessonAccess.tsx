@@ -1,0 +1,126 @@
+import { db } from "./db";
+import { Selectable } from "kysely";
+import { Users } from "./schema";
+
+export type LessonKind = "booking" | "group";
+
+export interface LessonAccessContext {
+  kind: LessonKind;
+  id: number;
+  title: string;
+  teacherId: number;
+  teacherName: string;
+  startTime: Date;
+  durationMinutes: number;
+  status: string;
+  /** The requesting user's role in this specific lesson. */
+  viewerRole: "teacher" | "learner";
+}
+
+export class LessonAccessError extends Error {
+  status: number;
+  constructor(message: string, status = 403) {
+    super(message);
+    this.status = status;
+  }
+}
+
+/**
+ * Resolves a booking/group lesson and checks that `user` is either the teacher who owns it or a
+ * learner with an active booking/enrollment in it. Throws LessonAccessError otherwise. This is the
+ * single place server-side ownership/membership is enforced for the classroom - every endpoint
+ * that touches chat, materials, attendance or join credentials must call this first and must never
+ * rely on the client to have hidden a button instead.
+ */
+export async function getLessonAccessContext(
+  kind: LessonKind,
+  id: number,
+  user: Pick<Selectable<Users>, "id" | "role">
+): Promise<LessonAccessContext> {
+  if (kind === "booking") {
+    const booking = await db
+      .selectFrom("mentorshipBookings")
+      .innerJoin("users as teacher", "teacher.id", "mentorshipBookings.teacherId")
+      .select([
+        "mentorshipBookings.id",
+        "mentorshipBookings.teacherId",
+        "mentorshipBookings.studentId",
+        "mentorshipBookings.scheduledAt",
+        "mentorshipBookings.durationMinutes",
+        "mentorshipBookings.status",
+        "mentorshipBookings.isTrial",
+        "teacher.displayName as teacherName",
+      ])
+      .where("mentorshipBookings.id", "=", id)
+      .executeTakeFirst();
+
+    if (!booking) throw new LessonAccessError("Booking not found", 404);
+
+    const isTeacher = user.role === "teacher" && booking.teacherId === user.id;
+    const isStudent = user.role === "student" && booking.studentId === user.id;
+    const isAdmin = user.role === "admin";
+    if (!isTeacher && !isStudent && !isAdmin) {
+      throw new LessonAccessError("You are not a participant in this session.");
+    }
+
+    return {
+      kind: "booking",
+      id: booking.id,
+      title: `${booking.isTrial ? "Trial " : ""}1:1 session (${booking.durationMinutes} min)`,
+      teacherId: booking.teacherId,
+      teacherName: booking.teacherName,
+      startTime: booking.scheduledAt,
+      durationMinutes: booking.durationMinutes,
+      status: booking.status ?? "scheduled",
+      // Admins viewing for moderation get teacher-level classroom controls rather than learner ones.
+      viewerRole: isStudent ? "learner" : "teacher",
+    };
+  }
+
+  const lesson = await db
+    .selectFrom("groupLessons")
+    .innerJoin("users as teacher", "teacher.id", "groupLessons.teacherId")
+    .select([
+      "groupLessons.id",
+      "groupLessons.teacherId",
+      "groupLessons.title",
+      "groupLessons.startTime",
+      "groupLessons.durationMinutes",
+      "groupLessons.status",
+      "teacher.displayName as teacherName",
+    ])
+    .where("groupLessons.id", "=", id)
+    .executeTakeFirst();
+
+  if (!lesson) throw new LessonAccessError("Group lesson not found", 404);
+
+  const isTeacher = user.role === "teacher" && lesson.teacherId === user.id;
+  const isAdmin = user.role === "admin";
+  let isEnrolledLearner = false;
+  if (user.role === "student") {
+    const enrollment = await db
+      .selectFrom("groupLessonEnrollments")
+      .select("id")
+      .where("groupLessonId", "=", lesson.id)
+      .where("studentId", "=", user.id)
+      .where("status", "=", "enrolled")
+      .executeTakeFirst();
+    isEnrolledLearner = !!enrollment;
+  }
+
+  if (!isTeacher && !isEnrolledLearner && !isAdmin) {
+    throw new LessonAccessError("You are not enrolled in this group lesson.");
+  }
+
+  return {
+    kind: "group",
+    id: lesson.id,
+    title: lesson.title,
+    teacherId: lesson.teacherId,
+    teacherName: lesson.teacherName,
+    startTime: lesson.startTime,
+    durationMinutes: lesson.durationMinutes,
+    status: lesson.status,
+    viewerRole: isTeacher ? "teacher" : "learner",
+  };
+}

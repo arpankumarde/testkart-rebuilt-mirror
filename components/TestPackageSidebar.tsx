@@ -14,6 +14,8 @@ import { PurchaseCardTeacher } from './PurchaseCardTeacher';
 import type { PackageDetails } from '../endpoints/tests/details_GET.schema';
 import { formatLanguages } from '../helpers/itemLanguages';
 import { ExpiredProductNotice } from './ExpiredProductNotice';
+import { trackFunnelEvent } from '../helpers/trackFunnelEvent';
+import { keepForCheckout, guestCartLoginPath } from '../helpers/guestCart';
 import styles from './TestPackageSidebar.module.css';
 
 interface TestPackageSidebarProps {
@@ -42,8 +44,10 @@ export const TestPackageSidebar: React.FC<TestPackageSidebarProps> = ({ classNam
   const isInCart = !isFree && cartQuery.data?.items.some(item => item.type === 'test' && item.mockTestId === testPackage.id);
 
   const handleAddToCart = async () => {
+    trackFunnelEvent("add_to_cart_click", { entity: "mock_test", id: testPackage.id }, { signedIn: authState.type === "authenticated", action: isFree ? "enroll_free" : "add", from: "sidebar" });
     if (authState.type !== 'authenticated') {
-      toast.error(isFree ? 'Please log in to enroll' : 'Please log in to add items to your cart');
+      const kept = !isFree && keepForCheckout("test", testPackage.id);
+      toast.error(kept ? 'Log in to continue. Your test series will be waiting in your cart.' : isFree ? 'Please log in to enroll' : 'Please log in to add items to your cart');
       const currentPath = location.pathname + location.search;
       navigate(`/login?redirectTo=${encodeURIComponent(currentPath)}`);
       return;
@@ -69,10 +73,12 @@ export const TestPackageSidebar: React.FC<TestPackageSidebarProps> = ({ classNam
   };
 
   const handleBuyNow = async () => {
+    trackFunnelEvent("add_to_cart_click", { entity: "mock_test", id: testPackage.id }, { signedIn: authState.type === "authenticated", action: isFree ? "enroll_free" : "buy_now", from: "sidebar" });
     if (authState.type !== 'authenticated') {
-      toast.error(isFree ? 'Please log in to start' : 'Please log in to purchase');
+      const kept = !isFree && keepForCheckout("test", testPackage.id);
+      toast.error(kept ? 'Log in to finish your purchase. Your pick is saved in the cart.' : isFree ? 'Please log in to start' : 'Please log in to purchase');
       const currentPath = location.pathname + location.search;
-      navigate(`/login?redirectTo=${encodeURIComponent(currentPath)}`);
+      navigate(kept ? guestCartLoginPath : `/login?redirectTo=${encodeURIComponent(currentPath)}`);
       return;
     }
 

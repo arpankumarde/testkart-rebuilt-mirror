@@ -3,6 +3,7 @@ import { ZodError } from "zod";
 import { db } from "../../helpers/db";
 import { isUnsubscribeList, recordUnsubscribe, verifyUnsubscribeToken } from "../../helpers/emailUnsubscribe";
 import { schema, OutputType } from "./unsubscribe_POST.schema";
+import { recordFunnelEvent } from "../../helpers/recordFunnelEvent";
 
 /*
  * Opts a user out of one optional email list. Two callers:
@@ -33,7 +34,10 @@ export async function handle(request: Request) {
     }
 
     const user = await db.selectFrom("users").select("id").where("id", "=", userId).executeTakeFirst();
-    if (user) await recordUnsubscribe(db, userId, list);
+    if (user) {
+      await recordUnsubscribe(db, userId, list);
+      await recordFunnelEvent({ event: "unsubscribed", request, userId, props: { list } });
+    }
 
     return json({ success: true } satisfies OutputType);
   } catch (error) {

@@ -1,139 +1,159 @@
 /*
- * On the shared console language - see student.tests.module.css for the rules.
+ * On the student palette - see student.dashboard.module.css.
  *
- * The order cards used to sit inside a second panel, so every row was a
- * surface inside a surface. The cards are the panels now.
+ * One list in one panel, newest first, instead of a grid of cards: orders are
+ * a history to scan down, and a card per order spread four short facts over a
+ * box each. 64rem, not the 1440 workspace measure, so a row's amount and
+ * actions stay close to its title. Breakpoints are container queries on .page,
+ * because the sidebar takes a varying share of the window.
  */
 .page {
+  container: orders / inline-size;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-6);
   width: 100%;
-  max-width: 1440px;
+  max-width: 64rem;
   margin: 0 auto;
   box-sizing: border-box;
 }
 
-/* Same entity-card measure as the other student lists. A single full-width
-   column stretched an order - four short facts and two buttons - across the
-   whole 1440. */
-.ordersGrid {
+/* The list owns the columns and every row takes them through subgrid, so
+   amount, status and actions line up down the list whatever each row's title
+   or buttons are. */
+.list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: var(--spacing-4);
-  align-items: stretch;
-}
-
-.orderCard {
-  display: flex;
-  flex-direction: column;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  column-gap: var(--spacing-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
   background-color: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
-  transition: border-color var(--animation-duration-fast) ease;
+  border-radius: 1.25rem;
+  overflow: hidden;
 }
 
-/* The border moves on hover rather than the card lifting - the console
-   dropped every hover lift. */
-.orderCard:hover {
-  border-color: color-mix(in srgb, var(--border), var(--foreground) 25%);
-}
-
-.cardHeader {
-  display: flex;
-  justify-content: space-between;
+.row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
   align-items: center;
-  gap: var(--spacing-3);
-  padding: var(--spacing-3) var(--spacing-4);
+  row-gap: var(--spacing-3);
+  padding: var(--spacing-4) 1.25rem;
   border-bottom: 1px solid var(--border);
 }
 
-.orderId {
-  margin: 0;
-  font-family: var(--font-family-heading);
-  font-size: 1.0625rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--foreground);
-  font-variant-numeric: tabular-nums;
+.row:last-child {
+  border-bottom: none;
 }
 
-/* A column, not a wrapping row: the card is one ~350px track wide now, so
-   three facts side by side would break across lines unevenly. */
-.cardBody {
+.main {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-2);
-  flex-grow: 1;
-  padding: var(--spacing-4);
-  color: var(--muted-foreground);
+  gap: 2px;
+  min-width: 0;
 }
 
-.infoItem {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  font-size: 0.875rem;
-}
-
-.infoItem svg {
-  flex-shrink: 0;
-  color: var(--tk-brand-text);
-}
-
-.infoValue {
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
   color: var(--foreground);
-  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.titleLink {
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+
+.titleLink:hover {
+  color: var(--fc-blue-ink);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.titleLink:focus-visible {
+  outline: 2px solid var(--fc-blue-edge);
+  outline-offset: 2px;
+}
+
+.meta {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
   font-variant-numeric: tabular-nums;
 }
 
-.cardFooter {
-  display: flex;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  gap: var(--spacing-2);
-  padding: var(--spacing-3) var(--spacing-4);
-  margin-top: auto;
-  border-top: 1px solid var(--border);
+.amount {
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: right;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
-.cardSkeleton {
+.status {
+  display: flex;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-2);
+}
+
+.rowSkeleton {
+  grid-column: 1 / -1;
   width: 100%;
-  height: 180px;
-  border-radius: var(--radius-md);
+  height: 2.75rem;
+  border-radius: 0.75rem;
+}
+
+/* Narrow page: title on its own line, then amount and status, then actions. */
+@container orders (max-width: 46rem) {
+  .list {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .row {
+    padding: var(--spacing-4);
+  }
+
+  .main {
+    grid-column: 1 / -1;
+  }
+
+  .amount {
+    text-align: left;
+  }
+
+  .status {
+    justify-content: flex-end;
+  }
+
+  .actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+}
+
+@container orders (max-width: 26rem) {
+  .actions > * {
+    flex: 1;
+  }
 }
 
 @media (max-width: 768px) {
   .page {
     gap: var(--spacing-4);
-  }
-
-  .ordersGrid {
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--spacing-3);
-  }
-}
-
-@media (max-width: 480px) {
-  .cardHeader {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--spacing-2);
-  }
-
-  .cardFooter {
-    flex-direction: column-reverse;
-  }
-
-  .cardFooter > * {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .orderCard {
-    transition: none;
   }
 }

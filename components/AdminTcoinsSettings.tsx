@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Coins, AlertTriangle, Loader2 } from "lucide-react";
+import { AlertTriangle, Loader2 } from "lucide-react";
 import { useAdminTcoinsSettings, useUpdateAdminTcoinsSettings } from "../helpers/useTcoins";
 import { Switch } from "./Switch";
 import { Input } from "./Input";
@@ -77,17 +77,6 @@ export const AdminTcoinsSettings = ({ className }: { className?: string }) => {
 
   return (
     <div className={`${styles.container} ${className ?? ""}`}>
-      <div className={styles.header}>
-        <Coins className={styles.headerIcon} size={24} aria-hidden="true" />
-        <div>
-          <h2 className={styles.title}>Tcoins</h2>
-          <p className={styles.description}>
-            Coins students earn as cashback and spend on part of an order. They can't be withdrawn and can't be
-            combined with a coupon. Testkart covers the coins spent, so teacher earnings stay on the full price.
-          </p>
-        </div>
-      </div>
-
       <label className={styles.toggleRow} htmlFor="tcoins-enabled">
         <div>
           <span className={styles.toggleLabel}>Show Tcoins to students</span>

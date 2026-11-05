@@ -25,6 +25,7 @@ import {
 import { useBundleDetailsQuery } from '../helpers/useBundlesQuery';
 import { usePurchaseBundleMutation } from '../helpers/useStudentBundles';
 import { useAuth } from '../helpers/useAuth';
+import { trackFunnelEvent } from '../helpers/trackFunnelEvent';
 import { Skeleton } from './Skeleton';
 import { Button } from './Button';
 import { Avatar, AvatarFallback, AvatarImage } from './Avatar';
@@ -380,6 +381,9 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
   }, [bundle]);
 
   const handlePurchase = () => {
+    if (bundle) {
+      trackFunnelEvent("add_to_cart_click", { entity: "bundle", id: bundle.id }, { signedIn: authState.type === "authenticated", action: bundle.price === 0 ? "enroll_free" : "buy_now", from: "bundle_page" });
+    }
     if (authState.type !== 'authenticated') {
       navigate(`/login?redirectTo=${encodeURIComponent(location.pathname)}`);
       return;

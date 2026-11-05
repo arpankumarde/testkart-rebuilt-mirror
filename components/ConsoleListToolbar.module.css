@@ -238,3 +238,48 @@
     transition: none;
   }
 }
+
+/*
+ * Student pages (.tk-student): the band drops its card and the tabs become
+ * separate pills, as on /student/coupons. The active colours come from the
+ * --tc-tab-* values the student layout sets.
+ */
+:global(.tk-student) .toolbar:not(.split) {
+  padding: 0;
+  background: none;
+  border: none;
+}
+
+:global(.tk-student) .tabs {
+  gap: var(--spacing-2);
+  padding: 2px;
+}
+
+:global(.tk-student) .tab {
+  height: 2.5rem;
+  padding: 0 var(--spacing-2) 0 var(--spacing-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background-color: var(--surface);
+}
+
+:global(.tk-student) .tab:hover {
+  background-color: var(--surface);
+  border-color: var(--pastel-peach-ink);
+}
+
+:global(.tk-student) .tab:not(:has(.tabCount)) {
+  padding-right: var(--spacing-4);
+}
+
+:global(.tk-student) .tabActive,
+:global(.tk-student) .tabActive:hover {
+  background-color: var(--tc-tab-active-bg);
+  border-color: var(--pastel-peach-ink);
+}
+
+:global(.tk-student) .tabCount {
+  min-width: 1.5rem;
+  height: 1.5rem;
+  font-size: 0.75rem;
+}

@@ -78,8 +78,9 @@
 }
 
 .seriesButton[data-active='true'] {
-  background-color: var(--tk-brand-tint);
-  border-color: var(--primary);
+  background-color: var(--sp-lavender-tint);
+  border-color: var(--sp-lavender-edge);
+  color: var(--sp-lavender-ink);
 }
 
 .seriesButton:focus-visible {
@@ -131,6 +132,7 @@
   font-family: var(--font-family-heading);
   font-size: 1.25rem;
   font-weight: 800;
+  letter-spacing: -0.02em;
   line-height: 1.25;
   color: var(--foreground);
 }

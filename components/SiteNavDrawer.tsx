@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { BookOpen, FileText, GraduationCap, LayoutDashboard, LogOut, Radio, X, type LucideIcon } from "lucide-react";
+import { BookOpen, FileText, GraduationCap, LayoutDashboard, LogOut, Users, X, type LucideIcon } from "lucide-react";
 import { useAuth } from "../helpers/useAuth";
 import { useDarkModeObserver } from "../helpers/useDarkModeObserver";
 import { getBrandLogo } from "../helpers/brandAssets";
@@ -15,7 +15,7 @@ type DrawerLink = { to: string; label: string; icon: LucideIcon; end?: boolean; 
 const PRIMARY_LINKS: DrawerLink[] = [
   { to: "/course", label: "Courses", icon: GraduationCap },
   { to: "/mock-test", label: "Test Series", icon: FileText, end: true },
-  { to: "/live-test", label: "Live Competitions", icon: Radio, live: true },
+  { to: "/expert", label: "Tutors", icon: Users },
   { to: "/study-notes", label: "Study Notes", icon: BookOpen },
 ];
 

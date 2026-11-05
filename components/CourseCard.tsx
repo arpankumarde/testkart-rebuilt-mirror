@@ -10,6 +10,8 @@ import { VerifiedBadge } from "./VerifiedBadge";
 import { Placeholder } from '../helpers/placeholderImages';
 import { coursePriceView, formatOfferInr } from '../helpers/courseCouponOffer';
 import { formatLanguages } from '../helpers/itemLanguages';
+import { trackFunnelEvent } from '../helpers/trackFunnelEvent';
+import { keepForCheckout } from '../helpers/guestCart';
 import styles from './CourseCard.module.css';
 
 interface CourseCardProps {
@@ -49,8 +51,11 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, className }) => 
       return;
     }
 
+    trackFunnelEvent("add_to_cart_click", { entity: "course", id: course.id }, { signedIn: authState.type === "authenticated", action: "add", from: "card" });
+
     // Check if user is authenticated
     if (authState.type !== "authenticated") {
+      if (course.price !== 0) keepForCheckout("course", course.id);
       const currentPath = location.pathname + location.search;
       navigate(`/login?redirectTo=${encodeURIComponent(currentPath)}`);
       return;

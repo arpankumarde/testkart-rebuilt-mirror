@@ -7,6 +7,8 @@ import type { ColumnType } from "kysely";
 
 export type AdminRole = "admin" | "billing_manager" | "manager" | "super_admin";
 
+export type AutopilotCheckStatus = "fail" | "pass" | "warn";
+
 export type BankVerificationStatus = "pending" | "rejected" | "verified";
 
 export type BlogCommentStatus = "approved" | "pending" | "rejected";
@@ -75,6 +77,10 @@ export type GlossaryCategory = "delivery_and_creation" | "scoring_and_assessment
 
 export type GlossaryTermStatus = "draft" | "published";
 
+export type GroupLessonMinEnrollmentPolicy = "cancel_if_not_met" | "run_anyway";
+
+export type GroupLessonStatus = "cancelled" | "completed" | "scheduled";
+
 export type GumletPushStatus = "failed" | "ready" | "submitted";
 
 export type ImageRecoveryStatus = "completed" | "failed" | "running";
@@ -125,7 +131,11 @@ export type PromoCodeAppliesTo = "all" | "bundles" | "courses" | "digital_produc
 
 export type QuestionType = "assertion_reason" | "comprehension" | "match_the_following" | "multiple_correct_mcq" | "numerical" | "single_correct_mcq";
 
+export type RevChannel = "email" | "onsite" | "push" | "whatsapp";
+
 export type ReviewStatus = "approved" | "pending" | "rejected" | "senior_review";
+
+export type RevMessageStatus = "bounced" | "complained" | "delivered" | "failed" | "queued" | "sent" | "skipped";
 
 export type SalesActivityType = "assignment_changed" | "call_logged" | "follow_up_changed" | "note_added" | "stage_changed";
 
@@ -229,6 +239,15 @@ export interface AisheCollegeStaging {
   univType: string | null;
   website: string | null;
   yearEstablished: string | null;
+}
+
+export interface AutopilotChecks {
+  checkKey: string;
+  detail: Json | null;
+  id: Generated<Int8>;
+  ranAt: Generated<Timestamp>;
+  status: AutopilotCheckStatus;
+  value: Numeric | null;
 }
 
 export interface BlogCategories {
@@ -919,6 +938,37 @@ export interface ExamSubjects {
   updatedAt: Generated<Timestamp | null>;
 }
 
+export interface FunnelDaily {
+  day: Timestamp;
+  event: string;
+  events: Generated<number>;
+  platform: Generated<string>;
+  source: Generated<string>;
+  users: Generated<number>;
+  visitors: Generated<number>;
+}
+
+export interface FunnelEvents {
+  amount: Numeric | null;
+  entityId: number | null;
+  entityType: string | null;
+  event: string;
+  id: Generated<Int8>;
+  intentId: Int8 | null;
+  messageId: Int8 | null;
+  occurredAt: Generated<Timestamp>;
+  orderId: number | null;
+  platform: string | null;
+  props: Json | null;
+  referrerHost: string | null;
+  source: string | null;
+  userId: number | null;
+  utmCampaign: string | null;
+  utmMedium: string | null;
+  utmSource: string | null;
+  visitorId: string | null;
+}
+
 export interface GecEvents {
   concludedOverride: Generated<GecOverride>;
   createdAt: Generated<Timestamp>;
@@ -1039,10 +1089,56 @@ export interface GlossaryTerms {
   updatedBy: number | null;
 }
 
+export interface GroupLessonEnrollments {
+  amountPaid: Generated<Numeric>;
+  cancelledAt: Timestamp | null;
+  enrolledAt: Generated<Timestamp>;
+  groupLessonId: number;
+  id: Generated<number>;
+  orderId: number | null;
+  removedByTeacher: Generated<boolean>;
+  status: Generated<string>;
+  studentId: number;
+}
+
+export interface GroupLessons {
+  cancellationReason: string | null;
+  cancelledAt: Timestamp | null;
+  completedAt: Timestamp | null;
+  coverImageFileId: string | null;
+  coverImageUrl: string | null;
+  createdAt: Generated<Timestamp>;
+  description: string | null;
+  durationMinutes: Generated<number>;
+  enrolledCount: Generated<number>;
+  id: Generated<number>;
+  language: string | null;
+  level: string | null;
+  maxCapacity: number;
+  minEnrollment: number | null;
+  minEnrollmentPolicy: Generated<GroupLessonMinEnrollmentPolicy>;
+  pricePerLearner: Generated<Numeric>;
+  startTime: Timestamp;
+  status: Generated<GroupLessonStatus>;
+  subject: string | null;
+  teacherId: number;
+  title: string;
+  updatedAt: Generated<Timestamp>;
+}
+
 export interface GumletFolders {
   createdAt: Generated<Timestamp>;
   folderId: string;
   path: string;
+}
+
+export interface IdentityLinks {
+  firstLinkedAt: Generated<Timestamp>;
+  id: Generated<Int8>;
+  lastLinkedAt: Generated<Timestamp>;
+  method: string;
+  userId: number;
+  visitorId: string;
 }
 
 export interface ImageRecoveryJobs {
@@ -1063,6 +1159,49 @@ export interface ImageRecoveryJobs {
 export interface InvoiceCounters {
   lastNumber: Generated<number>;
   series: string;
+  updatedAt: Generated<Timestamp>;
+}
+
+export interface LiveLessonAttendance {
+  createdAt: Generated<Timestamp>;
+  groupLessonId: number | null;
+  id: Generated<number>;
+  joinedAt: Generated<Timestamp>;
+  leftAt: Timestamp | null;
+  mentorshipBookingId: number | null;
+  role: string;
+  userId: number;
+}
+
+export interface LiveLessonChatMessages {
+  body: string;
+  createdAt: Generated<Timestamp>;
+  groupLessonId: number | null;
+  id: Generated<number>;
+  mentorshipBookingId: number | null;
+  senderId: number;
+}
+
+export interface LiveLessonMaterials {
+  createdAt: Generated<Timestamp>;
+  fileId: string | null;
+  fileUrl: string | null;
+  groupLessonId: number | null;
+  id: Generated<number>;
+  linkUrl: string | null;
+  mentorshipBookingId: number | null;
+  teacherId: number;
+  title: string;
+}
+
+export interface LiveLessonTeacherNotes {
+  createdAt: Generated<Timestamp>;
+  groupLessonId: number | null;
+  id: Generated<number>;
+  mentorshipBookingId: number | null;
+  note: string;
+  studentId: number | null;
+  teacherId: number;
   updatedAt: Generated<Timestamp>;
 }
 
@@ -1127,6 +1266,15 @@ export interface LoginAttempts {
   email: string;
   id: Generated<number>;
   success: Generated<boolean | null>;
+}
+
+export interface MarketingConsents {
+  channel: RevChannel;
+  decidedAt: Generated<Timestamp>;
+  granted: boolean;
+  noticeVersion: string;
+  source: string;
+  userId: number;
 }
 
 export interface Masterclasses {
@@ -1233,9 +1381,11 @@ export interface MentorshipBookings {
   createdAt: Generated<Timestamp | null>;
   durationMinutes: number;
   id: Generated<number>;
+  isTrial: Generated<boolean>;
   meetingLink: string | null;
   notes: string | null;
   orderId: number | null;
+  rescheduledFromBookingId: number | null;
   scheduledAt: Timestamp;
   sessionTypeId: number | null;
   status: Generated<MentorshipBookingStatus | null>;
@@ -1288,6 +1438,35 @@ export interface MentorshipSubscriptions {
   studentId: number;
   teacherId: number;
   updatedAt: Generated<Timestamp | null>;
+}
+
+export interface MessageEvents {
+  id: Generated<Int8>;
+  isPrefetch: Generated<boolean>;
+  messageId: Int8 | null;
+  occurredAt: Generated<Timestamp>;
+  provider: string;
+  providerEventId: string | null;
+  raw: Json | null;
+  type: string;
+}
+
+export interface MessageLinks {
+  code: string;
+  createdAt: Generated<Timestamp>;
+  messageId: Int8 | null;
+  targetPath: string;
+}
+
+export interface MessageReplies {
+  body: string;
+  channel: RevChannel;
+  handledAt: Timestamp | null;
+  handledByAdminId: number | null;
+  id: Generated<Int8>;
+  messageId: Int8 | null;
+  receivedAt: Generated<Timestamp>;
+  userId: number | null;
 }
 
 export interface Meta {
@@ -1432,10 +1611,14 @@ export interface OrderItems {
   createdAt: Generated<Timestamp | null>;
   digitalProductId: number | null;
   discountAmount: Generated<Numeric>;
+  groupLessonId: number | null;
   id: Generated<number>;
   mentorshipBookingId: number | null;
+  mentorshipDurationMinutes: number | null;
   mentorshipPlanId: number | null;
+  mentorshipRequestedStartTime: Timestamp | null;
   mentorshipSessionTypeId: number | null;
+  mentorshipTeacherId: number | null;
   mockTestId: number | null;
   orderId: number;
   platformFeePercentage: Generated<Numeric>;
@@ -1444,6 +1627,8 @@ export interface OrderItems {
 }
 
 export interface Orders {
+  attributedIntentId: Int8 | null;
+  attributedMessageId: Int8 | null;
   bundleId: number | null;
   clientAppVersion: string | null;
   clientBrowser: string | null;
@@ -1463,9 +1648,13 @@ export interface Orders {
   createdAt: Generated<Timestamp | null>;
   discountAmount: Generated<Numeric>;
   emailsSentAt: Timestamp | null;
+  firstTouchAt: Timestamp | null;
+  firstTouchSource: string | null;
   id: Generated<number>;
   invoiceEmailSentAt: Timestamp | null;
   invoiceNumber: string | null;
+  lastTouchCampaign: string | null;
+  lastTouchSource: string | null;
   paidAt: Timestamp | null;
   paymentBankMessage: string | null;
   paymentErrorCode: string | null;
@@ -1474,6 +1663,7 @@ export interface Orders {
   paymentMethod: string | null;
   paymentMode: string | null;
   paymentTransactionId: string | null;
+  payRequestId: number | null;
   platformFeePercentage: Numeric | null;
   promoAutoApplied: boolean | null;
   promoCodeId: number | null;
@@ -1483,9 +1673,11 @@ export interface Orders {
   status: Generated<OrderStatus>;
   tcoinsCashback: Generated<number>;
   tcoinsRedeemed: Generated<number>;
+  teacherRef: string | null;
   totalAmount: Numeric;
   updatedAt: Generated<Timestamp | null>;
   userId: number;
+  visitorId: string | null;
 }
 
 export interface OrganizationClaimRequests {
@@ -1578,6 +1770,19 @@ export interface OtpVerifyFailures {
   ipAddress: string | null;
 }
 
+export interface PayRequests {
+  createdAt: Generated<Timestamp>;
+  expiresAt: Timestamp;
+  firstOpenedAt: Timestamp | null;
+  id: Generated<number>;
+  items: Json;
+  lastOpenedAt: Timestamp | null;
+  openCount: Generated<number>;
+  quotedAmount: Numeric;
+  tokenHash: string;
+  userId: number;
+}
+
 export interface PdfPreviewPages {
   createdAt: Generated<Timestamp>;
   height: number;
@@ -1653,6 +1858,17 @@ export interface PromoCodeUsages {
   userId: number;
 }
 
+export interface PushTokens {
+  createdAt: Generated<Timestamp>;
+  disabledAt: Timestamp | null;
+  disabledReason: string | null;
+  id: Generated<Int8>;
+  lastSeenAt: Generated<Timestamp>;
+  platform: string;
+  token: string;
+  userId: number;
+}
+
 export interface QuestionBank {
   correctOption: string | null;
   correctOptions: string[] | null;
@@ -1684,11 +1900,31 @@ export interface QuestionBank {
   updatedAt: Generated<Timestamp | null>;
 }
 
+export interface RevEnrolments {
+  context: Json | null;
+  convertedAt: Timestamp | null;
+  convertedOrderId: number | null;
+  createdAt: Generated<Timestamp>;
+  exitReason: string | null;
+  id: Generated<Int8>;
+  isHoldout: boolean;
+  nextDueAt: Timestamp | null;
+  nextStep: Generated<number>;
+  playbookKey: string;
+  state: Generated<string>;
+  triggerAt: Timestamp;
+  triggerRef: string;
+  updatedAt: Generated<Timestamp>;
+  userId: number;
+}
+
 export interface Reviews {
   courseId: number | null;
   createdAt: Generated<Timestamp | null>;
   digitalProductId: number | null;
+  groupLessonId: number | null;
   id: Generated<number>;
+  mentorshipBookingId: number | null;
   mockTestId: number | null;
   rating: number;
   reviewerName: string;
@@ -1698,6 +1934,43 @@ export interface Reviews {
   testItemId: number | null;
   updatedAt: Generated<Timestamp | null>;
   userId: number;
+}
+
+export interface RevMessages {
+  channel: RevChannel;
+  clickCount: Generated<number>;
+  costPaise: Generated<number>;
+  createdAt: Generated<Timestamp>;
+  deliveredAt: Timestamp | null;
+  error: string | null;
+  firstClickedAt: Timestamp | null;
+  id: Generated<Int8>;
+  intentId: Int8 | null;
+  openedAt: Timestamp | null;
+  playbookKey: string;
+  providerMessageId: string | null;
+  readAt: Timestamp | null;
+  repliedAt: Timestamp | null;
+  sentAt: Timestamp | null;
+  shadow: Generated<boolean>;
+  status: Generated<RevMessageStatus>;
+  step: Generated<number>;
+  templateKey: string | null;
+  userId: number | null;
+  variantKey: string | null;
+}
+
+export interface RevOffers {
+  coins: Generated<number>;
+  costRupees: Generated<Numeric>;
+  createdAt: Generated<Timestamp>;
+  enrolmentId: Int8 | null;
+  id: Generated<Int8>;
+  messageId: Int8 | null;
+  offerType: string;
+  shadow: Generated<boolean>;
+  tcoinGrantId: number | null;
+  userId: number | null;
 }
 
 export interface SalesContactActivities {
@@ -2400,6 +2673,7 @@ export interface Users {
   displayName: string;
   drmEnabled: Generated<boolean>;
   email: string | null;
+  emailBouncedAt: Timestamp | null;
   emailVerified: Generated<boolean>;
   expertiseAreas: Generated<Json | null>;
   goals: string | null;
@@ -2409,9 +2683,8 @@ export interface Users {
   isVerified: Generated<boolean>;
   languages: Generated<Json | null>;
   location: string | null;
-  mentorshipPrice15Min: Generated<Numeric | null>;
-  mentorshipPrice30Min: Generated<Numeric | null>;
-  mentorshipPrice60Min: Generated<Numeric | null>;
+  mentorshipEnabled: Generated<boolean>;
+  mentorshipRatePerUnit: Numeric | null;
   mobileNumber: string | null;
   mobileVerified: Generated<boolean>;
   onboardingCompleted: Generated<boolean>;
@@ -2435,6 +2708,7 @@ export interface Users {
   targetExams: Json | null;
   teachingCategories: Json | null;
   teachingExperienceLevel: string | null;
+  timezone: Generated<string>;
   updatedAt: Generated<Timestamp | null>;
   websiteUrl: string | null;
   yearsOfExperience: number | null;
@@ -2455,6 +2729,7 @@ export interface DB {
   admins: Admins;
   aiGenerationLogs: AiGenerationLogs;
   aisheCollegeStaging: AisheCollegeStaging;
+  autopilotChecks: AutopilotChecks;
   blogCategories: BlogCategories;
   blogComments: BlogComments;
   blogPostReactions: BlogPostReactions;
@@ -2506,6 +2781,8 @@ export interface DB {
   examNewsSources: ExamNewsSources;
   exams: Exams;
   examSubjects: ExamSubjects;
+  funnelDaily: FunnelDaily;
+  funnelEvents: FunnelEvents;
   gecEvents: GecEvents;
   gecExams: GecExams;
   gecPage: GecPage;
@@ -2513,13 +2790,21 @@ export interface DB {
   gecUpdateLog: GecUpdateLog;
   glossaryTermRelations: GlossaryTermRelations;
   glossaryTerms: GlossaryTerms;
+  groupLessonEnrollments: GroupLessonEnrollments;
+  groupLessons: GroupLessons;
   gumletFolders: GumletFolders;
+  identityLinks: IdentityLinks;
   imageRecoveryJobs: ImageRecoveryJobs;
   invoiceCounters: InvoiceCounters;
+  liveLessonAttendance: LiveLessonAttendance;
+  liveLessonChatMessages: LiveLessonChatMessages;
+  liveLessonMaterials: LiveLessonMaterials;
+  liveLessonTeacherNotes: LiveLessonTeacherNotes;
   liveTestEnrollments: LiveTestEnrollments;
   liveTestPrizeDistributions: LiveTestPrizeDistributions;
   liveTests: LiveTests;
   loginAttempts: LoginAttempts;
+  marketingConsents: MarketingConsents;
   masterclasses: Masterclasses;
   masterclassRegistrations: MasterclassRegistrations;
   mcpOauthClients: McpOauthClients;
@@ -2531,6 +2816,9 @@ export interface DB {
   mentorshipPlans: MentorshipPlans;
   mentorshipSessionTypes: MentorshipSessionTypes;
   mentorshipSubscriptions: MentorshipSubscriptions;
+  messageEvents: MessageEvents;
+  messageLinks: MessageLinks;
+  messageReplies: MessageReplies;
   meta: Meta;
   mobileOtps: MobileOtps;
   mockTestEnrollments: MockTestEnrollments;
@@ -2549,14 +2837,19 @@ export interface DB {
   organizations: Organizations;
   organizationTeachers: OrganizationTeachers;
   otpVerifyFailures: OtpVerifyFailures;
+  payRequests: PayRequests;
   pdfPreviewPages: PdfPreviewPages;
   pdfRecoveryJobs: PdfRecoveryJobs;
   platformScripts: PlatformScripts;
   platformSettings: PlatformSettings;
   promoCodes: PromoCodes;
   promoCodeUsages: PromoCodeUsages;
+  pushTokens: PushTokens;
   questionBank: QuestionBank;
+  revEnrolments: RevEnrolments;
   reviews: Reviews;
+  revMessages: RevMessages;
+  revOffers: RevOffers;
   salesContactActivities: SalesContactActivities;
   salesContactNotes: SalesContactNotes;
   salesContacts: SalesContacts;
@@ -2676,6 +2969,11 @@ export const GecDateStatusArrayValues: [GecDateStatus, ...GecDateStatus[]] = ["c
 export const GecOverrideArrayValues: [GecOverride, ...GecOverride[]] = ["auto","exclude","include"];
 export const GecVerificationArrayValues: [GecVerification, ...GecVerification[]] = ["needs_update","unverified","verified"];
 export const GecLogKindArrayValues: [GecLogKind, ...GecLogKind[]] = ["auto","manual","publish"];
+export const RevChannelArrayValues: [RevChannel, ...RevChannel[]] = ["email","onsite","push","whatsapp"];
+export const RevMessageStatusArrayValues: [RevMessageStatus, ...RevMessageStatus[]] = ["bounced","complained","delivered","failed","queued","sent","skipped"];
+export const AutopilotCheckStatusArrayValues: [AutopilotCheckStatus, ...AutopilotCheckStatus[]] = ["fail","pass","warn"];
+export const GroupLessonStatusArrayValues: [GroupLessonStatus, ...GroupLessonStatus[]] = ["cancelled","completed","scheduled"];
+export const GroupLessonMinEnrollmentPolicyArrayValues: [GroupLessonMinEnrollmentPolicy, ...GroupLessonMinEnrollmentPolicy[]] = ["cancel_if_not_met","run_anyway"];
 // Table/column names whose snake_case spelling kysely's default CamelCasePlugin
 // cannot recover from the camelCase name used in code (an underscore directly
 // before a digit, e.g. reminder_48h_sent ⇄ reminder48hSent). The db helper's

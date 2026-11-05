@@ -14,6 +14,7 @@ import { extractPayUFailure, isPayUCancellation, type PaymentFailureColumns } fr
 import { paymentFailureReason } from "../../../helpers/paymentFailureReason";
 import { findLiveTestSlug } from "../../../helpers/findLiveTestSlug";
 import { liveTestPath } from "../../../helpers/liveTestRoutes";
+import { PAY_LINK_UDF } from "../../../helpers/payLinkServer";
 
 function isDeepLink(url: string): boolean {
   return url.includes("://") && !url.startsWith("http://") && !url.startsWith("https://");
@@ -154,6 +155,9 @@ export async function handle(request: Request) {
 
     // PayU's reason fields are not covered by the response hash; only the hashed status decides the outcome.
     const failureColumns = extractPayUFailure(validatedData);
+    // A payment link (helpers/payLinkServer): someone else paid for the student, so never sign this browser in as them.
+    const payLink = udf2 === PAY_LINK_UDF;
+    const payStatusUrl = (state: string) => `${baseUrl}/pay-status?status=${state}`;
 
     // Handle cancellation (Cancel or Back pressed on the PayU page)
     if (isPayUCancellation({ status, unmappedstatus })) {
@@ -175,7 +179,7 @@ export async function handle(request: Request) {
       }
 
       // Fetch session to preserve user login
-      const userSession = await fetchUserSession(existingOrder.userId);
+      const userSession = payLink ? null : await fetchUserSession(existingOrder.userId);
 
       // Deep link flow: redirect to mobile app with cancelled status
       if (udf1 && isDeepLink(udf1)) {
@@ -195,7 +199,7 @@ export async function handle(request: Request) {
       return createHtmlResponse({
         status: 'cancelled',
         txnid,
-        redirectUrl: `${baseUrl}/cart?cancelled=true&order_id=${existingOrder.id}`,
+        redirectUrl: payLink ? payStatusUrl("cancelled") : `${baseUrl}/cart?cancelled=true&order_id=${existingOrder.id}`,
         session: userSession ?? undefined,
       });
     }
@@ -490,12 +494,14 @@ export async function handle(request: Request) {
         }
         
         // Fetch session to preserve user login
-        const userSession = await fetchUserSession(existingOrder.userId);
+        const userSession = payLink ? null : await fetchUserSession(existingOrder.userId);
         
         return createHtmlResponse({
           status: existingOrder.status === 'completed' ? 'success' : 'failed',
           txnid,
-          redirectUrl: `${baseUrl}/order/${existingOrder.id}`,
+          redirectUrl: payLink
+            ? payStatusUrl(existingOrder.status === "completed" ? "success" : "failed")
+            : `${baseUrl}/order/${existingOrder.id}`,
           session: userSession ?? undefined,
         });
       }
@@ -517,7 +523,7 @@ export async function handle(request: Request) {
     }
 
     // Fetch user session for cookie preservation using helper
-    const userSession = await fetchUserSession(claimedOrder.userId);
+    const userSession = payLink ? null : await fetchUserSession(claimedOrder.userId);
 
     // Handle redirects based on result
     if (status === "success") {
@@ -540,6 +546,10 @@ export async function handle(request: Request) {
         }
         console.log(`[PayU Callback] Deep link success redirect for order ${claimedOrder.id} to ${udf1}`);
         return response;
+      }
+
+      if (payLink) {
+        return createHtmlResponse({ status: 'success', txnid, redirectUrl: payStatusUrl("success") });
       }
 
       // Priority 1: Live tests - enrollment is now done server-side, redirect with params for UI feedback
@@ -565,7 +575,7 @@ export async function handle(request: Request) {
       const failureReason = paymentFailureReason.describe(failureColumns)?.reason;
 
       // Payment failed - send failure email
-      if (studentForEmail?.email) {
+      if (!payLink && studentForEmail?.email) {
         const failureEmail = emailTemplatesExtra.paymentFailed(
           studentForEmail.displayName,
           claimedOrder.id,
@@ -611,7 +621,9 @@ export async function handle(request: Request) {
       return createHtmlResponse({
         status: 'failed',
         txnid,
-        redirectUrl: `${baseUrl}/cart?status=failed&order_id=${claimedOrder.id}${failureReason ? `&reason=${failureReason}` : ""}`,
+        redirectUrl: payLink
+          ? `${payStatusUrl("failed")}${failureReason ? `&reason=${failureReason}` : ""}`
+          : `${baseUrl}/cart?status=failed&order_id=${claimedOrder.id}${failureReason ? `&reason=${failureReason}` : ""}`,
         session: userSession ?? undefined,
       });
     }

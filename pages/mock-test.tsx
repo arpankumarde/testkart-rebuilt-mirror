@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet";
+import { LIVE_TESTS_PATH } from "../helpers/liveTestRoutes";
 import { SEOHead } from "../components/SEOHead";
 import { Button } from "../components/Button";
 
@@ -271,6 +272,14 @@ const OnlineMockTestsPage: React.FC = () => {
             Find the perfect mock test to sharpen your skills and boost your
             confidence.
           </p>
+          <div className={styles.sectionTabs} role="tablist" aria-label="Mock test sections">
+            <span className={`${styles.sectionTab} ${styles.sectionTabActive}`} role="tab" aria-selected="true">
+              All Mock Tests
+            </span>
+            <Link to={LIVE_TESTS_PATH} className={styles.sectionTab}>
+              Live Tests
+            </Link>
+          </div>
         </header>
 
         <main className={styles.mainContent}>

@@ -138,3 +138,26 @@
     font-size: 0.6875rem;
   }
 }
+
+/* Student pages (.tk-student): see EnrolledTestCard.module.css for the rules.
+   The action is a kit Button, which the layout's tk-flow class already styles. */
+:global(.tk-student) .card {
+  border-radius: 1.25rem;
+  box-shadow: none;
+  transition:
+    border-color var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
+}
+
+:global(.tk-student) .card:hover {
+  border-color: var(--sp-line-strong);
+  box-shadow: var(--sp-shadow-hover);
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global(.tk-student) .card:hover {
+    transform: none;
+  }
+}

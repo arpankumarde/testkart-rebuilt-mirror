@@ -2,7 +2,9 @@ import { sql } from "kysely";
 import { db } from "./db";
 import { sanitizeUrl } from "./sanitizeUrl";
 import { HomepageTestItem } from "../endpoints/homepage/data_GET.schema";
+import { mockTestShownPriceSql } from "./paidFirst";
 
+/** The homepage's "Top mock tests this week": paid series only, most enrolments in the last 7 days first. */
 export async function homepageFetchTopMockTests(): Promise<HomepageTestItem[]> {
   const tests = await db
     .selectFrom("mockTests")
@@ -10,6 +12,7 @@ export async function homepageFetchTopMockTests(): Promise<HomepageTestItem[]> {
     .where("mockTests.isPublished", "=", true)
     .where("mockTests.visibility", "=", "public")
     .where("mockTests.deletedAt", "is", null)
+    .where(mockTestShownPriceSql, ">", sql<string>`0`)
     .where(({ not, exists, selectFrom }) =>
       not(
         exists(

@@ -1,0 +1,231 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: var(--spacing-8) var(--spacing-4) var(--spacing-16);
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: var(--text-sm);
+  color: var(--muted-foreground);
+  text-decoration: none;
+}
+
+.backLink:hover {
+  color: var(--foreground);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.teacherAvatar,
+.teacherAvatarFallback {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.teacherAvatarFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--secondary);
+  color: var(--foreground);
+  font-weight: 700;
+  font-size: var(--text-lg);
+}
+
+.title {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.trialBadge {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--primary);
+  margin: var(--spacing-1) 0 0;
+}
+
+.durationRow {
+  display: flex;
+  gap: var(--spacing-2);
+}
+
+.durationButton {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.durationButton:hover {
+  border-color: var(--primary);
+}
+
+.durationButtonSelected {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.durationPrice {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.factsRow {
+  display: flex;
+  gap: var(--spacing-2);
+}
+
+.factChip {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-1) var(--spacing-3);
+  background: var(--secondary);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  color: var(--foreground);
+}
+
+.description {
+  color: var(--muted-foreground);
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.slotsSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.slotsTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.noSlots {
+  color: var(--muted-foreground);
+  font-size: var(--text-sm);
+}
+
+.dayList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  max-height: 24rem;
+  overflow-y: auto;
+  padding-right: var(--spacing-1);
+}
+
+.dayGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.dayLabel {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.slotGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+  gap: var(--spacing-2);
+}
+
+.slotButton {
+  padding: var(--spacing-2) var(--spacing-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--foreground);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.slotButton:hover {
+  border-color: var(--primary);
+}
+
+.slotButtonSelected {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.ctaBar {
+  display: flex;
+  justify-content: center;
+  padding: var(--spacing-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.successBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-3);
+  text-align: center;
+  padding: var(--spacing-8);
+}
+
+.successIcon {
+  color: var(--primary);
+}
+
+.successTitle {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.successText {
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.successActions {
+  display: flex;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-2);
+}

@@ -177,3 +177,40 @@
     }
   }
 }
+
+/*
+ * The summary block beside the wallet's cash balance: a solid peach tile, the
+ * Tcoins colour on the dashboard, with its ink for everything on it. Outside
+ * the base layer so these win over the shared title, balance and rules rules.
+ */
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  min-width: 0;
+  padding: var(--spacing-6);
+  background-color: var(--fc-peach-tint);
+  color: var(--fc-peach-ink);
+  border-radius: 1.5rem;
+}
+
+.summary .title,
+.summary .title svg,
+.summary .balance,
+.summary .pendingNote,
+.summary .rules {
+  color: var(--fc-peach-ink);
+}
+
+.summary .rules {
+  flex: none;
+  max-width: none;
+  margin-top: var(--spacing-2);
+  font-size: 0.8125rem;
+}
+
+@media (max-width: 768px) {
+  .summary {
+    padding: var(--spacing-4);
+  }
+}

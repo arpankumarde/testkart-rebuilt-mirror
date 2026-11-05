@@ -15,33 +15,6 @@
   border: 1px solid var(--border);
 }
 
-.header {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--spacing-4);
-}
-
-.headerIcon {
-  color: var(--tk-brand-text);
-  flex-shrink: 0;
-  margin-top: 4px;
-}
-
-.title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--surface-foreground);
-  margin: 0;
-}
-
-.description {
-  font-size: 0.9rem;
-  line-height: 1.5;
-  color: var(--muted-foreground);
-  margin: var(--spacing-1) 0 0;
-  max-width: 60ch;
-}
-
 .toggleRow {
   display: flex;
   align-items: center;

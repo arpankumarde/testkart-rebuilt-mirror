@@ -2,6 +2,7 @@ import { db } from "../../helpers/db";
 import { schema } from "./establish_session_POST.schema";
 import { setServerSession } from "../../helpers/getSetServerSession";
 import { getAccountBlockMessage } from "../../helpers/accountSuspension";
+import { recordSignIn } from "../../helpers/recordSignIn";
 import { randomBytes } from "crypto";
 
 export async function handle(request: Request) {
@@ -107,6 +108,8 @@ export async function handle(request: Request) {
       createdAt: sessionCreatedAt.getTime(),
       lastAccessed: sessionCreatedAt.getTime(),
     });
+
+    await recordSignIn(request, user.id, isNewUser ? "signup" : "login", "oauth");
 
     return response;
   } catch (error) {

@@ -50,7 +50,7 @@ export default function StudentTestItemLeaderboardPage() {
           tone="error"
           icon={<AlertTriangle size={24} />}
           title="Could not load this leaderboard"
-          description="The request did not come back. Check your connection and try again."
+          description="Check your connection and try again."
         >
           <Button variant="outline" onClick={() => refetch()}>Try again</Button>
         </ConsoleListEmpty>
@@ -67,7 +67,7 @@ export default function StudentTestItemLeaderboardPage() {
         <ConsoleListEmpty
           icon={<BookCopy size={24} />}
           title="Could not open this leaderboard"
-          description="This test is not part of a series you are enrolled in, or it has been removed."
+          description="This test is not in your test series, or it has been removed."
         >
           <Button asChild variant="outline">
             <Link to={series ? seriesUrl : '/student/tests'}>{series ? 'Go to the series' : 'Go to your mock tests'}</Link>
@@ -96,20 +96,16 @@ export default function StudentTestItemLeaderboardPage() {
             <Trophy size={20} />
           </span>
           <div className={styles.headerText}>
-            <span className={styles.eyebrow}>Test leaderboard</span>
+            <span className={styles.eyebrow}>Leaderboard</span>
             <h1 className={styles.title}>{item.title}</h1>
             <p className={styles.meta}>
-              <span className={styles.metaItem}>
-                <BookCopy size={14} aria-hidden="true" />
-                {series.title}
-              </span>
               <span className={styles.metaItem}>
                 <Clock size={14} aria-hidden="true" />
                 {item.durationMinutes > 0 ? `${item.durationMinutes} min` : 'No time limit'}
               </span>
               <span className={styles.metaItem}>
                 <FileQuestion size={14} aria-hidden="true" />
-                {item.totalQuestions} Qs
+                {item.totalQuestions} questions
               </span>
             </p>
           </div>

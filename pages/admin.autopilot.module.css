@@ -1,0 +1,309 @@
+/* Console page shell - see admin.transactions.module.css for the measure rule. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  width: 100%;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: var(--spacing-6) var(--spacing-6) var(--spacing-8);
+  box-sizing: border-box;
+}
+
+.tabsList {
+  flex-wrap: wrap;
+}
+
+.tabPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding-top: var(--spacing-2);
+}
+
+.ranges {
+  display: flex;
+  gap: var(--spacing-2);
+}
+
+.switchLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-weight: 600;
+  color: var(--card-foreground);
+}
+
+.notice {
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  border-radius: 0;
+  background: var(--card);
+  color: var(--card-foreground);
+  font-size: 0.9rem;
+}
+
+.errorBox {
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid var(--error);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--card-foreground);
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--spacing-3);
+}
+
+.kpi {
+  padding: var(--spacing-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--card);
+}
+
+.kpiLabel {
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+}
+
+.kpiValue {
+  margin-top: var(--spacing-1);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--card-foreground);
+}
+
+.kpiNote {
+  margin-top: var(--spacing-1);
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+
+.kpiSkeleton {
+  height: 6.5rem;
+  border-radius: var(--radius-md);
+}
+
+.blockSkeleton {
+  height: 10rem;
+  border-radius: var(--radius);
+}
+
+.card {
+  padding: var(--spacing-4) var(--spacing-6);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--card);
+  min-width: 0;
+}
+
+.cardTitle {
+  margin: 0 0 var(--spacing-3);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--card-foreground);
+}
+
+.twoCol {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+  gap: var(--spacing-4);
+}
+
+.funnel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.funnelRow {
+  display: grid;
+  grid-template-columns: minmax(9rem, 14rem) minmax(0, 1fr) 7rem;
+  align-items: center;
+  gap: var(--spacing-3);
+  font-size: 0.9rem;
+}
+
+.funnelLabel {
+  color: var(--card-foreground);
+}
+
+.funnelTrack {
+  height: 1.5rem;
+  border-radius: var(--radius-sm);
+  background: var(--muted);
+  overflow: hidden;
+}
+
+.funnelBar {
+  height: 100%;
+  background: var(--primary);
+}
+
+.funnelCount {
+  text-align: right;
+  font-weight: 600;
+  color: var(--card-foreground);
+}
+
+.drop {
+  margin-left: var(--spacing-2);
+  font-weight: 500;
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+
+.footnote {
+  margin: var(--spacing-2) 0 0;
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.table th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  padding: var(--spacing-2) var(--spacing-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.table td {
+  padding: var(--spacing-2) var(--spacing-2);
+  border-bottom: 1px solid var(--border);
+  color: var(--card-foreground);
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.checks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.checkRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: var(--spacing-2) 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+  color: var(--card-foreground);
+}
+
+.empty {
+  padding: var(--spacing-4);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+
+.aiHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+}
+
+.aiText {
+  margin: 0 0 var(--spacing-3);
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+  max-width: 42rem;
+}
+
+.aiRows {
+  display: flex;
+  flex-direction: column;
+}
+
+.aiRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: var(--spacing-2) 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+  color: var(--card-foreground);
+}
+
+.aiActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-3);
+}
+
+.aiHint {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+
+.aiResult {
+  margin-top: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--muted);
+}
+
+.aiDraft {
+  white-space: pre-wrap;
+  color: var(--card-foreground);
+  font-size: 0.95rem;
+}
+
+.aiMeta {
+  margin-top: var(--spacing-2);
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+
+.emptyTitle {
+  font-weight: 600;
+  color: var(--card-foreground);
+}
+
+.emptyBody {
+  margin-top: var(--spacing-1);
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: var(--spacing-4);
+  }
+
+  .card {
+    padding: var(--spacing-4);
+  }
+
+  .funnelRow {
+    grid-template-columns: minmax(0, 1fr) 5rem;
+  }
+
+  .funnelTrack {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .twoCol {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

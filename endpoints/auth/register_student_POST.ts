@@ -12,6 +12,7 @@ import { sendEmail } from "../../helpers/sendEmail";
 import { welcomeStudent } from "../../helpers/emailTemplates";
 import { withStudentAppPromo } from "../../helpers/emailBaseTemplate";
 import { addContactToAudience } from "../../helpers/resendContacts";
+import { recordSignIn } from "../../helpers/recordSignIn";
 
 export async function handle(request: Request) {
   try {
@@ -119,6 +120,8 @@ export async function handle(request: Request) {
       createdAt: now.getTime(),
       lastAccessed: now.getTime(),
     });
+
+    await recordSignIn(request, newUser.id, "signup", "password");
 
     // Send welcome email
     const sendWelcomeEmail = async () => {

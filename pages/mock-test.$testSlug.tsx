@@ -6,7 +6,7 @@ import { Placeholder } from "../helpers/placeholderImages";
 import { slugify } from "../helpers/slugify";
 import { wrapContentTables } from "../helpers/contentTables";
 import { sanitizeHtml } from "../helpers/sanitizeHtml";
-import { CheckCircle, Star, FileText, Info, ListChecks, ClipboardList, Trophy, User, CalendarCheck } from "lucide-react";
+import { CheckCircle, Star, FileText, Info, ListChecks, ClipboardList, Trophy, User, CalendarCheck, Layers } from "lucide-react";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/Avatar";
@@ -21,6 +21,8 @@ import { TeacherCtaBanner } from "../components/TeacherCtaBanner";
 import { BundleSuggestions } from "../components/BundleSuggestions";
 import { PublicCouponsCard } from "../components/PublicCouponsCard";
 import { useTrackStorefrontView } from "../helpers/trackStorefrontEvent";
+import { useRelatedTestsQuery } from "../helpers/useTestsQuery";
+import { TestCard } from "../components/TestCard";
 import { NotFoundState } from "../components/NotFoundState";
 import { isNotFoundError } from "../helpers/isNotFoundError";
 import { DIGITAL_OFFER_SHIPPING_DETAILS } from "../helpers/digitalOfferShipping";
@@ -74,6 +76,8 @@ const TestDetailsPage: React.FC = () => {
 
   const { data, isFetching, error } = useTestDetailsQuery(testSlug);
   useTrackStorefrontView("mock_test", data?.package?.id);
+  const { data: relatedData } = useRelatedTestsQuery(data?.package?.id, 4);
+  const relatedTests = relatedData?.tests ?? [];
 
   const [isStickyBarVisible, setIsStickyBarVisible] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -383,6 +387,19 @@ const TestDetailsPage: React.FC = () => {
               reviewsCount={testPackage.reviewsCount}
             />
           </section>
+
+          {relatedTests.length > 0 && (
+            <section className={styles.section}>
+              <SectionHeading tone="mint" icon={<Layers />}>
+                {testPackage.examName ? `More ${testPackage.examName} test series` : "More test series for this exam"}
+              </SectionHeading>
+              <div className={styles.relatedGrid}>
+                {relatedTests.map((test) => (
+                  <TestCard key={test.id} test={test} />
+                ))}
+              </div>
+            </section>
+          )}
 
           {testPackage.disclaimer && (
             <div className={styles.disclaimerSection}>

@@ -63,12 +63,7 @@ export const StudentCertificates = () => {
     <div className={styles.container}>
       <section className={styles.panel}>
         <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>
-            Earned
-            {hasCertificates && (
-              <span className={styles.sectionCount}>{certificatesData.certificates.length}</span>
-            )}
-          </h2>
+          <h2 className={styles.sectionTitle}>Your certificates</h2>
         </div>
 
         {isFetching && <StudentCertificatesSkeleton />}
@@ -79,9 +74,7 @@ export const StudentCertificates = () => {
               <FileX2 size={20} />
             </span>
             <h3 className={styles.stateTitle}>Could not load your certificates</h3>
-            <p className={styles.stateHint}>
-              The request did not come back. Reload the page to try again.
-            </p>
+            <p className={styles.stateHint}>Reload the page to try again.</p>
           </div>
         )}
 
@@ -99,9 +92,7 @@ export const StudentCertificates = () => {
                   <Award size={20} />
                 </span>
                 <h3 className={styles.stateTitle}>No certificates yet</h3>
-                <p className={styles.stateHint}>
-                  Finish a course or a test and its certificate appears here to download and share.
-                </p>
+                <p className={styles.stateHint}>Finish a course or a test to earn one.</p>
               </div>
             )}
           </>
@@ -109,12 +100,9 @@ export const StudentCertificates = () => {
       </section>
 
       {hasEligibleItems && (
-        <section className={styles.panel}>
+        <section className={`${styles.panel} ${styles.panelClaim}`}>
           <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>
-              Ready to claim
-              <span className={styles.sectionCount}>{eligibleCount}</span>
-            </h2>
+            <h2 className={styles.sectionTitle}>Ready to claim</h2>
           </div>
           <div className={styles.grid}>
             {eligibleCourses.map(course => (

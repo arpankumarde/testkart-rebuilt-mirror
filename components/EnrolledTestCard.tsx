@@ -1,12 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import {
-  BookCopy,
-  CheckCircle2,
-  ChevronRight,
-  Info,
-  Target,
-} from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import type { EnrolledTest } from '../endpoints/student/enrolled-tests_GET.schema';
 import { Badge } from './Badge';
 import { Progress } from './Progress';
@@ -28,28 +22,25 @@ const getScoreColor = (score: number | null): 'success' | 'warning' | 'destructi
 const getPackageStatus = (
   completedItems: number,
   totalItems: number
-): { label: string; variant: 'success' | 'warning' | 'outline'; accentVar: string } => {
+): { label: string; action: string; variant: 'success' | 'warning' | 'outline'; accentVar: string } => {
   if (totalItems > 0 && completedItems === totalItems) {
-    return { label: 'Completed', variant: 'success', accentVar: 'var(--success)' };
+    return { label: 'Completed', action: 'View results', variant: 'success', accentVar: 'var(--success)' };
   }
   if (completedItems > 0) {
-    return { label: 'In progress', variant: 'warning', accentVar: 'var(--warning)' };
+    return { label: 'In progress', action: 'Continue', variant: 'warning', accentVar: 'var(--warning)' };
   }
-  return { label: 'Not started', variant: 'outline', accentVar: 'var(--border)' };
+  return { label: 'Not started', action: 'Start', variant: 'outline', accentVar: 'var(--border)' };
 };
 
-/* Summary card for the Mock Tests grid. The series' own test rows live in EnrolledTestItemRow. */
+/*
+ * Summary card for the Mock Tests grid: what the series is, how far along the
+ * student is, and one button. The thumbnail, title and button all open the
+ * student's own series page, where the test rows (EnrolledTestItemRow) live.
+ */
 export const EnrolledTestCard: React.FC<EnrolledTestCardProps> = ({ enrolledTest, className }) => {
-  const formattedEnrolledDate = new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    }).format(new Date(enrolledTest.enrolledAt ?? new Date()));
-
   const averageScoreColor = getScoreColor(enrolledTest.averageScore);
   const packageStatus = getPackageStatus(enrolledTest.completedItems, enrolledTest.totalItems);
-
-  const testDetailsUrl = `/mock-test/${enrolledTest.slug}`;
+  const seriesUrl = `/student/tests/${enrolledTest.id}`;
 
   return (
     <div
@@ -57,9 +48,9 @@ export const EnrolledTestCard: React.FC<EnrolledTestCardProps> = ({ enrolledTest
       style={{ '--card-accent': packageStatus.accentVar } as React.CSSProperties}
     >
       <div className={styles.cardHeader}>
-        <Link to={testDetailsUrl} className={styles.thumbnailLink}>
+        <Link to={seriesUrl} className={styles.thumbnailLink} tabIndex={-1} aria-hidden="true">
           <div className={styles.thumbnail}>
-            <img src={enrolledTest.thumbnailUrl || Placeholder.TEST} alt={enrolledTest.title} className={styles.thumbnailImage} />
+            <img src={enrolledTest.thumbnailUrl || Placeholder.TEST} alt="" className={styles.thumbnailImage} />
           </div>
         </Link>
         <div className={styles.headerContent}>
@@ -68,52 +59,30 @@ export const EnrolledTestCard: React.FC<EnrolledTestCardProps> = ({ enrolledTest
               {packageStatus.label}
             </Badge>
             {enrolledTest.examName && <Badge className={styles.headerBadge}>{enrolledTest.examName}</Badge>}
-            {!enrolledTest.isPublished && (
-              <Badge variant="outline" className={`${styles.headerBadge} ${styles.unpublishedBadge}`}>
-                <Info size={12} />
-                Unpublished
-              </Badge>
-            )}
           </div>
-          <Link to={testDetailsUrl} className={styles.titleLink}>
+          <Link to={seriesUrl} className={styles.titleLink}>
             <h3 className={styles.title}>{enrolledTest.title}</h3>
           </Link>
-          <p className={styles.enrolledDate}>Enrolled {formattedEnrolledDate}</p>
         </div>
       </div>
 
       <div className={styles.progressSection}>
         <div className={styles.progressTopRow}>
-          <span className={styles.progressLabel}>Progress</span>
-          <span className={styles.progressPercent}>{Math.round(enrolledTest.progressPercentage)}%</span>
+          <span className={styles.progressLabel}>
+            {enrolledTest.completedItems} of {enrolledTest.totalItems} tests done
+          </span>
+          {enrolledTest.averageScore !== null && (
+            <span className={`${styles.progressPercent} ${styles[averageScoreColor]}`}>
+              Avg {enrolledTest.averageScore.toFixed(1)}%
+            </span>
+          )}
         </div>
         <Progress value={enrolledTest.progressPercentage} />
-        <div className={styles.statStrip}>
-          <span className={styles.statChip}>
-            <BookCopy size={14} className={styles.statChipIcon} />
-            <strong>{enrolledTest.totalItems}</strong> tests
-          </span>
-          <span className={styles.statDivider} aria-hidden="true">&bull;</span>
-          <span className={styles.statChip}>
-            <CheckCircle2 size={14} className={styles.statChipIcon} />
-            <strong>{enrolledTest.completedItems}</strong> completed
-          </span>
-          <span className={styles.statDivider} aria-hidden="true">&bull;</span>
-          <span className={styles.statChip}>
-            <Target size={14} className={styles.statChipIcon} />
-            Avg{' '}
-            <strong className={styles[averageScoreColor]}>
-              {enrolledTest.averageScore !== null
-                ? `${enrolledTest.averageScore.toFixed(1)}%`
-                : 'Not scored'}
-            </strong>
-          </span>
-        </div>
       </div>
 
       <div className={styles.cardFooter}>
-        <Link to={`/student/tests/${enrolledTest.id}`} className={styles.viewAllButton}>
-          View tests
+        <Link to={seriesUrl} className={styles.viewAllButton}>
+          {packageStatus.action}
           <ChevronRight size={16} />
         </Link>
       </div>

@@ -14,9 +14,14 @@ const LISTS: Record<string, { title: string; description: string }> = {
     description:
       "You will stop getting our onboarding emails for teachers: setup guides, feature tips and teacher stories.",
   },
+  student_marketing: {
+    title: "Stop reminders and offers?",
+    description:
+      "You will stop getting reminders about your cart and unfinished payments, study suggestions and offers from Testkart.",
+  },
 };
 
-const KEPT = "Emails about your account, sales and payouts still arrive.";
+const KEPT = "Emails about your account, orders, sales and payouts still arrive.";
 
 const EmailUnsubscribePage: React.FC = () => {
   const [searchParams] = useSearchParams();

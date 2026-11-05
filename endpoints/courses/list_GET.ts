@@ -6,6 +6,7 @@ import { slugify } from "../../helpers/slugify";
 import { contentInExam } from "../../helpers/contentExams";
 import { matchesAnyLanguage } from "../../helpers/languageFilter";
 import { pinnedTeacherFirst, sortPinsTeachers } from "../../helpers/pinnedTeachers";
+import { paidFirst, sortPutsPaidFirst } from "../../helpers/paidFirst";
 import { courseDiscountPrice, courseEffectivePriceSql } from "../../helpers/coursePricing";
 import { withCourseCouponOffers } from "../../helpers/courseCouponOffersServer";
 
@@ -123,6 +124,9 @@ export async function handle(request: Request): Promise<Response> {
     const totalCount = Number(countResult?.count ?? 0);
 
     // Apply sorting
+    if (sortPutsPaidFirst(sortBy)) {
+      query = query.orderBy(paidFirst(courseEffectivePriceSql));
+    }
     if (sortPinsTeachers(sortBy)) {
       query = query.orderBy(pinnedTeacherFirst("courses.teacher_id"));
     }

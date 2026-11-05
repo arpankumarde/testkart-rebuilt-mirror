@@ -10,6 +10,8 @@ import { getTeacherPlatformFee } from "../../helpers/getTeacherPlatformFee";
 import { followTeacher } from "../../helpers/ensureTeacherFollow";
 import { planTcoinsForOrder } from "../../helpers/tcoins";
 import { getOrderClientInfo } from "../../helpers/orderClientInfo";
+import { getOrderAttribution } from "../../helpers/getOrderAttribution";
+import { recordFunnelEvent } from "../../helpers/recordFunnelEvent";
 import { expiredPurchaseError } from "../../helpers/contentExpiryServer";
 
 export async function handle(request: Request): Promise<Response> {
@@ -66,13 +68,14 @@ export async function handle(request: Request): Promise<Response> {
     const amount = Number(bundle.price);
     if (amount <= 0) {
       // Handle free bundle enrollment directly without payment
-      await db.transaction().execute(async (trx) => {
+      const freeOrderId = await db.transaction().execute(async (trx) => {
         const platformFeePercentage = await getTeacherPlatformFee(bundle.teacherId, trx);
         const order = await trx
           .insertInto("orders")
           .values({
             userId: user.id,
             ...getOrderClientInfo(request),
+            ...getOrderAttribution(request),
             bundleId: bundle.id,
             totalAmount: "0",
             status: "completed",
@@ -92,7 +95,10 @@ export async function handle(request: Request): Promise<Response> {
           .execute();
 
         await followTeacher(trx, user.id, bundle.teacherId);
+        return order.id;
       });
+
+      await recordFunnelEvent({ event: "free_claimed", request, userId: user.id, orderId: freeOrderId, entityType: "bundle", entityId: bundle.id, amount: 0 });
 
       // Email notifications
       try {
@@ -210,7 +216,7 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     // For paid bundles, proceed with PayU
-    const { txnid, amountToPay } = await db.transaction().execute(async (trx) => {
+    const { txnid, amountToPay, orderId } = await db.transaction().execute(async (trx) => {
       const platformFeePercentage = await getTeacherPlatformFee(bundle.teacherId, trx);
       const tcoins = await planTcoinsForOrder(trx, {
         userId: user.id,
@@ -225,6 +231,7 @@ export async function handle(request: Request): Promise<Response> {
         .values({
           userId: user.id,
           ...getOrderClientInfo(request),
+          ...getOrderAttribution(request),
           bundleId: bundle.id,
           totalAmount: tcoins.amountToPay.toFixed(2),
           status: "pending",
@@ -243,8 +250,10 @@ export async function handle(request: Request): Promise<Response> {
         .where("id", "=", order.id)
         .execute();
 
-      return { txnid: orderTxnid, amountToPay: tcoins.amountToPay };
+      return { txnid: orderTxnid, amountToPay: tcoins.amountToPay, orderId: order.id };
     });
+
+    await recordFunnelEvent({ event: "checkout_started", request, userId: user.id, orderId, entityType: "bundle", entityId: bundle.id, amount: amountToPay, props: { path: "bundle_api" } });
 
     const productInfo = bundle.title.substring(0, 100).replace(/\|/g, " ");
     const firstname = (user.displayName || "Student").replace(/\|/g, " ");

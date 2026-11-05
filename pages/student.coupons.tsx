@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
-import { BadgeCheck, Gift, PiggyBank, Ticket, TicketPercent } from "lucide-react";
+import { Gift, PiggyBank, Ticket, TicketPercent } from "lucide-react";
 import { ConsoleListEmpty } from "../components/ConsoleListEmpty";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
@@ -41,11 +41,10 @@ const StudentCouponsPage: React.FC = () => {
   const savings = coupons.reduce((sum, c) => sum + (studentCouponStatus(c) === "redeemed" ? c.savedAmount ?? 0 : 0), 0);
   const visible = coupons.filter((c) => inTab(c, tab));
 
+  // The tabs below already count every status, so the summary keeps only what they do not show.
   const stats = [
-    { label: "Coupons earned", value: String(coupons.length), icon: <Gift size={18} />, tone: styles.peach },
-    { label: "Available", value: String(counts.available), icon: <Ticket size={18} />, tone: styles.mint },
-    { label: "Redeemed", value: String(counts.redeemed), icon: <BadgeCheck size={18} />, tone: styles.lavender },
-    { label: "Total savings", value: couponRupees(savings), icon: <PiggyBank size={18} />, tone: styles.butter },
+    { label: "Ready to use", value: String(counts.available), icon: <Ticket size={18} />, tone: styles.mint },
+    { label: "Saved so far", value: couponRupees(savings), icon: <PiggyBank size={18} />, tone: styles.butter },
   ];
 
   // Roving focus across the filter pills: arrows and Home/End move and select.
@@ -76,7 +75,7 @@ const StudentCouponsPage: React.FC = () => {
         </span>
         <div className={styles.headings}>
           <h1 className={styles.title}>My Coupons</h1>
-          <p className={styles.subtitle}>Your rewards, ready to make your next purchase more affordable.</p>
+          <p className={styles.subtitle}>Use these on your next purchase.</p>
         </div>
       </header>
 
@@ -101,11 +100,11 @@ const StudentCouponsPage: React.FC = () => {
       ) : coupons.length === 0 ? (
         <ConsoleListEmpty
           icon={<Gift size={20} />}
-          title="Your rewards are waiting!"
-          description="Participate in our campaigns and unlock exciting discounts on your preparation."
+          title="No coupons yet"
+          description="Coupons you win show up here."
         >
           <Button asChild>
-            <Link to="/?spin=open">Explore active campaigns</Link>
+            <Link to="/?spin=open">Win a coupon</Link>
           </Button>
         </ConsoleListEmpty>
       ) : (

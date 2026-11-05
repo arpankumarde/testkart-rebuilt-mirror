@@ -18,12 +18,16 @@ import { installLanguageVideoTabs } from "../helpers/languageVideo";
 import { chunkLoadRecovery } from "../helpers/chunkLoadRecovery";
 import { RouteErrorBoundary } from "./RouteErrorBoundary";
 import { installClientContextCookie } from "../helpers/clientContextCookie";
+import { installVisitorTracking } from "../helpers/installVisitorTracking";
 
 // Module scope so the saved theme lands before the first client render on every route.
 restoreThemeMode();
 
 // Device and first-touch source for orders placed from this browser (helpers/orderClientInfo).
 installClientContextCookie();
+
+// Lasting visitor id and first/last traffic source for the autopilot's funnel and order attribution.
+installVisitorTracking();
 
 // A page script that 404s after a publish reloads once to pick up the current index.html.
 chunkLoadRecovery.install();

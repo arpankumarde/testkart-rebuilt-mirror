@@ -378,6 +378,13 @@
   text-underline-offset: 4px;
 }
 
+/* Other series for the same exam; two cards across in the main column. */
+.relatedGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  gap: var(--spacing-4);
+}
+
 .disclaimerSection {
   display: flex;
   align-items: flex-start;

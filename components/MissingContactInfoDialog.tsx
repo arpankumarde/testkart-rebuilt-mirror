@@ -12,6 +12,7 @@ import { sanitizeMobileInput } from "../helpers/normalizePhoneNumber";
 import { useSendOtpMutation, useVerifyOtpMutation } from "../helpers/useMobileVerification";
 import { useSendEmailOtpMutation, useVerifyEmailOtpMutation } from "../helpers/useEmailVerification";
 import { useSaveExamFocusMutation } from "../helpers/useExamFocus";
+import { useMarketingConsentQuery, useSaveMarketingConsentMutation } from "../helpers/useMarketingConsent";
 import type { ExamFocusItem } from "../helpers/examFocusShared";
 import { ExamFocusPicker } from "./ExamFocusPicker";
 import styles from "./MissingContactInfoDialog.module.css";
@@ -21,11 +22,14 @@ const DISMISSAL_DAYS = 7;
 const DISMISSAL_MS = DISMISSAL_DAYS * 24 * 60 * 60 * 1000;
 
 /**
- * Collected in this order: phone, then email, then exam focus. A student's
- * name is not asked here: RequiredNameDialog blocks the student dashboard
- * until it is set, and this dialog only mounts after that.
+ * Collected in this order: exam focus, phone, WhatsApp opt-in (students with a
+ * phone who have not chosen yet), then email. Exam focus goes first because it
+ * drives everything shown to the student, and most phone signups dismissed
+ * the dialog at the email step before reaching it. A student's name is not
+ * asked here: RequiredNameDialog blocks the student dashboard until it is set,
+ * and this dialog only mounts after that.
  */
-type StepKey = "mobile" | "email" | "exam";
+type StepKey = "exam" | "mobile" | "whatsapp" | "email";
 
 const emailSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -66,6 +70,7 @@ export const MissingContactInfoDialog: React.FC = () => {
   const sendMobileOtpMutation = useSendOtpMutation();
   const verifyMobileOtpMutation = useVerifyOtpMutation();
   const saveExamFocusMutation = useSaveExamFocusMutation();
+  const saveConsentMutation = useSaveMarketingConsentMutation();
 
   const emailForm = useForm({ defaultValues: { email: "" }, schema: emailSchema });
   const emailOtpForm = useForm({ defaultValues: { otpCode: "" }, schema: emailOtpSchema });
@@ -79,6 +84,9 @@ export const MissingContactInfoDialog: React.FC = () => {
   const isTeacher = authState.type === "authenticated" && authState.user.role === "teacher";
   // The session decides who is asked: students and academy owners past onboarding, never while impersonating.
   const examDue = authState.type === "authenticated" && authState.user.examFocusPromptDue === true;
+  const isStudent = authState.type === "authenticated" && authState.user.role === "student";
+  const consentQuery = useMarketingConsentQuery(isStudent && Boolean(userMobileNumber));
+  const whatsappDue = isStudent && Boolean(userMobileNumber) && consentQuery.isSuccess && consentQuery.data.whatsapp === null;
 
   /*
    * Steps are derived from the session, not held in state. Each mutation
@@ -87,11 +95,12 @@ export const MissingContactInfoDialog: React.FC = () => {
    */
   const pendingSteps = useMemo(() => {
     const steps: StepKey[] = [];
-    if (!userMobileNumber) steps.push("mobile");
-    if (!userEmail) steps.push("email");
     if (examDue) steps.push("exam");
+    if (!userMobileNumber) steps.push("mobile");
+    if (whatsappDue) steps.push("whatsapp");
+    if (!userEmail) steps.push("email");
     return steps;
-  }, [userMobileNumber, userEmail, examDue]);
+  }, [userMobileNumber, userEmail, examDue, whatsappDue]);
 
   const remainingSteps = pendingSteps.filter((step) => !skippedSteps.includes(step));
   const currentStep: StepKey | null = remainingSteps[0] ?? null;
@@ -135,7 +144,7 @@ export const MissingContactInfoDialog: React.FC = () => {
   useEffect(() => {
     if (userId === null) return;
 
-    const hasMissing = !userMobileNumber || !userEmail || examDue;
+    const hasMissing = !userMobileNumber || !userEmail || examDue || whatsappDue;
 
     if (!hasMissing) {
       setIsOpen(false);
@@ -156,15 +165,16 @@ export const MissingContactInfoDialog: React.FC = () => {
     // Delay opening to not interrupt the initial page load
     const timer = setTimeout(() => {
       const steps: StepKey[] = [];
-      if (!userMobileNumber) steps.push("mobile");
-      if (!userEmail) steps.push("email");
       if (examDue) steps.push("exam");
+      if (!userMobileNumber) steps.push("mobile");
+      if (whatsappDue) steps.push("whatsapp");
+      if (!userEmail) steps.push("email");
       totalStepsRef.current = steps.length;
       setIsOpen(true);
     }, 1500);
 
     return () => clearTimeout(timer);
-  }, [userId, userEmail, userMobileNumber, examDue]);
+  }, [userId, userEmail, userMobileNumber, examDue, whatsappDue]);
 
   if (authState.type !== "authenticated" || currentStep === null) {
     return null;
@@ -261,6 +271,14 @@ export const MissingContactInfoDialog: React.FC = () => {
     );
   };
 
+  const handleWhatsAppChoice = (granted: boolean) => {
+    setError(null);
+    saveConsentMutation.mutate(
+      { channel: "whatsapp", granted, source: "onboarding_dialog" },
+      { onError: (err) => setError(err.message) }
+    );
+  };
+
   const handleResendOtp = () => {
     if (resendTimer > 0) return;
     if (currentStep === "email") {
@@ -282,7 +300,7 @@ export const MissingContactInfoDialog: React.FC = () => {
 
   const isSending = sendEmailOtpMutation.isPending || sendMobileOtpMutation.isPending;
   const isVerifying = verifyEmailOtpMutation.isPending || verifyMobileOtpMutation.isPending;
-  const isLoading = isSending || isVerifying || saveExamFocusMutation.isPending;
+  const isLoading = isSending || isVerifying || saveExamFocusMutation.isPending || saveConsentMutation.isPending;
 
   const hasLaterStep = remainingSteps.length > 1;
 
@@ -290,6 +308,11 @@ export const MissingContactInfoDialog: React.FC = () => {
     mobile: {
       title: "Add your mobile number",
       description: "For quick access and better account security.",
+    },
+    whatsapp: {
+      title: "Get exam updates on WhatsApp?",
+      description:
+        "Reminders about your tests and payments, exam dates and the occasional offer from Testkart. Reply STOP anytime to turn them off.",
     },
     email: {
       title: "Add your email address",
@@ -405,6 +428,28 @@ export const MissingContactInfoDialog: React.FC = () => {
                 ) : (
                   "Save Exams"
                 )}
+              </Button>
+            </div>
+          )}
+
+          {currentStep === "whatsapp" && (
+            <div className={styles.form}>
+              <Button
+                type="button"
+                onClick={() => handleWhatsAppChoice(true)}
+                disabled={isLoading}
+                className={styles.submitButton}
+              >
+                Yes, send me WhatsApp updates
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => handleWhatsAppChoice(false)}
+                disabled={isLoading}
+                className={styles.submitButton}
+              >
+                No, thanks
               </Button>
             </div>
           )}

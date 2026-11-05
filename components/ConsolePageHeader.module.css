@@ -54,3 +54,33 @@
     font-size: 1.25rem;
   }
 }
+
+/*
+ * Student pages (.tk-student on the student layout): a larger title with the
+ * coral hand-drawn underline from /app. The stroke is the fixed brand coral,
+ * the same in both themes.
+ */
+:global(.tk-student) .title {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+  padding-bottom: 0.3em;
+  font-size: clamp(1.5rem, 1.25rem + 1vw, 2rem);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+:global(.tk-student) .title::after {
+  content: "";
+  position: absolute;
+  left: -2%;
+  bottom: 0;
+  width: 104%;
+  height: 0.32em;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 26' preserveAspectRatio='none' fill='none' stroke='%23ff9966' stroke-width='5' stroke-linecap='round'><path d='M5 17c44-9.5 98-13 150-10.5 28 1.4 52 4.4 80 9.5'/><path d='M40 22.5c46-4.8 100-5.6 152-.6'/></svg>") center / 100% 100% no-repeat;
+  pointer-events: none;
+}
+
+:global(.tk-student) .description {
+  color: var(--sp-text);
+}

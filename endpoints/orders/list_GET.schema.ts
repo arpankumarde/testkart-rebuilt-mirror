@@ -12,6 +12,8 @@ type OrderListItem = Pick<
   "id" | "createdAt" | "status" | "totalAmount"
 > & {
   itemCount: number;
+  /** What was bought: the bundle's name, or the first item's with "and N more". "Order #id" when nothing resolves. */
+  title: string;
 };
 
 export type OutputType = {

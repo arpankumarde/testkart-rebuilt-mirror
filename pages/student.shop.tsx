@@ -30,7 +30,7 @@ const StudentShopPage: React.FC = () => {
           tone="error"
           icon={<AlertTriangle size={24} />}
           title="Could not load your purchases"
-          description="The request did not come back. Check your connection and try again."
+          description="Check your connection and try again."
         >
           <Button variant="outline" onClick={() => refetch()}>Try again</Button>
         </ConsoleListEmpty>
@@ -41,8 +41,8 @@ const StudentShopPage: React.FC = () => {
       return (
         <ConsoleListEmpty
           icon={<ShoppingBag size={24} />}
-          title="No purchases yet"
-          description="Study notes you buy open here, readable any time inside Testkart."
+          title="No study notes yet"
+          description="Study notes you buy show up here."
         >
           <Button asChild>
             <Link to="/study-notes">Browse study notes</Link>

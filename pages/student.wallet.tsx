@@ -1,17 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
+import { useSearchParams } from "react-router-dom";
 import { AlertCircle, Banknote, CheckCircle, Clock, Landmark, type LucideIcon } from "lucide-react";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
 import { ConsolePageHeader } from "../components/ConsolePageHeader";
+import { ConsoleListToolbar, type ConsoleListTab } from "../components/ConsoleListToolbar";
 import { StudentWithdrawalSection } from "../components/StudentWithdrawalSection";
 import { StudentWalletTransactions } from "../components/StudentWalletTransactions";
-import { StudentTcoinsCard } from "../components/StudentTcoinsCard";
+import { StudentTcoinsSummary, StudentTcoinsHistory } from "../components/StudentTcoinsCard";
 import { StudentWithdrawDialog, STUDENT_MIN_WITHDRAWAL } from "../components/StudentWithdrawDialog";
 import { StudentBankDetailsDialog } from "../components/StudentBankDetailsDialog";
 import { useStudentWalletBalance } from "../helpers/useStudentWallet";
 import { useStudentWithdrawalsList } from "../helpers/useStudentWithdrawals";
 import { useStudentBankDetailsQuery } from "../helpers/useStudentBankDetails";
+import { useStudentTcoins } from "../helpers/useTcoins";
 import styles from "./student.wallet.module.css";
 
 const rupees = new Intl.NumberFormat("en-IN", {
@@ -34,7 +37,19 @@ const StudentWalletPage: React.FC = () => {
   const { data: balanceData, isFetching: isFetchingBalance, refetch: refetchBalance } = useStudentWalletBalance();
   const { data: withdrawalData, isFetching: isFetchingWithdrawals, refetch: refetchWithdrawals } = useStudentWithdrawalsList();
   const { data: bankDetails, isFetching: isFetchingBank } = useStudentBankDetailsQuery();
+  const { data: tcoins } = useStudentTcoins();
   const [openDialog, setOpenDialog] = useState<OpenDialog>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // One list at a time. ?tab= picks it, so the dashboard's Tcoins tile can land on its history.
+  const tcoinsOn = !!tcoins?.enabled;
+  const tabs: ConsoleListTab[] = [
+    { value: "transactions", label: "Transactions" },
+    { value: "withdrawals", label: "Withdrawals" },
+    ...(tcoinsOn ? [{ value: "tcoins", label: "Tcoins" }] : []),
+  ];
+  const requestedTab = searchParams.get("tab");
+  const tab = tabs.some((t) => t.value === requestedTab) ? requestedTab : "transactions";
 
   // The app never refetches a cached query on mount, so pull fresh figures on arrival.
   useEffect(() => {
@@ -78,7 +93,7 @@ const StudentWalletPage: React.FC = () => {
 
       <ConsolePageHeader title="Wallet" />
 
-      <div className={styles.summary}>
+      <div className={styles.summary} data-single={tcoinsOn ? undefined : "true"}>
         <section className={styles.balance} aria-labelledby="wallet-balance-label">
           <div className={styles.balanceHead}>
             <h2 id="wallet-balance-label" className={styles.balanceLabel}>Available balance</h2>
@@ -88,7 +103,7 @@ const StudentWalletPage: React.FC = () => {
               <p className={styles.balanceValue}>{rupees.format(availableBalance)}</p>
             )}
             <p className={styles.balanceNote}>
-              Prize money from live tests, less what you have withdrawn or spent on the site.
+              From live test prizes. Withdraw it or use it to buy on Testkart.
             </p>
           </div>
 
@@ -124,20 +139,34 @@ const StudentWalletPage: React.FC = () => {
           </div>
         </section>
 
-        <section className={styles.totals} aria-label="Wallet totals">
-          <dl className={styles.ledger}>
-            <LedgerRow label="Prize money won" value={rupees.format(balanceData?.totalCredits ?? 0)} isLoading={isBalanceLoading} />
-            <LedgerRow label="Withdrawn" value={rupees.format(balanceData?.totalWithdrawn ?? 0)} isLoading={isBalanceLoading} />
-            <LedgerRow label="Spent on purchases" value={rupees.format(balanceData?.totalPurchased ?? 0)} isLoading={isBalanceLoading} />
-          </dl>
-        </section>
+        <StudentTcoinsSummary />
       </div>
 
-      <StudentWithdrawalSection withdrawals={withdrawals} isLoading={isWithdrawalsLoading} />
+      <ConsoleListToolbar
+        tabs={tabs}
+        value={tab ?? "transactions"}
+        onValueChange={(value) => setSearchParams(value === "transactions" ? {} : { tab: value }, { replace: true })}
+        tabsLabel="Wallet history"
+      />
 
-      <StudentTcoinsCard />
+      {tab === "transactions" && (
+        <>
+          <section className={styles.totals} aria-label="Wallet totals">
+            <dl className={styles.ledger}>
+              <LedgerRow label="Prize money won" value={rupees.format(balanceData?.totalCredits ?? 0)} isLoading={isBalanceLoading} />
+              <LedgerRow label="Withdrawn" value={rupees.format(balanceData?.totalWithdrawn ?? 0)} isLoading={isBalanceLoading} />
+              <LedgerRow label="Spent on purchases" value={rupees.format(balanceData?.totalPurchased ?? 0)} isLoading={isBalanceLoading} />
+            </dl>
+          </section>
+          <StudentWalletTransactions />
+        </>
+      )}
 
-      <StudentWalletTransactions />
+      {tab === "withdrawals" && (
+        <StudentWithdrawalSection withdrawals={withdrawals} isLoading={isWithdrawalsLoading} />
+      )}
+
+      {tab === "tcoins" && <StudentTcoinsHistory />}
 
       <StudentWithdrawDialog
         open={openDialog === "withdraw"}

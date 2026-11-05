@@ -400,9 +400,9 @@ export async function handle(request: Request) {
       });
     }
 
-    // Send welcome email and sync to Resend for new users (non-blocking)
+    // Welcome email and Resend sync for new users, awaited so Floot does not drop them
     if (isNewUser) {
-      sendOAuthWelcomeEmail({
+      await sendOAuthWelcomeEmail({
         userDisplayName: user.displayName,
         userEmail: providerEmail,
         userId: user.id,

@@ -55,8 +55,8 @@ export default function StudentShopProductDetailPage() {
         <ConsoleListEmpty
           tone="error"
           icon={<AlertTriangle size={24} />}
-          title="Could not load this product"
-          description="The request did not come back. Check your connection and try again."
+          title="Could not load these notes"
+          description="Check your connection and try again."
         >
           <Button variant="outline" onClick={() => refetch()}>Try again</Button>
         </ConsoleListEmpty>
@@ -72,8 +72,8 @@ export default function StudentShopProductDetailPage() {
         </Link>
         <ConsoleListEmpty
           icon={<Layers size={24} />}
-          title="Could not open this product"
-          description="It may have been removed, or it belongs to another account."
+          title="Could not open these notes"
+          description="They may have been removed, or they belong to another account."
         >
           <Button asChild variant="outline">
             <Link to="/student/shop">Go to your study notes</Link>
@@ -83,14 +83,10 @@ export default function StudentShopProductDetailPage() {
     );
   }
 
-  const lastViewed = purchase.lastDownloadedAt
-    ? new Date(purchase.lastDownloadedAt).toLocaleDateString()
-    : 'Not opened yet';
-
   return (
     <>
       <Helmet>
-        <title>{purchase.title} | Study notes | Testkart</title>
+        <title>{`${purchase.title} | Study notes | Testkart`}</title>
         <meta name="description" content={`Read the files in ${purchase.title} inside Testkart.`} />
       </Helmet>
       <div className={styles.page}>
@@ -110,8 +106,6 @@ export default function StudentShopProductDetailPage() {
                 <span>By {purchase.teacherName}</span>
                 <span className={styles.metaDivider} aria-hidden="true">&bull;</span>
                 <span>{purchase.fileCount} files</span>
-                <span className={styles.metaDivider} aria-hidden="true">&bull;</span>
-                <span>Last opened: {lastViewed}</span>
               </div>
             </div>
           </div>
@@ -124,8 +118,9 @@ export default function StudentShopProductDetailPage() {
           </div>
         </div>
 
-        {/* Files open in the reader. A Download action per file
-            appears only when the teacher opted this note in (allow_download). */}
+        {/* Files open in the reader. A Download action per file, and the file
+            size beside it, appear only when the teacher opted this note in
+            (allow_download). */}
         <div className={styles.fileList}>
           {isFilesFetching ? (
             <>
@@ -142,8 +137,8 @@ export default function StudentShopProductDetailPage() {
                   <span className={styles.fileItemTitle}>{file.title}</span>
                   <div className={styles.fileItemMeta}>
                     {file.pageCount && <span>{file.pageCount} pages</span>}
-                    {file.pageCount && file.fileSizeBytes && <span>&bull;</span>}
-                    {file.fileSizeBytes && <span>{formatBytes(file.fileSizeBytes)}</span>}
+                    {canDownload && file.pageCount && file.fileSizeBytes && <span>&bull;</span>}
+                    {canDownload && file.fileSizeBytes && <span>{formatBytes(file.fileSizeBytes)}</span>}
                   </div>
                 </div>
                 <div className={styles.fileActions}>
@@ -175,10 +170,8 @@ export default function StudentShopProductDetailPage() {
               <span className={styles.stateIcon} aria-hidden="true">
                 <FileText size={20} />
               </span>
-              <h2 className={styles.stateTitle}>No files in this product yet</h2>
-              <p className={styles.stateHint}>
-                The teacher has not added any files. They will appear here once they do.
-              </p>
+              <h2 className={styles.stateTitle}>No files here yet</h2>
+              <p className={styles.stateHint}>The teacher will add them soon.</p>
             </div>
           )}
         </div>

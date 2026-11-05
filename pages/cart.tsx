@@ -14,6 +14,7 @@ import { Button } from "../components/Button";
 import { CartItem, CartItemSkeleton } from "../components/CartItem";
 import { CartOrderSummary } from "../components/CartOrderSummary";
 import { CartCouponPicker } from "../components/CartCouponPicker";
+import { PayLinkShare } from "../components/PayLinkShare";
 import { TcoinsCheckoutOption, tcoinsToSpend } from "../components/TcoinsCheckoutOption";
 import { useStudentTcoins } from "../helpers/useTcoins";
 import { paymentFailureReason } from "../helpers/paymentFailureReason";
@@ -311,6 +312,8 @@ const CartPage: React.FC = () => {
               />
             ))}
           </div>
+
+          {isStudent && !blockedReason ? <PayLinkShare /> : null}
         </div>
 
         <div className={styles.summaryColumn} id="cart-order-summary">

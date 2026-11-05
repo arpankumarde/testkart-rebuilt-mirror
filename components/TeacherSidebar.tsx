@@ -27,6 +27,7 @@ import {
   Megaphone,
   Building2,
   Plus,
+  Video,
 } from 'lucide-react';
 import { useAuth } from '../helpers/useAuth';
 import { Button } from './Button';
@@ -144,6 +145,30 @@ const NAV_GROUPS: TeacherNavGroup[] = [
       },
       { href: '/teacher/assets', label: 'Asset library', icon: FolderOpen },
       { href: '/teacher/trash', label: 'Trash', icon: Trash2 },
+    ],
+  },
+  {
+    key: 'live_teaching',
+    label: 'Live Teaching',
+    items: [
+      {
+        href: '/teacher/mentorship',
+        label: 'Offerings',
+        icon: Video,
+        isActiveFor: (p) => p === '/teacher/mentorship',
+      },
+      {
+        href: '/teacher/mentorship/bookings',
+        label: '1:1 bookings',
+        icon: Users,
+        isActiveFor: (p) => p.startsWith('/teacher/mentorship/bookings'),
+      },
+      {
+        href: '/teacher/mentorship/group-lessons',
+        label: 'Group lessons',
+        icon: Megaphone,
+        isActiveFor: (p) => p.startsWith('/teacher/mentorship/group-lessons'),
+      },
     ],
   },
   {

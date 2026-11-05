@@ -1,7 +1,11 @@
 import { db } from "./db";
 import { sql } from "kysely";
 import { sendOrderConfirmationEmails } from "./sendOrderConfirmationEmails";
-import { followTeachersForOrder } from "./ensureTeacherFollow";
+import { followTeachersForOrder, followTeacher } from "./ensureTeacherFollow";
+import { recordOrderOutcome } from "./recordOrderOutcome";
+import { isTeacherSlotBookable } from "./mentorshipSlots";
+import { sendEmail } from "./sendEmail";
+import { emailTemplatesExtra } from "./emailTemplatesExtra";
 
 /**
  * Ensures all completion side effects (digital product purchases, course enrollments, live test enrollments) 
@@ -18,12 +22,28 @@ export async function ensureOrderCompletionSideEffects(orderId: number): Promise
   console.log(`[ensureOrderCompletionSideEffects] Checking side effects for order ${orderId}`);
 
   let orderUserId: number | null = null;
+  let pendingMentorshipBookingEmail: {
+    studentId: number;
+    teacherId: number;
+    sessionTypeTitle: string;
+    scheduledAt: Date;
+    durationMinutes: number;
+    bookingId: number;
+    price: number;
+  } | null = null;
+  let pendingGroupLessonEnrollmentEmail: {
+    studentId: number;
+    teacherId: number;
+    lessonTitle: string;
+    startTime: Date;
+    groupLessonId: number;
+  } | null = null;
 
   await db.transaction().execute(async (trx) => {
     // Get the order
     const order = await trx
       .selectFrom("orders")
-      .select(["id", "userId", "status", "bundleId", "paymentTransactionId"])
+      .select(["id", "userId", "status", "bundleId", "paymentTransactionId", "totalAmount"])
       .where("id", "=", orderId)
       .executeTakeFirst();
 
@@ -476,6 +496,153 @@ export async function ensureOrderCompletionSideEffects(orderId: number): Promise
       }
     }
 
+    // Check and create a missing 1:1 mentorship booking (safety net).
+    // Normally the client itself creates the booking via a follow-up call to
+    // mentorship/bookings/create_POST right after payment verifies, passing
+    // paymentOrderId - mirroring the live-test enroll_POST pattern. This
+    // branch exists for order completion paths where that follow-up call
+    // never happens (e.g. the async PayU server-to-server callback racing
+    // ahead of, or instead of, the client's verify-and-complete request),
+    // which would otherwise leave an order marked paid with no booking ever
+    // created.
+    const mentorshipItem = await trx
+      .selectFrom("orderItems")
+      .select(["id", "mentorshipTeacherId", "mentorshipDurationMinutes", "mentorshipRequestedStartTime"])
+      .where("orderId", "=", orderId)
+      .where("mentorshipTeacherId", "is not", null)
+      .where("mentorshipBookingId", "is", null)
+      .executeTakeFirst();
+
+    if (mentorshipItem && mentorshipItem.mentorshipTeacherId !== null) {
+      if (mentorshipItem.mentorshipRequestedStartTime === null || mentorshipItem.mentorshipDurationMinutes === null) {
+        console.error(`[ensureOrderCompletionSideEffects] Order ${orderId} paid for a 1:1 session with teacher ${mentorshipItem.mentorshipTeacherId} but is missing its requested start time/duration; booking was NOT created. This order needs manual review/refund.`);
+      } else {
+        const teacherId = mentorshipItem.mentorshipTeacherId;
+        const durationMinutes = mentorshipItem.mentorshipDurationMinutes;
+        const startTime = mentorshipItem.mentorshipRequestedStartTime;
+
+        // Same per-teacher advisory lock create_POST uses, so this safety net
+        // can never race with (or double-book against) a normal booking attempt.
+        await sql`select pg_advisory_xact_lock(hashtext(${"mentorship_booking_teacher_" + teacherId}))`.execute(trx);
+
+        const bookable = await isTeacherSlotBookable(teacherId, startTime, durationMinutes);
+        if (!bookable.ok) {
+          console.error(`[ensureOrderCompletionSideEffects] Order ${orderId} paid for a 1:1 session but the slot is no longer bookable (${bookable.reason}); booking was NOT created. This order needs manual review/refund.`);
+        } else {
+          const priorBooking = await trx
+            .selectFrom("mentorshipBookings")
+            .select("id")
+            .where("teacherId", "=", teacherId)
+            .where("studentId", "=", beneficiaryUserId)
+            .where("status", "!=", "cancelled")
+            .executeTakeFirst();
+          const isTrial = !priorBooking;
+
+          const insertedBooking = await trx
+            .insertInto("mentorshipBookings")
+            .values({
+              teacherId,
+              studentId: beneficiaryUserId,
+              scheduledAt: startTime,
+              durationMinutes,
+              amountPaid: order.totalAmount,
+              orderId: order.id,
+              status: "scheduled",
+              isTrial,
+            })
+            .returning(["id", "scheduledAt"])
+            .executeTakeFirstOrThrow();
+
+          await trx.updateTable("orderItems").set({ mentorshipBookingId: insertedBooking.id }).where("id", "=", mentorshipItem.id).execute();
+          await followTeacher(trx, beneficiaryUserId, teacherId);
+
+          pendingMentorshipBookingEmail = {
+            studentId: beneficiaryUserId,
+            teacherId,
+            sessionTypeTitle: `${isTrial ? "Trial " : ""}1:1 session (${durationMinutes} min)`,
+            scheduledAt: insertedBooking.scheduledAt,
+            durationMinutes,
+            bookingId: insertedBooking.id,
+            price: Number(order.totalAmount),
+          };
+          console.log(`[ensureOrderCompletionSideEffects] Safety-net created mentorship booking ${insertedBooking.id} for order ${orderId}`);
+        }
+      }
+    }
+
+    // Check and create a missing group lesson enrollment (safety net, same
+    // rationale as the mentorship booking branch above).
+    const groupLessonItem = await trx
+      .selectFrom("orderItems")
+      .select(["id", "groupLessonId"])
+      .where("orderId", "=", orderId)
+      .where("groupLessonId", "is not", null)
+      .executeTakeFirst();
+
+    if (groupLessonItem && groupLessonItem.groupLessonId !== null) {
+      const alreadyLinked = await trx
+        .selectFrom("groupLessonEnrollments")
+        .select("id")
+        .where("orderId", "=", orderId)
+        .executeTakeFirst();
+
+      if (!alreadyLinked) {
+        const lesson = await trx
+          .selectFrom("groupLessons")
+          .selectAll()
+          .where("id", "=", groupLessonItem.groupLessonId)
+          .forUpdate()
+          .executeTakeFirst();
+
+        if (!lesson || lesson.status !== "scheduled" || lesson.startTime < new Date() || lesson.enrolledCount >= lesson.maxCapacity) {
+          console.error(`[ensureOrderCompletionSideEffects] Order ${orderId} paid for group lesson ${groupLessonItem.groupLessonId} but it is no longer open (cancelled, started, or full); enrollment was NOT created. This order needs manual review/refund.`);
+        } else {
+          const existingEnrollment = await trx
+            .selectFrom("groupLessonEnrollments")
+            .select(["id", "status"])
+            .where("groupLessonId", "=", lesson.id)
+            .where("studentId", "=", beneficiaryUserId)
+            .executeTakeFirst();
+
+          if (existingEnrollment?.status === "enrolled") {
+            console.log(`[ensureOrderCompletionSideEffects] Student already enrolled in group lesson ${lesson.id}, linking order ${orderId} without double-counting capacity`);
+            await trx.updateTable("groupLessonEnrollments").set({ orderId: order.id }).where("id", "=", existingEnrollment.id).execute();
+          } else {
+            if (existingEnrollment) {
+              await trx
+                .updateTable("groupLessonEnrollments")
+                .set({ status: "enrolled", orderId: order.id, amountPaid: order.totalAmount, removedByTeacher: false, cancelledAt: null, enrolledAt: new Date() })
+                .where("id", "=", existingEnrollment.id)
+                .execute();
+            } else {
+              await trx
+                .insertInto("groupLessonEnrollments")
+                .values({
+                  groupLessonId: lesson.id,
+                  studentId: beneficiaryUserId,
+                  orderId: order.id,
+                  amountPaid: order.totalAmount,
+                  status: "enrolled",
+                })
+                .execute();
+            }
+
+            await trx.updateTable("groupLessons").set({ enrolledCount: lesson.enrolledCount + 1 }).where("id", "=", lesson.id).execute();
+            await followTeacher(trx, beneficiaryUserId, lesson.teacherId);
+
+            pendingGroupLessonEnrollmentEmail = {
+              studentId: beneficiaryUserId,
+              teacherId: lesson.teacherId,
+              lessonTitle: lesson.title,
+              startTime: lesson.startTime,
+              groupLessonId: lesson.id,
+            };
+            console.log(`[ensureOrderCompletionSideEffects] Safety-net created group lesson enrollment for student ${beneficiaryUserId} in lesson ${lesson.id} (order ${orderId})`);
+          }
+        }
+      }
+    }
+
     // Buying anything from a teacher is treated as following them - this
     // covers every order completion path (PayU callback/redirect, wallet
     // purchases, admin reconcile), not just the first-touch flows below.
@@ -485,6 +652,8 @@ export async function ensureOrderCompletionSideEffects(orderId: number): Promise
   });
 
   if (orderUserId !== null) {
+    await recordOrderOutcome(orderId, "payment_succeeded");
+
     // After transaction completes, check if we need to send emails
     const emailUpdateResult = await db
       .updateTable("orders")
@@ -501,6 +670,47 @@ export async function ensureOrderCompletionSideEffects(orderId: number): Promise
       });
     } else {
       console.log(`[ensureOrderCompletionSideEffects] Emails for order ${orderId} were already sent (or marked as sent)`);
+    }
+  }
+
+  // Safety-net booking/enrollment confirmation emails. These are only ever
+  // populated when this function itself just created the booking/enrollment
+  // (gated above on mentorshipBookingId / a linked enrollment being absent),
+  // so this can't double-send against the normal create_POST/enroll_POST
+  // email already sent on the client-triggered path.
+  if (pendingMentorshipBookingEmail) {
+    const { studentId, teacherId, sessionTypeTitle, scheduledAt, durationMinutes, bookingId, price } = pendingMentorshipBookingEmail;
+    try {
+      const [student, teacher] = await Promise.all([
+        db.selectFrom("users").select(["email", "displayName"]).where("id", "=", studentId).executeTakeFirst(),
+        db.selectFrom("users").select(["email", "displayName"]).where("id", "=", teacherId).executeTakeFirst(),
+      ]);
+      if (student?.email) {
+        const tmpl = emailTemplatesExtra.mentorshipBookingConfirmed(student.displayName, teacher?.displayName ?? "your teacher", sessionTypeTitle, scheduledAt, durationMinutes, bookingId);
+        await sendEmail({ to: student.email, ...tmpl });
+      }
+      if (teacher?.email) {
+        const tmpl = emailTemplatesExtra.newPurchaseNotification(teacher.displayName, student?.displayName ?? "A student", `1:1 session (${sessionTypeTitle})`, "1:1 session", price);
+        await sendEmail({ to: teacher.email, ...tmpl });
+      }
+    } catch (emailError) {
+      console.error(`[ensureOrderCompletionSideEffects] Failed to send safety-net mentorship booking emails for order ${orderId}:`, emailError);
+    }
+  }
+
+  if (pendingGroupLessonEnrollmentEmail) {
+    const { studentId, teacherId, lessonTitle, startTime, groupLessonId } = pendingGroupLessonEnrollmentEmail;
+    try {
+      const [student, teacher] = await Promise.all([
+        db.selectFrom("users").select(["email", "displayName"]).where("id", "=", studentId).executeTakeFirst(),
+        db.selectFrom("users").select(["displayName"]).where("id", "=", teacherId).executeTakeFirst(),
+      ]);
+      if (student?.email) {
+        const tmpl = emailTemplatesExtra.groupLessonEnrolled(student.displayName, teacher?.displayName ?? "the teacher", lessonTitle, startTime, groupLessonId);
+        await sendEmail({ to: student.email, ...tmpl });
+      }
+    } catch (emailError) {
+      console.error(`[ensureOrderCompletionSideEffects] Failed to send safety-net group lesson enrollment email for order ${orderId}:`, emailError);
     }
   }
 }

@@ -11,6 +11,8 @@ import { productEffectivePriceSql } from "../../../helpers/digitalProductPricing
 import { planTcoinsForOrder } from "../../../helpers/tcoins";
 import { ONE_OFFER_MESSAGE } from "../../../helpers/tcoinsMath";
 import { getOrderClientInfo } from "../../../helpers/orderClientInfo";
+import { getOrderAttribution } from "../../../helpers/getOrderAttribution";
+import { recordFunnelEvent } from "../../../helpers/recordFunnelEvent";
 import { assertAutoOffersUnchanged } from "../../../helpers/courseCouponOffersServer";
 import {
   cartRowKey,
@@ -138,6 +140,7 @@ export async function handle(request: Request) {
         .values({
           userId: user.id,
           ...getOrderClientInfo(request),
+          ...getOrderAttribution(request),
           totalAmount: finalAmount.toFixed(2),
           ...coupons,
           status: "completed",
@@ -281,6 +284,8 @@ export async function handle(request: Request) {
         tcoinsCashback: tcoins.tcoinsCashback,
       };
     });
+
+    await recordFunnelEvent({ event: "checkout_started", request, userId: user.id, orderId: result.orderId, amount: result.amountDeducted, props: { path: "wallet" } });
 
         // Await side effects to prevent Lambda timer leak
     await ensureOrderCompletionSideEffects(result.orderId).catch((error) => {

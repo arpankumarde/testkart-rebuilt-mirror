@@ -209,6 +209,186 @@ export const emailTemplatesExtra = {
     };
   },
 
+  mentorshipBookingConfirmed: (
+    studentName: string,
+    teacherName: string,
+    sessionTitle: string,
+    scheduledAt: Date,
+    durationMinutes: number,
+    bookingId: number
+  ): EmailTemplateResult => {
+    const subject = `Booked: 1:1 session with ${teacherName}`;
+    const formattedDate = formatDate(scheduledAt);
+    const html = getBrandedEmailHtml({
+      title: subject,
+      icon: "🗓️",
+      accent: "success",
+      heading: "Your session is booked!",
+      subheading: `Hi ${studentName}`,
+      table: [
+        { label: "Session", value: sessionTitle },
+        { label: "Teacher", value: teacherName },
+        { label: "When", value: formattedDate, emphasize: true },
+        { label: "Duration", value: `${durationMinutes} minutes` },
+      ],
+      bodyHtml: `<p style="margin:0;">Join from your dashboard a few minutes before the start time - the room opens automatically.</p>`,
+      ctaLabel: "View my bookings",
+      ctaUrl: `https://testkart.in/student/mentorship/bookings/${bookingId}`,
+      studentAppPromo: true,
+    });
+
+    return {
+      subject,
+      html,
+      text: `Hi ${studentName}, your ${durationMinutes}-minute session "${sessionTitle}" with ${teacherName} is booked for ${formattedDate}. View it at https://testkart.in/student/mentorship/bookings/${bookingId}`,
+    };
+  },
+
+  mentorshipBookingCancelled: (
+    recipientName: string,
+    otherPartyName: string,
+    sessionTitle: string,
+    scheduledAt: Date,
+    reason: string,
+    forStudent: boolean
+  ): EmailTemplateResult => {
+    const subject = `Cancelled: ${sessionTitle}`;
+    const formattedDate = formatDate(scheduledAt);
+    const html = getBrandedEmailHtml({
+      title: subject,
+      icon: "❌",
+      accent: "danger",
+      heading: "Session cancelled",
+      subheading: `Hi ${recipientName}`,
+      bodyHtml: `<p style="margin:0 0 8px;">Your session <strong>"${sessionTitle}"</strong> with ${otherPartyName}, scheduled for <strong>${formattedDate}</strong>, has been cancelled.</p><p style="margin:0;">Reason: ${reason}</p>`,
+      ctaLabel: forStudent ? "Find another session" : "Go to Dashboard",
+      ctaUrl: forStudent ? "https://testkart.in/mentorship" : "https://testkart.in/teacher/dashboard",
+      studentAppPromo: forStudent,
+    });
+
+    return {
+      subject,
+      html,
+      text: `Hi ${recipientName}, your session "${sessionTitle}" with ${otherPartyName} on ${formattedDate} has been cancelled. Reason: ${reason}`,
+    };
+  },
+
+  mentorshipBookingRescheduled: (
+    recipientName: string,
+    otherPartyName: string,
+    sessionTitle: string,
+    newScheduledAt: Date,
+    forStudent: boolean,
+    bookingId: number
+  ): EmailTemplateResult => {
+    const subject = `Rescheduled: ${sessionTitle}`;
+    const formattedDate = formatDate(newScheduledAt);
+    const html = getBrandedEmailHtml({
+      title: subject,
+      icon: "🔄",
+      heading: "Session rescheduled",
+      subheading: `Hi ${recipientName}`,
+      bodyHtml: `<p style="margin:0;">Your session <strong>"${sessionTitle}"</strong> with ${otherPartyName} has a new time: <strong>${formattedDate}</strong>.</p>`,
+      ctaLabel: "View booking",
+      ctaUrl: forStudent
+        ? `https://testkart.in/student/mentorship/bookings/${bookingId}`
+        : "https://testkart.in/teacher/mentorship/bookings",
+      studentAppPromo: forStudent,
+    });
+
+    return {
+      subject,
+      html,
+      text: `Hi ${recipientName}, your session "${sessionTitle}" with ${otherPartyName} was rescheduled to ${formattedDate}.`,
+    };
+  },
+
+  groupLessonCancelled: (
+    studentName: string,
+    teacherName: string,
+    lessonTitle: string,
+    scheduledAt: Date,
+    reason: string
+  ): EmailTemplateResult => {
+    const subject = `Cancelled: ${lessonTitle}`;
+    const formattedDate = formatDate(scheduledAt);
+    const html = getBrandedEmailHtml({
+      title: subject,
+      icon: "❌",
+      accent: "danger",
+      heading: "Group lesson cancelled",
+      subheading: `Hi ${studentName}`,
+      bodyHtml: `<p style="margin:0 0 8px;">The group lesson <strong>"${lessonTitle}"</strong> with ${teacherName}, scheduled for <strong>${formattedDate}</strong>, has been cancelled.</p><p style="margin:0;">Reason: ${reason}</p>`,
+      ctaLabel: "Find another lesson",
+      ctaUrl: "https://testkart.in/mentorship/group-lessons",
+      studentAppPromo: true,
+    });
+
+    return {
+      subject,
+      html,
+      text: `Hi ${studentName}, the group lesson "${lessonTitle}" with ${teacherName} on ${formattedDate} has been cancelled. Reason: ${reason}`,
+    };
+  },
+
+  groupLessonEnrolled: (
+    studentName: string,
+    teacherName: string,
+    lessonTitle: string,
+    scheduledAt: Date,
+    groupLessonId: number
+  ): EmailTemplateResult => {
+    const subject = `Enrolled: ${lessonTitle}`;
+    const formattedDate = formatDate(scheduledAt);
+    const html = getBrandedEmailHtml({
+      title: subject,
+      icon: "🗓️",
+      accent: "success",
+      heading: "You're enrolled!",
+      subheading: `Hi ${studentName}`,
+      table: [
+        { label: "Lesson", value: lessonTitle },
+        { label: "Teacher", value: teacherName },
+        { label: "When", value: formattedDate, emphasize: true },
+      ],
+      ctaLabel: "View my lessons",
+      ctaUrl: `https://testkart.in/student/mentorship/group-lessons/${groupLessonId}`,
+      studentAppPromo: true,
+    });
+
+    return {
+      subject,
+      html,
+      text: `Hi ${studentName}, you're enrolled in "${lessonTitle}" with ${teacherName} on ${formattedDate}. https://testkart.in/student/mentorship/group-lessons/${groupLessonId}`,
+    };
+  },
+
+  groupLessonRemoved: (
+    studentName: string,
+    teacherName: string,
+    lessonTitle: string,
+    reason: string
+  ): EmailTemplateResult => {
+    const subject = `Removed from: ${lessonTitle}`;
+    const html = getBrandedEmailHtml({
+      title: subject,
+      icon: "⚠️",
+      accent: "warning",
+      heading: "You were removed from a lesson",
+      subheading: `Hi ${studentName}`,
+      bodyHtml: `<p style="margin:0 0 8px;">${teacherName} removed you from the group lesson <strong>"${lessonTitle}"</strong>.</p><p style="margin:0;">Reason: ${reason}</p>`,
+      ctaLabel: "Find another lesson",
+      ctaUrl: "https://testkart.in/mentorship/group-lessons",
+      studentAppPromo: true,
+    });
+
+    return {
+      subject,
+      html,
+      text: `Hi ${studentName}, ${teacherName} removed you from "${lessonTitle}". Reason: ${reason}`,
+    };
+  },
+
   newPurchaseNotification: (
     teacherName: string,
     studentName: string,

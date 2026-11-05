@@ -15,6 +15,7 @@ import { MobileBottomNav } from "./MobileBottomNav";
 import { MoreResourcesMenu } from "./MoreResourcesMenu";
 import { DiwaliSiteLayer } from "./DiwaliSiteLayer";
 import { SpinWinLauncher } from "./SpinWinLauncher";
+import { GuestCartSync } from "./GuestCartSync";
 import { useDarkModeObserver } from "../helpers/useDarkModeObserver";
 import { getBrandLogo } from "../helpers/brandAssets";
 import { BrandFavicons } from "../helpers/BrandFavicons";
@@ -243,18 +244,14 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
               Test Series
             </NavLink>
             <NavLink
-              to="/live-test"
+              to="/expert"
               className={({ isActive }) =>
-                `${styles.navLink} ${styles.liveTestsLink} ${isActive ? styles.active : ""}`
+                `${styles.navLink} ${isActive ? styles.active : ""}`
               }
-              aria-label="Live Competitions"
-              title="Live Competitions"
+              aria-label="Tutors"
+              title="Tutors"
             >
-              <div className={styles.liveIndicatorWrapper}>
-                <Radio size={16} strokeWidth={2.25} className={styles.liveIcon} />
-                <span className={styles.liveDot}></span>
-              </div>
-              <span className={styles.liveLabel}>Live Competitions</span>
+              Tutors
             </NavLink>
             <NavLink
               to="/study-notes"
@@ -320,6 +317,7 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
       <Footer />
       <MobileBottomNav />
       <SpinWinLauncher />
+      <GuestCartSync />
       </div>
     </>
   );

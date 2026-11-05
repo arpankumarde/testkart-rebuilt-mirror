@@ -1,9 +1,9 @@
 /*
- * Student shell navigation, on the same console language as the admin and
- * teacher sidebars so the three read as one product: a --surface panel on a
- * hairline border, and brand coral used only as a BLOCK - the active item's 3px
- * bar and its tint - never as a solid fill behind a label. The tracked "Student"
- * chip mirrors the teacher and admin chips.
+ * Student shell navigation in the student palette (set on the layout's
+ * .shell): a white panel on a warm hairline, handwritten group labels, and
+ * the active item as a solid peach pill with an ink label and a coral icon.
+ * The "Student" chip and the profile badge are lavender; the profile meter
+ * fills in mint.
  *
  * The rail is presentation only: every collapsed rule below is a descendant of
  * .rail, so the markup is identical in both modes and toggling never rebuilds
@@ -11,10 +11,6 @@
  */
 .sidebar {
   --tk-nav-coral: var(--tk-brand);
-  --tk-nav-ink: var(--tk-brand-ink);
-  --tk-nav-coral-ink: var(--tk-brand-text);
-  --tk-nav-coral-tint: var(--tk-brand-tint);
-  --tk-nav-active-text: var(--tk-nav-ink);
   --tk-nav-width: 256px;
 
   position: sticky;
@@ -33,12 +29,6 @@
 
 .rail {
   --tk-nav-width: 68px;
-}
-
-/* On the dark theme the deep ink loses contrast against the tint, so the
-   active label switches to the themed coral text instead. */
-:global(.dark) .sidebar {
-  --tk-nav-active-text: var(--tk-brand-text);
 }
 
 .sidebarHeader {
@@ -88,9 +78,9 @@
   display: inline-block;
   flex-shrink: 0;
   padding: 0.25rem 0.5rem;
-  background-color: var(--tk-nav-coral-tint);
-  color: var(--tk-nav-coral-ink);
-  border-radius: var(--radius-sm);
+  background-color: var(--sp-lavender-tint);
+  color: var(--sp-lavender-ink);
+  border-radius: var(--radius-full);
   font-family: var(--font-family-base);
   font-size: 0.6875rem;
   font-weight: 700;
@@ -140,14 +130,15 @@
   align-items: center;
   gap: var(--spacing-2);
   width: 100%;
-  padding: var(--spacing-2);
+  padding: var(--spacing-1) var(--spacing-2);
   background: none;
   border: none;
   border-radius: var(--radius-sm);
   color: var(--muted-foreground);
-  font-family: var(--font-family-base);
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-family: var(--font-family-cursive);
+  font-size: 1.1875rem;
+  font-weight: 700;
+  line-height: 1.1;
   text-align: left;
   cursor: pointer;
   transition: color var(--animation-duration-fast) ease, background-color var(--animation-duration-fast) ease;
@@ -197,8 +188,8 @@
   align-items: center;
   gap: var(--spacing-3);
   min-width: 0;
-  padding: 0.4375rem var(--spacing-3);
-  border-radius: var(--radius);
+  padding: 0.5625rem var(--spacing-3);
+  border-radius: 0.875rem;
   color: var(--sidebar-foreground);
   font-size: 0.875rem;
   font-weight: 500;
@@ -217,20 +208,13 @@
 }
 
 .navLink.active {
-  background-color: var(--tk-nav-coral-tint);
-  color: var(--tk-nav-active-text);
-  font-weight: 600;
+  background-color: var(--sp-peach-tint);
+  color: var(--sp-ink);
+  font-weight: 700;
 }
 
-.navLink.active::before {
-  content: "";
-  position: absolute;
-  top: 6px;
-  bottom: 6px;
-  left: calc(-1 * var(--spacing-3));
-  width: 3px;
-  border-radius: 2px;
-  background-color: var(--tk-nav-coral);
+.navLink.active .navIcon {
+  color: var(--tk-brand-text);
 }
 
 .navIcon {
@@ -245,15 +229,15 @@
   text-overflow: ellipsis;
 }
 
-/* Solid deep orange, so it holds against white in either theme and still
-   reads on the coral tint of the active row. */
+/* Lavender ink under the card colour: themed, and it reads on the peach pill
+   of the active row. */
 .navBadge {
   flex-shrink: 0;
   min-width: 1.125rem;
   padding: 3px 6px;
-  border-radius: var(--radius-sm);
-  background-color: var(--tk-brand-deep);
-  color: #fff;
+  border-radius: var(--radius-full);
+  background-color: var(--sp-lavender-ink);
+  color: var(--sp-card);
   font-size: 0.625rem;
   font-weight: 700;
   line-height: 1;
@@ -281,10 +265,6 @@
 .rail .navLabel,
 .rail .navBadge {
   display: none;
-}
-
-.rail .navLink.active::before {
-  left: calc(-1 * var(--spacing-2));
 }
 
 /* The badge cannot fit in the rail, so it becomes a dot on the icon. */
@@ -332,7 +312,7 @@
   margin: 0 var(--spacing-3) var(--spacing-3);
   padding: var(--spacing-3);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   background-color: var(--surface);
   color: var(--foreground);
   text-decoration: none;
@@ -340,7 +320,7 @@
 }
 
 .meter:hover {
-  border-color: var(--tk-brand-text);
+  border-color: var(--fc-mint-edge);
 }
 
 .meter:focus-visible {
@@ -364,7 +344,7 @@
 .meterValue {
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--tk-brand-text);
+  color: var(--fc-mint-ink);
   font-variant-numeric: tabular-nums;
 }
 
@@ -376,13 +356,12 @@
   overflow: hidden;
 }
 
-/* --tk-brand-text, not --tk-brand-deep: a thin mark ON a surface has to flip
-   with the theme. The deep orange only holds against white. */
+/* A themed edge colour: a thin mark on a surface has to flip with the theme. */
 .meterFill {
   display: block;
   height: 100%;
   border-radius: var(--radius-full);
-  background-color: var(--tk-brand-text);
+  background-color: var(--fc-mint-edge);
   transition: width var(--animation-duration-normal) ease;
 }
 
@@ -548,7 +527,7 @@
 
   .rail .navLink {
     justify-content: flex-start;
-    padding: 0.4375rem var(--spacing-3);
+    padding: 0.5625rem var(--spacing-3);
   }
 
   .rail .navLabel {
@@ -557,10 +536,6 @@
 
   .rail .navBadge {
     display: inline-block;
-  }
-
-  .rail .navLink.active::before {
-    left: calc(-1 * var(--spacing-3));
   }
 
   .rail .navLink[data-badge="true"]::after {

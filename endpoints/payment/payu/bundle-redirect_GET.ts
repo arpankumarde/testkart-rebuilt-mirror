@@ -13,6 +13,9 @@ import { getSpinCouponRuleOrThrow } from "../../../helpers/spinWinServer";
 import { planTcoinsForOrder } from "../../../helpers/tcoins";
 import { ONE_OFFER_MESSAGE } from "../../../helpers/tcoinsMath";
 import { getOrderClientInfo } from "../../../helpers/orderClientInfo";
+import { getOrderAttribution } from "../../../helpers/getOrderAttribution";
+import { recordFunnelEvent } from "../../../helpers/recordFunnelEvent";
+import { recordOrderOutcome } from "../../../helpers/recordOrderOutcome";
 import { expiredPurchaseError } from "../../../helpers/contentExpiryServer";
 
 const generateErrorHtml = (errorMessage: string, backUrl: string) => `
@@ -244,7 +247,7 @@ export async function handle(request: Request) {
       return new Response(errorHtml, { status: 500, headers: { "Content-Type": "text/html" } });
     }
 
-    type PaidOrderResult = { kind: 'paid'; formData: { [key: string]: string } };
+    type PaidOrderResult = { kind: 'paid'; orderId: number; amount: string; formData: { [key: string]: string } };
     type FreeOrderResult = { kind: 'free'; orderId: number };
     type TransactionResult = PaidOrderResult | FreeOrderResult;
 
@@ -308,6 +311,7 @@ export async function handle(request: Request) {
           .values({
             userId: user.id,
             ...getOrderClientInfo(request),
+            ...getOrderAttribution(request),
             bundleId: bundle.id,
             totalAmount: "0.00",
             status: "completed",
@@ -340,6 +344,7 @@ export async function handle(request: Request) {
         .values({
           userId: user.id,
           ...getOrderClientInfo(request),
+          ...getOrderAttribution(request),
           bundleId: bundle.id,
           totalAmount: finalAmount.toFixed(2),
           status: "pending",
@@ -373,6 +378,8 @@ export async function handle(request: Request) {
 
       return {
         kind: 'paid' as const,
+        orderId: newOrder.id,
+        amount: amountStr,
         formData: {
           key: PAYU_MERCHANT_KEY,
           txnid,
@@ -390,12 +397,15 @@ export async function handle(request: Request) {
     });
 
     if (result.kind === 'free') {
+      await recordFunnelEvent({ event: "checkout_started", request, userId: user.id, orderId: result.orderId, entityType: "bundle", amount: 0, props: { path: "bundle_web" } });
+      await recordOrderOutcome(result.orderId, "payment_succeeded");
       const html = generateFreeOrderRedirectHtml(
         `${baseUrl}/student/dashboard?order_id=${result.orderId}&free=true`
       );
       return new Response(html, { headers: { "Content-Type": "text/html" } });
     }
 
+    await recordFunnelEvent({ event: "checkout_started", request, userId: user.id, orderId: result.orderId, entityType: "bundle", amount: result.amount, props: { path: "bundle_web" } });
     const html = generateRedirectHtml(result.formData);
     return new Response(html, { headers: { "Content-Type": "text/html" } });
 

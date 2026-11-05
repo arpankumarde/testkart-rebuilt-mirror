@@ -6,6 +6,8 @@ import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { slugify } from "../../helpers/slugify";
 import { contentInExam } from "../../helpers/contentExams";
 import { matchesAnyLanguage } from "../../helpers/languageFilter";
+import { mockTestShownPriceSql, paidFirst, sortPutsPaidFirst } from "../../helpers/paidFirst";
+import { mockTestValueScoreSql, relatedToMockTest } from "../../helpers/mockTestRecommendation";
 
 export async function handle(request: Request) {
   try {
@@ -109,6 +111,14 @@ export async function handle(request: Request) {
       )
     );
 
+    // relatedTo keeps only the other series that share an exam with the given one
+    // (the series page's "more for this exam" block).
+    const relatedToId = parseInt(url.searchParams.get('relatedTo') || '', 10);
+    if (Number.isFinite(relatedToId)) {
+      const source = await db.selectFrom("mockTests").select("title").where("id", "=", relatedToId).executeTakeFirst();
+      query = query.where(relatedToMockTest(relatedToId, source?.title));
+    }
+
     // Apply filters
     if (search) {
       const searchPattern = `%${search}%`;
@@ -161,7 +171,10 @@ export async function handle(request: Request) {
     // Apply sorting. Price sorts use the price the card shows (the discount
     // price when set), not the list price, and break ties by views so equal
     // prices keep a sensible order.
-    const effectivePrice = sql`COALESCE(mock_tests.discount_price, mock_tests.price)`;
+    const effectivePrice = mockTestShownPriceSql;
+    if (sortPutsPaidFirst(sortBy)) {
+      query = query.orderBy(paidFirst(mockTestShownPriceSql));
+    }
     switch (sortBy) {
       case 'price_asc':
         query = query.orderBy(effectivePrice, "asc").orderBy(sql`COALESCE(mock_tests.views, 0)`, "desc");
@@ -173,7 +186,10 @@ export async function handle(request: Request) {
         query = query.orderBy(sql`(
           (SELECT COUNT(*) FROM mock_test_enrollments WHERE mock_test_id = mock_tests.id AND enrolled_at > NOW() - INTERVAL '7 days') * 3 +
           (SELECT COUNT(*) FROM mock_test_enrollments WHERE mock_test_id = mock_tests.id AND enrolled_at > NOW() - INTERVAL '30 days')
-        )`, "desc").orderBy(sql`COALESCE(mock_tests.views, 0)`, "desc");
+        )`, "desc").orderBy(mockTestValueScoreSql, "desc").orderBy(sql`COALESCE(mock_tests.views, 0)`, "desc");
+        break;
+      case 'recommended':
+        query = query.orderBy(mockTestValueScoreSql, "desc").orderBy(sql`COALESCE(mock_tests.views, 0)`, "desc");
         break;
       case 'rating':
         query = query.orderBy(sql`"mock_tests"."rating" desc nulls last`);

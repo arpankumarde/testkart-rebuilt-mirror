@@ -192,7 +192,7 @@ const ExpertProfilePage = () => {
             "@type": "ListItem",
             position: 2,
             name: "Experts",
-            item: `${SITE_URL}/expert/all`,
+            item: `${SITE_URL}/expert`,
           },
           {
             "@type": "ListItem",

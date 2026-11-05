@@ -19,36 +19,46 @@ const statusLabel = (entry: TcoinHistoryEntry): { text: string; tone: string } =
   }
 };
 
-/** Hidden entirely while Tcoins are switched off. */
-export const StudentTcoinsCard: React.FC = () => {
+/*
+ * The wallet's two Tcoins pieces. The summary sits beside the cash balance at
+ * the top of the page; the history is the wallet's Tcoins tab. Both render
+ * nothing while Tcoins are switched off.
+ */
+export const StudentTcoinsSummary: React.FC = () => {
   const { data } = useStudentTcoins();
 
   if (!data?.enabled) return null;
 
   return (
-    <section className={styles.card} aria-labelledby="tcoins-title">
-      <div className={styles.head}>
-        <div className={styles.balanceBlock}>
-          <h2 id="tcoins-title" className={styles.title}>
-            <Coins size={18} aria-hidden="true" />
-            Tcoins
-          </h2>
-          <p className={styles.balance}>
-            {data.balance.toLocaleString("en-IN")} <span>coins</span>
-          </p>
-          {data.pendingCashback > 0 && (
-            <p className={styles.pendingNote}>
-              {data.pendingCashback} more coins arrive once your pending payment goes through.
-            </p>
-          )}
-        </div>
-        <ul className={styles.rules}>
-          <li>1 Tcoin = ₹1. Use them to pay up to {data.redeemPercent}% of any order, up to {data.maxRedeem} coins per order.</li>
-          <li>Earn {data.cashbackPercent}% back in Tcoins on what you pay, up to {data.maxCashback} coins per order.</li>
-          <li>Tcoins can't be withdrawn or combined with a coupon.</li>
-        </ul>
-      </div>
+    <section className={styles.summary} aria-labelledby="tcoins-title">
+      <h2 id="tcoins-title" className={styles.title}>
+        <Coins size={18} aria-hidden="true" />
+        Tcoins
+      </h2>
+      <p className={styles.balance}>
+        {data.balance.toLocaleString("en-IN")} <span>coins</span>
+      </p>
+      {data.pendingCashback > 0 && (
+        <p className={styles.pendingNote}>
+          {data.pendingCashback} more arrive when your pending payment goes through.
+        </p>
+      )}
+      <ul className={styles.rules}>
+        <li>1 Tcoin = ₹1. Pay up to {data.redeemPercent}% of an order with them (max {data.maxRedeem} coins).</li>
+        <li>Earn {data.cashbackPercent}% back on what you pay (max {data.maxCashback} coins per order).</li>
+        <li>Tcoins can't be withdrawn or used with a coupon.</li>
+      </ul>
+    </section>
+  );
+};
 
+export const StudentTcoinsHistory: React.FC = () => {
+  const { data } = useStudentTcoins();
+
+  if (!data?.enabled) return null;
+
+  return (
+    <section className={styles.card} aria-label="Tcoins history">
       <div className={styles.results}>
         <table className={styles.table}>
           <thead>
@@ -87,7 +97,7 @@ export const StudentTcoinsCard: React.FC = () => {
               })
             ) : (
               <tr className={styles.emptyRow}>
-                <td colSpan={5}>No Tcoins yet. Every paid order earns cashback here.</td>
+                <td colSpan={5}>No Tcoins yet. Every paid order earns some.</td>
               </tr>
             )}
           </tbody>

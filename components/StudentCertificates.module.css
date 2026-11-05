@@ -1,23 +1,23 @@
 /*
- * Two panels on the shared console language: --surface on a hairline at
- * --radius-md, a count chip beside each section title, and no dashed empty
- * states. The h2 that used to repeat the page title is gone - the page header
- * says "Certificates", so these name what is in each panel instead.
+ * Two sections in the student dashboard's shape: a heading and the cards
+ * straight on the page, with a dashed block when a section is empty. "Ready
+ * to claim" comes first when there is something to claim.
  */
 .container {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-6);
+  gap: var(--spacing-8);
 }
 
 .panel {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-4);
-  padding: var(--spacing-4) var(--spacing-6) var(--spacing-6);
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  min-width: 0;
+}
+
+.panelClaim {
+  order: -1;
 }
 
 .sectionHeader {
@@ -34,9 +34,9 @@
   gap: var(--spacing-2);
   margin: 0;
   font-family: var(--font-family-heading);
-  font-size: 1.0625rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   color: var(--foreground);
 }
 
@@ -71,20 +71,21 @@
   gap: var(--spacing-2);
   padding: var(--spacing-8) var(--spacing-4);
   text-align: center;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  background-color: var(--surface);
+  border: 1.5px dashed var(--sp-line-strong, var(--border));
+  border-radius: 1.25rem;
 }
 
 .stateIcon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 3rem;
+  height: 3rem;
   margin-bottom: var(--spacing-1);
-  border-radius: var(--radius-full);
-  background-color: var(--tk-brand-tint);
-  color: var(--tk-brand-text);
+  border-radius: 1rem;
+  background-color: var(--fc-butter-tint);
+  color: var(--fc-butter-ink);
 }
 
 .stateIconError {
@@ -140,11 +141,10 @@
 @media (max-width: 768px) {
   .panel {
     gap: var(--spacing-3);
-    padding: var(--spacing-3) var(--spacing-4) var(--spacing-4);
   }
 
   .sectionTitle {
-    font-size: 1rem;
+    font-size: 1.125rem;
   }
 
   .grid {

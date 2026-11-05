@@ -7,6 +7,7 @@ import {
   isEnrolledInLiveTest,
   liveTestResultsReleased,
 } from "../../../helpers/liveTestAttemptWindow";
+import { recordFunnelEvent } from "../../../helpers/recordFunnelEvent";
 
 
 export async function handle(request: Request): Promise<Response> {
@@ -252,6 +253,15 @@ export async function handle(request: Request): Promise<Response> {
       myReviewText: myReview?.reviewText ?? null,
       results: visibleResults,
     };
+
+    await recordFunnelEvent({
+      event: "result_viewed",
+      request,
+      userId: user.id,
+      entityType: "test_item",
+      entityId: testItemId,
+      props: { attemptId: Number(latestAttempt.id), free: testItemInfo?.isFree === true },
+    });
 
     return new Response(superjson.stringify(response));
   } catch (error) {

@@ -118,8 +118,8 @@
   height: 2.25rem;
   flex-shrink: 0;
   border-radius: var(--radius);
-  background-color: var(--tk-brand-tint);
-  color: var(--tk-brand-text);
+  background-color: var(--sp-lavender-tint);
+  color: var(--sp-lavender-ink);
 }
 
 .cardTitle {

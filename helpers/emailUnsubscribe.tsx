@@ -12,7 +12,7 @@ import type { DB } from "./schema";
  * Server-only (reads JWT_SECRET).
  */
 
-export const UNSUBSCRIBE_LISTS = ["teacher_onboarding"] as const;
+export const UNSUBSCRIBE_LISTS = ["teacher_onboarding", "student_marketing"] as const;
 export type UnsubscribeList = (typeof UNSUBSCRIBE_LISTS)[number];
 
 export const isUnsubscribeList = (value: string): value is UnsubscribeList =>

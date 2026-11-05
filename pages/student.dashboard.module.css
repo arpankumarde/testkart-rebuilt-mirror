@@ -1,122 +1,235 @@
 /*
- * Student dashboard on the console language shared with the teacher and admin
- * dashboards: --surface panels on a hairline border at --radius-md, no drop
- * shadows, no hover lift, and coral only as a block or as --tk-brand-text.
+ * Student dashboard in the /app language: the warm page surface with no outer
+ * panels, a greeting with a handwritten line and a coral underline, one solid
+ * pastel per stat and per section, and white cards sitting straight on the
+ * page. Colours come from the --sp-* and --fc-* tokens (themed); coral is kept
+ * to the greeting and the underline.
  *
- * No gutter of its own - StudentDashboardLayout's .mainContent owns the page
- * padding. The old .container added its own on top, so the page carried a
- * doubled 64px top inset.
+ * Kept short on purpose: one greeting, four figures, and what the student can
+ * pick up next. No gutter of its own - StudentDashboardLayout's .mainContent
+ * owns the page padding. The page is an inline-size container, so the layout
+ * follows the room left beside the sidebar rather than the window.
  */
 .page {
+  container: dashboard / inline-size;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-6);
+  gap: var(--spacing-8);
   width: 100%;
   max-width: 1440px;
   margin: 0 auto;
   box-sizing: border-box;
 }
 
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--spacing-3);
+/* One tone per stat tile and per section. -tint is a fill, -ink the text on it
+   (7:1+). */
+.page [data-tone="lavender"] {
+  --tone-tint: var(--sp-lavender-tint);
+  --tone-ink: var(--sp-lavender-ink);
+}
+
+.page [data-tone="mint"] {
+  --tone-tint: var(--fc-mint-tint);
+  --tone-ink: var(--fc-mint-ink);
+}
+
+.page [data-tone="butter"] {
+  --tone-tint: var(--fc-butter-tint);
+  --tone-ink: var(--fc-butter-ink);
+}
+
+.page [data-tone="peach"] {
+  --tone-tint: var(--fc-peach-tint);
+  --tone-ink: var(--fc-peach-ink);
+}
+
+.page [data-tone="blue"] {
+  --tone-tint: var(--fc-blue-tint);
+  --tone-ink: var(--fc-blue-ink);
+}
+
+/* ---------- Greeting ---------- */
+
+.hero {
+  min-width: 0;
+}
+
+.scribble {
+  display: inline-block;
+  margin: 0 0 0.125rem;
+  font-family: var(--font-family-cursive);
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--tk-brand-text);
+  transform: rotate(-3deg);
+  transform-origin: left bottom;
 }
 
 .title {
-  margin: 0;
+  margin: 0.25rem 0 0;
   font-family: var(--font-family-heading);
-  font-size: 1.5rem;
+  font-size: clamp(1.75rem, 1.2rem + 2.6cqi, 3rem);
   font-weight: 800;
-  letter-spacing: -0.015em;
-  line-height: 1.2;
-  color: var(--foreground);
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+  color: var(--sp-ink);
+  text-wrap: balance;
+}
+
+/* The coral hand-drawn underline from /app, under the student's name. */
+.marked {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.markSwoosh {
+  position: absolute;
+  left: -2%;
+  bottom: -0.2em;
+  width: 104%;
+  height: 0.3em;
+  color: var(--tk-brand);
+  stroke-width: 5;
+}
+
+.heroLead {
+  max-width: 40rem;
+  margin: 1rem 0 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--sp-text);
+  overflow-wrap: anywhere;
 }
 
 .headerActions {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: var(--spacing-2);
+  gap: var(--spacing-3);
+  margin-top: 1.5rem;
 }
 
-/* Six even cells on a wide screen, so the strip reads as one band rather than
-   as cards of drifting widths. */
+/* ---------- Stats ---------- */
+
 .statsGrid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--spacing-3);
 }
 
+/* Four tiles, or five while Tcoins are on: auto-fit shares the row evenly. */
+@container dashboard (min-width: 44rem) {
+  .statsGrid {
+    grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  }
+}
+
 .statCard {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  grid-template-areas:
-    "icon label"
-    "value value";
-  align-items: center;
-  gap: var(--spacing-2);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.375rem;
   min-width: 0;
   padding: var(--spacing-4);
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  background-color: var(--tone-tint);
+  color: var(--tone-ink);
+  border-radius: 1.25rem;
+}
+
+/* The Tcoins tile links to the wallet. In the two-column layout it takes the
+   full row as one line, so the other four stay an even 2 by 2. */
+.statLink {
+  position: relative;
+  text-decoration: none;
+  transition: box-shadow var(--animation-duration-fast) ease;
+}
+
+.statLink:hover {
+  box-shadow: inset 0 0 0 2px var(--tone-ink);
+}
+
+.statLink:focus-visible {
+  outline: 2px solid var(--fc-blue-edge);
+  outline-offset: 2px;
+}
+
+.statChevron {
+  position: absolute;
+  top: var(--spacing-4);
+  right: var(--spacing-4);
+}
+
+@container dashboard (max-width: 43.99rem) {
+  .statLink {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-3);
+  }
+
+  .statLink .statIcon {
+    margin-bottom: 0;
+  }
+
+  .statLink .statChevron {
+    position: static;
+    margin-left: auto;
+  }
 }
 
 .statIcon {
-  grid-area: icon;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: var(--radius-sm);
-  background-color: var(--tk-brand-tint);
-  color: var(--tk-brand-text);
-}
-
-.statLabel {
-  grid-area: label;
-  min-width: 0;
-  font-size: 0.75rem;
-  font-weight: 600;
-  line-height: 1.25;
-  color: var(--muted-foreground);
+  width: 2.25rem;
+  height: 2.25rem;
+  margin-bottom: 0.375rem;
+  border-radius: 0.75rem;
+  background-color: var(--sp-card);
+  color: var(--tone-ink);
 }
 
 .statValue {
-  grid-area: value;
   font-family: var(--font-family-heading);
-  font-size: 1.5rem;
+  font-size: 1.875rem;
   font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-  color: var(--foreground);
+  letter-spacing: -0.03em;
+  line-height: 1.05;
   font-variant-numeric: tabular-nums;
 }
 
-.statValueSkeleton {
-  grid-area: value;
+.statLabel {
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* The card colour, not the grey kit skeleton, which reads as a hole in a
+   pastel tile. */
+.statCard .statValueSkeleton {
   width: 3rem;
-  height: 1.65rem;
-  border-radius: var(--radius-sm);
+  height: 1.95rem;
+  border-radius: 0.5rem;
+  background-color: var(--sp-card);
 }
 
 .statCardSkeleton {
-  height: 96px;
-  border-radius: var(--radius-md);
+  height: 132px;
+  border-radius: 1.25rem;
 }
+
+/* ---------- Sections ---------- */
 
 .panel {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-4);
-  padding: var(--spacing-4) var(--spacing-6) var(--spacing-6);
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  min-width: 0;
 }
 
 .sectionHeader {
@@ -124,35 +237,32 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-3);
-  min-height: 2.25rem;
 }
 
 .sectionTitle {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
+  gap: 0.625rem;
+  min-width: 0;
   margin: 0;
   font-family: var(--font-family-heading);
-  font-size: 1.0625rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--foreground);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--sp-ink);
 }
 
-.sectionCount {
-  display: inline-flex;
+.sectionIcon {
+  display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 1.375rem;
-  height: 1.375rem;
-  padding: 0 0.375rem;
-  border-radius: var(--radius-full);
-  background-color: var(--muted);
-  color: var(--muted-foreground);
-  font-family: var(--font-family-base);
-  font-size: 0.75rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.75rem;
+  background-color: var(--tone-tint);
+  color: var(--tone-ink);
 }
 
 .viewAllLink {
@@ -160,118 +270,100 @@
   align-items: center;
   gap: 2px;
   flex-shrink: 0;
-  padding: 0.25rem 0;
-  color: var(--tk-brand-text);
-  font-size: 0.8125rem;
-  font-weight: 600;
+  padding: 0.375rem 0.25rem;
+  color: var(--sp-ink);
+  font-size: 0.875rem;
+  font-weight: 700;
   text-decoration: none;
-  border-bottom: 1px solid transparent;
-}
-
-.viewAllLink:hover {
-  border-bottom-color: var(--tk-brand-text);
-}
-
-.viewAllLink:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus);
   border-radius: var(--radius-sm);
 }
 
-/* One block for every empty and error state, so a section is the same shape
-   whichever way it comes up short. */
+.viewAllLink:hover {
+  color: var(--fc-blue-ink);
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+.viewAllLink:focus-visible {
+  outline: 2px solid var(--fc-blue-edge);
+  outline-offset: 2px;
+}
+
+/* One compact row for every empty and error state: icon, one line, one
+   button. A dashed outline: an open slot, not a card. */
 .stateBlock {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-8) var(--spacing-4);
-  text-align: center;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--sp-card);
+  border: 1.5px dashed var(--sp-line-strong);
+  border-radius: 1.25rem;
 }
 
 .stateIcon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  margin-bottom: var(--spacing-1);
-  border-radius: var(--radius-full);
-  background-color: var(--tk-brand-tint);
-  color: var(--tk-brand-text);
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  background-color: var(--tone-tint, var(--sp-lavender-tint));
+  color: var(--tone-ink, var(--sp-lavender-ink));
 }
 
 .stateTitle {
+  flex: 1 1 10rem;
+  min-width: 0;
   margin: 0;
   font-size: 0.9375rem;
-  font-weight: 700;
-  color: var(--foreground);
-}
-
-.stateHint {
-  max-width: 34rem;
-  margin: 0 0 var(--spacing-2);
-  font-size: 0.875rem;
-  line-height: 1.5;
-  color: var(--muted-foreground);
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--sp-ink);
 }
 
 /*
- * EnrolledTestCard is a compact vertical card - an 84px thumbnail over stacked
- * content and a full-width CTA - not the row it was taken for. The two-up grid
- * it used to sit in stretched it past 600px on a wide screen, so it now takes
- * the same ~300px track the courses grid below it does, and the same one
- * /student/tests uses.
+ * The entity cards are compact vertical cards built for a ~300px column, the
+ * same measure /student/tests, /student/courses and /student/shop use, so the
+ * same card is never two sizes in two places. auto-fill (not auto-fit) keeps
+ * the empty tracks, so a short row leaves a gap rather than stretching its
+ * cards back across the full width.
  */
-.testsGrid {
+.cardGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: var(--spacing-4);
-  align-items: stretch;
-}
-
-/*
- * The same ~300px track as the tests grid above and as /student/courses, so
- * the same card is never two sizes in two places. auto-fill (not auto-fit)
- * keeps the empty tracks, so a short row leaves a gap rather than stretching
- * its cards back across the full width.
- */
-.coursesGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
   gap: var(--spacing-4);
   align-items: stretch;
 }
 
 .cardSkeleton {
   width: 100%;
-  height: 220px;
-  border-radius: var(--radius-md);
+  height: 200px;
+  border-radius: 1.25rem;
 }
 
-/*
- * Promo, so it sits last - below the student's own work rather than above it.
- * A solid tinted block on a hairline border, not a translucent wash.
- */
+/* ---------- App promo ---------- */
+
+/* Promo, so it sits last - below the student's own work rather than above it.
+   A solid lavender band. */
 .appBanner {
   position: relative;
   display: flex;
   align-items: center;
   gap: var(--spacing-4);
   padding: var(--spacing-4) var(--spacing-6);
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  background-color: var(--sp-lavender-tint);
+  color: var(--sp-lavender-ink);
+  border-radius: 1.25rem;
 }
 
 .appBannerLogo {
   flex-shrink: 0;
   width: 44px;
   height: 44px;
-  border-radius: var(--radius);
+  border-radius: 0.75rem;
   object-fit: contain;
 }
 
@@ -286,16 +378,17 @@
 .appBannerTitle {
   margin: 0;
   font-family: var(--font-family-heading);
-  font-size: 0.9375rem;
-  font-weight: 700;
-  color: var(--foreground);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--sp-lavender-ink);
 }
 
 .appBannerDescription {
   margin: 0;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   line-height: 1.45;
-  color: var(--muted-foreground);
+  color: var(--sp-lavender-ink);
 }
 
 .playBadgeLink {
@@ -305,14 +398,8 @@
 }
 
 .playBadgeLink:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus);
-}
-
-.playBadgeImg {
-  display: block;
-  width: auto;
-  height: 40px;
+  outline: 2px solid var(--sp-lavender-ink);
+  outline-offset: 2px;
 }
 
 .playBadgeCrop {
@@ -334,66 +421,42 @@
   max-width: none;
 }
 
-.indusBadgeImgDark {
-  display: none;
-}
-
-:global(.dark) .indusBadgeImgLight {
-  display: none;
-}
-
-:global(.dark) .indusBadgeImgDark {
-  display: block;
-}
-
 .appBannerClose {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 2rem;
-  height: 2rem;
+  width: 2.25rem;
+  height: 2.25rem;
   padding: 0;
   background: transparent;
   border: none;
-  border-radius: var(--radius);
-  color: var(--muted-foreground);
+  border-radius: var(--radius-full);
+  color: var(--sp-lavender-ink);
   cursor: pointer;
-  transition: background-color var(--animation-duration-fast) ease, color var(--animation-duration-fast) ease;
+  transition: background-color var(--animation-duration-fast) ease;
 }
 
 .appBannerClose:hover {
-  background-color: var(--muted);
-  color: var(--foreground);
+  background-color: var(--sp-card);
 }
 
 .appBannerClose:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus);
-}
-
-@media (max-width: 1100px) {
-  .statsGrid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+  outline: 2px solid var(--sp-lavender-ink);
+  outline-offset: 2px;
 }
 
 @media (max-width: 768px) {
   .page {
-    gap: var(--spacing-4);
+    gap: var(--spacing-6);
   }
 
-  .header {
-    align-items: flex-start;
+  .scribble {
+    font-size: 1.5rem;
   }
 
-  .title {
-    font-size: 1.25rem;
-  }
-
-  .statsGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--spacing-2);
+  .heroLead {
+    font-size: 1rem;
   }
 
   .statCard {
@@ -401,26 +464,17 @@
   }
 
   .statValue {
-    font-size: 1.25rem;
-  }
-
-  .panel {
-    gap: var(--spacing-3);
-    padding: var(--spacing-3) var(--spacing-4) var(--spacing-4);
+    font-size: 1.5rem;
   }
 
   .sectionTitle {
-    font-size: 1rem;
-  }
-
-  .stateBlock {
-    padding: var(--spacing-6) var(--spacing-3);
+    font-size: 1.125rem;
   }
 
   .appBanner {
     flex-wrap: wrap;
     padding: var(--spacing-4);
-    padding-right: var(--spacing-8);
+    padding-right: var(--spacing-12);
   }
 
   .appBannerContent {
@@ -435,11 +489,13 @@
 }
 
 @media (max-width: 480px) {
-  .headerActions {
-    width: 100%;
-  }
-
   .headerActions > * {
-    flex: 1;
+    flex: 1 1 auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .appBannerClose {
+    transition: none;
   }
 }

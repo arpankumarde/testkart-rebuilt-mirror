@@ -1,0 +1,100 @@
+@layer base {
+  .card {
+    margin-top: var(--spacing-4);
+    padding: var(--spacing-4);
+    background-color: var(--sp-card);
+    border: 1px solid var(--sp-line);
+    border-radius: var(--radius-lg);
+  }
+
+  .header {
+    display: flex;
+    gap: var(--spacing-3);
+    align-items: flex-start;
+  }
+
+  .icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-full);
+    background-color: var(--sp-peach-tint);
+    color: var(--sp-peach-ink);
+  }
+
+  .title {
+    margin: 0 0 var(--spacing-1);
+    font-family: var(--font-family-heading);
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--sp-ink);
+  }
+
+  .text {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--sp-muted);
+  }
+
+  .create {
+    margin-top: var(--spacing-3);
+    font-weight: 700;
+  }
+
+  .result {
+    margin-top: var(--spacing-3);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
+  }
+
+  .linkLine {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--sp-ink);
+  }
+
+  .amount {
+    font-weight: 800;
+  }
+
+  .url {
+    display: block;
+    padding: var(--spacing-2) var(--spacing-3);
+    border: 1px solid var(--sp-line);
+    border-radius: var(--radius);
+    background-color: var(--co-page);
+    color: var(--sp-ink);
+    font-size: 0.8125rem;
+    overflow-wrap: anywhere;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-2);
+  }
+
+  .note {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--sp-muted);
+  }
+}
+
+.whatsapp {
+  background-color: var(--co-cta);
+  border-color: var(--co-cta);
+  color: var(--co-cta-ink);
+  font-weight: 700;
+}
+
+.whatsapp:hover {
+  background-color: var(--co-cta-hover);
+  border-color: var(--co-cta-hover);
+  color: var(--co-cta-ink);
+}

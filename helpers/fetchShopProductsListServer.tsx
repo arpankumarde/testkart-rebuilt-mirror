@@ -5,6 +5,7 @@ import { slugify } from "./slugify";
 import { contentInExam } from "./contentExams";
 import { matchesAnyLanguage } from "./languageFilter";
 import { pinnedTeacherFirst, sortPinsTeachers } from "./pinnedTeachers";
+import { paidFirst, sortPutsPaidFirst } from "./paidFirst";
 import { productDiscountPrice, productEffectivePriceSql } from "./digitalProductPricing";
 
 /**
@@ -100,6 +101,9 @@ export async function fetchShopProductsListServer(rawInput: Partial<InputType> =
     );
   }
 
+  if (sortPutsPaidFirst(input.sort)) {
+    query = query.orderBy(paidFirst(productEffectivePriceSql));
+  }
   if (sortPinsTeachers(input.sort)) {
     query = query.orderBy(pinnedTeacherFirst("digital_products.teacher_id"));
   }

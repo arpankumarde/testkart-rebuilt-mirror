@@ -6,6 +6,7 @@ import { sendEmail } from "../../helpers/sendEmail";
 import { emailTemplatesExtra } from "../../helpers/emailTemplatesExtra";
 import { followTeacher } from "../../helpers/ensureTeacherFollow";
 import { expiredPurchaseError } from "../../helpers/contentExpiryServer";
+import { recordFunnelEvent } from "../../helpers/recordFunnelEvent";
 
 
 
@@ -60,6 +61,7 @@ export async function handle(request: Request): Promise<Response> {
       .executeTakeFirstOrThrow();
 
     await followTeacher(db, user.id, course.teacherId);
+    await recordFunnelEvent({ event: "free_claimed", request, userId: user.id, entityType: "course", entityId: courseId, amount: 0 });
 
     // Send enrollment emails
     try {

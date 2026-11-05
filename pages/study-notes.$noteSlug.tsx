@@ -26,6 +26,8 @@ import { StudyNotesFileList } from "../components/StudyNotesFileList";
 import { useCartItemsQuery, useAddToCartMutation, CART_QUERY_KEY } from "../helpers/useCartQuery";
 import { postShopEnrollFree } from "../endpoints/shop/enroll-free_POST.schema";
 import { useAuth } from "../helpers/useAuth";
+import { trackFunnelEvent } from "../helpers/trackFunnelEvent";
+import { keepForCheckout } from "../helpers/guestCart";
 import { Placeholder } from "../helpers/placeholderImages";
 import { formatLanguages } from "../helpers/itemLanguages";
 import { wrapContentTables } from "../helpers/contentTables";
@@ -236,7 +238,11 @@ const ProductDetailsPage: React.FC = () => {
   );
 
   const handleAddToCart = () => {
+    if (product) {
+      trackFunnelEvent("add_to_cart_click", { entity: "digital_product", id: product.id }, { signedIn: authState.type === "authenticated", action: product.price === 0 ? "enroll_free" : "add", from: "note_page" });
+    }
     if (authState.type !== "authenticated") {
+      if (product && product.price !== 0) keepForCheckout("digitalProduct", product.id);
       navigate(`/login?redirectTo=${encodeURIComponent(location.pathname)}`);
       return;
     }

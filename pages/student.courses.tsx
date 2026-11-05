@@ -64,7 +64,7 @@ export default function StudentCoursesPage() {
           tone="error"
           icon={<AlertTriangle size={24} />}
           title="Could not load your courses"
-          description="The request did not come back. Check your connection and try again."
+          description="Check your connection and try again."
         >
           <Button variant="outline" onClick={() => refetch()}>Try again</Button>
         </ConsoleListEmpty>
@@ -76,7 +76,7 @@ export default function StudentCoursesPage() {
         <ConsoleListEmpty
           icon={<BookOpen size={24} />}
           title="No courses yet"
-          description="Every course you enrol in shows up here, so you can pick up where you left off."
+          description="Courses you join show up here."
         >
           <Button asChild>
             <Link to="/course">Browse courses</Link>
@@ -92,8 +92,8 @@ export default function StudentCoursesPage() {
           title={filter === "completed" ? "Nothing finished yet" : "Nothing in progress"}
           description={
             filter === "completed"
-              ? "Courses you watch all the way through will collect here."
-              : "You have finished every course you are enrolled in."
+              ? "Courses you finish show up here."
+              : "You have finished all your courses."
           }
         >
           <Button variant="outline" onClick={() => setFilter("all")}>Show all courses</Button>

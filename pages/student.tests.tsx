@@ -63,7 +63,7 @@ export default function StudentTestsPage() {
           tone="error"
           icon={<AlertTriangle size={24} />}
           title="Could not load your tests"
-          description="The request did not come back. Check your connection and try again."
+          description="Check your connection and try again."
         >
           <Button variant="outline" onClick={() => refetch()}>Try again</Button>
         </ConsoleListEmpty>
@@ -75,7 +75,7 @@ export default function StudentTestsPage() {
         <ConsoleListEmpty
           icon={<BookCopy size={24} />}
           title="No tests yet"
-          description="Every test series you enrol in shows up here, with your progress and scores."
+          description="Test series you join show up here."
         >
           <Button asChild>
             <Link to="/mock-test">Browse tests</Link>
@@ -91,8 +91,8 @@ export default function StudentTestsPage() {
           title={filter === "completed" ? "Nothing finished yet" : "Nothing in progress"}
           description={
             filter === "completed"
-              ? "Tests you finish every item of will collect here."
-              : "You have finished every test you are enrolled in."
+              ? "Test series you finish show up here."
+              : "You have finished all your tests."
           }
         >
           <Button variant="outline" onClick={() => setFilter("all")}>Show all tests</Button>

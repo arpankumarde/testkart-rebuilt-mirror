@@ -6,6 +6,7 @@ import { useEnrolledTestsQuery } from "../helpers/useEnrolledTestsQuery";
 import { useStudentEnrolledCoursesQuery } from "../helpers/useStudentCoursesQuery";
 import { useStudentEnrolledLiveTestsQuery } from "../helpers/useStudentEnrolledLiveTestsQuery";
 import { useStudentPurchasesQuery } from "../helpers/useShopQuery";
+import { useStudentTcoins } from "../helpers/useTcoins";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
 import { EnrolledTestCard } from "../components/EnrolledTestCard";
@@ -13,6 +14,7 @@ import { EnrolledCourseCard } from "../components/EnrolledCourseCard";
 import { EnrolledLiveTestCard } from "../components/EnrolledLiveTestCard";
 import { StudentProductCard } from "../components/StudentProductCard";
 import { StudentProfileCompletionCard } from "../components/StudentProfileCompletionCard";
+import { Doodle } from "../components/AppLandingArt";
 import { BRAND_APP_ICON } from "../helpers/brandAssets";
 import {
   BookCopy,
@@ -20,8 +22,8 @@ import {
   BarChart3,
   ArrowRight,
   BookOpen,
-  GraduationCap,
   ChevronRight,
+  Coins,
   FileText,
   Radio,
   RotateCw,
@@ -29,36 +31,54 @@ import {
 } from "lucide-react";
 import styles from "./student.dashboard.module.css";
 
+type Tone = "lavender" | "mint" | "butter" | "blue" | "peach";
+
+/* A figure tile. With `to` the whole tile is a link and shows a chevron. */
 const StatCard: React.FC<{
   icon: React.ReactNode;
   label: string;
   value: string;
   isLoading: boolean;
-}> = ({ icon, label, value, isLoading }) => (
-  <div className={styles.statCard}>
-    <span className={styles.statIcon} aria-hidden="true">
-      {icon}
-    </span>
-    <span className={styles.statLabel}>{label}</span>
-    {isLoading ? (
-      <Skeleton className={styles.statValueSkeleton} />
-    ) : (
-      <span className={styles.statValue}>{value}</span>
-    )}
-  </div>
-);
+  tone: Tone;
+  to?: string;
+}> = ({ icon, label, value, isLoading, tone, to }) => {
+  const body = (
+    <>
+      <span className={styles.statIcon} aria-hidden="true">
+        {icon}
+      </span>
+      {isLoading ? (
+        <Skeleton className={styles.statValueSkeleton} />
+      ) : (
+        <span className={styles.statValue}>{value}</span>
+      )}
+      <span className={styles.statLabel}>{label}</span>
+      {to && <ChevronRight size={18} className={styles.statChevron} aria-hidden="true" />}
+    </>
+  );
+
+  return to ? (
+    <Link to={to} className={`${styles.statCard} ${styles.statLink}`} data-tone={tone}>
+      {body}
+    </Link>
+  ) : (
+    <div className={styles.statCard} data-tone={tone}>
+      {body}
+    </div>
+  );
+};
 
 const SectionHeader: React.FC<{
   title: string;
-  count?: number;
   to: string;
-}> = ({ title, count, to }) => (
+  icon: React.ReactNode;
+}> = ({ title, to, icon }) => (
   <div className={styles.sectionHeader}>
     <h2 className={styles.sectionTitle}>
+      <span className={styles.sectionIcon} aria-hidden="true">
+        {icon}
+      </span>
       {title}
-      {typeof count === "number" && count > 0 && (
-        <span className={styles.sectionCount}>{count}</span>
-      )}
     </h2>
     <Link to={to} className={styles.viewAllLink}>
       View all <ChevronRight size={15} />
@@ -66,19 +86,36 @@ const SectionHeader: React.FC<{
   </div>
 );
 
-const LoadError: React.FC<{ message: string; onRetry: () => void }> = ({
-  message,
-  onRetry,
-}) => (
+/* One compact row for every empty and error state: what is missing, and the
+   one thing to do about it. */
+const StateRow: React.FC<{
+  icon?: React.ReactNode;
+  message: string;
+  children: React.ReactNode;
+}> = ({ icon, message, children }) => (
   <div className={styles.stateBlock}>
+    {icon && (
+      <span className={styles.stateIcon} aria-hidden="true">
+        {icon}
+      </span>
+    )}
     <p className={styles.stateTitle}>{message}</p>
-    <p className={styles.stateHint}>
-      This is usually a connection hiccup rather than anything wrong with your account.
-    </p>
-    <Button variant="outline" size="sm" onClick={onRetry}>
-      <RotateCw size={15} /> Try again
-    </Button>
+    {children}
   </div>
+);
+
+const BrowseButton: React.FC<{ to: string; label: string }> = ({ to, label }) => (
+  <Button asChild variant="outline" size="sm">
+    <Link to={to}>
+      {label} <ArrowRight size={15} />
+    </Link>
+  </Button>
+);
+
+const RetryButton: React.FC<{ onRetry: () => void }> = ({ onRetry }) => (
+  <Button variant="outline" size="sm" onClick={onRetry}>
+    <RotateCw size={15} /> Try again
+  </Button>
 );
 
 const StudentDashboardPage: React.FC = () => {
@@ -95,12 +132,7 @@ const StudentDashboardPage: React.FC = () => {
     error: coursesError,
     refetch: refetchCourses,
   } = useStudentEnrolledCoursesQuery();
-  const {
-    data: liveTestsData,
-    isFetching: isLoadingLiveTests,
-    error: liveTestsError,
-    refetch: refetchLiveTests,
-  } = useStudentEnrolledLiveTestsQuery();
+  const { data: liveTestsData } = useStudentEnrolledLiveTestsQuery();
   // Default params, so this shares its cache with /student/shop.
   const {
     data: notesData,
@@ -108,14 +140,13 @@ const StudentDashboardPage: React.FC = () => {
     error: notesError,
     refetch: refetchNotes,
   } = useStudentPurchasesQuery();
+  // Hidden while Tcoins are switched off.
+  const { data: tcoins } = useStudentTcoins();
 
   const enrolledTests = enrolledData?.enrolledTests ?? [];
   const enrolledCourses = coursesData?.enrolledCourses ?? [];
   const enrolledLiveTests = liveTestsData?.enrolledLiveTests ?? [];
   const purchasedNotes = notesData?.purchases ?? [];
-  // The response carries no total, so a full first page is not an exact count.
-  const notesCount =
-    notesData && purchasedNotes.length < notesData.limit ? purchasedNotes.length : undefined;
 
   const ongoingTests = useMemo(
     () => enrolledTests.filter((test) => test.completedItems < test.totalItems),
@@ -127,25 +158,13 @@ const StudentDashboardPage: React.FC = () => {
     [enrolledCourses]
   );
 
-  const endedLiveTests = useMemo(
-    () => enrolledLiveTests.filter((lt) => lt.status === "ended"),
-    [enrolledLiveTests]
-  );
-
   const activeLiveTests = useMemo(
     () => enrolledLiveTests.filter((lt) => lt.status !== "ended"),
     [enrolledLiveTests]
   );
 
-  const testsEnrolledCount = enrolledTests.length;
-  const coursesEnrolledCount = enrolledCourses.length;
-  const coursesInProgressCount = ongoingCourses.length;
-  const liveTestsParticipatedCount = endedLiveTests.length;
-
-  const testsCompletedCount = enrolledTests.reduce(
-    (sum, test) => sum + test.completedItems,
-    0
-  );
+  // Individual tests finished, across every series.
+  const testsDoneCount = enrolledTests.reduce((sum, test) => sum + test.completedItems, 0);
 
   const [showAppBanner, setShowAppBanner] = useState(() => {
     return localStorage.getItem("testkart_app_banner_dismissed") !== "true";
@@ -173,15 +192,15 @@ const StudentDashboardPage: React.FC = () => {
         <Helmet>
           <title>Loading Dashboard... | Testkart</title>
         </Helmet>
-        <div className={styles.header}>
-          <Skeleton style={{ width: "280px", height: "1.8rem" }} />
+        <div className={styles.hero}>
+          <Skeleton style={{ width: "280px", height: "2.5rem" }} />
         </div>
         <div className={styles.statsGrid}>
-          {Array.from({ length: 6 }).map((_, index) => (
+          {Array.from({ length: 4 }).map((_, index) => (
             <Skeleton key={index} className={styles.statCardSkeleton} />
           ))}
         </div>
-        <Skeleton style={{ height: "220px", borderRadius: "var(--radius-md)" }} />
+        <Skeleton style={{ height: "220px", borderRadius: "var(--radius-lg)" }} />
       </div>
     );
   }
@@ -193,9 +212,9 @@ const StudentDashboardPage: React.FC = () => {
   const { user } = authState;
 
   const renderTestsContent = () => {
-    if (isLoadingTests) {
+    if (isLoadingTests && !enrolledData) {
       return (
-        <div className={styles.testsGrid}>
+        <div className={styles.cardGrid}>
           {Array.from({ length: 2 }).map((_, index) => (
             <Skeleton key={index} className={styles.cardSkeleton} />
           ))}
@@ -205,54 +224,31 @@ const StudentDashboardPage: React.FC = () => {
 
     if (testsError) {
       return (
-        <LoadError
-          message="We could not load your test packages."
-          onRetry={() => refetchTests()}
-        />
+        <StateRow message="Could not load your tests.">
+          <RetryButton onRetry={() => refetchTests()} />
+        </StateRow>
       );
     }
 
     if (enrolledTests.length === 0) {
       return (
-        <div className={styles.stateBlock}>
-          <span className={styles.stateIcon} aria-hidden="true">
-            <BookCopy size={22} />
-          </span>
-          <p className={styles.stateTitle}>No test packages yet</p>
-          <p className={styles.stateHint}>
-            Enrol in a package to start practising and tracking your scores.
-          </p>
-          <Button asChild size="sm">
-            <Link to="/mock-test">
-              Browse tests <ArrowRight size={15} />
-            </Link>
-          </Button>
-        </div>
+        <StateRow icon={<BookCopy size={20} />} message="No test series yet">
+          <BrowseButton to="/mock-test" label="Browse tests" />
+        </StateRow>
       );
     }
 
     if (ongoingTests.length === 0) {
       return (
-        <div className={styles.stateBlock}>
-          <span className={styles.stateIcon} aria-hidden="true">
-            <CheckCircle size={22} />
-          </span>
-          <p className={styles.stateTitle}>Every package finished</p>
-          <p className={styles.stateHint}>
-            You have completed all {testsEnrolledCount} of your packages. Browse more to keep going.
-          </p>
-          <Button asChild size="sm">
-            <Link to="/mock-test">
-              Browse tests <ArrowRight size={15} />
-            </Link>
-          </Button>
-        </div>
+        <StateRow icon={<CheckCircle size={20} />} message="You have finished all your tests">
+          <BrowseButton to="/mock-test" label="Browse tests" />
+        </StateRow>
       );
     }
 
     // A preview only; the full list lives on /student/tests via "View all".
     return (
-      <div className={styles.testsGrid}>
+      <div className={styles.cardGrid}>
         {ongoingTests.slice(0, 2).map((test) => (
           <EnrolledTestCard key={test.id} enrolledTest={test} />
         ))}
@@ -260,40 +256,10 @@ const StudentDashboardPage: React.FC = () => {
     );
   };
 
-  const renderActiveLiveTestsContent = () => {
-    if (isLoadingLiveTests) {
-      return (
-        <div className={styles.testsGrid}>
-          <Skeleton className={styles.cardSkeleton} />
-        </div>
-      );
-    }
-
-    if (liveTestsError) {
-      return (
-        <LoadError
-          message="We could not load your live tests."
-          onRetry={() => refetchLiveTests()}
-        />
-      );
-    }
-
-    if (activeLiveTests.length === 0) return null;
-
-    // A preview only; the full list lives on /student/live via "View all".
-    return (
-      <div className={styles.testsGrid}>
-        {activeLiveTests.slice(0, 2).map((test) => (
-          <EnrolledLiveTestCard key={test.id} test={test} />
-        ))}
-      </div>
-    );
-  };
-
   const renderCoursesContent = () => {
-    if (isLoadingCourses) {
+    if (isLoadingCourses && !coursesData) {
       return (
-        <div className={styles.coursesGrid}>
+        <div className={styles.cardGrid}>
           {Array.from({ length: 2 }).map((_, index) => (
             <Skeleton key={index} className={styles.cardSkeleton} />
           ))}
@@ -303,55 +269,32 @@ const StudentDashboardPage: React.FC = () => {
 
     if (coursesError) {
       return (
-        <LoadError
-          message="We could not load your courses."
-          onRetry={() => refetchCourses()}
-        />
+        <StateRow message="Could not load your courses.">
+          <RetryButton onRetry={() => refetchCourses()} />
+        </StateRow>
       );
     }
 
     if (enrolledCourses.length === 0) {
       return (
-        <div className={styles.stateBlock}>
-          <span className={styles.stateIcon} aria-hidden="true">
-            <BookOpen size={22} />
-          </span>
-          <p className={styles.stateTitle}>No courses yet</p>
-          <p className={styles.stateHint}>
-            Enrol in a course to follow a structured syllabus alongside your tests.
-          </p>
-          <Button asChild size="sm">
-            <Link to="/course">
-              Browse courses <ArrowRight size={15} />
-            </Link>
-          </Button>
-        </div>
+        <StateRow icon={<BookOpen size={20} />} message="No courses yet">
+          <BrowseButton to="/course" label="Browse courses" />
+        </StateRow>
       );
     }
 
     if (ongoingCourses.length === 0) {
       return (
-        <div className={styles.stateBlock}>
-          <span className={styles.stateIcon} aria-hidden="true">
-            <CheckCircle size={22} />
-          </span>
-          <p className={styles.stateTitle}>Every course finished</p>
-          <p className={styles.stateHint}>
-            You have completed all {coursesEnrolledCount} of your courses. Browse more to keep going.
-          </p>
-          <Button asChild size="sm">
-            <Link to="/course">
-              Browse courses <ArrowRight size={15} />
-            </Link>
-          </Button>
-        </div>
+        <StateRow icon={<CheckCircle size={20} />} message="You have finished all your courses">
+          <BrowseButton to="/course" label="Browse courses" />
+        </StateRow>
       );
     }
 
     // A preview only; the full list lives on /student/courses via "View all".
     // Four, not two: these are narrow cards, so two left most of the row empty.
     return (
-      <div className={styles.coursesGrid}>
+      <div className={styles.cardGrid}>
         {ongoingCourses.slice(0, 4).map((course) => (
           <EnrolledCourseCard key={course.id} course={course} />
         ))}
@@ -362,7 +305,7 @@ const StudentDashboardPage: React.FC = () => {
   const renderNotesContent = () => {
     if (isLoadingNotes && !notesData) {
       return (
-        <div className={styles.coursesGrid}>
+        <div className={styles.cardGrid}>
           {Array.from({ length: 2 }).map((_, index) => (
             <Skeleton key={index} className={styles.cardSkeleton} />
           ))}
@@ -372,35 +315,23 @@ const StudentDashboardPage: React.FC = () => {
 
     if (notesError) {
       return (
-        <LoadError
-          message="We could not load your study notes."
-          onRetry={() => refetchNotes()}
-        />
+        <StateRow message="Could not load your study notes.">
+          <RetryButton onRetry={() => refetchNotes()} />
+        </StateRow>
       );
     }
 
     if (purchasedNotes.length === 0) {
       return (
-        <div className={styles.stateBlock}>
-          <span className={styles.stateIcon} aria-hidden="true">
-            <FileText size={22} />
-          </span>
-          <p className={styles.stateTitle}>No study notes yet</p>
-          <p className={styles.stateHint}>
-            Study notes you buy open here, readable any time inside Testkart.
-          </p>
-          <Button asChild size="sm">
-            <Link to="/study-notes">
-              Browse study notes <ArrowRight size={15} />
-            </Link>
-          </Button>
-        </div>
+        <StateRow icon={<FileText size={20} />} message="No study notes yet">
+          <BrowseButton to="/study-notes" label="Browse study notes" />
+        </StateRow>
       );
     }
 
     // A preview of the latest purchases; the full list lives on /student/shop via "View all".
     return (
-      <div className={styles.coursesGrid}>
+      <div className={styles.cardGrid}>
         {purchasedNotes.slice(0, 4).map((purchase) => (
           <StudentProductCard key={purchase.purchaseId} purchase={purchase} />
         ))}
@@ -409,6 +340,14 @@ const StudentDashboardPage: React.FC = () => {
   };
 
   const firstName = user.displayName?.split(" ")[0] || user.displayName;
+
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+
+  // The series the main button resumes. With nothing in progress the button
+  // sends the student to browse instead.
+  const nextSeries = ongoingTests[0];
+  const nothingToContinue = !!enrolledData && !testsError && ongoingTests.length === 0;
 
   return (
     <div className={styles.page}>
@@ -420,90 +359,105 @@ const StudentDashboardPage: React.FC = () => {
         />
       </Helmet>
 
-      <header className={styles.header}>
-        <h1 className={styles.title}>Welcome back, {firstName}</h1>
+      <header className={styles.hero}>
+        <p className={styles.scribble}>{greeting}!</p>
+        <h1 className={styles.title}>
+          Welcome back,{" "}
+          <span className={styles.marked}>
+            {firstName}
+            <Doodle kind="swoosh" className={styles.markSwoosh} />
+          </span>
+        </h1>
+        {nextSeries && <p className={styles.heroLead}>Next up: {nextSeries.title}</p>}
         <div className={styles.headerActions}>
-          <Button asChild variant="outline" size="sm">
-            <Link to="/mock-test">Browse tests</Link>
-          </Button>
-          <Button asChild size="sm">
-            <Link to="/student/tests">Continue practising</Link>
-          </Button>
+          {nothingToContinue ? (
+            <Button asChild>
+              <Link to="/mock-test">
+                Browse tests <ArrowRight size={16} />
+              </Link>
+            </Button>
+          ) : (
+            <>
+              <Button asChild>
+                <Link to={nextSeries ? `/student/tests/${nextSeries.id}` : "/student/tests"}>
+                  Continue practising <ArrowRight size={16} />
+                </Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link to="/mock-test">Browse tests</Link>
+              </Button>
+            </>
+          )}
         </div>
       </header>
 
       <StudentProfileCompletionCard />
 
-      <section className={styles.statsGrid} aria-label="Your activity">
+      <section className={styles.statsGrid} aria-label="Your progress">
+        {tcoins?.enabled && (
+          <StatCard
+            icon={<Coins size={18} />}
+            label="Tcoins"
+            value={tcoins.balance.toLocaleString("en-IN")}
+            isLoading={false}
+            tone="peach"
+            to="/student/wallet?tab=tcoins"
+          />
+        )}
         <StatCard
-          icon={<BookCopy size={16} />}
-          label="Tests enrolled"
-          value={String(testsEnrolledCount)}
-          isLoading={isLoadingTests}
+          icon={<BookCopy size={18} />}
+          label="Test series"
+          value={String(enrolledTests.length)}
+          isLoading={isLoadingTests && !enrolledData}
+          tone="lavender"
         />
         <StatCard
-          icon={<CheckCircle size={16} />}
-          label="Tests completed"
-          value={String(testsCompletedCount)}
-          isLoading={isLoadingTests}
+          icon={<CheckCircle size={18} />}
+          label="Tests done"
+          value={String(testsDoneCount)}
+          isLoading={isLoadingTests && !enrolledData}
+          tone="mint"
         />
         <StatCard
-          icon={<BarChart3 size={16} />}
+          icon={<BarChart3 size={18} />}
           label="Average score"
           value={averageScore !== null ? `${averageScore.toFixed(1)}%` : "-"}
-          isLoading={isLoadingTests}
+          isLoading={isLoadingTests && !enrolledData}
+          tone="butter"
         />
         <StatCard
-          icon={<Radio size={16} />}
-          label="Live tests taken"
-          value={String(liveTestsParticipatedCount)}
-          isLoading={isLoadingLiveTests}
-        />
-        <StatCard
-          icon={<BookOpen size={16} />}
-          label="Courses enrolled"
-          value={String(coursesEnrolledCount)}
-          isLoading={isLoadingCourses}
-        />
-        <StatCard
-          icon={<GraduationCap size={16} />}
-          label="Courses in progress"
-          value={String(coursesInProgressCount)}
-          isLoading={isLoadingCourses}
+          icon={<BookOpen size={18} />}
+          label="Courses"
+          value={String(enrolledCourses.length)}
+          isLoading={isLoadingCourses && !coursesData}
+          tone="blue"
         />
       </section>
 
+      {/* A preview only; the full list lives on /student/live via "View all". */}
       {activeLiveTests.length > 0 && (
-        <section className={styles.panel}>
-          <SectionHeader
-            title="Active and upcoming live tests"
-            count={activeLiveTests.length}
-            to="/student/live"
-          />
-          {renderActiveLiveTestsContent()}
+        <section className={styles.panel} data-tone="peach">
+          <SectionHeader title="Live tests" to="/student/live" icon={<Radio size={18} />} />
+          <div className={styles.cardGrid}>
+            {activeLiveTests.slice(0, 2).map((test) => (
+              <EnrolledLiveTestCard key={test.id} test={test} />
+            ))}
+          </div>
         </section>
       )}
 
-      <section className={styles.panel}>
-        <SectionHeader
-          title="Ongoing mock tests"
-          count={ongoingTests.length}
-          to="/student/tests"
-        />
+      <section className={styles.panel} data-tone="lavender">
+        <SectionHeader title="Tests in progress" to="/student/tests" icon={<BookCopy size={18} />} />
         {renderTestsContent()}
       </section>
 
-      <section className={styles.panel}>
-        <SectionHeader
-          title="Ongoing courses"
-          count={ongoingCourses.length}
-          to="/student/courses"
-        />
+      <section className={styles.panel} data-tone="mint">
+        <SectionHeader title="Courses in progress" to="/student/courses" icon={<BookOpen size={18} />} />
         {renderCoursesContent()}
       </section>
 
-      <section className={styles.panel}>
-        <SectionHeader title="Your study notes" count={notesCount} to="/student/shop" />
+      <section className={styles.panel} data-tone="butter">
+        <SectionHeader title="Study notes" to="/student/shop" icon={<FileText size={18} />} />
         {renderNotesContent()}
       </section>
 
@@ -511,9 +465,9 @@ const StudentDashboardPage: React.FC = () => {
         <section className={styles.appBanner}>
           <img src={BRAND_APP_ICON} alt="" className={styles.appBannerLogo} />
           <div className={styles.appBannerContent}>
-            <h3 className={styles.appBannerTitle}>Testkart on Android</h3>
+            <h3 className={styles.appBannerTitle}>Get the Testkart app</h3>
             <p className={styles.appBannerDescription}>
-              Take your tests, courses and notes with you on your phone.
+              Tests, courses and notes on your phone.
             </p>
           </div>
           <a
@@ -530,25 +484,6 @@ const StudentDashboardPage: React.FC = () => {
               />
             </span>
           </a>
-          {/* Indus Appstore badge hidden for now.
-          <a
-            href="https://indusapp.store/pbmrru87"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.playBadgeLink}
-          >
-            <img
-              src="https://docstore.indusappstore.com/public/external/developerdashboard-static/badge-black-background-english.png"
-              alt="Get it on Indus Appstore"
-              className={`${styles.playBadgeImg} ${styles.indusBadgeImgLight}`}
-            />
-            <img
-              src="https://docstore.indusappstore.com/public/external/developerdashboard-static/badge-white-background-english.png"
-              alt="Get it on Indus Appstore"
-              className={`${styles.playBadgeImg} ${styles.indusBadgeImgDark}`}
-            />
-          </a>
-          */}
           <button
             type="button"
             className={styles.appBannerClose}

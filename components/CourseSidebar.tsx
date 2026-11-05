@@ -13,6 +13,8 @@ import { PUBLIC_PAGE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
 import { coursePriceView, formatOfferInr, type CourseCouponOffer } from '../helpers/courseCouponOffer';
 import { courseReturnState } from '../helpers/courseReturnTarget';
 import { ExpiredProductNotice } from './ExpiredProductNotice';
+import { trackFunnelEvent } from '../helpers/trackFunnelEvent';
+import { keepForCheckout } from '../helpers/guestCart';
 import styles from './CourseSidebar.module.css';
 
 export type PublicCourseDetails = {
@@ -74,9 +76,13 @@ export const CourseSidebar: React.FC<CourseSidebarProps> = ({
   const isInCart = !isFree && cartQuery.data?.items.some(item => item.type === 'course' && item.courseId === course.id);
 
   const handleAction = async () => {
+    if (!course.isEnrolled) {
+      trackFunnelEvent("add_to_cart_click", { entity: "course", id: course.id }, { signedIn: authState.type === "authenticated", action: isFree ? "enroll_free" : "add", from: "sidebar" });
+    }
     // 1. Handle unauthenticated user
     if (authState.type !== 'authenticated') {
-      toast.error(isFree ? 'Please log in to enroll' : 'Please log in to add items to your cart');
+      const kept = !isFree && !course.isEnrolled && keepForCheckout("course", course.id);
+      toast.error(kept ? 'Log in to continue. Your course will be waiting in your cart.' : isFree ? 'Please log in to enroll' : 'Please log in to add items to your cart');
       const currentPath = location.pathname + location.search;
       navigate(`/login?redirectTo=${encodeURIComponent(currentPath)}`);
       return;

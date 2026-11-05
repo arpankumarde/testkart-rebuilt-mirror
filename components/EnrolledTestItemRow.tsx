@@ -76,13 +76,7 @@ export const EnrolledTestItemRow: React.FC<EnrolledTestItemRowProps> = ({ item, 
           {!isScheduled && (
             <span className={styles.metaItem}>
               <FileQuestion size={13} aria-hidden="true" />
-              {item.totalQuestions} Qs
-            </span>
-          )}
-          {hasAttempted && (
-            <span className={styles.metaItem}>
-              <Repeat size={13} aria-hidden="true" />
-              {item.attemptsCount} {item.attemptsCount === 1 ? 'attempt' : 'attempts'}
+              {item.totalQuestions} questions
             </span>
           )}
           {isScheduled && (
@@ -96,12 +90,10 @@ export const EnrolledTestItemRow: React.FC<EnrolledTestItemRowProps> = ({ item, 
 
       <div className={styles.result}>
         <Badge variant={status.variant} className={styles.statusBadge}>{status.label}</Badge>
-        {item.bestScore !== null ? (
+        {item.bestScore !== null && (
           <span className={styles.bestScore}>
-            Best <strong className={styles[scoreTone(item.bestScore)]}>{item.bestScore.toFixed(2)}%</strong>
+            Best <strong className={styles[scoreTone(item.bestScore)]}>{item.bestScore.toFixed(1)}%</strong>
           </span>
-        ) : (
-          <span className={styles.bestScore}>No score yet</span>
         )}
       </div>
 

@@ -335,3 +335,62 @@
     font-size: 0.9375rem;
   }
 }
+
+/*
+ * Student pages (.tk-student on the student layout): an even warm border in
+ * place of the status stripe (the badge already says the status), softer
+ * corners, a small lift on hover, and the peach CTA from the navbar's Create
+ * Account button.
+ */
+:global(.tk-student) .card {
+  border-top: 1px solid var(--border);
+  border-radius: 1.25rem;
+  box-shadow: none;
+  transition:
+    border-color var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
+}
+
+:global(.tk-student) .card:hover {
+  border-color: var(--sp-line-strong);
+  box-shadow: var(--sp-shadow-hover);
+  transform: translateY(-2px);
+}
+
+:global(.tk-student) .titleLink:hover,
+:global(.tk-student) .titleLink:hover .title {
+  color: var(--fc-blue-ink);
+}
+
+:global(.tk-student) .statChipIcon {
+  color: var(--sp-lavender-edge);
+}
+
+:global(.tk-student) .viewAllButton {
+  box-sizing: border-box;
+  background-color: var(--sp-cta);
+  color: var(--sp-cta-ink);
+  border: 1px solid var(--sp-peach-edge);
+  border-radius: 1.25rem 1.25rem 1.25rem 0.5rem;
+  box-shadow: 0 2px 0 var(--sp-peach-edge);
+  font-weight: 700;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
+}
+
+:global(.tk-student) .viewAllButton:hover {
+  background-color: var(--sp-cta-hover);
+  color: var(--sp-cta-ink);
+  box-shadow: 0 3px 0 var(--sp-peach-edge);
+  transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global(.tk-student) .card:hover,
+  :global(.tk-student) .viewAllButton:hover {
+    transform: none;
+  }
+}

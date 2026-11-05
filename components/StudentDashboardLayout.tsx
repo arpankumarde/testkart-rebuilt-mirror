@@ -29,8 +29,10 @@ export const StudentDashboardLayout: React.FC<{ children: React.ReactNode; class
     setIsMobileSidebarOpen(false);
   };
 
+  // tk-student carries the student palette (see the stylesheet); tk-flow gives
+  // every Button inside the peach CTA and neutral outline styles.
   return (
-    <>
+    <div className={`${styles.shell} tk-student tk-flow`}>
       {/* Required gates first (name, then billing state); the optional contact steps wait until both are done. */}
       {nameRequired ? (
         <RequiredNameDialog />
@@ -80,6 +82,6 @@ export const StudentDashboardLayout: React.FC<{ children: React.ReactNode; class
         </main>
       </div>
       <MobileBottomNav />
-    </>
+    </div>
   );
 };

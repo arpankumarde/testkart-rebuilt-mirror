@@ -1,9 +1,10 @@
 import { sql } from "kysely";
 import { db } from "./db";
 import { sanitizeUrl } from "./sanitizeUrl";
-import { productDiscountPrice } from "./digitalProductPricing";
+import { productDiscountPrice, productEffectivePriceSql } from "./digitalProductPricing";
 import { HomepageNoteItem } from "../endpoints/homepage/data_GET.schema";
 
+/** The homepage's "Popular study notes": paid notes only, ranked by recent purchases, then views. */
 export async function homepageFetchPopularNotes(): Promise<HomepageNoteItem[]> {
   const notes = await db
     .selectFrom("digitalProducts")
@@ -11,6 +12,7 @@ export async function homepageFetchPopularNotes(): Promise<HomepageNoteItem[]> {
     .where("digitalProducts.status", "=", "published")
     .where("digitalProducts.isPublished", "=", true)
     .where("digitalProducts.visibility", "=", "public")
+    .where(productEffectivePriceSql, ">", sql<string>`0`)
     .select((eb) => [
       "digitalProducts.id",
       "digitalProducts.title",

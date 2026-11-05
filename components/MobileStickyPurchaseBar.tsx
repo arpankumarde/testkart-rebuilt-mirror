@@ -12,6 +12,8 @@ import { STUDENT_PURCHASES_QUERY_KEY } from '../helpers/useShopQuery';
 import { toast } from 'sonner';
 import { Button } from './Button';
 import { coursePriceView, formatOfferInr, type CourseCouponOffer } from '../helpers/courseCouponOffer';
+import { trackFunnelEvent } from '../helpers/trackFunnelEvent';
+import { keepForCheckout, guestCartLoginPath } from '../helpers/guestCart';
 import styles from './MobileStickyPurchaseBar.module.css';
 
 export type ProductData = 
@@ -25,6 +27,14 @@ interface MobileStickyPurchaseBarProps {
   product: ProductData;
   isVisible: boolean;
 }
+
+const FUNNEL_ENTITY = {
+  test: "mock_test",
+  course: "course",
+  digitalProduct: "digital_product",
+  bundle: "bundle",
+  liveTest: "live_test",
+} as const;
 
 export const MobileStickyPurchaseBar: React.FC<MobileStickyPurchaseBarProps> = ({
   product,
@@ -83,10 +93,14 @@ export const MobileStickyPurchaseBar: React.FC<MobileStickyPurchaseBarProps> = (
   });
 
   const handleBuyNow = async () => {
+    if (!product.isEnrolled) {
+      trackFunnelEvent("add_to_cart_click", { entity: FUNNEL_ENTITY[product.type], id: product.id }, { signedIn: authState.type === "authenticated", action: Number(product.price) === 0 ? "enroll_free" : "buy_now", from: "mobile_bar" });
+    }
     if (authState.type !== 'authenticated') {
-      toast.error(isFree ? 'Please log in to start' : 'Please log in to purchase');
+      const kept = !isFree && !product.isEnrolled && keepForCheckout(product.type, product.id);
+      toast.error(kept ? 'Log in to finish your purchase. Your pick is saved in the cart.' : isFree ? 'Please log in to start' : 'Please log in to purchase');
       const currentPath = location.pathname + location.search;
-      navigate(`/login?redirectTo=${encodeURIComponent(currentPath)}`);
+      navigate(kept ? guestCartLoginPath : `/login?redirectTo=${encodeURIComponent(currentPath)}`);
       return;
     }
 

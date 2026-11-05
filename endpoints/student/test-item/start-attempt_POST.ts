@@ -6,6 +6,7 @@ import superjson from "superjson";
 import { hasStudentAccessToTestItem } from "../../../helpers/hasStudentPurchasedTestItem";
 import { getLiveTestForTestItem, liveTestWindowError } from "../../../helpers/liveTestAttemptWindow";
 import { followTeacherForTestItem } from "../../../helpers/ensureTeacherFollow";
+import { recordFunnelEvent } from "../../../helpers/recordFunnelEvent";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -128,6 +129,14 @@ export async function handle(request: Request): Promise<Response> {
     // A failed follow must never stop a student from taking the test.
     await followTeacherForTestItem(db, user.id, input.testItemId).catch((error) => {
       console.error(`Failed to auto-follow for test item ${input.testItemId}:`, error);
+    });
+    await recordFunnelEvent({
+      event: "attempt_started",
+      request,
+      userId: user.id,
+      entityType: "test_item",
+      entityId: input.testItemId,
+      props: { attemptId: Number(newAttempt.id) },
     });
 
     return new Response(

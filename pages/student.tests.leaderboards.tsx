@@ -7,7 +7,6 @@ import { ConsolePageHeader } from '../components/ConsolePageHeader';
 import { ConsoleListEmpty } from '../components/ConsoleListEmpty';
 import { TestLeaderboard } from '../components/TestLeaderboard';
 import { TestLeaderboardDialog } from '../components/TestLeaderboardDialog';
-import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Skeleton } from '../components/Skeleton';
 import styles from './student.tests.leaderboards.module.css';
@@ -50,7 +49,7 @@ export default function StudentTestsLeaderboardsPage() {
           tone="error"
           icon={<AlertTriangle size={24} />}
           title="Could not load your leaderboards"
-          description="The request did not come back. Check your connection and try again."
+          description="Check your connection and try again."
         >
           <Button variant="outline" onClick={() => refetch()}>Try again</Button>
         </ConsoleListEmpty>
@@ -62,7 +61,7 @@ export default function StudentTestsLeaderboardsPage() {
         <ConsoleListEmpty
           icon={<Trophy size={24} />}
           title="No leaderboards yet"
-          description="Enrol in a test series or attempt one of its tests, and its leaderboard shows up here."
+          description="Take a test and its leaderboard shows up here."
         >
           <Button asChild>
             <Link to="/mock-test">Browse tests</Link>
@@ -97,17 +96,9 @@ export default function StudentTestsLeaderboardsPage() {
 
         <section className={styles.panel} aria-labelledby="leaderboard-series-title">
           <header className={styles.panelHeader}>
-            <div className={styles.panelHeading}>
-              <h2 id="leaderboard-series-title" className={styles.panelTitle}>{selected.title}</h2>
-              <div className={styles.panelBadges}>
-                <Badge variant={selected.access === 'enrolled' ? 'default' : 'outline'}>
-                  {selected.access === 'enrolled' ? 'Enrolled' : 'Attempted'}
-                </Badge>
-                <span className={styles.panelMeta}>{items.length} {items.length === 1 ? 'test' : 'tests'}</span>
-              </div>
-            </div>
+            <h2 id="leaderboard-series-title" className={styles.panelTitle}>{selected.title}</h2>
             <Button asChild variant="outline" size="sm">
-              <Link to={seriesLink}>View series</Link>
+              <Link to={seriesLink}>Open test series</Link>
             </Button>
           </header>
 

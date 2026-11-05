@@ -15,14 +15,45 @@ interface LiveTestCardProps {
 
 /**
  * Card for a single enrolled live test, used both as a dashboard preview
- * and on the full /student/live listing. Mirrors EnrolledTestCard's compact
- * layout (small thumbnail + header row, tight footer button) instead of the
- * old large-thumbnail-on-top design, so live test cards match the mock test
- * cards' size/density on the dashboard.
+ * and on the full /student/live listing. Same compact layout as
+ * EnrolledTestCard. One status badge, one date line and one button, each
+ * worded for where the test is: upcoming, live, or ended.
  */
+const formatWhen = (value: string | Date, withTime: boolean) =>
+  new Date(value).toLocaleString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    ...(withTime ? { hour: 'numeric', minute: '2-digit' } : { year: 'numeric' }),
+  });
+
 export const EnrolledLiveTestCard: React.FC<LiveTestCardProps> = ({ test, className }) => {
   const isEnded = test.status === 'ended';
+  const isLive = test.status === 'live';
   const buttonVariant = isEnded ? (test.hasAttempted ? 'primary' : 'outline') : 'primary';
+
+  const status: { label: string; variant: 'success' | 'default' | 'outline' } = isEnded
+    ? test.hasAttempted
+      ? { label: 'Attempted', variant: 'success' }
+      : { label: 'Missed', variant: 'outline' }
+    : isLive
+      ? { label: 'Live now', variant: 'success' }
+      : { label: 'Upcoming', variant: 'default' };
+
+  const when = isEnded
+    ? `Ended ${formatWhen(test.endTime, false)}`
+    : isLive
+      ? `Ends ${formatWhen(test.endTime, true)}`
+      : test.startTime
+        ? `Starts ${formatWhen(test.startTime, true)}`
+        : 'Start time to be announced';
+
+  const action = isEnded
+    ? test.hasAttempted
+      ? 'View my result'
+      : 'View leaderboard'
+    : isLive
+      ? 'Join now'
+      : 'View details';
 
   return (
     <div className={`${styles.card} ${className || ''}`}>
@@ -36,26 +67,11 @@ export const EnrolledLiveTestCard: React.FC<LiveTestCardProps> = ({ test, classN
         </div>
         <div className={styles.headerContent}>
           <div className={styles.badges}>
-            {isEnded ? (
-              <>
-                <Badge variant="secondary">Ended</Badge>
-                {test.hasAttempted ? (
-                  <Badge variant="success">Attempted</Badge>
-                ) : (
-                  <Badge variant="outline">Not Attempted</Badge>
-                )}
-              </>
-            ) : (
-              <>
-                <Badge variant={test.status === 'live' ? 'success' : 'default'}>
-                  {test.status === 'live' ? 'Live Now' : 'Upcoming'}
-                </Badge>
-                {test.hasPrizes && (
-                  <Badge variant="warning">
-                    <Trophy size={12} className={styles.badgeIcon} /> Prizes
-                  </Badge>
-                )}
-              </>
+            <Badge variant={status.variant}>{status.label}</Badge>
+            {!isEnded && test.hasPrizes && (
+              <Badge variant="warning">
+                <Trophy size={12} className={styles.badgeIcon} /> Prizes
+              </Badge>
             )}
           </div>
           <h3 className={styles.title}>{test.title}</h3>
@@ -65,17 +81,13 @@ export const EnrolledLiveTestCard: React.FC<LiveTestCardProps> = ({ test, classN
 
       <div className={styles.metaRow}>
         <CalendarDays size={14} />
-        <span>
-          {isEnded
-            ? `Ended: ${new Date(test.endTime).toLocaleDateString()}`
-            : `Starts: ${test.startTime ? new Date(test.startTime).toLocaleString() : 'TBD'}`}
-        </span>
+        <span>{when}</span>
       </div>
 
       <div className={styles.actions}>
         <Button asChild variant={buttonVariant} className={styles.actionButton}>
           <Link to={liveTestPath(test.slug)}>
-            {isEnded ? 'View Results & Leaderboard' : 'View Details'}
+            {action}
           </Link>
         </Button>
       </div>
