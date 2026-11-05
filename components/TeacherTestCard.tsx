@@ -33,6 +33,7 @@ import { ShareAssetDialog } from './ShareAssetDialog';
 import { buildPublicAssetUrl, TEACHER_CONSOLE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
 import { getItemExamNames, summarizeExamNames } from '../helpers/itemExams';
 import { Placeholder } from '../helpers/placeholderImages';
+import { cardTapProps } from '../helpers/cardTap';
 import styles from './TeacherTestCard.module.css';
 
 interface TeacherTestCardProps {
@@ -151,7 +152,7 @@ export const TeacherTestCard: React.FC<TeacherTestCardProps> = ({
   ];
 
   return (
-    <article className={`${styles.card} ${className || ''}`}>
+    <article className={`${styles.card} ${className || ''}`} {...cardTapProps}>
       <Link to={editPath} className={styles.cover} tabIndex={-1} aria-hidden="true">
         <img
           src={coverFailed ? Placeholder.TEST : coverUrl(test.thumbnailUrl)}
@@ -173,7 +174,7 @@ export const TeacherTestCard: React.FC<TeacherTestCardProps> = ({
           </p>
         )}
         <h3 className={styles.title}>
-          <Link to={editPath} className={styles.titleLink}>
+          <Link to={editPath} className={styles.titleLink} data-card-primary>
             {test.title}
           </Link>
           {/* The badge on the cover sits in a link hidden from screen readers. */}

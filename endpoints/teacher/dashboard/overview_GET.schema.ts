@@ -70,6 +70,8 @@ export type TeacherMixKind = (typeof TeacherMixKindValues)[number];
 
 export type TeacherTopSeller = {
   kind: TeacherMixKind;
+  /** The listing's own id; for a live test this is its backing mock test. Null on responses cached before it shipped. */
+  itemId: number | null;
   title: string;
   /** Null for study notes, which carry no thumbnail anywhere on the site. */
   thumbnail: string | null;

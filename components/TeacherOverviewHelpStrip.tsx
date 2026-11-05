@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, Headset, Mail } from "lucide-react";
+import { BookOpen, ChevronRight, Headset, Mail } from "lucide-react";
 import { useTeacherRelationshipManager } from "../helpers/useTeacherRelationshipManager";
 import styles from "./TeacherOverviewHelpStrip.module.css";
 
@@ -12,7 +12,11 @@ const initialsOf = (name: string) =>
     .map((part) => part[0]!.toUpperCase())
     .join("");
 
-/** The foot of the Overview: the teacher's relationship manager, guides and support, one row. */
+/**
+ * The foot of the Overview: the teacher's relationship manager, guides and
+ * support. One row of pills on wider screens; on phones a settings-style list
+ * of full-width rows.
+ */
 export const TeacherOverviewHelpStrip: React.FC = () => {
   const { data } = useTeacherRelationshipManager(true);
   const manager = data?.manager;
@@ -25,7 +29,12 @@ export const TeacherOverviewHelpStrip: React.FC = () => {
       <ul className={styles.list}>
         {manager && (
           <li>
-            <a href={`mailto:${manager.email}`} className={styles.item} title={manager.email}>
+            <a
+              href={`mailto:${manager.email}`}
+              className={styles.item}
+              title={manager.email}
+              aria-label={`Email ${manager.name}, your manager`}
+            >
               {manager.avatarUrl ? (
                 <img src={manager.avatarUrl} alt="" className={styles.avatar} />
               ) : (
@@ -34,7 +43,7 @@ export const TeacherOverviewHelpStrip: React.FC = () => {
                 </span>
               )}
               <span className={styles.itemText}>
-                Email {manager.name.split(/\s+/)[0]}
+                <span className={styles.itemName}>{manager.name}</span>
                 <span className={styles.sub}>Your manager</span>
               </span>
               <Mail className={styles.trail} size={16} aria-hidden="true" />
@@ -47,6 +56,7 @@ export const TeacherOverviewHelpStrip: React.FC = () => {
               <BookOpen size={18} />
             </span>
             <span className={styles.itemText}>Guides</span>
+            <ChevronRight className={styles.chevron} size={18} aria-hidden="true" />
           </Link>
         </li>
         <li>
@@ -55,6 +65,7 @@ export const TeacherOverviewHelpStrip: React.FC = () => {
               <Headset size={18} />
             </span>
             <span className={styles.itemText}>Support</span>
+            <ChevronRight className={styles.chevron} size={18} aria-hidden="true" />
           </Link>
         </li>
       </ul>

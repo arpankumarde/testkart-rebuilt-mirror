@@ -33,6 +33,14 @@ const StudentRowSkeleton = ({ columns }: { columns: number }) => (
   </tr>
 );
 
+const StudentCardSkeleton = () => (
+  <li className={styles.card}>
+    <Skeleton style={{ height: '1.25rem', width: '45%' }} />
+    <Skeleton style={{ height: '1rem', width: '80%' }} />
+    <Skeleton style={{ height: '1rem', width: '60%' }} />
+  </li>
+);
+
 const getTypeVariant = (type: string) => {
   switch (type) {
     case 'paid': return 'success';
@@ -73,6 +81,42 @@ const getItemBadgeVariant = (type: string) => {
     default: return 'default';
   }
 };
+
+const HiddenValue = () => (
+  <span className={styles.masked}>
+    <Lock size={12} /> Hidden
+  </span>
+);
+
+const renderEmail = (student: TeacherStudent) => (student.studentEmail ? student.studentEmail : <HiddenValue />);
+
+const renderMobile = (student: TeacherStudent) => {
+  if (student.studentMobile) return student.studentMobile;
+  return student.studentEmail === null ? <HiddenValue /> : '-';
+};
+
+const formatEnrolledDate = (student: TeacherStudent) =>
+  student.enrolledAt ? new Date(student.enrolledAt).toLocaleDateString() : 'N/A';
+
+const formatPaid = (student: TeacherStudent) =>
+  student.amountPaid === 0 ? 'Free' : `₹${student.amountPaid.toFixed(2)}`;
+
+const TypeBadges = ({ student }: { student: TeacherStudent }) => (
+  <div className={styles.typeCell}>
+    <Badge variant={getTypeVariant(student.enrollmentType)}>
+      {student.enrollmentType === 'paid' ? 'Paid' : 'Free'}
+    </Badge>
+    {student.orderStatus === 'refunded' && <Badge variant="destructive">Refunded</Badge>}
+  </div>
+);
+
+const EnrolledItem = ({ student }: { student: TeacherStudent }) => (
+  <div className={styles.itemCell}>
+    {getItemIcon(student.itemType)}
+    <span>{student.itemTitle}</span>
+    <Badge variant={getItemBadgeVariant(student.itemType)}>{getItemBadgeText(student.itemType)}</Badge>
+  </div>
+);
 
 const ITEMS_PER_PAGE = 10;
 
@@ -229,6 +273,46 @@ const TeacherStudentsPage: React.FC = () => {
 
     return (
       <>
+        {/* Phones get one card per enrollment instead of a 7-column table. */}
+        <ul className={styles.cardList} aria-label="Enrollments">
+          {isFetching
+            ? Array.from({ length: 4 }).map((_, i) => <StudentCardSkeleton key={i} />)
+            : paginatedStudents.map((student: TeacherStudent) => (
+                <li key={`${student.studentId}-${student.itemId}-${student.enrolledAt}`} className={styles.card}>
+                  <div className={styles.cardTop}>
+                    <Link
+                      to={`/teacher/students/performance?student=${student.studentId}`}
+                      className={`${styles.studentLink} ${styles.cardName}`}
+                    >
+                      {student.studentName}
+                    </Link>
+                    <TypeBadges student={student} />
+                  </div>
+                  <EnrolledItem student={student} />
+                  <dl className={styles.cardFacts}>
+                    <div className={styles.cardFact}>
+                      <dt>Email</dt>
+                      <dd>{renderEmail(student)}</dd>
+                    </div>
+                    <div className={styles.cardFact}>
+                      <dt>Mobile</dt>
+                      <dd>{renderMobile(student)}</dd>
+                    </div>
+                    <div className={styles.cardFact}>
+                      <dt>Date</dt>
+                      <dd className={styles.amount}>{formatEnrolledDate(student)}</dd>
+                    </div>
+                    {showAmounts && (
+                      <div className={styles.cardFact}>
+                        <dt>Paid</dt>
+                        <dd className={styles.amount}>{formatPaid(student)}</dd>
+                      </div>
+                    )}
+                  </dl>
+                </li>
+              ))}
+        </ul>
+
         <div className={styles.panel}>
           <table className={styles.table}>
             <thead>
@@ -257,52 +341,15 @@ const TeacherStudentsPage: React.FC = () => {
                         {student.studentName}
                       </Link>
                     </td>
+                    <td>{renderEmail(student)}</td>
+                    <td>{renderMobile(student)}</td>
                     <td>
-                      {student.studentEmail ? (
-                        student.studentEmail
-                      ) : (
-                        <span className={styles.masked}>
-                          <Lock size={12} /> Hidden
-                        </span>
-                      )}
+                      <EnrolledItem student={student} />
                     </td>
+                    <td className={styles.amount}>{formatEnrolledDate(student)}</td>
+                    {showAmounts && <td className={styles.amount}>{formatPaid(student)}</td>}
                     <td>
-                      {student.studentMobile ? (
-                        student.studentMobile
-                      ) : student.studentEmail === null ? (
-                        <span className={styles.masked}>
-                          <Lock size={12} /> Hidden
-                        </span>
-                      ) : (
-                        '-'
-                      )}
-                    </td>
-                    <td>
-                      <div className={styles.itemCell}>
-                        {getItemIcon(student.itemType)}
-                        <span>{student.itemTitle}</span>
-                        <Badge variant={getItemBadgeVariant(student.itemType)}>
-                          {getItemBadgeText(student.itemType)}
-                        </Badge>
-                      </div>
-                    </td>
-                    <td className={styles.amount}>
-                      {student.enrolledAt ? new Date(student.enrolledAt).toLocaleDateString() : 'N/A'}
-                    </td>
-                    {showAmounts && (
-                      <td className={styles.amount}>
-                        {student.amountPaid === 0 ? 'Free' : `₹${student.amountPaid.toFixed(2)}`}
-                      </td>
-                    )}
-                    <td>
-                      <div className={styles.typeCell}>
-                        <Badge variant={getTypeVariant(student.enrollmentType)}>
-                          {student.enrollmentType === 'paid' ? 'Paid' : 'Free'}
-                        </Badge>
-                        {student.orderStatus === 'refunded' && (
-                          <Badge variant="destructive">Refunded</Badge>
-                        )}
-                      </div>
+                      <TypeBadges student={student} />
                     </td>
                   </tr>
                 ))

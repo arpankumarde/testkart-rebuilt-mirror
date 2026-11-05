@@ -82,7 +82,7 @@
 
 @media (max-width: 400px) {
   .segment {
-    padding: 0 var(--spacing-3);
+    padding: 0 var(--spacing-2);
   }
 }
 

@@ -135,6 +135,97 @@
   white-space: nowrap;
 }
 
+/* Card view for phones; hidden until the 640px breakpoint swaps it in. */
+.cardList {
+  display: none;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-4);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+
+.card:last-child {
+  border-bottom: none;
+}
+
+.cardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+}
+
+.cardName {
+  min-width: 0;
+  padding: var(--spacing-1) 0;
+  font-size: 0.9375rem;
+  overflow-wrap: anywhere;
+}
+
+.cardTop .typeCell {
+  flex-shrink: 0;
+  justify-content: flex-end;
+}
+
+/* Icon beside the title, type badge under it, rather than three wrapped lines. */
+.card .itemCell {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--spacing-1) var(--spacing-2);
+  line-height: 1.35;
+}
+
+.card .itemCell .itemIcon {
+  margin-top: 1px;
+}
+
+.card .itemCell > :last-child {
+  grid-column: 2;
+  justify-self: start;
+}
+
+.cardFacts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  margin: 0;
+  padding-top: var(--spacing-2);
+  border-top: 1px dashed var(--border);
+}
+
+.cardFact {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  min-width: 0;
+}
+
+.cardFact dt {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+
+.cardFact dd {
+  min-width: 0;
+  margin: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 900px) {
   .noticeLink {
     margin-left: 0;
@@ -169,5 +260,15 @@
     top: 0;
     z-index: 1;
     background-color: var(--surface);
+  }
+}
+
+@media (max-width: 640px) {
+  .panel {
+    display: none;
+  }
+
+  .cardList {
+    display: block;
   }
 }

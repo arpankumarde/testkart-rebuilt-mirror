@@ -66,6 +66,19 @@
   box-shadow: var(--shadow-focus);
 }
 
+/* The 20px info button gets a 40px invisible hit area on touch screens. */
+@media (pointer: coarse) {
+  .hint {
+    position: relative;
+  }
+
+  .hint::after {
+    content: "";
+    position: absolute;
+    inset: -0.625rem;
+  }
+}
+
 .hintContent {
   max-width: 16rem;
 }

@@ -137,7 +137,7 @@ export async function handle(request: Request): Promise<Response> {
       `.execute(db),
 
       sql<Row>`
-        SELECT earnings, gross, sold_at, order_id, buyer_id, kind, title, thumbnail
+        SELECT earnings, gross, sold_at, order_id, buyer_id, kind, title, thumbnail, item_id
         FROM ${buildTeacherSaleRowsSql(teacherId, { start: previousStart })} sales
         WHERE sold_at IS NOT NULL
       `.execute(db),
@@ -352,11 +352,13 @@ export async function handle(request: Request): Promise<Response> {
       title: string;
       thumbnail: string | null;
       buyerId: number | null;
+      itemId: number | null;
     };
 
     const sales: Sale[] = saleRows.rows.map((row) => {
       const buyerId = get(row, "buyer_id");
       const thumbnail = get(row, "thumbnail");
+      const itemId = get(row, "item_id");
       return {
         day: isoDay(date(get(row, "sold_at")).getTime()),
         earnings: num(get(row, "earnings")),
@@ -365,6 +367,7 @@ export async function handle(request: Request): Promise<Response> {
         title: str(get(row, "title"), "Untitled").trim() || "Untitled",
         thumbnail: thumbnail ? str(thumbnail) : null,
         buyerId: buyerId === null || buyerId === undefined ? null : num(buyerId),
+        itemId: itemId === null || itemId === undefined ? null : num(itemId),
       };
     });
 
@@ -429,6 +432,7 @@ export async function handle(request: Request): Promise<Response> {
       const key = `${sale.kind}::${sale.title}`;
       const seller: TeacherTopSeller = sellerByKey.get(key) ?? {
         kind: sale.kind,
+        itemId: sale.itemId,
         title: sale.title,
         thumbnail: sale.thumbnail,
         units: 0,

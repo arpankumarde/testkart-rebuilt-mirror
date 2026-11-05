@@ -49,6 +49,7 @@ import { buildPublicAssetUrl, TEACHER_CONSOLE_SHARE_CAMPAIGN } from '../helpers/
 import { performanceHref } from '../helpers/teacherPerformanceFormat';
 import { DIGITAL_PRODUCT_CATEGORIES } from '../helpers/digitalProductRules';
 import type { TeacherProductListItem } from '../endpoints/teacher/products/list_GET.schema';
+import { cardTapProps } from '../helpers/cardTap';
 import styles from './TeacherProductManager.module.css';
 
 const PRODUCTS_PER_PAGE = 10;
@@ -157,7 +158,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
   const readersPath = performanceHref('notes', { note: product.id });
 
   return (
-    <li className={`${styles.row} ${selected ? styles.rowSelected : ''}`}>
+    <li className={`${styles.row} ${selected ? styles.rowSelected : ''}`} {...cardTapProps}>
       <label className={styles.selectCell}>
         <Checkbox
           checked={selected}
@@ -169,7 +170,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
       <div className={styles.productCell}>
         <DocSheet thumbnailUrl={product.thumbnailUrl} />
         <div className={styles.productText}>
-          <Link to={editPath} className={styles.titleLink}>
+          <Link to={editPath} className={styles.titleLink} data-card-primary>
             {product.title}
           </Link>
           <TeacherListingBadges

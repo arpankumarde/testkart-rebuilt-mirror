@@ -1,184 +1,101 @@
-.overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
+/* Right-hand column of the homepage hero. It stretches over the hero's vertical padding (--hero-pad-y from
+   HomepageSearchHero) so the hangers drop from the hero's top edge and the diyas rest near its bottom. */
+.scene {
+  position: relative;
+  align-self: stretch;
+  justify-self: center;
+  width: min(400px, 100%);
+  min-height: 200px;
+  margin-block: calc(-1 * var(--hero-pad-y, 0px));
   pointer-events: none;
   user-select: none;
 }
 
-.left {
-  left: 0;
-}
-
-.right {
-  right: 0;
-}
-
-/* Mandalas: one whole mandala per side, its inner edge 24px clear of the 800px content column */
 .mandala {
-  --mandala-size: min(240px, calc(50% - 540px));
   position: absolute;
-  top: calc(50% - 12px);
-  width: var(--mandala-size);
+  left: 50%;
+  top: 45%;
+  width: 160px;
   height: auto;
-  transform: translateY(-50%);
-  display: none;
+  transform: translate(-50%, -50%);
 }
 
-.mandala.left {
-  left: calc(50% - 424px - var(--mandala-size));
-}
-
-.mandala.right {
-  right: calc(50% - 424px - var(--mandala-size));
-}
-
-@media (min-width: 1290px) {
-  .mandala {
-    display: block;
-  }
-}
-
-/* Laptops (1280/1366 screens, and scaled displays reporting about 1100-1394px): the side space is too narrow to
-   also clear the hangers horizontally, so a 150px-max mandala is centred in the gap beside the content. It stays
-   24px or more from the content column and sits below the hangers and above the diyas. From 1395px the rule
-   above takes over at the same 150px size, so the size never jumps. */
-@media (min-width: 1100px) and (max-width: 1394px) {
-  .mandala {
-    --mandala-size: min(150px, calc(50% - 448px));
-    top: 50%;
-    display: block;
-  }
-
-  .mandala.left {
-    left: calc((50% - 400px - var(--mandala-size)) / 2);
-  }
-
-  .mandala.right {
-    right: calc((50% - 400px - var(--mandala-size)) / 2);
-  }
-}
-
-/* Tablets, including iPad, and zoomed-in laptops (768-1099px): the heading's first line spans almost the full width,
-   but below it the second line and the subtitle are narrow (under about 470px). A whole 110px mandala sits in that
-   free side space, vertically centred between the first heading line and the search bar, and horizontally centred
-   in the gap beside the subtitle. */
-@media (min-width: 768px) and (max-width: 1099px) {
-  .mandala {
-    --mandala-size: 110px;
-    top: 50%;
-    display: block;
-  }
-
-  .mandala.left {
-    left: clamp(16px, calc((50% - 345px) / 2), 120px);
-  }
-
-  .mandala.right {
-    right: clamp(16px, calc((50% - 345px) / 2), 120px);
-  }
-}
-
-/* Hanging ornaments at the outer top corners, clear of the mandala */
-.hangers {
+.hangerSlot {
   position: absolute;
   top: 0;
-  display: flex;
-  align-items: flex-start;
-  gap: clamp(16px, 2vw, 28px);
-  padding: 0 clamp(14px, 2vw, 32px);
+  left: var(--x);
+  translate: -50% 0;
 }
 
-.hangers.right {
-  flex-direction: row-reverse;
-}
-
-/* Diyas in the bottom corners */
 .diyas {
   position: absolute;
-  bottom: clamp(6px, 1.6vw, 22px);
+  left: 0;
+  right: 0;
+  bottom: 12px;
   display: flex;
+  justify-content: center;
   align-items: flex-end;
-  gap: 6px;
-  padding: 0 clamp(12px, 2vw, 32px);
+  gap: 22px;
 }
 
-.diyas.right {
-  flex-direction: row-reverse;
-}
-
-.diya {
-  width: clamp(40px, 4.6vw, 68px);
+.diyaLarge {
+  width: 60px;
 }
 
 .diyaSmall {
-  width: clamp(28px, 3vw, 44px);
+  width: 38px;
 }
 
-/* Tablet: trim to one short ornament per side and one sparkle */
-@media (max-width: 1099px) {
-  .hangers {
-    --dw-len-scale: 0.4;
+/* Tablets: a narrower column with the two lanterns, a smaller mandala and fewer sparkles */
+@media (max-width: 1023.98px) {
+  .scene {
+    width: 220px;
   }
 
-  .hanger:not(:first-child) {
+  .hangerSlot {
+    --dw-len-scale: 0.7;
+  }
+
+  .mandala {
+    width: 116px;
+  }
+
+  .wide {
     display: none;
   }
 
-  .lg {
-    display: none;
+  .diyas {
+    gap: 12px;
   }
-}
 
-@media (max-width: 1023px) {
+  .diyaLarge {
+    width: 48px;
+  }
+
   .diyaSmall {
-    display: none;
+    width: 30px;
   }
 }
 
-/* Phone-only lantern and small mandala per side; both end inside the hero's 48px top padding, clear of the headline */
-.mobileLantern,
-.mobileMandala {
+/* Phone corner: floats right at the start of the hero text, hanging from the hero's top edge, so only the
+   heading's first lines wrap around it and the subtitle and search bar keep the full width */
+.corner {
   display: none;
 }
 
-.mobileMandala {
-  position: absolute;
-  top: 4px;
-  width: 40px;
-  height: auto;
-}
-
-.mobileMandala.left {
-  left: 34px;
-}
-
-.mobileMandala.right {
-  right: 34px;
-}
-
-/* Mobile: a lantern and small mandala in each top corner, and the two corner diyas */
-@media (max-width: 767px) {
-  .hangers {
-    --dw-len-scale: 1;
-    padding: 0 10px;
-  }
-
-  .mobileMandala {
-    display: block;
-  }
-
-  .hanger,
-  .md {
+@media (max-width: 767.98px) {
+  .scene {
     display: none;
   }
 
-  .mobileLantern {
-    display: flex;
-  }
-
-  .mobileLantern svg {
-    width: 18px;
+  .corner {
+    position: relative;
+    display: block;
+    float: right;
+    width: 60px;
+    height: 72px;
+    margin: calc(-1 * var(--hero-pad-y, 0px)) -4px 0 var(--spacing-2);
+    pointer-events: none;
+    user-select: none;
   }
 }

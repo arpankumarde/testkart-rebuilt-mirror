@@ -943,3 +943,29 @@
     transition: none;
   }
 }
+
+/* Whole-card tap targets (helpers/cardTap): pointer on desktop, a small press on touch screens. */
+[data-card-tap] {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: none) {
+  [data-card-tap] {
+    transition: transform 120ms ease;
+  }
+
+  [data-card-tap]:active:not(:has(:is(a, button, input, label, [role="button"]):active)) {
+    transform: scale(0.985);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-card-tap] {
+    transition: none;
+  }
+
+  [data-card-tap]:active {
+    transform: none;
+  }
+}

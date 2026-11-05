@@ -54,6 +54,7 @@ import { useTeacherBulkMutations } from "../helpers/useTeacherBulkMutations";
 import { schema as createTestItemSchema } from "../endpoints/teacher/test-items/create_POST.schema";
 import { schema as updateTestItemSchema } from "../endpoints/teacher/test-items/update_POST.schema";
 import { TestItemWithQuestionsCount } from "../endpoints/teacher/test-items/list_GET.schema";
+import { cardTapProps } from "../helpers/cardTap";
 import styles from "./TestSeriesItemsEditor.module.css";
 
 /*
@@ -527,9 +528,10 @@ const SortableItemCard = ({
       ref={setNodeRef}
       style={style}
       className={`${styles.itemCard} ${isDragging ? styles.dragging : ""} ${blocking ? styles.itemCardBlocking : ""}`}
+      {...cardTapProps}
     >
       <div className={styles.itemRow}>
-        <div className={styles.dragHandle} {...attributes} {...listeners} aria-label={`Move ${item.title}`}>
+        <div className={styles.dragHandle} {...attributes} {...listeners} aria-label={`Move ${item.title}`} data-card-tap-ignore>
           <GripVertical size={20} aria-hidden="true" />
         </div>
         <div className={styles.itemContent}>
@@ -557,7 +559,7 @@ const SortableItemCard = ({
         <div className={styles.itemActions}>
           {guided && (
             <Button asChild variant={item.questionsCount === 0 ? "primary" : "outline"}>
-              <Link to={`/teacher/create-test/${packageId}/test-items/${item.id}/questions`}>
+              <Link to={`/teacher/create-test/${packageId}/test-items/${item.id}/questions`} data-card-primary>
                 {item.questionsCount === 0 ? <Plus size={16} aria-hidden="true" /> : <PenLine size={16} aria-hidden="true" />}
                 {item.questionsCount === 0 ? "Add questions" : "Edit questions"}
               </Link>
@@ -568,6 +570,7 @@ const SortableItemCard = ({
             aria-expanded={isSubjectsOpen}
             aria-label={`Subjects in ${item.title}`}
             onClick={() => setIsSubjectsOpen((open) => !open)}
+            data-card-primary={guided ? undefined : ""}
           >
             Subjects {isSubjectsOpen ? <ChevronUp size={16} aria-hidden="true" /> : <ChevronDown size={16} aria-hidden="true" />}
           </Button>
@@ -587,11 +590,13 @@ const SortableItemCard = ({
         </div>
       </div>
       {isSubjectsOpen && (
-        <TestItemSubjectsPanel
-          packageId={packageId}
-          itemId={item.id}
-          subjectWiseTiming={item.subjectWiseTiming}
-        />
+        <div data-card-tap-ignore style={{ display: "contents" }}>
+          <TestItemSubjectsPanel
+            packageId={packageId}
+            itemId={item.id}
+            subjectWiseTiming={item.subjectWiseTiming}
+          />
+        </div>
       )}
     </div>
   );

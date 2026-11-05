@@ -25,6 +25,7 @@ import type {
   CampaignSlots,
   ExamCampaignCard,
 } from "../endpoints/teacher/creator-bonus/overview_GET.schema";
+import { cardTapProps } from "../helpers/cardTap";
 import styles from "./teacher.creator-bonus.module.css";
 
 type Filter = "all" | "ready" | "building" | "claimed" | "done";
@@ -328,7 +329,12 @@ const TeacherCreatorBonusPage: React.FC = () => {
                 ? `${req.minTests}+ tests and ${req.minQuestions}+ questions`
                 : `${req.minVideos}+ videos of ${req.minMinutesPerVideo}+ min, ${req.minVideoMinutes}+ min in all`;
             return (
-              <article key={type} className={styles.track} style={{ "--track-accent": track.accent } as React.CSSProperties}>
+              <article
+                key={type}
+                className={styles.track}
+                style={{ "--track-accent": track.accent } as React.CSSProperties}
+                {...cardTapProps}
+              >
                 <span className={styles.trackStrip} aria-hidden="true" />
                 <div className={styles.trackCard}>
                   <div className={styles.trackHead}>
@@ -346,7 +352,7 @@ const TeacherCreatorBonusPage: React.FC = () => {
                   <CoinSlots slots={s} accent={track.accent} />
                   <p className={styles.trackFoot}>
                     {s.credited} credited · {s.used - s.credited} waiting · {Math.max(0, s.limit - s.used)} left
-                    <Link to={track.createHref} className={styles.trackLink}>
+                    <Link to={track.createHref} className={styles.trackLink} data-card-primary>
                       Create one <ArrowRight size={14} aria-hidden="true" />
                     </Link>
                   </p>
@@ -422,7 +428,7 @@ const TeacherCreatorBonusPage: React.FC = () => {
                 const sticker = STATE_STICKERS[item.state];
                 const step = nextStep(item, slots[item.type]);
                 return (
-                  <li key={`${item.type}-${item.id}`} className={styles.item}>
+                  <li key={`${item.type}-${item.id}`} className={styles.item} {...(step.action ? cardTapProps : {})}>
                     <div className={styles.itemMain}>
                       <span className={styles.itemKind}>{item.type === "mock_test" ? "Test series" : "Course"}</span>
                       <h3 className={styles.itemTitle}>{item.title}</h3>
@@ -457,7 +463,9 @@ const TeacherCreatorBonusPage: React.FC = () => {
                       )}
                       {step.action && (
                         <Button asChild size="sm" variant={item.state === "ready" ? "primary" : "outline"}>
-                          <Link to={step.action.to}>{step.action.label}</Link>
+                          <Link to={step.action.to} data-card-primary>
+                            {step.action.label}
+                          </Link>
                         </Button>
                       )}
                     </div>

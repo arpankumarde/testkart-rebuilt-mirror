@@ -51,6 +51,20 @@
   border-top: none;
 }
 
+/* Rows that open their listing: a 52px tap target with a pressed tint. */
+.rowTappable {
+  min-height: 3.25rem;
+  border-radius: var(--radius-sm);
+}
+
+.rowTappable:hover .rowTitle {
+  text-decoration: underline;
+}
+
+.rowTappable:active {
+  background-color: var(--tc-bg);
+}
+
 .thumb {
   display: block;
   width: 3rem;
@@ -88,9 +102,16 @@
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--tc-ink);
+  text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.rowTitle:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
 }
 
 .rowMeta {

@@ -1,7 +1,9 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { Skeleton } from "./Skeleton";
 import type { TeacherTopSeller, TeacherMixKind } from "../endpoints/teacher/dashboard/overview_GET.schema";
 import { adminFormat } from "../helpers/adminFormat";
+import { cardTapProps } from "../helpers/cardTap";
 import { teacherContentThumbnail } from "../helpers/teacherContentThumbnail";
 import styles from "./TeacherOverviewTopSellers.module.css";
 
@@ -20,6 +22,24 @@ const KIND_LABELS: Record<TeacherMixKind, string> = {
   course: "Course",
   digital_product: "Study notes",
   bundle: "Bundle",
+};
+
+/** Where a best seller opens: its editor, or the live tests list (the sale carries the backing mock test id). */
+const sellerHref = (seller: TeacherTopSeller): string | null => {
+  if (seller.kind === "live_test") return "/teacher/live-tests";
+  if (seller.itemId == null) return null;
+  switch (seller.kind) {
+    case "mock_test":
+      return `/teacher/test/${seller.itemId}/edit`;
+    case "course":
+      return `/teacher/courses/${seller.itemId}/edit`;
+    case "digital_product":
+      return `/teacher/products/${seller.itemId}/edit`;
+    case "bundle":
+      return `/teacher/bundles/${seller.itemId}/edit`;
+    default:
+      return null;
+  }
 };
 
 const Thumbnail = ({ seller }: { seller: TeacherTopSeller }) => {
@@ -55,15 +75,27 @@ export const TeacherOverviewTopSellers = ({ sellers, days, isLoading, showEarnin
         <p className={styles.empty}>No sales in this period.</p>
       ) : (
         <ol className={styles.rows}>
-          {sellers.map((seller) => (
-            <li key={`${seller.kind}-${seller.title}`} className={styles.row}>
+          {sellers.map((seller) => {
+            const href = sellerHref(seller);
+            return (
+            <li
+              key={`${seller.kind}-${seller.title}`}
+              className={`${styles.row} ${href ? styles.rowTappable : ""}`}
+              {...(href ? cardTapProps : {})}
+            >
               <span className={styles.thumb}>
                 <Thumbnail seller={seller} />
               </span>
               <span className={styles.body}>
-                <span className={styles.rowTitle} title={seller.title}>
-                  {seller.title}
-                </span>
+                {href ? (
+                  <Link to={href} className={styles.rowTitle} title={seller.title} data-card-primary>
+                    {seller.title}
+                  </Link>
+                ) : (
+                  <span className={styles.rowTitle} title={seller.title}>
+                    {seller.title}
+                  </span>
+                )}
                 <span className={styles.rowMeta}>
                   {KIND_LABELS[seller.kind]} · {adminFormat.count(seller.units)}{" "}
                   {seller.units === 1 ? "sale" : "sales"}
@@ -71,7 +103,8 @@ export const TeacherOverviewTopSellers = ({ sellers, days, isLoading, showEarnin
               </span>
               {showEarnings && <span className={styles.earnings}>{adminFormat.inr(seller.earnings)}</span>}
             </li>
-          ))}
+            );
+          })}
         </ol>
       )}
     </section>

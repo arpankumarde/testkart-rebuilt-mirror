@@ -1,8 +1,9 @@
 import type { CSSProperties } from "react";
 import styles from "./DiwaliOrnaments.module.css";
 
-// Set to false to switch every Diwali decoration off across the site.
-export const DIWALI_THEME_ENABLED = true;
+// Every Diwali decoration across the site switches off at the end of 15-11-2026 IST (checked on page load).
+const DIWALI_THEME_ENDS_AT = Date.parse("2026-11-16T00:00:00+05:30");
+export const DIWALI_THEME_ENABLED = Date.now() < DIWALI_THEME_ENDS_AT;
 
 export const diwaliPaletteClass = styles.palette;
 

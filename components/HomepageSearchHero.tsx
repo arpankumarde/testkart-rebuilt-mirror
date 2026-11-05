@@ -17,24 +17,27 @@ export function HomepageSearchHero() {
 
   return (
     <section className={styles.hero}>
-      <DiwaliHeroOverlay />
-      <div className={styles.content}>
-        <h1 className={styles.title}>Find mock tests, courses & study notes</h1>
-        <p className={styles.subtitle}>All made by real teachers and coaching institutes</p>
-        <form className={styles.searchForm} onSubmit={handleSearch}>
-          <div className={styles.inputWrapper}>
-            <input
-              type="text"
-              className={styles.searchInput}
-              placeholder="Search mock tests, teachers, courses, exams..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-            <button type="submit" className={styles.searchIconBtn} aria-label="Search">
-              <Search size={24} />
-            </button>
-          </div>
-        </form>
+      <div className={styles.inner}>
+        <div className={styles.content}>
+          <DiwaliHeroOverlay variant="corner" />
+          <h1 className={styles.title}>Find mock tests, courses & study notes</h1>
+          <p className={styles.subtitle}>All made by real teachers and coaching institutes</p>
+          <form className={styles.searchForm} onSubmit={handleSearch}>
+            <div className={styles.inputWrapper}>
+              <input
+                type="text"
+                className={styles.searchInput}
+                placeholder="Search mock tests, teachers, courses, exams..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+              <button type="submit" className={styles.searchIconBtn} aria-label="Search">
+                <Search size={20} />
+              </button>
+            </div>
+          </form>
+        </div>
+        <DiwaliHeroOverlay />
       </div>
     </section>
   );

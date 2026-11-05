@@ -17,6 +17,7 @@ import { TEACHER_CONSOLE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
 import { Placeholder } from '../helpers/placeholderImages';
 import { performanceHref } from '../helpers/teacherPerformanceFormat';
 import { useAuth } from '../helpers/useAuth';
+import { cardTapProps } from '../helpers/cardTap';
 import styles from './TeacherLiveTestCard.module.css';
 
 interface TeacherLiveTestCardProps {
@@ -116,7 +117,7 @@ export const TeacherLiveTestCard: React.FC<TeacherLiveTestCardProps> = ({
 
   return (
     <>
-      <div className={`${styles.card} ${statusInfo.className} ${className || ''}`}>
+      <div className={`${styles.card} ${statusInfo.className} ${className || ''}`} {...cardTapProps}>
         <div className={styles.thumbnailWrapper}>
           {liveTest.thumbnailUrl ? (
             <img
@@ -255,7 +256,7 @@ export const TeacherLiveTestCard: React.FC<TeacherLiveTestCardProps> = ({
           {status === 'draft' ? (
             <>
               <div className={styles.primaryActions}>
-                <Button variant="outline" size="sm" onClick={() => onEdit(liveTest.id)} disabled={!canEditDetails}>
+                <Button variant="outline" size="sm" onClick={() => onEdit(liveTest.id)} disabled={!canEditDetails} data-card-primary>
                   {rejection ? <Wrench size={14} /> : <Edit size={14} />}
                   {rejection ? 'Fix it' : 'Edit Details'}
                 </Button>
@@ -318,7 +319,7 @@ export const TeacherLiveTestCard: React.FC<TeacherLiveTestCardProps> = ({
           ) : (
             <>
               <div className={styles.primaryActions}>
-                <Button variant="outline" size="sm" onClick={() => onEdit(liveTest.id)} disabled={!canEditDetails}>
+                <Button variant="outline" size="sm" onClick={() => onEdit(liveTest.id)} disabled={!canEditDetails} data-card-primary>
                   <Edit size={14} />
                   Edit Details
                 </Button>

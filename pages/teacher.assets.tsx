@@ -22,6 +22,7 @@ import {
   formatAssetSize,
   type TeacherAsset,
 } from "../helpers/teacherAssetFiles";
+import { cardTapProps } from "../helpers/cardTap";
 import styles from "./teacher.assets.module.css";
 
 type KindTab = "all" | "video" | "pdf";
@@ -197,7 +198,7 @@ const TeacherAssetsPage: React.FC = () => {
           ].filter(Boolean);
           const inUse = asset.lessonCount > 0 || asset.notesCount > 0;
           return (
-            <li key={asset.id} className={styles.row}>
+            <li key={asset.id} className={styles.row} {...cardTapProps}>
               <button
                 type="button"
                 className={`${styles.thumb} ${asset.kind === "pdf" ? styles.thumbPdf : ""}`}
@@ -214,7 +215,7 @@ const TeacherAssetsPage: React.FC = () => {
               </div>
               <span className={`${styles.usage} ${inUse ? styles.usageActive : ""}`}>{usageText(asset)}</span>
               <div className={styles.rowActions}>
-                <Button variant="outline" size="sm" onClick={() => setPreviewAsset(asset)}>
+                <Button variant="outline" size="sm" onClick={() => setPreviewAsset(asset)} data-card-primary>
                   <Eye size={14} /> Preview
                 </Button>
                 <Button variant="ghost" size="icon-sm" onClick={() => openRename(asset)} aria-label={`Rename ${asset.name}`}>

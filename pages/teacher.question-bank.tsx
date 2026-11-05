@@ -25,6 +25,7 @@ import { TeacherListPagination } from '../components/TeacherListPagination';
 import { BankQuestionForm } from '../components/BankQuestionForm';
 import { BulkBankQuestionUpload } from '../components/BulkBankQuestionUpload';
 
+import { cardTapProps } from '../helpers/cardTap';
 import styles from './teacher.question-bank.module.css';
 
 const TeacherQuestionBankPage: React.FC = () => {
@@ -255,7 +256,7 @@ const TeacherQuestionBankPage: React.FC = () => {
       <>
         <div className={styles.list}>
           {data.questions.map(q => (
-            <article key={q.id} className={styles.card}>
+            <article key={q.id} className={styles.card} {...cardTapProps}>
               <div className={styles.cardHeader}>
                 <Badge variant="secondary">{formatQuestionType(q.questionType)}</Badge>
                 <div className={styles.meta}>
@@ -287,7 +288,8 @@ const TeacherQuestionBankPage: React.FC = () => {
               </div>
 
               <div className={styles.question}>
-                <MathMLContent html={q.questionText} maxLength={250} />
+                {/* Opening the answer also shows the whole question, so a tap on the card is the "read more". */}
+                <MathMLContent html={q.questionText} maxLength={expandedOptions.has(q.id) ? undefined : 250} />
               </div>
 
               <div>
@@ -297,6 +299,7 @@ const TeacherQuestionBankPage: React.FC = () => {
                   aria-expanded={expandedOptions.has(q.id)}
                   aria-controls={`qb-answer-${q.id}`}
                   onClick={() => toggleOptions(q.id)}
+                  data-card-primary
                 >
                   {expandedOptions.has(q.id) ? (
                     <><ChevronUp size={14} aria-hidden="true" /> Hide answer</>

@@ -544,6 +544,16 @@ a.sidebarUser:hover {
     padding: 0.4375rem var(--spacing-3);
   }
 
+  /* Drawer rows are thumb targets: links 44px tall, group toggles 40px. */
+  .navLink,
+  .rail .navLink {
+    min-height: 2.75rem;
+  }
+
+  .groupHeader {
+    min-height: 2.5rem;
+  }
+
   .rail .navLabel {
     display: inline;
   }

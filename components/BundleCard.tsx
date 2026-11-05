@@ -16,6 +16,7 @@ import { WithdrawReviewDialog, WITHDRAW_REVIEW_LABEL } from './WithdrawReviewBut
 import { TEACHER_CONSOLE_SHARE_CAMPAIGN } from '../helpers/shareLinks';
 import { computeBundlePricing } from '../helpers/bundlePricing';
 import type { BundleListItem } from '../endpoints/teacher/bundles/list_GET.schema';
+import { cardTapProps } from '../helpers/cardTap';
 import styles from './BundleCard.module.css';
 
 interface BundleCardProps {
@@ -90,7 +91,7 @@ export const BundleCard: React.FC<BundleCardProps> = ({
   );
 
   return (
-    <div className={styles.card}>
+    <div className={styles.card} {...cardTapProps}>
       <div className={styles.thumbnailWrapper}>
         {bundle.thumbnailUrl ? (
           <img src={bundle.thumbnailUrl} alt="" className={styles.thumbnailImage} />
@@ -149,7 +150,7 @@ export const BundleCard: React.FC<BundleCardProps> = ({
         </div>
         {isPublished ? (
           <div className={styles.actions}>
-            <Button size="sm" variant="outline" onClick={onEdit} aria-label={`Edit ${bundle.title}`}>
+            <Button size="sm" variant="outline" onClick={onEdit} aria-label={`Edit ${bundle.title}`} data-card-primary>
               <Edit size={14} aria-hidden="true" />
               Edit
             </Button>
@@ -175,12 +176,12 @@ export const BundleCard: React.FC<BundleCardProps> = ({
               </Button>
             )}
             {rejection ? (
-              <Button size="sm" variant="primary" onClick={onEdit} aria-label={`Fix ${bundle.title}`}>
+              <Button size="sm" variant="primary" onClick={onEdit} aria-label={`Fix ${bundle.title}`} data-card-primary>
                 <Wrench size={14} aria-hidden="true" />
                 Fix it
               </Button>
             ) : (
-              <Button size="sm" variant="outline" onClick={onEdit} aria-label={`Edit ${bundle.title}`}>
+              <Button size="sm" variant="outline" onClick={onEdit} aria-label={`Edit ${bundle.title}`} data-card-primary>
                 Edit
               </Button>
             )}

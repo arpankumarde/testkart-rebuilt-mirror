@@ -35,6 +35,19 @@
   border-radius: var(--radius-sm);
 }
 
+/* On touch screens the 16px-tall link gets a 40px invisible hit area. */
+@media (pointer: coarse) {
+  .backLink {
+    position: relative;
+  }
+
+  .backLink::after {
+    content: "";
+    position: absolute;
+    inset: -0.75rem -0.5rem;
+  }
+}
+
 .titleRow {
   display: flex;
   align-items: center;

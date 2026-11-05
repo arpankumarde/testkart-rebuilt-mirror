@@ -41,6 +41,7 @@ import { formatRupees } from '../helpers/teacherCampaignRules';
 import { getItemExamNames, summarizeExamNames } from '../helpers/itemExams';
 import { expiryLastDay, formatExpiryDay, isExpired, isExpiringSoon } from '../helpers/contentExpiry';
 import { Placeholder } from '../helpers/placeholderImages';
+import { cardTapProps } from '../helpers/cardTap';
 import styles from './TeacherCourseCard.module.css';
 
 interface TeacherCourseCardProps {
@@ -131,7 +132,7 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
   const showResults = status !== 'draft';
 
   return (
-    <article className={styles.card}>
+    <article className={styles.card} {...cardTapProps}>
       <div className={styles.cover}>
         <VideoPreview
           videoUrl={course.introVideoUrl || course.thumbnailUrl}
@@ -161,7 +162,7 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
           </p>
         )}
         <h3 className={styles.title}>
-          <Link to={editPath} className={styles.titleLink}>
+          <Link to={editPath} className={styles.titleLink} data-card-primary>
             {course.title}
           </Link>
           <span className={styles.srOnly}>

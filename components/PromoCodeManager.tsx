@@ -41,6 +41,7 @@ import {
   DropdownMenuTrigger,
 } from './DropdownMenu';
 import { toast } from 'sonner';
+import { cardTapProps } from '../helpers/cardTap';
 import styles from './PromoCodeManager.module.css';
 
 type PromoStatus = 'active' | 'scheduled' | 'expired';
@@ -176,7 +177,7 @@ const PromoRow: React.FC<PromoRowProps> = ({ promoCode: pc, now, onCopy, onEdit,
   const stubValue = stubValueOf(pc);
 
   return (
-    <li className={styles.row}>
+    <li className={styles.row} {...cardTapProps}>
       <div className={`${styles.stub} ${STUB_CLASS[state]}`}>
         <span className={`${styles.stubValue} ${stubValue.length > 5 ? styles.stubLong : ''}`}>{stubValue}</span>
         <span className={styles.stubUnit}>off</span>
@@ -232,7 +233,7 @@ const PromoRow: React.FC<PromoRowProps> = ({ promoCode: pc, now, onCopy, onEdit,
       </div>
 
       <div className={styles.actionsCell}>
-        <button type="button" className={styles.rowButton} onClick={onEdit} aria-label={`Edit ${pc.code}`}>
+        <button type="button" className={styles.rowButton} onClick={onEdit} aria-label={`Edit ${pc.code}`} data-card-primary>
           <Pencil size={15} aria-hidden="true" />
           Edit
         </button>

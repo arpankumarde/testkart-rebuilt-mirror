@@ -137,6 +137,16 @@
   .liveTestHeader {
     padding: var(--spacing-4);
   }
+
+  /* The buttons wrap to full-width rows instead of running off the right edge. */
+  .headerActions {
+    flex-shrink: 1;
+    width: 100%;
+  }
+
+  .headerActions > * {
+    flex: 1 1 auto;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
