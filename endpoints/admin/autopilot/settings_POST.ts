@@ -10,8 +10,9 @@ import {
 import { schema, OutputType } from "./settings_POST.schema";
 
 /**
- * Admin (autopilot module): the kill switch, shadow mode and the AI provider
- * for the autopilot's own AI (DeepSeek or Floot AI). The holdout salt
+ * Admin (autopilot module): the kill switch, shadow mode, the AI provider
+ * for the autopilot's own AI (DeepSeek or Floot AI) and how many days each
+ * playbook's offer Tcoins last. The holdout salt
  * is created once, the first time settings are saved, and never changed here,
  * so holdout membership stays fixed for the life of the autopilot.
  */
@@ -27,6 +28,7 @@ export async function handle(request: Request): Promise<Response> {
       ...(input.enabled !== undefined ? { enabled: input.enabled } : {}),
       ...(input.shadow !== undefined ? { shadow: input.shadow } : {}),
       ...(input.aiProvider !== undefined ? { aiProvider: input.aiProvider } : {}),
+      ...(input.tcoinExpiryDays !== undefined ? { tcoinExpiryDays: { ...current.tcoinExpiryDays, ...input.tcoinExpiryDays } } : {}),
     });
 
     const value = JSON.stringify(next);

@@ -1,7 +1,5 @@
-import { db } from "./db";
 import { sendEmail } from "./sendEmail";
 import { welcomeStudent } from "./emailTemplates";
-import { withStudentAppPromo } from "./emailBaseTemplate";
 import { addContactToAudience } from "./resendContacts";
 
 export type SendOAuthWelcomeEmailParams = {
@@ -43,56 +41,8 @@ export async function sendOAuthWelcomeEmail({
 
   const sendWelcome = async () => {
     try {
-      const templateKey = "welcome_student";
-
-      // Fetch email template from database
-      const template = await db
-        .selectFrom("emailTemplates")
-        .selectAll()
-        .where("templateKey", "=", templateKey)
-        .where("isActive", "=", true)
-        .executeTakeFirst();
-
-      let subject: string;
-      let html: string;
-      let text: string;
-
-      if (template) {
-        const replacePlaceholders = (
-          str: string,
-          data: Record<string, string>
-        ) => {
-          return Object.entries(data).reduce(
-            (acc, [key, value]) =>
-              acc.replace(new RegExp(`{{${key}}}`, "g"), value),
-            str
-          );
-        };
-
-        const placeholders = {
-          displayName: userDisplayName,
-          email: userEmail,
-        };
-
-        subject = replacePlaceholders(template.subject, placeholders);
-        html = withStudentAppPromo(replacePlaceholders(template.htmlContent, placeholders));
-        text = replacePlaceholders(template.textContent || "", placeholders);
-      } else {
-        console.warn(
-          `${templateKey} template not found in database, using fallback`
-        );
-        const emailTemplate = welcomeStudent(userDisplayName, userEmail);
-        subject = emailTemplate.subject;
-        html = emailTemplate.html;
-        text = emailTemplate.text;
-      }
-
-      const result = await sendEmail({
-        to: userEmail,
-        subject,
-        html,
-        text,
-      });
+      const emailTemplate = welcomeStudent(userDisplayName, userEmail);
+      const result = await sendEmail({ to: userEmail, ...emailTemplate });
 
       if (result.success) {
         console.log(

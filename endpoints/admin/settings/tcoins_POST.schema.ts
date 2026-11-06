@@ -7,6 +7,7 @@ export const schema = z.object({
   maxRedeem: z.number().int().min(0).max(100000),
   cashbackPercent: z.number().min(0).max(100),
   maxCashback: z.number().int().min(0).max(100000),
+  expiryDays: z.number().int().min(1).max(3650),
 });
 
 export type InputType = z.infer<typeof schema>;

@@ -1,6 +1,6 @@
 import { sql } from "kysely";
 import { db } from "./db";
-import { getAutopilotSettings } from "./getAutopilotSettings";
+import { getAutopilotSettings, offerExpiryDays } from "./getAutopilotSettings";
 import { posteriorLift } from "./posteriorLift";
 import { AUTOPILOT_PLAYBOOKS } from "./autopilotPlaybooks";
 
@@ -72,6 +72,8 @@ export type AutopilotDashboard = {
   teacherOwnLinks: { teacherName: string; ownOrders: number; ownGmv: number; totalGmv: number; feeAtTwelve: number; feeNow: number }[];
   checks: { key: string; status: string; value: number | null; ranAt: Date; detail: unknown }[];
   replies: { id: string; channel: string; body: string; receivedAt: Date; userName: string | null; playbook: string | null }[];
+  /** Playbooks that give Tcoins on a step, with how many days those coins last. */
+  tcoinOffers: { key: string; label: string; expiryDays: number }[];
 };
 
 type Row = Record<string, unknown>;
@@ -294,6 +296,11 @@ export async function getAutopilotDashboard(days: number): Promise<AutopilotDash
   return {
     days,
     trackingSince,
+    tcoinOffers: AUTOPILOT_PLAYBOOKS.filter((playbook) => playbook.steps.some((step) => step.offer)).map((playbook) => ({
+      key: playbook.key,
+      label: playbook.label,
+      expiryDays: offerExpiryDays(settings, playbook.key),
+    })),
     settings: {
       enabled: settings.enabled,
       shadow: settings.shadow,

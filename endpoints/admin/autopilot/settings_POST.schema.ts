@@ -1,11 +1,13 @@
 import { z } from "zod";
 import superjson from "superjson";
 
-/** Only the switches an admin may flip. Caps, costs and the holdout salt change by migration. */
+/** Only the switches an admin may flip, and how long offer Tcoins last. Caps, costs and the holdout salt change by migration. */
 export const schema = z.object({
   enabled: z.boolean().optional(),
   shadow: z.boolean().optional(),
   aiProvider: z.enum(["deepseek", "floot"]).optional(),
+  /** Per playbook key, merged over the saved values. */
+  tcoinExpiryDays: z.record(z.string().regex(/^[a-z_]{1,40}$/), z.number().int().min(1).max(365)).optional(),
 });
 
 export type InputType = z.infer<typeof schema>;

@@ -15,7 +15,8 @@ type DrawerLink = { to: string; label: string; icon: LucideIcon; end?: boolean; 
 const PRIMARY_LINKS: DrawerLink[] = [
   { to: "/course", label: "Courses", icon: GraduationCap },
   { to: "/mock-test", label: "Test Series", icon: FileText, end: true },
-  { to: "/expert", label: "Tutors", icon: Users },
+  // Hidden from the nav for now; /expert still works by link.
+  // { to: "/expert", label: "Tutors", icon: Users },
   { to: "/study-notes", label: "Study Notes", icon: BookOpen },
 ];
 

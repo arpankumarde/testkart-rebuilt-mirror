@@ -57,6 +57,11 @@
   color: var(--surface-foreground);
 }
 
+.fieldHint {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
 .example {
   margin: 0;
   padding: var(--spacing-3);

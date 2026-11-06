@@ -13,6 +13,7 @@ type Draft = {
   maxRedeem: string;
   cashbackPercent: string;
   maxCashback: string;
+  expiryDays: string;
 };
 
 export const AdminTcoinsSettings = ({ className }: { className?: string }) => {
@@ -28,6 +29,7 @@ export const AdminTcoinsSettings = ({ className }: { className?: string }) => {
         maxRedeem: String(data.maxRedeem),
         cashbackPercent: String(data.cashbackPercent),
         maxCashback: String(data.maxCashback),
+        expiryDays: String(data.expiryDays),
       });
     }
   }, [data]);
@@ -51,17 +53,20 @@ export const AdminTcoinsSettings = ({ className }: { className?: string }) => {
   const maxRedeem = Number(draft.maxRedeem);
   const cashbackPercent = Number(draft.cashbackPercent);
   const maxCashback = Number(draft.maxCashback);
+  const expiryDays = Number(draft.expiryDays);
   const isValid =
     draft.redeemPercent.trim() !== "" && Number.isFinite(redeemPercent) && redeemPercent >= 0 && redeemPercent <= 100 &&
     draft.maxRedeem.trim() !== "" && Number.isInteger(maxRedeem) && maxRedeem >= 0 &&
     draft.cashbackPercent.trim() !== "" && Number.isFinite(cashbackPercent) && cashbackPercent >= 0 && cashbackPercent <= 100 &&
-    draft.maxCashback.trim() !== "" && Number.isInteger(maxCashback) && maxCashback >= 0;
+    draft.maxCashback.trim() !== "" && Number.isInteger(maxCashback) && maxCashback >= 0 &&
+    draft.expiryDays.trim() !== "" && Number.isInteger(expiryDays) && expiryDays >= 1 && expiryDays <= 3650;
   const hasChanged =
     draft.enabled !== data.enabled ||
     redeemPercent !== data.redeemPercent ||
     maxRedeem !== data.maxRedeem ||
     cashbackPercent !== data.cashbackPercent ||
-    maxCashback !== data.maxCashback;
+    maxCashback !== data.maxCashback ||
+    expiryDays !== data.expiryDays;
 
   const update = (field: keyof Omit<Draft, "enabled">) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setDraft({ ...draft, [field]: e.target.value });
@@ -111,6 +116,11 @@ export const AdminTcoinsSettings = ({ className }: { className?: string }) => {
           <span className={styles.fieldLabel}>Most cashback per order (coins)</span>
           <Input type="number" min={0} step={1} value={draft.maxCashback} onChange={update("maxCashback")} disabled={isPending} />
         </label>
+        <label className={styles.field}>
+          <span className={styles.fieldLabel}>Coins expire after (days)</span>
+          <Input type="number" min={1} max={3650} step={1} value={draft.expiryDays} onChange={update("expiryDays")} disabled={isPending} />
+          <span className={styles.fieldHint}>For cashback from new orders, and the starting date on a grant.</span>
+        </label>
       </div>
 
       {isValid && (
@@ -129,12 +139,20 @@ export const AdminTcoinsSettings = ({ className }: { className?: string }) => {
           <dt>Students with coins</dt>
           <dd>{data.studentsWithCoins.toLocaleString("en-IN")}</dd>
         </div>
+        <div>
+          <dt>Expiring in 7 days</dt>
+          <dd>{data.expiringSoonCoins.toLocaleString("en-IN")}</dd>
+        </div>
+        <div>
+          <dt>Expired unspent</dt>
+          <dd>{data.expiredCoins.toLocaleString("en-IN")}</dd>
+        </div>
       </dl>
 
       <div className={styles.actions}>
-        {!isValid && <span className={styles.invalid}>Percentages run 0 to 100 and the caps are whole numbers.</span>}
+        {!isValid && <span className={styles.invalid}>Percentages run 0 to 100, the caps are whole numbers and coins last at least 1 day.</span>}
         <Button
-          onClick={() => save({ enabled: draft.enabled, redeemPercent, maxRedeem, cashbackPercent, maxCashback })}
+          onClick={() => save({ enabled: draft.enabled, redeemPercent, maxRedeem, cashbackPercent, maxCashback, expiryDays })}
           disabled={!hasChanged || !isValid || isPending}
         >
           {isPending && <Loader2 className={styles.spinner} size={16} />}

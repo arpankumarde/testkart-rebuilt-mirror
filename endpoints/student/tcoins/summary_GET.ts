@@ -19,16 +19,20 @@ export async function handle(request: Request) {
           maxRedeem: 0,
           cashbackPercent: 0,
           maxCashback: 0,
+          expiryDays: 0,
           balance: 0,
           pendingCashback: 0,
           totalEarned: 0,
           totalSpent: 0,
+          totalExpired: 0,
+          expiring: [],
           history: [],
+          grants: [],
         } satisfies OutputType)
       );
     }
 
-    const [balance, orders] = await Promise.all([
+    const [balance, orders, grants] = await Promise.all([
       getTcoinBalance(user.id),
       db
         .selectFrom("orders")
@@ -43,9 +47,18 @@ export async function handle(request: Request) {
           "orders.totalAmount",
           "orders.tcoinsRedeemed",
           "orders.tcoinsCashback",
+          "orders.tcoinsCashbackExpiresAt",
           "courseBundles.title as bundleTitle",
         ])
         .orderBy("orders.id", "desc")
+        .limit(HISTORY_LIMIT)
+        .execute(),
+      db
+        .selectFrom("tcoinGrants")
+        .where("userId", "=", user.id)
+        .where("coins", ">", 0)
+        .select(["id", "createdAt", "coins", "expiresAt"])
+        .orderBy("id", "desc")
         .limit(HISTORY_LIMIT)
         .execute(),
     ]);
@@ -89,6 +102,7 @@ export async function handle(request: Request) {
         amountPaid: Number(o.totalAmount),
         tcoinsRedeemed: o.tcoinsRedeemed,
         tcoinsCashback: o.tcoinsCashback,
+        tcoinsCashbackExpiresAt: o.tcoinsCashbackExpiresAt,
       };
     });
 
@@ -99,8 +113,10 @@ export async function handle(request: Request) {
         maxRedeem: config.maxRedeem,
         cashbackPercent: config.cashbackPercent,
         maxCashback: config.maxCashback,
+        expiryDays: config.expiryDays,
         ...balance,
         history,
+        grants: grants.map((g) => ({ grantId: g.id, createdAt: g.createdAt, coins: g.coins, expiresAt: g.expiresAt })),
       } satisfies OutputType)
     );
   } catch (error) {

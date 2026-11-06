@@ -87,20 +87,22 @@ export async function handle(request: Request): Promise<Response> {
 
     // 4. Send OTP via Email
     const htmlContent = getBrandedEmailHtml({
-      title: "Your Testkart Signup Verification Code",
+      title: "Your Testkart OTP",
+      preheaderText: `This OTP expires in ${OTP_EXPIRATION_MINUTES} minutes.`,
       icon: "🔒",
-      heading: "Verify your email",
-      subheading: "Use this code to finish signing up for Testkart.",
-      bodyHtml: `<p style="margin:0;">Your verification code to sign up for Testkart is below. This code will expire in ${OTP_EXPIRATION_MINUTES} minutes. If you didn't request this code, you can safely ignore this email.</p>`,
+      eyebrow: "OTP",
+      heading: "Your sign-up OTP",
+      bodyHtml: `<p style="margin:0;">Enter this OTP to finish signing up for Testkart. It expires in ${OTP_EXPIRATION_MINUTES} minutes.</p>`,
       codeBlock: otpCode,
+      afterCtaHtml: `<p style="margin:0;">Didn't ask for this? You can ignore this email.</p>`,
       studentAppPromo: role === "student",
     });
 
     const emailSent = await sendEmail({
       to: email,
-      subject: `Your Testkart Signup Verification Code: ${otpCode}`,
+      subject: `Your Testkart OTP: ${otpCode}`,
       html: htmlContent,
-      text: `Your Testkart verification code is: ${otpCode}. This code will expire in ${OTP_EXPIRATION_MINUTES} minutes.`,
+      text: `Your Testkart OTP is: ${otpCode}. It expires in ${OTP_EXPIRATION_MINUTES} minutes.`,
     });
 
     if (!emailSent.success) {

@@ -8,6 +8,7 @@ import { Switch } from "../components/Switch";
 import { Skeleton } from "../components/Skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/Tabs";
 import { AutopilotLedger } from "../components/AutopilotLedger";
+import { AutopilotOfferExpiry } from "../components/AutopilotOfferExpiry";
 import { toast } from "sonner";
 import {
   useAutopilotAiTestMutation,
@@ -351,6 +352,14 @@ const AdminAutopilotPage: React.FC = () => {
               Goal reached means a paid order within 7 days (onboarding: a first test). Lift compares people who got
               messages with the holdout, who got none.
             </p>
+          </section>
+
+          <section className={styles.card}>
+            <h2 className={styles.cardTitle}>Tcoin offers</h2>
+            <p className={styles.aiText}>
+              How long the Tcoins on each playbook's offer message last. The message tells the student the last day.
+            </p>
+            {!data ? <Skeleton className={styles.blockSkeleton} /> : <AutopilotOfferExpiry offers={data.tcoinOffers ?? []} />}
           </section>
 
           <section className={styles.card}>

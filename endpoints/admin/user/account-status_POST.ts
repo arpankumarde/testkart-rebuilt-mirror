@@ -108,7 +108,7 @@ export async function handle(request: Request): Promise<Response> {
     let emailSent = false;
     if (target.email) {
       const displayName = escapeHtml(target.displayName);
-      const options = { studentAppPromo: false };
+      const options = { studentAppPromo: target.role === "student" };
       if (input.action === "reactivate") {
         if (previousStatus !== "active") {
           const result = await sendTemplateEmail("account_reactivated", target.email, { displayName }, options);

@@ -148,6 +148,7 @@ export async function handle(request: Request) {
           paymentTransactionId: null,
           tcoinsRedeemed: tcoins.tcoinsRedeemed,
           tcoinsCashback: tcoins.tcoinsCashback,
+          tcoinsCashbackExpiresAt: tcoins.tcoinsCashbackExpiresAt,
         })
         .returning("id")
         .executeTakeFirstOrThrow();

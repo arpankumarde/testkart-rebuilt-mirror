@@ -2,18 +2,17 @@ import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { schema, OutputType } from "./refund_POST.schema";
 import superjson from "superjson";
-import { syncMockTestStudentsEnrolled } from "../../../helpers/enrollmentCounters";
+import { revokeOrderAccess, RevokeOrderAccessResult } from "../../../helpers/revokeOrderAccess";
+import { sendEmail } from "../../../helpers/sendEmail";
+import { emailTemplatesExtra } from "../../../helpers/emailTemplatesExtra";
 
 export async function handle(request: Request) {
   try {
-    // 1. Verify admin authentication
     await getAdminServerSessionOrThrow(request);
 
-    // 2. Parse and validate input
     const json = superjson.parse(await request.text());
     const { orderId, reason } = schema.parse(json);
 
-    // 3. Fetch the order to perform initial checks
     const order = await db
       .selectFrom("orders")
       .select(["id", "status"])
@@ -46,11 +45,9 @@ export async function handle(request: Request) {
       );
     }
 
-    let updated = false;
+    let revoked: RevokeOrderAccessResult | null = null;
 
-    // 4. Database transaction with row-level locking
     await db.transaction().execute(async (trx) => {
-      // Lock the order row
       const lockedOrder = await trx
         .selectFrom("orders")
         .select(["status", "userId"])
@@ -58,51 +55,34 @@ export async function handle(request: Request) {
         .forUpdate()
         .executeTakeFirst();
 
-      // Re-check status inside transaction to prevent race conditions
       if (!lockedOrder || lockedOrder.status !== "completed") {
-        return; 
+        return;
       }
 
-      // Update the order status to refunded
       await trx
         .updateTable("orders")
         .set({ status: "refunded", refundedAt: new Date(), refundReason: reason, updatedAt: new Date() })
         .where("id", "=", orderId)
         .execute();
 
-      // Re-sync studentsEnrolled for the refunded packages rather than
-      // decrementing it.
-      //
-      // The old code did `GREATEST(students_enrolled - 1, 0)` while leaving
-      // mockTestEnrollments alone, so every refund pushed the counter one
-      // BELOW the number of rows that still grant access — the package kept
-      // its student and lost a unit of its count. Recomputing makes the
-      // counter state what is actually true.
-      //
-      // Note this deliberately does NOT revoke access: the enrollment row
-      // survives a refund today, so a refunded student still has the package.
-      // Whether that should change is a product decision, not a counter one.
-      // See helpers/enrollmentCounters.tsx.
-      const refundedItems = await trx
-        .selectFrom("orderItems")
-        .select("mockTestId")
-        .where("orderId", "=", orderId)
-        .where("mockTestId", "is not", null)
-        .execute();
-
-      await syncMockTestStudentsEnrolled(
-        refundedItems.map((item) => item.mockTestId!),
-        trx
-      );
-
-      updated = true;
+      // A refund takes back what the order unlocked, except items the student
+      // also holds through another completed order. Counters are re-synced inside.
+      revoked = await revokeOrderAccess(trx, orderId);
     });
 
-    if (updated) {
+    if (revoked) {
+      const { removed, cancelledBookingIds } = revoked as RevokeOrderAccessResult;
+      await emailCancelledBookings(cancelledBookingIds, reason);
+
+      const accessNote =
+        removed > 0
+          ? ` ${removed} ${removed === 1 ? "item was" : "items were"} removed from the student's account.`
+          : " The student had nothing left to remove from this order.";
+
       return new Response(
         superjson.stringify({
           success: true,
-          message: `Order successfully refunded${reason ? ` (Reason: ${reason})` : ""}`,
+          message: `Order refunded.${accessNote}`,
           order: {
             id: orderId,
             previousStatus: order.status,
@@ -131,5 +111,55 @@ export async function handle(request: Request) {
     return new Response(superjson.stringify({ error: errorMessage }), {
       status: 500,
     });
+  }
+}
+
+async function emailCancelledBookings(bookingIds: number[], reason: string) {
+  if (bookingIds.length === 0) return;
+  try {
+    const bookings = await db
+      .selectFrom("mentorshipBookings")
+      .innerJoin("users as student", "student.id", "mentorshipBookings.studentId")
+      .innerJoin("users as teacher", "teacher.id", "mentorshipBookings.teacherId")
+      .select([
+        "mentorshipBookings.scheduledAt",
+        "mentorshipBookings.durationMinutes",
+        "mentorshipBookings.isTrial",
+        "student.email as studentEmail",
+        "student.displayName as studentName",
+        "teacher.email as teacherEmail",
+        "teacher.displayName as teacherName",
+      ])
+      .where("mentorshipBookings.id", "in", bookingIds)
+      .execute();
+
+    for (const booking of bookings) {
+      const sessionLabel = `${booking.isTrial ? "Trial " : ""}1:1 session (${booking.durationMinutes} min)`;
+      const cancelReason = `Order refunded: ${reason}`;
+      if (booking.studentEmail) {
+        const tmpl = emailTemplatesExtra.mentorshipBookingCancelled(
+          booking.studentName,
+          booking.teacherName,
+          sessionLabel,
+          booking.scheduledAt,
+          cancelReason,
+          true
+        );
+        await sendEmail({ to: booking.studentEmail, ...tmpl });
+      }
+      if (booking.teacherEmail) {
+        const tmpl = emailTemplatesExtra.mentorshipBookingCancelled(
+          booking.teacherName,
+          booking.studentName,
+          sessionLabel,
+          booking.scheduledAt,
+          cancelReason,
+          false
+        );
+        await sendEmail({ to: booking.teacherEmail, ...tmpl });
+      }
+    }
+  } catch (emailError) {
+    console.error("[RefundOrder] Failed to send 1:1 cancellation emails:", emailError);
   }
 }

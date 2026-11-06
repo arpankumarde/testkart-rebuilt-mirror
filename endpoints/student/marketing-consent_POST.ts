@@ -7,9 +7,10 @@ import { schema, OutputType } from "./marketing-consent_POST.schema";
 const NOTICE_VERSION = "2026-11-14";
 
 /**
- * Records the student's own yes or no to WhatsApp reminders and offers. Opt-in
- * only: nothing is sent on WhatsApp without a granted row, and a STOP reply
- * (webhooks/waplify) turns it back to declined. Saying yes also clears an
+ * Records the student's own yes or no to WhatsApp reminders and offers. No page
+ * calls it since the dialog step was removed on 15-11-2026 (consent is taken
+ * outside the product and every student is recorded as granted). A STOP reply
+ * (webhooks/waplify) still turns it to declined. Saying yes also clears an
  * earlier STOP opt-out, since the student chose again.
  */
 export async function handle(request: Request): Promise<Response> {

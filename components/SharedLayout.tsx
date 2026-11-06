@@ -243,6 +243,7 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
             >
               Test Series
             </NavLink>
+            {/* Hidden from the navbar for now; /expert still works by link.
             <NavLink
               to="/expert"
               className={({ isActive }) =>
@@ -253,6 +254,7 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
             >
               Tutors
             </NavLink>
+            */}
             <NavLink
               to="/study-notes"
               className={({ isActive }) =>

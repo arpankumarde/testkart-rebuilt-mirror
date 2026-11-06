@@ -7,9 +7,11 @@ import type { AutopilotSettings } from "./getAutopilotSettings";
  * How the autopilot reaches a person, in order of preference: the Testkart app
  * (a live push token), WhatsApp on a playbook's first message, email (a real
  * address that has not bounced or unsubscribed), and WhatsApp on later
- * messages for people with no usable email. WhatsApp consent is implicit (the
- * owner's decision of 14-11-2026): anyone with a mobile number gets it unless
- * they said no in the dialog or replied STOP.
+ * messages for people with no usable email. WhatsApp consent is taken outside
+ * the product (owner's decisions of 14-11-2026 and 15-11-2026): anyone with a
+ * mobile number gets it unless a declined marketing_consents row or a STOP
+ * reply blocks it. The opt-in dialog step was removed and every recorded
+ * choice set to granted on 15-11-2026, so in practice only STOP blocks it.
  * Also the senders for push (Expo) and WhatsApp (Waplify) and Expo's delivery
  * receipts. Server-only; never throws from a send, it returns the failure.
  */

@@ -239,6 +239,7 @@ export async function handle(request: Request): Promise<Response> {
           platformFeePercentage: platformFeePercentage.toFixed(2),
           tcoinsRedeemed: tcoins.tcoinsRedeemed,
           tcoinsCashback: tcoins.tcoinsCashback,
+          tcoinsCashbackExpiresAt: tcoins.tcoinsCashbackExpiresAt,
         })
         .returning("id")
         .executeTakeFirstOrThrow();

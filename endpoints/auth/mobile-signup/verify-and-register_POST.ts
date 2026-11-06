@@ -11,7 +11,6 @@ import {
 import { randomUUID } from "crypto";
 import { sendEmail } from "../../../helpers/sendEmail";
 import { welcomeStudent } from "../../../helpers/emailTemplates";
-import { withStudentAppPromo } from "../../../helpers/emailBaseTemplate";
 import { addContactToAudience } from "../../../helpers/resendContacts";
 import { addTeacherToSalesContacts } from "../../../helpers/addTeacherToSalesContacts";
 import { getClientIp } from "../../../helpers/getClientIp";
@@ -230,49 +229,8 @@ export async function handle(request: Request): Promise<Response> {
     if (updatedUser.email) {
       const sendWelcomeEmail = async () => {
         try {
-          const templateKey = "welcome_student";
-
-          const template = await db
-            .selectFrom("emailTemplates")
-            .selectAll()
-            .where("templateKey", "=", templateKey)
-            .where("isActive", "=", true)
-            .executeTakeFirst();
-
-          let subject: string;
-          let html: string;
-          let text: string;
-
-          if (template) {
-            const replacePlaceholders = (str: string, data: Record<string, string>) => {
-              return Object.entries(data).reduce(
-                (acc, [key, value]) => acc.replace(new RegExp(`{{${key}}}`, "g"), value),
-                str
-              );
-            };
-
-            const placeholders = {
-              displayName: updatedUser.displayName,
-              email: updatedUser.email!,
-            };
-
-            subject = replacePlaceholders(template.subject, placeholders);
-            html = withStudentAppPromo(replacePlaceholders(template.htmlContent, placeholders));
-            text = replacePlaceholders(template.textContent || "", placeholders);
-          } else {
-            console.warn(`${templateKey} template not found in database, using fallback`);
-            const emailTemplate = welcomeStudent(updatedUser.displayName, updatedUser.email!);
-            subject = emailTemplate.subject;
-            html = emailTemplate.html;
-            text = emailTemplate.text;
-          }
-
-          const result = await sendEmail({
-            to: updatedUser.email!,
-            subject,
-            html,
-            text,
-          });
+          const emailTemplate = welcomeStudent(updatedUser.displayName, updatedUser.email!);
+          const result = await sendEmail({ to: updatedUser.email!, ...emailTemplate });
 
           if (result.success) {
             console.log(`Welcome email sent successfully to ${updatedUser.email}`);

@@ -14,6 +14,15 @@ export type TcoinHistoryEntry = {
   amountPaid: number;
   tcoinsRedeemed: number;
   tcoinsCashback: number;
+  /** When this order's cashback batch expires; null when it earned none. */
+  tcoinsCashbackExpiresAt: Date | null;
+};
+
+export type TcoinGrantEntry = {
+  grantId: number;
+  createdAt: Date;
+  coins: number;
+  expiresAt: Date;
 };
 
 export type OutputType = {
@@ -23,11 +32,17 @@ export type OutputType = {
   maxRedeem: number;
   cashbackPercent: number;
   maxCashback: number;
+  expiryDays: number;
   balance: number;
   pendingCashback: number;
   totalEarned: number;
   totalSpent: number;
+  totalExpired: number;
+  /** Unspent batches still to expire, soonest first. */
+  expiring: { coins: number; expiresAt: Date }[];
   history: TcoinHistoryEntry[];
+  /** Coins given by Testkart (offers, goodwill), newest first. Kept apart from history, which the app reads as orders. */
+  grants: TcoinGrantEntry[];
 };
 
 export const getStudentTcoinsSummary = async (

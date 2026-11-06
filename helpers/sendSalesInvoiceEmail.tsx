@@ -1,6 +1,6 @@
 import { db } from "./db";
 import { sendEmail } from "./sendEmail";
-import { getBrandedEmailHtml } from "./emailBaseTemplate";
+import { escapeEmailHtml, getBrandedEmailHtml } from "./emailBaseTemplate";
 import { generateSalesInvoicePdf, InvoiceNotEligibleError } from "./generateSalesInvoicePdf";
 
 // How long to keep retrying an order whose buyer has no email yet. Mobile-OTP
@@ -76,19 +76,19 @@ export async function sendSalesInvoiceEmail(orderId: number): Promise<void> {
     }
 
     const html = getBrandedEmailHtml({
-      title: `Your Invoice - ${invoiceNumber}`,
-      icon: "🧾",
-      accent: "success",
-      heading: "Your Tax Invoice",
-      subheading: `Invoice ${invoiceNumber}`,
-      bodyHtml: `<p style="margin:0;">Hi ${studentName}, thank you for your purchase! Your tax invoice is attached to this email as a PDF for your records.</p>`,
-      footerNote: "This is an automated invoice email sent from Testkart.",
+      title: `Your Testkart invoice ${invoiceNumber}`,
+      preheaderText: "Your tax invoice is attached as a PDF.",
+      eyebrow: "Invoice",
+      tone: "blue",
+      heading: "Your invoice is attached",
+      subheading: `Invoice ${escapeEmailHtml(invoiceNumber)}`,
+      bodyHtml: `<p style="margin:0;">Hi ${escapeEmailHtml(studentName)}, the tax invoice for your Testkart order is attached to this email as a PDF.</p>`,
       studentAppPromo: true,
     });
 
     const result = await sendEmail({
       to: studentEmail,
-      subject: `Your Testkart Invoice - ${invoiceNumber}`,
+      subject: `Your Testkart invoice ${invoiceNumber}`,
       html,
       attachments: [
         {

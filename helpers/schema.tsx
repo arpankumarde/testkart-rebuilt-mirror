@@ -790,6 +790,20 @@ export interface EmailTemplates {
   updatedAt: Generated<Timestamp | null>;
 }
 
+export interface EmailTemplatesBackup20261115Student {
+  createdAt: Timestamp | null;
+  description: string | null;
+  htmlContent: string | null;
+  id: number | null;
+  isActive: boolean | null;
+  name: string | null;
+  placeholders: Json | null;
+  subject: string | null;
+  templateKey: string | null;
+  textContent: string | null;
+  updatedAt: Timestamp | null;
+}
+
 export interface EmailUnsubscribes {
   createdAt: Generated<Timestamp>;
   list: string;
@@ -1672,6 +1686,7 @@ export interface Orders {
   refundReason: string | null;
   status: Generated<OrderStatus>;
   tcoinsCashback: Generated<number>;
+  tcoinsCashbackExpiresAt: Timestamp | null;
   tcoinsRedeemed: Generated<number>;
   teacherRef: string | null;
   totalAmount: Numeric;
@@ -2300,6 +2315,7 @@ export interface SupportThreads {
 export interface TcoinGrants {
   coins: number;
   createdAt: Generated<Timestamp>;
+  expiresAt: Generated<Timestamp>;
   grantedBy: string | null;
   id: Generated<number>;
   reason: string | null;
@@ -2771,6 +2787,7 @@ export interface DB {
   documentPageViews: DocumentPageViews;
   emailOtps: EmailOtps;
   emailTemplates: EmailTemplates;
+  emailTemplatesBackup20261115Student: EmailTemplatesBackup20261115Student;
   emailUnsubscribes: EmailUnsubscribes;
   examCategories: ExamCategories;
   examContentPages: ExamContentPages;
@@ -2987,6 +3004,6 @@ export const GroupLessonMinEnrollmentPolicyArrayValues: [GroupLessonMinEnrollmen
 //   }
 // and pass `new FlootCamelCasePlugin()` in plugins, otherwise queries on these
 // columns fail with "column does not exist".
-export const kyselyIdentifierOverrides: Record<string, string> = {"reminder1DaySentAt":"reminder_1_day_sent_at","reminder1HourSentAt":"reminder_1_hour_sent_at"};
+export const kyselyIdentifierOverrides: Record<string, string> = {"emailTemplatesBackup20261115Student":"email_templates_backup_20261115_student","reminder1DaySentAt":"reminder_1_day_sent_at","reminder1HourSentAt":"reminder_1_hour_sent_at"};
 
 // Note: kysely maps the table/column/enum names from snake_case to camelCase and PascalCase. When running SQL statements, make sure to use snake_case, but TypeScript code should use camelCase or PascalCase.

@@ -29,9 +29,16 @@ export type AutopilotSettings = {
   aiProvider: AutopilotAiProvider;
   /** Approved Waplify template name per playbook key; a playbook without one never uses WhatsApp. */
   whatsappTemplates: Record<string, string>;
+  /** Days the Tcoins on a playbook's offer last, per playbook key; missing keys use DEFAULT_OFFER_EXPIRY_DAYS. */
+  tcoinExpiryDays: Record<string, number>;
 };
 
 export const AUTOPILOT_SETTINGS_KEY = "rev_autopilot";
+
+export const DEFAULT_OFFER_EXPIRY_DAYS = 30;
+
+export const offerExpiryDays = (settings: AutopilotSettings, playbookKey: string): number =>
+  settings.tcoinExpiryDays[playbookKey] ?? DEFAULT_OFFER_EXPIRY_DAYS;
 
 export const DEFAULT_AUTOPILOT_SETTINGS: AutopilotSettings = {
   enabled: false,
@@ -48,6 +55,7 @@ export const DEFAULT_AUTOPILOT_SETTINGS: AutopilotSettings = {
   trackingStartedAt: null,
   aiProvider: "deepseek",
   whatsappTemplates: DEFAULT_WHATSAPP_TEMPLATE_NAMES,
+  tcoinExpiryDays: {},
 };
 
 const num = (value: unknown, fallback: number, min: number, max: number) =>
@@ -87,6 +95,11 @@ export function normalizeAutopilotSettings(raw: unknown): AutopilotSettings {
           .map(([key, value]) => [key, value as string])
       ),
     },
+    tcoinExpiryDays: Object.fromEntries(
+      Object.entries(v.tcoinExpiryDays && typeof v.tcoinExpiryDays === "object" ? (v.tcoinExpiryDays as Record<string, unknown>) : {})
+        .filter(([key, value]) => /^[a-z_]{1,40}$/.test(key) && typeof value === "number" && Number.isInteger(value) && value >= 1 && value <= 365)
+        .map(([key, value]) => [key, value as number])
+    ),
   };
 }
 

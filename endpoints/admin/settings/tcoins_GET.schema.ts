@@ -7,9 +7,13 @@ export const schema = z.object({});
 export type InputType = z.infer<typeof schema>;
 
 export type OutputType = TcoinsConfig & {
-  /** Coins students hold right now and coins still waiting on a pending order. */
+  /** Unexpired coins students hold right now. */
   outstandingCoins: number;
   studentsWithCoins: number;
+  /** Coins that expired unspent, all time. */
+  expiredCoins: number;
+  /** Held coins that expire in the next 7 days. */
+  expiringSoonCoins: number;
 };
 
 export const getAdminTcoinsSettings = async (

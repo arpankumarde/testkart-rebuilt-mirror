@@ -10,7 +10,6 @@ import superjson from "superjson";
 import { UserRole } from "../../helpers/schema";
 import { sendEmail } from "../../helpers/sendEmail";
 import { welcomeStudent } from "../../helpers/emailTemplates";
-import { withStudentAppPromo } from "../../helpers/emailBaseTemplate";
 import { addContactToAudience } from "../../helpers/resendContacts";
 import { recordSignIn } from "../../helpers/recordSignIn";
 
@@ -126,50 +125,8 @@ export async function handle(request: Request) {
     // Send welcome email
     const sendWelcomeEmail = async () => {
       try {
-        // Fetch email template from database
-        const template = await db
-          .selectFrom("emailTemplates")
-          .selectAll()
-          .where("templateKey", "=", "welcome_student")
-          .where("isActive", "=", true)
-          .executeTakeFirst();
-
-        let subject: string;
-        let html: string;
-        let text: string;
-
-        if (template) {
-          // Replace placeholders
-          const replacePlaceholders = (str: string, data: Record<string, string>) => {
-            return Object.entries(data).reduce(
-              (acc, [key, value]) => acc.replace(new RegExp(`{{${key}}}`, 'g'), value),
-              str
-            );
-          };
-
-          const placeholders = {
-            displayName: newUser.displayName,
-            email: email,
-          };
-
-          subject = replacePlaceholders(template.subject, placeholders);
-          html = withStudentAppPromo(replacePlaceholders(template.htmlContent, placeholders));
-          text = replacePlaceholders(template.textContent || "", placeholders);
-        } else {
-          // Fallback to imported helper
-          console.warn("Welcome student template not found in database, using fallback");
-          const emailTemplate = welcomeStudent(newUser.displayName, email);
-          subject = emailTemplate.subject;
-          html = emailTemplate.html;
-          text = emailTemplate.text;
-        }
-
-        const result = await sendEmail({
-          to: email,
-          subject,
-          html,
-          text,
-        });
+        const emailTemplate = welcomeStudent(newUser.displayName, email);
+        const result = await sendEmail({ to: email, ...emailTemplate });
 
         if (result.success) {
           console.log(`Welcome email sent successfully to ${newUser.email}`);

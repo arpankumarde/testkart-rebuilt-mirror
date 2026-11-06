@@ -322,6 +322,7 @@ export async function handle(request: Request) {
             platformFeePercentage: platformFeePercentage.toFixed(2),
             tcoinsRedeemed: tcoins.tcoinsRedeemed,
             tcoinsCashback: tcoins.tcoinsCashback,
+            tcoinsCashbackExpiresAt: tcoins.tcoinsCashbackExpiresAt,
           })
           .returning("id")
           .executeTakeFirstOrThrow();
@@ -355,6 +356,7 @@ export async function handle(request: Request) {
           platformFeePercentage: platformFeePercentage.toFixed(2),
           tcoinsRedeemed: tcoins.tcoinsRedeemed,
           tcoinsCashback: tcoins.tcoinsCashback,
+          tcoinsCashbackExpiresAt: tcoins.tcoinsCashbackExpiresAt,
         })
         .returning("id")
         .executeTakeFirstOrThrow();

@@ -14,12 +14,14 @@ function generateOtp(): string {
 
 function getEmailHtml(otpCode: string, isStudent: boolean): string {
   return getBrandedEmailHtml({
-    title: "Verify your email - Testkart",
+    title: "Your Testkart OTP",
+    preheaderText: "This OTP expires in 10 minutes.",
     icon: "🔒",
-    heading: "Verify your email address",
-    subheading: "Enter this code to confirm it's you.",
-    bodyHtml: `<p style="margin:0;">Please use the following 6-digit code to verify your email address. This code is valid for 10 minutes. If you did not request this code, you can safely ignore this email.</p>`,
+    eyebrow: "OTP",
+    heading: "Your email OTP",
+    bodyHtml: `<p style="margin:0;">Enter this OTP to confirm this email address. It expires in 10 minutes.</p>`,
     codeBlock: otpCode,
+    afterCtaHtml: `<p style="margin:0;">Didn't ask for this? You can ignore this email.</p>`,
     studentAppPromo: isStudent,
   });
 }
@@ -64,9 +66,9 @@ export async function handle(request: Request): Promise<Response> {
 
     const emailResult = await sendEmail({
       to: normalizedEmail,
-      subject: "Verify your email - Testkart",
+      subject: `Your Testkart OTP: ${otpCode}`,
       html: getEmailHtml(otpCode, user.role === "student"),
-      text: `Your Testkart email verification code is: ${otpCode}`,
+      text: `Your Testkart OTP is: ${otpCode}. It expires in 10 minutes.`,
     });
 
     if (!emailResult.success) {

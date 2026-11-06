@@ -61,6 +61,12 @@
     color: var(--muted-foreground);
   }
 
+  .expiryNote {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 700;
+  }
+
   .rules {
     flex: 1 1 18rem;
     max-width: 32rem;
@@ -197,6 +203,7 @@
 .summary .title,
 .summary .title svg,
 .summary .balance,
+.summary .expiryNote,
 .summary .pendingNote,
 .summary .rules {
   color: var(--fc-peach-ink);

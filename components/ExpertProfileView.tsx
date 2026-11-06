@@ -616,7 +616,8 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
         </div>
       </section>
 
-      {variant === "page" && <TeacherLiveTeachingCard teacherId={teacher.id} />}
+      {/* Live teaching hidden from the profile for now; booking pages still work by link. */}
+      {/* {variant === "page" && <TeacherLiveTeachingCard teacherId={teacher.id} />} */}
 
       <section className={styles.section} ref={catalogueRef} id="resources">
         <h2 className={styles.sectionTitle}>Learn with {shortName}</h2>

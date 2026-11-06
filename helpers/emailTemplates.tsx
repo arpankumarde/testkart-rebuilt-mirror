@@ -1,5 +1,19 @@
 import { format } from "date-fns";
-import { getBrandedEmailHtml } from "./emailBaseTemplate";
+import {
+  escapeEmailHtml as esc,
+  formatEmailDate as formatIstDate,
+  formatEmailDateTime as formatIstDateTime,
+  formatEmailRupees as rupees,
+  getBrandedEmailHtml,
+  type EmailAccent,
+} from "./emailBaseTemplate";
+
+const ORDER_ITEM_LABELS: Record<"course" | "test" | "bundle" | "digital_product", string> = {
+  course: "Course",
+  test: "Test series",
+  bundle: "Bundle",
+  digital_product: "Study notes",
+};
 
 // --- Types ---
 
@@ -26,22 +40,17 @@ export const welcomeStudent = (
   displayName: string,
   email: string
 ): EmailTemplateResult => {
-  const subject = "Welcome to Testkart! 🚀";
+  const subject = "Welcome to Testkart";
   const html = getBrandedEmailHtml({
     title: subject,
-    icon: "👋",
-    heading: `Welcome aboard, ${displayName}!`,
-    subheading: "We're thrilled to have you join the Testkart family.",
+    preheaderText: "Your account is ready. Pick your exam and take a mock test.",
+    eyebrow: "Welcome",
+    heading: `Welcome, ${esc(displayName)}`,
     bodyHtml: `
-      <p style="margin:0 0 16px;">You've successfully created your student account. Get ready to explore thousands of mock tests, courses, and study materials to ace your exams.</p>
-      <p style="margin:0;"><strong>Here's what you can do next:</strong></p>
-      <ul style="margin:12px 0 0;padding-left:20px;line-height:1.8;">
-        <li>Browse popular exams and test series</li>
-        <li>Enroll in courses from top educators</li>
-        <li>Track your progress and improve your scores</li>
-      </ul>
+      <p style="margin:0 0 12px;">Your Testkart account is ready.</p>
+      <p style="margin:0;">Pick your exam, take a mock test and see where you stand.</p>
     `,
-    ctaLabel: "Go to Dashboard",
+    ctaLabel: "Go to my dashboard",
     ctaUrl: "https://testkart.in/student/dashboard",
     studentAppPromo: true,
   });
@@ -49,29 +58,31 @@ export const welcomeStudent = (
   return {
     subject,
     html,
-    text: `Welcome to Testkart, ${displayName}! We're thrilled to have you on board. Visit your dashboard to get started: https://testkart.in/student/dashboard`,
+    text: `Welcome to Testkart, ${displayName}. Your account is ready. Pick your exam and take a mock test: https://testkart.in/student/dashboard`,
   };
 };
 
 export const orderConfirmation = (
   orderDetails: OrderDetails
 ): EmailTemplateResult => {
-  const subject = `Order Confirmation #${orderDetails.orderId}`;
+  const subject = `Your Testkart order #${orderDetails.orderId} is confirmed`;
 
   const html = getBrandedEmailHtml({
     title: subject,
-    icon: "🎉",
-    heading: "Thank you for your purchase!",
-    subheading: `Order #${orderDetails.orderId} · ${format(orderDetails.date, "PPP")}`,
+    preheaderText: "Everything in this order is ready in your dashboard.",
+    eyebrow: "Order confirmed",
+    accent: "success",
+    heading: "Thanks, your order is confirmed",
+    subheading: `Order #${orderDetails.orderId} &middot; ${formatIstDate(orderDetails.date)}`,
+    bodyHtml: `<p style="margin:0;">Everything in this order is ready in your dashboard.</p>`,
     table: [
       ...orderDetails.items.map((item) => ({
-        label: `${item.title} (${item.type})`,
-        value: `₹${item.price.toFixed(2)}`,
+        label: `<span style="color:#21283B;font-weight:600;">${esc(item.title)}</span><br><span style="font-size:12px;">${ORDER_ITEM_LABELS[item.type]}</span>`,
+        value: item.price > 0 ? rupees(item.price) : "Free",
       })),
-      { label: "Total", value: `₹${orderDetails.totalAmount.toFixed(2)}`, emphasize: true },
+      { label: "Total", value: rupees(orderDetails.totalAmount), emphasize: true },
     ],
-    bodyHtml: `<p style="margin:0;">You can access your purchased items immediately from your dashboard.</p>`,
-    ctaLabel: "Access My Content",
+    ctaLabel: "Open my dashboard",
     ctaUrl: "https://testkart.in/student/dashboard",
     studentAppPromo: true,
   });
@@ -79,7 +90,7 @@ export const orderConfirmation = (
   return {
     subject,
     html,
-    text: `Thank you for your purchase! Order #${orderDetails.orderId} for ₹${orderDetails.totalAmount} has been confirmed. Access your content at https://testkart.in/student/dashboard`,
+    text: `Your order #${orderDetails.orderId} for ${rupees(orderDetails.totalAmount)} is confirmed. Everything in it is ready at https://testkart.in/student/dashboard`,
   };
 };
 
@@ -88,14 +99,18 @@ export const testEnrollment = (
   testName: string,
   teacherName: string
 ): EmailTemplateResult => {
-  const subject = `Enrolled: ${testName}`;
+  const subject = `You're enrolled: ${testName}`;
   const html = getBrandedEmailHtml({
     title: subject,
-    icon: "📚",
-    heading: "Enrollment Successful!",
-    subheading: `Hi ${studentName}`,
-    bodyHtml: `<p style="margin:0;">You have successfully enrolled in the test series <strong>"${testName}"</strong> by ${teacherName}. Get ready to practice and improve your skills!</p>`,
-    ctaLabel: "Start Practicing",
+    preheaderText: "Your test series is in your account. Start whenever you're ready.",
+    eyebrow: "Test series",
+    tone: "blue",
+    heading: "Your test series is ready",
+    bodyHtml: `
+      <p style="margin:0 0 12px;">Hi ${esc(studentName)},</p>
+      <p style="margin:0;"><strong>${esc(testName)}</strong> by ${esc(teacherName)} is now in your account. Start with the first test whenever you're ready.</p>
+    `,
+    ctaLabel: "Start practising",
     ctaUrl: "https://testkart.in/student/tests",
     studentAppPromo: true,
   });
@@ -103,7 +118,7 @@ export const testEnrollment = (
   return {
     subject,
     html,
-    text: `Hi ${studentName}, you have successfully enrolled in "${testName}" by ${teacherName}. Start practicing now at https://testkart.in/student/tests`,
+    text: `Hi ${studentName}, "${testName}" by ${teacherName} is now in your account. Start practising at https://testkart.in/student/tests`,
   };
 };
 
@@ -112,14 +127,18 @@ export const courseEnrollment = (
   courseName: string,
   teacherName: string
 ): EmailTemplateResult => {
-  const subject = `Enrolled: ${courseName}`;
+  const subject = `You're enrolled: ${courseName}`;
   const html = getBrandedEmailHtml({
     title: subject,
-    icon: "🎬",
-    heading: "Course Enrollment Successful!",
-    subheading: `Hi ${studentName}`,
-    bodyHtml: `<p style="margin:0;">You are now enrolled in the course <strong>"${courseName}"</strong> by ${teacherName}. Start learning today!</p>`,
-    ctaLabel: "Go to Course",
+    preheaderText: "Your course is in your account. Start with the first lesson.",
+    eyebrow: "Course",
+    tone: "lavender",
+    heading: "Your course is ready",
+    bodyHtml: `
+      <p style="margin:0 0 12px;">Hi ${esc(studentName)},</p>
+      <p style="margin:0;"><strong>${esc(courseName)}</strong> by ${esc(teacherName)} is now in your account. Start with the first lesson whenever you're ready.</p>
+    `,
+    ctaLabel: "Start learning",
     ctaUrl: "https://testkart.in/student/courses",
     studentAppPromo: true,
   });
@@ -127,7 +146,7 @@ export const courseEnrollment = (
   return {
     subject,
     html,
-    text: `Hi ${studentName}, you are now enrolled in "${courseName}" by ${teacherName}. Start learning at https://testkart.in/student/courses`,
+    text: `Hi ${studentName}, "${courseName}" by ${teacherName} is now in your account. Start learning at https://testkart.in/student/courses`,
   };
 };
 
@@ -136,14 +155,18 @@ export const bundleEnrollment = (
   bundleName: string,
   teacherName: string
 ): EmailTemplateResult => {
-  const subject = `Bundle Enrolled: ${bundleName}`;
+  const subject = `Your bundle is unlocked: ${bundleName}`;
   const html = getBrandedEmailHtml({
     title: subject,
-    icon: "📦",
-    heading: "Bundle Unlocked!",
-    subheading: `Hi ${studentName}`,
-    bodyHtml: `<p style="margin:0;">You have successfully purchased the bundle <strong>"${bundleName}"</strong> by ${teacherName}. All the courses and tests included in this bundle have been added to your account.</p>`,
-    ctaLabel: "View My Dashboard",
+    preheaderText: "Everything in your bundle is in your account.",
+    eyebrow: "Bundle",
+    tone: "sage",
+    heading: "Your bundle is unlocked",
+    bodyHtml: `
+      <p style="margin:0 0 12px;">Hi ${esc(studentName)},</p>
+      <p style="margin:0;"><strong>${esc(bundleName)}</strong> by ${esc(teacherName)} is now in your account, with every course and test it includes.</p>
+    `,
+    ctaLabel: "Open my dashboard",
     ctaUrl: "https://testkart.in/student/dashboard",
     studentAppPromo: true,
   });
@@ -151,7 +174,7 @@ export const bundleEnrollment = (
   return {
     subject,
     html,
-    text: `Hi ${studentName}, you have successfully purchased the bundle "${bundleName}". Access your content at https://testkart.in/student/dashboard`,
+    text: `Hi ${studentName}, the bundle "${bundleName}" is now in your account. Open it at https://testkart.in/student/dashboard`,
   };
 };
 
@@ -160,16 +183,20 @@ export const liveTestEnrollment = (
   testName: string,
   scheduledDate: Date
 ): EmailTemplateResult => {
-  const subject = `Registration Confirmed: ${testName}`;
-  const formattedDate = format(scheduledDate, "PPP p");
+  const subject = `You're registered: ${testName}`;
+  const formattedDate = formatIstDateTime(scheduledDate);
   const html = getBrandedEmailHtml({
     title: subject,
-    icon: "🎯",
-    heading: "Live Test Registration Confirmed",
-    subheading: `Hi ${studentName}`,
-    bodyHtml: `<p style="margin:0;">You are registered for the live test <strong>"${testName}"</strong>. Please make sure to log in 10 minutes before the start time.</p>`,
-    table: [{ label: "Scheduled Time", value: formattedDate, emphasize: true }],
-    ctaLabel: "View Live Tests",
+    preheaderText: `Starts ${formattedDate}. Log in 10 minutes early.`,
+    eyebrow: "Live test",
+    tone: "mint",
+    heading: "You're registered",
+    bodyHtml: `
+      <p style="margin:0 0 12px;">Hi ${esc(studentName)},</p>
+      <p style="margin:0;">You're registered for <strong>${esc(testName)}</strong>. Log in 10 minutes early so you're ready when it starts.</p>
+    `,
+    table: [{ label: "Starts", value: formattedDate, emphasize: true }],
+    ctaLabel: "View live tests",
     ctaUrl: "https://testkart.in/live-test",
     studentAppPromo: true,
   });
@@ -177,28 +204,28 @@ export const liveTestEnrollment = (
   return {
     subject,
     html,
-    text: `Hi ${studentName}, you are registered for "${testName}" scheduled at ${formattedDate}. Please log in early.`,
+    text: `Hi ${studentName}, you're registered for "${testName}", starting ${formattedDate}. Log in 10 minutes early.`,
   };
 };
 
 export const paymentSuccessful = (
   orderDetails: OrderDetails
 ): EmailTemplateResult => {
-  const subject = `Payment Receipt for Order #${orderDetails.orderId}`;
+  const subject = `Payment received for order #${orderDetails.orderId}`;
   const html = getBrandedEmailHtml({
     title: subject,
-    icon: "💳",
+    eyebrow: "Payment received",
     accent: "success",
-    heading: "Payment Successful",
-    bodyHtml: `<p style="margin:0;">We have received your payment for Order #${orderDetails.orderId}. Thank you for choosing Testkart.</p>`,
-    table: [{ label: "Amount Paid", value: `₹${orderDetails.totalAmount.toFixed(2)}`, emphasize: true }],
+    heading: "We've received your payment",
+    bodyHtml: `<p style="margin:0;">Thanks for your payment for order #${orderDetails.orderId}.</p>`,
+    table: [{ label: "Amount paid", value: rupees(orderDetails.totalAmount), emphasize: true }],
     studentAppPromo: true,
   });
 
   return {
     subject,
     html,
-    text: `Payment of ₹${orderDetails.totalAmount} for Order #${orderDetails.orderId} was successful.`,
+    text: `We've received your payment of ${rupees(orderDetails.totalAmount)} for order #${orderDetails.orderId}.`,
   };
 };
 
@@ -244,12 +271,67 @@ export const withdrawalRequested = (
   };
 };
 
+const STUDENT_WITHDRAWAL_COPY: Record<
+  "completed" | "failed" | "cancelled" | "pending",
+  { subject: string; eyebrow: string; accent: EmailAccent; heading: string; line: (amount: string) => string }
+> = {
+  completed: {
+    subject: "Your withdrawal is complete",
+    eyebrow: "Withdrawal complete",
+    accent: "success",
+    heading: "Your money is on its way",
+    line: (amount) => `We've sent <strong>${amount}</strong> to your bank account. It should reach you shortly.`,
+  },
+  failed: {
+    subject: "Your withdrawal could not be completed",
+    eyebrow: "Withdrawal failed",
+    accent: "danger",
+    heading: "Your withdrawal could not be completed",
+    line: (amount) => `We could not complete your withdrawal of <strong>${amount}</strong>. Check your wallet for details, or write to us and we'll help.`,
+  },
+  cancelled: {
+    subject: "Your withdrawal was cancelled",
+    eyebrow: "Withdrawal cancelled",
+    accent: "warning",
+    heading: "Your withdrawal was cancelled",
+    line: (amount) => `Your withdrawal request for <strong>${amount}</strong> was cancelled. Check your wallet for details.`,
+  },
+  pending: {
+    subject: "Your withdrawal is being processed",
+    eyebrow: "Withdrawal",
+    accent: "info",
+    heading: "Your withdrawal is being processed",
+    line: (amount) => `Your withdrawal request for <strong>${amount}</strong> is being processed.`,
+  },
+};
+
 export const withdrawalProcessed = (
   teacherName: string,
   amount: number,
   status: "completed" | "failed" | "cancelled" | "pending",
   forStudent = false
 ): EmailTemplateResult => {
+  if (forStudent) {
+    const copy = STUDENT_WITHDRAWAL_COPY[status];
+    return {
+      subject: copy.subject,
+      html: getBrandedEmailHtml({
+        title: copy.subject,
+        eyebrow: copy.eyebrow,
+        accent: copy.accent,
+        heading: copy.heading,
+        bodyHtml: `
+          <p style="margin:0 0 12px;">Hi ${esc(teacherName)},</p>
+          <p style="margin:0;">${copy.line(rupees(amount))}</p>
+        `,
+        ctaLabel: "View my wallet",
+        ctaUrl: "https://testkart.in/student/wallet",
+        studentAppPromo: true,
+      }),
+      text: `Hi ${teacherName}, your withdrawal of ${rupees(amount)} is now ${status}. See your wallet: https://testkart.in/student/wallet`,
+    };
+  }
+
   const subject = `Withdrawal Update: ${status.toUpperCase()}`;
   const html = getBrandedEmailHtml({
     title: subject,
@@ -265,7 +347,6 @@ export const withdrawalProcessed = (
           : "Please check your dashboard for more details or contact support if you have questions."
       }</p>
     `,
-    studentAppPromo: forStudent,
   });
 
   return {
@@ -283,11 +364,15 @@ export const sponsoredEnrollment = (
   const subject = `You've been enrolled in ${itemName}`;
   const html = getBrandedEmailHtml({
     title: subject,
-    icon: "🎁",
-    heading: "Congratulations!",
-    subheading: `Hi ${studentName}`,
-    bodyHtml: `<p style="margin:0;"><strong>${sponsorName}</strong> has enrolled you in <strong>"${itemName}"</strong>. You can access this content immediately from your dashboard.</p>`,
-    ctaLabel: "Go to Dashboard",
+    preheaderText: `${esc(sponsorName)} has enrolled you. It is ready in your dashboard.`,
+    eyebrow: "Sponsored for you",
+    tone: "mint",
+    heading: "You've been enrolled",
+    bodyHtml: `
+      <p style="margin:0 0 12px;">Hi ${esc(studentName)},</p>
+      <p style="margin:0;"><strong>${esc(sponsorName)}</strong> has enrolled you in <strong>${esc(itemName)}</strong>. It is ready in your dashboard.</p>
+    `,
+    ctaLabel: "Open my dashboard",
     ctaUrl: "https://testkart.in/student/dashboard",
     studentAppPromo: true,
   });
@@ -295,7 +380,7 @@ export const sponsoredEnrollment = (
   return {
     subject,
     html,
-    text: `Hi ${studentName}, ${sponsorName} has enrolled you in "${itemName}". Access it at https://testkart.in/student/dashboard`,
+    text: `Hi ${studentName}, ${sponsorName} has enrolled you in "${itemName}". Open it at https://testkart.in/student/dashboard`,
   };
 };
 

@@ -24,7 +24,8 @@ export type StepCopy = { subject: string; heading: string; body: string; cta: st
 export type PlaybookStep = {
   delayMinutes: number;
   offer?: boolean;
-  variants: Record<"a" | "b", (ctx: PlaybookContext, coins: number) => StepCopy>;
+  /** coinsExpireOn is the offer coins' expiry date, ready to print. */
+  variants: Record<"a" | "b", (ctx: PlaybookContext, coins: number, coinsExpireOn: string) => StepCopy>;
 };
 
 export type PlaybookTrigger = { userId: number; ref: string; at: Date; context: PlaybookContext };
@@ -55,8 +56,8 @@ export const firstNameOf = (displayName: string | null | undefined) => {
 };
 
 const inr = (value: number) => `Rs ${Math.round(value).toLocaleString("en-IN")}`;
-const coinsLine = (coins: number) =>
-  coins > 0 ? ` We've added ${coins} Tcoins to your account, usable on this order at checkout.` : "";
+const coinsLine = (coins: number, expireOn: string) =>
+  coins > 0 ? ` We've added ${coins} Tcoins to your account, usable on this order at checkout until ${expireOn}.` : "";
 
 const failedPayment: Playbook = {
   key: "failed_payment",
@@ -102,16 +103,16 @@ const failedPayment: Playbook = {
       delayMinutes: 24 * 60,
       offer: true,
       variants: {
-        a: (ctx, coins) => ({
+        a: (ctx, coins, coinsExpireOn) => ({
           subject: "A little help to finish your order",
           heading: `${ctx.firstName}, here's something for your order`,
-          body: `Your order for ${ctx.itemTitle} is still open.${coinsLine(coins)}`,
+          body: `Your order for ${ctx.itemTitle} is still open.${coinsLine(coins, coinsExpireOn)}`,
           cta: "Complete my order",
         }),
-        b: (ctx, coins) => ({
+        b: (ctx, coins, coinsExpireOn) => ({
           subject: `Last reminder about ${ctx.itemTitle}`,
           heading: "We won't remind you again",
-          body: `This is our last note about your order for ${ctx.itemTitle}.${coinsLine(coins)}`,
+          body: `This is our last note about your order for ${ctx.itemTitle}.${coinsLine(coins, coinsExpireOn)}`,
           cta: "Complete my order",
         }),
       },
@@ -193,16 +194,16 @@ const cartAbandoned: Playbook = {
       delayMinutes: 48 * 60,
       offer: true,
       variants: {
-        a: (ctx, coins) => ({
+        a: (ctx, coins, coinsExpireOn) => ({
           subject: "Something for your cart",
           heading: `${ctx.firstName}, here's a little help`,
-          body: `${ctx.itemTitle} is still in your cart.${coinsLine(coins)}`,
+          body: `${ctx.itemTitle} is still in your cart.${coinsLine(coins, coinsExpireOn)}`,
           cta: "Go to my cart",
         }),
-        b: (ctx, coins) => ({
+        b: (ctx, coins, coinsExpireOn) => ({
           subject: "Last note about your cart",
           heading: "We won't remind you again",
-          body: `This is our last reminder about ${ctx.itemTitle}.${coinsLine(coins)}`,
+          body: `This is our last reminder about ${ctx.itemTitle}.${coinsLine(coins, coinsExpireOn)}`,
           cta: "Go to my cart",
         }),
       },
@@ -354,16 +355,16 @@ const freeToPaid: Playbook = {
       delayMinutes: 4 * 24 * 60,
       offer: true,
       variants: {
-        a: (ctx, coins) => ({
+        a: (ctx, coins, coinsExpireOn) => ({
           subject: `Something to help you start ${ctx.itemTitle}`,
           heading: `${ctx.firstName}, ready for the full series?`,
-          body: `You've already tried a paper from ${ctx.itemTitle} (${inr(ctx.amount)}).${coinsLine(coins)}`,
+          body: `You've already tried a paper from ${ctx.itemTitle} (${inr(ctx.amount)}).${coinsLine(coins, coinsExpireOn)}`,
           cta: "Get the full series",
         }),
-        b: (ctx, coins) => ({
+        b: (ctx, coins, coinsExpireOn) => ({
           subject: "Your next mock tests",
           heading: "Pick up the full series",
-          body: `${ctx.itemTitle} continues where your free paper stopped.${coinsLine(coins)}`,
+          body: `${ctx.itemTitle} continues where your free paper stopped.${coinsLine(coins, coinsExpireOn)}`,
           cta: "Get the full series",
         }),
       },

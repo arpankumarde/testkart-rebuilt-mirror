@@ -947,7 +947,7 @@ export const AdminTransactionsTable: React.FC = () => {
         title="Refund this order?"
         description={
           refundTarget
-            ? `Order #${refundTarget.id} for ${formatInr(refundTarget.amount)} is marked refunded, and the amount comes back out of the teacher's earnings. The money itself is returned through PayU separately.`
+            ? `Order #${refundTarget.id} for ${formatInr(refundTarget.amount)} is marked refunded and the amount comes back out of the teacher's earnings. The student loses access to everything this order unlocked, unless they also bought it in another order. The money itself is returned through PayU separately.`
             : undefined
         }
         note={{

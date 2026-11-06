@@ -1,6 +1,6 @@
 import { sql } from "kysely";
 import { db } from "./db";
-import { getAutopilotSettings, type AutopilotSettings } from "./getAutopilotSettings";
+import { getAutopilotSettings, offerExpiryDays, type AutopilotSettings } from "./getAutopilotSettings";
 import { isInGlobalHoldout } from "./isInGlobalHoldout";
 import { nextSendTime, offerCoins, pickVariant, type VariantStats } from "./autopilotRules";
 import { AUTOPILOT_PLAYBOOKS, type Playbook, type PlaybookContext } from "./autopilotPlaybooks";
@@ -42,6 +42,7 @@ const MAX_DISPATCH_PER_RUN = 150;
 const GIVE_UP_AFTER_DAYS = 14;
 const PLAYBOOKS = new Map(AUTOPILOT_PLAYBOOKS.map((playbook) => [playbook.key, playbook]));
 const DAY_MS = 24 * 60 * 60 * 1000;
+const expiryLabel = new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" });
 
 export async function enrolTriggers(settings: AutopilotSettings): Promise<number> {
   let enrolled = 0;
@@ -188,6 +189,7 @@ function emailHtml(copy: { heading: string; body: string; cta: string }, url: st
   return getBrandedEmailHtml({
     title: copy.heading,
     preheaderText: copy.body.slice(0, 120),
+    tone: "blue",
     heading: copy.heading,
     bodyHtml: `<p style="margin:0;font-size:15px;line-height:1.6;">${escape(copy.body)}</p>`,
     ctaLabel: copy.cta,
@@ -345,6 +347,7 @@ export async function dispatchDue(settings: AutopilotSettings): Promise<{ sent: 
         .executeTakeFirstOrThrow();
 
       let coins = 0;
+      const coinsExpireAt = new Date(now.getTime() + offerExpiryDays(settings, playbook.key) * DAY_MS);
       if (step.offer && tcoins.enabled) {
         coins = offerCoins({
           takeRupees: await takeForContext(enrolment.context),
@@ -359,7 +362,13 @@ export async function dispatchDue(settings: AutopilotSettings): Promise<{ sent: 
           if (!settings.shadow) {
             const grant = await db
               .insertInto("tcoinGrants")
-              .values({ userId: enrolment.userId, coins, reason: `Autopilot: ${playbook.label}`, grantedBy: "autopilot" })
+              .values({
+                userId: enrolment.userId,
+                coins,
+                reason: `Autopilot: ${playbook.label}`,
+                grantedBy: "autopilot",
+                expiresAt: coinsExpireAt,
+              })
               .returning("id")
               .executeTakeFirst();
             grantId = grant?.id ?? null;
@@ -380,7 +389,7 @@ export async function dispatchDue(settings: AutopilotSettings): Promise<{ sent: 
         }
       }
 
-      const copy = step.variants[variantKey](enrolment.context, coins);
+      const copy = step.variants[variantKey](enrolment.context, coins, expiryLabel.format(coinsExpireAt));
       if (settings.shadow) {
         await db.updateTable("revMessages").set({ status: "skipped", error: "shadow" }).where("id", "=", message.id).execute();
         counts.shadow++;

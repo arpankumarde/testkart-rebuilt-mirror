@@ -11,7 +11,8 @@ import styles from './MobileBottomNav.module.css';
 const navItems = [
   { path: '/course', label: 'Courses', icon: GraduationCap },
   { path: '/mock-test', label: 'Tests', icon: FileText },
-  { path: '/expert', label: 'Tutors', icon: Users },
+  // Hidden from the nav for now; /expert still works by link.
+  // { path: '/expert', label: 'Tutors', icon: Users },
   { path: '/study-notes', label: 'Notes', icon: ShoppingBag },
   { path: '/more', label: 'More', icon: LayoutGrid },
   { path: '/profile', label: 'Profile', icon: User },

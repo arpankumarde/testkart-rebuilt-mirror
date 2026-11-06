@@ -1,10 +1,12 @@
 import { db } from "./db";
 import { sendEmail } from "./sendEmail";
 import { withStudentAppPromo } from "./emailBaseTemplate";
+import { renderStudentTemplateEmail } from "./studentTemplateEmails";
 
 export const ADMIN_EMAIL = "teamtestkart@gmail.com";
 
-// Templates that only ever go to students carry the app-download footer.
+// Templates that only ever go to students. They are built in code
+// (helpers/studentTemplateEmails) and have no row in the email_templates table.
 const STUDENT_TEMPLATE_KEYS = new Set([
   "welcome_student",
   "live_test_reminder",
@@ -17,13 +19,15 @@ const STUDENT_TEMPLATE_KEYS = new Set([
 ]);
 
 /**
- * Sends an email using a template stored in the database.
- * 
- * @param templateKey - The unique key of the template in the `emailTemplates` table
+ * Sends a templated email. Student emails come from code; everything else is
+ * read from the `emailTemplates` table, where admins can edit it.
+ *
+ * @param templateKey - The unique key of the template
  * @param to - The recipient email address(es)
  * @param placeholders - A record of placeholders to replace in the subject and content (e.g. { name: 'John' } replaces {{name}})
- * @param options.studentAppPromo - Adds the app-download footer. Defaults to true for
- *   student-only templates; pass it for templates shared by students and teachers.
+ * @param options.studentAppPromo - Marks the recipient as a student. Defaults to true for
+ *   student-only templates; pass it for templates shared by students and teachers, so a
+ *   student gets the student version when one exists.
  * @returns A promise that resolves to an object indicating success or failure
  */
 export async function sendTemplateEmail(
@@ -33,6 +37,16 @@ export async function sendTemplateEmail(
   options: { studentAppPromo?: boolean } = {}
 ): Promise<{ success: boolean; skipped?: boolean }> {
   try {
+    const forStudent = options.studentAppPromo ?? STUDENT_TEMPLATE_KEYS.has(templateKey);
+
+    if (forStudent) {
+      const rendered = renderStudentTemplateEmail(templateKey, placeholders);
+      if (rendered) {
+        const result = await sendEmail({ to, ...rendered });
+        return { success: result.success };
+      }
+    }
+
     const template = await db
       .selectFrom("emailTemplates")
       .selectAll()
@@ -59,7 +73,7 @@ export async function sendTemplateEmail(
       }
     }
 
-    if (options.studentAppPromo ?? STUDENT_TEMPLATE_KEYS.has(templateKey)) {
+    if (forStudent) {
       htmlContent = withStudentAppPromo(htmlContent);
     }
 
