@@ -53,7 +53,7 @@ const booking = await db
     const result = await db.transaction().execute(async (trx) => {
       await sql`select pg_advisory_xact_lock(hashtext(${"mentorship_booking_teacher_" + booking.teacherId}))`.execute(trx);
 
-      const bookable = await isTeacherSlotBookable(booking.teacherId, input.newStartTime, booking.durationMinutes);
+      const bookable = await isTeacherSlotBookable(booking.teacherId, input.newStartTime, booking.durationMinutes, trx);
       if (!bookable.ok) throw new Error(bookable.reason);
 
       await trx

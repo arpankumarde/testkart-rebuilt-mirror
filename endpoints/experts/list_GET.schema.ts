@@ -35,6 +35,8 @@ export type ExpertListItem = {
   rating: number | null;
   reviewsCount: number;
   studentsCount: number;
+  /** Completed 1:1 sessions plus completed group lessons. */
+  lessonsCount: number;
 };
 
 export type OutputType = {

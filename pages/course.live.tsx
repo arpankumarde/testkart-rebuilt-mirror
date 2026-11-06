@@ -32,6 +32,7 @@ const LiveCoursesPage: React.FC = () => {
         <link rel="canonical" href="https://testkart.in/course/live" />
       </Helmet>
 
+      <div className={`${styles.page} tk-flow`}>
       <div className={styles.pageWrapper}>
         <header className={styles.hero}>
           <span className={styles.eyebrow}>
@@ -105,7 +106,9 @@ const LiveCoursesPage: React.FC = () => {
                   )}
                   <div className={styles.cardTop}>
                     {lesson.subject && <span className={styles.subjectTag}>{lesson.subject}</span>}
-                    <span className={styles.priceTag}>{formatPrice(lesson.pricePerLearner)}</span>
+                    <span className={`${styles.priceTag} ${lesson.pricePerLearner > 0 ? "" : styles.priceFree}`}>
+                      {formatPrice(lesson.pricePerLearner)}
+                    </span>
                   </div>
                   <h3 className={styles.cardTitle}>{lesson.title}</h3>
                   <div className={styles.cardTeacher}>
@@ -139,6 +142,7 @@ const LiveCoursesPage: React.FC = () => {
             </p>
           </div>
         </main>
+      </div>
       </div>
     </>
   );

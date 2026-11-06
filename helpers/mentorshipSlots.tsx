@@ -1,5 +1,7 @@
 import { fromZonedTime, toZonedTime } from "date-fns-tz";
+import type { Kysely } from "kysely";
 import { db } from "./db";
+import type { DB } from "./schema";
 import { BOOKING_MIN_NOTICE_MINUTES, DEFAULT_SLOT_BUFFER_MINUTES } from "./liveLessonConfig";
 
 export interface AvailableSlot {
@@ -126,16 +128,23 @@ export async function generateTeacherSlots(
  * availability window (in the teacher's own timezone), not on a blocked date, past the minimum
  * notice, and not overlapping an existing booking. Call this again inside the booking transaction
  * - never trust a slot the client cached, since availability can change between page load and
- * checkout and two learners can race for the same instant.
+ * checkout and two learners can race for the same instant. Inside a transaction, pass its `trx`
+ * as `executor`: the pool holds one connection, so a query on the global `db` would wait forever
+ * on the connection the transaction itself is holding.
  */
-export async function isTeacherSlotBookable(teacherId: number, startTime: Date, durationMinutes: number): Promise<{ ok: true } | { ok: false; reason: string }> {
+export async function isTeacherSlotBookable(
+  teacherId: number,
+  startTime: Date,
+  durationMinutes: number,
+  executor: Kysely<DB> = db
+): Promise<{ ok: true } | { ok: false; reason: string }> {
   const now = new Date();
   const earliestBookable = new Date(now.getTime() + BOOKING_MIN_NOTICE_MINUTES * 60000);
   if (startTime < earliestBookable) {
     return { ok: false, reason: `Bookings need at least ${BOOKING_MIN_NOTICE_MINUTES} minutes' notice.` };
   }
 
-  const teacher = await db.selectFrom("users").select(["timezone"]).where("id", "=", teacherId).executeTakeFirst();
+  const teacher = await executor.selectFrom("users").select(["timezone"]).where("id", "=", teacherId).executeTakeFirst();
   if (!teacher) return { ok: false, reason: "Teacher not found." };
   const timezone = teacher.timezone;
 
@@ -144,14 +153,14 @@ export async function isTeacherSlotBookable(teacherId: number, startTime: Date, 
   const minutesOfDay = zoned.getHours() * 60 + zoned.getMinutes();
 
   const [windows, blocked] = await Promise.all([
-    db
+    executor
       .selectFrom("mentorshipAvailability")
       .select(["startTime", "endTime"])
       .where("teacherId", "=", teacherId)
       .where("dayOfWeek", "=", dayOfWeek)
       .where("isActive", "=", true)
       .execute(),
-    db
+    executor
       .selectFrom("mentorshipBlockedDates")
       .select(["blockedDate"])
       .where("teacherId", "=", teacherId)
@@ -171,7 +180,7 @@ export async function isTeacherSlotBookable(teacherId: number, startTime: Date, 
   });
   if (!fits) return { ok: false, reason: "This time is outside the teacher's available hours." };
 
-  const free = await isTeacherSlotFree(teacherId, startTime, durationMinutes);
+  const free = await isTeacherSlotFree(teacherId, startTime, durationMinutes, undefined, undefined, executor);
   if (!free) return { ok: false, reason: "This time was just booked by someone else. Please pick another slot." };
 
   return { ok: true };
@@ -181,18 +190,20 @@ export async function isTeacherSlotBookable(teacherId: number, startTime: Date, 
  * True if [startTime, startTime+durationMinutes) overlaps no existing non-cancelled 1:1 booking
  * AND no scheduled group lesson for this teacher - the same teacher's calendar is shared across
  * both class types. excludeBookingId/excludeGroupLessonId let a reschedule/edit check against
- * everything else without tripping on its own current (about-to-change) row.
+ * everything else without tripping on its own current (about-to-change) row. Pass the
+ * transaction as `executor` when calling from inside one.
  */
 export async function isTeacherSlotFree(
   teacherId: number,
   startTime: Date,
   durationMinutes: number,
   excludeBookingId?: number,
-  excludeGroupLessonId?: number
+  excludeGroupLessonId?: number,
+  executor: Kysely<DB> = db
 ): Promise<boolean> {
   const endTime = new Date(startTime.getTime() + durationMinutes * 60000);
 
-  let bookingsQuery = db
+  let bookingsQuery = executor
     .selectFrom("mentorshipBookings")
     .select(["id", "scheduledAt", "durationMinutes"])
     .where("teacherId", "=", teacherId)
@@ -201,7 +212,7 @@ export async function isTeacherSlotFree(
     bookingsQuery = bookingsQuery.where("id", "!=", excludeBookingId);
   }
 
-  let groupLessonsQuery = db
+  let groupLessonsQuery = executor
     .selectFrom("groupLessons")
     .select(["id", "startTime as scheduledAt", "durationMinutes"])
     .where("teacherId", "=", teacherId)

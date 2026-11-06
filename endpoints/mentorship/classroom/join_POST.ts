@@ -8,13 +8,13 @@ import superjson from "superjson";
 
 export async function handle(request: Request) {
   try {
-    const { user } = await getServerUserSession(request);
+    const { user, effectiveTeacherId } = await getServerUserSession(request);
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);
 
     // Re-resolve membership and timing from the database on every join call - never trust a client
     // claim about role or whether "now" is inside the window.
-    const ctx = await getLessonAccessContext(input.kind, input.id, user);
+    const ctx = await getLessonAccessContext(input.kind, input.id, user, effectiveTeacherId);
 
     if (ctx.status === "cancelled") {
       return new Response(superjson.stringify({ error: "This lesson was cancelled." }), { status: 400 });
@@ -39,6 +39,7 @@ export async function handle(request: Request) {
       identity: `user-${user.id}`,
       displayName: user.displayName,
       role: ctx.viewerRole,
+      audience: ctx.kind === "group" ? "group" : "one_to_one",
       ttlSeconds: (ctx.durationMinutes + JOIN_WINDOW_MINUTES_AFTER) * 60,
     });
 

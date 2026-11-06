@@ -6,13 +6,13 @@ import superjson from "superjson";
 
 export async function handle(request: Request) {
   try {
-    const { user } = await getServerUserSession(request);
+    const { user, effectiveTeacherId } = await getServerUserSession(request);
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);
 
     // Membership is re-checked on every message - chat history must never leak to someone no
     // longer a participant (e.g. a removed group-lesson learner).
-    await getLessonAccessContext(input.kind, input.id, user);
+    await getLessonAccessContext(input.kind, input.id, user, effectiveTeacherId);
 
     const values =
       input.kind === "booking"

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { Video, Calendar, Ban, RotateCcw, Users } from "lucide-react";
+import { Video, Calendar, Ban, RotateCcw, Users, MoreHorizontal, Search } from "lucide-react";
 import {
   useMentorshipBookingsListQuery,
   useMentorshipBookingCancelMutation,
@@ -11,47 +11,50 @@ import {
   useMentorshipGroupLessonUnenrollMutation,
 } from "../helpers/useMentorship";
 import { MentorshipBookingRow } from "../endpoints/mentorship/bookings/list_GET.schema";
+import { MyGroupLessonEnrollmentRow } from "../endpoints/mentorship/group-lessons/my-enrollments_GET.schema";
+import { GROUP_LESSON_LIST_PATH } from "../helpers/groupLessonRoutes";
 import { ConsolePageHeader } from "../components/ConsolePageHeader";
 import { ConsoleListEmpty } from "../components/ConsoleListEmpty";
 import { Button } from "../components/Button";
-import { Badge } from "../components/Badge";
 import { Skeleton } from "../components/Skeleton";
-import { Tabs, TabsList, TabsTrigger } from "../components/Tabs";
 import { ConsoleConfirmDialog } from "../components/ConsoleConfirmDialog";
 import { Dialog } from "../components/Dialog";
 import { ConsoleDialogContent, ConsoleDialogHeader, ConsoleDialogBody, ConsoleDialogFooter } from "../components/ConsoleDialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../components/DropdownMenu";
 import { Input } from "../components/Input";
+import {
+  LiveSessionList,
+  LiveSessionNextCard,
+  LiveSessionRow,
+  LiveSessionSegment,
+  LiveSessionStatus,
+  LiveSessionTone,
+} from "../components/LiveSession";
 import styles from "./student.live-teaching.module.css";
 
-type FilterValue = "upcoming" | "past" | "cancelled" | "all";
-type SubTab = "bookings" | "group";
+type FilterValue = "upcoming" | "past" | "cancelled";
+type Kind = "bookings" | "group";
 
-const formatDateTime = (date: Date | string) =>
-  new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short" }).format(new Date(date));
+const TONES: LiveSessionTone[] = ["lavender", "blue", "sage", "butter", "mint"];
 
-const bookingStatusVariant = (status: string): "success" | "secondary" | "destructive" | "outline" => {
-  if (status === "scheduled") return "success";
-  if (status === "cancelled") return "destructive";
-  if (status === "completed") return "secondary";
-  return "outline";
+/* Upcoming sessions need no label; only finished or stopped ones say what happened. */
+const bookingStatus = (status: string): LiveSessionStatus | null => {
+  if (status === "cancelled") return { label: "Cancelled", tone: "peach" };
+  if (status === "completed") return { label: "Done", tone: "sage" };
+  if (status === "no_show") return { label: "Missed", tone: "butter" };
+  return null;
 };
 
-const enrollmentStatusVariant = (status: string): "success" | "secondary" | "destructive" | "outline" => {
-  if (status === "enrolled") return "success";
-  if (status === "cancelled" || status === "removed") return "destructive";
-  return "outline";
+const enrollmentStatus = (e: MyGroupLessonEnrollmentRow): LiveSessionStatus | null => {
+  if (e.status === "removed" || e.removedByTeacher) return { label: "Removed", tone: "peach" };
+  if (e.status === "cancelled" || e.lessonStatus === "cancelled") return { label: "Cancelled", tone: "peach" };
+  if (e.lessonStatus === "completed") return { label: "Done", tone: "sage" };
+  return null;
 };
 
 const StudentLiveTeachingPage: React.FC = () => {
-  const [subTab, setSubTab] = useState<SubTab>("bookings");
+  const [kind, setKind] = useState<Kind>("bookings");
   const [filter, setFilter] = useState<FilterValue>("upcoming");
-
-  const bookingsQuery = useMentorshipBookingsListQuery({ filter });
-  const enrollmentsQuery = useMentorshipMyGroupLessonEnrollmentsQuery({ filter });
-
-  const [cancelTarget, setCancelTarget] = useState<MentorshipBookingRow | null>(null);
-  const [rescheduleTarget, setRescheduleTarget] = useState<MentorshipBookingRow | null>(null);
-  const unenrollMutation = useMentorshipGroupLessonUnenrollMutation();
 
   return (
     <>
@@ -59,132 +62,141 @@ const StudentLiveTeachingPage: React.FC = () => {
         <title>Live Teaching - Testkart</title>
       </Helmet>
       <div className={styles.page}>
-        <ConsolePageHeader title="Live teaching" description="Your 1:1 sessions and group lessons." />
+        <ConsolePageHeader title="Live classes">
+          <Button variant="outline" asChild>
+            <Link to={GROUP_LESSON_LIST_PATH}>
+              <Search size={16} aria-hidden="true" /> Find a class
+            </Link>
+          </Button>
+        </ConsolePageHeader>
 
-        <Tabs value={subTab} onValueChange={(v) => setSubTab(v as SubTab)}>
-          <TabsList>
-            <TabsTrigger value="bookings">1:1 sessions</TabsTrigger>
-            <TabsTrigger value="group">Group lessons</TabsTrigger>
-          </TabsList>
-        </Tabs>
-
-        <Tabs value={filter} onValueChange={(v) => setFilter(v as FilterValue)}>
-          <TabsList>
-            <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-            <TabsTrigger value="past">Past</TabsTrigger>
-            <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
-            <TabsTrigger value="all">All</TabsTrigger>
-          </TabsList>
-        </Tabs>
-
-        {subTab === "bookings" ? (
-          bookingsQuery.isFetching && !bookingsQuery.data ? (
-            <div className={styles.list}>
-              <Skeleton style={{ height: "4.5rem", width: "100%" }} />
-              <Skeleton style={{ height: "4.5rem", width: "100%" }} />
-            </div>
-          ) : !bookingsQuery.data || bookingsQuery.data.bookings.length === 0 ? (
-            <ConsoleListEmpty
-              icon={<Calendar size={28} />}
-              title="No sessions here"
-              description="Book a 1:1 session from any educator's profile to see it here."
-            />
-          ) : (
-            <div className={styles.list}>
-              {bookingsQuery.data.bookings.map((b) => (
-                <div key={b.id} className={styles.row}>
-                  <div className={styles.rowInfo}>
-                    <span className={styles.rowTitle}>
-                      {b.sessionTitle} with {b.teacherName}
-                    </span>
-                    <span className={styles.rowMeta}>
-                      <Calendar size={13} aria-hidden="true" /> {formatDateTime(b.scheduledAt)} &middot; {b.durationMinutes} min
-                    </span>
-                    {b.cancellationReason && <span className={styles.rowReason}>{b.cancellationReason}</span>}
-                  </div>
-                  <div className={styles.rowActions}>
-                    <Badge variant={bookingStatusVariant(b.status)}>{b.status.replace("_", " ")}</Badge>
-                    {b.status === "scheduled" && (
-                      <>
-                        <Button variant="outline" size="sm" asChild>
-                          <Link to={`/mentorship/classroom/booking/${b.id}`}>
-                            <Video size={14} aria-hidden="true" /> Classroom
-                          </Link>
-                        </Button>
-                        <Button variant="ghost" size="icon-md" onClick={() => setRescheduleTarget(b)} aria-label="Reschedule">
-                          <RotateCcw size={16} aria-hidden="true" />
-                        </Button>
-                        <Button variant="ghost" size="icon-md" onClick={() => setCancelTarget(b)} aria-label="Cancel">
-                          <Ban size={16} aria-hidden="true" />
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )
-        ) : enrollmentsQuery.isFetching && !enrollmentsQuery.data ? (
-          <div className={styles.list}>
-            <Skeleton style={{ height: "4.5rem", width: "100%" }} />
-            <Skeleton style={{ height: "4.5rem", width: "100%" }} />
-          </div>
-        ) : !enrollmentsQuery.data || enrollmentsQuery.data.enrollments.length === 0 ? (
-          <ConsoleListEmpty
-            icon={<Users size={28} />}
-            title="No group lessons here"
-            description="Enroll in an open group lesson from the Live Teaching page to see it here."
+        <div className={styles.toolbar}>
+          <LiveSessionSegment<Kind>
+            label="Session type"
+            value={kind}
+            onChange={setKind}
+            options={[
+              { value: "bookings", label: "1:1 sessions", icon: <Video size={16} aria-hidden="true" /> },
+              { value: "group", label: "Group classes", icon: <Users size={16} aria-hidden="true" /> },
+            ]}
           />
-        ) : (
-          <div className={styles.list}>
-            {enrollmentsQuery.data.enrollments.map((e) => {
-              const canUnenroll = e.status === "enrolled" && e.lessonStatus === "scheduled" && new Date(e.startTime) > new Date();
-              return (
-                <div key={e.enrollmentId} className={styles.row}>
-                  <div className={styles.rowInfo}>
-                    <span className={styles.rowTitle}>
-                      {e.title} with {e.teacherName}
-                    </span>
-                    <span className={styles.rowMeta}>
-                      <Calendar size={13} aria-hidden="true" /> {formatDateTime(e.startTime)} &middot; {e.durationMinutes} min
-                    </span>
-                    {e.removedByTeacher && <span className={styles.rowReason}>Removed by the teacher.</span>}
-                  </div>
-                  <div className={styles.rowActions}>
-                    <Badge variant={enrollmentStatusVariant(e.status)}>{e.status.replace("_", " ")}</Badge>
-                    {e.status === "enrolled" && e.lessonStatus === "scheduled" && (
-                      <Button variant="outline" size="sm" asChild>
-                        <Link to={`/mentorship/classroom/group/${e.groupLessonId}`}>
-                          <Video size={14} aria-hidden="true" /> Classroom
-                        </Link>
-                      </Button>
-                    )}
-                    {canUnenroll && (
-                      <Button
-                        variant="ghost"
-                        size="icon-md"
-                        aria-label="Cancel enrollment"
-                        disabled={unenrollMutation.isPending}
-                        onClick={() =>
-                          unenrollMutation.mutate(
-                            { groupLessonId: e.groupLessonId },
-                            {
-                              onSuccess: () => toast.success("Enrollment cancelled."),
-                              onError: (err) => toast.error(err instanceof Error ? err.message : "Could not cancel enrollment."),
-                            }
-                          )
-                        }
-                      >
-                        <Ban size={16} aria-hidden="true" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+          <LiveSessionSegment<FilterValue>
+            label="Show"
+            variant="pills"
+            value={filter}
+            onChange={setFilter}
+            options={[
+              { value: "upcoming", label: "Upcoming" },
+              { value: "past", label: "Past" },
+              { value: "cancelled", label: "Cancelled" },
+            ]}
+          />
+        </div>
+
+        {kind === "bookings" ? <BookingsView filter={filter} /> : <GroupView filter={filter} />}
       </div>
+    </>
+  );
+};
+
+export default StudentLiveTeachingPage;
+
+const ListSkeleton: React.FC = () => (
+  <div className={styles.skeletons}>
+    <Skeleton style={{ height: "6.5rem", width: "100%", borderRadius: "1.5rem" }} />
+    <Skeleton style={{ height: "5rem", width: "100%", borderRadius: "1.25rem" }} />
+  </div>
+);
+
+const BookingsView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
+  const { data, isFetching } = useMentorshipBookingsListQuery({ filter });
+  const [cancelTarget, setCancelTarget] = useState<MentorshipBookingRow | null>(null);
+  const [rescheduleTarget, setRescheduleTarget] = useState<MentorshipBookingRow | null>(null);
+
+  if (isFetching && !data) return <ListSkeleton />;
+
+  const bookings = data?.bookings ?? [];
+  if (bookings.length === 0) {
+    return (
+      <ConsoleListEmpty
+        icon={<Calendar size={28} />}
+        title={filter === "upcoming" ? "No 1:1 sessions booked" : `No ${filter} sessions`}
+        description={filter === "upcoming" ? "Open a teacher's profile to book a private session." : undefined}
+      />
+    );
+  }
+
+  const [first, ...rest] = bookings;
+  const showNext = filter === "upcoming" && first.status === "scheduled";
+  const listed = showNext ? rest : bookings;
+
+  const menu = (b: MentorshipBookingRow) => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon-md" aria-label={`More options for ${b.sessionTitle}`}>
+          <MoreHorizontal size={18} />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onSelect={() => setRescheduleTarget(b)}>
+          <RotateCcw size={14} /> Reschedule
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => setCancelTarget(b)}>
+          <Ban size={14} /> Cancel session
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
+  return (
+    <>
+      {showNext && (
+        <LiveSessionNextCard
+          startTime={first.scheduledAt}
+          durationMinutes={first.durationMinutes}
+          title={first.sessionTitle}
+          subtitle={`with ${first.teacherName}`}
+          actions={
+            <>
+              <Button asChild>
+                <Link to={`/mentorship/classroom/booking/${first.id}`}>
+                  <Video size={16} aria-hidden="true" /> Open classroom
+                </Link>
+              </Button>
+              {menu(first)}
+            </>
+          }
+        />
+      )}
+
+      {listed.length > 0 && (
+        <LiveSessionList title={showNext ? "Later" : undefined}>
+          {listed.map((b, i) => (
+            <LiveSessionRow
+              key={b.id}
+              startTime={b.scheduledAt}
+              durationMinutes={b.durationMinutes}
+              title={b.sessionTitle}
+              subtitle={`with ${b.teacherName}`}
+              tone={TONES[i % TONES.length]}
+              status={bookingStatus(b.status)}
+              note={b.cancellationReason}
+              actions={
+                b.status === "scheduled" ? (
+                  <>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link to={`/mentorship/classroom/booking/${b.id}`}>
+                        <Video size={14} aria-hidden="true" /> Classroom
+                      </Link>
+                    </Button>
+                    {menu(b)}
+                  </>
+                ) : undefined
+              }
+            />
+          ))}
+        </LiveSessionList>
+      )}
 
       <CancelBookingDialog booking={cancelTarget} onOpenChange={(open) => !open && setCancelTarget(null)} />
       <RescheduleBookingDialog booking={rescheduleTarget} onOpenChange={(open) => !open && setRescheduleTarget(null)} />
@@ -192,7 +204,127 @@ const StudentLiveTeachingPage: React.FC = () => {
   );
 };
 
-export default StudentLiveTeachingPage;
+const GroupView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
+  const { data, isFetching } = useMentorshipMyGroupLessonEnrollmentsQuery({ filter });
+  const unenrollMutation = useMentorshipGroupLessonUnenrollMutation();
+  const [leaveTarget, setLeaveTarget] = useState<MyGroupLessonEnrollmentRow | null>(null);
+
+  if (isFetching && !data) return <ListSkeleton />;
+
+  const enrollments = data?.enrollments ?? [];
+  if (enrollments.length === 0) {
+    return (
+      <ConsoleListEmpty
+        icon={<Users size={28} />}
+        title={filter === "upcoming" ? "No group classes yet" : `No ${filter} classes`}
+      >
+        {filter === "upcoming" && (
+          <Button asChild>
+            <Link to={GROUP_LESSON_LIST_PATH}>Browse live classes</Link>
+          </Button>
+        )}
+      </ConsoleListEmpty>
+    );
+  }
+
+  const isJoinable = (e: MyGroupLessonEnrollmentRow) => e.status === "enrolled" && e.lessonStatus === "scheduled";
+  const canLeave = (e: MyGroupLessonEnrollmentRow) => isJoinable(e) && new Date(e.startTime) > new Date();
+
+  const [first, ...rest] = enrollments;
+  const showNext = filter === "upcoming" && isJoinable(first);
+  const listed = showNext ? rest : enrollments;
+
+  const menu = (e: MyGroupLessonEnrollmentRow) =>
+    canLeave(e) ? (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon-md" aria-label={`More options for ${e.title}`}>
+            <MoreHorizontal size={18} />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onSelect={() => setLeaveTarget(e)}>
+            <Ban size={14} /> Leave this class
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    ) : null;
+
+  return (
+    <>
+      {showNext && (
+        <LiveSessionNextCard
+          startTime={first.startTime}
+          durationMinutes={first.durationMinutes}
+          title={first.title}
+          subtitle={`with ${first.teacherName}`}
+          actions={
+            <>
+              <Button asChild>
+                <Link to={`/mentorship/classroom/group/${first.groupLessonId}`}>
+                  <Video size={16} aria-hidden="true" /> Open classroom
+                </Link>
+              </Button>
+              {menu(first)}
+            </>
+          }
+        />
+      )}
+
+      {listed.length > 0 && (
+        <LiveSessionList title={showNext ? "Later" : undefined}>
+          {listed.map((e, i) => (
+            <LiveSessionRow
+              key={e.enrollmentId}
+              startTime={e.startTime}
+              durationMinutes={e.durationMinutes}
+              title={e.title}
+              subtitle={`with ${e.teacherName}`}
+              tone={TONES[i % TONES.length]}
+              status={enrollmentStatus(e)}
+              actions={
+                isJoinable(e) ? (
+                  <>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link to={`/mentorship/classroom/group/${e.groupLessonId}`}>
+                        <Video size={14} aria-hidden="true" /> Classroom
+                      </Link>
+                    </Button>
+                    {menu(e)}
+                  </>
+                ) : undefined
+              }
+            />
+          ))}
+        </LiveSessionList>
+      )}
+
+      <ConsoleConfirmDialog
+        open={!!leaveTarget}
+        onOpenChange={(open) => !open && setLeaveTarget(null)}
+        title={`Leave ${leaveTarget?.title ?? "this class"}?`}
+        description="You'll lose your seat. If you paid, refunds follow our standard cancellation policy."
+        tone="destructive"
+        confirmLabel="Leave class"
+        pendingLabel="Leaving..."
+        isPending={unenrollMutation.isPending}
+        onConfirm={() => {
+          if (!leaveTarget) return;
+          unenrollMutation.mutate(
+            { groupLessonId: leaveTarget.groupLessonId },
+            {
+              onSuccess: () => {
+                toast.success("You've left the class.");
+                setLeaveTarget(null);
+              },
+              onError: (err) => toast.error(err instanceof Error ? err.message : "Could not leave this class."),
+            }
+          );
+        }}
+      />
+    </>
+  );
+};
 
 const CancelBookingDialog: React.FC<{ booking: MentorshipBookingRow | null; onOpenChange: (open: boolean) => void }> = ({
   booking,

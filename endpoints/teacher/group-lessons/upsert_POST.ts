@@ -14,6 +14,21 @@ export async function handle(request: Request) {
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);
 
+    // New group classes need an approved live teaching application; classes already scheduled stay editable.
+    if (!input.id && user.role === "teacher") {
+      const row = await db
+        .selectFrom("users")
+        .select("liveTeachingStatus")
+        .where("id", "=", effectiveTeacherId)
+        .executeTakeFirst();
+      if (row?.liveTeachingStatus !== "approved") {
+        return new Response(
+          superjson.stringify({ error: "Group classes open once your live teaching application is approved." }),
+          { status: 403 }
+        );
+      }
+    }
+
     // The same teacher teaches both 1:1 sessions and group lessons, so a new
     // or rescheduled group lesson must not overlap anything already on their
     // calendar - checked against both mentorship bookings and other group

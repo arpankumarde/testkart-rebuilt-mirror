@@ -23,6 +23,7 @@ export type AttentionCounts = {
   supportOpen: number;
   supportUnread: number;
   inquiriesPending: number;
+  liveTeachingPending: number;
   contactNew: number;
   reviewsPending: number;
   reviewsSenior: number;

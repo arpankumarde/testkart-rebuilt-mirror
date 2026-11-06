@@ -6,11 +6,11 @@ import superjson from "superjson";
 
 export async function handle(request: Request) {
   try {
-    const { user } = await getServerUserSession(request);
+    const { user, effectiveTeacherId } = await getServerUserSession(request);
     const url = new URL(request.url);
     const input = schema.parse({ kind: url.searchParams.get("kind"), id: url.searchParams.get("id") });
 
-    await getLessonAccessContext(input.kind, input.id, user);
+    await getLessonAccessContext(input.kind, input.id, user, effectiveTeacherId);
 
     let query = db.selectFrom("liveLessonMaterials").select(["id", "title", "fileUrl", "linkUrl", "createdAt"]);
     query =

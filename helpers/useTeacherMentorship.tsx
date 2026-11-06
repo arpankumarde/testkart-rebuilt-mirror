@@ -23,6 +23,9 @@ const KEYS = {
   bookings: (filter: BookingsListInput["filter"]) => ["mentorship", "bookings", filter ?? "upcoming"] as const,
 };
 
+/* The live teaching apply checklist counts the rate and weekly hours. */
+const LIVE_TEACHING_STATUS_KEY = ["teacher", "live-teaching", "status"] as const;
+
 export const useTeacherMentorshipRateQuery = () =>
   useQuery({ queryKey: KEYS.rate, queryFn: () => getTeacherMentorshipRate() });
 
@@ -30,7 +33,10 @@ export const useSetTeacherMentorshipRateMutation = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: RateSetInput) => postTeacherMentorshipRate(input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEYS.rate }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: KEYS.rate });
+      qc.invalidateQueries({ queryKey: LIVE_TEACHING_STATUS_KEY });
+    },
   });
 };
 
@@ -41,7 +47,10 @@ export const useSetAvailabilityMutation = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: AvailabilitySetInput) => postTeacherMentorshipAvailabilitySet(input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEYS.availability }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: KEYS.availability });
+      qc.invalidateQueries({ queryKey: LIVE_TEACHING_STATUS_KEY });
+    },
   });
 };
 

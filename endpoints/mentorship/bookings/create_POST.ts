@@ -40,7 +40,7 @@ export async function handle(request: Request) {
       // the overlap check before either has written its row. Released automatically at commit/rollback.
       await sql`select pg_advisory_xact_lock(hashtext(${"mentorship_booking_teacher_" + teacherId}))`.execute(trx);
 
-      const bookable = await isTeacherSlotBookable(teacherId, startTime, durationMinutes);
+      const bookable = await isTeacherSlotBookable(teacherId, startTime, durationMinutes, trx);
       if (!bookable.ok) {
         throw new Error(bookable.reason);
       }

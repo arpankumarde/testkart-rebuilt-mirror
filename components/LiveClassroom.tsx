@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import DailyIframe, { DailyCall } from "@daily-co/daily-js";
 import {
   Mic,
   MicOff,
@@ -71,9 +72,11 @@ interface LiveClassroomProps {
  * Shared live classroom experience for both 1:1 bookings and group lessons.
  *
  * Video goes through whatever helpers/videoProvider.tsx returns for this join: when a real
- * provider (Daily.co) is configured, the in-session screen embeds its Prebuilt call UI in an
- * iframe via the short-lived per-join credentials the join endpoint returns, and Daily's own
- * mic/camera/screen-share controls are used instead of this component's own. Otherwise it falls
+ * provider (Daily.co) is configured, the in-session screen mounts its Prebuilt call UI in a frame
+ * this page owns (daily-js), using the short-lived per-join credentials the join endpoint returns.
+ * Daily's own device check and mic/camera/screen-share controls are used instead of this
+ * component's own, Daily's leave button is hidden so Leave below is the only way out, and the page
+ * closes the session when Daily reports the call over. Otherwise it falls
  * back to a clearly-labeled development-only mock - no camera or microphone is actually captured
  * and no media connection is made - so every tile and the connection badge say "Preview" and this
  * is never presented as a live call. Chat polls on a short interval only while the viewer is
@@ -103,6 +106,8 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
   const [endOpen, setEndOpen] = useState(false);
   const [hasEnded, setHasEnded] = useState(false);
   const attendanceRef = useRef<number | null>(null);
+  const frameHostRef = useRef<HTMLDivElement | null>(null);
+  const handleLeaveRef = useRef<() => void>(() => {});
 
   const chatQuery = useClassroomChatListQuery(kind, id, !!session);
   const sendChatMutation = useClassroomChatSendMutation();
@@ -150,6 +155,43 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
     return () => clearInterval(interval);
   }, [session]);
 
+  useEffect(() => {
+    if (!session || session.provider !== "daily") return;
+    const host = frameHostRef.current;
+    if (!host) return;
+    let closed = false;
+    let frame: DailyCall | null = null;
+
+    const endFromCall = (message?: string) => {
+      if (closed) return;
+      closed = true;
+      if (message) toast.info(message);
+      handleLeaveRef.current();
+    };
+
+    const start = async () => {
+      const existing = DailyIframe.getCallInstance();
+      if (existing) await existing.destroy();
+      if (closed) return;
+      frame = DailyIframe.createFrame(host, {
+        url: session.url,
+        token: session.token,
+        showLeaveButton: false,
+        iframeStyle: { position: "absolute", top: "0", left: "0", width: "100%", height: "100%", border: "0" },
+      });
+      frame.on("left-meeting", () => endFromCall());
+      frame.on("error", () => endFromCall("The video call was closed."));
+      await frame.join();
+    };
+    start().catch(() => endFromCall("Could not open the video call. Please join again."));
+
+    return () => {
+      closed = true;
+      if (frame) void frame.destroy();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.attendanceId]);
+
   const postLeaveBeacon = async (attendanceId: number) => {
     try {
       await leaveMutation.mutateAsync({ attendanceId });
@@ -160,7 +202,7 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
 
   if (detailsQuery.isLoading) {
     return (
-      <div className={styles.page}>
+      <div className={`${styles.page} tk-flow`}>
         <Skeleton style={{ height: "2rem", width: "min(24rem, 90%)" }} />
         <Skeleton style={{ height: "16rem", width: "100%" }} />
       </div>
@@ -206,6 +248,7 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
     setSession(null);
     setHasEnded(true);
   };
+  handleLeaveRef.current = () => void handleLeave();
 
   const handleEndSession = async () => {
     try {
@@ -281,7 +324,7 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
   const isOver = details.status === "completed" || details.status === "no_show" || details.status === "cancelled";
   if (hasEnded || (isOver && !session)) {
     return (
-      <div className={styles.page}>
+      <div className={`${styles.page} tk-flow`}>
         <div className={styles.postSessionCard}>
           <CheckCircle2 size={32} className={styles.postSessionIcon} aria-hidden="true" />
           <h1 className={styles.postSessionTitle}>
@@ -328,27 +371,36 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
   // Pre-join screen.
   if (!session) {
     return (
-      <div className={styles.page}>
+      <div className={`${styles.page} tk-flow`}>
         <div className={styles.preJoinCard}>
           <h1 className={styles.title}>{details.title}</h1>
           <p className={styles.subtitle}>
             with {details.teacherName} &middot; {formatWhen(details.startTime)} &middot; {details.durationMinutes} min
           </p>
 
-          <div className={styles.devicePreview}>
-            <div className={styles.deviceTile}>
-              <span className={styles.deviceTileLabel}>{camOn ? <VideoIcon size={28} /> : <VideoOff size={28} />}</span>
-              <span className={styles.previewBadge}>Preview - no camera connected</span>
+          {details.videoProvider === "daily" ? (
+            <p className={styles.deviceNote}>
+              <VideoIcon size={16} aria-hidden="true" />
+              {details.kind === "group" && details.viewerRole === "learner"
+                ? "You will join muted with your camera off. You can check both on the next screen."
+                : "You will check your camera and microphone on the next screen."}
+            </p>
+          ) : (
+            <div className={styles.devicePreview}>
+              <div className={styles.deviceTile}>
+                <span className={styles.deviceTileLabel}>{camOn ? <VideoIcon size={28} /> : <VideoOff size={28} />}</span>
+                <span className={styles.previewBadge}>Preview - no camera connected</span>
+              </div>
+              <div className={styles.deviceControls}>
+                <Button variant={micOn ? "outline" : "secondary"} size="icon-md" onClick={() => setMicOn((v) => !v)} aria-label="Toggle microphone">
+                  {micOn ? <Mic size={18} /> : <MicOff size={18} />}
+                </Button>
+                <Button variant={camOn ? "outline" : "secondary"} size="icon-md" onClick={() => setCamOn((v) => !v)} aria-label="Toggle camera">
+                  {camOn ? <VideoIcon size={18} /> : <VideoOff size={18} />}
+                </Button>
+              </div>
             </div>
-            <div className={styles.deviceControls}>
-              <Button variant={micOn ? "outline" : "secondary"} size="icon-md" onClick={() => setMicOn((v) => !v)} aria-label="Toggle microphone">
-                {micOn ? <Mic size={18} /> : <MicOff size={18} />}
-              </Button>
-              <Button variant={camOn ? "outline" : "secondary"} size="icon-md" onClick={() => setCamOn((v) => !v)} aria-label="Toggle camera">
-                {camOn ? <VideoIcon size={18} /> : <VideoOff size={18} />}
-              </Button>
-            </div>
-          </div>
+          )}
 
           <div className={styles.rosterPreview}>
             <Users size={14} aria-hidden="true" /> {details.roster.length} {details.roster.length === 1 ? "participant" : "participants"}
@@ -379,7 +431,7 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
 
   // In-session screen.
   return (
-    <div className={styles.sessionPage}>
+    <div className={`${styles.sessionPage} tk-flow`}>
       <div className={styles.sessionTopBar}>
         <div className={styles.sessionTitleBlock}>
           <span className={styles.sessionTitle}>{details.title}</span>
@@ -397,12 +449,7 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
       <div className={styles.sessionBody}>
         <div className={styles.videoArea}>
           {isLiveProvider ? (
-            <iframe
-              src={`${session.url}?t=${encodeURIComponent(session.token)}`}
-              className={styles.dailyFrame}
-              allow="camera; microphone; fullscreen; display-capture; autoplay"
-              title="Live classroom video call"
-            />
+            <div ref={frameHostRef} className={styles.dailyFrame} />
           ) : (
             <div className={styles.videoGrid}>
               {details.roster.map((member) => {

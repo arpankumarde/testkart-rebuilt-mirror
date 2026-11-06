@@ -1219,6 +1219,20 @@ export interface LiveLessonTeacherNotes {
   updatedAt: Generated<Timestamp>;
 }
 
+export interface LiveTeachingApplications {
+  createdAt: Generated<Timestamp>;
+  decidedAt: Timestamp | null;
+  decidedBy: string | null;
+  decisionReason: string | null;
+  id: Generated<number>;
+  introVideoFileId: string | null;
+  introVideoUrl: string;
+  ratePerUnit: Numeric | null;
+  status: Generated<string>;
+  teacherId: number;
+  updatedAt: Generated<Timestamp>;
+}
+
 export interface LiveTestEnrollments {
   createdAt: Generated<Timestamp>;
   enrolledAt: Generated<Timestamp>;
@@ -2695,9 +2709,12 @@ export interface Users {
   goals: string | null;
   id: Generated<number>;
   instituteType: InstituteType | null;
+  introVideoFileId: string | null;
+  introVideoUrl: string | null;
   isActive: Generated<boolean>;
   isVerified: Generated<boolean>;
   languages: Generated<Json | null>;
+  liveTeachingStatus: Generated<string>;
   location: string | null;
   mentorshipEnabled: Generated<boolean>;
   mentorshipRatePerUnit: Numeric | null;
@@ -2817,6 +2834,7 @@ export interface DB {
   liveLessonChatMessages: LiveLessonChatMessages;
   liveLessonMaterials: LiveLessonMaterials;
   liveLessonTeacherNotes: LiveLessonTeacherNotes;
+  liveTeachingApplications: LiveTeachingApplications;
   liveTestEnrollments: LiveTestEnrollments;
   liveTestPrizeDistributions: LiveTestPrizeDistributions;
   liveTests: LiveTests;

@@ -1,4 +1,18 @@
+/*
+ * Live classroom in the /app palette. Pre-join and post-session are white
+ * cards on ivory; in session, video tiles cycle through the pastels so each
+ * person has a colour, own chat bubbles are lavender and others' are ivory.
+ * Every root carries tk-flow, so kit Buttons are the peach CTA and neutral
+ * outline. Leave keeps the destructive red on purpose.
+ */
+
+/* The ivory runs edge to edge: the shadow paints it out sideways and the clip
+   keeps it to the page's own height. */
 .page {
+  background: var(--sp-surface);
+  box-shadow: 0 0 0 100vmax var(--sp-surface);
+  clip-path: inset(0 -100vmax);
+  color: var(--sp-ink);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-4);
@@ -13,24 +27,29 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--spacing-3);
+  gap: 0.875rem;
   text-align: center;
-  padding: var(--spacing-6);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  padding: 1.75rem 1.5rem;
+  background: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.5rem;
+  box-shadow: var(--sp-shadow);
 }
 
 .title {
-  font-size: var(--text-xl);
-  font-weight: 700;
-  color: var(--foreground);
+  font-family: var(--font-family-heading);
+  font-size: clamp(1.375rem, 1.15rem + 1vw, 1.75rem);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  color: var(--sp-ink);
   margin: 0;
+  text-wrap: balance;
 }
 
 .subtitle {
-  font-size: var(--text-sm);
-  color: var(--muted-foreground);
+  font-size: 0.9375rem;
+  color: var(--sp-text);
   margin: 0;
 }
 
@@ -38,7 +57,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--spacing-3);
+  gap: 0.875rem;
   width: 100%;
 }
 
@@ -50,9 +69,10 @@
   width: 100%;
   aspect-ratio: 16 / 9;
   max-width: 24rem;
-  background: var(--secondary);
-  border-radius: var(--radius-lg);
-  color: var(--muted-foreground);
+  background: var(--sp-lavender-tint);
+  border: 1px solid var(--sp-lavender-line);
+  border-radius: 1.25rem;
+  color: var(--sp-lavender-ink);
 }
 
 .deviceTileLabel {
@@ -61,16 +81,16 @@
 
 .previewBadge {
   position: absolute;
-  bottom: var(--spacing-2);
+  bottom: 0.625rem;
   left: 50%;
   transform: translateX(-50%);
-  font-size: var(--text-xs);
-  font-weight: 600;
-  padding: 0.125rem var(--spacing-2);
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-full);
-  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.75rem;
+  background: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 999px;
+  color: var(--sp-text);
   white-space: nowrap;
 }
 
@@ -79,12 +99,36 @@
   gap: var(--spacing-2);
 }
 
+.deviceNote {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: 0.625rem 1rem;
+  border-radius: 1rem;
+  background: var(--sp-lavender-tint);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--sp-lavender-ink);
+  margin: 0;
+  text-align: left;
+}
+
+.deviceNote svg {
+  flex-shrink: 0;
+}
+
 .rosterPreview {
   display: flex;
   align-items: center;
-  gap: var(--spacing-1);
-  font-size: var(--text-sm);
-  color: var(--muted-foreground);
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.875rem;
+  border-radius: 999px;
+  background: var(--fc-sage-tint);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--fc-sage-ink);
 }
 
 .dot {
@@ -95,9 +139,18 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
-  font-size: var(--text-sm);
-  color: var(--muted-foreground);
+  padding: 0.625rem 1rem;
+  border-radius: 1rem;
+  background: var(--fc-butter-tint);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--fc-butter-ink);
   margin: 0;
+  text-align: left;
+}
+
+.joinWindowMessage svg {
+  flex-shrink: 0;
 }
 
 /* Post-session */
@@ -106,24 +159,34 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--spacing-3);
+  gap: 0.875rem;
   text-align: center;
-  padding: var(--spacing-8);
+  padding: 2.25rem 1.5rem;
+  background: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.5rem;
+  box-shadow: var(--sp-shadow);
 }
 
 .postSessionIcon {
-  color: var(--primary);
+  box-sizing: content-box;
+  padding: 0.875rem;
+  border-radius: 50%;
+  background: var(--fc-mint-tint);
+  color: var(--fc-mint-ink);
 }
 
 .postSessionTitle {
-  font-size: var(--text-xl);
-  font-weight: 700;
-  color: var(--foreground);
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--sp-ink);
   margin: 0;
 }
 
 .postSessionText {
-  color: var(--muted-foreground);
+  color: var(--sp-text);
   margin: 0;
 }
 
@@ -131,17 +194,17 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--spacing-2);
+  gap: 0.75rem;
   width: 100%;
   max-width: 26rem;
-  padding: var(--spacing-4);
-  background: var(--secondary);
-  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  background: var(--fc-butter-tint);
+  border-radius: 1.25rem;
 }
 
 .reviewPrompt {
-  font-weight: 600;
-  color: var(--foreground);
+  font-weight: 700;
+  color: var(--fc-butter-ink);
   margin: 0;
 }
 
@@ -153,22 +216,29 @@
 .starButton {
   background: none;
   border: none;
+  border-radius: 0.5rem;
   cursor: pointer;
   padding: var(--spacing-1);
 }
 
+.starButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--fc-blue-edge);
+}
+
 .starFilled {
-  color: var(--primary);
-  fill: var(--primary);
+  color: var(--fc-butter-edge);
+  fill: var(--fc-butter-edge);
 }
 
 .starEmpty {
-  color: var(--muted-foreground);
+  color: var(--fc-butter-edge);
 }
 
 .reviewTextarea {
   width: 100%;
   min-height: 4rem;
+  background: var(--sp-card);
 }
 
 /* In-session */
@@ -178,7 +248,8 @@
   flex-direction: column;
   height: calc(100vh - 4rem);
   min-height: 32rem;
-  background: var(--background);
+  background: var(--sp-surface);
+  color: var(--sp-ink);
 }
 
 .sessionTopBar {
@@ -186,8 +257,9 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-3);
-  padding: var(--spacing-3) var(--spacing-4);
-  border-bottom: 1px solid var(--border);
+  padding: 0.75rem 1rem;
+  background: var(--sp-card);
+  border-bottom: 1px solid var(--sp-line);
   flex-wrap: wrap;
 }
 
@@ -196,31 +268,37 @@
   align-items: center;
   gap: var(--spacing-2);
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .sessionTitle {
-  font-weight: 600;
-  color: var(--foreground);
+  font-family: var(--font-family-heading);
+  font-weight: 800;
+  color: var(--sp-ink);
 }
 
 .mockBadge {
   display: flex;
   align-items: center;
   gap: var(--spacing-1);
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--warning-foreground, #92400e);
-  background: var(--warning, #fef3c7);
-  padding: 0.125rem var(--spacing-2);
-  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--fc-butter-ink);
+  background: var(--fc-butter-tint);
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
 }
 
 .timer {
   display: flex;
   align-items: center;
-  gap: var(--spacing-1);
-  font-size: var(--text-sm);
-  color: var(--muted-foreground);
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  background: var(--fc-mint-tint);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--fc-mint-ink);
   font-variant-numeric: tabular-nums;
 }
 
@@ -228,14 +306,14 @@
   display: flex;
   flex: 1;
   min-height: 0;
-  gap: var(--spacing-3);
-  padding: var(--spacing-3);
+  gap: 0.75rem;
+  padding: 0.75rem;
 }
 
 .videoArea {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-3);
+  gap: 0.75rem;
   flex: 1;
   min-width: 0;
 }
@@ -243,34 +321,59 @@
 .videoGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-  gap: var(--spacing-2);
+  gap: 0.625rem;
   flex: 1;
   overflow-y: auto;
 }
 
 .dailyFrame {
+  position: relative;
+  overflow: hidden;
   flex: 1;
   width: 100%;
   min-height: 0;
-  border: none;
-  border-radius: var(--radius-lg);
-  background: var(--secondary);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.25rem;
+  background: var(--sp-card);
 }
 
 .videoTile {
+  --tone-tint: var(--sp-lavender-tint);
+  --tone-ink: var(--sp-lavender-ink);
+
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: var(--secondary);
-  border-radius: var(--radius-lg);
+  background: var(--tone-tint);
+  border-radius: 1.25rem;
   min-height: 8rem;
-  color: var(--muted-foreground);
+  color: var(--tone-ink);
+}
+
+.videoTile:nth-child(5n + 2) {
+  --tone-tint: var(--fc-blue-tint);
+  --tone-ink: var(--fc-blue-ink);
+}
+
+.videoTile:nth-child(5n + 3) {
+  --tone-tint: var(--fc-sage-tint);
+  --tone-ink: var(--fc-sage-ink);
+}
+
+.videoTile:nth-child(5n + 4) {
+  --tone-tint: var(--fc-butter-tint);
+  --tone-ink: var(--fc-butter-ink);
+}
+
+.videoTile:nth-child(5n) {
+  --tone-tint: var(--fc-mint-tint);
+  --tone-ink: var(--fc-mint-ink);
 }
 
 .tileIcon {
-  color: var(--muted-foreground);
+  color: var(--tone-ink);
 }
 
 .tileAvatar,
@@ -279,23 +382,24 @@
   height: 3.5rem;
   border-radius: 50%;
   object-fit: cover;
+  border: 3px solid var(--sp-card);
 }
 
 .tileAvatarFallback {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--card);
-  color: var(--foreground);
-  font-weight: 700;
-  font-size: var(--text-lg);
+  background: var(--sp-card);
+  color: var(--tone-ink);
+  font-weight: 800;
+  font-size: 1.25rem;
 }
 
 .tileFooter {
   position: absolute;
-  bottom: var(--spacing-2);
-  left: var(--spacing-2);
-  right: var(--spacing-2);
+  bottom: 0.5rem;
+  left: 0.5rem;
+  right: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -306,12 +410,13 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-1);
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--foreground);
-  background: var(--card);
-  padding: 0.0625rem var(--spacing-2);
-  border-radius: var(--radius-full);
+  min-width: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--sp-ink);
+  background: var(--sp-card);
+  padding: 0.125rem 0.625rem;
+  border-radius: 999px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -322,29 +427,31 @@
   align-items: center;
   justify-content: center;
   gap: var(--spacing-2);
-  padding: var(--spacing-3);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  padding: 0.75rem;
+  background: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.25rem;
+  box-shadow: var(--sp-shadow);
   flex-wrap: wrap;
 }
 
 .sidePanel {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-2);
+  gap: 0.625rem;
   width: 20rem;
   flex-shrink: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-3);
+  background: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.25rem;
+  padding: 0.75rem;
   min-height: 0;
 }
 
 .panelList {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-2);
+  gap: 0.5rem;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -355,8 +462,13 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
-  font-size: var(--text-sm);
-  color: var(--foreground);
+  font-size: 0.875rem;
+  color: var(--sp-ink);
+}
+
+.panelRow > svg {
+  color: var(--fc-blue-edge);
+  flex-shrink: 0;
 }
 
 .panelAvatar,
@@ -372,10 +484,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--secondary);
-  color: var(--foreground);
-  font-weight: 700;
-  font-size: var(--text-xs);
+  background: var(--sp-peach-tint);
+  color: var(--fc-peach-ink);
+  font-weight: 800;
+  font-size: 0.75rem;
 }
 
 .panelRowText {
@@ -384,16 +496,22 @@
   gap: var(--spacing-1);
 }
 
+.panelRowText svg {
+  color: var(--fc-butter-edge);
+}
+
 .panelEmpty {
-  font-size: var(--text-sm);
-  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  color: var(--sp-muted);
   text-align: center;
   padding: var(--spacing-4) 0;
+  margin: 0;
 }
 
 .panelHint {
-  font-size: var(--text-xs);
-  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--sp-lavender-ink);
   margin: 0;
 }
 
@@ -408,7 +526,7 @@
 .chatMessages {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-2);
+  gap: 0.5rem;
   flex: 1;
   overflow-y: auto;
   min-height: 10rem;
@@ -418,26 +536,34 @@
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
-  padding: var(--spacing-2);
-  background: var(--secondary);
-  border-radius: var(--radius-md);
+  padding: 0.5rem 0.75rem;
+  background: var(--sp-surface);
+  border: 1px solid var(--sp-line);
+  border-radius: 1rem 1rem 1rem 0.375rem;
   max-width: 90%;
+  align-self: flex-start;
 }
 
 .chatMessageSelf {
   align-self: flex-end;
-  background: var(--primary-foreground);
+  background: var(--sp-lavender-tint);
+  border-color: var(--sp-lavender-line);
+  border-radius: 1rem 1rem 0.375rem 1rem;
 }
 
 .chatSender {
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--sp-text);
+}
+
+.chatMessageSelf .chatSender {
+  color: var(--sp-lavender-ink);
 }
 
 .chatBody {
-  font-size: var(--text-sm);
-  color: var(--foreground);
+  font-size: 0.875rem;
+  color: var(--sp-ink);
   margin: 0;
   word-break: break-word;
 }
@@ -457,8 +583,9 @@
 }
 
 .materialLink {
-  color: var(--primary);
-  font-size: var(--text-sm);
+  color: var(--fc-blue-ink);
+  font-size: 0.875rem;
+  font-weight: 600;
   text-decoration: none;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -474,19 +601,44 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-2);
-  padding-top: var(--spacing-2);
-  border-top: 1px solid var(--border);
+  padding-top: 0.625rem;
+  border-top: 1px dashed var(--sp-line);
 }
 
 .noteRow {
-  font-size: var(--text-sm);
-  color: var(--foreground);
-  padding: var(--spacing-2);
-  background: var(--secondary);
-  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  color: var(--fc-butter-ink);
+  padding: 0.5rem 0.75rem;
+  background: var(--fc-butter-tint);
+  border-radius: 0.875rem;
   white-space: pre-wrap;
 }
 
 .noteTextarea {
   min-height: 4rem;
+}
+
+/* Phones and narrow tablets: the side panel drops under the video. */
+@media (max-width: 860px) {
+  .sessionPage {
+    height: auto;
+    min-height: calc(100vh - 4rem);
+  }
+
+  .sessionBody {
+    flex-direction: column;
+  }
+
+  .videoGrid {
+    min-height: 14rem;
+  }
+
+  .dailyFrame {
+    min-height: 60vh;
+  }
+
+  .sidePanel {
+    width: auto;
+    max-height: 26rem;
+  }
 }

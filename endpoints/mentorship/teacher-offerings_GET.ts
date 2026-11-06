@@ -12,7 +12,19 @@ export async function handle(request: Request) {
 
     const teacher = await db
       .selectFrom("users")
-      .select(["id", "displayName", "avatarUrl", "bio", "tagline", "timezone", "role", "mentorshipEnabled", "mentorshipRatePerUnit"])
+      .select([
+        "id",
+        "displayName",
+        "avatarUrl",
+        "bio",
+        "tagline",
+        "timezone",
+        "role",
+        "mentorshipEnabled",
+        "mentorshipRatePerUnit",
+        "liveTeachingStatus",
+        "introVideoUrl",
+      ])
       .where("id", "=", input.teacherId)
       .executeTakeFirst();
 
@@ -20,8 +32,10 @@ export async function handle(request: Request) {
       return new Response(superjson.stringify({ error: "Teacher not found" }), { status: 404 });
     }
 
+    const approved = teacher.liveTeachingStatus === "approved";
     const rate = Math.max(Number(teacher.mentorshipRatePerUnit ?? 0), MENTORSHIP_MIN_RATE_PER_UNIT);
-    const enabled = !!teacher.mentorshipEnabled && Number(teacher.mentorshipRatePerUnit ?? 0) >= MENTORSHIP_MIN_RATE_PER_UNIT;
+    const enabled =
+      approved && !!teacher.mentorshipEnabled && Number(teacher.mentorshipRatePerUnit ?? 0) >= MENTORSHIP_MIN_RATE_PER_UNIT;
 
     let isTrialEligible = false;
     try {
@@ -50,6 +64,7 @@ export async function handle(request: Request) {
         timezone: teacher.timezone,
       },
       enabled,
+      introVideoUrl: approved ? teacher.introVideoUrl : null,
       durations: enabled
         ? MENTORSHIP_SESSION_DURATIONS.map((minutes) => ({
             durationMinutes: minutes,

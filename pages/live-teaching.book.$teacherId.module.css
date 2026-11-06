@@ -1,120 +1,167 @@
+/*
+ * 1:1 booking in the /app palette. The chosen length is lavender, the chosen
+ * time is blue, the trial note is butter and the booked state is mint. The
+ * page root carries tk-flow, so the confirm button is the peach CTA.
+ */
+
+/* The ivory runs edge to edge: the shadow paints it out sideways and the clip
+   keeps it to the page's own height. */
 .page {
+  background: var(--sp-surface);
+  box-shadow: 0 0 0 100vmax var(--sp-surface);
+  clip-path: inset(0 -100vmax);
+  color: var(--sp-ink);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-4);
+  gap: 1.25rem;
   max-width: 40rem;
   margin: 0 auto;
   padding: var(--spacing-8) var(--spacing-4) var(--spacing-16);
 }
 
 .backLink {
+  align-self: flex-start;
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-1);
-  font-size: var(--text-sm);
-  color: var(--muted-foreground);
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem 0.375rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--sp-text);
   text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .backLink:hover {
-  color: var(--foreground);
+  background: var(--fc-blue-tint);
+  color: var(--fc-blue-ink);
+}
+
+.backLink:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--sp-surface), 0 0 0 4px var(--fc-blue-edge);
 }
 
 .header {
   display: flex;
   align-items: center;
-  gap: var(--spacing-3);
+  gap: 0.875rem;
+  padding: 1.125rem 1.25rem;
+  background: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.25rem;
+  box-shadow: var(--sp-shadow);
 }
 
 .teacherAvatar,
 .teacherAvatarFallback {
-  width: 3rem;
-  height: 3rem;
+  width: 3.5rem;
+  height: 3.5rem;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
+  border: 2px solid var(--sp-peach-tint);
 }
 
 .teacherAvatarFallback {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--secondary);
-  color: var(--foreground);
-  font-weight: 700;
-  font-size: var(--text-lg);
+  background: var(--sp-peach-tint);
+  color: var(--fc-peach-ink);
+  font-weight: 800;
+  font-size: 1.25rem;
 }
 
 .title {
-  font-size: var(--text-xl);
-  font-weight: 700;
-  color: var(--foreground);
+  font-family: var(--font-family-heading);
+  font-size: clamp(1.25rem, 1.05rem + 0.9vw, 1.625rem);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--sp-ink);
   margin: 0;
 }
 
 .trialBadge {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: var(--spacing-1);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--primary);
-  margin: var(--spacing-1) 0 0;
+  gap: 0.375rem;
+  margin: 0.5rem 0 0;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  background: var(--fc-butter-tint);
+  color: var(--fc-butter-ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
 }
 
 .durationRow {
-  display: flex;
-  gap: var(--spacing-2);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(11rem, 100%), 1fr));
+  gap: 0.75rem;
 }
 
 .durationButton {
   display: flex;
   align-items: center;
-  gap: var(--spacing-1);
-  padding: var(--spacing-2) var(--spacing-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-full);
-  background: var(--surface);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--foreground);
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  padding: 0.875rem 1rem;
+  border: 1.5px solid var(--sp-line-strong);
+  border-radius: 1rem;
+  background: var(--sp-card);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--sp-ink);
   cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.durationButton svg {
+  color: var(--sp-lavender-edge);
 }
 
 .durationButton:hover {
-  border-color: var(--primary);
+  border-color: var(--sp-lavender-edge);
 }
 
-.durationButtonSelected {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: var(--primary-foreground);
+.durationButton:focus-visible,
+.slotButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--sp-surface), 0 0 0 4px var(--fc-blue-edge);
+}
+
+.durationButtonSelected,
+.durationButtonSelected:hover {
+  background: var(--sp-lavender-tint);
+  border-color: var(--sp-lavender-edge);
+  color: var(--sp-lavender-ink);
+}
+
+.durationButtonSelected svg {
+  color: var(--sp-lavender-ink);
 }
 
 .durationPrice {
   display: flex;
   align-items: center;
   gap: 0.125rem;
+  color: var(--fc-price);
+  font-weight: 800;
 }
 
-.factsRow {
-  display: flex;
-  gap: var(--spacing-2);
+.durationButtonSelected .durationPrice {
+  color: var(--sp-lavender-ink);
 }
 
-.factChip {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-1);
-  padding: var(--spacing-1) var(--spacing-3);
-  background: var(--secondary);
-  border-radius: var(--radius-full);
-  font-size: var(--text-sm);
-  color: var(--foreground);
+.durationPrice svg {
+  color: currentColor;
 }
 
 .description {
-  color: var(--muted-foreground);
+  color: var(--sp-text);
   margin: 0;
   white-space: pre-wrap;
 }
@@ -122,28 +169,46 @@
 .slotsSection {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-3);
+  gap: 0.875rem;
+  padding: 1.25rem;
+  background: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.25rem;
 }
 
 .slotsTitle {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
-  font-size: var(--text-base);
-  font-weight: 600;
-  color: var(--foreground);
+  gap: 0.625rem;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: var(--sp-ink);
   margin: 0;
 }
 
+.slotsTitle svg {
+  box-sizing: content-box;
+  padding: 0.375rem;
+  border-radius: 0.625rem;
+  background: var(--fc-blue-tint);
+  color: var(--fc-blue-ink);
+}
+
 .noSlots {
-  color: var(--muted-foreground);
-  font-size: var(--text-sm);
+  margin: 0;
+  padding: 1.25rem;
+  text-align: center;
+  border: 1.5px dashed var(--sp-line-strong);
+  border-radius: 1rem;
+  color: var(--sp-text);
+  font-size: 0.875rem;
 }
 
 .dayList {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-3);
+  gap: 1rem;
   max-height: 24rem;
   overflow-y: auto;
   padding-right: var(--spacing-1);
@@ -152,75 +217,88 @@
 .dayGroup {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-2);
+  gap: 0.5rem;
 }
 
 .dayLabel {
-  font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--foreground);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--sp-text);
   margin: 0;
 }
 
 .slotGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
-  gap: var(--spacing-2);
+  gap: 0.5rem;
 }
 
 .slotButton {
-  padding: var(--spacing-2) var(--spacing-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--surface);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--foreground);
+  padding: 0.5rem;
+  border: 1.5px solid var(--sp-line);
+  border-radius: 0.75rem;
+  background: var(--sp-surface);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--sp-ink);
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .slotButton:hover {
-  border-color: var(--primary);
+  border-color: var(--fc-blue-edge);
+  background: var(--sp-card);
 }
 
-.slotButtonSelected {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: var(--primary-foreground);
+.slotButtonSelected,
+.slotButtonSelected:hover {
+  background: var(--fc-blue-tint);
+  border-color: var(--fc-blue-edge);
+  color: var(--fc-blue-ink);
 }
 
 .ctaBar {
   display: flex;
   justify-content: center;
-  padding: var(--spacing-4);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  background: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.25rem;
+  box-shadow: var(--sp-shadow);
 }
 
 .successBox {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--spacing-3);
+  gap: 0.875rem;
   text-align: center;
-  padding: var(--spacing-8);
+  padding: 2.5rem 1.5rem;
+  background: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.5rem;
+  box-shadow: var(--sp-shadow);
 }
 
 .successIcon {
-  color: var(--primary);
+  box-sizing: content-box;
+  padding: 0.875rem;
+  border-radius: 50%;
+  background: var(--fc-mint-tint);
+  color: var(--fc-mint-ink);
 }
 
 .successTitle {
-  font-size: var(--text-xl);
-  font-weight: 700;
-  color: var(--foreground);
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--sp-ink);
   margin: 0;
 }
 
 .successText {
-  color: var(--muted-foreground);
+  color: var(--sp-text);
   margin: 0;
 }
 

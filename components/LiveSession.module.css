@@ -1,0 +1,395 @@
+/*
+ * Live teaching list pieces in the /app palette. Each tone sets --t-tint,
+ * --t-edge and --t-ink from the themed --sp-* / --fc-* tokens; the date tile,
+ * chips and the Up next card read those.
+ */
+.tone_lavender {
+  --t-tint: var(--sp-lavender-tint);
+  --t-edge: var(--sp-lavender-edge);
+  --t-ink: var(--sp-lavender-ink);
+}
+
+.tone_blue {
+  --t-tint: var(--fc-blue-tint);
+  --t-edge: var(--fc-blue-edge);
+  --t-ink: var(--fc-blue-ink);
+}
+
+.tone_sage {
+  --t-tint: var(--fc-sage-tint);
+  --t-edge: var(--fc-sage-edge);
+  --t-ink: var(--fc-sage-ink);
+}
+
+.tone_butter {
+  --t-tint: var(--fc-butter-tint);
+  --t-edge: var(--fc-butter-edge);
+  --t-ink: var(--fc-butter-ink);
+}
+
+.tone_mint {
+  --t-tint: var(--fc-mint-tint);
+  --t-edge: var(--fc-mint-edge);
+  --t-ink: var(--fc-mint-ink);
+}
+
+.tone_peach {
+  --t-tint: var(--fc-peach-tint);
+  --t-edge: var(--fc-peach-edge);
+  --t-ink: var(--fc-peach-ink);
+}
+
+.tone_muted {
+  --t-tint: var(--muted, hsl(38 32% 93%));
+  --t-edge: var(--sp-line-strong);
+  --t-ink: var(--sp-text);
+}
+
+/* ---------------------------------------------------------- date tile --- */
+
+.dateTile {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 3.75rem;
+  padding: 0.5rem 0 0.4375rem;
+  border-radius: 1rem;
+  background: var(--t-tint);
+  color: var(--t-ink);
+  line-height: 1;
+  text-align: center;
+}
+
+.dateMonth,
+.dateWeekday {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.dateDay {
+  margin: 0.25rem 0 0.1875rem;
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.dateTileLg {
+  width: 5rem;
+  padding: 0.75rem 0 0.625rem;
+  border-radius: 1.25rem;
+}
+
+.dateTileLg .dateDay {
+  font-size: 2.125rem;
+}
+
+/* ---------------------------------------------------------------- row --- */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.listTitle {
+  margin: 0.5rem 0 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--sp-text);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.875rem 1rem;
+  background: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.25rem;
+  transition: box-shadow 0.18s ease;
+}
+
+.row:hover {
+  box-shadow: var(--sp-shadow-hover);
+}
+
+.rowBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3125rem;
+  min-width: 0;
+}
+
+.rowHead {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.rowTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--sp-ink);
+  overflow-wrap: anywhere;
+}
+
+.rowSubtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--sp-text);
+}
+
+.rowMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--sp-text);
+}
+
+.rowMeta svg {
+  color: var(--fc-blue-edge);
+}
+
+.relative {
+  font-weight: 700;
+  color: var(--fc-blue-ink);
+}
+
+.rowNote {
+  margin: 0;
+  padding: 0.375rem 0.625rem;
+  border-radius: 0.75rem;
+  background: var(--sp-surface);
+  font-size: 0.8125rem;
+  color: var(--sp-text);
+}
+
+.rowActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.625rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.status_mint {
+  background: var(--fc-mint-tint);
+  color: var(--fc-mint-ink);
+}
+
+.status_peach {
+  background: var(--fc-peach-tint);
+  color: var(--fc-peach-ink);
+}
+
+.status_sage {
+  background: var(--fc-sage-tint);
+  color: var(--fc-sage-ink);
+}
+
+.status_butter {
+  background: var(--fc-butter-tint);
+  color: var(--fc-butter-ink);
+}
+
+.status_muted {
+  background: var(--muted, hsl(38 32% 93%));
+  color: var(--sp-text);
+}
+
+/* ------------------------------------------------------------ up next --- */
+
+.next {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--sp-lavender-tint);
+  border: 1px solid var(--sp-lavender-line);
+  border-radius: 1.5rem;
+}
+
+.nextTile {
+  background: var(--sp-card);
+}
+
+.nextBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.nextEyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sp-lavender-ink);
+}
+
+.nextTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: clamp(1.125rem, 1rem + 0.6vw, 1.375rem);
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--sp-ink);
+  overflow-wrap: anywhere;
+}
+
+.nextSubtitle {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--sp-lavender-ink);
+}
+
+.nextMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--sp-ink);
+}
+
+.nextActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ------------------------------------------------- segment and pills --- */
+
+.segment {
+  display: inline-flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border-radius: 999px;
+  background: var(--sp-card);
+  border: 1px solid var(--sp-line);
+}
+
+.segmentButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4375rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--sp-text);
+  cursor: pointer;
+}
+
+.segmentButton:hover {
+  background: var(--fc-blue-tint);
+  color: var(--fc-blue-ink);
+}
+
+.segmentButton.active {
+  background: var(--sp-lavender-tint);
+  color: var(--sp-lavender-ink);
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.pill {
+  padding: 0.375rem 0.875rem;
+  border: 1px solid var(--sp-line-strong);
+  border-radius: 999px;
+  background: var(--sp-card);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--sp-text);
+  cursor: pointer;
+}
+
+.pill:hover {
+  border-color: var(--fc-blue-edge);
+  color: var(--fc-blue-ink);
+}
+
+.pill.active {
+  background: var(--fc-peach-tint);
+  border-color: var(--fc-peach-edge);
+  color: var(--fc-peach-ink);
+}
+
+.segmentButton:focus-visible,
+.pill:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--sp-card), 0 0 0 4px var(--fc-blue-edge);
+}
+
+/* ------------------------------------------------------------- narrow --- */
+
+@media (max-width: 640px) {
+  .row {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+
+  .rowActions {
+    grid-column: 1 / -1;
+    flex-wrap: wrap;
+    padding-top: 0.625rem;
+    border-top: 1px dashed var(--sp-line);
+  }
+
+  .next {
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .nextActions {
+    grid-column: 1 / -1;
+    flex-wrap: wrap;
+  }
+
+  .segment {
+    display: flex;
+  }
+
+  .segmentButton {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row {
+    transition: none;
+  }
+}

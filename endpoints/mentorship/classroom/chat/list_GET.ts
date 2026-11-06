@@ -6,7 +6,7 @@ import superjson from "superjson";
 
 export async function handle(request: Request) {
   try {
-    const { user } = await getServerUserSession(request);
+    const { user, effectiveTeacherId } = await getServerUserSession(request);
     const url = new URL(request.url);
     const input = schema.parse({
       kind: url.searchParams.get("kind"),
@@ -15,7 +15,7 @@ export async function handle(request: Request) {
       limit: url.searchParams.get("limit") ?? undefined,
     });
 
-    await getLessonAccessContext(input.kind, input.id, user);
+    await getLessonAccessContext(input.kind, input.id, user, effectiveTeacherId);
 
     let query = db
       .selectFrom("liveLessonChatMessages")

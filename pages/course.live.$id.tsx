@@ -76,7 +76,7 @@ const GroupLessonDetailPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className={styles.page}>
+      <div className={`${styles.page} tk-flow`}>
         <Skeleton style={{ height: "1.5rem", width: "10rem" }} />
         <Skeleton style={{ height: "2rem", width: "min(28rem, 90%)" }} />
         <Skeleton style={{ height: "10rem", width: "100%" }} />
@@ -90,7 +90,7 @@ const GroupLessonDetailPage: React.FC = () => {
 
   if (isError || !data) {
     return (
-      <div className={styles.page}>
+      <div className={`${styles.page} tk-flow`}>
         <p className={styles.errorText}>Could not load this group lesson. Please try again.</p>
       </div>
     );
@@ -153,7 +153,7 @@ const GroupLessonDetailPage: React.FC = () => {
         <meta name="description" content={lesson.description?.slice(0, 160) ?? `Join ${lesson.title} with ${lesson.teacherName} on Testkart.`} />
       </Helmet>
 
-      <div className={styles.page}>
+      <div className={`${styles.page} tk-flow`}>
         <Link to={GROUP_LESSON_LIST_PATH} className={styles.backLink}>
           <ArrowLeft size={15} aria-hidden="true" /> All live classes
         </Link>
@@ -222,7 +222,7 @@ const GroupLessonDetailPage: React.FC = () => {
             </p>
           ) : isEnrolled ? (
             <div className={styles.enrolledBar}>
-              <p className={styles.statusMessage}>
+              <p className={`${styles.statusMessage} ${styles.statusOk}`}>
                 <CheckCircle size={16} aria-hidden="true" /> You're enrolled in this lesson.
               </p>
               <div className={styles.enrolledActions}>

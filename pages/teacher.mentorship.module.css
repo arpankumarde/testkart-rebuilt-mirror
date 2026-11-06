@@ -1,215 +1,561 @@
+/*
+ * Teacher 1:1 setup. Two columns from 1100px (rate and weekly hours; then
+ * shortcuts and days off), one column below. Surfaces come from the teacher
+ * console theme (--tc-*); pastel jobs: rate lavender, hours blue, days off
+ * butter, price preview and "on" state mint. The root carries tk-flow.
+ */
 .page {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-6);
+  gap: 1.25rem;
 }
 
-.card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 1.25rem;
+.layout {
+  display: grid;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (min-width: 1100px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 20rem;
+  }
+}
+
+.main,
+.aside {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-3);
-}
-
-.row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-3);
-  padding: var(--spacing-3) 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.row:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.rowInfo {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-1);
+  gap: 1.25rem;
   min-width: 0;
 }
 
-.rowTitle {
-  font-weight: var(--font-weight-medium);
-  color: var(--foreground);
-}
-
-.rowMeta {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-1);
-  font-size: var(--text-sm);
-  color: var(--muted-foreground);
-}
-
-.rowActions {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  flex-shrink: 0;
-}
-
-.emptyState,
-.emptyStateSmall {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  color: var(--muted-foreground);
-  font-size: var(--text-sm);
-  padding: var(--spacing-4) 0;
-}
-
-.emptyStateSmall {
-  padding: var(--spacing-2) 0;
-}
-
-.dialogFields {
+.card {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-4);
+  gap: 1rem;
+  padding: 1.25rem;
+  background: var(--tc-card, var(--card));
+  border: 1px solid var(--tc-line, var(--border));
+  border-radius: 1.25rem;
 }
 
-.field {
+.cardHead {
   display: flex;
-  flex-direction: column;
-  gap: var(--spacing-2);
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.cardHeadText {
   flex: 1;
+  min-width: 10rem;
 }
 
-.fieldRow {
+.cardIcon {
   display: flex;
-  gap: var(--spacing-3);
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
 }
 
-.label {
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--foreground);
+.icon_lavender {
+  background: var(--sp-lavender-tint);
+  color: var(--sp-lavender-ink);
 }
+
+.icon_blue {
+  background: var(--fc-blue-tint);
+  color: var(--fc-blue-ink);
+}
+
+.icon_butter {
+  background: var(--fc-butter-tint);
+  color: var(--fc-butter-ink);
+}
+
+.icon_mint {
+  background: var(--fc-mint-tint);
+  color: var(--fc-mint-ink);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--tc-ink, var(--foreground));
+}
+
+.sectionHint {
+  margin: 0.125rem 0 0;
+  font-size: 0.875rem;
+  color: var(--tc-text, var(--muted-foreground));
+}
+
+.liveChip {
+  align-self: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  background: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--tc-text, var(--muted-foreground));
+}
+
+.liveChipOn {
+  background: var(--fc-mint-tint);
+  color: var(--fc-mint-ink);
+}
+
+/* ---------------------------------------------------------------- rate --- */
 
 .switchRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
+  padding: 0.875rem 1rem;
+  border-radius: 1rem;
+  background: var(--tc-bg, var(--background));
+  border: 1px solid var(--tc-line, var(--border));
 }
 
-.sectionHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--spacing-3);
+.switchRowOn {
+  background: var(--sp-lavender-tint);
+  border-color: var(--sp-lavender-line);
 }
 
-.sectionTitle {
-  font-size: var(--text-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--foreground);
-  margin: 0;
-}
-
-.sectionHint {
-  font-size: var(--text-sm);
-  color: var(--muted-foreground);
-  margin: 0;
-}
-
-.timezoneField {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  color: var(--muted-foreground);
-}
-
-.timezoneInput {
-  width: 14rem;
-}
-
-.dayRow {
-  display: flex;
-  gap: var(--spacing-4);
-  padding: var(--spacing-3) 0;
-  border-top: 1px solid var(--border);
-}
-
-.dayName {
-  width: 6.5rem;
-  flex-shrink: 0;
-  font-weight: var(--font-weight-medium);
-  padding-top: var(--spacing-2);
-}
-
-.dayWindows {
+.switchText {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-2);
-  flex: 1;
+  gap: 0.125rem;
 }
 
-.dayUnavailable {
-  font-size: var(--text-sm);
-  color: var(--muted-foreground);
-  padding-top: var(--spacing-2);
+.switchLabel {
+  font-weight: 700;
+  color: var(--tc-ink, var(--foreground));
 }
 
-.windowRow {
+.switchHint {
+  font-size: 0.8125rem;
+  color: var(--tc-text, var(--muted-foreground));
+}
+
+.switchRowOn .switchLabel,
+.switchRowOn .switchHint {
+  color: var(--sp-lavender-ink);
+}
+
+.rateRow {
+  display: grid;
+  gap: 1rem;
+  align-items: end;
+}
+
+@media (min-width: 640px) {
+  .rateRow {
+    grid-template-columns: minmax(0, 14rem) minmax(0, 1fr);
+  }
+}
+
+.field {
   display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
+  flex-direction: column;
+  gap: 0.375rem;
 }
 
-.timeInput {
-  width: 8rem;
+.label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--tc-ink, var(--foreground));
+}
+
+.fieldHint {
+  font-size: 0.8125rem;
+  color: var(--tc-text, var(--muted-foreground));
+}
+
+.moneyInput {
+  position: relative;
+}
+
+.moneyPrefix {
+  position: absolute;
+  left: 0.875rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-weight: 700;
+  color: var(--tc-text, var(--muted-foreground));
+  pointer-events: none;
+}
+
+.moneyInput input {
+  padding-left: 2rem;
+  font-weight: 700;
+}
+
+.pricePreview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+  gap: 0.625rem;
+  margin-bottom: 1.375rem;
+}
+
+.priceTile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.875rem;
+  background: var(--fc-mint-tint);
+}
+
+.priceTileLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--fc-mint-ink);
+}
+
+.priceTileValue {
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--fc-mint-ink);
 }
 
 .saveRow {
   display: flex;
   justify-content: flex-end;
-  padding-top: var(--spacing-3);
-  border-top: 1px solid var(--border);
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--tc-line, var(--border));
 }
+
+/* --------------------------------------------------------------- hours --- */
+
+.timezoneField {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  color: var(--fc-blue-edge);
+}
+
+.timezoneInput {
+  width: 13rem;
+}
+
+.week {
+  display: flex;
+  flex-direction: column;
+}
+
+.dayRow {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--tc-line, var(--border));
+}
+
+.dayName {
+  justify-self: start;
+  margin-top: 0.375rem;
+  padding: 0.1875rem 0.625rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--tc-text, var(--muted-foreground));
+}
+
+.dayOpen {
+  background: var(--fc-blue-tint);
+  color: var(--fc-blue-ink);
+}
+
+.dayWindows {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.dayUnavailable {
+  padding-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--tc-muted, var(--muted-foreground));
+}
+
+.windowRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.375rem 0.375rem 0.375rem 0.5rem;
+  border-radius: 0.875rem;
+  background: var(--fc-blue-tint);
+  color: var(--fc-blue-ink);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.windowOff {
+  background: var(--muted);
+  color: var(--tc-text, var(--muted-foreground));
+}
+
+.timeInput {
+  width: 7.5rem;
+  background: var(--tc-card, var(--card));
+}
+
+.addHours {
+  margin-top: 0.125rem;
+}
+
+/* --------------------------------------------------------- days off --- */
 
 .blockedDateForm {
   display: flex;
-  gap: var(--spacing-2);
-  flex-wrap: wrap;
-}
-
-.dateInput {
-  width: 10rem;
-}
-
-.reasonInput {
-  flex: 1;
-  min-width: 10rem;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .blockedList {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-2);
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .blockedRow {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
-  font-size: var(--text-sm);
-  padding: var(--spacing-2) 0;
-  border-bottom: 1px solid var(--border);
+  gap: 0.5rem;
+  padding: 0.375rem 0.375rem 0.375rem 0.75rem;
+  border-radius: 0.875rem;
+  background: var(--fc-butter-tint);
+  color: var(--fc-butter-ink);
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 
-.blockedRow:last-child {
-  border-bottom: none;
+.blockedText {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
 }
 
 .blockedReason {
-  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+.emptyStateSmall {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--tc-text, var(--muted-foreground));
+}
+
+/* --------------------------------------------------------- shortcuts --- */
+
+.shortcuts {
+  gap: 0.25rem;
+  padding: 0.5rem;
+}
+
+.shortcut {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem;
+  border-radius: 0.875rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.shortcut:hover {
+  background: var(--tc-bg, var(--background));
+}
+
+.shortcut:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--fc-blue-edge);
+}
+
+.shortcutText {
+  display: flex;
+  flex-direction: column;
   flex: 1;
+  min-width: 0;
+}
+
+.shortcutTitle {
+  font-weight: 700;
+  color: var(--tc-ink, var(--foreground));
+}
+
+.shortcutHint {
+  font-size: 0.8125rem;
+  color: var(--tc-text, var(--muted-foreground));
+}
+
+.shortcutArrow {
+  color: var(--tc-muted, var(--muted-foreground));
+}
+
+/* ------------------------------------------------------ application --- */
+
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem 1.125rem;
+  border-radius: 1.25rem;
+  border: 1px solid;
+}
+
+.notice svg {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.notice_pending {
+  background: var(--fc-blue-tint);
+  border-color: var(--fc-blue-line);
+  color: var(--fc-blue-ink);
+}
+
+.notice_changes {
+  background: var(--fc-butter-tint);
+  border-color: var(--fc-butter-line);
+  color: var(--fc-butter-ink);
+}
+
+.noticeTitle {
+  margin: 0;
+  font-weight: 800;
+}
+
+.noticeText {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.checkList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.checkItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  color: var(--tc-text, var(--muted-foreground));
+}
+
+.checkItem svg {
+  flex-shrink: 0;
+  color: var(--tc-muted, var(--muted-foreground));
+}
+
+.checkDone {
+  color: var(--tc-ink, var(--foreground));
+}
+
+.checkDone svg {
+  color: var(--fc-sage-ink);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.introVideo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 1rem;
+  background: #111;
+  object-fit: contain;
+}
+
+.tips {
+  margin: 0;
+  padding-left: 1.125rem;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--tc-text, var(--muted-foreground));
+}
+
+.applyCard {
+  position: sticky;
+  top: 1rem;
+}
+
+.progress {
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--tc-bg, var(--muted));
+  border: 1px solid var(--tc-line, var(--border));
+  overflow: hidden;
+}
+
+.progressBar {
+  display: block;
+  height: 100%;
+  background: var(--fc-sage-edge);
+  border-radius: 999px;
+  transition: width 0.2s ease;
+}
+
+@media (max-width: 1099px) {
+  .applyCard {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .dayRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .dayWindows {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .dayName {
+    margin-top: 0.25rem;
+  }
+
+  .timezoneField {
+    width: 100%;
+  }
+
+  .timezoneInput {
+    flex: 1;
+    width: auto;
+  }
 }

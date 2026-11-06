@@ -1,6 +1,7 @@
 import { db } from "./db";
 import { STUDY_NOTES_PDF_MAX_MB } from "./digitalProductRules";
 import { assetKindForMime, isLibraryFolder, libraryMimeType } from "./teacherAssetFiles";
+import { LIVE_TEACHING_VIDEO_FOLDER, LIVE_TEACHING_VIDEO_MAX_MB } from "./liveTeachingRules";
 
 export const DEFAULT_UPLOAD_LIMITS = {
   thumbnailMaxMb: 3,
@@ -52,6 +53,9 @@ function getCategoryLimit(
   }
   if (normalizedFolder.startsWith("products")) {
     return Math.min(limits.digitalProductPdfMaxMb, STUDY_NOTES_PDF_MAX_MB);
+  }
+  if (normalizedFolder.startsWith(LIVE_TEACHING_VIDEO_FOLDER)) {
+    return LIVE_TEACHING_VIDEO_MAX_MB;
   }
   if (normalizedFolder.startsWith("course-intro")) {
     return limits.courseIntroVideoMaxMb;

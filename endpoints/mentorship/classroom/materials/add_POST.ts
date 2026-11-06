@@ -6,11 +6,11 @@ import superjson from "superjson";
 
 export async function handle(request: Request) {
   try {
-    const { user } = await getServerUserSession(request);
+    const { user, effectiveTeacherId } = await getServerUserSession(request);
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);
 
-    const ctx = await getLessonAccessContext(input.kind, input.id, user);
+    const ctx = await getLessonAccessContext(input.kind, input.id, user, effectiveTeacherId);
     if (ctx.viewerRole !== "teacher") {
       return new Response(superjson.stringify({ error: "Only the teacher can add materials." }), { status: 403 });
     }

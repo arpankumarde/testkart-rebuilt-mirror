@@ -17,6 +17,20 @@ export async function handle(request: Request) {
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);
 
+    if (input.enabled) {
+      const row = await db
+        .selectFrom("users")
+        .select("liveTeachingStatus")
+        .where("id", "=", effectiveTeacherId)
+        .executeTakeFirst();
+      if (row?.liveTeachingStatus !== "approved") {
+        return new Response(
+          superjson.stringify({ error: "1:1 sessions open once your live teaching application is approved." }),
+          { status: 403 }
+        );
+      }
+    }
+
     if (input.enabled && (input.ratePerUnit === undefined || input.ratePerUnit < MENTORSHIP_MIN_RATE_PER_UNIT)) {
       return new Response(
         superjson.stringify({ error: `Set a rate of at least ₹${MENTORSHIP_MIN_RATE_PER_UNIT} per 25 minutes to enable 1:1 sessions.` }),

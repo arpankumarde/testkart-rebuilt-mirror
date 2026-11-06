@@ -157,6 +157,7 @@ const groups: AdminNavGroup[] = [
         keywords: "organisations institutes coaching schools colleges universities",
       },
       { href: "/admin/teachers/inquiries", label: "Teacher inquiries", icon: MessageSquare, modules: ["teacher_inquiries"], countKeys: ["inquiriesPending"], keywords: "institute leads" },
+      { href: "/admin/teachers/live-teaching", label: "Live teaching", icon: Video, modules: ["teachers"], countKeys: ["liveTeachingPending"], keywords: "1:1 mentorship tutors group classes approve application intro video" },
       { href: "/admin/contact-submissions", label: "Contact submissions", icon: Inbox, modules: ["contact_submissions"], countKeys: ["contactNew"], keywords: "messages contact form" },
       { href: "/admin/deleted-accounts", label: "Deleted accounts", icon: UserX, modules: ["deleted_accounts"] },
       { href: "/admin/support?status=open", label: "Support inbox", icon: LifeBuoy, modules: ["support"], countKeys: ["supportUnread"], keywords: "tickets threads help" },

@@ -1,0 +1,90 @@
+import superjson from "superjson";
+import { db } from "../../../../helpers/db";
+import { getAdminServerSessionOrThrow } from "../../../../helpers/getAdminSession";
+import { MENTORSHIP_MIN_RATE_PER_UNIT } from "../../../../helpers/liveLessonConfig";
+import { sendLiveTeachingDecisionEmail } from "../../../../helpers/liveTeachingEmail";
+import { schema, OutputType } from "./decide_POST.schema";
+
+/*
+ * approve: a pending application goes live - status approved, the video goes on the profile and
+ * 1:1 bookings switch on at the rate they applied with. reject: a pending application is turned
+ * down with a reason. revoke: an approved teacher loses 1:1 and new group classes; classes already
+ * scheduled stay. The teacher is emailed after the change commits.
+ */
+export async function handle(request: Request): Promise<Response> {
+  try {
+    const admin = await getAdminServerSessionOrThrow(request);
+    const input = schema.parse(superjson.parse(await request.text()));
+    const reason = input.action === "approve" ? null : input.reason ?? null;
+
+    const application = await db
+      .selectFrom("liveTeachingApplications as a")
+      .innerJoin("users as u", "u.id", "a.teacherId")
+      .select(["a.id", "a.status", "a.teacherId", "a.introVideoUrl", "a.introVideoFileId", "u.displayName", "u.email", "u.mentorshipRatePerUnit"])
+      .where("a.id", "=", input.applicationId)
+      .executeTakeFirst();
+    if (!application) {
+      return new Response(superjson.stringify({ error: "Application not found." }), { status: 404 });
+    }
+
+    const latest = await db
+      .selectFrom("liveTeachingApplications")
+      .select("id")
+      .where("teacherId", "=", application.teacherId)
+      .orderBy("createdAt", "desc")
+      .limit(1)
+      .executeTakeFirst();
+    if (latest?.id !== application.id) {
+      return new Response(superjson.stringify({ error: "This teacher has a newer application. Open that one." }), {
+        status: 400,
+      });
+    }
+
+    const expected = input.action === "revoke" ? "approved" : "pending";
+    if (application.status !== expected) {
+      return new Response(
+        superjson.stringify({ error: `Only ${expected} applications can be ${input.action === "revoke" ? "revoked" : "decided"}.` }),
+        { status: 400 }
+      );
+    }
+
+    const now = new Date();
+    const nextStatus = input.action === "approve" ? "approved" : input.action === "reject" ? "rejected" : "revoked";
+    const rateValid = Number(application.mentorshipRatePerUnit ?? 0) >= MENTORSHIP_MIN_RATE_PER_UNIT;
+
+    await db.transaction().execute(async (trx) => {
+      await trx
+        .updateTable("liveTeachingApplications")
+        .set({ status: nextStatus, decisionReason: reason, decidedBy: admin.fullName, decidedAt: now, updatedAt: now })
+        .where("id", "=", application.id)
+        .execute();
+      await trx
+        .updateTable("users")
+        .set(
+          input.action === "approve"
+            ? {
+                liveTeachingStatus: "approved",
+                introVideoUrl: application.introVideoUrl,
+                introVideoFileId: application.introVideoFileId,
+                mentorshipEnabled: rateValid,
+              }
+            : { liveTeachingStatus: nextStatus, mentorshipEnabled: false }
+        )
+        .where("id", "=", application.teacherId)
+        .execute();
+    });
+
+    let emailed = false;
+    if (application.email) {
+      await sendLiveTeachingDecisionEmail(application.email, application.displayName, input.action, reason);
+      emailed = true;
+    }
+
+    const output: OutputType = { success: true, emailed };
+    return new Response(superjson.stringify(output));
+  } catch (error) {
+    console.error("Error deciding live teaching application:", error);
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    return new Response(superjson.stringify({ error: errorMessage }), { status: 400 });
+  }
+}

@@ -39,6 +39,7 @@ import { TeacherCtaBanner } from "./TeacherCtaBanner";
 import { FollowTeacherButton } from "./FollowTeacherButton";
 import { TeacherPostsSection } from "./TeacherPostsSection";
 import { TeacherLiveTeachingCard } from "./TeacherLiveTeachingCard";
+import { useMentorshipTeacherOfferingsQuery } from "../helpers/useMentorship";
 import { Button } from "./Button";
 import styles from "./ExpertProfileView.module.css";
 
@@ -225,6 +226,8 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
   const catalogueRef = useRef<HTMLElement | null>(null);
   const aboutRef = useRef<HTMLElement | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
+  const liveOfferingsQuery = useMentorshipTeacherOfferingsQuery(variant === "page" ? teacher.id : null);
+  const offersOneToOne = variant === "page" && !!liveOfferingsQuery.data?.enabled;
 
   const educator = {
     teacherName: displayName,
@@ -576,6 +579,15 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
                     About {shortName}
                   </button>
                 )}
+                {offersOneToOne && (
+                  <button
+                    type="button"
+                    className={styles.actionSecondary}
+                    onClick={() => smoothScroll(document.getElementById("live"))}
+                  >
+                    Book a 1:1 session
+                  </button>
+                )}
                 {variant === "page" && teacher.slug && (
                   <FollowTeacherButton
                     teacherId={teacher.id}
@@ -616,8 +628,15 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
         </div>
       </section>
 
-      {/* Live teaching hidden from the profile for now; booking pages still work by link. */}
-      {/* {variant === "page" && <TeacherLiveTeachingCard teacherId={teacher.id} />} */}
+      {/* Renders only for teachers who switched on 1:1 sessions or have an open group class. */}
+      {variant === "page" && (
+        <TeacherLiveTeachingCard
+          teacherId={teacher.id}
+          teacherName={shortName}
+          className={styles.section}
+          titleClassName={styles.sectionTitle}
+        />
+      )}
 
       <section className={styles.section} ref={catalogueRef} id="resources">
         <h2 className={styles.sectionTitle}>Learn with {shortName}</h2>

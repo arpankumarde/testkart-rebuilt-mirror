@@ -130,6 +130,15 @@ const tiles = (attention: AttentionCounts, permissions: AdminPermissionList): At
       tone: "inbox",
     },
     {
+      key: "liveTeachingPending",
+      count: attention.liveTeachingPending,
+      title: plural(attention.liveTeachingPending, "live teaching application", "live teaching applications"),
+      detail: "to review",
+      href: "/admin/teachers/live-teaching",
+      icon: UserCheck,
+      tone: "verify",
+    },
+    {
       key: "contactNew",
       count: attention.contactNew,
       title: plural(attention.contactNew, "contact message", "contact messages"),

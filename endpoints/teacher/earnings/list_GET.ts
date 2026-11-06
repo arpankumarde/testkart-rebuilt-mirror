@@ -5,7 +5,7 @@ import superjson from "superjson";
 import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
 import { getTeacherPlatformFee } from "../../../helpers/getTeacherPlatformFee";
 import { sql } from "kysely";
-import { teacherItemDiscountSql } from "../../../helpers/teacherEarningsSql";
+import { teacherItemDiscountSql, buildTeacherLiveSessionRowsSql } from "../../../helpers/teacherEarningsSql";
 
 const teacherDiscount = () => teacherItemDiscountSql("order_items", "orders");
 
@@ -404,12 +404,38 @@ export async function handle(request: Request): Promise<Response> {
       ];
     });
 
+    // Held 1:1 sessions and group classes: the same rows the balance counts.
+    const liveSessionData = await sql<{
+      soldAt: Date;
+      title: string;
+      studentName: string | null;
+      gross: string;
+      feePercentage: string;
+      earnings: string;
+    }>`
+      SELECT live.sold_at, live.title, buyer.display_name AS student_name,
+             live.gross, live.fee_percentage, live.earnings
+      FROM ${buildTeacherLiveSessionRowsSql(effectiveTeacherId)} live
+      LEFT JOIN users buyer ON buyer.id = live.buyer_id
+    `.execute(db);
+
+    const liveSessionTransactions: OutputType = liveSessionData.rows.map((row) => ({
+      transactionDate: row.soldAt,
+      testTitle: row.title,
+      studentName: row.studentName ?? "Deleted account",
+      grossAmount: Number(row.gross),
+      platformFeePercentage: Number(row.feePercentage),
+      amountEarned: Number(row.earnings),
+      transactionType: "sale" as const,
+    }));
+
     // Combine all transaction arrays
    const allTransactions: OutputType = [
       ...mockTestSalesTransactions,
       ...courseSalesTransactions,
        ...digitalProductSalesTransactions,
        ...bundleSalesTransactions,
+       ...liveSessionTransactions,
        ...withdrawalTransactions,
       ...subscriptionTransactions,
        ...sponsoredTransactions,

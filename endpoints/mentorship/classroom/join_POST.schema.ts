@@ -12,7 +12,7 @@ export type OutputType = {
   token: string;
   url: string;
   expiresAt: Date;
-  provider: string;
+  provider: "mock" | "daily";
   role: "teacher" | "learner";
   attendanceId: number;
   title: string;

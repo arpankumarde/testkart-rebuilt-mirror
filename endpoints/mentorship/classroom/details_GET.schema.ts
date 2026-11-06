@@ -24,6 +24,8 @@ export type OutputType = {
   materialsCount: number;
   /** Whether the join window is open right now, and why if not. */
   joinWindow: { isOpen: boolean; opensAt: Date; closesAt: Date };
+  /** What a join would connect to right now: a real Daily.co call, or the development-only mock. */
+  videoProvider: "mock" | "daily";
 };
 
 export const getMentorshipClassroomDetails = async (input: InputType, init?: RequestInit): Promise<OutputType> => {

@@ -38,9 +38,12 @@ const BookMentorshipPage: React.FC = () => {
 
   useEffect(() => {
     if (durations.length > 0 && durationMinutes === null) {
-      setDurationMinutes(durations[0].durationMinutes);
+      // The profile's length tiles link here with ?duration=<minutes>.
+      const requested = Number(new URLSearchParams(location.search).get("duration"));
+      const match = durations.find((d) => d.durationMinutes === requested);
+      setDurationMinutes((match ?? durations[0]).durationMinutes);
     }
-  }, [durations, durationMinutes]);
+  }, [durations, durationMinutes, location.search]);
 
   const selectedDuration = durations.find((d) => d.durationMinutes === durationMinutes) ?? null;
 
@@ -109,7 +112,7 @@ const BookMentorshipPage: React.FC = () => {
 
   if (offeringsQuery.isLoading) {
     return (
-      <div className={styles.page}>
+      <div className={`${styles.page} tk-flow`}>
         <Skeleton style={{ height: "1.5rem", width: "10rem" }} />
         <Skeleton style={{ height: "10rem", width: "100%" }} />
       </div>
@@ -165,7 +168,7 @@ const BookMentorshipPage: React.FC = () => {
 
   if (justBookedFree) {
     return (
-      <div className={styles.page}>
+      <div className={`${styles.page} tk-flow`}>
         <div className={styles.successBox}>
           <CheckCircle size={32} className={styles.successIcon} aria-hidden="true" />
           <h1 className={styles.successTitle}>Your session is booked!</h1>
@@ -188,7 +191,7 @@ const BookMentorshipPage: React.FC = () => {
         <title>{`Book a 1:1 session with ${teacher.displayName} | Testkart`}</title>
       </Helmet>
 
-      <div className={styles.page}>
+      <div className={`${styles.page} tk-flow`}>
         <Link to={GROUP_LESSON_LIST_PATH} className={styles.backLink}>
           <ArrowLeft size={15} aria-hidden="true" /> All live teaching
         </Link>

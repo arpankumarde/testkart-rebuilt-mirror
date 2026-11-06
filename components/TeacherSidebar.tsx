@@ -147,31 +147,31 @@ const NAV_GROUPS: TeacherNavGroup[] = [
       { href: '/teacher/trash', label: 'Trash', icon: Trash2 },
     ],
   },
-  // Hidden from the sidebar for now; the /teacher/mentorship pages still work by link.
-  // {
-  //   key: 'live_teaching',
-  //   label: 'Live Teaching',
-  //   items: [
-  //     {
-  //       href: '/teacher/mentorship',
-  //       label: 'Offerings',
-  //       icon: Video,
-  //       isActiveFor: (p) => p === '/teacher/mentorship',
-  //     },
-  //     {
-  //       href: '/teacher/mentorship/bookings',
-  //       label: '1:1 bookings',
-  //       icon: Users,
-  //       isActiveFor: (p) => p.startsWith('/teacher/mentorship/bookings'),
-  //     },
-  //     {
-  //       href: '/teacher/mentorship/group-lessons',
-  //       label: 'Group lessons',
-  //       icon: Megaphone,
-  //       isActiveFor: (p) => p.startsWith('/teacher/mentorship/group-lessons'),
-  //     },
-  //   ],
-  // },
+  // Until a teacher is approved, Offerings opens the live teaching application.
+  {
+    key: 'live_teaching',
+    label: 'Live Teaching',
+    items: [
+      {
+        href: '/teacher/mentorship',
+        label: 'Offerings',
+        icon: Video,
+        isActiveFor: (p) => p === '/teacher/mentorship',
+      },
+      {
+        href: '/teacher/mentorship/bookings',
+        label: '1:1 bookings',
+        icon: Users,
+        isActiveFor: (p) => p.startsWith('/teacher/mentorship/bookings'),
+      },
+      {
+        href: '/teacher/mentorship/group-lessons',
+        label: 'Group lessons',
+        icon: Megaphone,
+        isActiveFor: (p) => p.startsWith('/teacher/mentorship/group-lessons'),
+      },
+    ],
+  },
   {
     key: 'students',
     label: 'Students',

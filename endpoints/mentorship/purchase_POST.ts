@@ -37,12 +37,18 @@ export async function handle(request: Request) {
 
     const teacher = await db
       .selectFrom("users")
-      .select(["id", "role", "mentorshipEnabled", "mentorshipRatePerUnit"])
+      .select(["id", "role", "mentorshipEnabled", "mentorshipRatePerUnit", "liveTeachingStatus"])
       .where("id", "=", teacherId)
       .executeTakeFirst();
 
     const rate = Number(teacher?.mentorshipRatePerUnit ?? 0);
-    if (!teacher || teacher.role !== "teacher" || !teacher.mentorshipEnabled || rate < MENTORSHIP_MIN_RATE_PER_UNIT) {
+    if (
+      !teacher ||
+      teacher.role !== "teacher" ||
+      !teacher.mentorshipEnabled ||
+      teacher.liveTeachingStatus !== "approved" ||
+      rate < MENTORSHIP_MIN_RATE_PER_UNIT
+    ) {
       throw new Error("This teacher does not currently offer 1:1 sessions.");
     }
 

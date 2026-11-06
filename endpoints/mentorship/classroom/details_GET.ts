@@ -2,16 +2,17 @@ import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { getLessonAccessContext, LessonAccessError } from "../../../helpers/mentorshipLessonAccess";
 import { JOIN_WINDOW_MINUTES_BEFORE, JOIN_WINDOW_MINUTES_AFTER } from "../../../helpers/liveLessonConfig";
+import { getVideoProviderKind } from "../../../helpers/videoProvider";
 import { schema, OutputType, ClassroomRosterMember } from "./details_GET.schema";
 import superjson from "superjson";
 
 export async function handle(request: Request) {
   try {
-    const { user } = await getServerUserSession(request);
+    const { user, effectiveTeacherId } = await getServerUserSession(request);
     const url = new URL(request.url);
     const input = schema.parse({ kind: url.searchParams.get("kind"), id: url.searchParams.get("id") });
 
-    const ctx = await getLessonAccessContext(input.kind, input.id, user);
+    const ctx = await getLessonAccessContext(input.kind, input.id, user, effectiveTeacherId);
 
     const teacher = await db.selectFrom("users").select(["avatarUrl"]).where("id", "=", ctx.teacherId).executeTakeFirst();
 
@@ -77,6 +78,7 @@ export async function handle(request: Request) {
       roster,
       materialsCount,
       joinWindow: { isOpen: now >= opensAt && now <= closesAt && ctx.status !== "cancelled", opensAt, closesAt },
+      videoProvider: getVideoProviderKind(),
     };
     return new Response(superjson.stringify(output));
   } catch (error) {

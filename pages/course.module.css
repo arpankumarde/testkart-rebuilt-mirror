@@ -35,23 +35,37 @@
   margin-top: var(--spacing-6);
 }
 
+/* Same pills as the Live Classes tab on /course/live: lavender when active. */
 .sectionTab {
   display: inline-flex;
   align-items: center;
-  padding: var(--spacing-2) var(--spacing-4);
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border);
-  background-color: var(--background);
-  color: var(--muted-foreground);
+  padding: 0.5rem 1.125rem;
+  border-radius: 999px;
+  border: 1px solid var(--sp-line-strong);
+  background-color: var(--sp-card);
+  color: var(--sp-text);
   font-size: 0.9375rem;
   font-weight: 600;
   text-decoration: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
-.sectionTabActive {
-  background-color: var(--primary);
-  border-color: var(--primary);
-  color: var(--primary-foreground);
+.sectionTab:hover {
+  background-color: var(--fc-blue-tint);
+  border-color: var(--fc-blue-edge);
+  color: var(--fc-blue-ink);
+}
+
+.sectionTab:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--sp-card), 0 0 0 4px var(--fc-blue-edge);
+}
+
+.sectionTabActive,
+.sectionTabActive:hover {
+  background-color: var(--sp-lavender-tint);
+  border-color: var(--sp-lavender-edge);
+  color: var(--sp-lavender-ink);
 }
 
 .mainContent {

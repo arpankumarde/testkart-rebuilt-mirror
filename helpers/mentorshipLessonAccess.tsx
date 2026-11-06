@@ -26,8 +26,9 @@ export class LessonAccessError extends Error {
 }
 
 /**
- * Resolves a booking/group lesson and checks that `user` is either the teacher who owns it or a
- * learner with an active booking/enrollment in it. Throws LessonAccessError otherwise. This is the
+ * Resolves a booking/group lesson and checks that `user` is either the teacher who owns it (or a
+ * team member acting for that teacher, via `effectiveTeacherId`), an admin, or a learner with an
+ * active booking/enrollment in it. Throws LessonAccessError otherwise. This is the
  * single place server-side ownership/membership is enforced for the classroom - every endpoint
  * that touches chat, materials, attendance or join credentials must call this first and must never
  * rely on the client to have hidden a button instead.
@@ -35,7 +36,8 @@ export class LessonAccessError extends Error {
 export async function getLessonAccessContext(
   kind: LessonKind,
   id: number,
-  user: Pick<Selectable<Users>, "id" | "role">
+  user: Pick<Selectable<Users>, "id" | "role">,
+  effectiveTeacherId: number = user.id
 ): Promise<LessonAccessContext> {
   if (kind === "booking") {
     const booking = await db
@@ -56,7 +58,7 @@ export async function getLessonAccessContext(
 
     if (!booking) throw new LessonAccessError("Booking not found", 404);
 
-    const isTeacher = user.role === "teacher" && booking.teacherId === user.id;
+    const isTeacher = user.role === "teacher" && booking.teacherId === effectiveTeacherId;
     const isStudent = user.role === "student" && booking.studentId === user.id;
     const isAdmin = user.role === "admin";
     if (!isTeacher && !isStudent && !isAdmin) {
@@ -94,7 +96,7 @@ export async function getLessonAccessContext(
 
   if (!lesson) throw new LessonAccessError("Group lesson not found", 404);
 
-  const isTeacher = user.role === "teacher" && lesson.teacherId === user.id;
+  const isTeacher = user.role === "teacher" && lesson.teacherId === effectiveTeacherId;
   const isAdmin = user.role === "admin";
   let isEnrolledLearner = false;
   if (user.role === "student") {
@@ -121,6 +123,7 @@ export async function getLessonAccessContext(
     startTime: lesson.startTime,
     durationMinutes: lesson.durationMinutes,
     status: lesson.status,
-    viewerRole: isTeacher ? "teacher" : "learner",
+    // As with bookings, admins viewing for moderation get teacher-level classroom controls.
+    viewerRole: isEnrolledLearner ? "learner" : "teacher",
   };
 }

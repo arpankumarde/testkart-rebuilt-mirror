@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { Plus, Edit2, Ban, Users, Video, UserMinus } from "lucide-react";
+import { Plus, Edit2, Ban, Users, Video, UserMinus, MoreHorizontal, CheckCircle2 } from "lucide-react";
 import {
   useTeacherGroupLessonsQuery,
   useUpsertGroupLessonMutation,
@@ -13,9 +13,18 @@ import {
 } from "../helpers/useTeacherMentorship";
 import { TeacherGroupLessonRow } from "../endpoints/teacher/group-lessons/list_GET.schema";
 import { GROUP_LESSON_MIN_CAPACITY, GROUP_LESSON_MAX_CAPACITY } from "../helpers/liveLessonConfig";
+import { useLiveTeachingStatusQuery } from "../helpers/useLiveTeaching";
 import { ConsolePageHeader } from "../components/ConsolePageHeader";
 import { Button } from "../components/Button";
-import { Badge } from "../components/Badge";
+import { ConsoleListEmpty } from "../components/ConsoleListEmpty";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../components/DropdownMenu";
+import {
+  LiveSessionDateTile,
+  LiveSessionStatus,
+  LiveSessionTone,
+  formatSessionTime,
+  relativeDayLabel,
+} from "../components/LiveSession";
 import { Input } from "../components/Input";
 import { Textarea } from "../components/Textarea";
 import { Skeleton } from "../components/Skeleton";
@@ -26,13 +35,40 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectGroup, SelectI
 import { ImageUploader } from "../components/ImageUploader";
 import styles from "./teacher.mentorship.group-lessons.module.css";
 
-const formatDateTime = (date: Date | string) =>
-  new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kolkata" }).format(new Date(date));
+const TIME_ZONE = "Asia/Kolkata";
+const TONES: LiveSessionTone[] = ["blue", "lavender", "sage", "butter", "mint"];
 
-const statusVariant = (status: string): "success" | "secondary" | "destructive" => {
-  if (status === "scheduled") return "success";
-  if (status === "cancelled") return "destructive";
-  return "secondary";
+const lessonStatus = (status: string): LiveSessionStatus | null => {
+  if (status === "cancelled") return { label: "Cancelled", tone: "peach" };
+  if (status === "completed") return { label: "Completed", tone: "sage" };
+  if (status === "no_show") return { label: "No-show", tone: "butter" };
+  return null;
+};
+
+const formatPrice = (price: number) => (price > 0 ? `₹${price.toLocaleString("en-IN")}` : "Free");
+
+/* Seats taken, as a mint meter with a label. */
+const SeatsMeter: React.FC<{ enrolled: number; capacity: number }> = ({ enrolled, capacity }) => {
+  const pct = capacity > 0 ? Math.min(100, Math.round((enrolled / capacity) * 100)) : 0;
+  return (
+    <div className={styles.seats}>
+      <div className={styles.seatsLabel}>
+        <span>
+          <strong>{enrolled}</strong> of {capacity} seats taken
+        </span>
+      </div>
+      <div
+        className={styles.meter}
+        role="meter"
+        aria-label="Seats taken"
+        aria-valuemin={0}
+        aria-valuemax={capacity}
+        aria-valuenow={enrolled}
+      >
+        <span className={styles.meterFill} style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
 };
 
 const toDateTimeLocal = (date: Date | string | null): string => {
@@ -48,76 +84,164 @@ const TeacherGroupLessonsPage: React.FC = () => {
   const [cancelTarget, setCancelTarget] = useState<TeacherGroupLessonRow | null>(null);
   const [rosterTarget, setRosterTarget] = useState<TeacherGroupLessonRow | null>(null);
   const completeMutation = useCompleteLessonMutation();
+  const statusQuery = useLiveTeachingStatusQuery();
+  // New classes need an approved live teaching application; scheduled ones stay manageable.
+  const canCreate = statusQuery.data?.status === "approved";
+  const createButton = canCreate ? (
+    <Button onClick={() => setEditingRow("new")}>
+      <Plus size={16} /> Create group lesson
+    </Button>
+  ) : statusQuery.data ? (
+    <Button asChild>
+      <Link to="/teacher/mentorship">Apply to teach live</Link>
+    </Button>
+  ) : null;
 
   return (
     <>
       <Helmet>
         <title>Group Lessons - Testkart</title>
       </Helmet>
-      <div className={styles.page}>
-        <ConsolePageHeader title="Group lessons" description="Scheduled classes multiple learners can enroll in.">
-          <Button onClick={() => setEditingRow("new")}>
-            <Plus size={16} /> Create group lesson
-          </Button>
+      <div className={`${styles.page} tk-flow`}>
+        <ConsolePageHeader
+          title="Group lessons"
+          description={
+            canCreate || !statusQuery.data
+              ? "Scheduled classes multiple learners can enroll in."
+              : "Group classes open once your live teaching application is approved."
+          }
+        >
+          {createButton}
         </ConsolePageHeader>
 
         {isFetching && !data ? (
-          <div className={styles.list}>
-            <Skeleton style={{ height: "5rem", width: "100%" }} />
+          <div className={styles.grid}>
+            <Skeleton style={{ height: "13rem", width: "100%", borderRadius: "1.25rem" }} />
+            <Skeleton style={{ height: "13rem", width: "100%", borderRadius: "1.25rem" }} />
           </div>
         ) : !data || data.groupLessons.length === 0 ? (
-          <p className={styles.emptyState}>No group lessons yet. Create one to start taking enrollments.</p>
+          <ConsoleListEmpty
+            icon={<Users size={28} />}
+            title="No group lessons yet"
+            description={
+              canCreate ? "Schedule a class once and many learners can join it." : "Apply to teach live to schedule classes."
+            }
+          >
+            {createButton}
+          </ConsoleListEmpty>
         ) : (
-          <div className={styles.list}>
-            {data.groupLessons.map((g) => (
-              <div key={g.id} className={styles.row}>
-                <div className={styles.rowInfo}>
-                  <span className={styles.rowTitle}>{g.title}</span>
-                  <span className={styles.rowMeta}>
-                    {formatDateTime(g.startTime)} &middot; {g.durationMinutes} min &middot; &#8377;{g.pricePerLearner.toLocaleString("en-IN")}
-                  </span>
-                  <span className={styles.rowMeta}>
-                    {g.enrolledCount} / {g.maxCapacity} enrolled
-                  </span>
-                  {g.cancellationReason && <span className={styles.rowReason}>{g.cancellationReason}</span>}
-                </div>
-                <div className={styles.rowActions}>
-                  <Badge variant={statusVariant(g.status)}>{g.status}</Badge>
-                  <Button variant="ghost" size="icon-md" onClick={() => setRosterTarget(g)} aria-label="View roster">
-                    <Users size={16} />
-                  </Button>
-                  {g.status === "scheduled" && (
-                    <>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link to={`/mentorship/classroom/group/${g.id}`}>
-                          <Video size={14} /> Classroom
-                        </Link>
+          (() => {
+            const now = Date.now();
+            const isUpcoming = (g: TeacherGroupLessonRow) =>
+              g.status === "scheduled" && new Date(g.startTime).getTime() + g.durationMinutes * 60_000 > now;
+            const upcoming = data.groupLessons
+              .filter(isUpcoming)
+              .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+            const earlier = data.groupLessons
+              .filter((g) => !isUpcoming(g))
+              .sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+
+            const card = (g: TeacherGroupLessonRow, i: number) => {
+              const status = lessonStatus(g.status);
+              const isScheduled = g.status === "scheduled";
+              return (
+                <article key={g.id} className={styles.card}>
+                  <div className={styles.cardTop}>
+                    <LiveSessionDateTile
+                      date={g.startTime}
+                      tone={isScheduled ? TONES[i % TONES.length] : "muted"}
+                      timeZone={TIME_ZONE}
+                    />
+                    <div className={styles.cardHead}>
+                      <div className={styles.cardChips}>
+                        {g.subject && <span className={styles.subject}>{g.subject}</span>}
+                        {status && <span className={`${styles.status} ${styles[`status_${status.tone}`]}`}>{status.label}</span>}
+                      </div>
+                      <h3 className={styles.cardTitle}>{g.title}</h3>
+                      <p className={styles.cardMeta}>
+                        {relativeDayLabel(g.startTime, TIME_ZONE) ? `${relativeDayLabel(g.startTime, TIME_ZONE)}, ` : ""}
+                        {formatSessionTime(g.startTime, TIME_ZONE)} &middot; {g.durationMinutes} min
+                      </p>
+                    </div>
+                    {isScheduled && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon-md" aria-label={`More options for ${g.title}`}>
+                            <MoreHorizontal size={18} />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onSelect={() => setEditingRow(g)}>
+                            <Edit2 size={14} /> Edit details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            disabled={completeMutation.isPending}
+                            onSelect={() =>
+                              completeMutation.mutate(
+                                { kind: "group", id: g.id },
+                                { onError: (err) => toast.error(err instanceof Error ? err.message : "Could not update status.") }
+                              )
+                            }
+                          >
+                            <CheckCircle2 size={14} /> Mark completed
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => setCancelTarget(g)}>
+                            <Ban size={14} /> Cancel lesson
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
+
+                  <SeatsMeter enrolled={g.enrolledCount} capacity={g.maxCapacity} />
+
+                  {g.cancellationReason && <p className={styles.reason}>{g.cancellationReason}</p>}
+
+                  <div className={styles.cardFoot}>
+                    <span className={`${styles.price} ${g.pricePerLearner > 0 ? "" : styles.free}`}>
+                      {formatPrice(g.pricePerLearner)}
+                      {g.pricePerLearner > 0 && <span className={styles.priceUnit}> per learner</span>}
+                    </span>
+                    <div className={styles.cardActions}>
+                      <Button variant="ghost" size="sm" onClick={() => setRosterTarget(g)}>
+                        <Users size={14} /> Learners
                       </Button>
-                      <Button variant="ghost" size="icon-md" onClick={() => setEditingRow(g)} aria-label="Edit">
-                        <Edit2 size={16} />
-                      </Button>
-                      <Button variant="ghost" size="icon-md" onClick={() => setCancelTarget(g)} aria-label="Cancel">
-                        <Ban size={16} />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={completeMutation.isPending}
-                        onClick={() =>
-                          completeMutation.mutate(
-                            { kind: "group", id: g.id },
-                            { onError: (err) => toast.error(err instanceof Error ? err.message : "Could not update status.") }
-                          )
-                        }
-                      >
-                        Mark completed
-                      </Button>
-                    </>
+                      {isScheduled && (
+                        <Button variant="outline" size="sm" asChild>
+                          <Link to={`/mentorship/classroom/group/${g.id}`}>
+                            <Video size={14} /> Classroom
+                          </Link>
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </article>
+              );
+            };
+
+            return (
+              <>
+                <section className={styles.section}>
+                  <h2 className={styles.sectionTitle}>
+                    Upcoming <span className={styles.count}>{upcoming.length}</span>
+                  </h2>
+                  {upcoming.length > 0 ? (
+                    <div className={styles.grid}>{upcoming.map(card)}</div>
+                  ) : (
+                    <p className={styles.emptyState}>Nothing scheduled. Create a lesson to open enrollments.</p>
                   )}
-                </div>
-              </div>
-            ))}
-          </div>
+                </section>
+                {earlier.length > 0 && (
+                  <section className={styles.section}>
+                    <h2 className={styles.sectionTitle}>
+                      Earlier <span className={styles.count}>{earlier.length}</span>
+                    </h2>
+                    <div className={styles.grid}>{earlier.map(card)}</div>
+                  </section>
+                )}
+              </>
+            );
+          })()
         )}
       </div>
 

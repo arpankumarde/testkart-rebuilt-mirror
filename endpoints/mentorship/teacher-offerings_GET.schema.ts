@@ -18,8 +18,10 @@ export type OutputType = {
     tagline: string | null;
     timezone: string;
   };
-  /** Whether this teacher currently offers 1:1 sessions at all. */
+  /** Whether this teacher currently offers 1:1 sessions at all (needs an approved live teaching application). */
   enabled: boolean;
+  /** The approved intro video, shown on the profile. Null unless live teaching is approved. */
+  introVideoUrl: string | null;
   /** One entry per allowed duration (see MENTORSHIP_SESSION_DURATIONS), priced from the teacher's rate. */
   durations: MentorshipOfferingDuration[];
   /** True if the signed-in viewer is a student with no prior (non-cancelled) booking with this teacher - their first booking would be a trial. Always false when signed out or not a student. */

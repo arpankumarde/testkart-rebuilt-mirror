@@ -525,7 +525,7 @@ export async function ensureOrderCompletionSideEffects(orderId: number): Promise
         // can never race with (or double-book against) a normal booking attempt.
         await sql`select pg_advisory_xact_lock(hashtext(${"mentorship_booking_teacher_" + teacherId}))`.execute(trx);
 
-        const bookable = await isTeacherSlotBookable(teacherId, startTime, durationMinutes);
+        const bookable = await isTeacherSlotBookable(teacherId, startTime, durationMinutes, trx);
         if (!bookable.ok) {
           console.error(`[ensureOrderCompletionSideEffects] Order ${orderId} paid for a 1:1 session but the slot is no longer bookable (${bookable.reason}); booking was NOT created. This order needs manual review/refund.`);
         } else {

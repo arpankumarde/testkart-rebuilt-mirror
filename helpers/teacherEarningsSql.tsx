@@ -225,8 +225,98 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
 }
 
 /**
- * Net earnings across ALL product types (mock tests, courses, digital
- * products, bundles), net of the platform fee captured at time of sale
+ * Live teaching sales: paid 1:1 sessions (kind 'live_session') and paid group
+ * class seats (kind 'group_class'). Same columns as earningsRowsFragment plus
+ * `fee_percentage`, the platform fee stored on the order item at purchase.
+ *
+ * A row counts only once the session has been held, the way live-test money
+ * waits for the test to end:
+ *   - 1:1: the order still has a booking that is not cancelled (a reschedule
+ *     cancels the old row and adds a new one under the same order, so the
+ *     newest live booking is used) and its end time has passed;
+ *   - group class: the class was not cancelled, its end time has passed and
+ *     the buyer still holds the seat (not left, not removed).
+ * Bookings made before order_items.mentorship_teacher_id existed are not
+ * counted. A refund moves the order off 'completed', so it drops out here.
+ *
+ * Kept out of earningsRowsFragment on purpose: the analytics breakdowns built
+ * on buildTeacherSaleRowsSql group by product kind and have no bucket for
+ * these two kinds yet.
+ */
+function liveSessionRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEarningsWindow) {
+  return sql`(
+    SELECT (oi.price_at_purchase - td.amount) * (1 - oi.platform_fee_percentage / 100) AS earnings,
+           (oi.price_at_purchase - td.amount) AS gross,
+           o.created_at AS sold_at,
+           o.id AS order_id,
+           o.user_id AS buyer_id,
+           'live_session'::text AS kind,
+           ('1:1 session (' || mb.duration_minutes || ' min)')::text AS title,
+           NULL::text AS thumbnail,
+           mb.id AS item_id,
+           o.promo_code_id AS promo_code_id,
+           td.amount AS discount,
+           oi.mentorship_teacher_id AS teacher_id,
+           oi.platform_fee_percentage AS fee_percentage
+    FROM order_items oi
+    JOIN orders o ON oi.order_id = o.id
+    CROSS JOIN LATERAL (SELECT ${teacherItemDiscountSql("oi", "o")} AS amount) td
+    JOIN LATERAL (
+      SELECT b.id, b.duration_minutes
+      FROM mentorship_bookings b
+      WHERE b.order_id = o.id
+        AND b.teacher_id = oi.mentorship_teacher_id
+        AND b.status IS DISTINCT FROM 'cancelled'
+        AND (b.scheduled_at AT TIME ZONE 'UTC') + make_interval(mins => b.duration_minutes) <= NOW()
+      ORDER BY b.id DESC
+      LIMIT 1
+    ) mb ON TRUE
+    WHERE o.status = 'completed'
+      AND oi.mentorship_teacher_id IS NOT NULL
+      ${teacherFilter("oi.mentorship_teacher_id", teacherIdExpr)}
+      ${windowFilter("o.created_at", window)}
+    UNION ALL
+    SELECT (oi.price_at_purchase - td.amount) * (1 - oi.platform_fee_percentage / 100) AS earnings,
+           (oi.price_at_purchase - td.amount) AS gross,
+           o.created_at AS sold_at,
+           o.id AS order_id,
+           o.user_id AS buyer_id,
+           'group_class'::text AS kind,
+           gl.title::text AS title,
+           gl.cover_image_url::text AS thumbnail,
+           gl.id AS item_id,
+           o.promo_code_id AS promo_code_id,
+           td.amount AS discount,
+           gl.teacher_id AS teacher_id,
+           oi.platform_fee_percentage AS fee_percentage
+    FROM order_items oi
+    JOIN orders o ON oi.order_id = o.id
+    CROSS JOIN LATERAL (SELECT ${teacherItemDiscountSql("oi", "o")} AS amount) td
+    JOIN group_lessons gl ON oi.group_lesson_id = gl.id
+    WHERE o.status = 'completed'
+      AND gl.status != 'cancelled'
+      AND gl.start_time + make_interval(mins => gl.duration_minutes) <= NOW()
+      AND EXISTS (
+        SELECT 1 FROM group_lesson_enrollments gle
+        WHERE gle.order_id = o.id AND gle.group_lesson_id = gl.id AND gle.status = 'enrolled'
+      )
+      ${teacherFilter("gl.teacher_id", teacherIdExpr)}
+      ${windowFilter("o.created_at", window)}
+  )`;
+}
+
+/** Every row that earns a teacher money: product sales plus held live sessions. */
+function allEarningsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEarningsWindow) {
+  return sql`(
+    SELECT product_rows.earnings FROM ${earningsRowsFragment(teacherIdExpr, window)} product_rows
+    UNION ALL
+    SELECT live_rows.earnings FROM ${liveSessionRowsFragment(teacherIdExpr, window)} live_rows
+  )`;
+}
+
+/**
+ * Net earnings across ALL sale types (mock tests, courses, digital products,
+ * bundles, and held 1:1 sessions and group classes), net of the platform fee captured at time of sale
  * (falling back to the teacher's current live fee only for legacy bundle
  * orders that predate the stored-fee column). Excludes teacher-sponsored
  * orders (those are accounted for separately via
@@ -235,25 +325,31 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
  */
 export function buildTeacherNetEarningsSql(teacherIdExpr?: TeacherIdExpr, window?: TeacherEarningsWindow) {
   return sql<{ total: string }>`(
-    SELECT COALESCE(SUM(earnings), 0) AS total FROM ${earningsRowsFragment(teacherIdExpr, window)} all_earnings
+    SELECT COALESCE(SUM(earnings), 0) AS total FROM ${allEarningsFragment(teacherIdExpr, window)} all_earnings
   )`;
 }
 
 /** Count of individual sale rows feeding buildTeacherNetEarningsSql — kept in sync by construction. */
 export function buildTeacherSalesCountSql(teacherIdExpr?: TeacherIdExpr, window?: TeacherEarningsWindow) {
   return sql<{ total: string }>`(
-    SELECT COUNT(*) AS total FROM ${earningsRowsFragment(teacherIdExpr, window)} all_earnings
+    SELECT COUNT(*) AS total FROM ${allEarningsFragment(teacherIdExpr, window)} all_earnings
   )`;
 }
 
 /**
- * The sale rows themselves rather than an aggregate — for callers that need to
+ * The product sale rows themselves rather than an aggregate — for callers that need to
  * slice the same money several ways (per day, per product kind, per title)
- * from one read. Select from it as a derived table:
+ * from one read. Live teaching rows are not in it; see buildTeacherLiveSessionRowsSql.
+ * Select from it as a derived table:
  *   sql`SELECT * FROM ${buildTeacherSaleRowsSql(id, { start })} sales`
  */
 export function buildTeacherSaleRowsSql(teacherIdExpr?: TeacherIdExpr, window?: TeacherEarningsWindow) {
   return earningsRowsFragment(teacherIdExpr, window);
+}
+
+/** The held 1:1 session and group class rows that count toward earnings, as a derived table. */
+export function buildTeacherLiveSessionRowsSql(teacherIdExpr?: TeacherIdExpr, window?: TeacherEarningsWindow) {
+  return liveSessionRowsFragment(teacherIdExpr, window);
 }
 
 /**

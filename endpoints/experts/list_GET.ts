@@ -26,16 +26,20 @@ export async function handle(request: Request) {
     const limit = input.limit ?? 24;
     const offset = (page - 1) * limit;
 
-    // Publicly listable = same gate as an individual expert profile
-    // (endpoints/teachers/profile_GET.ts): an active teacher account with a
-    // slug. onboardingCompleted additionally filters out signups that never
-    // finished setting up a profile, so the directory isn't full of blanks.
+    // The tutor directory lists bookable 1:1 tutors only: an active teacher
+    // with a slug and a finished profile (same gate as a public profile, see
+    // endpoints/teachers/profile_GET.ts) who has 1:1 sessions switched on at a
+    // valid rate - the same test endpoints/mentorship/teacher-offerings_GET.ts
+    // uses to decide whether the profile shows the Book button.
     let baseQuery = db
       .selectFrom("users")
       .where("role", "=", "teacher")
       .where("isActive", "=", true)
       .where("onboardingCompleted", "=", true)
-      .where("slug", "is not", null);
+      .where("slug", "is not", null)
+      .where("mentorshipEnabled", "=", true)
+      .where("liveTeachingStatus", "=", "approved")
+      .where(sql<number>`COALESCE(mentorship_rate_per_unit, 0)`, ">=", MENTORSHIP_MIN_RATE_PER_UNIT);
 
     if (input.search) {
       const searchQuery = `%${input.search}%`;
@@ -59,10 +63,10 @@ export async function handle(request: Request) {
     const priceExpr = sql<number>`GREATEST(COALESCE(mentorship_rate_per_unit, 0), ${MENTORSHIP_MIN_RATE_PER_UNIT})`;
 
     if (input.minPrice != null) {
-      baseQuery = baseQuery.where("mentorshipEnabled", "=", true).where(priceExpr, ">=", input.minPrice);
+      baseQuery = baseQuery.where(priceExpr, ">=", input.minPrice);
     }
     if (input.maxPrice != null) {
-      baseQuery = baseQuery.where("mentorshipEnabled", "=", true).where(priceExpr, "<=", input.maxPrice);
+      baseQuery = baseQuery.where(priceExpr, "<=", input.maxPrice);
     }
 
     const ratingAndStudentsSelect = [
@@ -84,6 +88,13 @@ export async function handle(request: Request) {
         SELECT COALESCE(SUM(students_enrolled), 0)
         FROM mock_tests WHERE mock_tests.teacher_id = users.id AND mock_tests.is_published = true AND mock_tests.deleted_at IS NULL
       )`.as("totalStudents"),
+      sql<string>`(
+        SELECT COUNT(*) FROM mentorship_bookings
+        WHERE mentorship_bookings.teacher_id = users.id AND mentorship_bookings.status = 'completed'
+      ) + (
+        SELECT COUNT(*) FROM group_lessons
+        WHERE group_lessons.teacher_id = users.id AND group_lessons.status = 'completed'
+      )`.as("totalLessons"),
     ] as const;
 
     let listQuery = baseQuery
@@ -165,6 +176,7 @@ export async function handle(request: Request) {
           rating: totalReviews > 0 ? Math.round((ratingWeightedSum / totalReviews) * 10) / 10 : null,
           reviewsCount: totalReviews,
           studentsCount: parseInt(r.totalStudents as any, 10),
+          lessonsCount: parseInt(r.totalLessons as any, 10) || 0,
         };
       });
 

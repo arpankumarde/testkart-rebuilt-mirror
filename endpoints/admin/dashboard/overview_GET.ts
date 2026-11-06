@@ -62,6 +62,7 @@ const ATTENTION_MODULE: Record<keyof AttentionCounts, AdminModule> = {
   supportOpen: "support",
   supportUnread: "support",
   inquiriesPending: "teacher_inquiries",
+  liveTeachingPending: "teachers",
   contactNew: "contact_submissions",
   reviewsPending: "content_reviews",
   reviewsSenior: "content_reviews",
@@ -163,6 +164,7 @@ export async function handle(request: Request): Promise<Response> {
                JOIN support_threads t ON t.id = m.thread_id
                WHERE m.sender_type = 'teacher' AND m.is_read = false AND t.status = 'open') AS support_unread,
             (SELECT count(*) FROM teacher_inquiries WHERE status = 'pending') AS inquiries_pending,
+            (SELECT count(*) FROM live_teaching_applications WHERE status = 'pending') AS live_teaching_pending,
             (SELECT count(*) FROM contact_submissions WHERE status = 'new') AS contact_new,
             (SELECT count(*) FROM content_reviews WHERE status = 'pending') AS reviews_pending,
             (SELECT count(*) FROM content_reviews WHERE status = 'senior_review') AS reviews_senior,
@@ -378,6 +380,7 @@ export async function handle(request: Request): Promise<Response> {
       supportOpen: num(get(a, "support_open")),
       supportUnread: num(get(a, "support_unread")),
       inquiriesPending: num(get(a, "inquiries_pending")),
+      liveTeachingPending: num(get(a, "live_teaching_pending")),
       contactNew: num(get(a, "contact_new")),
       reviewsPending: num(get(a, "reviews_pending")),
       reviewsSenior: num(get(a, "reviews_senior")),

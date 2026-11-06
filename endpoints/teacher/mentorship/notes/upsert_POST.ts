@@ -6,7 +6,7 @@ import superjson from "superjson";
 
 export async function handle(request: Request) {
   try {
-    const { user } = await getServerUserSession(request);
+    const { user, effectiveTeacherId } = await getServerUserSession(request);
     if (user.role !== "teacher" && user.role !== "admin") {
       return new Response(superjson.stringify({ error: "Unauthorized" }), { status: 403 });
     }
@@ -14,7 +14,7 @@ export async function handle(request: Request) {
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);
 
-    const ctx = await getLessonAccessContext(input.kind, input.lessonId, user);
+    const ctx = await getLessonAccessContext(input.kind, input.lessonId, user, effectiveTeacherId);
     if (ctx.viewerRole !== "teacher") {
       return new Response(superjson.stringify({ error: "Only the teacher can write notes for this session." }), { status: 403 });
     }
