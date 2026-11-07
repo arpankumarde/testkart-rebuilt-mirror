@@ -7,7 +7,10 @@ import {
   useUpdateAdminPermissions,
 } from "../helpers/useAdminManagement";
 import { useAdminAuth } from "../helpers/useAdminAuth";
-import { Shield, MoreHorizontal, UserPlus, KeyRound } from "lucide-react";
+import { Shield, MoreHorizontal, UserPlus, KeyRound, UserCheck } from "lucide-react";
+import { AdminSessionsDialog } from "./AdminSessionsSection";
+import { ConsoleConfirmDialog } from "./ConsoleConfirmDialog";
+import { useImpersonateAdmin } from "../helpers/useAdminSessions";
 import { Badge } from "./Badge";
 import { Button } from "./Button";
 import { Dialog } from "./Dialog";
@@ -370,6 +373,21 @@ export const AdminManagementSection = () => {
   const currentUser =
     authState.type === "authenticated" ? authState.admin : null;
 
+  // Other admins' sign-ins are a super admin's to manage, and only from their own account.
+  const canManageSignIns = currentUser?.role === "super_admin" && !currentUser.impersonator;
+  const [sessionsFor, setSessionsFor] = useState<AdminListItem | null>(null);
+  const [signInAs, setSignInAs] = useState<AdminListItem | null>(null);
+  const impersonate = useImpersonateAdmin();
+
+  const confirmSignInAs = () => {
+    if (!signInAs) return;
+    impersonate.mutate(signInAs.id, {
+      // The cookie now belongs to a different admin; reload rather than patch every cached query.
+      onSuccess: () => window.location.assign("/admin/dashboard"),
+      onError: (err) => toast.error(err instanceof Error ? err.message : "Could not sign in as this admin"),
+    });
+  };
+
   const renderIdentity = (admin: AdminListItem) => (
     <div className={styles.stack}>
       <span className={styles.primaryLine}>
@@ -441,6 +459,21 @@ export const AdminManagementSection = () => {
                 </DropdownMenuRadioGroup>
               </DropdownMenuSubContent>
             </DropdownMenuSub>
+            {canManageSignIns && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className={styles.menuItem} onClick={() => setSessionsFor(admin)}>
+                  Signed-in devices
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className={styles.menuItem}
+                  disabled={!admin.isActive}
+                  onClick={() => setSignInAs(admin)}
+                >
+                  Sign in as this admin
+                </DropdownMenuItem>
+              </>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className={`${styles.menuItem} ${admin.isActive ? styles.menuItemDanger : ""}`}
@@ -559,6 +592,20 @@ export const AdminManagementSection = () => {
       <div className={styles.results}>{renderContent()}</div>
       <CreateAdminDialog open={createOpen} onOpenChange={setCreateOpen} />
       <EditAccessDialog admin={accessFor} onOpenChange={(open) => !open && setAccessFor(null)} />
+      <AdminSessionsDialog admin={sessionsFor} onOpenChange={(open) => !open && setSessionsFor(null)} />
+      <ConsoleConfirmDialog
+        open={signInAs !== null}
+        onOpenChange={(open) => {
+          if (!open && !impersonate.isPending && !impersonate.isSuccess) setSignInAs(null);
+        }}
+        icon={<UserCheck />}
+        title={`Sign in as ${signInAs?.fullName ?? "this admin"}?`}
+        description={`You will see the admin panel exactly as ${signInAs?.fullName ?? "they"} would, and anything you change is saved as them. It lasts up to 2 hours; use "Return" in the bar at the top to come back to your own account.`}
+        confirmLabel="Sign in as them"
+        pendingLabel="Signing in..."
+        isPending={impersonate.isPending || impersonate.isSuccess}
+        onConfirm={confirmSignInAs}
+      />
     </section>
   );
 };

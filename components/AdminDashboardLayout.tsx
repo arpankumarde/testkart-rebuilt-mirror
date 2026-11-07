@@ -31,6 +31,7 @@ import {
 } from "./DropdownMenu";
 import { ThemeModeSwitch } from "./ThemeModeSwitch";
 import { AdminCommandPalette } from "./AdminCommandPalette";
+import { AdminImpersonationBanner } from "./AdminImpersonationBanner";
 import { BRAND_FAVICON, getBrandLogo } from "../helpers/brandAssets";
 import { BrandFavicons } from "../helpers/BrandFavicons";
 import { useDarkModeObserver } from "../helpers/useDarkModeObserver";
@@ -442,6 +443,7 @@ export const AdminDashboardLayout: React.FC<{ children: React.ReactNode }> = ({ 
           attention={attention}
         />
         <div className={styles.mainContent}>
+          <AdminImpersonationBanner />
           {!headerHidden && (
             <AdminHeader
               onMenuToggle={() => setSidebarOpen((prev) => !prev)}

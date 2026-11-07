@@ -63,6 +63,12 @@ async function resolveSigner(
   if (audience === "admin") {
     try {
       const admin = await getAdminServerSessionOrThrow(request);
+      // A connection outlives the two-hour "signed in as" session, so only the admin can grant it.
+      if (admin.impersonator) {
+        return {
+          error: `You are signed in as ${admin.fullName}. Return to your own account in the admin panel, then connect the app again.`,
+        };
+      }
       return {
         grantor: { audience: "admin", adminId: admin.id },
         name: admin.fullName,

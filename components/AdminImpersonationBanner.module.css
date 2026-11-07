@@ -1,0 +1,59 @@
+/* Ink on a solid coral block: about 9:1, and unmistakable against the white console chrome. */
+.banner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-2) var(--spacing-3);
+  padding: var(--spacing-2) var(--spacing-6);
+  background-color: var(--tk-brand);
+  color: var(--tk-brand-ink);
+}
+
+.mark {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.mark svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.text {
+  flex: 1 1 16rem;
+  margin: 0;
+  min-width: 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.text strong {
+  font-weight: 800;
+}
+
+/* Button's styles sit in @layer base, so these unlayered rules win without extra specificity. */
+.action {
+  flex-shrink: 0;
+  background-color: var(--tk-brand-ink);
+  border-color: var(--tk-brand-ink);
+  color: #fff;
+  font-weight: 700;
+}
+
+.action:hover,
+.action:active {
+  background-color: var(--tk-brand-ink-hover);
+  border-color: var(--tk-brand-ink-hover);
+  color: #fff;
+}
+
+@media (max-width: 640px) {
+  .banner {
+    padding: var(--spacing-2) var(--spacing-4);
+  }
+
+  .action {
+    width: 100%;
+  }
+}

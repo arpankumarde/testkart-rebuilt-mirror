@@ -29,6 +29,16 @@ export async function handle(request: Request) {
       .where('id', '=', result.adminId)
       .execute();
 
+    if (result.role !== "super_admin") {
+      // Only a super admin may be signed in as another admin, so a demotion ends those sessions.
+      await db
+        .updateTable("adminSessions")
+        .set({ revokedAt: new Date() })
+        .where("impersonatorAdminId", "=", result.adminId)
+        .where("revokedAt", "is", null)
+        .execute();
+    }
+
     return new Response(superjson.stringify({ success: true, message: "Admin role updated successfully" } satisfies OutputType));
   } catch (error) {
     const message = error instanceof Error ? error.message : "An unknown error occurred";

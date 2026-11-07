@@ -163,7 +163,7 @@ export async function handle(request: Request) {
     if (isPayUCancellation({ status, unmappedstatus })) {
       const existingOrder = await db
         .updateTable("orders")
-        .set({ status: "cancelled", ...failureColumns })
+        .set({ status: "cancelled", ...failureColumns, paymentMode: normalizePaymentMode(validatedData.mode) })
         .where("paymentTransactionId", "=", txnid)
         .where("status", "=", "pending")
         .returning(["id", "userId"])
@@ -214,7 +214,7 @@ export async function handle(request: Request) {
         .updateTable("orders")
         .set(
           newStatus === "failed"
-            ? { status: newStatus, ...failureColumns }
+            ? { status: newStatus, ...failureColumns, paymentMode: normalizePaymentMode(validatedData.mode) }
             : { status: newStatus, paymentMode: normalizePaymentMode(validatedData.mode) }
         )
         .where("paymentTransactionId", "=", txnid)

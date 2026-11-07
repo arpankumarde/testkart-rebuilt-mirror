@@ -126,6 +126,25 @@
   white-space: nowrap;
 }
 
+.opened {
+  padding: 1px var(--spacing-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full, 999px);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--tk-brand-text);
+}
+
+.empty {
+  margin: 0;
+  padding: var(--spacing-4);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
 .meta {
   font-size: 0.8125rem;
   line-height: 1.45;

@@ -219,6 +219,7 @@ export interface AdminSessions {
   createdAt: Generated<Timestamp>;
   expiresAt: Timestamp;
   id: string;
+  impersonatorAdminId: number | null;
   ipAddress: string | null;
   lastSeenAt: Generated<Timestamp>;
   revokedAt: Timestamp | null;

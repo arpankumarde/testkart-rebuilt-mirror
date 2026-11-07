@@ -15,6 +15,8 @@ export interface AdminProfile {
   bio?: string | null;
   /** Modules this admin may open. Filled from the database by every session check; the JWT does not carry it. */
   permissions?: AdminModule[];
+  /** Set by the session check when a super admin is signed in as this admin; never stored in the JWT's profile. */
+  impersonator?: { id: number; fullName: string };
 }
 
 export type AdminRole = AdminProfile['role'];

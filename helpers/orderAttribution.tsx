@@ -65,7 +65,7 @@ export const ORDER_PAYMENT_MODE_GROUP_LABELS: Record<OrderPaymentModeGroup, stri
 };
 
 export const PAYMENT_MODE_GROUP_CODES: Record<Exclude<OrderPaymentModeGroup, "other" | "unknown">, string[]> = {
-  upi: ["UPI", "UPI_INTENT", "UPI_COLLECT", "QR"],
+  upi: ["UPI", "UPI_INTENT", "UPI_COLLECT", "QR", "UPICC", "UPIPPI"],
   card: ["CC", "DC", "CREDITCARD", "DEBITCARD", "AMEX", "CARD"],
   netbanking: ["NB", "NETBANKING"],
   wallet: ["CASH", "WALLET"],
@@ -77,6 +77,8 @@ const PAYMENT_MODE_LABELS: Record<string, string> = {
   UPI_INTENT: "UPI",
   UPI_COLLECT: "UPI",
   QR: "UPI QR",
+  UPICC: "Credit card on UPI",
+  UPIPPI: "Wallet on UPI",
   CC: "Credit card",
   DC: "Debit card",
   CREDITCARD: "Credit card",
