@@ -1,129 +1,223 @@
+/*
+ * Billing history on Fees & billing, in the /app palette: one white card on
+ * the ivory page with warm hairlines and pastel status pills. Wide screens get
+ * a table; phones get a stacked list instead, because base.css forces th/td to
+ * display: table-cell and they cannot be restacked.
+ */
 .historySection {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-4);
 }
 
-/* Panel heading scale. At 1.5rem with a rule under it, this competed with the
-   page's own h1. */
 .sectionHeading {
   margin: 0;
   font-family: var(--font-family-heading);
-  font-size: 1.125rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--foreground);
+  font-size: 1.375rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--sp-ink);
 }
 
-.tableContainer {
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
+.panel {
   overflow: hidden;
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.5rem;
+  box-shadow: var(--sp-shadow);
+  color: var(--sp-ink);
 }
 
-.historyTable {
+.table {
   width: 100%;
   border-collapse: collapse;
-  text-align: left;
+  font-size: 0.9375rem;
 }
 
-.historyTable th,
-.historyTable td {
-  padding: var(--spacing-3) var(--spacing-4);
-  border-bottom: 1px solid var(--border);
-  font-size: 0.875rem;
-}
-
-/* Sentence case on a plain surface, matching the other console tables. */
-.historyTable th {
-  font-weight: 600;
-  font-size: 0.8125rem;
-  color: var(--muted-foreground);
-  white-space: nowrap;
-}
-
-.historyTable tbody tr {
-  transition: background-color var(--animation-duration-fast) ease;
-}
-
-.historyTable tbody tr:hover {
+.table th {
+  padding: var(--spacing-3) var(--spacing-5, 1.25rem);
   background-color: var(--muted);
+  border-bottom: 1px solid var(--sp-line);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: left;
+  color: var(--sp-text);
 }
 
-.historyTable tbody tr:last-child td {
+.table td {
+  padding: var(--spacing-4) var(--spacing-5, 1.25rem);
+  border-bottom: 1px solid var(--sp-line);
+  vertical-align: middle;
+  color: var(--sp-ink);
+}
+
+.table tbody tr:last-child td {
   border-bottom: none;
 }
 
-.txnId {
-  font-family: var(--font-family-monospace);
-  font-size: 0.8125rem;
-  color: var(--muted-foreground);
-  word-break: break-all;
+.table .numCol {
+  text-align: right;
 }
 
-.amount {
+.dateCell {
+  white-space: nowrap;
+  color: var(--sp-text);
+}
+
+.planCell {
+  font-weight: 700;
+  color: var(--sp-ink);
+}
+
+.amountCell {
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  color: var(--sp-ink);
+}
+
+.reference {
+  display: inline-block;
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+  font-family: var(--font-family-monospace, ui-monospace, monospace);
+  font-size: 0.8125rem;
+  color: var(--sp-text);
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3125rem 0.625rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.paid {
+  background-color: var(--fc-sage-tint);
+  border-color: var(--fc-sage-line);
+  color: var(--fc-sage-ink);
+}
+
+.pending {
+  background-color: var(--fc-butter-tint);
+  border-color: var(--fc-butter-line);
+  color: var(--fc-butter-ink);
+}
+
+.mobileList {
+  display: none;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mobileItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  border-bottom: 1px solid var(--sp-line);
+}
+
+.mobileItem:last-child {
+  border-bottom: none;
+}
+
+.mobileMain,
+.mobileSide {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.mobileSide {
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.mobileMeta {
+  font-size: 0.8125rem;
+  color: var(--sp-text);
+}
+
+.skeletonList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: var(--spacing-5, 1.25rem);
+}
+
+.messageRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: var(--spacing-5, 1.25rem);
+}
+
+.messageRow p {
+  margin: 0;
+  font-weight: 600;
 }
 
 .emptyState {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--spacing-3);
-  padding: var(--spacing-12) var(--spacing-4);
+  gap: var(--spacing-2);
+  padding: var(--spacing-8) var(--spacing-4);
   text-align: center;
 }
 
-/* A brand-tinted circle, not a glyph faded to half opacity. */
 .emptyIcon {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 3.25rem;
-  height: 3.25rem;
-  border-radius: var(--radius-full);
-  background-color: var(--tk-brand-tint);
-  color: var(--tk-brand-text);
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: var(--spacing-1);
+  background-color: var(--sp-lavender-tint);
+  border: 1px solid var(--sp-lavender-line);
+  border-radius: 50%;
+  color: var(--sp-lavender-ink);
 }
 
-.emptyState h3 {
+.emptyTitle {
   margin: 0;
-  font-family: var(--font-family-heading);
-  font-size: 1.125rem;
+  font-size: 1rem;
   font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--foreground);
+  color: var(--sp-ink);
 }
 
-.emptyState p {
+.emptyText {
   margin: 0;
   font-size: 0.875rem;
-  color: var(--muted-foreground);
+  color: var(--sp-text);
 }
 
-.errorText {
-  padding: var(--spacing-8);
-  text-align: center;
-  font-size: 0.875rem;
-  color: var(--error-text);
-}
-
-@media (max-width: 768px) {
-  .tableContainer {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+@media (max-width: 640px) {
+  .table {
+    display: none;
   }
 
-  .historyTable {
-    min-width: 38rem;
+  .mobileList {
+    display: block;
   }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  .historyTable tbody tr {
-    transition: none;
+  .panel {
+    border-radius: 1.25rem;
   }
 }

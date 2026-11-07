@@ -1,154 +1,118 @@
 import React from 'react';
+import { Globe } from 'lucide-react';
+import { FaFacebook, FaInstagram, FaLinkedin, FaXTwitter, FaYoutube } from 'react-icons/fa6';
 import { FormItem, FormLabel, FormControl, FormDescription, FormMessage } from './Form';
 import { Input } from './Input';
 import { TeacherProfileFormValues } from '../helpers/teacherProfileFormSchema';
 import styles from './EditProfileSocialSection.module.css';
 
+type SocialKey = keyof NonNullable<TeacherProfileFormValues['socialLinks']>;
+
+const SOCIALS: { key: SocialKey; label: string; placeholder: string; Icon: React.ComponentType<{ size?: number }> }[] = [
+  { key: 'youtube', label: 'YouTube', placeholder: 'youtube.com/@yourchannel', Icon: FaYoutube },
+  { key: 'instagram', label: 'Instagram', placeholder: 'instagram.com/yourname', Icon: FaInstagram },
+  { key: 'linkedin', label: 'LinkedIn', placeholder: 'linkedin.com/in/yourname', Icon: FaLinkedin },
+  { key: 'twitter', label: 'X', placeholder: 'x.com/yourname', Icon: FaXTwitter },
+  { key: 'facebook', label: 'Facebook', placeholder: 'facebook.com/yourpage', Icon: FaFacebook },
+];
+
 interface EditProfileSocialSectionProps {
   formValues: TeacherProfileFormValues;
   onValuesChange: (values: Partial<TeacherProfileFormValues>) => void;
+  /** The slug saved on the account, to warn before the live address changes. */
+  savedSlug?: string | null;
 }
 
+// Profile address, website and social links.
 export const EditProfileSocialSection: React.FC<EditProfileSocialSectionProps> = ({
   formValues,
   onValuesChange,
+  savedSlug,
 }) => {
+  const slugChanged = !!savedSlug && !!formValues.slug && formValues.slug !== savedSlug;
+
+  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toLowerCase().replace(/\s+/g, '-');
+    onValuesChange({ slug: value });
+  };
+
   return (
-    <div className={styles.section}>
-      <h2 className={styles.sectionTitle}>Contact & Social Links</h2>
-      <p className={styles.sectionDescription}>
-        Share your contact details and social media profiles so students can connect with you.
-      </p>
-
-            <FormItem name="websiteUrl">
-        <FormLabel>Website URL</FormLabel>
-        <FormControl>
-          <Input
-            placeholder="www.yourwebsite.com"
-            value={formValues.websiteUrl || ''}
-            onChange={(e) => onValuesChange({ websiteUrl: e.target.value })}
-          />
-        </FormControl>
-        <FormDescription>Your personal or academy website.</FormDescription>
+    <div className={styles.fields}>
+      <FormItem name="slug">
+        <FormLabel>Profile address</FormLabel>
+        <div className={styles.affixInput}>
+          <span className={styles.prefix} aria-hidden="true">testkart.in/expert/</span>
+          <FormControl>
+            <Input
+              value={formValues.slug || ''}
+              onChange={handleSlugChange}
+              placeholder="your-name"
+              className={styles.bareInput}
+              autoCapitalize="none"
+              spellCheck={false}
+            />
+          </FormControl>
+        </div>
+        <FormDescription className={slugChanged ? styles.warning : undefined}>
+          {slugChanged
+            ? `Links to testkart.in/expert/${savedSlug} will stop working once you save.`
+            : 'Lowercase letters, numbers and hyphens. Keep it stable - shared links use it.'}
+        </FormDescription>
         <FormMessage />
       </FormItem>
 
-      <FormItem name="location">
-        <FormLabel>Location</FormLabel>
-        <FormControl>
-          <Input
-            placeholder="Mumbai, India"
-            value={formValues.location || ''}
-            onChange={(e) => onValuesChange({ location: e.target.value })}
-          />
-        </FormControl>
-        <FormDescription>Where you are based. Helps students find local teachers.</FormDescription>
+      <FormItem name="websiteUrl">
+        <FormLabel>Website</FormLabel>
+        <div className={styles.affixInput}>
+          <span className={styles.icon} aria-hidden="true">
+            <Globe size={16} />
+          </span>
+          <FormControl>
+            <Input
+              placeholder="yourwebsite.com"
+              value={formValues.websiteUrl || ''}
+              onChange={(e) => onValuesChange({ websiteUrl: e.target.value })}
+              className={styles.bareInput}
+              inputMode="url"
+              autoCapitalize="none"
+              spellCheck={false}
+            />
+          </FormControl>
+        </div>
         <FormMessage />
       </FormItem>
 
-      <FormItem name="languages">
-        <FormLabel>Languages</FormLabel>
-        <FormControl>
-          <Input
-            placeholder="Hindi, English, Marathi"
-            value={formValues.languages?.join(', ') || ''}
-            onChange={(e) => {
-              const val = e.target.value;
-              const arr = val.split(',').map(s => s.trim()).filter(Boolean);
-              onValuesChange({ languages: arr });
-            }}
-          />
-        </FormControl>
-        <FormDescription>Languages you teach in (comma separated, e.g. Hindi, English, Marathi).</FormDescription>
-        <FormMessage />
-      </FormItem>
-
-      <FormItem name="expertiseAreas">
-        <FormLabel>Expertise Areas</FormLabel>
-        <FormControl>
-          <Input
-            placeholder="Mathematics, Physics, JEE"
-            value={formValues.expertiseAreas?.join(', ') || ''}
-            onChange={(e) => {
-              const val = e.target.value;
-              const arr = val.split(',').map(s => s.trim()).filter(Boolean);
-              onValuesChange({ expertiseAreas: arr });
-            }}
-          />
-        </FormControl>
-        <FormDescription>Your areas of expertise (comma separated, e.g. Mathematics, Physics, JEE).</FormDescription>
-        <FormMessage />
-      </FormItem>
-
-            <FormItem name="socialLinks.facebook">
-        <FormLabel>Facebook</FormLabel>
-        <FormControl>
-          <Input
-            placeholder="https://facebook.com/yourprofile"
-            value={formValues.socialLinks?.facebook || ''}
-            onChange={(e) => onValuesChange({
-              socialLinks: { ...formValues.socialLinks, facebook: e.target.value }
-            })}
-          />
-        </FormControl>
-        <FormMessage />
-      </FormItem>
-
-      <FormItem name="socialLinks.twitter">
-        <FormLabel>Twitter</FormLabel>
-        <FormControl>
-          <Input
-            placeholder="https://twitter.com/yourprofile"
-            value={formValues.socialLinks?.twitter || ''}
-            onChange={(e) => onValuesChange({
-              socialLinks: { ...formValues.socialLinks, twitter: e.target.value }
-            })}
-          />
-        </FormControl>
-        <FormMessage />
-      </FormItem>
-
-      <FormItem name="socialLinks.linkedin">
-        <FormLabel>LinkedIn</FormLabel>
-        <FormControl>
-          <Input
-            placeholder="https://linkedin.com/in/yourprofile"
-            value={formValues.socialLinks?.linkedin || ''}
-            onChange={(e) => onValuesChange({
-              socialLinks: { ...formValues.socialLinks, linkedin: e.target.value }
-            })}
-          />
-        </FormControl>
-        <FormMessage />
-      </FormItem>
-
-      <FormItem name="socialLinks.instagram">
-        <FormLabel>Instagram</FormLabel>
-        <FormControl>
-          <Input
-            placeholder="https://instagram.com/yourprofile"
-            value={formValues.socialLinks?.instagram || ''}
-            onChange={(e) => onValuesChange({
-              socialLinks: { ...formValues.socialLinks, instagram: e.target.value }
-            })}
-          />
-        </FormControl>
-        <FormMessage />
-      </FormItem>
-
-      <FormItem name="socialLinks.youtube">
-        <FormLabel>YouTube</FormLabel>
-        <FormControl>
-          <Input
-            placeholder="https://youtube.com/@yourchannel"
-            value={formValues.socialLinks?.youtube || ''}
-            onChange={(e) => onValuesChange({
-              socialLinks: { ...formValues.socialLinks, youtube: e.target.value }
-            })}
-          />
-        </FormControl>
-        <FormMessage />
-      </FormItem>
+      <fieldset className={styles.socials}>
+        <legend className={styles.legend}>Social profiles</legend>
+        <div className={styles.grid}>
+          {SOCIALS.map(({ key, label, placeholder, Icon }) => (
+            <FormItem key={key} name={`socialLinks.${key}`} className={styles.socialItem}>
+              <FormLabel className={styles.srOnly}>{label}</FormLabel>
+              <div className={styles.affixInput}>
+                <span className={styles.icon} aria-hidden="true" title={label}>
+                  <Icon size={16} />
+                </span>
+                <FormControl>
+                  <Input
+                    placeholder={placeholder}
+                    value={formValues.socialLinks?.[key] || ''}
+                    onChange={(e) =>
+                      onValuesChange({
+                        socialLinks: { ...formValues.socialLinks, [key]: e.target.value },
+                      })
+                    }
+                    className={styles.bareInput}
+                    inputMode="url"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                  />
+                </FormControl>
+              </div>
+              <FormMessage />
+            </FormItem>
+          ))}
+        </div>
+      </fieldset>
     </div>
   );
 };

@@ -8,6 +8,7 @@ import { Switch } from "../components/Switch";
 import { Skeleton } from "../components/Skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/Tabs";
 import { AutopilotLedger } from "../components/AutopilotLedger";
+import { AutopilotOperations } from "../components/AutopilotOperations";
 import { AutopilotOfferExpiry } from "../components/AutopilotOfferExpiry";
 import { toast } from "sonner";
 import {
@@ -22,10 +23,16 @@ import type { AutopilotDashboard } from "../helpers/autopilotDashboardData";
 import styles from "./admin.autopilot.module.css";
 
 const RANGES = [7, 30, 90] as const;
-const TABS = ["overview", "ledger", "playbooks", "channels", "settings"] as const;
+const TABS = ["overview", "operations", "ledger", "playbooks", "channels", "settings"] as const;
 type Tab = (typeof TABS)[number];
 
 const inr = (value: number) => `Rs ${Math.round(value).toLocaleString("en-IN")}`;
+
+/** A WhatsApp template body as WhatsApp shows it: *word* in bold, line breaks kept. */
+const whatsappText = (text: string) =>
+  text.split(/(\*[^*\n]+\*)/g).map((part, index) =>
+    /^\*[^*\n]+\*$/.test(part) ? <strong key={index}>{part.slice(1, -1)}</strong> : <React.Fragment key={index}>{part}</React.Fragment>
+  );
 const count = (value: number) => Math.round(value).toLocaleString("en-IN");
 const ddmmyyyy = (date: Date) => {
   const d = new Date(date);
@@ -148,7 +155,7 @@ const AdminAutopilotPage: React.FC = () => {
       ? Math.round((data.coverage.withSource / data.coverage.paidOrdersSinceTracking) * 100)
       : null;
   const netProfit = data ? data.kpis.attributedTake - data.kpis.messageCostRupees - data.kpis.offerCostRupees : 0;
-  const showRanges = tab !== "ledger" && tab !== "settings";
+  const showRanges = tab !== "ledger" && tab !== "settings" && tab !== "operations";
 
   return (
     <div className={styles.page}>
@@ -196,6 +203,7 @@ const AdminAutopilotPage: React.FC = () => {
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className={styles.tabsList}>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="operations">Operations</TabsTrigger>
           <TabsTrigger value="ledger">Ledger</TabsTrigger>
           <TabsTrigger value="playbooks">Playbooks</TabsTrigger>
           <TabsTrigger value="channels">Channels</TabsTrigger>
@@ -294,10 +302,14 @@ const AdminAutopilotPage: React.FC = () => {
           </div>
         </TabsContent>
 
+        <TabsContent value="operations" className={styles.tabPanel}>
+          <AutopilotOperations active={tab === "operations"} />
+        </TabsContent>
+
         <TabsContent value="ledger" className={styles.tabPanel}>
           <p className={styles.aiText}>
             Every message the autopilot created and what happened to it, and everyone currently in a playbook with their
-            next message time. Updates every 15 minutes, when the autopilot runs.
+            next message time. Select a student to see their whole journey. Updates every 15 minutes, when the autopilot runs.
           </p>
           <AutopilotLedger />
         </TabsContent>
@@ -481,9 +493,10 @@ const AdminAutopilotPage: React.FC = () => {
                 <div>
                   <h2 className={styles.cardTitle}>WhatsApp templates</h2>
                   <p className={styles.aiText}>
-                    Meta must approve each template before the autopilot can use it. WhatsApp goes to anyone with a mobile
-                    number unless they said no or replied STOP: for a playbook's first message, and for later messages when
-                    the person has no usable email.
+                    Meta must approve each template before the autopilot can use it; until then the next template for that
+                    message, or email, is used. WhatsApp goes to anyone with a mobile number unless they replied STOP: for a
+                    playbook's first message, for the Tcoin offer message once its offer template is approved, and for other
+                    messages when the person has no usable email.
                   </p>
                 </div>
                 <Button
@@ -507,17 +520,33 @@ const AdminAutopilotPage: React.FC = () => {
                   {templatesQuery.error instanceof Error ? templatesQuery.error.message : "Could not load templates"}
                 </div>
               ) : (
-                <ul className={styles.checks}>
+                <ul className={styles.templates}>
                   {(templatesQuery.data?.templates ?? []).map((template) => (
-                    <li key={template.name} className={styles.checkRow}>
-                      <span>
-                        {template.name} <span className={styles.drop}>({template.playbookKey.replace(/_/g, " ")})</span>
-                      </span>
-                      <Badge
-                        variant={template.status === "APPROVED" ? "success" : template.status === "PENDING" ? "warning" : "destructive"}
-                      >
-                        {template.status.toLowerCase()}
-                      </Badge>
+                    <li key={template.name} className={styles.templateRow}>
+                      <div className={styles.templateHead}>
+                        <span className={styles.templateName}>{template.name}</span>
+                        <Badge
+                          variant={template.status === "APPROVED" ? "success" : template.status === "PENDING" ? "warning" : "destructive"}
+                        >
+                          {template.status.toLowerCase()}
+                        </Badge>
+                      </div>
+                      <div className={styles.templateMeta}>
+                        {template.playbookKey.replace(/_/g, " ")}:{" "}
+                        {(template.slots ?? []).map((slot) => (slot === "first" ? "first message" : slot === "offer" ? "Tcoin offer" : "later messages")).join(", ")}
+                        {" - "}
+                        {(template.metaCategory ?? template.category ?? "").toLowerCase()}
+                        {template.metaCategory && template.category && template.metaCategory !== template.category
+                          ? ` (asked for ${template.category.toLowerCase()})`
+                          : ""}
+                      </div>
+                      {template.body ? (
+                        <div className={styles.templateBody}>
+                          {template.header ? <span className={styles.templateHeader}>{template.header}</span> : null}
+                          <span className={styles.templateText}>{whatsappText(template.body)}</span>
+                          <span className={styles.templateButton}>{template.button}</span>
+                        </div>
+                      ) : null}
                     </li>
                   ))}
                 </ul>

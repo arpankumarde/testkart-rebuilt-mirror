@@ -5,6 +5,24 @@
   min-width: 0;
 }
 
+.studentLink {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  color: var(--foreground);
+  text-decoration: underline;
+  text-decoration-color: var(--border);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.studentLink:hover,
+.studentLink:focus-visible {
+  text-decoration-color: var(--primary);
+}
+
 .summary {
   padding: var(--spacing-4);
   border: 1px solid var(--border);

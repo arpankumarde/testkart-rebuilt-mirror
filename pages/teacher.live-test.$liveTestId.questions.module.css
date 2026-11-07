@@ -1,9 +1,10 @@
-/* The console workspace shell. .pageBody owns the gutter. The subjects and
-   questions below the header are styled in components/LiveTestQuestionsEditor. */
+/* The console workspace shell. .pageBody owns the gutter. Go back and the step
+   track come from LiveTestSteps; the subjects and questions below the header
+   are styled in components/LiveTestQuestionsEditor. */
 .page {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-6);
+  gap: var(--spacing-4);
   width: 100%;
   max-width: 1440px;
   margin: 0 auto;
@@ -67,8 +68,7 @@
   flex-shrink: 0;
 }
 
-.publishWarning,
-.publishSuccess {
+.status {
   display: flex;
   align-items: flex-start;
   gap: var(--spacing-2);
@@ -76,22 +76,25 @@
   border-radius: var(--radius);
   font-size: 0.875rem;
   line-height: 1.5;
-}
-
-.publishWarning {
   background-color: var(--fc-butter-tint);
   border: 1px solid var(--fc-butter-line);
   color: var(--fc-butter-ink);
 }
 
-/*
- * This set color to --success-foreground, which is WHITE, on a 15% green tint
- * over a white panel - roughly 1.2:1, so the text was all but invisible. The
- * tint is the background; the type has to be the themed --success-text.
- */
-.publishSuccess {
+.status svg {
+  flex-shrink: 0;
+  margin-top: 0.15em;
+}
+
+.status[data-tone="wait"] {
+  background-color: var(--fc-blue-tint);
+  border-color: var(--fc-blue-line);
+  color: var(--fc-blue-ink);
+}
+
+.status[data-tone="done"] {
   background-color: var(--fc-sage-tint);
-  border: 1px solid var(--fc-sage-line);
+  border-color: var(--fc-sage-line);
   color: var(--fc-sage-ink);
 }
 

@@ -12,8 +12,9 @@ import type { AutopilotCheckStatus } from "./schema";
 /**
  * Scheduled job, every 15 minutes, the whole autopilot in one job because the
  * project is at Floot's 10-job limit. Every run: the playbook engine
- * (helpers/autopilotEngine: enrol and send, so a failed payment hears back in
- * about 15 minutes). Once an hour (the first run after :00):
+ * (helpers/autopilotEngine: enrol, send and rescue refused WhatsApp messages,
+ * so a failed payment hears back in about 15 minutes; each pass is logged in
+ * autopilot_runs). Once an hour (the first run after :00):
  * 1. Attribution: drops a click cookie that points at someone else's message
  *    and credits orders to a message the buyer clicked on another device in
  *    the 72 hours before.
@@ -23,7 +24,8 @@ import type { AutopilotCheckStatus } from "./schema";
  *    posts to Google Chat (GOOGLE_CHAT_AUTOPILOT_WEBHOOK_URL).
  * 4. At 09:00 IST, the daily digest to the same Chat space.
  * 5. On the 1st at 03:00 IST, retention: events older than 13 months are
- *    rolled into funnel_daily and deleted; checks older than 90 days go.
+ *    rolled into funnel_daily and deleted; checks and run logs older than 90
+ *    days go.
  * Each step is caught on its own so one failure does not stop the rest.
  */
 
@@ -323,6 +325,7 @@ async function applyRetention(): Promise<void> {
   `.execute(db);
   await sql`DELETE FROM funnel_events WHERE occurred_at < now() - interval '13 months'`.execute(db);
   await sql`DELETE FROM autopilot_checks WHERE ran_at < now() - interval '90 days'`.execute(db);
+  await sql`DELETE FROM autopilot_runs WHERE started_at < now() - interval '90 days'`.execute(db);
 }
 
 async function step(name: string, work: () => Promise<void>): Promise<void> {
@@ -335,7 +338,9 @@ async function step(name: string, work: () => Promise<void>): Promise<void> {
 
 export async function autopilotHourly(): Promise<void> {
   const ist = new Date(Date.now() + 330 * 60 * 1000);
-  await step("engine", runAutopilotEngine);
+  await step("engine", async () => {
+    await runAutopilotEngine();
+  });
   if (ist.getUTCMinutes() >= 15) return;
   await step("attribution", fixAttribution);
   await step("outcomes", backfillOutcomes);

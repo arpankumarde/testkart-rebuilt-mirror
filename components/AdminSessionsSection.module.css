@@ -1,0 +1,192 @@
+/* Same panel and row shapes as the Connected AI apps list (TeacherAccountAccess). */
+.panel {
+  container-type: inline-size;
+  scroll-margin-top: var(--spacing-6);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  color: var(--foreground);
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: var(--spacing-3) var(--spacing-4);
+}
+
+.headText {
+  flex: 1 1 20rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  min-width: 0;
+}
+
+.headAction {
+  flex-shrink: 0;
+  font-weight: 700;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.description {
+  margin: 0;
+  max-width: 34rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+  text-wrap: pretty;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-4);
+}
+
+.row + .row {
+  border-top: 1px solid var(--border);
+}
+
+.mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius);
+  background-color: var(--tk-brand-tint);
+  color: var(--tk-brand-text);
+}
+
+.mark svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.markSkeleton {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius);
+}
+
+.rowText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.name {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-1) var(--spacing-2);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+.current {
+  padding: 1px var(--spacing-2);
+  border: 1px solid color-mix(in srgb, var(--success) 45%, var(--border));
+  border-radius: var(--radius-full, 999px);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--success-text);
+  white-space: nowrap;
+}
+
+.meta {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+  overflow-wrap: anywhere;
+}
+
+/* Button's styles sit in @layer base, so these unlayered rules win without extra specificity. */
+.signOut {
+  flex-shrink: 0;
+  font-weight: 700;
+}
+
+.end {
+  color: var(--error-text);
+  border-color: color-mix(in srgb, var(--error) 45%, var(--border));
+}
+
+.end:hover {
+  background-color: color-mix(in srgb, var(--error) 10%, var(--surface));
+  border-color: var(--error);
+  color: var(--error-text);
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid color-mix(in srgb, var(--error) 45%, var(--border));
+  border-radius: var(--radius-md);
+}
+
+.noticeText {
+  flex: 1 1 14rem;
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--error-text);
+}
+
+@media (max-width: 640px) {
+  .panel {
+    gap: var(--spacing-4);
+    padding: var(--spacing-4);
+  }
+}
+
+/* Sized on the panel, not the window, so the rows also stack wherever the panel is narrow. */
+@container (max-width: 30rem) {
+  .row {
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: var(--spacing-3);
+  }
+
+  .signOut {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .headAction {
+    width: 100%;
+  }
+}

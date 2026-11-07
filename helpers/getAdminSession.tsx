@@ -1,7 +1,9 @@
-import { jwtVerify, SignJWT } from "jose";
+import { createHash, randomBytes } from "crypto";
+import { jwtVerify, SignJWT, type JWTPayload } from "jose";
 import { AdminProfile, AdminRole } from "./AdminTypes";
 import { adminApiRouteKey, canCallAdminApi, normalizeAdminPermissions } from "./adminPermissions";
 import { db } from "./db";
+import { getClientIp } from "./getClientIp";
 
 const encoder = new TextEncoder();
 const secret = process.env.JWT_SECRET;
@@ -13,6 +15,11 @@ const secretKey = encoder.encode(secret);
 const AdminCookieName = "admin_session";
 const AdminSessionExpiration = "90d";
 const AdminSessionExpirationSeconds = 60 * 60 * 24 * 90; // 90 days
+
+// Browser cookies last 90 days; the MCP connector's per-request tokens last minutes.
+const BROWSER_TOKEN_MIN_SECONDS = 60 * 60 * 24;
+const LAST_SEEN_REFRESH_MS = 5 * 60 * 1000;
+const USER_AGENT_MAX_LENGTH = 500;
 
 // Re-export AdminProfile for backward compatibility
 export type { AdminProfile };
@@ -31,16 +38,7 @@ export class ForbiddenError extends Error {
   }
 }
 
-/**
- * Verifies the admin session and checks the admin's module permissions for the endpoint being
- * called (helpers/adminPermissions API_RULES, matched on the request path). allowedRoles only
- * applies to non-admin endpoints that also accept an admin session; admin endpoints are gated by
- * permissions alone. Role and permissions are read fresh from the database on every call.
- */
-export async function getAdminServerSessionOrThrow(
-  request: Request,
-  allowedRoles?: AdminRole[]
-): Promise<AdminProfile> {
+function readAdminCookie(request: Request): string | undefined {
   const cookieHeader = request.headers.get("cookie") || "";
   const cookies = cookieHeader
     .split(";")
@@ -51,7 +49,52 @@ export async function getAdminServerSessionOrThrow(
       }
       return cookies;
     }, {});
-  const sessionCookie = cookies[AdminCookieName];
+  return cookies[AdminCookieName];
+}
+
+type TokenSession = { id: string; legacy: boolean };
+
+/**
+ * The admin_sessions row a token belongs to. Cookies issued since sessions were recorded carry the
+ * row id as `sid`. Older browser cookies have none, so theirs is derived from the admin and the
+ * issue time and the row is created the first time the cookie is seen. Short-lived tokens without
+ * a sid (the MCP connector mints one per request) are not browser sign-ins and get no row.
+ */
+function tokenSession(payload: JWTPayload, adminId: number): TokenSession | null {
+  if (typeof payload.sid === "string" && payload.sid) {
+    return { id: payload.sid, legacy: false };
+  }
+  if (payload.iat && payload.exp && payload.exp - payload.iat > BROWSER_TOKEN_MIN_SECONDS) {
+    const digest = createHash("sha256").update(`${adminId}:${payload.iat}`).digest("hex").slice(0, 32);
+    return { id: `legacy-${digest}`, legacy: true };
+  }
+  return null;
+}
+
+function requestUserAgent(request: Request): string | null {
+  const userAgent = request.headers.get("user-agent")?.trim();
+  return userAgent ? userAgent.slice(0, USER_AGENT_MAX_LENGTH) : null;
+}
+
+const requestSessionIds = new WeakMap<Request, string>();
+
+/** The admin_sessions id behind a request that has passed getAdminServerSessionOrThrow. */
+export function getAdminSessionId(request: Request): string | undefined {
+  return requestSessionIds.get(request);
+}
+
+/**
+ * Verifies the admin session and checks the admin's module permissions for the endpoint being
+ * called (helpers/adminPermissions API_RULES, matched on the request path). allowedRoles only
+ * applies to non-admin endpoints that also accept an admin session; admin endpoints are gated by
+ * permissions alone. Role and permissions are read fresh from the database on every call, and so
+ * is the sign-in's admin_sessions row: a revoked or missing row ends the session.
+ */
+export async function getAdminServerSessionOrThrow(
+  request: Request,
+  allowedRoles?: AdminRole[]
+): Promise<AdminProfile> {
+  const sessionCookie = readAdminCookie(request);
 
   if (!sessionCookie) {
     throw new NotAuthenticatedError();
@@ -67,10 +110,23 @@ export async function getAdminServerSessionOrThrow(
       delete profileAny.isSuperAdmin;
     }
 
+    const session = tokenSession(payload, adminProfile.id);
+
     const adminRecord = await db
       .selectFrom("admins")
-      .select(["sessionInvalidatedAt", "isActive", "role", "permissions"])
-      .where("id", "=", adminProfile.id)
+      .leftJoin("adminSessions", (join) =>
+        join.onRef("adminSessions.adminId", "=", "admins.id").on("adminSessions.id", "=", session?.id ?? "")
+      )
+      .select([
+        "admins.sessionInvalidatedAt",
+        "admins.isActive",
+        "admins.role",
+        "admins.permissions",
+        "adminSessions.id as sessionRowId",
+        "adminSessions.revokedAt as sessionRevokedAt",
+        "adminSessions.lastSeenAt as sessionLastSeenAt",
+      ])
+      .where("admins.id", "=", adminProfile.id)
       .executeTakeFirst();
 
     if (!adminRecord || adminRecord.isActive === false) {
@@ -83,6 +139,40 @@ export async function getAdminServerSessionOrThrow(
       payload.iat * 1000 < new Date(adminRecord.sessionInvalidatedAt).getTime()
     ) {
       throw new NotAuthenticatedError("Session has been invalidated");
+    }
+
+    if (session) {
+      if (adminRecord.sessionRowId) {
+        if (adminRecord.sessionRevokedAt) {
+          throw new NotAuthenticatedError("This session was signed out");
+        }
+        const lastSeen = adminRecord.sessionLastSeenAt ? new Date(adminRecord.sessionLastSeenAt).getTime() : 0;
+        if (Date.now() - lastSeen > LAST_SEEN_REFRESH_MS) {
+          await db
+            .updateTable("adminSessions")
+            .set({ lastSeenAt: new Date(), ipAddress: getClientIp(request), userAgent: requestUserAgent(request) })
+            .where("id", "=", session.id)
+            .execute()
+            .catch((error) => console.error("Admin session last-seen update failed:", error));
+        }
+      } else if (session.legacy && payload.iat && payload.exp) {
+        await db
+          .insertInto("adminSessions")
+          .values({
+            id: session.id,
+            adminId: adminProfile.id,
+            createdAt: new Date(payload.iat * 1000),
+            lastSeenAt: new Date(),
+            expiresAt: new Date(payload.exp * 1000),
+            ipAddress: getClientIp(request),
+            userAgent: requestUserAgent(request),
+          })
+          .onConflict((oc) => oc.column("id").doNothing())
+          .execute();
+      } else {
+        throw new NotAuthenticatedError("This session was signed out");
+      }
+      requestSessionIds.set(request, session.id);
     }
 
     adminProfile.role = adminRecord.role;
@@ -114,27 +204,48 @@ export async function getAdminServerSessionOrThrow(
 
 /**
  * Sign an admin session JWT. Defaults to the 90-day browser session lifetime; the MCP connector
- * passes a short expiration because it mints a token per request rather than storing one.
+ * passes a short expiration because it mints a token per request rather than storing one, and
+ * leaves out sessionId because those tokens are not sign-ins.
  */
 export async function createAdminSessionToken(
   admin: AdminProfile,
-  expiration: string = AdminSessionExpiration
+  expiration: string = AdminSessionExpiration,
+  sessionId?: string
 ): Promise<string> {
-  return new SignJWT({ admin })
+  return new SignJWT({ admin, ...(sessionId ? { sid: sessionId } : {}) })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(expiration)
     .sign(secretKey);
 }
 
+/**
+ * Sets the admin cookie and records the sign-in in admin_sessions. Pass sessionId to re-issue the
+ * cookie for a session that already exists (the row keeps its sign-in time); leave it out on login.
+ */
 export async function setAdminServerSession(
   response: Response,
-  admin: AdminProfile
+  admin: AdminProfile,
+  request: Request,
+  sessionId: string = randomBytes(16).toString("hex")
 ): Promise<void> {
-  const token = await createAdminSessionToken(admin);
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + AdminSessionExpirationSeconds * 1000);
+  const ipAddress = getClientIp(request);
+  const userAgent = requestUserAgent(request);
+
+  await db
+    .insertInto("adminSessions")
+    .values({ id: sessionId, adminId: admin.id, createdAt: now, lastSeenAt: now, expiresAt, ipAddress, userAgent })
+    .onConflict((oc) => oc.column("id").doUpdateSet({ lastSeenAt: now, expiresAt, ipAddress, userAgent }))
+    .execute();
+
+  // Permissions stay out of the cookie; every session check reads them from the database.
+  const { permissions: _permissions, ...profile } = admin;
+  const token = await createAdminSessionToken(profile, AdminSessionExpiration, sessionId);
 
   const cookieValue = [
-        `${AdminCookieName}=${token}`,
+    `${AdminCookieName}=${token}`,
     "HttpOnly",
     "Secure",
     "SameSite=Lax",
@@ -143,6 +254,47 @@ export async function setAdminServerSession(
   ].join("; ");
 
   response.headers.append("Set-Cookie", cookieValue);
+}
+
+/** Marks the request's own session as signed out. Safe to call with no cookie or a bad one. */
+export async function revokeRequestAdminSession(request: Request): Promise<void> {
+  const sessionCookie = readAdminCookie(request);
+  if (!sessionCookie) return;
+  try {
+    const { payload } = await jwtVerify(sessionCookie, secretKey);
+    const adminId = (payload.admin as AdminProfile | undefined)?.id;
+    if (typeof adminId !== "number") return;
+    const session = tokenSession(payload, adminId);
+    if (!session) return;
+    const now = new Date();
+    if (session.legacy && payload.iat && payload.exp) {
+      // An older cookie that was never seen has no row yet; without one it would stay usable.
+      await db
+        .insertInto("adminSessions")
+        .values({
+          id: session.id,
+          adminId,
+          createdAt: new Date(payload.iat * 1000),
+          lastSeenAt: now,
+          expiresAt: new Date(payload.exp * 1000),
+          revokedAt: now,
+          ipAddress: getClientIp(request),
+          userAgent: requestUserAgent(request),
+        })
+        .onConflict((oc) => oc.column("id").doUpdateSet({ revokedAt: now }))
+        .execute();
+      return;
+    }
+    await db
+      .updateTable("adminSessions")
+      .set({ revokedAt: now })
+      .where("id", "=", session.id)
+      .where("adminId", "=", adminId)
+      .where("revokedAt", "is", null)
+      .execute();
+  } catch (error) {
+    console.error("Admin session could not be marked signed out:", error);
+  }
 }
 
 export function clearAdminServerSession(response: Response) {

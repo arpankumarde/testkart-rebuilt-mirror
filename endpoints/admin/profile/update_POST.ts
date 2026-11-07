@@ -1,6 +1,7 @@
 import { db } from "../../../helpers/db";
 import {
   getAdminServerSessionOrThrow,
+  getAdminSessionId,
   setAdminServerSession,
 } from "../../../helpers/getAdminSession";
 import { schema, OutputType } from "./update_POST.schema";
@@ -46,7 +47,7 @@ export async function handle(request: Request): Promise<Response> {
 
     // Re-sign the session cookie so the change takes effect immediately
     // without requiring the admin to log in again.
-    await setAdminServerSession(response, adminProfile);
+    await setAdminServerSession(response, adminProfile, request, getAdminSessionId(request));
 
     return response;
   } catch (error) {

@@ -1,0 +1,414 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  min-width: 0;
+}
+
+.strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11.5rem, 1fr));
+  gap: var(--spacing-3);
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--card);
+  min-width: 0;
+}
+
+.tileHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+}
+
+.tileLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.tileValue {
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--card-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.tileNote {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+
+.meter {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 3rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--muted);
+  overflow: hidden;
+}
+
+.meterFill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.tone_primary {
+  background: var(--primary);
+}
+
+.tone_error {
+  background: var(--error);
+}
+
+.tone_warning {
+  background: var(--warning);
+}
+
+.tone_success {
+  background: var(--success);
+}
+
+.card {
+  padding: var(--spacing-4) var(--spacing-6);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--card);
+  min-width: 0;
+}
+
+.cardHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+}
+
+.cardTitle {
+  margin: 0 0 var(--spacing-1);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--card-foreground);
+}
+
+.cardSub {
+  margin: 0 0 var(--spacing-3);
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+  max-width: 44rem;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2) var(--spacing-3);
+  max-width: 34rem;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: 0.78rem;
+  color: var(--card-foreground);
+}
+
+.swatch {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 2px;
+  flex: none;
+}
+
+.chart {
+  width: 100%;
+  min-width: 0;
+}
+
+.tip {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--popover, var(--card));
+  color: var(--popover-foreground, var(--card-foreground));
+  font-size: 0.8rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  max-width: 18rem;
+}
+
+.tipHead {
+  font-weight: 700;
+}
+
+.tipRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.tipRow strong {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.tipError {
+  color: var(--error-text);
+  font-weight: 600;
+}
+
+.empty {
+  padding: var(--spacing-4);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+}
+
+.error {
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid var(--error);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--card-foreground);
+}
+
+.twoCol {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+  gap: var(--spacing-4);
+}
+
+.playbooks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.playbook {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.playbookName {
+  font-weight: 700;
+  color: var(--card-foreground);
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: var(--spacing-3);
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--background);
+  min-width: 0;
+}
+
+.stepHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+}
+
+.stepName {
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.stepMeta {
+  font-size: 0.78rem;
+  color: var(--muted-foreground);
+}
+
+.waiting {
+  font-size: 0.85rem;
+  color: var(--foreground);
+}
+
+.stepEmpty {
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+}
+
+.split {
+  display: flex;
+  gap: 2px;
+  height: 0.6rem;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--muted);
+}
+
+.splitWhatsapp {
+  flex-basis: 0;
+  background: var(--success);
+}
+
+.splitEmail {
+  flex-basis: 0;
+  background: var(--info);
+}
+
+.splitLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.funnelRows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.funnelRow {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr) 4.5rem;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.8rem;
+  color: var(--foreground);
+}
+
+.funnelLabel {
+  color: var(--muted-foreground);
+}
+
+.funnelValue {
+  text-align: right;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.funnelPct {
+  margin-left: var(--spacing-1);
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.metricNote {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.reasons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.reason {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(4rem, 1fr) 2.5rem;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.reasonText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.reasonLabel {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--card-foreground);
+}
+
+.reasonAction {
+  font-size: 0.78rem;
+  color: var(--muted-foreground);
+}
+
+.reasonCount {
+  text-align: right;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--card-foreground);
+}
+
+.channelGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.channel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.channelHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.channelName {
+  font-weight: 700;
+  color: var(--card-foreground);
+}
+
+.updated {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+
+.stripSkeleton {
+  height: 8rem;
+  border-radius: var(--radius-md);
+}
+
+.chartSkeleton {
+  height: 16rem;
+  border-radius: var(--radius-md);
+}
+
+@media (max-width: 640px) {
+  .card {
+    padding: var(--spacing-4);
+  }
+
+  .twoCol {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .reason {
+    grid-template-columns: minmax(0, 1fr) 2.5rem;
+  }
+
+  .reason .meter {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}

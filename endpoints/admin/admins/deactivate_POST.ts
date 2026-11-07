@@ -2,6 +2,7 @@ import { schema, OutputType } from "./deactivate_POST.schema";
 import superjson from 'superjson';
 import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
+import { revokeAdminSessions } from "../../../helpers/adminSessions";
 
 export async function handle(request: Request) {
   try {
@@ -27,6 +28,10 @@ export async function handle(request: Request) {
       .set(updateData)
       .where('id', '=', result.adminId)
       .execute();
+
+    if (!result.isActive) {
+      await revokeAdminSessions(result.adminId);
+    }
 
     return new Response(superjson.stringify({ success: true, message: `Admin ${result.isActive ? 'activated' : 'deactivated'} successfully` } satisfies OutputType));
   } catch (error) {

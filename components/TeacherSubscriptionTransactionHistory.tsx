@@ -1,34 +1,10 @@
 import React from "react";
+import { ReceiptText } from "lucide-react";
 import { Skeleton } from "./Skeleton";
-import { Badge } from "./Badge";
+import { Button } from "./Button";
 import { TeacherListPagination } from "./TeacherListPagination";
-import { FileText } from "lucide-react";
-import styles from "./TeacherSubscriptionTransactionHistory.module.css";
 import { useSubscriptionHistoryQuery } from "../helpers/useTeacherSubscription";
-
-const HistorySkeletonRows: React.FC<{ count: number }> = ({ count }) => (
-  <>
-    {[...Array(count)].map((_, i) => (
-      <tr key={i}>
-        <td>
-          <Skeleton style={{ height: "20px" }} />
-        </td>
-        <td>
-          <Skeleton style={{ height: "20px" }} />
-        </td>
-        <td>
-          <Skeleton style={{ height: "20px" }} />
-        </td>
-        <td>
-          <Skeleton style={{ height: "20px" }} />
-        </td>
-        <td>
-          <Skeleton style={{ height: "20px" }} />
-        </td>
-      </tr>
-    ))}
-  </>
-);
+import styles from "./TeacherSubscriptionTransactionHistory.module.css";
 
 export interface TransactionHistoryProps {
   historyQuery: ReturnType<typeof useSubscriptionHistoryQuery>;
@@ -36,70 +12,122 @@ export interface TransactionHistoryProps {
   onPageChange: (page: number) => void;
 }
 
+const formatDate = (value: Date | string | null | undefined) =>
+  value
+    ? new Date(value).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+    : "-";
+
+const formatInr = (amount: number) => {
+  const rounded = Math.round(amount * 100) / 100;
+  return rounded.toLocaleString(
+    "en-IN",
+    Number.isInteger(rounded) ? undefined : { minimumFractionDigits: 2, maximumFractionDigits: 2 },
+  );
+};
+
+const StatusPill: React.FC<{ status: string }> = ({ status }) => (
+  <span className={`${styles.status} ${status === "completed" ? styles.paid : styles.pending}`}>
+    {status === "completed" ? "Paid" : "Pending"}
+  </span>
+);
+
 export const TeacherSubscriptionTransactionHistory: React.FC<TransactionHistoryProps> = ({
   historyQuery,
   historyPage,
   onPageChange,
 }) => {
-  const { data, isFetching, isError } = historyQuery;
-  const totalPages = data ? Math.ceil(data.totalCount / data.limit) : 1;
+  const { data, isPending, isError, refetch } = historyQuery;
+  const totalPages = data ? Math.max(1, Math.ceil(data.totalCount / data.limit)) : 1;
 
-  // Filter for completed or pending locally as requested
-  const filteredTransactions = data?.transactions.filter(
-    (tx) => tx.status === "completed" || tx.status === "pending"
+  const transactions = data?.transactions.filter(
+    (tx) => tx.status === "completed" || tx.status === "pending",
   );
 
   return (
-    <section className={styles.historySection}>
-      <h2 className={styles.sectionHeading}>Transaction History</h2>
-      <div className={styles.tableContainer}>
-        <table className={styles.historyTable}>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Plan</th>
-              <th>Amount</th>
-              <th>Status</th>
-              <th>Transaction ID</th>
-            </tr>
-          </thead>
-          <tbody>
-            {isFetching && <HistorySkeletonRows count={5} />}
-            {!isFetching &&
-              filteredTransactions?.map((tx) => (
-                <tr key={tx.id}>
-                  <td>
-                    {new Date(tx.transactionDate!).toLocaleDateString("en-IN")}
-                  </td>
-                  <td>{tx.planName}</td>
-                  <td className={styles.amount}>₹{tx.amount.toLocaleString("en-IN")}</td>
-                  <td>
-                    <Badge
-                      variant={
-                        tx.status === "completed" ? "success" : "warning"
-                      }
-                    >
-                      {tx.status}
-                    </Badge>
-                  </td>
-                  <td className={styles.txnId}>{tx.transactionId}</td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
-        {!isFetching && isError && (
-          <p className={styles.errorText}>Could not load history.</p>
-        )}
-        {!isFetching && filteredTransactions?.length === 0 && (
-          <div className={styles.emptyState}>
-            <span className={styles.emptyIcon} aria-hidden="true">
-              <FileText size={26} />
-            </span>
-            <h3>No transactions yet</h3>
-            <p>Payments for your plan will be listed here.</p>
+    <section className={styles.historySection} aria-labelledby="billing-history-title">
+      <h2 id="billing-history-title" className={styles.sectionHeading}>
+        Billing history
+      </h2>
+
+      <div className={styles.panel}>
+        {isPending && (
+          <div className={styles.skeletonList} aria-hidden>
+            {[...Array(3)].map((_, i) => (
+              <Skeleton key={i} style={{ height: "2.75rem", width: "100%" }} />
+            ))}
           </div>
         )}
+
+        {!isPending && isError && !data && (
+          <div className={styles.messageRow}>
+            <p>We could not load your billing history.</p>
+            <Button variant="outline" size="sm" onClick={() => refetch()}>
+              Try again
+            </Button>
+          </div>
+        )}
+
+        {transactions && transactions.length === 0 && (
+          <div className={styles.emptyState}>
+            <span className={styles.emptyIcon} aria-hidden>
+              <ReceiptText size={22} />
+            </span>
+            <p className={styles.emptyTitle}>No payments yet</p>
+            <p className={styles.emptyText}>Payments for your plan will show up here.</p>
+          </div>
+        )}
+
+        {transactions && transactions.length > 0 && (
+          <>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th scope="col">Date</th>
+                  <th scope="col">Plan</th>
+                  <th scope="col" className={styles.numCol}>
+                    Amount
+                  </th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Reference</th>
+                </tr>
+              </thead>
+              <tbody>
+                {transactions.map((tx) => (
+                  <tr key={tx.id}>
+                    <td className={styles.dateCell}>{formatDate(tx.transactionDate)}</td>
+                    <td className={styles.planCell}>{tx.planName}</td>
+                    <td className={`${styles.numCol} ${styles.amountCell}`}>₹{formatInr(tx.amount)}</td>
+                    <td>
+                      <StatusPill status={tx.status} />
+                    </td>
+                    <td>
+                      <span className={styles.reference} title={tx.transactionId ?? undefined}>
+                        {tx.transactionId ?? "-"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <ul className={styles.mobileList}>
+              {transactions.map((tx) => (
+                <li key={tx.id} className={styles.mobileItem}>
+                  <div className={styles.mobileMain}>
+                    <span className={styles.planCell}>{tx.planName}</span>
+                    <span className={styles.mobileMeta}>{formatDate(tx.transactionDate)}</span>
+                  </div>
+                  <div className={styles.mobileSide}>
+                    <span className={styles.amountCell}>₹{formatInr(tx.amount)}</span>
+                    <StatusPill status={tx.status} />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
       </div>
+
       {data && data.totalCount > data.limit && (
         <TeacherListPagination
           page={historyPage}

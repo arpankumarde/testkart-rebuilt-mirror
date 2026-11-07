@@ -1,7 +1,14 @@
-/* Same page shell as /teacher/dashboard and /teacher/test-series: no padding
-   of its own (TeacherDashboardLayout's .pageBody owns the gutter), one column
-   with a --spacing-6 rhythm, capped at 1440px. */
+/*
+ * /teacher/edit-profile in the /app palette (themed --sp-* and --fc-* tokens):
+ * white rounded cards with warm hairlines, a pastel tile per section, the
+ * peach pill for the main action. Coral is kept to the eyebrow and the
+ * hand-drawn underline under the title, as on /app and Fees & billing.
+ *
+ * The page is a size container so the summary column appears on the room the
+ * page has, not the window width; TeacherDashboardLayout owns the gutter.
+ */
 .page {
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-6);
@@ -9,113 +16,100 @@
   max-width: 1440px;
   margin: 0 auto;
   box-sizing: border-box;
+  color: var(--sp-ink);
 }
+
+/* <main> keeps overflow-y: auto, which makes it the sticky container even
+   though the document is what scrolls; clipping lets the save bar and the
+   summary column stick. */
+:global(main):has(.page) {
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+/* ------------------------------------------------------------ header ---- */
 
 .header {
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: var(--spacing-3) var(--spacing-4);
+  gap: var(--spacing-4);
 }
 
 .headerText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-2);
   min-width: 0;
 }
 
+.eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--tk-brand-text);
+}
+
 .title {
-  margin: 0;
+  position: relative;
+  margin: 0 0 0.375rem;
   font-family: var(--font-family-heading);
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: 800;
-  letter-spacing: -0.015em;
-  line-height: 1.2;
-  color: var(--foreground);
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  color: var(--sp-ink);
+}
+
+.underline {
+  position: absolute;
+  left: -2%;
+  bottom: -0.3em;
+  width: 104%;
+  height: 0.3em;
+  fill: none;
+  stroke: var(--tk-brand);
+  stroke-width: 4;
+  stroke-linecap: round;
 }
 
 .subtitle {
   margin: var(--spacing-1) 0 0;
-  font-size: 0.875rem;
-  line-height: 1.5;
-  color: var(--muted-foreground);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--sp-text);
 }
 
 .urlChip {
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-1);
-  padding: 1px var(--spacing-2);
-  border-radius: var(--radius-sm);
-  background-color: var(--tk-brand-tint);
-  color: var(--tk-brand-text);
-  font-weight: 600;
+  padding: 2px var(--spacing-2);
+  border: 1px solid var(--fc-peach-line);
+  border-radius: var(--radius-full);
+  background-color: var(--fc-peach-tint);
+  color: var(--fc-peach-ink);
+  font-weight: 700;
   text-decoration: none;
   overflow-wrap: anywhere;
-  transition: background-color var(--animation-duration-fast) ease;
 }
 
 .urlChip:hover {
-  background-color: color-mix(in srgb, var(--tk-brand) 28%, transparent);
+  background-color: var(--fc-peach-hover);
   text-decoration: underline;
 }
 
 .urlChip:focus-visible {
   outline: none;
-  box-shadow: var(--shadow-focus);
+  box-shadow: 0 0 0 2px var(--sp-card), 0 0 0 4px var(--fc-blue-edge);
 }
 
 .urlChip svg {
   flex-shrink: 0;
-}
-
-/*
- * A segmented control, not two loose buttons. Edit/Preview switches what the
- * page IS, while Copy link and Open live page are ordinary actions sitting
- * beside it - as four similar outline buttons in a row, that difference was
- * invisible. ToggleGroup's own rules live in @layer base, so these unlayered
- * ones win without !important.
- */
-.modeToggle {
-  display: inline-flex;
-  gap: 0;
-  padding: 3px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background-color: var(--muted);
-}
-
-.modeToggle button {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  height: 2rem;
-  padding: 0 var(--spacing-4);
-  border: none;
-  border-radius: calc(var(--radius) - 2px);
-  background-color: transparent;
-  color: var(--muted-foreground);
-  font-family: var(--font-family-base);
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color var(--animation-duration-fast) ease,
-    color var(--animation-duration-fast) ease;
-}
-
-.modeToggle button:hover {
-  background-color: transparent;
-  color: var(--foreground);
-}
-
-.modeToggle button[data-state="on"] {
-  background-color: var(--surface);
-  color: var(--tk-brand-text);
-  box-shadow: var(--shadow);
-}
-
-.modeToggle button:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus);
 }
 
 .headerActions {
@@ -125,23 +119,79 @@
   gap: var(--spacing-2);
 }
 
-/* ---------------------------------------------------------- onboarding --- */
+/* Kit Button and ToggleGroup rules sit in @layer base, so these unlayered
+   ones win without !important. */
+.modeToggle {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--sp-line);
+  border-radius: var(--radius-full);
+  background-color: var(--sp-card);
+}
+
+.modeToggle button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  height: 2.25rem;
+  padding: 0 var(--spacing-4);
+  border: none;
+  border-radius: var(--radius-full);
+  background-color: transparent;
+  color: var(--sp-text);
+  font-family: var(--font-family-base);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.modeToggle button:hover {
+  background-color: var(--fc-peach-tint);
+  color: var(--sp-ink);
+}
+
+.modeToggle button[data-state="on"] {
+  background-color: var(--sp-cta);
+  color: var(--sp-cta-ink);
+}
+
+.modeToggle button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--sp-card), 0 0 0 4px var(--fc-blue-edge);
+}
+
+.pillButton,
+.pillButton:hover {
+  height: 2.5rem;
+  padding: 0 var(--spacing-4);
+  border-radius: var(--radius-full);
+  border-color: var(--sp-line-strong);
+  background-color: var(--sp-card);
+  color: var(--sp-ink);
+  font-weight: 700;
+}
+
+.pillButton:hover {
+  background-color: var(--fc-peach-tint);
+  border-color: var(--fc-peach-line);
+}
+
+.pillButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--sp-card), 0 0 0 4px var(--fc-blue-edge);
+}
+
+/* -------------------------------------------------------- onboarding ---- */
 
 .onboardingBanner {
   display: flex;
   align-items: flex-start;
   gap: var(--spacing-3);
-  padding: var(--spacing-4);
-  background-color: var(--surface);
-  border: 1px solid var(--info);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
-}
-
-.onboardingBannerIcon {
-  flex-shrink: 0;
-  margin-top: 2px;
-  color: var(--info-text);
+  padding: 1.25rem var(--spacing-6);
+  background-color: var(--fc-butter-tint);
+  border: 1px solid var(--fc-butter-line);
+  border-radius: 1.25rem;
 }
 
 .onboardingBannerText {
@@ -152,118 +202,444 @@
 .onboardingBannerTitle {
   margin: 0;
   font-family: var(--font-family-heading);
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--foreground);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: var(--fc-butter-ink);
 }
 
 .onboardingBannerDescription {
   margin: var(--spacing-1) 0 0;
   font-size: 0.875rem;
   line-height: 1.55;
-  color: var(--muted-foreground);
+  color: var(--fc-butter-ink);
 }
 
 .onboardingBannerClose {
   flex-shrink: 0;
-  color: var(--muted-foreground);
+  color: var(--fc-butter-ink);
 }
 
-/* --------------------------------------------------------------- edit ---- */
+/* ------------------------------------------------------------ layout ---- */
 
-.editLayout {
+.layout {
   display: grid;
-  grid-template-columns: 17rem minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--spacing-6);
   align-items: start;
 }
 
-.sideColumn {
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+  max-width: 50rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Narrow pages keep only the strength bar, above the form; the live card and
+   the checklist need the side column. */
+.aside {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-4);
-  position: sticky;
-  top: var(--spacing-6);
-}
-
-.sectionNav {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: var(--spacing-2);
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
-}
-
-.sectionButton {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
-  width: 100%;
-  padding: var(--spacing-3);
-  border: none;
-  border-radius: var(--radius);
-  background: none;
-  text-align: left;
-  color: var(--muted-foreground);
-  font-family: var(--font-family-base);
-  cursor: pointer;
-  transition: background-color var(--animation-duration-fast) ease,
-    color var(--animation-duration-fast) ease;
-}
-
-.sectionButton:hover {
-  background-color: var(--muted);
-  color: var(--foreground);
-}
-
-.sectionButton:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus);
-}
-
-/* Coral as a block, matching the sidebar's active row and the test-series
-   tabs. */
-.sectionButtonActive {
-  background-color: var(--tk-brand-tint);
-  color: var(--tk-brand-text);
-}
-
-.sectionIcon {
-  flex-shrink: 0;
-}
-
-.sectionMeta {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
+  order: -1;
   min-width: 0;
 }
 
-.sectionLabel {
+.aside .card,
+.aside .checks {
+  display: none;
+}
+
+@container (min-width: 64rem) {
+  .layout {
+    grid-template-columns: minmax(0, 50rem) 20rem;
+    gap: var(--spacing-8);
+  }
+
+  .aside {
+    order: 0;
+    position: sticky;
+    top: var(--spacing-6);
+  }
+
+  .aside .card,
+  .aside .checks {
+    display: flex;
+  }
+}
+
+/* ------------------------------------------------------------- panels --- */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  padding: var(--spacing-6);
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.5rem;
+  box-shadow: var(--sp-shadow);
+  scroll-margin-top: var(--spacing-6);
+}
+
+.panelHead {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+}
+
+.panelIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid transparent;
+  border-radius: 0.875rem;
+}
+
+.tonePeach {
+  background-color: var(--fc-peach-tint);
+  border-color: var(--fc-peach-line);
+  color: var(--fc-peach-ink);
+}
+
+.toneLavender {
+  background-color: var(--sp-lavender-tint);
+  border-color: var(--sp-lavender-line);
+  color: var(--sp-lavender-ink);
+}
+
+.toneBlue {
+  background-color: var(--fc-blue-tint);
+  border-color: var(--fc-blue-line);
+  color: var(--fc-blue-ink);
+}
+
+.toneButter {
+  background-color: var(--fc-butter-tint);
+  border-color: var(--fc-butter-line);
+  color: var(--fc-butter-ink);
+}
+
+.toneSage {
+  background-color: var(--fc-sage-tint);
+  border-color: var(--fc-sage-line);
+  color: var(--fc-sage-ink);
+}
+
+.toneMint {
+  background-color: var(--fc-mint-tint);
+  border-color: var(--sp-mint-line);
+  color: var(--fc-mint-ink);
+}
+
+.panelHeadText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding-top: 1px;
+}
+
+.panelTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.1875rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+  color: var(--sp-ink);
+}
+
+.panelDescription {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--sp-text);
+}
+
+/* The panel draws the frame and the title, so the shared exam focus card
+   drops both here. Its hidden heading still names the section. */
+.examFocus {
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.examFocus > div:first-child {
+  display: none;
+}
+
+.groupNote {
+  margin: var(--spacing-3) 0 calc(var(--spacing-1) * -1) var(--spacing-2);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--sp-muted);
+}
+
+/* ---------------------------------------------------------- save bar ---- */
+
+.saveBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-3) var(--spacing-3) 1.25rem;
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: var(--radius-full);
+  box-shadow: var(--sp-shadow);
+}
+
+/* Rests at the end of the form, and follows the teacher down the page only
+   once there is something to save. */
+.saveBarDirty {
+  position: sticky;
+  bottom: var(--spacing-4);
+  z-index: 2;
+  background-color: var(--fc-butter-tint);
+  border-color: var(--fc-butter-line);
+  box-shadow: var(--sp-shadow-hover);
+}
+
+.saveStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
   font-size: 0.875rem;
   font-weight: 600;
-  line-height: 1.3;
+  color: var(--sp-text);
 }
 
-.sectionHint {
+.saveBarDirty .saveStatus {
+  color: var(--fc-butter-ink);
+}
+
+.savedIcon {
+  color: var(--fc-mint-edge);
+}
+
+.dirtyDot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--fc-butter-edge);
+}
+
+.saveActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.saveActions button {
+  height: 2.5rem;
+  border-radius: var(--radius-full);
+  font-weight: 700;
+}
+
+.saveBarDirty .saveActions button:first-child:not(:last-child) {
+  color: var(--fc-butter-ink);
+}
+
+.saveBarDirty .saveActions button:first-child:not(:last-child):hover {
+  background-color: var(--fc-butter-line);
+}
+
+.saveButton,
+.saveButton:hover {
+  padding: 0 1.25rem;
+  border: 1px solid var(--sp-cta);
+  background-color: var(--sp-cta);
+  color: var(--sp-cta-ink);
+}
+
+.saveButton:hover:not(:disabled) {
+  border-color: var(--sp-cta-hover);
+  background-color: var(--sp-cta-hover);
+}
+
+.saveButton:disabled {
+  opacity: 1;
+  border-color: var(--sp-line);
+  background-color: var(--muted);
+  color: var(--sp-muted);
+}
+
+.saveButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--sp-card), 0 0 0 4px var(--fc-blue-edge);
+}
+
+/* ------------------------------------------------------- live card ------ */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: 1.25rem;
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.5rem;
+  box-shadow: var(--sp-shadow);
+}
+
+.cardEyebrow {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--tk-brand-text);
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  min-width: 0;
+}
+
+.cardAvatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 3.5rem;
+  height: 3.5rem;
+  overflow: hidden;
+  border: 1px solid var(--fc-peach-line);
+  border-radius: var(--radius-full);
+  background-color: var(--fc-peach-tint);
+  color: var(--fc-peach-ink);
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+
+.cardAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cardIdentity {
+  min-width: 0;
+}
+
+.cardName {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--sp-ink);
+}
+
+.cardName > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cardAcademy {
+  margin: 2px 0 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--sp-muted);
+  overflow-wrap: anywhere;
+}
+
+.cardTagline,
+.cardPlaceholder {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.cardTagline {
+  color: var(--sp-text);
+}
+
+.cardPlaceholder {
+  color: var(--sp-muted);
+  font-style: italic;
+}
+
+.cardMeta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8125rem;
+  color: var(--sp-text);
+}
+
+.cardMeta li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  overflow-wrap: anywhere;
+}
+
+.cardMeta svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--sp-muted);
+}
+
+.cardChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cardChips li {
+  padding: 2px var(--spacing-2);
+  border: 1px solid var(--fc-sage-line);
+  border-radius: var(--radius-full);
+  background-color: var(--fc-sage-tint);
+  color: var(--fc-sage-ink);
   font-size: 0.75rem;
-  line-height: 1.3;
-  color: var(--muted-foreground);
+  font-weight: 700;
+  line-height: 1.4;
 }
 
-.sectionButtonActive .sectionHint {
-  color: color-mix(in srgb, var(--tk-brand-text) 75%, var(--foreground));
+.cardChips .cardChipMore {
+  border-color: var(--sp-line);
+  background-color: var(--sp-card);
+  color: var(--sp-text);
 }
 
-.strengthCard {
-  padding: var(--spacing-4);
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
+/* ---------------------------------------------------------- strength ---- */
+
+.strength {
+  padding: 1.25rem;
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.5rem;
+  box-shadow: var(--sp-shadow);
 }
 
 .strengthHead {
@@ -274,114 +650,138 @@
 }
 
 .strengthTitle {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--foreground);
+  margin: 0;
+  font-family: var(--font-family-base);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--sp-ink);
 }
 
 .strengthValue {
   font-family: var(--font-family-heading);
-  font-size: 1.125rem;
+  font-size: 1.25rem;
   font-weight: 800;
-  color: var(--tk-brand-text);
+  color: var(--sp-ink);
   font-variant-numeric: tabular-nums;
 }
 
 .strengthTrack {
-  height: 0.5rem;
+  height: 0.75rem;
   margin: var(--spacing-3) 0;
+  padding: 2px;
+  border: 1px solid var(--sp-mint-line);
   border-radius: var(--radius-full);
-  background-color: var(--muted);
-  overflow: hidden;
+  background-color: var(--fc-mint-tint);
+  box-sizing: border-box;
 }
 
 .strengthBar {
   display: block;
   height: 100%;
   border-radius: var(--radius-full);
-  background-color: var(--tk-brand-deep);
+  background-color: var(--fc-mint-edge);
   transition: width var(--animation-duration-normal) ease;
 }
 
-.strengthText {
-  margin: 0;
-  font-size: 0.8125rem;
-  line-height: 1.5;
-  color: var(--muted-foreground);
-}
-
-.strengthAction {
-  margin-top: var(--spacing-2);
-  margin-left: calc(var(--spacing-3) * -1);
-  color: var(--tk-brand-text);
-}
-
-.panelColumn {
-  display: flex;
+.checks {
   flex-direction: column;
-  gap: var(--spacing-4);
-  min-width: 0;
-}
-
-.panel {
-  padding: var(--spacing-6);
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
-}
-
-.form {
-  display: block;
-}
-
-/* The panel is already the card, so the shared exam focus section drops its own frame here. */
-.examFocusSection {
+  gap: 1px;
+  margin: 0 calc(var(--spacing-2) * -1);
   padding: 0;
-  border: none;
-  background: transparent;
-  box-shadow: none;
+  list-style: none;
 }
 
-.saveBar {
+.check {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--spacing-3);
-  position: sticky;
-  bottom: var(--spacing-4);
-  padding: var(--spacing-3) var(--spacing-4);
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
-}
-
-.saveHint {
+  gap: var(--spacing-2);
+  width: 100%;
+  min-height: 2rem;
+  padding: var(--spacing-1) var(--spacing-2);
+  border: none;
+  border-radius: 0.75rem;
+  background: none;
+  text-align: left;
+  color: var(--sp-ink);
+  font-family: var(--font-family-base);
   font-size: 0.8125rem;
-  color: var(--muted-foreground);
+  font-weight: 700;
+  line-height: 1.35;
+  cursor: pointer;
 }
 
-/* ------------------------------------------------------------ preview ---- */
+.check:hover {
+  background-color: var(--fc-peach-tint);
+}
+
+.check:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--fc-blue-edge);
+}
+
+.checkDone {
+  color: var(--sp-muted);
+  font-weight: 500;
+}
+
+.checkDone:hover {
+  background-color: var(--muted);
+}
+
+.checkTick {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  border-radius: var(--radius-full);
+  background-color: var(--fc-mint-edge);
+  color: #fff;
+}
+
+.checkOpen {
+  flex-shrink: 0;
+  color: var(--fc-peach-edge);
+}
+
+.strengthNext {
+  margin: var(--spacing-3) 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--sp-text);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ----------------------------------------------------------- preview ---- */
 
 .previewWrap {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background-color: var(--surface);
-  box-shadow: var(--shadow);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.5rem;
+  background-color: var(--sp-card);
+  box-shadow: var(--sp-shadow);
   overflow: hidden;
 }
 
 .previewBar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   flex-wrap: wrap;
   gap: var(--spacing-2) var(--spacing-4);
-  padding: var(--spacing-3) var(--spacing-4);
-  border-bottom: 1px solid var(--border);
-  background-color: var(--muted);
+  padding: var(--spacing-3) var(--spacing-3) var(--spacing-3) 1.25rem;
+  border-bottom: 1px solid var(--sp-line);
+  background-color: var(--sp-surface);
 }
 
 .previewUrl {
@@ -389,24 +789,32 @@
   align-items: center;
   gap: var(--spacing-2);
   font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--foreground);
+  font-weight: 700;
+  color: var(--sp-ink);
   overflow-wrap: anywhere;
 }
 
 .previewUrl svg {
   flex-shrink: 0;
-  color: var(--tk-brand-text);
+  color: var(--fc-blue-edge);
+}
+
+.previewNote,
+.previewNoteUnsaved {
+  flex: 1;
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 
 .previewNote {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--muted-foreground);
+  color: var(--sp-muted);
 }
 
-/* The landing page renders at full fidelity inside its own scroll box, so the
-   teacher sees exactly what a student sees without leaving the dashboard. */
+.previewNoteUnsaved {
+  color: var(--fc-butter-ink);
+}
+
+/* The public page renders at full fidelity inside its own scroll box. */
 .previewViewport {
   max-height: 78vh;
   overflow-y: auto;
@@ -429,16 +837,17 @@
   gap: var(--spacing-3);
   padding: var(--spacing-16) var(--spacing-4);
   text-align: center;
-  background-color: var(--surface);
-  border-radius: var(--radius-md);
+  background-color: var(--sp-card);
+  border: 1px dashed var(--sp-line-strong);
+  border-radius: 1.5rem;
 }
 
 .previewEmptyTitle {
   margin: 0;
   font-family: var(--font-family-heading);
   font-size: 1.125rem;
-  font-weight: 700;
-  color: var(--foreground);
+  font-weight: 800;
+  color: var(--sp-ink);
 }
 
 .previewEmptyText {
@@ -446,39 +855,10 @@
   max-width: 34rem;
   font-size: 0.875rem;
   line-height: 1.55;
-  color: var(--muted-foreground);
+  color: var(--sp-text);
 }
 
-/* --------------------------------------------------------- responsive ---- */
-
-@media (max-width: 1024px) {
-  .editLayout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .sideColumn {
-    position: static;
-  }
-
-  .sectionNav {
-    flex-direction: row;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .sectionNav::-webkit-scrollbar {
-    display: none;
-  }
-
-  .sectionButton {
-    width: auto;
-    flex-shrink: 0;
-  }
-
-  .sectionHint {
-    display: none;
-  }
-}
+/* -------------------------------------------------------- responsive ---- */
 
 @media (max-width: 640px) {
   .page {
@@ -490,16 +870,30 @@
     align-items: stretch;
   }
 
+  .title {
+    font-size: 1.75rem;
+  }
+
   .panel {
-    padding: var(--spacing-4);
+    gap: 1.25rem;
+    padding: 1.25rem var(--spacing-4);
+    border-radius: 1.25rem;
   }
 
   .saveBar {
+    border-radius: 1.25rem;
+  }
+
+  .saveBarDirty {
     bottom: var(--spacing-2);
   }
 
-  .saveBar button {
+  .saveActions {
     width: 100%;
+  }
+
+  .saveActions button {
+    flex: 1;
     justify-content: center;
     min-height: 2.75rem;
   }
@@ -510,7 +904,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sectionButton,
   .strengthBar {
     transition: none;
   }

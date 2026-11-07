@@ -16,6 +16,7 @@ import {
   type ChannelChoice,
   type SendOutcome,
 } from "./autopilotChannels";
+import { approvedTemplateNames, resolveTemplate, templateVariableCount, type TemplateSlot } from "./autopilotWhatsAppTemplates";
 
 /**
  * The autopilot's engine, run by the autopilotHourly job every 15 minutes:
@@ -26,10 +27,15 @@ import {
  *    relevant (no success yet), quiet hours, daily and weekly caps, a reachable
  *    channel, then the variant (Thompson sampling on paid conversions) and the
  *    offer (Tcoins within the margin rule and the daily budget).
+ * 3. rescue: a WhatsApp message Meta refused after accepting it (the failure
+ *    arrives later through webhooks/waplify) is sent again by email when the
+ *    person has a usable address.
  * Shadow mode logs every message it would send (rev_messages.shadow) and sends
- * nothing. Channels come from helpers/autopilotChannels: WhatsApp when the
- * student said yes and an approved template is set for the playbook, else
- * email (app push is wired but unused while the app registers no tokens).
+ * nothing. Channels come from helpers/autopilotChannels and templates from
+ * helpers/autopilotWhatsAppTemplates: WhatsApp on a first message, on an offer
+ * step whose offer template Meta approved, and for people with no usable
+ * email; otherwise email (app push is wired but unused while the app
+ * registers no tokens). Each pass writes one autopilot_runs row.
  * Every send is awaited and failures are recorded, never thrown.
  */
 
@@ -39,10 +45,24 @@ const pick = (row: Row | undefined, snake: string): unknown =>
 const num = (row: Row | undefined, key: string) => Number(pick(row, key) ?? 0) || 0;
 
 const MAX_DISPATCH_PER_RUN = 150;
+const MAX_RESCUE_PER_RUN = 50;
 const GIVE_UP_AFTER_DAYS = 14;
 const PLAYBOOKS = new Map(AUTOPILOT_PLAYBOOKS.map((playbook) => [playbook.key, playbook]));
 const DAY_MS = 24 * 60 * 60 * 1000;
 const expiryLabel = new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" });
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+export type EngineCounts = {
+  due: number;
+  sent: number;
+  shadow: number;
+  failed: number;
+  skipped: number;
+  deferred: number;
+  converted: number;
+  rescued: number;
+  errors: number;
+};
 
 export async function enrolTriggers(settings: AutopilotSettings): Promise<number> {
   let enrolled = 0;
@@ -199,6 +219,44 @@ function emailHtml(copy: { heading: string; body: string; cta: string }, url: st
   });
 }
 
+const isRateLimited = (error: unknown) => {
+  const e = (error ?? {}) as { name?: string; statusCode?: number; message?: string };
+  return e.name === "rate_limit_exceeded" || e.statusCode === 429 || /too many requests/i.test(e.message ?? "");
+};
+
+/** One autopilot email; Resend's 10-a-second limit is retried twice, the idempotency key keeps that safe. */
+async function sendStepEmail(params: {
+  messageId: string;
+  userId: number;
+  email: string;
+  copy: { subject: string; heading: string; body: string; cta: string };
+  url: string;
+}): Promise<SendOutcome> {
+  const { messageId, userId, email, copy, url } = params;
+  for (let attempt = 0; ; attempt++) {
+    const result = await sendEmail({
+      to: email,
+      subject: copy.subject,
+      html: emailHtml(copy, url, userId),
+      text: `${copy.heading}\n\n${copy.body}\n\n${copy.cta}: ${url}\n\nUnsubscribe: ${unsubscribePageUrl(userId, "student_marketing")}`,
+      tags: [{ name: "mid", value: String(messageId) }],
+      headers: unsubscribeHeaders(userId, "student_marketing"),
+      idempotencyKey: `autopilot-${messageId}`,
+    });
+    if (result.success) return { ok: true, providerId: (result.data as { data?: { id?: string } })?.data?.id ?? null };
+    if (attempt < 2 && isRateLimited(result.error)) {
+      await sleep(1200 * (attempt + 1));
+      continue;
+    }
+    return { ok: false, error: result.error instanceof Error ? result.error.message : JSON.stringify(result.error).slice(0, 300) };
+  }
+}
+
+function whatsappVariables(template: string, ctx: PlaybookContext, coins: number, coinsExpireOn: string): string[] {
+  const all = [ctx.firstName, ctx.itemTitle || ctx.examName || "your exam", String(coins), coinsExpireOn];
+  return all.slice(0, templateVariableCount(template));
+}
+
 type DueEnrolment = {
   id: string;
   userId: number;
@@ -242,8 +300,7 @@ async function exit(enrolmentId: string, state: string, reason: string, now: Dat
     .execute();
 }
 
-export async function dispatchDue(settings: AutopilotSettings): Promise<{ sent: number; shadow: number; skipped: number }> {
-  const counts = { sent: 0, shadow: 0, skipped: 0 };
+export async function dispatchDue(settings: AutopilotSettings, counts: EngineCounts): Promise<void> {
   const now = new Date();
   const due = await db
     .selectFrom("revEnrolments")
@@ -253,10 +310,12 @@ export async function dispatchDue(settings: AutopilotSettings): Promise<{ sent: 
     .orderBy("nextDueAt", "asc")
     .limit(MAX_DISPATCH_PER_RUN)
     .execute();
-  if (due.length === 0) return counts;
+  counts.due = due.length;
+  if (due.length === 0) return;
 
   const stats = await variantStats();
   const tcoins = await tcoinsLimits();
+  const approved = await approvedTemplateNames();
 
   for (const row of due) {
     const enrolment: DueEnrolment = {
@@ -272,6 +331,7 @@ export async function dispatchDue(settings: AutopilotSettings): Promise<{ sent: 
       const goal = await reachedGoal(playbook, enrolment.userId, enrolment.triggerAt);
       if (goal) {
         await exit(enrolment.id, "converted", "goal_reached", now, goal.orderId);
+        counts.converted++;
         continue;
       }
       if (now.getTime() - enrolment.createdAt.getTime() > GIVE_UP_AFTER_DAYS * DAY_MS) {
@@ -291,6 +351,7 @@ export async function dispatchDue(settings: AutopilotSettings): Promise<{ sent: 
       const sendAt = nextSendTime(now, settings.sendWindowStartHour, settings.sendWindowEndHour);
       if (sendAt.getTime() > now.getTime()) {
         await db.updateTable("revEnrolments").set({ nextDueAt: sendAt, updatedAt: now }).where("id", "=", enrolment.id).execute();
+        counts.deferred++;
         continue;
       }
 
@@ -298,10 +359,27 @@ export async function dispatchDue(settings: AutopilotSettings): Promise<{ sent: 
       if (recent.day >= settings.dailyMessageCap || recent.week >= settings.weeklyMessageCap) {
         const later = nextSendTime(new Date(now.getTime() + 6 * 60 * 60 * 1000), settings.sendWindowStartHour, settings.sendWindowEndHour);
         await db.updateTable("revEnrolments").set({ nextDueAt: later, updatedAt: now }).where("id", "=", enrolment.id).execute();
+        counts.deferred++;
         continue;
       }
 
-      const choice: ChannelChoice | null = await chooseChannel(enrolment.userId, playbook.key, settings, enrolment.nextStep === 1);
+      let coins = 0;
+      const coinsExpireAt = new Date(now.getTime() + offerExpiryDays(settings, playbook.key) * DAY_MS);
+      if (step.offer && tcoins.enabled) {
+        coins = offerCoins({
+          takeRupees: await takeForContext(enrolment.context),
+          cartRupees: enrolment.context.amount,
+          marginShare: settings.offerMarginShare,
+          redeemPercent: tcoins.redeemPercent,
+          maxRedeem: tcoins.maxRedeem,
+          budgetLeftRupees: await offerBudgetLeft(settings, settings.shadow),
+        });
+      }
+      const slot: TemplateSlot = coins > 0 ? "offer" : enrolment.nextStep === 1 ? "first" : "followup";
+      const slotTemplate = resolveTemplate(playbook.key, slot, approved, settings.whatsappTemplates);
+      const template = slotTemplate ?? resolveTemplate(playbook.key, "followup", approved, settings.whatsappTemplates);
+      const preferWhatsApp = slot === "first" || (slot === "offer" && slotTemplate !== null);
+      const choice: ChannelChoice | null = await chooseChannel(enrolment.userId, template, preferWhatsApp);
       const variantKey = pickVariant(
         stats.get(`${playbook.key}:${enrolment.nextStep}`) ?? [
           { key: "a", sends: 0, conversions: 0 },
@@ -338,7 +416,7 @@ export async function dispatchDue(settings: AutopilotSettings): Promise<{ sent: 
           step: enrolment.nextStep,
           variantKey,
           channel: choice.channel,
-          templateKey: `${playbook.key}.${enrolment.nextStep}.${variantKey}`,
+          templateKey: choice.channel === "whatsapp" ? choice.template : `${playbook.key}.${enrolment.nextStep}.${variantKey}`,
           status: "queued",
           shadow: settings.shadow,
           costPaise: settings.shadow ? 0 : settings.channelCostPaise[choice.channel],
@@ -346,18 +424,7 @@ export async function dispatchDue(settings: AutopilotSettings): Promise<{ sent: 
         .returning("id")
         .executeTakeFirstOrThrow();
 
-      let coins = 0;
-      const coinsExpireAt = new Date(now.getTime() + offerExpiryDays(settings, playbook.key) * DAY_MS);
-      if (step.offer && tcoins.enabled) {
-        coins = offerCoins({
-          takeRupees: await takeForContext(enrolment.context),
-          cartRupees: enrolment.context.amount,
-          marginShare: settings.offerMarginShare,
-          redeemPercent: tcoins.redeemPercent,
-          maxRedeem: tcoins.maxRedeem,
-          budgetLeftRupees: await offerBudgetLeft(settings, settings.shadow),
-        });
-        if (coins > 0) {
+      if (coins > 0) {
           let grantId: number | null = null;
           if (!settings.shadow) {
             const grant = await db
@@ -386,30 +453,18 @@ export async function dispatchDue(settings: AutopilotSettings): Promise<{ sent: 
               shadow: settings.shadow,
             })
             .execute();
-        }
       }
 
-      const copy = step.variants[variantKey](enrolment.context, coins, expiryLabel.format(coinsExpireAt));
+      const coinsExpireOn = expiryLabel.format(coinsExpireAt);
+      const copy = step.variants[variantKey](enrolment.context, coins, coinsExpireOn);
       if (settings.shadow) {
         await db.updateTable("revMessages").set({ status: "skipped", error: "shadow" }).where("id", "=", message.id).execute();
         counts.shadow++;
       } else {
         const path = playbook.link(enrolment.context);
         const url = await createMessageLink(message.id, path);
-        const sendByEmail = async (email: string): Promise<SendOutcome> => {
-          const result = await sendEmail({
-            to: email,
-            subject: copy.subject,
-            html: emailHtml(copy, url, enrolment.userId),
-            text: `${copy.heading}\n\n${copy.body}\n\n${copy.cta}: ${url}\n\nUnsubscribe: ${unsubscribePageUrl(enrolment.userId, "student_marketing")}`,
-            tags: [{ name: "mid", value: String(message.id) }],
-            headers: unsubscribeHeaders(enrolment.userId, "student_marketing"),
-            idempotencyKey: `autopilot-${message.id}`,
-          });
-          return result.success
-            ? { ok: true, providerId: (result.data as { data?: { id?: string } })?.data?.id ?? null }
-            : { ok: false, error: result.error instanceof Error ? result.error.message : JSON.stringify(result.error).slice(0, 300) };
-        };
+        const sendByEmail = (email: string) =>
+          sendStepEmail({ messageId: message.id, userId: enrolment.userId, email, copy, url });
         let outcome: SendOutcome;
         if (choice.channel === "push") {
           outcome = await sendPush({ tokens: choice.tokens, title: copy.subject, body: copy.body, path, messageId: message.id });
@@ -418,10 +473,7 @@ export async function dispatchDue(settings: AutopilotSettings): Promise<{ sent: 
             phone: choice.phone,
             template: choice.template,
             name: enrolment.context.firstName,
-            variables: [
-              enrolment.context.firstName,
-              enrolment.context.itemTitle || enrolment.context.examName || "your exam",
-            ],
+            variables: whatsappVariables(choice.template, enrolment.context, coins, coinsExpireOn),
             linkCode: new URL(url).searchParams.get("c") ?? "",
           });
           if (!outcome.ok) {
@@ -430,7 +482,12 @@ export async function dispatchDue(settings: AutopilotSettings): Promise<{ sent: 
               console.warn(`[autopilot] WhatsApp failed for message ${message.id} (${outcome.error}); sending email instead`);
               await db
                 .updateTable("revMessages")
-                .set({ channel: "email", costPaise: settings.channelCostPaise.email, error: `whatsapp failed: ${outcome.error}`.slice(0, 300) })
+                .set({
+                  channel: "email",
+                  templateKey: `${playbook.key}.${enrolment.nextStep}.${variantKey}`,
+                  costPaise: settings.channelCostPaise.email,
+                  error: `whatsapp failed: ${outcome.error}`.slice(0, 300),
+                })
                 .where("id", "=", message.id)
                 .execute();
               outcome = await sendByEmail(fallback.email);
@@ -448,11 +505,13 @@ export async function dispatchDue(settings: AutopilotSettings): Promise<{ sent: 
           counts.sent++;
         } else {
           await db.updateTable("revMessages").set({ status: "failed", error: outcome.error }).where("id", "=", message.id).execute();
+          counts.failed++;
         }
       }
       await advance(enrolment, playbook, now);
     } catch (error) {
       console.error(`[autopilot] dispatch of enrolment ${enrolment.id} failed:`, error);
+      counts.errors++;
       await db
         .updateTable("revEnrolments")
         .set({ nextDueAt: new Date(now.getTime() + 60 * 60 * 1000), updatedAt: now })
@@ -461,16 +520,125 @@ export async function dispatchDue(settings: AutopilotSettings): Promise<{ sent: 
         .catch(() => undefined);
     }
   }
-  return counts;
 }
 
-/** One engine pass: enrol new triggers, then send what is due. Off when the autopilot is switched off. */
-export async function runAutopilotEngine(): Promise<void> {
+/**
+ * Re-sends by email the WhatsApp messages of the last 24 hours that Meta
+ * refused after accepting them, with the same copy, offer and step. The row
+ * becomes an email row (the WhatsApp reason stays in error), so a message is
+ * rescued once; people with no usable email are marked and left alone.
+ */
+export async function rescueFailedWhatsApp(settings: AutopilotSettings, counts: EngineCounts): Promise<void> {
+  if (settings.shadow) return;
+  const now = new Date();
+  if (nextSendTime(now, settings.sendWindowStartHour, settings.sendWindowEndHour).getTime() > now.getTime()) return;
+  const rows = await sql<Row>`
+    SELECT m.id, m.user_id, m.playbook_key, m.step, m.variant_key, m.error, e.trigger_at, e.context,
+      o.coins, g.expires_at
+    FROM rev_messages m
+    JOIN rev_enrolments e ON e.id = m.intent_id
+    LEFT JOIN rev_offers o ON o.message_id = m.id
+    LEFT JOIN tcoin_grants g ON g.id = o.tcoin_grant_id
+    WHERE m.channel = 'whatsapp' AND m.status = 'failed' AND m.shadow = false
+      AND m.created_at > now() - interval '24 hours'
+      AND coalesce(m.error, '') NOT LIKE '%(no email to fall back to)'
+    ORDER BY m.id
+    LIMIT ${MAX_RESCUE_PER_RUN}
+  `.execute(db);
+  for (const row of rows.rows) {
+    const messageId = String(pick(row, "id"));
+    const userId = num(row, "user_id");
+    const reason = String(pick(row, "error") ?? "WhatsApp failed");
+    try {
+      const playbook = PLAYBOOKS.get(String(pick(row, "playbook_key")));
+      const step = playbook?.steps[num(row, "step") - 1];
+      const variant = String(pick(row, "variant_key") ?? "a") === "b" ? "b" : "a";
+      const ctx = (pick(row, "context") ?? {}) as unknown as PlaybookContext;
+      const fallback = await emailFallback(userId);
+      const goal = playbook ? await reachedGoal(playbook, userId, new Date(String(pick(row, "trigger_at")))) : null;
+      if (!playbook || !step || !fallback || goal) {
+        await db
+          .updateTable("revMessages")
+          .set({ error: `${reason} (no email to fall back to)`.slice(0, 500) })
+          .where("id", "=", messageId)
+          .execute();
+        continue;
+      }
+      const coins = num(row, "coins");
+      const expires = pick(row, "expires_at");
+      const coinsExpireOn = expiryLabel.format(expires ? new Date(String(expires)) : new Date(now.getTime() + offerExpiryDays(settings, playbook.key) * DAY_MS));
+      const copy = step.variants[variant](ctx, coins, coinsExpireOn);
+      const url = await createMessageLink(messageId, playbook.link(ctx));
+      await db
+        .updateTable("revMessages")
+        .set({
+          channel: "email",
+          templateKey: `${playbook.key}.${num(row, "step")}.${variant}`,
+          status: "queued",
+          costPaise: settings.channelCostPaise.email,
+          error: `whatsapp failed: ${reason}`.slice(0, 300),
+          deliveredAt: null,
+          readAt: null,
+        })
+        .where("id", "=", messageId)
+        .execute();
+      const outcome = await sendStepEmail({ messageId, userId, email: fallback.email, copy, url });
+      if (outcome.ok) {
+        await db
+          .updateTable("revMessages")
+          .set({ status: "sent", sentAt: now, providerMessageId: outcome.providerId })
+          .where("id", "=", messageId)
+          .execute();
+        counts.rescued++;
+      } else {
+        await db.updateTable("revMessages").set({ status: "failed", error: `whatsapp and email failed: ${outcome.error}`.slice(0, 300) }).where("id", "=", messageId).execute();
+        counts.failed++;
+      }
+    } catch (error) {
+      console.error(`[autopilot] rescue of message ${messageId} failed:`, error);
+      counts.errors++;
+    }
+  }
+}
+
+/** One engine pass: enrol new triggers, send what is due, rescue refused WhatsApp messages, log the run. */
+export async function runAutopilotEngine(): Promise<EngineCounts | null> {
   const settings = await getAutopilotSettings();
-  if (!settings.enabled) return;
-  const enrolled = await enrolTriggers(settings);
-  const counts = await dispatchDue(settings);
+  if (!settings.enabled) return null;
+  const startedAt = new Date();
+  const counts: EngineCounts = { due: 0, sent: 0, shadow: 0, failed: 0, skipped: 0, deferred: 0, converted: 0, rescued: 0, errors: 0 };
+  let enrolled = 0;
+  let fatal: string | null = null;
+  try {
+    enrolled = await enrolTriggers(settings);
+    await dispatchDue(settings, counts);
+    await rescueFailedWhatsApp(settings, counts);
+  } catch (error) {
+    fatal = error instanceof Error ? error.message : String(error);
+    console.error("[autopilot] engine pass failed:", error);
+  }
   console.log(
-    `[autopilot] enrolled ${enrolled}, sent ${counts.sent}, shadow ${counts.shadow}, no reachable channel ${counts.skipped}`
+    `[autopilot] enrolled ${enrolled}, due ${counts.due}, sent ${counts.sent}, shadow ${counts.shadow}, failed ${counts.failed}, no reachable channel ${counts.skipped}, deferred ${counts.deferred}, rescued ${counts.rescued}`
   );
+  await db
+    .insertInto("autopilotRuns")
+    .values({
+      startedAt,
+      durationMs: Date.now() - startedAt.getTime(),
+      shadow: settings.shadow,
+      enrolled,
+      due: counts.due,
+      sent: counts.sent + counts.shadow,
+      failed: counts.failed,
+      skipped: counts.skipped,
+      deferred: counts.deferred,
+      converted: counts.converted,
+      rescued: counts.rescued,
+      errors: counts.errors + (fatal ? 1 : 0),
+      error: fatal ? fatal.slice(0, 500) : null,
+    })
+    .execute()
+    .catch((error) => console.error("[autopilot] could not log the run:", error));
+  if (fatal) throw new Error(fatal);
+  return counts;
 }

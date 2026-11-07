@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { AlertCircle, Send } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { Button } from './Button';
 import { Skeleton } from './Skeleton';
-import { BundleForm, BundleFormValues } from './BundleForm';
+import { TeacherFlowTop } from './TeacherFlowTop';
+import { BundleForm, BundleFormValues, bundleFlowSteps } from './BundleForm';
 import { useBundleMutations } from '../helpers/useBundleMutations';
 import { useTeacherBundleDetailsQuery } from '../helpers/useTeacherBundleDetailsQuery';
 import styles from './BundleEditor.module.css';
@@ -13,20 +14,25 @@ interface BundleEditorProps {
   /** Where Cancel goes; the admin edit page also returns there after a save. */
   exitTo: string;
   exitLabel: string;
+  /** Teacher page: the guided form with the step track and a Publish button. */
+  guided?: boolean;
+  /** Guided only: shown under the step track, e.g. the rejection note. */
+  intro?: React.ReactNode;
 }
 
 /*
  * Loads a saved bundle into BundleForm and saves it. Shared by the teacher and
- * admin edit pages. Teachers stay on the page after saving and can publish a
- * draft from here, instead of finding the Publish action on the list card.
+ * admin edit pages. Teachers stay on the page after saving, and publish a draft
+ * from the form's own Publish button, which saves any changes first.
  */
-export const BundleEditor = ({ bundleId, exitTo, exitLabel }: BundleEditorProps) => {
+export const BundleEditor = ({ bundleId, exitTo, exitLabel, guided = false, intro }: BundleEditorProps) => {
   const navigate = useNavigate();
   const { data: bundle, isLoading, isError, refetch, isFetching } = useTeacherBundleDetailsQuery(bundleId);
   const { updateBundleMutation, publishBundleMutation } = useBundleMutations();
+  const [savedAt, setSavedAt] = useState(0);
   const isAdminEdit = exitTo.startsWith('/admin');
 
-  const handleSubmit = (values: BundleFormValues) => {
+  const save = (values: BundleFormValues, onSaved: () => void) => {
     if (!bundle) return;
     updateBundleMutation.mutate(
       {
@@ -44,71 +50,84 @@ export const BundleEditor = ({ bundleId, exitTo, exitLabel }: BundleEditorProps)
           ? {}
           : { courseIds: values.courseIds, testIds: values.testIds, digitalProductIds: values.digitalProductIds }),
       },
-      {
-        onSuccess: () => {
-          if (isAdminEdit) navigate(exitTo);
-          else refetch();
-        },
-      }
+      { onSuccess: onSaved }
     );
   };
 
+  const handleSubmit = (values: BundleFormValues) =>
+    save(values, () => {
+      if (isAdminEdit) {
+        navigate(exitTo);
+        return;
+      }
+      setSavedAt(Date.now());
+      refetch();
+    });
+
+  const handlePublish = (values: BundleFormValues, hasChanges: boolean) => {
+    if (!bundle) return;
+    const publish = () =>
+      publishBundleMutation.mutate({ bundleId: bundle.id, publish: true }, { onSuccess: () => refetch() });
+    if (!hasChanges) {
+      publish();
+      return;
+    }
+    save(values, () => {
+      setSavedAt(Date.now());
+      publish();
+    });
+  };
+
+  const top = guided ? (
+    <TeacherFlowTop
+      back={exitTo}
+      label="Bundle steps"
+      steps={bundleFlowSteps({ itemsDone: false, detailsDone: false, published: false })}
+    />
+  ) : null;
+
   if (isLoading) {
     return (
-      <div className={styles.skeletonContainer}>
-        <Skeleton style={{ height: '3rem' }} />
-        <Skeleton style={{ height: '6rem' }} />
-        <Skeleton style={{ height: '10rem' }} />
-        <Skeleton style={{ height: '5rem' }} />
+      <div className={styles.stack}>
+        {top}
+        <div className={styles.skeletonContainer}>
+          <Skeleton style={{ height: '3rem' }} />
+          <Skeleton style={{ height: '6rem' }} />
+          <Skeleton style={{ height: '10rem' }} />
+          <Skeleton style={{ height: '5rem' }} />
+        </div>
       </div>
     );
   }
 
   if (!bundle) {
     return (
-      <div className={styles.errorState} role="alert">
-        <span className={styles.errorIcon} aria-hidden="true">
-          <AlertCircle size={26} />
-        </span>
-        <h2 className={styles.errorTitle}>Could not open this bundle</h2>
-        <p className={styles.errorText}>
-          {isError
-            ? 'It may have been deleted, belong to another account, or the connection dropped.'
-            : 'It may have been deleted, or it belongs to another account.'}
-        </p>
-        <div className={styles.errorActions}>
-          <Button onClick={() => refetch()} disabled={isFetching}>
-            Try again
-          </Button>
-          <Button asChild variant="outline">
-            <Link to={exitTo}>Go to {exitLabel}</Link>
-          </Button>
+      <div className={styles.stack}>
+        {top}
+        <div className={styles.errorState} role="alert">
+          <span className={styles.errorIcon} aria-hidden="true">
+            <AlertCircle size={26} />
+          </span>
+          <h2 className={styles.errorTitle}>Could not open this bundle</h2>
+          <p className={styles.errorText}>
+            {isError
+              ? 'It may have been deleted, belong to another account, or the connection dropped.'
+              : 'It may have been deleted, or it belongs to another account.'}
+          </p>
+          <div className={styles.errorActions}>
+            <Button onClick={() => refetch()} disabled={isFetching}>
+              Try again
+            </Button>
+            <Button asChild variant="outline">
+              <Link to={exitTo}>Go to {exitLabel}</Link>
+            </Button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <>
-    {!isAdminEdit && !bundle.isPublished && (
-      <div className={styles.publishBar}>
-        <div className={styles.publishText}>
-          <strong>This bundle is a draft.</strong>
-          <span>
-            Publish it once it holds 2 or more of your published items. Save any changes below first.
-          </span>
-        </div>
-        <Button
-          onClick={() =>
-            publishBundleMutation.mutate({ bundleId: bundle.id, publish: true }, { onSuccess: () => refetch() })
-          }
-          disabled={publishBundleMutation.isPending || updateBundleMutation.isPending}
-        >
-          <Send size={16} aria-hidden="true" />
-          {publishBundleMutation.isPending ? 'Publishing' : 'Publish bundle'}
-        </Button>
-      </div>
-    )}
     <BundleForm
       key={bundle.id}
       initialValues={{
@@ -128,8 +147,12 @@ export const BundleEditor = ({ bundleId, exitTo, exitLabel }: BundleEditorProps)
       onSubmit={handleSubmit}
       cancelTo={exitTo}
       isSubmitting={updateBundleMutation.isPending}
-      submitText="Save changes"
+      submitText={guided && !bundle.isPublished ? 'Save draft' : 'Save changes'}
+      guided={guided}
+      intro={intro}
+      onPublish={guided ? handlePublish : undefined}
+      isPublishing={publishBundleMutation.isPending}
+      savedAt={savedAt}
     />
-    </>
   );
 };

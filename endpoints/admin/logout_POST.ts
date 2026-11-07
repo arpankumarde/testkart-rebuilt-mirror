@@ -1,8 +1,10 @@
-import { clearAdminServerSession } from "../../helpers/getAdminSession";
+import { clearAdminServerSession, revokeRequestAdminSession } from "../../helpers/getAdminSession";
 import superjson from "superjson";
 
 export async function handle(request: Request) {
   try {
+    // Ends the session on the server too, so a copy of the cookie stops working.
+    await revokeRequestAdminSession(request);
     const response = new Response(
       superjson.stringify({ success: true, message: "Logged out successfully" })
     );

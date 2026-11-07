@@ -6,6 +6,7 @@ import { db } from "../../helpers/db";
 import { getClientIp } from "../../helpers/getClientIp";
 import { setAdminServerSession } from "../../helpers/getAdminSession";
 import { normalizeAdminPermissions } from "../../helpers/adminPermissions";
+import { deleteExpiredAdminSessions } from "../../helpers/adminSessions";
 import { schema, InputType, OutputType } from "./login_POST.schema";
 
 const MAX_FAILED_ATTEMPTS = 5;
@@ -91,6 +92,9 @@ export async function handle(request: Request) {
         .where("attemptedAt", "<", new Date(now.getTime() - FAILURE_RETENTION_MS))
         .execute()
         .catch((error) => console.error("Admin login failure cleanup failed:", error));
+      await deleteExpiredAdminSessions().catch((error) =>
+        console.error("Expired admin session cleanup failed:", error)
+      );
     }
 
     if (outcome.type === "locked") {
@@ -127,7 +131,7 @@ export async function handle(request: Request) {
     );
 
     // Permissions stay out of the cookie; every session check reads them from the database.
-    await setAdminServerSession(response, adminProfile);
+    await setAdminServerSession(response, adminProfile, request);
 
     return response;
   } catch (error) {

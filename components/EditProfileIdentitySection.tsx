@@ -1,177 +1,102 @@
 import React from 'react';
 import { FormItem, FormLabel, FormControl, FormDescription, FormMessage } from './Form';
 import { Input } from './Input';
-import { Textarea } from './Textarea';
 import { TeacherAvatarField } from './TeacherAvatarField';
 import { VerifiedBadge } from './VerifiedBadge';
 import { TeacherProfileFormValues } from '../helpers/teacherProfileFormSchema';
-import { ExternalLink, Copy } from 'lucide-react';
-import { Button } from './Button';
-import { Link } from 'react-router-dom';
-import { toast } from 'sonner';
 import { useUploadLimits } from '../helpers/useUploadLimits';
 import styles from './EditProfileIdentitySection.module.css';
+
+export const TAGLINE_MAX = 150;
 
 interface EditProfileIdentitySectionProps {
   formValues: TeacherProfileFormValues;
   onValuesChange: (values: Partial<TeacherProfileFormValues>) => void;
   isOnboarding?: boolean;
   isVerified?: boolean;
-  className?: string;
 }
 
+// Photo, name, academy and tagline: the top of the public profile.
 export const EditProfileIdentitySection: React.FC<EditProfileIdentitySectionProps> = ({
   formValues,
   onValuesChange,
   isOnboarding = false,
   isVerified = false,
-  className,
 }) => {
   const limits = useUploadLimits();
-
-  const handleAvatarChange = (next: { avatarUrl: string; avatarFileId: string }) => {
-    onValuesChange(next);
-  };
-
-  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Auto-transform: lowercase and replace spaces with hyphens
-    const value = e.target.value
-      .toLowerCase()
-      .replace(/\s+/g, '-');
-    onValuesChange({ slug: value });
-  };
-
-  const profileUrl = formValues.slug ? `https://testkart.in/expert/${formValues.slug}` : null;
-  const profilePath = formValues.slug ? `/expert/${formValues.slug}` : null;
-
-  const handleCopyUrl = async () => {
-    if (!profileUrl) return;
-    try {
-      await navigator.clipboard.writeText(profileUrl);
-      toast.success('Profile URL copied to clipboard!');
-    } catch (error) {
-      console.error('Failed to copy URL:', error);
-      toast.error('Failed to copy URL');
-    }
-  };
+  const taglineLength = (formValues.tagline ?? '').length;
 
   return (
-    <div className={`${styles.section} ${className || ''}`}>
-      <h2 className={styles.sectionTitle}>Profile Identity</h2>
-      <p className={styles.sectionDescription}>
-        This information represents your teaching identity on Testkart.
-      </p>
-
+    <div className={styles.fields}>
       <TeacherAvatarField
         avatarUrl={formValues.avatarUrl}
         avatarFileId={formValues.avatarFileId}
         displayName={formValues.displayName}
         maxSizeInMB={limits.profilePictureMaxMb}
-        onChange={handleAvatarChange}
-        className={styles.avatarField}
+        onChange={(next) => onValuesChange(next)}
       />
 
-      <FormItem name="displayName" className={isOnboarding ? styles.onboardingHighlight : ''}>
-        <div className={styles.displayNameLabelRow}>
-          <FormLabel>Display Name</FormLabel>
-          {isVerified && (
-            <span className={styles.verifiedIndicator}>
-              <VerifiedBadge isVerified size="sm" className={styles.verifiedIcon} />
-              <span className={styles.verifiedText}>Verified Teacher</span>
-            </span>
-          )}
-        </div>
-        <FormControl>
-          <Input
-            value={formValues.displayName}
-            onChange={(e) => onValuesChange({ displayName: e.target.value })}
-            placeholder="Your name"
-          />
-        </FormControl>
-        <FormDescription>This is how students will see your name.</FormDescription>
-        <FormMessage />
-      </FormItem>
-
-      <FormItem name="academyName">
-        <FormLabel>Academy Name</FormLabel>
-        <FormControl>
-          <Input
-            value={formValues.academyName || ''}
-            onChange={(e) => onValuesChange({ academyName: e.target.value })}
-            placeholder="e.g. Testkart Academy"
-            maxLength={100}
-          />
-        </FormControl>
-        <FormDescription>The coaching institute, school or academy you teach under. Students see it on your public profile and on your tests and courses. Leave it blank if you teach on your own.</FormDescription>
-        <FormMessage />
-      </FormItem>
-
-      <FormItem name="slug">
-        <FormLabel>Profile URL Slug</FormLabel>
-        <FormControl>
-          <div className={styles.slugInputWrapper}>
-            <span className={styles.slugPrefix}>testkart.in/expert/</span>
+      <div className={styles.row}>
+        <FormItem name="displayName">
+          <div className={styles.labelRow}>
+            <FormLabel>Display name</FormLabel>
+            {isOnboarding && <span className={styles.requiredTag}>Required</span>}
+            {isVerified && (
+              <span className={styles.verified}>
+                <VerifiedBadge isVerified size="xs" />
+                Verified
+              </span>
+            )}
+          </div>
+          <FormControl>
             <Input
-              value={formValues.slug || ''}
-              onChange={handleSlugChange}
-              placeholder="your-slug"
-              className={styles.slugInput}
+              value={formValues.displayName}
+              onChange={(e) => onValuesChange({ displayName: e.target.value })}
+              placeholder="e.g. Ritu Sharma"
+              autoComplete="name"
             />
+          </FormControl>
+          <FormDescription>The name on your profile, tests and courses.</FormDescription>
+          <FormMessage />
+        </FormItem>
+
+        <FormItem name="academyName">
+          <div className={styles.labelRow}>
+            <FormLabel>Academy name</FormLabel>
+            <span className={styles.optional}>Optional</span>
           </div>
-        </FormControl>
-        <FormDescription>Required. This is your permanent profile URL. Choose carefully - changing it may affect your SEO.</FormDescription>
-        {profilePath && (
-          <div className={styles.slugActions}>
-            <Link
-              to={profilePath}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.viewProfileLink}
-            >
-              <ExternalLink size={14} />
-              View Public Profile
-            </Link>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleCopyUrl}
-              className={styles.copyButton}
-              aria-label="Copy profile URL"
-            >
-              <Copy size={14} />
-              Copy URL
-            </Button>
-          </div>
-        )}
-        <FormMessage />
-      </FormItem>
+          <FormControl>
+            <Input
+              value={formValues.academyName || ''}
+              onChange={(e) => onValuesChange({ academyName: e.target.value })}
+              placeholder="e.g. Sharma Classes"
+              maxLength={100}
+            />
+          </FormControl>
+          <FormDescription>Leave blank if you teach on your own.</FormDescription>
+          <FormMessage />
+        </FormItem>
+      </div>
 
       <FormItem name="tagline">
-        <FormLabel>Tagline</FormLabel>
+        <div className={styles.labelRow}>
+          <FormLabel>Tagline</FormLabel>
+          <span
+            className={`${styles.counter} ${taglineLength >= TAGLINE_MAX ? styles.counterFull : ''}`}
+            aria-hidden="true"
+          >
+            {taglineLength}/{TAGLINE_MAX}
+          </span>
+        </div>
         <FormControl>
           <Input
             value={formValues.tagline || ''}
             onChange={(e) => onValuesChange({ tagline: e.target.value })}
-            placeholder="Helping students ace their competitive exams"
-            maxLength={150}
+            placeholder="e.g. SSC Maths made simple - 12 years, 40,000+ students"
+            maxLength={TAGLINE_MAX}
           />
         </FormControl>
-        <FormDescription>A short tagline that describes your value proposition to students (max 150 characters).</FormDescription>
-        <FormMessage />
-      </FormItem>
-
-      <FormItem name="bio" className={isOnboarding ? styles.onboardingHighlight : ''}>
-        <FormLabel>About</FormLabel>
-        <FormControl>
-          <Textarea
-            placeholder="Tell students about yourself and your teaching experience..."
-            value={formValues.bio || ''}
-            onChange={(e) => onValuesChange({ bio: e.target.value })}
-            rows={4}
-          />
-        </FormControl>
-        <FormDescription>A brief description about you and your teaching experience.</FormDescription>
+        <FormDescription>One line under your name. Say who you help and how.</FormDescription>
         <FormMessage />
       </FormItem>
     </div>

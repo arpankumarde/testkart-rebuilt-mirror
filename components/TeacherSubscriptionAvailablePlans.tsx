@@ -1,38 +1,32 @@
 import React, { useState } from "react";
+import { Check, Info, Loader2, Wallet } from "lucide-react";
 import { Skeleton } from "./Skeleton";
 import { Switch } from "./Switch";
 import { Button } from "./Button";
-import { CheckCircle, Info, Loader2, Shield } from "lucide-react";
-import styles from "./TeacherSubscriptionAvailablePlans.module.css";
 import { useSubscriptionPlansQuery } from "../helpers/useTeacherSubscription";
+import styles from "./TeacherSubscriptionAvailablePlans.module.css";
 
 const PlansSkeleton: React.FC = () => (
-  <div className={styles.plansGrid}>
-    {[...Array(3)].map((_, i) => (
+  <div className={styles.plansGrid} aria-hidden>
+    {[...Array(4)].map((_, i) => (
       <div key={i} className={styles.planCard}>
-        <Skeleton style={{ height: "24px", width: "120px", margin: "0 auto" }} />
-        <Skeleton style={{ height: "20px", width: "80%", margin: "8px auto 0" }} />
-        <Skeleton style={{ height: "40px", width: "150px", margin: "24px auto" }} />
-        <Skeleton style={{ height: "60px", width: "100%", margin: "0 auto 24px" }} />
-        <Skeleton style={{ height: "1px", width: "100%", margin: "16px 0" }} />
-        <Skeleton style={{ height: "20px", width: "90%", margin: "8px 0" }} />
-        <Skeleton style={{ height: "20px", width: "85%", margin: "8px 0" }} />
-        <Skeleton style={{ height: "20px", width: "95%", margin: "8px 0" }} />
-        <Skeleton style={{ height: "40px", width: "100%", marginTop: "auto" }} />
+        <Skeleton style={{ height: "1.5rem", width: "7rem" }} />
+        <Skeleton style={{ height: "1rem", width: "90%" }} />
+        <Skeleton style={{ height: "2.5rem", width: "8rem", marginTop: "0.5rem" }} />
+        <Skeleton style={{ height: "3.5rem", width: "100%" }} />
+        <Skeleton style={{ height: "1rem", width: "85%" }} />
+        <Skeleton style={{ height: "1rem", width: "75%" }} />
+        <Skeleton style={{ height: "2.75rem", width: "100%", marginTop: "auto" }} />
       </div>
     ))}
   </div>
 );
 
 export interface AvailablePlansProps {
+  id?: string;
   plansQuery: ReturnType<typeof useSubscriptionPlansQuery>;
   hasActiveSub: boolean;
   currentPlanId?: number;
-  // Set while new purchases are closed: only this plan (the teacher's own) is shown, to renew.
-  renewOnlyPlanId?: number;
-  // The current plan can be bought again, e.g. to restart autopay after a cancel.
-  canRenewCurrentPlan?: boolean;
-  subscriptionStatus: string | undefined;
   isInitiatingPayment: boolean;
   paymentMode: "normal" | "recurring";
   walletBalance: number;
@@ -52,13 +46,29 @@ const INTRO_OFFER_PRICE = 1;
 const introOfferAppliesTo = (baseName: string, isYearlyPlan: boolean) =>
   !isYearlyPlan && (baseName === "Starter" || baseName === "Individual");
 
+const PLAN_RANK: Record<string, number> = { Free: 0, Starter: 1, Individual: 2, Business: 3 };
+
+export const getPlanBaseName = (name: string) => {
+  const lower = name.toLowerCase();
+  if (lower.includes("free")) return "Free";
+  if (lower.includes("starter")) return "Starter";
+  if (lower.includes("individual")) return "Individual";
+  if (lower.includes("business")) return "Business";
+  return null;
+};
+
+// True when some plan ranks above the given one, i.e. the upgrade grid has cards to show.
+export const hasPlanAbove = (planName: string | undefined) =>
+  (PLAN_RANK[getPlanBaseName(planName ?? "") ?? "Free"] ?? 0) < PLAN_RANK.Business;
+
+const formatInr = (amount: number) =>
+  (Math.round(amount * 100) / 100).toLocaleString("en-IN");
+
 export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = ({
+  id,
   plansQuery,
   hasActiveSub,
   currentPlanId,
-  renewOnlyPlanId,
-  canRenewCurrentPlan = false,
-  subscriptionStatus,
   isInitiatingPayment,
   paymentMode,
   walletBalance,
@@ -69,322 +79,266 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
 }) => {
   const [isYearly, setIsYearly] = useState(false);
 
-  const getBaseName = (name: string) => {
-    const lower = name.toLowerCase();
-    if (lower.includes("free")) return "Free";
-    if (lower.includes("starter")) return "Starter";
-    if (lower.includes("individual")) return "Individual";
-    if (lower.includes("business")) return "Business";
-    return null;
-  };
-
-  const plansByBaseName: Record<string, { monthly: any; yearly: any }> = {
+  type PlanRow = NonNullable<typeof plansQuery.data>[number];
+  const plansByBaseName: Record<string, { monthly: PlanRow | null; yearly: PlanRow | null }> = {
     Free: { monthly: null, yearly: null },
     Starter: { monthly: null, yearly: null },
     Individual: { monthly: null, yearly: null },
     Business: { monthly: null, yearly: null },
   };
 
-  if (plansQuery.data) {
-    plansQuery.data.forEach((plan) => {
-      const baseName = getBaseName(plan.name);
-      if (!baseName) return;
+  plansQuery.data?.forEach((plan) => {
+    const baseName = getPlanBaseName(plan.name);
+    if (!baseName) return;
+    if (plan.billingCycle === "yearly" || plan.durationDays >= 360) {
+      plansByBaseName[baseName].yearly = plan;
+    } else {
+      plansByBaseName[baseName].monthly = plan;
+    }
+  });
 
-      if (plan.billingCycle === "yearly" || plan.durationDays >= 360) {
-        plansByBaseName[baseName].yearly = plan;
-      } else {
-        plansByBaseName[baseName].monthly = plan;
-      }
-    });
-  }
+  const pick = (baseName: string) => {
+    const group = plansByBaseName[baseName];
+    return group[isYearly ? "yearly" : "monthly"] || group.monthly || group.yearly;
+  };
 
-  // Pick the correct plan based on toggle, fallback to whichever exists if missing
-  const allPlansToDisplay = [
-    plansByBaseName.Free.monthly || plansByBaseName.Free.yearly,
-    plansByBaseName.Starter[isYearly ? "yearly" : "monthly"] ||
-      plansByBaseName.Starter.monthly ||
-      plansByBaseName.Starter.yearly,
-    plansByBaseName.Individual[isYearly ? "yearly" : "monthly"] ||
-      plansByBaseName.Individual.monthly ||
-      plansByBaseName.Individual.yearly,
-    plansByBaseName.Business[isYearly ? "yearly" : "monthly"] ||
-      plansByBaseName.Business.monthly ||
-      plansByBaseName.Business.yearly,
-  ].filter(Boolean);
+  const allPlans = [pick("Free"), pick("Starter"), pick("Individual"), pick("Business")].filter(
+    (plan): plan is PlanRow => !!plan,
+  );
 
-  // Once a teacher is on a paid plan, the grid below their active plan card
-  // only offers upgrades: Free and their current tier are left out so the
-  // page doesn't invite comparing down right next to "Choose a higher plan."
-  // Cancelling (which does move them to Free) stays a clear, separate, visible
-  // action on the Current Subscription card above - nothing about leaving is hidden.
-  const PLAN_RANK: Record<string, number> = { Free: 0, Starter: 1, Individual: 2, Business: 3 };
+  // On a paid plan the grid only offers upgrades: Free and the current tier are
+  // left out. Cancelling stays a visible action on the "Your plan" card above.
   const currentPlanRecord = plansQuery.data?.find((plan) => plan.id === currentPlanId);
-  const currentBaseName = currentPlanRecord ? getBaseName(currentPlanRecord.name) : null;
+  const currentBaseName = currentPlanRecord ? getPlanBaseName(currentPlanRecord.name) : null;
   const isPaidActive = hasActiveSub && !!currentPlanRecord && Number(currentPlanRecord.price) > 0;
-  const upgradeOnlyPlansToDisplay = isPaidActive
-    ? allPlansToDisplay.filter((plan) => {
-        const baseName = getBaseName(plan.name) || "";
-        return (PLAN_RANK[baseName] ?? 0) > (PLAN_RANK[currentBaseName || ""] ?? 0);
-      })
-    : allPlansToDisplay;
-  const onTopTier = isPaidActive && upgradeOnlyPlansToDisplay.length === 0;
+  const plansToDisplay = isPaidActive
+    ? allPlans.filter(
+        (plan) =>
+          (PLAN_RANK[getPlanBaseName(plan.name) || ""] ?? 0) >
+          (PLAN_RANK[currentBaseName || ""] ?? 0),
+      )
+    : allPlans;
 
-  const renewPlan =
-    renewOnlyPlanId !== undefined
-      ? plansQuery.data?.find((plan) => plan.id === renewOnlyPlanId)
-      : undefined;
-  const plansToDisplay =
-    renewOnlyPlanId !== undefined ? (renewPlan ? [renewPlan] : []) : upgradeOnlyPlansToDisplay;
+  if (isPaidActive && plansQuery.data && plansToDisplay.length === 0) return null;
+
+  const hasYearly = Object.values(plansByBaseName).some((group) => group.yearly);
 
   return (
-    <section className={styles.plansSection}>
-      <h2 className={styles.sectionTitle}>
-        {renewOnlyPlanId !== undefined ? "Renew your plan" : isPaidActive ? "Upgrade your plan" : "Plans"}
-      </h2>
+    <section id={id} className={styles.plansSection} aria-labelledby="plans-title">
+      <div className={styles.sectionHead}>
+        <div className={styles.sectionIntro}>
+          <h2 id="plans-title" className={styles.sectionTitle}>
+            {isPaidActive ? "Upgrade your plan" : "Plans"}
+          </h2>
+          <p className={styles.sectionLede}>
+            Every plan includes unlimited courses and tests. A higher plan lowers your fee and adds
+            more AI questions.
+          </p>
+        </div>
 
-      {onTopTier && (
-        <div className={styles.note}>
-          <Info size={18} />
-          <div>
-            <p>
-              You're on {currentBaseName}, our best plan here - the lowest platform fee and every
-              feature unlocked. Nothing higher to move to.
-            </p>
+        {hasYearly && (
+          <div className={styles.billingToggle} role="group" aria-label="Billing period">
+            <button
+              type="button"
+              aria-pressed={!isYearly}
+              className={styles.toggleBtn}
+              onClick={() => setIsYearly(false)}
+            >
+              Monthly
+            </button>
+            <button
+              type="button"
+              aria-pressed={isYearly}
+              className={styles.toggleBtn}
+              onClick={() => setIsYearly(true)}
+            >
+              Yearly <span className={styles.saveBadge}>2 months free</span>
+            </button>
           </div>
-        </div>
-      )}
-
-      {!onTopTier && renewOnlyPlanId === undefined && (
-      <div className={styles.toolbar} role="group" aria-label="Billing period">
-        <div className={styles.billingToggle}>
-          <button
-            type="button"
-            aria-pressed={!isYearly}
-            className={`${styles.toggleBtn} ${!isYearly ? styles.active : ""}`}
-            onClick={() => setIsYearly(false)}
-          >
-            Monthly
-          </button>
-          <button
-            type="button"
-            aria-pressed={isYearly}
-            className={`${styles.toggleBtn} ${isYearly ? styles.active : ""}`}
-            onClick={() => setIsYearly(true)}
-          >
-            Yearly <span className={styles.saveBadge}>2 months free</span>
-          </button>
-        </div>
+        )}
       </div>
-      )}
 
       {paymentMode === "normal" && walletBalance > 0 && (
-        <div className={styles.walletCard}>
+        <div className={styles.walletBar}>
+          <span className={styles.walletIcon} aria-hidden>
+            <Wallet size={18} />
+          </span>
           <div className={styles.walletInfo}>
             <span className={styles.walletLabel}>Available balance</span>
-            <span className={styles.walletAmount}>₹{walletBalance.toLocaleString("en-IN")}</span>
+            <span className={styles.walletAmount}>₹{formatInr(walletBalance)}</span>
           </div>
-          <div className={styles.walletToggle}>
-            <label htmlFor="use-wallet">Put it towards this subscription</label>
-            <Switch 
-              id="use-wallet" 
-              checked={useWalletBalance} 
-              onCheckedChange={setUseWalletBalance} 
-            />
-          </div>
+          <label htmlFor="use-wallet" className={styles.walletToggle}>
+            Use it for this plan
+            <Switch id="use-wallet" checked={useWalletBalance} onCheckedChange={setUseWalletBalance} />
+          </label>
         </div>
       )}
 
-      {plansQuery.isFetching && <PlansSkeleton />}
-      {plansQuery.isError && (
-        <p className={styles.errorText}>Could not load plans.</p>
+      {plansQuery.isPending && <PlansSkeleton />}
+
+      {plansQuery.isError && !plansQuery.data && (
+        <div className={styles.errorBox}>
+          <p>We could not load the plans.</p>
+          <Button variant="outline" size="sm" onClick={() => plansQuery.refetch()}>
+            Try again
+          </Button>
+        </div>
       )}
 
       {plansToDisplay.length > 0 && (
-        <>
-          <div className={styles.plansGrid}>
-            {plansToDisplay.map((plan) => {
-              const baseName = getBaseName(plan.name) || "";
-              const isFree = baseName === "Free";
-              const isStarter = baseName === "Starter";
-              const isIndividual = baseName === "Individual";
-              const isBusiness = baseName === "Business";
-              const isCurrentPlan = currentPlanId === plan.id;
-              const isYearlyPlan =
-                plan.billingCycle === "yearly" || plan.durationDays >= 360;
+        <div className={styles.plansGrid}>
+          {plansToDisplay.map((plan) => {
+            const baseName = getPlanBaseName(plan.name) || "";
+            const isFree = baseName === "Free";
+            const isCurrentPlan = currentPlanId === plan.id;
+            const isYearlyPlan = plan.billingCycle === "yearly" || plan.durationDays >= 360;
+            const price = Number(plan.price);
+            const fee = Number(plan.platformFeePercentage);
+            const showIntroOffer =
+              introOfferEligible && !isFree && !isCurrentPlan && introOfferAppliesTo(baseName, isYearlyPlan);
+            const isFeatured = !isCurrentPlan && (showIntroOffer || baseName === "Starter");
 
-              const showIntroOffer =
-                introOfferEligible && !isFree && !isCurrentPlan && introOfferAppliesTo(baseName, isYearlyPlan);
+            const tag = isCurrentPlan
+              ? "Your plan"
+              : showIntroOffer
+                ? `First month ₹${INTRO_OFFER_PRICE}`
+                : baseName === "Starter"
+                  ? "Recommended"
+                  : baseName === "Individual"
+                    ? "Best value"
+                    : baseName === "Business"
+                      ? "For institutes"
+                      : null;
 
-              return (
-                <div
-                  key={plan.id}
-                  className={`${styles.planCard} ${
-                    isStarter ? styles.mostPopular : ""
-                  } ${isCurrentPlan ? styles.currentPlanCard : ""}`}
-                >
-                  <div className={styles.planHeader}>
-                    <h3 className={styles.planName}>{baseName}</h3>
-                    {showIntroOffer ? (
-                      <span className={styles.popularBadge}>First month ₹{INTRO_OFFER_PRICE}</span>
-                    ) : isStarter ? (
-                      <span className={styles.popularBadge}>Recommended</span>
-                    ) : null}
-                    {isIndividual && !showIntroOffer && (
-                      <span className={styles.bestValueBadge}>Best value</span>
-                    )}
-                    {isBusiness && (
-                      <span className={styles.bestValueBadge}>For scale</span>
-                    )}
-                  </div>
-                  <p className={styles.planDescription}>{plan.description}</p>
+            const priceNote = showIntroOffer
+              ? `then ₹${formatInr(price)}/month from month 2`
+              : isYearlyPlan && !isFree
+                ? `₹${formatInr(Math.round(price / 12))}/month, billed yearly`
+                : isFree
+                  ? "No card needed"
+                  : "Billed monthly";
 
-                  <div className={styles.planPriceContainer}>
-                    {isFree ? (
-                      <div className={styles.planPrice}>Free</div>
-                    ) : showIntroOffer ? (
-                      <div className={styles.planPrice}>
-                        ₹{INTRO_OFFER_PRICE}
-                        <span className={styles.pricePeriod}>/first month</span>
-                      </div>
-                    ) : (
-                      <div className={styles.planPrice}>
-                        ₹{plan.price.toLocaleString("en-IN")}
-                        <span className={styles.pricePeriod}>
-                          /{isYearlyPlan ? "year" : "month"}
-                        </span>
-                      </div>
-                    )}
-                    {showIntroOffer ? (
-                      <div className={styles.effectiveMonthlyPrice}>
-                        then ₹{plan.price.toLocaleString("en-IN")}/mo from month 2
-                      </div>
-                    ) : isYearlyPlan && !isFree ? (
-                      <div className={styles.effectiveMonthlyPrice}>
-                        ₹{Math.round(plan.price / 12).toLocaleString("en-IN")}/mo equivalent
-                      </div>
-                    ) : (
-                      <div className={styles.effectiveMonthlyPricePlaceholder}>
-                        &nbsp;
-                      </div>
-                    )}
-                    
-                    {useWalletBalance && paymentMode === "normal" && !isFree && walletBalance > 0 && (
-                      <div className={styles.walletCalculation}>
-                        {walletBalance >= plan.price ? (
-                          <span className={styles.walletCovers}>Fully covered by wallet</span>
-                        ) : (
-                          <span>
-                            Wallet pays: ₹{walletBalance.toLocaleString("en-IN")} <br/>
-                            Pay online: ₹{(plan.price - walletBalance).toLocaleString("en-IN")}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
+            const features = (Array.isArray(plan.features) ? (plan.features as unknown[]) : [])
+              .map((feature) => String(feature))
+              .filter((feature) => !/platform fee/i.test(feature));
 
-                  <div className={styles.platformFeeBox}>
-                    <span className={styles.feeIcon} aria-hidden>
-                      <Shield size={16} strokeWidth={2} />
-                    </span>
-                    <span>
-                      <span className={styles.feeValue}>{plan.platformFeePercentage}%</span>
-                      <br />
-                      <span className={styles.feeLabel}>Platform fee</span>
-                    </span>
-                  </div>
+            const payable = showIntroOffer ? INTRO_OFFER_PRICE : price;
+            const showWalletSplit =
+              useWalletBalance && paymentMode === "normal" && !isFree && walletBalance > 0;
 
-                  <hr className={styles.planDivider} />
+            const actionLabel = isCurrentPlan
+              ? "Your current plan"
+              : isFree
+                ? "Start free"
+                : showIntroOffer
+                  ? `Start for ₹${INTRO_OFFER_PRICE}`
+                  : hasActiveSub && !isFree && isPaidActive
+                    ? `Upgrade to ${baseName}`
+                    : `Choose ${baseName}`;
 
-                  <ul className={styles.planFeatures}>
-                    {Array.isArray(plan.features) &&
-                      (plan.features as any[]).map((feature: any, idx: number) => {
-                        const featureStr = String(feature);
-                        const isAi = featureStr.toLowerCase().includes("ai");
-                        return (
-                          <li
-                            key={idx}
-                            className={isAi ? styles.aiFeature : undefined}
-                          >
-                            <CheckCircle size={16} /> {featureStr}
-                          </li>
-                        );
-                      })}
-                  </ul>
-
-                  <div className={styles.planAction}>
-                    <Button
-                      className={styles.subscribeButton}
-                      onClick={() =>
-                        onSelectPlan({
-                          id: plan.id,
-                          name: plan.name,
-                          price: Number(plan.price),
-                          durationDays: plan.durationDays,
-                        })
-                      }
-                      disabled={(isCurrentPlan && !canRenewCurrentPlan) || isInitiatingPayment}
-                      variant={
-                        isCurrentPlan
-                          ? "secondary"
-                          : isStarter
-                          ? "primary"
-                          : "outline"
-                      }
+            return (
+              <article
+                key={plan.id}
+                className={`${styles.planCard} ${isFeatured ? styles.featured : ""} ${
+                  isCurrentPlan ? styles.current : ""
+                }`}
+                aria-label={`${baseName} plan`}
+              >
+                <div className={styles.planHeader}>
+                  <h3 className={styles.planName}>{baseName}</h3>
+                  {tag && (
+                    <span
+                      className={`${styles.tag} ${isFeatured ? styles.tagFeatured : ""} ${
+                        isCurrentPlan ? styles.tagCurrent : ""
+                      }`}
                     >
-                      {isInitiatingPayment ? (
-                        <>
-                          <Loader2 size={16} className={styles.spinner} />{" "}
-                          Processing...
-                        </>
-                      ) : isCurrentPlan && canRenewCurrentPlan ? (
-                        "Restart Autopay"
-                      ) : isCurrentPlan ? (
-                        "Current Plan"
-                      ) : isFree ? (
-                        "Start Free"
-                      ) : showIntroOffer ? (
-                        `Start for ₹${INTRO_OFFER_PRICE}`
-                      ) : hasActiveSub ? (
-                        "Switch Plan"
-                      ) : (
-                        "Choose Plan"
-                      )}
-                    </Button>
-                  </div>
+                      {tag}
+                    </span>
+                  )}
                 </div>
-              );
-            })}
-          </div>
+                {plan.description && <p className={styles.planDescription}>{plan.description}</p>}
 
-          {introOfferEligible && (
-            <div className={styles.note}>
-              <Info size={18} />
-              <div>
-                <p>
-                  Starter and Individual (monthly) are ₹{INTRO_OFFER_PRICE} for the first month on autopay.
-                  Your automatic UPI payment is set up for the plan's full price, and renews automatically at
-                  that price from the second month unless you cancel first.
-                </p>
-              </div>
-            </div>
-          )}
+                <div className={styles.priceBlock}>
+                  <p className={styles.price}>
+                    {isFree ? "₹0" : `₹${formatInr(payable)}`}
+                    <span className={styles.pricePeriod}>
+                      {isFree ? "forever" : showIntroOffer ? "/first month" : isYearlyPlan ? "/year" : "/month"}
+                    </span>
+                  </p>
+                  <p className={styles.priceNote}>{priceNote}</p>
+                </div>
 
-          {renewOnlyPlanId === undefined && (
-          <div className={styles.note}>
-            <Info size={18} />
-            <div>
+                <div className={styles.feeRow}>
+                  <span className={styles.feeValue}>{formatInr(fee)}%</span>
+                  <span className={styles.feeText}>
+                    <strong>platform fee</strong>
+                    You keep ₹{formatInr(100 - fee)} of every ₹100
+                  </span>
+                </div>
+
+                {showWalletSplit && (
+                  <p className={styles.walletSplit}>
+                    {walletBalance >= payable
+                      ? "Fully covered by your balance"
+                      : `₹${formatInr(walletBalance)} from balance, ₹${formatInr(payable - walletBalance)} online`}
+                  </p>
+                )}
+
+                {features.length > 0 && (
+                  <ul className={styles.features}>
+                    {features.map((feature, idx) => (
+                      <li key={idx}>
+                        <Check size={16} strokeWidth={2.5} aria-hidden />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                <Button
+                  className={`${styles.planButton} ${isFeatured ? styles.planButtonPrimary : ""}`}
+                  onClick={() =>
+                    onSelectPlan({
+                      id: plan.id,
+                      name: plan.name,
+                      price,
+                      durationDays: plan.durationDays,
+                    })
+                  }
+                  disabled={isCurrentPlan || isInitiatingPayment}
+                  aria-busy={isInitiatingPayment || undefined}
+                >
+                  {isInitiatingPayment && !isCurrentPlan ? (
+                    <>
+                      <Loader2 size={16} className={styles.spinner} aria-hidden /> Processing...
+                    </>
+                  ) : (
+                    actionLabel
+                  )}
+                </Button>
+              </article>
+            );
+          })}
+        </div>
+      )}
+
+      {plansToDisplay.length > 0 && (
+        <div className={styles.note}>
+          <Info size={18} aria-hidden />
+          <div>
+            {introOfferEligible && (
               <p>
-                Every plan includes unlimited courses and tests. Paying more buys a lower platform
-                fee, a verified badge, AI tools and priority support.
+                Starter and Individual (monthly) are ₹{INTRO_OFFER_PRICE} for the first month on autopay.
+                Autopay is set up for the plan's full price and renews at that price from the second month
+                unless you cancel first.
               </p>
-              <p>
-                Your fee is locked in at the moment of each sale, so past sales keep the rate they
-                were sold at even after you switch plans.
-              </p>
-            </div>
+            )}
+            <p>
+              Your fee is locked in at the moment of each sale, so past sales keep the rate they were sold
+              at even after you switch plans.
+            </p>
           </div>
-          )}
-        </>
+        </div>
       )}
     </section>
   );

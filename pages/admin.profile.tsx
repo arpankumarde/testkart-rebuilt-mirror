@@ -12,6 +12,7 @@ import { Button } from "../components/Button";
 import { Badge } from "../components/Badge";
 import { Skeleton } from "../components/Skeleton";
 import { ConsolePageHeader } from "../components/ConsolePageHeader";
+import { AdminSessionsSection } from "../components/AdminSessionsSection";
 import { toast } from "sonner";
 import { Save, Lock, RotateCcw } from "lucide-react";
 import styles from "./admin.profile.module.css";
@@ -165,6 +166,7 @@ const AdminProfilePage: React.FC = () => {
             </div>
           </aside>
 
+          <div className={styles.mainColumn}>
           <div className={styles.formCard}>
             <section className={styles.section}>
               <div className={styles.sectionHeader}>
@@ -249,6 +251,8 @@ const AdminProfilePage: React.FC = () => {
                 </Button>
               </div>
             </div>
+          </div>
+          <AdminSessionsSection />
           </div>
         </div>
       </div>

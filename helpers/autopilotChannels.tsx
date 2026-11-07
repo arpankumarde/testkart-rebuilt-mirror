@@ -1,17 +1,20 @@
 import { sql } from "kysely";
 import { db } from "./db";
 import { WAPLIFY_ENDPOINT } from "./_publicConfigs";
-import type { AutopilotSettings } from "./getAutopilotSettings";
 
 /**
  * How the autopilot reaches a person, in order of preference: the Testkart app
- * (a live push token), WhatsApp on a playbook's first message, email (a real
- * address that has not bounced or unsubscribed), and WhatsApp on later
+ * (a live push token), WhatsApp when the engine prefers it (a playbook's first
+ * message, or an offer step with an approved offer template), email (a real
+ * address that has not bounced or unsubscribed), and WhatsApp on other
  * messages for people with no usable email. WhatsApp consent is taken outside
  * the product (owner's decisions of 14-11-2026 and 15-11-2026): anyone with a
  * mobile number gets it unless a declined marketing_consents row or a STOP
  * reply blocks it. The opt-in dialog step was removed and every recorded
- * choice set to granted on 15-11-2026, so in practice only STOP blocks it.
+ * choice set to granted on 15-11-2026, so in practice only STOP blocks it,
+ * plus Meta's own refusals: a number Meta called undeliverable (131026, not on
+ * WhatsApp) is skipped for 90 days, one over Meta's per-person marketing limit
+ * (131049) for a day and one in Meta's marketing experiment (130472) for a week.
  * Also the senders for push (Expo) and WhatsApp (Waplify) and Expo's delivery
  * receipts. Server-only; never throws from a send, it returns the failure.
  */
@@ -25,9 +28,8 @@ type Row = Record<string, unknown>;
 
 export async function chooseChannel(
   userId: number,
-  playbookKey: string,
-  settings: AutopilotSettings,
-  allowWhatsApp: boolean
+  whatsappTemplate: string | null,
+  preferWhatsApp: boolean
 ): Promise<ChannelChoice | null> {
   const user = await db
     .selectFrom("users")
@@ -47,17 +49,22 @@ export async function chooseChannel(
   if (tokens.length > 0) return { channel: "push", tokens: tokens.map((t) => t.token) };
 
   let whatsapp: ChannelChoice | null = null;
-  const template = settings.whatsappTemplates[playbookKey];
   const mobile = (user.mobileNumber ?? "").replace(/\D/g, "").slice(-10);
-  if (template && /^[6-9]\d{9}$/.test(mobile)) {
+  if (whatsappTemplate && /^[6-9]\d{9}$/.test(mobile)) {
     const declined = await sql<Row>`
       SELECT 1 FROM marketing_consents c WHERE c.user_id = ${userId} AND c.channel = 'whatsapp' AND c.granted = false
       UNION ALL
       SELECT 1 FROM email_unsubscribes u WHERE u.user_id = ${userId} AND u.list = 'whatsapp_marketing'
+      UNION ALL
+      SELECT 1 FROM message_events e JOIN rev_messages m ON m.id = e.message_id
+      WHERE m.user_id = ${userId} AND e.provider = 'waplify' AND e.type = 'failed' AND (
+        (e.raw->>'errorCode' = '131026' AND e.occurred_at > now() - interval '90 days')
+        OR (e.raw->>'errorCode' = '131049' AND e.occurred_at > now() - interval '24 hours')
+        OR (e.raw->>'errorCode' = '130472' AND e.occurred_at > now() - interval '7 days'))
     `.execute(db);
-    if (declined.rows.length === 0) whatsapp = { channel: "whatsapp", phone: `91${mobile}`, template };
+    if (declined.rows.length === 0) whatsapp = { channel: "whatsapp", phone: `91${mobile}`, template: whatsappTemplate };
   }
-  if (whatsapp && allowWhatsApp) return whatsapp;
+  if (whatsapp && preferWhatsApp) return whatsapp;
 
   const email = await emailFallback(userId);
   return email ?? whatsapp;

@@ -1,0 +1,9 @@
+.top {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.back {
+  align-self: flex-start;
+}

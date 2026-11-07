@@ -1,316 +1,440 @@
 /*
- * Active-subscription card in the spotlight/showcase language (base.css
- * --sp-* tokens): an ivory panel, a lavender/sage status chip, bold heading
- * type with a peach underline on the plan name, and credential-style white
- * stat cards for the fee and renewal date. Kept in the same language as
- * TeacherSubscriptionAvailablePlans.module.css - see that file's comment.
+ * The "Your plan" card at the top of Fees & billing, in the /app palette
+ * (themed --sp-* and --fc-* tokens): a white card on the ivory page, warm
+ * hairlines, pastel tiles for the facts and the fee, and the pastel peach pill
+ * for the main action. Coral is kept to the eyebrow and the hand-drawn
+ * underline under the plan name, as on /app.
  */
-.sectionHeading {
-  margin: 0 0 var(--spacing-3);
-  font-family: var(--font-family-heading);
-  font-size: 1.375rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--sp-ink);
+.hero {
+  container-type: inline-size;
 }
 
-.statusCard {
-  background-color: var(--sp-surface);
+.card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-6);
+  padding: var(--spacing-6);
+  background-color: var(--sp-card);
+  color: var(--sp-ink);
   border: 1px solid var(--sp-line);
   border-radius: 1.5rem;
-  padding: var(--spacing-6) var(--spacing-4);
   box-shadow: var(--sp-shadow);
 }
 
-.statusCard.active {
-  border-color: var(--sp-sage-edge);
-}
-
-.statusHeader {
+.content {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: flex-start;
-  flex-wrap: wrap;
-  gap: var(--spacing-4);
-  margin-bottom: var(--spacing-4);
+  gap: var(--spacing-3);
+  min-width: 0;
 }
 
-.statusChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.3125rem 0.75rem;
-  margin-top: var(--spacing-2);
-  background-color: var(--sp-sage-tint);
-  border: 1px solid var(--sp-sage-edge);
-  border-radius: var(--radius-full);
-  color: var(--sp-sage-ink);
-  font-size: 0.6875rem;
+.chip {
+  margin: 0;
+  font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   line-height: 1;
+  color: var(--tk-brand-text);
 }
 
-.statusChip.warning {
-  background-color: var(--sp-peach-tint);
-  border-color: var(--sp-peach-edge);
-  color: var(--sp-peach-ink);
-}
-
-.planName {
-  font-family: var(--font-family-heading);
-  font-size: 1.5rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--sp-ink);
-  margin: 0 0 0.125rem;
-}
-
-/* The small hand-drawn underline under the plan name, same stroke the
-   spotlight draws under the teacher's name. */
-.nameUnderline {
-  display: block;
-  width: 5.5rem;
-  height: 0.4375rem;
-  overflow: visible;
-}
-
-.nameUnderline path {
-  fill: none;
-  stroke: var(--sp-peach-edge);
-  stroke-width: 2.5;
-  stroke-linecap: round;
-  vector-effect: non-scaling-stroke;
-}
-
-.planPrice {
-  font-family: var(--font-family-heading);
-  font-size: 1.375rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--sp-ink);
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  white-space: nowrap;
-}
-
-.pricePeriod {
-  font-family: var(--font-family-base);
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--sp-muted);
-}
-
-.freeBadge {
-  font-family: var(--font-family-heading);
-  font-size: 1.125rem;
-  font-weight: 800;
-  color: var(--sp-ink);
-}
-
-.statusDetails {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-  gap: var(--spacing-3);
-  margin-bottom: var(--spacing-4);
-}
-
-/* A credential-style stat card: white on the ivory panel, an accent icon
-   circle, a corner dot, a bold value. --accent-* defaults to peach (fee) and
-   is overridden to sage on the savings card below. */
-.platformFeeBox {
-  --accent-tint: var(--sp-peach-tint);
-  --accent-edge: var(--sp-peach-edge);
-  --accent-ink: var(--sp-peach-ink);
-  position: relative;
+.titleRow {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--spacing-3);
-  padding: 0.875rem 1rem;
-  background-color: var(--sp-card);
-  border: 1px solid var(--sp-line);
-  border-radius: 1.125rem;
-  box-shadow: var(--sp-shadow);
+  gap: var(--spacing-3) var(--spacing-4);
 }
 
-.platformFeeBox::after {
-  content: "";
+.title {
+  position: relative;
+  margin: 0 0 0.25rem;
+  font-family: var(--font-family-heading);
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  color: var(--sp-ink);
+}
+
+.underline {
   position: absolute;
-  top: 0.875rem;
-  right: 0.875rem;
-  width: 0.4375rem;
-  height: 0.4375rem;
-  border-radius: 50%;
-  background-color: var(--accent-edge);
+  left: -2%;
+  bottom: -0.3em;
+  width: 104%;
+  height: 0.3em;
+  fill: none;
+  stroke: var(--tk-brand);
+  stroke-width: 4;
+  stroke-linecap: round;
 }
 
-.platformFeeBox svg:first-child {
-  flex-shrink: 0;
+.statusPill {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  padding: 0.5rem;
-  box-sizing: border-box;
-  border-radius: 50%;
-  background-color: var(--accent-tint);
-  color: var(--accent-ink);
+  padding: 0.375rem 0.75rem;
+  background-color: var(--fc-sage-tint);
+  border: 1px solid var(--fc-sage-line);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--fc-sage-ink);
+}
+
+.statusEnding {
+  background-color: var(--fc-butter-tint);
+  border-color: var(--fc-butter-line);
+  color: var(--fc-butter-ink);
+}
+
+.description {
+  margin: var(--spacing-1) 0 0;
+  max-width: 58ch;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--sp-text);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  gap: var(--spacing-3);
+  width: 100%;
+  margin: var(--spacing-2) 0 0;
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  min-width: 0;
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid transparent;
+  border-radius: 1rem;
+}
+
+.factButter {
+  background-color: var(--fc-butter-tint);
+  border-color: var(--fc-butter-line);
+  color: var(--fc-butter-ink);
+}
+
+.factBlue {
+  background-color: var(--fc-blue-tint);
+  border-color: var(--fc-blue-line);
+  color: var(--fc-blue-ink);
+}
+
+.factLavender {
+  background-color: var(--sp-lavender-tint);
+  border-color: var(--sp-lavender-line);
+  color: var(--sp-lavender-ink);
+}
+
+.fact dt {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.fact dd {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.factUnit {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-2);
+}
+
+/* Kit Button rules sit in @layer base, so these unlayered ones win. */
+.card .primaryCta,
+.card .secondaryCta,
+.card .quietCta {
+  height: 2.75rem;
+  padding: 0 1.25rem;
+  gap: var(--spacing-2);
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  font-weight: 700;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    border-color var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
+}
+
+.card .primaryCta {
+  background-color: var(--sp-cta);
+  border-color: var(--sp-cta);
+  color: var(--sp-cta-ink);
+}
+
+.card .primaryCta:hover:not(:disabled) {
+  background-color: var(--sp-cta-hover);
+  border-color: var(--sp-cta-hover);
+  color: var(--sp-cta-ink);
+  transform: translateY(-1px);
+}
+
+.card .secondaryCta {
+  background-color: var(--sp-card);
+  border-color: var(--sp-line-strong);
+  color: var(--sp-ink);
+}
+
+.card .secondaryCta:hover:not(:disabled) {
+  background-color: var(--fc-peach-tint);
+  border-color: var(--fc-peach-line);
+  color: var(--sp-ink);
+}
+
+/* Cancelling is always visible, just not the loudest thing on the card. */
+.card .quietCta {
+  background-color: transparent;
+  color: var(--sp-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.card .quietCta:hover:not(:disabled) {
+  background-color: var(--muted);
+  color: var(--sp-ink);
+}
+
+.card .primaryCta:disabled,
+.card .secondaryCta:disabled,
+.card .quietCta:disabled {
+  opacity: 1;
+  cursor: not-allowed;
+  background-color: var(--muted);
+  border-color: var(--sp-line);
+  color: var(--sp-text);
+  transform: none;
+}
+
+.card .primaryCta:focus-visible,
+.card .secondaryCta:focus-visible,
+.card .quietCta:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--sp-card),
+    0 0 0 4px var(--fc-blue-edge);
+}
+
+/* The fee split on a pastel peach tile. */
+.feeCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  min-width: 0;
+  padding: 1.25rem;
+  background-color: var(--fc-peach-tint);
+  border: 1px solid var(--fc-peach-line);
+  border-radius: 1.25rem;
+  color: var(--fc-peach-ink);
+}
+
+.feeTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2);
 }
 
 .feeLabel {
   font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--sp-muted);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.savingsPill {
+  padding: 0.25rem 0.625rem;
+  background-color: var(--fc-sage-tint);
+  border: 1px solid var(--fc-sage-line);
+  border-radius: var(--radius-full);
+  color: var(--fc-sage-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
 .feeValue {
   font-family: var(--font-family-heading);
-  font-size: 1.375rem;
+  font-size: 3rem;
   font-weight: 800;
-  letter-spacing: -0.01em;
-  color: var(--sp-ink);
+  line-height: 1;
+  letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
+  color: var(--sp-ink);
 }
 
-.feeDefault {
-  --accent-tint: var(--sp-lavender-tint);
-  --accent-edge: var(--sp-lavender-edge);
-  --accent-ink: var(--sp-lavender-ink);
+.splitBar {
+  display: flex;
+  gap: 3px;
+  height: 0.875rem;
+  padding: 2px;
+  background-color: var(--sp-card);
+  border: 1px solid var(--fc-peach-line);
+  border-radius: var(--radius-full);
 }
 
-.detailRow {
+.splitKeep,
+.splitFee {
+  flex-basis: 0;
+  min-width: 0.375rem;
+  border-radius: var(--radius-full);
+}
+
+.splitKeep {
+  background-color: var(--fc-sage-edge);
+}
+
+.splitFee {
+  background-color: var(--fc-peach-edge);
+}
+
+.splitLegend {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   gap: var(--spacing-4);
-  padding: var(--spacing-2) 0;
-  font-size: 0.875rem;
-}
-
-.detailLabel {
-  color: var(--sp-muted);
-}
-
-.detailValue {
-  font-weight: 600;
-  color: var(--sp-ink);
-  text-align: right;
-}
-
-.autoRenewBanner,
-.savingsBanner {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-3);
-  border-radius: 1.125rem;
-  font-size: 0.875rem;
-}
-
-.autoRenewBanner {
-  background-color: var(--sp-blue-tint);
-  border: 1px solid var(--sp-blue-edge);
-  color: var(--sp-blue-ink);
-}
-
-.autoRenewBanner svg {
-  color: var(--sp-blue-edge);
-}
-
-.savingsBanner {
-  background-color: var(--sp-sage-tint);
-  border: 1px solid var(--sp-sage-edge);
-  color: var(--sp-sage-ink);
-}
-
-.savingsBanner svg {
-  color: var(--sp-sage-edge);
-}
-
-.statusActions {
-  display: flex;
-  gap: var(--spacing-3);
-  flex-wrap: wrap;
-}
-
-/* Destructive action kept as a plain, serious pill - the bouncy peach
-   treatment is reserved for a forward/positive CTA elsewhere in this language. */
-.statusActions button {
-  border-radius: var(--radius-full) !important;
-}
-
-.cancelledNote,
-.freeNote {
-  padding: var(--spacing-3) var(--spacing-4);
-  border-radius: 1.125rem;
-  background-color: var(--sp-card);
-  border: 1px solid var(--sp-line);
-  color: var(--sp-text);
-  font-size: 0.875rem;
-  line-height: 1.5;
-}
-
-.freeNote p {
   margin: 0;
 }
 
-.noSubIcon {
+.splitLegend div {
   display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.splitLegend div:last-child {
+  align-items: flex-end;
+}
+
+.splitLegend dt {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 3.25rem;
-  height: 3.25rem;
-  margin: 0 auto var(--spacing-4);
-  border-radius: var(--radius-full);
-  background-color: var(--sp-lavender-tint);
-  color: var(--sp-lavender-ink);
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 
-.noSubIcon svg {
-  width: 26px;
-  height: 26px;
-}
-
-.statusCard h3 {
-  margin-bottom: var(--spacing-2);
-  font-family: var(--font-family-heading);
+.splitLegend dd {
+  margin: 0;
   font-size: 1.125rem;
   font-weight: 800;
-  letter-spacing: -0.02em;
-  text-align: center;
+  font-variant-numeric: tabular-nums;
   color: var(--sp-ink);
 }
 
-.statusCard > p {
-  text-align: center;
-  font-size: 0.875rem;
-  color: var(--sp-muted);
+.dot {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
 }
 
-.errorText {
-  padding: var(--spacing-4);
-  text-align: center;
-  font-size: 0.875rem;
-  color: var(--error-text);
+.dotKeep {
+  background-color: var(--fc-sage-edge);
 }
 
-@media (max-width: 768px) {
-  .statusHeader {
-    flex-direction: column;
-    gap: var(--spacing-3);
+.dotFee {
+  background-color: var(--fc-peach-edge);
+}
+
+.feeFoot {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.loadingCard {
+  min-height: 15rem;
+}
+
+.errorCard {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: 1.25rem var(--spacing-6);
+  background-color: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.25rem;
+  color: var(--sp-ink);
+}
+
+.errorCard p {
+  margin: 0;
+  font-weight: 600;
+}
+
+.spinner {
+  animation: heroSpin 1s linear infinite;
+}
+
+@keyframes heroSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@container (min-width: 46rem) {
+  .card {
+    grid-template-columns: minmax(0, 1fr) 19rem;
+    align-items: center;
+    gap: var(--spacing-8);
+    padding: var(--spacing-8);
   }
 
-  .planPrice {
-    text-align: left;
+  .title {
+    font-size: 2.5rem;
+  }
+}
+
+@container (max-width: 26rem) {
+  .card {
+    padding: var(--spacing-4);
+    border-radius: 1.25rem;
   }
 
-  .statusActions {
-    flex-direction: column;
+  .title {
+    font-size: 1.75rem;
   }
 
-  .statusActions button {
+  .actions {
     width: 100%;
+  }
+
+  .card .primaryCta,
+  .card .secondaryCta {
+    flex: 1 1 100%;
+  }
+
+  .feeValue {
+    font-size: 2.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+
+  .card .primaryCta:hover:not(:disabled) {
+    transform: none;
   }
 }

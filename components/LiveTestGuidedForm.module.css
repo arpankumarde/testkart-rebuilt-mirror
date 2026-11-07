@@ -1,0 +1,362 @@
+/* One card per task on the page ground, in the /app palette: Basics takes the
+   Details step's lavender, When it runs blue, Price and seats mint. */
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4) var(--spacing-6) var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.cardHead {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding-bottom: var(--spacing-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.marker {
+  flex-shrink: 0;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-top: 0.3rem;
+  border-radius: 3px;
+}
+
+.markerLavender {
+  background-color: var(--sp-lavender-edge);
+}
+
+.markerBlue {
+  background-color: var(--fc-blue-edge);
+}
+
+.markerMint {
+  background-color: var(--fc-mint-edge);
+}
+
+.cardHeadText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.cardHint {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--spacing-4);
+  align-items: start;
+}
+
+.labelRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.inlineRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.shortInput {
+  width: 8rem;
+}
+
+.picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.pick {
+  height: 2.125rem;
+  padding: 0 var(--spacing-3);
+  font-family: var(--font-family-base);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--foreground);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.pick:hover:not(:disabled) {
+  border-color: var(--fc-blue-edge);
+  background-color: var(--fc-blue-tint);
+  color: var(--fc-blue-ink);
+}
+
+.pick[aria-pressed="true"],
+.pick[aria-checked="true"] {
+  border-color: var(--fc-blue-ink);
+  background-color: var(--fc-blue-ink);
+  color: var(--fc-blue-tint);
+}
+
+.pick:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.pick:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.dateBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.timerNote {
+  margin: 0;
+  padding: var(--spacing-3) var(--spacing-4);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--fc-blue-ink);
+  background-color: var(--fc-blue-tint);
+  border: 1px solid var(--fc-blue-line);
+  border-radius: var(--radius);
+}
+
+.textButton {
+  padding: 0;
+  font: inherit;
+  font-weight: 700;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.textButton:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: 2px;
+}
+
+/* Two choice cards; the chosen one takes its card's tone. */
+.choiceGroup {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-3);
+}
+
+.choice {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--spacing-3) var(--spacing-4);
+  text-align: left;
+  font-family: var(--font-family-base);
+  background-color: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color var(--animation-duration-fast) ease;
+}
+
+.choice:hover:not(:disabled) {
+  border-color: var(--tc-line-strong, var(--border));
+}
+
+.choice:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.choice:disabled {
+  cursor: not-allowed;
+}
+
+.choiceTitle {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.choiceHint {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--muted-foreground);
+}
+
+.choiceBlue .choice[aria-checked="true"] {
+  border-color: var(--fc-blue-edge);
+  background-color: var(--fc-blue-tint);
+}
+
+.choiceBlue .choice[aria-checked="true"] .choiceTitle {
+  color: var(--fc-blue-ink);
+}
+
+.choiceMint .choice[aria-checked="true"] {
+  border-color: var(--fc-mint-edge);
+  background-color: var(--fc-mint-tint);
+}
+
+.choiceMint .choice[aria-checked="true"] .choiceTitle {
+  color: var(--fc-mint-ink);
+}
+
+.choice[aria-checked="true"] .choiceHint {
+  color: var(--foreground);
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-4);
+  font-size: 0.875rem;
+  color: var(--fc-blue-ink);
+  background-color: var(--fc-blue-tint);
+  border: 1px solid var(--fc-blue-line);
+  border-radius: var(--radius);
+}
+
+.summary svg {
+  flex-shrink: 0;
+}
+
+.summary[data-warning="true"] {
+  color: var(--fc-peach-ink);
+  background-color: var(--fc-peach-tint);
+  border-color: var(--fc-peach-line);
+}
+
+.checkRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.subBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--border);
+}
+
+.lockNote {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-4);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--foreground);
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.lockNote svg {
+  flex-shrink: 0;
+  margin-top: 0.15em;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.listRow {
+  display: flex;
+  gap: var(--spacing-2);
+  align-items: center;
+}
+
+.listAdd {
+  align-self: flex-start;
+  margin-top: var(--spacing-1);
+}
+
+/* On the page ground under the cards, as on the test series create page. */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-3);
+}
+
+.actionsNote {
+  margin: 0 auto 0 0;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 640px) {
+  .card {
+    padding: var(--spacing-4);
+  }
+
+  .row,
+  .choiceGroup {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .actions {
+    justify-content: stretch;
+  }
+
+  .actions > * {
+    flex: 1 1 auto;
+  }
+
+  .actionsNote {
+    flex-basis: 100%;
+    margin-right: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .choice {
+    transition: none;
+  }
+}

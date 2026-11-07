@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { AlertTriangle } from "lucide-react";
 import { LiveTestEditForm } from "./LiveTestEditForm";
+import { LiveTestGuidedForm, LiveTestSteps } from "./LiveTestGuidedForm";
 import { Button } from "./Button";
 import { Skeleton } from "./Skeleton";
 import { useLiveTestDetailsQuery } from "../helpers/useLiveTestQueries";
@@ -12,10 +13,14 @@ interface LiveTestDetailsEditorProps {
   /** Where the load-failure state sends the user. */
   exitTo: string;
   exitLabel: string;
+  /** Teacher page: the one-page guided form with the step track. The admin editor keeps the stepped form. */
+  guided?: boolean;
+  /** Guided only: shown under the step track, e.g. the rejection note. */
+  intro?: React.ReactNode;
 }
 
-/* Loads a live test's saved details into LiveTestEditForm. Shared by the teacher and admin edit pages. */
-export const LiveTestDetailsEditor = ({ liveTestId, exitTo, exitLabel }: LiveTestDetailsEditorProps) => {
+/* Loads a live test's saved details into its edit form. Shared by the teacher and admin edit pages. */
+export const LiveTestDetailsEditor = ({ liveTestId, exitTo, exitLabel, guided = false, intro }: LiveTestDetailsEditorProps) => {
   const hasValidId = liveTestId !== null && !isNaN(liveTestId);
   const { data, error, isFetching, dataUpdatedAt } = useLiveTestDetailsQuery(hasValidId ? liveTestId : null);
 
@@ -27,8 +32,14 @@ export const LiveTestDetailsEditor = ({ liveTestId, exitTo, exitLabel }: LiveTes
   const isLoading = hasValidId && !isFresh && isFetching;
   const loadFailed = !hasValidId || (!isFresh && !isFetching);
 
+  if (guided && isFresh && data) {
+    return <LiveTestGuidedForm liveTest={data} intro={intro} exitTo={exitTo} />;
+  }
+
   return (
     <div className={styles.form}>
+      {guided && <LiveTestSteps current="details" liveTestId={hasValidId ? liveTestId : null} back={exitTo} />}
+
       {isLoading && (
         <div className={styles.loading}>
           <Skeleton style={{ height: "48px", width: "100%" }} />
@@ -52,7 +63,7 @@ export const LiveTestDetailsEditor = ({ liveTestId, exitTo, exitLabel }: LiveTes
         </div>
       )}
 
-      {isFresh && data && <LiveTestEditForm liveTest={data} />}
+      {!guided && isFresh && data && <LiveTestEditForm liveTest={data} />}
     </div>
   );
 };

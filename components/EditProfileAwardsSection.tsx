@@ -1,10 +1,10 @@
 import React from 'react';
+import { Award, Plus, Trash2 } from 'lucide-react';
 import { FormItem, FormLabel, FormControl, FormMessage } from './Form';
 import { Input } from './Input';
 import { Textarea } from './Textarea';
 import { Button } from './Button';
 import { TeacherProfileFormValues } from '../helpers/teacherProfileFormSchema';
-import { X, Plus } from 'lucide-react';
 import styles from './EditProfileAwardsSection.module.css';
 
 interface EditProfileAwardsSectionProps {
@@ -16,84 +16,88 @@ export const EditProfileAwardsSection: React.FC<EditProfileAwardsSectionProps> =
   formValues,
   onValuesChange,
 }) => {
+  const awards = formValues.awardsCertificates || [];
+
   const addAward = () => {
-    const currentAwards = formValues.awardsCertificates || [];
-    onValuesChange({
-      awardsCertificates: [...currentAwards, { title: '', description: '' }]
+    onValuesChange({ awardsCertificates: [...awards, { title: '', description: '' }] });
+    // Focus lands on the new title once it has rendered.
+    window.requestAnimationFrame(() => {
+      document.querySelector<HTMLInputElement>(`[data-award-title="${awards.length}"]`)?.focus();
     });
   };
 
   const removeAward = (index: number) => {
-    const currentAwards = [...(formValues.awardsCertificates || [])];
-    currentAwards.splice(index, 1);
-    onValuesChange({ awardsCertificates: currentAwards });
+    onValuesChange({ awardsCertificates: awards.filter((_, i) => i !== index) });
   };
 
   const updateAward = (index: number, field: 'title' | 'description', value: string) => {
-    const currentAwards = [...(formValues.awardsCertificates || [])];
-    currentAwards[index] = { ...currentAwards[index], [field]: value };
-    onValuesChange({ awardsCertificates: currentAwards });
+    const next = [...awards];
+    next[index] = { ...next[index], [field]: value };
+    onValuesChange({ awardsCertificates: next });
   };
 
   return (
-    <div className={styles.section}>
-      <h2 className={styles.sectionTitle}>Awards & Certificates</h2>
-      <p className={styles.sectionDescription}>
-        Showcase your achievements and qualifications to build credibility.
-      </p>
+    <div className={styles.wrap}>
+      {awards.length === 0 ? (
+        <div className={styles.empty}>
+          <span className={styles.emptyIcon} aria-hidden="true">
+            <Award size={20} />
+          </span>
+          <p className={styles.emptyText}>
+            Degrees, teaching certificates, toppers you coached or exams you cleared yourself.
+          </p>
+        </div>
+      ) : (
+        <ol className={styles.list}>
+          {awards.map((award, index) => (
+            <li key={index} className={styles.item}>
+              <div className={styles.itemFields}>
+                <FormItem name={`awardsCertificates.${index}.title`}>
+                  <FormLabel>Title</FormLabel>
+                  <FormControl>
+                    <Input
+                      data-award-title={index}
+                      value={award.title}
+                      onChange={(e) => updateAward(index, 'title', e.target.value)}
+                      placeholder="e.g. UGC NET JRF, Commerce"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
 
-      <FormItem name="awardsCertificates">
-        {(formValues.awardsCertificates || []).map((award, index) => (
-          <FormItem key={index} name={`awardsCertificates.${index}`} className={styles.awardItem}>
-            <div className={styles.awardHeader}>
-              <h4 className={styles.awardNumber}>Award {index + 1}</h4>
+                <FormItem name={`awardsCertificates.${index}.description`}>
+                  <FormLabel>
+                    Details <span className={styles.optional}>Optional</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea
+                      value={award.description || ''}
+                      onChange={(e) => updateAward(index, 'description', e.target.value)}
+                      placeholder="Year, issuing body or what it took"
+                      rows={2}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              </div>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon-sm"
+                className={styles.remove}
                 onClick={() => removeAward(index)}
-                aria-label="Remove award"
+                aria-label={award.title ? `Remove ${award.title}` : `Remove entry ${index + 1}`}
               >
-                <X size={16} />
+                <Trash2 size={16} />
               </Button>
-            </div>
+            </li>
+          ))}
+        </ol>
+      )}
 
-            <FormItem name={`awardsCertificates.${index}.title`}>
-              <FormLabel>Title</FormLabel>
-              <FormControl>
-                <Input
-                  value={award.title}
-                  onChange={(e) => updateAward(index, 'title', e.target.value)}
-                  placeholder="Award or certificate title"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-
-            <FormItem name={`awardsCertificates.${index}.description`}>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea
-                  value={award.description || ''}
-                  onChange={(e) => updateAward(index, 'description', e.target.value)}
-                  placeholder="Brief description"
-                  rows={2}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          </FormItem>
-        ))}
-        <Button
-          type="button"
-          variant="outline"
-          onClick={addAward}
-          style={{ marginTop: 'var(--spacing-2)' }}
-        >
-          <Plus size={16} /> Add Award/Certificate
-        </Button>
-        <FormMessage />
-      </FormItem>
+      <Button type="button" variant="outline" onClick={addAward} className={styles.add}>
+        <Plus size={16} /> Add an award or certificate
+      </Button>
     </div>
   );
 };

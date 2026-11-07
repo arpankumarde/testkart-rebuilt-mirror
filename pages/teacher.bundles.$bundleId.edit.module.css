@@ -9,10 +9,6 @@
   box-sizing: border-box;
 }
 
-.content {
-  width: 100%;
-}
-
 @media (max-width: 640px) {
   .page {
     gap: var(--spacing-4);

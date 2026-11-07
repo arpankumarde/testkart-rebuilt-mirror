@@ -4,6 +4,7 @@ import { Badge } from "./Badge";
 import { Input } from "./Input";
 import { Skeleton } from "./Skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./Select";
+import { AutopilotJourney } from "./AutopilotJourney";
 import { useAutopilotLedger } from "../helpers/useAdminAutopilot";
 import type { LedgerMessage, LedgerPerson, OutputType } from "../endpoints/admin/autopilot/ledger_GET.schema";
 import styles from "./AutopilotLedger.module.css";
@@ -29,7 +30,7 @@ const STATES: { value: State; label: string }[] = [
 ];
 
 const REASONS: Record<string, string> = {
-  "no reachable channel": "No email and no WhatsApp yes",
+  "no reachable channel": "No usable email or WhatsApp number",
   shadow: "Shadow mode, logged only",
 };
 
@@ -108,7 +109,15 @@ function Summary({ data }: { data: OutputType }) {
   );
 }
 
-/** The Autopilot page's ledger: every message and every person in a playbook, with filters. */
+function Student({ id, name, onOpen }: { id: number; name: string | null; onOpen: (id: number) => void }) {
+  return (
+    <button type="button" className={styles.studentLink} onClick={() => onOpen(id)} title="Open this student's journey">
+      {name ?? "Student"} <span className={styles.muted}>#{id}</span>
+    </button>
+  );
+}
+
+/** The Autopilot page's ledger: every message and every person in a playbook, with filters; a student opens their journey. */
 export function AutopilotLedger() {
   const [view, setView] = useState<View>("messages");
   const [playbook, setPlaybook] = useState("all");
@@ -118,6 +127,7 @@ export function AutopilotLedger() {
   const [search, setSearch] = useState("");
   const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
+  const [journeyUser, setJourneyUser] = useState<number | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setQ(search.trim()), 400);
@@ -251,7 +261,7 @@ export function AutopilotLedger() {
                   <tr key={row.id}>
                     <td className={styles.nowrap}>{when(row.sentAt ?? row.createdAt)}</td>
                     <td>
-                      {row.userName ?? "Student"} <span className={styles.muted}>#{row.userId}</span>
+                      <Student id={row.userId} name={row.userName} onOpen={setJourneyUser} />
                     </td>
                     <td>
                       {playbookLabel(row.playbook)}
@@ -291,7 +301,7 @@ export function AutopilotLedger() {
                 {data.people.map((row) => (
                   <tr key={row.enrolmentId}>
                     <td>
-                      {row.userName ?? "Student"} <span className={styles.muted}>#{row.userId}</span>
+                      <Student id={row.userId} name={row.userName} onOpen={setJourneyUser} />
                     </td>
                     <td>{playbookLabel(row.playbook)}</td>
                     <td>
@@ -323,6 +333,8 @@ export function AutopilotLedger() {
           </div>
         </div>
       ) : null}
+
+      <AutopilotJourney userId={journeyUser} onClose={() => setJourneyUser(null)} />
     </div>
   );
 }

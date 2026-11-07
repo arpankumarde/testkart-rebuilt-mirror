@@ -23,7 +23,7 @@ import { postPaymentPayuRecurringCreateMandate } from "../endpoints/payment/payu
 import { postPaymentPayuRedirect } from "../endpoints/payment/payu/redirect_POST.schema";
 import { CurrentSubscriptionStatus } from "../components/CurrentSubscriptionStatus";
 import { TeacherPageHeader } from "../components/TeacherPageHeader";
-import { TeacherSubscriptionAvailablePlans } from "../components/TeacherSubscriptionAvailablePlans";
+import { TeacherSubscriptionAvailablePlans, hasPlanAbove } from "../components/TeacherSubscriptionAvailablePlans";
 import { TeacherSubscriptionTransactionHistory } from "../components/TeacherSubscriptionTransactionHistory";
 import {
   Dialog,
@@ -84,7 +84,6 @@ const SubscriptionPage: React.FC = () => {
 
   const statusQuery = useSubscriptionStatusQuery();
   const mandateQuery = useMandateStatusQuery({ enabled: paymentMode === "recurring" });
-  const effectiveMandateQuery = paymentMode === "normal" ? { ...mandateQuery, data: null } as any : mandateQuery;
   const plansQuery = useSubscriptionPlansQuery();
   const walletSubscribeMutation = useTeacherWalletSubscribeMutation();
   const historyQuery = useSubscriptionHistoryQuery(historyPage, 10);
@@ -309,11 +308,27 @@ const SubscriptionPage: React.FC = () => {
   const currentEndDate = currentSub?.endDate
     ? new Date(currentSub.endDate).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" })
     : null;
+  const autopayActive = paymentMode === "recurring" && mandateQuery.data?.mandateStatus === "active";
   // A paid plan whose autopay was cancelled can be bought again to restart it.
   const canRenewCurrentPlan =
     paymentMode === "recurring" &&
     (currentSub?.planPrice ?? 0) > 0 &&
-    !(currentSub?.autoRenew && mandateQuery.data?.mandateStatus === "active");
+    !(currentSub?.autoRenew && autopayActive);
+  const hasHigherPlan = !hasPaidSub || hasPlanAbove(currentSub?.planName);
+
+  const scrollToPlans = () => {
+    document.getElementById("plans")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handleRestartAutopay = () => {
+    if (!currentSub) return;
+    handleSelectPlan({
+      id: currentSub.planId,
+      name: currentSub.planName,
+      price: currentSub.planPrice,
+      durationDays: currentSub.planDurationDays,
+    });
+  };
 
   return (
     <>
@@ -329,18 +344,22 @@ const SubscriptionPage: React.FC = () => {
 
         <CurrentSubscriptionStatus
           statusQuery={statusQuery}
-          mandateQuery={effectiveMandateQuery}
           paymentMode={paymentMode}
-          onCancel={() => setConfirmCancelOpen(true)}
+          autopayActive={autopayActive}
+          hasHigherPlan={hasHigherPlan}
+          canRestartAutopay={canRenewCurrentPlan}
+          isStartingPayment={isInitiatingPayment}
           isCancelling={cancelMutation.isPending}
+          onViewPlans={scrollToPlans}
+          onRestartAutopay={handleRestartAutopay}
+          onCancel={() => setConfirmCancelOpen(true)}
         />
 
         <TeacherSubscriptionAvailablePlans
+          id="plans"
           plansQuery={plansQuery}
           hasActiveSub={hasActiveSub}
           currentPlanId={statusQuery.data?.planId}
-          canRenewCurrentPlan={canRenewCurrentPlan}
-          subscriptionStatus={statusQuery.data?.status}
           isInitiatingPayment={isInitiatingPayment}
           onSelectPlan={handleSelectPlan}
           paymentMode={paymentMode}
@@ -350,11 +369,11 @@ const SubscriptionPage: React.FC = () => {
           introOfferEligible={paymentMode === "recurring" && !!paymentInfoQuery.data?.introOfferEligible}
         />
 
-          <TeacherSubscriptionTransactionHistory
-            historyQuery={historyQuery}
-            historyPage={historyPage}
-            onPageChange={setHistoryPage}
-          />
+        <TeacherSubscriptionTransactionHistory
+          historyQuery={historyQuery}
+          historyPage={historyPage}
+          onPageChange={setHistoryPage}
+        />
       </div>
 
       <Dialog open={confirmCancelOpen} onOpenChange={(open) => !open && !cancelMutation.isPending && setConfirmCancelOpen(false)}>

@@ -3,6 +3,7 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 import { db } from "../../../helpers/db";
 import { hashAdminResetToken } from "../../../helpers/hashAdminResetToken";
+import { revokeAdminSessions } from "../../../helpers/adminSessions";
 import { schema, InputType, OutputType } from "./confirm_POST.schema";
 
 function errorResponse(error: string, status: number) {
@@ -48,6 +49,8 @@ export async function handle(request: Request) {
         .set({ passwordHash, sessionInvalidatedAt: now, updatedAt: now })
         .where("id", "=", row.adminId)
         .execute();
+
+      await revokeAdminSessions(row.adminId, undefined, trx);
 
       await trx
         .updateTable("adminPasswordResets")

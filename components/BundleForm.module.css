@@ -291,6 +291,347 @@
   border-top: 1px solid var(--border);
 }
 
+/* Guided layout (teacher pages): the step track, then one card per task on the
+   page ground, in the /app palette. Items take the Items step's mint, the name
+   and price card the lavender of its step. */
+.guided {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4) var(--spacing-6) var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  scroll-margin-top: var(--spacing-6);
+}
+
+.cardHead {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding-bottom: var(--spacing-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.marker {
+  flex-shrink: 0;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-top: 0.3rem;
+  border-radius: 3px;
+}
+
+.markerMint {
+  background-color: var(--fc-mint-edge);
+}
+
+.markerLavender {
+  background-color: var(--sp-lavender-edge);
+}
+
+.cardHeadText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.cardHint {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.pickerTools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.filter {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  height: 2.125rem;
+  padding: 0 var(--spacing-3);
+  font-family: var(--font-family-base);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--foreground);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.filter:hover {
+  border-color: var(--tc-line-strong, var(--border));
+}
+
+.filter[aria-pressed="true"] {
+  border-color: var(--fc-mint-ink);
+  background-color: var(--fc-mint-ink);
+  color: var(--fc-mint-tint);
+}
+
+.filter:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.filterCount {
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.search {
+  position: relative;
+  flex: 1 1 14rem;
+  max-width: 18rem;
+}
+
+.searchIcon {
+  position: absolute;
+  left: var(--spacing-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted-foreground);
+  pointer-events: none;
+}
+
+.searchInput {
+  padding-left: 2.25rem;
+}
+
+.pickList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  max-height: 24rem;
+  overflow-y: auto;
+  padding: 2px;
+}
+
+.pick {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color var(--animation-duration-fast) ease, background-color var(--animation-duration-fast) ease;
+}
+
+.pick:hover {
+  border-color: var(--tc-line-strong, var(--border));
+}
+
+.pick[data-selected="true"] {
+  background-color: var(--fc-mint-tint);
+  border-color: var(--fc-mint-edge);
+}
+
+.pickLocked,
+.pickLocked:hover {
+  cursor: default;
+}
+
+.pickText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.pickTitle {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+.pickMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.kindTag,
+.notLive {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px var(--spacing-2);
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.kindTag[data-kind="test"] {
+  background-color: var(--fc-blue-tint);
+  border-color: var(--fc-blue-line);
+  color: var(--fc-blue-ink);
+}
+
+.kindTag[data-kind="course"] {
+  background-color: var(--sp-lavender-tint);
+  border-color: var(--sp-lavender-line);
+  color: var(--sp-lavender-ink);
+}
+
+.kindTag[data-kind="digital_product"] {
+  background-color: var(--fc-butter-tint);
+  border-color: var(--fc-butter-line);
+  color: var(--fc-butter-ink);
+}
+
+.notLive {
+  background-color: var(--surface);
+  border-color: var(--border);
+  color: var(--foreground);
+}
+
+.pickPrice {
+  flex-shrink: 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.pickSummary {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--fc-mint-ink);
+}
+
+.priceRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--spacing-4);
+  align-items: start;
+}
+
+.saving {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-1);
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--sp-lavender-tint);
+  border: 1px solid var(--sp-lavender-line);
+  border-radius: var(--radius);
+  color: var(--sp-lavender-ink);
+}
+
+.savingLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.savingValue {
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.savingChip {
+  padding: 1px var(--spacing-2);
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 999px;
+  background-color: var(--sp-lavender-ink);
+  color: var(--sp-lavender-tint);
+}
+
+/* Sits on the page ground under the cards, as on the test series create page. */
+.guidedActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-3);
+  scroll-margin-top: var(--spacing-6);
+}
+
+.readiness {
+  margin: 0 auto 0 0;
+  max-width: 34rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+}
+
+.readiness[data-ready="true"] {
+  color: var(--fc-mint-ink);
+  font-weight: 600;
+}
+
+.actionButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+@media (max-width: 640px) {
+  .card {
+    padding: var(--spacing-4);
+  }
+
+  .priceRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .search {
+    max-width: none;
+  }
+
+  .readiness {
+    margin-right: 0;
+  }
+
+  .actionButtons,
+  .actionButtons > * {
+    flex: 1 1 auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pick {
+    transition: none;
+  }
+}
+
 @media (max-width: 640px) {
   /* Stacked in source order: original, price, its message, discount. */
   .priceGrid {

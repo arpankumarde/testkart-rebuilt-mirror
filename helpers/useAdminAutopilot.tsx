@@ -5,6 +5,8 @@ import { postAdminAutopilotAiTest } from "../endpoints/admin/autopilot/ai-test_P
 import { getAdminAutopilotWhatsAppTemplates } from "../endpoints/admin/autopilot/whatsapp-templates_GET.schema";
 import { postAdminAutopilotWhatsAppTemplates } from "../endpoints/admin/autopilot/whatsapp-templates_POST.schema";
 import { getAdminAutopilotLedger, type InputType as LedgerParams } from "../endpoints/admin/autopilot/ledger_GET.schema";
+import { getAdminAutopilotOperations } from "../endpoints/admin/autopilot/operations_GET.schema";
+import { getAdminAutopilotJourney } from "../endpoints/admin/autopilot/journey_GET.schema";
 
 export const AUTOPILOT_QUERY_KEY = "adminAutopilot";
 
@@ -25,6 +27,26 @@ export const useAutopilotLedger = (params: LedgerParams, enabled: boolean) =>
     refetchOnMount: true,
     staleTime: 30 * 1000,
     placeholderData: (previous) => previous,
+  });
+
+export const useAutopilotOperations = (enabled: boolean) =>
+  useQuery({
+    queryKey: [AUTOPILOT_QUERY_KEY, "operations"],
+    queryFn: () => getAdminAutopilotOperations(),
+    enabled,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    staleTime: 60 * 1000,
+    placeholderData: (previous) => previous,
+  });
+
+export const useAutopilotJourney = (userId: number | null) =>
+  useQuery({
+    queryKey: [AUTOPILOT_QUERY_KEY, "journey", userId],
+    queryFn: () => getAdminAutopilotJourney({ userId: userId! }),
+    enabled: userId !== null,
+    refetchOnMount: true,
+    staleTime: 30 * 1000,
   });
 
 export const useAutopilotSettingsMutation = () => {

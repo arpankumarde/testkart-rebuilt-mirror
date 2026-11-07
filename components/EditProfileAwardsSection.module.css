@@ -1,68 +1,99 @@
-/* One section per panel on /teacher/edit-profile - the panel owns the padding
-   and the border, so the section itself adds neither. */
-.section {
-  padding: 0;
-}
-
-.sectionTitle {
-  font-family: var(--font-family-heading);
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0 0 var(--spacing-2) 0;
-  color: var(--foreground);
-}
-
-.sectionDescription {
-  font-size: 0.875rem;
-  color: var(--muted-foreground);
-  margin: 0 0 var(--spacing-6) 0;
-  line-height: 1.5;
-}
-
-.awardItem {
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: var(--spacing-4);
-  margin-bottom: var(--spacing-3);
-  background-color: var(--card);
-}
-
-.awardHeader {
+/* Fields only; the page draws the panel around them. */
+.wrap {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-3);
+  flex-direction: column;
+  gap: var(--spacing-3);
 }
 
-.awardNumber {
-  font-family: var(--font-family-base);
-  font-size: 0.875rem;
-  font-weight: 600;
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
   margin: 0;
-  color: var(--foreground);
+  padding: 0;
+  list-style: none;
 }
 
-@media (max-width: 768px) {
-  .sectionTitle {
-    font-size: 1.125rem;
-  }
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  padding: var(--spacing-4);
+  border: 1px solid var(--sp-line);
+  border-radius: 1rem;
+  background-color: var(--sp-surface);
+}
 
-  .sectionDescription {
-    font-size: 0.8125rem;
-    margin-bottom: var(--spacing-4);
-  }
+.itemFields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  flex: 1;
+  min-width: 0;
+}
 
-  .awardItem {
+.itemFields > * {
+  margin: 0;
+}
+
+.optional {
+  margin-left: var(--spacing-1);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.remove {
+  flex-shrink: 0;
+  margin-top: 1.5rem;
+  color: var(--muted-foreground);
+}
+
+.remove:hover {
+  color: var(--error-text);
+  background-color: var(--fc-peach-tint);
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  border: 1px dashed var(--sp-line-strong);
+  border-radius: 1rem;
+  color: var(--sp-text);
+}
+
+.emptyIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--fc-butter-tint);
+  color: var(--fc-butter-ink);
+}
+
+.emptyText {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.add {
+  align-self: flex-start;
+}
+
+@media (max-width: 640px) {
+  .item {
     padding: var(--spacing-3);
   }
-}
 
-@media (max-width: 480px) {
-  .sectionTitle {
-    font-size: 1rem;
-  }
-
-  .sectionDescription {
-    font-size: 0.75rem;
+  .add {
+    align-self: stretch;
+    justify-content: center;
   }
 }

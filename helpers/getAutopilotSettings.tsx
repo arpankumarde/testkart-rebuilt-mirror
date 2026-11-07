@@ -27,7 +27,10 @@ export type AutopilotSettings = {
   /** When the measurement layer went live in production (set after publish); checks and coverage count from here. */
   trackingStartedAt: string | null;
   aiProvider: AutopilotAiProvider;
-  /** Approved Waplify template name per playbook key; a playbook without one never uses WhatsApp. */
+  /**
+   * First-message Waplify template per playbook key, used only when Waplify cannot say which templates are
+   * approved; a name outside the template catalogue is a hand-set override (helpers/autopilotWhatsAppTemplates).
+   */
   whatsappTemplates: Record<string, string>;
   /** Days the Tcoins on a playbook's offer last, per playbook key; missing keys use DEFAULT_OFFER_EXPIRY_DAYS. */
   tcoinExpiryDays: Record<string, number>;

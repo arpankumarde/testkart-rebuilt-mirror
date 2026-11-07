@@ -214,6 +214,17 @@ export interface Admins {
   updatedAt: Generated<Timestamp | null>;
 }
 
+export interface AdminSessions {
+  adminId: number;
+  createdAt: Generated<Timestamp>;
+  expiresAt: Timestamp;
+  id: string;
+  ipAddress: string | null;
+  lastSeenAt: Generated<Timestamp>;
+  revokedAt: Timestamp | null;
+  userAgent: string | null;
+}
+
 export interface AiGenerationLogs {
   completedAt: Timestamp | null;
   createdAt: Generated<Timestamp>;
@@ -248,6 +259,23 @@ export interface AutopilotChecks {
   ranAt: Generated<Timestamp>;
   status: AutopilotCheckStatus;
   value: Numeric | null;
+}
+
+export interface AutopilotRuns {
+  converted: Generated<number>;
+  deferred: Generated<number>;
+  due: Generated<number>;
+  durationMs: Generated<number>;
+  enrolled: Generated<number>;
+  error: string | null;
+  errors: Generated<number>;
+  failed: Generated<number>;
+  id: Generated<Int8>;
+  rescued: Generated<number>;
+  sent: Generated<number>;
+  shadow: Generated<boolean>;
+  skipped: Generated<number>;
+  startedAt: Generated<Timestamp>;
 }
 
 export interface BlogCategories {
@@ -2760,9 +2788,11 @@ export interface DB {
   adminLoginLinks: AdminLoginLinks;
   adminPasswordResets: AdminPasswordResets;
   admins: Admins;
+  adminSessions: AdminSessions;
   aiGenerationLogs: AiGenerationLogs;
   aisheCollegeStaging: AisheCollegeStaging;
   autopilotChecks: AutopilotChecks;
+  autopilotRuns: AutopilotRuns;
   blogCategories: BlogCategories;
   blogComments: BlogComments;
   blogPostReactions: BlogPostReactions;
