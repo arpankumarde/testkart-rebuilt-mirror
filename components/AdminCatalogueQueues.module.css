@@ -47,7 +47,6 @@
 
   min-width: 0;
   border: 1px solid var(--border);
-  border-left: 3px solid var(--queue-accent);
   border-radius: var(--radius);
   background-color: var(--queue-tint);
   transition: background-color var(--animation-duration-fast) ease;

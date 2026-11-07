@@ -41,7 +41,6 @@
 .errorMessage {
   background-color: var(--card);
   border: 1px solid var(--error);
-  border-left-width: 4px;
   color: var(--error-text);
   padding: var(--spacing-3);
   border-radius: var(--radius);

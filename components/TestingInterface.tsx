@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo, useId } from 'react';
 import { Clock, ArrowLeft, ArrowRight, Lock, Eraser, Info, Flag, PanelRightClose, PanelRightOpen, Pause } from 'lucide-react';
 import { Button } from './Button';
-import { Dialog, DialogTrigger } from './Dialog';
 import { Skeleton } from './Skeleton';
 import { useIsMobile } from '../helpers/useIsMobile';
 import { MathMLContent } from './MathMLContent';
@@ -49,7 +48,21 @@ interface TestingInterfaceProps {
   isNoTimeLimit?: boolean;
   // Saves the attempt and leaves; the student can resume it later
   onPause?: () => void;
+  // Lets the caller open the submit dialog itself (a live test opens it once every limit is reached)
+  submitDialogOpen?: boolean;
+  onSubmitDialogOpenChange?: (open: boolean) => void;
 }
+
+const formatTime = (seconds: number) => {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  const mmss = `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  return hours > 0 ? `${hours}:${mmss}` : mmss;
+};
+
+const hasNamedSections = (group: { sections: { id: number | null }[] } | undefined) =>
+  !!group && (group.sections.length > 1 || (group.sections.length === 1 && group.sections[0].id !== null));
 
 export const TestingInterface: React.FC<TestingInterfaceProps> = ({
   testItemTitle,
@@ -75,8 +88,15 @@ export const TestingInterface: React.FC<TestingInterfaceProps> = ({
   expiredQuestionIds = new Set(),
   isNoTimeLimit = false,
   onPause,
+  submitDialogOpen,
+  onSubmitDialogOpenChange,
 }) => {
-  const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
+  const [internalSubmitDialogOpen, setInternalSubmitDialogOpen] = useState(false);
+  const isSubmitDialogOpen = submitDialogOpen ?? internalSubmitDialogOpen;
+  const setIsSubmitDialogOpen = (open: boolean) => {
+    if (onSubmitDialogOpenChange) onSubmitDialogOpenChange(open);
+    else setInternalSubmitDialogOpen(open);
+  };
   const [isSubjectSubmitDialogOpen, setIsSubjectSubmitDialogOpen] = useState(false);
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
   // Desktop only: the side palette folds to a rail so the question gets the width.
@@ -231,12 +251,6 @@ export const TestingInterface: React.FC<TestingInterfaceProps> = ({
     }
   }, [currentQuestionIndexInSubject, isMobile, selectedSubject]);
 
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-  };
-
   // Block right-click and keyboard shortcuts during testing
   useEffect(() => {
     const handleContextMenu = (e: MouseEvent) => e.preventDefault();
@@ -376,44 +390,39 @@ export const TestingInterface: React.FC<TestingInterfaceProps> = ({
     const section = currentSubjectGroup.sections.find(s => s.id === currentQuestion.sectionId);
     if (section && section.maxAttemptsAllowed !== null && section.maxAttemptsAllowed !== undefined) {
       const answered = section.questions.filter(q => answeredIds.has(q.id)).length;
-      return `📝 You can attempt ${section.maxAttemptsAllowed} out of ${section.questions.length} questions in ${section.name}. (${answered} answered so far)`;
+      return `Answer any ${section.maxAttemptsAllowed} of ${section.questions.length} in ${section.name}. ${answered} answered so far.`;
     }
 
     if (currentSubjectGroup.maxAttemptsAllowed !== null && currentSubjectGroup.maxAttemptsAllowed !== undefined) {
       const answered = currentSubjectGroup.questions.filter(q => answeredIds.has(q.id)).length;
-      return `📝 You can attempt ${currentSubjectGroup.maxAttemptsAllowed} out of ${currentSubjectGroup.questions.length} questions in ${currentSubjectGroup.name}. (${answered} answered so far)`;
+      return `Answer any ${currentSubjectGroup.maxAttemptsAllowed} of ${currentSubjectGroup.questions.length} in ${currentSubjectGroup.name}. ${answered} answered so far.`;
     }
 
     return null;
   }, [currentQuestion, currentSubjectGroup, answeredIds]);
 
-  // Build lock banner message when applicable
   const lockBannerMessage = useMemo(() => {
     if (!currentQuestion || !currentSubjectGroup) return null;
 
-    // Subject-wise timing: subject is submitted
     if (subjectWiseTiming && isCurrentSubjectSubmitted) {
-      return `This subject has been submitted and is now locked.`;
+      return 'This subject is submitted, so its answers are locked.';
     }
 
-    // Question-wise timing: question is expired
     if (questionWiseTiming && expiredQuestionIds.has(currentQuestion.id)) {
-      return `Time's up for this question. It is now locked.`;
+      return "Time's up for this question, so it is locked.";
     }
 
     if (!currentQuestionLocked) return null;
 
-    // Check section-level limit
     const section = currentSubjectGroup.sections.find(s => s.id === currentQuestion.sectionId);
     if (section?.maxAttemptsAllowed !== null && section?.maxAttemptsAllowed !== undefined) {
       const answered = section.questions.filter(q => answeredIds.has(q.id)).length;
-      return `You have reached the maximum attempts for this section (${answered}/${section.maxAttemptsAllowed}).`;
+      return `You have answered the most allowed in this section (${answered}/${section.maxAttemptsAllowed}). Clear an answer to pick this one instead.`;
     }
 
-    // Subject-level limit fallback
     if (currentSubjectGroup.maxAttemptsAllowed !== null) {
       const answered = currentSubjectGroup.questions.filter(q => answeredIds.has(q.id)).length;
-      return `You have reached the maximum attempts for this subject (${answered}/${currentSubjectGroup.maxAttemptsAllowed}).`;
+      return `You have answered the most allowed in this subject (${answered}/${currentSubjectGroup.maxAttemptsAllowed}). Clear an answer to pick this one instead.`;
     }
 
     return null;
@@ -424,6 +433,8 @@ export const TestingInterface: React.FC<TestingInterfaceProps> = ({
     answeredIds,
     subjectWiseTiming,
     isCurrentSubjectSubmitted,
+    questionWiseTiming,
+    expiredQuestionIds,
   ]);
 
   // Timer display for subject-wise mode
@@ -433,208 +444,223 @@ export const TestingInterface: React.FC<TestingInterfaceProps> = ({
     if (!state) return null;
     return {
       remaining: state.remaining,
-      isWarning: state.remaining < 300,
       isSubmitted: state.submitted,
     };
   }, [subjectWiseTiming, subjectTimerStates, selectedSubject]);
+
+  // Calm until the last five minutes, then butter, then peach for the final minute.
+  const timerToneClass = (seconds: number, soonAt = 300, urgentAt = 60) =>
+    seconds <= urgentAt ? styles.timerUrgent : seconds <= soonAt ? styles.timerSoon : '';
 
   const prevDisabled = questionWiseTiming || isFirstQuestion || (subjectWiseTiming && isCurrentSubjectSubmitted && currentQuestionIndexInSubject === 0);
   const nextDisabled = subjectWiseTiming && currentQuestionIndexInSubject === currentSubjectQuestions.length - 1;
   const clearDisabled = !currentQuestion || !answers.has(currentQuestion.id) || currentQuestionLocked || isCurrentSubjectSubmitted;
   const isCurrentMarked = currentQuestion ? markedForReview.has(currentQuestion.id) : false;
+  const isAnswerLocked = currentQuestionLocked || isCurrentSubjectSubmitted;
 
   const showNextSubjectBtn = subjectWiseTiming && currentQuestionIndexInSubject === currentSubjectQuestions.length - 1 && !isCurrentSubjectSubmitted;
 
+  const answeredTotal = answers.size;
+  const answeredPercent = questions.length > 0 ? Math.round((answeredTotal / questions.length) * 100) : 0;
+
+  const currentSectionName = useMemo(() => {
+    if (!currentQuestion || !hasNamedSections(currentSubjectGroup)) return null;
+    return currentSubjectGroup?.sections.find(s => s.id === currentQuestion.sectionId)?.name ?? null;
+  }, [currentQuestion, currentSubjectGroup]);
+
   const navigationButtons = (
     <div className={styles.navigationButtons}>
-      <Button variant="outline" onClick={handlePrevious} disabled={prevDisabled} className={styles.navButtonIconOnly}>
+      <Button
+        variant="outline"
+        onClick={handlePrevious}
+        disabled={prevDisabled}
+        className={styles.navButtonIconOnly}
+        aria-label="Previous question"
+      >
         <ArrowLeft size={16} /> <span className={styles.navText}>Previous</span>
       </Button>
       <div className={styles.navButtonsRight}>
         <Button
+          variant="ghost"
+          onClick={() => currentQuestion && onAnswerChange(currentQuestion.id, undefined)}
+          disabled={clearDisabled}
+          className={styles.clearBtn}
+        >
+          <Eraser size={16} /> <span className={styles.navText}>Clear response</span><span className={styles.mobileNavText}>Clear</span>
+        </Button>
+        <Button
           variant="outline"
           onClick={handleMarkForReviewAndNext}
-          disabled={!currentQuestion || currentQuestionLocked || isCurrentSubjectSubmitted}
-          className={isCurrentMarked ? styles.markedReviewBtn : ''}
+          disabled={!currentQuestion || isAnswerLocked}
+          className={`${styles.reviewBtn} ${isCurrentMarked ? styles.markedReviewBtn : ''}`}
+          aria-pressed={isCurrentMarked}
         >
-          <Flag size={16} fill={isCurrentMarked ? "currentColor" : "none"} />
-          <span className={styles.navText}>{isCurrentMarked ? 'Unmark & Next' : 'Mark for Review & Next'}</span>
-          <span className={styles.mobileNavText}>Review</span>
-        </Button>
-        <Button 
-          variant="outline" 
-          onClick={() => currentQuestion && onAnswerChange(currentQuestion.id, undefined)} 
-          disabled={clearDisabled}
-        >
-          <Eraser size={16} /> <span className={styles.navText}>Clear Response</span><span className={styles.mobileNavText}>Clear</span>
+          <Flag size={16} fill={isCurrentMarked ? 'currentColor' : 'none'} />
+          <span className={styles.navText}>{isCurrentMarked ? 'Unmark & next' : 'Mark for review & next'}</span>
+          <span className={styles.mobileNavText}>{isCurrentMarked ? 'Unmark' : 'Review'}</span>
         </Button>
         {isLastQuestion ? (
-          <Button variant="destructive" onClick={() => setIsSubmitDialogOpen(true)}>
-            <span className={styles.navText}>Submit Test</span><span className={styles.mobileNavText}>Submit</span>
+          <Button variant="destructive" onClick={() => setIsSubmitDialogOpen(true)} className={`${styles.nextBtn} ${styles.submitBtn}`}>
+            <span className={styles.navText}>Submit test</span><span className={styles.mobileNavText}>Submit</span>
           </Button>
         ) : showNextSubjectBtn ? (
-          <Button onClick={() => setIsSubjectSubmitDialogOpen(true)} className={styles.nextSubjectBtn}>
-            <span className={styles.navText}>Next Subject</span><span className={styles.mobileNavText}>Next Subject</span> <ArrowRight size={16} />
+          <Button onClick={() => setIsSubjectSubmitDialogOpen(true)} className={styles.nextBtn}>
+            <span className={styles.navText}>Next subject</span><span className={styles.mobileNavText}>Next subject</span> <ArrowRight size={16} />
           </Button>
         ) : (
-          <Button onClick={handleNext} disabled={nextDisabled} className={styles.navButtonIconOnly}>
-            <span className={styles.navText}>Next</span> <ArrowRight size={16} />
+          <Button onClick={handleNext} disabled={nextDisabled} className={styles.nextBtn}>
+            <span className={styles.navText}>Save & next</span><span className={styles.mobileNavText}>Next</span> <ArrowRight size={16} />
           </Button>
         )}
       </div>
     </div>
   );
 
+  const paletteProps = {
+    subjectStats,
+    subjectGroups,
+    selectedSubject,
+    currentSubjectIndex,
+    currentQuestion,
+    answeredIds,
+    markedForReview,
+    visitedQuestionIds,
+    onSubjectChange: handleSubjectChange,
+    onQuestionNavigateInSubject: handleQuestionNavigateInSubject,
+    subjectWiseTiming,
+    subjectTimerStates,
+    questionWiseTiming,
+    expiredQuestionIds,
+  };
+
   return (
-    <div className={`${styles.testingContainer} ${styles.noSelect}`}>
+    <div className={`${styles.testingContainer} ${styles.noSelect} tk-student tk-flow`}>
       {/* Anti-cheating watermark */}
-      <div className={styles.watermark}>
+      <div className={styles.watermark} aria-hidden="true">
         <div className={styles.watermarkText}>{teacherName} | Testkart</div>
       </div>
 
       <header className={`${styles.testHeader} ${isHeaderCollapsed && isMobile ? styles.headerCollapsed : ''}`}>
-        <div className={styles.headerLeft}>
-          <h2 className={styles.testTitle}>{testItemTitle}</h2>
-          <div className={styles.progressWrapper}>
-            <span className={styles.progressText}>
-              Question {currentQuestionIndexInSubject + 1} of {currentSubjectQuestions.length}
-              {subjectGroups.length > 1 && (
-                <span className={styles.subjectLabel}> - {selectedSubject}</span>
+        <div className={styles.headerMain}>
+          <div className={styles.headerLeft}>
+            <h1 className={styles.testTitle} title={testItemTitle}>{testItemTitle}</h1>
+            {subjectGroups.length > 1 && (
+              <span className={styles.subjectChip}>{selectedSubject}</span>
+            )}
+          </div>
+          <div className={styles.headerRight}>
+            <div className={styles.timersWrapper} role="timer">
+              {questionWiseTiming && questionTimerSeconds !== undefined && (
+                <div className={`${styles.timer} ${styles.timerSmall} ${timerToneClass(questionTimerSeconds, 20, 10)}`}>
+                  <span className={styles.timerLabel}>This question</span>
+                  <span className={styles.timerValue}>{formatTime(questionTimerSeconds)}</span>
+                </div>
               )}
-            </span>
-            <span className={styles.overallProgress}>
-              ({currentQuestionIndex + 1}/{questions.length} overall)
-            </span>
+              {subjectWiseTiming && subjectTimerDisplay ? (
+                <div className={`${styles.timer} ${subjectTimerDisplay.isSubmitted ? styles.timerDone : timerToneClass(subjectTimerDisplay.remaining)}`}>
+                  <Clock size={18} aria-hidden="true" />
+                  <span className={styles.timerLabel}>Subject</span>
+                  <span className={styles.timerValue}>{subjectTimerDisplay.isSubmitted ? 'Done' : formatTime(subjectTimerDisplay.remaining)}</span>
+                </div>
+              ) : (
+                <div className={`${styles.timer} ${questionWiseTiming ? styles.timerSmall : ''} ${isNoTimeLimit ? '' : timerToneClass(timeRemaining)}`}>
+                  <Clock size={18} aria-hidden="true" />
+                  <span className={styles.timerLabel}>
+                    {isNoTimeLimit ? 'Time taken' : questionWiseTiming ? 'Overall' : 'Time left'}
+                  </span>
+                  <span className={styles.timerValue}>{formatTime(timeRemaining)}</span>
+                </div>
+              )}
+            </div>
+            <div className={styles.headerActions}>
+              {subjectWiseTiming && !isCurrentSubjectSubmitted && onSubjectSubmit && (
+                <Button variant="outline" size="sm" onClick={() => setIsSubjectSubmitDialogOpen(true)} className={styles.headerBtn}>
+                  Submit subject
+                </Button>
+              )}
+              {onPause && (
+                <Button variant="outline" size="sm" onClick={onPause} disabled={isSubmitting} className={styles.headerBtn}>
+                  <Pause size={14} /> Pause
+                </Button>
+              )}
+              <Button variant="destructive" size="sm" onClick={() => setIsSubmitDialogOpen(true)} className={`${styles.headerBtn} ${styles.submitBtn}`}>
+                Submit test
+              </Button>
+            </div>
           </div>
         </div>
-        <div className={styles.headerRight}>
-          <div className={styles.timersWrapper}>
-            {questionWiseTiming && questionTimerSeconds !== undefined && (
-              <div className={`${styles.timer} ${styles.questionTimer} ${questionTimerSeconds < 10 ? styles.timerWarning : ''}`}>
-                <Clock size={18} />
-                <span className={styles.timerLabel}>Question:</span>
-                <span>{formatTime(questionTimerSeconds)}</span>
-              </div>
-            )}
-            {subjectWiseTiming && subjectTimerDisplay ? (
-              <div className={`${styles.timer} ${subjectTimerDisplay.isWarning ? styles.timerWarning : ''} ${subjectTimerDisplay.isSubmitted ? styles.timerSubmitted : ''}`}>
-                <Clock size={18} />
-                <span className={styles.timerLabel}>Subject:</span>
-                <span>{subjectTimerDisplay.isSubmitted ? 'Done' : formatTime(subjectTimerDisplay.remaining)}</span>
-              </div>
-            ) : (
-              <div className={`${styles.timer} ${questionWiseTiming ? styles.secondaryTimer : ''} ${!isNoTimeLimit && timeRemaining < 300 ? styles.timerWarning : ''}`}>
-                <Clock size={18} />
-                {isNoTimeLimit ? (
-                  <span className={styles.timerLabel}>Elapsed:</span>
-                ) : questionWiseTiming ? (
-                  <span className={styles.timerLabel}>Overall:</span>
-                ) : null}
-                <span>{formatTime(timeRemaining)}</span>
-              </div>
-            )}
-          </div>
-          {subjectWiseTiming && !isCurrentSubjectSubmitted && onSubjectSubmit && (
-            <Button variant="outline" onClick={() => setIsSubjectSubmitDialogOpen(true)} className={styles.submitSubjectBtn}>
-              Submit Subject
-            </Button>
-          )}
-          {onPause && (
-            <Button variant="outline" onClick={onPause} disabled={isSubmitting} className={styles.pauseBtn}>
-              <Pause size={16} /> Pause
-            </Button>
-          )}
-          <Dialog open={isSubmitDialogOpen} onOpenChange={setIsSubmitDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="destructive" className={styles.headerSubmitTestBtn}>Submit Test</Button>
-            </DialogTrigger>
-          </Dialog>
-          <TestingInterfaceSubmitDialog
-            open={isSubmitDialogOpen}
-            onOpenChange={setIsSubmitDialogOpen}
-            totalQuestions={questions.length}
-            answeredCount={answers.size}
-            subjectGroups={subjectStats}
-            isSubmitting={isSubmitting}
-            onConfirm={handleSubmitConfirm}
-          />
-          {subjectWiseTiming && onSubjectSubmit && (
-            <SubjectSubmitDialog
-              open={isSubjectSubmitDialogOpen}
-              onOpenChange={setIsSubjectSubmitDialogOpen}
-              subjectName={selectedSubject}
-              totalQuestions={currentSubjectQuestions.length}
-              answeredCount={currentSubjectQuestions.filter(q => answeredIds.has(q.id)).length}
-              onConfirm={handleSubjectSubmitConfirm}
-            />
-          )}
+        <div
+          className={styles.progressTrack}
+          role="progressbar"
+          aria-label="Questions answered"
+          aria-valuemin={0}
+          aria-valuemax={questions.length}
+          aria-valuenow={answeredTotal}
+          aria-valuetext={`${answeredTotal} of ${questions.length} answered`}
+        >
+          <span className={styles.progressFill} style={{ width: `${answeredPercent}%` }} />
         </div>
         {isMobile && (
           <div className={styles.mobilePaletteWrapper}>
             <TestingInterfacePalette
               variant="mobile"
               collapsed={isHeaderCollapsed}
-              subjectStats={subjectStats}
-              subjectGroups={subjectGroups}
-              selectedSubject={selectedSubject}
-              currentSubjectIndex={currentSubjectIndex}
-              currentQuestion={currentQuestion}
-              answeredIds={answeredIds}
-              markedForReview={markedForReview}
-              visitedQuestionIds={visitedQuestionIds}
-              onSubjectChange={handleSubjectChange}
-              onQuestionNavigateInSubject={handleQuestionNavigateInSubject}
               mobileButtonRefs={mobileButtonRefs}
-              subjectWiseTiming={subjectWiseTiming}
-              subjectTimerStates={subjectTimerStates}
-              questionWiseTiming={questionWiseTiming}
-              expiredQuestionIds={expiredQuestionIds}
+              {...paletteProps}
             />
           </div>
         )}
       </header>
 
       <main className={styles.testBody}>
-        <div className={styles.questionArea}>
-          {currentQuestion && (
-            <div key={currentQuestion.id} className={styles.questionScrollArea}>
-              <div className={styles.questionHeader}>
-                <h3 className={styles.questionText}>
-                  <span className={styles.questionNumber}>{currentQuestionIndexInSubject + 1}.</span>
+        <section className={styles.questionArea} aria-label="Question">
+          <div className={styles.questionScrollArea}>
+            {currentQuestion && (
+              <article key={currentQuestion.id} className={styles.questionCard}>
+                <div className={styles.questionMeta}>
+                  <span className={styles.questionCounter}>
+                    Question {currentQuestionIndexInSubject + 1}
+                    <span className={styles.questionCounterOf}> of {currentSubjectQuestions.length}</span>
+                  </span>
+                  {currentSectionName && <span className={styles.sectionChip}>{currentSectionName}</span>}
+                  {(currentQuestion.positiveMarks != null || currentQuestion.negativeMarks != null) && (
+                    <span className={styles.marks} aria-label="Marks for this question">
+                      {currentQuestion.positiveMarks != null && (
+                        <span className={styles.positiveMarks}>+{currentQuestion.positiveMarks}</span>
+                      )}
+                      {currentQuestion.negativeMarks != null && (
+                        <span className={styles.negativeMarks}>-{currentQuestion.negativeMarks}</span>
+                      )}
+                    </span>
+                  )}
+                </div>
+                <div className={styles.questionText}>
                   <MathMLContent html={currentQuestion.questionText} />
-                </h3>
-                {(currentQuestion.positiveMarks !== null || currentQuestion.negativeMarks !== null) && (
-                  <div className={styles.questionMarksIndicator}>
-                    {currentQuestion.positiveMarks !== null && <span className={styles.positiveMarks}>+{currentQuestion.positiveMarks}</span>}
-                    {currentQuestion.positiveMarks !== null && currentQuestion.negativeMarks !== null && <span>|</span>}
-                    {currentQuestion.negativeMarks !== null && <span className={styles.negativeMarks}>-{currentQuestion.negativeMarks}</span>}
+                </div>
+                {maxAttemptsInfoMessage && !(isAnswerLocked && lockBannerMessage) && (
+                  <div className={styles.maxAttemptsInfoBanner}>
+                    <Info size={16} aria-hidden="true" />
+                    <span>{maxAttemptsInfoMessage}</span>
                   </div>
                 )}
-              </div>
-              {maxAttemptsInfoMessage && (
-                <div className={styles.maxAttemptsInfoBanner}>
-                  <Info size={14} />
-                  <span>{maxAttemptsInfoMessage}</span>
+                {isAnswerLocked && lockBannerMessage && (
+                  <div className={styles.lockBanner} role="status">
+                    <Lock size={16} aria-hidden="true" />
+                    <span>{lockBannerMessage}</span>
+                  </div>
+                )}
+                <div className={isAnswerLocked ? styles.lockedQuestion : undefined}>
+                  <QuestionRenderer
+                    question={currentQuestion}
+                    answer={answers.get(currentQuestion.id)}
+                    onAnswerChange={(answer) => onAnswerChange(currentQuestion.id, answer)}
+                  />
                 </div>
-              )}
-              {(currentQuestionLocked || isCurrentSubjectSubmitted) && lockBannerMessage && (
-                <div className={styles.lockBanner}>
-                  <Lock size={14} />
-                  <span>{lockBannerMessage}</span>
-                </div>
-              )}
-              <div className={(currentQuestionLocked || isCurrentSubjectSubmitted) ? styles.lockedQuestion : undefined}>
-                <QuestionRenderer
-                  question={currentQuestion}
-                  answer={answers.get(currentQuestion.id)}
-                  onAnswerChange={(answer) => onAnswerChange(currentQuestion.id, answer)}
-                  className={styles.questionRenderer}
-                />
-              </div>
-            </div>
-          )}
+              </article>
+            )}
+          </div>
           {!isMobile && navigationButtons}
-        </div>
+        </section>
 
         {!isMobile && (
           <aside
@@ -644,9 +670,9 @@ export const TestingInterface: React.FC<TestingInterfaceProps> = ({
             {/* Stays mounted while collapsed, so counts and scroll position survive a toggle. */}
             <div id={paletteRegionId} className={styles.paletteDockInner}>
               <div className={styles.paletteDockBar}>
-                <span className={styles.paletteDockTitle}>Question palette</span>
+                <span className={styles.paletteDockTitle}>All questions</span>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="icon-sm"
                   onClick={() => setIsPaletteCollapsed(true)}
                   aria-expanded={true}
@@ -657,23 +683,7 @@ export const TestingInterface: React.FC<TestingInterfaceProps> = ({
                   <PanelRightClose size={16} />
                 </Button>
               </div>
-              <TestingInterfacePalette
-                variant="desktop"
-                subjectStats={subjectStats}
-                subjectGroups={subjectGroups}
-                selectedSubject={selectedSubject}
-                currentSubjectIndex={currentSubjectIndex}
-                currentQuestion={currentQuestion}
-                answeredIds={answeredIds}
-                markedForReview={markedForReview}
-                visitedQuestionIds={visitedQuestionIds}
-                onSubjectChange={handleSubjectChange}
-                onQuestionNavigateInSubject={handleQuestionNavigateInSubject}
-                subjectWiseTiming={subjectWiseTiming}
-                subjectTimerStates={subjectTimerStates}
-                questionWiseTiming={questionWiseTiming}
-                expiredQuestionIds={expiredQuestionIds}
-              />
+              <TestingInterfacePalette variant="desktop" {...paletteProps} />
             </div>
             {isPaletteCollapsed && (
               <div className={styles.paletteRail}>
@@ -687,7 +697,7 @@ export const TestingInterface: React.FC<TestingInterfaceProps> = ({
                   title="Show question palette"
                 >
                   <PanelRightOpen size={18} aria-hidden="true" />
-                  <span className={styles.paletteRailLabel} aria-hidden="true">Questions</span>
+                  <span className={styles.paletteRailLabel} aria-hidden="true">All questions</span>
                 </button>
               </div>
             )}
@@ -701,44 +711,64 @@ export const TestingInterface: React.FC<TestingInterfaceProps> = ({
         </footer>
       )}
 
+      <TestingInterfaceSubmitDialog
+        open={isSubmitDialogOpen}
+        onOpenChange={setIsSubmitDialogOpen}
+        totalQuestions={questions.length}
+        answeredCount={answeredTotal}
+        markedCount={markedForReview.size}
+        subjectGroups={subjectStats}
+        isSubmitting={isSubmitting}
+        onConfirm={handleSubmitConfirm}
+      />
+      {subjectWiseTiming && onSubjectSubmit && (
+        <SubjectSubmitDialog
+          open={isSubjectSubmitDialogOpen}
+          onOpenChange={setIsSubjectSubmitDialogOpen}
+          subjectName={selectedSubject}
+          totalQuestions={currentSubjectQuestions.length}
+          answeredCount={currentSubjectQuestions.filter(q => answeredIds.has(q.id)).length}
+          onConfirm={handleSubjectSubmitConfirm}
+        />
+      )}
+
       <ScientificCalculator isEnabled={calculatorEnabled} />
     </div>
   );
 };
 
 export const TestingSkeleton = () => (
-  <div className={styles.testingContainer}>
+  <div className={`${styles.testingContainer} tk-student`}>
     <header className={styles.testHeader}>
-      <div className={styles.headerLeft}>
-        <Skeleton style={{ width: '250px', height: '2rem' }} />
-        <Skeleton style={{ width: '150px', height: '1.25rem', marginTop: 'var(--spacing-2)' }} />
-      </div>
-      <div className={styles.headerRight}>
-        <Skeleton style={{ width: '100px', height: '2.5rem' }} />
-        <Skeleton style={{ width: '120px', height: '2.5rem' }} />
+      <div className={styles.headerMain}>
+        <div className={styles.headerLeft}>
+          <Skeleton style={{ width: '240px', height: '1.5rem' }} />
+        </div>
+        <div className={styles.headerRight}>
+          <Skeleton style={{ width: '120px', height: '2.5rem' }} />
+          <Skeleton style={{ width: '110px', height: '2.25rem' }} />
+        </div>
       </div>
     </header>
     <main className={styles.testBody}>
       <div className={styles.questionArea}>
-        <Skeleton style={{ width: '80%', height: '2rem', marginBottom: 'var(--spacing-6)' }} />
-        <div className={styles.optionsGroup}>
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className={styles.optionLabel}>
-              <Skeleton style={{ width: '1.25rem', height: '1.25rem', borderRadius: 'var(--radius-full)' }} />
-              <Skeleton style={{ width: '60%', height: '1.25rem' }} />
+        <div className={styles.questionScrollArea}>
+          <div className={styles.questionCard}>
+            <Skeleton style={{ width: '120px', height: '1.25rem', marginBottom: 'var(--spacing-4)' }} />
+            <Skeleton style={{ width: '85%', height: '1.75rem', marginBottom: 'var(--spacing-6)' }} />
+            <div className={styles.skeletonOptions}>
+              {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} style={{ width: '100%', height: '3.25rem', borderRadius: '0.875rem' }} />
+              ))}
             </div>
-          ))}
-        </div>
-        <div className={styles.navigationButtons}>
-          <Skeleton style={{ width: '120px', height: '2.5rem' }} />
-          <Skeleton style={{ width: '120px', height: '2.5rem' }} />
+          </div>
         </div>
       </div>
       <div className={styles.paletteSkeletonWrap}>
-        <Skeleton style={{ width: '100px', height: '1.5rem', marginBottom: 'var(--spacing-4)' }} />
+        <Skeleton style={{ width: '120px', height: '1.25rem', marginBottom: 'var(--spacing-4)' }} />
         <div className={styles.paletteGridSkeleton}>
           {[...Array(20)].map((_, i) => (
-            <Skeleton key={i} style={{ width: '2.5rem', height: '2.5rem' }} />
+            <Skeleton key={i} style={{ width: '2.5rem', height: '2.5rem', borderRadius: '0.625rem' }} />
           ))}
         </div>
       </div>

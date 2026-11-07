@@ -1,75 +1,132 @@
-.submitSummary {
-  margin: var(--spacing-4) 0;
-  font-size: 0.9375rem;
+.content {
+  max-width: 30rem;
 }
 
-.overallRow {
+/* Same deep red as the exam screen's submit buttons. */
+:global(.tk-flow) .submitBtn {
+  background-color: hsl(0 70% 45%);
+  border-color: hsl(0 70% 45%);
+  color: #fff;
+  font-weight: 700;
+}
+
+:global(.tk-flow) .submitBtn:hover:not(:disabled) {
+  background-color: hsl(0 72% 38%);
+  border-color: hsl(0 72% 38%);
+  color: #fff;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-2);
+  margin: var(--spacing-2) 0;
+}
+
+.tile {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  padding: var(--spacing-3) var(--spacing-4);
-  background-color: var(--muted);
-  border-radius: var(--radius);
-  margin-bottom: var(--spacing-3);
+  gap: 0.125rem;
+  padding: var(--spacing-3) var(--spacing-2);
+  border-radius: 0.875rem;
+  border: 2px solid transparent;
+  text-align: center;
 }
 
-.label {
-  font-weight: 600;
-  color: var(--foreground);
+.tileValue {
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
 }
 
-.value {
-  font-weight: 500;
-  color: var(--muted-foreground);
+.tileLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.tileAnswered {
+  background-color: var(--pastel-mint);
+  border-color: hsl(152 48% 31%);
+  color: hsl(152 60% 20%);
+}
+
+.tileUnanswered {
+  background-color: var(--pastel-peach);
+  border-color: hsl(10 66% 45%);
+  color: hsl(10 70% 28%);
+}
+
+.tileMarked {
+  background-color: var(--pastel-lavender);
+  border-color: hsl(258 40% 47%);
+  color: hsl(258 45% 30%);
 }
 
 .subjectList {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-2);
+  max-height: 16rem;
+  overflow-y: auto;
+  margin-bottom: var(--spacing-2);
 }
 
 .subjectBlock {
-  border: 1px solid var(--border);
+  border: 1px solid var(--sp-line-strong);
   border-radius: var(--radius);
   overflow: hidden;
 }
 
-.subjectRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-2) var(--spacing-3);
-  background-color: var(--surface);
-}
-
-.subjectName {
-  font-weight: 600;
-  font-size: 0.875rem;
-  color: var(--foreground);
-}
-
-.subjectCount {
-  font-size: 0.875rem;
-  color: var(--muted-foreground);
-}
-
-.limitBadge {
-  color: var(--warning-text);
-  font-size: 0.75rem;
-}
-
-.sectionList {
-  border-top: 1px solid var(--border);
-  background-color: color-mix(in srgb, var(--muted) 50%, transparent);
-}
-
+.subjectRow,
 .sectionRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-2) var(--spacing-3) var(--spacing-2) calc(var(--spacing-3) + var(--spacing-4));
-  border-bottom: 1px solid var(--border);
+  gap: var(--spacing-3);
+  padding: var(--spacing-2) var(--spacing-3);
+}
+
+.subjectRow {
+  background-color: var(--sp-card);
+}
+
+.subjectName {
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--sp-ink);
+}
+
+.subjectCount,
+.sectionCount {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--sp-text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.limitBadge {
+  padding: 0.0625rem 0.4375rem;
+  border-radius: var(--radius-full);
+  background-color: var(--sp-blue-tint);
+  color: var(--sp-blue-ink);
+  font-size: 0.6875rem;
+}
+
+.sectionList {
+  border-top: 1px solid var(--sp-line);
+  background-color: var(--sp-surface);
+}
+
+.sectionRow {
+  padding-left: calc(var(--spacing-3) + var(--spacing-3));
+  border-bottom: 1px solid var(--sp-line);
   font-size: 0.8125rem;
 }
 
@@ -78,9 +135,16 @@
 }
 
 .sectionName {
-  color: var(--muted-foreground);
+  color: var(--sp-text);
+  font-weight: 600;
 }
 
-.sectionCount {
-  color: var(--muted-foreground);
+@media (max-width: 420px) {
+  .tileValue {
+    font-size: 1.25rem;
+  }
+
+  .tileLabel {
+    font-size: 0.6875rem;
+  }
 }

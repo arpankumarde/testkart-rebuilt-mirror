@@ -33,11 +33,11 @@ export const SubjectSubmitDialog: React.FC<SubjectSubmitDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="tk-student tk-flow">
         <DialogHeader>
-          <DialogTitle>Submit Subject</DialogTitle>
+          <DialogTitle>Submit {subjectName}?</DialogTitle>
           <DialogDescription>
-            Are you sure you want to submit <strong>{subjectName}</strong>? You will not be able to answer any more questions in this subject.
+            You cannot come back to this subject after submitting it.
           </DialogDescription>
         </DialogHeader>
         <div className={styles.summary}>
@@ -55,10 +55,10 @@ export const SubjectSubmitDialog: React.FC<SubjectSubmitDialogProps> = ({
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="ghost">Go Back</Button>
+            <Button variant="outline">Keep working</Button>
           </DialogClose>
-          <Button variant="destructive" onClick={onConfirm}>
-            Submit Subject
+          <Button variant="destructive" className={styles.submitBtn} onClick={onConfirm}>
+            Submit subject
           </Button>
         </DialogFooter>
       </DialogContent>

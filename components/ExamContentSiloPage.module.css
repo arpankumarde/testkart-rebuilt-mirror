@@ -56,11 +56,11 @@
   }
 
   .content :global(blockquote) {
-    border-left: 4px solid var(--primary);
+    border: 1px solid var(--border);
     padding: 0.75em 1.25em;
     margin: 0 0 var(--spacing-3);
     background-color: color-mix(in srgb, var(--primary) 5%, transparent);
-    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    border-radius: var(--radius-sm);
     color: var(--muted-foreground);
     font-style: italic;
   }

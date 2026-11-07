@@ -209,11 +209,11 @@
 }
 
 .writeup :global(blockquote) {
-  border-left: 4px solid var(--primary);
+  border: 1px solid var(--border);
   padding: 1rem 1.5rem;
   margin: 2rem 0;
   background-color: var(--surface);
-  border-radius: 0 var(--radius) var(--radius) 0;
+  border-radius: var(--radius);
   font-style: italic;
   color: var(--foreground);
 }

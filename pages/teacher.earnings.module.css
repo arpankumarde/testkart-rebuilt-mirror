@@ -365,7 +365,6 @@
 .error {
   padding: var(--spacing-3) var(--spacing-4);
   border: 1px solid var(--error-text);
-  border-left-width: 4px;
   border-radius: var(--radius);
   background-color: var(--sp-card);
   color: var(--error-text);

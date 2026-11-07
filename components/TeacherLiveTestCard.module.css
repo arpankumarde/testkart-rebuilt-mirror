@@ -10,7 +10,6 @@
   height: 100%;
   background-color: var(--tc-card, var(--surface));
   border: 1px solid var(--tc-line, var(--border));
-  border-left: 4px solid var(--tc-line, var(--border));
   border-radius: var(--tc-radius-card, var(--radius-md));
   overflow: hidden;
   transition: border-color var(--animation-duration-fast) ease;
@@ -27,39 +26,39 @@
 /* Status-specific styles. The accent wins over the hover border - it carries
    meaning, and a dimmed card reads as disabled, so opacity is out. */
 .draft {
-  border-left-color: var(--muted-foreground);
+  border-color: var(--muted-foreground);
 }
 
 .upcoming {
-  border-left-color: var(--fc-blue-edge);
+  border-color: var(--fc-blue-edge);
 }
 
 .live {
-  border-left-color: var(--fc-peach-edge);
+  border-color: var(--fc-peach-edge);
 }
 
 .ended {
-  border-left-color: var(--muted-foreground);
+  border-color: var(--muted-foreground);
 }
 
 .closed, .full {
-  border-left-color: var(--warning);
+  border-color: var(--warning);
 }
 
 .card.draft:hover, .card.ended:hover {
-  border-left-color: var(--muted-foreground);
+  border-color: var(--muted-foreground);
 }
 
 .card.upcoming:hover {
-  border-left-color: var(--fc-blue-edge);
+  border-color: var(--fc-blue-edge);
 }
 
 .card.live:hover {
-  border-left-color: var(--fc-peach-edge);
+  border-color: var(--fc-peach-edge);
 }
 
 .card.closed:hover, .card.full:hover {
-  border-left-color: var(--warning);
+  border-color: var(--warning);
 }
 
 .thumbnailWrapper {
@@ -153,7 +152,7 @@
   background-color: var(--fc-blue-tint);
   padding: var(--spacing-2) var(--spacing-3);
   border-radius: var(--radius);
-  border-left: 3px solid var(--info);
+  border: 1px solid var(--fc-blue-line);
   margin-bottom: var(--spacing-3);
   line-height: 1.5;
 }

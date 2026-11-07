@@ -39,7 +39,7 @@ export const QuestionAssertionReason: React.FC<QuestionAssertionReasonProps> = (
   return (
     <div className={`${styles.container} ${className || ''}`}>
       <p className={styles.instruction}>
-        Select the correct relationship between the assertion and reason:
+        Pick how the assertion and the reason are related.
       </p>
       <RadioGroup
         key={selectedOption || 'cleared'}
@@ -47,15 +47,20 @@ export const QuestionAssertionReason: React.FC<QuestionAssertionReasonProps> = (
         value={selectedOption}
         onValueChange={(value) => onAnswerChange(value as MCQOption)}
       >
-        {optionKeys.map((opt) => {
-          const optionText = optionMap[opt];
-          return (
-            <label key={opt} className={styles.optionLabel}>
+        {optionKeys.map((opt) => (
+          <label
+            key={opt}
+            className={`${styles.optionLabel} ${selectedOption === opt ? styles.selected : ''}`}
+          >
+            <span className={styles.control}>
               <RadioGroupItem value={opt} id={`q${questionId}-opt${opt}`} />
-              <MathMLContent html={optionText} inline />
-            </label>
-          );
-        })}
+            </span>
+            <span className={styles.optionLetter} aria-hidden="true">{opt}</span>
+            <span className={styles.optionText}>
+              <MathMLContent html={optionMap[opt]} inline />
+            </span>
+          </label>
+        ))}
       </RadioGroup>
     </div>
   );

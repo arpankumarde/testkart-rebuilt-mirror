@@ -265,9 +265,9 @@
 .note {
   margin: 0;
   padding: var(--spacing-2) var(--spacing-3);
-  border-left: 3px solid var(--tk-brand);
+  border: 1px solid var(--border);
   background: var(--muted);
-  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  border-radius: var(--radius-md);
   font-size: 0.875rem;
 }
 

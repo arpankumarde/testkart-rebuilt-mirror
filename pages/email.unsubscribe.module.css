@@ -42,8 +42,7 @@
   box-sizing: border-box;
   padding: var(--spacing-3) var(--spacing-4);
   background-color: var(--muted);
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--error);
+  border: 1px solid var(--error);
   border-radius: var(--radius);
   color: var(--foreground);
   font-size: 0.875rem;

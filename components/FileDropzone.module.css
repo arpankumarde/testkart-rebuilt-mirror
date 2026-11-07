@@ -89,7 +89,7 @@
     padding: var(--spacing-3) var(--spacing-4);
 
     background-color: color-mix(in srgb, var(--error) 10%, transparent);
-    border-left: 4px solid var(--error);
+    border: 1px solid var(--error);
     border-radius: var(--radius-sm);
 
     font-size: 0.875rem;

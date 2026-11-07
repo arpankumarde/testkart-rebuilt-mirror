@@ -68,8 +68,8 @@
   align-items: center;
   gap: var(--spacing-2);
   padding: var(--spacing-2) var(--spacing-2) var(--spacing-2) var(--spacing-3);
-  border-left: 3px solid var(--bar);
-  border-radius: 0 var(--radius) var(--radius) 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
   color: var(--foreground);
   text-decoration: none;
   transition: background-color var(--animation-duration-fast) ease;
@@ -89,6 +89,7 @@
 
 a.term:hover {
   background-color: var(--pastel-cream);
+  border-color: var(--bar);
 }
 
 .termText {

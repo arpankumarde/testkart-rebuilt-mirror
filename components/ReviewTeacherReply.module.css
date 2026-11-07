@@ -4,8 +4,8 @@
   gap: 0.25rem;
   margin-top: 0.625rem;
   padding: 0.625rem 0.875rem;
-  border-left: 3px solid var(--fc-sage-edge);
-  border-radius: 0 0.625rem 0.625rem 0;
+  border: 1px solid var(--fc-sage-line);
+  border-radius: 0.625rem;
   background-color: var(--fc-sage-tint);
   color: var(--fc-sage-ink);
 }

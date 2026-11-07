@@ -188,7 +188,6 @@
   border-radius: var(--radius);
   background-color: var(--sp-card);
   border: 1px solid var(--error-text);
-  border-left-width: 4px;
   color: var(--foreground);
 }
 

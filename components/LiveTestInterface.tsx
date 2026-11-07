@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Clock, CheckCircle, XCircle, HelpCircle, ArrowLeft, ArrowRight, AlertTriangle, Info, Lock, History } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, HelpCircle, AlertTriangle, History } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import superjson from 'superjson';
 import { useTestQuestionsQuery, useStartAttemptMutation, useSubmitAttemptMutation } from '../helpers/useTestAttemptMutations';
@@ -15,13 +15,11 @@ import { postStudentTestItemResumeAttempt } from '../endpoints/student/test-item
 import { AttemptProgressState, emptyProgressState } from '../helpers/testAttemptProgressState';
 import { Button } from './Button';
 import { Progress } from './Progress';
-import { Skeleton } from './Skeleton';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger, DialogClose } from './Dialog';
-import { useIsMobile } from '../helpers/useIsMobile';
-import { MathMLContent } from './MathMLContent';
-import { QuestionAnswer, convertAnswerForSubmission } from '../helpers/questionAnswerTypes';
-import { castToExtendedQuestions, buildSubjectGroups, isQuestionLocked } from '../helpers/testingInterfaceTypes';
-import { QuestionRenderer } from './QuestionRenderer';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './Dialog';
+import { QuestionAnswer, QuestionData, convertAnswerForSubmission } from '../helpers/questionAnswerTypes';
+import { castToExtendedQuestions, buildSubjectGroups } from '../helpers/testingInterfaceTypes';
+import { TestingInterface, TestingSkeleton } from './TestingInterface';
+import { ExamColourKey } from './TestPreTestScreen';
 import { liveTestPath } from '../helpers/liveTestRoutes';
 import styles from './LiveTestInterface.module.css';
 
@@ -93,6 +91,8 @@ export const LiveTestInterface: React.FC<LiveTestInterfaceProps> = ({
   const [timeRemaining, setTimeRemaining] = useState(durationMinutes * 60);
   const [results, setResults] = useState<SubmitOutputType | null>(null);
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
+  const [markedForReview, setMarkedForReview] = useState<Set<number>>(new Set());
+  const [visitedQuestionIds, setVisitedQuestionIds] = useState<Set<number>>(new Set());
 
   // A live attempt can be continued after a refresh or crash, never restarted,
   // and its clock never pauses. deadlineRef is when time runs out, set from the
@@ -109,7 +109,6 @@ export const LiveTestInterface: React.FC<LiveTestInterfaceProps> = ({
   // Set once the attempt is saved for leaving, so later exit hooks don't save again
   const leftRef = useRef(false);
 
-  const isMobile = useIsMobile();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -133,7 +132,6 @@ export const LiveTestInterface: React.FC<LiveTestInterfaceProps> = ({
   const subjectGroups = useMemo(() => buildSubjectGroups(extendedQuestions), [extendedQuestions]);
 
   const currentQuestion = questionsData[currentQuestionIndex];
-  const answeredCount = answers.size;
 
   // Latest values for the timer, the page-exit save and the unmount cleanup
   const latestStateRef = useRef<{
@@ -142,7 +140,17 @@ export const LiveTestInterface: React.FC<LiveTestInterfaceProps> = ({
     ready: boolean;
     answers: Map<number, QuestionAnswer>;
     currentQuestionId: number | null;
-  }>({ stage: 'pre-test', attemptId: null, ready: false, answers: new Map(), currentQuestionId: null });
+    markedForReview: Set<number>;
+    visitedQuestionIds: Set<number>;
+  }>({
+    stage: 'pre-test',
+    attemptId: null,
+    ready: false,
+    answers: new Map(),
+    currentQuestionId: null,
+    markedForReview: new Set(),
+    visitedQuestionIds: new Set(),
+  });
 
   useEffect(() => {
     latestStateRef.current = {
@@ -151,8 +159,25 @@ export const LiveTestInterface: React.FC<LiveTestInterfaceProps> = ({
       ready: progressReady,
       answers,
       currentQuestionId: currentQuestion?.id ?? null,
+      markedForReview,
+      visitedQuestionIds,
     };
   });
+
+  // The palette shows a question as seen once the student has opened it
+  useEffect(() => {
+    if (stage !== 'testing' || !progressReady || !currentQuestion) return;
+    setVisitedQuestionIds((prev) => (prev.has(currentQuestion.id) ? prev : new Set(prev).add(currentQuestion.id)));
+  }, [stage, progressReady, currentQuestion]);
+
+  const toggleMarkForReview = useCallback((questionId: number) => {
+    setMarkedForReview((prev) => {
+      const next = new Set(prev);
+      if (next.has(questionId)) next.delete(questionId);
+      else next.add(questionId);
+      return next;
+    });
+  }, []);
 
   // Opens a started attempt, fresh or resumed. The server says how much time is
   // left: the duration since startedAt, stopping at the live test's end.
@@ -200,6 +225,8 @@ export const LiveTestInterface: React.FC<LiveTestInterfaceProps> = ({
         ? questions.findIndex((q) => q.id === restoreState.currentQuestionId)
         : -1;
       if (savedIndex >= 0) setCurrentQuestionIndex(savedIndex);
+      setMarkedForReview(new Set(restoreState.markedForReview.filter((id) => ids.has(id))));
+      setVisitedQuestionIds(new Set(restoreState.visitedQuestionIds.filter((id) => ids.has(id))));
     }
     setProgressReady(true);
   }, [stage, progressReady, questionsQuery.isSuccess, questionsQuery.isFetching, questionsQuery.data, restoreState]);
@@ -268,7 +295,7 @@ export const LiveTestInterface: React.FC<LiveTestInterfaceProps> = ({
   }, [stage, progressReady]);
 
   const buildSavePayload = useCallback((): SaveProgressInput | null => {
-    const { stage, attemptId, ready, answers, currentQuestionId } = latestStateRef.current;
+    const { stage, attemptId, ready, answers, currentQuestionId, markedForReview, visitedQuestionIds } = latestStateRef.current;
     if (leftRef.current || stage !== 'testing' || !attemptId || !ready) return null;
     // The server works out the time spent from startedAt for a live attempt.
     return {
@@ -278,6 +305,8 @@ export const LiveTestInterface: React.FC<LiveTestInterfaceProps> = ({
         ...emptyProgressState(secondsUntil(deadlineRef.current)),
         answers: Array.from(answers.entries()),
         currentQuestionId,
+        markedForReview: Array.from(markedForReview),
+        visitedQuestionIds: Array.from(visitedQuestionIds),
       },
     };
   }, []);
@@ -311,7 +340,7 @@ export const LiveTestInterface: React.FC<LiveTestInterfaceProps> = ({
       cancelled = true;
       if (timeout) clearTimeout(timeout);
     };
-  }, [stage, progressReady, answers, currentQuestionIndex, saveProgress]);
+  }, [stage, progressReady, answers, currentQuestionIndex, markedForReview, saveProgress]);
 
   // Save as the tab is hidden, refreshed or closed
   useEffect(() => {
@@ -452,12 +481,6 @@ export const LiveTestInterface: React.FC<LiveTestInterfaceProps> = ({
     }
   };
 
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-  };
-
   // Block right-click and keyboard shortcuts during testing
   useEffect(() => {
     if (stage !== 'testing') return;
@@ -495,8 +518,8 @@ export const LiveTestInterface: React.FC<LiveTestInterfaceProps> = ({
     return (
       <div className={styles.resumeCard}>
         <div className={styles.resumeHeading}>
-          <History size={22} className={styles.resumeIcon} />
-          <h3>{timeUp ? 'Your time is up' : 'Your test is still running'}</h3>
+          <History size={22} className={styles.resumeIcon} aria-hidden="true" />
+          <h2>{timeUp ? 'Your time is up' : 'Your test is still running'}</h2>
         </div>
         <p className={styles.resumeText}>
           {startedText}
@@ -523,219 +546,89 @@ export const LiveTestInterface: React.FC<LiveTestInterfaceProps> = ({
     const isShortened = !!endTime && secondsToEnd < fullSeconds;
 
     return (
-      <div className={styles.preTestContainer}>
-        <h1 className={styles.preTestTitle}>{liveTestTitle}</h1>
-        <div className={styles.preTestDetails}>
-          <div>
-            <Clock className={styles.detailIcon} />
-            <span>{durationMinutes} Minutes</span>
+      <div className={`${styles.preTestContainer} tk-student tk-flow`}>
+        <div className={styles.briefCard}>
+          <span className={styles.liveBadge}>
+            <span className={styles.liveDot} aria-hidden="true" />
+            Live test
+          </span>
+          <h1 className={styles.preTestTitle}>{liveTestTitle}</h1>
+          <div className={styles.preTestDetails}>
+            <span className={`${styles.fact} ${styles.factTime}`}>
+              <Clock className={styles.detailIcon} aria-hidden="true" />
+              {durationMinutes} min
+            </span>
+            <span className={`${styles.fact} ${styles.factQuestions}`}>
+              <HelpCircle className={styles.detailIcon} aria-hidden="true" />
+              {totalQuestions} questions
+            </span>
           </div>
-          <div>
-            <HelpCircle className={styles.detailIcon} />
-            <span>{totalQuestions} Questions</span>
-          </div>
-        </div>
-        {savedAttempt ? (
-          renderResumeCard(savedAttempt)
-        ) : (
-          <>
-            <div className={styles.instructions}>
-              <h3>Instructions</h3>
-              <p>This is a live, competitive test. Once you start, the timer cannot be paused. The test will be submitted automatically when the timer runs out. Your answers are saved as you go, so if the page refreshes or your connection drops, come back to this page to continue while the timer keeps running. Good luck!</p>
-            </div>
-            {isShortened && endTime && (
-              <div className={styles.liveTestWarning}>
-                <Clock size={24} className={styles.warningIcon} />
-                <p>
-                  <strong>Less time left:</strong> This live test ends at {formatClockTime(endTime)}, so if you start now you will have {describeSeconds(secondsToEnd)} instead of the full {durationMinutes} minutes.
-                </p>
+          {savedAttempt ? (
+            renderResumeCard(savedAttempt)
+          ) : (
+            <>
+              <div className={styles.instructions}>
+                <h2>Before you start</h2>
+                <ul>
+                  <li>You get one attempt, and the timer cannot be paused once you start.</li>
+                  <li>Your answers save as you go. If the page closes, come back here to carry on while time is left.</li>
+                  <li>The test submits itself when the time runs out.</li>
+                </ul>
               </div>
-            )}
-            <div className={styles.liveTestWarning}>
-              <AlertTriangle size={24} className={styles.warningIcon} />
-              <p>
-                <strong>Important:</strong> You can attempt this live test only once. Once you start, the timer begins immediately and cannot be paused. Make sure you are fully prepared before starting.
-              </p>
-            </div>
-            <Button
-              size="lg"
-              onClick={handleStartTest}
-              disabled={isChecking || startAttemptMutation.isPending || isOpening}
-            >
-              {isChecking ? 'Checking...' : startAttemptMutation.isPending || isOpening ? 'Starting...' : 'Start Test'}
-            </Button>
-          </>
-        )}
+              {isShortened && endTime && (
+                <div className={styles.liveTestWarning}>
+                  <Clock size={20} className={styles.warningIcon} aria-hidden="true" />
+                  <p>
+                    This live test ends at {formatClockTime(endTime)}, so if you start now you get {describeSeconds(secondsToEnd)} instead of the full {durationMinutes} minutes.
+                  </p>
+                </div>
+              )}
+              <ExamColourKey />
+              <div className={styles.actions}>
+                <Button
+                  size="lg"
+                  className={styles.startBtn}
+                  onClick={handleStartTest}
+                  disabled={isChecking || startAttemptMutation.isPending || isOpening}
+                >
+                  {isChecking ? 'Checking...' : startAttemptMutation.isPending || isOpening ? 'Starting...' : 'Start test'}
+                </Button>
+                <span className={styles.oneAttemptNote}>
+                  <AlertTriangle size={14} aria-hidden="true" /> One attempt only
+                </span>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     );
   };
 
   const renderTesting = () => {
-    if (questionsQuery.isFetching) return <TestSkeleton />;
+    if (questionsQuery.isFetching) return <TestingSkeleton />;
     if (questionsQuery.isError || !questionsQuery.data) {
       return <div className={styles.error}>Failed to load questions. Please try again.</div>;
     }
 
-    const answeredKeys = new Set(answers.keys());
-
-    const currentExtended = extendedQuestions[currentQuestionIndex];
-    const currentSubjectGroup = currentExtended 
-      ? subjectGroups.find(g => g.name === (currentExtended.subjectName || 'General Questions'))
-      : null;
-
-    let maxAttemptsInfoMessage: string | null = null;
-    let sectionName = 'section';
-    if (currentExtended && currentSubjectGroup) {
-      const section = currentSubjectGroup.sections.find(s => s.id === currentExtended.sectionId);
-      if (section?.maxAttemptsAllowed !== null && section?.maxAttemptsAllowed !== undefined) {
-        sectionName = 'section';
-        const answeredInSection = section.questions.filter(q => answers.has(q.id)).length;
-        maxAttemptsInfoMessage = `You can attempt ${section.maxAttemptsAllowed} out of ${section.questions.length} questions in ${section.name}. (${answeredInSection} answered so far)`;
-      } else if (currentSubjectGroup.maxAttemptsAllowed !== null) {
-        sectionName = 'subject';
-        const answeredInSubject = currentSubjectGroup.questions.filter(q => answers.has(q.id)).length;
-        maxAttemptsInfoMessage = `You can attempt ${currentSubjectGroup.maxAttemptsAllowed} out of ${currentSubjectGroup.questions.length} questions in ${currentSubjectGroup.name}. (${answeredInSubject} answered so far)`;
-      }
-    }
-
-    const isCurrentLocked = currentExtended && currentSubjectGroup 
-      ? isQuestionLocked(currentExtended, currentSubjectGroup, answeredKeys)
-      : false;
-
-    const questionPalette = (
-      <div className={styles.palette}>
-        <h4>Question Palette</h4>
-        <div className={styles.paletteGrid}>
-          {questionsData.map((q, index) => {
-            const extQ = extendedQuestions[index];
-            const sg = extQ ? subjectGroups.find(g => g.name === (extQ.subjectName || 'General Questions')) : null;
-            const locked = extQ && sg ? isQuestionLocked(extQ, sg, answeredKeys) : false;
-            return (
-              <button
-                key={q.id}
-                className={`${styles.paletteItem} ${index === currentQuestionIndex ? styles.current : ''} ${answers.has(q.id) ? styles.answered : styles.unanswered} ${locked ? styles.locked : ''}`}
-                onClick={() => setCurrentQuestionIndex(index)}
-              >
-                {index + 1}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-    );
-
-    const questionPaletteMobile = (
-      <div className={styles.paletteMobile}>
-        <div className={styles.paletteMobileScroll}>
-          {subjectGroups.map((group) => (
-            <React.Fragment key={group.name}>
-              <span className={styles.subjectLabelMobile}>{group.name}</span>
-              {group.questions.map((q) => {
-                const index = extendedQuestions.findIndex(ext => ext.id === q.id);
-                const locked = isQuestionLocked(q, group, answeredKeys);
-                return (
-                  <button
-                    key={q.id}
-                    className={`${styles.paletteItemMobile} ${index === currentQuestionIndex ? styles.current : ''} ${answers.has(q.id) ? styles.answered : styles.unanswered} ${locked ? styles.locked : ''}`}
-                    onClick={() => setCurrentQuestionIndex(index)}
-                  >
-                    {index + 1}
-                  </button>
-                );
-              })}
-            </React.Fragment>
-          ))}
-        </div>
-      </div>
-    );
-
-    const navigationButtons = (
-      <div className={styles.navigationButtons}>
-        <Button variant="outline" onClick={() => setCurrentQuestionIndex(currentQuestionIndex - 1)} disabled={currentQuestionIndex === 0}>
-          <ArrowLeft size={16} /> Previous
-        </Button>
-        <Button onClick={() => setCurrentQuestionIndex(currentQuestionIndex + 1)} disabled={currentQuestionIndex === questionsData.length - 1}>
-          Next <ArrowRight size={16} />
-        </Button>
-      </div>
-    );
-
     return (
-      <div className={`${styles.testingContainer} ${styles.noSelect}`}>
-        {/* Anti-cheating watermark */}
-        <div className={styles.watermark}>
-          <div className={styles.watermarkText}>
-            {teacherName} | Testkart
-          </div>
-        </div>
-        <header className={styles.testHeader}>
-          <div className={styles.headerLeft}>
-            <h2 className={styles.testTitle}>{liveTestTitle}</h2>
-            <span className={styles.progressText}>Question {currentQuestionIndex + 1} of {questionsData.length}</span>
-          </div>
-          <div className={styles.headerRight}>
-            <div className={`${styles.timer} ${timeRemaining < 300 ? styles.timerWarning : ''}`}>
-              <Clock size={18} />
-              <span>{formatTime(timeRemaining)}</span>
-            </div>
-            <Dialog open={isSubmitDialogOpen} onOpenChange={setIsSubmitDialogOpen}>
-              <DialogTrigger asChild><Button variant="destructive">Submit Test</Button></DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Confirm Submission</DialogTitle>
-                  <DialogDescription>Are you sure you want to submit your test?</DialogDescription>
-                </DialogHeader>
-                <div className={styles.submitSummary}>
-                  <p>Answered: {answeredCount}</p>
-                  <p>Unanswered: {questionsData.length - answeredCount}</p>
-                </div>
-                <DialogFooter>
-                  <DialogClose asChild><Button variant="ghost">Go Back</Button></DialogClose>
-                  <Button variant="destructive" onClick={handleSubmit} disabled={submitAttemptMutation.isPending}>
-                    {submitAttemptMutation.isPending ? 'Submitting...' : 'Submit Test'}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </header>
-        {isMobile && questionPaletteMobile}
-        <main className={styles.testBody}>
-          <div className={styles.questionArea}>
-            {currentQuestion && (
-              <div key={currentQuestion.id}>
-                <h3 className={styles.questionText}>
-                  <span className={styles.questionNumber}>{currentQuestionIndex + 1}.</span>
-                  <MathMLContent html={currentQuestion.questionText} />
-                </h3>
-                {maxAttemptsInfoMessage && (
-                  <div className={styles.maxAttemptsInfoBanner}>
-                    <Info size={14} />
-                    <span>{maxAttemptsInfoMessage}</span>
-                  </div>
-                )}
-                {isCurrentLocked && (
-                  <div className={styles.lockBanner}>
-                    <Lock size={14} />
-                    <span>You have reached the maximum attempts for this {sectionName}.</span>
-                  </div>
-                )}
-                <div className={isCurrentLocked ? styles.lockedQuestion : undefined}>
-                  <QuestionRenderer
-                    question={currentQuestion as any}
-                    answer={answers.get(currentQuestion.id)}
-                    onAnswerChange={(answer) => handleAnswerChange(currentQuestion.id, answer)}
-                    className={styles.optionsGroup}
-                  />
-                </div>
-              </div>
-            )}
-            {!isMobile && navigationButtons}
-          </div>
-          {!isMobile && questionPalette}
-        </main>
-        {isMobile && <footer className={styles.navigationFooter}>{navigationButtons}</footer>}
-      </div>
+      <TestingInterface
+        testItemTitle={liveTestTitle}
+        teacherName={teacherName}
+        questions={questionsData as QuestionData[]}
+        answers={answers}
+        timeRemaining={timeRemaining}
+        currentQuestionIndex={currentQuestionIndex}
+        onAnswerChange={handleAnswerChange}
+        onQuestionNavigate={setCurrentQuestionIndex}
+        onSubmit={handleSubmit}
+        isSubmitting={submitAttemptMutation.isPending}
+        calculatorEnabled={false}
+        markedForReview={markedForReview}
+        visitedQuestionIds={visitedQuestionIds}
+        onToggleMarkForReview={toggleMarkForReview}
+        submitDialogOpen={isSubmitDialogOpen}
+        onSubmitDialogOpenChange={setIsSubmitDialogOpen}
+      />
     );
   };
 
@@ -748,25 +641,36 @@ export const LiveTestInterface: React.FC<LiveTestInterfaceProps> = ({
     const timeTakenFormatted = `${Math.floor(timeTakenSeconds / 60)}m ${timeTakenSeconds % 60}s`;
 
     return (
-      <div className={styles.resultsContainer}>
-        <div className={styles.resultsHeader}>
-          <h1>Test Results</h1>
-          <Button variant="outline" asChild>
-            <Link to={liveTestPath(liveTestSlug)}>Back to Test Details</Link>
+      <div className={`${styles.resultsContainer} tk-student tk-flow`}>
+        <div className={styles.resultsCard}>
+          <div className={styles.resultsHeader}>
+            <h1>Test submitted</h1>
+            <p>Here is how you did.</p>
+          </div>
+          <div className={styles.scoreCard}>
+            <span className={styles.scoreLabel}>Your score</span>
+            <p className={styles.scorePercentage}>{results.score.toFixed(2)}%</p>
+            <p className={styles.scoreFraction}>{results.correctAnswers} of {results.totalQuestions} correct</p>
+            <Progress value={results.score} className={styles.scoreProgress} />
+          </div>
+          <div className={styles.performanceBreakdown}>
+            <div className={`${styles.breakdownItem} ${styles.breakdownCorrect}`}>
+              <CheckCircle aria-hidden="true" />
+              <div><p>{results.correctAnswers}</p><span>Correct</span></div>
+            </div>
+            <div className={`${styles.breakdownItem} ${styles.breakdownIncorrect}`}>
+              <XCircle aria-hidden="true" />
+              <div><p>{results.totalQuestions - results.correctAnswers}</p><span>Not correct</span></div>
+            </div>
+            <div className={`${styles.breakdownItem} ${styles.breakdownTime}`}>
+              <Clock aria-hidden="true" />
+              <div><p>{timeTakenFormatted}</p><span>Time taken</span></div>
+            </div>
+          </div>
+          <Button asChild size="lg" className={styles.resultsAction}>
+            <Link to={liveTestPath(liveTestSlug)}>Back to the live test</Link>
           </Button>
         </div>
-        <div className={styles.scoreCard}>
-          <h2>Your Score</h2>
-          <p className={styles.scorePercentage}>{results.score.toFixed(2)}%</p>
-          <p className={styles.scoreFraction}>{results.correctAnswers} / {results.totalQuestions}</p>
-          <Progress value={results.score} className={styles.scoreProgress} />
-        </div>
-        <div className={styles.performanceBreakdown}>
-          <div className={styles.breakdownItem}><CheckCircle className={styles.correctIcon} /><div><p>{results.correctAnswers}</p><span>Correct</span></div></div>
-          <div className={styles.breakdownItem}><XCircle className={styles.incorrectIcon} /><div><p>{results.totalQuestions - results.correctAnswers}</p><span>Incorrect</span></div></div>
-          <div className={styles.breakdownItem}><Clock className={styles.timeIcon} /><div><p>{timeTakenFormatted}</p><span>Time Taken</span></div></div>
-        </div>
-
       </div>
     );
   };
@@ -789,7 +693,7 @@ export const LiveTestInterface: React.FC<LiveTestInterfaceProps> = ({
           if (!isLeaving) setIsLeaveDialogOpen(open);
         }}
       >
-        <DialogContent>
+        <DialogContent className="tk-student tk-flow">
           <DialogHeader>
             <DialogTitle>Leave the test?</DialogTitle>
             <DialogDescription>
@@ -810,41 +714,3 @@ export const LiveTestInterface: React.FC<LiveTestInterfaceProps> = ({
     </div>
   );
 };
-
-const TestSkeleton = () => (
-  <div className={styles.testingContainer}>
-    <header className={styles.testHeader}>
-      <div className={styles.headerLeft}>
-        <Skeleton style={{ width: '250px', height: '2rem' }} />
-        <Skeleton style={{ width: '150px', height: '1.25rem', marginTop: 'var(--spacing-2)' }} />
-      </div>
-      <div className={styles.headerRight}>
-        <Skeleton style={{ width: '100px', height: '2.5rem' }} />
-        <Skeleton style={{ width: '120px', height: '2.5rem' }} />
-      </div>
-    </header>
-    <main className={styles.testBody}>
-      <div className={styles.questionArea}>
-        <Skeleton style={{ width: '80%', height: '2rem', marginBottom: 'var(--spacing-6)' }} />
-        <div className={styles.optionsGroup}>
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className={styles.optionLabel}>
-              <Skeleton style={{ width: '1.25rem', height: '1.25rem', borderRadius: 'var(--radius-full)' }} />
-              <Skeleton style={{ width: '60%', height: '1.25rem' }} />
-            </div>
-          ))}
-        </div>
-        <div className={styles.navigationButtons}>
-          <Skeleton style={{ width: '120px', height: '2.5rem' }} />
-          <Skeleton style={{ width: '120px', height: '2.5rem' }} />
-        </div>
-      </div>
-      <div className={styles.palette}>
-        <Skeleton style={{ width: '100px', height: '1.5rem', marginBottom: 'var(--spacing-4)' }} />
-        <div className={styles.paletteGrid}>
-          {[...Array(20)].map((_, i) => <Skeleton key={i} style={{ width: '2.5rem', height: '2.5rem' }} />)}
-        </div>
-      </div>
-    </main>
-  </div>
-);

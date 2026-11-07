@@ -79,7 +79,6 @@
   min-height: 2.25rem;
   padding: var(--spacing-1) var(--spacing-3);
   border-radius: var(--radius);
-  border-left: 3px solid transparent;
   font-size: 0.875rem;
   font-weight: 500;
   line-height: 1.35;
@@ -96,7 +95,6 @@
 }
 
 .indexLink[aria-current] {
-  border-left-color: var(--tk-brand-text);
   background-color: var(--tk-brand-tint);
   color: var(--foreground);
   font-weight: 700;

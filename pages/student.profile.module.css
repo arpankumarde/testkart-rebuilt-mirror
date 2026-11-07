@@ -248,8 +248,7 @@
   gap: var(--spacing-4);
   padding: var(--spacing-6);
   background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--error);
+  border: 1px solid var(--error);
   border-radius: var(--radius-md);
 }
 

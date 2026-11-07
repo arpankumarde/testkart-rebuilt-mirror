@@ -46,8 +46,7 @@
 .tocLink {
   display: block;
   padding: 0.375rem 0.625rem;
-  border-left: 3px solid transparent;
-  border-radius: 0 var(--radius) var(--radius) 0;
+  border-radius: var(--radius);
   color: var(--muted-foreground);
   font-size: 0.875rem;
   font-weight: 500;
@@ -69,7 +68,6 @@
 .tocActive,
 .tocActive:hover {
   background-color: var(--pastel-peach);
-  border-left-color: var(--tk-brand);
   color: var(--pastel-peach-ink);
   font-weight: 700;
 }

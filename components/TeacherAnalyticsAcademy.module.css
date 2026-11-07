@@ -23,7 +23,6 @@
   gap: var(--spacing-3);
   padding: var(--spacing-3) var(--spacing-4);
   border: 1px solid var(--border);
-  border-left: 3px solid var(--an-series-2);
   border-radius: var(--radius);
   background-color: var(--surface);
   color: var(--foreground);

@@ -1,25 +1,38 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-3);
+  gap: var(--spacing-2);
   max-width: 100%;
   overflow-x: auto;
 }
 
 .instruction {
   font-size: 0.875rem;
-  color: var(--muted-foreground);
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--sp-text);
+  margin: 0;
 }
 
 .input {
-  max-width: 400px;
+  max-width: 22rem;
+  height: 3.25rem;
   font-family: var(--font-family-monospace);
-  font-size: 1.125rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  background-color: var(--sp-card);
+  border: 1.5px solid var(--sp-line-strong);
+  border-radius: 0.875rem;
+  color: var(--sp-ink);
+}
+
+.input:focus,
+.input:focus-visible {
+  border-color: var(--sp-blue-edge);
+  box-shadow: 0 0 0 2px var(--sp-card), 0 0 0 4px var(--fc-blue-edge);
 }
 
 .hint {
   font-size: 0.75rem;
-  color: var(--muted-foreground);
-  font-style: italic;
+  color: var(--sp-muted);
+  margin: 0;
 }

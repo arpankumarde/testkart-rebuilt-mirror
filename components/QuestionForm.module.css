@@ -299,7 +299,6 @@
 .formErrorSummary {
   padding: var(--spacing-3) var(--spacing-4);
   border: 1px solid color-mix(in srgb, var(--error), black 25%);
-  border-left-width: 4px;
   border-radius: var(--radius);
   background-color: var(--surface);
   color: var(--error-text);

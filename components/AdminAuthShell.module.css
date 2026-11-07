@@ -80,7 +80,6 @@
   padding: var(--spacing-3) var(--spacing-4);
   background-color: var(--muted);
   border: 1px solid var(--border);
-  border-left: 4px solid var(--border);
   border-radius: var(--radius);
   color: var(--foreground);
   font-size: 0.875rem;
@@ -88,11 +87,11 @@
 }
 
 .noticeError {
-  border-left-color: var(--error);
+  border-color: var(--error);
 }
 
 .noticeSuccess {
-  border-left-color: var(--success);
+  border-color: var(--success);
 }
 
 .link {

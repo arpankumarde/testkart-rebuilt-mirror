@@ -5,8 +5,8 @@
 }
 
 .container {
-  background-color: var(--background);
-  color: var(--foreground);
+  background-color: var(--sp-surface);
+  color: var(--sp-ink);
   padding: 0;
   border-radius: 0;
   height: 100%;
@@ -21,12 +21,9 @@
   align-items: center;
   justify-content: center;
   flex-grow: 1;
-  font-size: 1.25rem;
+  padding: var(--spacing-6);
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
   color: var(--error-text);
-}
-
-@media (max-width: 768px) {
-  .container {
-    padding: 0;
-  }
 }

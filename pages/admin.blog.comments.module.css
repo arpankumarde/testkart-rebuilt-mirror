@@ -97,7 +97,7 @@
   background-color: var(--muted);
   padding: var(--spacing-3);
   border-radius: var(--radius);
-  border-left: 3px solid var(--border);
+  border: 1px solid var(--border);
   white-space: pre-wrap;
   word-break: break-word;
 }

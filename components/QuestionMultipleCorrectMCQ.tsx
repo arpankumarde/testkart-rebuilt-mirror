@@ -46,19 +46,23 @@ export const QuestionMultipleCorrectMCQ: React.FC<QuestionMultipleCorrectMCQProp
 
   return (
     <div className={`${styles.optionsGroup} ${className || ''}`}>
-      <p className={styles.instruction}>Select all correct options:</p>
+      <p className={styles.instruction}>More than one option can be correct. Select all that apply.</p>
       {optionKeys.map((opt) => {
-        const optionText = optionMap[opt];
         const isChecked = selectedOptions.includes(opt);
-        
         return (
-          <label key={opt} className={styles.optionLabel}>
-            <Checkbox
-              id={`q${questionId}-opt${opt}`}
-              checked={isChecked}
-              onChange={(e) => handleCheckboxChange(opt, e.target.checked)}
-            />
-            <MathMLContent html={optionText} inline />
+          <label key={opt} className={`${styles.optionLabel} ${isChecked ? styles.selected : ''}`}>
+            {/* The checkbox stays focusable for keyboards; the letter badge shows its state. */}
+            <span className={styles.control}>
+              <Checkbox
+                id={`q${questionId}-opt${opt}`}
+                checked={isChecked}
+                onChange={(e) => handleCheckboxChange(opt, e.target.checked)}
+              />
+            </span>
+            <span className={styles.optionLetter} aria-hidden="true">{opt}</span>
+            <span className={styles.optionText}>
+              <MathMLContent html={optionMap[opt]} inline />
+            </span>
           </label>
         );
       })}

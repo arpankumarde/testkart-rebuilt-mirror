@@ -20,7 +20,7 @@
   padding: var(--spacing-4);
   border-radius: var(--radius);
   margin-bottom: var(--spacing-4);
-  border-left: 3px solid var(--info);
+  border: 1px solid var(--border);
 }
 
 .reviewQuestionText {
@@ -101,7 +101,7 @@
   border-radius: var(--radius);
   font-size: 0.9rem;
   line-height: 1.6;
-  border-left: 3px solid var(--warning);
+  border: 1px solid var(--warning);
   margin-bottom: var(--spacing-3);
 }
 
@@ -112,7 +112,7 @@
   border-radius: var(--radius);
   font-size: 0.9rem;
   line-height: 1.6;
-  border-left: 3px solid var(--success);
+  border: 1px solid var(--success);
   margin-bottom: var(--spacing-3);
 }
 
@@ -126,7 +126,7 @@
   border-radius: var(--radius);
   font-size: 0.9rem;
   line-height: 1.6;
-  border-left: 3px solid var(--info);
+  border: 1px solid var(--border);
   margin-bottom: var(--spacing-3);
 }
 
@@ -219,7 +219,7 @@
   border-radius: var(--radius);
   font-size: 0.9rem;
   line-height: 1.6;
-  border-left: 3px solid var(--secondary);
+  border: 1px solid var(--border);
 }
 
 @media (max-width: 768px) {

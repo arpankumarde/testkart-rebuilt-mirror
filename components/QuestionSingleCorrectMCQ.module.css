@@ -1,28 +1,89 @@
 .optionsGroup {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-4);
+  gap: var(--spacing-3);
 }
 
+/* Option cards: a letter badge and the option text. Selected options go calm
+   blue so they never read as a right or wrong mark. */
 .optionLabel {
+  position: relative;
   display: flex;
-  align-items: center;
-  gap: var(--spacing-4);
-  padding: var(--spacing-4);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--sp-card);
+  border: 1.5px solid var(--sp-line-strong);
+  border-radius: 0.875rem;
   cursor: pointer;
-  transition: border-color var(--animation-duration-fast), box-shadow var(--animation-duration-fast);
-  overflow: hidden; /* Prevent overflow */
   max-width: 100%;
+  transition:
+    border-color var(--animation-duration-fast) ease,
+    background-color var(--animation-duration-fast) ease;
 }
 
 .optionLabel:hover {
-  border-color: var(--primary);
+  border-color: var(--sp-line-strong);
+  background-color: var(--sp-surface);
 }
 
-.optionLabel > span {
+.optionLabel:has(:focus-visible) {
+  box-shadow: 0 0 0 2px var(--sp-card), 0 0 0 4px var(--fc-blue-edge);
+}
+
+.optionLabel.selected,
+.optionLabel.selected:hover {
+  background-color: var(--sp-blue-tint);
+  border-color: var(--sp-blue-ink);
+}
+
+.control {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.optionLetter {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--sp-line-strong);
+  background-color: var(--sp-card);
+  color: var(--sp-ink);
+  font-size: 0.875rem;
+  font-weight: 800;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    border-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
+}
+
+.selected .optionLetter {
+  background-color: var(--sp-blue-ink);
+  border-color: var(--sp-blue-ink);
+  color: var(--sp-card);
+}
+
+.optionText {
+  flex: 1;
+  min-width: 0;
+  align-self: center;
   font-size: 1rem;
-  overflow-x: auto; /* Allow scrolling for wide content inside options */
-  max-width: 100%;
+  line-height: 1.55;
+  color: var(--sp-ink);
+  overflow-x: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .optionLabel,
+  .optionLetter {
+    transition: none;
+  }
 }

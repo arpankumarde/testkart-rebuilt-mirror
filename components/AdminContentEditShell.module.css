@@ -37,7 +37,6 @@
   margin: 0;
   padding: var(--spacing-3) var(--spacing-4);
   border: 1px solid var(--border);
-  border-left: 4px solid var(--primary);
   border-radius: var(--radius);
   background: var(--card);
   color: var(--foreground);

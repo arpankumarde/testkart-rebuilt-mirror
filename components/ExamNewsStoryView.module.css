@@ -343,9 +343,9 @@
 .prose :global(blockquote) {
   margin: 0 0 var(--spacing-4);
   padding: var(--spacing-3) var(--spacing-4);
-  border-left: 3px solid var(--tk-brand);
+  border: 1px solid var(--border);
   background-color: var(--muted);
-  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  border-radius: var(--radius-md);
 }
 
 .sourceBox,

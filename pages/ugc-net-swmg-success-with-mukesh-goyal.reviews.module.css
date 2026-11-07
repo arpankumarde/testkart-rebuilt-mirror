@@ -8,8 +8,8 @@
 }
 
 .check {
-  padding: var(--spacing-4) 0 0 var(--spacing-6);
-  border-left: 4px solid var(--tk-brand);
+  padding: var(--spacing-4) 0 0;
+  border-top: 3px solid var(--tk-brand);
 }
 
 .checkTitle {

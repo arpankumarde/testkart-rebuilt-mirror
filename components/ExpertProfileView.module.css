@@ -794,8 +794,8 @@
 .approachPanel {
   max-width: none;
   padding: 1.125rem 1.25rem;
-  border-left: 3px solid var(--ab-sage-bar);
-  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  border: 1px solid var(--ab-sage-bar);
+  border-radius: var(--radius-md);
   background-color: var(--pastel-sage);
 }
 

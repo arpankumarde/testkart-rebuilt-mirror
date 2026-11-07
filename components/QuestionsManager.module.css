@@ -160,7 +160,6 @@
 .errorState {
   background-color: var(--sp-card);
   border: 1px solid var(--error-text);
-  border-left-width: 4px;
   border-radius: var(--radius-md);
   padding: var(--spacing-6);
   margin-bottom: var(--spacing-4);
@@ -198,7 +197,7 @@
   padding: var(--spacing-3) var(--spacing-4);
   background-color: var(--muted);
   border-radius: var(--radius-md);
-  border-left: 4px solid var(--primary);
+  border: 1px solid var(--border);
 }
 
 .sectionHeaderClickable {

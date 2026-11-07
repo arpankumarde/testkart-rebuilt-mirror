@@ -199,7 +199,6 @@
   padding: var(--spacing-3) var(--spacing-4);
   background-color: var(--surface);
   border: 1px solid var(--border);
-  border-left: 3px solid var(--tk-brand-text);
   border-radius: var(--radius);
   font-size: 0.9375rem;
   line-height: 1.6;

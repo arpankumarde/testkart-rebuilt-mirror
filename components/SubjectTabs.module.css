@@ -2,67 +2,79 @@
   display: flex;
   gap: var(--spacing-2);
   overflow-x: auto;
-  padding-bottom: var(--spacing-2);
-  margin-bottom: var(--spacing-4);
-  border-bottom: 1px solid var(--border);
+  padding-bottom: var(--spacing-1);
   scrollbar-width: thin;
 }
 
 .subjectTabs::-webkit-scrollbar {
-  height: 6px;
+  height: 4px;
 }
 
 .subjectTabs::-webkit-scrollbar-thumb {
-  background-color: var(--border);
+  background-color: var(--sp-line);
   border-radius: var(--radius-full);
 }
 
 .subjectTab {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-1);
-  padding: var(--spacing-3) var(--spacing-4);
-  background-color: var(--muted);
-  border: 2px solid transparent;
+  align-items: flex-start;
+  gap: 0.125rem;
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: var(--sp-card);
+  border: 1.5px solid var(--sp-line);
   border-radius: var(--radius);
+  color: var(--sp-ink);
   cursor: pointer;
-  transition: all var(--animation-duration-fast);
+  transition: border-color var(--animation-duration-fast) ease, background-color var(--animation-duration-fast) ease;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .subjectTab:hover:not(:disabled) {
-  background-color: color-mix(in srgb, var(--muted) 80%, var(--foreground));
+  border-color: var(--sp-line-strong);
+  background-color: var(--sp-surface);
+}
+
+.subjectTab:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--sp-card), 0 0 0 4px var(--fc-blue-edge);
 }
 
 .subjectTab.disabled {
-  opacity: 0.6;
   cursor: not-allowed;
+  background-color: var(--muted);
 }
 
-.subjectTab.active {
-  background-color: color-mix(in srgb, var(--primary) 15%, transparent);
-  border-color: var(--primary);
+.subjectTab.active,
+.subjectTab.active:hover:not(:disabled) {
+  background-color: var(--sp-lavender-tint);
+  border-color: var(--sp-lavender-edge);
 }
 
 .subjectName {
-  font-weight: 600;
-  font-size: 0.875rem;
+  font-weight: 700;
+  font-size: 0.8125rem;
 }
 
 .subjectTab.active .subjectName {
-  color: var(--primary);
+  color: var(--sp-lavender-ink);
 }
 
 .subjectCount {
-  font-size: 0.75rem;
-  color: var(--muted-foreground);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--sp-muted);
+  font-variant-numeric: tabular-nums;
   display: flex;
   align-items: center;
   gap: var(--spacing-1);
 }
 
+.subjectTab.active .subjectCount {
+  color: var(--sp-lavender-ink);
+}
+
 .checkIcon {
-  color: var(--success-text);
+  color: var(--fc-mint-edge);
 }

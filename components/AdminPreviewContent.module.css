@@ -301,8 +301,7 @@ a.rowStatic:focus-visible {
   align-items: center;
   gap: var(--spacing-2) var(--spacing-3);
   padding: var(--spacing-3) var(--spacing-4);
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--error);
+  border: 1px solid var(--error);
   border-radius: var(--radius);
   background: var(--card);
   color: var(--foreground);

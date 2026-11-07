@@ -8,7 +8,7 @@
   padding: var(--spacing-3);
   border-radius: var(--radius);
   margin-bottom: var(--spacing-4);
-  border-left: 4px solid;
+  border: 1px solid;
 }
 
 .statusLabel {

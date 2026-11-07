@@ -241,7 +241,8 @@
 }
 
 .additionalContent blockquote {
-  border-left: 4px solid var(--primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   padding: var(--spacing-3) var(--spacing-4);
   margin: var(--spacing-4) 0;
   background-color: color-mix(in srgb, var(--primary) 5%, transparent);

@@ -6,11 +6,9 @@
 
 .instruction {
   font-size: 0.875rem;
-  color: var(--muted-foreground);
-  font-weight: 500;
-  padding: var(--spacing-3);
-  background-color: var(--muted);
-  border-radius: var(--radius);
+  font-weight: 600;
+  color: var(--sp-text);
+  margin: 0;
 }
 
 .matchGrid {
@@ -23,13 +21,13 @@
 
 .columnHeader {
   font-family: var(--font-family-heading);
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--sp-blue-ink);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: var(--spacing-3);
-  background-color: var(--muted);
+  letter-spacing: 0.06em;
+  padding: var(--spacing-2) var(--spacing-3);
+  background-color: var(--sp-blue-tint);
   border-radius: var(--radius);
   text-align: center;
 }
@@ -38,10 +36,11 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
-  padding: var(--spacing-4);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background-color: var(--surface);
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1.5px solid var(--sp-line);
+  border-radius: 0.875rem;
+  background-color: var(--sp-card);
+  color: var(--sp-ink);
   min-height: 3rem;
   overflow: hidden;
   max-width: 100%;
@@ -53,8 +52,8 @@
 }
 
 .itemNumber {
-  font-weight: 600;
-  color: var(--primary);
+  font-weight: 800;
+  color: var(--sp-blue-ink);
   flex-shrink: 0;
 }
 
@@ -66,8 +65,8 @@
 }
 
 .rightItemLetter {
-  font-weight: 600;
-  color: var(--primary);
+  font-weight: 800;
+  color: var(--sp-blue-ink);
   flex-shrink: 0;
 }
 
@@ -82,7 +81,6 @@
   }
 
   .leftItem {
-    background-color: var(--muted);
-    border: none;
+    background-color: var(--sp-surface);
   }
 }

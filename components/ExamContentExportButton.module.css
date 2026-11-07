@@ -114,8 +114,9 @@
 
 .content :global(blockquote) {
   margin: 0 0 0.625rem;
-  padding: 0.25rem 0 0.25rem 1rem;
-  border-left: 3px solid #4b5563;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.25rem;
   color: #374151;
   font-style: italic;
 }

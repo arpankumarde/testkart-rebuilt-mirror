@@ -46,7 +46,6 @@
 
   min-width: 0;
   border: 1px solid var(--border);
-  border-left: 3px solid var(--queue-accent);
   border-radius: var(--radius);
   background-color: color-mix(in srgb, var(--queue-accent) 10%, var(--surface));
   transition: background-color var(--animation-duration-fast) ease;

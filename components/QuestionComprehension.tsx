@@ -41,27 +41,32 @@ export const QuestionComprehension: React.FC<QuestionComprehensionProps> = ({
   return (
     <div className={`${styles.container} ${className || ''}`}>
       <div className={styles.paragraphBox}>
-        <h4 className={styles.paragraphHeading}>Passage:</h4>
+        <h4 className={styles.paragraphHeading}>Passage</h4>
         <div className={styles.paragraphContent}>
           <MathMLContent html={paragraphText} />
         </div>
       </div>
-      
+
       <RadioGroup
         key={selectedOption || 'cleared'}
         className={styles.optionsGroup}
         value={selectedOption}
         onValueChange={(value) => onAnswerChange(value as MCQOption)}
       >
-        {optionKeys.map((opt) => {
-          const optionText = optionMap[opt];
-          return (
-            <label key={opt} className={styles.optionLabel}>
+        {optionKeys.map((opt) => (
+          <label
+            key={opt}
+            className={`${styles.optionLabel} ${selectedOption === opt ? styles.selected : ''}`}
+          >
+            <span className={styles.control}>
               <RadioGroupItem value={opt} id={`q${questionId}-opt${opt}`} />
-              <MathMLContent html={optionText} inline />
-            </label>
-          );
-        })}
+            </span>
+            <span className={styles.optionLetter} aria-hidden="true">{opt}</span>
+            <span className={styles.optionText}>
+              <MathMLContent html={optionMap[opt]} inline />
+            </span>
+          </label>
+        ))}
       </RadioGroup>
     </div>
   );

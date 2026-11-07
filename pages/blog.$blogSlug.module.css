@@ -839,8 +839,7 @@
   padding: 1rem 1.25rem;
   background-color: var(--bd-sage-tint);
   border: 1px solid var(--bd-sage-line);
-  border-left: 5px solid var(--bd-sage-edge);
-  border-radius: 0.5rem 1rem 1rem 0.5rem;
+  border-radius: 1rem;
   color: var(--bd-sage-ink);
 }
 

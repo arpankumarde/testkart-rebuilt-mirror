@@ -3,7 +3,8 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background-color: var(--background);
+  background-color: var(--sp-surface);
+  color: var(--sp-ink);
   padding: var(--spacing-8);
 }
 
@@ -15,10 +16,11 @@
 }
 
 .errorContainer {
-  background-color: var(--surface);
+  background-color: var(--sp-card);
   padding: var(--spacing-8);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.5rem;
+  box-shadow: var(--sp-shadow);
   text-align: center;
   max-width: 500px;
   display: flex;
@@ -30,26 +32,28 @@
 .errorIcon {
   width: 3rem;
   height: 3rem;
-  color: var(--error);
+  color: var(--sp-peach-edge);
 }
 
 .errorContainer h2 {
   font-family: var(--font-family-heading);
   font-size: 1.5rem;
-  color: var(--surface-foreground);
+  font-weight: 800;
+  color: var(--sp-ink);
 }
 
 .errorContainer p {
-  color: var(--muted-foreground);
+  color: var(--sp-text);
   line-height: 1.6;
   margin-bottom: var(--spacing-2);
 }
 
 .testInterfaceContainer {
   width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: var(--spacing-4) 0;
+  height: 100vh;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
 }
 
 @media (max-width: 768px) {
@@ -71,7 +75,7 @@
   }
 
   .testInterfaceContainer {
-    padding: var(--spacing-2) 0;
+    padding: 0;
   }
 }
 

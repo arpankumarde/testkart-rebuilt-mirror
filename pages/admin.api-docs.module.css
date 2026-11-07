@@ -213,7 +213,7 @@
 }
 
 .deprecatedCard {
-  border-left: 4px solid var(--error-text);
+  border-color: var(--error-text);
 }
 
 .endpointHeader {

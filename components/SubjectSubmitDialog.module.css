@@ -1,9 +1,21 @@
 .summary {
-  margin: var(--spacing-4) 0;
-  font-size: 0.9375rem;
+  margin: var(--spacing-2) 0;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-3);
+  gap: var(--spacing-2);
+}
+
+:global(.tk-flow) .submitBtn {
+  background-color: hsl(0 70% 45%);
+  border-color: hsl(0 70% 45%);
+  color: #fff;
+  font-weight: 700;
+}
+
+:global(.tk-flow) .submitBtn:hover:not(:disabled) {
+  background-color: hsl(0 72% 38%);
+  border-color: hsl(0 72% 38%);
+  color: #fff;
 }
 
 .row {
@@ -11,29 +23,32 @@
   justify-content: space-between;
   align-items: center;
   padding: var(--spacing-3) var(--spacing-4);
-  background-color: var(--muted);
-  border-radius: var(--radius);
+  background-color: var(--pastel-mint);
+  border: 1.5px solid var(--sp-mint-line);
+  border-radius: 0.875rem;
+  color: var(--pastel-mint-ink);
 }
 
 .label {
-  font-weight: 600;
-  color: var(--foreground);
+  font-weight: 700;
 }
 
 .value {
-  font-weight: 500;
-  color: var(--muted-foreground);
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 
 .warningRow {
-  padding: var(--spacing-2) var(--spacing-4);
-  background-color: color-mix(in srgb, var(--warning) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--warning) 40%, transparent);
-  border-radius: var(--radius);
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--pastel-peach);
+  border: 1.5px solid var(--fc-peach-line);
+  border-radius: 0.875rem;
 }
 
 .warningText {
   font-size: 0.875rem;
-  color: var(--warning-text);
-  font-weight: 500;
+  color: var(--pastel-peach-ink);
+  font-weight: 700;
 }

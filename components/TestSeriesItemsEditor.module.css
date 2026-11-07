@@ -44,7 +44,6 @@
    marks the problem without washing the whole card in red. */
 .itemCardBlocking {
   border-color: color-mix(in srgb, var(--error) 45%, var(--border));
-  border-left: 3px solid color-mix(in srgb, var(--error), black 15%);
 }
 
 .itemIssueBlocking {

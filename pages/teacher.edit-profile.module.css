@@ -134,7 +134,6 @@
   padding: var(--spacing-4);
   background-color: var(--surface);
   border: 1px solid var(--info);
-  border-left: 4px solid var(--info);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow);
 }
