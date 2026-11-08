@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import DailyIframe, { DailyCall } from "@daily-co/daily-js";
@@ -22,6 +22,8 @@ import {
   AlertTriangle,
   Star,
   Crown,
+  ArrowLeft,
+  X,
 } from "lucide-react";
 import { useAuth } from "../helpers/useAuth";
 import {
@@ -41,7 +43,6 @@ import {
 } from "../helpers/useLiveClassroom";
 import { Button } from "./Button";
 import { Skeleton } from "./Skeleton";
-import { Tabs, TabsList, TabsTrigger } from "./Tabs";
 import { Textarea } from "./Textarea";
 import { Input } from "./Input";
 import { ConsoleConfirmDialog } from "./ConsoleConfirmDialog";
@@ -49,6 +50,13 @@ import { NotFoundState } from "./NotFoundState";
 import styles from "./LiveClassroom.module.css";
 
 type PanelKey = "participants" | "chat" | "materials" | "notes";
+
+const PANEL_LABELS: Record<PanelKey, string> = {
+  participants: "People",
+  chat: "Chat",
+  materials: "Materials",
+  notes: "Notes",
+};
 
 const formatElapsed = (seconds: number) => {
   const m = Math.floor(seconds / 60)
@@ -70,6 +78,11 @@ interface LiveClassroomProps {
 
 /**
  * Shared live classroom experience for both 1:1 bookings and group lessons.
+ *
+ * The classroom pages render without the site navbar, footer or bottom nav, so every state
+ * here (pre-join, in session, post-session) owns the whole viewport and carries its own way
+ * out. In session the video fills the screen, with a slim title bar above and one control
+ * dock below; chat, people, materials and notes open in a side panel only when asked for.
  *
  * Video goes through whatever helpers/videoProvider.tsx returns for this join: when a real
  * provider (Daily.co) is configured, the in-session screen mounts its Prebuilt call UI in a frame
@@ -101,7 +114,7 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
   const isLiveProvider = session?.provider === "daily";
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(true);
-  const [activePanel, setActivePanel] = useState<PanelKey>("participants");
+  const [activePanel, setActivePanel] = useState<PanelKey | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [endOpen, setEndOpen] = useState(false);
   const [hasEnded, setHasEnded] = useState(false);
@@ -154,6 +167,16 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
     const interval = setInterval(() => setElapsed((e) => e + 1), 1000);
     return () => clearInterval(interval);
   }, [session]);
+
+  // Escape closes the side panel so the call is one key away from full screen again.
+  useEffect(() => {
+    if (!activePanel) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setActivePanel(null);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [activePanel]);
 
   useEffect(() => {
     if (!session || session.provider !== "daily") return;
@@ -216,6 +239,27 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
   const details = detailsQuery.data;
   const viewerId = authState.type === "authenticated" ? authState.user.id : null;
 
+  // Where Back and the post-session button lead: each role's own lesson list.
+  const exitPath =
+    details.viewerRole === "teacher"
+      ? kind === "booking"
+        ? "/teacher/mentorship/bookings"
+        : "/teacher/mentorship/group-lessons"
+      : kind === "booking"
+        ? "/student/live-teaching"
+        : "/live-teaching";
+
+  // The pre-join line names who the viewer is meeting: the teacher for a learner, the learner(s) for the teacher.
+  const learners = details.roster.filter((m) => m.role === "learner");
+  const withLabel =
+    details.viewerRole === "teacher"
+      ? learners.length === 1
+        ? learners[0].name
+        : `${learners.length} learners`
+      : details.teacherName;
+
+  const togglePanel = (key: PanelKey) => setActivePanel((current) => (current === key ? null : key));
+
   const handleJoin = async () => {
     try {
       const result = await joinMutation.mutateAsync({ kind, id });
@@ -246,6 +290,7 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
       }
     }
     setSession(null);
+    setActivePanel(null);
     setHasEnded(true);
   };
   handleLeaveRef.current = () => void handleLeave();
@@ -324,7 +369,7 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
   const isOver = details.status === "completed" || details.status === "no_show" || details.status === "cancelled";
   if (hasEnded || (isOver && !session)) {
     return (
-      <div className={`${styles.page} tk-flow`}>
+      <main className={`${styles.page} tk-flow`}>
         <div className={styles.postSessionCard}>
           <CheckCircle2 size={32} className={styles.postSessionIcon} aria-hidden="true" />
           <h1 className={styles.postSessionTitle}>
@@ -360,22 +405,25 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
             </div>
           )}
 
-          <Button variant="outline" onClick={() => navigate(kind === "booking" ? "/student/live-teaching" : "/live-teaching")}>
-            Back
+          <Button variant="outline" onClick={() => navigate(exitPath)}>
+            Back to my sessions
           </Button>
         </div>
-      </div>
+      </main>
     );
   }
 
   // Pre-join screen.
   if (!session) {
     return (
-      <div className={`${styles.page} tk-flow`}>
+      <main className={`${styles.page} tk-flow`}>
+        <button type="button" className={styles.backLink} onClick={() => navigate(exitPath)}>
+          <ArrowLeft size={16} aria-hidden="true" /> Back
+        </button>
         <div className={styles.preJoinCard}>
           <h1 className={styles.title}>{details.title}</h1>
           <p className={styles.subtitle}>
-            with {details.teacherName} &middot; {formatWhen(details.startTime)} &middot; {details.durationMinutes} min
+            with {withLabel} &middot; {formatWhen(details.startTime)} &middot; {details.durationMinutes} min
           </p>
 
           {details.videoProvider === "daily" ? (
@@ -425,29 +473,81 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
             </Button>
           )}
         </div>
-      </div>
+      </main>
     );
   }
 
+  const panelKeys: PanelKey[] = session.role === "teacher"
+    ? ["participants", "chat", "materials", "notes"]
+    : ["participants", "chat", "materials"];
+  const panelIcons: Record<PanelKey, React.ReactNode> = {
+    participants: <Users size={18} aria-hidden="true" />,
+    chat: <MessageSquare size={18} aria-hidden="true" />,
+    materials: <FileText size={18} aria-hidden="true" />,
+    notes: <NotebookPen size={18} aria-hidden="true" />,
+  };
+
   // In-session screen.
   return (
-    <div className={`${styles.sessionPage} tk-flow`}>
-      <div className={styles.sessionTopBar}>
-        <div className={styles.sessionTitleBlock}>
-          <span className={styles.sessionTitle}>{details.title}</span>
+    <main className={`${styles.sessionPage} tk-flow`}>
+      <header className={styles.strip}>
+        <div className={styles.stripGroup}>
+          <span className={styles.timer}>
+            <Clock size={14} aria-hidden="true" /> {formatElapsed(elapsed)}
+          </span>
           {!isLiveProvider && (
             <span className={styles.mockBadge}>
               <AlertTriangle size={12} aria-hidden="true" /> Development preview - no live video
             </span>
           )}
         </div>
-        <span className={styles.timer}>
-          <Clock size={14} aria-hidden="true" /> {formatElapsed(elapsed)}
-        </span>
-      </div>
+
+        <div className={styles.stripGroup}>
+          {panelKeys.map((key) => (
+            <Button
+              key={key}
+              variant={activePanel === key ? "secondary" : "ghost"}
+              size="icon-md"
+              onClick={() => togglePanel(key)}
+              aria-pressed={activePanel === key}
+              aria-label={PANEL_LABELS[key]}
+              title={PANEL_LABELS[key]}
+            >
+              {panelIcons[key]}
+            </Button>
+          ))}
+          {!isLiveProvider && (
+            <>
+              <Button variant={micOn ? "ghost" : "secondary"} size="icon-md" onClick={() => setMicOn((v) => !v)} aria-label="Toggle microphone">
+                {micOn ? <Mic size={18} /> : <MicOff size={18} />}
+              </Button>
+              <Button variant={camOn ? "ghost" : "secondary"} size="icon-md" onClick={() => setCamOn((v) => !v)} aria-label="Toggle camera">
+                {camOn ? <VideoIcon size={18} /> : <VideoOff size={18} />}
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-md"
+                disabled
+                aria-label="Screen share (not available in this preview)"
+                title="Screen share is not available in this preview"
+              >
+                <ScreenShare size={18} />
+              </Button>
+            </>
+          )}
+          {session.role === "teacher" && (
+            <Button variant="secondary" size="sm" onClick={() => setEndOpen(true)} disabled={completeMutation.isPending}>
+              End session
+            </Button>
+          )}
+          <Button variant="destructive" size="sm" onClick={handleLeave}>
+            <PhoneOff size={16} aria-hidden="true" /> Leave
+          </Button>
+        </div>
+      </header>
 
       <div className={styles.sessionBody}>
-        <div className={styles.videoArea}>
+        <div className={styles.stage}>
           {isLiveProvider ? (
             <div ref={frameHostRef} className={styles.dailyFrame} />
           ) : (
@@ -475,156 +575,116 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
               })}
             </div>
           )}
-
-          <div className={styles.controlsBar}>
-            {!isLiveProvider && (
-              <>
-                <Button variant={micOn ? "outline" : "secondary"} size="icon-md" onClick={() => setMicOn((v) => !v)} aria-label="Toggle microphone">
-                  {micOn ? <Mic size={18} /> : <MicOff size={18} />}
-                </Button>
-                <Button variant={camOn ? "outline" : "secondary"} size="icon-md" onClick={() => setCamOn((v) => !v)} aria-label="Toggle camera">
-                  {camOn ? <VideoIcon size={18} /> : <VideoOff size={18} />}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon-md"
-                  disabled
-                  aria-label="Screen share (not available in this preview)"
-                  title="Screen share is not available in this preview"
-                >
-                  <ScreenShare size={18} />
-                </Button>
-              </>
-            )}
-            {session.role === "teacher" && (
-              <Button variant="secondary" onClick={() => setEndOpen(true)} disabled={completeMutation.isPending}>
-                End session
-              </Button>
-            )}
-            <Button variant="destructive" onClick={handleLeave}>
-              <PhoneOff size={18} aria-hidden="true" /> Leave
-            </Button>
-          </div>
         </div>
 
-        <div className={styles.sidePanel}>
-          <Tabs value={activePanel} onValueChange={(v) => setActivePanel(v as PanelKey)}>
-            <TabsList>
-              <TabsTrigger value="participants">
-                <Users size={14} />
-              </TabsTrigger>
-              <TabsTrigger value="chat">
-                <MessageSquare size={14} />
-              </TabsTrigger>
-              <TabsTrigger value="materials">
-                <FileText size={14} />
-              </TabsTrigger>
-              {session.role === "teacher" && (
-                <TabsTrigger value="notes">
-                  <NotebookPen size={14} />
-                </TabsTrigger>
-              )}
-            </TabsList>
-          </Tabs>
-
-          {activePanel === "participants" && (
-            <ul className={styles.panelList}>
-              {details.roster.map((member) => (
-                <li key={member.id} className={styles.panelRow}>
-                  {member.avatarUrl ? (
-                    <img src={member.avatarUrl} alt="" className={styles.panelAvatar} />
-                  ) : (
-                    <span className={styles.panelAvatarFallback}>{member.name.charAt(0).toUpperCase()}</span>
-                  )}
-                  <span className={styles.panelRowText}>
-                    {member.name} {member.role === "teacher" && <Crown size={12} aria-hidden="true" />}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          {activePanel === "chat" && (
-            <div className={styles.chatPanel}>
-              <div className={styles.chatMessages}>
-                {(chatQuery.data?.messages ?? []).map((m) => (
-                  <div key={m.id} className={`${styles.chatMessage} ${m.senderId === viewerId ? styles.chatMessageSelf : ""}`}>
-                    <span className={styles.chatSender}>{m.senderName}</span>
-                    <p className={styles.chatBody}>{m.body}</p>
-                  </div>
-                ))}
-                {(chatQuery.data?.messages.length ?? 0) === 0 && <p className={styles.panelEmpty}>No messages yet.</p>}
-              </div>
-              <div className={styles.chatInputRow}>
-                <Input
-                  value={chatDraft}
-                  onChange={(e) => setChatDraft(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSendChat()}
-                  placeholder="Type a message..."
-                  aria-label="Chat message"
-                />
-                <Button size="icon-md" onClick={handleSendChat} disabled={!chatDraft.trim() || sendChatMutation.isPending} aria-label="Send">
-                  <Send size={16} />
-                </Button>
-              </div>
+        {activePanel && (
+          <aside className={styles.sidePanel} aria-label={PANEL_LABELS[activePanel]}>
+            <div className={styles.panelHeader}>
+              <h2 className={styles.panelTitle}>{PANEL_LABELS[activePanel]}</h2>
+              <Button variant="ghost" size="icon-md" onClick={() => setActivePanel(null)} aria-label="Close panel">
+                <X size={18} />
+              </Button>
             </div>
-          )}
 
-          {activePanel === "materials" && (
-            <div className={styles.materialsPanel}>
-              {(materialsQuery.data?.materials.length ?? 0) === 0 ? (
-                <p className={styles.panelEmpty}>No materials shared yet.</p>
-              ) : (
-                <ul className={styles.panelList}>
-                  {materialsQuery.data?.materials.map((m) => (
-                    <li key={m.id} className={styles.panelRow}>
-                      <Link2 size={14} aria-hidden="true" />
-                      <a href={m.fileUrl ?? m.linkUrl ?? "#"} target="_blank" rel="noopener noreferrer" className={styles.materialLink}>
-                        {m.title}
-                      </a>
-                      {session.role === "teacher" && (
-                        <Button
-                          variant="ghost"
-                          size="icon-md"
-                          aria-label="Delete material"
-                          onClick={() => deleteMaterialMutation.mutate({ id: m.id })}
-                        >
-                          <Trash2 size={14} />
-                        </Button>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {session.role === "teacher" && (
-                <div className={styles.addMaterialForm}>
-                  <Input value={materialTitle} onChange={(e) => setMaterialTitle(e.target.value)} placeholder="Title" aria-label="Material title" />
-                  <Input value={materialLink} onChange={(e) => setMaterialLink(e.target.value)} placeholder="https://..." aria-label="Material link" />
-                  <Button size="sm" onClick={handleAddMaterial} disabled={addMaterialMutation.isPending}>
-                    <Plus size={14} aria-hidden="true" /> Add
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {activePanel === "notes" && session.role === "teacher" && (
-            <div className={styles.notesPanel}>
-              <p className={styles.panelHint}>Private - only you can see these notes.</p>
+            {activePanel === "participants" && (
               <ul className={styles.panelList}>
-                {notesQuery.data?.notes.map((n) => (
-                  <li key={n.id} className={styles.noteRow}>
-                    {n.note}
+                {details.roster.map((member) => (
+                  <li key={member.id} className={styles.panelRow}>
+                    {member.avatarUrl ? (
+                      <img src={member.avatarUrl} alt="" className={styles.panelAvatar} />
+                    ) : (
+                      <span className={styles.panelAvatarFallback}>{member.name.charAt(0).toUpperCase()}</span>
+                    )}
+                    <span className={styles.panelRowText}>
+                      {member.name} {member.role === "teacher" && <Crown size={12} aria-hidden="true" />}
+                    </span>
                   </li>
                 ))}
               </ul>
-              <Textarea value={noteDraft} onChange={(e) => setNoteDraft(e.target.value)} placeholder="Add a note..." className={styles.noteTextarea} />
-              <Button size="sm" onClick={handleSaveNote} disabled={noteUpsertMutation.isPending}>
-                Save note
-              </Button>
-            </div>
-          )}
-        </div>
+            )}
+
+            {activePanel === "chat" && (
+              <div className={styles.chatPanel}>
+                <div className={styles.chatMessages}>
+                  {(chatQuery.data?.messages ?? []).map((m) => (
+                    <div key={m.id} className={`${styles.chatMessage} ${m.senderId === viewerId ? styles.chatMessageSelf : ""}`}>
+                      <span className={styles.chatSender}>{m.senderName}</span>
+                      <p className={styles.chatBody}>{m.body}</p>
+                    </div>
+                  ))}
+                  {(chatQuery.data?.messages.length ?? 0) === 0 && <p className={styles.panelEmpty}>No messages yet.</p>}
+                </div>
+                <div className={styles.chatInputRow}>
+                  <Input
+                    value={chatDraft}
+                    onChange={(e) => setChatDraft(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSendChat()}
+                    placeholder="Type a message..."
+                    aria-label="Chat message"
+                  />
+                  <Button size="icon-md" onClick={handleSendChat} disabled={!chatDraft.trim() || sendChatMutation.isPending} aria-label="Send">
+                    <Send size={16} />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {activePanel === "materials" && (
+              <div className={styles.materialsPanel}>
+                {(materialsQuery.data?.materials.length ?? 0) === 0 ? (
+                  <p className={styles.panelEmpty}>No materials shared yet.</p>
+                ) : (
+                  <ul className={styles.panelList}>
+                    {materialsQuery.data?.materials.map((m) => (
+                      <li key={m.id} className={styles.panelRow}>
+                        <Link2 size={14} aria-hidden="true" />
+                        <a href={m.fileUrl ?? m.linkUrl ?? "#"} target="_blank" rel="noopener noreferrer" className={styles.materialLink}>
+                          {m.title}
+                        </a>
+                        {session.role === "teacher" && (
+                          <Button
+                            variant="ghost"
+                            size="icon-md"
+                            aria-label="Delete material"
+                            onClick={() => deleteMaterialMutation.mutate({ id: m.id })}
+                          >
+                            <Trash2 size={14} />
+                          </Button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {session.role === "teacher" && (
+                  <div className={styles.addMaterialForm}>
+                    <Input value={materialTitle} onChange={(e) => setMaterialTitle(e.target.value)} placeholder="Title" aria-label="Material title" />
+                    <Input value={materialLink} onChange={(e) => setMaterialLink(e.target.value)} placeholder="https://..." aria-label="Material link" />
+                    <Button size="sm" onClick={handleAddMaterial} disabled={addMaterialMutation.isPending}>
+                      <Plus size={14} aria-hidden="true" /> Add
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activePanel === "notes" && session.role === "teacher" && (
+              <div className={styles.notesPanel}>
+                <p className={styles.panelHint}>Private - only you can see these notes.</p>
+                <ul className={styles.panelList}>
+                  {notesQuery.data?.notes.map((n) => (
+                    <li key={n.id} className={styles.noteRow}>
+                      {n.note}
+                    </li>
+                  ))}
+                </ul>
+                <Textarea value={noteDraft} onChange={(e) => setNoteDraft(e.target.value)} placeholder="Add a note..." className={styles.noteTextarea} />
+                <Button size="sm" onClick={handleSaveNote} disabled={noteUpsertMutation.isPending}>
+                  Save note
+                </Button>
+              </div>
+            )}
+          </aside>
+        )}
       </div>
 
       <ConsoleConfirmDialog
@@ -636,6 +696,6 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
         onConfirm={handleEndSession}
         isPending={completeMutation.isPending}
       />
-    </div>
+    </main>
   );
 };

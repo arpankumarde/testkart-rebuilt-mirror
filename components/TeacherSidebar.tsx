@@ -133,20 +133,6 @@ const NAV_GROUPS: TeacherNavGroup[] = [
       contentItem('bundle', (a) => a.reviewsPendingBundles, (p) => p.startsWith('/teacher/bundles')),
     ],
   },
-  {
-    key: 'library',
-    label: 'Library',
-    items: [
-      {
-        href: '/teacher/question-bank',
-        label: 'Question bank',
-        icon: Library,
-        isActiveFor: (p) => p.startsWith('/teacher/question-bank'),
-      },
-      { href: '/teacher/assets', label: 'Asset library', icon: FolderOpen },
-      { href: '/teacher/trash', label: 'Trash', icon: Trash2 },
-    ],
-  },
   // Until a teacher is approved, Offerings opens the live teaching application.
   {
     key: 'live_teaching',
@@ -170,6 +156,20 @@ const NAV_GROUPS: TeacherNavGroup[] = [
         icon: Megaphone,
         isActiveFor: (p) => p.startsWith('/teacher/mentorship/group-lessons'),
       },
+    ],
+  },
+  {
+    key: 'library',
+    label: 'Library',
+    items: [
+      {
+        href: '/teacher/question-bank',
+        label: 'Question bank',
+        icon: Library,
+        isActiveFor: (p) => p.startsWith('/teacher/question-bank'),
+      },
+      { href: '/teacher/assets', label: 'Asset library', icon: FolderOpen },
+      { href: '/teacher/trash', label: 'Trash', icon: Trash2 },
     ],
   },
   {

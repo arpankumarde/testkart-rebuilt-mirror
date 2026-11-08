@@ -1,4 +1,7 @@
+import { sql, type ExpressionBuilder } from "kysely";
 import { db } from "../../../helpers/db";
+import type { DB } from "../../../helpers/schema";
+import { JOIN_WINDOW_MINUTES_AFTER } from "../../../helpers/liveLessonConfig";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./my-enrollments_GET.schema";
 import superjson from "superjson";
@@ -18,6 +21,15 @@ export async function handle(request: Request) {
     const filter = input.filter ?? "upcoming";
     const limit = input.limit ?? 50;
     const now = new Date();
+
+    // Upcoming means still joinable: enrolled, lesson scheduled and not yet past the join window's end,
+    // so a class that has started stays here, next to its classroom link, instead of dropping into Past.
+    const stillJoinable = (eb: ExpressionBuilder<DB, "groupLessonEnrollments" | "groupLessons">) =>
+      eb.and([
+        eb("groupLessonEnrollments.status", "=", "enrolled"),
+        eb("groupLessons.status", "=", "scheduled"),
+        sql<boolean>`${sql.ref("groupLessons.startTime")} + (${sql.ref("groupLessons.durationMinutes")} + ${JOIN_WINDOW_MINUTES_AFTER}) * interval '1 minute' > ${now}`,
+      ]);
 
     let query = db
       .selectFrom("groupLessonEnrollments")
@@ -44,13 +56,13 @@ export async function handle(request: Request) {
       query = query.where("groupLessonEnrollments.status", "in", ["cancelled", "removed"]);
     } else if (filter === "past") {
       query = query.where((eb) =>
-        eb.or([eb("groupLessons.status", "in", ["completed"]), eb("groupLessons.startTime", "<=", now)])
+        eb.or([
+          eb("groupLessons.status", "in", ["completed"]),
+          eb.and([eb("groupLessons.startTime", "<=", now), eb.not(stillJoinable(eb))]),
+        ])
       );
     } else if (filter === "upcoming") {
-      query = query
-        .where("groupLessonEnrollments.status", "=", "enrolled")
-        .where("groupLessons.status", "=", "scheduled")
-        .where("groupLessons.startTime", ">", now);
+      query = query.where(stillJoinable);
     }
 
     query = query.orderBy("groupLessons.startTime", filter === "upcoming" ? "asc" : "desc").limit(limit);

@@ -1,4 +1,7 @@
+import { sql, type ExpressionBuilder } from "kysely";
 import { db } from "../../../helpers/db";
+import type { DB } from "../../../helpers/schema";
+import { JOIN_WINDOW_MINUTES_AFTER } from "../../../helpers/liveLessonConfig";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./list_GET.schema";
 import superjson from "superjson";
@@ -15,6 +18,14 @@ export async function handle(request: Request) {
     const filter = input.filter ?? "upcoming";
     const limit = input.limit ?? 50;
     const now = new Date();
+
+    // Upcoming means still joinable: scheduled and not yet past the join window's end, so a session
+    // that has started stays here, next to its classroom link, instead of dropping into Past.
+    const stillJoinable = (eb: ExpressionBuilder<DB, "mentorshipBookings">) =>
+      eb.and([
+        eb("mentorshipBookings.status", "=", "scheduled"),
+        sql<boolean>`${sql.ref("mentorshipBookings.scheduledAt")} + (${sql.ref("mentorshipBookings.durationMinutes")} + ${JOIN_WINDOW_MINUTES_AFTER}) * interval '1 minute' > ${now}`,
+      ]);
 
     let query = db
       .selectFrom("mentorshipBookings")
@@ -49,12 +60,13 @@ export async function handle(request: Request) {
       query = query.where("mentorshipBookings.status", "=", "cancelled");
     } else if (filter === "past") {
       query = query.where((eb) =>
-        eb.or([eb("mentorshipBookings.status", "in", ["completed", "no_show"]), eb("mentorshipBookings.scheduledAt", "<=", now)])
+        eb.or([
+          eb("mentorshipBookings.status", "in", ["completed", "no_show"]),
+          eb.and([eb("mentorshipBookings.scheduledAt", "<=", now), eb.not(stillJoinable(eb))]),
+        ])
       );
     } else if (filter === "upcoming") {
-      query = query
-        .where("mentorshipBookings.status", "=", "scheduled")
-        .where("mentorshipBookings.scheduledAt", ">", now);
+      query = query.where(stillJoinable);
     }
 
     query = query.orderBy("mentorshipBookings.scheduledAt", filter === "upcoming" ? "asc" : "desc").limit(limit);
