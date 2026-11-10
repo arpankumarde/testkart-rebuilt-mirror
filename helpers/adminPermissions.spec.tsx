@@ -38,9 +38,16 @@ describe("adminPermissions", () => {
     expect(canCallAdminApi(["courses"], "/_api/admin/content-preview/details")).toBe(true);
     expect(canCallAdminApi(["blog"], "/_api/admin/admins/update-permissions")).toBe(false);
     expect(canCallAdminApi(["admins"], "/_api/admin/admins/update-permissions")).toBe(true);
-    expect(canCallAdminApi(["teachers"], "/_api/admin/organizations/list")).toBe(true);
-    expect(canCallAdminApi(["teachers"], "/_api/admin/organizations/set-active")).toBe(true);
+    expect(canCallAdminApi(["organizations"], "/_api/admin/organizations/list")).toBe(true);
+    expect(canCallAdminApi(["organizations"], "/_api/admin/organizations/set-active")).toBe(true);
+    expect(canCallAdminApi(["teachers"], "/_api/admin/organizations/list")).toBe(false);
     expect(canCallAdminApi(["students"], "/_api/admin/organizations/list")).toBe(false);
+    expect(canCallAdminApi(["live_teaching"], "/_api/admin/teachers/live-teaching/decide")).toBe(true);
+    expect(canCallAdminApi(["teachers"], "/_api/admin/teachers/live-teaching/list")).toBe(false);
+    expect(canCallAdminApi(["teachers"], "/_api/admin/teachers/list")).toBe(true);
+    expect(canCallAdminApi(["bonus_programs"], "/_api/admin/content-reviews/bonus-decide")).toBe(true);
+    expect(canCallAdminApi(["content_reviews"], "/_api/admin/content-reviews/bonus-claims")).toBe(false);
+    expect(canCallAdminApi(["content_reviews"], "/_api/admin/content-reviews/list")).toBe(true);
   });
 
   it("drops unknown keys and keeps catalogue order", () => {
@@ -77,7 +84,12 @@ describe("adminPermissions", () => {
   it("routes pages by module and sends admins without access home", () => {
     expect(adminNavigation.canOpen("/admin/teachers/earnings", ["teachers"])).toBe(false);
     expect(adminNavigation.canOpen("/admin/teachers/earnings", ["teacher_earnings"])).toBe(true);
-    expect(adminNavigation.canOpen("/admin/organizations/12", ["teachers"])).toBe(true);
+    expect(adminNavigation.canOpen("/admin/organizations/12", ["organizations"])).toBe(true);
+    expect(adminNavigation.canOpen("/admin/organizations/12", ["teachers"])).toBe(false);
+    expect(adminNavigation.canOpen("/admin/teachers/live-teaching", ["live_teaching"])).toBe(true);
+    expect(adminNavigation.canOpen("/admin/teachers/live-teaching", ["teachers"])).toBe(false);
+    expect(adminNavigation.canOpen("/admin/content-reviews/exam-bonus", ["bonus_programs"])).toBe(true);
+    expect(adminNavigation.canOpen("/admin/content-reviews/exam-bonus", ["content_reviews"])).toBe(false);
     expect(adminNavigation.canOpen("/admin/organizations", ["students"])).toBe(false);
     expect(adminNavigation.canOpen("/admin/profile", [])).toBe(true);
     expect(adminNavigation.canOpen("/admin/settings", ["admins"])).toBe(true);

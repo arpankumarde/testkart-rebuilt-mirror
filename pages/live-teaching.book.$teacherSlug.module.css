@@ -1,7 +1,8 @@
 /*
- * 1:1 booking in the /app palette. The chosen length is lavender, the chosen
- * time is blue, the trial note is butter and the booked state is mint. The
- * page root carries tk-flow, so the confirm button is the peach CTA.
+ * 1:1 trial and package booking in the /app palette. The chosen length is
+ * lavender, the chosen time is blue (components/LiveSlotPicker), the trial note
+ * is butter and the booked state and balance note are mint. The page root
+ * carries tk-flow, so the confirm button is the peach CTA.
  */
 
 /* The ivory runs edge to edge: the shadow paints it out sideways and the clip
@@ -259,6 +260,9 @@
 
 .ctaBar {
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.625rem;
   justify-content: center;
   padding: 1.25rem;
   background: var(--sp-card);
@@ -306,4 +310,30 @@
   display: flex;
   gap: var(--spacing-3);
   margin-top: var(--spacing-2);
+}
+
+.balanceNote {
+  margin: 0;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  background: var(--fc-mint-tint);
+  color: var(--fc-mint-ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.spin {
+  animation: bookSpin 1s linear infinite;
+}
+
+@keyframes bookSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
 }

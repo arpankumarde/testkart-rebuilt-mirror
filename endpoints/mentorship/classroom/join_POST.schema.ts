@@ -3,7 +3,7 @@ import superjson from "superjson";
 
 export const schema = z.object({
   kind: z.enum(["booking", "group"]),
-  id: z.number().int().positive(),
+  id: z.string().uuid(),
 });
 export type InputType = z.infer<typeof schema>;
 
@@ -14,7 +14,7 @@ export type OutputType = {
   expiresAt: Date;
   provider: "mock" | "daily";
   role: "teacher" | "learner";
-  attendanceId: number;
+  attendanceId: string;
   title: string;
 };
 

@@ -3,7 +3,7 @@ import superjson from "superjson";
 
 export const schema = z.object({
   kind: z.enum(["booking", "group"]),
-  id: z.number().int().positive(),
+  id: z.string().uuid(),
   rating: z.number().int().min(1).max(5),
   reviewText: z.string().trim().max(2000).optional(),
 });

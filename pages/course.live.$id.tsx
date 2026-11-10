@@ -13,8 +13,8 @@ import {
   MENTORSHIP_GROUP_LESSONS_QUERY_KEY,
 } from "../helpers/useMentorship";
 import { GROUP_LESSON_LIST_PATH } from "../helpers/groupLessonRoutes";
-import { postPaymentPayuRedirect } from "../endpoints/payment/payu/redirect_POST.schema";
-import { postPaymentPayuVerifyAndComplete } from "../endpoints/payment/payu/verify-and-complete_POST.schema";
+import { startCashfreeCheckout } from "../helpers/cashfreeCheckout";
+import { postPaymentCashfreeVerify } from "../endpoints/payment/cashfree/verify_POST.schema";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
 import { NotFoundState } from "../components/NotFoundState";
@@ -29,7 +29,7 @@ const formatWhen = (date: Date | string) =>
 
 const GroupLessonDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const lessonId = id ? parseInt(id, 10) : null;
+  const lessonId = id ?? null;
   const navigate = useNavigate();
   const location = useLocation();
   const { authState } = useAuth();
@@ -44,16 +44,14 @@ const GroupLessonDetailPage: React.FC = () => {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const status = params.get("status");
     const orderIdParam = params.get("order_id");
-    const txnid = params.get("txnid");
-    if (status === "success" && orderIdParam && !isVerifying) {
+    if (params.get("gateway") === "cashfree" && orderIdParam && !isVerifying) {
       const orderId = parseInt(orderIdParam, 10);
       if (isNaN(orderId)) return;
       window.history.replaceState({}, "", window.location.pathname);
       setIsVerifying(true);
       const toastId = toast.loading("Verifying payment...");
-      postPaymentPayuVerifyAndComplete({ txnid: txnid ?? undefined, orderId })
+      postPaymentCashfreeVerify({ orderId })
         .then((result) => {
           toast.dismiss(toastId);
           if (result.success && result.orderStatus === "completed") {
@@ -126,7 +124,7 @@ const GroupLessonDetailPage: React.FC = () => {
       toast.loading("Initiating payment...");
       const paymentData = await purchaseMutation.mutateAsync({ groupLessonId: lesson.id });
       toast.dismiss();
-      postPaymentPayuRedirect(paymentData);
+      await startCashfreeCheckout(paymentData);
     } catch (err) {
       toast.dismiss();
       toast.error(err instanceof Error ? err.message : "Failed to initiate payment");

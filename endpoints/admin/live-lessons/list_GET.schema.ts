@@ -12,7 +12,7 @@ export type InputType = z.infer<typeof schema>;
 export type AdminLiveLessonRow = {
   /** Distinguishes a 1:1 mentorship booking from a group lesson; the two tables are unioned for moderation. */
   kind: "booking" | "group";
-  id: number;
+  id: string;
   title: string;
   teacherId: number;
   teacherName: string | null;

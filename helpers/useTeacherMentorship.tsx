@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getTeacherMentorshipRate } from "../endpoints/teacher/mentorship/rate_GET.schema";
 import { postTeacherMentorshipRate, InputType as RateSetInput } from "../endpoints/teacher/mentorship/rate_POST.schema";
 import { getTeacherMentorshipAvailability } from "../endpoints/teacher/mentorship/availability/get_GET.schema";
@@ -19,7 +19,7 @@ const KEYS = {
   rate: ["teacher", "mentorship", "rate"] as const,
   availability: ["teacher", "mentorship", "availability"] as const,
   groupLessons: ["teacher", "mentorship", "group-lessons"] as const,
-  roster: (id: number) => ["teacher", "mentorship", "group-lessons", id, "roster"] as const,
+  roster: (id: string) => ["teacher", "mentorship", "group-lessons", id, "roster"] as const,
   bookings: (filter: BookingsListInput["filter"]) => ["mentorship", "bookings", filter ?? "upcoming"] as const,
 };
 
@@ -65,7 +65,7 @@ export const useAddBlockedDateMutation = () => {
 export const useDeleteBlockedDateMutation = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) => postTeacherMentorshipBlockedDateDelete({ id }),
+    mutationFn: (id: string) => postTeacherMentorshipBlockedDateDelete({ id }),
     onSuccess: () => qc.invalidateQueries({ queryKey: KEYS.availability }),
   });
 };
@@ -89,9 +89,9 @@ export const useCancelGroupLessonMutation = () => {
   });
 };
 
-export const useGroupLessonRosterQuery = (groupLessonId: number | null) =>
+export const useGroupLessonRosterQuery = (groupLessonId: string | null) =>
   useQuery({
-    queryKey: KEYS.roster(groupLessonId ?? 0),
+    queryKey: KEYS.roster(groupLessonId ?? ""),
     queryFn: () => getTeacherGroupLessonRoster({ groupLessonId: groupLessonId! }),
     enabled: groupLessonId !== null,
   });
@@ -109,6 +109,14 @@ export const useRemoveParticipantMutation = () => {
 
 export const useMentorshipBookingsQuery = (filter: BookingsListInput["filter"]) =>
   useQuery({ queryKey: KEYS.bookings(filter), queryFn: () => getMentorshipBookingsList({ filter }) });
+
+/* Every booking in [from, to), oldest first, for the teacher's calendar view. */
+export const useMentorshipBookingsRangeQuery = (from: Date, to: Date) =>
+  useQuery({
+    queryKey: ["mentorship", "bookings", "range", from.toISOString(), to.toISOString()],
+    queryFn: () => getMentorshipBookingsList({ filter: "all", from, to, limit: 500 }),
+    placeholderData: keepPreviousData,
+  });
 
 export const useCancelBookingMutation = () => {
   const qc = useQueryClient();

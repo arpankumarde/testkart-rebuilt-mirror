@@ -1,10 +1,10 @@
 import { z } from "zod";
 import superjson from "superjson";
 
-export const schema = z.object({ kind: z.enum(["booking", "group"]), lessonId: z.coerce.number().int().positive() });
+export const schema = z.object({ kind: z.enum(["booking", "group"]), lessonId: z.string().uuid() });
 export type InputType = z.infer<typeof schema>;
 
-export type TeacherNoteRow = { id: number; studentId: number | null; note: string; createdAt: Date; updatedAt: Date };
+export type TeacherNoteRow = { id: string; studentId: number | null; note: string; createdAt: Date; updatedAt: Date };
 export type OutputType = { notes: TeacherNoteRow[] };
 
 export const getTeacherMentorshipNotes = async (input: InputType, init?: RequestInit): Promise<OutputType> => {

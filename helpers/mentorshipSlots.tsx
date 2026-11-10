@@ -38,7 +38,7 @@ export async function generateTeacherSlots(
   if (!teacher) return [];
   const timezone = teacher.timezone;
 
-  const [availability, blockedDates, existingBookings, existingGroupLessons] = await Promise.all([
+  const [availability, blockedDates, existingBookings, existingGroupLessons, holds] = await Promise.all([
     db
       .selectFrom("mentorshipAvailability")
       .select(["dayOfWeek", "startTime", "endTime"])
@@ -60,8 +60,9 @@ export async function generateTeacherSlots(
       .where("teacherId", "=", teacherId)
       .where("status", "=", "scheduled")
       .execute(),
+    activeHolds(db, teacherId),
   ]);
-  const busyBlocks = [...existingBookings, ...existingGroupLessons];
+  const busyBlocks = [...existingBookings, ...existingGroupLessons, ...holds];
 
   if (availability.length === 0) return [];
 
@@ -130,13 +131,16 @@ export async function generateTeacherSlots(
  * - never trust a slot the client cached, since availability can change between page load and
  * checkout and two learners can race for the same instant. Inside a transaction, pass its `trx`
  * as `executor`: the pool holds one connection, so a query on the global `db` would wait forever
- * on the connection the transaction itself is holding.
+ * on the connection the transaction itself is holding. Slots held for a package checkout or
+ * renewal (live_slot_holds) count as taken, except the holds of `ignoreHoldCycleId`, the cycle
+ * that is turning its own holds into bookings.
  */
 export async function isTeacherSlotBookable(
   teacherId: number,
   startTime: Date,
   durationMinutes: number,
-  executor: Kysely<DB> = db
+  executor: Kysely<DB> = db,
+  options: { ignoreHoldCycleId?: string } = {}
 ): Promise<{ ok: true } | { ok: false; reason: string }> {
   const now = new Date();
   const earliestBookable = new Date(now.getTime() + BOOKING_MIN_NOTICE_MINUTES * 60000);
@@ -183,7 +187,26 @@ export async function isTeacherSlotBookable(
   const free = await isTeacherSlotFree(teacherId, startTime, durationMinutes, undefined, undefined, executor);
   if (!free) return { ok: false, reason: "This time was just booked by someone else. Please pick another slot." };
 
+  const holds = await activeHolds(executor, teacherId, options.ignoreHoldCycleId);
+  const endMs = startTime.getTime() + durationMinutes * 60000;
+  const held = holds.some((h) => {
+    const hStart = new Date(h.scheduledAt).getTime();
+    return startTime.getTime() < hStart + h.durationMinutes * 60000 && endMs > hStart;
+  });
+  if (held) return { ok: false, reason: "This time is being held for another student. Please pick another slot." };
+
   return { ok: true };
+}
+
+/** Slots held for a package checkout or renewal that has not been paid yet. */
+async function activeHolds(executor: Kysely<DB>, teacherId: number, ignoreCycleId?: string) {
+  let q = executor
+    .selectFrom("liveSlotHolds")
+    .select(["startsAt as scheduledAt", "durationMinutes"])
+    .where("teacherId", "=", teacherId)
+    .where("expiresAt", ">", new Date());
+  if (ignoreCycleId) q = q.where("cycleId", "!=", ignoreCycleId);
+  return q.execute();
 }
 
 /**
@@ -197,8 +220,8 @@ export async function isTeacherSlotFree(
   teacherId: number,
   startTime: Date,
   durationMinutes: number,
-  excludeBookingId?: number,
-  excludeGroupLessonId?: number,
+  excludeBookingId?: string,
+  excludeGroupLessonId?: string,
   executor: Kysely<DB> = db
 ): Promise<boolean> {
   const endTime = new Date(startTime.getTime() + durationMinutes * 60000);

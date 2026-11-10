@@ -4,7 +4,7 @@ import { GROUP_LESSON_MIN_CAPACITY, GROUP_LESSON_MAX_CAPACITY, BOOKING_MIN_NOTIC
 
 export const schema = z
   .object({
-    id: z.number().int().positive().optional(),
+    id: z.string().uuid().optional(),
     title: z.string().trim().min(3, "Title is required").max(200),
     description: z.string().trim().max(5000).optional(),
     subject: z.string().trim().max(120).optional(),
@@ -29,7 +29,7 @@ export const schema = z
   });
 
 export type InputType = z.infer<typeof schema>;
-export type OutputType = { id: number };
+export type OutputType = { id: string };
 
 export const postTeacherGroupLessonUpsert = async (input: InputType, init?: RequestInit): Promise<OutputType> => {
   const result = await fetch(`/_api/teacher/group-lessons/upsert`, {

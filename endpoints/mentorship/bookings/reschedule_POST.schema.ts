@@ -2,12 +2,12 @@ import { z } from "zod";
 import superjson from "superjson";
 
 export const schema = z.object({
-  bookingId: z.number().int().positive(),
+  bookingId: z.string().uuid(),
   newStartTime: z.coerce.date(),
 });
 
 export type InputType = z.infer<typeof schema>;
-export type OutputType = { newBookingId: number; scheduledAt: Date };
+export type OutputType = { newBookingId: string; scheduledAt: Date };
 
 export const postMentorshipBookingReschedule = async (input: InputType, init?: RequestInit): Promise<OutputType> => {
   const result = await fetch(`/_api/mentorship/bookings/reschedule`, {

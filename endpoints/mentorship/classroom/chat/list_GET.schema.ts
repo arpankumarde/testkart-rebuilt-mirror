@@ -3,15 +3,15 @@ import superjson from "superjson";
 
 export const schema = z.object({
   kind: z.enum(["booking", "group"]),
-  id: z.coerce.number().int().positive(),
-  /** Returns messages with id > afterId, for incremental catch-up polling. */
-  afterId: z.coerce.number().int().positive().optional(),
+  id: z.string().uuid(),
+  /** Returns messages posted after this message (by time, then id), for incremental catch-up polling. */
+  afterId: z.string().uuid().optional(),
   limit: z.coerce.number().int().positive().max(200).optional(),
 });
 export type InputType = z.infer<typeof schema>;
 
 export type ChatMessageOut = {
-  id: number;
+  id: string;
   senderId: number;
   senderName: string;
   senderAvatarUrl: string | null;

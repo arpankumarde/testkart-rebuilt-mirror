@@ -1,11 +1,11 @@
 import { z } from "zod";
 import superjson from "superjson";
 
-export const schema = z.object({ kind: z.enum(["booking", "group"]), id: z.coerce.number().int().positive() });
+export const schema = z.object({ kind: z.enum(["booking", "group"]), id: z.string().uuid() });
 export type InputType = z.infer<typeof schema>;
 
 export type MaterialOut = {
-  id: number;
+  id: string;
   title: string;
   fileUrl: string | null;
   linkUrl: string | null;

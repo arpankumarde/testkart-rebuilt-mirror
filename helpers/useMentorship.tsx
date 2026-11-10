@@ -23,6 +23,14 @@ export const useMentorshipTeacherOfferingsQuery = (teacherId: number | null) =>
     enabled: !!teacherId,
   });
 
+/** The booking page's lookup: by slug, or by a numeric id from an older link. */
+export const useMentorshipTeacherOfferingsBySlugQuery = (teacherSlug: string | null) =>
+  useQuery({
+    queryKey: ["mentorship", "teacher-offerings", "slug", teacherSlug],
+    queryFn: () => getMentorshipTeacherOfferings({ teacherSlug: teacherSlug as string }),
+    enabled: !!teacherSlug,
+  });
+
 export const useMentorshipSlotsQuery = (
   teacherId: number | null,
   durationMinutes: number | null,
@@ -73,10 +81,10 @@ export const useMentorshipGroupLessonsListQuery = (input: GroupLessonsListInput 
     queryFn: () => getMentorshipGroupLessonsList(input),
   });
 
-export const useMentorshipGroupLessonQuery = (id: number | null) =>
+export const useMentorshipGroupLessonQuery = (id: string | null) =>
   useQuery({
     queryKey: [...MENTORSHIP_GROUP_LESSONS_QUERY_KEY, "detail", id],
-    queryFn: () => getMentorshipGroupLesson({ id: id as number }),
+    queryFn: () => getMentorshipGroupLesson({ id: id as string }),
     enabled: !!id,
   });
 

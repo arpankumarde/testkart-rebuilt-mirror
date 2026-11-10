@@ -6,6 +6,8 @@ import { recordOrderOutcome } from "./recordOrderOutcome";
 import { isTeacherSlotBookable } from "./mentorshipSlots";
 import { sendEmail } from "./sendEmail";
 import { emailTemplatesExtra } from "./emailTemplatesExtra";
+import { completeLiveCycle, cycleForOrder } from "./livePackages";
+import { sendRenewalPaidEmail, type CycleSummary } from "./livePackageEmails";
 
 /**
  * Ensures all completion side effects (digital product purchases, course enrollments, live test enrollments) 
@@ -28,7 +30,7 @@ export async function ensureOrderCompletionSideEffects(orderId: number): Promise
     sessionTypeTitle: string;
     scheduledAt: Date;
     durationMinutes: number;
-    bookingId: number;
+    bookingId: string;
     price: number;
   } | null = null;
   let pendingGroupLessonEnrollmentEmail: {
@@ -36,8 +38,9 @@ export async function ensureOrderCompletionSideEffects(orderId: number): Promise
     teacherId: number;
     lessonTitle: string;
     startTime: Date;
-    groupLessonId: number;
+    groupLessonId: string;
   } | null = null;
+  let pendingLiveCycleSummary: CycleSummary | null = null;
 
   await db.transaction().execute(async (trx) => {
     // Get the order
@@ -507,7 +510,7 @@ export async function ensureOrderCompletionSideEffects(orderId: number): Promise
     // created.
     const mentorshipItem = await trx
       .selectFrom("orderItems")
-      .select(["id", "mentorshipTeacherId", "mentorshipDurationMinutes", "mentorshipRequestedStartTime"])
+      .select(["id", "mentorshipTeacherId", "mentorshipDurationMinutes", "mentorshipRequestedStartTime", "priceAtPurchase", "platformFeePercentage"])
       .where("orderId", "=", orderId)
       .where("mentorshipTeacherId", "is not", null)
       .where("mentorshipBookingId", "is", null)
@@ -526,8 +529,27 @@ export async function ensureOrderCompletionSideEffects(orderId: number): Promise
         await sql`select pg_advisory_xact_lock(hashtext(${"mentorship_booking_teacher_" + teacherId}))`.execute(trx);
 
         const bookable = await isTeacherSlotBookable(teacherId, startTime, durationMinutes, trx);
-        if (!bookable.ok) {
-          console.error(`[ensureOrderCompletionSideEffects] Order ${orderId} paid for a 1:1 session but the slot is no longer bookable (${bookable.reason}); booking was NOT created. This order needs manual review/refund.`);
+        const alreadyCredited = await trx.selectFrom("liveClassCredits").select("id").where("orderId", "=", order.id).executeTakeFirst();
+        if (!bookable.ok && !alreadyCredited) {
+          // The slot went while the student was paying: the price goes to their live class
+          // balance, so booking the trial again at another time costs nothing more.
+          await trx
+            .insertInto("liveClassCredits")
+            .values({
+              studentId: beneficiaryUserId,
+              teacherId,
+              kind: "trial",
+              orderId: order.id,
+              classMinutes: durationMinutes,
+              amount: mentorshipItem.priceAtPurchase,
+              platformFeePercentage: mentorshipItem.platformFeePercentage ?? "0",
+              status: "released",
+              releasedAt: new Date(),
+            })
+            .execute();
+          console.error(`[ensureOrderCompletionSideEffects] Order ${orderId} paid for a 1:1 session but the slot is no longer bookable (${bookable.reason}); the price went to the student's live class balance.`);
+        } else if (!bookable.ok) {
+          console.log(`[ensureOrderCompletionSideEffects] Order ${orderId} already credited to the live class balance`);
         } else {
           const priorBooking = await trx
             .selectFrom("mentorshipBookings")
@@ -538,6 +560,26 @@ export async function ensureOrderCompletionSideEffects(orderId: number): Promise
             .executeTakeFirst();
           const isTrial = !priorBooking;
 
+          // The trial is held as a credit like every paid live class, so cancelling it, a teacher
+          // no-show and the teacher's earning all follow the package rules. Its amount is the full
+          // trial price, including any part paid from the live class balance.
+          const trialCredit = isTrial
+            ? await trx
+                .insertInto("liveClassCredits")
+                .values({
+                  studentId: beneficiaryUserId,
+                  teacherId,
+                  kind: "trial",
+                  orderId: order.id,
+                  classMinutes: durationMinutes,
+                  amount: mentorshipItem.priceAtPurchase,
+                  platformFeePercentage: mentorshipItem.platformFeePercentage ?? "0",
+                  status: "booked",
+                })
+                .returning("id")
+                .executeTakeFirstOrThrow()
+            : null;
+
           const insertedBooking = await trx
             .insertInto("mentorshipBookings")
             .values({
@@ -545,14 +587,18 @@ export async function ensureOrderCompletionSideEffects(orderId: number): Promise
               studentId: beneficiaryUserId,
               scheduledAt: startTime,
               durationMinutes,
-              amountPaid: order.totalAmount,
+              amountPaid: mentorshipItem.priceAtPurchase,
               orderId: order.id,
               status: "scheduled",
               isTrial,
+              creditId: trialCredit?.id ?? null,
             })
             .returning(["id", "scheduledAt"])
             .executeTakeFirstOrThrow();
 
+          if (trialCredit) {
+            await trx.updateTable("liveClassCredits").set({ bookingId: insertedBooking.id }).where("id", "=", trialCredit.id).execute();
+          }
           await trx.updateTable("orderItems").set({ mentorshipBookingId: insertedBooking.id }).where("id", "=", mentorshipItem.id).execute();
           await followTeacher(trx, beneficiaryUserId, teacherId);
 
@@ -643,6 +689,12 @@ export async function ensureOrderCompletionSideEffects(orderId: number): Promise
       }
     }
 
+    // A one-time "Pay now" order for a live package cycle whose autopay debit failed.
+    const liveCycle = await cycleForOrder(trx, orderId);
+    if (liveCycle && liveCycle.status !== "paid") {
+      pendingLiveCycleSummary = await completeLiveCycle(trx, liveCycle.id);
+    }
+
     // Buying anything from a teacher is treated as following them - this
     // covers every order completion path (PayU callback/redirect, wallet
     // purchases, admin reconcile), not just the first-touch flows below.
@@ -696,6 +748,10 @@ export async function ensureOrderCompletionSideEffects(orderId: number): Promise
     } catch (emailError) {
       console.error(`[ensureOrderCompletionSideEffects] Failed to send safety-net mentorship booking emails for order ${orderId}:`, emailError);
     }
+  }
+
+  if (pendingLiveCycleSummary) {
+    await sendRenewalPaidEmail(pendingLiveCycleSummary);
   }
 
   if (pendingGroupLessonEnrollmentEmail) {

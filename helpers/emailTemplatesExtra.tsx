@@ -236,7 +236,7 @@ export const emailTemplatesExtra = {
     sessionTitle: string,
     scheduledAt: Date,
     durationMinutes: number,
-    bookingId: number
+    bookingId: string
   ): EmailTemplateResult => {
     const subject = `Booked: 1:1 session with ${teacherName}`;
     const formattedDate = formatDate(scheduledAt);
@@ -304,7 +304,7 @@ export const emailTemplatesExtra = {
     sessionTitle: string,
     newScheduledAt: Date,
     forStudent: boolean,
-    bookingId: number
+    bookingId: string
   ): EmailTemplateResult => {
     const subject = `Rescheduled: ${sessionTitle}`;
     const formattedDate = formatDate(newScheduledAt);
@@ -366,7 +366,7 @@ export const emailTemplatesExtra = {
     teacherName: string,
     lessonTitle: string,
     scheduledAt: Date,
-    groupLessonId: number
+    groupLessonId: string
   ): EmailTemplateResult => {
     const subject = `You're enrolled: ${lessonTitle}`;
     const formattedDate = formatDate(scheduledAt);

@@ -114,7 +114,7 @@ export async function handle(request: Request) {
   }
 }
 
-async function emailCancelledBookings(bookingIds: number[], reason: string) {
+async function emailCancelledBookings(bookingIds: string[], reason: string) {
   if (bookingIds.length === 0) return;
   try {
     const bookings = await db

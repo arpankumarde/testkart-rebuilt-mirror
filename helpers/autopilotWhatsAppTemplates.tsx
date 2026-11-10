@@ -168,7 +168,7 @@ export function resolveTemplate(
   return slot === "followup" ? resolveTemplate(playbookKey, "first", approved, overrides) : null;
 }
 
-async function waplify(path: string, init: RequestInit = {}): Promise<Response> {
+export async function waplify(path: string, init: RequestInit = {}): Promise<Response> {
   const apiKey = process.env.WAPLIFY_API_KEY;
   if (!apiKey) throw new Error("WAPLIFY_API_KEY is not set");
   return fetch(`${WAPLIFY_ENDPOINT}/api/v1${path}`, {

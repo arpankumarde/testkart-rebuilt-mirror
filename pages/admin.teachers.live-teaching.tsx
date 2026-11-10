@@ -23,6 +23,7 @@ const STATUS_LABEL: Record<LiveTeachingApplicationRow["status"], string> = {
   approved: "Approved",
   rejected: "Rejected",
   revoked: "Revoked",
+  withdrawn: "Withdrawn",
 };
 
 const STATUS_VARIANT: Record<LiveTeachingApplicationRow["status"], "warning" | "success" | "secondary" | "default"> = {
@@ -30,6 +31,7 @@ const STATUS_VARIANT: Record<LiveTeachingApplicationRow["status"], "warning" | "
   approved: "success",
   rejected: "secondary",
   revoked: "default",
+  withdrawn: "secondary",
 };
 
 const formatDate = (date: Date | string | null) =>
@@ -44,6 +46,7 @@ const ApplicationCard: React.FC<{ application: LiveTeachingApplicationRow }> = (
   const [bioOpen, setBioOpen] = useState(false);
   const t = application.teacher;
   const rate = application.ratePerUnit;
+  const isVideo = application.kind === "video";
 
   const run = (action: "approve" | "reject" | "revoke") => {
     decide.mutate(
@@ -63,7 +66,14 @@ const ApplicationCard: React.FC<{ application: LiveTeachingApplicationRow }> = (
   return (
     <article className={styles.card}>
       <div className={styles.videoCol}>
+        {isVideo && <p className={styles.videoLabel}>New video</p>}
         <video className={styles.video} src={application.introVideoUrl} controls preload="metadata" playsInline />
+        {isVideo && application.currentVideoUrl && (
+          <>
+            <p className={styles.videoLabel}>On the profile now</p>
+            <video className={styles.video} src={application.currentVideoUrl} controls preload="metadata" playsInline />
+          </>
+        )}
       </div>
 
       <div className={styles.infoCol}>
@@ -82,6 +92,7 @@ const ApplicationCard: React.FC<{ application: LiveTeachingApplicationRow }> = (
             </h3>
             <span className={styles.email}>{t.email}</span>
           </div>
+          {isVideo && <Badge variant="default">New intro video</Badge>}
           <Badge variant={STATUS_VARIANT[application.status]}>{STATUS_LABEL[application.status]}</Badge>
         </div>
 
@@ -123,9 +134,9 @@ const ApplicationCard: React.FC<{ application: LiveTeachingApplicationRow }> = (
         </dl>
 
         <p className={styles.meta}>
-          Applied {formatDate(application.createdAt)}
+          {isVideo ? "Sent" : "Applied"} {formatDate(application.createdAt)}
           {application.decidedAt && application.decidedBy
-            ? ` · ${STATUS_LABEL[application.status]} by ${application.decidedBy} on ${formatDate(application.decidedAt)}`
+            ? ` · ${STATUS_LABEL[application.status]} by ${application.decidedBy === "teacher" ? "the teacher" : application.decidedBy} on ${formatDate(application.decidedAt)}`
             : ""}
         </p>
         {application.decisionReason && (
@@ -137,7 +148,7 @@ const ApplicationCard: React.FC<{ application: LiveTeachingApplicationRow }> = (
         {mode && (
           <div className={styles.reasonBox}>
             <label className={styles.reasonLabel} htmlFor={`reason-${application.id}`}>
-              {mode === "reject" ? "What should they fix?" : "Why is live teaching being turned off?"}
+              {mode === "reject" ? (isVideo ? "What is wrong with the new video?" : "What should they fix?") : "Why is live teaching being turned off?"}
             </label>
             <Textarea
               id={`reason-${application.id}`}
@@ -163,11 +174,11 @@ const ApplicationCard: React.FC<{ application: LiveTeachingApplicationRow }> = (
                 Reject
               </Button>
               <Button onClick={() => run("approve")} disabled={decide.isPending}>
-                {decide.isPending ? "Saving..." : "Approve"}
+                {decide.isPending ? "Saving..." : isVideo ? "Approve video" : "Approve"}
               </Button>
             </>
           )}
-          {application.status === "approved" && application.isLatest && !mode && (
+          {!isVideo && application.status === "approved" && application.isLatest && !mode && (
             <Button variant="outline" onClick={() => setMode("revoke")} disabled={decide.isPending}>
               Revoke
             </Button>

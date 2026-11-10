@@ -2,11 +2,11 @@ import { z } from "zod";
 import superjson from "superjson";
 
 export const schema = z.object({
-  groupLessonId: z.number().int().positive(),
+  groupLessonId: z.string().uuid(),
   paymentOrderId: z.number().int().positive().optional(),
 });
 export type InputType = z.infer<typeof schema>;
-export type OutputType = { enrollmentId: number };
+export type OutputType = { enrollmentId: string };
 
 export const postMentorshipGroupLessonEnroll = async (input: InputType, init?: RequestInit): Promise<OutputType> => {
   const result = await fetch(`/_api/mentorship/group-lessons/enroll`, {

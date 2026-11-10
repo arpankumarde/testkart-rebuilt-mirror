@@ -382,6 +382,7 @@
   font-size: 0.9375rem;
   font-weight: 600;
   white-space: nowrap;
+  text-decoration: none;
   cursor: pointer;
   transition:
     background-color var(--animation-duration-fast) ease,

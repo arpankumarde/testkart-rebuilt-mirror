@@ -7,7 +7,7 @@ export const schema = z.object({
   durationMinutes: z.coerce.number().int().positive(),
   /** Inclusive range start, ISO date or datetime. Defaults to now. */
   from: z.coerce.date().optional(),
-  /** Inclusive range end. Bounded to at most 21 days after `from`. */
+  /** Inclusive range end. Bounded to at most 35 days after `from`. */
   to: z.coerce.date().optional(),
 });
 

@@ -62,7 +62,7 @@ const ATTENTION_MODULE: Record<keyof AttentionCounts, AdminModule> = {
   supportOpen: "support",
   supportUnread: "support",
   inquiriesPending: "teacher_inquiries",
-  liveTeachingPending: "teachers",
+  liveTeachingPending: "live_teaching",
   contactNew: "contact_submissions",
   reviewsPending: "content_reviews",
   reviewsSenior: "content_reviews",
@@ -248,7 +248,7 @@ export async function handle(request: Request): Promise<Response> {
                    CASE WHEN oi.mock_test_id IS NOT NULL THEN 'mock_test'
                         WHEN oi.course_id IS NOT NULL THEN 'course'
                         WHEN oi.digital_product_id IS NOT NULL THEN 'digital_product'
-                        WHEN oi.mentorship_plan_id IS NOT NULL OR oi.mentorship_session_type_id IS NOT NULL OR oi.mentorship_booking_id IS NOT NULL THEN 'mentorship'
+                        WHEN oi.mentorship_teacher_id IS NOT NULL OR oi.mentorship_booking_id IS NOT NULL THEN 'mentorship'
                         ELSE 'other' END AS kind
             FROM order_items oi JOIN win ON win.id = oi.order_id
             WHERE win.bundle_id IS NULL AND win.is_live = false

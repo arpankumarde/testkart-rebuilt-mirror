@@ -14,10 +14,10 @@ import { postTeacherMentorshipNoteUpsert } from "../endpoints/teacher/mentorship
 
 export type ClassroomKind = "booking" | "group";
 
-export const useClassroomDetailsQuery = (kind: ClassroomKind, id: number | null) =>
+export const useClassroomDetailsQuery = (kind: ClassroomKind, id: string | null) =>
   useQuery({
     queryKey: ["mentorship", "classroom", "details", kind, id],
-    queryFn: () => getMentorshipClassroomDetails({ kind, id: id as number }),
+    queryFn: () => getMentorshipClassroomDetails({ kind, id: id as string }),
     enabled: !!id,
     // Re-checks the join window / roster each time the tab regains focus,
     // rather than on a timer - the pre-join screen is read once, not watched.
@@ -37,10 +37,10 @@ export const useClassroomLeaveMutation = () => useMutation({ mutationFn: postMen
  * nobody can leave this polling running in a background tab indefinitely,
  * because leaving the call also stops it.
  */
-export const useClassroomChatListQuery = (kind: ClassroomKind, id: number | null, isJoined: boolean) =>
+export const useClassroomChatListQuery = (kind: ClassroomKind, id: string | null, isJoined: boolean) =>
   useQuery({
     queryKey: ["mentorship", "classroom", "chat", kind, id],
-    queryFn: () => getMentorshipClassroomChatList({ kind, id: id as number, limit: 100 }),
+    queryFn: () => getMentorshipClassroomChatList({ kind, id: id as string, limit: 100 }),
     enabled: !!id && isJoined,
     refetchInterval: isJoined ? 4000 : false,
   });
@@ -54,10 +54,10 @@ export const useClassroomChatSendMutation = () => {
   });
 };
 
-export const useClassroomMaterialsQuery = (kind: ClassroomKind, id: number | null) =>
+export const useClassroomMaterialsQuery = (kind: ClassroomKind, id: string | null) =>
   useQuery({
     queryKey: ["mentorship", "classroom", "materials", kind, id],
-    queryFn: () => getMentorshipClassroomMaterials({ kind, id: id as number }),
+    queryFn: () => getMentorshipClassroomMaterials({ kind, id: id as string }),
     enabled: !!id,
   });
 
@@ -82,10 +82,10 @@ export const useClassroomCompleteMutation = () => useMutation({ mutationFn: post
 
 export const useMentorshipReviewMutation = () => useMutation({ mutationFn: postMentorshipReview });
 
-export const useTeacherMentorshipNotesQuery = (kind: ClassroomKind, lessonId: number | null, enabled: boolean) =>
+export const useTeacherMentorshipNotesQuery = (kind: ClassroomKind, lessonId: string | null, enabled: boolean) =>
   useQuery({
     queryKey: ["mentorship", "teacher-notes", kind, lessonId],
-    queryFn: () => getTeacherMentorshipNotes({ kind, lessonId: lessonId as number }),
+    queryFn: () => getTeacherMentorshipNotes({ kind, lessonId: lessonId as string }),
     enabled: !!lessonId && enabled,
   });
 

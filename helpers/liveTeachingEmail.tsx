@@ -52,3 +52,29 @@ export async function sendLiveTeachingDecisionEmail(
     console.error(`Failed to send live teaching ${decision} email:`, err);
   }
 }
+
+/** The decision on an approved teacher's replacement intro video. Never throws. */
+export async function sendIntroVideoDecisionEmail(to: string, teacherName: string, approved: boolean, reason: string | null) {
+  const subject = approved ? "Your new intro video is live" : "Your new intro video needs changes";
+  const body = approved
+    ? "We approved your new intro video. It now plays on your profile."
+    : "We could not approve your new intro video, so your current video stays on your profile. Upload another one after fixing the points below.";
+  const reasonHtml = reason
+    ? `<p style="margin:16px 0 0"><strong>Reason</strong><br>${escapeEmailHtml(reason).replace(/\r?\n/g, "<br>")}</p>`
+    : "";
+  try {
+    const html = getBrandedEmailHtml({
+      title: subject,
+      preheaderText: subject,
+      accent: approved ? "success" : "warning",
+      heading: subject,
+      bodyHtml: `<p style="margin:0">Hi ${escapeEmailHtml(teacherName || "there")},</p><p style="margin:12px 0 0">${body}</p>${reasonHtml}`,
+      ctaLabel: "Open live teaching",
+      ctaUrl: `${SITE_ORIGIN}/teacher/mentorship`,
+    });
+    const text = `Hi ${teacherName || "there"},\n\n${body}${reason ? `\n\nReason: ${reason}` : ""}\n\nOpen live teaching: ${SITE_ORIGIN}/teacher/mentorship`;
+    await sendEmail({ to, subject, html, text });
+  } catch (err) {
+    console.error("Failed to send intro video decision email:", err);
+  }
+}

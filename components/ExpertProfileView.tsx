@@ -40,6 +40,7 @@ import { FollowTeacherButton } from "./FollowTeacherButton";
 import { TeacherPostsSection } from "./TeacherPostsSection";
 import { TeacherLiveTeachingCard } from "./TeacherLiveTeachingCard";
 import { useMentorshipTeacherOfferingsQuery } from "../helpers/useMentorship";
+import { liveBookingPath } from "../helpers/liveBookingRoutes";
 import { Button } from "./Button";
 import styles from "./ExpertProfileView.module.css";
 
@@ -580,13 +581,11 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
                   </button>
                 )}
                 {offersOneToOne && (
-                  <button
-                    type="button"
-                    className={styles.actionSecondary}
-                    onClick={() => smoothScroll(document.getElementById("live"))}
-                  >
-                    Book a 1:1 session
-                  </button>
+                  <Link to={liveBookingPath({ slug: teacher.slug ?? null })} className={styles.actionSecondary}>
+                    {liveOfferingsQuery.data?.trialState === "done" || liveOfferingsQuery.data?.activePackageId
+                      ? "Book 1:1 classes"
+                      : "Book trial session"}
+                  </Link>
                 )}
                 {variant === "page" && teacher.slug && (
                   <FollowTeacherButton
@@ -632,6 +631,7 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
       {variant === "page" && (
         <TeacherLiveTeachingCard
           teacherId={teacher.id}
+          teacherSlug={teacher.slug ?? null}
           teacherName={shortName}
           className={styles.section}
           titleClassName={styles.sectionTitle}

@@ -5,7 +5,7 @@ export const schema = z.object({});
 export type InputType = z.infer<typeof schema>;
 
 export type TeacherGroupLessonRow = {
-  id: number;
+  id: string;
   title: string;
   subject: string | null;
   level: string | null;

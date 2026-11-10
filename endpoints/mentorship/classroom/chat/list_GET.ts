@@ -1,3 +1,4 @@
+import { sql } from "kysely";
 import { db } from "../../../../helpers/db";
 import { getServerUserSession } from "../../../../helpers/getServerUserSession";
 import { getLessonAccessContext, LessonAccessError } from "../../../../helpers/mentorshipLessonAccess";
@@ -35,10 +36,13 @@ export async function handle(request: Request) {
         : query.where("liveLessonChatMessages.groupLessonId", "=", input.id);
 
     if (input.afterId) {
-      query = query.where("liveLessonChatMessages.id", ">", input.afterId);
+      query = query.where(
+        sql<boolean>`(${sql.ref("liveLessonChatMessages.createdAt")}, ${sql.ref("liveLessonChatMessages.id")}) > (select created_at, id from live_lesson_chat_messages where id = ${input.afterId})`
+      );
     }
 
     const rows = await query
+      .orderBy("liveLessonChatMessages.createdAt", "asc")
       .orderBy("liveLessonChatMessages.id", "asc")
       .limit(input.limit ?? 100)
       .execute();

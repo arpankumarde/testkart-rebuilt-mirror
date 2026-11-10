@@ -1,11 +1,11 @@
 import { z } from "zod";
 import superjson from "superjson";
 
-export const schema = z.object({ groupLessonId: z.coerce.number().int().positive() });
+export const schema = z.object({ groupLessonId: z.string().uuid() });
 export type InputType = z.infer<typeof schema>;
 
 export type RosterRow = {
-  enrollmentId: number;
+  enrollmentId: string;
   studentId: number;
   studentName: string;
   studentAvatarUrl: string | null;

@@ -1,54 +1,74 @@
 import { db } from "../../helpers/db";
 import { schema, OutputType } from "./teacher-offerings_GET.schema";
-import { MENTORSHIP_SESSION_DURATIONS, MENTORSHIP_RATE_UNIT_MINUTES, MENTORSHIP_MIN_RATE_PER_UNIT } from "../../helpers/liveLessonConfig";
+import { MENTORSHIP_SESSION_DURATIONS } from "../../helpers/liveLessonConfig";
+import { classPriceFor, pricesMeetFloors, resolveLivePrices } from "../../helpers/livePricing";
+import { getLiveBalance, getLivePackageFor, getTrialState } from "../../helpers/livePackages";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { NotAuthenticatedError } from "../../helpers/getSetServerSession";
 import superjson from "superjson";
 
+const TEACHER_COLUMNS = [
+  "id",
+  "slug",
+  "displayName",
+  "avatarUrl",
+  "bio",
+  "tagline",
+  "timezone",
+  "role",
+  "mentorshipEnabled",
+  "mentorshipRatePerUnit",
+  "mentorshipClassPrice50",
+  "mentorshipTrialPrice25",
+  "mentorshipTrialPrice50",
+  "liveTeachingStatus",
+  "introVideoUrl",
+] as const;
+
+const findTeacher = async (by: { id: number } | { slug: string }) =>
+  db
+    .selectFrom("users")
+    .select(TEACHER_COLUMNS)
+    .where("role", "=", "teacher")
+    .$call((q) => ("id" in by ? q.where("id", "=", by.id) : q.where("slug", "=", by.slug)))
+    .executeTakeFirst();
+
 export async function handle(request: Request) {
   try {
     const url = new URL(request.url);
-    const input = schema.parse({ teacherId: url.searchParams.get("teacherId") });
+    const input = schema.parse({
+      teacherId: url.searchParams.get("teacherId") ?? undefined,
+      teacherSlug: url.searchParams.get("teacherSlug") ?? undefined,
+    });
 
-    const teacher = await db
-      .selectFrom("users")
-      .select([
-        "id",
-        "displayName",
-        "avatarUrl",
-        "bio",
-        "tagline",
-        "timezone",
-        "role",
-        "mentorshipEnabled",
-        "mentorshipRatePerUnit",
-        "liveTeachingStatus",
-        "introVideoUrl",
-      ])
-      .where("id", "=", input.teacherId)
-      .executeTakeFirst();
+    const teacher = input.teacherSlug
+      ? await findTeacher({ slug: input.teacherSlug })
+      : await findTeacher({ id: input.teacherId as number });
 
-    if (!teacher || teacher.role !== "teacher") {
+    if (!teacher) {
       return new Response(superjson.stringify({ error: "Teacher not found" }), { status: 404 });
     }
+    const teacherId = teacher.id;
 
     const approved = teacher.liveTeachingStatus === "approved";
-    const rate = Math.max(Number(teacher.mentorshipRatePerUnit ?? 0), MENTORSHIP_MIN_RATE_PER_UNIT);
-    const enabled =
-      approved && !!teacher.mentorshipEnabled && Number(teacher.mentorshipRatePerUnit ?? 0) >= MENTORSHIP_MIN_RATE_PER_UNIT;
+    const resolved = resolveLivePrices(teacher);
+    const enabled = approved && !!teacher.mentorshipEnabled && !!resolved && pricesMeetFloors(resolved);
+    const prices = enabled ? resolved : null;
 
-    let isTrialEligible = false;
+    let trialState: OutputType["trialState"] = null;
+    let activePackageId: string | null = null;
+    let balance: number | null = null;
     try {
       const { user } = await getServerUserSession(request);
       if (user.role === "student") {
-        const priorBooking = await db
-          .selectFrom("mentorshipBookings")
-          .select("id")
-          .where("teacherId", "=", input.teacherId)
-          .where("studentId", "=", user.id)
-          .where("status", "!=", "cancelled")
-          .executeTakeFirst();
-        isTrialEligible = !priorBooking;
+        const [state, pkg, bal] = await Promise.all([
+          getTrialState(user.id, teacherId),
+          getLivePackageFor(user.id, teacherId),
+          getLiveBalance(user.id),
+        ]);
+        trialState = state;
+        activePackageId = pkg?.id ?? null;
+        balance = Math.max(0, bal);
       }
     } catch (error) {
       if (!(error instanceof NotAuthenticatedError)) throw error;
@@ -57,6 +77,7 @@ export async function handle(request: Request) {
     const output: OutputType = {
       teacher: {
         id: teacher.id,
+        slug: teacher.slug,
         displayName: teacher.displayName,
         avatarUrl: teacher.avatarUrl,
         bio: teacher.bio,
@@ -65,13 +86,14 @@ export async function handle(request: Request) {
       },
       enabled,
       introVideoUrl: approved ? teacher.introVideoUrl : null,
-      durations: enabled
-        ? MENTORSHIP_SESSION_DURATIONS.map((minutes) => ({
-            durationMinutes: minutes,
-            price: Math.round((rate * minutes) / MENTORSHIP_RATE_UNIT_MINUTES),
-          }))
+      durations: prices
+        ? MENTORSHIP_SESSION_DURATIONS.map((minutes) => ({ durationMinutes: minutes, price: classPriceFor(prices, minutes) }))
         : [],
-      isTrialEligible,
+      prices,
+      isTrialEligible: trialState === "eligible",
+      trialState,
+      activePackageId,
+      balance,
     };
     return new Response(superjson.stringify(output));
   } catch (error) {

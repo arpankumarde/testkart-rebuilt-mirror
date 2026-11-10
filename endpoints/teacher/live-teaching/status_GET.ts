@@ -16,6 +16,7 @@ export async function handle(request: Request) {
     }
 
     const latest = state.latestApplication;
+    const video = state.status === "approved" ? state.latestVideoChange : null;
     const output: OutputType = {
       status: state.status,
       checklist: state.checklist,
@@ -24,6 +25,9 @@ export async function handle(request: Request) {
         latest && (latest.status === "rejected" || latest.status === "revoked") ? latest.decisionReason : null,
       appliedAt: latest?.createdAt ?? null,
       decidedAt: latest?.decidedAt ?? null,
+      withdrawnAt: latest?.status === "withdrawn" ? latest.decidedAt : null,
+      pendingVideo: video?.status === "pending" ? { url: video.introVideoUrl, sentAt: video.createdAt } : null,
+      videoRejection: video?.status === "rejected" ? { reason: video.decisionReason, decidedAt: video.decidedAt } : null,
       isOwner: user.teacherRole !== "manager",
     };
     return new Response(superjson.stringify(output));

@@ -23,6 +23,7 @@ import { Textarea } from "../components/Textarea";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectGroup, SelectItem } from "../components/Select";
 import { Users, Video, Ban, Info } from "lucide-react";
 import tableStyles from "../components/AdminSubscriptionPlansManager.module.css";
+import { AdminLiveIssues } from "../components/AdminLiveIssues";
 import styles from "./admin.live-lessons.module.css";
 
 const formatDateTime = (date: Date | string) =>
@@ -72,6 +73,8 @@ const AdminLiveLessonsPage: React.FC = () => {
             </div>
           </div>
         </div>
+
+        <AdminLiveIssues />
 
         <div className={styles.filterRow}>
           <Select value={filter} onValueChange={(val: any) => setFilter(val)}>

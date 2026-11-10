@@ -3,7 +3,7 @@ import superjson from "superjson";
 
 export const schema = z.object({
   kind: z.enum(["booking", "group"]),
-  id: z.number().int().positive(),
+  id: z.string().uuid(),
   reason: z.string().trim().min(3, "Give a short reason for the cancellation.").max(500),
 });
 

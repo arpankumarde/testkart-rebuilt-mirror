@@ -16,6 +16,7 @@ export async function handle(request: Request): Promise<Response> {
       .innerJoin("users as u", "u.id", "a.teacherId")
       .select([
         "a.id",
+        "a.kind",
         "a.status",
         "a.createdAt",
         "a.decidedAt",
@@ -38,9 +39,10 @@ export async function handle(request: Request): Promise<Response> {
         sql<string>`(SELECT count(*) FROM mentorship_availability m WHERE m.teacher_id = u.id AND m.is_active)`.as(
           "hourWindows"
         ),
-        sql<boolean>`NOT EXISTS (SELECT 1 FROM live_teaching_applications later WHERE later.teacher_id = a.teacher_id AND later.created_at > a.created_at)`.as(
+        sql<boolean>`NOT EXISTS (SELECT 1 FROM live_teaching_applications later WHERE later.teacher_id = a.teacher_id AND later.kind = a.kind AND later.created_at > a.created_at)`.as(
           "isLatest"
         ),
+        "u.introVideoUrl as currentVideoUrl",
       ])
       .orderBy("a.createdAt", status === "pending" ? "asc" : "desc")
       .limit(200);
@@ -62,6 +64,8 @@ export async function handle(request: Request): Promise<Response> {
 
     const applications: LiveTeachingApplicationRow[] = rows.map((r) => ({
       id: r.id,
+      kind: r.kind as LiveTeachingApplicationRow["kind"],
+      currentVideoUrl: r.kind === "video" ? r.currentVideoUrl : null,
       status: r.status as LiveTeachingApplicationRow["status"],
       createdAt: r.createdAt,
       decidedAt: r.decidedAt,

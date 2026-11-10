@@ -1,8 +1,13 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { Video, Calendar, Ban, RotateCcw, Users, MoreHorizontal, Search } from "lucide-react";
+import { Video, Calendar, Ban, RotateCcw, Users, MoreHorizontal, Search, Flag } from "lucide-react";
+import { LivePackagesPanel } from "../components/LivePackagesPanel";
+import { LiveSlotPicker, useLiveSlotRange } from "../components/LiveSlotPicker";
+import { useBookingReportMutation, useInvalidateLiveClasses } from "../helpers/useLivePackages";
+import { postPaymentCashfreeVerify } from "../endpoints/payment/cashfree/verify_POST.schema";
+import { FREE_CANCELLATION_CUTOFF_HOURS } from "../helpers/liveLessonConfig";
 import {
   useMentorshipBookingsListQuery,
   useMentorshipBookingCancelMutation,
@@ -55,6 +60,29 @@ const enrollmentStatus = (e: MyGroupLessonEnrollmentRow): LiveSessionStatus | nu
 const StudentLiveTeachingPage: React.FC = () => {
   const [kind, setKind] = useState<Kind>("bookings");
   const [filter, setFilter] = useState<FilterValue>("upcoming");
+  const invalidate = useInvalidateLiveClasses();
+
+  // Back from a one-time payment for a package renewal whose autopay failed.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const orderId = Number(params.get("order_id"));
+    if (params.get("gateway") !== "cashfree" || !orderId) return;
+    window.history.replaceState({}, "", window.location.pathname);
+    const toastId = toast.loading("Confirming your payment...");
+    postPaymentCashfreeVerify({ orderId })
+      .then(async (result) => {
+        toast.dismiss(toastId);
+        await invalidate();
+        if (result.orderStatus === "completed") toast.success("Paid. Your next 4 weeks are booked.");
+        else if (result.orderStatus === "pending") toast.warning("Your payment is still being confirmed.");
+        else toast.error(result.message || "The payment did not go through.");
+      })
+      .catch((err) => {
+        toast.dismiss(toastId);
+        toast.error(err instanceof Error ? err.message : "Could not check the payment.");
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>
@@ -69,6 +97,8 @@ const StudentLiveTeachingPage: React.FC = () => {
             </Link>
           </Button>
         </ConsolePageHeader>
+
+        <LivePackagesPanel />
 
         <div className={styles.toolbar}>
           <LiveSessionSegment<Kind>
@@ -112,6 +142,7 @@ const BookingsView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
   const { data, isFetching } = useMentorshipBookingsListQuery({ filter });
   const [cancelTarget, setCancelTarget] = useState<MentorshipBookingRow | null>(null);
   const [rescheduleTarget, setRescheduleTarget] = useState<MentorshipBookingRow | null>(null);
+  const [reportTarget, setReportTarget] = useState<MentorshipBookingRow | null>(null);
 
   if (isFetching && !data) return <ListSkeleton />;
 
@@ -138,15 +169,29 @@ const BookingsView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onSelect={() => setRescheduleTarget(b)}>
-          <RotateCcw size={14} /> Reschedule
+        <DropdownMenuItem disabled={!b.freeChange} onSelect={() => setRescheduleTarget(b)}>
+          <RotateCcw size={14} /> {b.freeChange ? "Reschedule" : `Can't move within ${FREE_CANCELLATION_CUTOFF_HOURS} hours`}
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => setCancelTarget(b)}>
-          <Ban size={14} /> Cancel session
+          <Ban size={14} /> Cancel class
         </DropdownMenuItem>
+        {b.canReport && (
+          <DropdownMenuItem onSelect={() => setReportTarget(b)}>
+            <Flag size={14} /> Teacher did not come
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
+
+  const reportButton = (b: MentorshipBookingRow) =>
+    b.canReport ? (
+      <Button variant="outline" size="sm" onClick={() => setReportTarget(b)}>
+        <Flag size={14} aria-hidden="true" /> Teacher did not come
+      </Button>
+    ) : b.issue ? (
+      <span className={styles.reportNote}>{b.issue.resolution ? (b.issue.resolution === "refunded" ? "Refunded" : "Report closed") : "Report sent"}</span>
+    ) : undefined;
 
   return (
     <>
@@ -191,7 +236,9 @@ const BookingsView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
                     </Button>
                     {menu(b)}
                   </>
-                ) : undefined
+                ) : (
+                  reportButton(b)
+                )
               }
             />
           ))}
@@ -200,6 +247,7 @@ const BookingsView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
 
       <CancelBookingDialog booking={cancelTarget} onOpenChange={(open) => !open && setCancelTarget(null)} />
       <RescheduleBookingDialog booking={rescheduleTarget} onOpenChange={(open) => !open && setRescheduleTarget(null)} />
+      <ReportBookingDialog booking={reportTarget} onOpenChange={(open) => !open && setReportTarget(null)} />
     </>
   );
 };
@@ -340,10 +388,10 @@ const CancelBookingDialog: React.FC<{ booking: MentorshipBookingRow | null; onOp
         if (!open) setReason("");
         onOpenChange(open);
       }}
-      title={`Cancel session with ${booking?.teacherName ?? ""}?`}
-      description="The teacher is notified by email. Refund/credit, if any, follows our standard cancellation policy for this booking's payment."
+      title={`Cancel class with ${booking?.teacherName ?? ""}?`}
+      description={cancelText(booking)}
       tone="destructive"
-      confirmLabel="Cancel session"
+      confirmLabel="Cancel class"
       pendingLabel="Cancelling..."
       isPending={cancelMutation.isPending}
       note={{ label: "Reason", value: reason, onChange: setReason, required: true, placeholder: "e.g. schedule conflict, no longer needed..." }}
@@ -352,12 +400,18 @@ const CancelBookingDialog: React.FC<{ booking: MentorshipBookingRow | null; onOp
         cancelMutation.mutate(
           { bookingId: booking.id, reason: reason.trim() },
           {
-            onSuccess: () => {
-              toast.success("Session cancelled.");
+            onSuccess: (result) => {
+              toast.success(
+                result.credit === "unscheduled"
+                  ? "Class cancelled. It is back in your package to book again."
+                  : result.credit === "released"
+                    ? "Class cancelled. Its price is in your live class balance."
+                    : "Class cancelled."
+              );
               setReason("");
               onOpenChange(false);
             },
-            onError: (err) => toast.error(err instanceof Error ? err.message : "Could not cancel this session."),
+            onError: (err) => toast.error(err instanceof Error ? err.message : "Could not cancel this class."),
           }
         );
       }}
@@ -365,48 +419,104 @@ const CancelBookingDialog: React.FC<{ booking: MentorshipBookingRow | null; onOp
   );
 };
 
+const cancelText = (booking: MentorshipBookingRow | null): string => {
+  if (!booking) return "";
+  if (!booking.freeChange) {
+    return `This class starts within ${FREE_CANCELLATION_CUTOFF_HOURS} hours, so it is charged in full. The teacher is told by email.`;
+  }
+  if (booking.kind === "package") return "The class goes back into your package so you can book another time. The teacher is told by email.";
+  if (booking.kind === "trial") return "The trial price goes to your live class balance, to use with any teacher. The teacher is told by email.";
+  return "The teacher is told by email.";
+};
+
 const RescheduleBookingDialog: React.FC<{ booking: MentorshipBookingRow | null; onOpenChange: (open: boolean) => void }> = ({
   booking,
   onOpenChange,
-}) => {
-  const [newTime, setNewTime] = useState("");
+}) =>
+  booking ? <RescheduleBookingBody key={booking.id} booking={booking} onOpenChange={onOpenChange} /> : null;
+
+const RescheduleBookingBody: React.FC<{ booking: MentorshipBookingRow; onOpenChange: (open: boolean) => void }> = ({ booking, onOpenChange }) => {
+  const [picked, setPicked] = useState<number[]>([]);
+  const range = useLiveSlotRange(35);
   const rescheduleMutation = useMentorshipBookingRescheduleMutation();
+  const invalidate = useInvalidateLiveClasses();
 
   return (
-    <Dialog open={!!booking} onOpenChange={onOpenChange}>
-      <ConsoleDialogContent size="sm">
-        <ConsoleDialogHeader
-          title={`Reschedule session with ${booking?.teacherName ?? ""}`}
-          description="Pick a new time. Both of you get an email with the new time, and it's re-checked against the teacher's availability."
-        />
+    <Dialog open onOpenChange={onOpenChange}>
+      <ConsoleDialogContent size="md">
+        <ConsoleDialogHeader title={`Move your class with ${booking.teacherName}`} description="Pick a new time. You both get an email." />
         <ConsoleDialogBody>
-          <Input type="datetime-local" value={newTime} onChange={(e) => setNewTime(e.target.value)} />
+          <LiveSlotPicker
+            teacherId={booking.teacherId}
+            minutes={booking.durationMinutes}
+            range={range}
+            mode="single"
+            selected={picked}
+            onChange={setPicked}
+            title="New time"
+          />
         </ConsoleDialogBody>
         <ConsoleDialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            Close
           </Button>
           <Button
-            disabled={rescheduleMutation.isPending || !newTime}
+            disabled={rescheduleMutation.isPending || picked.length === 0}
             onClick={() => {
-              if (!booking || !newTime) return;
               rescheduleMutation.mutate(
-                { bookingId: booking.id, newStartTime: new Date(newTime) },
+                { bookingId: booking.id, newStartTime: new Date(picked[0]) },
                 {
-                  onSuccess: () => {
-                    toast.success("Session rescheduled.");
-                    setNewTime("");
+                  onSuccess: async () => {
+                    await invalidate();
+                    toast.success("Class moved.");
                     onOpenChange(false);
                   },
-                  onError: (err) => toast.error(err instanceof Error ? err.message : "Could not reschedule this session."),
+                  onError: (err) => toast.error(err instanceof Error ? err.message : "Could not move this class."),
                 }
               );
             }}
           >
-            {rescheduleMutation.isPending ? "Saving..." : "Reschedule"}
+            {rescheduleMutation.isPending ? "Saving..." : "Move class"}
           </Button>
         </ConsoleDialogFooter>
       </ConsoleDialogContent>
     </Dialog>
+  );
+};
+
+const ReportBookingDialog: React.FC<{ booking: MentorshipBookingRow | null; onOpenChange: (open: boolean) => void }> = ({
+  booking,
+  onOpenChange,
+}) => {
+  const [note, setNote] = useState("");
+  const report = useBookingReportMutation();
+  return (
+    <ConsoleConfirmDialog
+      open={!!booking}
+      onOpenChange={(open) => {
+        if (!open) setNote("");
+        onOpenChange(open);
+      }}
+      title="Teacher did not come?"
+      description="Our team checks the class record. If the teacher did not take the class, you get the class back."
+      confirmLabel="Send report"
+      pendingLabel="Sending..."
+      isPending={report.isPending}
+      note={{ label: "What happened", value: note, onChange: setNote, required: true, placeholder: "e.g. the teacher never joined the room" }}
+      onConfirm={() => {
+        if (!booking) return;
+        report.mutate(
+          { bookingId: booking.id, note: note.trim() },
+          {
+            onSuccess: () => {
+              toast.success("Report sent. We will email you once it is checked.");
+              setNote("");
+              onOpenChange(false);
+            },
+            onError: (err) => toast.error(err instanceof Error ? err.message : "Could not send the report."),
+          }
+        );
+      }}
+    />
   );
 };

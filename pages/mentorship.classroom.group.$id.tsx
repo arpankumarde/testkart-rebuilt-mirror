@@ -6,7 +6,7 @@ import { NotFoundState } from "../components/NotFoundState";
 
 const GroupClassroomPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const groupLessonId = id ? parseInt(id, 10) : null;
+  const groupLessonId = id ?? null;
 
   if (!groupLessonId) {
     return <NotFoundState kind="page" />;

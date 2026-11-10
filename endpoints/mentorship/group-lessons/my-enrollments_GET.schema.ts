@@ -9,9 +9,9 @@ export const schema = z.object({
 export type InputType = z.infer<typeof schema>;
 
 export type MyGroupLessonEnrollmentRow = {
-  enrollmentId: number;
+  enrollmentId: string;
   status: string;
-  groupLessonId: number;
+  groupLessonId: string;
   title: string;
   subject: string | null;
   startTime: Date;

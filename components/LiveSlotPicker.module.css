@@ -1,0 +1,122 @@
+/* Open 1:1 times. A picked time is blue; a day that cannot take another class is muted. */
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  padding: 1.25rem;
+  background: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.25rem;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: var(--sp-ink);
+  margin: 0;
+}
+
+.title svg {
+  box-sizing: content-box;
+  padding: 0.375rem;
+  border-radius: 0.625rem;
+  background: var(--fc-blue-tint);
+  color: var(--fc-blue-ink);
+}
+
+.zone {
+  margin-left: auto;
+  font-family: var(--font-family-base);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--sp-text);
+}
+
+.empty {
+  margin: 0;
+  padding: 1.25rem;
+  text-align: center;
+  border: 1.5px dashed var(--sp-line-strong);
+  border-radius: 1rem;
+  color: var(--sp-text);
+  font-size: 0.875rem;
+}
+
+.dayList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 26rem;
+  overflow-y: auto;
+  padding-right: var(--spacing-1);
+}
+
+.dayGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dayLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--sp-ink);
+  margin: 0;
+}
+
+.dayNote {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--sp-text);
+}
+
+.slotGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+  gap: 0.5rem;
+}
+
+.slot {
+  padding: 0.5rem;
+  border: 1.5px solid var(--sp-line-strong);
+  border-radius: 0.75rem;
+  background: var(--sp-surface);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--sp-ink);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.slot:hover:not(:disabled) {
+  border-color: var(--fc-blue-edge);
+  background: var(--sp-card);
+}
+
+.slot:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--sp-surface), 0 0 0 4px var(--fc-blue-edge);
+}
+
+.slot:disabled {
+  cursor: not-allowed;
+  background: var(--sp-surface);
+  border-style: dashed;
+  color: var(--sp-text);
+  text-decoration: line-through;
+}
+
+.slotSelected,
+.slotSelected:hover:not(:disabled) {
+  background: var(--fc-blue-tint);
+  border-color: var(--fc-blue-edge);
+  color: var(--fc-blue-ink);
+}

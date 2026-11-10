@@ -1,6 +1,7 @@
 import { db } from "../../helpers/db";
 import { schema, OutputType, ExpertListItem } from "./list_GET.schema";
 import { MENTORSHIP_RATE_UNIT_MINUTES, MENTORSHIP_MIN_RATE_PER_UNIT } from "../../helpers/liveLessonConfig";
+import { resolveLivePrices } from "../../helpers/livePricing";
 import { sql } from "kysely";
 import superjson from "superjson";
 
@@ -114,6 +115,9 @@ export async function handle(request: Request) {
         "languages",
         "mentorshipEnabled",
         "mentorshipRatePerUnit",
+        "mentorshipClassPrice50",
+        "mentorshipTrialPrice25",
+        "mentorshipTrialPrice50",
         ...ratingAndStudentsSelect,
       ])
       .limit(limit)
@@ -157,6 +161,7 @@ export async function handle(request: Request) {
         const ratingWeightedSum = parseFloat(r.ratingWeightedSum as any);
         const totalReviews = parseInt(r.totalReviews as any, 10);
         const rate = r.mentorshipRatePerUnit != null ? Math.max(Number(r.mentorshipRatePerUnit), MENTORSHIP_MIN_RATE_PER_UNIT) : null;
+        const livePrices = r.mentorshipEnabled && rate != null ? resolveLivePrices(r) : null;
         return {
           id: r.id,
           slug: r.slug as string,
@@ -173,6 +178,8 @@ export async function handle(request: Request) {
           languages: asStringArray(r.languages),
           mentorshipEnabled: r.mentorshipEnabled,
           pricePer25Min: r.mentorshipEnabled && rate != null ? rate : null,
+          trialPrice50: livePrices?.trial50 ?? null,
+          trialFrom: livePrices ? Math.min(livePrices.trial25, livePrices.trial50) : null,
           rating: totalReviews > 0 ? Math.round((ratingWeightedSum / totalReviews) * 10) / 10 : null,
           reviewsCount: totalReviews,
           studentsCount: parseInt(r.totalStudents as any, 10),

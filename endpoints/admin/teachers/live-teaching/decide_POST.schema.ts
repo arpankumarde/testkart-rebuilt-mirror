@@ -3,7 +3,7 @@ import superjson from "superjson";
 
 export const schema = z
   .object({
-    applicationId: z.number().int().positive(),
+    applicationId: z.string().uuid(),
     action: z.enum(["approve", "reject", "revoke"]),
     reason: z.string().trim().max(1000).optional(),
   })

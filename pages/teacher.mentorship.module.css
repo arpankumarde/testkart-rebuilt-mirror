@@ -151,6 +151,44 @@
   color: var(--sp-lavender-ink);
 }
 
+/* An approved teacher's new intro video waiting for review: butter, like the in-review notice. */
+.videoReview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 0.875rem;
+  border-radius: 1rem;
+  background: var(--fc-butter-tint);
+  border: 1px solid var(--fc-butter-line);
+  color: var(--fc-butter-ink);
+}
+
+.videoReviewTitle {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.videoReviewActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.videoRejected {
+  margin: 0;
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.875rem;
+  background: var(--fc-peach-tint);
+  color: var(--fc-peach-ink);
+  font-size: 0.875rem;
+}
+
+.priceGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(13rem, 100%), 1fr));
+  gap: 1rem;
+}
+
 .rateRow {
   display: grid;
   gap: 1rem;
@@ -507,6 +545,64 @@
   font-size: 0.8125rem;
   line-height: 1.6;
   color: var(--tc-text, var(--muted-foreground));
+}
+
+.placeList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.placeItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.placeIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.625rem;
+}
+
+.placeText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.placeTitle {
+  font-weight: 700;
+  color: var(--tc-ink, var(--foreground));
+}
+
+.placeHint {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--tc-text, var(--muted-foreground));
+}
+
+.sample {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--tc-line, var(--border));
+}
+
+.sampleLabel {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--tc-ink, var(--foreground));
 }
 
 .applyCard {

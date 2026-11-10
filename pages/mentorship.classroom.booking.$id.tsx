@@ -6,7 +6,7 @@ import { NotFoundState } from "../components/NotFoundState";
 
 const BookingClassroomPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const bookingId = id ? parseInt(id, 10) : null;
+  const bookingId = id ?? null;
 
   if (!bookingId) {
     return <NotFoundState kind="page" />;

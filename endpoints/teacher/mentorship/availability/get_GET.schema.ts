@@ -5,7 +5,7 @@ export const schema = z.object({});
 export type InputType = z.infer<typeof schema>;
 
 export type AvailabilityWindow = {
-  id: number;
+  id: string;
   dayOfWeek: number;
   startTime: string;
   endTime: string;
@@ -13,7 +13,7 @@ export type AvailabilityWindow = {
 };
 
 export type BlockedDate = {
-  id: number;
+  id: string;
   blockedDate: Date;
   reason: string | null;
 };

@@ -2,14 +2,14 @@ import { z } from "zod";
 import superjson from "superjson";
 
 export const schema = z.object({
-  id: z.number().int().positive().optional(),
+  id: z.string().uuid().optional(),
   kind: z.enum(["booking", "group"]),
-  lessonId: z.number().int().positive(),
+  lessonId: z.string().uuid(),
   studentId: z.number().int().positive().optional(),
   note: z.string().trim().min(1).max(5000),
 });
 export type InputType = z.infer<typeof schema>;
-export type OutputType = { id: number };
+export type OutputType = { id: string };
 
 export const postTeacherMentorshipNoteUpsert = async (input: InputType, init?: RequestInit): Promise<OutputType> => {
   const result = await fetch(`/_api/teacher/mentorship/notes/upsert`, {

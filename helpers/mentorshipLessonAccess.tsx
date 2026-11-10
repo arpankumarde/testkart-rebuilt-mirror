@@ -6,7 +6,7 @@ export type LessonKind = "booking" | "group";
 
 export interface LessonAccessContext {
   kind: LessonKind;
-  id: number;
+  id: string;
   title: string;
   teacherId: number;
   teacherName: string;
@@ -35,7 +35,7 @@ export class LessonAccessError extends Error {
  */
 export async function getLessonAccessContext(
   kind: LessonKind,
-  id: number,
+  id: string,
   user: Pick<Selectable<Users>, "id" | "role">,
   effectiveTeacherId: number = user.id
 ): Promise<LessonAccessContext> {

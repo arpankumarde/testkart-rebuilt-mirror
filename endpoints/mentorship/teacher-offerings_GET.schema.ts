@@ -1,7 +1,15 @@
 import { z } from "zod";
 import superjson from "superjson";
+import type { LivePrices } from "../../helpers/livePricing";
+import type { TrialState } from "../../helpers/livePackages";
 
-export const schema = z.object({ teacherId: z.coerce.number().int().positive() });
+/** Pass teacherId, or teacherSlug (the booking page URL). */
+export const schema = z
+  .object({
+    teacherId: z.coerce.number().int().positive().optional(),
+    teacherSlug: z.string().trim().min(1).max(200).optional(),
+  })
+  .refine((v) => v.teacherId != null || !!v.teacherSlug, { message: "teacherId or teacherSlug is required" });
 export type InputType = z.infer<typeof schema>;
 
 export type MentorshipOfferingDuration = {
@@ -12,6 +20,7 @@ export type MentorshipOfferingDuration = {
 export type OutputType = {
   teacher: {
     id: number;
+    slug: string | null;
     displayName: string;
     avatarUrl: string | null;
     bio: string | null;
@@ -22,14 +31,24 @@ export type OutputType = {
   enabled: boolean;
   /** The approved intro video, shown on the profile. Null unless live teaching is approved. */
   introVideoUrl: string | null;
-  /** One entry per allowed duration (see MENTORSHIP_SESSION_DURATIONS), priced from the teacher's rate. */
+  /** Regular class price per allowed length (see MENTORSHIP_SESSION_DURATIONS). */
   durations: MentorshipOfferingDuration[];
-  /** True if the signed-in viewer is a student with no prior (non-cancelled) booking with this teacher - their first booking would be a trial. Always false when signed out or not a student. */
+  /** Trial and class prices for both lengths. Null when 1:1 is off. */
+  prices: LivePrices | null;
+  /** True if the signed-in viewer is a student who can book a trial with this teacher. */
   isTrialEligible: boolean;
+  /** Signed-in student only: where they stand with this teacher. Null when signed out or not a student. */
+  trialState: TrialState | null;
+  /** Signed-in student only: their active or payment-due package with this teacher. */
+  activePackageId: string | null;
+  /** Signed-in student only: live class balance they can spend here. */
+  balance: number | null;
 };
 
 export const getMentorshipTeacherOfferings = async (input: InputType, init?: RequestInit): Promise<OutputType> => {
-  const params = new URLSearchParams({ teacherId: String(input.teacherId) });
+  const params = new URLSearchParams();
+  if (input.teacherId != null) params.set("teacherId", String(input.teacherId));
+  if (input.teacherSlug) params.set("teacherSlug", input.teacherSlug);
   const result = await fetch(`/_api/mentorship/teacher-offerings?${params.toString()}`, {
     method: "GET",
     ...init,

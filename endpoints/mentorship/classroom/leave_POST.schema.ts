@@ -1,7 +1,7 @@
 import { z } from "zod";
 import superjson from "superjson";
 
-export const schema = z.object({ attendanceId: z.number().int().positive() });
+export const schema = z.object({ attendanceId: z.string().uuid() });
 export type InputType = z.infer<typeof schema>;
 export type OutputType = { success: true };
 

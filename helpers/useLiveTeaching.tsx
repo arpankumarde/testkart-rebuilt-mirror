@@ -6,6 +6,10 @@ import {
 } from "../endpoints/teacher/live-teaching/video_POST.schema";
 import { postTeacherLiveTeachingApply } from "../endpoints/teacher/live-teaching/apply_POST.schema";
 import {
+  postTeacherLiveTeachingWithdraw,
+  InputType as WithdrawInput,
+} from "../endpoints/teacher/live-teaching/withdraw_POST.schema";
+import {
   getAdminLiveTeachingApplications,
   InputType as AdminListInput,
 } from "../endpoints/admin/teachers/live-teaching/list_GET.schema";
@@ -43,6 +47,14 @@ export const useApplyLiveTeachingMutation = () => {
       qc.invalidateQueries({ queryKey: KEYS.status });
       qc.invalidateQueries({ queryKey: ["teacher", "mentorship", "rate"] });
     },
+  });
+};
+
+export const useWithdrawLiveTeachingMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: WithdrawInput) => postTeacherLiveTeachingWithdraw(input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEYS.status }),
   });
 };
 

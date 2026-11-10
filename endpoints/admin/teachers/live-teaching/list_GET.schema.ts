@@ -10,8 +10,12 @@ export const schema = z.object({
 export type InputType = z.infer<typeof schema>;
 
 export type LiveTeachingApplicationRow = {
-  id: number;
-  status: "pending" | "approved" | "rejected" | "revoked";
+  id: string;
+  /** "video": an approved teacher's replacement intro video, reviewed on its own. */
+  kind: "application" | "video";
+  /** Video changes only: the video on the profile now, which the new one would replace. */
+  currentVideoUrl: string | null;
+  status: "pending" | "approved" | "rejected" | "revoked" | "withdrawn";
   createdAt: Date;
   decidedAt: Date | null;
   decidedBy: string | null;
@@ -19,7 +23,7 @@ export type LiveTeachingApplicationRow = {
   introVideoUrl: string;
   /** Price per 25 minutes when they applied. */
   ratePerUnit: number | null;
-  /** True for the teacher's latest application; only that one can be decided or revoked. */
+  /** True for the teacher's latest row of this kind; only that one can be decided or revoked. */
   isLatest: boolean;
   teacher: {
     id: number;

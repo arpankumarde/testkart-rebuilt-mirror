@@ -107,8 +107,6 @@ export type LessonContentType = "pdf" | "quiz" | "text" | "video";
 
 export type MentorshipBookingStatus = "cancelled" | "completed" | "no_show" | "scheduled";
 
-export type MentorshipSubscriptionStatus = "active" | "cancelled" | "expired";
-
 export type Numeric = ColumnType<string, number | string, number | string>;
 
 export type OrderStatus = "cancelled" | "completed" | "failed" | "pending" | "refunded";
@@ -1136,8 +1134,8 @@ export interface GroupLessonEnrollments {
   amountPaid: Generated<Numeric>;
   cancelledAt: Timestamp | null;
   enrolledAt: Generated<Timestamp>;
-  groupLessonId: number;
-  id: Generated<number>;
+  groupLessonId: string;
+  id: Generated<string>;
   orderId: number | null;
   removedByTeacher: Generated<boolean>;
   status: Generated<string>;
@@ -1154,7 +1152,7 @@ export interface GroupLessons {
   description: string | null;
   durationMinutes: Generated<number>;
   enrolledCount: Generated<number>;
-  id: Generated<number>;
+  id: Generated<string>;
   language: string | null;
   level: string | null;
   maxCapacity: number;
@@ -1205,13 +1203,32 @@ export interface InvoiceCounters {
   updatedAt: Generated<Timestamp>;
 }
 
+export interface LiveClassCredits {
+  amount: Numeric;
+  bookingId: string | null;
+  classMinutes: number;
+  createdAt: Generated<Timestamp>;
+  cycleId: string | null;
+  id: Generated<string>;
+  kind: string;
+  orderId: number | null;
+  packageId: string | null;
+  platformFeePercentage: Numeric;
+  releasedAt: Timestamp | null;
+  spentAt: Timestamp | null;
+  status: Generated<string>;
+  studentId: number;
+  teacherId: number;
+  updatedAt: Generated<Timestamp>;
+}
+
 export interface LiveLessonAttendance {
   createdAt: Generated<Timestamp>;
-  groupLessonId: number | null;
-  id: Generated<number>;
+  groupLessonId: string | null;
+  id: Generated<string>;
   joinedAt: Generated<Timestamp>;
   leftAt: Timestamp | null;
-  mentorshipBookingId: number | null;
+  mentorshipBookingId: string | null;
   role: string;
   userId: number;
 }
@@ -1219,9 +1236,9 @@ export interface LiveLessonAttendance {
 export interface LiveLessonChatMessages {
   body: string;
   createdAt: Generated<Timestamp>;
-  groupLessonId: number | null;
-  id: Generated<number>;
-  mentorshipBookingId: number | null;
+  groupLessonId: string | null;
+  id: Generated<string>;
+  mentorshipBookingId: string | null;
   senderId: number;
 }
 
@@ -1229,23 +1246,91 @@ export interface LiveLessonMaterials {
   createdAt: Generated<Timestamp>;
   fileId: string | null;
   fileUrl: string | null;
-  groupLessonId: number | null;
-  id: Generated<number>;
+  groupLessonId: string | null;
+  id: Generated<string>;
   linkUrl: string | null;
-  mentorshipBookingId: number | null;
+  mentorshipBookingId: string | null;
   teacherId: number;
   title: string;
 }
 
 export interface LiveLessonTeacherNotes {
   createdAt: Generated<Timestamp>;
-  groupLessonId: number | null;
-  id: Generated<number>;
-  mentorshipBookingId: number | null;
+  groupLessonId: string | null;
+  id: Generated<string>;
+  mentorshipBookingId: string | null;
   note: string;
   studentId: number | null;
   teacherId: number;
   updatedAt: Generated<Timestamp>;
+}
+
+export interface LiveMandates {
+  activatedAt: Timestamp | null;
+  authAmount: Numeric;
+  cancelledAt: Timestamp | null;
+  cfSubscriptionId: string | null;
+  createdAt: Generated<Timestamp>;
+  gatewayStatus: string | null;
+  id: Generated<string>;
+  maxAmount: Numeric;
+  packageId: string;
+  paymentMethod: string | null;
+  status: Generated<string>;
+  studentId: number;
+  subscriptionId: string;
+  updatedAt: Generated<Timestamp>;
+}
+
+export interface LivePackageCycles {
+  amount: Numeric;
+  chargeRequestedAt: Timestamp | null;
+  classCount: number;
+  classesPerWeek: number;
+  createdAt: Generated<Timestamp>;
+  cycleNumber: number;
+  endsAt: Timestamp;
+  failureReason: string | null;
+  graceUntil: Timestamp | null;
+  id: Generated<string>;
+  orderId: number | null;
+  packageId: string;
+  paidAt: Timestamp | null;
+  paymentId: string | null;
+  platformFeePercentage: Numeric;
+  pricePerClass: Numeric;
+  startsAt: Timestamp;
+  status: Generated<string>;
+  updatedAt: Generated<Timestamp>;
+}
+
+export interface LivePackages {
+  activatedAt: Timestamp | null;
+  autoRenew: Generated<boolean>;
+  cancelledAt: Timestamp | null;
+  cancelledBy: string | null;
+  cancelReason: string | null;
+  classesPerWeek: number;
+  classMinutes: number;
+  createdAt: Generated<Timestamp>;
+  id: Generated<string>;
+  nextClassesPerWeek: number | null;
+  pricePerClass: Numeric;
+  status: Generated<string>;
+  studentId: number;
+  teacherId: number;
+  updatedAt: Generated<Timestamp>;
+}
+
+export interface LiveSlotHolds {
+  createdAt: Generated<Timestamp>;
+  cycleId: string;
+  durationMinutes: number;
+  expiresAt: Timestamp;
+  id: Generated<string>;
+  startsAt: Timestamp;
+  studentId: number;
+  teacherId: number;
 }
 
 export interface LiveTeachingApplications {
@@ -1253,9 +1338,10 @@ export interface LiveTeachingApplications {
   decidedAt: Timestamp | null;
   decidedBy: string | null;
   decisionReason: string | null;
-  id: Generated<number>;
+  id: Generated<string>;
   introVideoFileId: string | null;
   introVideoUrl: string;
+  kind: Generated<string>;
   ratePerUnit: Numeric | null;
   status: Generated<string>;
   teacherId: number;
@@ -1416,7 +1502,7 @@ export interface MentorshipAvailability {
   createdAt: Generated<Timestamp | null>;
   dayOfWeek: number;
   endTime: string;
-  id: Generated<number>;
+  id: Generated<string>;
   isActive: Generated<boolean | null>;
   startTime: string;
   teacherId: number;
@@ -1425,7 +1511,7 @@ export interface MentorshipAvailability {
 export interface MentorshipBlockedDates {
   blockedDate: Timestamp;
   createdAt: Generated<Timestamp | null>;
-  id: Generated<number>;
+  id: Generated<string>;
   reason: string | null;
   teacherId: number;
 }
@@ -1436,63 +1522,27 @@ export interface MentorshipBookings {
   cancelledAt: Timestamp | null;
   cancelledBy: string | null;
   createdAt: Generated<Timestamp | null>;
+  creditId: string | null;
   durationMinutes: number;
-  id: Generated<number>;
+  earningStatus: string | null;
+  id: Generated<string>;
+  issueNote: string | null;
+  issueReportedAt: Timestamp | null;
+  issueResolution: string | null;
+  issueResolvedAt: Timestamp | null;
+  issueResolvedBy: number | null;
   isTrial: Generated<boolean>;
   meetingLink: string | null;
   notes: string | null;
   orderId: number | null;
-  rescheduledFromBookingId: number | null;
+  packageId: string | null;
+  reminder1hSentAt: Timestamp | null;
+  reminder24hSentAt: Timestamp | null;
+  rescheduledFromBookingId: string | null;
   scheduledAt: Timestamp;
-  sessionTypeId: number | null;
   status: Generated<MentorshipBookingStatus | null>;
   studentId: number;
   studentNotes: string | null;
-  subscriptionId: number | null;
-  teacherId: number;
-  updatedAt: Generated<Timestamp | null>;
-}
-
-export interface MentorshipPlans {
-  callDurationMinutes: Generated<number>;
-  callsPerMonth: Generated<number>;
-  createdAt: Generated<Timestamp | null>;
-  currentMentees: Generated<number | null>;
-  description: string | null;
-  durationWeeks: Generated<number>;
-  features: Generated<Json | null>;
-  id: Generated<number>;
-  isActive: Generated<boolean | null>;
-  maxMentees: number | null;
-  price: Numeric;
-  teacherId: number;
-  title: string;
-  updatedAt: Generated<Timestamp | null>;
-}
-
-export interface MentorshipSessionTypes {
-  createdAt: Generated<Timestamp | null>;
-  description: string | null;
-  durationMinutes: Generated<number>;
-  id: Generated<number>;
-  isActive: Generated<boolean | null>;
-  price: Numeric;
-  teacherId: number;
-  title: string;
-  updatedAt: Generated<Timestamp | null>;
-}
-
-export interface MentorshipSubscriptions {
-  amountPaid: Numeric;
-  callsRemaining: number;
-  createdAt: Generated<Timestamp | null>;
-  endDate: Timestamp;
-  id: Generated<number>;
-  orderId: number | null;
-  planId: number;
-  startDate: Timestamp;
-  status: Generated<MentorshipSubscriptionStatus | null>;
-  studentId: number;
   teacherId: number;
   updatedAt: Generated<Timestamp | null>;
 }
@@ -1668,13 +1718,11 @@ export interface OrderItems {
   createdAt: Generated<Timestamp | null>;
   digitalProductId: number | null;
   discountAmount: Generated<Numeric>;
-  groupLessonId: number | null;
+  groupLessonId: string | null;
   id: Generated<number>;
-  mentorshipBookingId: number | null;
+  mentorshipBookingId: string | null;
   mentorshipDurationMinutes: number | null;
-  mentorshipPlanId: number | null;
   mentorshipRequestedStartTime: Timestamp | null;
-  mentorshipSessionTypeId: number | null;
   mentorshipTeacherId: number | null;
   mockTestId: number | null;
   orderId: number;
@@ -1712,6 +1760,8 @@ export interface Orders {
   invoiceNumber: string | null;
   lastTouchCampaign: string | null;
   lastTouchSource: string | null;
+  liveBalanceUsed: Generated<Numeric>;
+  liveHoldUntil: Timestamp | null;
   paidAt: Timestamp | null;
   paymentBankMessage: string | null;
   paymentErrorCode: string | null;
@@ -1980,9 +2030,9 @@ export interface Reviews {
   courseId: number | null;
   createdAt: Generated<Timestamp | null>;
   digitalProductId: number | null;
-  groupLessonId: number | null;
+  groupLessonId: string | null;
   id: Generated<number>;
-  mentorshipBookingId: number | null;
+  mentorshipBookingId: string | null;
   mockTestId: number | null;
   rating: number;
   reviewerName: string;
@@ -2745,8 +2795,11 @@ export interface Users {
   languages: Generated<Json | null>;
   liveTeachingStatus: Generated<string>;
   location: string | null;
+  mentorshipClassPrice50: Numeric | null;
   mentorshipEnabled: Generated<boolean>;
   mentorshipRatePerUnit: Numeric | null;
+  mentorshipTrialPrice25: Numeric | null;
+  mentorshipTrialPrice50: Numeric | null;
   mobileNumber: string | null;
   mobileVerified: Generated<boolean>;
   onboardingCompleted: Generated<boolean>;
@@ -2861,10 +2914,15 @@ export interface DB {
   identityLinks: IdentityLinks;
   imageRecoveryJobs: ImageRecoveryJobs;
   invoiceCounters: InvoiceCounters;
+  liveClassCredits: LiveClassCredits;
   liveLessonAttendance: LiveLessonAttendance;
   liveLessonChatMessages: LiveLessonChatMessages;
   liveLessonMaterials: LiveLessonMaterials;
   liveLessonTeacherNotes: LiveLessonTeacherNotes;
+  liveMandates: LiveMandates;
+  livePackageCycles: LivePackageCycles;
+  livePackages: LivePackages;
+  liveSlotHolds: LiveSlotHolds;
   liveTeachingApplications: LiveTeachingApplications;
   liveTestEnrollments: LiveTestEnrollments;
   liveTestPrizeDistributions: LiveTestPrizeDistributions;
@@ -2879,9 +2937,6 @@ export interface DB {
   mentorshipAvailability: MentorshipAvailability;
   mentorshipBlockedDates: MentorshipBlockedDates;
   mentorshipBookings: MentorshipBookings;
-  mentorshipPlans: MentorshipPlans;
-  mentorshipSessionTypes: MentorshipSessionTypes;
-  mentorshipSubscriptions: MentorshipSubscriptions;
   messageEvents: MessageEvents;
   messageLinks: MessageLinks;
   messageReplies: MessageReplies;
@@ -2992,7 +3047,6 @@ export const InquiryStatusArrayValues: [InquiryStatus, ...InquiryStatus[]] = ["a
 export const InstituteTypeArrayValues: [InstituteType, ...InstituteType[]] = ["coaching","individual","institute","school"];
 export const LessonContentTypeArrayValues: [LessonContentType, ...LessonContentType[]] = ["pdf","quiz","text","video"];
 export const MentorshipBookingStatusArrayValues: [MentorshipBookingStatus, ...MentorshipBookingStatus[]] = ["cancelled","completed","no_show","scheduled"];
-export const MentorshipSubscriptionStatusArrayValues: [MentorshipSubscriptionStatus, ...MentorshipSubscriptionStatus[]] = ["active","cancelled","expired"];
 export const OrderStatusArrayValues: [OrderStatus, ...OrderStatus[]] = ["cancelled","completed","failed","pending","refunded"];
 export const PrizeDistributionStatusArrayValues: [PrizeDistributionStatus, ...PrizeDistributionStatus[]] = ["distributed","not_applicable","pending"];
 export const PrizeFundSourceArrayValues: [PrizeFundSource, ...PrizeFundSource[]] = ["enrollment","teacher_wallet"];

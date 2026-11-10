@@ -7,7 +7,7 @@ export const schema = z.object({
 });
 
 export type InputType = z.infer<typeof schema>;
-export type OutputType = { id: number };
+export type OutputType = { id: string };
 
 export const postTeacherMentorshipBlockedDateAdd = async (
   input: InputType,

@@ -1,6 +1,7 @@
 import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { schema, OutputType } from "./cancel_POST.schema";
+import { returnCredit } from "../../../helpers/livePackages";
 import superjson from "superjson";
 
 export async function handle(request: Request): Promise<Response> {
@@ -12,22 +13,28 @@ export async function handle(request: Request): Promise<Response> {
     const cancelledByLabel = `admin:${admin.fullName ?? admin.email ?? admin.id}`;
 
     if (input.kind === "booking") {
-      const updated = await db
-        .updateTable("mentorshipBookings")
-        .set({
-          status: "cancelled",
-          cancellationReason: input.reason,
-          cancelledAt: new Date(),
-          cancelledBy: cancelledByLabel,
-          updatedAt: new Date(),
-        })
-        .where("id", "=", input.id)
-        .where("status", "!=", "cancelled")
-        .executeTakeFirst();
+      await db.transaction().execute(async (trx) => {
+        const updated = await trx
+          .updateTable("mentorshipBookings")
+          .set({
+            status: "cancelled",
+            cancellationReason: input.reason,
+            cancelledAt: new Date(),
+            cancelledBy: cancelledByLabel,
+            earningStatus: "void",
+            updatedAt: new Date(),
+          })
+          .where("id", "=", input.id)
+          .where("status", "=", "scheduled")
+          .returning("creditId")
+          .executeTakeFirst();
 
-      if (updated.numUpdatedRows === 0n) {
-        throw new Error("This booking was not found, or is already cancelled.");
-      }
+        if (!updated) {
+          throw new Error("This booking was not found, or is no longer scheduled.");
+        }
+        // A paid trial or package class is given back to the student.
+        if (updated.creditId) await returnCredit(trx, updated.creditId);
+      });
     } else {
       const updated = await db
         .updateTable("groupLessons")

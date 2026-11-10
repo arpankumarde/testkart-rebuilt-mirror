@@ -13,7 +13,7 @@ export const schema = z.object({
 
 export type InputType = z.infer<typeof schema>;
 
-export type OutputType = { bookingId: number; status: string; scheduledAt: Date; isTrial: boolean };
+export type OutputType = { bookingId: string; status: string; scheduledAt: Date; isTrial: boolean };
 
 export const postMentorshipBookingCreate = async (input: InputType, init?: RequestInit): Promise<OutputType> => {
   const result = await fetch(`/_api/mentorship/bookings/create`, {

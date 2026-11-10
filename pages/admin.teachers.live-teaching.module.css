@@ -26,6 +26,17 @@
   box-shadow: var(--shadow);
 }
 
+.videoLabel {
+  margin: 0 0 var(--spacing-1);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted-foreground);
+}
+
+.videoLabel:not(:first-child) {
+  margin-top: var(--spacing-3);
+}
+
 .videoCol {
   min-width: 0;
 }

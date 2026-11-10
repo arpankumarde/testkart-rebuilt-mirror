@@ -3,7 +3,7 @@ import superjson from "superjson";
 
 export const schema = z.object({
   kind: z.enum(["booking", "group"]),
-  id: z.number().int().positive(),
+  id: z.string().uuid(),
   /** Only meaningful for a 1:1 booking - group lessons have no no_show state. Defaults to "completed". */
   outcome: z.enum(["completed", "no_show"]).optional(),
 });

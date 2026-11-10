@@ -25,7 +25,7 @@ const PRODUCT_EXPR = sql<string>`case
   when exists (select 1 from order_items oi where oi.order_id = orders.id and oi.mock_test_id is not null) then 'test'
   when exists (select 1 from order_items oi where oi.order_id = orders.id and oi.digital_product_id is not null) then 'notes'
   when exists (select 1 from order_items oi where oi.order_id = orders.id
-    and (oi.mentorship_plan_id is not null or oi.mentorship_session_type_id is not null or oi.mentorship_booking_id is not null))
+    and (oi.mentorship_teacher_id is not null or oi.mentorship_booking_id is not null))
     then 'mentorship'
   else null end`;
 

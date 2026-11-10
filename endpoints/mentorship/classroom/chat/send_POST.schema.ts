@@ -3,13 +3,13 @@ import superjson from "superjson";
 
 export const schema = z.object({
   kind: z.enum(["booking", "group"]),
-  id: z.number().int().positive(),
+  id: z.string().uuid(),
   body: z.string().trim().min(1).max(2000),
 });
 export type InputType = z.infer<typeof schema>;
 
 export type ChatMessageOut = {
-  id: number;
+  id: string;
   senderId: number;
   senderName: string;
   senderAvatarUrl: string | null;

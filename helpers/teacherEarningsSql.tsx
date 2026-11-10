@@ -225,15 +225,21 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
 }
 
 /**
- * Live teaching sales: paid 1:1 sessions (kind 'live_session') and paid group
+ * Live teaching sales: paid 1:1 classes (kind 'live_session') and paid group
  * class seats (kind 'group_class'). Same columns as earningsRowsFragment plus
- * `fee_percentage`, the platform fee stored on the order item at purchase.
+ * `fee_percentage`, the platform fee stored at purchase.
  *
  * A row counts only once the session has been held, the way live-test money
  * waits for the test to end:
- *   - 1:1: the order still has a booking that is not cancelled (a reschedule
- *     cancels the old row and adds a new one under the same order, so the
- *     newest live booking is used) and its end time has passed;
+ *   - 1:1 trials and package classes (live_class_credits, one row per class):
+ *     the credit is spent and its booking earned (held, or a student late
+ *     cancel or no-show), 24 hours have passed since it ended (the student's
+ *     window to report the teacher did not come) and no report is open. The
+ *     fee is the one stored on the credit; sold_at is the class time;
+ *   - 1:1 sessions bought before credits existed: the order still has a
+ *     booking that is not cancelled (a reschedule cancels the old row and adds
+ *     a new one under the same order, so the newest live booking is used) and
+ *     its end time has passed;
  *   - group class: the class was not cancelled, its end time has passed and
  *     the buyer still holds the seat (not left, not removed).
  * Bookings made before order_items.mentorship_teacher_id existed are not
@@ -273,8 +279,31 @@ function liveSessionRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: Teacher
     ) mb ON TRUE
     WHERE o.status = 'completed'
       AND oi.mentorship_teacher_id IS NOT NULL
+      AND NOT EXISTS (SELECT 1 FROM live_class_credits lcc_old WHERE lcc_old.order_id = o.id)
       ${teacherFilter("oi.mentorship_teacher_id", teacherIdExpr)}
       ${windowFilter("o.created_at", window)}
+    UNION ALL
+    SELECT lcc.amount * (1 - lcc.platform_fee_percentage / 100) AS earnings,
+           lcc.amount AS gross,
+           (b.scheduled_at AT TIME ZONE 'UTC') AS sold_at,
+           lcc.order_id AS order_id,
+           lcc.student_id AS buyer_id,
+           'live_session'::text AS kind,
+           ((CASE WHEN lcc.kind = 'trial' THEN 'Trial 1:1 class (' ELSE '1:1 class (' END) || lcc.class_minutes || ' min)')::text AS title,
+           NULL::text AS thumbnail,
+           b.id AS item_id,
+           NULL::integer AS promo_code_id,
+           0::numeric AS discount,
+           lcc.teacher_id AS teacher_id,
+           lcc.platform_fee_percentage AS fee_percentage
+    FROM live_class_credits lcc
+    JOIN mentorship_bookings b ON b.id = lcc.booking_id
+    WHERE lcc.status = 'spent'
+      AND b.earning_status = 'earned'
+      AND (b.scheduled_at AT TIME ZONE 'UTC') + make_interval(mins => b.duration_minutes) + interval '24 hours' <= NOW()
+      AND (b.issue_reported_at IS NULL OR b.issue_resolution = 'rejected')
+      ${teacherFilter("lcc.teacher_id", teacherIdExpr)}
+      ${windowFilter("(b.scheduled_at AT TIME ZONE 'UTC')", window)}
     UNION ALL
     SELECT (oi.price_at_purchase - td.amount) * (1 - oi.platform_fee_percentage / 100) AS earnings,
            (oi.price_at_purchase - td.amount) AS gross,

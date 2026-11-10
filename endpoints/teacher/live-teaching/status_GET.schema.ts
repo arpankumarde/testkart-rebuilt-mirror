@@ -9,6 +9,12 @@ export type OutputType = {
   decisionReason: string | null;
   appliedAt: Date | null;
   decidedAt: Date | null;
+  /** Set when the teacher withdrew their latest application. */
+  withdrawnAt: Date | null;
+  /** Approved teachers: a new intro video waiting for review; the current one stays on the profile meanwhile. */
+  pendingVideo: { url: string; sentAt: Date } | null;
+  /** Approved teachers: why their last replacement video was turned down, until they send another. */
+  videoRejection: { reason: string | null; decidedAt: Date | null } | null;
   /** Team managers can see the status but only the account owner can apply. */
   isOwner: boolean;
 };

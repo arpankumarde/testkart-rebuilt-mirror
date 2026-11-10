@@ -4,7 +4,8 @@ import { schema, OutputType } from "./slots_GET.schema";
 import { MENTORSHIP_SESSION_DURATIONS } from "../../helpers/liveLessonConfig";
 import superjson from "superjson";
 
-const MAX_RANGE_DAYS = 21;
+/** Covers a full 4-week package cycle plus a week of slack. */
+const MAX_RANGE_DAYS = 35;
 
 export async function handle(request: Request): Promise<Response> {
   try {

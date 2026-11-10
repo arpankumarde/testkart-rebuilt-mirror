@@ -7,6 +7,7 @@ import { getAutopilotDashboard } from "./autopilotDashboardData";
 import { sendEmail } from "./sendEmail";
 import { lookupPayUTransactions } from "./lookupPayUTransactions";
 import { runAutopilotEngine } from "./autopilotEngine";
+import { runLiveTeachingSweep } from "./liveTeachingSweep";
 import type { AutopilotCheckStatus } from "./schema";
 
 /**
@@ -341,6 +342,7 @@ export async function autopilotHourly(): Promise<void> {
   await step("engine", async () => {
     await runAutopilotEngine();
   });
+  await step("liveTeaching", runLiveTeachingSweep);
   if (ist.getUTCMinutes() >= 15) return;
   await step("attribution", fixAttribution);
   await step("outcomes", backfillOutcomes);

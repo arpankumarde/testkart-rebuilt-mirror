@@ -3,8 +3,15 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./cancel_POST.schema";
 import { sendEmail } from "../../../helpers/sendEmail";
 import { emailTemplatesExtra } from "../../../helpers/emailTemplatesExtra";
+import { isLateForStudent, returnCredit, spendCredit } from "../../../helpers/livePackages";
 import superjson from "superjson";
 
+/**
+ * Paid classes (those with a live_class_credits row) follow the package rules: a student who
+ * cancels at least FREE_CANCELLATION_CUTOFF_HOURS ahead gets the class back (a package class waits
+ * to be rescheduled, a trial's price goes to the live class balance); later than that the class is
+ * charged and the teacher is paid. A teacher or admin cancel always gives the class back.
+ */
 export async function handle(request: Request) {
   try {
     const { user, effectiveTeacherId } = await getServerUserSession(request);
@@ -23,6 +30,7 @@ export async function handle(request: Request) {
         "mentorshipBookings.scheduledAt",
         "mentorshipBookings.durationMinutes",
         "mentorshipBookings.isTrial",
+        "mentorshipBookings.creditId",
         "student.email as studentEmail",
         "student.displayName as studentName",
         "teacher.email as teacherEmail",
@@ -42,23 +50,34 @@ export async function handle(request: Request) {
       return new Response(superjson.stringify({ error: "You cannot cancel this booking." }), { status: 403 });
     }
 
-    if (booking.status === "cancelled" || booking.status === "completed") {
+    if (booking.status !== "scheduled") {
       return new Response(superjson.stringify({ error: `This booking is already ${booking.status}.` }), { status: 400 });
     }
 
     const cancelledBy = isAdmin ? "admin" : isTeacher ? "teacher" : "student";
+    const charged = isStudent && !!booking.creditId && isLateForStudent(new Date(booking.scheduledAt));
+    const now = new Date();
 
-    await db
-      .updateTable("mentorshipBookings")
-      .set({
-        status: "cancelled",
-        cancellationReason: input.reason,
-        cancelledAt: new Date(),
-        cancelledBy,
-        updatedAt: new Date(),
-      })
-      .where("id", "=", input.bookingId)
-      .execute();
+    const creditOutcome = await db.transaction().execute(async (trx) => {
+      await trx
+        .updateTable("mentorshipBookings")
+        .set({
+          status: "cancelled",
+          cancellationReason: input.reason,
+          cancelledAt: now,
+          cancelledBy,
+          ...(booking.creditId ? { earningStatus: charged ? "earned" : "void" } : {}),
+          updatedAt: now,
+        })
+        .where("id", "=", input.bookingId)
+        .execute();
+      if (!booking.creditId) return null;
+      if (charged) {
+        await spendCredit(trx, booking.creditId);
+        return "spent" as const;
+      }
+      return returnCredit(trx, booking.creditId);
+    });
 
     const sessionLabel = `${booking.isTrial ? "Trial " : ""}1:1 session (${booking.durationMinutes} min)`;
     try {
@@ -88,7 +107,7 @@ export async function handle(request: Request) {
       console.error("Failed to send mentorship cancellation emails:", emailError);
     }
 
-    const output: OutputType = { success: true };
+    const output: OutputType = { success: true, credit: creditOutcome };
     return new Response(superjson.stringify(output));
   } catch (error) {
     console.error("Failed to cancel mentorship booking:", error);

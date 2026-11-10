@@ -7,6 +7,8 @@ import {
 } from "../helpers/useAdminContentReviews";
 import { useApproveAllReviews } from "../helpers/useApproveAllReviews";
 import { useMediaQuery } from "../helpers/useMediaQuery";
+import { useAdminAuth } from "../helpers/useAdminAuth";
+import { hasAdminModule } from "../helpers/adminPermissions";
 import { Button } from "../components/Button";
 import { Badge } from "../components/Badge";
 import { Skeleton } from "../components/Skeleton";
@@ -128,6 +130,9 @@ const QueueSkeleton = () => (
 );
 
 const AdminContentReviewsPage: React.FC = () => {
+  const { authState } = useAdminAuth();
+  const canOpenBonusClaims =
+    authState.type === "authenticated" && hasAdminModule(authState.admin.permissions ?? [], ["bonus_programs"]);
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const { read, write, searchParams } = useListUrlParams();
@@ -481,12 +486,14 @@ const AdminContentReviewsPage: React.FC = () => {
 
       <div className={`${styles.page} ${isSplit ? styles.pageSplit : ""}`}>
         <ConsolePageHeader title="Content reviews">
-          <Button variant="outline" asChild>
-            <Link to="/admin/content-reviews/bonus-claims">
-              <Gift size={16} />
-              Bonus claims
-            </Link>
-          </Button>
+          {canOpenBonusClaims && (
+            <Button variant="outline" asChild>
+              <Link to="/admin/content-reviews/bonus-claims">
+                <Gift size={16} />
+                Bonus claims
+              </Link>
+            </Button>
+          )}
           {showApproveAll && (
             <Button
               variant="outline"

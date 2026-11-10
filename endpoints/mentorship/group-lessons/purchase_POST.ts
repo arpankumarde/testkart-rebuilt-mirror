@@ -3,14 +3,14 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, InputType, OutputType } from "./purchase_POST.schema";
 import superjson from "superjson";
 import { nanoid } from "nanoid";
-import { createHash } from "crypto";
-import { PAYU_MODE } from "../../../helpers/_publicConfigs";
 import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
 import { getTeacherPlatformFee, DEFAULT_TEACHER_PLATFORM_FEE } from "../../../helpers/getTeacherPlatformFee";
-import { sanitizePayuText } from "../../../helpers/sanitizePayuText";
 import { getOrderClientInfo } from "../../../helpers/orderClientInfo";
 import { getOrderAttribution } from "../../../helpers/getOrderAttribution";
 import { recordFunnelEvent } from "../../../helpers/recordFunnelEvent";
+import { openCashfreeSession } from "../../../helpers/cashfreeOrders";
+import { getCashfreeConfig } from "../../../helpers/cashfree";
+import { groupLessonPath } from "../../../helpers/groupLessonRoutes";
 
 export async function handle(request: Request) {
   try {
@@ -20,17 +20,14 @@ export async function handle(request: Request) {
     }
 
     const json = superjson.parse<InputType>(await request.text());
-    const { groupLessonId, deepLinkUrl } = schema.parse(json);
+    const { groupLessonId } = schema.parse(json);
 
-    const PAYU_MERCHANT_KEY = process.env.PAYU_MERCHANT_KEY;
-    const PAYU_MERCHANT_SALT = process.env.PAYU_MERCHANT_SALT;
-    if (!PAYU_MERCHANT_KEY || !PAYU_MERCHANT_SALT) {
-      console.error("PayU merchant key or salt is not configured.");
-      throw new Error("Payment gateway is not configured.");
-    }
+    // Fail before any order exists if the gateway is not set up.
+    getCashfreeConfig();
 
-    let createdOrderId: number | null = null;
-    const payuFormData = await db.transaction().execute(async (trx) => {
+    const cashfreeOrderId = `group-lesson-${groupLessonId}-${nanoid(12)}`;
+
+    const created = await db.transaction().execute(async (trx) => {
       const lesson = await trx.selectFrom("groupLessons").selectAll().where("id", "=", groupLessonId).executeTakeFirst();
       if (!lesson) throw new Error("Group lesson not found.");
       if (lesson.status !== "scheduled") throw new Error("This group lesson is no longer open.");
@@ -55,9 +52,7 @@ export async function handle(request: Request) {
         .where("paymentTransactionId", "like", `group-lesson-${groupLessonId}-%`)
         .execute();
 
-      const txnid = `group-lesson-${groupLessonId}-${nanoid(12)}`;
       const amount = Number(lesson.pricePerLearner).toFixed(2);
-      const productInfo = lesson.title.substring(0, 100);
 
       const newOrder = await trx
         .insertInto("orders")
@@ -67,12 +62,11 @@ export async function handle(request: Request) {
           ...getOrderAttribution(request),
           totalAmount: amount,
           status: "pending",
-          paymentMethod: "payu",
-          paymentTransactionId: txnid,
+          paymentMethod: "cashfree",
+          paymentTransactionId: cashfreeOrderId,
         })
         .returning("id")
         .executeTakeFirstOrThrow();
-      createdOrderId = newOrder.id;
 
       const platformFeePercentage = await getTeacherPlatformFee(lesson.teacherId, trx);
 
@@ -80,54 +74,37 @@ export async function handle(request: Request) {
         .insertInto("orderItems")
         .values({
           orderId: newOrder.id,
-          // Recorded so ensureOrderCompletionSideEffects can create the
-          // enrollment as a safety net if the order completes through a path
-          // other than the client's explicit post-payment enroll_POST call.
-          groupLessonId: groupLessonId,
+          // Recorded so ensureOrderCompletionSideEffects creates the enrollment once the
+          // payment is confirmed, whether that is the student's return or the webhook.
+          groupLessonId,
           priceAtPurchase: amount,
           platformFeePercentage: (platformFeePercentage ?? DEFAULT_TEACHER_PLATFORM_FEE).toFixed(2),
         })
         .execute();
 
-      const firstname = sanitizePayuText(user.displayName || "Student");
-      const email = user.email ?? `${user.mobileNumber}@mail.testkart.in`;
-      const sanitizedProductInfo = sanitizePayuText(productInfo);
-      const udf1 = deepLinkUrl ?? "";
-
-      const hashString = `${PAYU_MERCHANT_KEY}|${txnid}|${amount}|${sanitizedProductInfo}|${firstname}|${email}|${udf1}||||||||||${PAYU_MERCHANT_SALT}`;
-      const hash = createHash("sha512").update(hashString).digest("hex");
-      const payuUrl = PAYU_MODE !== "production" ? "https://test.payu.in/_payment" : "https://secure.payu.in/_payment";
-
-      const responsePayload: OutputType = {
-        key: PAYU_MERCHANT_KEY,
-        txnid,
-        amount,
-        productinfo: sanitizedProductInfo,
-        firstname,
-        email,
-        phone: user.mobileNumber || "9999999999",
-        surl: `https://testkart.in/_api/payment/payu/callback`,
-        furl: `https://testkart.in/_api/payment/payu/callback`,
-        hash,
-        payuUrl,
-        ...(udf1 ? { udf1 } : {}),
-      };
-      return responsePayload;
+      return { orderId: newOrder.id, amount, title: lesson.title };
     });
 
-    if (createdOrderId !== null) {
-      await recordFunnelEvent({
-        event: "checkout_started",
-        request,
-        userId: user.id,
-        orderId: createdOrderId,
-        entityType: "group_lesson",
-        entityId: groupLessonId,
-        amount: payuFormData.amount,
-        props: { path: "group_lesson" },
-      });
-    }
-    return new Response(superjson.stringify(payuFormData));
+    const session: OutputType = await openCashfreeSession({
+      orderId: created.orderId,
+      cashfreeOrderId,
+      amount: Number(created.amount),
+      user,
+      returnPath: groupLessonPath(groupLessonId),
+      note: created.title.substring(0, 100),
+    });
+
+    await recordFunnelEvent({
+      event: "checkout_started",
+      request,
+      userId: user.id,
+      orderId: created.orderId,
+      entityType: "group_lesson",
+      amount: created.amount,
+      props: { path: "group_lesson", gateway: "cashfree", groupLessonId },
+    });
+
+    return new Response(superjson.stringify(session));
   } catch (error) {
     console.error("Failed to initiate group lesson purchase:", error);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";

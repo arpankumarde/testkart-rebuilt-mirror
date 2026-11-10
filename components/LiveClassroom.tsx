@@ -73,7 +73,7 @@ const formatWhen = (date: Date | string) =>
 
 interface LiveClassroomProps {
   kind: ClassroomKind;
-  id: number;
+  id: string;
 }
 
 /**
@@ -105,7 +105,7 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
   const completeMutation = useClassroomCompleteMutation();
 
   const [session, setSession] = useState<{
-    attendanceId: number;
+    attendanceId: string;
     role: "teacher" | "learner";
     provider: string;
     url: string;
@@ -118,7 +118,7 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
   const [elapsed, setElapsed] = useState(0);
   const [endOpen, setEndOpen] = useState(false);
   const [hasEnded, setHasEnded] = useState(false);
-  const attendanceRef = useRef<number | null>(null);
+  const attendanceRef = useRef<string | null>(null);
   const frameHostRef = useRef<HTMLDivElement | null>(null);
   const handleLeaveRef = useRef<() => void>(() => {});
 
@@ -215,7 +215,7 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.attendanceId]);
 
-  const postLeaveBeacon = async (attendanceId: number) => {
+  const postLeaveBeacon = async (attendanceId: string) => {
     try {
       await leaveMutation.mutateAsync({ attendanceId });
     } catch {

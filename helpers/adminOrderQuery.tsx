@@ -85,7 +85,7 @@ const PRODUCT_CONDITIONS: Record<string, RawBuilder<SqlBool>> = {
   notes: sql<SqlBool>`(${hasItem("digital_product_id")} and orders.bundle_id is null)`,
   bundle: sql<SqlBool>`orders.bundle_id is not null`,
   mentorship: sql<SqlBool>`exists (select 1 from order_items oi where oi.order_id = orders.id
-    and (oi.mentorship_plan_id is not null or oi.mentorship_session_type_id is not null or oi.mentorship_booking_id is not null))`,
+    and (oi.mentorship_teacher_id is not null or oi.mentorship_booking_id is not null))`,
 };
 
 /** The teacher an order is credited to: its first item's teacher, else the bundle's. */

@@ -10,6 +10,7 @@ import { VerifiedBadge } from "../components/VerifiedBadge";
 import { Checkbox } from "../components/Checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/Select";
 import { useDebounce } from "../helpers/useDebounce";
+import { liveBookingPath } from "../helpers/liveBookingRoutes";
 import { getExpertsList } from "../endpoints/experts/list_GET.schema";
 import type { ExpertListItem, ExpertSortValue } from "../endpoints/experts/list_GET.schema";
 import styles from "./expert.module.css";
@@ -114,11 +115,24 @@ const TutorCard: React.FC<{ teacher: ExpertListItem; index: number }> = ({ teach
 
       <div className={styles.side}>
         <div className={styles.sideTop}>
-          {teacher.pricePer25Min != null && (
+          {teacher.trialFrom != null ? (
             <div className={styles.price}>
-              <span className={styles.priceValue}>₹{formatCount(sessionPrice(teacher.pricePer25Min))}</span>
-              <span className={styles.priceUnit}>{SESSION_MINUTES}-min session</span>
+              {teacher.trialFrom > 0 ? (
+                <>
+                  <span className={styles.priceUnit}>Trial from</span>
+                  <span className={styles.priceValue}>₹{formatCount(teacher.trialFrom)}</span>
+                </>
+              ) : (
+                <span className={styles.priceValue}>Free trial</span>
+              )}
             </div>
+          ) : (
+            teacher.pricePer25Min != null && (
+              <div className={styles.price}>
+                <span className={styles.priceValue}>₹{formatCount(sessionPrice(teacher.pricePer25Min))}</span>
+                <span className={styles.priceUnit}>{SESSION_MINUTES}-min session</span>
+              </div>
+            )
           )}
 
           {stats.length > 0 ? (
@@ -140,7 +154,7 @@ const TutorCard: React.FC<{ teacher: ExpertListItem; index: number }> = ({ teach
 
         <div className={styles.actions}>
           <Button asChild size="lg" className={styles.actionButton}>
-            <Link to={`/live-teaching/book/${teacher.id}?duration=${SESSION_MINUTES}`}>Book trial session</Link>
+            <Link to={liveBookingPath(teacher)}>Book trial session</Link>
           </Button>
           <Button asChild variant="outline" size="lg" className={styles.actionButton}>
             <Link to={profilePath}>View profile</Link>

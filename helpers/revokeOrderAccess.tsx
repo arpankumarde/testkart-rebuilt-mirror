@@ -35,7 +35,7 @@ type GrantedItem =
 export type RevokeOrderAccessResult = {
   removed: number;
   kept: number;
-  cancelledBookingIds: number[];
+  cancelledBookingIds: string[];
 };
 
 export async function revokeOrderAccess(

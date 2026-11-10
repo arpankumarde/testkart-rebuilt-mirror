@@ -15,11 +15,20 @@ export type LiveTeachingState = {
   introVideoFileId: string | null;
   ratePerUnit: number | null;
   latestApplication: {
-    id: number;
+    id: string;
     status: string;
     decisionReason: string | null;
     decidedAt: Date | null;
     createdAt: Date;
+  } | null;
+  /** The latest replacement video an approved teacher sent for review (kind 'video'). */
+  latestVideoChange: {
+    id: string;
+    status: string;
+    introVideoUrl: string;
+    decisionReason: string | null;
+    createdAt: Date;
+    decidedAt: Date | null;
   } | null;
 };
 
@@ -43,7 +52,7 @@ export async function getLiveTeachingState(teacherId: number): Promise<LiveTeach
     .executeTakeFirst();
   if (!user) return null;
 
-  const [hours, latest] = await Promise.all([
+  const [hours, latest, videoChange] = await Promise.all([
     db
       .selectFrom("mentorshipAvailability")
       .select(db.fn.countAll<string>().as("n"))
@@ -54,6 +63,15 @@ export async function getLiveTeachingState(teacherId: number): Promise<LiveTeach
       .selectFrom("liveTeachingApplications")
       .select(["id", "status", "decisionReason", "decidedAt", "createdAt"])
       .where("teacherId", "=", teacherId)
+      .where("kind", "=", "application")
+      .orderBy("createdAt", "desc")
+      .limit(1)
+      .executeTakeFirst(),
+    db
+      .selectFrom("liveTeachingApplications")
+      .select(["id", "status", "introVideoUrl", "decisionReason", "createdAt", "decidedAt"])
+      .where("teacherId", "=", teacherId)
+      .where("kind", "=", "video")
       .orderBy("createdAt", "desc")
       .limit(1)
       .executeTakeFirst(),
@@ -81,5 +99,6 @@ export async function getLiveTeachingState(teacherId: number): Promise<LiveTeach
     introVideoFileId: user.introVideoFileId,
     ratePerUnit,
     latestApplication: latest ?? null,
+    latestVideoChange: videoChange ?? null,
   };
 }

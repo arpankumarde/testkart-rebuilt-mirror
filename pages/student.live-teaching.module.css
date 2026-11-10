@@ -17,6 +17,15 @@
   gap: 0.75rem 1rem;
 }
 
+.reportNote {
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  background: var(--fc-butter-tint);
+  color: var(--fc-butter-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
 .skeletons {
   display: flex;
   flex-direction: column;

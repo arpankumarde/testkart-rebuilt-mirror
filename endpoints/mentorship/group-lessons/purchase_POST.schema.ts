@@ -1,27 +1,14 @@
 import { z } from "zod";
 import superjson from "superjson";
+import type { CashfreeCheckoutSession } from "../../../helpers/cashfreeCheckout";
 
 export const schema = z.object({
-  groupLessonId: z.number().int().positive(),
-  deepLinkUrl: z.string().optional(),
+  groupLessonId: z.string().uuid(),
 });
 
 export type InputType = z.infer<typeof schema>;
 
-export type OutputType = {
-  key: string;
-  txnid: string;
-  amount: string;
-  productinfo: string;
-  firstname: string;
-  email: string;
-  phone: string;
-  surl: string;
-  furl: string;
-  hash: string;
-  payuUrl: string;
-  udf1?: string;
-};
+export type OutputType = CashfreeCheckoutSession;
 
 export const postMentorshipGroupLessonPurchase = async (body: InputType, init?: RequestInit): Promise<OutputType> => {
   const validatedInput = schema.parse(body);
@@ -29,7 +16,10 @@ export const postMentorshipGroupLessonPurchase = async (body: InputType, init?: 
     method: "POST",
     body: superjson.stringify(validatedInput),
     ...init,
-    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
+    headers: {
+      "Content-Type": "application/json",
+      ...(init?.headers ?? {}),
+    },
   });
   if (!result.ok) {
     const errorObject = superjson.parse<{ error: string; details?: string }>(await result.text());
