@@ -12,10 +12,6 @@ type Props = {
   rotation?: number;
   /** How long a change of rotation animates for; 0 jumps straight there. */
   spinMs?: number;
-  /** Rendered over the hub, e.g. the student wheel's Spin button. */
-  center?: React.ReactNode;
-  /** "festive" is the student popup's gold rim, pointer and glow; the default suits the admin preview. */
-  tone?: "default" | "festive";
 };
 
 /* A quick start held at an even pace, then a long, gradual slowdown into the winning slice. */
@@ -58,20 +54,18 @@ export function rotationForSlice(index: number, count: number, from: number, tur
 
 /*
  * Equal slices in reward order, as students see them. Slice size says nothing about odds, which
- * are disclosed separately. Used both as the admin preview and, with `rotation` and `center`,
- * as the student wheel.
+ * are disclosed separately. Used as the admin wheel preview.
  */
-export const SpinWinWheel: React.FC<Props> = ({ segments, size = 280, className, rotation = 0, spinMs = 0, center, tone = "default" }) => {
+export const SpinWinWheel: React.FC<Props> = ({ segments, size = 280, className, rotation = 0, spinMs = 0 }) => {
   const count = segments.length;
   const slice = count > 0 ? (2 * Math.PI) / count : 0;
   const start = -Math.PI / 2 - slice / 2;
   const labelSize = count > 8 ? 6.5 : count > 6 ? 7.5 : 8.5;
 
   return (
-    <figure className={`${styles.figure} ${tone === "festive" ? styles.festive : ""} ${className ?? ""}`} style={{ maxWidth: size }}>
+    <figure className={`${styles.figure} ${className ?? ""}`} style={{ maxWidth: size }}>
       <svg viewBox={`0 0 ${VIEW} ${VIEW + 10}`} role="img" aria-label={count > 0 ? `Prize wheel with ${count} slices` : "Empty wheel"} className={styles.svg}>
         <circle cx={CX} cy={CY} r={RADIUS + 6} className={styles.rim} />
-        {tone === "festive" ? <circle cx={CX} cy={CY} r={RADIUS + 0.8} className={styles.innerRing} /> : null}
         <g
           className={styles.rotor}
           style={{
@@ -135,23 +129,10 @@ export const SpinWinWheel: React.FC<Props> = ({ segments, size = 280, className,
           const bulb = point(RADIUS + 3, (i / 16) * 2 * Math.PI);
           return <circle key={`bulb-${i}`} cx={bulb.x} cy={bulb.y} r={1.6} className={styles.bulb} />;
         })}
-        {center ? null : (
-          <>
-            <circle cx={CX} cy={CY} r={14} className={styles.hub} />
-            <circle cx={CX} cy={CY} r={5} className={styles.hubDot} />
-          </>
-        )}
-        {tone === "festive" ? (
-          <path
-            d={`M ${CX} 27 C ${CX - 2.5} 21 ${CX - 7.5} 15 ${CX - 7.5} 9.5 A 7.5 7.5 0 0 1 ${CX + 7.5} 9.5 C ${CX + 7.5} 15 ${CX + 2.5} 21 ${CX} 27 Z`}
-            className={styles.pointer}
-          />
-        ) : (
-          <path d={`M ${CX - 8} 2 L ${CX + 8} 2 L ${CX} 20 Z`} className={styles.pointer} />
-        )}
-        {tone === "festive" ? <circle cx={CX} cy={9.5} r={2.8} className={styles.pointerGem} /> : null}
+        <circle cx={CX} cy={CY} r={14} className={styles.hub} />
+        <circle cx={CX} cy={CY} r={5} className={styles.hubDot} />
+        <path d={`M ${CX - 8} 2 L ${CX + 8} 2 L ${CX} 20 Z`} className={styles.pointer} />
       </svg>
-      {center ? <div className={styles.center}>{center}</div> : null}
     </figure>
   );
 };

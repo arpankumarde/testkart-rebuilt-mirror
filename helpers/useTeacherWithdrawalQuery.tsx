@@ -24,5 +24,9 @@ export const useRequestWithdrawal = () => {
       // Invalidate balance because pending withdrawals are now deducted from available balance
       queryClient.invalidateQueries({ queryKey: TEACHER_EARNINGS_BALANCE_QUERY_KEY });
     },
+    onError: () => {
+      // A refusal such as the daily limit means the list is out of date
+      queryClient.invalidateQueries({ queryKey: TEACHER_WITHDRAWALS_QUERY_KEY });
+    },
   });
 };

@@ -1,11 +1,12 @@
 /*
  * /app landing page. Editorial rather than catalogue: one warm surface, big
  * type, and the app's own Play Store screenshots, uncropped, in handsets over
- * painted pastel shapes, with the art alternating sides down the page. Colour
- * comes from the --sp-* showcase tokens (themed); coral is kept to the
- * eyebrow, the underline marks and a star or two. Art boxes are inline-size
- * containers, so phones, shapes and marks are sized in cqi and hold their
- * composition at any width.
+ * painted pastel shapes, with the art alternating sides down the page. Below
+ * the stories sit the text blocks (exams, steps, FAQ) on the same surface in
+ * white cards. Colour comes from the --sp-* showcase tokens (themed); coral is
+ * kept to the eyebrow, the underline marks, the calls to action and a star or
+ * two. Art boxes are inline-size containers, so phones, shapes and marks are
+ * sized in cqi and hold their composition at any width.
  *
  * Stacking inside an art box: shape 0, phones 1-3, marks 4. Nothing uses a
  * negative z-index.
@@ -29,6 +30,18 @@
   .inner {
     padding-inline: 2rem;
   }
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* ---------- Hero ---------- */
@@ -64,13 +77,15 @@
   stroke-width: 3.2;
 }
 
+/* The H1 carries the search wording, so it is longer than a slogan; the size
+   is capped so it settles on three or four lines beside the phones. */
 .heroTitle {
-  margin: 1rem 0 1.25rem;
+  margin: 1rem 0 1rem;
   font-family: var(--font-family-heading);
-  font-size: clamp(2.25rem, 1.45rem + 4vw, 4.5rem);
+  font-size: clamp(2rem, 1.35rem + 2.4vw, 3.125rem);
   font-weight: 800;
-  line-height: 1.04;
-  letter-spacing: -0.035em;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
   color: var(--sp-ink);
   text-wrap: balance;
 }
@@ -97,6 +112,15 @@
   stroke-width: 5;
 }
 
+.tagline {
+  margin: 0 0 1rem;
+  font-family: var(--font-family-cursive);
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--tk-brand-text);
+}
+
 .heroLead {
   max-width: 34rem;
   margin: 0;
@@ -109,20 +133,19 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 1.375rem 1rem;
+  gap: 0.75rem 1.25rem;
   margin-top: 2rem;
 }
 
-/* 3rem keeps the Play and App Store badges on one line on a 393px phone;
-   narrower screens wrap them. */
-.badgeLarge {
-  --badge-h: 3rem;
+.downloadMeta {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--sp-muted);
 }
 
-@media (min-width: 480px) {
-  .badgeLarge {
-    --badge-h: 3.25rem;
-  }
+.badgeLarge {
+  --badge-h: 3.25rem;
 }
 
 .heroArt {
@@ -197,13 +220,17 @@
 
 @media (min-width: 960px) {
   .hero {
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
     gap: 3rem;
-    padding-block: 4.5rem 5rem;
+    padding-block: 4rem 4.5rem;
   }
 
   .heroLead {
     font-size: 1.1875rem;
+  }
+
+  .tagline {
+    font-size: 2rem;
   }
 
   .heroArt {
@@ -246,47 +273,60 @@
   }
 }
 
+/* ---------- Tone inks (feature stories and block scribbles) ---------- */
+
+.feature,
+.scribble {
+  --tone-ink: var(--sp-ink);
+}
+
+.page [data-tone="lavender"] {
+  --tone-ink: hsl(258 42% 48%);
+}
+
+.page [data-tone="mint"] {
+  --tone-ink: hsl(158 56% 27%);
+}
+
+.page [data-tone="butter"] {
+  --tone-ink: hsl(30 82% 33%);
+}
+
+.page [data-tone="peach"] {
+  --tone-ink: hsl(12 72% 43%);
+}
+
+.page [data-tone="powder"] {
+  --tone-ink: hsl(212 50% 36%);
+}
+
+:global(.dark) .page [data-tone="lavender"] {
+  --tone-ink: hsl(258 72% 82%);
+}
+
+:global(.dark) .page [data-tone="mint"] {
+  --tone-ink: hsl(152 52% 72%);
+}
+
+:global(.dark) .page [data-tone="butter"] {
+  --tone-ink: hsl(44 82% 70%);
+}
+
+:global(.dark) .page [data-tone="peach"] {
+  --tone-ink: hsl(20 95% 76%);
+}
+
+:global(.dark) .page [data-tone="powder"] {
+  --tone-ink: hsl(210 70% 80%);
+}
+
 /* ---------- Feature stories ---------- */
 
 .feature {
-  --tone-ink: var(--sp-ink);
-
   display: grid;
   gap: 2rem;
   align-items: center;
   padding-block: 3.5rem;
-}
-
-.feature[data-tone="lavender"] {
-  --tone-ink: hsl(258 42% 48%);
-}
-
-.feature[data-tone="mint"] {
-  --tone-ink: hsl(158 56% 27%);
-}
-
-.feature[data-tone="butter"] {
-  --tone-ink: hsl(30 82% 33%);
-}
-
-.feature[data-tone="peach"] {
-  --tone-ink: hsl(12 72% 43%);
-}
-
-:global(.dark) .feature[data-tone="lavender"] {
-  --tone-ink: hsl(258 72% 82%);
-}
-
-:global(.dark) .feature[data-tone="mint"] {
-  --tone-ink: hsl(152 52% 72%);
-}
-
-:global(.dark) .feature[data-tone="butter"] {
-  --tone-ink: hsl(44 82% 70%);
-}
-
-:global(.dark) .feature[data-tone="peach"] {
-  --tone-ink: hsl(20 95% 76%);
 }
 
 /* Phones stack under their copy, so every story reads heading first. */
@@ -356,9 +396,9 @@
 .featureTitle {
   margin: 0.5rem 0 1rem;
   font-family: var(--font-family-heading);
-  font-size: clamp(1.875rem, 1.3rem + 2.3vw, 3.125rem);
+  font-size: clamp(1.75rem, 1.25rem + 2vw, 2.75rem);
   font-weight: 800;
-  line-height: 1.08;
+  line-height: 1.1;
   letter-spacing: -0.03em;
   color: var(--sp-ink);
   text-wrap: balance;
@@ -391,6 +431,10 @@
   color: var(--tone-ink);
   stroke-width: 3;
   transform: rotate(40deg);
+}
+
+.featureLink {
+  margin-top: 1.75rem;
 }
 
 @media (min-width: 900px) {
@@ -439,16 +483,299 @@
   }
 }
 
+/* ---------- Text blocks: exams, steps, FAQ ---------- */
+
+.block {
+  padding-block: 3.5rem 1rem;
+}
+
+.block + .block {
+  padding-top: 3rem;
+}
+
+.blockHead {
+  max-width: 44rem;
+  margin-bottom: 2rem;
+}
+
+.blockTitle {
+  margin: 0.5rem 0 0;
+  font-family: var(--font-family-heading);
+  font-size: clamp(1.75rem, 1.25rem + 2vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--sp-ink);
+  text-wrap: balance;
+}
+
+.blockLead {
+  margin: 1rem 0 0;
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  color: var(--sp-text);
+}
+
+/* Exams: compact chips, each marked with its homepage accent colour. */
+.examGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.examChip {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  box-sizing: border-box;
+  height: 100%;
+  min-height: 3.25rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--sp-line);
+  border-radius: 1rem;
+  background: var(--sp-card);
+  box-shadow: var(--sp-shadow);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--sp-ink);
+  text-decoration: none;
+  transition:
+    border-color var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease,
+    transform var(--animation-duration-fast) ease;
+}
+
+.examChip:hover {
+  border-color: var(--sp-peach-edge);
+  box-shadow: var(--sp-shadow-hover);
+  transform: translateY(-2px);
+}
+
+.examChip:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--sp-surface),
+    0 0 0 4px var(--tk-brand-text);
+}
+
+.examDot {
+  flex: none;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background: var(--exam-accent, var(--sp-cta));
+  box-shadow: inset 0 0 0 1px hsl(0 0% 0% / 0.12);
+}
+
+.examChipAll {
+  justify-content: space-between;
+  white-space: nowrap;
+  border-color: var(--sp-peach-edge);
+  background: var(--sp-peach-tint);
+  color: var(--sp-peach-ink);
+}
+
+.examAllItem {
+  grid-column: span 2;
+}
+
+@media (max-width: 479px) {
+  .examGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .examAllItem {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Steps: stacked cards on phones, three across from tablets up. */
+.steps {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  --step-tint: var(--sp-peach-tint);
+  --step-edge: var(--sp-peach-edge);
+
+  position: relative;
+  padding: 1.5rem;
+  border: 1px solid var(--step-edge);
+  border-radius: 1.25rem;
+  background: var(--step-tint);
+}
+
+.step[data-tone="mint"] {
+  --step-tint: var(--sp-mint-tint);
+  --step-edge: var(--sp-mint-line);
+}
+
+.step[data-tone="lavender"] {
+  --step-tint: var(--sp-lavender-tint);
+  --step-edge: var(--sp-lavender-line);
+}
+
+.stepNumber {
+  display: inline-grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--sp-card);
+  border: 1.5px solid var(--step-edge);
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--tone-ink);
+}
+
+.stepTitle {
+  margin: 1rem 0 0.5rem;
+  font-family: var(--font-family-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--sp-ink);
+}
+
+.stepText {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--sp-text);
+}
+
+@media (min-width: 768px) {
+  .steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  .step {
+    padding: 1.75rem;
+  }
+
+  /* A dashed lead-in joins each card to the next across the gap. */
+  .step:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    top: 2.95rem;
+    right: -1.25rem;
+    width: 1.25rem;
+    border-top: 1.5px dashed var(--sp-line-strong);
+  }
+}
+
+/* FAQ: native details, so every answer is in the served HTML. */
+.faqList {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 52rem;
+  margin-bottom: 2.5rem;
+}
+
+.faqItem {
+  border: 1px solid var(--sp-line);
+  border-radius: 1rem;
+  background: var(--sp-card);
+  box-shadow: var(--sp-shadow);
+  transition: border-color var(--animation-duration-fast) ease;
+}
+
+.faqItem[open] {
+  border-color: var(--sp-peach-edge);
+}
+
+.faqQuestion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.125rem 1.25rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.faqQuestion::-webkit-details-marker {
+  display: none;
+}
+
+.faqQuestion:focus-visible {
+  outline: none;
+  border-radius: 1rem;
+  box-shadow: 0 0 0 2px var(--tk-brand-text);
+}
+
+.faqQuestionText {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--sp-ink);
+}
+
+.faqChevron {
+  flex: none;
+  color: var(--tk-brand-text);
+  transition: transform var(--animation-duration-fast) ease;
+}
+
+.faqItem[open] .faqChevron {
+  transform: rotate(180deg);
+}
+
+.faqAnswer {
+  margin: 0;
+  padding: 0 1.25rem 1.25rem;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--sp-text);
+}
+
+.inlineLink {
+  font-weight: 700;
+  color: var(--tk-brand-text);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.inlineLink:hover {
+  text-decoration-thickness: 2px;
+}
+
+@media (min-width: 960px) {
+  .block {
+    padding-top: 4.5rem;
+  }
+
+  .blockLead {
+    font-size: 1.1875rem;
+  }
+
+  .faqQuestion {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .faqAnswer {
+    padding: 0 1.5rem 1.5rem;
+  }
+}
+
 /* ---------- Closing call to action ---------- */
 
 .closing {
-  padding-top: 3.5rem;
-}
-
-.closingCopy {
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding-block: 3.5rem 4.5rem;
   text-align: center;
 }
 
@@ -456,19 +783,12 @@
   max-width: 18ch;
   margin: 0;
   font-family: var(--font-family-heading);
-  font-size: clamp(2.125rem, 1.4rem + 3.2vw, 3.75rem);
+  font-size: clamp(2rem, 1.4rem + 2.8vw, 3.5rem);
   font-weight: 800;
   line-height: 1.06;
   letter-spacing: -0.035em;
   color: var(--sp-ink);
   text-wrap: balance;
-}
-
-/* The closing pair sits centred under the copy; the text above already
-   supplies the spacing, so the hero row's top margin is dropped. */
-.downloadRowCentered {
-  justify-content: center;
-  margin-top: 0;
 }
 
 .closingText {
@@ -479,144 +799,22 @@
   color: var(--sp-text);
 }
 
-/* Three phones fanned over two shapes, each shown in full. The shapes
-   may run a little past the stage; the closing's bottom padding holds them
-   and the page clips anything sideways. */
-.closing {
-  padding-bottom: 4rem;
-}
-
-.stage {
-  position: relative;
-  container-type: inline-size;
-  width: 100%;
-  max-width: 68rem;
-  margin: 3rem auto 0;
-  aspect-ratio: 100 / 96;
-}
-
-.stageBlobLeft,
-.stageBlobRight,
-.stagePhoneLeft,
-.stagePhoneRight,
-.stagePhoneCenter,
-.stageSparkle,
-.stageBurst {
-  position: absolute;
-}
-
-.stageBlobLeft {
-  top: 30%;
-  left: -16%;
-  width: 84cqi;
-  z-index: 0;
-}
-
-.stageBlobRight {
-  top: 8%;
-  right: -18%;
-  width: 80cqi;
-  z-index: 0;
-}
-
-.stagePhoneCenter {
-  --phone-w: 44cqi;
-  top: 4%;
-  left: 28%;
-  z-index: 3;
-}
-
-.stagePhoneLeft {
-  --phone-w: 34cqi;
-  top: 23%;
-  left: 0;
-  z-index: 2;
-  transform: rotate(-9deg);
-}
-
-.stagePhoneRight {
-  --phone-w: 34cqi;
-  top: 23%;
-  right: 0;
-  z-index: 2;
-  transform: rotate(9deg);
-}
-
-.stageSparkle {
-  top: 6%;
-  left: 8%;
-  width: 8cqi;
-  height: 8cqi;
-  z-index: 4;
-  color: var(--tk-brand);
-}
-
-.stageBurst {
-  top: 4%;
-  right: 8%;
-  width: 9cqi;
-  height: 9cqi;
-  z-index: 4;
-  color: var(--sp-ink);
-  transform: scaleX(-1);
-}
-
-@media (min-width: 640px) {
-  .stage {
-    aspect-ratio: 100 / 58;
-  }
-
-  .stageBlobLeft {
-    top: 30%;
-    left: 4%;
-    width: 50cqi;
-  }
-
-  .stageBlobRight {
-    top: 12%;
-    right: 4%;
-    width: 48cqi;
-  }
-
-  .stagePhoneCenter {
-    --phone-w: 26cqi;
-    top: 4%;
-    left: 37%;
-  }
-
-  .stagePhoneLeft {
-    --phone-w: 21cqi;
-    top: 21%;
-    left: 18%;
-  }
-
-  .stagePhoneRight {
-    --phone-w: 21cqi;
-    top: 21%;
-    right: 18%;
-  }
-
-  .stageSparkle {
-    top: 10%;
-    left: 13%;
-    width: 4.5cqi;
-    height: 4.5cqi;
-  }
-
-  .stageBurst {
-    top: 8%;
-    right: 13%;
-    width: 5cqi;
-    height: 5cqi;
-  }
-}
-
 @media (min-width: 960px) {
   .closing {
-    padding-top: 5rem;
+    padding-block: 5rem 6rem;
   }
 
   .closingText {
     font-size: 1.1875rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .examChip:hover {
+    transform: none;
+  }
+
+  .faqChevron {
+    transition: none;
   }
 }

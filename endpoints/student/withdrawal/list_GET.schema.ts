@@ -2,6 +2,7 @@ import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
 import { StudentWithdrawals } from "../../../helpers/schema";
+import { type WithdrawalDailyLimit } from "../../../helpers/withdrawalDailyLimit";
 
 export const schema = z.object({});
 
@@ -13,6 +14,7 @@ export type WithdrawalRecord = Omit<Selectable<StudentWithdrawals>, 'amount'> & 
 
 export type OutputType = {
   withdrawals: WithdrawalRecord[];
+  dailyLimit: WithdrawalDailyLimit;
 };
 
 export const getStudentWithdrawals = async (

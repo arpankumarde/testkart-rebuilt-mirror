@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { Video, Ban, RotateCcw, CheckCircle2, MoreHorizontal, Settings2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Video, Ban, RotateCcw, CheckCircle2, MoreHorizontal, Settings2 } from "lucide-react";
 import {
   useMentorshipBookingsRangeQuery,
   useCancelBookingMutation,
@@ -21,6 +21,7 @@ import { ConsoleDialogContent, ConsoleDialogHeader, ConsoleDialogBody, ConsoleDi
 import { Input } from "../components/Input";
 import { useTeacherLivePackagesQuery } from "../helpers/useLivePackages";
 import { formatRupees } from "../helpers/livePricing";
+import { LiveMonthPicker, type LiveDotTone } from "../components/LiveMonthPicker";
 import styles from "./teacher.mentorship.bookings.module.css";
 
 /*
@@ -32,12 +33,12 @@ import styles from "./teacher.mentorship.bookings.module.css";
  */
 
 const TIME_ZONE = "Asia/Kolkata";
-const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 type YearMonth = { y: number; m: number };
 type Kind = MentorshipBookingRow["kind"];
 
 const KIND_LABEL: Record<Kind, string> = { trial: "Trial", package: "Package", single: "Single session" };
+const KIND_TONE: Record<Kind, LiveDotTone> = { trial: "lavender", package: "blue", single: "sage" };
 
 const pad = (n: number) => String(n).padStart(2, "0");
 const keyOf = (y: number, m: number, d: number) => `${y}-${pad(m + 1)}-${pad(d)}`;
@@ -61,15 +62,6 @@ const weekdayOfKey = (key: string) => new Intl.DateTimeFormat("en-IN", { weekday
 const longDateOfKey = (key: string) =>
   new Intl.DateTimeFormat("en-IN", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).format(utcOfKey(key));
 const timeOf = (date: Date) => new Intl.DateTimeFormat("en-IN", { timeStyle: "short", timeZone: TIME_ZONE }).format(date);
-
-/* Six Monday-first weeks covering the month, as day keys. */
-const monthGrid = ({ y, m }: YearMonth) => {
-  const offset = (new Date(Date.UTC(y, m, 1)).getUTCDay() + 6) % 7;
-  return Array.from({ length: 42 }, (_, i) => {
-    const d = new Date(Date.UTC(y, m, 1 - offset + i));
-    return keyOf(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
-  });
-};
 
 const prefersReducedMotion = () =>
   typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -101,93 +93,6 @@ const TeacherPackagesSection: React.FC = () => {
           </li>
         ))}
       </ul>
-    </section>
-  );
-};
-
-interface MonthPickerProps {
-  month: YearMonth;
-  todayKey: string;
-  focusKey: string;
-  dots: Map<string, Kind[]>;
-  onMonth: (ym: YearMonth) => void;
-  onPick: (key: string) => void;
-  onToday: () => void;
-}
-
-const MonthPicker: React.FC<MonthPickerProps> = ({ month, todayKey, focusKey, dots, onMonth, onPick, onToday }) => {
-  const gridRef = useRef<HTMLDivElement>(null);
-  const cells = useMemo(() => monthGrid(month), [month]);
-  const inMonth = (key: string) => ymIndex(ymOfKey(key)) === ymIndex(month);
-  const tabKey = cells.includes(focusKey) && inMonth(focusKey) ? focusKey : cells.find(inMonth)!;
-
-  const moveFocus = (from: string, days: number) => {
-    const d = utcOfKey(from);
-    d.setUTCDate(d.getUTCDate() + days);
-    const next = keyOf(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
-    onPick(next);
-    requestAnimationFrame(() => gridRef.current?.querySelector<HTMLButtonElement>(`[data-key="${next}"]`)?.focus());
-  };
-
-  const onKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, key: string) => {
-    const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[e.key];
-    if (step === undefined) return;
-    e.preventDefault();
-    moveFocus(key, step);
-  };
-
-  return (
-    <section className={styles.picker} aria-label="Pick a day">
-      <div className={styles.pickerHead}>
-        <h2 className={styles.pickerTitle} aria-live="polite">
-          {monthTitle(month)}
-        </h2>
-        <Button variant="ghost" size="icon-md" aria-label="Previous month" onClick={() => onMonth(addMonths(month, -1))}>
-          <ChevronLeft size={18} />
-        </Button>
-        <Button variant="ghost" size="icon-md" aria-label="Next month" onClick={() => onMonth(addMonths(month, 1))}>
-          <ChevronRight size={18} />
-        </Button>
-      </div>
-      <div className={styles.grid} ref={gridRef}>
-        {WEEKDAYS.map((w) => (
-          <span key={w} className={styles.weekday} aria-hidden="true">
-            {w.charAt(0)}
-          </span>
-        ))}
-        {cells.map((key) => {
-          const kinds = dots.get(key) ?? [];
-          const label = `${longDateOfKey(key)}${kinds.length ? `, ${kinds.length} session${kinds.length === 1 ? "" : "s"}` : ""}`;
-          return (
-            <button
-              key={key}
-              type="button"
-              data-key={key}
-              tabIndex={key === tabKey ? 0 : -1}
-              className={[
-                styles.cell,
-                inMonth(key) ? "" : styles.cellOutside,
-                key === todayKey ? styles.cellToday : "",
-                key === focusKey ? styles.cellFocus : "",
-              ].join(" ")}
-              aria-label={label}
-              aria-current={key === todayKey ? "date" : undefined}
-              onClick={() => onPick(key)}
-              onKeyDown={(e) => onKeyDown(e, key)}
-            >
-              <span className={styles.cellNum}>{Number(key.slice(8))}</span>
-              <span className={styles.dots} aria-hidden="true">
-                {kinds.slice(0, 3).map((k, i) => (
-                  <span key={i} className={`${styles.dot} ${styles[`kind_${k}`]}`} />
-                ))}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-      <Button variant="outline" size="sm" className={styles.todayButton} onClick={onToday}>
-        Today
-      </Button>
     </section>
   );
 };
@@ -233,10 +138,10 @@ const TeacherMentorshipBookingsPage: React.FC = () => {
   );
 
   const dots = useMemo(() => {
-    const map = new Map<string, Kind[]>();
+    const map = new Map<string, LiveDotTone[]>();
     for (const b of visible) {
       const key = dayKey(new Date(b.scheduledAt));
-      map.set(key, [...(map.get(key) ?? []), b.kind]);
+      map.set(key, [...(map.get(key) ?? []), KIND_TONE[b.kind]]);
     }
     return map;
   }, [visible]);
@@ -475,7 +380,7 @@ const TeacherMentorshipBookingsPage: React.FC = () => {
 
         <div className={styles.board}>
           <aside className={styles.rail}>
-            <MonthPicker
+            <LiveMonthPicker
               month={viewMonth}
               todayKey={todayKey}
               focusKey={focusKey}

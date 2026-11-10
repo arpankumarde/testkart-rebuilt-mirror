@@ -59,6 +59,7 @@ export const ADMIN_MODULES = [
   { key: "current_affairs", label: "Current affairs", group: "Content", hint: "Daily digests, editorials and quizzes" },
   { key: "exam_news", label: "News", group: "Content", hint: "Exam results, admit cards, answer keys and date changes" },
   { key: "glossary", label: "Glossary", group: "Content", hint: "Glossary terms, definitions and their SEO" },
+  { key: "content_reports", label: "Content reports", group: "Content", hint: "Visitor reports of mistakes on public content pages" },
   { key: "careers", label: "Careers", group: "Site", hint: "Job postings and applications" },
   { key: "news", label: "Press", group: "Site", hint: "Press coverage and events" },
   { key: "govt_exams_calendar", label: "Govt Exams Calendar", group: "Site", hint: "Exam dates, open applications and the /govt-exams-calendar page" },
@@ -196,6 +197,7 @@ const API_RULES: Record<string, ApiRule> = {
   "admin/current-affairs": ["current_affairs"],
   "admin/exam-news": ["exam_news"],
   "admin/glossary": ["glossary"],
+  "admin/content-reports": ["content_reports"],
 
   "admin/careers": ["careers"],
   "admin/news": ["news"],

@@ -162,6 +162,11 @@
   opacity: 0.5;
 }
 
+/* Points students to the /app landing page, between the products and the overview. */
+.appBanner {
+  min-width: 0;
+}
+
 /* Additional Content (admin-authored, shown below the product previews) */
 .additionalContent {
   background-color: var(--surface);

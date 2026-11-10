@@ -7,6 +7,11 @@ import { withdrawalRequested } from "../../../helpers/emailTemplates";
 import { sendAdminNotification } from "../../../helpers/sendAdminNotification";
 import { getTeacherAvailableBalance } from "../../../helpers/getTeacherAvailableBalance";
 import { lockWallet } from "../../../helpers/walletLock";
+import {
+  assertNoWithdrawalToday,
+  WithdrawalDailyLimitError,
+  withdrawalDailyLimitResponse,
+} from "../../../helpers/withdrawalDailyLimitServer";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -45,9 +50,11 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     // Check and insert under the wallet lock shared with every other teacher
-    // debit, so parallel requests can't all pass against the same balance.
+    // debit, so parallel requests can't all pass against the same balance or
+    // the one-request-per-day limit.
     const result = await db.transaction().execute(async (trx) => {
       await lockWallet(trx, effectiveTeacherId);
+      await assertNoWithdrawalToday(trx, { table: "teacherWithdrawals", teacherId: effectiveTeacherId });
 
       // availableBalance already subtracts pending withdrawal requests
       const { availableBalance } = await getTeacherAvailableBalance(effectiveTeacherId, trx);
@@ -120,6 +127,9 @@ export async function handle(request: Request): Promise<Response> {
 
     return new Response(superjson.stringify(output), { status: 201 });
   } catch (error) {
+    if (error instanceof WithdrawalDailyLimitError) {
+      return withdrawalDailyLimitResponse(error);
+    }
     console.error("Error requesting withdrawal:", error);
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred";

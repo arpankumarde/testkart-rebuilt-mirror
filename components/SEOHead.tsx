@@ -26,6 +26,11 @@ const toCanonicalUrl = (url: string | undefined, pathname: string): string => {
 export interface SEOHeadProps {
   /** The title of the page, used for the <title> tag and social media previews. */
   title: string;
+  /**
+   * Appends " | Testkart" to the title. Defaults to true; pass false when the
+   * title already names the brand and ends with its own suffix.
+   */
+  appendSiteName?: boolean;
   /** A brief description of the page, used for the meta description and social media previews. */
   description: string;
   /**
@@ -56,6 +61,7 @@ export interface SEOHeadProps {
 
 export const SEOHead: React.FC<SEOHeadProps> = ({
   title,
+  appendSiteName = true,
   description,
   image = DEFAULT_IMAGE_URL,
   twitterCard = 'summary_large_image',
@@ -71,7 +77,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
   // re-anchored to the official domain — see toCanonicalUrl.
   const canonicalUrl = toCanonicalUrl(url, location.pathname);
 
-  const fullTitle = `${title} | ${SITE_NAME}`;
+  const fullTitle = appendSiteName ? `${title} | ${SITE_NAME}` : title;
 
   return (
     <Helmet htmlAttributes={{ lang: 'en' }}>

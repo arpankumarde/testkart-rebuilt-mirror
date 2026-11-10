@@ -1,4 +1,4 @@
-/* overflow-x clip keeps full-width section bands from adding a sideways scroll; hidden is the fallback */
+/* overflow-x clip keeps full-width sections from adding a sideways scroll; hidden is the fallback */
 .pageContainer {
   display: flex;
   flex-direction: column;

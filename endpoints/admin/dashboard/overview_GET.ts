@@ -72,6 +72,7 @@ const ATTENTION_MODULE: Record<keyof AttentionCounts, AdminModule> = {
   subscriptionsExpiring7d: "subscriptions",
   aiFailed7d: "ai_usage",
   blogCommentsPending: "blog_comments",
+  contentReportsNew: "content_reports",
 };
 
 function restrictToPermissions(output: OutputType, permissions: readonly string[]): OutputType {
@@ -176,7 +177,8 @@ export async function handle(request: Request): Promise<Response> {
             (SELECT count(*) FROM teacher_subscriptions
                WHERE status = 'active' AND end_date > now() AND end_date <= now() + interval '7 days') AS subscriptions_expiring_7d,
             (SELECT count(*) FROM ai_generation_logs WHERE status = 'failed' AND created_at >= now() - interval '7 days') AS ai_failed_7d,
-            (SELECT count(*) FROM blog_comments WHERE status = 'pending') AS blog_comments_pending
+            (SELECT count(*) FROM blog_comments WHERE status = 'pending') AS blog_comments_pending,
+            (SELECT count(*) FROM content_reports WHERE status = 'new') AS content_reports_new
         `.execute(db),
 
         sql<Row>`
@@ -390,6 +392,7 @@ export async function handle(request: Request): Promise<Response> {
       subscriptionsExpiring7d: num(get(a, "subscriptions_expiring_7d")),
       aiFailed7d: num(get(a, "ai_failed_7d")),
       blogCommentsPending: num(get(a, "blog_comments_pending")),
+      contentReportsNew: num(get(a, "content_reports_new")),
     };
 
     const k = kpiRows.rows[0] ?? {};

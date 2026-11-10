@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Helmet } from "react-helmet";
-import { Link } from "react-router-dom";
 import { Gift, PiggyBank, Ticket, TicketPercent } from "lucide-react";
 import { ConsoleListEmpty } from "../components/ConsoleListEmpty";
 import { Button } from "../components/Button";
@@ -102,11 +101,7 @@ const StudentCouponsPage: React.FC = () => {
           icon={<Gift size={20} />}
           title="No coupons yet"
           description="Coupons you win show up here."
-        >
-          <Button asChild>
-            <Link to="/?spin=open">Win a coupon</Link>
-          </Button>
-        </ConsoleListEmpty>
+        />
       ) : (
         <>
           <dl className={styles.stats} aria-label="Coupon summary">

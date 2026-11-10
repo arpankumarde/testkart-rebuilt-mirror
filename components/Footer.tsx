@@ -129,6 +129,7 @@ export const Footer: React.FC = () => {
               <li><Link to="/masterclass" className={styles.footerLink}>Masterclass</Link></li>
               <li><Link to="/course/live" className={styles.footerLink}>Live Teaching</Link></li>
               <li><Link to="/exams" className={styles.footerLink}>Exams</Link></li>
+              <li><Link to="/app" className={styles.footerLink}>Testkart App</Link></li>
               <li><Link to="/glossary" className={styles.footerLink}>Glossary</Link></li>
             </ul>
           </div>

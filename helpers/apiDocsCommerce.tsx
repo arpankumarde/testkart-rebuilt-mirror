@@ -573,6 +573,7 @@ export const apiDocsCommerce: ApiEndpoint[] = [
     usedBy: ["web", "mobile"],
     responseFields: [
       { name: "withdrawals", type: "array", description: "{ id, studentId, amount, status: 'pending' | 'completed' | 'failed' | 'cancelled', requestedDate, processedDate, transactionId, notes, balanceAtRequest, createdAt, updatedAt }" },
+      { name: "dailyLimit", type: "object", description: "{ lastRequestedAt, nextAvailableAt }. nextAvailableAt is 12:00 AM IST tomorrow when a request was already made today, else null." },
     ],
     notes: [
       "Not paged and has no total field.",
@@ -597,6 +598,7 @@ export const apiDocsCommerce: ApiEndpoint[] = [
     notes: [
       "Returns 201 on success.",
       "Rules, each a 400: minimum INR 50, bank details must be verified, only one pending request at a time, and the amount cannot exceed the available balance.",
+      "One request per IST calendar day, whatever its status. A second one the same day returns 429 with { error, code: 'WITHDRAWAL_DAILY_LIMIT', lastRequestedAt, nextAvailableAt }.",
       "Returns 403 for non-students. Other failures, including a missing session, return 400.",
       "Notifies the admins and emails the student a confirmation.",
     ],

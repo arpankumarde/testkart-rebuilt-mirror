@@ -1,0 +1,58 @@
+.banner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem 1.25rem;
+  padding: 1.25rem;
+  border: 1px solid var(--sp-peach-edge);
+  border-radius: 1.25rem;
+  background: var(--sp-peach-tint);
+  color: var(--sp-ink);
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 1rem;
+  background: var(--sp-card);
+  border: 1px solid var(--sp-peach-edge);
+  color: var(--tk-brand-text);
+}
+
+.copy {
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 800;
+  line-height: 1.3;
+  color: var(--sp-ink);
+}
+
+.text {
+  margin: 0.25rem 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--sp-text);
+}
+
+.cta {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+@media (min-width: 768px) {
+  .banner {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    padding: 1.25rem 1.5rem;
+  }
+
+  .cta {
+    grid-column: auto;
+  }
+}

@@ -14,6 +14,7 @@ import {
   MessageCircle,
   CreditCard,
   Sparkles,
+  Flag,
 } from "lucide-react";
 import type { AttentionCounts } from "../endpoints/admin/dashboard/overview_GET.schema";
 import { adminNavigation, type AdminPermissionList } from "./adminNavigation";
@@ -181,6 +182,15 @@ const tiles = (attention: AttentionCounts, permissions: AdminPermissionList): At
       detail: "to moderate",
       href: "/admin/blog/comments?status=pending",
       icon: MessageCircle,
+      tone: "content",
+    },
+    {
+      key: "contentReportsNew",
+      count: attention.contentReportsNew,
+      title: plural(attention.contentReportsNew, "content report", "content reports"),
+      detail: "new from visitors",
+      href: "/admin/content-reports?status=new",
+      icon: Flag,
       tone: "content",
     },
     {

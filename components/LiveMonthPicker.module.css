@@ -1,0 +1,133 @@
+.picker {
+  padding: 1rem;
+  background: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.25rem;
+}
+
+.pickerHead {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+  margin-bottom: 0.5rem;
+}
+
+.pickerTitle {
+  flex: 1;
+  margin: 0 0 0 0.25rem;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--sp-ink);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  row-gap: 0.125rem;
+}
+
+.weekday {
+  padding: 0.25rem 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--sp-text);
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.1875rem 0 0.25rem;
+  border: none;
+  border-radius: 0.75rem;
+  background: transparent;
+  font: inherit;
+  color: var(--sp-ink);
+  cursor: pointer;
+}
+
+.cellNum {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.cell:hover .cellNum {
+  background: var(--sp-surface);
+}
+
+.cellOutside {
+  color: var(--sp-text);
+}
+
+.cellFocus .cellNum,
+.cellFocus:hover .cellNum {
+  background: var(--sp-lavender-tint);
+  color: var(--sp-lavender-ink);
+  font-weight: 800;
+}
+
+.cellToday .cellNum,
+.cellToday:hover .cellNum {
+  background: var(--fc-peach-ink);
+  color: var(--sp-card);
+  font-weight: 800;
+}
+
+.cell:focus-visible {
+  outline: none;
+}
+
+.cell:focus-visible .cellNum {
+  box-shadow: 0 0 0 2px var(--sp-card), 0 0 0 4px var(--fc-blue-edge);
+}
+
+.dots {
+  display: flex;
+  gap: 0.1875rem;
+  height: 0.3125rem;
+}
+
+.dot {
+  width: 0.3125rem;
+  height: 0.3125rem;
+  border-radius: 999px;
+}
+
+.tone_lavender {
+  background: var(--sp-lavender-edge);
+}
+
+.tone_blue {
+  background: var(--fc-blue-edge);
+}
+
+.tone_sage {
+  background: var(--fc-sage-edge);
+}
+
+.tone_peach {
+  background: var(--fc-peach-edge);
+}
+
+.tone_butter {
+  background: var(--fc-butter-edge);
+}
+
+.tone_muted {
+  background: var(--sp-line-strong);
+}
+
+.todayButton {
+  margin-top: 0.75rem;
+  width: 100%;
+}

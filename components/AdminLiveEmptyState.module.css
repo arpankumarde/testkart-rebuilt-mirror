@@ -1,0 +1,132 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: 2.5rem var(--spacing-4);
+  text-align: center;
+}
+
+.compact {
+  padding: var(--spacing-4) var(--spacing-2);
+}
+
+.art {
+  position: relative;
+  width: 4.5rem;
+  height: 4.5rem;
+}
+
+.compact .art {
+  width: 3.75rem;
+  height: 3.75rem;
+}
+
+.ring {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-full);
+  border: 2px dashed var(--tone-edge);
+}
+
+.medallion {
+  position: absolute;
+  inset: 0.4375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  background: var(--tone-tint);
+  color: var(--tone-ink);
+}
+
+.medallion svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.compact .medallion svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.dot {
+  position: absolute;
+  border-radius: var(--radius-full);
+}
+
+.dotA {
+  top: 0.125rem;
+  right: -0.25rem;
+  width: 0.625rem;
+  height: 0.625rem;
+  background: var(--fc-butter-edge);
+}
+
+.dotB {
+  bottom: 0.25rem;
+  left: -0.375rem;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  background: var(--tk-brand);
+}
+
+.mint {
+  --tone-tint: var(--fc-mint-tint);
+  --tone-ink: var(--fc-mint-ink);
+  --tone-edge: var(--fc-mint-edge);
+}
+
+.lavender {
+  --tone-tint: var(--sp-lavender-tint);
+  --tone-ink: var(--sp-lavender-ink);
+  --tone-edge: var(--sp-lavender-edge);
+}
+
+.powder {
+  --tone-tint: var(--fc-blue-tint);
+  --tone-ink: var(--fc-blue-ink);
+  --tone-edge: var(--fc-blue-edge);
+}
+
+.peach {
+  --tone-tint: var(--fc-peach-tint);
+  --tone-ink: var(--fc-peach-ink);
+  --tone-edge: var(--fc-peach-edge);
+}
+
+.butter {
+  --tone-tint: var(--fc-butter-tint);
+  --tone-ink: var(--fc-butter-ink);
+  --tone-edge: var(--fc-butter-edge);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: 26rem;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--foreground);
+}
+
+.compact .title {
+  font-size: 0.9375rem;
+}
+
+.description {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+}
+
+.action {
+  margin-top: var(--spacing-1);
+}

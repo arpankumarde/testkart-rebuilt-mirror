@@ -25,6 +25,12 @@ export type CertificateType = "course_completion" | "test_completion";
 
 export type ContactSubmissionStatus = "archived" | "new" | "read" | "responded";
 
+export type ContentReportCategory = "broken_link" | "copyright_violation" | "incorrect_answer" | "incorrect_information" | "missing_information" | "other" | "outdated_information" | "typo";
+
+export type ContentReportCopyrightMaterial = "document" | "image" | "other" | "text" | "video";
+
+export type ContentReportStatus = "dismissed" | "new" | "resolved" | "under_review";
+
 export type ContentType = "course" | "course_bundle" | "digital_product" | "live_test" | "mock_test";
 
 export type ContentVisibility = "public" | "unlisted";
@@ -414,6 +420,43 @@ export interface ContactSubmissions {
   name: string;
   status: Generated<ContactSubmissionStatus | null>;
   subject: string | null;
+}
+
+export interface ContentReports {
+  adminNotes: string | null;
+  browserName: string | null;
+  captchaVerifiedAt: Timestamp | null;
+  category: ContentReportCategory;
+  clientToken: string | null;
+  contentId: number | null;
+  contentSlug: string | null;
+  contentType: string;
+  copyrightMaterialLocation: string | null;
+  copyrightMaterialType: ContentReportCopyrightMaterial | null;
+  copyrightOriginalSource: string | null;
+  createdAt: Generated<Timestamp>;
+  description: string;
+  detectedSection: string | null;
+  deviceType: string | null;
+  id: Generated<number>;
+  ipHash: string | null;
+  locationHint: string | null;
+  osName: string | null;
+  pageTitle: string | null;
+  pageUrl: string;
+  parentSlug: string | null;
+  reporterEmail: string | null;
+  reporterIp: string | null;
+  reporterName: string | null;
+  reporterPhone: string | null;
+  reporterUserId: number | null;
+  reviewedByAdminId: number | null;
+  selectedText: string | null;
+  status: Generated<ContentReportStatus>;
+  statusChangedAt: Timestamp | null;
+  suggestedCorrection: string | null;
+  updatedAt: Generated<Timestamp>;
+  userAgent: string | null;
 }
 
 export interface ContentReviews {
@@ -2859,6 +2902,7 @@ export interface DB {
   cartItems: CartItems;
   certificates: Certificates;
   contactSubmissions: ContactSubmissions;
+  contentReports: ContentReports;
   contentReviews: ContentReviews;
   contentViewHits: ContentViewHits;
   courseBundleItems: CourseBundleItems;
@@ -3094,6 +3138,9 @@ export const RevMessageStatusArrayValues: [RevMessageStatus, ...RevMessageStatus
 export const AutopilotCheckStatusArrayValues: [AutopilotCheckStatus, ...AutopilotCheckStatus[]] = ["fail","pass","warn"];
 export const GroupLessonStatusArrayValues: [GroupLessonStatus, ...GroupLessonStatus[]] = ["cancelled","completed","scheduled"];
 export const GroupLessonMinEnrollmentPolicyArrayValues: [GroupLessonMinEnrollmentPolicy, ...GroupLessonMinEnrollmentPolicy[]] = ["cancel_if_not_met","run_anyway"];
+export const ContentReportStatusArrayValues: [ContentReportStatus, ...ContentReportStatus[]] = ["dismissed","new","resolved","under_review"];
+export const ContentReportCategoryArrayValues: [ContentReportCategory, ...ContentReportCategory[]] = ["broken_link","copyright_violation","incorrect_answer","incorrect_information","missing_information","other","outdated_information","typo"];
+export const ContentReportCopyrightMaterialArrayValues: [ContentReportCopyrightMaterial, ...ContentReportCopyrightMaterial[]] = ["document","image","other","text","video"];
 // Table/column names whose snake_case spelling kysely's default CamelCasePlugin
 // cannot recover from the camelCase name used in code (an underscore directly
 // before a digit, e.g. reminder_48h_sent ⇄ reminder48hSent). The db helper's

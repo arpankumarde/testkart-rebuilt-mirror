@@ -132,6 +132,12 @@
   margin-top: 2px;
 }
 
+.statusDetail {
+  display: block;
+  margin-top: 2px;
+  font-weight: 500;
+}
+
 .balanceActions {
   display: flex;
   flex-wrap: wrap;

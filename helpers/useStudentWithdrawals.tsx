@@ -23,5 +23,9 @@ export const useRequestStudentWithdrawal = () => {
       // Invalidate balance since a pending withdrawal reduces available balance
       queryClient.invalidateQueries({ queryKey: STUDENT_WALLET_BALANCE_QUERY_KEY });
     },
+    onError: () => {
+      // A refusal such as the daily limit means the list is out of date
+      queryClient.invalidateQueries({ queryKey: STUDENT_WITHDRAWALS_QUERY_KEY });
+    },
   });
 };

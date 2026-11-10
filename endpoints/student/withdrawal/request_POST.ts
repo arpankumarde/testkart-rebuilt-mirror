@@ -6,6 +6,11 @@ import { sendAdminNotification } from "../../../helpers/sendAdminNotification";
 import { sendTemplateEmail } from "../../../helpers/sendTemplateEmail";
 import { getStudentAvailableBalance } from "../../../helpers/getStudentAvailableBalance";
 import { lockWallet } from "../../../helpers/walletLock";
+import {
+  assertNoWithdrawalToday,
+  WithdrawalDailyLimitError,
+  withdrawalDailyLimitResponse,
+} from "../../../helpers/withdrawalDailyLimitServer";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -44,9 +49,11 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     // The balance check and the insert share the wallet lock with wallet
-    // purchases, so parallel requests cannot all pass against one balance.
+    // purchases, so parallel requests cannot all pass against one balance or
+    // the one-request-per-day limit.
     const newWithdrawal = await db.transaction().execute(async (trx) => {
       await lockWallet(trx, user.id);
+      await assertNoWithdrawalToday(trx, { table: "studentWithdrawals", studentId: user.id });
 
       const pendingWithdrawal = await trx
         .selectFrom("studentWithdrawals")
@@ -101,6 +108,9 @@ export async function handle(request: Request): Promise<Response> {
 
     return new Response(superjson.stringify(output), { status: 201 });
   } catch (error) {
+    if (error instanceof WithdrawalDailyLimitError) {
+      return withdrawalDailyLimitResponse(error);
+    }
     console.error("Error requesting student withdrawal:", error);
     return new Response(
       superjson.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),

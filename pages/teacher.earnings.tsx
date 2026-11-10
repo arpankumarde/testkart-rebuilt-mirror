@@ -19,6 +19,9 @@ import Papa from 'papaparse';
 import { useTeacherEarningsQuery } from '../helpers/useTeacherEarningsQuery';
 import { useTeacherBankDetailsQuery } from '../helpers/useTeacherBankDetails';
 import { useEarningsBalance } from '../helpers/useTeacherSponsoredEnrollments';
+import { useTeacherWithdrawals } from '../helpers/useTeacherWithdrawalQuery';
+import { useWithdrawalDailyLock } from '../helpers/useWithdrawalDailyLock';
+import { formatIstDateTime, WITHDRAWAL_DAILY_LIMIT_MESSAGE } from '../helpers/withdrawalDailyLimit';
 import { Button } from '../components/Button';
 import { Skeleton } from '../components/Skeleton';
 import { BankDetailsDialog } from '../components/BankDetailsDialog';
@@ -80,6 +83,8 @@ const TeacherEarningsPage: React.FC = () => {
   const { data: transactions, isFetching, error } = useTeacherEarningsQuery();
   const { data: bankDetails, isFetching: isFetchingBankDetails } = useTeacherBankDetailsQuery();
   const { data: balanceData, isFetching: isFetchingBalance, refetch: refetchBalance } = useEarningsBalance();
+  const { data: withdrawalData, isFetching: isFetchingWithdrawals, refetch: refetchWithdrawals } = useTeacherWithdrawals();
+  const dailyLock = useWithdrawalDailyLock(withdrawalData?.dailyLimit);
 
   const [openDialog, setOpenDialog] = useState<OpenDialog>(null);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -87,10 +92,12 @@ const TeacherEarningsPage: React.FC = () => {
     to: new Date(),
   });
 
-  // The app never refetches a cached query on mount, so pull a fresh balance on arrival.
+  // The app never refetches a cached query on mount, so pull a fresh balance
+  // and today's withdrawal state on arrival.
   useEffect(() => {
     refetchBalance();
-  }, [refetchBalance]);
+    refetchWithdrawals();
+  }, [refetchBalance, refetchWithdrawals]);
 
   const filteredTransactions = useMemo(() => {
     if (!transactions) return [];
@@ -127,6 +134,7 @@ const TeacherEarningsPage: React.FC = () => {
   const isBalanceLoading = isFetchingBalance && !balanceData;
   const isTransactionsLoading = isFetching && !transactions;
   const isBankLoading = isFetchingBankDetails && bankDetails === undefined;
+  const isWithdrawalsLoading = isFetchingWithdrawals && !withdrawalData;
   // No money has ever moved. Free enrolments still list as ₹0 sales, so the
   // transactions table stays whenever it has rows.
   const neverEarned =
@@ -135,10 +143,17 @@ const TeacherEarningsPage: React.FC = () => {
 
   const hasMinimum = summary.availableBalance >= MIN_WITHDRAWAL;
   const bankStatusName = bankDetails?.verificationStatus ?? 'none';
-  const canWithdraw = hasMinimum && bankStatusName === 'verified' && !isBalanceLoading;
+  const canWithdraw =
+    hasMinimum && bankStatusName === 'verified' && !isBalanceLoading && !isWithdrawalsLoading && !dailyLock.isLocked;
 
-  const bankStatus: { Icon: LucideIcon; text: string } =
-    bankStatusName === 'verified'
+  const bankStatus: { Icon: LucideIcon; text: string; detail?: string } =
+    dailyLock.isLocked
+      ? {
+          Icon: Clock,
+          text: WITHDRAWAL_DAILY_LIMIT_MESSAGE,
+          detail: dailyLock.lastRequestedAt ? `Last request: ${formatIstDateTime(dailyLock.lastRequestedAt)}` : undefined,
+        }
+      : bankStatusName === 'verified'
       ? { Icon: CheckCircle, text: hasMinimum ? 'Bank account verified. Ready to withdraw.' : 'Bank account verified. Withdrawals open at ₹100.' }
       : bankStatusName === 'pending'
         ? { Icon: Clock, text: 'Your bank account is being verified. Withdrawals open once it is.' }
@@ -149,6 +164,11 @@ const TeacherEarningsPage: React.FC = () => {
   const closeDialog = (open: boolean) => {
     if (!open) setOpenDialog(null);
   };
+
+  // A request made from another tab or the MCP tool locks the form here too.
+  useEffect(() => {
+    if (dailyLock.isLocked) setOpenDialog((current) => (current === 'withdraw' ? null : current));
+  }, [dailyLock.isLocked]);
 
   const handleExportCSV = () => {
     if (!filteredTransactions || filteredTransactions.length === 0) return;
@@ -266,12 +286,15 @@ const TeacherEarningsPage: React.FC = () => {
             </div>
 
             <div className={styles.balanceFoot}>
-              {isBankLoading ? (
+              {isBankLoading || isWithdrawalsLoading ? (
                 <Skeleton className={styles.statusSkeleton} />
               ) : (
-                <p className={styles.bankStatus}>
+                <p className={styles.bankStatus} role="status">
                   <bankStatus.Icon size={16} aria-hidden="true" />
-                  <span>{bankStatus.text}</span>
+                  <span>
+                    {bankStatus.text}
+                    {bankStatus.detail && <span className={styles.statusDetail}>{bankStatus.detail}</span>}
+                  </span>
                 </p>
               )}
               <div className={styles.balanceActions}>

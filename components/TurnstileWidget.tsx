@@ -22,6 +22,7 @@ interface TurnstileRenderOptions {
   "refresh-expired"?: "auto" | "manual" | "never";
   appearance?: "always" | "execute" | "interaction-only";
   theme?: "light" | "dark" | "auto";
+  size?: "normal" | "flexible" | "compact";
 }
 
 const SCRIPT_SRC = "https://challenges.cloudflare.com/turnstile/v0/api.js";
@@ -144,16 +145,22 @@ interface TurnstileWidgetProps {
    */
   refreshExpired?: "auto" | "never";
   theme?: "light" | "dark" | "auto";
+  /**
+   * Defaults to "interaction-only" (invisible unless Cloudflare flags the
+   * visitor), which the OTP forms rely on. The content report form passes
+   * "always" so the check is shown above its submit button.
+   */
+  appearance?: "always" | "interaction-only";
+  size?: "normal" | "flexible" | "compact";
   className?: string;
 }
 
 /**
  * Cloudflare Turnstile challenge widget for the mobile and email OTP
- * login/signup forms, added to stop automated OTP pumping (a large rotating
- * pool of numbers and IPs that stayed under the per-number/per-IP rate
- * limits). "interaction-only" appearance means it renders invisibly and only
- * shows a visible challenge to traffic Cloudflare flags as suspicious - most
- * real users never see anything.
+ * login/signup forms (added to stop automated OTP pumping) and the public
+ * content report form. With the default "interaction-only" appearance it
+ * renders invisibly and only shows a visible challenge to traffic Cloudflare
+ * flags as suspicious - most real users never see anything.
  *
  * Tokens are single-use. Await `ref.current.getToken()` right before each send
  * and do not reset the widget afterwards: resetting after every send put a
@@ -169,6 +176,8 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetHandle, TurnstileWidget
       onAfterInteractive,
       refreshExpired = "never",
       theme,
+      appearance = "interaction-only",
+      size,
       className,
     },
     ref
@@ -194,6 +203,8 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetHandle, TurnstileWidget
     const onAfterInteractiveRef = useRef(onAfterInteractive);
     const refreshExpiredRef = useRef(refreshExpired);
     const themeRef = useRef(theme);
+    const appearanceRef = useRef(appearance);
+    const sizeRef = useRef(size);
     onVerifyRef.current = onVerify;
     onExpireRef.current = onExpire;
     onErrorRef.current = onError;
@@ -201,6 +212,8 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetHandle, TurnstileWidget
     onAfterInteractiveRef.current = onAfterInteractive;
     refreshExpiredRef.current = refreshExpired;
     themeRef.current = theme;
+    appearanceRef.current = appearance;
+    sizeRef.current = size;
 
     const clearWaitTimer = () => {
       if (waitTimerRef.current) clearTimeout(waitTimerRef.current);
@@ -251,7 +264,8 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetHandle, TurnstileWidget
 
           widgetIdRef.current = window.turnstile.render(containerRef.current, {
             sitekey: CLOUDFLARE_TURNSTILE_SITE_KEY,
-            appearance: "interaction-only",
+            appearance: appearanceRef.current,
+            ...(sizeRef.current ? { size: sizeRef.current } : {}),
             theme: themeRef.current ?? "auto",
             "refresh-expired": refreshExpiredRef.current,
             callback: (token: string) => {

@@ -15,6 +15,8 @@ import { useStudentWalletBalance } from "../helpers/useStudentWallet";
 import { useStudentWithdrawalsList } from "../helpers/useStudentWithdrawals";
 import { useStudentBankDetailsQuery } from "../helpers/useStudentBankDetails";
 import { useStudentTcoins } from "../helpers/useTcoins";
+import { useWithdrawalDailyLock } from "../helpers/useWithdrawalDailyLock";
+import { formatIstDateTime, WITHDRAWAL_DAILY_LIMIT_MESSAGE } from "../helpers/withdrawalDailyLimit";
 import styles from "./student.wallet.module.css";
 
 const rupees = new Intl.NumberFormat("en-IN", {
@@ -66,9 +68,17 @@ const StudentWalletPage: React.FC = () => {
   const pendingWithdrawal = withdrawals.find((w) => w.status === "pending");
   const hasMinimum = availableBalance >= STUDENT_MIN_WITHDRAWAL;
   const bankStatusName = bankDetails?.verificationStatus ?? "none";
-  const canWithdraw = !isStatusLoading && hasMinimum && bankStatusName === "verified" && !pendingWithdrawal;
+  const dailyLock = useWithdrawalDailyLock(withdrawalData?.dailyLimit);
+  const canWithdraw =
+    !isStatusLoading && hasMinimum && bankStatusName === "verified" && !pendingWithdrawal && !dailyLock.isLocked;
 
-  const status: { Icon: LucideIcon; text: string } = pendingWithdrawal
+  const status: { Icon: LucideIcon; text: string; detail?: string } = dailyLock.isLocked
+    ? {
+        Icon: Clock,
+        text: WITHDRAWAL_DAILY_LIMIT_MESSAGE,
+        detail: dailyLock.lastRequestedAt ? `Last request: ${formatIstDateTime(dailyLock.lastRequestedAt)}` : undefined,
+      }
+    : pendingWithdrawal
     ? { Icon: Clock, text: `Your withdrawal of ${rupees.format(pendingWithdrawal.amount)} is being processed. You can request another once it is paid.` }
     : bankStatusName === "verified"
       ? { Icon: CheckCircle, text: hasMinimum ? "Bank details verified. Ready to withdraw." : "Bank details verified. Withdrawals open at ₹50." }
@@ -83,6 +93,11 @@ const StudentWalletPage: React.FC = () => {
   const closeDialog = (open: boolean) => {
     if (!open) setOpenDialog(null);
   };
+
+  // A request made from another tab or the app locks the form here too.
+  useEffect(() => {
+    if (dailyLock.isLocked) setOpenDialog((current) => (current === "withdraw" ? null : current));
+  }, [dailyLock.isLocked]);
 
   return (
     <div className={styles.page}>
@@ -111,9 +126,12 @@ const StudentWalletPage: React.FC = () => {
             {isStatusLoading ? (
               <Skeleton className={styles.statusSkeleton} />
             ) : (
-              <p className={styles.bankStatus}>
+              <p className={styles.bankStatus} role="status">
                 <status.Icon size={16} aria-hidden="true" />
-                <span>{status.text}</span>
+                <span>
+                  {status.text}
+                  {status.detail && <span className={styles.statusDetail}>{status.detail}</span>}
+                </span>
               </p>
             )}
             <div className={styles.balanceActions}>

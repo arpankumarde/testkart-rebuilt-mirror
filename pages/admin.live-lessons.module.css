@@ -1,57 +1,143 @@
 .page {
+  container: livepage / inline-size;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-4);
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 84rem;
+  min-width: 0;
+  margin: 0 auto;
+  padding: var(--spacing-6) clamp(1rem, 2.5vw, 2rem) var(--spacing-12);
 }
 
-.infoCard {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+.tabs {
+  display: flex;
+  align-self: flex-start;
+  gap: 0.25rem;
+  max-width: 100%;
+  padding: 0.3125rem;
+  overflow-x: auto;
+  scrollbar-width: none;
   background: var(--card);
-  padding: var(--spacing-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow);
 }
 
-.infoCardHeader {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--muted-foreground);
+.tabs::-webkit-scrollbar {
+  display: none;
 }
 
-.infoGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-  gap: var(--spacing-3);
-}
-
-.infoGrid > div {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-1);
-  font-size: var(--text-sm);
-}
-
-.infoLabel {
-  font-size: var(--text-xs);
-  color: var(--muted-foreground);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.mockBadgeWrap {
+.tab {
   display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.125rem 0.5rem 0.625rem;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--muted-foreground);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
 }
 
-.filterRow {
-  display: flex;
-  justify-content: flex-end;
+.tab:hover {
+  color: var(--foreground);
+  background: var(--muted);
 }
 
-.filterSelect {
-  width: 10rem;
+.tab:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 1px;
+}
+
+.tabIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.875rem;
+  height: 1.875rem;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.tabIcon svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.tabActive,
+.tabActive:hover {
+  color: var(--pastel-peach-ink);
+  background: var(--pastel-peach);
+  font-weight: 800;
+}
+
+.tabActive .tabIcon {
+  color: var(--tk-brand-ink);
+  background: var(--tk-brand);
+}
+
+.tabBadge {
+  min-width: 1.25rem;
+  padding: 0 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  line-height: 1.25rem;
+  text-align: center;
+  color: var(--fc-butter-ink);
+  background: var(--fc-butter-tint);
+  border: 1px solid var(--fc-butter-line);
+  border-radius: var(--radius-full);
+}
+
+.labelShort {
+  display: none;
+}
+
+.panel {
+  min-width: 0;
+}
+
+.panel[hidden] {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: var(--spacing-4) var(--spacing-4) var(--spacing-8);
+  }
+}
+
+@container livepage (max-width: 32rem) {
+  .tabs {
+    align-self: stretch;
+  }
+
+  .tab {
+    flex: 1;
+    justify-content: center;
+    padding: 0.5rem 0.375rem;
+    font-size: 0.8125rem;
+  }
+
+  .tabIcon {
+    display: none;
+  }
+
+  .labelFull {
+    display: none;
+  }
+
+  .labelShort {
+    display: inline;
+  }
 }

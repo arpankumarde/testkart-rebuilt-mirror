@@ -33,6 +33,7 @@ export type AttentionCounts = {
   subscriptionsExpiring7d: number;
   aiFailed7d: number;
   blogCommentsPending: number;
+  contentReportsNew: number;
 };
 
 export type KpiPair = { current: number; previous: number };

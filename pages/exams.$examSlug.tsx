@@ -15,6 +15,7 @@ import { renderExamContent } from "../helpers/renderExamContent";
 import { useContentToc } from "../helpers/contentToc";
 import { useHtmlFrame } from "../helpers/useHtmlFrame";
 import { NotFoundState } from "../components/NotFoundState";
+import { AppPromoBanner } from "../components/AppPromoBanner";
 
 import styles from "./exams.$examSlug.module.css";
 
@@ -176,6 +177,12 @@ export default function ExamDetailPage() {
         examId={examDetail.id}
         examSlug={examDetail.examSlug}
         examName={examDetail.examName}
+      />
+
+      <AppPromoBanner
+        className={styles.appBanner}
+        title={`Prepare for ${examDetail.examName} on your phone`}
+        text="Take mock tests, read study notes and join live competitions in the Testkart app for Android."
       />
 
       {overviewHtml && (

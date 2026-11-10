@@ -15,7 +15,7 @@ export const useAdminCancelLiveLessonMutation = () => {
   return useMutation({
     mutationFn: (input: CancelInput) => postAdminLiveLessonCancel(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "live-lessons", "list"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "live-lessons"] });
     },
   });
 };

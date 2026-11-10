@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
-import { DiwaliHeroOverlay } from "./DiwaliHeroOverlay";
 import styles from "./HomepageSearchHero.module.css";
 
 export function HomepageSearchHero() {
@@ -19,7 +18,6 @@ export function HomepageSearchHero() {
     <section className={styles.hero}>
       <div className={styles.inner}>
         <div className={styles.content}>
-          <DiwaliHeroOverlay variant="corner" />
           <h1 className={styles.title}>Find mock tests, courses & study notes</h1>
           <p className={styles.subtitle}>All made by real teachers and coaching institutes</p>
           <form className={styles.searchForm} onSubmit={handleSearch}>
@@ -37,7 +35,6 @@ export function HomepageSearchHero() {
             </div>
           </form>
         </div>
-        <DiwaliHeroOverlay />
       </div>
     </section>
   );

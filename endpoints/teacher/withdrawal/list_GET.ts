@@ -2,6 +2,7 @@ import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { OutputType } from "./list_GET.schema";
 import superjson from "superjson";
+import { getWithdrawalDailyLimit, latestRequestedAt } from "../../../helpers/withdrawalDailyLimit";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -31,6 +32,7 @@ export async function handle(request: Request): Promise<Response> {
         ...w,
         amount: Number(w.amount),
       })),
+      dailyLimit: getWithdrawalDailyLimit(latestRequestedAt(withdrawals)),
     };
 
     return new Response(superjson.stringify(output));

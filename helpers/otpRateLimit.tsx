@@ -10,7 +10,7 @@ import { DB } from "./schema";
  * checkOtpRateLimit (SMS: mobile-login, mobile-signup, auth/send_otp) enforces:
  *  - per mobile number: a short cooldown between sends, plus hourly/daily caps
  *  - per user, when the caller is signed in: hourly/daily caps, since a
- *    signed-in caller can rotate numbers and the IP axis trusts a forwarded header
+ *    signed-in caller can rotate numbers and switch networks
  *  - per source IP: hourly/daily caps, since a single attacker typically
  *    rotates through many numbers from one machine/script
  *

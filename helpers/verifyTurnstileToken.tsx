@@ -10,11 +10,15 @@ interface TurnstileVerifyResponse {
 
 export type TurnstileCheckResult =
   | { status: "valid" }
-  | { status: "invalid" }
+  /**
+   * reason: "missing" (no token sent), "expired_or_reused" (Cloudflare's
+   * timeout-or-duplicate), "unreachable" (siteverify did not answer) or
+   * "rejected" (any other refusal).
+   */
+  | { status: "invalid"; reason: "missing" | "expired_or_reused" | "unreachable" | "rejected" }
   // The secret key hasn't been configured yet (TURNSTILE_SECRET_KEY unset).
-  // Callers should treat this as "skip enforcement" rather than blocking
-  // every OTP send on a misconfiguration — see send-otp endpoints for how
-  // this is used.
+  // The OTP send endpoints skip enforcement on this; the content report
+  // endpoint refuses instead, since its check is mandatory.
   | { status: "not_configured" };
 
 /**
@@ -42,7 +46,7 @@ export async function verifyTurnstileToken(
   }
 
   if (!token) {
-    return { status: "invalid" };
+    return { status: "invalid", reason: "missing" };
   }
 
   try {
@@ -63,18 +67,19 @@ export async function verifyTurnstileToken(
 
     if (!response.ok) {
       console.error("Turnstile siteverify request failed with status", response.status);
-      return { status: "invalid" };
+      return { status: "invalid", reason: "unreachable" };
     }
 
     const result = (await response.json()) as TurnstileVerifyResponse;
     if (!result.success) {
       console.warn("Turnstile verification rejected:", result["error-codes"]);
-      return { status: "invalid" };
+      const reused = result["error-codes"]?.includes("timeout-or-duplicate");
+      return { status: "invalid", reason: reused ? "expired_or_reused" : "rejected" };
     }
 
     return { status: "valid" };
   } catch (error) {
     console.error("Error verifying Turnstile token:", error);
-    return { status: "invalid" };
+    return { status: "invalid", reason: "unreachable" };
   }
 }

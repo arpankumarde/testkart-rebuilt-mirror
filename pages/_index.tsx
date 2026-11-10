@@ -8,7 +8,7 @@ import { HomepageUgcNetSpotlight } from "../components/HomepageUgcNetSpotlight";
 import { HomepageTeacherSpotlight } from "../components/HomepageTeacherSpotlight";
 import { HomepageContentSection, TeacherProductCard, RatingStat, hasRating } from "../components/HomepageContentSection";
 import { JoinTestkart } from "../components/JoinTestkart";
-import { DiwaliHomeSection } from "../components/DiwaliHomeSection";
+import { AppPromoBanner } from "../components/AppPromoBanner";
 import type { HomepageTestItem, HomepageCourseItem, HomepageNoteItem } from "../endpoints/homepage/data_GET.schema";
 import { itemPriceProps } from "../helpers/homepageItemUtils";
 import { Placeholder } from "../helpers/placeholderImages";
@@ -71,14 +71,9 @@ const HomePage: React.FC = () => {
         <HomepageSearchHero />
 
         <div className={styles.contentWrapper}>
-          <DiwaliHomeSection tone="ivory" edge="first" accents={["headerOrnament"]}>
-            <HomepageTopExams productCounts={data?.topExamCounts} />
-          </DiwaliHomeSection>
-          <DiwaliHomeSection>
-            <HomepageUgcNetSpotlight />
-          </DiwaliHomeSection>
+          <HomepageTopExams productCounts={data?.topExamCounts} />
+          <HomepageUgcNetSpotlight />
 
-          <DiwaliHomeSection tone="ivory" accents={["lotusDivider", "topHangers"]}>
           <HomepageContentSection
             title="Top mock tests this week"
             viewAllLink="/mock-test"
@@ -109,14 +104,11 @@ const HomePage: React.FC = () => {
               );
             }}
           />
-          </DiwaliHomeSection>
 
-          <DiwaliHomeSection accents={["gutterSparkles"]}>
-            <HomepageFeaturedCourses
-              courses={data?.featuredCourses ?? []}
-              isLoading={isFetching}
-            />
-          </DiwaliHomeSection>
+          <HomepageFeaturedCourses
+            courses={data?.featuredCourses ?? []}
+            isLoading={isFetching}
+          />
 
           {/* Popular courses hidden for now: Featured courses covers it. homepage/data still returns popularCourses.
           <HomepageContentSection
@@ -143,7 +135,6 @@ const HomePage: React.FC = () => {
           />
           */}
 
-          <DiwaliHomeSection tone="ivory" accents={["cornerDiyas"]}>
           <HomepageContentSection
             title="Popular study notes"
             viewAllLink="/study-notes"
@@ -172,20 +163,20 @@ const HomePage: React.FC = () => {
               />
             )}
           />
-          </DiwaliHomeSection>
 
-          <DiwaliHomeSection>
-            <HomepageTeacherSpotlight
-              teachers={data?.popularTeachers ?? []}
-              isLoading={isFetching}
-              isError={isError && !data}
-              onRetry={() => refetch()}
-            />
-          </DiwaliHomeSection>
+          <HomepageTeacherSpotlight
+            teachers={data?.popularTeachers ?? []}
+            isLoading={isFetching}
+            isError={isError && !data}
+            onRetry={() => refetch()}
+          />
 
-          <DiwaliHomeSection tone="ivory" edge="last" accents={["diyaDivider", "diyaRow"]}>
-            <JoinTestkart />
-          </DiwaliHomeSection>
+          <AppPromoBanner
+            title="Prepare on the go with the Testkart app"
+            text="Mock tests, courses, study notes and live competitions on your Android phone, free to download."
+          />
+
+          <JoinTestkart />
         </div>
       </div>
     </>

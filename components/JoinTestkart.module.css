@@ -2,13 +2,12 @@
   position: relative;
   width: 100%;
   padding: clamp(3rem, 8vw, 4rem) clamp(1.25rem, 4vw, 2.5rem);
-  background-color: var(--dw-section-bg, #F7F8F8);
+  background-color: #F7F8F8;
   overflow-x: hidden;
 }
 
-/* --dw-section-bg / --dw-section-rim come from DiwaliHomeSection while the festive theme is on. */
 :global(.dark) .section {
-  background-color: var(--dw-section-bg, hsl(220 20% 10%));
+  background-color: hsl(220 20% 10%);
 }
 
 .container {
@@ -25,13 +24,13 @@
   z-index: 0;
   inset: 10px -8px;
   border-radius: 34px;
-  background-color: var(--dw-section-rim, #F0F1F2);
+  background-color: #F0F1F2;
   box-shadow: 0 12px 35px rgba(40, 45, 50, 0.06);
   pointer-events: none;
 }
 
 :global(.dark) .container::before {
-  background-color: var(--dw-section-rim, hsl(24 8% 15%));
+  background-color: hsl(24 8% 15%);
   box-shadow: 0 12px 35px hsl(0 0% 0% / 0.35);
 }
 

@@ -13,9 +13,8 @@ import { Footer } from "./Footer";
 import { useCartItemsQuery } from "../helpers/useCartQuery";
 import { MobileBottomNav } from "./MobileBottomNav";
 import { MoreResourcesMenu } from "./MoreResourcesMenu";
-import { DiwaliSiteLayer } from "./DiwaliSiteLayer";
-import { SpinWinLauncher } from "./SpinWinLauncher";
 import { GuestCartSync } from "./GuestCartSync";
+import { ContentReportBar } from "./ContentReportBar";
 import { useDarkModeObserver } from "../helpers/useDarkModeObserver";
 import { getBrandLogo } from "../helpers/brandAssets";
 import { BrandFavicons } from "../helpers/BrandFavicons";
@@ -209,7 +208,6 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
       </Helmet>
       <BrandFavicons />
       <div className={styles.layoutContainer}>
-      <DiwaliSiteLayer />
       <header
         className={`${styles.header} ${isCompactHeader ? styles.headerCompact : ''} ${isHeaderHidden ? styles.headerHidden : ''}`}
       >
@@ -315,10 +313,10 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
         className={`${styles.main} ${isMobileNavVisible ? styles.mainWithMobileNav : ''} ${isCompactHeader ? styles.mainCompactHeader : ''}`}
       >
         {children}
+        <ContentReportBar />
       </main>
       <Footer />
       <MobileBottomNav />
-      <SpinWinLauncher />
       <GuestCartSync />
       </div>
     </>

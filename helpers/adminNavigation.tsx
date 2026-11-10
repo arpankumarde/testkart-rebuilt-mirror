@@ -1,7 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard,
-  History,
   Megaphone,
   PieChart,
   Receipt,
@@ -43,6 +42,7 @@ import {
   CalendarRange,
   CalendarClock,
   Coins,
+  Flag,
 } from "lucide-react";
 import { ANY_ADMIN, EXTRA_PAGE_RULES, hasAdminModule, type AdminModule } from "./adminPermissions";
 import { ARTICLE_TABS } from "./adminContentSurfaces";
@@ -78,7 +78,6 @@ const groups: AdminNavGroup[] = [
     label: "Overview",
     items: [
       { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard, end: true, modules: ["dashboard"], keywords: "home overview" },
-      { href: "/admin/dashboard/old", label: "Dashboard (old)", icon: History, modules: ["dashboard"], keywords: "legacy previous metrics month" },
     ],
   },
   {
@@ -228,6 +227,14 @@ const groups: AdminNavGroup[] = [
         icon: BookA,
         modules: ["glossary"],
         keywords: "terms definitions dictionary seo slug related terms",
+      },
+      {
+        href: "/admin/content-reports",
+        label: "Content reports",
+        icon: Flag,
+        modules: ["content_reports"],
+        countKeys: ["contentReportsNew"],
+        keywords: "report an issue mistake error correction typo broken link outdated feedback",
       },
     ],
   },

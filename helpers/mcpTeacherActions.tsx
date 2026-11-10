@@ -471,7 +471,7 @@ const ACTIONS: Record<string, TeacherAction> = {
   "tests/update": write(testsUpdate, testsUpdateSchema, "Update a test series."),
   "trash/delete": write(trashDelete, trashDeleteSchema, "Permanently delete a trashed test series or test item. Cannot be undone.", CONFIRM),
   "trash/restore": write(trashRestore, trashRestoreSchema, "Restore a trashed test series or test item."),
-  "withdrawal/request": write(withdrawalRequest, withdrawalRequestSchema, "Request a withdrawal of your available earnings.", CONFIRM),
+  "withdrawal/request": write(withdrawalRequest, withdrawalRequestSchema, "Request a withdrawal of your available earnings. One request per calendar day (IST), whatever its status; withdrawal/list returns dailyLimit.nextAvailableAt when today's is used.", CONFIRM),
   "work-experiences/create": write(workExperiencesCreate, workExperiencesCreateSchema, "Add a work experience entry to your profile."),
   "work-experiences/delete": write(workExperiencesDelete, workExperiencesDeleteSchema, "Delete a work experience entry.", CONFIRM),
   "work-experiences/update": write(workExperiencesUpdate, workExperiencesUpdateSchema, "Update a work experience entry."),
