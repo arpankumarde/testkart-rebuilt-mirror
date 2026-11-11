@@ -299,7 +299,7 @@ export async function sendCompletionOverdueEmail(kind: "booking" | "group", id: 
       heading: "How did this class go?",
       greeting: teacher?.displayName ?? "",
       lines: [
-        `Your ${b.durationMinutes}-minute 1:1 class with ${student?.displayName ?? "a student"} on ${formatIst(new Date(b.scheduledAt))} ended over a day ago and is still awaiting completion.`,
+        `Your ${b.durationMinutes}-minute 1:1 class with ${student?.displayName ?? "a student"} on ${formatIst(new Date(b.scheduledAt))} ended over a day ago and has not been marked yet.`,
         "Mark it completed, or tell us the learner did not attend, so the class can be settled.",
       ],
       ctaLabel: "Open my bookings",
@@ -321,7 +321,7 @@ export async function sendCompletionOverdueEmail(kind: "booking" | "group", id: 
     heading: "How did this lesson go?",
     greeting: g.displayName ?? "",
     lines: [
-      `Your group lesson "${g.title}" on ${formatIst(new Date(g.startTime))} ended over a day ago and is still awaiting completion.`,
+      `Your group lesson "${g.title}" on ${formatIst(new Date(g.startTime))} ended over a day ago and has not been marked yet.`,
       "Mark it completed so it shows correctly to your learners and in your earnings.",
     ],
     ctaLabel: "Open my group lessons",

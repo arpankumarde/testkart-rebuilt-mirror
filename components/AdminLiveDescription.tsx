@@ -41,7 +41,7 @@ const STEPS = [
   {
     icon: <Flag />,
     tone: "peach",
-    title: "No-shows",
+    title: "Missed sessions",
     body: `If a teacher does not turn up, the learner can report it within ${ISSUE_REPORT_WINDOW_HOURS} hours of the class ending. An admin settles it under Reports & Issues.`,
   },
 ] as const;

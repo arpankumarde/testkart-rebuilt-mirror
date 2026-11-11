@@ -1,7 +1,7 @@
 import { z } from "zod";
 import superjson from "superjson";
 import type { LiveCalendarEvent } from "./calendar_GET.schema";
-import type { LiveBookingRow } from "./bookings_GET.schema";
+import type { LivePaymentStatus } from "./bookings_GET.schema";
 
 export const schema = z.object({
   kind: z.enum(["booking", "group"]),
@@ -10,27 +10,55 @@ export const schema = z.object({
 
 export type InputType = z.infer<typeof schema>;
 
-export const SESSION_BOOKINGS_LIMIT = 100;
+export const SESSION_ATTENDEES_LIMIT = 200;
 
 export type LiveSessionDetail = LiveCalendarEvent & {
-  description: string | null;
-  subject: string | null;
-  level: string | null;
-  language: string | null;
-  minEnrollment: number | null;
-  hasMeetingLink: boolean;
-  createdAt: Date | null;
-  noShowReason: string | null;
+  /** Why the teacher did not hold it, when status is missed. */
+  missedReason: string | null;
   completedAt: Date | null;
   completedBy: string | null;
   cancelledAt: Date | null;
   cancelledBy: string | null;
 };
 
-/** One status change from live_session_events, oldest first. */
+/** Did this learner attend: upcoming | attended | missed | cancelled (their place was cancelled). */
+export type LiveAttendanceStatus = "upcoming" | "attended" | "missed" | "cancelled";
+
+/** One learner's place: the 1:1 booking, or a group lesson enrollment. */
+export type LiveAttendeeRow = {
+  type: "booking" | "group";
+  /** The booking id (1:1) or enrollment id (group). */
+  id: string;
+  sessionId: string;
+  studentId: number | null;
+  studentName: string | null;
+  studentEmail: string | null;
+  bookedAt: Date | null;
+  price: number;
+  /** What was actually received: the price when paid (or paid and later refunded) or paid by credit, otherwise 0. */
+  amountPaid: number;
+  paymentStatus: LivePaymentStatus;
+  orderId: number | null;
+  orderStatus: string | null;
+  paymentMethod: string | null;
+  paidAt: Date | null;
+  refundedAt: Date | null;
+  creditKind: string | null;
+  isTrial: boolean;
+  attendance: LiveAttendanceStatus;
+  /** Where the attendance comes from: an admin or teacher mark, the teacher's no-show, a classroom join, or no join. */
+  attendanceBasis: "marked" | "teacher" | "classroom" | "no_join" | null;
+  attendanceMarkedBy: string | null;
+  attendanceMarkedAt: Date | null;
+  /** The place is not cancelled and the session has started, so attendance can be set. */
+  canMark: boolean;
+};
+
+/** One change from live_session_events, oldest first. */
 export type LiveSessionEvent = {
   id: string;
   fromStatus: string | null;
+  /** A session status, or attendance_attended / attendance_missed for a learner's attendance. */
   toStatus: string;
   actorType: "admin" | "teacher" | "learner" | "system";
   actorLabel: string | null;
@@ -40,9 +68,7 @@ export type LiveSessionEvent = {
 
 export type OutputType = {
   session: LiveSessionDetail;
-  /** The learner's booking for a 1:1 session; the enrollments (newest first) for a group lesson. */
-  bookings: LiveBookingRow[];
-  bookingsTotal: number;
+  attendees: LiveAttendeeRow[];
   history: LiveSessionEvent[];
 };
 

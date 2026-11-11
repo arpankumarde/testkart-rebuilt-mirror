@@ -1,25 +1,21 @@
 import { z } from "zod";
 import superjson from "superjson";
 
-export const schema = z
-  .object({
-    kind: z.enum(["booking", "group"]),
-    id: z.string().uuid(),
-    action: z.enum(["complete", "no_show"]),
-    /** Who did not attend; required for a no-show. */
-    party: z.enum(["teacher", "learner"]).optional(),
-    reason: z.string().trim().max(500).optional(),
-  })
-  .refine((v) => v.action !== "no_show" || v.kind === "booking", { message: "Only a 1:1 session can be marked a no-show." })
-  .refine((v) => v.action !== "no_show" || !!v.party, { message: "Say who did not attend." });
+export const schema = z.object({
+  kind: z.enum(["booking", "group"]),
+  id: z.string().uuid(),
+  /** complete: the teacher held it. missed: the teacher did not. Learner attendance is set separately. */
+  action: z.enum(["complete", "missed"]),
+  reason: z.string().trim().max(500).optional(),
+});
 
 export type InputType = z.infer<typeof schema>;
 
 export type OutputType = {
-  status: "completed" | "no_show";
+  status: "completed" | "missed";
   /** False when the session already had this outcome, so nothing changed. */
   changed: boolean;
-  /** Set when a teacher no-show handed a credit back to the learner. */
+  /** Set when a missed 1:1 class handed its credit back to the learner. */
   creditReturned: "unscheduled" | "released" | null;
 };
 

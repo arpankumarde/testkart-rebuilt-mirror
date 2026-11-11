@@ -8,10 +8,9 @@ interface PlayStoreBadgeProps {
 }
 
 /**
- * Google's own "Get it on Google Play" artwork, linked to the Testkart
- * listing. The PNG ships with transparent padding round the badge, so it is
- * cropped to the black rounded rectangle the same way the student dashboard
- * crops it, just scaled off --badge-h.
+ * The "Get it on Google Play" badge from cdn.testkart.in, linked to the
+ * Testkart listing. The PNG has no padding, so it fills a 3.375 x --badge-h
+ * box, the same box AppStoreBadgeSoon uses.
  */
 export const PlayStoreBadge = ({ className }: PlayStoreBadgeProps) => (
   <a
@@ -20,15 +19,13 @@ export const PlayStoreBadge = ({ className }: PlayStoreBadgeProps) => (
     rel="noopener noreferrer"
     className={`${styles.link} ${className ?? ""}`.trim()}
   >
-    <span className={styles.crop}>
-      <img
-        src={PLAY_BADGE_IMAGE}
-        alt="Get it on Google Play"
-        width={646}
-        height={250}
-        className={styles.image}
-        decoding="async"
-      />
-    </span>
+    <img
+      src={PLAY_BADGE_IMAGE}
+      alt="Get it on Google Play"
+      width={270}
+      height={81}
+      className={styles.image}
+      decoding="async"
+    />
   </a>
 );

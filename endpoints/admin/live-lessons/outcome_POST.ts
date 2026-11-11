@@ -1,10 +1,15 @@
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
-import { completeLiveSession, markLiveSessionNoShow, type LiveActor } from "../../../helpers/liveSessionLifecycle";
+import {
+  completeLiveSession,
+  markGroupLessonMissed,
+  markLiveSessionNoShow,
+  type LiveActor,
+} from "../../../helpers/liveSessionLifecycle";
 import { schema, OutputType } from "./outcome_POST.schema";
 
-/* An admin closes out a session: completed, or a no-show by the teacher or the learner. Settles at once. */
+/* An admin sets the teacher's session status: completed or missed. Settles a credit-paid class at once. */
 export async function handle(request: Request): Promise<Response> {
   try {
     const admin = await getAdminServerSessionOrThrow(request);
@@ -14,9 +19,13 @@ export async function handle(request: Request): Promise<Response> {
     let output: OutputType;
     if (input.action === "complete") {
       const r = await completeLiveSession({ kind: input.kind, id: input.id, actor, settleNow: true, reason: input.reason });
-      output = { ...r, creditReturned: null };
+      output = { status: "completed", changed: r.changed, creditReturned: null };
+    } else if (input.kind === "booking") {
+      const r = await markLiveSessionNoShow({ id: input.id, party: "teacher", actor, settleNow: true, reason: input.reason });
+      output = { status: "missed", changed: r.changed, creditReturned: r.creditReturned };
     } else {
-      output = await markLiveSessionNoShow({ id: input.id, party: input.party!, actor, settleNow: true, reason: input.reason });
+      const r = await markGroupLessonMissed({ id: input.id, actor, reason: input.reason });
+      output = { status: "missed", changed: r.changed, creditReturned: null };
     }
     return new Response(superjson.stringify(output));
   } catch (error) {

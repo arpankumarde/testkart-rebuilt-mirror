@@ -3,20 +3,26 @@ import { sql, type RawBuilder } from "kysely";
 import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import {
-  bookingsHistorySource,
-  paymentStatusExpr,
-  amountReceivedExpr,
+  sessionsSource,
+  attendeesSource,
   containsPattern,
   andAll,
-  type BookingSqlRow,
+  type SessionSqlRow,
+  type LivePaymentStatus,
 } from "../../../helpers/adminLiveLessonsSql";
-import { toLiveBookingRow } from "../../../helpers/adminLiveBookingRow";
+import { toLiveSession } from "../../../helpers/adminLiveRows";
 import { schema, OutputType } from "./bookings_GET.schema";
 
+type ListSqlRow = SessionSqlRow & {
+  amountReceived: string | number;
+  paidCount: string | number;
+  singlePayment: LivePaymentStatus | null;
+  totalCount: string | number;
+};
+
 /*
- * Every booking in every lifecycle status, plus group lessons cancelled before anyone enrolled.
- * "removed" is a group learner taken off by the teacher and counts as cancelled. Nothing is left
- * out for its payment, session date or cancellation date.
+ * Every session (1:1 and group), whatever its status, payment or date: one row per session with
+ * the learner count and what was received. Learners and their attendance are in the session drawer.
  */
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -27,74 +33,52 @@ export async function handle(request: Request): Promise<Response> {
     const pageSize = input.pageSize ?? 25;
 
     const conds: RawBuilder<unknown>[] = [];
-    if (input.status === "cancelled") conds.push(sql`b.status IN ('cancelled', 'removed')`);
-    else if (input.status === "overdue") conds.push(sql`b.overdue`);
-    else if (input.status) conds.push(sql`b.status = ${input.status}`);
-    if (input.type) conds.push(sql`b.type = ${input.type}`);
-    if (input.payment) conds.push(sql`(${paymentStatusExpr}) = ${input.payment}`);
-    if (input.teacherId) conds.push(sql`b.teacher_id = ${input.teacherId}`);
-    if (input.sessionId) conds.push(sql`b.session_id = ${input.sessionId}`);
-    if (input.from) conds.push(sql`b.session_start >= ${input.from}`);
-    if (input.to) conds.push(sql`b.session_start < ${input.to}`);
+    if (input.from) conds.push(sql`s.start_time >= ${input.from}`);
+    if (input.to) conds.push(sql`s.start_time < ${input.to}`);
     if (input.q) {
       const p = containsPattern(input.q);
-      const orderIdMatch = /^\d{1,9}$/.test(input.q) ? sql` OR b.order_id = ${Number(input.q)}` : sql``;
-      conds.push(
-        sql`(b.id ILIKE ${p} OR b.session_id ILIKE ${p} OR b.student_name ILIKE ${p} OR b.student_email ILIKE ${p}
-          OR b.teacher_name ILIKE ${p} OR b.session_title ILIKE ${p}${orderIdMatch})`
-      );
+      const orderIdMatch = /^\d{1,9}$/.test(input.q) ? sql` OR a.order_id = ${Number(input.q)}` : sql``;
+      conds.push(sql`(s.id ILIKE ${p} OR s.title ILIKE ${p} OR s.teacher_name ILIKE ${p} OR EXISTS (
+        SELECT 1 FROM a WHERE a.type = s.kind AND a.session_id = s.id
+          AND (a.id ILIKE ${p} OR a.student_name ILIKE ${p} OR a.student_email ILIKE ${p}${orderIdMatch})
+      ))`);
     }
 
-    const orderBy =
-      input.sort === "booked"
-        ? sql`b.booked_at DESC NULLS LAST, b.id`
-        : sql`b.session_start DESC, b.id`;
-
-    const [list, summary] = await Promise.all([
-      sql<BookingSqlRow>`
-        WITH b AS (${bookingsHistorySource})
-        SELECT b.*, ${paymentStatusExpr} AS payment_status, ${amountReceivedExpr} AS amount_received, count(*) OVER () AS total_count
-        FROM b
-        WHERE ${andAll(conds)}
-        ORDER BY ${orderBy}
-        LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}
-      `.execute(db),
-      sql<Record<"total" | "scheduled" | "awaiting" | "overdue" | "completed" | "cancelled" | "noShow", string>>`
-        WITH b AS (${bookingsHistorySource})
+    const query = (limit: RawBuilder<unknown>) => sql<ListSqlRow>`
+      WITH s AS (${sessionsSource}), a AS (${attendeesSource})
+      SELECT s.*, p.amount_received, p.paid_count, p.single_payment, count(*) OVER () AS total_count
+      FROM s
+      LEFT JOIN LATERAL (
         SELECT
-          count(*) AS total,
-          count(*) FILTER (WHERE b.status = 'scheduled') AS scheduled,
-          count(*) FILTER (WHERE b.status = 'awaiting_completion') AS awaiting,
-          count(*) FILTER (WHERE b.overdue) AS overdue,
-          count(*) FILTER (WHERE b.status = 'completed') AS completed,
-          count(*) FILTER (WHERE b.status IN ('cancelled', 'removed')) AS cancelled,
-          count(*) FILTER (WHERE b.status = 'no_show') AS no_show
-        FROM b
-      `.execute(db),
-    ]);
+          coalesce(sum(a.amount_received), 0) AS amount_received,
+          count(*) FILTER (WHERE a.payment_status IN ('paid', 'credit')) AS paid_count,
+          min(a.payment_status) AS single_payment
+        FROM a WHERE a.type = s.kind AND a.session_id = s.id
+      ) p ON TRUE
+      WHERE ${andAll(conds)}
+      ORDER BY s.start_time DESC, s.id
+      ${limit}
+    `;
+    const { rows } = await query(sql`LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`).execute(db);
 
-    let total = list.rows.length ? Number(list.rows[0].totalCount ?? 0) : 0;
-    if (!list.rows.length && page > 1) {
-      const { rows } = await sql<{ n: string }>`
-        WITH b AS (${bookingsHistorySource}) SELECT count(*) AS n FROM b WHERE ${andAll(conds)}
+    let total = rows.length ? Number(rows[0].totalCount ?? 0) : 0;
+    if (!rows.length && page > 1) {
+      const { rows: all } = await sql<{ n: string }>`
+        WITH s AS (${sessionsSource}), a AS (${attendeesSource}) SELECT count(*) AS n FROM s WHERE ${andAll(conds)}
       `.execute(db);
-      total = Number(rows[0]?.n ?? 0);
+      total = Number(all[0]?.n ?? 0);
     }
-    const s = summary.rows[0];
+
     const output: OutputType = {
-      rows: list.rows.map(toLiveBookingRow),
+      rows: rows.map((r) => ({
+        ...toLiveSession(r),
+        amountReceived: Number(r.amountReceived ?? 0),
+        paidCount: Number(r.paidCount ?? 0),
+        paymentStatus: r.kind === "booking" ? r.singlePayment : null,
+      })),
       total,
       page,
       pageSize,
-      summary: {
-        total: Number(s?.total ?? 0),
-        scheduled: Number(s?.scheduled ?? 0),
-        awaitingCompletion: Number(s?.awaiting ?? 0),
-        overdue: Number(s?.overdue ?? 0),
-        completed: Number(s?.completed ?? 0),
-        cancelled: Number(s?.cancelled ?? 0),
-        noShow: Number(s?.noShow ?? 0),
-      },
     };
     return new Response(superjson.stringify(output));
   } catch (error) {

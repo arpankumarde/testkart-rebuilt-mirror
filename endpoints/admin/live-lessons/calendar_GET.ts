@@ -10,6 +10,7 @@ import {
   andAll,
   type SessionSqlRow,
 } from "../../../helpers/adminLiveLessonsSql";
+import { toLiveSession } from "../../../helpers/adminLiveRows";
 import { schema, OutputType, CALENDAR_EVENT_LIMIT } from "./calendar_GET.schema";
 
 export async function handle(request: Request): Promise<Response> {
@@ -45,32 +46,7 @@ export async function handle(request: Request): Promise<Response> {
     `.execute(db);
 
     const truncated = rows.length > CALENDAR_EVENT_LIMIT;
-    const output: OutputType = {
-      truncated,
-      events: rows.slice(0, CALENDAR_EVENT_LIMIT).map((r) => {
-        const start = new Date(r.startTime);
-        return {
-          kind: r.kind,
-          id: r.id,
-          title: r.title,
-          teacherId: r.teacherId,
-          teacherName: r.teacherName,
-          teacherAvatarUrl: r.teacherAvatarUrl,
-          studentName: r.studentName,
-          start,
-          end: new Date(start.getTime() + r.durationMinutes * 60000),
-          durationMinutes: r.durationMinutes,
-          status: r.status,
-          overdue: !!r.overdue,
-          noShowParty: r.noShowParty,
-          enrolledCount: r.enrolledCount,
-          maxCapacity: r.maxCapacity,
-          price: Number(r.price ?? 0),
-          isTrial: !!r.isTrial,
-          cancellationReason: r.cancellationReason,
-        };
-      }),
-    };
+    const output: OutputType = { truncated, events: rows.slice(0, CALENDAR_EVENT_LIMIT).map(toLiveSession) };
     return new Response(superjson.stringify(output));
   } catch (error) {
     console.error("Admin live calendar failed:", error);

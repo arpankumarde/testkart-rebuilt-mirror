@@ -3,7 +3,7 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./cancel_POST.schema";
 import { sendEmail } from "../../../helpers/sendEmail";
 import { emailTemplatesExtra } from "../../../helpers/emailTemplatesExtra";
-import { lifecycleStatusOf, recordSessionEvent } from "../../../helpers/liveSessionLifecycle";
+import { recordSessionEvent } from "../../../helpers/liveSessionLifecycle";
 import superjson from "superjson";
 
 export async function handle(request: Request) {
@@ -54,7 +54,7 @@ export async function handle(request: Request) {
       await recordSessionEvent(trx, {
         kind: "group",
         id: input.id,
-        from: lifecycleStatusOf(lesson.status, lesson.startTime, lesson.durationMinutes),
+        from: lesson.status,
         to: "cancelled",
         actor: { type: byAdmin ? "admin" : "teacher", id: user.id, label: user.displayName ?? null },
         reason: input.reason,

@@ -3,8 +3,8 @@ import { getAdminLiveCalendar, type InputType as CalendarInput } from "../endpoi
 import { getAdminLiveTeachers } from "../endpoints/admin/live-lessons/teachers_GET.schema";
 import { getAdminLiveSession } from "../endpoints/admin/live-lessons/session_GET.schema";
 import { getAdminLiveBookings, type InputType as BookingsInput } from "../endpoints/admin/live-lessons/bookings_GET.schema";
-import { getAdminLiveBooking } from "../endpoints/admin/live-lessons/booking_GET.schema";
 import { postAdminLiveOutcome, type InputType as OutcomeInput } from "../endpoints/admin/live-lessons/outcome_POST.schema";
+import { postAdminLiveAttendance, type InputType as AttendanceInput } from "../endpoints/admin/live-lessons/attendance_POST.schema";
 
 /* Every query here sits under this prefix, so a cancellation can refresh the whole module at once. */
 export const ADMIN_LIVE_KEY = ["admin", "live-lessons"] as const;
@@ -39,18 +39,20 @@ export const useAdminLiveBookingsQuery = (input: BookingsInput) =>
     staleTime: 30 * 1000,
   });
 
-export const useAdminLiveBookingQuery = (target: { type: "booking" | "group"; id: string } | null) =>
-  useQuery({
-    queryKey: [...ADMIN_LIVE_KEY, "booking", target?.type, target?.id],
-    queryFn: () => getAdminLiveBooking(target!),
-    enabled: !!target,
-  });
-
-/* Mark a session completed or a no-show; refreshes the calendar, drawers and bookings. */
+/* Set the teacher's session status (completed or missed); refreshes the calendar, drawers and bookings. */
 export const useAdminLiveOutcomeMutation = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: OutcomeInput) => postAdminLiveOutcome(input),
+    onSettled: () => qc.invalidateQueries({ queryKey: ADMIN_LIVE_KEY }),
+  });
+};
+
+/* Set one learner's attendance. */
+export const useAdminLiveAttendanceMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: AttendanceInput) => postAdminLiveAttendance(input),
     onSettled: () => qc.invalidateQueries({ queryKey: ADMIN_LIVE_KEY }),
   });
 };

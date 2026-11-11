@@ -1,54 +1,53 @@
 import React, { useState } from "react";
 import { toast } from "sonner";
-import { CheckCircle2, Users, UserX, Video } from "lucide-react";
+import { CheckCircle2, UserCheck, Users, UserX, Video, XCircle } from "lucide-react";
 import { useAdminCancelLiveLessonMutation } from "../helpers/useAdminLiveLessons";
-import { useAdminLiveOutcomeMutation } from "../helpers/useAdminLiveModule";
+import { useAdminLiveAttendanceMutation, useAdminLiveOutcomeMutation } from "../helpers/useAdminLiveModule";
 import { Button } from "./Button";
 import { Dialog } from "./Dialog";
 import { ConsoleDialogContent, ConsoleDialogHeader, ConsoleDialogBody, ConsoleDialogFooter } from "./ConsoleDialog";
 import { ConsoleConfirmDialog } from "./ConsoleConfirmDialog";
 import { Textarea } from "./Textarea";
 import type { LivePaymentStatus } from "../endpoints/admin/live-lessons/bookings_GET.schema";
+import type { LiveSessionStatus } from "../endpoints/admin/live-lessons/calendar_GET.schema";
+import type { LiveAttendanceStatus } from "../endpoints/admin/live-lessons/session_GET.schema";
 import styles from "./AdminLiveBits.module.css";
 
-/* Small shared pieces of the admin Live Lessons module. */
+/*
+ * Small shared pieces of the admin Live Lessons module. Two status sets, one colour scheme:
+ * blue = not happened yet, green = happened, red = missed, grey = cancelled.
+ */
 
-const STATUS: Record<string, { label: string; tone: string }> = {
-  scheduled: { label: "Scheduled", tone: "mint" },
-  awaiting_completion: { label: "Awaiting completion", tone: "butter" },
-  completed: { label: "Completed", tone: "lavender" },
-  cancelled: { label: "Cancelled", tone: "rose" },
-  no_show: { label: "No-show", tone: "powder" },
-  removed: { label: "Removed", tone: "neutral" },
+const SESSION_STATUS: Record<LiveSessionStatus, { label: string; tone: string }> = {
+  scheduled: { label: "Scheduled", tone: "powder" },
+  completed: { label: "Completed", tone: "mint" },
+  missed: { label: "Missed", tone: "rose" },
+  cancelled: { label: "Cancelled", tone: "neutral" },
 };
 
-export const liveStatusLabel = (status: string) =>
-  STATUS[status]?.label ?? status.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
-
-export const liveStatusTone = (status: string) => STATUS[status]?.tone ?? "neutral";
-
-export const noShowPartyLabel = (party: string | null | undefined) =>
-  party === "teacher" ? "teacher absent" : party === "learner" ? "learner absent" : null;
-
-export const LiveStatusPill: React.FC<{ status: string; noShowParty?: string | null; className?: string }> = ({
-  status,
-  noShowParty,
-  className,
-}) => {
-  const party = status === "no_show" ? noShowPartyLabel(noShowParty) : null;
-  return (
-    <span className={`${styles.pill} ${styles[`tone_${liveStatusTone(status)}`]} ${className ?? ""}`}>
-      <span className={styles.dot} aria-hidden="true" />
-      {liveStatusLabel(status)}
-      {party ? `, ${party}` : ""}
-    </span>
-  );
+const ATTENDANCE: Record<LiveAttendanceStatus, { label: string; tone: string }> = {
+  upcoming: { label: "Upcoming", tone: "powder" },
+  attended: { label: "Attended", tone: "mint" },
+  missed: { label: "Missed", tone: "rose" },
+  cancelled: { label: "Cancelled", tone: "neutral" },
 };
 
-/* Awaiting completion past the overdue window. */
-export const LiveOverduePill: React.FC = () => (
-  <span className={`${styles.pill} ${styles.tone_rose}`} title="Still not marked more than a day after it ended">
-    Overdue
+export const sessionStatusLabel = (status: LiveSessionStatus) => SESSION_STATUS[status]?.label ?? status;
+export const attendanceLabel = (status: LiveAttendanceStatus) => ATTENDANCE[status]?.label ?? status;
+
+/* The teacher's session status: did the session take place. */
+export const LiveSessionStatusPill: React.FC<{ status: LiveSessionStatus }> = ({ status }) => (
+  <span className={`${styles.pill} ${styles[`tone_${SESSION_STATUS[status]?.tone ?? "neutral"}`]}`}>
+    <span className={styles.dot} aria-hidden="true" />
+    {sessionStatusLabel(status)}
+  </span>
+);
+
+/* One learner's attendance. */
+export const LiveAttendancePill: React.FC<{ status: LiveAttendanceStatus }> = ({ status }) => (
+  <span className={`${styles.pill} ${styles[`tone_${ATTENDANCE[status]?.tone ?? "neutral"}`]}`}>
+    <span className={styles.dot} aria-hidden="true" />
+    {attendanceLabel(status)}
   </span>
 );
 
@@ -59,15 +58,10 @@ const PAYMENT: Record<LivePaymentStatus, { label: string; tone: string }> = {
   failed: { label: "Failed", tone: "rose" },
   credit: { label: "Paid by credit", tone: "mint" },
   free: { label: "Free", tone: "neutral" },
-  none: { label: "No payment", tone: "neutral" },
 };
 
-export const livePaymentLabel = (status: LivePaymentStatus, _creditKind?: string | null) => PAYMENT[status].label;
-
-export const LivePaymentPill: React.FC<{ status: LivePaymentStatus; creditKind?: string | null }> = ({ status, creditKind }) => (
-  <span className={`${styles.pill} ${styles.pillSoft} ${styles[`tone_${PAYMENT[status].tone}`]}`}>
-    {livePaymentLabel(status, creditKind)}
-  </span>
+export const LivePaymentPill: React.FC<{ status: LivePaymentStatus }> = ({ status }) => (
+  <span className={`${styles.pill} ${styles.pillSoft} ${styles[`tone_${PAYMENT[status].tone}`]}`}>{PAYMENT[status].label}</span>
 );
 
 export const LiveKindBadge: React.FC<{ kind: "booking" | "group"; withLabel?: boolean }> = ({ kind, withLabel }) => (
@@ -102,14 +96,33 @@ export const LiveAvatar: React.FC<{ name: string | null; src?: string | null; si
 
 export const rupees = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 
-export type CancelTarget = { kind: "booking" | "group"; id: string; title: string };
+/* completed_by / cancelled_by / attendance_marked_by values: "admin:<name>", "admin", "teacher", "student", "system". */
+export const actorLabel = (v: string | null | undefined) => {
+  if (!v) return null;
+  if (v.startsWith("admin:")) return `Admin ${v.slice(6)}`;
+  if (v === "student") return "The learner";
+  if (v === "teacher") return "The teacher";
+  if (v === "system") return "Testkart (automatic)";
+  if (v === "admin") return "An admin";
+  return v;
+};
 
-/* Admin cancellation of a 1:1 booking or a whole group lesson, through the existing cancel endpoint. */
-export const LiveCancelDialog: React.FC<{
-  target: CancelTarget | null;
-  onOpenChange: (open: boolean) => void;
-  onCancelled?: () => void;
-}> = ({ target, onOpenChange, onCancelled }) => {
+export const copyText = async (text: string, label: string) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast.success(`${label} copied.`);
+  } catch {
+    toast.error(`Could not copy the ${label.toLowerCase()}.`);
+  }
+};
+
+export type SessionTarget = { kind: "booking" | "group"; id: string; title: string };
+
+/* Cancel a 1:1 session or a whole group lesson, through the existing cancel endpoint. */
+export const LiveCancelDialog: React.FC<{ target: SessionTarget | null; onOpenChange: (open: boolean) => void }> = ({
+  target,
+  onOpenChange,
+}) => {
   const [reason, setReason] = useState("");
   const cancelMutation = useAdminCancelLiveLessonMutation();
   const open = !!target;
@@ -128,9 +141,8 @@ export const LiveCancelDialog: React.FC<{
       { kind: target.kind, id: target.id, reason: reason.trim() },
       {
         onSuccess: () => {
-          toast.success("Cancelled. Affected people are not yet auto-notified - this records the decision for now.");
+          toast.success("Session cancelled.");
           onOpenChange(false);
-          onCancelled?.();
         },
         onError: (err) => toast.error(err instanceof Error ? err.message : "Could not cancel this session."),
       }
@@ -141,19 +153,20 @@ export const LiveCancelDialog: React.FC<{
     <Dialog open={open} onOpenChange={onOpenChange}>
       <ConsoleDialogContent size="md">
         <ConsoleDialogHeader
-          title={`Cancel "${target?.title ?? ""}"`}
+          title={`Cancel "${target?.title ?? ""}"?`}
           description={
             target?.kind === "group"
-              ? "This immediately marks the whole group lesson cancelled for every enrolled learner. Refund/credit handling follows the existing order and wallet rules for each payment, if any."
-              : "This immediately marks the session cancelled. Refund/credit handling follows the existing order and wallet rules for its payment, if any."
+              ? "The lesson is cancelled for every enrolled learner. Payments are not refunded automatically: refund from Orders if needed."
+              : "The session is cancelled. A class paid with a trial or package credit goes back to the learner. Order payments are not refunded automatically: refund from Orders if needed."
           }
         />
         <ConsoleDialogBody>
           <Textarea
-            rows={4}
+            rows={3}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="e.g. Reported policy violation, teacher unreachable, duplicate booking..."
+            placeholder="Reason, e.g. teacher unavailable, duplicate booking"
+            aria-label="Reason for cancelling"
           />
         </ConsoleDialogBody>
         <ConsoleDialogFooter>
@@ -161,7 +174,7 @@ export const LiveCancelDialog: React.FC<{
             Back
           </Button>
           <Button type="button" variant="destructive" disabled={cancelMutation.isPending} onClick={handleCancel}>
-            {cancelMutation.isPending ? "Cancelling..." : target?.kind === "group" ? "Cancel group lesson" : "Cancel session"}
+            {cancelMutation.isPending ? "Cancelling..." : "Cancel session"}
           </Button>
         </ConsoleDialogFooter>
       </ConsoleDialogContent>
@@ -169,53 +182,56 @@ export const LiveCancelDialog: React.FC<{
   );
 };
 
-export const copyText = async (text: string, label: string) => {
-  try {
-    await navigator.clipboard.writeText(text);
-    toast.success(`${label} copied.`);
-  } catch {
-    toast.error(`Could not copy the ${label.toLowerCase()}.`);
-  }
-};
-
-export type OutcomeTarget = { kind: "booking" | "group"; id: string; title: string };
-
-/* Admin confirms that the session took place. Settles a credit-paid class at once. */
-export const LiveCompleteDialog: React.FC<{ target: OutcomeTarget | null; onOpenChange: (open: boolean) => void }> = ({
-  target,
-  onOpenChange,
-}) => {
+/* Set the teacher's session status: the session took place (completed) or the teacher did not hold it (missed). */
+export const LiveSessionOutcomeDialog: React.FC<{
+  target: (SessionTarget & { action: "complete" | "missed" }) | null;
+  onOpenChange: (open: boolean) => void;
+}> = ({ target, onOpenChange }) => {
   const [note, setNote] = useState("");
   const outcome = useAdminLiveOutcomeMutation();
   React.useEffect(() => {
     if (target) setNote("");
   }, [target]);
 
+  const missed = target?.action === "missed";
+  const description = missed
+    ? target?.kind === "group"
+      ? "The teacher did not hold this lesson. The teacher is not paid for it. Learners' payments are not refunded automatically: refund from Orders if needed."
+      : "The teacher did not hold this session. The teacher is not paid. A class paid with a credit goes back to the learner, who is emailed. Order payments are not refunded automatically."
+    : target?.kind === "group"
+      ? "The teacher held this lesson. Learner attendance stays as it is; set it per learner below."
+      : "The teacher held this session. A class paid with a trial or package credit is settled now and the teacher is paid. Learner attendance is set separately.";
+
   return (
     <ConsoleConfirmDialog
       open={!!target}
       onOpenChange={onOpenChange}
-      icon={<CheckCircle2 />}
-      title={`Mark "${target?.title ?? ""}" completed?`}
-      description={
-        target?.kind === "group"
-          ? "Confirm the lesson took place. Learners' seats stay as they are and the lesson moves to Completed."
-          : "Confirm the class took place. A class paid with a trial or package credit is settled now: the credit is used and the teacher is paid. Order payments are not changed."
-      }
-      confirmLabel="Mark completed"
+      tone={missed ? "destructive" : "default"}
+      icon={missed ? <XCircle /> : <CheckCircle2 />}
+      title={missed ? "Mark session as missed?" : "Mark session as completed?"}
+      description={description}
+      confirmLabel={missed ? "Mark missed" : "Mark completed"}
       pendingLabel="Saving..."
       isPending={outcome.isPending}
-      note={{ label: "Note (optional)", value: note, onChange: setNote, placeholder: "e.g. Confirmed with the teacher by phone" }}
+      note={{ label: "Note (optional)", value: note, onChange: setNote, placeholder: missed ? "e.g. Teacher did not join" : "e.g. Confirmed with the teacher" }}
       onConfirm={() => {
         if (!target) return;
         outcome.mutate(
-          { kind: target.kind, id: target.id, action: "complete", reason: note.trim() || undefined },
+          { kind: target.kind, id: target.id, action: target.action, reason: note.trim() || undefined },
           {
             onSuccess: (r) => {
-              toast.success(r.changed ? "Marked completed." : "This session was already closed.");
+              toast.success(
+                !r.changed
+                  ? "This session was already marked."
+                  : r.status === "missed"
+                    ? r.creditReturned
+                      ? "Marked missed. The class credit went back to the learner."
+                      : "Marked missed."
+                    : "Marked completed."
+              );
               onOpenChange(false);
             },
-            onError: (err) => toast.error(err instanceof Error ? err.message : "Could not mark this session completed."),
+            onError: (err) => toast.error(err instanceof Error ? err.message : "Could not update this session."),
           }
         );
       }}
@@ -223,94 +239,44 @@ export const LiveCompleteDialog: React.FC<{ target: OutcomeTarget | null; onOpen
   );
 };
 
-/* Admin records who did not attend a 1:1 session. */
-export const LiveNoShowDialog: React.FC<{ target: OutcomeTarget | null; onOpenChange: (open: boolean) => void }> = ({
+export type AttendanceTarget = { type: "booking" | "group"; id: string; name: string; attendance: "attended" | "missed" };
+
+/* Set one learner's attendance. It does not change the session status or any payment. */
+export const LiveAttendanceDialog: React.FC<{ target: AttendanceTarget | null; onOpenChange: (open: boolean) => void }> = ({
   target,
   onOpenChange,
 }) => {
-  const [party, setParty] = useState<"teacher" | "learner" | null>(null);
-  const [reason, setReason] = useState("");
-  const outcome = useAdminLiveOutcomeMutation();
+  const [note, setNote] = useState("");
+  const attendance = useAdminLiveAttendanceMutation();
   React.useEffect(() => {
-    if (target) {
-      setParty(null);
-      setReason("");
-    }
+    if (target) setNote("");
   }, [target]);
 
-  const save = () => {
-    if (!target || !party) return;
-    outcome.mutate(
-      { kind: "booking", id: target.id, action: "no_show", party, reason: reason.trim() || undefined },
-      {
-        onSuccess: (r) => {
-          toast.success(
-            !r.changed
-              ? "This session was already marked a no-show."
-              : r.creditReturned
-                ? "Marked a teacher no-show. The class credit went back to the learner."
-                : "Marked a no-show."
-          );
-          onOpenChange(false);
-        },
-        onError: (err) => toast.error(err instanceof Error ? err.message : "Could not mark this no-show."),
-      }
-    );
-  };
-
+  const attended = target?.attendance === "attended";
   return (
-    <Dialog open={!!target} onOpenChange={onOpenChange}>
-      <ConsoleDialogContent size="md">
-        <ConsoleDialogHeader title={`Mark "${target?.title ?? ""}" a no-show`} description="Who did not attend?" />
-        <ConsoleDialogBody>
-          <div className={styles.choices} role="radiogroup" aria-label="Who did not attend">
-            {(
-              [
-                {
-                  value: "learner",
-                  label: "The learner",
-                  hint: "Charged like a completed class. The teacher is paid.",
-                },
-                {
-                  value: "teacher",
-                  label: "The teacher",
-                  hint: "The teacher is not paid. A credit-paid class goes back to the learner, who is emailed. Order payments are not refunded automatically: refund from Orders if needed.",
-                },
-              ] as const
-            ).map((o) => (
-              <button
-                key={o.value}
-                type="button"
-                role="radio"
-                aria-checked={party === o.value}
-                className={`${styles.choice} ${party === o.value ? styles.choiceOn : ""}`}
-                onClick={() => setParty(o.value)}
-              >
-                <span className={styles.choiceLabel}>{o.label}</span>
-                <span className={styles.choiceHint}>{o.hint}</span>
-              </button>
-            ))}
-          </div>
-          <label className={styles.fieldLabel} htmlFor="live-no-show-reason">
-            Reason (optional)
-          </label>
-          <Textarea
-            id="live-no-show-reason"
-            rows={3}
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            placeholder="e.g. Learner did not join and did not reply to messages"
-          />
-        </ConsoleDialogBody>
-        <ConsoleDialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            Back
-          </Button>
-          <Button type="button" disabled={!party || outcome.isPending} onClick={save}>
-            <UserX aria-hidden="true" /> {outcome.isPending ? "Saving..." : "Mark no-show"}
-          </Button>
-        </ConsoleDialogFooter>
-      </ConsoleDialogContent>
-    </Dialog>
+    <ConsoleConfirmDialog
+      open={!!target}
+      onOpenChange={onOpenChange}
+      icon={attended ? <UserCheck /> : <UserX />}
+      title={`Mark ${target?.name ?? "this learner"} as ${attended ? "attended" : "missed"}?`}
+      description="This only records the learner's attendance. The session status and payments do not change."
+      confirmLabel={attended ? "Mark attended" : "Mark missed"}
+      pendingLabel="Saving..."
+      isPending={attendance.isPending}
+      note={{ label: "Note (optional)", value: note, onChange: setNote, placeholder: "e.g. Joined by phone" }}
+      onConfirm={() => {
+        if (!target) return;
+        attendance.mutate(
+          { type: target.type, id: target.id, attendance: target.attendance, reason: note.trim() || undefined },
+          {
+            onSuccess: (r) => {
+              toast.success(r.changed ? "Attendance updated." : "Attendance was already set.");
+              onOpenChange(false);
+            },
+            onError: (err) => toast.error(err instanceof Error ? err.message : "Could not update attendance."),
+          }
+        );
+      }}
+    />
   );
 };

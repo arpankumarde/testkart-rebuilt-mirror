@@ -292,7 +292,7 @@ const TeacherMentorshipBookingsPage: React.FC = () => {
           : live
             ? { label: "Happening now", tone: styles.chipMint }
             : awaiting
-              ? { label: "Awaiting completion", tone: styles.chipButter }
+              ? { label: "Not marked yet", tone: styles.chipButter }
               : null;
     return (
       <li

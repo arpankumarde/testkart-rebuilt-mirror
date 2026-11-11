@@ -55,13 +55,16 @@ describe("teacherOnboardingSchedule", () => {
     expect(plan.send).toBeNull();
   });
 
-  it("skips email 2 when the profile is already complete", () => {
-    const plan = planOnboarding(state({ profileComplete: true, sends: [sent("e1", at(0))] }), at(1, 0.1));
-    expect(plan.skip).toContain({ key: "e2", reason: "profile_complete" });
+  it("skips email 3 (profile) when the profile is already complete", () => {
+    const plan = planOnboarding(
+      state({ profileComplete: true, sends: sentAll(["e1", "e2"], [0, 1]) }),
+      at(2, 0.1)
+    );
+    expect(plan.skip).toContain({ key: "e3", reason: "profile_complete" });
     expect(plan.send).toBeNull();
   });
 
-  it("ends the activation track on publish and starts the post-publish track the day after", () => {
+  it("ends track A on publish and still sends track B from day 6", () => {
     const published = at(0, 2);
     const s = state({ firstPublishedAt: published, sends: [sent("e1", at(0, 0.1))] });
 
@@ -70,17 +73,16 @@ describe("teacherOnboardingSchedule", () => {
     expect(onPublish.skip.every((item) => item.reason === "published")).toBeTrue();
     expect(onPublish.send).toBeNull();
 
-    const nextDay = planOnboarding(s, new Date(published.getTime() + DAY + 60 * 1000));
-    expect(nextDay.send).toBe("e5");
+    expect(planOnboarding(s, at(1, 1)).send).toBeNull();
+    expect(planOnboarding(s, at(6, 0.1)).send).toBe("e5");
   });
 
-  it("times emails 6-8 from when email 5 actually went out", () => {
-    const e5SentAt = at(6, 10); // held overnight
+  it("keeps track B on its sign-up days even when email 5 went out late", () => {
     const due = onboardingDueDates(
-      state({ sends: [...sentAll(["e1", "e2", "e3", "e4"], [0, 1, 2, 4]), sent("e5", e5SentAt)] })
+      state({ sends: [...sentAll(["e1", "e2", "e3", "e4"], [0, 1, 2, 4]), sent("e5", at(6, 10))] })
     );
-    expect(due.e6.getTime()).toBe(e5SentAt.getTime() + 2 * DAY);
-    expect(due.e8.getTime()).toBe(e5SentAt.getTime() + 7 * DAY);
+    expect(due.e6.getTime()).toBe(at(8).getTime());
+    expect(due.e8.getTime()).toBe(at(13).getTime());
   });
 
   it("keeps a late publisher on the day 6 schedule without repeating anything", () => {

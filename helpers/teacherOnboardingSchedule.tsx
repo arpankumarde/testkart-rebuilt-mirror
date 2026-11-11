@@ -2,14 +2,13 @@
  * When each teacher onboarding email is due, and which one to send next.
  * Pure, so the rules can be tested without a database.
  *
- * Two tracks, counted from sign-up (day 0):
- * - Activation, emails 1-4 on days 0, 1, 2 and 4. Publishing ends the track:
+ * Two tracks, both counted from sign-up (day 0):
+ * - Track A, emails 1-4 on days 0, 1, 2 and 4. Publishing ends the track:
  *   emails 2-4 not sent yet are skipped. Email 1 is the welcome and always goes.
- *   Email 2 is skipped when the saved profile is already at 100%.
- * - Post-publish, emails 5-8, 0, 2, 4 and 7 days after the track starts. It
- *   starts the day after the first publish when that is before day 6, otherwise
- *   on day 6. Once email 5 is out, 6-8 are timed from when it actually went.
- *   Email 7 is skipped when bank details are already on file.
+ *   Email 3 (profile) is skipped when the saved profile is already at 100%.
+ * - Track B, emails 5-8 on days 6, 8, 10 and 13, for every teacher whether
+ *   they have published or not. Email 7 (Creator Bonus unlocks the bank
+ *   account) is skipped when bank details are already on file.
  *
  * "Published" means the teacher submitted a listing for review or has one live.
  * Delivery rules: one email per run, at least 20 hours between two emails,
@@ -58,10 +57,7 @@ const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
 
 export const ONBOARDING_TIMING = {
-  activationDays: { e1: 0, e2: 1, e3: 2, e4: 4 },
-  postPublishOffsetDays: { e5: 0, e6: 2, e7: 4, e8: 7 },
-  postPublishStartDay: 6,
-  daysAfterPublish: 1,
+  days: { e1: 0, e2: 1, e3: 2, e4: 4, e5: 6, e6: 8, e7: 10, e8: 13 },
   startGraceHours: 2,
   welcomeGraceHours: 0.75,
   expiryHours: 36,
@@ -86,26 +82,9 @@ const isFinal = (record: OnboardingSendRecord | undefined) =>
 
 export function onboardingDueDates(state: OnboardingState): Record<OnboardingEmailKey, Date> {
   const signedUp = state.signedUpAt.getTime();
-  const { activationDays, postPublishOffsetDays, postPublishStartDay, daysAfterPublish } = ONBOARDING_TIMING;
-
-  const standardStart = signedUp + postPublishStartDay * DAY;
-  const published = state.firstPublishedAt?.getTime();
-  const trackStart =
-    published !== undefined && published < standardStart ? published + daysAfterPublish * DAY : standardStart;
-
-  const e5 = state.sends.find((record) => record.emailKey === "e5" && record.status === "sent");
-  const laterFrom = e5 ? e5.updatedAt.getTime() : trackStart;
-
-  return {
-    e1: new Date(signedUp + activationDays.e1 * DAY),
-    e2: new Date(signedUp + activationDays.e2 * DAY),
-    e3: new Date(signedUp + activationDays.e3 * DAY),
-    e4: new Date(signedUp + activationDays.e4 * DAY),
-    e5: new Date(trackStart),
-    e6: new Date(laterFrom + postPublishOffsetDays.e6 * DAY),
-    e7: new Date(laterFrom + postPublishOffsetDays.e7 * DAY),
-    e8: new Date(laterFrom + postPublishOffsetDays.e8 * DAY),
-  };
+  return Object.fromEntries(
+    ONBOARDING_EMAIL_KEYS.map((key) => [key, new Date(signedUp + ONBOARDING_TIMING.days[key] * DAY)])
+  ) as Record<OnboardingEmailKey, Date>;
 }
 
 export function planOnboarding(state: OnboardingState, now: Date): OnboardingPlan {
@@ -122,7 +101,7 @@ export function planOnboarding(state: OnboardingState, now: Date): OnboardingPla
     if (dueMs < startFloor(key)) return "before_start";
     if (dueMs > nowMs) return null;
     if (nowMs - dueMs > ONBOARDING_TIMING.expiryHours * HOUR) return "expired";
-    if (key === "e2" && state.profileComplete) return "profile_complete";
+    if (key === "e3" && state.profileComplete) return "profile_complete";
     if (key === "e7" && state.hasBankDetails) return "bank_on_file";
     return null;
   };

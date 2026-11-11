@@ -8,7 +8,6 @@ import { AdminLiveBookings } from "../components/AdminLiveBookings";
 import { AdminLiveReports } from "../components/AdminLiveReports";
 import { AdminLiveDescription } from "../components/AdminLiveDescription";
 import { useAdminLiveIssuesQuery } from "../helpers/useLivePackages";
-import { dayKeyOf } from "../helpers/liveCalendarDates";
 import styles from "./admin.live-lessons.module.css";
 
 type Tab = "calendar" | "bookings" | "reports" | "description";
@@ -110,14 +109,9 @@ const AdminLiveLessonsPage: React.FC = () => {
               className={styles.panel}
             >
               {t.value === "calendar" ? (
-                <AdminLiveCalendar active={tab === "calendar"} onViewBookings={(sessionId) => go("bookings", { session: sessionId })} />
+                <AdminLiveCalendar active={tab === "calendar"} />
               ) : t.value === "bookings" ? (
-                <AdminLiveBookings
-                  active={tab === "bookings"}
-                  onOpenInCalendar={(row) =>
-                    go("calendar", { view: "day", date: dayKeyOf(row.sessionStart), session: null })
-                  }
-                />
+                <AdminLiveBookings active={tab === "bookings"} />
               ) : t.value === "reports" ? (
                 <AdminLiveReports
                   active={tab === "reports"}

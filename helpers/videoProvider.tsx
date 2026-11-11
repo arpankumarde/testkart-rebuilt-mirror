@@ -110,6 +110,8 @@ class DailyVideoProvider implements VideoProvider {
           user_id: params.identity,
           is_owner: params.role === "teacher",
           exp,
+          // The classroom lobby already checked the devices and passes them to the call.
+          enable_prejoin_ui: false,
           ...(isGroupLearner ? { start_video_off: true, start_audio_off: true, enable_screenshare: false } : {}),
         },
       }),

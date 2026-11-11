@@ -3,7 +3,7 @@ import { db } from "./db";
 import { sendEmail } from "./sendEmail";
 import { teacherProfileCompleteness } from "./teacherProfileCompleteness";
 import { unsubscribeHeaders, unsubscribePageUrl } from "./emailUnsubscribe";
-import { renderTeacherOnboardingEmail, type OnboardingPlanRow } from "./teacherOnboardingContent";
+import { renderTeacherOnboardingEmail } from "./teacherOnboardingContent";
 import {
   ONBOARDING_EMAIL_KEYS,
   ONBOARDING_TIMING,
@@ -33,8 +33,8 @@ const ENROL_WITHIN_DAYS = 13;
 const ACTIVE_FOR_DAYS = 16;
 const MAX_SENDS_PER_RUN = 40;
 const SEND_SPACING_MS = 600;
-const FROM_NAME = "Team Testkart";
-const REPLY_TO = "support@testkart.in";
+const FROM_NAME = "Shivangi from Testkart";
+const REPLY_TO = "shivangi.malviya@testkart.in";
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 type CandidateRow = {
@@ -166,21 +166,6 @@ async function loadSends(teacherIds: number[]): Promise<Map<number, OnboardingSe
   return byTeacher;
 }
 
-async function loadPlans(): Promise<OnboardingPlanRow[]> {
-  const rows = await db
-    .selectFrom("subscriptionPlans")
-    .select(["name", "price", "platformFeePercentage"])
-    .where("isActive", "=", true)
-    .where("billingCycle", "in", ["none", "monthly"])
-    .orderBy("price", "asc")
-    .execute();
-  return rows.map((row) => ({
-    name: row.name,
-    price: Number(row.price),
-    platformFeePercentage: Number(row.platformFeePercentage),
-  }));
-}
-
 /** Claims a send so a parallel or later run cannot send it again. Returns false when it is taken. */
 async function claimSend(teacherId: number, key: OnboardingEmailKey): Promise<boolean> {
   const result = await sql`
@@ -277,7 +262,6 @@ export async function runTeacherOnboarding({
 
   await recordSkips(skips);
 
-  const plans = due.length > 0 ? await loadPlans() : [];
   let sent = 0;
   let failed = 0;
 
@@ -290,8 +274,8 @@ export async function runTeacherOnboarding({
     let resendEmailId: string | null = null;
     try {
       const email = renderTeacherOnboardingEmail(key, {
+        displayName: entry.row.displayName,
         published: Boolean(entry.row.firstPublishedAt ?? entry.newlyPublishedAt),
-        plans,
         unsubscribeUrl: unsubscribePageUrl(entry.teacherId, LIST),
       });
       const result = await sendEmail({
@@ -306,7 +290,8 @@ export async function runTeacherOnboarding({
           { name: "sequence", value: LIST },
           { name: "email", value: key },
         ],
-        idempotencyKey: `teacher-onboarding-${entry.teacherId}-${key}`,
+        // v3: the sequence was reordered on 18-11-2026, so an old key can carry a different body.
+        idempotencyKey: `teacher-onboarding-v3-${entry.teacherId}-${key}`,
       });
       if (result.success) {
         status = "sent";

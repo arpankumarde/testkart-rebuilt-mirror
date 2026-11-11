@@ -16,6 +16,7 @@ import { StudentProductCard } from "../components/StudentProductCard";
 import { StudentProfileCompletionCard } from "../components/StudentProfileCompletionCard";
 import { Doodle } from "../components/AppLandingArt";
 import { BRAND_APP_ICON } from "../helpers/brandAssets";
+import { PLAY_BADGE_IMAGE } from "../helpers/appLandingContent";
 import {
   BookCopy,
   CheckCircle,
@@ -476,13 +477,13 @@ const StudentDashboardPage: React.FC = () => {
             rel="noopener noreferrer"
             className={styles.playBadgeLink}
           >
-            <span className={styles.playBadgeCrop}>
-              <img
-                src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png"
-                alt="Get it on Google Play"
-                className={styles.playBadgeImgCropped}
-              />
-            </span>
+            <img
+              src={PLAY_BADGE_IMAGE}
+              alt="Get it on Google Play"
+              width={270}
+              height={81}
+              className={styles.playBadgeImg}
+            />
           </a>
           <button
             type="button"

@@ -402,22 +402,10 @@
   outline-offset: 2px;
 }
 
-.playBadgeCrop {
+.playBadgeImg {
   display: block;
-  width: 135px;
+  width: 133px;
   height: 40px;
-  overflow: hidden;
-  position: relative;
-  flex-shrink: 0;
-}
-
-.playBadgeImgCropped {
-  display: block;
-  position: absolute;
-  top: -10px;
-  left: -10px;
-  width: 156px;
-  height: 61px;
   max-width: none;
 }
 

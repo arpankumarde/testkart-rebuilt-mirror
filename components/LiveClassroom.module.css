@@ -1,12 +1,13 @@
 /*
- * Live classroom in the /app palette. Pre-join and post-session are white
- * cards on ivory; in session, video tiles cycle through the pastels so each
+ * Live classroom in the /app palette. The pre-join lobby has its own styles in
+ * LiveClassroomLobby; post-session is a white card on ivory; in session, video
+ * tiles cycle through the pastels so each
  * person has a colour, own chat bubbles are lavender and others' are ivory.
  * Every root carries tk-flow, so kit Buttons are the peach CTA and neutral
  * outline. Leave keeps the destructive red on purpose.
  */
 
-/* The classroom pages have no site layout, so the pre-join and post-session
+/* The classroom pages have no site layout, so the loading and post-session
    screens own the whole viewport: ivory edge to edge with the card centred. */
 .page {
   background: var(--sp-surface);
@@ -25,162 +26,6 @@
 .page > * {
   width: 100%;
   max-width: 40rem;
-}
-
-.backLink {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: var(--spacing-1);
-  background: none;
-  border: none;
-  border-radius: 0.5rem;
-  padding: var(--spacing-1) 0;
-  font-size: 0.9375rem;
-  font-weight: 700;
-  color: var(--sp-text);
-  cursor: pointer;
-}
-
-.backLink:hover {
-  color: var(--sp-ink);
-}
-
-.backLink:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px var(--fc-blue-edge);
-}
-
-/* Pre-join */
-
-.preJoinCard {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.875rem;
-  text-align: center;
-  padding: 1.75rem 1.5rem;
-  background: var(--sp-card);
-  border: 1px solid var(--sp-line);
-  border-radius: 1.5rem;
-  box-shadow: var(--sp-shadow);
-}
-
-.title {
-  font-family: var(--font-family-heading);
-  font-size: clamp(1.375rem, 1.15rem + 1vw, 1.75rem);
-  font-weight: 800;
-  line-height: 1.2;
-  letter-spacing: -0.025em;
-  color: var(--sp-ink);
-  margin: 0;
-  text-wrap: balance;
-}
-
-.subtitle {
-  font-size: 0.9375rem;
-  color: var(--sp-text);
-  margin: 0;
-}
-
-.devicePreview {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.875rem;
-  width: 100%;
-}
-
-.deviceTile {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  max-width: 24rem;
-  background: var(--sp-lavender-tint);
-  border: 1px solid var(--sp-lavender-line);
-  border-radius: 1.25rem;
-  color: var(--sp-lavender-ink);
-}
-
-.deviceTileLabel {
-  display: flex;
-}
-
-.previewBadge {
-  position: absolute;
-  bottom: 0.625rem;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 0.25rem 0.75rem;
-  background: var(--sp-card);
-  border: 1px solid var(--sp-line);
-  border-radius: 999px;
-  color: var(--sp-text);
-  white-space: nowrap;
-}
-
-.deviceControls {
-  display: flex;
-  gap: var(--spacing-2);
-}
-
-.deviceNote {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  padding: 0.625rem 1rem;
-  border-radius: 1rem;
-  background: var(--sp-lavender-tint);
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--sp-lavender-ink);
-  margin: 0;
-  text-align: left;
-}
-
-.deviceNote svg {
-  flex-shrink: 0;
-}
-
-.rosterPreview {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.375rem;
-  padding: 0.375rem 0.875rem;
-  border-radius: 999px;
-  background: var(--fc-sage-tint);
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--fc-sage-ink);
-}
-
-.dot {
-  margin: 0 var(--spacing-1);
-}
-
-.joinWindowMessage {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  padding: 0.625rem 1rem;
-  border-radius: 1rem;
-  background: var(--fc-butter-tint);
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--fc-butter-ink);
-  margin: 0;
-  text-align: left;
-}
-
-.joinWindowMessage svg {
-  flex-shrink: 0;
 }
 
 /* Post-session */

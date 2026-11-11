@@ -11,6 +11,8 @@
 // Both are written for Gmail first: table layout, inline styles, no flexbox,
 // no web fonts, and nothing that depends on the <style> block surviving.
 
+import { BRAND_LOGO_DARK, BRAND_LOGO_LIGHT } from "./brandAssets";
+
 export type EmailAccent = "brand" | "success" | "warning" | "danger" | "info";
 
 /** Student layout colours, named after the student page tokens (base.css --sp-*, --fc-*). */
@@ -39,10 +41,10 @@ export const EMAIL_BRAND = {
   surfaceMuted: "#F9FAFB",
 };
 
-const LOGO_URL = "https://cdn.testkart.in/branding/logo-light.png";
+const LOGO_URL = BRAND_LOGO_LIGHT;
 // White wordmark for the dark header strip of the student layout. A dark strip
 // keeps the logo readable when Gmail's dark mode recolours light backgrounds.
-const LOGO_ON_DARK_URL = "https://cdn.testkart.in/branding/logo-dark.png";
+const LOGO_ON_DARK_URL = BRAND_LOGO_DARK;
 
 export interface EmailTableRow {
   label: string;
@@ -120,7 +122,7 @@ export const formatEmailDateTime = (date: Date): string =>
 const PLAY_STORE_URL =
   "https://play.google.com/store/apps/details?id=com.testkart.mocktest.courses.studynotes";
 const PLAY_BADGE_URL =
-  "https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png";
+  "https://cdn.testkart.in/platform/app/google-playstore.png";
 const APP_PROMO_MARKER = "<!--tk-app-promo-->";
 
 // The block withStudentAppPromo adds to a stored template in the classic layout.
@@ -131,7 +133,7 @@ const CLASSIC_APP_PROMO_HTML = `${APP_PROMO_MARKER}
                     <p style="color:${EMAIL_BRAND.text};margin:0 0 6px;font-size:17px;font-weight:700;">Study on the Go.</p>
                     <p style="color:${EMAIL_BRAND.muted};margin:0 0 12px;font-size:14px;line-height:1.5;">Mock tests, notes and progress, all in the Testkart app.</p>
                     <a href="${PLAY_STORE_URL}" style="display:inline-block;text-decoration:none;">
-                      <img src="${PLAY_BADGE_URL}" alt="Get it on Google Play" width="168" style="display:block;width:168px;max-width:100%;height:auto;border:0;">
+                      <img src="${PLAY_BADGE_URL}" alt="Get it on Google Play" width="150" height="45" style="display:block;width:150px;max-width:100%;height:auto;border:0;">
                     </a>
                     <p style="color:${EMAIL_BRAND.muted};margin:4px 0 0;font-size:12px;">Available on Google Play.</p>
                   </td>
@@ -237,8 +239,8 @@ const STUDENT_APP_PROMO_HTML = `${APP_PROMO_MARKER}
                   <p style="margin:0;font-size:15px;line-height:1.35;font-weight:700;color:${STUDENT.ink};">Study on the go</p>
                   <p style="margin:2px 0 0;font-size:13px;line-height:1.45;color:${STUDENT.muted};">Tests, notes and results in the Testkart app.</p>
                 </td>
-                <td valign="middle" align="right" width="148" style="padding:6px 10px 6px 0;">
-                  <a href="${PLAY_STORE_URL}" style="text-decoration:none;"><img src="${PLAY_BADGE_URL}" alt="Get it on Google Play" width="138" height="53" style="display:block;width:138px;height:auto;border:0;"></a>
+                <td valign="middle" align="right" width="148" style="padding:12px 14px 12px 0;">
+                  <a href="${PLAY_STORE_URL}" style="text-decoration:none;"><img src="${PLAY_BADGE_URL}" alt="Get it on Google Play" width="130" height="39" style="display:block;width:130px;height:auto;border:0;"></a>
                 </td>
               </tr>
             </table>`;

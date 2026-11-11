@@ -48,10 +48,9 @@ const VIEWS: { value: CalendarView; label: string }[] = [
 const STATUS_OPTIONS = [
   { value: "all", label: "All statuses" },
   { value: "scheduled", label: "Scheduled" },
-  { value: "awaiting_completion", label: "Awaiting completion" },
   { value: "completed", label: "Completed" },
+  { value: "missed", label: "Missed" },
   { value: "cancelled", label: "Cancelled" },
-  { value: "no_show", label: "No-show" },
 ] as const;
 
 type StatusFilter = (typeof STATUS_OPTIONS)[number]["value"];
@@ -66,15 +65,14 @@ const isView = (v: string | null): v is CalendarView => v === "day" || v === "we
 const eventName = (e: LiveCalendarEvent) => (e.kind === "booking" ? e.studentName ?? "1:1 session" : e.title);
 const typeLabel = (e: LiveCalendarEvent) => (e.kind === "group" ? "Group" : "1:1");
 const eventLabel = (e: LiveCalendarEvent) =>
-  `${e.title}, ${formatTime(e.start)} to ${formatTime(e.end)}, ${e.teacherName ?? "unknown teacher"}, ${e.status.replace("_", " ")}`;
+  `${e.title}, ${formatTime(e.start)} to ${formatTime(e.end)}, ${e.teacherName ?? "unknown teacher"}, ${e.status}`;
 const toneOf = (e: LiveCalendarEvent): LiveDotTone => (e.status === "cancelled" ? "muted" : e.kind === "group" ? "lavender" : "blue");
 
-/* Status chip. Awaiting completion comes from the server, so it matches the drawer and Bookings. */
+/* Session status chip: a scheduled session has none, except while it is happening. */
 const chipOf = (e: LiveCalendarEvent, now: number) => {
   if (e.status === "cancelled") return { label: "Cancelled", cls: styles.chipMuted };
   if (e.status === "completed") return { label: "Completed", cls: styles.chipSage };
-  if (e.status === "no_show") return { label: e.noShowParty === "teacher" ? "Teacher no-show" : "No-show", cls: styles.chipButter };
-  if (e.status === "awaiting_completion") return { label: e.overdue ? "Overdue" : "Awaiting completion", cls: styles.chipButter };
+  if (e.status === "missed") return { label: "Missed", cls: styles.chipRose };
   const s = new Date(e.start).getTime();
   const end = new Date(e.end).getTime();
   if (s <= now && now < end) return { label: "Happening now", cls: styles.chipMint };
@@ -84,14 +82,11 @@ const chipOf = (e: LiveCalendarEvent, now: number) => {
 const cardClass = (e: LiveCalendarEvent, now: number) =>
   [
     e.kind === "group" ? styles.kind_group : styles.kind_booking,
-    e.status === "cancelled" ? styles.isCancelled : "",
-    e.status !== "cancelled" && (e.status !== "scheduled" || new Date(e.end).getTime() <= now) ? styles.isDone : "",
+    e.status === "cancelled" || e.status === "missed" ? styles.isCancelled : "",
+    e.status === "completed" || (e.status === "scheduled" && new Date(e.end).getTime() <= now) ? styles.isDone : "",
   ].join(" ");
 
-export const AdminLiveCalendar: React.FC<{
-  active: boolean;
-  onViewBookings: (sessionId: string, kind: "booking" | "group") => void;
-}> = ({ active, onViewBookings }) => {
+export const AdminLiveCalendar: React.FC<{ active: boolean }> = ({ active }) => {
   const [params, setParams] = useSearchParams();
   const [fallbackView] = useState<CalendarView>(() =>
     typeof window !== "undefined" && window.innerWidth < 640 ? "agenda" : "week"
@@ -352,14 +347,7 @@ export const AdminLiveCalendar: React.FC<{
         </div>
       </section>
 
-      <AdminLiveSessionDrawer
-        event={selected}
-        onClose={() => setSelected(null)}
-        onViewBookings={(id, kind) => {
-          setSelected(null);
-          onViewBookings(id, kind);
-        }}
-      />
+      <AdminLiveSessionDrawer event={selected} onClose={() => setSelected(null)} />
     </div>
   );
 };
@@ -617,7 +605,7 @@ const DayColumn: React.FC<{
         const meta = [
           typeLabel(e),
           e.teacherName,
-          detailed ? (e.kind === "group" ? `${e.enrolledCount ?? 0}/${e.maxCapacity ?? "-"} seats` : `${e.durationMinutes} min`) : null,
+          detailed ? (e.kind === "group" ? `${e.studentCount}/${e.maxCapacity ?? "-"} seats` : `${e.durationMinutes} min`) : null,
         ]
           .filter(Boolean)
           .join(" · ");
@@ -758,7 +746,7 @@ const AgendaRow: React.FC<{ event: LiveCalendarEvent; now: number; onSelect: (e:
             </span>
           </span>
           <span className={styles.agendaTeacher}>
-            {e.teacherName ?? "Unknown teacher"} · {e.kind === "group" ? `${e.enrolledCount ?? 0} of ${e.maxCapacity ?? "-"} seats booked` : "1 learner"}
+            {e.teacherName ?? "Unknown teacher"} · {e.kind === "group" ? `${e.studentCount} of ${e.maxCapacity ?? "-"} seats booked` : "1 learner"}
           </span>
         </span>
         {chip ? <span className={`${styles.chip} ${chip.cls}`}>{chip.label}</span> : <span />}

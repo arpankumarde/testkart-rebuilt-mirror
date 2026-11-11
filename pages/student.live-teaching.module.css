@@ -1,7 +1,8 @@
 /*
  * Student live classes. Colours come from the StudentDashboardLayout shell;
  * rows, the Up next card, the type switch and filter pills come from
- * components/LiveSession.
+ * components/LiveSession. The session actions menu is styled here so the
+ * shared dropdown elsewhere is unchanged.
  */
 .page {
   display: flex;
@@ -30,4 +31,87 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+/* Shown on an upcoming session until its classroom opens. */
+.opensNote {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--sp-muted);
+  white-space: nowrap;
+}
+
+/* Session actions menu: one flex row per item, icons in one column, labels
+   on one baseline, theme-aware hover and focus. */
+.menu {
+  min-width: 12.5rem;
+  max-width: calc(100vw - 2rem);
+  padding: 0.375rem;
+  border: 1px solid var(--sp-line);
+  border-radius: 0.875rem;
+  background: var(--sp-card);
+  color: var(--sp-ink);
+  box-shadow: var(--sp-shadow-hover);
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.625rem;
+  color: var(--sp-ink);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.menuItem svg {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: var(--sp-muted);
+}
+
+.menuItem:hover,
+.menuItem[data-highlighted] {
+  background: var(--fc-blue-tint);
+  color: var(--fc-blue-ink);
+}
+
+.menuItem:hover svg,
+.menuItem[data-highlighted] svg {
+  color: currentColor;
+}
+
+.menuItem:active {
+  background: var(--fc-blue-line);
+}
+
+.menuItem[data-disabled] {
+  opacity: 1;
+  color: var(--sp-muted);
+}
+
+.menuItemDanger,
+.menuItemDanger svg {
+  color: var(--error-text);
+}
+
+.menuItemDanger:hover,
+.menuItemDanger[data-highlighted] {
+  background: color-mix(in srgb, var(--error) 12%, var(--sp-card));
+  color: var(--error-text);
+}
+
+@media (max-width: 640px) {
+  .menuItem {
+    min-height: 2.75rem;
+  }
+
+  .opensNote {
+    white-space: normal;
+  }
 }

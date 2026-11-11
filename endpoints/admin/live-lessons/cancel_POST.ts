@@ -2,7 +2,7 @@ import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { schema, OutputType } from "./cancel_POST.schema";
 import { returnCredit } from "../../../helpers/livePackages";
-import { actorStamp, lifecycleStatusOf, recordSessionEvent, type LiveActor } from "../../../helpers/liveSessionLifecycle";
+import { actorStamp, recordSessionEvent, type LiveActor } from "../../../helpers/liveSessionLifecycle";
 import superjson from "superjson";
 
 export async function handle(request: Request): Promise<Response> {
@@ -39,7 +39,7 @@ export async function handle(request: Request): Promise<Response> {
         await recordSessionEvent(trx, {
           kind: "booking",
           id: input.id,
-          from: lifecycleStatusOf("scheduled", updated.scheduledAt, updated.durationMinutes),
+          from: "scheduled",
           to: "cancelled",
           actor,
           reason: input.reason,
@@ -70,7 +70,7 @@ export async function handle(request: Request): Promise<Response> {
         await recordSessionEvent(trx, {
           kind: "group",
           id: input.id,
-          from: lifecycleStatusOf(lesson.status, lesson.startTime, lesson.durationMinutes),
+          from: lesson.status,
           to: "cancelled",
           actor,
           reason: input.reason,

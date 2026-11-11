@@ -65,7 +65,7 @@ export const MENTORSHIP_MIN_RATE_PER_UNIT = 49;
  */
 export const AUTO_COMPLETE_AFTER_MINUTES = 180;
 
-/** A session still awaiting completion this long after it ended is overdue: flagged to admins and the teacher is emailed. */
+/** A session still not marked this long after it ended gets one reminder email to its teacher. */
 export const COMPLETION_OVERDUE_HOURS = 24;
 /** The overdue email goes only for sessions that ended within this many days; older ones are just flagged. */
 export const COMPLETION_REMINDER_MAX_AGE_DAYS = 7;

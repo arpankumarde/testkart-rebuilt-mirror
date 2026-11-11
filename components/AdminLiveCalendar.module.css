@@ -472,6 +472,11 @@
   border: 1px solid var(--sp-line-strong);
 }
 
+.chipRose {
+  background: color-mix(in srgb, var(--error) 14%, var(--card));
+  color: var(--error-text);
+}
+
 /* -------------------------------------------------------------- month --- */
 
 .month {

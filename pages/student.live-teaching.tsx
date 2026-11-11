@@ -7,7 +7,7 @@ import { LivePackagesPanel } from "../components/LivePackagesPanel";
 import { LiveSlotPicker, useLiveSlotRange } from "../components/LiveSlotPicker";
 import { useBookingReportMutation, useInvalidateLiveClasses } from "../helpers/useLivePackages";
 import { postPaymentCashfreeVerify } from "../endpoints/payment/cashfree/verify_POST.schema";
-import { FREE_CANCELLATION_CUTOFF_HOURS } from "../helpers/liveLessonConfig";
+import { FREE_CANCELLATION_CUTOFF_HOURS, JOIN_WINDOW_MINUTES_AFTER, JOIN_WINDOW_MINUTES_BEFORE } from "../helpers/liveLessonConfig";
 import {
   useMentorshipBookingsListQuery,
   useMentorshipBookingCancelMutation,
@@ -48,6 +48,32 @@ const bookingStatus = (status: string, noShowParty?: string | null): LiveSession
   if (status === "completed") return { label: "Done", tone: "sage" };
   if (status === "no_show") return { label: noShowParty === "teacher" ? "Teacher absent" : "Missed", tone: "butter" };
   return null;
+};
+
+const MIN = 60000;
+
+/** Re-renders every 30 seconds so a classroom button appears and disappears with its join window. */
+const useNow = () => {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(id);
+  }, []);
+  return now;
+};
+
+/** The same window the join endpoint enforces: from shortly before the start to shortly after the end. */
+const isInJoinWindow = (start: Date | string, durationMinutes: number, now: number) => {
+  const startMs = new Date(start).getTime();
+  return now >= startMs - JOIN_WINDOW_MINUTES_BEFORE * MIN && now <= startMs + (durationMinutes + JOIN_WINDOW_MINUTES_AFTER) * MIN;
+};
+
+const opensLabel = (start: Date | string, now: number) => {
+  const opens = new Date(new Date(start).getTime() - JOIN_WINDOW_MINUTES_BEFORE * MIN);
+  const time = new Intl.DateTimeFormat("en-IN", { hour: "numeric", minute: "2-digit", hour12: true }).format(opens);
+  if (new Date(now).toDateString() === opens.toDateString()) return `Classroom opens at ${time}`;
+  const day = new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short" }).format(opens);
+  return `Classroom opens ${day}, ${time}`;
 };
 
 const enrollmentStatus = (e: MyGroupLessonEnrollmentRow): LiveSessionStatus | null => {
@@ -140,6 +166,7 @@ const ListSkeleton: React.FC = () => (
 
 const BookingsView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
   const { data, isFetching } = useMentorshipBookingsListQuery({ filter });
+  const now = useNow();
   const [cancelTarget, setCancelTarget] = useState<MentorshipBookingRow | null>(null);
   const [rescheduleTarget, setRescheduleTarget] = useState<MentorshipBookingRow | null>(null);
   const [reportTarget, setReportTarget] = useState<MentorshipBookingRow | null>(null);
@@ -161,6 +188,10 @@ const BookingsView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
   const showNext = filter === "upcoming" && first.status === "scheduled";
   const listed = showNext ? rest : bookings;
 
+  // A class can be moved or cancelled only before it starts, and entered only inside its join window.
+  const notStarted = (b: MentorshipBookingRow) => b.status === "scheduled" && new Date(b.scheduledAt).getTime() > now;
+  const canEnter = (b: MentorshipBookingRow) => b.status === "scheduled" && isInJoinWindow(b.scheduledAt, b.durationMinutes, now);
+
   const menu = (b: MentorshipBookingRow) => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -168,20 +199,32 @@ const BookingsView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
           <MoreHorizontal size={18} />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem disabled={!b.freeChange} onSelect={() => setRescheduleTarget(b)}>
-          <RotateCcw size={14} /> {b.freeChange ? "Reschedule" : `Can't move within ${FREE_CANCELLATION_CUTOFF_HOURS} hours`}
+      <DropdownMenuContent align="end" className={styles.menu}>
+        <DropdownMenuItem className={styles.menuItem} disabled={!b.freeChange} onSelect={() => setRescheduleTarget(b)}>
+          <RotateCcw size={16} aria-hidden="true" />
+          <span>{b.freeChange ? "Reschedule" : `Can't move within ${FREE_CANCELLATION_CUTOFF_HOURS} hours`}</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => setCancelTarget(b)}>
-          <Ban size={14} /> Cancel class
+        <DropdownMenuItem className={`${styles.menuItem} ${styles.menuItemDanger}`} onSelect={() => setCancelTarget(b)}>
+          <Ban size={16} aria-hidden="true" />
+          <span>Cancel class</span>
         </DropdownMenuItem>
-        {b.canReport && (
-          <DropdownMenuItem onSelect={() => setReportTarget(b)}>
-            <Flag size={14} /> Teacher did not come
-          </DropdownMenuItem>
-        )}
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+
+  const upcomingActions = (b: MentorshipBookingRow, primary: boolean) => (
+    <>
+      {canEnter(b) ? (
+        <Button variant={primary ? "primary" : "outline"} size={primary ? "md" : "sm"} asChild>
+          <Link to={`/mentorship/classroom/booking/${b.id}`}>
+            <Video size={primary ? 16 : 14} aria-hidden="true" /> {primary ? "Open classroom" : "Classroom"}
+          </Link>
+        </Button>
+      ) : notStarted(b) ? (
+        <span className={styles.opensNote}>{opensLabel(b.scheduledAt, now)}</span>
+      ) : null}
+      {notStarted(b) && menu(b)}
+    </>
   );
 
   const reportButton = (b: MentorshipBookingRow) =>
@@ -201,16 +244,7 @@ const BookingsView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
           durationMinutes={first.durationMinutes}
           title={first.sessionTitle}
           subtitle={`with ${first.teacherName}`}
-          actions={
-            <>
-              <Button asChild>
-                <Link to={`/mentorship/classroom/booking/${first.id}`}>
-                  <Video size={16} aria-hidden="true" /> Open classroom
-                </Link>
-              </Button>
-              {menu(first)}
-            </>
-          }
+          actions={upcomingActions(first, true)}
         />
       )}
 
@@ -224,22 +258,11 @@ const BookingsView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
               title={b.sessionTitle}
               subtitle={`with ${b.teacherName}`}
               tone={TONES[i % TONES.length]}
-              status={bookingStatus(b.status, b.noShowParty)}
-              note={b.cancellationReason}
-              actions={
-                b.status === "scheduled" ? (
-                  <>
-                    <Button variant="outline" size="sm" asChild>
-                      <Link to={`/mentorship/classroom/booking/${b.id}`}>
-                        <Video size={14} aria-hidden="true" /> Classroom
-                      </Link>
-                    </Button>
-                    {menu(b)}
-                  </>
-                ) : (
-                  reportButton(b)
-                )
+              status={
+                filter === "past" && b.status === "scheduled" ? { label: "Ended", tone: "muted" } : bookingStatus(b.status, b.noShowParty)
               }
+              note={b.cancellationReason}
+              actions={filter === "upcoming" && b.status === "scheduled" ? upcomingActions(b, false) : reportButton(b)}
             />
           ))}
         </LiveSessionList>
@@ -254,6 +277,7 @@ const BookingsView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
 
 const GroupView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
   const { data, isFetching } = useMentorshipMyGroupLessonEnrollmentsQuery({ filter });
+  const now = useNow();
   const unenrollMutation = useMentorshipGroupLessonUnenrollMutation();
   const [leaveTarget, setLeaveTarget] = useState<MyGroupLessonEnrollmentRow | null>(null);
 
@@ -276,7 +300,8 @@ const GroupView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
   }
 
   const isJoinable = (e: MyGroupLessonEnrollmentRow) => e.status === "enrolled" && e.lessonStatus === "scheduled";
-  const canLeave = (e: MyGroupLessonEnrollmentRow) => isJoinable(e) && new Date(e.startTime) > new Date();
+  const canLeave = (e: MyGroupLessonEnrollmentRow) => isJoinable(e) && new Date(e.startTime).getTime() > now;
+  const canEnter = (e: MyGroupLessonEnrollmentRow) => isJoinable(e) && isInJoinWindow(e.startTime, e.durationMinutes, now);
 
   const [first, ...rest] = enrollments;
   const showNext = filter === "upcoming" && isJoinable(first);
@@ -290,13 +315,29 @@ const GroupView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
             <MoreHorizontal size={18} />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={() => setLeaveTarget(e)}>
-            <Ban size={14} /> Leave this class
+        <DropdownMenuContent align="end" className={styles.menu}>
+          <DropdownMenuItem className={`${styles.menuItem} ${styles.menuItemDanger}`} onSelect={() => setLeaveTarget(e)}>
+            <Ban size={16} aria-hidden="true" />
+            <span>Leave this class</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     ) : null;
+
+  const upcomingActions = (e: MyGroupLessonEnrollmentRow, primary: boolean) => (
+    <>
+      {canEnter(e) ? (
+        <Button variant={primary ? "primary" : "outline"} size={primary ? "md" : "sm"} asChild>
+          <Link to={`/mentorship/classroom/group/${e.groupLessonId}`}>
+            <Video size={primary ? 16 : 14} aria-hidden="true" /> {primary ? "Open classroom" : "Classroom"}
+          </Link>
+        </Button>
+      ) : canLeave(e) ? (
+        <span className={styles.opensNote}>{opensLabel(e.startTime, now)}</span>
+      ) : null}
+      {menu(e)}
+    </>
+  );
 
   return (
     <>
@@ -306,16 +347,7 @@ const GroupView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
           durationMinutes={first.durationMinutes}
           title={first.title}
           subtitle={`with ${first.teacherName}`}
-          actions={
-            <>
-              <Button asChild>
-                <Link to={`/mentorship/classroom/group/${first.groupLessonId}`}>
-                  <Video size={16} aria-hidden="true" /> Open classroom
-                </Link>
-              </Button>
-              {menu(first)}
-            </>
-          }
+          actions={upcomingActions(first, true)}
         />
       )}
 
@@ -330,18 +362,7 @@ const GroupView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
               subtitle={`with ${e.teacherName}`}
               tone={TONES[i % TONES.length]}
               status={enrollmentStatus(e)}
-              actions={
-                isJoinable(e) ? (
-                  <>
-                    <Button variant="outline" size="sm" asChild>
-                      <Link to={`/mentorship/classroom/group/${e.groupLessonId}`}>
-                        <Video size={14} aria-hidden="true" /> Classroom
-                      </Link>
-                    </Button>
-                    {menu(e)}
-                  </>
-                ) : undefined
-              }
+              actions={filter === "upcoming" && isJoinable(e) ? upcomingActions(e, false) : undefined}
             />
           ))}
         </LiveSessionList>

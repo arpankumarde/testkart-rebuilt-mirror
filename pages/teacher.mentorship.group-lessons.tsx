@@ -44,7 +44,7 @@ const lessonEnded = (g: { startTime: Date | string; durationMinutes: number }) =
 const lessonStatus = (g: { status: string; startTime: Date | string; durationMinutes: number }): LiveSessionStatus | null => {
   if (g.status === "cancelled") return { label: "Cancelled", tone: "peach" };
   if (g.status === "completed") return { label: "Completed", tone: "sage" };
-  if (g.status === "scheduled" && lessonEnded(g)) return { label: "Awaiting completion", tone: "butter" };
+  if (g.status === "scheduled" && lessonEnded(g)) return { label: "Not marked yet", tone: "butter" };
   return null;
 };
 

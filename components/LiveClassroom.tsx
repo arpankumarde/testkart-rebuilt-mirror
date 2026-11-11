@@ -22,7 +22,6 @@ import {
   AlertTriangle,
   Star,
   Crown,
-  ArrowLeft,
   X,
 } from "lucide-react";
 import { useAuth } from "../helpers/useAuth";
@@ -47,6 +46,7 @@ import { Textarea } from "./Textarea";
 import { Input } from "./Input";
 import { ConsoleConfirmDialog } from "./ConsoleConfirmDialog";
 import { NotFoundState } from "./NotFoundState";
+import { LiveClassroomLobby, LobbyJoinPrefs } from "./LiveClassroomLobby";
 import styles from "./LiveClassroom.module.css";
 
 type PanelKey = "participants" | "chat" | "materials" | "notes";
@@ -68,9 +68,6 @@ const formatElapsed = (seconds: number) => {
   return `${m}:${s}`;
 };
 
-const formatWhen = (date: Date | string) =>
-  new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short" }).format(new Date(date));
-
 interface LiveClassroomProps {
   kind: ClassroomKind;
   id: string;
@@ -84,12 +81,13 @@ interface LiveClassroomProps {
  * out. In session the video fills the screen, with a slim title bar above and one control
  * dock below; chat, people, materials and notes open in a side panel only when asked for.
  *
- * Video goes through whatever helpers/videoProvider.tsx returns for this join: when a real
- * provider (Daily.co) is configured, the in-session screen mounts its Prebuilt call UI in a frame
- * this page owns (daily-js), using the short-lived per-join credentials the join endpoint returns.
- * Daily's own device check and mic/camera/screen-share controls are used instead of this
- * component's own, Daily's leave button is hidden so Leave below is the only way out, and the page
- * closes the session when Daily reports the call over. Otherwise it falls
+ * Before joining, LiveClassroomLobby runs the real camera, microphone, speaker, network and join
+ * window checks. Video goes through whatever helpers/videoProvider.tsx returns for this join: when a
+ * real provider (Daily.co) is configured, the in-session screen mounts its Prebuilt call UI in a frame
+ * this page owns (daily-js), using the short-lived per-join credentials the join endpoint returns and
+ * the devices and on/off states picked in the lobby, so Daily skips its own device check. Daily's
+ * mic/camera/screen-share controls are used in the call, Daily's leave button is hidden so Leave below
+ * is the only way out, and the page closes the session when Daily reports the call over. Otherwise it falls
  * back to a clearly-labeled development-only mock - no camera or microphone is actually captured
  * and no media connection is made - so every tile and the connection badge say "Preview" and this
  * is never presented as a live call. Chat polls on a short interval only while the viewer is
@@ -110,6 +108,7 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
     provider: string;
     url: string;
     token: string;
+    prefs: LobbyJoinPrefs;
   } | null>(null);
   const isLiveProvider = session?.provider === "daily";
   const [micOn, setMicOn] = useState(true);
@@ -196,15 +195,23 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
       const existing = DailyIframe.getCallInstance();
       if (existing) await existing.destroy();
       if (closed) return;
+      const { prefs } = session;
       frame = DailyIframe.createFrame(host, {
         url: session.url,
         token: session.token,
         showLeaveButton: false,
+        startVideoOff: !prefs.camOn,
+        startAudioOff: !prefs.micOn,
+        ...(prefs.videoDeviceId ? { videoSource: prefs.videoDeviceId } : {}),
+        ...(prefs.audioDeviceId ? { audioSource: prefs.audioDeviceId } : {}),
         iframeStyle: { position: "absolute", top: "0", left: "0", width: "100%", height: "100%", border: "0" },
       });
       frame.on("left-meeting", () => endFromCall());
       frame.on("error", () => endFromCall("The video call was closed."));
       await frame.join();
+      if (prefs.outputDeviceId && !closed) {
+        await frame.setOutputDeviceAsync({ outputDeviceId: prefs.outputDeviceId }).catch(() => undefined);
+      }
     };
     start().catch(() => endFromCall("Could not open the video call. Please join again."));
 
@@ -249,26 +256,21 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
         ? "/student/live-teaching"
         : "/live-teaching";
 
-  // The pre-join line names who the viewer is meeting: the teacher for a learner, the learner(s) for the teacher.
-  const learners = details.roster.filter((m) => m.role === "learner");
-  const withLabel =
-    details.viewerRole === "teacher"
-      ? learners.length === 1
-        ? learners[0].name
-        : `${learners.length} learners`
-      : details.teacherName;
-
   const togglePanel = (key: PanelKey) => setActivePanel((current) => (current === key ? null : key));
 
-  const handleJoin = async () => {
+  const handleJoin = async (prefs: LobbyJoinPrefs): Promise<string | null> => {
+    if (joinMutation.isPending) return null;
     try {
       const result = await joinMutation.mutateAsync({ kind, id });
+      setMicOn(prefs.micOn);
+      setCamOn(prefs.camOn);
       setSession({
         attendanceId: result.attendanceId,
         role: result.role,
         provider: result.provider,
         url: result.url,
         token: result.token,
+        prefs,
       });
       setElapsed(0);
       toast.success(
@@ -276,8 +278,10 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
           ? "You're in."
           : "You're in. This is a development preview - no live camera or mic is connected."
       );
+      return null;
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not join this session");
+      detailsQuery.refetch();
+      return err instanceof Error ? err.message : "Could not join this session";
     }
   };
 
@@ -413,67 +417,16 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
     );
   }
 
-  // Pre-join screen.
   if (!session) {
     return (
-      <main className={`${styles.page} tk-flow`}>
-        <button type="button" className={styles.backLink} onClick={() => navigate(exitPath)}>
-          <ArrowLeft size={16} aria-hidden="true" /> Back
-        </button>
-        <div className={styles.preJoinCard}>
-          <h1 className={styles.title}>{details.title}</h1>
-          <p className={styles.subtitle}>
-            with {withLabel} &middot; {formatWhen(details.startTime)} &middot; {details.durationMinutes} min
-          </p>
-
-          {details.videoProvider === "daily" ? (
-            <p className={styles.deviceNote}>
-              <VideoIcon size={16} aria-hidden="true" />
-              {details.kind === "group" && details.viewerRole === "learner"
-                ? "You will join muted with your camera off. You can check both on the next screen."
-                : "You will check your camera and microphone on the next screen."}
-            </p>
-          ) : (
-            <div className={styles.devicePreview}>
-              <div className={styles.deviceTile}>
-                <span className={styles.deviceTileLabel}>{camOn ? <VideoIcon size={28} /> : <VideoOff size={28} />}</span>
-                <span className={styles.previewBadge}>Preview - no camera connected</span>
-              </div>
-              <div className={styles.deviceControls}>
-                <Button variant={micOn ? "outline" : "secondary"} size="icon-md" onClick={() => setMicOn((v) => !v)} aria-label="Toggle microphone">
-                  {micOn ? <Mic size={18} /> : <MicOff size={18} />}
-                </Button>
-                <Button variant={camOn ? "outline" : "secondary"} size="icon-md" onClick={() => setCamOn((v) => !v)} aria-label="Toggle camera">
-                  {camOn ? <VideoIcon size={18} /> : <VideoOff size={18} />}
-                </Button>
-              </div>
-            </div>
-          )}
-
-          <div className={styles.rosterPreview}>
-            <Users size={14} aria-hidden="true" /> {details.roster.length} {details.roster.length === 1 ? "participant" : "participants"}
-            {details.materialsCount > 0 && (
-              <>
-                <span className={styles.dot} aria-hidden="true">·</span>
-                <FileText size={14} aria-hidden="true" /> {details.materialsCount} material{details.materialsCount === 1 ? "" : "s"}
-              </>
-            )}
-          </div>
-
-          {!details.joinWindow.isOpen ? (
-            <p className={styles.joinWindowMessage}>
-              <AlertTriangle size={15} aria-hidden="true" />{" "}
-              {new Date() < new Date(details.joinWindow.opensAt)
-                ? `You can join starting ${formatWhen(details.joinWindow.opensAt)}.`
-                : "This session's join window has closed."}
-            </p>
-          ) : (
-            <Button size="lg" onClick={handleJoin} disabled={joinMutation.isPending}>
-              {joinMutation.isPending ? "Joining..." : "Join now"}
-            </Button>
-          )}
-        </div>
-      </main>
+      <LiveClassroomLobby
+        details={details}
+        viewerId={viewerId}
+        detailsUpdatedAt={detailsQuery.dataUpdatedAt}
+        isJoining={joinMutation.isPending}
+        onJoin={handleJoin}
+        onBack={() => navigate(exitPath)}
+      />
     );
   }
 

@@ -10,7 +10,7 @@ export const PLAY_STORE_URL =
   "https://play.google.com/store/apps/details?id=com.testkart.mocktest.courses.studynotes";
 
 export const PLAY_BADGE_IMAGE =
-  "https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png";
+  "https://cdn.testkart.in/platform/app/google-playstore.png";
 
 export const APP_STORE_NAME = "Testkart: Student App";
 

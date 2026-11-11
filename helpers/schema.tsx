@@ -1175,6 +1175,9 @@ export interface GlossaryTerms {
 
 export interface GroupLessonEnrollments {
   amountPaid: Generated<Numeric>;
+  attendance: string | null;
+  attendanceMarkedAt: Timestamp | null;
+  attendanceMarkedBy: string | null;
   cancelledAt: Timestamp | null;
   enrolledAt: Generated<Timestamp>;
   groupLessonId: string;
@@ -1205,6 +1208,7 @@ export interface GroupLessons {
   maxCapacity: number;
   minEnrollment: number | null;
   minEnrollmentPolicy: Generated<GroupLessonMinEnrollmentPolicy>;
+  missedAt: Timestamp | null;
   pricePerLearner: Generated<Numeric>;
   startTime: Timestamp;
   status: Generated<GroupLessonStatus>;
@@ -1578,6 +1582,8 @@ export interface MentorshipBlockedDates {
 
 export interface MentorshipBookings {
   amountPaid: Generated<Numeric | null>;
+  attendanceMarkedAt: Timestamp | null;
+  attendanceMarkedBy: string | null;
   awaitingCompletionAt: Timestamp | null;
   cancellationReason: string | null;
   cancelledAt: Timestamp | null;
@@ -1607,6 +1613,7 @@ export interface MentorshipBookings {
   rescheduledFromBookingId: string | null;
   scheduledAt: Timestamp;
   status: Generated<MentorshipBookingStatus | null>;
+  studentAttendance: string | null;
   studentId: number;
   studentNotes: string | null;
   teacherId: number;

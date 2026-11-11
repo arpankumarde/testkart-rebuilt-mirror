@@ -14,7 +14,8 @@ import {
 } from "./livePackages";
 import { sendClassRefundedEmail, sendClassReminderEmails, sendCompletionOverdueEmail, sendTrialFollowUpEmail } from "./livePackageEmails";
 import { sendClassReminderWhatsApp } from "./liveClassWhatsApp";
-import { recordSessionEvent } from "./liveSessionLifecycle";
+import { recordSessionEvent, sessionStatusOf } from "./liveSessionLifecycle";
+import { SWEEP_TEACHER_ABSENT_REASON } from "./adminLiveLessonsSql";
 
 /**
  * Live 1:1 upkeep, run every 15 minutes from the autopilot job (the project is at Floot's
@@ -113,9 +114,9 @@ async function endLapsedPackages() {
 /**
  * Settles credit-paid classes AUTO_COMPLETE_AFTER_MINUTES after they end. Teacher joined: the
  * credit is spent and the teacher earns; the class becomes completed unless the teacher already
- * marked the learner a no-show, which is charged the same way. Teacher never joined: cancelled and
- * the credit returned. Only a credit still "booked" is touched, so a class an admin already
- * settled is skipped.
+ * marked the learner a no-show, which is charged the same way. Teacher never joined: stored
+ * cancelled with SWEEP_TEACHER_ABSENT_REASON, which admins see as missed, and the credit is
+ * returned. Only a credit still "booked" is touched, so a class an admin already settled is skipped.
  */
 async function settleFinishedClasses() {
   const rows = await db
@@ -127,6 +128,7 @@ async function settleFinishedClasses() {
       "mentorshipBookings.scheduledAt",
       "mentorshipBookings.durationMinutes",
       "mentorshipBookings.creditId",
+      "mentorshipBookings.noShowParty",
       "liveClassCredits.kind",
     ])
     .where("liveClassCredits.status", "=", "booked")
@@ -151,7 +153,7 @@ async function settleFinishedClasses() {
 
   for (const b of due) {
     const creditId = b.creditId as string;
-    const from = b.status === "scheduled" ? "awaiting_completion" : b.status;
+    const from = sessionStatusOf(b.status, b.noShowParty);
     if (teacherCame.has(b.id)) {
       const keep = b.status === "completed" || b.status === "no_show";
       await db.transaction().execute(async (trx) => {
@@ -185,7 +187,7 @@ async function settleFinishedClasses() {
         .set({
           status: "cancelled",
           cancelledBy: "system",
-          cancellationReason: "The teacher did not join.",
+          cancellationReason: SWEEP_TEACHER_ABSENT_REASON,
           cancelledAt: new Date(),
           earningStatus: "void",
           updatedAt: new Date(),
@@ -196,9 +198,9 @@ async function settleFinishedClasses() {
         kind: "booking",
         id: b.id,
         from,
-        to: "cancelled",
+        to: "missed",
         actor: { type: "system" },
-        reason: "The teacher did not join.",
+        reason: SWEEP_TEACHER_ABSENT_REASON,
       });
       return returnCredit(trx, creditId);
     });
@@ -207,38 +209,21 @@ async function settleFinishedClasses() {
 }
 
 /**
- * Sessions whose end time passed with nobody closing them: stamped awaiting completion once (with
- * an event), then overdue COMPLETION_OVERDUE_HOURS later, when the teacher is emailed. Sessions
- * that ended more than COMPLETION_REMINDER_MAX_AGE_DAYS ago are flagged without an email. Nothing
- * here completes a session.
+ * Sessions whose end time passed with nobody marking them: stamped once when they end, then
+ * COMPLETION_OVERDUE_HOURS later the teacher is emailed (only for sessions that ended within
+ * COMPLETION_REMINDER_MAX_AGE_DAYS). Nothing here changes a session's status.
  */
 async function flagUnresolvedSessions() {
-  const awaitingBookings = await sql<{ id: string }>`
+  await sql`
     UPDATE mentorship_bookings SET awaiting_completion_at = now()
     WHERE status = 'scheduled' AND awaiting_completion_at IS NULL
       AND (scheduled_at AT TIME ZONE 'UTC') + make_interval(mins => duration_minutes) <= now()
-    RETURNING id
   `.execute(db);
-  const awaitingLessons = await sql<{ id: string }>`
+  await sql`
     UPDATE group_lessons SET awaiting_completion_at = now()
     WHERE status = 'scheduled' AND awaiting_completion_at IS NULL
       AND start_time + make_interval(mins => duration_minutes) <= now()
-    RETURNING id
   `.execute(db);
-  const flagged = [
-    ...awaitingBookings.rows.map((r) => ({ kind: "booking" as const, id: r.id })),
-    ...awaitingLessons.rows.map((r) => ({ kind: "group" as const, id: r.id })),
-  ];
-  for (const f of flagged) {
-    await recordSessionEvent(db, {
-      kind: f.kind,
-      id: f.id,
-      from: "scheduled",
-      to: "awaiting_completion",
-      actor: { type: "system" },
-      reason: "The session ended and nobody has marked how it went.",
-    });
-  }
 
   const overdueHours = sql.lit(COMPLETION_OVERDUE_HOURS);
   const maxAgeDays = sql.lit(COMPLETION_REMINDER_MAX_AGE_DAYS);

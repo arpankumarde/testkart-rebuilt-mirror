@@ -10,8 +10,8 @@ export const schema = z
     to: z.coerce.date(),
     /** Comma-separated session kinds; omitted means both. */
     kinds: z.string().optional(),
-    /** "scheduled" is a session that has not ended yet; one that ended unresolved is "awaiting_completion". */
-    status: z.enum(["scheduled", "awaiting_completion", "completed", "cancelled", "no_show"]).optional(),
+    /** The teacher's session status. */
+    status: z.enum(["scheduled", "completed", "missed", "cancelled"]).optional(),
     teacherId: z.coerce.number().int().positive().optional(),
     q: z.string().trim().max(120).optional(),
   })
@@ -21,6 +21,9 @@ export const schema = z
   });
 
 export type InputType = z.input<typeof schema>;
+
+/** Did the teacher hold the session. */
+export type LiveSessionStatus = "scheduled" | "completed" | "missed" | "cancelled";
 
 export type LiveCalendarEvent = {
   kind: "booking" | "group";
@@ -33,13 +36,11 @@ export type LiveCalendarEvent = {
   start: Date;
   end: Date;
   durationMinutes: number;
-  /** scheduled | awaiting_completion | completed | cancelled | no_show */
-  status: string;
-  /** Awaiting completion for more than COMPLETION_OVERDUE_HOURS after it ended. */
-  overdue: boolean;
-  /** "teacher" or "learner" when status is no_show. */
-  noShowParty: string | null;
-  enrolledCount: number | null;
+  status: LiveSessionStatus;
+  /** Still scheduled although its end time has passed: nobody has marked it yet. */
+  unmarked: boolean;
+  /** 1 for a 1:1 session; enrolled learners for a group lesson. */
+  studentCount: number;
   maxCapacity: number | null;
   price: number;
   isTrial: boolean;
