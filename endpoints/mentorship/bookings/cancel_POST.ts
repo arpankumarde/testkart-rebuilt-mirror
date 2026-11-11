@@ -4,6 +4,7 @@ import { schema, OutputType } from "./cancel_POST.schema";
 import { sendEmail } from "../../../helpers/sendEmail";
 import { emailTemplatesExtra } from "../../../helpers/emailTemplatesExtra";
 import { isLateForStudent, returnCredit, spendCredit } from "../../../helpers/livePackages";
+import { lifecycleStatusOf, recordSessionEvent } from "../../../helpers/liveSessionLifecycle";
 import superjson from "superjson";
 
 /**
@@ -71,6 +72,14 @@ export async function handle(request: Request) {
         })
         .where("id", "=", input.bookingId)
         .execute();
+      await recordSessionEvent(trx, {
+        kind: "booking",
+        id: input.bookingId,
+        from: lifecycleStatusOf(booking.status, booking.scheduledAt, booking.durationMinutes),
+        to: "cancelled",
+        actor: { type: isAdmin ? "admin" : isTeacher ? "teacher" : "learner", id: user.id, label: user.displayName ?? null },
+        reason: input.reason,
+      });
       if (!booking.creditId) return null;
       if (charged) {
         await spendCredit(trx, booking.creditId);

@@ -3,6 +3,7 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./cancel_POST.schema";
 import { sendEmail } from "../../../helpers/sendEmail";
 import { emailTemplatesExtra } from "../../../helpers/emailTemplatesExtra";
+import { lifecycleStatusOf, recordSessionEvent } from "../../../helpers/liveSessionLifecycle";
 import superjson from "superjson";
 
 export async function handle(request: Request) {
@@ -18,7 +19,15 @@ export async function handle(request: Request) {
     const lesson = await db
       .selectFrom("groupLessons")
       .innerJoin("users as teacher", "teacher.id", "groupLessons.teacherId")
-      .select(["groupLessons.id", "groupLessons.teacherId", "groupLessons.title", "groupLessons.startTime", "groupLessons.status", "teacher.displayName as teacherName"])
+      .select([
+        "groupLessons.id",
+        "groupLessons.teacherId",
+        "groupLessons.title",
+        "groupLessons.startTime",
+        "groupLessons.durationMinutes",
+        "groupLessons.status",
+        "teacher.displayName as teacherName",
+      ])
       .where("groupLessons.id", "=", input.id)
       .executeTakeFirst();
 
@@ -29,11 +38,28 @@ export async function handle(request: Request) {
       return new Response(superjson.stringify({ error: `This lesson is already ${lesson.status}.` }), { status: 400 });
     }
 
-    await db
-      .updateTable("groupLessons")
-      .set({ status: "cancelled", cancellationReason: input.reason, cancelledAt: new Date(), updatedAt: new Date() })
-      .where("id", "=", input.id)
-      .execute();
+    const byAdmin = user.role === "admin";
+    await db.transaction().execute(async (trx) => {
+      await trx
+        .updateTable("groupLessons")
+        .set({
+          status: "cancelled",
+          cancellationReason: input.reason,
+          cancelledAt: new Date(),
+          cancelledBy: byAdmin ? "admin" : "teacher",
+          updatedAt: new Date(),
+        })
+        .where("id", "=", input.id)
+        .execute();
+      await recordSessionEvent(trx, {
+        kind: "group",
+        id: input.id,
+        from: lifecycleStatusOf(lesson.status, lesson.startTime, lesson.durationMinutes),
+        to: "cancelled",
+        actor: { type: byAdmin ? "admin" : "teacher", id: user.id, label: user.displayName ?? null },
+        reason: input.reason,
+      });
+    });
 
     const enrolled = await db
       .selectFrom("groupLessonEnrollments")

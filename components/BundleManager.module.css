@@ -1,19 +1,5 @@
-/* No padding of its own - TeacherDashboardLayout's .pageBody owns the gutter.
-   The old rule added --spacing-8 and a full-viewport background on top of it. */
-.page {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-6);
-  width: 100%;
-  max-width: 1440px;
-  margin: 0 auto;
-  box-sizing: border-box;
-}
-
-.content {
-  min-height: 20rem;
-}
-
+/* The page shell comes from TeacherContentPage, whose list region is the
+   container this grid reads. */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(17.5rem, 1fr));
@@ -21,11 +7,7 @@
   align-items: stretch;
 }
 
-@media (max-width: 640px) {
-  .page {
-    gap: var(--spacing-4);
-  }
-
+@container (max-width: 30rem) {
   .grid {
     grid-template-columns: minmax(0, 1fr);
   }

@@ -5,6 +5,7 @@ import { Button } from "./Button";
 import {
   LiveAvatar,
   LiveKindBadge,
+  LiveOverduePill,
   LivePaymentPill,
   LiveStatusPill,
   copyText,
@@ -37,23 +38,37 @@ export const AdminLiveBookingDrawer: React.FC<Props> = ({ row, onClose, onOpenIn
                 <header className={styles.header}>
                   <div className={styles.chips}>
                     <LiveKindBadge kind={b.type} withLabel />
-                    <LiveStatusPill status={b.status} />
+                    <LiveStatusPill status={b.status} noShowParty={b.noShowParty} />
+                    {b.overdue ? <LiveOverduePill /> : null}
                   </div>
-                  <SheetTitle className={styles.title}>Booking {b.id.slice(0, 8)}</SheetTitle>
+                  <SheetTitle className={styles.title}>
+                    {b.noLearners ? "Group lesson" : "Booking"} {b.id.slice(0, 8)}
+                  </SheetTitle>
                   <SheetDescription className={styles.sub}>
-                    {b.bookedAt ? `Booked ${formatDateTime(b.bookedAt)} IST` : "Booking date not recorded"}
+                    {b.noLearners
+                      ? "Cancelled before any learner enrolled"
+                      : b.bookedAt
+                        ? `Booked ${formatDateTime(b.bookedAt)} IST`
+                        : "Booking date not recorded"}
                   </SheetDescription>
                 </header>
 
                 <Block title="Learner">
-                  <div className={styles.person}>
-                    <LiveAvatar name={b.studentName} size="lg" tone="sage" />
+                  {b.noLearners ? (
                     <div className={styles.personText}>
-                      <span className={styles.strong}>{b.studentName ?? "Unknown learner"}</span>
-                      {b.studentEmail ? <span className={styles.muted}>{b.studentEmail}</span> : null}
-                      {b.studentId ? <span className={styles.muted}>User ID {b.studentId}</span> : null}
+                      <span className={styles.strong}>No learners</span>
+                      <span className={styles.muted}>Nobody had enrolled when this lesson was cancelled.</span>
                     </div>
-                  </div>
+                  ) : (
+                    <div className={styles.person}>
+                      <LiveAvatar name={b.studentName} size="lg" tone="sage" />
+                      <div className={styles.personText}>
+                        <span className={styles.strong}>{b.studentName ?? "Unknown learner"}</span>
+                        {b.studentEmail ? <span className={styles.muted}>{b.studentEmail}</span> : null}
+                        {b.studentId ? <span className={styles.muted}>User ID {b.studentId}</span> : null}
+                      </div>
+                    </div>
+                  )}
                 </Block>
 
                 <Block
@@ -98,7 +113,7 @@ export const AdminLiveBookingDrawer: React.FC<Props> = ({ row, onClose, onOpenIn
                     <LivePaymentPill status={b.paymentStatus} creditKind={b.creditKind} />
                   </div>
                   <dl className={styles.rows}>
-                    <Row label="Session price">{rupees(b.price)}</Row>
+                    <Row label={b.noLearners ? "Price per learner" : "Session price"}>{rupees(b.price)}</Row>
                     {b.orderId ? <Row label="Order">#{b.orderId}{b.orderStatus ? ` · ${b.orderStatus}` : ""}</Row> : null}
                     {b.paymentMethod ? <Row label="Method">{b.paymentMethod}</Row> : null}
                     {b.paymentTransactionId ? (
@@ -116,7 +131,7 @@ export const AdminLiveBookingDrawer: React.FC<Props> = ({ row, onClose, onOpenIn
                         {b.refundReason ? ` · ${b.refundReason}` : ""}
                       </Row>
                     ) : null}
-                    {!b.orderId && !b.creditKind ? <Row label="Order">No payment record</Row> : null}
+                    {!b.orderId && !b.creditKind && !b.noLearners ? <Row label="Order">No payment record</Row> : null}
                   </dl>
                 </Block>
 
@@ -128,6 +143,31 @@ export const AdminLiveBookingDrawer: React.FC<Props> = ({ row, onClose, onOpenIn
                       {b.cancellationReason ? <Row label="Reason">{b.cancellationReason}</Row> : null}
                     </dl>
                   </Block>
+                ) : null}
+
+                {b.status === "completed" && b.completedAt ? (
+                  <Block title="Completion">
+                    <dl className={styles.rows}>
+                      <Row label="When">{formatDateTime(b.completedAt)}</Row>
+                      {b.completedBy ? <Row label="By">{b.completedBy}</Row> : null}
+                    </dl>
+                  </Block>
+                ) : null}
+
+                {b.status === "no_show" ? (
+                  <Block title="No-show" tone="butter">
+                    <dl className={styles.rows}>
+                      <Row label="Absent">{b.noShowParty === "teacher" ? "Teacher" : "Learner"}</Row>
+                      {b.noShowReason ? <Row label="Reason">{b.noShowReason}</Row> : null}
+                    </dl>
+                  </Block>
+                ) : null}
+
+                {b.status === "awaiting_completion" ? (
+                  <p className={styles.note}>
+                    This session ended and nobody has marked how it went{b.overdue ? ", for more than a day now" : ""}. Open it in
+                    the calendar to mark it completed, record a no-show, or cancel it.
+                  </p>
                 ) : null}
 
                 {b.issueReportedAt ? (
@@ -146,7 +186,7 @@ export const AdminLiveBookingDrawer: React.FC<Props> = ({ row, onClose, onOpenIn
                   </Block>
                 ) : null}
 
-                {b.type === "group" ? (
+                {b.type === "group" && !b.noLearners ? (
                   <p className={styles.note}>
                     Learners leave a group lesson from their own account. To stop the lesson for everyone, cancel it from the
                     Calendar.
@@ -155,8 +195,8 @@ export const AdminLiveBookingDrawer: React.FC<Props> = ({ row, onClose, onOpenIn
               </div>
 
               <footer className={styles.footer}>
-                <Button variant="outline" size="sm" onClick={() => copyText(b.id, "Booking ID")}>
-                  <Copy /> Copy booking ID
+                <Button variant="outline" size="sm" onClick={() => copyText(b.id, b.noLearners ? "Lesson ID" : "Booking ID")}>
+                  <Copy /> {b.noLearners ? "Copy lesson ID" : "Copy booking ID"}
                 </Button>
               </footer>
             </>

@@ -316,7 +316,7 @@ export const ExpertProfileView: React.FC<ExpertProfileViewProps> = ({
       savePercent={bundleSavePercent(bundle.price, bundle.originalPrice)}
       price={bundlePriceProps(bundle.price, bundle.originalPrice)}
       thumbnailUrl={bundle.thumbnailUrl}
-      placeholderUrl={Placeholder.COURSE}
+      placeholderUrl={Placeholder.BUNDLE}
     />
   ));
 

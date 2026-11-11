@@ -37,7 +37,7 @@ export const PublicBundleCard: React.FC<{ bundle: BundleListItem }> = ({ bundle 
       stats={stats}
       {...bundlePriceProps(bundle.price, bundle.originalPrice)}
       thumbnailUrl={bundle.thumbnailUrl}
-      placeholderUrl={Placeholder.COURSE}
+      placeholderUrl={Placeholder.BUNDLE}
     />
   );
 };

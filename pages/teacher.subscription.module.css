@@ -14,6 +14,29 @@
   box-sizing: border-box;
 }
 
+/* A slim warm scrollbar when the payment dialog overflows a short window. */
+.payDialog {
+  scrollbar-width: thin;
+  scrollbar-color: var(--fc-peach-line) transparent;
+}
+
+.payDialog::-webkit-scrollbar {
+  width: 6px;
+}
+
+.payDialog::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.payDialog::-webkit-scrollbar-thumb {
+  background-color: var(--fc-peach-line);
+  border-radius: var(--radius-full);
+}
+
+.payDialog::-webkit-scrollbar-button {
+  display: none;
+}
+
 .paymentBreakdown {
   display: flex;
   flex-direction: column;
@@ -279,42 +302,79 @@
   border-color: var(--border);
 }
 
-.totalRow {
-  padding-top: var(--spacing-3);
-  border-top: 1px solid var(--border);
-  font-size: 1rem;
+.offerText {
+  color: var(--fc-peach-ink);
 }
 
-.totalRow strong {
-  font-size: 1.125rem;
+.promoLocked {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding-top: var(--spacing-3);
+  border-top: 1px dashed var(--border);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+}
+
+.promoLocked svg {
+  flex-shrink: 0;
+  margin-top: 0.0625rem;
+}
+
+/* The one number the teacher must not miss: what leaves their account today. */
+.payToday {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--fc-peach-tint);
+  border: 1px solid var(--fc-peach-line);
+  border-radius: 0.75rem;
+  color: var(--fc-peach-ink);
+}
+
+.payTodayLabel {
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.payTodayAmount {
+  font-size: 1.625rem;
+  font-weight: 800;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
 }
 
 /*
- * The payment modal uses one lavender accent instead of the brand orange.
- * Button and Switch styles live in @layer base, so these unlayered rules win,
- * and every state the base variants set is restated here.
+ * The pay button uses the teacher CTA colours (TeacherCreateButton); the promo
+ * controls keep their lavender accent. Button and Switch styles live in
+ * @layer base, so these unlayered rules win, and every state the base
+ * variants set is restated here.
  */
 .payConfirmButton,
 .payConfirmButton:hover,
 .payConfirmButton:active {
-  color: var(--sp-lavender-ink);
-  font-weight: 600;
+  color: var(--sp-cta-ink);
+  font-weight: 700;
 }
 
 .payConfirmButton {
-  background-color: var(--sp-lavender-line);
-  border-color: var(--sp-lavender-line);
-  --spinner-color: var(--sp-lavender-ink);
+  background-color: var(--sp-cta);
+  border-color: var(--sp-peach-edge);
+  --spinner-color: var(--sp-cta-ink);
 }
 
 .payConfirmButton:hover {
-  background-color: color-mix(in srgb, var(--sp-lavender-line) 78%, var(--sp-lavender-edge));
-  border-color: var(--sp-lavender-edge);
+  background-color: var(--sp-cta-hover);
+  border-color: var(--sp-peach-edge);
 }
 
 .payConfirmButton:active {
-  background-color: color-mix(in srgb, var(--sp-lavender-line) 62%, var(--sp-lavender-edge));
-  border-color: var(--sp-lavender-edge);
+  background-color: var(--sp-cta-hover);
+  border-color: var(--sp-peach-edge);
 }
 
 .payCancelButton,
@@ -331,20 +391,21 @@
 .payCancelButton:hover,
 .payCancelButton:active {
   background-color: var(--muted);
-  border-color: var(--sp-lavender-line);
+  border-color: var(--sp-peach-edge);
 }
 
 .payConfirmButton:focus-visible,
 .payCancelButton:focus-visible {
   box-shadow:
     0 0 0 2px var(--background),
-    0 0 0 4px var(--sp-lavender-edge);
+    0 0 0 4px var(--sp-peach-edge);
 }
 
 .payConfirmButton:disabled {
   opacity: 1;
-  background-color: var(--sp-lavender-tint);
-  border-color: var(--sp-lavender-line);
+  color: var(--fc-peach-ink);
+  background-color: var(--fc-peach-tint);
+  border-color: var(--fc-peach-line);
 }
 
 .payCancelButton:disabled {
@@ -397,6 +458,14 @@ button.walletSwitch:focus-visible {
 
   .summaryCard {
     padding: var(--spacing-3);
+  }
+
+  .payToday {
+    padding: var(--spacing-3);
+  }
+
+  .payTodayAmount {
+    font-size: 1.375rem;
   }
 
   .promoToggle {

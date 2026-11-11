@@ -1,4 +1,5 @@
 import { sql, type RawBuilder } from "kysely";
+import { COMPLETION_OVERDUE_HOURS } from "./liveLessonConfig";
 
 /*
  * Server-only SQL sources for the admin Live Lessons module.
@@ -9,12 +10,24 @@ import { sql, type RawBuilder } from "kysely";
  *
  * mentorship_bookings stores UTC wall-clock times in timestamp-without-time-zone columns, so they
  * are converted with AT TIME ZONE 'UTC' to line up with group_lessons' timestamptz columns.
+ *
+ * Status is the lifecycle status: a stored "scheduled" whose end time has passed reads as
+ * "awaiting_completion", and is "overdue" once COMPLETION_OVERDUE_HOURS more have gone by.
  */
 
 export const SESSION_KINDS = ["booking", "group"] as const;
 export type LiveSessionKind = (typeof SESSION_KINDS)[number];
 
-export const SESSION_STATUSES = ["scheduled", "completed", "cancelled", "no_show"] as const;
+export const SESSION_STATUSES = ["scheduled", "awaiting_completion", "completed", "cancelled", "no_show"] as const;
+
+const mbEnd = sql`((mb.scheduled_at AT TIME ZONE 'UTC') + make_interval(mins => mb.duration_minutes))`;
+const glEnd = sql`(gl.start_time + make_interval(mins => gl.duration_minutes))`;
+const lifecycle = (stored: RawBuilder<unknown>, end: RawBuilder<unknown>) =>
+  sql`CASE WHEN ${stored} = 'scheduled' AND ${end} <= now() THEN 'awaiting_completion' ELSE ${stored} END`;
+const overdueWhen = (stored: RawBuilder<unknown>, end: RawBuilder<unknown>) =>
+  sql`(${stored} = 'scheduled' AND ${end} + make_interval(hours => ${sql.lit(COMPLETION_OVERDUE_HOURS)}) <= now())`;
+const mbStored = sql`coalesce(mb.status::text, 'scheduled')`;
+const glStored = sql`gl.status::text`;
 
 /*
  * The calendar shows a session only when its teacher's live teaching application is approved
@@ -22,8 +35,7 @@ export const SESSION_STATUSES = ["scheduled", "completed", "cancelled", "no_show
  */
 export const approvedTeacherOnly = sql`s.teacher_live_status = 'approved'`;
 
-export const BOOKING_STATUS_FILTERS = ["upcoming", "awaiting", "completed", "cancelled", "no_show"] as const;
-export const PAYMENT_STATUSES = ["paid", "pending", "refunded", "failed", "credit", "free"] as const;
+export const PAYMENT_STATUSES = ["paid", "pending", "refunded", "failed", "credit", "free", "none"] as const;
 export type LivePaymentStatus = (typeof PAYMENT_STATUSES)[number];
 
 export const sessionsSource = sql`
@@ -39,12 +51,19 @@ export const sessionsSource = sql`
     st.display_name AS student_name,
     (mb.scheduled_at AT TIME ZONE 'UTC') AS start_time,
     mb.duration_minutes,
-    coalesce(mb.status::text, 'scheduled') AS status,
+    ${lifecycle(mbStored, mbEnd)} AS status,
     NULL::int AS enrolled_count,
     NULL::int AS max_capacity,
     coalesce(mb.amount_paid, 0) AS price,
     coalesce(mb.is_trial, false) AS is_trial,
-    mb.cancellation_reason
+    mb.cancellation_reason,
+    ${overdueWhen(mbStored, mbEnd)} AS overdue,
+    mb.no_show_party,
+    mb.no_show_reason,
+    mb.completed_at,
+    mb.completed_by,
+    (mb.cancelled_at AT TIME ZONE 'UTC') AS cancelled_at,
+    mb.cancelled_by
   FROM mentorship_bookings mb
   JOIN users t ON t.id = mb.teacher_id
   LEFT JOIN users st ON st.id = mb.student_id
@@ -61,12 +80,19 @@ export const sessionsSource = sql`
     NULL::text,
     gl.start_time,
     gl.duration_minutes,
-    gl.status::text,
+    ${lifecycle(glStored, glEnd)},
     gl.enrolled_count,
     gl.max_capacity,
     coalesce(gl.price_per_learner, 0),
     false,
-    gl.cancellation_reason
+    gl.cancellation_reason,
+    ${overdueWhen(glStored, glEnd)},
+    NULL,
+    NULL,
+    gl.completed_at,
+    gl.completed_by,
+    gl.cancelled_at,
+    gl.cancelled_by
   FROM group_lessons gl
   JOIN users t ON t.id = gl.teacher_id
 `;
@@ -89,6 +115,13 @@ export type SessionSqlRow = {
   price: string | number;
   isTrial: boolean;
   cancellationReason: string | null;
+  overdue: boolean;
+  noShowParty: string | null;
+  noShowReason: string | null;
+  completedAt: Date | null;
+  completedBy: string | null;
+  cancelledAt: Date | null;
+  cancelledBy: string | null;
 };
 
 export const bookingsSource = sql`
@@ -106,8 +139,8 @@ export const bookingsSource = sql`
     (mb.created_at AT TIME ZONE 'UTC') AS booked_at,
     (mb.scheduled_at AT TIME ZONE 'UTC') AS session_start,
     mb.duration_minutes,
-    coalesce(mb.status::text, 'scheduled') AS status,
-    coalesce(mb.status::text, 'scheduled') AS session_status,
+    ${lifecycle(mbStored, mbEnd)} AS status,
+    ${lifecycle(mbStored, mbEnd)} AS session_status,
     coalesce(mb.amount_paid, 0) AS amount,
     mb.order_id,
     o.status::text AS order_status,
@@ -127,7 +160,13 @@ export const bookingsSource = sql`
     mb.issue_resolution,
     mb.issue_resolved_at,
     NULL::int AS max_capacity,
-    NULL::int AS enrolled_count
+    NULL::int AS enrolled_count,
+    false AS no_learners,
+    mb.no_show_party,
+    mb.no_show_reason,
+    mb.completed_at,
+    mb.completed_by,
+    ${overdueWhen(mbStored, mbEnd)} AS overdue
   FROM mentorship_bookings mb
   JOIN users t ON t.id = mb.teacher_id
   LEFT JOIN users st ON st.id = mb.student_id
@@ -152,9 +191,10 @@ export const bookingsSource = sql`
       WHEN gl.status::text = 'cancelled' THEN 'cancelled'
       WHEN e.status IN ('cancelled', 'removed') THEN e.status
       WHEN gl.status::text = 'completed' THEN 'completed'
+      WHEN ${glEnd} <= now() THEN 'awaiting_completion'
       ELSE 'scheduled'
     END,
-    gl.status::text,
+    ${lifecycle(glStored, glEnd)},
     coalesce(e.amount_paid, 0),
     e.order_id,
     o.status::text,
@@ -167,14 +207,24 @@ export const bookingsSource = sql`
     false,
     false,
     CASE WHEN gl.status::text = 'cancelled' THEN gl.cancellation_reason END,
-    CASE WHEN e.status = 'removed' OR coalesce(e.removed_by_teacher, false) THEN 'teacher' WHEN e.status = 'cancelled' THEN 'learner' END,
+    CASE
+      WHEN e.status = 'removed' OR coalesce(e.removed_by_teacher, false) THEN 'teacher'
+      WHEN e.status = 'cancelled' THEN 'learner'
+      WHEN gl.status::text = 'cancelled' THEN gl.cancelled_by
+    END,
     coalesce(e.cancelled_at, CASE WHEN gl.status::text = 'cancelled' THEN gl.cancelled_at END),
     NULL::timestamptz,
     NULL::text,
     NULL::text,
     NULL::timestamptz,
     gl.max_capacity,
-    gl.enrolled_count
+    gl.enrolled_count,
+    false,
+    NULL,
+    NULL,
+    gl.completed_at,
+    gl.completed_by,
+    (e.status NOT IN ('cancelled', 'removed') AND ${overdueWhen(glStored, glEnd)})
   FROM group_lesson_enrollments e
   JOIN group_lessons gl ON gl.id = e.group_lesson_id
   JOIN users t ON t.id = gl.teacher_id
@@ -183,14 +233,71 @@ export const bookingsSource = sql`
 `;
 
 /*
+ * The Bookings history: every learner booking, plus one learner-less row for each group lesson
+ * cancelled before anyone enrolled, so a cancelled session is never missing from the list. Its id
+ * is the lesson id. Session drawers keep bookingsSource, which holds real learner bookings only.
+ */
+export const bookingsHistorySource = sql`
+  ${bookingsSource}
+  UNION ALL
+  SELECT
+    'group'::text,
+    gl.id::text,
+    gl.id::text,
+    NULL,
+    NULL,
+    NULL,
+    gl.teacher_id,
+    t.display_name,
+    t.avatar_url,
+    gl.title,
+    NULL,
+    gl.start_time,
+    gl.duration_minutes,
+    'cancelled',
+    gl.status::text,
+    coalesce(gl.price_per_learner, 0),
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    false,
+    false,
+    gl.cancellation_reason,
+    gl.cancelled_by,
+    gl.cancelled_at,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    gl.max_capacity,
+    gl.enrolled_count,
+    true,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    false
+  FROM group_lessons gl
+  JOIN users t ON t.id = gl.teacher_id
+  WHERE gl.status = 'cancelled'
+    AND NOT EXISTS (SELECT 1 FROM group_lesson_enrollments e WHERE e.group_lesson_id = gl.id)
+`;
+
+/*
  * Payment state of a booking row. The order decides when there is one: completed is paid, and a
  * failed, cancelled or never-finished order is not. Without an order, a live class credit counts
  * as paid. A price with neither an order nor a credit has no payment record, so it is pending,
  * never paid. Older bookings were created before payment was confirmed, so the stored price on
- * the booking alone does not prove anything was received.
+ * the booking alone does not prove anything was received. A learner-less row has no payment.
  */
 export const paymentStatusExpr = sql`
   CASE
+    WHEN b.no_learners THEN 'none'
     WHEN b.order_id IS NOT NULL THEN
       CASE b.order_status
         WHEN 'completed' THEN 'paid'
@@ -245,6 +352,12 @@ export type BookingSqlRow = {
   issueResolvedAt: Date | null;
   maxCapacity: number | null;
   enrolledCount: number | null;
+  noLearners: boolean;
+  noShowParty: string | null;
+  noShowReason: string | null;
+  completedAt: Date | null;
+  completedBy: string | null;
+  overdue: boolean;
   paymentStatus: LivePaymentStatus;
   amountReceived: string | number;
   totalCount?: string | number;

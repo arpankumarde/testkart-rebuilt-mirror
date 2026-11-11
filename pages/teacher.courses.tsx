@@ -1,15 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { Helmet } from 'react-helmet';
-import { Link } from 'react-router-dom';
-import { Plus, GraduationCap, BookOpen } from 'lucide-react';
 import { useTeacherCoursesQuery } from '../helpers/useTeacherCoursesQuery';
 import { useListUrlParams } from '../helpers/useListUrlParams';
 import { useRefetchOnLinkArrival } from '../helpers/useRefetchOnLinkArrival';
 import { TeacherCourseListItem } from '../endpoints/teacher/courses/list_GET.schema';
 import { Button } from '../components/Button';
-import { TeacherPageHeader } from '../components/TeacherPageHeader';
-import { TeacherContentToolbar } from '../components/TeacherContentToolbar';
 import { TeacherListEmpty } from '../components/TeacherListEmpty';
+import { TeacherContentPage } from '../components/TeacherContentPage';
+import { TeacherContentEmpty } from '../components/TeacherContentEmpty';
+import { withStatusCounts, type TeacherStatusTabDef } from '../components/TeacherStatusTabs';
 import { TeacherCourseCard } from '../components/TeacherCourseCard';
 import { useCreatorBonusOverview } from '../helpers/useCreatorBonus';
 import { DeleteCourseDialog } from '../components/DeleteCourseDialog';
@@ -18,16 +17,18 @@ import styles from './teacher.courses.module.css';
 
 type StatusTab = 'all' | 'published' | 'draft' | 'archived';
 
-const TAB_LABELS: Record<StatusTab, string> = {
-  all: 'All',
-  published: 'Published',
-  draft: 'Drafts',
-  archived: 'Archived',
-};
+const TABS: TeacherStatusTabDef<StatusTab>[] = [
+  { value: 'all', label: 'All', word: '' },
+  { value: 'published', label: 'Published', word: 'published' },
+  { value: 'draft', label: 'Drafts', word: 'draft' },
+  { value: 'archived', label: 'Archived', word: 'archived' },
+];
 
-const TAB_ORDER: StatusTab[] = ['all', 'published', 'draft', 'archived'];
+const TAB_ORDER = TABS.map((tab) => tab.value);
 
 const DEFAULT_TAB: StatusTab = 'all';
+
+const CREATE = { label: 'New course', to: '/teacher/courses/create' };
 
 const TeacherCoursesPage: React.FC = () => {
   const { data: courses, isFetching, error, refetch } = useTeacherCoursesQuery();
@@ -41,9 +42,8 @@ const TeacherCoursesPage: React.FC = () => {
   const { read, write, searchParams } = useListUrlParams();
   const activeTab = read<StatusTab>('status', TAB_ORDER, DEFAULT_TAB);
   useRefetchOnLinkArrival(searchParams.has('status'), isFetching, refetch);
-  const setActiveTab = (value: string) => {
-    const next = TAB_ORDER.find((tab) => tab === value) ?? DEFAULT_TAB;
-    write({ status: next === DEFAULT_TAB ? null : next });
+  const setActiveTab = (tab: StatusTab) => {
+    write({ status: tab === DEFAULT_TAB ? null : tab });
   };
 
   const allCourses = useMemo(() => courses ?? [], [courses]);
@@ -97,8 +97,9 @@ const TeacherCoursesPage: React.FC = () => {
     });
   }, [allCourses, activeTab, searchQuery, sortOption]);
 
-  const hasAnyCourses = allCourses.length > 0;
-  const isSearching = searchQuery.trim().length > 0;
+  const total = courses ? allCourses.length : undefined;
+  const query = searchQuery.trim();
+  const statusWord = TABS.find((tab) => tab.value === activeTab)?.word || undefined;
 
   const renderContent = () => {
     if (isFetching && !courses) {
@@ -123,44 +124,30 @@ const TeacherCoursesPage: React.FC = () => {
       );
     }
 
-    if (!hasAnyCourses) {
+    if (!total) {
       return (
-        <TeacherListEmpty
+        <TeacherContentEmpty
           kind="course"
-          icon={<GraduationCap size={26} />}
-          title="No courses yet"
+          plural="courses"
+          reason="none"
           description="A course is a set of video lessons students buy once and keep. Build your first one to start selling."
-        >
-          <Button asChild>
-            <Link to="/teacher/courses/create">
-              <Plus size={16} />
-              Create a course
-            </Link>
-          </Button>
-        </TeacherListEmpty>
+          create={{ ...CREATE, label: 'Create a course' }}
+        />
       );
     }
 
     if (visibleCourses.length === 0) {
-      return (
-        <TeacherListEmpty
-          title={
-            isSearching
-              ? `Nothing in ${TAB_LABELS[activeTab].toLowerCase()} matches "${searchQuery.trim()}"`
-              : `No ${TAB_LABELS[activeTab].toLowerCase()} courses`
-          }
-          description={
-            isSearching
-              ? 'Try a different word, or check the other tabs.'
-              : 'Nothing here yet. The other tabs may have what you are looking for.'
-          }
-        >
-          {isSearching && (
-            <Button variant="outline" onClick={() => setSearchQuery('')}>
-              Clear search
-            </Button>
-          )}
-        </TeacherListEmpty>
+      return query ? (
+        <TeacherContentEmpty
+          kind="course"
+          plural="courses"
+          reason="search"
+          query={query}
+          statusWord={statusWord}
+          onClearSearch={() => setSearchQuery('')}
+        />
+      ) : (
+        <TeacherContentEmpty kind="course" plural="courses" reason="status" statusWord={statusWord ?? ''} />
       );
     }
 
@@ -184,35 +171,27 @@ const TeacherCoursesPage: React.FC = () => {
         <title>Courses - Testkart for Teachers</title>
         <meta name="description" content="Manage your courses on Testkart." />
       </Helmet>
-      <div className={styles.page}>
-        <TeacherPageHeader
-          title="Courses"
-          description="Create, organise and manage your courses in one place."
-          leading={
-            <span className={styles.headerIcon} aria-hidden="true">
-              <BookOpen size={18} strokeWidth={2.25} />
-            </span>
-          }
-        >
-          <Link to="/teacher/courses/create" className={styles.newButton}>
-            <Plus size={18} strokeWidth={2.5} aria-hidden="true" />
-            New course
-          </Link>
-        </TeacherPageHeader>
-
-        {hasAnyCourses && (
-          <TeacherContentToolbar
-            tabs={TAB_ORDER.map((tab) => ({ value: tab, label: TAB_LABELS[tab], count: counts[tab] }))}
-            value={activeTab}
-            onValueChange={setActiveTab}
-            tabsLabel="Filter by status"
-            search={{
-              value: searchQuery,
-              onChange: setSearchQuery,
-              placeholder: 'Search by title',
-              label: 'Search courses',
-            }}
-            sort={{
+      <TeacherContentPage
+        kind="course"
+        title="Courses"
+        description="Create, organise and manage your courses in one place."
+        create={CREATE}
+        busy={isFetching}
+        toolbar={{
+          tabs: {
+            tabs: withStatusCounts(TABS, counts),
+            value: activeTab,
+            onValueChange: setActiveTab,
+            total,
+          },
+          search: {
+            value: searchQuery,
+            onChange: setSearchQuery,
+            placeholder: 'Search by title',
+            label: 'Search courses',
+          },
+          selects: [
+            {
               value: sortOption,
               onChange: setSortOption,
               label: 'Sort courses',
@@ -221,12 +200,12 @@ const TeacherCoursesPage: React.FC = () => {
                 { value: 'price-desc', label: 'Price: high to low' },
                 { value: 'price-asc', label: 'Price: low to high' },
               ],
-            }}
-          />
-        )}
-
-        <div className={styles.content}>{renderContent()}</div>
-      </div>
+            },
+          ],
+        }}
+      >
+        {renderContent()}
+      </TeacherContentPage>
 
       {courseToDelete && (
         <DeleteCourseDialog

@@ -48,9 +48,10 @@ const VIEWS: { value: CalendarView; label: string }[] = [
 const STATUS_OPTIONS = [
   { value: "all", label: "All statuses" },
   { value: "scheduled", label: "Scheduled" },
+  { value: "awaiting_completion", label: "Awaiting completion" },
   { value: "completed", label: "Completed" },
   { value: "cancelled", label: "Cancelled" },
-  { value: "no_show", label: "No show" },
+  { value: "no_show", label: "No-show" },
 ] as const;
 
 type StatusFilter = (typeof STATUS_OPTIONS)[number]["value"];
@@ -68,15 +69,15 @@ const eventLabel = (e: LiveCalendarEvent) =>
   `${e.title}, ${formatTime(e.start)} to ${formatTime(e.end)}, ${e.teacherName ?? "unknown teacher"}, ${e.status.replace("_", " ")}`;
 const toneOf = (e: LiveCalendarEvent): LiveDotTone => (e.status === "cancelled" ? "muted" : e.kind === "group" ? "lavender" : "blue");
 
-/* Status chip, as on the teacher calendar. */
+/* Status chip. Awaiting completion comes from the server, so it matches the drawer and Bookings. */
 const chipOf = (e: LiveCalendarEvent, now: number) => {
   if (e.status === "cancelled") return { label: "Cancelled", cls: styles.chipMuted };
   if (e.status === "completed") return { label: "Completed", cls: styles.chipSage };
-  if (e.status === "no_show") return { label: "No-show", cls: styles.chipButter };
+  if (e.status === "no_show") return { label: e.noShowParty === "teacher" ? "Teacher no-show" : "No-show", cls: styles.chipButter };
+  if (e.status === "awaiting_completion") return { label: e.overdue ? "Overdue" : "Awaiting completion", cls: styles.chipButter };
   const s = new Date(e.start).getTime();
   const end = new Date(e.end).getTime();
   if (s <= now && now < end) return { label: "Happening now", cls: styles.chipMint };
-  if (end <= now) return { label: "Pending completion", cls: styles.chipButter };
   return null;
 };
 

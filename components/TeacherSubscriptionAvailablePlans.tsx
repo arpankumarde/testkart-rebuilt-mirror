@@ -32,8 +32,9 @@ export interface AvailablePlansProps {
   walletBalance: number;
   useWalletBalance: boolean;
   setUseWalletBalance: (val: boolean) => void;
-  // True when a ₹1 first-cycle intro price applies to Starter/Individual monthly autopay sign-up.
-  introOfferEligible?: boolean;
+  // Plans the server charges introOfferPrice for in the first cycle (payment-info); the only source of the offer here.
+  introOfferPlanIds?: number[];
+  introOfferPrice?: number;
   onSelectPlan: (plan: {
     id: number;
     name: string;
@@ -41,10 +42,6 @@ export interface AvailablePlansProps {
     durationDays: number;
   }) => void;
 }
-
-const INTRO_OFFER_PRICE = 1;
-const introOfferAppliesTo = (baseName: string, isYearlyPlan: boolean) =>
-  !isYearlyPlan && (baseName === "Starter" || baseName === "Individual");
 
 const PLAN_RANK: Record<string, number> = { Free: 0, Starter: 1, Individual: 2, Business: 3 };
 
@@ -74,7 +71,8 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
   walletBalance,
   useWalletBalance,
   setUseWalletBalance,
-  introOfferEligible = false,
+  introOfferPlanIds = [],
+  introOfferPrice = 1,
   onSelectPlan,
 }) => {
   const [isYearly, setIsYearly] = useState(false);
@@ -194,14 +192,13 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
             const isYearlyPlan = plan.billingCycle === "yearly" || plan.durationDays >= 360;
             const price = Number(plan.price);
             const fee = Number(plan.platformFeePercentage);
-            const showIntroOffer =
-              introOfferEligible && !isFree && !isCurrentPlan && introOfferAppliesTo(baseName, isYearlyPlan);
+            const showIntroOffer = !isCurrentPlan && introOfferPlanIds.includes(plan.id);
             const isFeatured = !isCurrentPlan && (showIntroOffer || baseName === "Starter");
 
             const tag = isCurrentPlan
               ? "Your plan"
               : showIntroOffer
-                ? `First month ₹${INTRO_OFFER_PRICE}`
+                ? `First month ₹${formatInr(introOfferPrice)}`
                 : baseName === "Starter"
                   ? "Recommended"
                   : baseName === "Individual"
@@ -222,7 +219,7 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
               .map((feature) => String(feature))
               .filter((feature) => !/platform fee/i.test(feature));
 
-            const payable = showIntroOffer ? INTRO_OFFER_PRICE : price;
+            const payable = showIntroOffer ? introOfferPrice : price;
             const showWalletSplit =
               useWalletBalance && paymentMode === "normal" && !isFree && walletBalance > 0;
 
@@ -231,7 +228,7 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
               : isFree
                 ? "Start free"
                 : showIntroOffer
-                  ? `Start for ₹${INTRO_OFFER_PRICE}`
+                  ? `Start for ₹${formatInr(introOfferPrice)}`
                   : hasActiveSub && !isFree && isPaidActive
                     ? `Upgrade to ${baseName}`
                     : `Choose ${baseName}`;
@@ -326,11 +323,11 @@ export const TeacherSubscriptionAvailablePlans: React.FC<AvailablePlansProps> = 
         <div className={styles.note}>
           <Info size={18} aria-hidden />
           <div>
-            {introOfferEligible && (
+            {introOfferPlanIds.length > 0 && (
               <p>
-                Starter and Individual (monthly) are ₹{INTRO_OFFER_PRICE} for the first month on autopay.
-                Autopay is set up for the plan's full price and renews at that price from the second month
-                unless you cancel first.
+                Starter and Individual (monthly) are ₹{formatInr(introOfferPrice)} for the first month on
+                autopay. Autopay is set up for the plan's full price and renews at that price from the second
+                month unless you cancel first. Promo codes can't be combined with this offer.
               </p>
             )}
             <p>

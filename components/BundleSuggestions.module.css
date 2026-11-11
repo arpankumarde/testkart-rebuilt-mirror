@@ -201,10 +201,6 @@
   transform: scale(1.03);
 }
 
-.bundleIcon {
-  color: var(--tk-brand-text);
-}
-
 /* Fixed in both themes - it sits on cover artwork, not on a themed surface.
    --tk-brand-deep on the pale peach reads at about 7:1. */
 .discountBadge {

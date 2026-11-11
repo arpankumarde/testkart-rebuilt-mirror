@@ -1,0 +1,57 @@
+/* The sidebar Create button's colours (--sp-cta on a peach ledge) in the
+   console's 0.875rem button shape. */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  height: 2.75rem;
+  margin-bottom: 3px;
+  padding: 0 1.125rem;
+  box-sizing: border-box;
+  background-color: var(--sp-cta);
+  border: 1px solid var(--sp-peach-edge);
+  border-radius: 0.875rem;
+  box-shadow: 0 3px 0 var(--sp-peach-edge);
+  color: var(--sp-cta-ink);
+  font-family: var(--font-family-base);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease,
+    background-color var(--animation-duration-fast) ease;
+}
+
+.button:hover {
+  transform: translateY(-1px);
+  background-color: var(--sp-cta-hover);
+  box-shadow: 0 4px 0 var(--sp-peach-edge);
+  color: var(--sp-cta-ink);
+}
+
+.button:active {
+  transform: translateY(3px);
+  background-color: var(--sp-cta-hover);
+  box-shadow: 0 0 0 var(--sp-peach-edge);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--tc-ink, var(--foreground));
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+
+  .button:hover,
+  .button:active {
+    transform: none;
+  }
+}

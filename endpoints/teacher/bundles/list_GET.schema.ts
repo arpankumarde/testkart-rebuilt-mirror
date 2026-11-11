@@ -8,6 +8,8 @@ export const schema = z.object({
   page: z.string().optional().default("1"),
   limit: z.string().optional().default("10"),
   status: z.enum(["published", "draft"]).nullish(),
+  /** Matches the title, case-insensitive. Applied before pagination. */
+  search: z.string().trim().max(100).nullish(),
 });
 
 export type InputType = z.infer<typeof schema>;
@@ -30,6 +32,8 @@ export type BundleListItem = Pick<Selectable<CourseBundles>, "id" | "title" | "s
 export type OutputType = {
   bundles: BundleListItem[];
   total: number;
+  /** Every bundle the teacher has, per status, whatever the filters. Drives the status tabs. */
+  statusCounts: { all: number; published: number; draft: number };
 };
 
 export const getTeacherBundlesList = async (
@@ -40,6 +44,7 @@ export const getTeacherBundlesList = async (
   if (params.page) searchParams.set("page", params.page);
   if (params.limit) searchParams.set("limit", params.limit);
   if (params.status) searchParams.set("status", params.status);
+  if (params.search) searchParams.set("search", params.search);
 
   const result = await fetch(`/_api/teacher/bundles/list?${searchParams.toString()}`, {
     method: "GET",

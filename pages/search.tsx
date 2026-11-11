@@ -326,7 +326,7 @@ export default function SearchPage() {
                       stats={`${bundle.itemCount} items`}
                       {...bundlePriceProps(bundle.price, bundle.originalPrice)}
                       thumbnailUrl={bundle.thumbnailUrl}
-                      placeholderUrl={Placeholder.TEST}
+                      placeholderUrl={Placeholder.BUNDLE}
                     />
                   ))}
                 </div>

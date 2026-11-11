@@ -66,6 +66,19 @@ export async function handle(request: Request): Promise<Response> {
     const total = rows.length > 0 ? Number(rows[0].totalCount) : 0;
     const products = rows.map(({ totalCount: _totalCount, ...product }) => product);
 
+    const countRows = await db
+      .selectFrom("digitalProducts")
+      .where("teacherId", "=", effectiveTeacherId)
+      .select(["status", db.fn.countAll<string>().as("count")])
+      .groupBy("status")
+      .execute();
+    const statusCounts: OutputType["statusCounts"] = { all: 0, published: 0, draft: 0, archived: 0 };
+    for (const row of countRows) {
+      const count = Number(row.count);
+      statusCounts.all += count;
+      if (row.status) statusCounts[row.status] += count;
+    }
+
     const inReview = await pendingReviewIds(db, "digital_product", products.map((p) => p.id));
     const rejections = await rejectedReviews(db, "digital_product", products.map((p) => p.id));
     const examsById = await loadContentExams(db, "digital_product", products.map((p) => p.id));
@@ -83,6 +96,7 @@ export async function handle(request: Request): Promise<Response> {
       page: input.page,
       limit: input.limit,
       total,
+      statusCounts,
     };
 
     return new Response(superjson.stringify(output));

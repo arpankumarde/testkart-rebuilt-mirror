@@ -3,7 +3,7 @@ import { sql, type RawBuilder } from "kysely";
 import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import {
-  bookingsSource,
+  bookingsHistorySource,
   paymentStatusExpr,
   amountReceivedExpr,
   containsPattern,
@@ -14,12 +14,10 @@ import { toLiveBookingRow } from "../../../helpers/adminLiveBookingRow";
 import { schema, OutputType } from "./bookings_GET.schema";
 
 /*
- * The Bookings list is a history: completed and cancelled bookings only ("removed" is a group
- * learner taken off by the teacher, a form of cancellation). Scheduled, pending-completion and
- * no-show bookings stay with their sessions on the calendar.
+ * Every booking in every lifecycle status, plus group lessons cancelled before anyone enrolled.
+ * "removed" is a group learner taken off by the teacher and counts as cancelled. Nothing is left
+ * out for its payment, session date or cancellation date.
  */
-const closedOnly = sql`b.status IN ('completed', 'cancelled', 'removed')`;
-
 export async function handle(request: Request): Promise<Response> {
   try {
     await getAdminServerSessionOrThrow(request);
@@ -28,9 +26,10 @@ export async function handle(request: Request): Promise<Response> {
     const page = input.page ?? 1;
     const pageSize = input.pageSize ?? 25;
 
-    const conds: RawBuilder<unknown>[] = [closedOnly];
-    if (input.status === "completed") conds.push(sql`b.status = 'completed'`);
+    const conds: RawBuilder<unknown>[] = [];
     if (input.status === "cancelled") conds.push(sql`b.status IN ('cancelled', 'removed')`);
+    else if (input.status === "overdue") conds.push(sql`b.overdue`);
+    else if (input.status) conds.push(sql`b.status = ${input.status}`);
     if (input.type) conds.push(sql`b.type = ${input.type}`);
     if (input.payment) conds.push(sql`(${paymentStatusExpr}) = ${input.payment}`);
     if (input.teacherId) conds.push(sql`b.teacher_id = ${input.teacherId}`);
@@ -53,28 +52,31 @@ export async function handle(request: Request): Promise<Response> {
 
     const [list, summary] = await Promise.all([
       sql<BookingSqlRow>`
-        WITH b AS (${bookingsSource})
+        WITH b AS (${bookingsHistorySource})
         SELECT b.*, ${paymentStatusExpr} AS payment_status, ${amountReceivedExpr} AS amount_received, count(*) OVER () AS total_count
         FROM b
         WHERE ${andAll(conds)}
         ORDER BY ${orderBy}
         LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}
       `.execute(db),
-      sql<{ total: string; completed: string; cancelled: string }>`
-        WITH b AS (${bookingsSource})
+      sql<Record<"total" | "scheduled" | "awaiting" | "overdue" | "completed" | "cancelled" | "noShow", string>>`
+        WITH b AS (${bookingsHistorySource})
         SELECT
           count(*) AS total,
+          count(*) FILTER (WHERE b.status = 'scheduled') AS scheduled,
+          count(*) FILTER (WHERE b.status = 'awaiting_completion') AS awaiting,
+          count(*) FILTER (WHERE b.overdue) AS overdue,
           count(*) FILTER (WHERE b.status = 'completed') AS completed,
-          count(*) FILTER (WHERE b.status IN ('cancelled', 'removed')) AS cancelled
+          count(*) FILTER (WHERE b.status IN ('cancelled', 'removed')) AS cancelled,
+          count(*) FILTER (WHERE b.status = 'no_show') AS no_show
         FROM b
-        WHERE ${closedOnly}
       `.execute(db),
     ]);
 
     let total = list.rows.length ? Number(list.rows[0].totalCount ?? 0) : 0;
     if (!list.rows.length && page > 1) {
       const { rows } = await sql<{ n: string }>`
-        WITH b AS (${bookingsSource}) SELECT count(*) AS n FROM b WHERE ${andAll(conds)}
+        WITH b AS (${bookingsHistorySource}) SELECT count(*) AS n FROM b WHERE ${andAll(conds)}
       `.execute(db);
       total = Number(rows[0]?.n ?? 0);
     }
@@ -86,8 +88,12 @@ export async function handle(request: Request): Promise<Response> {
       pageSize,
       summary: {
         total: Number(s?.total ?? 0),
+        scheduled: Number(s?.scheduled ?? 0),
+        awaitingCompletion: Number(s?.awaiting ?? 0),
+        overdue: Number(s?.overdue ?? 0),
         completed: Number(s?.completed ?? 0),
         cancelled: Number(s?.cancelled ?? 0),
+        noShow: Number(s?.noShow ?? 0),
       },
     };
     return new Response(superjson.stringify(output));

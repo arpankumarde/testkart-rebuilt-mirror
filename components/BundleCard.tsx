@@ -1,5 +1,6 @@
 import React from 'react';
-import { Edit, EyeOff, Trash2, MoreVertical, Package, Share2, Undo2, Wrench } from 'lucide-react';
+import { Edit, EyeOff, Trash2, MoreVertical, Share2, Undo2, Wrench } from 'lucide-react';
+import { Placeholder } from '../helpers/placeholderImages';
 import { Badge } from './Badge';
 import { Button } from './Button';
 import {
@@ -93,11 +94,8 @@ export const BundleCard: React.FC<BundleCardProps> = ({
   return (
     <div className={styles.card} {...cardTapProps}>
       <div className={styles.thumbnailWrapper}>
-        {bundle.thumbnailUrl ? (
-          <img src={bundle.thumbnailUrl} alt="" className={styles.thumbnailImage} />
-        ) : (
-          <Package size={32} className={styles.bundleIcon} aria-hidden="true" />
-        )}
+        <img src={bundle.thumbnailUrl || Placeholder.BUNDLE} alt="" className={styles.thumbnailImage} />
+
         {/* Overlaid on the thumbnail, as on every other teacher card. */}
         <span className={`${styles.status} ${statusClass}`}>{statusText}</span>
       </div>

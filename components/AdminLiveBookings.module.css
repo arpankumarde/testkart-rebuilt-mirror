@@ -9,7 +9,7 @@
 .cards {
   container: bkcards / inline-size;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
   gap: var(--spacing-3);
 }
 
@@ -81,6 +81,16 @@
   background: color-mix(in srgb, var(--error) 14%, var(--card));
 }
 
+.tone_butter {
+  color: var(--fc-butter-ink);
+  background: var(--fc-butter-tint);
+}
+
+.tone_lavender {
+  color: var(--pastel-lavender-ink);
+  background: var(--pastel-lavender);
+}
+
 .cardText {
   display: flex;
   flex-direction: column;
@@ -103,6 +113,29 @@
   line-height: 1.25;
   font-variant-numeric: tabular-nums;
   color: var(--foreground);
+}
+
+.cardValueLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+}
+
+.cardFlag {
+  padding: 0.0625rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--error-text);
+  background: color-mix(in srgb, var(--error) 14%, var(--card));
+  border-radius: var(--radius-full);
+}
+
+.statusStack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
 }
 
 /* Panel */
@@ -727,6 +760,10 @@
 }
 
 @media (max-width: 520px) {
+  .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .cardIcon {
     display: none;
   }

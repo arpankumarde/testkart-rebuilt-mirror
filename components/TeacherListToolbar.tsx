@@ -13,7 +13,8 @@ import {
 export type TeacherListTab = ConsoleListTab;
 
 /* Give this to a SelectTrigger dropped into the toolbar so it sizes like the
-   sort control on Test series. */
+   band's other controls. The content lists (Test series, Courses, Notes and
+   PDFs, Live tests, Bundles) use TeacherContentPage instead. */
 export const teacherToolbarControlClass = consoleToolbarControlClass;
 
 export const TeacherListToolbar: React.FC<

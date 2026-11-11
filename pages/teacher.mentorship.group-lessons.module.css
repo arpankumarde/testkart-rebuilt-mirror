@@ -176,6 +176,23 @@
   color: var(--fc-peach-ink);
 }
 
+.completeRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.75rem;
+  background: var(--fc-butter-tint);
+  font-size: 0.8125rem;
+  color: var(--fc-butter-ink);
+}
+
+.completeRow span {
+  flex: 1 1 14rem;
+}
+
 .cardFoot {
   display: flex;
   align-items: center;

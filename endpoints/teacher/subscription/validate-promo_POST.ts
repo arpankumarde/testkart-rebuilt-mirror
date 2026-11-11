@@ -4,6 +4,7 @@ import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
 import { schema, OutputType } from "./validate-promo_POST.schema";
 import superjson from "superjson";
 import { validatePromoCodeForPlan, applyPromoDiscount, computePromoDiscountAmount } from "../../../helpers/subscriptionPromoCodes";
+import { INTRO_OFFER_PROMO_CONFLICT, introOfferAppliesToPlan } from "../../../helpers/teacherIntroOffer";
 
 export async function handle(request: Request) {
   try {
@@ -23,6 +24,15 @@ export async function handle(request: Request) {
       .executeTakeFirst();
     if (!plan) {
       throw new Error("The selected subscription plan is not available.");
+    }
+
+    const paymentMode = await db
+      .selectFrom("platformSettings")
+      .select("settingValue")
+      .where("settingKey", "=", "subscription_payment_mode")
+      .executeTakeFirst();
+    if (paymentMode?.settingValue === "recurring" && (await introOfferAppliesToPlan(plan, effectiveTeacherId))) {
+      throw new Error(INTRO_OFFER_PROMO_CONFLICT);
     }
 
     const promo = await validatePromoCodeForPlan(db, input.code, input.planId, effectiveTeacherId);

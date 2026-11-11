@@ -38,10 +38,13 @@ import styles from "./teacher.mentorship.group-lessons.module.css";
 const TIME_ZONE = "Asia/Kolkata";
 const TONES: LiveSessionTone[] = ["blue", "lavender", "sage", "butter", "mint"];
 
-const lessonStatus = (status: string): LiveSessionStatus | null => {
-  if (status === "cancelled") return { label: "Cancelled", tone: "peach" };
-  if (status === "completed") return { label: "Completed", tone: "sage" };
-  if (status === "no_show") return { label: "No-show", tone: "butter" };
+const lessonEnded = (g: { startTime: Date | string; durationMinutes: number }) =>
+  new Date(g.startTime).getTime() + g.durationMinutes * 60_000 <= Date.now();
+
+const lessonStatus = (g: { status: string; startTime: Date | string; durationMinutes: number }): LiveSessionStatus | null => {
+  if (g.status === "cancelled") return { label: "Cancelled", tone: "peach" };
+  if (g.status === "completed") return { label: "Completed", tone: "sage" };
+  if (g.status === "scheduled" && lessonEnded(g)) return { label: "Awaiting completion", tone: "butter" };
   return null;
 };
 
@@ -83,6 +86,7 @@ const TeacherGroupLessonsPage: React.FC = () => {
   const [editingRow, setEditingRow] = useState<TeacherGroupLessonRow | null | "new">(null);
   const [cancelTarget, setCancelTarget] = useState<TeacherGroupLessonRow | null>(null);
   const [rosterTarget, setRosterTarget] = useState<TeacherGroupLessonRow | null>(null);
+  const [completeTarget, setCompleteTarget] = useState<TeacherGroupLessonRow | null>(null);
   const completeMutation = useCompleteLessonMutation();
   const statusQuery = useLiveTeachingStatusQuery();
   // New classes need an approved live teaching application; scheduled ones stay manageable.
@@ -142,8 +146,10 @@ const TeacherGroupLessonsPage: React.FC = () => {
               .sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
 
             const card = (g: TeacherGroupLessonRow, i: number) => {
-              const status = lessonStatus(g.status);
+              const status = lessonStatus(g);
               const isScheduled = g.status === "scheduled";
+              const started = new Date(g.startTime).getTime() <= now;
+              const awaiting = isScheduled && lessonEnded(g);
               return (
                 <article key={g.id} className={styles.card}>
                   <div className={styles.cardTop}>
@@ -174,17 +180,11 @@ const TeacherGroupLessonsPage: React.FC = () => {
                           <DropdownMenuItem onSelect={() => setEditingRow(g)}>
                             <Edit2 size={14} /> Edit details
                           </DropdownMenuItem>
-                          <DropdownMenuItem
-                            disabled={completeMutation.isPending}
-                            onSelect={() =>
-                              completeMutation.mutate(
-                                { kind: "group", id: g.id },
-                                { onError: (err) => toast.error(err instanceof Error ? err.message : "Could not update status.") }
-                              )
-                            }
-                          >
-                            <CheckCircle2 size={14} /> Mark completed
-                          </DropdownMenuItem>
+                          {started && (
+                            <DropdownMenuItem onSelect={() => setCompleteTarget(g)}>
+                              <CheckCircle2 size={14} /> Mark completed
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuItem onSelect={() => setCancelTarget(g)}>
                             <Ban size={14} /> Cancel lesson
                           </DropdownMenuItem>
@@ -194,6 +194,15 @@ const TeacherGroupLessonsPage: React.FC = () => {
                   </div>
 
                   <SeatsMeter enrolled={g.enrolledCount} capacity={g.maxCapacity} />
+
+                  {awaiting && (
+                    <div className={styles.completeRow}>
+                      <span>This lesson has ended. Mark it completed so learners and your earnings show it correctly.</span>
+                      <Button size="sm" onClick={() => setCompleteTarget(g)}>
+                        <CheckCircle2 size={14} aria-hidden="true" /> Mark completed
+                      </Button>
+                    </div>
+                  )}
 
                   {g.cancellationReason && <p className={styles.reason}>{g.cancellationReason}</p>}
 
@@ -248,6 +257,29 @@ const TeacherGroupLessonsPage: React.FC = () => {
       <GroupLessonDialog open={editingRow !== null} onOpenChange={(open) => !open && setEditingRow(null)} row={editingRow === "new" ? null : editingRow} />
       <CancelDialog row={cancelTarget} onOpenChange={(open) => !open && setCancelTarget(null)} />
       <RosterDialog row={rosterTarget} onOpenChange={(open) => !open && setRosterTarget(null)} />
+      <ConsoleConfirmDialog
+        open={!!completeTarget}
+        onOpenChange={(open) => !open && setCompleteTarget(null)}
+        icon={<CheckCircle2 />}
+        title={`Mark "${completeTarget?.title ?? ""}" completed?`}
+        description="Confirm the lesson took place. It moves to Completed for you, your learners and the Testkart team."
+        confirmLabel="Mark completed"
+        pendingLabel="Saving..."
+        isPending={completeMutation.isPending}
+        onConfirm={() => {
+          if (!completeTarget) return;
+          completeMutation.mutate(
+            { kind: "group", id: completeTarget.id },
+            {
+              onSuccess: (r) => {
+                toast.success(r.changed ? "Lesson marked completed." : "This lesson was already completed.");
+                setCompleteTarget(null);
+              },
+              onError: (err) => toast.error(err instanceof Error ? err.message : "Could not update status."),
+            }
+          );
+        }}
+      />
     </>
   );
 };

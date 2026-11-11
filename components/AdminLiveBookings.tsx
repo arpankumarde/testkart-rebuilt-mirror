@@ -3,11 +3,13 @@ import { useSearchParams } from "react-router-dom";
 import { useDebounce } from "use-debounce";
 import {
   AlertTriangle,
+  CalendarClock,
   CalendarRange,
   CalendarCheck2,
   CalendarX2,
   ChevronLeft,
   ChevronRight,
+  Clock3,
   Copy,
   Eye,
   Inbox,
@@ -15,6 +17,7 @@ import {
   Search,
   SearchX,
   Ticket,
+  UserX,
   X,
 } from "lucide-react";
 import { Button } from "./Button";
@@ -24,7 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./DropdownMenu";
 import { AdminLiveEmptyState } from "./AdminLiveEmptyState";
 import { AdminLiveBookingDrawer } from "./AdminLiveBookingDrawer";
-import { LiveAvatar, LiveKindBadge, LivePaymentPill, LiveStatusPill, copyText, rupees } from "./AdminLiveBits";
+import { LiveAvatar, LiveKindBadge, LiveOverduePill, LivePaymentPill, LiveStatusPill, copyText, rupees } from "./AdminLiveBits";
 import { useAdminLiveBookingsQuery } from "../helpers/useAdminLiveModule";
 import { addDays, dayKeyOf, dayStart, formatShortDate, formatTime, isDayKey, type DayKey } from "../helpers/liveCalendarDates";
 import type { InputType as BookingsInput, LiveBookingRow } from "../endpoints/admin/live-lessons/bookings_GET.schema";
@@ -33,11 +36,15 @@ import styles from "./AdminLiveBookings.module.css";
 type StatusFilter = "all" | NonNullable<BookingsInput["status"]>;
 type TypeFilter = "all" | "booking" | "group";
 
-/* The list holds completed and cancelled bookings only; scheduled ones are on the Calendar. */
+/* Every booking in every status, plus group lessons cancelled before anyone enrolled. */
 const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "All statuses" },
+  { value: "scheduled", label: "Scheduled" },
+  { value: "awaiting_completion", label: "Awaiting completion" },
+  { value: "overdue", label: "Overdue" },
   { value: "completed", label: "Completed" },
   { value: "cancelled", label: "Cancelled" },
+  { value: "no_show", label: "No-show" },
 ];
 
 const TYPE_OPTIONS: { value: TypeFilter; label: string }[] = [
@@ -112,10 +119,20 @@ export const AdminLiveBookings: React.FC<{ active: boolean; onOpenInCalendar: (r
   };
 
   const summary = data?.summary;
-  const cards: { key: StatusFilter; label: string; value?: number; icon: React.ReactNode; tone: string }[] = [
+  const cards: { key: StatusFilter; label: string; value?: number; icon: React.ReactNode; tone: string; extra?: React.ReactNode }[] = [
     { key: "all", label: "Total bookings", value: summary?.total, icon: <Ticket />, tone: "peach" },
+    { key: "scheduled", label: "Scheduled", value: summary?.scheduled, icon: <CalendarClock />, tone: "powder" },
+    {
+      key: "awaiting_completion",
+      label: "Awaiting completion",
+      value: summary?.awaitingCompletion,
+      icon: <Clock3 />,
+      tone: "butter",
+      extra: summary?.overdue ? <span className={styles.cardFlag}>{summary.overdue} overdue</span> : null,
+    },
     { key: "completed", label: "Completed", value: summary?.completed, icon: <CalendarCheck2 />, tone: "sage" },
     { key: "cancelled", label: "Cancelled", value: summary?.cancelled, icon: <CalendarX2 />, tone: "rose" },
+    { key: "no_show", label: "No-show", value: summary?.noShow, icon: <UserX />, tone: "lavender" },
   ];
 
   return (
@@ -134,7 +151,14 @@ export const AdminLiveBookings: React.FC<{ active: boolean; onOpenInCalendar: (r
             </span>
             <span className={styles.cardText}>
               <span className={styles.cardLabel}>{c.label}</span>
-              {summary ? <span className={styles.cardValue}>{c.value?.toLocaleString("en-IN")}</span> : <Skeleton style={{ height: "1.375rem", width: "3rem" }} />}
+              {summary ? (
+                <span className={styles.cardValueLine}>
+                  <span className={styles.cardValue}>{c.value?.toLocaleString("en-IN")}</span>
+                  {c.extra}
+                </span>
+              ) : (
+                <Skeleton style={{ height: "1.375rem", width: "3rem" }} />
+              )}
             </span>
           </button>
         ))}
@@ -190,7 +214,8 @@ export const AdminLiveBookings: React.FC<{ active: boolean; onOpenInCalendar: (r
         </div>
 
         <p className={styles.scopeNote}>
-          Completed and cancelled bookings. Scheduled sessions and those pending completion are on the Calendar.
+          Every learner booking in every status, and group lessons cancelled before anyone enrolled. Awaiting completion
+          means the session ended and nobody has marked it yet; resolve it from the session on the Calendar.
         </p>
 
         {sessionId ? (
@@ -238,8 +263,8 @@ export const AdminLiveBookings: React.FC<{ active: boolean; onOpenInCalendar: (r
               <AdminLiveEmptyState
                 tone="mint"
                 icon={<Inbox />}
-                title="No completed or cancelled bookings yet"
-                description="Bookings appear here once their session is marked completed or the booking is cancelled. Upcoming and pending sessions are on the Calendar."
+                title="No bookings yet"
+                description="1:1 bookings and group lesson enrollments appear here as soon as they are made."
               />
             )
           ) : (
@@ -344,7 +369,11 @@ const BookingRow: React.FC<{ row: LiveBookingRow; onOpen: () => void }> = ({ row
           onOpen();
         }
       }}
-      aria-label={`Booking ${r.id.slice(0, 8)} for ${r.studentName ?? "learner"}`}
+      aria-label={
+        r.noLearners
+          ? `Cancelled group lesson ${r.id.slice(0, 8)} with no learners`
+          : `Booking ${r.id.slice(0, 8)} for ${r.studentName ?? "learner"}`
+      }
     >
       <td className={styles.cellId} data-label="Booking ID">
         <span className={styles.mono} title={r.id}>
@@ -352,19 +381,26 @@ const BookingRow: React.FC<{ row: LiveBookingRow; onOpen: () => void }> = ({ row
         </span>
       </td>
       <td className={styles.cellLearner} data-label="Learner">
-        <span className={styles.person}>
-          <LiveAvatar name={r.studentName} size="sm" tone="sage" />
+        {r.noLearners ? (
           <span className={styles.stack}>
-            <span className={styles.primary} title={r.studentName ?? undefined}>
-              {r.studentName ?? "Unknown learner"}
-            </span>
-            {r.studentEmail ? (
-              <span className={styles.secondary} title={r.studentEmail}>
-                {r.studentEmail}
-              </span>
-            ) : null}
+            <span className={styles.value}>No learners</span>
+            <span className={styles.secondary}>Cancelled before anyone enrolled</span>
           </span>
-        </span>
+        ) : (
+          <span className={styles.person}>
+            <LiveAvatar name={r.studentName} size="sm" tone="sage" />
+            <span className={styles.stack}>
+              <span className={styles.primary} title={r.studentName ?? undefined}>
+                {r.studentName ?? "Unknown learner"}
+              </span>
+              {r.studentEmail ? (
+                <span className={styles.secondary} title={r.studentEmail}>
+                  {r.studentEmail}
+                </span>
+              ) : null}
+            </span>
+          </span>
+        )}
       </td>
       <td className={styles.cellSession} data-label="Session">
         <span className={styles.stack}>
@@ -396,15 +432,22 @@ const BookingRow: React.FC<{ row: LiveBookingRow; onOpen: () => void }> = ({ row
       </td>
       <td className={styles.cellPay} data-label="Payment">
         <span className={styles.stack}>
-          <span className={styles.amountLine}>
-            <span className={styles.amount}>{rupees(r.amountPaid)}</span>
-            {r.price !== r.amountPaid ? <span className={styles.secondary}>of {rupees(r.price)}</span> : null}
-          </span>
+          {r.noLearners ? (
+            <span className={styles.secondary}>{rupees(r.price)} per learner</span>
+          ) : (
+            <span className={styles.amountLine}>
+              <span className={styles.amount}>{rupees(r.amountPaid)}</span>
+              {r.price !== r.amountPaid ? <span className={styles.secondary}>of {rupees(r.price)}</span> : null}
+            </span>
+          )}
           <LivePaymentPill status={r.paymentStatus} creditKind={r.creditKind} />
         </span>
       </td>
       <td className={styles.cellStatus} data-label="Status">
-        <LiveStatusPill status={r.status} />
+        <span className={styles.statusStack}>
+          <LiveStatusPill status={r.status} noShowParty={r.noShowParty} />
+          {r.overdue ? <LiveOverduePill /> : null}
+        </span>
       </td>
       <td className={styles.cellActions} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
         <DropdownMenu>

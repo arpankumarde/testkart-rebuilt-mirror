@@ -28,6 +28,7 @@ const KIND_PLACEHOLDERS: Partial<Record<TeacherMixKind, string>> = {
   mock_test: Placeholder.TEST,
   live_test: Placeholder.LIVE,
   course: Placeholder.COURSE,
+  bundle: Placeholder.BUNDLE,
 };
 
 export const teacherContentThumbnail = (

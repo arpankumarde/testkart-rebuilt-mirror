@@ -10,7 +10,8 @@ export const schema = z
     to: z.coerce.date(),
     /** Comma-separated session kinds; omitted means both. */
     kinds: z.string().optional(),
-    status: z.enum(["scheduled", "completed", "cancelled", "no_show"]).optional(),
+    /** "scheduled" is a session that has not ended yet; one that ended unresolved is "awaiting_completion". */
+    status: z.enum(["scheduled", "awaiting_completion", "completed", "cancelled", "no_show"]).optional(),
     teacherId: z.coerce.number().int().positive().optional(),
     q: z.string().trim().max(120).optional(),
   })
@@ -32,7 +33,12 @@ export type LiveCalendarEvent = {
   start: Date;
   end: Date;
   durationMinutes: number;
+  /** scheduled | awaiting_completion | completed | cancelled | no_show */
   status: string;
+  /** Awaiting completion for more than COMPLETION_OVERDUE_HOURS after it ended. */
+  overdue: boolean;
+  /** "teacher" or "learner" when status is no_show. */
+  noShowParty: string | null;
   enrolledCount: number | null;
   maxCapacity: number | null;
   price: number;

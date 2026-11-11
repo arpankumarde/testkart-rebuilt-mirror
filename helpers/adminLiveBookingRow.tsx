@@ -45,5 +45,11 @@ export function toLiveBookingRow(r: BookingSqlRow): LiveBookingRow {
     issueResolvedAt: toDate(r.issueResolvedAt),
     maxCapacity: r.maxCapacity,
     enrolledCount: r.enrolledCount,
+    noLearners: !!r.noLearners,
+    noShowParty: r.noShowParty,
+    noShowReason: r.noShowReason,
+    completedAt: toDate(r.completedAt),
+    completedBy: r.completedBy,
+    overdue: !!r.overdue,
   };
 }

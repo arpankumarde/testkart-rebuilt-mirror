@@ -249,12 +249,6 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <Link to={editPath} className={styles.menuItem}>
-                  <Edit size={16} />
-                  <span>Edit course</span>
-                </Link>
-              </DropdownMenuItem>
               {status === 'published' && (
                 <>
                   <DropdownMenuItem onClick={() => setShareOpen(true)} className={styles.menuItem}>
@@ -271,7 +265,7 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
               )}
               {showResults && (
                 <>
-                  <DropdownMenuSeparator />
+                  {status === 'published' && <DropdownMenuSeparator />}
                   <DropdownMenuItem asChild>
                     <Link to={performanceHref('courses', { course: course.id })} className={styles.menuItem}>
                       <TrendingUp size={16} />
@@ -286,7 +280,7 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
                   </DropdownMenuItem>
                 </>
               )}
-              <DropdownMenuSeparator />
+              {showResults && <DropdownMenuSeparator />}
               {status === 'published' && (
                 <DropdownMenuItem onClick={handleUnpublish} className={styles.menuItem}>
                   <AlertCircle size={16} />

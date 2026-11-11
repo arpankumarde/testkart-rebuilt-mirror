@@ -1,23 +1,29 @@
 import React, { useState } from "react";
-import { Ban, CalendarClock, Clock, Copy, IndianRupee, ListChecks, Timer, Users, Video } from "lucide-react";
+import { Ban, CalendarClock, CheckCircle2, Clock, Copy, IndianRupee, ListChecks, Timer, Users, UserX, Video } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from "./Sheet";
 import { Button } from "./Button";
 import { Skeleton } from "./Skeleton";
 import {
   LiveAvatar,
   LiveCancelDialog,
+  LiveCompleteDialog,
   LiveKindBadge,
+  LiveNoShowDialog,
+  LiveOverduePill,
   LivePaymentPill,
   LiveStatusPill,
   copyText,
   liveKindLabel,
+  liveStatusLabel,
   rupees,
   type CancelTarget,
+  type OutcomeTarget,
 } from "./AdminLiveBits";
 import { useAdminLiveSessionQuery } from "../helpers/useAdminLiveModule";
 import { VIDEO_PROVIDER_MODE } from "../helpers/liveLessonConfig";
 import { formatDuration, formatLongDate, formatRelative, formatTime, formatDateTime } from "../helpers/liveCalendarDates";
 import type { LiveCalendarEvent } from "../endpoints/admin/live-lessons/calendar_GET.schema";
+import type { LiveSessionEvent } from "../endpoints/admin/live-lessons/session_GET.schema";
 import styles from "./AdminLiveSessionDrawer.module.css";
 
 interface Props {
@@ -31,12 +37,16 @@ export const AdminLiveSessionDrawer: React.FC<Props> = ({ event, onClose, onView
   const target = event ? { kind: event.kind, id: event.id } : null;
   const { data, isLoading, isError, refetch } = useAdminLiveSessionQuery(target);
   const [cancelTarget, setCancelTarget] = useState<CancelTarget | null>(null);
+  const [completeTarget, setCompleteTarget] = useState<OutcomeTarget | null>(null);
+  const [noShowTarget, setNoShowTarget] = useState<OutcomeTarget | null>(null);
   const s = data?.session ?? event;
+  const detail = data?.session;
 
-  const awaiting = !!s && s.status === "scheduled" && new Date(s.end).getTime() < Date.now();
-  const cancellable = !!s && (s.kind === "booking" ? s.status === "scheduled" : s.status !== "cancelled" && s.status !== "completed");
+  const awaiting = s?.status === "awaiting_completion";
+  const cancellable = s?.status === "scheduled" || awaiting;
   const isGroup = s?.kind === "group";
   const fill = isGroup && s?.maxCapacity ? Math.min(100, Math.round(((s.enrolledCount ?? 0) / s.maxCapacity) * 100)) : null;
+  const outcomeTarget = s ? { kind: s.kind, id: s.id, title: s.title } : null;
 
   return (
     <>
@@ -47,7 +57,8 @@ export const AdminLiveSessionDrawer: React.FC<Props> = ({ event, onClose, onView
               <header className={styles.header}>
                 <div className={styles.chips}>
                   <LiveKindBadge kind={s.kind} withLabel />
-                  <LiveStatusPill status={s.status} awaiting={awaiting} />
+                  <LiveStatusPill status={s.status} noShowParty={s.noShowParty} />
+                  {s.overdue ? <LiveOverduePill /> : null}
                   {s.isTrial ? <span className={styles.trial}>Trial</span> : null}
                 </div>
                 <SheetTitle className={styles.title}>{s.title}</SheetTitle>
@@ -104,10 +115,45 @@ export const AdminLiveSessionDrawer: React.FC<Props> = ({ event, onClose, onView
                 </Fact>
               </dl>
 
-              {s.cancellationReason ? (
+              {awaiting ? (
+                <div className={`${styles.callout} ${s.overdue ? styles.calloutUrgent : ""}`}>
+                  <span className={styles.eyebrow}>{s.overdue ? "Overdue" : "Awaiting completion"}</span>
+                  <p>
+                    This session ended {formatRelative(s.end)} and nobody has marked how it went
+                    {s.overdue ? ", for more than a day now" : ""}. Mark it completed, record a no-show, or cancel it.
+                  </p>
+                </div>
+              ) : null}
+
+              {s.status === "completed" && detail?.completedAt ? (
+                <div className={styles.callout}>
+                  <span className={styles.eyebrow}>Completed</span>
+                  <p>
+                    {formatDateTime(detail.completedAt)} IST{detail.completedBy ? ` by ${byLabel(detail.completedBy)}` : ""}
+                  </p>
+                </div>
+              ) : null}
+
+              {s.status === "no_show" ? (
+                <div className={styles.callout}>
+                  <span className={styles.eyebrow}>No-show</span>
+                  <p>
+                    {s.noShowParty === "teacher" ? "The teacher did not attend." : "The learner did not attend."}
+                    {detail?.noShowReason ? ` ${detail.noShowReason}` : ""}
+                  </p>
+                </div>
+              ) : null}
+
+              {s.cancellationReason || (s.status === "cancelled" && detail?.cancelledBy) ? (
                 <div className={styles.notice}>
-                  <span className={styles.eyebrow}>Cancellation reason</span>
-                  <p>{s.cancellationReason}</p>
+                  <span className={styles.eyebrow}>Cancellation</span>
+                  {s.cancellationReason ? <p>{s.cancellationReason}</p> : null}
+                  {detail?.cancelledBy || detail?.cancelledAt ? (
+                    <p className={styles.muted}>
+                      {detail.cancelledAt ? `${formatDateTime(detail.cancelledAt)} IST` : ""}
+                      {detail.cancelledBy ? `${detail.cancelledAt ? " by " : "By "}${byLabel(detail.cancelledBy)}` : ""}
+                    </p>
+                  ) : null}
                 </div>
               ) : null}
 
@@ -166,11 +212,38 @@ export const AdminLiveSessionDrawer: React.FC<Props> = ({ event, onClose, onView
                   <p className={styles.muted}>{data.bookingsTotal - 8} more in Bookings.</p>
                 ) : null}
               </div>
+
+              {data ? (
+                <div className={styles.section}>
+                  <h3 className={styles.sectionTitle}>Status history</h3>
+                  {data.history.length === 0 ? (
+                    <p className={styles.muted}>No status changes recorded yet. Changes are recorded from now on.</p>
+                  ) : (
+                    <ol className={styles.history}>
+                      {data.history.map((h) => (
+                        <HistoryItem key={h.id} event={h} />
+                      ))}
+                    </ol>
+                  )}
+                </div>
+              ) : null}
             </div>
           ) : null}
 
           {s ? (
             <footer className={styles.footer}>
+              {awaiting && outcomeTarget ? (
+                <>
+                  <Button size="sm" onClick={() => setCompleteTarget(outcomeTarget)}>
+                    <CheckCircle2 /> Mark completed
+                  </Button>
+                  {!isGroup ? (
+                    <Button variant="outline" size="sm" onClick={() => setNoShowTarget(outcomeTarget)}>
+                      <UserX /> Mark no-show
+                    </Button>
+                  ) : null}
+                </>
+              ) : null}
               <Button variant="outline" size="sm" onClick={() => copyText(s.id, "Session ID")}>
                 <Copy /> Copy ID
               </Button>
@@ -192,9 +265,41 @@ export const AdminLiveSessionDrawer: React.FC<Props> = ({ event, onClose, onView
         </SheetContent>
       </Sheet>
       <LiveCancelDialog target={cancelTarget} onOpenChange={(open) => !open && setCancelTarget(null)} />
+      <LiveCompleteDialog target={completeTarget} onOpenChange={(open) => !open && setCompleteTarget(null)} />
+      <LiveNoShowDialog target={noShowTarget} onOpenChange={(open) => !open && setNoShowTarget(null)} />
     </>
   );
 };
+
+/* completed_by / cancelled_by values: "admin:<name>", "admin", "teacher", "student", "system". */
+const byLabel = (v: string) => {
+  if (v.startsWith("admin:")) return `admin ${v.slice(6)}`;
+  if (v === "student") return "the learner";
+  if (v === "teacher") return "the teacher";
+  if (v === "system") return "the system";
+  return v;
+};
+
+const ACTOR: Record<LiveSessionEvent["actorType"], string> = {
+  admin: "Admin",
+  teacher: "Teacher",
+  learner: "Learner",
+  system: "System",
+};
+
+const HistoryItem: React.FC<{ event: LiveSessionEvent }> = ({ event: h }) => (
+  <li className={styles.historyItem}>
+    <span className={styles.historyChange}>
+      {h.fromStatus ? `${liveStatusLabel(h.fromStatus)} to ` : ""}
+      {liveStatusLabel(h.toStatus)}
+    </span>
+    <span className={styles.muted}>
+      {formatDateTime(h.createdAt)} IST · {ACTOR[h.actorType] ?? h.actorType}
+      {h.actorLabel ? ` ${h.actorLabel}` : ""}
+    </span>
+    {h.reason ? <span className={styles.historyReason}>{h.reason}</span> : null}
+  </li>
+);
 
 const Fact: React.FC<{ icon: React.ReactNode; label: string; wide?: boolean; children: React.ReactNode }> = ({
   icon,

@@ -182,6 +182,18 @@ export async function handle(request: Request) {
     }));
 
     const mockTestIdParam = url.searchParams.get("mockTestId");
+
+    const statusCounts: OutputType["statusCounts"] = {
+      all: testsWithStatus.length,
+      draft: 0,
+      upcoming: 0,
+      live: 0,
+      ended: 0,
+      registration_closed: 0,
+      seats_full: 0,
+    };
+    for (const test of testsWithStatus) statusCounts[test.status] += 1;
+
     if (mockTestIdParam) {
       const mockTestId = parseInt(mockTestIdParam, 10);
       testsWithStatus = testsWithStatus.filter((test) => test.mockTestId === mockTestId);
@@ -229,6 +241,7 @@ export async function handle(request: Request) {
         page,
         limit,
         mockTestIds,
+        statusCounts,
       } satisfies OutputType)
     );
   } catch (error) {

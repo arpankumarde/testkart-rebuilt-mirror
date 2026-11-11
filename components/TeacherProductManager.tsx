@@ -1,12 +1,10 @@
-import React, { useState, useEffect, useId, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { getItemExamNames, summarizeExamNames } from '../helpers/itemExams';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
-  Plus,
   Pencil,
   Trash2,
   EyeOff,
-  FileText,
   Upload,
   ExternalLink,
   Archive,
@@ -27,7 +25,6 @@ import { usePublishesWithoutReview } from '../helpers/usePublishesWithoutReview'
 import { useRefetchOnLinkArrival } from '../helpers/useRefetchOnLinkArrival';
 import { Button } from './Button';
 import { Checkbox } from './Checkbox';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './Select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './Dialog';
 import {
   DropdownMenu,
@@ -37,10 +34,11 @@ import {
   DropdownMenuTrigger,
 } from './DropdownMenu';
 import { Skeleton } from './Skeleton';
-import { TeacherPageHeader } from './TeacherPageHeader';
-import { TeacherListToolbar, teacherToolbarControlClass } from './TeacherListToolbar';
 import { TeacherListEmpty } from './TeacherListEmpty';
 import { TeacherListPagination } from './TeacherListPagination';
+import { TeacherContentPage } from './TeacherContentPage';
+import { TeacherContentEmpty } from './TeacherContentEmpty';
+import { withStatusCounts, type TeacherStatusTabDef } from './TeacherStatusTabs';
 import { ShareAssetDialog } from './ShareAssetDialog';
 import { WithdrawReviewButton } from './WithdrawReviewButton';
 import { TeacherRejectionNote } from './TeacherRejectionNote';
@@ -56,14 +54,19 @@ const PRODUCTS_PER_PAGE = 10;
 
 type StatusTab = 'all' | 'published' | 'draft' | 'archived';
 
-const TABS: { value: StatusTab; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'published', label: 'Published' },
-  { value: 'draft', label: 'Drafts' },
-  { value: 'archived', label: 'Archived' },
+const TABS: TeacherStatusTabDef<StatusTab>[] = [
+  { value: 'all', label: 'All', word: '' },
+  { value: 'published', label: 'Published', word: 'published' },
+  { value: 'draft', label: 'Drafts', word: 'draft' },
+  { value: 'archived', label: 'Archived', word: 'archived' },
 ];
 
 const STATUS_VALUES = TABS.map((tab) => tab.value);
+
+const CATEGORY_OPTIONS = [
+  { value: 'all', label: 'All categories' },
+  ...DIGITAL_PRODUCT_CATEGORIES.map((category) => ({ value: category, label: category })),
+];
 
 const priceFormatter = new Intl.NumberFormat('en-IN', {
   style: 'currency',
@@ -349,8 +352,6 @@ export const TeacherProductManager: React.FC = () => {
   const [pageState, setPageState] = useState({ key: filterKey, page: 1 });
   const page = pageState.key === filterKey ? pageState.page : 1;
   const setPage = (next: number) => setPageState({ key: filterKey, page: next });
-  const navigate = useNavigate();
-  const panelId = useId();
   const selectAllRef = useRef<HTMLInputElement>(null);
 
   const [deletingProduct, setDeletingProduct] = useState<TeacherProductListItem | null>(null);
@@ -379,6 +380,8 @@ export const TeacherProductManager: React.FC = () => {
   const products = data?.products ?? [];
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PRODUCTS_PER_PAGE));
+  // Every product the teacher has, whatever the filters; drives the tabs.
+  const contentTotal = data?.statusCounts.all;
 
   // Clear the selection whenever the page or filters change so stale ids from
   // a previous page never carry into a bulk action by accident.
@@ -402,10 +405,6 @@ export const TeacherProductManager: React.FC = () => {
       selectAllRef.current.indeterminate = selectedOnPage > 0 && !allOnPageSelected;
     }
   });
-
-  const handleCreate = () => {
-    navigate('/teacher/products/create');
-  };
 
   const confirmDelete = () => {
     if (deletingProduct) {
@@ -460,7 +459,7 @@ export const TeacherProductManager: React.FC = () => {
     void requestUnpublish({ itemType: 'digital_product', ids: liveIds }, send);
   };
 
-  const activeTabLabel = TABS.find((tab) => tab.value === statusFilter)?.label.toLowerCase() ?? 'all';
+  const statusWord = TABS.find((tab) => tab.value === statusFilter)?.word || undefined;
 
   const resultsMessage = isLoading || isError
     ? ''
@@ -498,38 +497,53 @@ export const TeacherProductManager: React.FC = () => {
       );
     }
 
-    if (products.length === 0) {
-      const isEmptyOverall = !searchTerm && statusFilter === 'all' && categoryFilter === 'all';
+    if (!contentTotal) {
       return (
-        <TeacherListEmpty
-          kind={!searchTerm && isEmptyOverall ? 'digital_product' : undefined}
-          icon={<FileText size={26} />}
-          title={
-            searchTerm
-              ? `No products match "${searchTerm}"`
-              : isEmptyOverall
-                ? 'No notes or PDFs yet'
-                : `No ${activeTabLabel} products`
-          }
-          description={
-            searchTerm
-              ? 'Check the spelling, or search for a word from the title, category or exam.'
-              : isEmptyOverall
-                ? 'A digital product is a PDF students buy and download - notes, an eBook, a question bank. Upload your first one to start selling.'
-                : 'Nothing here yet. The other tabs may have what you are looking for.'
-          }
-        >
-          {searchTerm ? (
-            <Button variant="outline" onClick={() => setSearchQuery('')}>
-              Clear search
+        <TeacherContentEmpty
+          kind="digital_product"
+          plural="notes or PDFs"
+          reason="none"
+          description="A digital product is a PDF students buy and download - notes, an eBook, a question bank. Upload your first one to start selling."
+          create={{ label: 'Create a product', to: '/teacher/products/create' }}
+        />
+      );
+    }
+
+    if (products.length === 0) {
+      if (searchTerm) {
+        return (
+          <TeacherContentEmpty
+            kind="digital_product"
+            plural="notes or PDFs"
+            reason="search"
+            query={searchTerm}
+            statusWord={statusWord}
+            onClearSearch={() => setSearchQuery('')}
+          />
+        );
+      }
+      if (categoryFilter !== 'all') {
+        return (
+          <TeacherContentEmpty
+            kind="digital_product"
+            plural="notes or PDFs"
+            reason="filter"
+            title={`No ${statusWord ? `${statusWord} ` : ''}notes or PDFs in ${categoryFilter}`}
+            description="Pick another category, or check the other tabs."
+          >
+            <Button variant="outline" onClick={() => setCategoryFilter('all')}>
+              Show all categories
             </Button>
-          ) : isEmptyOverall ? (
-            <Button onClick={handleCreate}>
-              <Plus size={16} />
-              Create a product
-            </Button>
-          ) : null}
-        </TeacherListEmpty>
+          </TeacherContentEmpty>
+        );
+      }
+      return (
+        <TeacherContentEmpty
+          kind="digital_product"
+          plural="notes or PDFs"
+          reason="status"
+          statusWord={statusWord ?? ''}
+        />
       );
     }
 
@@ -633,69 +647,53 @@ export const TeacherProductManager: React.FC = () => {
   };
 
   return (
-    <div className={styles.page}>
+    <>
       {/* Titled as the sidebar names it, so the page you land on matches the
           row you clicked. */}
-      <TeacherPageHeader title="Notes and PDFs" kind="digital_product">
-        <Button onClick={handleCreate}>
-          <Plus size={16} />
-          New product
-        </Button>
-      </TeacherPageHeader>
-
-      <TeacherListToolbar
-        tabs={TABS}
-        value={statusFilter}
-        onValueChange={(value) => {
-          const next = STATUS_VALUES.find((tab) => tab === value) ?? 'all';
-          write({ status: next === 'all' ? null : next });
+      <TeacherContentPage
+        kind="digital_product"
+        title="Notes and PDFs"
+        description="Create, organise and manage your study notes and PDFs in one place."
+        create={{ label: 'New product', to: '/teacher/products/create' }}
+        busy={isFetching}
+        toolbar={{
+          tabs: {
+            tabs: withStatusCounts(TABS, data?.statusCounts),
+            value: statusFilter,
+            onValueChange: (next) => write({ status: next === 'all' ? null : next }),
+            total: contentTotal,
+          },
+          search: {
+            value: searchQuery,
+            onChange: setSearchQuery,
+            placeholder: 'Search by title, category or exam',
+            label: 'Search products',
+          },
+          selects: [
+            {
+              value: categoryFilter,
+              onChange: setCategoryFilter,
+              label: 'Filter by category',
+              options: CATEGORY_OPTIONS,
+            },
+          ],
         }}
-        tabsLabel="Filter by status"
-        panelId={panelId}
-        search={{
-          value: searchQuery,
-          onChange: setSearchQuery,
-          placeholder: 'Search by title, category or exam',
-          label: 'Search products',
-        }}
-      >
-        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className={teacherToolbarControlClass} aria-label="Filter by category">
-            <SelectValue placeholder="Category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All categories</SelectItem>
-            {DIGITAL_PRODUCT_CATEGORIES.map((category) => (
-              <SelectItem key={category} value={category}>
-                {category}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </TeacherListToolbar>
-
-      {/* A section, not <main>: TeacherDashboardLayout already provides the
-          page's one main landmark. */}
-      <section
-        id={panelId}
-        role="tabpanel"
-        aria-labelledby={`${panelId}-tab-${statusFilter}`}
-        aria-busy={isFetching}
-        className={styles.content}
+        footer={
+          products.length > 0 &&
+          totalPages > 1 && (
+            <TeacherListPagination
+              page={page}
+              totalPages={totalPages}
+              onPageChange={(next) => setPage(Math.min(totalPages, Math.max(1, next)))}
+            />
+          )
+        }
       >
         <p className={styles.visuallyHidden} aria-live="polite">
           {liveMessage}
         </p>
         {renderContent()}
-      </section>
-
-      {products.length > 0 && totalPages > 1 && (
-        <TeacherListPagination
-          page={page}
-          totalPages={totalPages}
-          onPageChange={(next) => setPage(Math.min(totalPages, Math.max(1, next)))}
-        />
-      )}
+      </TeacherContentPage>
 
       {sharingProduct && (
         <ShareAssetDialog
@@ -761,6 +759,6 @@ export const TeacherProductManager: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 };

@@ -63,7 +63,7 @@ export const EnrolledBundleCard: React.FC<EnrolledBundleCardProps> = ({ bundle, 
     <div className={`${styles.card} ${className || ''}`}>
       <div className={styles.cardHeader}>
         <img
-          src={bundle.thumbnailUrl || Placeholder.TEST}
+          src={bundle.thumbnailUrl || Placeholder.BUNDLE}
           alt={bundle.title}
           className={styles.thumbnail}
         />

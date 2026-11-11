@@ -1,9 +1,10 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAdminLiveCalendar, type InputType as CalendarInput } from "../endpoints/admin/live-lessons/calendar_GET.schema";
 import { getAdminLiveTeachers } from "../endpoints/admin/live-lessons/teachers_GET.schema";
 import { getAdminLiveSession } from "../endpoints/admin/live-lessons/session_GET.schema";
 import { getAdminLiveBookings, type InputType as BookingsInput } from "../endpoints/admin/live-lessons/bookings_GET.schema";
 import { getAdminLiveBooking } from "../endpoints/admin/live-lessons/booking_GET.schema";
+import { postAdminLiveOutcome, type InputType as OutcomeInput } from "../endpoints/admin/live-lessons/outcome_POST.schema";
 
 /* Every query here sits under this prefix, so a cancellation can refresh the whole module at once. */
 export const ADMIN_LIVE_KEY = ["admin", "live-lessons"] as const;
@@ -44,3 +45,12 @@ export const useAdminLiveBookingQuery = (target: { type: "booking" | "group"; id
     queryFn: () => getAdminLiveBooking(target!),
     enabled: !!target,
   });
+
+/* Mark a session completed or a no-show; refreshes the calendar, drawers and bookings. */
+export const useAdminLiveOutcomeMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: OutcomeInput) => postAdminLiveOutcome(input),
+    onSettled: () => qc.invalidateQueries({ queryKey: ADMIN_LIVE_KEY }),
+  });
+};

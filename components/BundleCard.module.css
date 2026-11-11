@@ -36,7 +36,7 @@
   border-color: var(--tk-brand-text);
 }
 
-/* A bundle without a cover shows its mint kind colour, not a grey well. */
+/* A bundle without a cover shows Placeholder.BUNDLE; the mint well shows while it loads. */
 .thumbnailWrapper {
   position: relative;
   aspect-ratio: 16 / 9;
@@ -45,10 +45,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.bundleIcon {
-  color: var(--fc-mint-ink);
 }
 
 .status {

@@ -1,7 +1,6 @@
 import React, { useMemo } from "react";
 import { Helmet } from "react-helmet";
-import { Link, useNavigate } from "react-router-dom";
-import { Plus, CalendarPlus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useTeacherLiveTestsQuery } from "../helpers/useTeacherLiveTestsQuery";
 import { useTeacherLiveTestMutations } from "../helpers/useTeacherLiveTestMutations";
@@ -10,10 +9,11 @@ import { useRefetchOnLinkArrival } from "../helpers/useRefetchOnLinkArrival";
 import { TeacherLiveTestCard } from "../components/TeacherLiveTestCard";
 import { LiveTestAnalyticsDialog } from "../components/LiveTestAnalyticsDialog";
 import { DuplicateLiveTestDialog } from "../components/DuplicateLiveTestDialog";
-import { TeacherPageHeader } from "../components/TeacherPageHeader";
-import { TeacherListToolbar } from "../components/TeacherListToolbar";
 import { TeacherListEmpty } from "../components/TeacherListEmpty";
 import { TeacherListPagination } from "../components/TeacherListPagination";
+import { TeacherContentPage } from "../components/TeacherContentPage";
+import { TeacherContentEmpty } from "../components/TeacherContentEmpty";
+import { withStatusCounts, type TeacherStatusTabDef } from "../components/TeacherStatusTabs";
 import { ConsoleFilterNotice } from "../components/ConsoleFilterNotice";
 import { Button } from "../components/Button";
 import { TestCardSkeleton } from "../components/TestCardSkeleton";
@@ -25,16 +25,18 @@ import styles from "./teacher.live-tests.module.css";
 
 type StatusTab = "draft" | "live" | "upcoming" | "ended";
 
-const STATUS_TABS: { label: string; value: StatusTab }[] = [
-  { label: "Drafts", value: "draft" },
-  { label: "Live", value: "live" },
-  { label: "Upcoming", value: "upcoming" },
-  { label: "Ended", value: "ended" },
+const STATUS_TABS: TeacherStatusTabDef<StatusTab>[] = [
+  { value: "draft", label: "Drafts", word: "draft" },
+  { value: "live", label: "Live", word: "live" },
+  { value: "upcoming", label: "Upcoming", word: "upcoming" },
+  { value: "ended", label: "Ended", word: "ended" },
 ];
 
 const STATUS_VALUES = STATUS_TABS.map((tab) => tab.value);
 const DEFAULT_STATUS: StatusTab = "draft";
 const PAGE_SIZE = 10;
+
+const CREATE = { label: "New live test", to: "/teacher/create-live-test" };
 
 const LIST_FILTERS: Record<LiveTestListFilter, { label: string; empty: string }> = {
   "prizes-pending": {
@@ -67,16 +69,19 @@ const TeacherLiveTestsPage: React.FC = () => {
   );
 
   const { data, isFetching, error, refetch } = useTeacherLiveTestsQuery(filters);
+  // The counts come with every page of the list. This one-row query (shared
+  // with Test series) keeps them on screen while a new tab's page loads.
+  const { data: countsData } = useTeacherLiveTestsQuery({ limit: 1 });
+  const statusCounts = data?.statusCounts ?? countsData?.statusCounts;
+  const total = statusCounts?.all;
   useRefetchOnLinkArrival(filter !== undefined, isFetching, refetch);
   const { useDeleteLiveTestMutation, useUnpublishLiveTestMutation } = useTeacherLiveTestMutations();
   const deleteMutation = useDeleteLiveTestMutation();
   const unpublishMutation = useUnpublishLiveTestMutation();
 
-  const activeTabLabel =
-    STATUS_TABS.find((tab) => tab.value === status)?.label.toLowerCase() ?? "draft";
+  const statusWord = STATUS_TABS.find((tab) => tab.value === status)?.word ?? "draft";
 
-  const handleStatusChange = (value: string) => {
-    const next = STATUS_VALUES.find((tab) => tab === value) ?? DEFAULT_STATUS;
+  const handleStatusChange = (next: StatusTab) => {
     write({ status: next === DEFAULT_STATUS ? null : next, filter: null, page: null });
   };
 
@@ -149,38 +154,31 @@ const TeacherLiveTestsPage: React.FC = () => {
     }
 
     if (!data || data.tests.length === 0) {
+      if (!total) {
+        return (
+          <TeacherContentEmpty
+            kind="live_test"
+            plural="live tests"
+            reason="none"
+            description="A live test runs at a scheduled time for everyone at once. Schedule your first one as a draft, then publish it when it is ready."
+            create={{ ...CREATE, label: "Schedule a live test" }}
+          />
+        );
+      }
+
       if (filter) {
         return (
-          <TeacherListEmpty
-            icon={<CalendarPlus size={26} />}
+          <TeacherContentEmpty
+            kind="live_test"
+            plural="live tests"
+            reason="filter"
             title={LIST_FILTERS[filter].empty}
             description="Nothing matches this filter right now. Show all to go back to every live test."
           />
         );
       }
 
-      const isFirstDraftPage = status === DEFAULT_STATUS && page === 1;
-      return (
-        <TeacherListEmpty
-          kind={isFirstDraftPage ? "live_test" : undefined}
-          icon={<CalendarPlus size={26} />}
-          title={isFirstDraftPage ? "No live tests yet" : `No ${activeTabLabel} live tests`}
-          description={
-            isFirstDraftPage
-              ? "A live test runs at a scheduled time for everyone at once. Schedule your first one as a draft, then publish it when it is ready."
-              : "Nothing here yet. The other tabs may have what you are looking for."
-          }
-        >
-          {isFirstDraftPage && (
-            <Button asChild>
-              <Link to="/teacher/create-live-test">
-                <Plus size={16} />
-                Schedule a live test
-              </Link>
-            </Button>
-          )}
-        </TeacherListEmpty>
-      );
+      return <TeacherContentEmpty kind="live_test" plural="live tests" reason="status" statusWord={statusWord} />;
     }
 
     return (
@@ -209,67 +207,64 @@ const TeacherLiveTestsPage: React.FC = () => {
         <title>Live tests - Testkart for Teachers</title>
         <meta name="description" content="Schedule and manage your live tests on Testkart." />
       </Helmet>
-      <div className={styles.page}>
-        <TeacherPageHeader title="Live tests" kind="live_test">
-          <Button asChild>
-            <Link to="/teacher/create-live-test">
-              <Plus size={16} />
-              New live test
-            </Link>
-          </Button>
-        </TeacherPageHeader>
-
-        <TeacherListToolbar
-          tabs={STATUS_TABS}
-          value={filter ? "" : status}
-          onValueChange={handleStatusChange}
-          tabsLabel="Filter by status"
-        />
-
-        {filter && (
-          <ConsoleFilterNotice
-            label={LIST_FILTERS[filter].label}
-            count={data?.total}
-            onClear={clearFilter}
-            clearLabel="Show all"
-          />
-        )}
-
-        <div className={styles.content}>{renderContent()}</div>
-
-        {data && data.total > data.limit && (
-          <TeacherListPagination
-            page={page}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
-        )}
-
-        <LiveTestAnalyticsDialog
-          liveTestId={analyticsTestId}
-          liveTestTitle={data?.tests.find((t) => t.id === analyticsTestId)?.title}
-          open={!!analyticsTestId}
-          onOpenChange={(isOpen) => {
-            if (!isOpen) setAnalyticsTestId(null);
-          }}
-        />
-
-        {duplicatingTestId &&
+      <TeacherContentPage
+        kind="live_test"
+        title="Live tests"
+        description="Schedule, run and review your live tests in one place."
+        create={CREATE}
+        busy={isFetching}
+        toolbar={{
+          tabs: {
+            tabs: withStatusCounts(STATUS_TABS, statusCounts),
+            value: filter ? null : status,
+            onValueChange: handleStatusChange,
+            total,
+          },
+        }}
+        notice={
+          filter && (
+            <ConsoleFilterNotice
+              label={LIST_FILTERS[filter].label}
+              count={data?.total}
+              onClear={clearFilter}
+              clearLabel="Show all"
+            />
+          )
+        }
+        footer={
           data &&
-          (() => {
-            const testToDuplicate = data.tests.find((t) => t.id === duplicatingTestId);
-            return testToDuplicate ? (
-              <DuplicateLiveTestDialog
-                liveTest={testToDuplicate}
-                open={true}
-                onOpenChange={(isOpen) => {
-                  if (!isOpen) setDuplicatingTestId(null);
-                }}
-                onSuccess={handleDuplicateSuccess}
-              />
-            ) : null;
-          })()}
-      </div>
+          data.total > data.limit && (
+            <TeacherListPagination page={page} totalPages={totalPages} onPageChange={handlePageChange} />
+          )
+        }
+      >
+        {renderContent()}
+      </TeacherContentPage>
+
+      <LiveTestAnalyticsDialog
+        liveTestId={analyticsTestId}
+        liveTestTitle={data?.tests.find((t) => t.id === analyticsTestId)?.title}
+        open={!!analyticsTestId}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) setAnalyticsTestId(null);
+        }}
+      />
+
+      {duplicatingTestId &&
+        data &&
+        (() => {
+          const testToDuplicate = data.tests.find((t) => t.id === duplicatingTestId);
+          return testToDuplicate ? (
+            <DuplicateLiveTestDialog
+              liveTest={testToDuplicate}
+              open={true}
+              onOpenChange={(isOpen) => {
+                if (!isOpen) setDuplicatingTestId(null);
+              }}
+              onSuccess={handleDuplicateSuccess}
+            />
+          ) : null;
+        })()}
     </>
   );
 };

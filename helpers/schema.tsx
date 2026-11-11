@@ -1186,9 +1186,13 @@ export interface GroupLessonEnrollments {
 }
 
 export interface GroupLessons {
+  awaitingCompletionAt: Timestamp | null;
   cancellationReason: string | null;
   cancelledAt: Timestamp | null;
+  cancelledBy: string | null;
   completedAt: Timestamp | null;
+  completedBy: string | null;
+  completionOverdueAt: Timestamp | null;
   coverImageFileId: string | null;
   coverImageUrl: string | null;
   createdAt: Generated<Timestamp>;
@@ -1363,6 +1367,19 @@ export interface LivePackages {
   studentId: number;
   teacherId: number;
   updatedAt: Generated<Timestamp>;
+}
+
+export interface LiveSessionEvents {
+  actorId: number | null;
+  actorLabel: string | null;
+  actorType: string;
+  createdAt: Generated<Timestamp>;
+  fromStatus: string | null;
+  id: Generated<string>;
+  reason: string | null;
+  sessionId: string;
+  sessionKind: string;
+  toStatus: string;
 }
 
 export interface LiveSlotHolds {
@@ -1561,9 +1578,13 @@ export interface MentorshipBlockedDates {
 
 export interface MentorshipBookings {
   amountPaid: Generated<Numeric | null>;
+  awaitingCompletionAt: Timestamp | null;
   cancellationReason: string | null;
   cancelledAt: Timestamp | null;
   cancelledBy: string | null;
+  completedAt: Timestamp | null;
+  completedBy: string | null;
+  completionOverdueAt: Timestamp | null;
   createdAt: Generated<Timestamp | null>;
   creditId: string | null;
   durationMinutes: number;
@@ -1576,6 +1597,8 @@ export interface MentorshipBookings {
   issueResolvedBy: number | null;
   isTrial: Generated<boolean>;
   meetingLink: string | null;
+  noShowParty: string | null;
+  noShowReason: string | null;
   notes: string | null;
   orderId: number | null;
   packageId: string | null;
@@ -2966,6 +2989,7 @@ export interface DB {
   liveMandates: LiveMandates;
   livePackageCycles: LivePackageCycles;
   livePackages: LivePackages;
+  liveSessionEvents: LiveSessionEvents;
   liveSlotHolds: LiveSlotHolds;
   liveTeachingApplications: LiveTeachingApplications;
   liveTestEnrollments: LiveTestEnrollments;

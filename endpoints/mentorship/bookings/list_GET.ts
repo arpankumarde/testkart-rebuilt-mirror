@@ -48,6 +48,7 @@ export async function handle(request: Request) {
         "mentorshipBookings.creditId",
         "mentorshipBookings.issueReportedAt",
         "mentorshipBookings.issueResolution",
+        "mentorshipBookings.noShowParty",
         "teacher.id as teacherId",
         "teacher.displayName as teacherName",
         "teacher.avatarUrl as teacherAvatarUrl",
@@ -119,6 +120,7 @@ export async function handle(request: Request) {
             new Date(r.scheduledAt).getTime() <= now.getTime() &&
             now.getTime() <= reportCloses(r),
           issue: r.issueReportedAt ? { reportedAt: r.issueReportedAt, resolution: r.issueResolution } : null,
+          noShowParty: r.noShowParty,
         };
       }),
     };

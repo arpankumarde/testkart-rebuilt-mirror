@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Package } from 'lucide-react';
 import { useTeacherBundlesQuery } from '../helpers/useTeacherBundlesQuery';
 import { useBundleMutations } from '../helpers/useBundleMutations';
 import { useListUrlParams } from '../helpers/useListUrlParams';
 import { useRefetchOnLinkArrival } from '../helpers/useRefetchOnLinkArrival';
 import { BundleCard } from './BundleCard';
 import { Button } from './Button';
-import { TeacherPageHeader } from './TeacherPageHeader';
-import { TeacherListToolbar } from './TeacherListToolbar';
 import { TeacherListEmpty } from './TeacherListEmpty';
 import { TeacherListPagination } from './TeacherListPagination';
+import { TeacherContentPage } from './TeacherContentPage';
+import { TeacherContentEmpty } from './TeacherContentEmpty';
+import { withStatusCounts, type TeacherStatusTabDef } from './TeacherStatusTabs';
 import { TestCardSkeleton } from './TestCardSkeleton';
 import {
   Dialog,
@@ -27,10 +27,10 @@ const BUNDLES_PER_PAGE = 9;
 
 type StatusTab = 'all' | 'published' | 'draft';
 
-const TABS: { value: StatusTab; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'published', label: 'Published' },
-  { value: 'draft', label: 'Drafts' },
+const TABS: TeacherStatusTabDef<StatusTab>[] = [
+  { value: 'all', label: 'All', word: '' },
+  { value: 'published', label: 'Published', word: 'published' },
+  { value: 'draft', label: 'Drafts', word: 'draft' },
 ];
 
 const STATUS_VALUES = TABS.map((tab) => tab.value);
@@ -43,27 +43,29 @@ export const BundleManager: React.FC = () => {
 
   const page = readId('page') ?? 1;
   const status = read<StatusTab>('status', STATUS_VALUES, 'all');
+  const query = searchTerm.trim();
 
   const { data, isFetching, error, refetch } = useTeacherBundlesQuery({
     page: String(page),
     limit: String(BUNDLES_PER_PAGE),
     status: status === 'all' ? undefined : status,
+    search: query || undefined,
   });
   useRefetchOnLinkArrival(status !== 'all', isFetching, refetch);
 
   const { deleteBundleMutation, publishBundleMutation } = useBundleMutations();
 
-  const handleTabChange = (value: string) => {
-    const next = STATUS_VALUES.find((tab) => tab === value) ?? 'all';
+  const handleTabChange = (next: StatusTab) => {
     write({ status: next === 'all' ? null : next, page: null });
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    write({ page: null });
   };
 
   const handlePageChange = (newPage: number) => {
     write({ page: newPage > 1 ? newPage : null });
-  };
-
-  const handleCreate = () => {
-    navigate('/teacher/bundles/create');
   };
 
   const handleEdit = (bundle: BundleListItem) => {
@@ -85,17 +87,10 @@ export const BundleManager: React.FC = () => {
     });
   };
 
-  const query = searchTerm.trim().toLowerCase();
-  const isSearching = query.length > 0;
-
-  // Search narrows the page already loaded - the list endpoint takes no search
-  // term, so it cannot reach bundles on other pages.
-  const visibleBundles = data?.bundles.filter((bundle) =>
-    bundle.title.toLowerCase().includes(query)
-  );
-
+  const bundles = data?.bundles ?? [];
+  const total = data?.statusCounts.all;
   const totalPages = data ? Math.max(1, Math.ceil(data.total / BUNDLES_PER_PAGE)) : 1;
-  const activeTabLabel = TABS.find((tab) => tab.value === status)?.label.toLowerCase() ?? 'all';
+  const statusWord = TABS.find((tab) => tab.value === status)?.word || undefined;
 
   const renderContent = () => {
     if (isFetching && !data) {
@@ -120,44 +115,36 @@ export const BundleManager: React.FC = () => {
       );
     }
 
-    if (!visibleBundles || visibleBundles.length === 0) {
-      const isEmptyOverall = !isSearching && status === 'all' && page === 1;
+    if (!total) {
       return (
-        <TeacherListEmpty
-          kind={!isSearching && isEmptyOverall ? 'bundle' : undefined}
-          icon={<Package size={26} />}
-          title={
-            isSearching
-              ? `Nothing on this page matches "${searchTerm.trim()}"`
-              : isEmptyOverall
-                ? 'No bundles yet'
-                : `No ${activeTabLabel} bundles`
-          }
-          description={
-            isSearching
-              ? 'Try a different word, or check the other tabs.'
-              : isEmptyOverall
-                ? 'A bundle sells several of your courses, tests and notes together at one price. Build your first one to start selling.'
-                : 'Nothing here yet. The other tabs may have what you are looking for.'
-          }
-        >
-          {isSearching ? (
-            <Button variant="outline" onClick={() => setSearchTerm('')}>
-              Clear search
-            </Button>
-          ) : isEmptyOverall ? (
-            <Button onClick={handleCreate}>
-              <Plus size={16} />
-              Create a bundle
-            </Button>
-          ) : null}
-        </TeacherListEmpty>
+        <TeacherContentEmpty
+          kind="bundle"
+          plural="bundles"
+          reason="none"
+          description="A bundle sells several of your courses, tests and notes together at one price. Build your first one to start selling."
+          create={{ label: 'Create a bundle', to: '/teacher/bundles/create' }}
+        />
+      );
+    }
+
+    if (bundles.length === 0) {
+      return query ? (
+        <TeacherContentEmpty
+          kind="bundle"
+          plural="bundles"
+          reason="search"
+          query={query}
+          statusWord={statusWord}
+          onClearSearch={() => handleSearchChange('')}
+        />
+      ) : (
+        <TeacherContentEmpty kind="bundle" plural="bundles" reason="status" statusWord={statusWord ?? ''} />
       );
     }
 
     return (
       <div className={styles.grid}>
-        {visibleBundles.map((bundle) => (
+        {bundles.map((bundle) => (
           <BundleCard
             key={bundle.id}
             bundle={bundle}
@@ -171,36 +158,36 @@ export const BundleManager: React.FC = () => {
   };
 
   return (
-    <div className={styles.page}>
-      <TeacherPageHeader title="Bundles" kind="bundle">
-        <Button onClick={handleCreate}>
-          <Plus size={16} />
-          New bundle
-        </Button>
-      </TeacherPageHeader>
-
-      <TeacherListToolbar
-        tabs={TABS}
-        value={status}
-        onValueChange={handleTabChange}
-        tabsLabel="Filter by status"
-        search={{
-          value: searchTerm,
-          onChange: setSearchTerm,
-          placeholder: 'Search by title',
-          label: 'Search bundles',
+    <>
+      <TeacherContentPage
+        kind="bundle"
+        title="Bundles"
+        description="Sell several of your published items together at one price."
+        create={{ label: 'New bundle', to: '/teacher/bundles/create' }}
+        busy={isFetching}
+        toolbar={{
+          tabs: {
+            tabs: withStatusCounts(TABS, data?.statusCounts),
+            value: status,
+            onValueChange: handleTabChange,
+            total,
+          },
+          search: {
+            value: searchTerm,
+            onChange: handleSearchChange,
+            placeholder: 'Search by title',
+            label: 'Search bundles',
+          },
         }}
-      />
-
-      <div className={styles.content}>{renderContent()}</div>
-
-      {data && data.total > BUNDLES_PER_PAGE && (
-        <TeacherListPagination
-          page={page}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-        />
-      )}
+        footer={
+          data &&
+          data.total > BUNDLES_PER_PAGE && (
+            <TeacherListPagination page={page} totalPages={totalPages} onPageChange={handlePageChange} />
+          )
+        }
+      >
+        {renderContent()}
+      </TeacherContentPage>
 
       <Dialog
         open={!!bundleToDelete}
@@ -228,6 +215,6 @@ export const BundleManager: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 };

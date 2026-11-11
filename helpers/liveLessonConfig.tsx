@@ -58,8 +58,17 @@ export const MENTORSHIP_RATE_UNIT_MINUTES = 25;
 /** Floor on a 25-minute class price; a 50-minute class has twice this floor. Trials have no floor. */
 export const MENTORSHIP_MIN_RATE_PER_UNIT = 49;
 
-/** A booking/enrollment is auto-marked completed this long after its scheduled end if nobody closed it out. */
+/**
+ * The sweep settles a credit-paid 1:1 class this long after it ends: completed when the teacher
+ * joined the classroom, cancelled with the credit returned when they did not. Other sessions are
+ * never completed automatically; they wait for the teacher or an admin.
+ */
 export const AUTO_COMPLETE_AFTER_MINUTES = 180;
+
+/** A session still awaiting completion this long after it ended is overdue: flagged to admins and the teacher is emailed. */
+export const COMPLETION_OVERDUE_HOURS = 24;
+/** The overdue email goes only for sessions that ended within this many days; older ones are just flagged. */
+export const COMPLETION_REMINDER_MAX_AGE_DAYS = 7;
 
 /**
  * Video provider: "daily" routes through a real Daily.co room via helpers/videoProvider.tsx, using

@@ -21,11 +21,15 @@ export async function handle(request: Request): Promise<Response> {
       page: url.searchParams.get("page") ?? "1",
       limit: url.searchParams.get("limit") ?? "10",
       status: url.searchParams.get("status"),
+      search: url.searchParams.get("search"),
     });
 
     const page = parseInt(input.page, 10);
     const limit = parseInt(input.limit, 10);
     const offset = (page - 1) * limit;
+    const searchPattern = input.search
+      ? `%${input.search.replace(/[\\%_]/g, (c) => `\\${c}`)}%`
+      : null;
 
     let query = db
       .selectFrom("courseBundles")
@@ -59,6 +63,10 @@ export async function handle(request: Request): Promise<Response> {
       query = query.where("isPublished", "=", input.status === "published");
     }
 
+    if (searchPattern) {
+      query = query.where("courseBundles.title", "ilike", searchPattern);
+    }
+
     const bundles = await query
       .orderBy("createdAt", "desc")
       .limit(limit)
@@ -74,7 +82,25 @@ export async function handle(request: Request): Promise<Response> {
       totalQuery = totalQuery.where("isPublished", "=", input.status === "published");
     }
 
+    if (searchPattern) {
+      totalQuery = totalQuery.where("title", "ilike", searchPattern);
+    }
+
     const totalResult = await totalQuery.executeTakeFirstOrThrow();
+
+    const countRows = await db
+      .selectFrom("courseBundles")
+      .where("teacherId", "=", effectiveTeacherId)
+      .select(["isPublished", db.fn.countAll<string>().as("count")])
+      .groupBy("isPublished")
+      .execute();
+    const statusCounts: OutputType["statusCounts"] = { all: 0, published: 0, draft: 0 };
+    for (const row of countRows) {
+      const count = Number(row.count);
+      statusCounts.all += count;
+      statusCounts[row.isPublished ? "published" : "draft"] += count;
+    }
+
     const inReview = await pendingReviewIds(db, "course_bundle", bundles.map((bundle) => bundle.id));
     const rejections = await rejectedReviews(db, "course_bundle", bundles.map((bundle) => bundle.id));
 
@@ -90,6 +116,7 @@ export async function handle(request: Request): Promise<Response> {
         rejection: rejections.get(bundle.id) ?? null,
       })),
       total: Number(totalResult.total),
+      statusCounts,
     };
 
     return new Response(superjson.stringify(output));

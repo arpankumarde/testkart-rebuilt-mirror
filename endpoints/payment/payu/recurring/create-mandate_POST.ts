@@ -6,7 +6,7 @@ import { createHash } from "crypto";
 import { PAYU_MODE } from "../../../../helpers/_publicConfigs";
 import { NotAuthenticatedError } from "../../../../helpers/getSetServerSession";
 import { newMandateTxnid } from "../../../../helpers/teacherMandate";
-import { INTRO_OFFER_PRICE, planQualifiesForIntroOffer, isEligibleForIntroOffer } from "../../../../helpers/teacherIntroOffer";
+import { INTRO_OFFER_PRICE, introOfferAppliesToPlan } from "../../../../helpers/teacherIntroOffer";
 import { validatePromoCodeForPlan, applyPromoDiscount, computePromoDiscountAmount } from "../../../../helpers/subscriptionPromoCodes";
 import { getOrderClientInfo } from "../../../../helpers/orderClientInfo";
 
@@ -67,9 +67,10 @@ export async function handle(request: Request) {
       const txnid = newMandateTxnid();
       const fullPrice = parseFloat(plan.price).toFixed(2);
 
-      // A promo code, when given, always wins over the generic intro offer -
-      // a teacher who has a code gets exactly what it promises.
-      const promo = promoCode
+      // The ₹1 intro offer wins and never stacks: when it applies, a promo code
+      // sent with the request is ignored, so it is neither validated nor redeemed.
+      const introOffer = await introOfferAppliesToPlan(plan, user.id, trx);
+      const promo = promoCode && !introOffer
         ? await validatePromoCodeForPlan(trx, promoCode, plan.id, user.id)
         : null;
 
@@ -137,12 +138,9 @@ export async function handle(request: Request) {
         } satisfies OutputType;
       }
 
-      // First-ever paid autopay sign-up to Starter/Individual monthly is charged
-      // ₹1 for this cycle; the mandate is still authorized up to the full plan
-      // price, so the second cycle renews at the normal rate automatically.
-      const introOffer =
-        planQualifiesForIntroOffer(plan.name, plan.billingCycle) &&
-        (await isEligibleForIntroOffer(user.id, trx));
+      // An intro sign-up is charged ₹1 for this cycle; the mandate is still
+      // authorized up to the full plan price, so the second cycle renews at the
+      // normal rate automatically.
       const amount = introOffer ? INTRO_OFFER_PRICE.toFixed(2) : fullPrice;
 
       await trx

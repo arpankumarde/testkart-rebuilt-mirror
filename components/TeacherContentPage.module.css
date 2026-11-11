@@ -1,0 +1,37 @@
+/* No padding of its own - TeacherDashboardLayout's .pageBody owns the gutter.
+   70rem fits three 360px cards and their gaps, so the header and toolbar
+   share the list's edges on every content page. Headings take the deep
+   forest green in light mode; dark mode keeps the console's light ink. */
+.page {
+  --tc-ink: var(--fc-panel);
+  container: content-page / inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 70rem;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+:global(.dark) .page {
+  --tc-ink: var(--sp-ink);
+}
+
+/* The page's own grids and tables query this box, not the window. */
+.content {
+  container-type: inline-size;
+  min-height: 16rem;
+}
+
+@container content-page (max-width: 40rem) {
+  .create {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    gap: var(--spacing-4);
+  }
+}

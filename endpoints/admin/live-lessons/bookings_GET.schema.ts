@@ -3,10 +3,13 @@ import superjson from "superjson";
 
 export const BOOKINGS_MAX_PAGE_SIZE = 100;
 
+export const BOOKING_STATUS_FILTERS = ["scheduled", "awaiting_completion", "overdue", "completed", "cancelled", "no_show"] as const;
+export type BookingStatusFilter = (typeof BOOKING_STATUS_FILTERS)[number];
+
 export const schema = z.object({
   q: z.string().trim().max(120).optional(),
-  /** The list only ever holds completed and cancelled bookings; this narrows it to one of the two. */
-  status: z.enum(["completed", "cancelled"]).optional(),
+  /** "cancelled" includes group learners removed by the teacher; "overdue" is awaiting completion past the overdue window. */
+  status: z.enum(BOOKING_STATUS_FILTERS).optional(),
   type: z.enum(["booking", "group"]).optional(),
   payment: z.enum(["paid", "pending", "refunded", "failed", "credit", "free"]).optional(),
   teacherId: z.coerce.number().int().positive().optional(),
@@ -22,7 +25,8 @@ export const schema = z.object({
 
 export type InputType = z.input<typeof schema>;
 
-export type LivePaymentStatus = "paid" | "pending" | "refunded" | "failed" | "credit" | "free";
+/** "none" is a cancelled group lesson nobody enrolled in, so there was nothing to pay. */
+export type LivePaymentStatus = "paid" | "pending" | "refunded" | "failed" | "credit" | "free" | "none";
 
 export type LiveBookingRow = {
   /** "booking" is a 1:1 mentorship booking; "group" is a group lesson enrollment. */
@@ -41,8 +45,9 @@ export type LiveBookingRow = {
   sessionStart: Date;
   sessionEnd: Date;
   durationMinutes: number;
-  /** scheduled | completed | cancelled | no_show | removed */
+  /** scheduled | awaiting_completion | completed | cancelled | no_show | removed */
   status: string;
+  /** The session's lifecycle status, which for a group learner can differ from their own (removed, left). */
   sessionStatus: string;
   /** The session price stored on the booking or enrollment. */
   price: number;
@@ -70,16 +75,33 @@ export type LiveBookingRow = {
   issueResolvedAt: Date | null;
   maxCapacity: number | null;
   enrolledCount: number | null;
+  /** A group lesson cancelled before anyone enrolled: no learner, id and sessionId are the lesson id, price is per learner. */
+  noLearners: boolean;
+  /** "teacher" or "learner" when status is no_show. */
+  noShowParty: string | null;
+  noShowReason: string | null;
+  completedAt: Date | null;
+  completedBy: string | null;
+  /** Awaiting completion for longer than the overdue window. */
+  overdue: boolean;
 };
 
-export type BookingsSummary = { total: number; completed: number; cancelled: number };
+export type BookingsSummary = {
+  total: number;
+  scheduled: number;
+  awaitingCompletion: number;
+  overdue: number;
+  completed: number;
+  cancelled: number;
+  noShow: number;
+};
 
 export type OutputType = {
   rows: LiveBookingRow[];
   total: number;
   page: number;
   pageSize: number;
-  /** Counts over every completed and cancelled booking, not just the filtered ones. */
+  /** Counts over every booking (learner-less cancelled lessons included), whatever the filters and page. */
   summary: BookingsSummary;
 };
 

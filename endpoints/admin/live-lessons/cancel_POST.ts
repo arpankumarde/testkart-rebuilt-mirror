@@ -2,6 +2,7 @@ import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { schema, OutputType } from "./cancel_POST.schema";
 import { returnCredit } from "../../../helpers/livePackages";
+import { actorStamp, lifecycleStatusOf, recordSessionEvent, type LiveActor } from "../../../helpers/liveSessionLifecycle";
 import superjson from "superjson";
 
 export async function handle(request: Request): Promise<Response> {
@@ -10,7 +11,8 @@ export async function handle(request: Request): Promise<Response> {
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);
 
-    const cancelledByLabel = `admin:${admin.fullName ?? admin.email ?? admin.id}`;
+    const actor: LiveActor = { type: "admin", id: admin.id, label: admin.fullName ?? admin.email ?? String(admin.id) };
+    const now = new Date();
 
     if (input.kind === "booking") {
       await db.transaction().execute(async (trx) => {
@@ -19,14 +21,14 @@ export async function handle(request: Request): Promise<Response> {
           .set({
             status: "cancelled",
             cancellationReason: input.reason,
-            cancelledAt: new Date(),
-            cancelledBy: cancelledByLabel,
+            cancelledAt: now,
+            cancelledBy: actorStamp(actor),
             earningStatus: "void",
-            updatedAt: new Date(),
+            updatedAt: now,
           })
           .where("id", "=", input.id)
           .where("status", "=", "scheduled")
-          .returning("creditId")
+          .returning(["creditId", "scheduledAt", "durationMinutes"])
           .executeTakeFirst();
 
         if (!updated) {
@@ -34,23 +36,46 @@ export async function handle(request: Request): Promise<Response> {
         }
         // A paid trial or package class is given back to the student.
         if (updated.creditId) await returnCredit(trx, updated.creditId);
+        await recordSessionEvent(trx, {
+          kind: "booking",
+          id: input.id,
+          from: lifecycleStatusOf("scheduled", updated.scheduledAt, updated.durationMinutes),
+          to: "cancelled",
+          actor,
+          reason: input.reason,
+        });
       });
     } else {
-      const updated = await db
-        .updateTable("groupLessons")
-        .set({
-          status: "cancelled",
-          cancellationReason: input.reason,
-          cancelledAt: new Date(),
-          updatedAt: new Date(),
-        })
-        .where("id", "=", input.id)
-        .where("status", "!=", "cancelled")
-        .executeTakeFirst();
-
-      if (updated.numUpdatedRows === 0n) {
-        throw new Error("This group lesson was not found, or is already cancelled.");
-      }
+      await db.transaction().execute(async (trx) => {
+        const lesson = await trx
+          .selectFrom("groupLessons")
+          .select(["status", "startTime", "durationMinutes"])
+          .where("id", "=", input.id)
+          .forUpdate()
+          .executeTakeFirst();
+        if (!lesson || lesson.status === "cancelled") {
+          throw new Error("This group lesson was not found, or is already cancelled.");
+        }
+        await trx
+          .updateTable("groupLessons")
+          .set({
+            status: "cancelled",
+            cancellationReason: input.reason,
+            cancelledAt: now,
+            cancelledBy: actorStamp(actor),
+            updatedAt: now,
+          })
+          .where("id", "=", input.id)
+          .execute();
+        await recordSessionEvent(trx, {
+          kind: "group",
+          id: input.id,
+          from: lifecycleStatusOf(lesson.status, lesson.startTime, lesson.durationMinutes),
+          to: "cancelled",
+          actor,
+          reason: input.reason,
+        });
+      });
     }
 
     const output: OutputType = { success: true };

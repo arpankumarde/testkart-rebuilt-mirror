@@ -43,10 +43,10 @@ type Kind = "bookings" | "group";
 const TONES: LiveSessionTone[] = ["lavender", "blue", "sage", "butter", "mint"];
 
 /* Upcoming sessions need no label; only finished or stopped ones say what happened. */
-const bookingStatus = (status: string): LiveSessionStatus | null => {
+const bookingStatus = (status: string, noShowParty?: string | null): LiveSessionStatus | null => {
   if (status === "cancelled") return { label: "Cancelled", tone: "peach" };
   if (status === "completed") return { label: "Done", tone: "sage" };
-  if (status === "no_show") return { label: "Missed", tone: "butter" };
+  if (status === "no_show") return { label: noShowParty === "teacher" ? "Teacher absent" : "Missed", tone: "butter" };
   return null;
 };
 
@@ -224,7 +224,7 @@ const BookingsView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
               title={b.sessionTitle}
               subtitle={`with ${b.teacherName}`}
               tone={TONES[i % TONES.length]}
-              status={bookingStatus(b.status)}
+              status={bookingStatus(b.status, b.noShowParty)}
               note={b.cancellationReason}
               actions={
                 b.status === "scheduled" ? (

@@ -218,6 +218,57 @@
   overflow-wrap: anywhere;
 }
 
+.callout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 0.875rem;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.callout p {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+.calloutUrgent {
+  background: var(--fc-butter-tint);
+  border-color: color-mix(in srgb, var(--fc-butter-ink) 35%, transparent);
+}
+
+.history {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  margin: 0;
+  padding: 0 0 0 0.875rem;
+  list-style: none;
+  border-left: 2px solid var(--border);
+}
+
+.historyItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.historyChange {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.historyReason {
+  font-size: 0.8125rem;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
 .section {
   display: flex;
   flex-direction: column;

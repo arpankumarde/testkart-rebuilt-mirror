@@ -281,3 +281,50 @@ export async function sendClassRefundedEmail(bookingId: string, outcome: "unsche
     ctaUrl: STUDENT_URL,
   });
 }
+
+/** A session ended more than a day ago and nobody marked how it went. Goes to the teacher. */
+export async function sendCompletionOverdueEmail(kind: "booking" | "group", id: string): Promise<void> {
+  if (kind === "booking") {
+    const b = await db
+      .selectFrom("mentorshipBookings")
+      .select(["studentId", "teacherId", "scheduledAt", "durationMinutes"])
+      .where("id", "=", id)
+      .executeTakeFirst();
+    if (!b) return;
+    const { student, teacher } = await people(b.studentId, b.teacherId);
+    await send({
+      to: teacher?.email,
+      student: false,
+      subject: `Mark your class with ${student?.displayName ?? "a student"} as done`,
+      heading: "How did this class go?",
+      greeting: teacher?.displayName ?? "",
+      lines: [
+        `Your ${b.durationMinutes}-minute 1:1 class with ${student?.displayName ?? "a student"} on ${formatIst(new Date(b.scheduledAt))} ended over a day ago and is still awaiting completion.`,
+        "Mark it completed, or tell us the learner did not attend, so the class can be settled.",
+      ],
+      ctaLabel: "Open my bookings",
+      ctaUrl: TEACHER_URL,
+    });
+    return;
+  }
+  const g = await db
+    .selectFrom("groupLessons")
+    .innerJoin("users", "users.id", "groupLessons.teacherId")
+    .select(["groupLessons.title", "groupLessons.startTime", "users.email", "users.displayName"])
+    .where("groupLessons.id", "=", id)
+    .executeTakeFirst();
+  if (!g) return;
+  await send({
+    to: g.email,
+    student: false,
+    subject: `Mark "${g.title}" as done`,
+    heading: "How did this lesson go?",
+    greeting: g.displayName ?? "",
+    lines: [
+      `Your group lesson "${g.title}" on ${formatIst(new Date(g.startTime))} ended over a day ago and is still awaiting completion.`,
+      "Mark it completed so it shows correctly to your learners and in your earnings.",
+    ],
+    ctaLabel: "Open my group lessons",
+    ctaUrl: `${SITE_ORIGIN}/teacher/mentorship/group-lessons`,
+  });
+}

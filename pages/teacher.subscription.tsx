@@ -23,7 +23,7 @@ import { postPaymentPayuRecurringCreateMandate } from "../endpoints/payment/payu
 import { postPaymentPayuRedirect } from "../endpoints/payment/payu/redirect_POST.schema";
 import { CurrentSubscriptionStatus } from "../components/CurrentSubscriptionStatus";
 import { TeacherPageHeader } from "../components/TeacherPageHeader";
-import { TeacherSubscriptionAvailablePlans, hasPlanAbove } from "../components/TeacherSubscriptionAvailablePlans";
+import { TeacherSubscriptionAvailablePlans, hasPlanAbove, getPlanBaseName } from "../components/TeacherSubscriptionAvailablePlans";
 import { TeacherSubscriptionTransactionHistory } from "../components/TeacherSubscriptionTransactionHistory";
 import {
   Dialog,
@@ -55,6 +55,9 @@ const formatInr = (amount: number) => {
   return rounded.toLocaleString("en-IN", Number.isInteger(rounded) ? undefined : { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
+const formatBillingDate = (date: Date) =>
+  date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+
 const SubscriptionPage: React.FC = () => {
   const [historyPage, setHistoryPage] = useState(1);
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
@@ -80,6 +83,8 @@ const SubscriptionPage: React.FC = () => {
   const paymentInfoQuery = useTeacherSubscriptionPaymentInfoQuery();
   const paymentMode = paymentInfoQuery.data?.paymentMode || "normal";
   const walletBalance = paymentInfoQuery.data?.walletBalance || 0;
+  const introOfferPlanIds = paymentInfoQuery.data?.introOfferPlanIds ?? [];
+  const introOfferPrice = paymentInfoQuery.data?.introOfferPrice ?? 1;
   const [useWalletBalance, setUseWalletBalance] = useState(true);
 
   const statusQuery = useSubscriptionStatusQuery();
@@ -247,8 +252,19 @@ const SubscriptionPage: React.FC = () => {
       try {
         const paymentData = await postPaymentPayuRecurringCreateMandate({
           planId: pendingPlan.id,
-          promoCode: appliedPromo?.code,
+          promoCode: introApplies ? undefined : appliedPromo?.code,
         });
+        // The server decides the charge. If it differs from what this dialog
+        // showed (eligibility changed in another tab), stop before PayU opens.
+        if (Math.abs(Number(paymentData.amount) - payableToday) > 0.001) {
+          setIsInitiatingPayment(false);
+          paymentInfoQuery.refetch();
+          toast.error(
+            `The amount due today is now ₹${formatInr(Number(paymentData.amount))}, not ₹${formatInr(payableToday)}. Please review and confirm again.`,
+            { id: loadingToast }
+          );
+          return;
+        }
         toast.success("Redirecting to payment gateway...", { id: loadingToast });
         setTimeout(() => {
           postPaymentPayuRedirect(paymentData);
@@ -316,6 +332,26 @@ const SubscriptionPage: React.FC = () => {
     !(currentSub?.autoRenew && autopayActive);
   const hasHigherPlan = !hasPaidSub || hasPlanAbove(currentSub?.planName);
 
+  // One price model for the confirm dialog, built from the same server data the plan cards use.
+  const introApplies = !!pendingPlan && paymentMode === "recurring" && introOfferPlanIds.includes(pendingPlan.id);
+  const pendingBaseName = pendingPlan ? getPlanBaseName(pendingPlan.name) ?? pendingPlan.name : "";
+  const pendingPeriod = pendingPlan && pendingPlan.durationDays > 31 ? "year" : "month";
+  const regularPrice = pendingPlan?.price ?? 0;
+  const payableToday = introApplies ? introOfferPrice : appliedPromo?.finalPrice ?? regularPrice;
+  const renewalPrice =
+    !introApplies && appliedPromo?.recurringScope === "every_month"
+      ? Math.max(1, regularPrice - appliedPromo.discountAmount)
+      : regularPrice;
+  const nextBillingDate = (() => {
+    if (!pendingPlan) return null;
+    const now = new Date();
+    const currentEnd = currentSub?.endDate ? new Date(currentSub.endDate) : null;
+    const start = currentSub?.planId === pendingPlan.id && currentEnd && currentEnd > now ? currentEnd : now;
+    const next = new Date(start);
+    next.setDate(next.getDate() + pendingPlan.durationDays);
+    return next;
+  })();
+
   const scrollToPlans = () => {
     document.getElementById("plans")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
@@ -366,7 +402,8 @@ const SubscriptionPage: React.FC = () => {
           walletBalance={walletBalance}
           useWalletBalance={useWalletBalance}
           setUseWalletBalance={setUseWalletBalance}
-          introOfferEligible={paymentMode === "recurring" && !!paymentInfoQuery.data?.introOfferEligible}
+          introOfferPlanIds={introOfferPlanIds}
+          introOfferPrice={introOfferPrice}
         />
 
         <TeacherSubscriptionTransactionHistory
@@ -404,11 +441,13 @@ const SubscriptionPage: React.FC = () => {
       </Dialog>
 
       <Dialog open={!!pendingPlan} onOpenChange={(open) => !open && !isInitiatingPayment && setPendingPlan(null)}>
-        <DialogContent>
+        <DialogContent className={styles.payDialog}>
           <DialogHeader>
             <DialogTitle>Confirm Subscription Payment</DialogTitle>
             <DialogDescription>
-              You are about to subscribe to the {pendingPlan?.name} plan for {pendingPlan?.durationDays} days.
+              {introApplies
+                ? `Start ${pendingBaseName} with your first month for ₹${formatInr(introOfferPrice)}.`
+                : `You are about to subscribe to the ${pendingBaseName} plan for ${pendingPlan?.durationDays} days.`}
             </DialogDescription>
           </DialogHeader>
 
@@ -416,10 +455,26 @@ const SubscriptionPage: React.FC = () => {
             <div className={styles.paymentBreakdown}>
               <div className={styles.summaryCard}>
                 <div className={styles.breakdownRow}>
-                  <span>Plan Price:</span>
-                  <strong>₹{formatInr(pendingPlan.price)}</strong>
+                  <span>Subscription plan</span>
+                  <strong>{pendingBaseName}</strong>
+                </div>
+                {introApplies && (
+                  <div className={styles.breakdownRow}>
+                    <span>First-month offer</span>
+                    <strong className={styles.offerText}>₹{formatInr(introOfferPrice)}</strong>
+                  </div>
+                )}
+                <div className={styles.breakdownRow}>
+                  <span>Regular {pendingPeriod === "year" ? "yearly" : "monthly"} price</span>
+                  <strong>₹{formatInr(regularPrice)}/{pendingPeriod}</strong>
                 </div>
 
+                {introApplies ? (
+                  <p className={styles.promoLocked}>
+                    <Tag size={16} aria-hidden />
+                    <span>Promo codes can't be combined with the ₹{formatInr(introOfferPrice)} first-month offer.</span>
+                  </p>
+                ) : (
                 <div className={styles.promoSection}>
                   {appliedPromo ? (
                     <div className={styles.promoApplied} role="status">
@@ -516,18 +571,27 @@ const SubscriptionPage: React.FC = () => {
                     </>
                   )}
                 </div>
+                )}
 
-                {appliedPromo && (
-                  <>
-                    <div className={styles.breakdownRow}>
-                      <span>Promo Discount ({appliedPromo.code}):</span>
-                      <strong className={styles.successText}>-₹{formatInr(appliedPromo.discountAmount)}</strong>
-                    </div>
-                    <div className={`${styles.breakdownRow} ${styles.totalRow}`}>
-                      <span>Total Payable:</span>
-                      <strong>₹{formatInr(appliedPromo.finalPrice)}</strong>
-                    </div>
-                  </>
+                {appliedPromo && !introApplies && (
+                  <div className={styles.breakdownRow}>
+                    <span>Promo discount ({appliedPromo.code})</span>
+                    <strong className={styles.successText}>-₹{formatInr(appliedPromo.discountAmount)}</strong>
+                  </div>
+                )}
+
+                <div className={styles.payToday}>
+                  <span className={styles.payTodayLabel}>Amount payable today</span>
+                  <strong className={styles.payTodayAmount}>₹{formatInr(payableToday)}</strong>
+                </div>
+
+                {paymentMode === "recurring" && nextBillingDate && (
+                  <div className={styles.breakdownRow}>
+                    <span>Next billing</span>
+                    <strong>
+                      ₹{formatInr(renewalPrice)} on {formatBillingDate(nextBillingDate)}
+                    </strong>
+                  </div>
                 )}
               </div>
 
@@ -545,10 +609,14 @@ const SubscriptionPage: React.FC = () => {
 
               {paymentMode === "recurring" ? (
                 <p className={styles.warningNote}>
-                  You'll set up autopay and be charged ₹{formatInr(appliedPromo?.finalPrice ?? pendingPlan.price)} now
-                  {appliedPromo?.recurringScope === "every_month"
-                    ? `. Future renewals are discounted the same way, for ₹${formatInr(Math.max(1, pendingPlan.price - appliedPromo.discountAmount))} each.`
-                    : `. Renewals after this cycle are charged the full ₹${formatInr(pendingPlan.price)}.`}
+                  {introApplies
+                    ? `You'll pay just ₹${formatInr(introOfferPrice)} for your first ${pendingPeriod}. Your subscription will automatically renew at ₹${formatInr(regularPrice)}/${pendingPeriod} from the second ${pendingPeriod} onward.`
+                    : `You'll pay ₹${formatInr(payableToday)} today and set up autopay. Your subscription will automatically renew at ₹${formatInr(renewalPrice)}/${pendingPeriod}${
+                        appliedPromo?.recurringScope === "every_month" ? " with your promo discount" : ""
+                      } from the next billing date.`}{" "}
+                  Autopay is authorised for up to ₹{formatInr(regularPrice)} per {pendingPeriod}, you're notified before every
+                  charge, and you can cancel it any time
+                  {nextBillingDate ? ` before ${formatBillingDate(nextBillingDate)}` : ""} to stop the renewal.
                 </p>
               ) : useWalletBalance && walletBalance > 0 ? (
                 <>

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { Video, Ban, RotateCcw, CheckCircle2, MoreHorizontal, Settings2 } from "lucide-react";
+import { Video, Ban, RotateCcw, CheckCircle2, MoreHorizontal, Settings2, UserX } from "lucide-react";
 import {
   useMentorshipBookingsRangeQuery,
   useCancelBookingMutation,
@@ -112,6 +112,7 @@ const TeacherMentorshipBookingsPage: React.FC = () => {
   const [showCancelled, setShowCancelled] = useState(false);
   const [cancelTarget, setCancelTarget] = useState<MentorshipBookingRow | null>(null);
   const [rescheduleTarget, setRescheduleTarget] = useState<MentorshipBookingRow | null>(null);
+  const [outcomeTarget, setOutcomeTarget] = useState<{ booking: MentorshipBookingRow; outcome: "completed" | "no_show" } | null>(null);
 
   const windowStart = addMonths(anchor, -1);
   const windowEnd = addMonths(anchor, 3);
@@ -245,7 +246,7 @@ const TeacherMentorshipBookingsPage: React.FC = () => {
     setAnchor(addMonths(ym, ymIndex(ym) > ymIndex(anchor) ? 1 : -2));
   };
 
-  const menu = (b: MentorshipBookingRow) => (
+  const menu = (b: MentorshipBookingRow, started: boolean) => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon-sm" aria-label={`More options for the session with ${b.studentName}`}>
@@ -253,20 +254,21 @@ const TeacherMentorshipBookingsPage: React.FC = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onSelect={() => setRescheduleTarget(b)}>
-          <RotateCcw size={14} /> Reschedule
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          disabled={completeMutation.isPending}
-          onSelect={() =>
-            completeMutation.mutate(
-              { kind: "booking", id: b.id },
-              { onError: (err) => toast.error(err instanceof Error ? err.message : "Could not update status.") }
-            )
-          }
-        >
-          <CheckCircle2 size={14} /> Mark completed
-        </DropdownMenuItem>
+        {!started && (
+          <DropdownMenuItem onSelect={() => setRescheduleTarget(b)}>
+            <RotateCcw size={14} /> Reschedule
+          </DropdownMenuItem>
+        )}
+        {started && (
+          <>
+            <DropdownMenuItem onSelect={() => setOutcomeTarget({ booking: b, outcome: "completed" })}>
+              <CheckCircle2 size={14} /> Mark completed
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => setOutcomeTarget({ booking: b, outcome: "no_show" })}>
+              <UserX size={14} /> Learner did not attend
+            </DropdownMenuItem>
+          </>
+        )}
         <DropdownMenuItem onSelect={() => setCancelTarget(b)}>
           <Ban size={14} /> Cancel session
         </DropdownMenuItem>
@@ -279,16 +281,19 @@ const TeacherMentorshipBookingsPage: React.FC = () => {
     const end = new Date(start.getTime() + b.durationMinutes * 60000);
     const cancelled = b.status === "cancelled";
     const live = b.status === "scheduled" && start <= now && now < end;
+    const awaiting = b.status === "scheduled" && end <= now;
     const done = !cancelled && !live && (b.status !== "scheduled" || end <= now);
     const chip = cancelled
       ? { label: "Cancelled", tone: styles.chipMuted }
       : b.status === "completed"
         ? { label: "Completed", tone: styles.chipSage }
         : b.status === "no_show"
-          ? { label: "No-show", tone: styles.chipButter }
+          ? { label: b.noShowParty === "teacher" ? "Marked: you were absent" : "Learner no-show", tone: styles.chipButter }
           : live
             ? { label: "Happening now", tone: styles.chipMint }
-            : null;
+            : awaiting
+              ? { label: "Awaiting completion", tone: styles.chipButter }
+              : null;
     return (
       <li
         key={b.id}
@@ -316,7 +321,12 @@ const TeacherMentorshipBookingsPage: React.FC = () => {
                 </Link>
               </Button>
             )}
-            {menu(b)}
+            {awaiting && (
+              <Button size="sm" onClick={() => setOutcomeTarget({ booking: b, outcome: "completed" })}>
+                <CheckCircle2 size={14} aria-hidden="true" /> Mark completed
+              </Button>
+            )}
+            {menu(b, start <= now)}
           </div>
         )}
       </li>
@@ -448,6 +458,39 @@ const TeacherMentorshipBookingsPage: React.FC = () => {
 
       <CancelDialog booking={cancelTarget} onOpenChange={(open) => !open && setCancelTarget(null)} />
       <RescheduleDialog booking={rescheduleTarget} onOpenChange={(open) => !open && setRescheduleTarget(null)} />
+      <ConsoleConfirmDialog
+        open={!!outcomeTarget}
+        onOpenChange={(open) => !open && setOutcomeTarget(null)}
+        icon={outcomeTarget?.outcome === "no_show" ? <UserX /> : <CheckCircle2 />}
+        title={
+          outcomeTarget?.outcome === "no_show"
+            ? `${outcomeTarget.booking.studentName} did not attend?`
+            : `Mark the class with ${outcomeTarget?.booking.studentName ?? ""} completed?`
+        }
+        description={
+          outcomeTarget?.outcome === "no_show"
+            ? "The class is marked a learner no-show. A learner who does not attend is charged, as for a held class."
+            : "Confirm the class took place. Paid classes are settled after the class, once your classroom attendance is confirmed."
+        }
+        confirmLabel={outcomeTarget?.outcome === "no_show" ? "Mark no-show" : "Mark completed"}
+        pendingLabel="Saving..."
+        isPending={completeMutation.isPending}
+        onConfirm={() => {
+          if (!outcomeTarget) return;
+          completeMutation.mutate(
+            { kind: "booking", id: outcomeTarget.booking.id, outcome: outcomeTarget.outcome },
+            {
+              onSuccess: (r) => {
+                toast.success(
+                  !r.changed ? "This class was already closed." : r.status === "no_show" ? "Marked a learner no-show." : "Marked completed."
+                );
+                setOutcomeTarget(null);
+              },
+              onError: (err) => toast.error(err instanceof Error ? err.message : "Could not update status."),
+            }
+          );
+        }}
+      />
     </>
   );
 };

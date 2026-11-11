@@ -44,16 +44,27 @@ export async function handle(request: Request): Promise<Response> {
             .executeTakeFirst()
         : null;
 
-    const { rows: bookingRows } = await sql<BookingSqlRow>`
-      WITH b AS (${bookingsSource})
-      SELECT b.*, ${paymentStatusExpr} AS payment_status, ${amountReceivedExpr} AS amount_received, count(*) OVER () AS total_count
-      FROM b
-      WHERE b.type = ${input.kind} AND b.session_id = ${input.id}
-      ORDER BY b.booked_at DESC NULLS LAST, b.id
-      LIMIT ${SESSION_BOOKINGS_LIMIT}
-    `.execute(db);
+    const [{ rows: bookingRows }, history] = await Promise.all([
+      sql<BookingSqlRow>`
+        WITH b AS (${bookingsSource})
+        SELECT b.*, ${paymentStatusExpr} AS payment_status, ${amountReceivedExpr} AS amount_received, count(*) OVER () AS total_count
+        FROM b
+        WHERE b.type = ${input.kind} AND b.session_id = ${input.id}
+        ORDER BY b.booked_at DESC NULLS LAST, b.id
+        LIMIT ${SESSION_BOOKINGS_LIMIT}
+      `.execute(db),
+      db
+        .selectFrom("liveSessionEvents")
+        .select(["id", "fromStatus", "toStatus", "actorType", "actorLabel", "reason", "createdAt"])
+        .where("sessionKind", "=", input.kind)
+        .where("sessionId", "=", input.id)
+        .orderBy("createdAt", "asc")
+        .limit(100)
+        .execute(),
+    ]);
 
     const start = new Date(r.startTime);
+    const toDate = (v: Date | string | null) => (v ? new Date(v) : null);
     const output: OutputType = {
       session: {
         kind: r.kind,
@@ -67,6 +78,13 @@ export async function handle(request: Request): Promise<Response> {
         end: new Date(start.getTime() + r.durationMinutes * 60000),
         durationMinutes: r.durationMinutes,
         status: r.status,
+        overdue: !!r.overdue,
+        noShowParty: r.noShowParty,
+        noShowReason: r.noShowReason,
+        completedAt: toDate(r.completedAt),
+        completedBy: r.completedBy,
+        cancelledAt: toDate(r.cancelledAt),
+        cancelledBy: r.cancelledBy,
         enrolledCount: r.enrolledCount,
         maxCapacity: r.maxCapacity,
         price: Number(r.price ?? 0),
@@ -82,6 +100,15 @@ export async function handle(request: Request): Promise<Response> {
       },
       bookings: bookingRows.map(toLiveBookingRow),
       bookingsTotal: bookingRows.length ? Number(bookingRows[0].totalCount ?? 0) : 0,
+      history: history.map((h) => ({
+        id: h.id,
+        fromStatus: h.fromStatus,
+        toStatus: h.toStatus,
+        actorType: h.actorType as "admin" | "teacher" | "learner" | "system",
+        actorLabel: h.actorLabel,
+        reason: h.reason,
+        createdAt: new Date(h.createdAt),
+      })),
     };
     return new Response(superjson.stringify(output));
   } catch (error) {

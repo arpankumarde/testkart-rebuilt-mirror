@@ -6,6 +6,7 @@ import { sendEmail } from "../../../helpers/sendEmail";
 import { emailTemplatesExtra } from "../../../helpers/emailTemplatesExtra";
 import { isLateForStudent, isStudentFree } from "../../../helpers/livePackages";
 import { FREE_CANCELLATION_CUTOFF_HOURS } from "../../../helpers/liveLessonConfig";
+import { lifecycleStatusOf, recordSessionEvent } from "../../../helpers/liveSessionLifecycle";
 import superjson from "superjson";
 import { sql } from "kysely";
 
@@ -109,6 +110,15 @@ const booking = await db
           .where("id", "=", booking.creditId)
           .execute();
       }
+
+      await recordSessionEvent(trx, {
+        kind: "booking",
+        id: booking.id,
+        from: lifecycleStatusOf(booking.status, booking.scheduledAt, booking.durationMinutes),
+        to: "cancelled",
+        actor: { type: isAdmin ? "admin" : isTeacher ? "teacher" : "learner", id: user.id, label: user.displayName ?? null },
+        reason: `Rescheduled to a new time (new booking ${inserted.id}).`,
+      });
 
       return inserted;
     });

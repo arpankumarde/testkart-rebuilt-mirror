@@ -9,14 +9,15 @@ import { extractPayUFailure } from "../../../helpers/extractPayUFailure";
 import { CHARGE_TXNID_PATTERNS, newChargeTxnid } from "../../../helpers/teacherMandate";
 import { effectiveRenewalAmount } from "../../../helpers/subscriptionPromoCodes";
 import { inheritedSubscriptionClient } from "../../../helpers/subscriptionClientInfo";
+import { noticeLeadRefusal } from "../../../helpers/renewalNoticeSchedule";
 
 /**
  * Admin-triggered equivalent of endpoints/payment/payu/recurring/charge-mandate_POST.ts.
- * Skips the "is it actually due yet / has the pre-debit notice matured" eligibility
- * checks that gate the teacher-facing and scheduled renewal paths, since an admin
- * manually forcing a stuck or failed mandate through is exactly the point of this
- * control - but still refuses an inactive subscription, an inactive mandate, or a
- * charge that's already in flight.
+ * Skips the "is it due yet / is today the notice's debit date" checks that gate
+ * the teacher-facing and scheduled renewal paths, since an admin manually forcing
+ * a stuck or failed mandate through is exactly the point of this control - but
+ * still refuses an inactive subscription, an inactive mandate, a charge already
+ * in flight, or a charge PayU would reject for lacking a 48-hour pre-debit notice.
  */
 export async function handle(request: Request) {
   try {
@@ -44,6 +45,7 @@ export async function handle(request: Request) {
           "teacherSubscriptions.mandateId",
           "teacherSubscriptions.mandateStatus",
           "teacherSubscriptions.endDate",
+          "teacherSubscriptions.preDebitSentAt",
           "teacherSubscriptions.promoDuration",
           "teacherSubscriptions.promoDiscountAmount",
           "subscriptionPlans.durationDays",
@@ -66,6 +68,10 @@ export async function handle(request: Request) {
       }
       if (subscription.status !== "active") {
         throw new Error("The subscription itself is not active.");
+      }
+      const noticeRefusal = noticeLeadRefusal(subscription.preDebitSentAt, new Date());
+      if (noticeRefusal) {
+        throw new Error(noticeRefusal);
       }
 
       const pendingCharge = await trx

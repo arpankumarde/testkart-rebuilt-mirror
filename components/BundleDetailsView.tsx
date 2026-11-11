@@ -480,22 +480,18 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
           src={bundle.introVideoUrl}
           controls
           className={styles.mediaEmbed}
-          poster={bundle.thumbnailUrl || undefined}
+          poster={bundle.thumbnailUrl || Placeholder.BUNDLE}
         />
       );
     }
 
-    if (bundle.thumbnailUrl) {
-      return (
-        <img
-          src={bundle.thumbnailUrl}
-          alt={bundle.title}
-          className={styles.mediaEmbed}
-        />
-      );
-    }
-
-    return <Package size={56} className={styles.bundleIcon} />;
+    return (
+      <img
+        src={bundle.thumbnailUrl || Placeholder.BUNDLE}
+        alt={bundle.title}
+        className={styles.mediaEmbed}
+      />
+    );
   };
 
   const includeChips = [

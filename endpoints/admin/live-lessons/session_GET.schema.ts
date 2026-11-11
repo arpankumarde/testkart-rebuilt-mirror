@@ -20,6 +20,22 @@ export type LiveSessionDetail = LiveCalendarEvent & {
   minEnrollment: number | null;
   hasMeetingLink: boolean;
   createdAt: Date | null;
+  noShowReason: string | null;
+  completedAt: Date | null;
+  completedBy: string | null;
+  cancelledAt: Date | null;
+  cancelledBy: string | null;
+};
+
+/** One status change from live_session_events, oldest first. */
+export type LiveSessionEvent = {
+  id: string;
+  fromStatus: string | null;
+  toStatus: string;
+  actorType: "admin" | "teacher" | "learner" | "system";
+  actorLabel: string | null;
+  reason: string | null;
+  createdAt: Date;
 };
 
 export type OutputType = {
@@ -27,6 +43,7 @@ export type OutputType = {
   /** The learner's booking for a 1:1 session; the enrollments (newest first) for a group lesson. */
   bookings: LiveBookingRow[];
   bookingsTotal: number;
+  history: LiveSessionEvent[];
 };
 
 export const getAdminLiveSession = async (input: InputType, init?: RequestInit): Promise<OutputType> => {

@@ -65,6 +65,9 @@ export type OutputType = {
   limit: number;
   /* The mock test behind every one of the teacher's live tests, whatever the status, filter or page. */
   mockTestIds: number[];
+  /* Every live test the teacher has, per status, whatever the status, filter or page. `all` is the
+     total. Drives the status tabs. */
+  statusCounts: Record<"all" | LiveTestStatus, number>;
 };
 
 export const getTeacherLiveTestsList = async (

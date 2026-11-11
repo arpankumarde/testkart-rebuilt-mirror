@@ -1,21 +1,6 @@
-/* No padding of its own - TeacherDashboardLayout's .pageBody owns the gutter. */
-.page {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-6);
-  width: 100%;
-  max-width: 1440px;
-  margin: 0 auto;
-  box-sizing: border-box;
-}
-
-/* The rows follow this box's width rather than the window's, so they switch
-   to cards when the sidebar leaves too little room on a laptop too. */
-.content {
-  min-height: 20rem;
-  container-type: inline-size;
-}
-
+/* The page shell comes from TeacherContentPage. Its list region is the
+   container the rows query, so they switch to cards when the sidebar leaves
+   too little room on a laptop too. */
 .visuallyHidden {
   position: absolute;
   width: 1px;
@@ -595,12 +580,6 @@
 
   .bulkBar {
     grid-column: 1 / -1;
-  }
-}
-
-@media (max-width: 640px) {
-  .page {
-    gap: var(--spacing-4);
   }
 }
 

@@ -1,7 +1,6 @@
 import { createHash } from "crypto";
 import { PAYU_MODE } from "./_publicConfigs";
 import { nanoid } from "nanoid";
-import { addDays } from "date-fns";
 
 export type PayUSIResponse = {
   status: number | string;
@@ -93,16 +92,17 @@ export async function callPayUSICommand(
 }
 
 /**
- * Sends a pre-debit notification, which is mandatory 24-48 hours before an actual recurring charge.
+ * Sends a pre-debit notification for a charge on debitDate (yyyy-mm-dd, IST).
+ * PayU needs it at least 48 hours before the charge for monthly mandates; see
+ * helpers/renewalNoticeSchedule for how debitDate is chosen.
  */
 export async function sendPreDebitNotification(params: {
   authPayuId: string;
   amount: number | string;
+  debitDate: string;
 }): Promise<{ success: boolean; message: string }> {
   console.log(`[sendPreDebitNotification] Initiating for mandate ${params.authPayuId}`);
 
-  // Tomorrow as an Indian date (yyyy-mm-dd); the server clock runs on UTC.
-  const debitDate = addDays(new Date(), 1).toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
   const amountStr =
     typeof params.amount === "number"
       ? params.amount.toFixed(2)
@@ -111,7 +111,7 @@ export async function sendPreDebitNotification(params: {
   const var1Json = {
     authPayuId: params.authPayuId,
     requestId: nanoid(),
-    debitDate,
+    debitDate: params.debitDate,
     amount: amountStr,
   };
 

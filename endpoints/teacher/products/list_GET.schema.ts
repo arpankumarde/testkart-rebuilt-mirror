@@ -1,7 +1,7 @@
 import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
-import { DigitalProducts, DigitalProductStatusArrayValues } from "../../../helpers/schema";
+import { DigitalProducts, DigitalProductStatus, DigitalProductStatusArrayValues } from "../../../helpers/schema";
 import type { ContentExam } from "../../../helpers/contentExams";
 import type { ContentRejection } from "../../../helpers/contentReviewStatus";
 
@@ -34,6 +34,8 @@ export type OutputType = {
   limit: number;
   /** Products matching the filters across all pages. */
   total: number;
+  /** Every product the teacher has, per status, whatever the filters. Drives the status tabs. */
+  statusCounts: Record<"all" | DigitalProductStatus, number>;
 };
 
 export const getTeacherProductsList = async (

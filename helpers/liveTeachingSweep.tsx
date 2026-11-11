@@ -1,6 +1,6 @@
 import { sql } from "kysely";
 import { db } from "./db";
-import { AUTO_COMPLETE_AFTER_MINUTES } from "./liveLessonConfig";
+import { AUTO_COMPLETE_AFTER_MINUTES, COMPLETION_OVERDUE_HOURS, COMPLETION_REMINDER_MAX_AGE_DAYS } from "./liveLessonConfig";
 import {
   abandonPendingPackage,
   failRenewal,
@@ -12,8 +12,9 @@ import {
   startLiveRenewal,
   stopLivePackage,
 } from "./livePackages";
-import { sendClassRefundedEmail, sendClassReminderEmails, sendTrialFollowUpEmail } from "./livePackageEmails";
+import { sendClassRefundedEmail, sendClassReminderEmails, sendCompletionOverdueEmail, sendTrialFollowUpEmail } from "./livePackageEmails";
 import { sendClassReminderWhatsApp } from "./liveClassWhatsApp";
+import { recordSessionEvent } from "./liveSessionLifecycle";
 
 /**
  * Live 1:1 upkeep, run every 15 minutes from the autopilot job (the project is at Floot's
@@ -110,9 +111,11 @@ async function endLapsedPackages() {
 }
 
 /**
- * Closes out paid classes AUTO_COMPLETE_AFTER_MINUTES after they end. Teacher joined: held, the
- * credit is spent and the teacher earns. Teacher never joined: cancelled and the credit returned.
- * Whether the student joined does not matter: a student no-show is charged.
+ * Settles credit-paid classes AUTO_COMPLETE_AFTER_MINUTES after they end. Teacher joined: the
+ * credit is spent and the teacher earns; the class becomes completed unless the teacher already
+ * marked the learner a no-show, which is charged the same way. Teacher never joined: cancelled and
+ * the credit returned. Only a credit still "booked" is touched, so a class an admin already
+ * settled is skipped.
  */
 async function settleFinishedClasses() {
   const rows = await db
@@ -148,14 +151,30 @@ async function settleFinishedClasses() {
 
   for (const b of due) {
     const creditId = b.creditId as string;
+    const from = b.status === "scheduled" ? "awaiting_completion" : b.status;
     if (teacherCame.has(b.id)) {
+      const keep = b.status === "completed" || b.status === "no_show";
       await db.transaction().execute(async (trx) => {
         await trx
           .updateTable("mentorshipBookings")
-          .set({ status: "completed", earningStatus: "earned", updatedAt: new Date() })
+          .set({
+            ...(keep ? {} : { status: "completed" as const, completedAt: new Date(), completedBy: "system" }),
+            earningStatus: "earned",
+            updatedAt: new Date(),
+          })
           .where("id", "=", b.id)
           .execute();
         await spendCredit(trx, creditId);
+        if (!keep) {
+          await recordSessionEvent(trx, {
+            kind: "booking",
+            id: b.id,
+            from,
+            to: "completed",
+            actor: { type: "system" },
+            reason: "The teacher joined the classroom.",
+          });
+        }
       });
       if (b.kind === "trial") await sendTrialFollowUpEmail(b.id);
       continue;
@@ -173,10 +192,71 @@ async function settleFinishedClasses() {
         })
         .where("id", "=", b.id)
         .execute();
+      await recordSessionEvent(trx, {
+        kind: "booking",
+        id: b.id,
+        from,
+        to: "cancelled",
+        actor: { type: "system" },
+        reason: "The teacher did not join.",
+      });
       return returnCredit(trx, creditId);
     });
     await sendClassRefundedEmail(b.id, outcome);
   }
+}
+
+/**
+ * Sessions whose end time passed with nobody closing them: stamped awaiting completion once (with
+ * an event), then overdue COMPLETION_OVERDUE_HOURS later, when the teacher is emailed. Sessions
+ * that ended more than COMPLETION_REMINDER_MAX_AGE_DAYS ago are flagged without an email. Nothing
+ * here completes a session.
+ */
+async function flagUnresolvedSessions() {
+  const awaitingBookings = await sql<{ id: string }>`
+    UPDATE mentorship_bookings SET awaiting_completion_at = now()
+    WHERE status = 'scheduled' AND awaiting_completion_at IS NULL
+      AND (scheduled_at AT TIME ZONE 'UTC') + make_interval(mins => duration_minutes) <= now()
+    RETURNING id
+  `.execute(db);
+  const awaitingLessons = await sql<{ id: string }>`
+    UPDATE group_lessons SET awaiting_completion_at = now()
+    WHERE status = 'scheduled' AND awaiting_completion_at IS NULL
+      AND start_time + make_interval(mins => duration_minutes) <= now()
+    RETURNING id
+  `.execute(db);
+  const flagged = [
+    ...awaitingBookings.rows.map((r) => ({ kind: "booking" as const, id: r.id })),
+    ...awaitingLessons.rows.map((r) => ({ kind: "group" as const, id: r.id })),
+  ];
+  for (const f of flagged) {
+    await recordSessionEvent(db, {
+      kind: f.kind,
+      id: f.id,
+      from: "scheduled",
+      to: "awaiting_completion",
+      actor: { type: "system" },
+      reason: "The session ended and nobody has marked how it went.",
+    });
+  }
+
+  const overdueHours = sql.lit(COMPLETION_OVERDUE_HOURS);
+  const maxAgeDays = sql.lit(COMPLETION_REMINDER_MAX_AGE_DAYS);
+  const overdueBookings = await sql<{ id: string; recent: boolean }>`
+    UPDATE mentorship_bookings SET completion_overdue_at = now()
+    WHERE status = 'scheduled' AND completion_overdue_at IS NULL
+      AND (scheduled_at AT TIME ZONE 'UTC') + make_interval(mins => duration_minutes) + make_interval(hours => ${overdueHours}) <= now()
+    RETURNING id,
+      (scheduled_at AT TIME ZONE 'UTC') + make_interval(mins => duration_minutes) >= now() - make_interval(days => ${maxAgeDays}) AS recent
+  `.execute(db);
+  const overdueLessons = await sql<{ id: string; recent: boolean }>`
+    UPDATE group_lessons SET completion_overdue_at = now()
+    WHERE status = 'scheduled' AND completion_overdue_at IS NULL
+      AND start_time + make_interval(mins => duration_minutes) + make_interval(hours => ${overdueHours}) <= now()
+    RETURNING id, start_time + make_interval(mins => duration_minutes) >= now() - make_interval(days => ${maxAgeDays}) AS recent
+  `.execute(db);
+  for (const r of overdueBookings.rows) if (r.recent) await sendCompletionOverdueEmail("booking", r.id);
+  for (const r of overdueLessons.rows) if (r.recent) await sendCompletionOverdueEmail("group", r.id);
 }
 
 async function sendReminders() {
@@ -216,5 +296,6 @@ export async function runLiveTeachingSweep(): Promise<void> {
   await part("charges", raiseAndPollCharges);
   await part("lapsed", endLapsedPackages);
   await part("classes", settleFinishedClasses);
+  await part("unresolved", flagUnresolvedSessions);
   await part("reminders", sendReminders);
 }

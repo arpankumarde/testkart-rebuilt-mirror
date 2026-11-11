@@ -35,7 +35,7 @@ interface ConsoleListToolbarProps {
 }
 
 /* Give this to a SelectTrigger dropped into the toolbar so it sizes like the
-   sort control on Test series. */
+   band's other controls. Teacher content lists use TeacherContentToolbar. */
 export const consoleToolbarControlClass = styles.control;
 
 const ToolbarSearch: React.FC<{ search: NonNullable<ConsoleListToolbarProps["search"]> }> = ({ search }) => {

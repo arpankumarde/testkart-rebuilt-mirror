@@ -2,8 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { getItemExamNames } from '../helpers/itemExams';
 import { Helmet } from 'react-helmet';
 import { toast } from 'sonner';
-import { Link } from 'react-router-dom';
-import { BookCopy, Plus } from 'lucide-react';
 import { useTeacherTestsQuery } from '../helpers/useTeacherTestsQuery';
 import { useTeacherLiveTestsQuery } from '../helpers/useTeacherLiveTestsQuery';
 import { useListUrlParams } from '../helpers/useListUrlParams';
@@ -18,24 +16,27 @@ import { useBundleUnpublishGuard } from '../helpers/useBundleUnpublishGuard';
 import { useTeacherTestMutations } from '../helpers/useTeacherTestMutations';
 import { bundleCascadeNote } from '../helpers/bundleCascadeNote';
 import { TeacherTestCardSkeleton } from '../components/TeacherTestCardSkeleton';
-import { TeacherPageHeader } from '../components/TeacherPageHeader';
 import { TeacherListEmpty } from '../components/TeacherListEmpty';
-import { TeacherContentToolbar } from '../components/TeacherContentToolbar';
+import { TeacherContentPage } from '../components/TeacherContentPage';
+import { TeacherContentEmpty } from '../components/TeacherContentEmpty';
+import { withStatusCounts, type TeacherStatusTabDef } from '../components/TeacherStatusTabs';
 import styles from './teacher.test-series.module.css';
 
 type TestStatus = 'published' | 'draft' | 'unpublished';
 type StatusTab = 'all' | TestStatus;
 
-const TAB_LABELS: Record<StatusTab, string> = {
-  all: 'All',
-  published: 'Published',
-  draft: 'Drafts',
-  unpublished: 'Unpublished',
-};
+const TABS: TeacherStatusTabDef<StatusTab>[] = [
+  { value: 'all', label: 'All', word: '' },
+  { value: 'published', label: 'Published', word: 'published' },
+  { value: 'draft', label: 'Drafts', word: 'draft' },
+  { value: 'unpublished', label: 'Unpublished', word: 'unpublished' },
+];
 
-const TAB_ORDER: StatusTab[] = ['all', 'published', 'draft', 'unpublished'];
+const TAB_ORDER = TABS.map((tab) => tab.value);
 
 const DEFAULT_TAB: StatusTab = 'all';
+
+const CREATE = { label: 'New test series', to: '/teacher/create-test' };
 
 const statusOf = (test: TeacherTest): TestStatus =>
   test.isPublished ? 'published' : test.wasEverPublished ? 'unpublished' : 'draft';
@@ -145,8 +146,10 @@ const TeacherTestSeriesPage: React.FC = () => {
     });
   }, [ownTests, activeTab, searchQuery, sortOption]);
 
-  const hasAnyTests = ownTests.length > 0;
-  const isSearching = searchQuery.trim().length > 0;
+  // Unknown until the list arrives, so the tabs stay hidden rather than flash.
+  const total = tests ? ownTests.length : undefined;
+  const query = searchQuery.trim();
+  const statusWord = TABS.find((tab) => tab.value === activeTab)?.word || undefined;
 
   const renderContent = () => {
     if (isFetching && !tests) {
@@ -171,47 +174,35 @@ const TeacherTestSeriesPage: React.FC = () => {
       );
     }
 
-    if (!hasAnyTests) {
+    if (!total) {
       return (
-        <TeacherListEmpty
+        <TeacherContentEmpty
           kind="mock_test"
-          title="No test series yet"
+          plural="test series"
+          reason="none"
           description="A test series is a set of mock tests students buy as one package. Build your first one to start selling."
-        >
-          <Button asChild>
-            <Link to="/teacher/create-test">
-              <Plus size={16} />
-              Create a test series
-            </Link>
-          </Button>
-        </TeacherListEmpty>
+          create={{ ...CREATE, label: 'Create a test series' }}
+        />
       );
     }
 
     if (visibleTests.length === 0) {
-      return (
-        <TeacherListEmpty
-          title={
-            isSearching
-              ? activeTab === 'all'
-                ? `No test series matches "${searchQuery.trim()}"`
-                : `Nothing in ${TAB_LABELS[activeTab].toLowerCase()} matches "${searchQuery.trim()}"`
-              : `No ${TAB_LABELS[activeTab].toLowerCase()} test series`
-          }
-          description={
-            isSearching
-              ? activeTab === 'all'
-                ? 'Try a different word.'
-                : 'Try a different word, or check the other tabs.'
-              : 'Nothing here yet. The other tabs may have what you are looking for.'
-          }
-        >
-          {isSearching && (
-            <Button variant="outline" onClick={() => setSearchQuery('')}>
-              Clear search
-            </Button>
-          )}
-        </TeacherListEmpty>
+      return query ? (
+        <TeacherContentEmpty
+          kind="mock_test"
+          plural="test series"
+          reason="search"
+          query={query}
+          statusWord={statusWord}
+          onClearSearch={() => setSearchQuery('')}
+        />
+      ) : (
+        <TeacherContentEmpty
+          kind="mock_test"
+          plural="test series"
+          reason="status"
+          statusWord={statusWord ?? ''}
+        />
       );
     }
 
@@ -242,35 +233,27 @@ const TeacherTestSeriesPage: React.FC = () => {
         <title>Test series - Testkart for Teachers</title>
         <meta name="description" content="Manage your mock test series on Testkart." />
       </Helmet>
-      <div className={styles.page}>
-        <TeacherPageHeader
-          title="Test series"
-          description="Create, organise and manage your mock tests in one place."
-          leading={
-            <span className={styles.headerIcon} aria-hidden="true">
-              <BookCopy size={18} strokeWidth={2.25} />
-            </span>
-          }
-        >
-          <Link to="/teacher/create-test" className={styles.newButton}>
-            <Plus size={18} strokeWidth={2.5} aria-hidden="true" />
-            New test series
-          </Link>
-        </TeacherPageHeader>
-
-        {hasAnyTests && (
-          <TeacherContentToolbar
-            tabs={TAB_ORDER.map((tab) => ({ value: tab, label: TAB_LABELS[tab], count: counts[tab] }))}
-            value={activeTab}
-            onValueChange={(tab) => setActiveTab(tab as StatusTab)}
-            tabsLabel="Filter by status"
-            search={{
-              value: searchQuery,
-              onChange: setSearchQuery,
-              placeholder: 'Search by title or exam',
-              label: 'Search test series',
-            }}
-            sort={{
+      <TeacherContentPage
+        kind="mock_test"
+        title="Test series"
+        description="Create, organise and manage your mock tests in one place."
+        create={CREATE}
+        busy={isFetching}
+        toolbar={{
+          tabs: {
+            tabs: withStatusCounts(TABS, counts),
+            value: activeTab,
+            onValueChange: setActiveTab,
+            total,
+          },
+          search: {
+            value: searchQuery,
+            onChange: setSearchQuery,
+            placeholder: 'Search by title or exam',
+            label: 'Search test series',
+          },
+          selects: [
+            {
               value: sortOption,
               onChange: setSortOption,
               label: 'Sort test series',
@@ -280,12 +263,12 @@ const TeacherTestSeriesPage: React.FC = () => {
                 { value: 'price-desc', label: 'Price: high to low' },
                 { value: 'price-asc', label: 'Price: low to high' },
               ],
-            }}
-          />
-        )}
-
-        <div className={styles.content}>{renderContent()}</div>
-      </div>
+            },
+          ],
+        }}
+      >
+        {renderContent()}
+      </TeacherContentPage>
 
       {testToDelete && (
         <DeleteTestDialog

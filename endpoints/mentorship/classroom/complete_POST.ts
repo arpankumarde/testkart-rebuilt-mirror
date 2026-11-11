@@ -1,65 +1,40 @@
-import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
+import { db } from "../../../helpers/db";
+import { completeLiveSession, markLiveSessionNoShow, type LiveActor } from "../../../helpers/liveSessionLifecycle";
 import { schema, OutputType } from "./complete_POST.schema";
 import superjson from "superjson";
 
+/*
+ * The teacher closes out their own session: completed, or (1:1 only) the learner did not attend.
+ * Settlement of a credit-paid class is left to the sweep, which pays only when the teacher joined.
+ */
 export async function handle(request: Request) {
   try {
     const { user, effectiveTeacherId } = await getServerUserSession(request);
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);
 
-    if (input.kind === "booking") {
-      const booking = await db
-        .selectFrom("mentorshipBookings")
-        .select(["id", "teacherId", "status", "scheduledAt"])
-        .where("id", "=", input.id)
-        .executeTakeFirst();
-      if (!booking) return new Response(superjson.stringify({ error: "Booking not found" }), { status: 404 });
-      if (booking.teacherId !== effectiveTeacherId && user.role !== "admin") {
-        return new Response(superjson.stringify({ error: "Only the teacher can mark this session's outcome." }), { status: 403 });
-      }
-      if (booking.status === "completed" || booking.status === "no_show") {
-        const output: OutputType = { success: true, status: booking.status };
-        return new Response(superjson.stringify(output));
-      }
-      if (booking.status === "cancelled") {
-        return new Response(superjson.stringify({ error: "This booking was cancelled." }), { status: 400 });
-      }
-      if (booking.scheduledAt > new Date()) {
-        return new Response(superjson.stringify({ error: "This session hasn't started yet." }), { status: 400 });
-      }
-
-      const outcome = input.outcome ?? "completed";
-      await db.updateTable("mentorshipBookings").set({ status: outcome, updatedAt: new Date() }).where("id", "=", input.id).execute();
-
-      const output: OutputType = { success: true, status: outcome };
-      return new Response(superjson.stringify(output));
+    const owner =
+      input.kind === "booking"
+        ? await db.selectFrom("mentorshipBookings").select("teacherId").where("id", "=", input.id).executeTakeFirst()
+        : await db.selectFrom("groupLessons").select("teacherId").where("id", "=", input.id).executeTakeFirst();
+    if (!owner) {
+      return new Response(superjson.stringify({ error: input.kind === "booking" ? "Booking not found" : "Group lesson not found" }), {
+        status: 404,
+      });
+    }
+    const isAdmin = user.role === "admin";
+    if (owner.teacherId !== effectiveTeacherId && !isAdmin) {
+      return new Response(superjson.stringify({ error: "Only the teacher can mark this session's outcome." }), { status: 403 });
     }
 
-    const lesson = await db
-      .selectFrom("groupLessons")
-      .select(["id", "teacherId", "status", "startTime"])
-      .where("id", "=", input.id)
-      .executeTakeFirst();
-    if (!lesson) return new Response(superjson.stringify({ error: "Group lesson not found" }), { status: 404 });
-    if (lesson.teacherId !== effectiveTeacherId && user.role !== "admin") {
-      return new Response(superjson.stringify({ error: "Only the teacher can mark this lesson complete." }), { status: 403 });
-    }
-    if (lesson.status === "completed") {
-      const output: OutputType = { success: true, status: "completed" };
-      return new Response(superjson.stringify(output));
-    }
-    if (lesson.status === "cancelled") {
-      return new Response(superjson.stringify({ error: "This group lesson was cancelled." }), { status: 400 });
-    }
-    if (lesson.startTime > new Date()) {
-      return new Response(superjson.stringify({ error: "This lesson hasn't started yet." }), { status: 400 });
-    }
+    const actor: LiveActor = { type: isAdmin ? "admin" : "teacher", id: user.id, label: user.displayName ?? null };
+    const result =
+      input.kind === "booking" && input.outcome === "no_show"
+        ? await markLiveSessionNoShow({ id: input.id, party: "learner", actor, settleNow: false })
+        : await completeLiveSession({ kind: input.kind, id: input.id, actor, settleNow: false });
 
-    await db.updateTable("groupLessons").set({ status: "completed", completedAt: new Date(), updatedAt: new Date() }).where("id", "=", input.id).execute();
-
-    const output: OutputType = { success: true, status: "completed" };
+    const output: OutputType = { success: true, status: result.status, changed: result.changed };
     return new Response(superjson.stringify(output));
   } catch (error) {
     console.error("Error completing lesson:", error);

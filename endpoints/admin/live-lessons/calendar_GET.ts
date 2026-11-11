@@ -61,6 +61,8 @@ export async function handle(request: Request): Promise<Response> {
           end: new Date(start.getTime() + r.durationMinutes * 60000),
           durationMinutes: r.durationMinutes,
           status: r.status,
+          overdue: !!r.overdue,
+          noShowParty: r.noShowParty,
           enrolledCount: r.enrolledCount,
           maxCapacity: r.maxCapacity,
           price: Number(r.price ?? 0),

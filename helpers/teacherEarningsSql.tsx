@@ -237,9 +237,9 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
  *     window to report the teacher did not come) and no report is open. The
  *     fee is the one stored on the credit; sold_at is the class time;
  *   - 1:1 sessions bought before credits existed: the order still has a
- *     booking that is not cancelled (a reschedule cancels the old row and adds
- *     a new one under the same order, so the newest live booking is used) and
- *     its end time has passed;
+ *     booking that is not cancelled and not a teacher no-show (a reschedule
+ *     cancels the old row and adds a new one under the same order, so the
+ *     newest live booking is used) and its end time has passed;
  *   - group class: the class was not cancelled, its end time has passed and
  *     the buyer still holds the seat (not left, not removed).
  * Bookings made before order_items.mentorship_teacher_id existed are not
@@ -273,6 +273,7 @@ function liveSessionRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: Teacher
       WHERE b.order_id = o.id
         AND b.teacher_id = oi.mentorship_teacher_id
         AND b.status IS DISTINCT FROM 'cancelled'
+        AND NOT (b.status IS NOT DISTINCT FROM 'no_show' AND b.no_show_party IS NOT DISTINCT FROM 'teacher')
         AND (b.scheduled_at AT TIME ZONE 'UTC') + make_interval(mins => b.duration_minutes) <= NOW()
       ORDER BY b.id DESC
       LIMIT 1

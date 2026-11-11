@@ -52,7 +52,7 @@ const BundleDetailsPage: React.FC = () => {
         <SEOHead
           title={bundle.title}
           description={bundleDescriptionToPlainText(bundle.description) || `Explore the ${bundle.title} course bundle on Testkart.`}
-          image={bundle.thumbnailUrl || Placeholder.TEST}
+          image={bundle.thumbnailUrl || Placeholder.BUNDLE}
           url={pageUrl}
           noIndex={!bundle.seo.indexable}
         />

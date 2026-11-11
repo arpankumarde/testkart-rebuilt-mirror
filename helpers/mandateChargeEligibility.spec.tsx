@@ -65,10 +65,14 @@ describe("getMandateChargeRefusal", () => {
     );
   });
 
-  it("refuses before the charge date", () => {
+  it("refuses before the charge day", () => {
     expect(getMandateChargeRefusal({ ...due, nextChargeDate: new Date("2026-09-12T12:00:00Z") }, now)).toBe(
       "Subscription is not yet due for renewal."
     );
+  });
+
+  it("allows a renewal due later on the same IST day", () => {
+    expect(getMandateChargeRefusal({ ...due, nextChargeDate: new Date("2026-09-11T14:00:00Z") }, now)).toBeNull();
   });
 
   it("refuses until the pre-debit notice has gone out", () => {
@@ -77,10 +81,16 @@ describe("getMandateChargeRefusal", () => {
     );
   });
 
-  it("refuses until the debit day named in the notice arrives", () => {
-    expect(getMandateChargeRefusal({ ...due, preDebitSentAt: new Date("2026-09-11T00:30:00Z") }, now)).toBe(
-      "The renewal date in the pre-debit notice has not arrived yet."
+  it("charges only on the debit day the notice named, at least 48 hours after it", () => {
+    expect(getMandateChargeRefusal({ ...due, preDebitSentAt: new Date("2026-09-10T12:30:00Z") }, now)).toBe(
+      "PayU needs the pre-debit notice at least 48 hours before the charge."
     );
-    expect(getMandateChargeRefusal({ ...due, preDebitSentAt: new Date("2026-09-10T12:30:00Z") }, now)).toBeNull();
+    expect(getMandateChargeRefusal({ ...due, preDebitSentAt: new Date("2026-09-09T00:30:00Z") }, now)).toBe(
+      "The pre-debit notice set this renewal for 2026-09-12."
+    );
+    expect(getMandateChargeRefusal({ ...due, preDebitSentAt: new Date("2026-09-07T00:30:00Z") }, now)).toBe(
+      "The debit date in the pre-debit notice has passed. A new notice will be sent."
+    );
+    expect(getMandateChargeRefusal({ ...due, preDebitSentAt: new Date("2026-09-08T00:30:00Z") }, now)).toBeNull();
   });
 });

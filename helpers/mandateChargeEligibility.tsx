@@ -1,4 +1,4 @@
-const NOTICE_MATURES_AFTER_MS = 23 * 60 * 60 * 1000;
+import { istDay, noticeChargeRefusal } from "./renewalNoticeSchedule";
 
 export type MandateChargeCandidate = {
   status: string;
@@ -14,7 +14,7 @@ export type MandateChargeCandidate = {
  * when it can. Mirrors the Phase 2 charge query in helpers/subscriptionRenew, so
  * a renewal triggered from the browser never charges what the scheduled job
  * would skip - a cancelled or expired plan, or one whose pre-debit notice has
- * not gone out.
+ * not gone out or whose debit date is not today.
  */
 export function getMandateChargeRefusal(
   subscription: MandateChargeCandidate,
@@ -26,15 +26,8 @@ export function getMandateChargeRefusal(
   if (!subscription.mandateId || subscription.mandateStatus !== "active") {
     return "No active mandate found for this subscription.";
   }
-  if (!subscription.nextChargeDate || new Date(subscription.nextChargeDate) > now) {
+  if (!subscription.nextChargeDate || istDay(subscription.nextChargeDate) > istDay(now)) {
     return "Subscription is not yet due for renewal.";
   }
-  if (!subscription.preDebitSentAt) {
-    return "The pre-debit notice for this renewal has not been sent yet.";
-  }
-  // The notice promises the debit for the day after it went out.
-  if (now.getTime() - new Date(subscription.preDebitSentAt).getTime() < NOTICE_MATURES_AFTER_MS) {
-    return "The renewal date in the pre-debit notice has not arrived yet.";
-  }
-  return null;
+  return noticeChargeRefusal(subscription.preDebitSentAt, now);
 }

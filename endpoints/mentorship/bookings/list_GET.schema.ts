@@ -36,6 +36,8 @@ export type MentorshipBookingRow = {
   /** The student can report that the teacher did not take this class. */
   canReport: boolean;
   issue: { reportedAt: Date; resolution: string | null } | null;
+  /** "teacher" or "learner" when status is no_show. */
+  noShowParty: string | null;
 };
 
 export type OutputType = { bookings: MentorshipBookingRow[] };

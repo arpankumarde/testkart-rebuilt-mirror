@@ -1,0 +1,106 @@
+/* Sage for the selected tab, no fill or border on the rest, a count badge on
+   every tab. Inside the content toolbar on all teacher content pages. */
+.tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+  max-width: 100%;
+  padding: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  height: 2.5rem;
+  padding: 0 0.625rem 0 0.875rem;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  border-radius: 0.75rem;
+  background: none;
+  color: var(--tc-muted, var(--muted-foreground));
+  font-family: var(--font-family-base);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    border-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
+}
+
+.tab:hover {
+  background-color: var(--tc-card, var(--surface));
+  border-color: var(--tc-line, var(--border));
+  color: var(--tc-ink, var(--foreground));
+}
+
+/* Inset, because .tabs scrolls sideways and would clip a ring drawn outside. */
+.tab:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: -2px;
+}
+
+.tabActive,
+.tabActive:hover {
+  background-color: var(--fc-sage-tint);
+  border-color: var(--fc-sage-line);
+  color: var(--fc-sage-ink);
+}
+
+.count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.375rem;
+  padding: 0 0.4375rem;
+  box-sizing: border-box;
+  border: 1px solid var(--tc-line-strong, var(--border));
+  border-radius: 999px;
+  background-color: var(--tc-card, var(--surface));
+  color: var(--tc-ink, var(--foreground));
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.tabActive .count {
+  border-color: var(--fc-sage-line);
+  color: var(--fc-sage-ink);
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 640px) {
+  .tab {
+    height: 2.75rem;
+    font-size: 0.875rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab {
+    transition: none;
+  }
+}

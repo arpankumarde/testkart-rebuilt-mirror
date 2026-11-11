@@ -17,6 +17,14 @@ import {
 } from "./teacherMandate";
 import { effectiveRenewalAmount } from "./subscriptionPromoCodes";
 import { inheritedSubscriptionClient } from "./subscriptionClientInfo";
+import {
+  dueBefore,
+  noticeChargeRefusal,
+  noticeDebitDate,
+  noticesDueBefore,
+  noticesVoidBefore,
+  noticeWindowEnd,
+} from "./renewalNoticeSchedule";
 
 export async function subscriptionRenew(): Promise<void> {
   console.log("[subscriptionRenew] Starting scheduled job...");
@@ -31,16 +39,14 @@ export async function subscriptionRenew(): Promise<void> {
   let remindersSent = 0;
 
   const now = new Date();
-  const next48Hours = addDays(now, 2);
   const next24Hours = addDays(now, 1);
   const next72Hours = addDays(now, 3);
-  // The job runs once a day. A pre-debit notice promises the debit for tomorrow,
-  // so it goes out only when the charge falls before the next run, and the
-  // charge waits until the notice is a run old.
-  const HOUR_MS = 60 * 60 * 1000;
-  const preDebitCutoff = new Date(now.getTime() + 23 * HOUR_MS);
-  const noticeMatured = new Date(now.getTime() - 23 * HOUR_MS);
-  const noticeStale = new Date(now.getTime() - 47 * HOUR_MS);
+  // Autopay notices go out three IST days before the charge and name that day
+  // as the debit date; the charge runs on it (helpers/renewalNoticeSchedule).
+  const preDebitCutoff = noticeWindowEnd(now);
+  const chargeDueCutoff = dueBefore(now);
+  const noticeMatured = noticesDueBefore(now);
+  const noticeVoid = noticesVoidBefore(now);
 
   // Fetch payment mode setting
   const paymentModeSetting = await db
@@ -64,14 +70,14 @@ export async function subscriptionRenew(): Promise<void> {
       console.error("[subscriptionRenew] Failed during Phase 0:", err);
     }
 
-    // A notice whose debit day passed without a charge (a missed run) is void;
-    // clearing it lets Phase 1 send a fresh one.
+    // A notice whose debit day passed without a charge (a missed run or a
+    // failed charge) is void; clearing it lets Phase 1 send a fresh one.
     try {
       const cleared = await db
         .updateTable("teacherSubscriptions")
         .set({ preDebitSentAt: null })
         .where("status", "=", "active")
-        .where("preDebitSentAt", "<", noticeStale)
+        .where("preDebitSentAt", "<", noticeVoid)
         .where((eb) =>
           eb.not(
             eb.exists(
@@ -115,7 +121,7 @@ export async function subscriptionRenew(): Promise<void> {
         .where("teacherSubscriptions.mandateStatus", "in", ["active", "paused"])
         .where("teacherSubscriptions.mandateId", "is not", null)
         .where("teacherSubscriptions.nextChargeDate", "is not", null)
-        .where("teacherSubscriptions.nextChargeDate", "<=", preDebitCutoff)
+        .where("teacherSubscriptions.nextChargeDate", "<", preDebitCutoff)
         .where("teacherSubscriptions.preDebitSentAt", "is", null)
         .where((eb) =>
           eb.not(
@@ -148,15 +154,17 @@ export async function subscriptionRenew(): Promise<void> {
           });
           if (!canRenew) continue;
 
+          const sentAt = new Date();
           const result = await sendPreDebitNotification({
             authPayuId: sub.mandateId,
             amount: String(effectiveRenewalAmount(sub)),
+            debitDate: noticeDebitDate(sentAt),
           });
 
           if (result.success) {
             await db
               .updateTable("teacherSubscriptions")
-              .set({ preDebitSentAt: new Date() })
+              .set({ preDebitSentAt: sentAt })
               .where("id", "=", sub.id)
               .execute();
             preDebitsSent++;
@@ -192,6 +200,7 @@ export async function subscriptionRenew(): Promise<void> {
           "teacherSubscriptions.teacherId",
           "teacherSubscriptions.planId",
           "teacherSubscriptions.endDate",
+          "teacherSubscriptions.preDebitSentAt",
           "teacherSubscriptions.promoDuration",
           "teacherSubscriptions.promoDiscountAmount",
           "subscriptionPlans.name as planName",
@@ -206,8 +215,8 @@ export async function subscriptionRenew(): Promise<void> {
         .where("teacherSubscriptions.mandateStatus", "=", "active")
         .where("teacherSubscriptions.mandateId", "is not", null)
         .where("teacherSubscriptions.nextChargeDate", "is not", null)
-        .where("teacherSubscriptions.nextChargeDate", "<=", now)
-        .where("teacherSubscriptions.preDebitSentAt", "<=", noticeMatured)
+        .where("teacherSubscriptions.nextChargeDate", "<", chargeDueCutoff)
+        .where("teacherSubscriptions.preDebitSentAt", "<", noticeMatured)
         // A charge still pending at PayU may yet capture; charging again would
         // bill the teacher twice. verify-pending settles it.
         .where((eb) =>
@@ -230,6 +239,11 @@ export async function subscriptionRenew(): Promise<void> {
 
       for (const sub of subscriptionsToCharge) {
         if (!sub.mandateId || !sub.email) continue;
+        const noticeRefusal = noticeChargeRefusal(sub.preDebitSentAt, new Date());
+        if (noticeRefusal) {
+          console.warn(`[subscriptionRenew] Skipping charge for sub ${sub.id}: ${noticeRefusal}`);
+          continue;
+        }
 
         chargesAttempted++;
         const txnid = newChargeTxnid();

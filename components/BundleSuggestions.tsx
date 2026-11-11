@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Package, BookCopy } from 'lucide-react';
 import { useBundlesQuery } from '../helpers/useBundlesQuery';
+import { Placeholder } from '../helpers/placeholderImages';
 import { Skeleton } from './Skeleton';
 import { Badge } from './Badge';
 import { VerifiedBadge } from './VerifiedBadge';
@@ -47,16 +48,12 @@ const BundleSuggestionCard: React.FC<{ bundle: BundleListItem; index: number }> 
     <Link to={`/bundles/${bundle.slug}`} className={styles.card}>
       <div className={styles.thumbnailWrapper}>
         <div className={styles.thumbnail}>
-          {bundle.thumbnailUrl ? (
-            <img
-              src={bundle.thumbnailUrl}
-              alt={bundle.title}
-              className={styles.thumbnailImage}
-              loading="lazy"
-            />
-          ) : (
-            <Package size={32} className={styles.bundleIcon} aria-hidden="true" />
-          )}
+          <img
+            src={bundle.thumbnailUrl || Placeholder.BUNDLE}
+            alt={bundle.title}
+            className={styles.thumbnailImage}
+            loading="lazy"
+          />
         </div>
         {discountPercentage > 0 && (
           <Badge className={styles.discountBadge}>{discountPercentage}% OFF</Badge>

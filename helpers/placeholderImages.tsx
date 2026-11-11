@@ -10,4 +10,7 @@ export const Placeholder = {
   // see the comment on TeacherProductCardProps in
   // components/HomepageContentSection.tsx.
   NOTE: "https://cdn.testkart.in/placeholders/notes.png",
+  // BUNDLE is the fallback wherever a bundle shows an image: cards, the detail
+  // page hero and its share image, and teacher dashboard rows.
+  BUNDLE: "https://cdn.testkart.in/placeholders/bundle.png",
 } as const;

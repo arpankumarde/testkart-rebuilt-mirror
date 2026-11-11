@@ -259,10 +259,6 @@
   display: block;
 }
 
-.bundleIcon {
-  color: var(--tk-brand-text);
-}
-
 .cardBody {
   display: flex;
   flex-direction: column;
