@@ -34,6 +34,10 @@ export async function handle(request: Request) {
         ? await markLiveSessionNoShow({ id: input.id, party: "learner", actor, settleNow: false })
         : await completeLiveSession({ kind: input.kind, id: input.id, actor, settleNow: false });
 
+    console.log(
+      "[classroom]",
+      JSON.stringify({ event: "session-status", lesson: `${input.kind}:${input.id}`, userId: user.id, actor: actor.type, status: result.status, changed: result.changed })
+    );
     const output: OutputType = { success: true, status: result.status, changed: result.changed };
     return new Response(superjson.stringify(output));
   } catch (error) {

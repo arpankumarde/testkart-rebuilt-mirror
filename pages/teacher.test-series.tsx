@@ -19,27 +19,21 @@ import { TeacherTestCardSkeleton } from '../components/TeacherTestCardSkeleton';
 import { TeacherListEmpty } from '../components/TeacherListEmpty';
 import { TeacherContentPage } from '../components/TeacherContentPage';
 import { TeacherContentEmpty } from '../components/TeacherContentEmpty';
-import { withStatusCounts, type TeacherStatusTabDef } from '../components/TeacherStatusTabs';
+import {
+  withStatusCounts,
+  teacherListStatus,
+  TEACHER_STATUS_TABS as TABS,
+  TEACHER_STATUS_TAB_VALUES as TAB_ORDER,
+  type TeacherListStatus,
+  type TeacherListTab as StatusTab,
+} from '../components/TeacherStatusTabs';
 import styles from './teacher.test-series.module.css';
-
-type TestStatus = 'published' | 'draft' | 'unpublished';
-type StatusTab = 'all' | TestStatus;
-
-const TABS: TeacherStatusTabDef<StatusTab>[] = [
-  { value: 'all', label: 'All', word: '' },
-  { value: 'published', label: 'Published', word: 'published' },
-  { value: 'draft', label: 'Drafts', word: 'draft' },
-  { value: 'unpublished', label: 'Unpublished', word: 'unpublished' },
-];
-
-const TAB_ORDER = TABS.map((tab) => tab.value);
 
 const DEFAULT_TAB: StatusTab = 'all';
 
 const CREATE = { label: 'New test series', to: '/teacher/create-test' };
 
-const statusOf = (test: TeacherTest): TestStatus =>
-  test.isPublished ? 'published' : test.wasEverPublished ? 'unpublished' : 'draft';
+const statusOf = (test: TeacherTest): TeacherListStatus => teacherListStatus(test.isPublished, test.wasEverPublished);
 
 const TeacherTestSeriesPage: React.FC = () => {
   const { data: tests, isFetching, error, refetch } = useTeacherTestsQuery();
@@ -218,7 +212,7 @@ const TeacherTestSeriesPage: React.FC = () => {
               guardedUnpublish(
                 test,
                 () => setTestToConvertToDraft(test),
-                () => setActiveTab('draft')
+                () => setActiveTab('unpublished')
               )
             }
           />
@@ -291,7 +285,7 @@ const TeacherTestSeriesPage: React.FC = () => {
           test={testToConvertToDraft}
           isOpen={!!testToConvertToDraft}
           onClose={() => setTestToConvertToDraft(null)}
-          onConverted={() => setActiveTab('draft')}
+          onConverted={() => setActiveTab('unpublished')}
         />
       )}
 

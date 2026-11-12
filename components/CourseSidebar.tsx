@@ -144,6 +144,18 @@ export const CourseSidebar: React.FC<CourseSidebarProps> = ({
   const formattedOriginalPrice = priceView.originalPrice !== null ? formatOfferInr(priceView.originalPrice) : null;
   const discountPercentage = priceView.percentOff;
 
+  const priceRow = (
+    <div className={styles.priceRow}>
+      <span className={styles.currentPrice}>{formattedPrice}</span>
+      {formattedOriginalPrice && (
+        <>
+          <span className={styles.originalPrice}>{formattedOriginalPrice}</span>
+          {discountPercentage > 0 && <span className={styles.discount}>{discountPercentage}% OFF</span>}
+        </>
+      )}
+    </div>
+  );
+
   return (
     <div className={`${styles.sidebar} ${className || ''}`}>
       <div className={styles.sidebarCard}>
@@ -177,6 +189,7 @@ export const CourseSidebar: React.FC<CourseSidebarProps> = ({
             <ExpiredProductNotice />
           ) : isTeacher ? (
             <>
+              <div className={styles.pricing}>{priceRow}</div>
               <div className={styles.teacherInfo}>
                 <div className={styles.teacherInfoIcon}>
                   <Info size={24} />
@@ -193,15 +206,7 @@ export const CourseSidebar: React.FC<CourseSidebarProps> = ({
             <>
               {!isFree && (
                 <div className={styles.pricing}>
-                  <div className={styles.priceRow}>
-                    <span className={styles.currentPrice}>{formattedPrice}</span>
-                    {formattedOriginalPrice && (
-                      <>
-                        <span className={styles.originalPrice}>{formattedOriginalPrice}</span>
-                        {discountPercentage > 0 && <span className={styles.discount}>{discountPercentage}% OFF</span>}
-                      </>
-                    )}
-                  </div>
+                  {priceRow}
                   {priceView.offer && (
                     <p className={styles.offerNote}>
                       <Tag size={14} aria-hidden="true" />

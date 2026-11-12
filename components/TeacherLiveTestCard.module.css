@@ -79,10 +79,46 @@
   top: var(--spacing-3);
   left: var(--spacing-3);
   z-index: var(--z-content-low);
+  font-weight: 700;
+  box-shadow: 0 1px 2px hsl(30 20% 20% / 0.14);
 }
 
-/* Solid, like the Rejected badge on the other teacher cards: the Badge
-   variants are a 15% wash that sinks into the thumbnail. */
+/* Opaque pastel pills, the same fills as the other teacher cards, so every
+   status reads over any cover: the Badge variants are a 15% wash (or, for
+   outline, no fill) that sinks into the thumbnail. */
+.statusBadge.badgeDraft {
+  background-color: var(--sp-lavender-tint);
+  border-color: var(--sp-lavender-line);
+  color: var(--sp-lavender-ink);
+}
+
+.statusBadge.badgeUnpublished,
+.statusBadge.badgeClosed {
+  background-color: var(--fc-butter-tint);
+  border-color: var(--fc-butter-line);
+  color: var(--fc-butter-ink);
+}
+
+.statusBadge.badgeReview,
+.statusBadge.badgeUpcoming {
+  background-color: var(--fc-blue-tint);
+  border-color: var(--fc-blue-line);
+  color: var(--fc-blue-ink);
+}
+
+.statusBadge.badgeLive {
+  background-color: var(--fc-peach-tint);
+  border-color: var(--fc-peach-line);
+  color: var(--fc-peach-ink);
+}
+
+/* Ended: the console's warm neutral, as for archived and expired courses. */
+.statusBadge.badgeEnded {
+  background-color: var(--tc-bg, var(--surface));
+  border-color: var(--tc-line-strong, var(--border));
+  color: var(--tc-text, var(--foreground));
+}
+
 .statusBadge.statusRejected {
   background-color: var(--error-text);
   border-color: var(--error-text);

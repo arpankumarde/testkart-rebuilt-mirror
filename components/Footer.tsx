@@ -10,6 +10,7 @@ import {
 } from 'react-icons/fa6';
 import { BRAND_LOGO_DARK } from '../helpers/brandAssets';
 import { Button } from './Button';
+import { PlayStoreBadge } from './PlayStoreBadge';
 import styles from './Footer.module.css';
 
 const SOCIAL_LINKS = [
@@ -129,7 +130,6 @@ export const Footer: React.FC = () => {
               <li><Link to="/masterclass" className={styles.footerLink}>Masterclass</Link></li>
               <li><Link to="/course/live" className={styles.footerLink}>Live Teaching</Link></li>
               <li><Link to="/exams" className={styles.footerLink}>Exams</Link></li>
-              <li><Link to="/app" className={styles.footerLink}>Testkart App</Link></li>
               <li><Link to="/glossary" className={styles.footerLink}>Glossary</Link></li>
             </ul>
           </div>
@@ -162,6 +162,7 @@ export const Footer: React.FC = () => {
                 </li>
               ))}
             </ul>
+            <PlayStoreBadge className={styles.playBadge} />
           </div>
         </div>
 

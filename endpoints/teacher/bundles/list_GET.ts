@@ -41,6 +41,7 @@ export async function handle(request: Request): Promise<Response> {
         "courseBundles.price",
         "courseBundles.originalPrice",
         "courseBundles.isPublished",
+        "courseBundles.wasEverPublished",
         "courseBundles.visibility",
         "courseBundles.createdAt",
         "courseBundles.publishedAt",
@@ -59,8 +60,10 @@ export async function handle(request: Request): Promise<Response> {
         )`.as("currentOriginalPrice"),
       ]);
 
-    if (input.status) {
-      query = query.where("isPublished", "=", input.status === "published");
+    const status = input.status;
+    if (status) {
+      query = query.where("courseBundles.isPublished", "=", status === "published");
+      if (status !== "published") query = query.where("courseBundles.wasEverPublished", "=", status === "unpublished");
     }
 
     if (searchPattern) {
@@ -78,8 +81,9 @@ export async function handle(request: Request): Promise<Response> {
       .where("teacherId", "=", effectiveTeacherId)
       .select(db.fn.count("id").as("total"));
 
-    if (input.status) {
-      totalQuery = totalQuery.where("isPublished", "=", input.status === "published");
+    if (status) {
+      totalQuery = totalQuery.where("isPublished", "=", status === "published");
+      if (status !== "published") totalQuery = totalQuery.where("wasEverPublished", "=", status === "unpublished");
     }
 
     if (searchPattern) {
@@ -91,14 +95,14 @@ export async function handle(request: Request): Promise<Response> {
     const countRows = await db
       .selectFrom("courseBundles")
       .where("teacherId", "=", effectiveTeacherId)
-      .select(["isPublished", db.fn.countAll<string>().as("count")])
-      .groupBy("isPublished")
+      .select(["isPublished", "wasEverPublished", db.fn.countAll<string>().as("count")])
+      .groupBy(["isPublished", "wasEverPublished"])
       .execute();
-    const statusCounts: OutputType["statusCounts"] = { all: 0, published: 0, draft: 0 };
+    const statusCounts: OutputType["statusCounts"] = { all: 0, published: 0, draft: 0, unpublished: 0 };
     for (const row of countRows) {
       const count = Number(row.count);
       statusCounts.all += count;
-      statusCounts[row.isPublished ? "published" : "draft"] += count;
+      statusCounts[row.isPublished ? "published" : row.wasEverPublished ? "unpublished" : "draft"] += count;
     }
 
     const inReview = await pendingReviewIds(db, "course_bundle", bundles.map((bundle) => bundle.id));

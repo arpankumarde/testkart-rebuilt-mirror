@@ -72,6 +72,13 @@
   color: var(--sp-ink);
 }
 
+/* Published once and taken down since, as on the test series card. */
+.unpublished {
+  background-color: var(--fc-butter-tint);
+  border-color: var(--fc-butter-line);
+  color: var(--fc-butter-ink);
+}
+
 .inReview {
   background-color: var(--fc-blue-tint);
   border-color: var(--fc-blue-line);

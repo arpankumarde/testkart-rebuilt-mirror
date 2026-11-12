@@ -6,7 +6,8 @@ import type { ContentExam } from "../../../helpers/contentExams";
 import type { ContentRejection } from "../../../helpers/contentReviewStatus";
 
 export const schema = z.object({
-  status: z.enum(DigitalProductStatusArrayValues).optional(),
+  /** "draft" is never published; "unpublished" is off sale after being live, archived products included. */
+  status: z.enum([...DigitalProductStatusArrayValues, "unpublished"]).optional(),
   category: z.string().optional(),
   /** Matches title, category or exam name, case-insensitive. */
   search: z.string().trim().max(100).optional(),
@@ -34,8 +35,8 @@ export type OutputType = {
   limit: number;
   /** Products matching the filters across all pages. */
   total: number;
-  /** Every product the teacher has, per status, whatever the filters. Drives the status tabs. */
-  statusCounts: Record<"all" | DigitalProductStatus, number>;
+  /** Every product the teacher has, per status, whatever the filters. Drives the status tabs; unpublished includes archived. */
+  statusCounts: Record<"all" | DigitalProductStatus | "unpublished", number>;
 };
 
 export const getTeacherProductsList = async (

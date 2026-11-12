@@ -8,25 +8,25 @@ import { Button } from '../components/Button';
 import { TeacherListEmpty } from '../components/TeacherListEmpty';
 import { TeacherContentPage } from '../components/TeacherContentPage';
 import { TeacherContentEmpty } from '../components/TeacherContentEmpty';
-import { withStatusCounts, type TeacherStatusTabDef } from '../components/TeacherStatusTabs';
+import {
+  withStatusCounts,
+  teacherListStatus,
+  TEACHER_STATUS_TABS as TABS,
+  TEACHER_STATUS_TAB_VALUES as TAB_ORDER,
+  type TeacherListStatus,
+  type TeacherListTab as StatusTab,
+} from '../components/TeacherStatusTabs';
 import { TeacherCourseCard } from '../components/TeacherCourseCard';
 import { useCreatorBonusOverview } from '../helpers/useCreatorBonus';
 import { DeleteCourseDialog } from '../components/DeleteCourseDialog';
 import { TeacherTestCardSkeleton } from '../components/TeacherTestCardSkeleton';
 import styles from './teacher.courses.module.css';
 
-type StatusTab = 'all' | 'published' | 'draft' | 'archived';
-
-const TABS: TeacherStatusTabDef<StatusTab>[] = [
-  { value: 'all', label: 'All', word: '' },
-  { value: 'published', label: 'Published', word: 'published' },
-  { value: 'draft', label: 'Drafts', word: 'draft' },
-  { value: 'archived', label: 'Archived', word: 'archived' },
-];
-
-const TAB_ORDER = TABS.map((tab) => tab.value);
-
 const DEFAULT_TAB: StatusTab = 'all';
+
+/** An archived course is off sale, so it counts under Unpublished; its card keeps the Archived badge. */
+const statusOf = (course: TeacherCourseListItem): TeacherListStatus =>
+  course.status === 'archived' ? 'unpublished' : teacherListStatus(course.status === 'published', course.wasEverPublished);
 
 const CREATE = { label: 'New course', to: '/teacher/courses/create' };
 
@@ -59,12 +59,8 @@ const TeacherCoursesPage: React.FC = () => {
   }, [bonus]);
 
   const counts = useMemo(() => {
-    const base: Record<StatusTab, number> = { all: 0, published: 0, draft: 0, archived: 0 };
-    for (const course of allCourses) {
-      base.all += 1;
-      const status = course.status as StatusTab | null;
-      if (status && status !== 'all' && status in base) base[status] += 1;
-    }
+    const base: Record<StatusTab, number> = { all: allCourses.length, published: 0, draft: 0, unpublished: 0 };
+    for (const course of allCourses) base[statusOf(course)] += 1;
     return base;
   }, [allCourses]);
 
@@ -72,7 +68,7 @@ const TeacherCoursesPage: React.FC = () => {
     let filtered =
       activeTab === 'all'
         ? allCourses
-        : allCourses.filter((course) => course.status === activeTab);
+        : allCourses.filter((course) => statusOf(course) === activeTab);
 
     const query = searchQuery.trim().toLowerCase();
     if (query) {

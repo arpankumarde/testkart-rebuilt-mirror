@@ -29,20 +29,18 @@ export const useClassroomJoinMutation = () => useMutation({ mutationFn: postMent
 export const useClassroomLeaveMutation = () => useMutation({ mutationFn: postMentorshipClassroomLeave });
 
 /**
- * Chat has no real-time push transport available in this environment (see the
- * final handoff notes), so it polls - but only once the viewer has actually
- * joined the live session (`enabled`/the 4s interval only run while that's
- * true), which is exactly the "a timer that runs only while something the
- * user started is in progress" case that doesn't carry a hosting-cost risk:
- * nobody can leave this polling running in a background tab indefinitely,
- * because leaving the call also stops it.
+ * Chat is stored by the chat endpoints. In a Daily call each new message is also pushed to the
+ * others as a Daily app message (components/ClassroomSession.tsx), so this poll is only the
+ * fallback that catches anything missed: `intervalMs` is slow there and 4s for the development
+ * mock, which has no push. It runs only while the viewer is in the session (`isJoined`), so
+ * leaving the call stops it and no background tab can keep it running.
  */
-export const useClassroomChatListQuery = (kind: ClassroomKind, id: string | null, isJoined: boolean) =>
+export const useClassroomChatListQuery = (kind: ClassroomKind, id: string | null, isJoined: boolean, intervalMs = 4000) =>
   useQuery({
     queryKey: ["mentorship", "classroom", "chat", kind, id],
     queryFn: () => getMentorshipClassroomChatList({ kind, id: id as string, limit: 100 }),
     enabled: !!id && isJoined,
-    refetchInterval: isJoined ? 4000 : false,
+    refetchInterval: isJoined ? intervalMs : false,
   });
 
 export const useClassroomChatSendMutation = () => {

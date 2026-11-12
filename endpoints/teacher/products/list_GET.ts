@@ -34,7 +34,17 @@ export async function handle(request: Request): Promise<Response> {
       .selectAll()
       .where("teacherId", "=", effectiveTeacherId);
 
-    if (input.status) {
+    // Unpublished is everything off sale that was live once, archived products included.
+    if (input.status === "unpublished") {
+      query = query.where((eb) =>
+        eb.or([
+          eb("status", "=", "archived"),
+          eb.and([eb("status", "=", "draft"), eb("wasEverPublished", "=", true)]),
+        ])
+      );
+    } else if (input.status === "draft") {
+      query = query.where("status", "=", "draft").where("wasEverPublished", "=", false);
+    } else if (input.status) {
       query = query.where("status", "=", input.status);
     }
 
@@ -69,14 +79,16 @@ export async function handle(request: Request): Promise<Response> {
     const countRows = await db
       .selectFrom("digitalProducts")
       .where("teacherId", "=", effectiveTeacherId)
-      .select(["status", db.fn.countAll<string>().as("count")])
-      .groupBy("status")
+      .select(["status", "wasEverPublished", db.fn.countAll<string>().as("count")])
+      .groupBy(["status", "wasEverPublished"])
       .execute();
-    const statusCounts: OutputType["statusCounts"] = { all: 0, published: 0, draft: 0, archived: 0 };
+    const statusCounts: OutputType["statusCounts"] = { all: 0, published: 0, draft: 0, unpublished: 0, archived: 0 };
     for (const row of countRows) {
       const count = Number(row.count);
       statusCounts.all += count;
-      if (row.status) statusCounts[row.status] += count;
+      if (row.status === "draft") statusCounts[row.wasEverPublished ? "unpublished" : "draft"] += count;
+      else if (row.status) statusCounts[row.status] += count;
+      if (row.status === "archived") statusCounts.unpublished += count;
     }
 
     const inReview = await pendingReviewIds(db, "digital_product", products.map((p) => p.id));

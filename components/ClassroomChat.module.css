@@ -1,0 +1,202 @@
+/* Meeting chat inside the classroom side panel; colours come from the --mt-* tokens. */
+.chat {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin: auto 0;
+  padding: 2rem 1rem;
+  color: var(--mt-muted);
+  text-align: center;
+}
+
+.empty p {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.625rem;
+}
+
+.rowGrouped {
+  margin-top: 0;
+}
+
+.rowMine {
+  justify-content: flex-end;
+}
+
+.avatarSlot {
+  display: flex;
+  width: 2rem;
+  flex-shrink: 0;
+}
+
+.avatarSlot img,
+.avatarSlot span {
+  width: 2rem;
+  height: 2rem;
+  font-size: 0.75rem;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+  min-width: 0;
+  max-width: 82%;
+}
+
+.rowMine .stack {
+  align-items: flex-end;
+}
+
+.meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0 0.25rem;
+}
+
+.sender {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--mt-ink);
+}
+
+.time {
+  font-size: 0.6875rem;
+  color: var(--mt-muted);
+}
+
+.bubble {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.875rem 0.875rem 0.875rem 0.25rem;
+  background: var(--mt-raised);
+  color: var(--mt-ink);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.bubbleMine {
+  border-radius: 0.875rem 0.875rem 0.25rem 0.875rem;
+  background: var(--mt-accent-tint);
+  color: var(--mt-accent-ink);
+}
+
+.composer {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  margin: 0 0.75rem;
+  padding: 0.375rem 0.375rem 0.375rem 0.75rem;
+  border: 1px solid var(--mt-line-strong);
+  border-radius: 1rem;
+  background: var(--mt-raised);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.composer:focus-within {
+  border-color: var(--mt-accent-line);
+  box-shadow: 0 0 0 3px var(--mt-accent-ring);
+}
+
+.input {
+  flex: 1;
+  min-height: 2.25rem;
+  max-height: 8rem;
+  padding: 0.5rem 0;
+  border: none;
+  background: transparent;
+  color: var(--mt-ink);
+  font: inherit;
+  font-size: 0.9375rem;
+  line-height: 1.35;
+  resize: none;
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--mt-muted);
+}
+
+.send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: none;
+  border-radius: 0.75rem;
+  background: var(--mt-accent);
+  color: var(--mt-accent-on);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.send:hover:not(:disabled) {
+  background: var(--mt-accent-hover);
+}
+
+.send:disabled {
+  background: var(--mt-btn);
+  color: var(--mt-disabled);
+  cursor: not-allowed;
+}
+
+.send:focus-visible {
+  outline: none;
+  box-shadow: var(--mt-focus);
+}
+
+.help {
+  margin: 0.375rem 1rem 0.75rem;
+  font-size: 0.6875rem;
+  color: var(--mt-muted);
+}
+
+@media (max-width: 640px) {
+  .input {
+    font-size: 16px;
+  }
+
+  .send {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .help {
+    display: none;
+  }
+
+  .composer {
+    margin-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+  }
+}

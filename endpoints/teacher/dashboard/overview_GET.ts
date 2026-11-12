@@ -240,11 +240,11 @@ export async function handle(request: Request): Promise<Response> {
              WHERE mt.teacher_id = ${teacherId} AND mt.deleted_at IS NULL AND mt.is_published = false AND mt.was_ever_published = false
                AND NOT EXISTS (SELECT 1 FROM live_tests lt WHERE lt.teacher_id = ${teacherId} AND lt.mock_test_id = mt.id)) AS draft_tests,
           (SELECT count(*) FROM courses WHERE teacher_id = ${teacherId} AND status = 'published') AS published_courses,
-          (SELECT count(*) FROM courses WHERE teacher_id = ${teacherId} AND status = 'draft') AS draft_courses,
+          (SELECT count(*) FROM courses WHERE teacher_id = ${teacherId} AND status = 'draft' AND was_ever_published = false) AS draft_courses,
           (SELECT count(*) FROM digital_products WHERE teacher_id = ${teacherId} AND status = 'published') AS published_products,
-          (SELECT count(*) FROM digital_products WHERE teacher_id = ${teacherId} AND status = 'draft') AS draft_products,
+          (SELECT count(*) FROM digital_products WHERE teacher_id = ${teacherId} AND status = 'draft' AND was_ever_published = false) AS draft_products,
           (SELECT count(*) FROM course_bundles WHERE teacher_id = ${teacherId} AND is_published = true) AS published_bundles,
-          (SELECT count(*) FROM course_bundles WHERE teacher_id = ${teacherId} AND is_published = false) AS draft_bundles,
+          (SELECT count(*) FROM course_bundles WHERE teacher_id = ${teacherId} AND is_published = false AND was_ever_published = false) AS draft_bundles,
           (SELECT count(*) FROM live_tests WHERE teacher_id = ${teacherId} AND is_active = true AND end_time > now()) AS active_live_tests,
           (SELECT count(DISTINCT student_id) FROM (
              SELECT mte.student_id FROM mock_test_enrollments mte JOIN mock_tests mt ON mt.id = mte.mock_test_id WHERE mt.teacher_id = ${teacherId}

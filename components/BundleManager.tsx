@@ -10,7 +10,12 @@ import { TeacherListEmpty } from './TeacherListEmpty';
 import { TeacherListPagination } from './TeacherListPagination';
 import { TeacherContentPage } from './TeacherContentPage';
 import { TeacherContentEmpty } from './TeacherContentEmpty';
-import { withStatusCounts, type TeacherStatusTabDef } from './TeacherStatusTabs';
+import {
+  withStatusCounts,
+  TEACHER_STATUS_TABS as TABS,
+  TEACHER_STATUS_TAB_VALUES as STATUS_VALUES,
+  type TeacherListTab as StatusTab,
+} from './TeacherStatusTabs';
 import { TestCardSkeleton } from './TestCardSkeleton';
 import {
   Dialog,
@@ -24,16 +29,6 @@ import type { BundleListItem } from '../endpoints/teacher/bundles/list_GET.schem
 import styles from './BundleManager.module.css';
 
 const BUNDLES_PER_PAGE = 9;
-
-type StatusTab = 'all' | 'published' | 'draft';
-
-const TABS: TeacherStatusTabDef<StatusTab>[] = [
-  { value: 'all', label: 'All', word: '' },
-  { value: 'published', label: 'Published', word: 'published' },
-  { value: 'draft', label: 'Drafts', word: 'draft' },
-];
-
-const STATUS_VALUES = TABS.map((tab) => tab.value);
 
 export const BundleManager: React.FC = () => {
   const navigate = useNavigate();

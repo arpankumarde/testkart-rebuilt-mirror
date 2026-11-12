@@ -54,6 +54,22 @@ export async function handle(request: Request) {
       .returning("id")
       .executeTakeFirstOrThrow();
 
+    // One room per lesson, one token per person: both people get the same room URL and their own token.
+    console.log(
+      "[classroom]",
+      JSON.stringify({
+        event: "join-credentials",
+        lesson: `${ctx.kind}:${ctx.id}`,
+        userId: user.id,
+        role: ctx.viewerRole,
+        provider: credentials.provider,
+        room: credentials.roomId,
+        roomUrl: credentials.url,
+        tokenExpiresAt: credentials.expiresAt.toISOString(),
+        attendanceId: attendance.id,
+      })
+    );
+
     const output: OutputType = {
       roomId: credentials.roomId,
       token: credentials.token,

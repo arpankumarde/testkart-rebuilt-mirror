@@ -28,21 +28,19 @@ import { ConsoleDialogContent, ConsoleDialogHeader, ConsoleDialogBody, ConsoleDi
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../components/DropdownMenu";
 import { Input } from "../components/Input";
 import {
+  LiveSessionCard,
+  LiveSessionJoinLink,
   LiveSessionList,
-  LiveSessionNextCard,
-  LiveSessionRow,
+  LiveSessionOpensNote,
   LiveSessionSegment,
   LiveSessionStatus,
-  LiveSessionTone,
 } from "../components/LiveSession";
 import styles from "./student.live-teaching.module.css";
 
 type FilterValue = "upcoming" | "past" | "cancelled";
 type Kind = "bookings" | "group";
 
-const TONES: LiveSessionTone[] = ["lavender", "blue", "sage", "butter", "mint"];
-
-/* Upcoming sessions need no label; only finished or stopped ones say what happened. */
+/* Upcoming sessions carry an Up next or Room open badge instead; only finished or stopped ones say what happened. */
 const bookingStatus = (status: string, noShowParty?: string | null): LiveSessionStatus | null => {
   if (status === "cancelled") return { label: "Cancelled", tone: "peach" };
   if (status === "completed") return { label: "Done", tone: "sage" };
@@ -71,9 +69,9 @@ const isInJoinWindow = (start: Date | string, durationMinutes: number, now: numb
 const opensLabel = (start: Date | string, now: number) => {
   const opens = new Date(new Date(start).getTime() - JOIN_WINDOW_MINUTES_BEFORE * MIN);
   const time = new Intl.DateTimeFormat("en-IN", { hour: "numeric", minute: "2-digit", hour12: true }).format(opens);
-  if (new Date(now).toDateString() === opens.toDateString()) return `Classroom opens at ${time}`;
+  if (new Date(now).toDateString() === opens.toDateString()) return `Opens at ${time}`;
   const day = new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short" }).format(opens);
-  return `Classroom opens ${day}, ${time}`;
+  return `Opens ${day}, ${time}`;
 };
 
 const enrollmentStatus = (e: MyGroupLessonEnrollmentRow): LiveSessionStatus | null => {
@@ -113,12 +111,12 @@ const StudentLiveTeachingPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Live Teaching - Testkart</title>
+        <title>Live Classes - Testkart</title>
       </Helmet>
       <div className={styles.page}>
         <ConsolePageHeader title="Live classes">
           <Button variant="outline" asChild>
-            <Link to={GROUP_LESSON_LIST_PATH}>
+            <Link to="/expert">
               <Search size={16} aria-hidden="true" /> Find a class
             </Link>
           </Button>
@@ -159,8 +157,9 @@ export default StudentLiveTeachingPage;
 
 const ListSkeleton: React.FC = () => (
   <div className={styles.skeletons}>
-    <Skeleton style={{ height: "6.5rem", width: "100%", borderRadius: "1.5rem" }} />
-    <Skeleton style={{ height: "5rem", width: "100%", borderRadius: "1.25rem" }} />
+    <Skeleton style={{ height: "4.75rem", width: "100%", borderRadius: "1rem" }} />
+    <Skeleton style={{ height: "4.75rem", width: "100%", borderRadius: "1rem" }} />
+    <Skeleton style={{ height: "4.75rem", width: "100%", borderRadius: "1rem" }} />
   </div>
 );
 
@@ -184,18 +183,17 @@ const BookingsView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
     );
   }
 
-  const [first, ...rest] = bookings;
-  const showNext = filter === "upcoming" && first.status === "scheduled";
-  const listed = showNext ? rest : bookings;
-
   // A class can be moved or cancelled only before it starts, and entered only inside its join window.
+  // Only the Upcoming list ever offers the classroom, so a past session never shows a join button.
+  const isUpcoming = (b: MentorshipBookingRow) => filter === "upcoming" && b.status === "scheduled";
   const notStarted = (b: MentorshipBookingRow) => b.status === "scheduled" && new Date(b.scheduledAt).getTime() > now;
-  const canEnter = (b: MentorshipBookingRow) => b.status === "scheduled" && isInJoinWindow(b.scheduledAt, b.durationMinutes, now);
+  const canEnter = (b: MentorshipBookingRow) => isUpcoming(b) && isInJoinWindow(b.scheduledAt, b.durationMinutes, now);
+  const nextId = bookings.find(isUpcoming)?.id;
 
   const menu = (b: MentorshipBookingRow) => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon-md" aria-label={`More options for ${b.sessionTitle}`}>
+        <Button variant="ghost" size="icon-md" className={styles.menuTrigger} aria-label={`More options for ${b.sessionTitle}`}>
           <MoreHorizontal size={18} />
         </Button>
       </DropdownMenuTrigger>
@@ -212,16 +210,12 @@ const BookingsView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
     </DropdownMenu>
   );
 
-  const upcomingActions = (b: MentorshipBookingRow, primary: boolean) => (
+  const upcomingActions = (b: MentorshipBookingRow) => (
     <>
       {canEnter(b) ? (
-        <Button variant={primary ? "primary" : "outline"} size={primary ? "md" : "sm"} asChild>
-          <Link to={`/mentorship/classroom/booking/${b.id}`}>
-            <Video size={primary ? 16 : 14} aria-hidden="true" /> {primary ? "Open classroom" : "Classroom"}
-          </Link>
-        </Button>
+        <LiveSessionJoinLink to={`/mentorship/classroom/booking/${b.id}`} />
       ) : notStarted(b) ? (
-        <span className={styles.opensNote}>{opensLabel(b.scheduledAt, now)}</span>
+        <LiveSessionOpensNote>{opensLabel(b.scheduledAt, now)}</LiveSessionOpensNote>
       ) : null}
       {notStarted(b) && menu(b)}
     </>
@@ -229,7 +223,7 @@ const BookingsView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
 
   const reportButton = (b: MentorshipBookingRow) =>
     b.canReport ? (
-      <Button variant="outline" size="sm" onClick={() => setReportTarget(b)}>
+      <Button variant="outline" size="md" className={styles.reportButton} onClick={() => setReportTarget(b)}>
         <Flag size={14} aria-hidden="true" /> Teacher did not come
       </Button>
     ) : b.issue ? (
@@ -238,35 +232,22 @@ const BookingsView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
 
   return (
     <>
-      {showNext && (
-        <LiveSessionNextCard
-          startTime={first.scheduledAt}
-          durationMinutes={first.durationMinutes}
-          title={first.sessionTitle}
-          subtitle={`with ${first.teacherName}`}
-          actions={upcomingActions(first, true)}
-        />
-      )}
-
-      {listed.length > 0 && (
-        <LiveSessionList title={showNext ? "Later" : undefined}>
-          {listed.map((b, i) => (
-            <LiveSessionRow
-              key={b.id}
-              startTime={b.scheduledAt}
-              durationMinutes={b.durationMinutes}
-              title={b.sessionTitle}
-              subtitle={`with ${b.teacherName}`}
-              tone={TONES[i % TONES.length]}
-              status={
-                filter === "past" && b.status === "scheduled" ? { label: "Ended", tone: "muted" } : bookingStatus(b.status, b.noShowParty)
-              }
-              note={b.cancellationReason}
-              actions={filter === "upcoming" && b.status === "scheduled" ? upcomingActions(b, false) : reportButton(b)}
-            />
-          ))}
-        </LiveSessionList>
-      )}
+      <LiveSessionList>
+        {bookings.map((b) => (
+          <LiveSessionCard
+            key={b.id}
+            startTime={b.scheduledAt}
+            durationMinutes={b.durationMinutes}
+            title={b.sessionTitle}
+            teacherName={b.teacherName}
+            teacherAvatarUrl={b.teacherAvatarUrl}
+            badge={canEnter(b) ? "live" : b.id === nextId ? "next" : null}
+            status={filter === "past" && b.status === "scheduled" ? { label: "Ended", tone: "muted" } : bookingStatus(b.status, b.noShowParty)}
+            note={b.cancellationReason}
+            actions={isUpcoming(b) ? upcomingActions(b) : reportButton(b)}
+          />
+        ))}
+      </LiveSessionList>
 
       <CancelBookingDialog booking={cancelTarget} onOpenChange={(open) => !open && setCancelTarget(null)} />
       <RescheduleBookingDialog booking={rescheduleTarget} onOpenChange={(open) => !open && setRescheduleTarget(null)} />
@@ -299,19 +280,17 @@ const GroupView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
     );
   }
 
-  const isJoinable = (e: MyGroupLessonEnrollmentRow) => e.status === "enrolled" && e.lessonStatus === "scheduled";
+  // Same rule as 1:1 sessions: the classroom is offered only from the Upcoming list.
+  const isJoinable = (e: MyGroupLessonEnrollmentRow) => filter === "upcoming" && e.status === "enrolled" && e.lessonStatus === "scheduled";
   const canLeave = (e: MyGroupLessonEnrollmentRow) => isJoinable(e) && new Date(e.startTime).getTime() > now;
   const canEnter = (e: MyGroupLessonEnrollmentRow) => isJoinable(e) && isInJoinWindow(e.startTime, e.durationMinutes, now);
-
-  const [first, ...rest] = enrollments;
-  const showNext = filter === "upcoming" && isJoinable(first);
-  const listed = showNext ? rest : enrollments;
+  const nextId = enrollments.find(isJoinable)?.enrollmentId;
 
   const menu = (e: MyGroupLessonEnrollmentRow) =>
     canLeave(e) ? (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon-md" aria-label={`More options for ${e.title}`}>
+          <Button variant="ghost" size="icon-md" className={styles.menuTrigger} aria-label={`More options for ${e.title}`}>
             <MoreHorizontal size={18} />
           </Button>
         </DropdownMenuTrigger>
@@ -324,16 +303,12 @@ const GroupView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
       </DropdownMenu>
     ) : null;
 
-  const upcomingActions = (e: MyGroupLessonEnrollmentRow, primary: boolean) => (
+  const upcomingActions = (e: MyGroupLessonEnrollmentRow) => (
     <>
       {canEnter(e) ? (
-        <Button variant={primary ? "primary" : "outline"} size={primary ? "md" : "sm"} asChild>
-          <Link to={`/mentorship/classroom/group/${e.groupLessonId}`}>
-            <Video size={primary ? 16 : 14} aria-hidden="true" /> {primary ? "Open classroom" : "Classroom"}
-          </Link>
-        </Button>
+        <LiveSessionJoinLink to={`/mentorship/classroom/group/${e.groupLessonId}`} />
       ) : canLeave(e) ? (
-        <span className={styles.opensNote}>{opensLabel(e.startTime, now)}</span>
+        <LiveSessionOpensNote>{opensLabel(e.startTime, now)}</LiveSessionOpensNote>
       ) : null}
       {menu(e)}
     </>
@@ -341,32 +316,22 @@ const GroupView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
 
   return (
     <>
-      {showNext && (
-        <LiveSessionNextCard
-          startTime={first.startTime}
-          durationMinutes={first.durationMinutes}
-          title={first.title}
-          subtitle={`with ${first.teacherName}`}
-          actions={upcomingActions(first, true)}
-        />
-      )}
-
-      {listed.length > 0 && (
-        <LiveSessionList title={showNext ? "Later" : undefined}>
-          {listed.map((e, i) => (
-            <LiveSessionRow
-              key={e.enrollmentId}
-              startTime={e.startTime}
-              durationMinutes={e.durationMinutes}
-              title={e.title}
-              subtitle={`with ${e.teacherName}`}
-              tone={TONES[i % TONES.length]}
-              status={enrollmentStatus(e)}
-              actions={filter === "upcoming" && isJoinable(e) ? upcomingActions(e, false) : undefined}
-            />
-          ))}
-        </LiveSessionList>
-      )}
+      <LiveSessionList>
+        {enrollments.map((e) => (
+          <LiveSessionCard
+            key={e.enrollmentId}
+            startTime={e.startTime}
+            durationMinutes={e.durationMinutes}
+            title={e.title}
+            teacherName={e.teacherName}
+            teacherAvatarUrl={e.teacherAvatarUrl}
+            badge={canEnter(e) ? "live" : e.enrollmentId === nextId ? "next" : null}
+            status={enrollmentStatus(e)}
+            tag={e.subject}
+            actions={isJoinable(e) ? upcomingActions(e) : undefined}
+          />
+        ))}
+      </LiveSessionList>
 
       <ConsoleConfirmDialog
         open={!!leaveTarget}

@@ -23,8 +23,20 @@ export type LiveTestStatus = (typeof LiveTestStatusArray)[number];
 export const LiveTestListFilterValues = ["prizes-pending", "starting-soon", "active"] as const;
 export type LiveTestListFilter = (typeof LiveTestListFilterValues)[number];
 
+/* The status tabs every teacher content page shows. "draft" was never published (is_active), "unpublished"
+   was published once and taken down since. */
+export const LiveTestTabValues = ["all", "published", "draft", "unpublished"] as const;
+export type LiveTestTab = (typeof LiveTestTabValues)[number];
+
+/* Narrows to published tests at one point of their schedule. "closed" is registration closed or seats full. */
+export const LiveTestScheduleValues = ["upcoming", "live", "closed", "ended"] as const;
+export type LiveTestSchedule = (typeof LiveTestScheduleValues)[number];
+
 export const schema = z.object({
+  /* The older single filter on the derived status, still read by other callers. Ignored when tab or schedule is set. */
   status: z.enum(["all", ...LiveTestStatusArray]).optional(),
+  tab: z.enum(LiveTestTabValues).optional(),
+  schedule: z.enum(LiveTestScheduleValues).optional(),
   filter: z.enum(LiveTestListFilterValues).optional(),
   page: z.coerce.number().int().positive().optional().default(1),
   limit: z.coerce.number().int().positive().optional().default(10),
@@ -68,6 +80,8 @@ export type OutputType = {
   /* Every live test the teacher has, per status, whatever the status, filter or page. `all` is the
      total. Drives the status tabs. */
   statusCounts: Record<"all" | LiveTestStatus, number>;
+  /* Every live test the teacher has, per status tab, whatever the filters or page. */
+  tabCounts: Record<LiveTestTab, number>;
 };
 
 export const getTeacherLiveTestsList = async (
@@ -77,6 +91,8 @@ export const getTeacherLiveTestsList = async (
   const params = new URLSearchParams();
 
   if (filters.status) params.append("status", filters.status);
+  if (filters.tab) params.append("tab", filters.tab);
+  if (filters.schedule) params.append("schedule", filters.schedule);
   if (filters.filter) params.append("filter", filters.filter);
   if (filters.page) params.append("page", filters.page.toString());
   if (filters.limit) params.append("limit", filters.limit.toString());

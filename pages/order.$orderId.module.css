@@ -306,6 +306,33 @@
   margin-top: var(--spacing-4);
 }
 
+/* Shown when a retry finds a different total; the next press pays the new amount. */
+.priceChangeNote {
+  display: flex;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid color-mix(in srgb, var(--warning) 45%, var(--surface));
+  border-radius: var(--radius-md);
+  background-color: color-mix(in srgb, var(--warning) 12%, var(--surface));
+  color: var(--warning-text);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.priceChangeNote svg {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.priceChangeNote p {
+  margin: 0;
+}
+
+.priceChangeNote strong {
+  font-weight: 700;
+}
+
 .centeredState {
   text-align: center;
   padding: var(--spacing-16) 0;

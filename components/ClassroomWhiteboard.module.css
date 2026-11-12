@@ -1,0 +1,191 @@
+/*
+ * Shared whiteboard. The chrome follows the classroom's --mt-* tokens (light
+ * and dark); the drawing surface is always light paper so ink colours read
+ * the same for everyone and in the exported PNG.
+ */
+.board {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  border: 1px solid var(--mt-line);
+  border-radius: 1rem;
+  background: var(--mt-panel);
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.375rem 0.5rem;
+  padding: 0.5rem 0.625rem;
+  border-bottom: 1px solid var(--mt-line);
+}
+
+.group {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.divider {
+  width: 1px;
+  height: 1.5rem;
+  background: var(--mt-line);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 0.625rem;
+  background: transparent;
+  color: var(--mt-text);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.tool:hover:not(:disabled) {
+  background: var(--mt-btn-hover);
+  color: var(--mt-ink);
+}
+
+.tool:disabled {
+  color: var(--mt-disabled);
+  cursor: not-allowed;
+}
+
+.toolActive,
+.toolActive:hover:not(:disabled) {
+  background: var(--mt-accent-tint);
+  border-color: var(--mt-accent-line);
+  color: var(--mt-accent-ink);
+}
+
+.close:hover:not(:disabled) {
+  background: var(--mt-danger-tint);
+  color: var(--mt-danger-ink);
+}
+
+.tool:focus-visible,
+.swatch:focus-visible {
+  outline: none;
+  box-shadow: var(--mt-focus);
+}
+
+.swatch {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: 0 0.125rem;
+  padding: 0;
+  border: 2px solid var(--mt-panel);
+  border-radius: 50%;
+  background: var(--swatch);
+  box-shadow: 0 0 0 1px var(--mt-line-strong);
+  cursor: pointer;
+}
+
+.swatchActive {
+  box-shadow: 0 0 0 2px var(--mt-ink);
+}
+
+.sizeDot {
+  display: block;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.area {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 0;
+  padding: 0.75rem;
+  background: var(--mt-bg);
+}
+
+.paper {
+  position: relative;
+  border: 1px solid var(--mt-line);
+  border-radius: 0.75rem;
+  background: #fbfaf7;
+  overflow: hidden;
+}
+
+.canvas {
+  display: block;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.canvasText {
+  cursor: text;
+}
+
+.hint {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: 0;
+  max-width: 80%;
+  transform: translate(-50%, -50%);
+  font-size: 0.875rem;
+  color: hsl(220 10% 46%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.textInput {
+  position: absolute;
+  min-width: 8rem;
+  min-height: 2rem;
+  padding: 0.125rem 0.25rem;
+  border: 1px dashed hsl(220 12% 60%);
+  border-radius: 0.375rem;
+  background: #ffffff;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-weight: 600;
+  line-height: 1.25;
+  resize: both;
+  outline: none;
+}
+
+@media (max-width: 640px) {
+  .board {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  .toolbar {
+    padding: 0.375rem 0.5rem;
+  }
+
+  .divider {
+    display: none;
+  }
+
+  .tool {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .area {
+    padding: 0.5rem;
+  }
+}

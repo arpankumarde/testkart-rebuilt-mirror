@@ -2,6 +2,7 @@ import { db } from "../../helpers/db";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { OutputType } from "./details_GET.schema";
 import { paymentFailureReason } from "../../helpers/paymentFailureReason";
+import { directRetryKind } from "../../helpers/orderPaymentAttempts";
 import superjson from "superjson";
 import { z } from "zod";
 
@@ -184,6 +185,16 @@ export async function handle(request: Request) {
         order.status === "refunded"
           ? { refundedAt: order.refundedAt, reason: order.refundReason }
           : null,
+      retryInPlace:
+        directRetryKind({
+          ...order,
+          paymentFailure: {
+            paymentErrorCode: order.paymentErrorCode,
+            paymentErrorMessage: order.paymentErrorMessage,
+            paymentBankMessage: order.paymentBankMessage,
+            paymentGatewayStatus: order.paymentGatewayStatus,
+          },
+        }) !== null,
     };
 
     return new Response(

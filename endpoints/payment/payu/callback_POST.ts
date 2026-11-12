@@ -15,6 +15,7 @@ import { paymentFailureReason } from "../../../helpers/paymentFailureReason";
 import { findLiveTestSlug } from "../../../helpers/findLiveTestSlug";
 import { liveTestPath } from "../../../helpers/liveTestRoutes";
 import { PAY_LINK_UDF } from "../../../helpers/payLinkServer";
+import { findAttemptOrderId, recordReplacedAttemptAnswer } from "../../../helpers/orderPaymentAttempts";
 
 function isDeepLink(url: string): boolean {
   return url.includes("://") && !url.startsWith("http://") && !url.startsWith("https://");
@@ -171,15 +172,18 @@ export async function handle(request: Request) {
       
       if (!existingOrder) {
         await recordReplacedOrderReason(txnid, failureColumns);
+        const replacedOrderId = await recordReplacedAttemptAnswer(txnid, failureColumns, false);
         return createHtmlResponse({
           status: 'failed',
           txnid,
-          redirectUrl: `${baseUrl}/cart?error=order_not_found`,
+          redirectUrl: replacedOrderId !== null ? `${baseUrl}/order/${replacedOrderId}` : `${baseUrl}/cart?error=order_not_found`,
         });
       }
 
       // Fetch session to preserve user login
       const userSession = payLink ? null : await fetchUserSession(existingOrder.userId);
+      // A retried order goes back to its order page, where Retry Payment is, not to the cart.
+      const retriedOrder = (await findAttemptOrderId(txnid)) !== null;
 
       // Deep link flow: redirect to mobile app with cancelled status
       if (udf1 && isDeepLink(udf1)) {
@@ -199,7 +203,11 @@ export async function handle(request: Request) {
       return createHtmlResponse({
         status: 'cancelled',
         txnid,
-        redirectUrl: payLink ? payStatusUrl("cancelled") : `${baseUrl}/cart?cancelled=true&order_id=${existingOrder.id}`,
+        redirectUrl: payLink
+          ? payStatusUrl("cancelled")
+          : retriedOrder
+            ? `${baseUrl}/order/${existingOrder.id}`
+            : `${baseUrl}/cart?cancelled=true&order_id=${existingOrder.id}`,
         session: userSession ?? undefined,
       });
     }
@@ -506,6 +514,23 @@ export async function handle(request: Request) {
         });
       }
 
+      // An attempt a retry has replaced: the order now carries a newer txnid.
+      const replacedOrderId = await recordReplacedAttemptAnswer(txnid, failureColumns, status === "success");
+      if (replacedOrderId !== null) {
+        const replacedOrder = await db
+          .selectFrom("orders")
+          .select(["id", "userId"])
+          .where("id", "=", replacedOrderId)
+          .executeTakeFirst();
+        const userSession = replacedOrder && !payLink ? await fetchUserSession(replacedOrder.userId) : null;
+        return createHtmlResponse({
+          status: 'failed',
+          txnid,
+          redirectUrl: `${baseUrl}/order/${replacedOrderId}`,
+          session: userSession ?? undefined,
+        });
+      }
+
       return createHtmlResponse({
         status: 'failed',
         txnid,
@@ -617,13 +642,16 @@ export async function handle(request: Request) {
         return response;
       }
 
-      // Payment failed - preserve session cookie
+      // Payment failed - preserve session cookie. A retried order goes back to its order page.
+      const retriedOrder = !payLink && (await findAttemptOrderId(txnid)) !== null;
       return createHtmlResponse({
         status: 'failed',
         txnid,
         redirectUrl: payLink
           ? `${payStatusUrl("failed")}${failureReason ? `&reason=${failureReason}` : ""}`
-          : `${baseUrl}/cart?status=failed&order_id=${claimedOrder.id}${failureReason ? `&reason=${failureReason}` : ""}`,
+          : retriedOrder
+            ? `${baseUrl}/order/${claimedOrder.id}`
+            : `${baseUrl}/cart?status=failed&order_id=${claimedOrder.id}${failureReason ? `&reason=${failureReason}` : ""}`,
         session: userSession ?? undefined,
       });
     }

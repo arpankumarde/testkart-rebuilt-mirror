@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import { handleClassroomLinkClick } from "../helpers/openClassroom";
 import { Plus, Edit2, Ban, Users, Video, UserMinus, MoreHorizontal, CheckCircle2 } from "lucide-react";
 import {
   useTeacherGroupLessonsQuery,
@@ -217,9 +218,14 @@ const TeacherGroupLessonsPage: React.FC = () => {
                       </Button>
                       {isScheduled && (
                         <Button variant="outline" size="sm" asChild>
-                          <Link to={`/mentorship/classroom/group/${g.id}`}>
+                          <a
+                            href={`/mentorship/classroom/group/${g.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => handleClassroomLinkClick(e, `/mentorship/classroom/group/${g.id}`)}
+                          >
                             <Video size={14} /> Classroom
-                          </Link>
+                          </a>
                         </Button>
                       )}
                     </div>

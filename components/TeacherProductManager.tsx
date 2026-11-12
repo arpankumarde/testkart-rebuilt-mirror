@@ -38,7 +38,12 @@ import { TeacherListEmpty } from './TeacherListEmpty';
 import { TeacherListPagination } from './TeacherListPagination';
 import { TeacherContentPage } from './TeacherContentPage';
 import { TeacherContentEmpty } from './TeacherContentEmpty';
-import { withStatusCounts, type TeacherStatusTabDef } from './TeacherStatusTabs';
+import {
+  withStatusCounts,
+  TEACHER_STATUS_TABS as TABS,
+  TEACHER_STATUS_TAB_VALUES as STATUS_VALUES,
+  type TeacherListTab as StatusTab,
+} from './TeacherStatusTabs';
 import { ShareAssetDialog } from './ShareAssetDialog';
 import { WithdrawReviewButton } from './WithdrawReviewButton';
 import { TeacherRejectionNote } from './TeacherRejectionNote';
@@ -52,17 +57,6 @@ import styles from './TeacherProductManager.module.css';
 
 const PRODUCTS_PER_PAGE = 10;
 
-type StatusTab = 'all' | 'published' | 'draft' | 'archived';
-
-const TABS: TeacherStatusTabDef<StatusTab>[] = [
-  { value: 'all', label: 'All', word: '' },
-  { value: 'published', label: 'Published', word: 'published' },
-  { value: 'draft', label: 'Drafts', word: 'draft' },
-  { value: 'archived', label: 'Archived', word: 'archived' },
-];
-
-const STATUS_VALUES = TABS.map((tab) => tab.value);
-
 const CATEGORY_OPTIONS = [
   { value: 'all', label: 'All categories' },
   ...DIGITAL_PRODUCT_CATEGORIES.map((category) => ({ value: category, label: category })),
@@ -74,25 +68,27 @@ const priceFormatter = new Intl.NumberFormat('en-IN', {
   minimumFractionDigits: 0,
 });
 
-type RowState = 'published' | 'draft' | 'archived' | 'inReview' | 'rejected';
+type RowState = 'published' | 'draft' | 'unpublished' | 'inReview' | 'rejected';
 
 // Every state is named in words with its own icon, so it never rests on
 // colour alone.
 const STATE_META: Record<RowState, { label: string; icon: React.ElementType; className: string }> = {
   published: { label: 'Published', icon: CheckCircle2, className: styles.statePublished },
   draft: { label: 'Draft', icon: PenLine, className: styles.stateDraft },
-  archived: { label: 'Archived', icon: Archive, className: styles.stateArchived },
+  unpublished: { label: 'Unpublished', icon: EyeOff, className: styles.stateUnpublished },
   inReview: { label: 'In review', icon: Clock, className: styles.stateReview },
   rejected: { label: 'Rejected', icon: XCircle, className: styles.stateRejected },
 };
 
 // Same rule as the course card: a live product stays "Published" even while an
-// edit is queued for review.
+// edit is queued for review, and an archived one shows as Unpublished (its stored
+// status stays archived).
 const rowStateOf = (product: TeacherProductListItem): RowState => {
   if (product.status === 'published') return 'published';
   if (product.inReview) return 'inReview';
-  if (product.status === 'archived') return 'archived';
-  return product.rejection ? 'rejected' : 'draft';
+  if (product.status === 'archived') return 'unpublished';
+  if (product.rejection) return 'rejected';
+  return product.wasEverPublished ? 'unpublished' : 'draft';
 };
 
 const describeProduct = (product: TeacherProductListItem) => {
@@ -741,8 +737,7 @@ export const TeacherProductManager: React.FC = () => {
               Archive {selectedIds.size} product{selectedIds.size === 1 ? '' : 's'}
             </DialogTitle>
             <DialogDescription>
-              Archived products are unpublished and hidden from your list by default. You can still
-              find them under the Archived tab.
+              Archived products are taken off sale. You will find them under the Unpublished tab.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

@@ -52,6 +52,34 @@ export type CashfreePayment = {
   } | null;
 };
 
+/**
+ * Describes the configured credentials for a rejected call without revealing them: which gateway
+ * is called, how CASHFREE_ENV reads, and whether the App ID and Secret Key look like test or live
+ * keys (Cashfree prefixes test App IDs with TEST and secrets with cfsk_ma_test_ / cfsk_ma_prod_).
+ */
+function describeCashfreeSetup(config: CashfreeConfig): string {
+  const rawEnv = process.env.CASHFREE_ENV;
+  const envState =
+    rawEnv === undefined || rawEnv === ""
+      ? "unset"
+      : rawEnv === "production" || rawEnv === "sandbox"
+        ? rawEnv
+        : rawEnv.trim().toLowerCase() === "production"
+          ? "near-production (case or spaces differ, treated as sandbox)"
+          : "unrecognised (treated as sandbox)";
+  const appIdKind = config.appId.trim().toUpperCase().startsWith("TEST") ? "test" : "live";
+  const secret = config.secretKey.trim();
+  const secretKind = secret.startsWith("cfsk_ma_test_") ? "test" : secret.startsWith("cfsk_ma_prod_") ? "live" : "unknown format";
+  const spaces = (v: string) => (v !== v.trim() ? "yes" : "no");
+  return [
+    `mode=${config.mode}`,
+    `host=${new URL(config.baseUrl).host}`,
+    `CASHFREE_ENV=${envState}`,
+    `appId=${appIdKind} (length ${config.appId.length}, edge spaces ${spaces(config.appId)})`,
+    `secret=${secretKind} (length ${config.secretKey.length}, edge spaces ${spaces(config.secretKey)})`,
+  ].join(", ");
+}
+
 export async function cashfreeRequest<T>(config: CashfreeConfig, method: "GET" | "POST", path: string, body?: unknown): Promise<T> {
   const response = await fetch(`${config.baseUrl}${path}`, {
     method,
@@ -79,6 +107,9 @@ export async function cashfreeRequest<T>(config: CashfreeConfig, method: "GET" |
         ? (parsed as { message: string }).message
         : `Cashfree request failed with status ${response.status}`;
     console.error(`[Cashfree] ${method} ${path} failed (${response.status}): ${message}`);
+    if (response.status === 401) {
+      console.error(`[Cashfree] credential check: ${describeCashfreeSetup(config)}`);
+    }
     throw new Error(message);
   }
   return parsed as T;

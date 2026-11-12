@@ -100,8 +100,15 @@
   color: var(--sp-lavender-ink);
 }
 
-/* Archived and expired: the warm neutral of the console surface. */
-.archived,
+/* Published once and taken down since, as on the test series card. */
+.unpublished {
+  --dot: var(--fc-butter-edge);
+  background-color: var(--fc-butter-tint);
+  border-color: var(--fc-butter-line);
+  color: var(--fc-butter-ink);
+}
+
+/* Expired: the warm neutral of the console surface. */
 .expired {
   --dot: var(--tc-muted, var(--muted-foreground));
   background-color: var(--tc-bg, var(--surface));

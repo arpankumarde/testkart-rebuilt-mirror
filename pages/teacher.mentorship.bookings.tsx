@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import { handleClassroomLinkClick } from "../helpers/openClassroom";
 import { Video, Ban, RotateCcw, CheckCircle2, MoreHorizontal, Settings2, UserX } from "lucide-react";
 import {
   useMentorshipBookingsRangeQuery,
@@ -316,9 +317,14 @@ const TeacherMentorshipBookingsPage: React.FC = () => {
           <div className={styles.eventActions}>
             {end > now && (
               <Button variant="outline" size="sm" asChild>
-                <Link to={`/mentorship/classroom/booking/${b.id}`}>
+                <a
+                  href={`/mentorship/classroom/booking/${b.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => handleClassroomLinkClick(e, `/mentorship/classroom/booking/${b.id}`)}
+                >
                   <Video size={14} aria-hidden="true" /> Classroom
-                </Link>
+                </a>
               </Button>
             )}
             {awaiting && (

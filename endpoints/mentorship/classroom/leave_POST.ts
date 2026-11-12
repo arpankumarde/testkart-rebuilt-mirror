@@ -17,6 +17,11 @@ export async function handle(request: Request) {
       .where("leftAt", "is", null)
       .executeTakeFirst();
 
+    console.log(
+      "[classroom]",
+      JSON.stringify({ event: "attendance-leave", userId: user.id, attendanceId: input.attendanceId, recorded: updated.numUpdatedRows > 0n })
+    );
+
     if (updated.numUpdatedRows === 0n) {
       // Idempotent: calling leave twice, or after the session already recorded it, is not an error.
       const output: OutputType = { success: true };

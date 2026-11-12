@@ -46,6 +46,8 @@ export type OutputType = {
     refundedAt: Date | null;
     reason: string | null;
   } | null;
+  // True when Retry Payment pays this same order again through orders/retry-payment.
+  retryInPlace: boolean;
 };
 
 export const getOrdersDetails = async (

@@ -91,16 +91,18 @@ function sanitizeDailyRoomName(raw: string): string {
  * Real video provider backed by Daily.co (server-only DAILY_API_KEY secret, never sent to the
  * client). One Daily "room" is created per lesson (booking or group lesson) and reused across every
  * join for that lesson; each individual join gets its own short-lived meeting token scoping that
- * person's name/role/expiry, which the client hands to the Daily Prebuilt frame
- * (components/LiveClassroom.tsx).
+ * person's name/role/expiry, which the client joins with through a Daily call object
+ * (helpers/useDailyCall.tsx, components/ClassroomSession.tsx).
  */
 class DailyVideoProvider implements VideoProvider {
   async issueRoomCredentials(params: IssueRoomCredentialsParams): Promise<VideoRoomCredentials> {
     const roomName = sanitizeDailyRoomName(params.roomName);
-    const room = await this.getOrCreateRoom(roomName);
+    const room = await this.getOrCreateRoom(roomName, params.ttlSeconds);
 
     const exp = Math.floor(Date.now() / 1000) + params.ttlSeconds;
     const isGroupLearner = params.audience === "group" && params.role === "learner";
+    // No eject_* properties on purpose: nobody is removed when their token or the room expires,
+    // and one person's token never affects anyone else in the room.
     const tokenRes = await dailyFetch("/meeting-tokens", {
       method: "POST",
       body: JSON.stringify({
@@ -134,10 +136,26 @@ class DailyVideoProvider implements VideoProvider {
     return dailyFetch(`/rooms/${encodeURIComponent(roomName)}`);
   }
 
-  private async getOrCreateRoom(roomName: string): Promise<{ url: string }> {
+  /**
+   * The lesson's one room, shared by everyone in it. An existing room is reused as is, with its
+   * expiry pushed out when it would lapse before this join's token does (a room is first made for
+   * a day, and a lesson can be joined again later). It is never deleted or replaced, since that
+   * would drop everyone already in it.
+   */
+  private async getOrCreateRoom(roomName: string, ttlSeconds: number): Promise<{ url: string }> {
+    const nowSec = Math.floor(Date.now() / 1000);
     const getRes = await this.fetchRoom(roomName);
     if (getRes.ok) {
-      const data = (await getRes.json()) as { url: string };
+      const data = (await getRes.json()) as { url: string; config?: { exp?: number } };
+      const roomExp = data.config?.exp;
+      if (roomExp && roomExp < nowSec + ttlSeconds + 300) {
+        const extendRes = await dailyFetch(`/rooms/${encodeURIComponent(roomName)}`, {
+          method: "POST",
+          body: JSON.stringify({ properties: { exp: nowSec + 60 * 60 * 24 } }),
+        });
+        console.log("[classroom]", JSON.stringify({ event: "room-expiry-extended", room: roomName, previousExp: roomExp, ok: extendRes.ok }));
+        if (!extendRes.ok) return failDailyRequest("room expiry update", extendRes);
+      }
       return { url: data.url };
     }
     if (getRes.status !== 404) {
@@ -153,11 +171,13 @@ class DailyVideoProvider implements VideoProvider {
           enable_chat: false, // We have our own chat panel.
           enable_screenshare: true,
           // Reusable for a day; a fresh join always mints its own short-lived meeting token on top
-          // of this, so this is just how long the Daily room itself stays provisioned.
-          exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
+          // of this, so this is just how long the Daily room itself stays provisioned. A later join
+          // pushes it out again (see above).
+          exp: nowSec + 60 * 60 * 24,
         },
       }),
     });
+    if (createRes.ok) console.log("[classroom]", JSON.stringify({ event: "room-created", room: roomName }));
     if (createRes.ok) {
       const data = (await createRes.json()) as { url: string };
       return { url: data.url };

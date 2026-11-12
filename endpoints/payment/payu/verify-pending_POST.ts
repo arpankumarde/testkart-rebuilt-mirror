@@ -29,13 +29,16 @@ export async function handle(request: Request) {
       Date.now() - PENDING_ORDER_AGE_MINUTES * 60 * 1000
     );
 
+    // A retried order is aged from its current attempt, not from when the order was first placed.
+    const attemptStartedAt = sql<Date>`coalesce(order_payment_attempts.created_at, orders.created_at)`;
     const pendingOrders = await db
       .selectFrom("orders")
-      .select(["id", "paymentTransactionId", "createdAt"])
-      .where("userId", "=", user.id)
-      .where("status", "=", "pending")
-      .where("createdAt", "<", fiveMinutesAgo)
-      .where("paymentTransactionId", "is not", null)
+      .leftJoin("orderPaymentAttempts", "orderPaymentAttempts.txnid", "orders.paymentTransactionId")
+      .select(["orders.id", "orders.paymentTransactionId", attemptStartedAt.as("createdAt")])
+      .where("orders.userId", "=", user.id)
+      .where("orders.status", "=", "pending")
+      .where(attemptStartedAt, "<", fiveMinutesAgo)
+      .where("orders.paymentTransactionId", "is not", null)
       .execute();
 
     const giveUpThreshold = new Date(Date.now() - GIVE_UP_AFTER_HOURS * 60 * 60 * 1000);

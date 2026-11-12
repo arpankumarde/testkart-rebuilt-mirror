@@ -131,7 +131,6 @@ export default function AppLandingPage() {
             </p>
             <div className={styles.downloadRow}>
               <PlayStoreBadge className={styles.badgeLarge} />
-              <p className={styles.downloadMeta}>Free to download for Android phones</p>
             </div>
           </div>
 

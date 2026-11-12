@@ -48,14 +48,19 @@ const ShopButton: React.FC = () => {
   );
 };
 
+// Teachers don't buy, so they get no cart; guests keep seeing none as before.
 const CartButton: React.FC = () => {
   const { authState } = useAuth();
-  const { data: cartData } = useCartItemsQuery();
-  
-  if (authState.type !== "authenticated") {
+
+  if (authState.type !== "authenticated" || authState.user.role === "teacher") {
     return null;
   }
 
+  return <CartLink />;
+};
+
+const CartLink: React.FC = () => {
+  const { data: cartData } = useCartItemsQuery();
   const itemCount = cartData?.items?.length || 0;
 
   return (

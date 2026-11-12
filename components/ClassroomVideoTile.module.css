@@ -1,0 +1,173 @@
+/*
+ * Classroom video tile. Video is cover-cropped (screens are contained); with
+ * the camera off the person's avatar sits on the tile surface. The name plate
+ * is a solid dark chip so it reads over any video. A coral ring marks the
+ * active speaker.
+ */
+.tile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 1rem;
+  background: var(--mt-tile);
+  box-shadow: 0 0 0 1px var(--mt-tile-line);
+  transition: box-shadow 0.2s ease;
+}
+
+.tile_stage {
+  width: 100%;
+  height: 100%;
+}
+
+.tile_thumb {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: 0.75rem;
+}
+
+.tile_pip {
+  width: 100%;
+  height: 100%;
+  border-radius: 0.875rem;
+  box-shadow:
+    0 0 0 1px var(--mt-tile-line),
+    0 10px 24px -10px hsl(0 0% 0% / 0.55);
+}
+
+.tile_preview {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+}
+
+.speaking {
+  box-shadow:
+    0 0 0 2px var(--mt-speaking),
+    0 0 0 5px var(--mt-speaking-halo);
+}
+
+.video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #0d1117;
+}
+
+.videoScreen {
+  object-fit: contain;
+}
+
+.mirror {
+  transform: scaleX(-1);
+}
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.avatar {
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatarFallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--mt-avatar);
+  color: var(--mt-avatar-ink);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.avatar_sm {
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 0.875rem;
+}
+
+.avatar_md {
+  width: 3.5rem;
+  height: 3.5rem;
+  font-size: 1.125rem;
+}
+
+.avatar_lg {
+  width: clamp(4rem, 12vmin, 6.5rem);
+  height: clamp(4rem, 12vmin, 6.5rem);
+  font-size: clamp(1.375rem, 4vmin, 2.25rem);
+}
+
+.nameplate {
+  position: absolute;
+  left: 0.5rem;
+  bottom: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  max-width: calc(100% - 1rem);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+  background: hsl(222 24% 10%);
+  color: hsl(0 0% 98%);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.tile_thumb .nameplate,
+.tile_pip .nameplate {
+  left: 0.375rem;
+  bottom: 0.375rem;
+  padding: 0.1875rem 0.375rem;
+  font-size: 0.75rem;
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.micOff {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: hsl(0 72% 50%);
+  color: #fff;
+}
+
+.crown {
+  flex-shrink: 0;
+  color: hsl(40 95% 62%);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile {
+    transition: none;
+  }
+}

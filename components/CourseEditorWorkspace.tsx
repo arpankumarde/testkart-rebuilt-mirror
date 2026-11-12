@@ -459,7 +459,7 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
             title="Unpublish this course?"
             description={
               <>
-                <strong>{course.title}</strong> goes back to draft. It disappears from the marketplace and is removed
+                <strong>{course.title}</strong> moves to your Unpublished courses. It disappears from the marketplace and is removed
                 from every student's cart. Enrolled students keep access.
               </>
             }

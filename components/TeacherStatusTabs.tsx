@@ -10,6 +10,24 @@ export type TeacherStatusTabDef<V extends string = string> = {
 
 export type TeacherStatusTab<V extends string = string> = TeacherStatusTabDef<V> & { count: number };
 
+/** Where an item sits on the status tabs. Archived, In review and Rejected are card badges, not tabs. */
+export type TeacherListStatus = "published" | "draft" | "unpublished";
+export type TeacherListTab = "all" | TeacherListStatus;
+
+/** The one tab set every teacher content page shows, in this order. */
+export const TEACHER_STATUS_TABS: readonly TeacherStatusTabDef<TeacherListTab>[] = [
+  { value: "all", label: "All", word: "" },
+  { value: "published", label: "Published", word: "published" },
+  { value: "draft", label: "Drafts", word: "draft" },
+  { value: "unpublished", label: "Unpublished", word: "unpublished" },
+];
+
+export const TEACHER_STATUS_TAB_VALUES = TEACHER_STATUS_TABS.map((tab) => tab.value);
+
+/** Drafts were never published; Unpublished were published once and taken down since. */
+export const teacherListStatus = (isPublished: boolean, wasEverPublished: boolean): TeacherListStatus =>
+  isPublished ? "published" : wasEverPublished ? "unpublished" : "draft";
+
 /** Pairs a page's tab definitions with its counts; a status missing from `counts` shows 0. */
 export const withStatusCounts = <V extends string>(
   defs: readonly TeacherStatusTabDef<V>[],
@@ -37,8 +55,8 @@ export type TeacherStatusTabsProps<V extends string = string> = {
 };
 
 /**
- * Status tabs for every teacher content list. Pages pass their own statuses
- * and counts; this component owns how they look and when they show.
+ * Status tabs for every teacher content list. Pages pass TEACHER_STATUS_TABS with
+ * their own counts; this component owns how they look and when they show.
  */
 export const TeacherStatusTabs = <V extends string>({
   tabs,

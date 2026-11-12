@@ -1,24 +1,36 @@
 /*
- * Teacher 1:1 setup. Two columns from 1100px (rate and weekly hours; then
- * shortcuts and days off), one column below. Surfaces come from the teacher
- * console theme (--tc-*); pastel jobs: rate lavender, hours blue, days off
- * butter, price preview and "on" state mint. The root carries tk-flow.
+ * Teacher 1:1 setup. Two columns from 1100px (prices and weekly hours; then
+ * shortcuts, intro video and days off), one column below. One card style for
+ * every section: --tc-* surfaces, a hairline border, a small neutral icon
+ * tile and hairline dividers inside. Coral marks focus, switches, open days
+ * and the primary buttons; mint, butter and peach appear only on statuses.
+ * The root carries tk-flow.
  */
 .page {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1rem;
+}
+
+.header h1 {
+  font-size: 1.375rem;
+  font-weight: 800;
+}
+
+.header p {
+  font-size: 0.875rem;
+  color: var(--tc-muted, var(--muted-foreground));
 }
 
 .layout {
   display: grid;
-  gap: 1.25rem;
+  gap: 1rem;
   align-items: start;
 }
 
 @media (min-width: 1100px) {
   .layout {
-    grid-template-columns: minmax(0, 1fr) 20rem;
+    grid-template-columns: minmax(0, 1fr) 19rem;
   }
 }
 
@@ -26,9 +38,11 @@
 .aside {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1rem;
   min-width: 0;
 }
+
+/* ---------------------------------------------------------------- card --- */
 
 .card {
   display: flex;
@@ -37,7 +51,7 @@
   padding: 1.25rem;
   background: var(--tc-card, var(--card));
   border: 1px solid var(--tc-line, var(--border));
-  border-radius: 1.25rem;
+  border-radius: 1rem;
 }
 
 .cardHead {
@@ -57,154 +71,60 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 0.75rem;
-}
-
-.icon_lavender {
-  background: var(--sp-lavender-tint);
-  color: var(--sp-lavender-ink);
-}
-
-.icon_blue {
-  background: var(--fc-blue-tint);
-  color: var(--fc-blue-ink);
-}
-
-.icon_butter {
-  background: var(--fc-butter-tint);
-  color: var(--fc-butter-ink);
-}
-
-.icon_mint {
-  background: var(--fc-mint-tint);
-  color: var(--fc-mint-ink);
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--tc-line, var(--border));
+  border-radius: 0.5rem;
+  background: var(--tc-bg, var(--background));
+  color: var(--tc-text, var(--foreground));
 }
 
 .sectionTitle {
   margin: 0;
   font-family: var(--font-family-heading);
-  font-size: 1.0625rem;
-  font-weight: 800;
-  letter-spacing: -0.015em;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
   color: var(--tc-ink, var(--foreground));
 }
 
 .sectionHint {
   margin: 0.125rem 0 0;
-  font-size: 0.875rem;
-  color: var(--tc-text, var(--muted-foreground));
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--tc-muted, var(--muted-foreground));
 }
 
 .liveChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
   align-self: center;
-  padding: 0.25rem 0.75rem;
+  padding: 0.1875rem 0.5rem;
+  border: 1px solid var(--tc-line, var(--border));
   border-radius: 999px;
-  background: var(--muted);
   font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--tc-text, var(--muted-foreground));
+  font-weight: 600;
+  color: var(--tc-muted, var(--muted-foreground));
+}
+
+.liveChip::before {
+  content: "";
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 50%;
+  background: var(--tc-line-strong, var(--border));
 }
 
 .liveChipOn {
+  border-color: var(--fc-mint-edge);
   background: var(--fc-mint-tint);
   color: var(--fc-mint-ink);
 }
 
-/* ---------------------------------------------------------------- rate --- */
-
-.switchRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.875rem 1rem;
-  border-radius: 1rem;
-  background: var(--tc-bg, var(--background));
-  border: 1px solid var(--tc-line, var(--border));
-}
-
-.switchRowOn {
-  background: var(--sp-lavender-tint);
-  border-color: var(--sp-lavender-line);
-}
-
-.switchText {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-}
-
-.switchLabel {
-  font-weight: 700;
-  color: var(--tc-ink, var(--foreground));
-}
-
-.switchHint {
-  font-size: 0.8125rem;
-  color: var(--tc-text, var(--muted-foreground));
-}
-
-.switchRowOn .switchLabel,
-.switchRowOn .switchHint {
-  color: var(--sp-lavender-ink);
-}
-
-/* An approved teacher's new intro video waiting for review: butter, like the in-review notice. */
-.videoReview {
-  display: flex;
-  flex-direction: column;
-  gap: 0.625rem;
-  padding: 0.875rem;
-  border-radius: 1rem;
-  background: var(--fc-butter-tint);
-  border: 1px solid var(--fc-butter-line);
-  color: var(--fc-butter-ink);
-}
-
-.videoReviewTitle {
-  margin: 0;
-  font-size: 0.875rem;
-  font-weight: 700;
-}
-
-.videoReviewActions {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.videoRejected {
-  margin: 0;
-  padding: 0.625rem 0.875rem;
-  border-radius: 0.875rem;
-  background: var(--fc-peach-tint);
-  color: var(--fc-peach-ink);
-  font-size: 0.875rem;
-}
-
-.priceGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(13rem, 100%), 1fr));
-  gap: 1rem;
-}
-
-.rateRow {
-  display: grid;
-  gap: 1rem;
-  align-items: end;
-}
-
-@media (min-width: 640px) {
-  .rateRow {
-    grid-template-columns: minmax(0, 14rem) minmax(0, 1fr);
-  }
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
+.liveChipOn::before {
+  background: var(--fc-mint-edge);
 }
 
 .label {
@@ -214,8 +134,166 @@
 }
 
 .fieldHint {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--tc-muted, var(--muted-foreground));
+}
+
+.saveRow {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 1rem;
+  border-top: 1px solid var(--tc-line, var(--border));
+}
+
+.emptyStateSmall {
+  margin: 0;
   font-size: 0.8125rem;
-  color: var(--tc-text, var(--muted-foreground));
+  color: var(--tc-muted, var(--muted-foreground));
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------- fields --- */
+
+/* One field look for prices, times, timezone, date and reason. Overrides the
+   kit Input (in @layer base): neutral surface, warm hairline, coral focus. */
+.fieldInput,
+.timeInput {
+  height: 2.5rem;
+  min-height: 2.5rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--tc-line, var(--border));
+  border-radius: 0.625rem;
+  background: var(--tc-card, var(--card));
+  color: var(--tc-ink, var(--foreground));
+  font-size: 0.9375rem;
+  box-shadow: none;
+}
+
+.fieldInput:hover,
+.timeInput:hover {
+  border-color: var(--tc-line-strong, var(--border));
+  background: var(--tc-card, var(--card));
+  box-shadow: none;
+}
+
+.fieldInput:focus,
+.timeInput:focus {
+  border-color: var(--tk-brand-text);
+  background: var(--tc-card, var(--card));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 32%, var(--tc-card, var(--card)));
+}
+
+:global(.dark) .fieldInput,
+:global(.dark) .timeInput {
+  color-scheme: dark;
+}
+
+.inputInvalid,
+.inputInvalid:hover {
+  border-color: var(--error);
+}
+
+.inputInvalid:focus {
+  border-color: var(--error);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--error) 28%, var(--tc-card, var(--card)));
+}
+
+.fieldIcon,
+.timeIcon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  z-index: 1;
+  transform: translateY(-50%);
+  color: var(--tc-muted, var(--muted-foreground));
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------------- prices --- */
+
+.switchRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--tc-line, var(--border));
+  border-bottom: 1px solid var(--tc-line, var(--border));
+}
+
+.switchText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.switchLabel {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--tc-ink, var(--foreground));
+}
+
+.switchHint {
+  font-size: 0.8125rem;
+  color: var(--tc-muted, var(--muted-foreground));
+}
+
+.priceTable {
+  display: flex;
+  flex-direction: column;
+}
+
+.priceHead,
+.priceRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 9.5rem 9.5rem;
+  gap: 0.5rem 1rem;
+}
+
+.priceHead {
+  padding-bottom: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tc-muted, var(--muted-foreground));
+}
+
+.priceRow {
+  align-items: start;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--tc-line, var(--border));
+}
+
+.priceRowText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding-top: 0.5rem;
+  min-width: 0;
+}
+
+.priceCell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.priceCellMins {
+  display: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--tc-muted, var(--muted-foreground));
 }
 
 .moneyInput {
@@ -224,139 +302,379 @@
 
 .moneyPrefix {
   position: absolute;
-  left: 0.875rem;
+  left: 0.75rem;
   top: 50%;
+  z-index: 1;
   transform: translateY(-50%);
-  font-weight: 700;
-  color: var(--tc-text, var(--muted-foreground));
+  font-weight: 600;
+  color: var(--tc-muted, var(--muted-foreground));
   pointer-events: none;
 }
 
 .moneyInput input {
-  padding-left: 2rem;
-  font-weight: 700;
-}
-
-.pricePreview {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
-  gap: 0.625rem;
-  margin-bottom: 1.375rem;
-}
-
-.priceTile {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-  padding: 0.625rem 0.875rem;
-  border-radius: 0.875rem;
-  background: var(--fc-mint-tint);
-}
-
-.priceTileLabel {
-  font-size: 0.8125rem;
+  padding-left: 1.75rem;
   font-weight: 600;
-  color: var(--fc-mint-ink);
+  font-variant-numeric: tabular-nums;
 }
 
-.priceTileValue {
-  font-family: var(--font-family-heading);
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--fc-mint-ink);
-}
-
-.saveRow {
-  display: flex;
-  justify-content: flex-end;
-  padding-top: 0.875rem;
-  border-top: 1px solid var(--tc-line, var(--border));
-}
-
-/* --------------------------------------------------------------- hours --- */
-
-.timezoneField {
+.packageStrip {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
-  color: var(--fc-blue-edge);
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.625rem 1.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--tc-line, var(--border));
+  border-radius: 0.75rem;
+  background: var(--tc-bg, var(--background));
 }
 
-.timezoneInput {
+.packageLabel {
+  font-size: 0.8125rem;
+  color: var(--tc-muted, var(--muted-foreground));
+}
+
+.packageList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin: 0;
+}
+
+.packageItem {
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
+}
+
+.packageItem dt {
+  font-size: 0.8125rem;
+  color: var(--tc-muted, var(--muted-foreground));
+}
+
+.packageItem dd {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--tc-ink, var(--foreground));
+}
+
+/* ----------------------------------------------------------------- hours --- */
+
+.timezoneField {
+  position: relative;
+  align-self: center;
   width: 13rem;
 }
 
+.timezoneInput {
+  padding-left: 2.25rem;
+}
+
+/* The week is a container so its rows stack by the card's own width, not the viewport. */
 .week {
+  container: week / inline-size;
   display: flex;
   flex-direction: column;
+  border-top: 1px solid var(--tc-line, var(--border));
 }
 
 .dayRow {
   display: grid;
   grid-template-columns: 7rem minmax(0, 1fr) auto;
+  grid-template-areas: "day ranges add";
   align-items: start;
-  gap: 0.75rem;
-  padding: 0.75rem 0;
-  border-top: 1px solid var(--tc-line, var(--border));
+  gap: 0.375rem 0.75rem;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid var(--tc-line, var(--border));
 }
 
 .dayName {
+  grid-area: day;
+  display: inline-flex;
+  align-items: center;
   justify-self: start;
-  margin-top: 0.375rem;
-  padding: 0.1875rem 0.625rem;
-  border-radius: 999px;
+  gap: 0.5rem;
+  min-height: 2.5rem;
   font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--tc-text, var(--muted-foreground));
+  font-weight: 600;
+  color: var(--tc-muted, var(--muted-foreground));
+}
+
+.dayDot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border: 1.5px solid var(--tc-line-strong, var(--border));
+  border-radius: 50%;
 }
 
 .dayOpen {
-  background: var(--fc-blue-tint);
-  color: var(--fc-blue-ink);
+  color: var(--tc-ink, var(--foreground));
+}
+
+.dayOpen .dayDot {
+  border-color: var(--primary);
+  background: var(--primary);
 }
 
 .dayWindows {
+  grid-area: ranges;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   gap: 0.5rem;
   min-width: 0;
 }
 
 .dayUnavailable {
-  padding-top: 0.5rem;
-  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  min-height: 2.5rem;
+  font-size: 0.8125rem;
   color: var(--tc-muted, var(--muted-foreground));
 }
 
-.windowRow {
+.range {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  padding: 0.375rem 0.375rem 0.375rem 0.5rem;
-  border-radius: 0.875rem;
-  background: var(--fc-blue-tint);
-  color: var(--fc-blue-ink);
-  font-size: 0.875rem;
-  font-weight: 600;
+  flex-direction: column;
+  gap: 0.125rem;
 }
 
-.windowOff {
-  background: var(--muted);
-  color: var(--tc-text, var(--muted-foreground));
+.rangeRow {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.timeField {
+  position: relative;
+  flex: 0 0 8rem;
+}
+
+/* Compact time field: 40px tall, 14px semibold figures, 16px clock. */
+.rangeRow .timeInput {
+  height: 2.5rem;
+  min-height: 2.5rem;
+  padding: 0 0.5rem 0 2rem;
+  border-radius: 0.625rem;
+  font-size: 0.875rem;
+}
+
+.rangeRow .timeIcon {
+  left: 0.625rem;
 }
 
 .timeInput {
-  width: 7.5rem;
-  background: var(--tc-card, var(--card));
+  position: relative;
+  width: 100%;
+  padding-left: 2.25rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+/* The native picker button sits invisibly over the clock icon, so the icon opens the picker. */
+.timeInput::-webkit-calendar-picker-indicator {
+  position: absolute;
+  left: 0.4375rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.rangeTo {
+  flex-shrink: 0;
+  padding: 0 0.125rem;
+  font-size: 0.8125rem;
+  color: var(--tc-muted, var(--muted-foreground));
+}
+
+.rangeControls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+  margin-left: 0.375rem;
+}
+
+/* The hours switch: 42 x 24 with an 18px thumb, coral on, muted grey off.
+   The kit Switch's off track is --muted, close to the card in dark mode, so
+   the off state gets its own track and thumb here. */
+.rangeControls [role="switch"] {
+  width: 2.625rem;
+  height: 1.5rem;
+  transition:
+    background-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.rangeControls [role="switch"] > span {
+  width: 1.125rem;
+  height: 1.125rem;
+  transform: translateX(3px);
+  transition: transform 0.18s ease;
+}
+
+.rangeControls [role="switch"][data-state="checked"] > span {
+  transform: translateX(21px);
+}
+
+.rangeControls [role="switch"]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--tc-card, var(--card)), 0 0 0 4px var(--tk-brand-text);
+}
+
+.rangeControls [role="switch"][data-state="unchecked"] {
+  background-color: var(--tc-line-strong, var(--border));
+}
+
+.rangeControls [role="switch"][data-state="unchecked"]:hover {
+  background-color: color-mix(in srgb, var(--tc-line-strong, var(--border)), var(--tc-ink, var(--foreground)) 18%);
+}
+
+.rangeControls [role="switch"][data-state="unchecked"] > span {
+  background-color: var(--tc-card, var(--card));
+}
+
+:global(.dark) .rangeControls [role="switch"][data-state="unchecked"] > span {
+  background-color: var(--tc-text, var(--foreground));
+}
+
+.rangeOff .timeInput {
+  background: var(--tc-bg, var(--background));
+  color: var(--tc-muted, var(--muted-foreground));
+}
+
+.rangeError,
+.rangeWarn {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.rangeError {
+  color: var(--error-text);
+}
+
+.rangeWarn {
+  color: var(--fc-butter-ink);
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--tc-muted, var(--muted-foreground));
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.iconButton:hover {
+  background: color-mix(in srgb, var(--error) 12%, var(--tc-card, var(--card)));
+  color: var(--error-text);
+}
+
+.iconButton:active {
+  background: color-mix(in srgb, var(--error) 20%, var(--tc-card, var(--card)));
+}
+
+.iconButton:disabled {
+  color: var(--tc-line-strong, var(--border));
+  background: transparent;
+  cursor: not-allowed;
 }
 
 .addHours {
-  margin-top: 0.125rem;
+  grid-area: add;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 2rem;
+  margin-top: 0.25rem;
+  padding: 0 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  background: transparent;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--tc-muted, var(--muted-foreground));
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
-/* --------------------------------------------------------- days off --- */
+.addHours svg {
+  color: var(--tk-brand-text);
+}
+
+.addHours:hover {
+  background: var(--tc-bg, var(--background));
+  border-color: var(--tc-line, var(--border));
+  color: var(--tc-ink, var(--foreground));
+}
+
+.addHours:active {
+  background: var(--tc-line, var(--border));
+}
+
+.iconButton:focus-visible,
+.addHours:focus-visible,
+.shortcut:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--tc-card, var(--card)), 0 0 0 4px var(--tk-brand-text);
+}
+
+@container week (max-width: 36rem) {
+  .dayRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "day add"
+      "ranges ranges";
+  }
+
+  .rangeRow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto;
+  }
+
+  .timeField {
+    min-width: 0;
+  }
+
+  .rangeControls {
+    margin-left: 0;
+  }
+}
+
+@container week (max-width: 22rem) {
+  .timeIcon {
+    display: none;
+  }
+
+  .rangeRow .timeInput {
+    padding-left: 0.5rem;
+  }
+
+  .timeInput::-webkit-calendar-picker-indicator {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------- days off --- */
 
 .blockedDateForm {
   display: flex;
@@ -364,25 +682,33 @@
   gap: 0.5rem;
 }
 
+.blockButton {
+  width: 100%;
+  min-height: 2.5rem;
+}
+
 .blockedList {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
   margin: 0;
   padding: 0;
   list-style: none;
+  border-top: 1px solid var(--tc-line, var(--border));
 }
 
 .blockedRow {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.375rem 0.375rem 0.375rem 0.75rem;
-  border-radius: 0.875rem;
-  background: var(--fc-butter-tint);
-  color: var(--fc-butter-ink);
+  gap: 0.625rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--tc-line, var(--border));
+  color: var(--tc-ink, var(--foreground));
   font-size: 0.875rem;
-  font-weight: 600;
+}
+
+.blockedIcon {
+  flex-shrink: 0;
+  color: var(--tc-muted, var(--muted-foreground));
 }
 
 .blockedText {
@@ -392,23 +718,21 @@
   min-width: 0;
 }
 
+.blockedDate {
+  font-weight: 600;
+}
+
 .blockedReason {
-  font-size: 0.8125rem;
-  font-weight: 400;
+  font-size: 0.75rem;
+  color: var(--tc-muted, var(--muted-foreground));
   overflow-wrap: anywhere;
 }
 
-.emptyStateSmall {
-  margin: 0;
-  font-size: 0.875rem;
-  color: var(--tc-text, var(--muted-foreground));
-}
-
-/* --------------------------------------------------------- shortcuts --- */
+/* ------------------------------------------------------------ shortcuts --- */
 
 .shortcuts {
-  gap: 0.25rem;
-  padding: 0.5rem;
+  gap: 0;
+  padding: 0.375rem;
 }
 
 .shortcut {
@@ -416,18 +740,14 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.625rem;
-  border-radius: 0.875rem;
+  border-radius: 0.625rem;
   text-decoration: none;
   color: inherit;
+  transition: background-color 0.15s ease;
 }
 
 .shortcut:hover {
   background: var(--tc-bg, var(--background));
-}
-
-.shortcut:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px var(--fc-blue-edge);
 }
 
 .shortcutText {
@@ -438,27 +758,89 @@
 }
 
 .shortcutTitle {
-  font-weight: 700;
+  font-size: 0.9375rem;
+  font-weight: 600;
   color: var(--tc-ink, var(--foreground));
 }
 
 .shortcutHint {
   font-size: 0.8125rem;
-  color: var(--tc-text, var(--muted-foreground));
-}
-
-.shortcutArrow {
   color: var(--tc-muted, var(--muted-foreground));
 }
 
-/* ------------------------------------------------------ application --- */
+.shortcutArrow {
+  flex-shrink: 0;
+  color: var(--tc-muted, var(--muted-foreground));
+  transition:
+    transform 0.15s ease,
+    color 0.15s ease;
+}
+
+.shortcut:hover .shortcutArrow {
+  color: var(--tc-ink, var(--foreground));
+  transform: translateX(2px);
+}
+
+/* ---------------------------------------------------------- intro video --- */
+
+.introVideo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--tc-line, var(--border));
+  border-radius: 0.75rem;
+  background: #111;
+  object-fit: contain;
+}
+
+.tips {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: var(--tc-muted, var(--muted-foreground));
+}
+
+/* An approved teacher's new intro video waiting for review: butter, like the in-review notice. */
+.videoReview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background: var(--fc-butter-tint);
+  border: 1px solid var(--fc-butter-line);
+  color: var(--fc-butter-ink);
+}
+
+.videoReviewTitle {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.videoReviewActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.videoRejected {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.625rem;
+  background: var(--fc-peach-tint);
+  color: var(--fc-peach-ink);
+  font-size: 0.8125rem;
+}
+
+/* ---------------------------------------------------------- application --- */
 
 .notice {
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
-  padding: 1rem 1.125rem;
-  border-radius: 1.25rem;
+  padding: 0.875rem 1rem;
+  border-radius: 1rem;
   border: 1px solid;
 }
 
@@ -481,7 +863,7 @@
 
 .noticeTitle {
   margin: 0;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .noticeText {
@@ -504,13 +886,13 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.9375rem;
-  color: var(--tc-text, var(--muted-foreground));
+  font-size: 0.875rem;
+  color: var(--tc-muted, var(--muted-foreground));
 }
 
 .checkItem svg {
   flex-shrink: 0;
-  color: var(--tc-muted, var(--muted-foreground));
+  color: var(--tc-line-strong, var(--border));
 }
 
 .checkDone {
@@ -519,32 +901,6 @@
 
 .checkDone svg {
   color: var(--fc-sage-ink);
-}
-
-.srOnly {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-}
-
-.introVideo {
-  display: block;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  border-radius: 1rem;
-  background: #111;
-  object-fit: contain;
-}
-
-.tips {
-  margin: 0;
-  padding-left: 1.125rem;
-  font-size: 0.8125rem;
-  line-height: 1.6;
-  color: var(--tc-text, var(--muted-foreground));
 }
 
 .placeList {
@@ -567,9 +923,12 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 0.625rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 1px solid var(--tc-line, var(--border));
+  border-radius: 0.5rem;
+  background: var(--tc-bg, var(--background));
+  color: var(--tc-text, var(--foreground));
 }
 
 .placeText {
@@ -580,14 +939,15 @@
 }
 
 .placeTitle {
-  font-weight: 700;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--tc-ink, var(--foreground));
 }
 
 .placeHint {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   line-height: 1.5;
-  color: var(--tc-text, var(--muted-foreground));
+  color: var(--tc-muted, var(--muted-foreground));
 }
 
 .sample {
@@ -601,7 +961,7 @@
 .sampleLabel {
   margin: 0;
   font-size: 0.875rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--tc-ink, var(--foreground));
 }
 
@@ -611,7 +971,7 @@
 }
 
 .progress {
-  height: 0.5rem;
+  height: 0.375rem;
   border-radius: 999px;
   background: var(--tc-bg, var(--muted));
   border: 1px solid var(--tc-line, var(--border));
@@ -632,26 +992,99 @@
   }
 }
 
+/* --------------------------------------------------------------- narrow --- */
+
 @media (max-width: 640px) {
-  .dayRow {
-    grid-template-columns: minmax(0, 1fr) auto;
+  .card {
+    padding: 1rem;
   }
 
-  .dayWindows {
+  .priceHead {
+    display: none;
+  }
+
+  .priceRow {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .priceHead + .priceRow {
+    border-top: none;
+    padding-top: 0;
+  }
+
+  .priceRowText {
     grid-column: 1 / -1;
-    grid-row: 2;
+    padding-top: 0;
   }
 
-  .dayName {
-    margin-top: 0.25rem;
+  .priceCellMins {
+    display: block;
+  }
+
+  .packageStrip {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .packageList {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .packageItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.125rem;
   }
 
   .timezoneField {
     width: 100%;
   }
 
+  .fieldInput,
+  .timeInput {
+    height: 2.75rem;
+    min-height: 2.75rem;
+    font-size: 16px;
+  }
+
+  .timeInput {
+    padding-right: 0.5rem;
+  }
+
+  .rangeRow .timeInput {
+    height: 2.75rem;
+    min-height: 2.75rem;
+    font-size: 16px;
+  }
+
+  .addHours {
+    margin-top: 0;
+  }
+
   .timezoneInput {
-    flex: 1;
-    width: auto;
+    padding-left: 2.25rem;
+  }
+
+  .moneyInput input {
+    padding-left: 1.75rem;
+  }
+
+  .iconButton,
+  .addHours,
+  .dayName {
+    min-height: 2.75rem;
+  }
+
+  .iconButton {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shortcut:hover .shortcutArrow {
+    transform: none;
   }
 }

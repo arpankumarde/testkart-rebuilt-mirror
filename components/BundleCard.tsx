@@ -39,14 +39,25 @@ export const BundleCard: React.FC<BundleCardProps> = ({
   const isPublished = bundle.isPublished;
   const isInReview = !isPublished && bundle.inReview;
   const rejection = !isPublished && !isInReview ? bundle.rejection : null;
-  const statusText = isPublished ? 'Published' : isInReview ? 'In review' : rejection ? 'Rejected' : 'Draft';
+  const wasUnpublished = !isPublished && !isInReview && !rejection && bundle.wasEverPublished;
+  const statusText = isPublished
+    ? 'Published'
+    : isInReview
+      ? 'In review'
+      : rejection
+        ? 'Rejected'
+        : wasUnpublished
+          ? 'Unpublished'
+          : 'Draft';
   const statusClass = isPublished
     ? styles.published
     : isInReview
       ? styles.inReview
       : rejection
         ? styles.rejected
-        : styles.draft;
+        : wasUnpublished
+          ? styles.unpublished
+          : styles.draft;
 
   const formattedPrice = new Intl.NumberFormat('en-IN', {
     style: 'currency',

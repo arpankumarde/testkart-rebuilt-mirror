@@ -137,13 +137,6 @@
   margin-top: 2rem;
 }
 
-.downloadMeta {
-  margin: 0;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: var(--sp-muted);
-}
-
 .badgeLarge {
   --badge-h: 3.25rem;
 }

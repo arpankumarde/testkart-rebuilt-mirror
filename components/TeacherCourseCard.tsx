@@ -53,12 +53,12 @@ interface TeacherCourseCardProps {
   bonus?: { state: string; amount: number };
 }
 
-type CardStatus = 'published' | 'draft' | 'archived' | 'inReview' | 'rejected';
+type CardStatus = 'published' | 'draft' | 'unpublished' | 'inReview' | 'rejected';
 
 const STATUS_LABEL: Record<CardStatus, string> = {
   published: 'Published',
   draft: 'Draft',
-  archived: 'Archived',
+  unpublished: 'Unpublished',
   inReview: 'In review',
   rejected: 'Rejected',
 };
@@ -102,13 +102,16 @@ export const TeacherCourseCard: React.FC<TeacherCourseCardProps> = ({
   const status = course.status ?? 'draft';
   const isInReview = status !== 'published' && course.inReview;
   const rejection = status === 'draft' && !isInReview ? course.rejection : null;
+  // An archived course is shown as Unpublished; its stored status stays archived.
   const cardStatus: CardStatus = isInReview
     ? 'inReview'
     : rejection
       ? 'rejected'
-      : status === 'published' || status === 'archived'
-        ? status
-        : 'draft';
+      : status === 'published'
+        ? 'published'
+        : status === 'archived' || course.wasEverPublished
+          ? 'unpublished'
+          : 'draft';
   const statusLabel = STATUS_LABEL[cardStatus];
 
   const expiry = { expiresAt: course.expiresAt ?? null, expiredAt: course.expiredAt ?? null };

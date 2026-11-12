@@ -13,28 +13,39 @@ import { TeacherListEmpty } from "../components/TeacherListEmpty";
 import { TeacherListPagination } from "../components/TeacherListPagination";
 import { TeacherContentPage } from "../components/TeacherContentPage";
 import { TeacherContentEmpty } from "../components/TeacherContentEmpty";
-import { withStatusCounts, type TeacherStatusTabDef } from "../components/TeacherStatusTabs";
+import {
+  withStatusCounts,
+  TEACHER_STATUS_TABS as STATUS_TABS,
+  TEACHER_STATUS_TAB_VALUES as STATUS_VALUES,
+  type TeacherListTab as StatusTab,
+} from "../components/TeacherStatusTabs";
 import { ConsoleFilterNotice } from "../components/ConsoleFilterNotice";
 import { Button } from "../components/Button";
 import { TestCardSkeleton } from "../components/TestCardSkeleton";
 import {
   LiveTestListFilter,
   LiveTestListFilterValues,
+  LiveTestSchedule,
+  LiveTestScheduleValues,
 } from "../endpoints/teacher/live-tests/list_GET.schema";
 import styles from "./teacher.live-tests.module.css";
 
-type StatusTab = "draft" | "live" | "upcoming" | "ended";
+const DEFAULT_STATUS: StatusTab = "all";
+const PAGE_SIZE = 10;
 
-const STATUS_TABS: TeacherStatusTabDef<StatusTab>[] = [
-  { value: "draft", label: "Drafts", word: "draft" },
-  { value: "live", label: "Live", word: "live" },
+type ScheduleChoice = "any" | LiveTestSchedule;
+
+// Where a published test is in its run. Picking one narrows any tab to published tests.
+const SCHEDULE_OPTIONS: { value: ScheduleChoice; label: string; word: string }[] = [
+  { value: "any", label: "Any schedule", word: "" },
   { value: "upcoming", label: "Upcoming", word: "upcoming" },
+  { value: "live", label: "Live now", word: "live" },
+  { value: "closed", label: "Registration closed", word: "closed" },
   { value: "ended", label: "Ended", word: "ended" },
 ];
-
-const STATUS_VALUES = STATUS_TABS.map((tab) => tab.value);
-const DEFAULT_STATUS: StatusTab = "draft";
-const PAGE_SIZE = 10;
+const SCHEDULE_VALUES: readonly ScheduleChoice[] = ["any", ...LiveTestScheduleValues];
+// Links made before the standard tabs used ?status= for these.
+const LEGACY_SCHEDULE_STATUSES: readonly ScheduleChoice[] = ["upcoming", "live", "ended"];
 
 const CREATE = { label: "New live test", to: "/teacher/create-live-test" };
 
@@ -60,29 +71,56 @@ const TeacherLiveTestsPage: React.FC = () => {
   const [duplicatingTestId, setDuplicatingTestId] = React.useState<number | null>(null);
   const page = readId("page") ?? 1;
   const status = read<StatusTab>("status", STATUS_VALUES, DEFAULT_STATUS);
+  const legacySchedule = read<ScheduleChoice>("status", LEGACY_SCHEDULE_STATUSES, "any");
+  const schedule = read<ScheduleChoice>("schedule", SCHEDULE_VALUES, legacySchedule);
   const listFilter = read<LiveTestListFilter | "none">("filter", LiveTestListFilterValues, "none");
   const filter = listFilter === "none" ? undefined : listFilter;
 
   const filters = useMemo(
-    () => (filter ? { page, filter, limit: PAGE_SIZE } : { page, status, limit: PAGE_SIZE }),
-    [page, status, filter]
+    () =>
+      filter
+        ? { page, filter, limit: PAGE_SIZE }
+        : { page, tab: status, schedule: schedule === "any" ? undefined : schedule, limit: PAGE_SIZE },
+    [page, status, schedule, filter]
   );
 
   const { data, isFetching, error, refetch } = useTeacherLiveTestsQuery(filters);
   // The counts come with every page of the list. This one-row query (shared
   // with Test series) keeps them on screen while a new tab's page loads.
   const { data: countsData } = useTeacherLiveTestsQuery({ limit: 1 });
-  const statusCounts = data?.statusCounts ?? countsData?.statusCounts;
-  const total = statusCounts?.all;
+  const tabCounts = data?.tabCounts ?? countsData?.tabCounts;
+  const total = tabCounts?.all;
   useRefetchOnLinkArrival(filter !== undefined, isFetching, refetch);
   const { useDeleteLiveTestMutation, useUnpublishLiveTestMutation } = useTeacherLiveTestMutations();
   const deleteMutation = useDeleteLiveTestMutation();
   const unpublishMutation = useUnpublishLiveTestMutation();
 
-  const statusWord = STATUS_TABS.find((tab) => tab.value === status)?.word ?? "draft";
+  const statusWord =
+    (schedule !== "any"
+      ? SCHEDULE_OPTIONS.find((option) => option.value === schedule)?.word
+      : STATUS_TABS.find((tab) => tab.value === status)?.word) ?? "";
 
+  // Drafts and Unpublished have no schedule, so moving to them clears it.
   const handleStatusChange = (next: StatusTab) => {
-    write({ status: next === DEFAULT_STATUS ? null : next, filter: null, page: null });
+    const keepsSchedule = next === "all" || next === "published";
+    write({
+      status: next === DEFAULT_STATUS ? null : next,
+      schedule: keepsSchedule && schedule !== "any" ? schedule : null,
+      filter: null,
+      page: null,
+    });
+  };
+
+  // Only published tests have a schedule, so picking one from Drafts or Unpublished moves to Published.
+  const handleScheduleChange = (next: string) => {
+    const choice = SCHEDULE_VALUES.find((value) => value === next) ?? "any";
+    const tab = choice !== "any" && (status === "draft" || status === "unpublished") ? "published" : status;
+    write({
+      schedule: choice === "any" ? null : choice,
+      status: tab === DEFAULT_STATUS ? null : tab,
+      filter: null,
+      page: null,
+    });
   };
 
   const handlePageChange = (newPage: number) => {
@@ -215,11 +253,19 @@ const TeacherLiveTestsPage: React.FC = () => {
         busy={isFetching}
         toolbar={{
           tabs: {
-            tabs: withStatusCounts(STATUS_TABS, statusCounts),
+            tabs: withStatusCounts(STATUS_TABS, tabCounts),
             value: filter ? null : status,
             onValueChange: handleStatusChange,
             total,
           },
+          selects: [
+            {
+              value: filter ? "any" : schedule,
+              onChange: handleScheduleChange,
+              label: "Filter by schedule",
+              options: SCHEDULE_OPTIONS.map(({ value, label }) => ({ value, label })),
+            },
+          ],
         }}
         notice={
           filter && (

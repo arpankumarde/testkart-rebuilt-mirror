@@ -130,6 +130,18 @@ export const TestPackageSidebar: React.FC<TestPackageSidebarProps> = ({ classNam
     ? Math.round(((testPackage.price - testPackage.discountPrice!) / testPackage.price) * 100)
     : 0;
 
+  const priceRow = (
+    <div className={styles.priceRow}>
+      <span className={styles.currentPrice}>{formattedPrice}</span>
+      {formattedOriginalPrice && (
+        <>
+          <span className={styles.originalPrice}>{formattedOriginalPrice}</span>
+          <span className={styles.discount}>{discountPercentage}% off</span>
+        </>
+      )}
+    </div>
+  );
+
   const includes: Array<{ icon: React.ReactNode; label: string }> = [];
   if (testPackage.totalTests > 0) {
     includes.push({
@@ -177,6 +189,7 @@ export const TestPackageSidebar: React.FC<TestPackageSidebarProps> = ({ classNam
               <ExpiredProductNotice className={styles.expiredNotice} />
             ) : isTeacher ? (
               <>
+                <div className={styles.pricing}>{priceRow}</div>
                 <div className={styles.teacherInfo}>
                   <div className={styles.teacherInfoIcon}>
                     <Info size={24} />
@@ -207,15 +220,7 @@ export const TestPackageSidebar: React.FC<TestPackageSidebarProps> = ({ classNam
             ) : (
               <>
                 <div className={styles.pricing}>
-                  <div className={styles.priceRow}>
-                    <span className={styles.currentPrice}>{formattedPrice}</span>
-                    {formattedOriginalPrice && (
-                      <>
-                        <span className={styles.originalPrice}>{formattedOriginalPrice}</span>
-                        <span className={styles.discount}>{discountPercentage}% off</span>
-                      </>
-                    )}
-                  </div>
+                  {priceRow}
                   {isFree && <p className={styles.priceNote}>Every test in this series is free to attempt.</p>}
                 </div>
 

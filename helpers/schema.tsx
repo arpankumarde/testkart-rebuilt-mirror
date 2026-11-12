@@ -511,6 +511,7 @@ export interface CourseBundles {
   title: string;
   updatedAt: Generated<Timestamp>;
   visibility: Generated<ContentVisibility>;
+  wasEverPublished: Generated<boolean>;
 }
 
 export interface CourseEnrollments {
@@ -600,6 +601,7 @@ export interface Courses {
   updatedAt: Generated<Timestamp>;
   views: Generated<number>;
   visibility: Generated<ContentVisibility>;
+  wasEverPublished: Generated<boolean>;
 }
 
 export interface CourseSections {
@@ -822,6 +824,7 @@ export interface DigitalProducts {
   updatedAt: Generated<Timestamp | null>;
   views: Generated<number>;
   visibility: Generated<ContentVisibility>;
+  wasEverPublished: Generated<boolean>;
 }
 
 export interface DocumentPageViews {
@@ -1466,6 +1469,7 @@ export interface LiveTests {
   updatedAt: Generated<Timestamp>;
   viewCount: Generated<number>;
   visibility: Generated<ContentVisibility>;
+  wasEverPublished: Generated<boolean>;
 }
 
 export interface LoginAttempts {
@@ -1802,6 +1806,15 @@ export interface OrderItems {
   platformFeePercentage: Generated<Numeric>;
   priceAtPurchase: Numeric;
   quantity: Generated<number>;
+}
+
+export interface OrderPaymentAttempts {
+  answeredAt: Timestamp | null;
+  createdAt: Generated<Timestamp>;
+  gatewayStatus: string | null;
+  id: Generated<number>;
+  orderId: number;
+  txnid: string;
 }
 
 export interface Orders {
@@ -3025,6 +3038,7 @@ export interface DB {
   oauthAccounts: OauthAccounts;
   oauthStates: OauthStates;
   orderItems: OrderItems;
+  orderPaymentAttempts: OrderPaymentAttempts;
   orders: Orders;
   organizationClaimRequests: OrganizationClaimRequests;
   organizationFollows: OrganizationFollows;

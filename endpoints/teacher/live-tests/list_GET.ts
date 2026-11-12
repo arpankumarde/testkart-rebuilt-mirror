@@ -5,6 +5,10 @@ import {
   LiveTestStatus,
   LiveTestListFilter,
   LiveTestListFilterValues,
+  LiveTestTab,
+  LiveTestTabValues,
+  LiveTestSchedule,
+  LiveTestScheduleValues,
 } from "./list_GET.schema";
 import superjson from "superjson";
 import { sql } from "kysely";
@@ -28,6 +32,15 @@ function getLiveTestStatus(
   if (enrolledCount >= maxSeats) return "seats_full";
   if (now > registrationDeadline) return "registration_closed";
   return "upcoming";
+}
+
+function tabOf(test: { isActive: boolean; wasEverPublished: boolean }): Exclude<LiveTestTab, "all"> {
+  return test.isActive ? "published" : test.wasEverPublished ? "unpublished" : "draft";
+}
+
+function matchesSchedule(status: LiveTestStatus, schedule: LiveTestSchedule): boolean {
+  if (schedule === "closed") return status === "registration_closed" || status === "seats_full";
+  return status === schedule;
 }
 
 function matchesListFilter(
@@ -67,6 +80,10 @@ export async function handle(request: Request) {
     const status = url.searchParams.get("status");
     const filterParam = url.searchParams.get("filter");
     const filter = LiveTestListFilterValues.find((value) => value === filterParam);
+    const tabParam = url.searchParams.get("tab");
+    const tab = LiveTestTabValues.find((value) => value === tabParam);
+    const scheduleParam = url.searchParams.get("schedule");
+    const schedule = LiveTestScheduleValues.find((value) => value === scheduleParam);
     const page = parseInt(url.searchParams.get("page") || "1", 10);
     const limit = parseInt(url.searchParams.get("limit") || "10", 10);
     const offset = (page - 1) * limit;
@@ -194,6 +211,9 @@ export async function handle(request: Request) {
     };
     for (const test of testsWithStatus) statusCounts[test.status] += 1;
 
+    const tabCounts: OutputType["tabCounts"] = { all: testsWithStatus.length, published: 0, draft: 0, unpublished: 0 };
+    for (const test of testsWithStatus) tabCounts[tabOf(test)] += 1;
+
     if (mockTestIdParam) {
       const mockTestId = parseInt(mockTestIdParam, 10);
       testsWithStatus = testsWithStatus.filter((test) => test.mockTestId === mockTestId);
@@ -207,6 +227,9 @@ export async function handle(request: Request) {
           (a, b) => new Date(a.startTime ?? 0).getTime() - new Date(b.startTime ?? 0).getTime()
         );
       }
+    } else if (tab || schedule) {
+      if (tab && tab !== "all") testsWithStatus = testsWithStatus.filter((test) => tabOf(test) === tab);
+      if (schedule) testsWithStatus = testsWithStatus.filter((test) => matchesSchedule(test.status, schedule));
     } else if (status && status !== "all") {
       testsWithStatus = testsWithStatus.filter((test) => test.status === status);
     }
@@ -242,6 +265,7 @@ export async function handle(request: Request) {
         limit,
         mockTestIds,
         statusCounts,
+        tabCounts,
       } satisfies OutputType)
     );
   } catch (error) {

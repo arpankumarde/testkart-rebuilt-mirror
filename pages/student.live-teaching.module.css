@@ -1,8 +1,8 @@
 /*
  * Student live classes. Colours come from the StudentDashboardLayout shell;
- * rows, the Up next card, the type switch and filter pills come from
- * components/LiveSession. The session actions menu is styled here so the
- * shared dropdown elsewhere is unchanged.
+ * the session cards, join button, type switch and filter pills come from
+ * components/LiveSession. The session actions menu and its trigger are styled
+ * here so the shared dropdown and Button elsewhere are unchanged.
  */
 .page {
   display: flex;
@@ -30,15 +30,43 @@
 .skeletons {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.625rem;
 }
 
-/* Shown on an upcoming session until its classroom opens. */
-.opensNote {
-  font-size: 0.8125rem;
-  font-weight: 600;
+/* Neutral in both themes: a --muted wash on hover, never the brand fill or a white block. */
+.menuTrigger {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid transparent;
+  border-radius: 0.75rem;
   color: var(--sp-muted);
-  white-space: nowrap;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.menuTrigger:hover,
+.menuTrigger[data-state="open"] {
+  background: var(--muted);
+  border-color: var(--sp-line);
+  color: var(--sp-ink);
+}
+
+.menuTrigger:active {
+  background: var(--sp-line);
+  color: var(--sp-ink);
+}
+
+.menuTrigger:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--sp-card), 0 0 0 4px var(--fc-blue-edge);
+}
+
+.reportButton {
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 
 /* Session actions menu: one flex row per item, icons in one column, labels
@@ -111,7 +139,12 @@
     min-height: 2.75rem;
   }
 
-  .opensNote {
-    white-space: normal;
+  .menuTrigger,
+  .reportButton {
+    height: 2.75rem;
+  }
+
+  .menuTrigger {
+    width: 2.75rem;
   }
 }

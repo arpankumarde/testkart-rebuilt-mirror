@@ -1,0 +1,1449 @@
+/*
+ * In-call classroom, laid out like a familiar meeting app. A full-viewport
+ * grid: slim header (title, time left, timer, connection), the stage with an
+ * optional utility panel on its right (tabs: Chat, Whiteboard, People, Info),
+ * and a bottom toolbar whose centred group holds every control and, after a
+ * divider, Leave. Phones: the stage fills the screen, the panel becomes a
+ * full-height bottom sheet and the controls scroll sideways with Leave pinned.
+ * Every colour goes through the --mt-* tokens, shared with the tiles, chat
+ * and whiteboard; .menu repeats them because the More menu renders outside
+ * the room. Dark values follow body.dark. Coral marks the active speaker and
+ * open tools; red marks devices that are off and Leave.
+ */
+.room,
+.menu {
+  --mt-bg: hsl(40 30% 97%);
+  --mt-panel: hsl(0 0% 100%);
+  --mt-raised: hsl(40 24% 95%);
+  --mt-line: hsl(36 16% 87%);
+  --mt-line-strong: hsl(36 14% 76%);
+  --mt-ink: hsl(224 28% 16%);
+  --mt-text: hsl(222 14% 30%);
+  --mt-muted: hsl(220 10% 40%);
+  --mt-disabled: hsl(220 8% 64%);
+  --mt-btn: hsl(40 18% 92%);
+  --mt-btn-hover: hsl(40 16% 86%);
+  --mt-tile: hsl(36 16% 90%);
+  --mt-tile-line: hsl(36 14% 84%);
+  --mt-avatar: hsl(24 90% 88%);
+  --mt-avatar-ink: hsl(18 70% 28%);
+  --mt-accent: #ff9565;
+  --mt-accent-hover: #f98450;
+  --mt-accent-on: hsl(222 30% 14%);
+  --mt-accent-tint: hsl(24 100% 94%);
+  --mt-accent-line: hsl(20 70% 66%);
+  --mt-accent-ink: hsl(18 72% 30%);
+  --mt-accent-ring: hsl(24 100% 88%);
+  --mt-speaking: #ff9565;
+  --mt-speaking-halo: hsl(24 100% 86%);
+  --mt-off: hsl(0 66% 48%);
+  --mt-off-hover: hsl(0 66% 42%);
+  --mt-danger-tint: hsl(0 86% 95%);
+  --mt-danger-ink: hsl(0 66% 36%);
+  --mt-good: hsl(152 60% 28%);
+  --mt-good-tint: hsl(150 50% 93%);
+  --mt-warn: hsl(32 82% 32%);
+  --mt-warn-tint: hsl(42 90% 92%);
+  --mt-bad: hsl(0 68% 40%);
+  --mt-bad-tint: hsl(0 86% 95%);
+  --mt-focus: 0 0 0 2px var(--mt-bg), 0 0 0 4px hsl(18 80% 44%);
+  --mt-shadow: 0 1px 2px hsl(30 20% 20% / 0.06), 0 16px 32px -20px hsl(30 30% 20% / 0.35);
+  --mt-bar: hsl(0 0% 100%);
+}
+
+:global(.dark) .room,
+:global(.dark) .menu {
+  --mt-bg: hsl(222 18% 8%);
+  --mt-panel: hsl(222 16% 12%);
+  --mt-raised: hsl(222 14% 17%);
+  --mt-line: hsl(222 12% 21%);
+  --mt-line-strong: hsl(222 12% 30%);
+  --mt-ink: hsl(220 20% 95%);
+  --mt-text: hsl(220 12% 82%);
+  --mt-muted: hsl(220 10% 66%);
+  --mt-disabled: hsl(220 8% 42%);
+  --mt-btn: hsl(222 12% 19%);
+  --mt-btn-hover: hsl(222 12% 25%);
+  --mt-tile: hsl(222 14% 15%);
+  --mt-tile-line: hsl(222 12% 22%);
+  --mt-avatar: hsl(20 30% 26%);
+  --mt-avatar-ink: hsl(24 90% 82%);
+  --mt-accent-tint: hsl(20 30% 20%);
+  --mt-accent-line: hsl(20 50% 45%);
+  --mt-accent-ink: hsl(24 95% 80%);
+  --mt-accent-ring: hsl(20 35% 26%);
+  --mt-speaking-halo: hsl(20 40% 28%);
+  --mt-off: hsl(0 62% 48%);
+  --mt-off-hover: hsl(0 62% 55%);
+  --mt-danger-tint: hsl(0 30% 20%);
+  --mt-danger-ink: hsl(0 85% 78%);
+  --mt-good: hsl(152 50% 62%);
+  --mt-good-tint: hsl(152 24% 17%);
+  --mt-warn: hsl(40 85% 66%);
+  --mt-warn-tint: hsl(40 30% 17%);
+  --mt-bad: hsl(0 85% 74%);
+  --mt-bad-tint: hsl(0 30% 19%);
+  --mt-focus: 0 0 0 2px var(--mt-bg), 0 0 0 4px hsl(24 95% 66%);
+  --mt-shadow: 0 1px 2px hsl(0 0% 0% / 0.3), 0 16px 32px -16px hsl(0 0% 0% / 0.6);
+  --mt-bar: hsl(222 16% 11%);
+  color-scheme: dark;
+}
+
+.room {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  background: var(--mt-bg);
+  color: var(--mt-ink);
+  overflow: hidden;
+}
+
+/* While an admin is viewing as someone, the sticky banner takes the top of the
+   screen, so the call gives that height back instead of scrolling the page. */
+:global(:root:has([data-impersonation-banner])) .room {
+  height: calc(100dvh - 3rem);
+}
+
+@media (max-width: 968px) {
+  :global(:root:has([data-impersonation-banner])) .room {
+    height: calc(100dvh - var(--impersonation-banner-height));
+  }
+}
+
+/* ---------------------------------------------------------------- header --- */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-width: 0;
+  padding: 0.625rem 1rem;
+  padding-top: calc(0.625rem + env(safe-area-inset-top));
+}
+
+.headerLeft,
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.headerRight {
+  flex-shrink: 0;
+  gap: 0.375rem;
+}
+
+.logo {
+  display: block;
+  flex-shrink: 0;
+  height: 1.375rem;
+  width: auto;
+}
+
+.headerDivider {
+  flex-shrink: 0;
+  width: 1px;
+  height: 1.5rem;
+  background: var(--mt-line);
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  overflow: hidden;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--mt-ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subtitle {
+  overflow: hidden;
+  font-size: 0.75rem;
+  color: var(--mt-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-shrink: 0;
+  height: 2rem;
+  padding: 0 0.625rem;
+  border: 1px solid var(--mt-line);
+  border-radius: 999px;
+  background: var(--mt-panel);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--mt-text);
+  white-space: nowrap;
+}
+
+.liveDot {
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 50%;
+  background: var(--mt-off);
+}
+
+.mockBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  height: 2rem;
+  padding: 0 0.625rem;
+  border-radius: 999px;
+  background: var(--mt-warn-tint);
+  color: var(--mt-warn);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.toneGood {
+  border-color: transparent;
+  background: var(--mt-good-tint);
+  color: var(--mt-good);
+}
+
+.toneWarn {
+  border-color: transparent;
+  background: var(--mt-warn-tint);
+  color: var(--mt-warn);
+}
+
+.toneBad {
+  border-color: transparent;
+  background: var(--mt-bad-tint);
+  color: var(--mt-bad);
+}
+
+.toneMuted {
+  background: var(--mt-btn);
+  color: var(--mt-muted);
+}
+
+/* ---------------------------------------------------------------- banners --- */
+
+.banners {
+  position: absolute;
+  top: 0.5rem;
+  left: 50%;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  width: min(36rem, calc(100% - 1.5rem));
+  transform: translateX(-50%);
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  background: var(--mt-bad-tint);
+  color: var(--mt-bad);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  box-shadow: var(--mt-shadow);
+}
+
+.bannerWarn {
+  background: var(--mt-warn-tint);
+  color: var(--mt-warn);
+  text-align: center;
+}
+
+/* ------------------------------------------------------------------ body --- */
+
+.body {
+  position: relative;
+  display: flex;
+  gap: 0.75rem;
+  min-height: 0;
+  padding: 0 0.75rem;
+}
+
+.stage {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  container: stage / size;
+}
+
+/* 1:1 (and the waiting state): two tiles of equal size, as large as the stage allows at 16:10. */
+.duo {
+  display: grid;
+  grid-template-columns: repeat(2, min(calc(50cqw - 0.375rem), calc(100cqh * 1.6)));
+  align-content: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  animation: stageIn 0.3s ease;
+}
+
+.duo > * {
+  height: auto;
+  aspect-ratio: 16 / 10;
+}
+
+@container stage (max-aspect-ratio: 4 / 3) {
+  .duo {
+    grid-template-columns: min(100cqw, calc((50cqh - 0.375rem) * 1.6));
+    grid-template-rows: auto auto;
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  gap: 0.625rem;
+  width: 100%;
+  animation: stageIn 0.3s ease;
+}
+
+.shareLayout,
+.boardLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 12.5rem;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 0;
+  animation: stageIn 0.25s ease;
+}
+
+.boardLayout {
+  grid-template-columns: minmax(0, 1fr) 10rem;
+}
+
+.shareMain,
+.boardMain {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+}
+
+.filmstrip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.previewPending {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  border-radius: 1rem;
+  background: var(--mt-tile);
+  box-shadow: 0 0 0 1px var(--mt-tile-line);
+  color: var(--mt-muted);
+  font-size: 0.8125rem;
+}
+
+.spinner {
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 3px solid var(--mt-line-strong);
+  border-top-color: var(--mt-accent);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+/* The other person's slot before they join: clearly a placeholder (dashed edge, no video). */
+.waitingTile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  min-width: 0;
+  min-height: 0;
+  padding: 1rem;
+  overflow: hidden;
+  border: 1.5px dashed var(--mt-line-strong);
+  border-radius: 1rem;
+  background: var(--mt-panel);
+  text-align: center;
+  container: waiting / size;
+}
+
+.waitingAvatar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.375rem;
+}
+
+.waitingAvatar > :not(.pulse) {
+  position: relative;
+  width: 5rem;
+  height: 5rem;
+  font-size: 1.75rem;
+  box-shadow: 0 0 0 4px var(--mt-panel);
+}
+
+.pulse {
+  position: absolute;
+  inset: -0.625rem;
+  border: 2px solid var(--mt-accent-line);
+  border-radius: 50%;
+  animation: pulse 2.2s ease-out infinite;
+}
+
+.waitingRole {
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  background: var(--mt-btn);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mt-muted);
+}
+
+.waitingName {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--mt-ink);
+}
+
+.waitingTitle {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--mt-text);
+}
+
+.dots {
+  display: inline-flex;
+  gap: 0.375rem;
+  margin: 0.25rem 0;
+}
+
+.dots span {
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 50%;
+  background: var(--mt-accent);
+  animation: bounce 1.2s ease-in-out infinite;
+}
+
+.dots span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.dots span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.waitingMeta {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.375rem;
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--mt-muted);
+}
+
+.waitingMeta .statusDot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+@container waiting (max-height: 17rem) {
+  .waitingAvatar > :not(.pulse) {
+    width: 3.5rem;
+    height: 3.5rem;
+    font-size: 1.25rem;
+  }
+
+  .waitingName,
+  .dots {
+    display: none;
+  }
+}
+
+@container waiting (max-height: 12rem) {
+  .waitingRole,
+  .waitingMeta {
+    display: none;
+  }
+}
+
+/* ----------------------------------------------------------------- panel --- */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  width: 22rem;
+  flex-shrink: 0;
+  min-height: 0;
+  border: 1px solid var(--mt-line);
+  border-radius: 1rem;
+  background: var(--mt-panel);
+  overflow: hidden;
+  animation: panelIn 0.2s ease;
+}
+
+.panelWide {
+  width: clamp(26rem, 46%, 54rem);
+}
+
+.panelHead {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.5rem 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--mt-line);
+}
+
+.sheetGrip {
+  display: none;
+}
+
+.panelTabs {
+  display: flex;
+  flex: 1;
+  gap: 0.125rem;
+  min-width: 0;
+  padding: 0.1875rem;
+  border-radius: 0.75rem;
+  background: var(--mt-raised);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.panelTab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  flex: 1;
+  height: 2rem;
+  padding: 0 0.625rem;
+  border: none;
+  border-radius: 0.5625rem;
+  background: transparent;
+  color: var(--mt-muted);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.panelTab:hover {
+  color: var(--mt-ink);
+}
+
+.panelTabActive,
+.panelTabActive:hover {
+  background: var(--mt-panel);
+  color: var(--mt-ink);
+  box-shadow: 0 1px 2px hsl(0 0% 0% / 0.12);
+}
+
+.panelTab:focus-visible {
+  outline: none;
+  box-shadow: var(--mt-focus);
+}
+
+.tabBadge {
+  min-width: 1.125rem;
+  height: 1.125rem;
+  padding: 0 0.25rem;
+  border-radius: 999px;
+  background: var(--mt-accent);
+  color: var(--mt-accent-on);
+  font-size: 0.625rem;
+  font-weight: 800;
+  line-height: 1.125rem;
+}
+
+.panelTitle {
+  margin: 0;
+  padding: 0.75rem 1rem 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--mt-ink);
+}
+
+.panelClose,
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: none;
+  border-radius: 0.625rem;
+  background: transparent;
+  color: var(--mt-muted);
+  cursor: pointer;
+}
+
+.panelClose:hover,
+.iconButton:hover {
+  background: var(--mt-btn-hover);
+  color: var(--mt-ink);
+}
+
+.panelClose:focus-visible,
+.iconButton:focus-visible {
+  outline: none;
+  box-shadow: var(--mt-focus);
+}
+
+.panelBoard {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.panelBoard > section {
+  border: none;
+  border-radius: 0;
+}
+
+.panelBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+  min-height: 0;
+  padding: 0.875rem 1rem 1rem;
+  overflow-y: auto;
+}
+
+.panelSection {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mt-muted);
+}
+
+.panelEmpty,
+.panelHint {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--mt-muted);
+}
+
+.peopleList,
+.materialList,
+.noteList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.personRow {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.375rem 0.25rem;
+}
+
+.personRow img,
+.personRow > span:first-child {
+  width: 2.25rem;
+  height: 2.25rem;
+  font-size: 0.8125rem;
+}
+
+.personAway {
+  color: var(--mt-muted);
+}
+
+.personAway img,
+.personAway > span:first-child {
+  filter: grayscale(1);
+}
+
+.personText {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.personName {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.personRole {
+  font-size: 0.75rem;
+  color: var(--mt-muted);
+}
+
+.crown {
+  flex-shrink: 0;
+  color: hsl(40 90% 45%);
+}
+
+.personIcons {
+  display: inline-flex;
+  gap: 0.5rem;
+  color: var(--mt-muted);
+}
+
+.iconOff {
+  color: var(--mt-off);
+}
+
+.infoList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.infoList div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.infoList dt {
+  font-size: 0.75rem;
+  color: var(--mt-muted);
+}
+
+.infoList dd {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--mt-ink);
+}
+
+.materialRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+  color: var(--mt-muted);
+}
+
+.materialLink {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--mt-ink);
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.materialLink:hover {
+  text-decoration: underline;
+}
+
+.materialForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--mt-line);
+}
+
+.panelInput,
+.panelTextarea {
+  border: 1px solid var(--mt-line-strong);
+  border-radius: 0.625rem;
+  background: var(--mt-raised);
+  color: var(--mt-ink);
+  box-shadow: none;
+}
+
+.panelInput:hover,
+.panelTextarea:hover {
+  background: var(--mt-raised);
+  box-shadow: none;
+}
+
+.panelInput:focus,
+.panelTextarea:focus {
+  border-color: var(--mt-accent-line);
+  background: var(--mt-raised);
+  box-shadow: 0 0 0 3px var(--mt-accent-ring);
+}
+
+.panelTextarea {
+  min-height: 6rem;
+}
+
+.panelPrimary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  height: 2.5rem;
+  border: none;
+  border-radius: 0.75rem;
+  background: var(--mt-accent);
+  color: var(--mt-accent-on);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.panelPrimary:hover:not(:disabled) {
+  background: var(--mt-accent-hover);
+}
+
+.panelPrimary:disabled {
+  background: var(--mt-btn);
+  color: var(--mt-disabled);
+  cursor: not-allowed;
+}
+
+.panelPrimary:focus-visible {
+  outline: none;
+  box-shadow: var(--mt-focus);
+}
+
+.noteRow {
+  padding: 0.5rem 0.625rem;
+  border-radius: 0.625rem;
+  background: var(--mt-raised);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+/* --------------------------------------------------------------- toolbar --- */
+
+.toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+}
+
+.toolbarSide {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  font-size: 0.8125rem;
+  color: var(--mt-muted);
+}
+
+.toolbarRight {
+  justify-content: flex-end;
+  font-variant-numeric: tabular-nums;
+}
+
+.clock {
+  flex-shrink: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--mt-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.clockTitle {
+  overflow: hidden;
+  padding-left: 0.625rem;
+  border-left: 1px solid var(--mt-line);
+  font-size: 0.875rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The centred group: every control, a divider, then Leave. */
+.controlsWrap {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.375rem;
+  border: 1px solid var(--mt-line);
+  border-radius: 999px;
+  background: var(--mt-bar);
+  box-shadow: var(--mt-shadow);
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.controlsDivider {
+  width: 1px;
+  height: 1.75rem;
+  background: var(--mt-line);
+}
+
+.control {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4375rem;
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--mt-btn);
+  color: var(--mt-ink);
+  font: inherit;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.controlPill {
+  width: auto;
+  padding: 0 0.875rem 0 0.75rem;
+}
+
+.controlIcon {
+  position: relative;
+  display: inline-flex;
+}
+
+.controlText {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.controlTextPhoneOnly {
+  display: none;
+}
+
+.control:hover:not(:disabled) {
+  background: var(--mt-btn-hover);
+}
+
+.control:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.control:disabled {
+  color: var(--mt-disabled);
+  cursor: not-allowed;
+}
+
+.controlOff,
+.controlOff:hover:not(:disabled) {
+  border-color: var(--mt-off);
+  background: var(--mt-off);
+  color: #fff;
+}
+
+.controlOff:hover:not(:disabled) {
+  background: var(--mt-off-hover);
+}
+
+.controlActive,
+.controlActive:hover:not(:disabled) {
+  border-color: var(--mt-accent-line);
+  background: var(--mt-accent-tint);
+  color: var(--mt-accent-ink);
+}
+
+.control:focus-visible {
+  outline: none;
+  box-shadow: var(--mt-focus);
+}
+
+.badge {
+  position: absolute;
+  top: -0.5rem;
+  right: -0.625rem;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  padding: 0 0.25rem;
+  border: 2px solid var(--mt-bar);
+  border-radius: 999px;
+  background: var(--mt-accent);
+  color: var(--mt-accent-on);
+  font-size: 0.625rem;
+  font-weight: 800;
+  line-height: 0.875rem;
+  text-align: center;
+}
+
+.dot {
+  position: absolute;
+  top: -0.25rem;
+  right: -0.25rem;
+  width: 0.625rem;
+  height: 0.625rem;
+  border: 2px solid var(--mt-bar);
+  border-radius: 50%;
+  background: var(--mt-accent);
+}
+
+.leave {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  height: 2.75rem;
+  padding: 0 1.125rem 0 1rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--mt-off);
+  color: #fff;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.leave:hover {
+  background: var(--mt-off-hover);
+}
+
+.leave:focus-visible {
+  outline: none;
+  box-shadow: var(--mt-focus);
+}
+
+.menu {
+  min-width: 14rem;
+  padding: 0.375rem;
+  border: 1px solid var(--mt-line);
+  border-radius: 0.875rem;
+  background: var(--mt-panel);
+  color: var(--mt-ink);
+  box-shadow: var(--mt-shadow);
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.625rem;
+  color: var(--mt-ink);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.menuItem svg {
+  flex-shrink: 0;
+  color: var(--mt-muted);
+}
+
+.menuItem:hover,
+.menuItem[data-highlighted] {
+  background: var(--mt-btn-hover);
+  color: var(--mt-ink);
+  outline: none;
+}
+
+.menuItem[data-disabled] {
+  color: var(--mt-disabled);
+  cursor: not-allowed;
+}
+
+.menuDanger,
+.menuDanger svg {
+  color: var(--mt-bad);
+}
+
+.menuDanger:hover,
+.menuDanger[data-highlighted] {
+  background: var(--mt-danger-tint);
+  color: var(--mt-danger-ink);
+}
+
+.menuSeparator {
+  height: 1px;
+  margin: 0.25rem 0.375rem;
+  background: var(--mt-line);
+}
+
+/* ---------------------------------------------------------------- narrow --- */
+
+@media (max-width: 1180px) {
+  .toolbar {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+  }
+
+  .toolbarSide {
+    display: none;
+  }
+
+  .chipLabel {
+    display: none;
+  }
+}
+
+/* Tablets: the side panel floats over the right of the stage instead of squeezing it. */
+@media (min-width: 641px) and (max-width: 900px) {
+  .panel,
+  .panelWide {
+    position: absolute;
+    top: 0;
+    right: 0.75rem;
+    bottom: 0;
+    z-index: 2;
+    width: min(26rem, calc(100% - 1.5rem));
+    box-shadow: var(--mt-shadow);
+  }
+
+  .panelWide {
+    width: calc(100% - 1.5rem);
+  }
+}
+
+@media (max-width: 640px) {
+  .header {
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    padding-top: calc(0.5rem + env(safe-area-inset-top));
+  }
+
+  .logo,
+  .headerDivider,
+  .subtitle,
+  .mockBadge {
+    display: none;
+  }
+
+  .title {
+    font-size: 0.875rem;
+  }
+
+  .chip {
+    height: 1.75rem;
+    padding: 0 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .body {
+    padding: 0;
+  }
+
+  .stage {
+    padding: 0 0.5rem;
+  }
+
+  /* Phone 1:1: the other person (or their waiting card) fills the stage; you float in a corner. */
+  .duo {
+    position: relative;
+    display: block;
+  }
+
+  .duo > .duoRemote {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: auto;
+  }
+
+  .duo > .duoLocal {
+    position: absolute;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    z-index: 1;
+    width: 6.5rem;
+    height: 8.75rem;
+    aspect-ratio: auto;
+  }
+
+  .duoWaiting > .duoLocal {
+    bottom: 0.75rem;
+  }
+
+  .grid {
+    gap: 0.375rem;
+  }
+
+  .shareLayout,
+  .boardLayout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .shareLayout .filmstrip,
+  .boardLayout .filmstrip {
+    grid-row: 1;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .filmstrip > * {
+    flex: 0 0 6.5rem;
+  }
+
+  /* Panels become a full-height bottom sheet that stops above the toolbar, so Leave stays in reach. */
+  .panel,
+  .panelWide {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(4.25rem + env(safe-area-inset-bottom));
+    top: calc(env(safe-area-inset-top) + 2.5rem);
+    z-index: 30;
+    width: auto;
+    border: none;
+    border-top: 1px solid var(--mt-line);
+    border-radius: 1.25rem 1.25rem 0 0;
+    box-shadow: 0 -12px 32px -12px hsl(0 0% 0% / 0.35);
+    animation: sheetIn 0.22s ease;
+  }
+
+  .panelHead {
+    position: relative;
+    padding-top: 1.125rem;
+  }
+
+  .sheetGrip {
+    position: absolute;
+    top: 0.4375rem;
+    left: 50%;
+    display: block;
+    width: 2.5rem;
+    height: 0.25rem;
+    border-radius: 999px;
+    background: var(--mt-line-strong);
+    transform: translateX(-50%);
+  }
+
+  .panelTab {
+    height: 2.25rem;
+  }
+
+  /* Controls scroll sideways (icon over label); Leave stays pinned at the end. */
+  .toolbar {
+    padding: 0.375rem 0.5rem;
+    padding-bottom: calc(0.375rem + env(safe-area-inset-bottom));
+  }
+
+  .controlsWrap {
+    width: 100%;
+    gap: 0.375rem;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .controls {
+    flex: 1;
+    min-width: 0;
+    gap: 0.125rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .controls::-webkit-scrollbar {
+    display: none;
+  }
+
+  .control,
+  .controlPill {
+    flex-direction: column;
+    gap: 0.125rem;
+    width: auto;
+    min-width: 3.5rem;
+    height: 3.25rem;
+    padding: 0.25rem 0.375rem;
+    border-radius: 0.875rem;
+    background: transparent;
+  }
+
+  .control .controlIcon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 1.875rem;
+    border-radius: 999px;
+    background: var(--mt-btn);
+  }
+
+  .controlOff,
+  .controlOff:hover:not(:disabled) {
+    border-color: transparent;
+    background: transparent;
+    color: var(--mt-off);
+  }
+
+  .controlOff .controlIcon {
+    background: var(--mt-off);
+    color: #fff;
+  }
+
+  .controlActive,
+  .controlActive:hover:not(:disabled) {
+    border-color: transparent;
+    background: transparent;
+    color: var(--mt-accent-ink);
+  }
+
+  .controlActive .controlIcon {
+    background: var(--mt-accent-tint);
+    box-shadow: inset 0 0 0 1px var(--mt-accent-line);
+  }
+
+  .controlText,
+  .controlTextPhoneOnly {
+    display: block;
+    font-size: 0.6875rem;
+    font-weight: 600;
+  }
+
+  .controlsDivider {
+    height: 2.25rem;
+  }
+
+  .leave {
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.125rem;
+    width: 3.75rem;
+    height: 3.25rem;
+    padding: 0;
+    border-radius: 0.875rem;
+    font-size: 0.6875rem;
+  }
+}
+
+/* -------------------------------------------------------------- motion --- */
+
+@keyframes stageIn {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    transform: translateX(0.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes sheetIn {
+  from {
+    transform: translateY(1.5rem);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.85);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+}
+
+@keyframes bounce {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+  40% {
+    transform: translateY(-0.3125rem);
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .duo,
+  .grid,
+  .shareLayout,
+  .boardLayout,
+  .panel,
+  .pulse,
+  .dots span,
+  .control {
+    animation: none;
+    transition: none;
+  }
+}

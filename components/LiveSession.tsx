@@ -1,11 +1,13 @@
-import React from "react";
-import { Clock } from "lucide-react";
+import React, { useState } from "react";
+import { Clock, Video } from "lucide-react";
+import { handleClassroomLinkClick } from "../helpers/openClassroom";
 import styles from "./LiveSession.module.css";
 
 /*
  * Shared pieces for live teaching lists (student and teacher consoles): a
- * calendar date tile, a session row and the "Up next" card. Colours come from
- * the --sp-* / --fc-* palette, so both consoles and dark mode follow.
+ * calendar date tile, a session row, the "Up next" card and the compact
+ * session card the student list uses. Colours come from the --sp-* / --fc-*
+ * palette, so both consoles and dark mode follow.
  */
 
 export type LiveSessionTone = "lavender" | "blue" | "sage" | "butter" | "mint" | "peach" | "muted";
@@ -196,3 +198,125 @@ export const LiveSessionList: React.FC<{ title?: string; children: React.ReactNo
     {children}
   </section>
 );
+
+const initialsOf = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]!.toUpperCase())
+    .join("") || "?";
+
+/* Photo when there is one, initials otherwise. The name sits beside it, so the image is decorative. */
+export const LiveSessionAvatar: React.FC<{ name: string; src?: string | null }> = ({ name, src }) => {
+  const [failed, setFailed] = useState(false);
+  if (src && !failed) {
+    return <img className={styles.avatar} src={src} alt="" loading="lazy" onError={() => setFailed(true)} />;
+  }
+  return (
+    <span className={styles.avatar} aria-hidden="true">
+      {initialsOf(name)}
+    </span>
+  );
+};
+
+/* Opens the classroom in its own tab so this list stays open behind it. */
+export const LiveSessionJoinLink: React.FC<{ to: string; label?: string }> = ({ to, label = "Join classroom" }) => (
+  <a href={to} target="_blank" rel="noopener noreferrer" className={styles.join} onClick={(e) => handleClassroomLinkClick(e, to)}>
+    <Video size={16} aria-hidden="true" />
+    {label}
+  </a>
+);
+
+export const LiveSessionOpensNote: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <span className={styles.opens}>
+    <Clock size={14} aria-hidden="true" />
+    {children}
+  </span>
+);
+
+interface CardProps {
+  startTime: Date | string;
+  durationMinutes: number;
+  title: string;
+  teacherName: string;
+  teacherAvatarUrl?: string | null;
+  /* "live" while the classroom is open, "next" for the first upcoming session. */
+  badge?: "live" | "next" | null;
+  status?: LiveSessionStatus | null;
+  tag?: string | null;
+  note?: React.ReactNode;
+  actions?: React.ReactNode;
+  timeZone?: string;
+}
+
+/* One slim row per session: date block, title with teacher and time, then the action. */
+export const LiveSessionCard: React.FC<CardProps> = ({
+  startTime,
+  durationMinutes,
+  title,
+  teacherName,
+  teacherAvatarUrl,
+  badge,
+  status,
+  tag,
+  note,
+  actions,
+  timeZone,
+}) => {
+  const d = new Date(startTime);
+  const part = (opts: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat("en-IN", { ...opts, timeZone }).format(d);
+  const relative = relativeDayLabel(startTime, timeZone);
+  const cardClass = [
+    styles.card,
+    badge === "live" ? styles.cardLive : badge === "next" ? styles.cardNext : "",
+    status ? styles.cardSettled : "",
+  ].join(" ");
+
+  return (
+    <article className={cardClass}>
+      <span className={`${styles.cardDate} ${badge ? styles.cardDateActive : ""}`} aria-hidden="true">
+        <span className={styles.cardMonth}>{part({ month: "short" })}</span>
+        <span className={styles.cardDay}>{part({ day: "numeric" })}</span>
+        <span className={styles.cardWeekday}>{part({ weekday: "short" })}</span>
+      </span>
+
+      <div className={styles.cardBody}>
+        <div className={styles.cardHead}>
+          <h3 className={styles.cardTitle}>{title}</h3>
+          {badge === "live" && (
+            <span className={`${styles.badge} ${styles.badgeLive}`}>
+              <span className={styles.badgeDot} aria-hidden="true" />
+              Room open
+            </span>
+          )}
+          {badge === "next" && (
+            <span className={`${styles.badge} ${styles.badgeNext}`}>
+              <span className={styles.badgeDot} aria-hidden="true" />
+              Up next
+            </span>
+          )}
+          {status && <StatusChip status={status} />}
+          {tag && <span className={styles.tag}>{tag}</span>}
+        </div>
+        <div className={styles.cardMeta}>
+          <span className={styles.cardTeacher}>
+            <LiveSessionAvatar name={teacherName} src={teacherAvatarUrl} />
+            <span className={styles.cardTeacherName}>{teacherName}</span>
+          </span>
+          <span className={styles.cardWhen}>
+            <Clock size={14} aria-hidden="true" />
+            <span>
+              <strong className={styles.cardWhenDay}>{relative ?? formatWeekdayDate(startTime, timeZone)}</strong>
+              {", "}
+              {formatSessionTime(startTime, timeZone)} &middot; {durationMinutes} min
+            </span>
+          </span>
+        </div>
+        {note && <p className={styles.cardNote}>{note}</p>}
+      </div>
+
+      {actions && <div className={styles.cardActions}>{actions}</div>}
+    </article>
+  );
+};

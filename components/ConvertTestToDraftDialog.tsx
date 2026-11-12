@@ -59,7 +59,7 @@ export const ConvertTestToDraftDialog: React.FC<ConvertTestToDraftDialogProps> =
         <DialogHeader>
           <DialogTitle>Unpublish</DialogTitle>
           <DialogDescription>
-            "{test.title}" is live on the marketplace. Unpublishing moves it back to drafts and takes it down - students
+            "{test.title}" is live on the marketplace. Unpublishing takes it down - students
             will no longer find it in search or on your profile, and nobody can buy it until you
             publish it again.
           </DialogDescription>
@@ -69,7 +69,7 @@ export const ConvertTestToDraftDialog: React.FC<ConvertTestToDraftDialogProps> =
           <AlertTriangle size={20} className={styles.warningIcon} />
           <p>
             No students are enrolled yet, so nothing is lost. You can edit it and publish it again
-            from the Drafts tab at any time.
+            from the Unpublished tab at any time.
           </p>
         </div>
 

@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { getOrdersDetails, type ItemType, type OrderItem } from "../endpoints/orders/details_GET.schema";
 import { postPaymentPayuVerifyAndComplete } from "../endpoints/payment/payu/verify-and-complete_POST.schema";
 import { postCartAdd } from "../endpoints/cart/add_POST.schema";
+import { postOrdersRetryPayment } from "../endpoints/orders/retry-payment_POST.schema";
+import { postPaymentPayuRedirect } from "../endpoints/payment/payu/redirect_POST.schema";
 import { CART_QUERY_KEY } from "../helpers/useCartQuery";
 import { trackGTMEvent } from "../helpers/trackGTMEvent";
 import { Button } from "../components/Button";
@@ -93,8 +95,29 @@ const OrderConfirmationPage: React.FC = () => {
     },
   });
 
-  // Payment starts from the cart, so a retry puts the order's items back in it and opens /cart,
-  // where current prices and offers are applied. Bundles are bought from their own page.
+  // A failed order the server can pay again in place (data.retryInPlace) goes straight to PayU under
+  // a new txnid. If its total has changed, nothing is charged until the student presses again.
+  const [priceChange, setPriceChange] = useState<{ previousAmount: number; newAmount: number; notes: string[] } | null>(null);
+  const [redirectingToPayu, setRedirectingToPayu] = useState(false);
+  const directRetryMutation = useMutation({
+    mutationFn: (confirmedAmount?: number) => postOrdersRetryPayment({ orderId: numericOrderId, confirmedAmount }),
+    onSuccess: (result) => {
+      if (result.kind === "amountChanged") {
+        setPriceChange({ previousAmount: result.previousAmount, newAmount: result.newAmount, notes: result.notes });
+        return;
+      }
+      setRedirectingToPayu(true);
+      postPaymentPayuRedirect(result.payu);
+    },
+    onError: (err) => {
+      setPriceChange(null);
+      toast.error(err instanceof Error ? err.message : "Could not restart payment. Please try again.");
+      queryClient.invalidateQueries({ queryKey: ["orders", numericOrderId] });
+    },
+  });
+
+  // Pending and cancelled orders, and orders from other checkouts, start again from the cart: their
+  // items go back in it and /cart applies current prices and offers. Bundles go to their own page.
   const retryPaymentMutation = useMutation({
     mutationFn: async (items: OrderItem[]) => {
       const bundle = items.find((item) => item.itemType === "bundle");
@@ -138,6 +161,18 @@ const OrderConfirmationPage: React.FC = () => {
       toast.error(err instanceof Error ? err.message : "Could not restart payment. Please try again.");
     },
   });
+
+  // Coming back from PayU with the browser's Back button restores this page from cache; unlock the button.
+  useEffect(() => {
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        setRedirectingToPayu(false);
+        queryClient.invalidateQueries({ queryKey: ["orders", numericOrderId] });
+      }
+    };
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
+  }, [queryClient, numericOrderId]);
 
   // Attempt immediate verification on mount when returning from payment gateway
   useEffect(() => {
@@ -415,6 +450,16 @@ const OrderConfirmationPage: React.FC = () => {
   const showRetryButton =
     ["pending", "failed", "cancelled"].includes(data.status.toLowerCase()) &&
     data.paymentFailure?.reason !== "payment_captured";
+  const retryBusy = directRetryMutation.isPending || redirectingToPayu || retryPaymentMutation.isPending;
+  const retryLabel = redirectingToPayu
+    ? "Redirecting to PayU..."
+    : directRetryMutation.isPending
+      ? "Starting payment..."
+      : retryPaymentMutation.isPending
+        ? "Preparing checkout..."
+        : data.retryInPlace && priceChange
+          ? `Pay ${formatCurrency(priceChange.newAmount)}`
+          : "Retry Payment";
   const isPending = data.status.toLowerCase() === "pending";
   const isVerifying = verifyPaymentMutation.isPending || (isPending && isFetching && !pollingTimedOut);
 
@@ -536,15 +581,33 @@ const OrderConfirmationPage: React.FC = () => {
               <span>{data.status.toLowerCase() === "completed" ? "Total Paid:" : "Total Amount:"}</span>
               <span>{formattedTotal}</span>
             </div>
+            {showRetryButton && data.retryInPlace && priceChange && (
+              <div className={styles.priceChangeNote} role="status">
+                <AlertTriangle size={18} aria-hidden="true" />
+                <div>
+                  <p>
+                    The total is now <strong>{formatCurrency(priceChange.newAmount)}</strong> instead of{" "}
+                    {formatCurrency(priceChange.previousAmount)}.
+                  </p>
+                  {priceChange.notes.map((note) => (
+                    <p key={note}>{note}</p>
+                  ))}
+                </div>
+              </div>
+            )}
             {showRetryButton && (
               <Button
                 size="lg"
                 className={styles.dashboardButton}
-                onClick={() => retryPaymentMutation.mutate(data.items)}
-                disabled={retryPaymentMutation.isPending}
+                onClick={() =>
+                  data.retryInPlace
+                    ? directRetryMutation.mutate(priceChange?.newAmount)
+                    : retryPaymentMutation.mutate(data.items)
+                }
+                disabled={retryBusy}
               >
-                {retryPaymentMutation.isPending ? <Spinner size="sm" /> : <IndianRupee size={18} />}
-                {retryPaymentMutation.isPending ? "Preparing checkout..." : "Retry Payment"}
+                {retryBusy ? <Spinner size="sm" /> : <IndianRupee size={18} />}
+                {retryLabel}
               </Button>
             )}
             {data.status.toLowerCase() === "completed" && (

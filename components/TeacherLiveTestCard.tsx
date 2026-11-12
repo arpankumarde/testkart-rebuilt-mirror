@@ -68,28 +68,31 @@ export const TeacherLiveTestCard: React.FC<TeacherLiveTestCardProps> = ({
   // Team managers do not see the owner's revenue.
   const showRevenue = !(authState.type === 'authenticated' && authState.user.teacherRole === 'manager');
 
-  const statusInfo = useMemo((): { text: string; variant: 'default' | 'destructive' | 'outline' | 'secondary' | 'success' | 'warning'; className: string } => {
+  // className sets the card's edge colour; badgeClass gives the pill an opaque fill so it reads over any cover.
+  const statusInfo = useMemo((): { text: string; className: string; badgeClass: string } => {
     switch (status) {
       case 'draft':
         return liveTest.inReview
-          ? { text: 'In review', variant: 'warning', className: styles.draft }
+          ? { text: 'In review', className: styles.draft, badgeClass: styles.badgeReview }
           : rejection
-            ? { text: 'Rejected', variant: 'destructive', className: styles.draft }
-            : { text: 'Draft', variant: 'secondary', className: styles.draft };
+            ? { text: 'Rejected', className: styles.draft, badgeClass: styles.statusRejected }
+            : liveTest.wasEverPublished
+              ? { text: 'Unpublished', className: styles.draft, badgeClass: styles.badgeUnpublished }
+              : { text: 'Draft', className: styles.draft, badgeClass: styles.badgeDraft };
       case 'upcoming':
-        return { text: 'Upcoming', variant: 'secondary', className: styles.upcoming };
+        return { text: 'Upcoming', className: styles.upcoming, badgeClass: styles.badgeUpcoming };
       case 'live':
-        return { text: 'Live Now', variant: 'destructive', className: styles.live };
+        return { text: 'Live Now', className: styles.live, badgeClass: styles.badgeLive };
       case 'ended':
-        return { text: 'Ended', variant: 'outline', className: styles.ended };
+        return { text: 'Ended', className: styles.ended, badgeClass: styles.badgeEnded };
       case 'registration_closed':
-        return { text: 'Registration Closed', variant: 'warning', className: styles.closed };
+        return { text: 'Registration Closed', className: styles.closed, badgeClass: styles.badgeClosed };
       case 'seats_full':
-        return { text: 'Seats Full', variant: 'warning', className: styles.full };
+        return { text: 'Seats Full', className: styles.full, badgeClass: styles.badgeClosed };
       default:
-        return { text: 'Unknown', variant: 'outline', className: styles.ended };
+        return { text: 'Unknown', className: styles.ended, badgeClass: styles.badgeEnded };
     }
-  }, [status, liveTest.inReview, rejection]);
+  }, [status, liveTest.inReview, liveTest.wasEverPublished, rejection]);
 
   const enrollmentPercentage = liveTest.maxSeats > 0 ? (liveTest.enrolledCount / liveTest.maxSeats) * 100 : 0;
   const totalRevenue = liveTest.actualRevenue;
@@ -132,10 +135,7 @@ export const TeacherLiveTestCard: React.FC<TeacherLiveTestCardProps> = ({
               className={styles.thumbnail}
             />
           )}
-          <Badge
-            variant={statusInfo.variant}
-            className={`${styles.statusBadge} ${rejection ? styles.statusRejected : ''}`}
-          >
+          <Badge variant="outline" className={`${styles.statusBadge} ${statusInfo.badgeClass}`}>
             {statusInfo.text}
           </Badge>
         </div>

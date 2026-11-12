@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
 import { Helmet } from "react-helmet";
+import { openClassroom } from "../helpers/openClassroom";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { CalendarDays, Clock, Users, IndianRupee, ArrowLeft, Video, CheckCircle, XCircle } from "lucide-react";
@@ -229,7 +230,7 @@ const GroupLessonDetailPage: React.FC = () => {
                     Cancel enrollment
                   </Button>
                 )}
-                <Button onClick={() => navigate(`/mentorship/classroom/group/${lesson.id}`)}>
+                <Button onClick={() => openClassroom(`/mentorship/classroom/group/${lesson.id}`)}>
                   <Video size={16} aria-hidden="true" /> Go to classroom
                 </Button>
               </div>

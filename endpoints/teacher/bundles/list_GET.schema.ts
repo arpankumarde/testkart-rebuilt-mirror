@@ -7,14 +7,15 @@ import type { ContentRejection } from "../../../helpers/contentReviewStatus";
 export const schema = z.object({
   page: z.string().optional().default("1"),
   limit: z.string().optional().default("10"),
-  status: z.enum(["published", "draft"]).nullish(),
+  /** "draft" is never published, "unpublished" was published once and taken down since. */
+  status: z.enum(["published", "draft", "unpublished"]).nullish(),
   /** Matches the title, case-insensitive. Applied before pagination. */
   search: z.string().trim().max(100).nullish(),
 });
 
 export type InputType = z.infer<typeof schema>;
 
-export type BundleListItem = Pick<Selectable<CourseBundles>, "id" | "title" | "slug" | "isPublished" | "visibility" | "createdAt" | "publishedAt" | "thumbnailUrl" | "expiresAt" | "expiredAt"> & {
+export type BundleListItem = Pick<Selectable<CourseBundles>, "id" | "title" | "slug" | "isPublished" | "wasEverPublished" | "visibility" | "createdAt" | "publishedAt" | "thumbnailUrl" | "expiresAt" | "expiredAt"> & {
     price: number;
     // What students are shown, stored when the bundle was last saved or published.
     originalPrice: number;
@@ -33,7 +34,7 @@ export type OutputType = {
   bundles: BundleListItem[];
   total: number;
   /** Every bundle the teacher has, per status, whatever the filters. Drives the status tabs. */
-  statusCounts: { all: number; published: number; draft: number };
+  statusCounts: { all: number; published: number; draft: number; unpublished: number };
 };
 
 export const getTeacherBundlesList = async (

@@ -200,6 +200,19 @@
   border-color: var(--ft-accent);
 }
 
+/* The Google Play badge under the social chips, about as wide as their
+   three-chip row. Its focus ring is redrawn against the dark card. */
+.linksColumn .playBadge {
+  --badge-h: 2.75rem;
+  margin-top: 1.25rem;
+}
+
+.linksColumn .playBadge:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--ft-bg),
+    0 0 0 4px var(--ft-accent);
+}
+
 /* Pastel chips on the dark card, each with its own deep ink (all >= 7:1). */
 .tonePeach {
   background-color: hsl(20 100% 90%);

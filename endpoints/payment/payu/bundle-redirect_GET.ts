@@ -6,10 +6,9 @@ import { nanoid } from "nanoid";
 import { completeBundleEnrollment } from "../../../helpers/completeBundleEnrollment";
 import { followTeachersForOrder } from "../../../helpers/ensureTeacherFollow";
 import { getTeacherPlatformFee } from "../../../helpers/getTeacherPlatformFee";
-import { Transaction, Selectable } from "kysely";
-import { DB, PromoCodes } from "../../../helpers/schema";
-import { countPromoCodeUses } from "../../../helpers/promoCodeUsage";
-import { getSpinCouponRuleOrThrow } from "../../../helpers/spinWinServer";
+import { Selectable } from "kysely";
+import { PromoCodes } from "../../../helpers/schema";
+import { validateBundlePromo, recordBundlePromoUsage } from "../../../helpers/bundlePromoServer";
 import { planTcoinsForOrder } from "../../../helpers/tcoins";
 import { ONE_OFFER_MESSAGE } from "../../../helpers/tcoinsMath";
 import { getOrderClientInfo } from "../../../helpers/orderClientInfo";
@@ -113,99 +112,6 @@ const generateRedirectHtml = (formData: { [key: string]: string }) => {
 `;
 };
 
-interface PromoValidationResult {
-  discountAmount: number;
-  promoCode: Selectable<PromoCodes>;
-}
-
-async function validateAndCalculatePromo(
-  trx: Transaction<DB>,
-  promoCodeId: number,
-  bundle: { id: number; teacherId: number; price: string | number },
-  studentId: number,
-  amount: number
-): Promise<PromoValidationResult> {
-  const promoCode = await trx
-    .selectFrom("promoCodes")
-    .selectAll()
-    .where("id", "=", promoCodeId)
-    .where("isActive", "=", true)
-    .executeTakeFirst();
-
-  if (!promoCode) {
-    throw new Error("Invalid or inactive promo code.");
-  }
-
-  const now = new Date();
-  if (promoCode.validFrom && new Date(promoCode.validFrom) > now) {
-    throw new Error("Promo code is not yet valid.");
-  }
-  if (promoCode.validUntil && new Date(promoCode.validUntil) < now) {
-    throw new Error("Promo code has expired.");
-  }
-
-  if (promoCode.usageLimit !== null && (await countPromoCodeUses(trx, promoCodeId)) >= promoCode.usageLimit) {
-    throw new Error("Promo code usage limit has been reached.");
-  }
-
-  if (promoCode.perUserLimit !== null && (await countPromoCodeUses(trx, promoCodeId, studentId)) >= promoCode.perUserLimit) {
-    throw new Error("You have already used this promo code the maximum number of times.");
-  }
-
-  if (promoCode.createdByTeacherId !== null && promoCode.createdByTeacherId !== bundle.teacherId) {
-    throw new Error("This promo code is not valid for this bundle.");
-  }
-
-  if (await getSpinCouponRuleOrThrow(trx, promoCodeId, studentId)) {
-    throw new Error("Spin & Win coupons work only on test series, courses and study notes, not bundles.");
-  }
-
-  if (promoCode.appliesTo !== "all" && promoCode.appliesTo !== "bundles") {
-    throw new Error("This promo code is not applicable to bundles.");
-  }
-
-  if (promoCode.targetItemIds && promoCode.targetItemIds.length > 0) {
-    if (!promoCode.targetItemIds.includes(bundle.id)) {
-      throw new Error("This promo code is not valid for this specific bundle.");
-    }
-  }
-
-  let calculatedDiscount = 0;
-  if (promoCode.discountType === "fixed") {
-    calculatedDiscount = parseFloat(promoCode.discountValue);
-  } else if (promoCode.discountType === "percentage") {
-    calculatedDiscount = (amount * parseFloat(promoCode.discountValue)) / 100;
-    if (promoCode.maxDiscountAmount) {
-      calculatedDiscount = Math.min(calculatedDiscount, parseFloat(promoCode.maxDiscountAmount));
-    }
-  }
-
-  calculatedDiscount = Math.min(calculatedDiscount, amount);
-
-  return {
-    discountAmount: calculatedDiscount,
-    promoCode,
-  };
-}
-
-async function recordPromoUsage(
-  trx: Transaction<DB>,
-  promoCodeId: number,
-  studentId: number,
-  orderId: number,
-  discountAmount: number
-) {
-  await trx
-    .insertInto("promoCodeUsages")
-    .values({
-      promoCodeId,
-      userId: studentId,
-      orderId,
-      discountAmount: discountAmount.toFixed(2),
-    })
-    .execute();
-}
-
 export async function handle(request: Request) {
   const baseUrl = "https://testkart.in";
   
@@ -289,7 +195,7 @@ export async function handle(request: Request) {
       let promoCode: Selectable<PromoCodes> | null = null;
 
       if (promoCodeId) {
-        const promoResult = await validateAndCalculatePromo(trx, promoCodeId, bundle, user.id, originalAmount);
+        const promoResult = await validateBundlePromo(trx, promoCodeId, bundle, user.id, originalAmount);
         discountAmount = promoResult.discountAmount;
         promoCode = promoResult.promoCode;
       }
@@ -331,7 +237,7 @@ export async function handle(request: Request) {
         await followTeachersForOrder(trx, newOrder.id, bundle.id, user.id);
 
         if (promoCode) {
-          await recordPromoUsage(trx, promoCode.id, user.id, newOrder.id, discountAmount);
+          await recordBundlePromoUsage(trx, promoCode.id, user.id, newOrder.id, discountAmount);
         }
 
         console.log(`[bundle-redirect_GET] Free bundle order ${newOrder.id} completed for user ${user.id}.`);
@@ -362,7 +268,7 @@ export async function handle(request: Request) {
         .executeTakeFirstOrThrow();
 
       if (promoCode) {
-        await recordPromoUsage(trx, promoCode.id, user.id, newOrder.id, discountAmount);
+        await recordBundlePromoUsage(trx, promoCode.id, user.id, newOrder.id, discountAmount);
       }
 
       const email = user.email ?? `${user.mobileNumber}@mail.testkart.in`;

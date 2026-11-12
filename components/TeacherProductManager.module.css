@@ -255,8 +255,8 @@
   color: var(--info-text);
 }
 
-.stateArchived {
-  color: var(--muted-foreground);
+.stateUnpublished {
+  color: var(--warning-text);
 }
 
 .stateRejected {

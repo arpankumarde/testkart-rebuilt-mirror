@@ -20,6 +20,7 @@ import {
   AlertTriangle,
   Search,
   MapPin,
+  Clock,
 } from "lucide-react";
 import {
   useTeacherMentorshipRateQuery,
@@ -65,6 +66,48 @@ const COMMON_TIMEZONES = [
   "UTC",
 ];
 
+const toMinutes = (time: string) => {
+  const [h, m] = time.slice(0, 5).split(":").map(Number);
+  return Number.isFinite(h) && Number.isFinite(m) ? h * 60 + m : NaN;
+};
+
+/* Mirrors the set endpoint's own rule, so the teacher sees it before saving. */
+const rangeProblem = (w: AvailabilityWindow): string | null => {
+  const start = toMinutes(w.startTime);
+  const end = toMinutes(w.endTime);
+  if (Number.isNaN(start) || Number.isNaN(end)) return "Enter a start and an end time.";
+  if (end <= start) return "End time must be after the start time.";
+  return null;
+};
+
+const overlapsAnother = (w: AvailabilityWindow, all: AvailabilityWindow[]) => {
+  if (!w.isActive || rangeProblem(w)) return false;
+  const start = toMinutes(w.startTime);
+  const end = toMinutes(w.endTime);
+  return all.some(
+    (o) => o !== w && o.isActive && o.dayOfWeek === w.dayOfWeek && !rangeProblem(o) && start < toMinutes(o.endTime) && toMinutes(o.startTime) < end
+  );
+};
+
+const TimeField: React.FC<{ value: string; onChange: (value: string) => void; label: string; invalid: boolean }> = ({
+  value,
+  onChange,
+  label,
+  invalid,
+}) => (
+  <div className={styles.timeField}>
+    <Clock size={16} aria-hidden="true" className={styles.timeIcon} />
+    <Input
+      type="time"
+      value={value.slice(0, 5)}
+      onChange={(e) => onChange(e.target.value)}
+      className={`${styles.timeInput} ${invalid ? styles.inputInvalid : ""}`}
+      aria-label={label}
+      aria-invalid={invalid || undefined}
+    />
+  </div>
+);
+
 const TeacherMentorshipPage: React.FC = () => {
   const statusQuery = useLiveTeachingStatusQuery();
   const live = statusQuery.data;
@@ -77,6 +120,7 @@ const TeacherMentorshipPage: React.FC = () => {
       </Helmet>
       <div className={`${styles.page} tk-flow`}>
         <ConsolePageHeader
+          className={styles.header}
           title={approved || !live ? "1:1 sessions" : "Teach live on Testkart"}
           description={
             approved || !live
@@ -129,15 +173,15 @@ const TeacherMentorshipPage: React.FC = () => {
 
 export default TeacherMentorshipPage;
 
-const CardHead: React.FC<{ icon: React.ReactNode; tone: "lavender" | "blue" | "butter" | "mint"; title: string; hint?: string; children?: React.ReactNode }> = ({
+/* Every card opens the same way: a small neutral icon tile, title, one-line hint, optional right-side slot. */
+const CardHead: React.FC<{ icon: React.ReactNode; title: string; hint?: string; children?: React.ReactNode }> = ({
   icon,
-  tone,
   title,
   hint,
   children,
 }) => (
   <div className={styles.cardHead}>
-    <span className={`${styles.cardIcon} ${styles[`icon_${tone}`]}`} aria-hidden="true">
+    <span className={styles.cardIcon} aria-hidden="true">
       {icon}
     </span>
     <div className={styles.cardHeadText}>
@@ -149,11 +193,16 @@ const CardHead: React.FC<{ icon: React.ReactNode; tone: "lavender" | "blue" | "b
 );
 
 type PriceKey = "trial25" | "trial50" | "class25" | "class50";
-const PRICE_FIELDS: { key: PriceKey; label: string; hint: string }[] = [
-  { key: "trial25", label: "Trial, 25 min", hint: "First class with you" },
-  { key: "trial50", label: "Trial, 50 min", hint: "First class with you" },
-  { key: "class25", label: "Class, 25 min", hint: "Each class in a package" },
-  { key: "class50", label: "Class, 50 min", hint: "Each class in a package" },
+const PRICE_LABELS: Record<PriceKey, string> = {
+  trial25: "Trial, 25 min",
+  trial50: "Trial, 50 min",
+  class25: "Class, 25 min",
+  class50: "Class, 50 min",
+};
+/* One row per class type, one column per length. */
+const PRICE_ROWS: { label: string; hint: string; keys: [PriceKey, PriceKey] }[] = [
+  { label: "Trial class", hint: "First class with you. Can be ₹0.", keys: ["trial25", "trial50"] },
+  { label: "Package class", hint: "Each class in a weekly package.", keys: ["class25", "class50"] },
 ];
 
 /* applying: before approval the prices are saved but 1:1 bookings stay off. */
@@ -220,8 +269,7 @@ const RateCard: React.FC<{ applying?: boolean }> = ({ applying = false }) => {
   return (
     <section className={styles.card}>
       <CardHead
-        icon={<IndianRupee size={18} />}
-        tone="lavender"
+        icon={<IndianRupee size={16} />}
         title="Your prices"
         hint="Students start with a trial, then take 1 to 6 classes a week, paid every 4 weeks."
       >
@@ -231,7 +279,7 @@ const RateCard: React.FC<{ applying?: boolean }> = ({ applying = false }) => {
       </CardHead>
 
       {!applying && (
-        <div className={`${styles.switchRow} ${enabled ? styles.switchRowOn : ""}`}>
+        <div className={styles.switchRow}>
           <div className={styles.switchText}>
             <span className={styles.switchLabel} id="mentorship-enabled-label">
               Take 1:1 bookings
@@ -244,41 +292,58 @@ const RateCard: React.FC<{ applying?: boolean }> = ({ applying = false }) => {
 
       {showRate && (
         <>
-          <div className={styles.priceGrid}>
-            {PRICE_FIELDS.map((f) => (
-              <div key={f.key} className={styles.field}>
-                <label className={styles.label} htmlFor={`price-${f.key}`}>
-                  {f.label}
-                </label>
-                <div className={styles.moneyInput}>
-                  <span className={styles.moneyPrefix} aria-hidden="true">
-                    ₹
-                  </span>
-                  <Input
-                    id={`price-${f.key}`}
-                    type="number"
-                    min={0}
-                    step={1}
-                    value={prices[f.key]}
-                    onChange={(e) => setPrices((p) => ({ ...p, [f.key]: e.target.value }))}
-                  />
+          <div className={styles.priceTable} role="group" aria-label="Price per class">
+            <div className={styles.priceHead} aria-hidden="true">
+              <span />
+              <span>25 min</span>
+              <span>50 min</span>
+            </div>
+            {PRICE_ROWS.map((row) => (
+              <div key={row.label} className={styles.priceRow}>
+                <div className={styles.priceRowText}>
+                  <span className={styles.label}>{row.label}</span>
+                  <span className={styles.fieldHint}>{row.hint}</span>
                 </div>
-                <span className={styles.fieldHint}>
-                  {f.key === "class25" ? `${f.hint}. Minimum ₹${min25}` : f.key === "class50" ? `${f.hint}. Minimum ₹${min50}` : `${f.hint}. Can be ₹0`}
-                </span>
+                {row.keys.map((key) => {
+                  const min = key === "class25" ? min25 : key === "class50" ? min50 : null;
+                  return (
+                    <div key={key} className={styles.priceCell}>
+                      <span className={styles.priceCellMins} aria-hidden="true">
+                        {key.endsWith("25") ? "25 min" : "50 min"}
+                      </span>
+                      <div className={styles.moneyInput}>
+                        <span className={styles.moneyPrefix} aria-hidden="true">
+                          ₹
+                        </span>
+                        <Input
+                          id={`price-${key}`}
+                          type="number"
+                          min={0}
+                          step={1}
+                          value={prices[key]}
+                          onChange={(e) => setPrices((p) => ({ ...p, [key]: e.target.value }))}
+                          className={styles.fieldInput}
+                          aria-label={PRICE_LABELS[key]}
+                        />
+                      </div>
+                      {min !== null && <span className={styles.fieldHint}>Minimum ₹{min}</span>}
+                    </div>
+                  );
+                })}
               </div>
             ))}
           </div>
 
-          <div className={styles.pricePreview} aria-label="What a package costs">
-            {[1, 3, 6].map((perWeek) => (
-              <div key={perWeek} className={styles.priceTile}>
-                <span className={styles.priceTileLabel}>{perWeek} a week, 50 min</span>
-                <span className={styles.priceTileValue}>
-                  {problem ? "-" : `₹${(values.class50 * perWeek * 4).toLocaleString("en-IN")}`}
-                </span>
-              </div>
-            ))}
+          <div className={styles.packageStrip}>
+            <span className={styles.packageLabel}>Package price every 4 weeks, 50 min classes</span>
+            <dl className={styles.packageList}>
+              {[1, 3, 6].map((perWeek) => (
+                <div key={perWeek} className={styles.packageItem}>
+                  <dt>{perWeek} a week</dt>
+                  <dd>{problem ? "-" : `₹${(values.class50 * perWeek * 4).toLocaleString("en-IN")}`}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
         </>
       )}
@@ -318,6 +383,11 @@ const AvailabilityCard: React.FC = () => {
   };
 
   const handleSave = () => {
+    const problem = windows.map(rangeProblem).find(Boolean);
+    if (problem) {
+      toast.error(`${problem} Fix the highlighted hours, then save.`);
+      return;
+    }
     setAvailabilityMutation.mutate(
       {
         timezone,
@@ -341,18 +411,17 @@ const AvailabilityCard: React.FC = () => {
   return (
     <section className={styles.card}>
       <CardHead
-        icon={<CalendarClock size={18} />}
-        tone="blue"
+        icon={<CalendarClock size={16} />}
         title="Weekly hours"
         hint="Students see open slots in their own timezone."
       >
         <div className={styles.timezoneField}>
-          <Globe size={14} aria-hidden="true" />
+          <Globe size={15} aria-hidden="true" className={styles.fieldIcon} />
           <Input
             list="common-timezones"
             value={timezone}
             onChange={(e) => setTimezone(e.target.value)}
-            className={styles.timezoneInput}
+            className={`${styles.fieldInput} ${styles.timezoneInput}`}
             placeholder="Asia/Kolkata"
             aria-label="Your timezone"
           />
@@ -371,40 +440,55 @@ const AvailabilityCard: React.FC = () => {
           const isOpen = dayWindows.some(({ w }) => w.isActive);
           return (
             <div key={dayIndex} className={styles.dayRow}>
-              <span className={`${styles.dayName} ${isOpen ? styles.dayOpen : ""}`}>{dayName}</span>
+              <span className={`${styles.dayName} ${isOpen ? styles.dayOpen : ""}`}>
+                <span className={styles.dayDot} aria-hidden="true" />
+                {dayName}
+              </span>
               <div className={styles.dayWindows}>
                 {dayWindows.length === 0 && <span className={styles.dayUnavailable}>Not available</span>}
-                {dayWindows.map(({ w, i }) => (
-                  <div key={w.id} className={`${styles.windowRow} ${w.isActive ? "" : styles.windowOff}`}>
-                    <Input
-                      type="time"
-                      value={w.startTime.slice(0, 5)}
-                      onChange={(e) => updateWindow(i, { startTime: e.target.value })}
-                      className={styles.timeInput}
-                      aria-label={`${dayName} start time`}
-                    />
-                    <span>to</span>
-                    <Input
-                      type="time"
-                      value={w.endTime.slice(0, 5)}
-                      onChange={(e) => updateWindow(i, { endTime: e.target.value })}
-                      className={styles.timeInput}
-                      aria-label={`${dayName} end time`}
-                    />
-                    <Switch
-                      checked={w.isActive}
-                      onCheckedChange={(checked) => updateWindow(i, { isActive: checked })}
-                      aria-label={`${dayName} hours on`}
-                    />
-                    <Button variant="ghost" size="icon-sm" onClick={() => removeWindow(i)} aria-label={`Remove ${dayName} hours`}>
-                      <Trash2 size={14} />
-                    </Button>
-                  </div>
-                ))}
+                {dayWindows.map(({ w, i }) => {
+                  const problem = rangeProblem(w);
+                  return (
+                    <div key={w.id} className={styles.range}>
+                      <div className={`${styles.rangeRow} ${w.isActive ? "" : styles.rangeOff}`}>
+                        <TimeField
+                          value={w.startTime}
+                          onChange={(v) => updateWindow(i, { startTime: v })}
+                          label={`${dayName} start time`}
+                          invalid={!!problem}
+                        />
+                        <span className={styles.rangeTo}>to</span>
+                        <TimeField
+                          value={w.endTime}
+                          onChange={(v) => updateWindow(i, { endTime: v })}
+                          label={`${dayName} end time`}
+                          invalid={!!problem}
+                        />
+                        <span className={styles.rangeControls}>
+                          <Switch
+                            checked={w.isActive}
+                            onCheckedChange={(checked) => updateWindow(i, { isActive: checked })}
+                            aria-label={`${dayName} hours on`}
+                          />
+                          <button type="button" className={styles.iconButton} onClick={() => removeWindow(i)} aria-label={`Remove ${dayName} hours`}>
+                            <Trash2 size={16} aria-hidden="true" />
+                          </button>
+                        </span>
+                      </div>
+                      {problem ? (
+                        <p className={styles.rangeError} role="alert">
+                          {problem}
+                        </p>
+                      ) : overlapsAnother(w, windows) ? (
+                        <p className={styles.rangeWarn}>Overlaps other hours on {dayName}.</p>
+                      ) : null}
+                    </div>
+                  );
+                })}
               </div>
-              <Button variant="ghost" size="sm" className={styles.addHours} onClick={() => addWindow(dayIndex)}>
-                <Plus size={14} /> Add hours
-              </Button>
+              <button type="button" className={styles.addHours} onClick={() => addWindow(dayIndex)}>
+                <Plus size={14} aria-hidden="true" /> Add hours
+              </button>
             </div>
           );
         })}
@@ -446,18 +530,25 @@ const BlockedDatesCard: React.FC = () => {
 
   return (
     <section className={styles.card}>
-      <CardHead icon={<CalendarX size={18} />} tone="butter" title="Days off" hint="No slots are offered on these dates." />
+      <CardHead icon={<CalendarX size={16} />} title="Days off" hint="No slots are offered on these dates." />
 
       <div className={styles.blockedDateForm}>
         <Input
           type="date"
           value={newBlockedDate}
           onChange={(e) => setNewBlockedDate(e.target.value)}
+          className={styles.fieldInput}
           aria-label="Date to block"
         />
-        <Input value={newBlockedReason} onChange={(e) => setNewBlockedReason(e.target.value)} placeholder="Reason (optional)" />
-        <Button variant="outline" onClick={handleAddBlockedDate} disabled={addBlockedDateMutation.isPending}>
-          <Plus size={14} /> Block date
+        <Input
+          value={newBlockedReason}
+          onChange={(e) => setNewBlockedReason(e.target.value)}
+          className={styles.fieldInput}
+          placeholder="Reason (optional)"
+          aria-label="Reason (optional)"
+        />
+        <Button variant="outline" className={styles.blockButton} onClick={handleAddBlockedDate} disabled={addBlockedDateMutation.isPending}>
+          <Plus size={16} aria-hidden="true" /> {addBlockedDateMutation.isPending ? "Blocking..." : "Block date"}
         </Button>
       </div>
 
@@ -467,19 +558,22 @@ const BlockedDatesCard: React.FC = () => {
         <ul className={styles.blockedList}>
           {data.blockedDates.map((b) => (
             <li key={b.id} className={styles.blockedRow}>
-              <CalendarX size={14} aria-hidden="true" />
+              <CalendarX size={16} aria-hidden="true" className={styles.blockedIcon} />
               <span className={styles.blockedText}>
-                <span>{new Date(b.blockedDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                <span className={styles.blockedDate}>
+                  {new Date(b.blockedDate).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}
+                </span>
                 {b.reason && <span className={styles.blockedReason}>{b.reason}</span>}
               </span>
-              <Button
-                variant="ghost"
-                size="icon-sm"
+              <button
+                type="button"
+                className={styles.iconButton}
                 onClick={() => deleteBlockedDateMutation.mutate(b.id)}
+                disabled={deleteBlockedDateMutation.isPending}
                 aria-label="Remove blocked date"
               >
-                <Trash2 size={14} />
-              </Button>
+                <Trash2 size={16} aria-hidden="true" />
+              </button>
             </li>
           ))}
         </ul>
@@ -493,8 +587,8 @@ const BlockedDatesCard: React.FC = () => {
 const ShortcutsCard: React.FC = () => (
   <nav className={`${styles.card} ${styles.shortcuts}`} aria-label="Live teaching">
     <Link to="/teacher/mentorship/bookings" className={styles.shortcut}>
-      <span className={`${styles.cardIcon} ${styles.icon_mint}`} aria-hidden="true">
-        <Video size={18} />
+      <span className={styles.cardIcon} aria-hidden="true">
+        <Video size={16} />
       </span>
       <span className={styles.shortcutText}>
         <span className={styles.shortcutTitle}>1:1 bookings</span>
@@ -503,8 +597,8 @@ const ShortcutsCard: React.FC = () => (
       <ArrowRight size={16} aria-hidden="true" className={styles.shortcutArrow} />
     </Link>
     <Link to="/teacher/mentorship/group-lessons" className={styles.shortcut}>
-      <span className={`${styles.cardIcon} ${styles.icon_blue}`} aria-hidden="true">
-        <Users size={18} />
+      <span className={styles.cardIcon} aria-hidden="true">
+        <Users size={16} />
       </span>
       <span className={styles.shortcutText}>
         <span className={styles.shortcutTitle}>Group lessons</span>
@@ -577,19 +671,16 @@ const SAMPLE_INTRO_VIDEO_URL = "https://cdn.testkart.in/platform/marketing/live-
 const SHOW_PLACES = [
   {
     icon: <UserRound size={16} />,
-    tone: "mint",
     title: "Your public profile",
     text: "A \"Learn live\" section with your intro video, 1:1 prices and a button to see your open times.",
   },
   {
     icon: <Search size={16} />,
-    tone: "lavender",
     title: "Tutor list",
     text: "Students looking for a 1:1 tutor see your card and can book a trial session.",
   },
   {
     icon: <Users size={16} />,
-    tone: "blue",
     title: "Group classes",
     text: "Classes you create show on your profile and in the live classes list, where students join them.",
   },
@@ -599,15 +690,14 @@ const SHOW_PLACES = [
 const WhereYouShowCard: React.FC = () => (
   <section className={styles.card}>
     <CardHead
-      icon={<MapPin size={18} />}
-      tone="butter"
+      icon={<MapPin size={16} />}
       title="Where students will see you"
       hint="Once you are approved, your live teaching shows up in these places."
     />
     <ul className={styles.placeList}>
       {SHOW_PLACES.map((place) => (
         <li key={place.title} className={styles.placeItem}>
-          <span className={`${styles.placeIcon} ${styles[`icon_${place.tone}`]}`} aria-hidden="true">
+          <span className={styles.placeIcon} aria-hidden="true">
             {place.icon}
           </span>
           <span className={styles.placeText}>
@@ -638,8 +728,7 @@ const ProfileChecklistCard: React.FC<LiveProps> = ({ live }) => {
   return (
     <section className={styles.card}>
       <CardHead
-        icon={<UserRound size={18} />}
-        tone="mint"
+        icon={<UserRound size={16} />}
         title="Your profile"
         hint="Students decide from your profile, so it needs to be complete."
       >
@@ -715,8 +804,7 @@ const IntroVideoCard: React.FC<LiveProps> = ({ live }) => {
   return (
     <section className={styles.card}>
       <CardHead
-        icon={<Video size={18} />}
-        tone="blue"
+        icon={<Video size={16} />}
         title="Intro video"
         hint={
           approved
@@ -791,7 +879,7 @@ const ApplyCard: React.FC<LiveProps> = ({ live }) => {
 
   return (
     <section className={`${styles.card} ${styles.applyCard}`}>
-      <CardHead icon={<Send size={18} />} tone="lavender" title="Apply" hint={`${doneCount} of ${total} ready`} />
+      <CardHead icon={<Send size={16} />} title="Apply" hint={`${doneCount} of ${total} ready`} />
       <div className={styles.progress} aria-hidden="true">
         <span className={styles.progressBar} style={{ width: `${Math.round((doneCount / total) * 100)}%` }} />
       </div>
