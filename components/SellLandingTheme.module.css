@@ -1,0 +1,71 @@
+/* Same values as the .page tokens in pages/sell.module.css. */
+.theme {
+  --sl-bg: #faf9f6;
+  --sl-alt: #f3f0e9;
+  --sl-surface: #ffffff;
+  --sl-ink: #202a3b;
+  --sl-text: #3d4757;
+  --sl-muted: #697386;
+  --sl-line: #e6e1d7;
+  --sl-line-strong: #d3ccbf;
+
+  --sl-lavender: #eee9fa;
+  --sl-blue: #e7f0fa;
+  --sl-mint: #e5f2ea;
+  --sl-peach: #fce9dd;
+  --sl-butter: #fff3cf;
+  --sl-lavender-deep: #d9cff3;
+  --sl-blue-deep: #cbdcf0;
+  --sl-mint-deep: #c4e2cf;
+  --sl-peach-deep: #f6cfb6;
+  --sl-butter-deep: #f6dd94;
+  --sl-lavender-ink: var(--pastel-lavender-ink);
+  --sl-blue-ink: var(--pastel-powder-ink);
+  --sl-mint-ink: var(--pastel-mint-ink);
+  --sl-peach-ink: var(--pastel-peach-ink);
+  --sl-butter-ink: var(--pastel-butter-ink);
+
+  --sl-cta: #ff936b;
+  --sl-cta-hover: #ff8257;
+  --sl-cta-ink: #202a3b;
+  --sl-cta-edge: #202a3b;
+
+  --sl-shadow: 0 1px 2px hsl(30 25% 20% / 0.06), 0 14px 32px -18px hsl(30 25% 20% / 0.28);
+  --sl-shadow-hover: 0 2px 4px hsl(30 25% 20% / 0.08), 0 24px 44px -20px hsl(30 25% 20% / 0.34);
+  --sl-radius: 1.25rem;
+  --sl-max: 1160px;
+  --sl-gutter: clamp(1rem, 4vw, 2rem);
+
+  width: 100%;
+  overflow-x: clip;
+  background-color: var(--sl-bg);
+  color: var(--sl-ink);
+  font-family: var(--font-family-base);
+}
+
+:global(.dark) .theme {
+  --sl-bg: var(--background);
+  --sl-alt: hsl(220 20% 13.5%);
+  --sl-surface: hsl(220 18% 16%);
+  --sl-ink: hsl(40 30% 95%);
+  --sl-text: hsl(220 14% 84%);
+  --sl-muted: hsl(220 12% 72%);
+  --sl-line: hsl(220 14% 24%);
+  --sl-line-strong: hsl(220 14% 32%);
+
+  --sl-lavender: var(--pastel-lavender);
+  --sl-blue: var(--pastel-powder);
+  --sl-mint: var(--pastel-mint);
+  --sl-peach: var(--pastel-peach);
+  --sl-butter: var(--pastel-butter);
+  --sl-lavender-deep: hsl(258 22% 36%);
+  --sl-blue-deep: hsl(211 28% 35%);
+  --sl-mint-deep: hsl(158 24% 32%);
+  --sl-peach-deep: hsl(18 28% 35%);
+  --sl-butter-deep: hsl(42 26% 32%);
+
+  --sl-cta-edge: hsl(220 30% 5%);
+
+  --sl-shadow: 0 1px 2px hsl(0 0% 0% / 0.3), 0 14px 32px -18px hsl(0 0% 0% / 0.6);
+  --sl-shadow-hover: 0 2px 4px hsl(0 0% 0% / 0.35), 0 24px 44px -20px hsl(0 0% 0% / 0.7);
+}

@@ -49,7 +49,10 @@ export async function sendOrderConfirmationEmails(orderId: number, userId: numbe
     .leftJoin("mockTests", "orderItems.mockTestId", "mockTests.id")
     .leftJoin("courses", "orderItems.courseId", "courses.id")
     .leftJoin("digitalProducts", "orderItems.digitalProductId", "digitalProducts.id")
+    .leftJoin("liveCourses", "orderItems.liveCourseId", "liveCourses.id")
     .select([
+      "orderItems.liveCourseId",
+      "liveCourses.title as liveCourseTitle",
       "orderItems.mockTestId",
       "orderItems.courseId",
       "orderItems.digitalProductId",
@@ -83,6 +86,12 @@ export async function sendOrderConfirmationEmails(orderId: number, userId: numbe
         title: item.productTitle || "Digital Product",
         price: Number(item.priceAtPurchase),
         type: "digital_product" as const,
+      };
+    } else if (item.liveCourseId) {
+      return {
+        title: `${item.liveCourseTitle || "Live course"} (live course)`,
+        price: Number(item.priceAtPurchase),
+        type: "course" as const,
       };
     }
     return {

@@ -31,6 +31,7 @@ export async function handle(request: Request) {
         "teacher.avatarUrl as teacherAvatarUrl",
       ])
       .where("groupLessons.status", "=", "scheduled")
+      .where("groupLessons.liveCourseId", "is", null)
       .where("groupLessons.startTime", ">", new Date())
       .where((eb) => eb("groupLessons.enrolledCount", "<", eb.ref("groupLessons.maxCapacity")));
 

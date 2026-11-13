@@ -472,7 +472,15 @@ const AdminStudentWithdrawalsPage: React.FC = () => {
                   <td>
                     <div className={styles.stack}>
                       <StatusFlag status={withdrawal.status} />
-                      {withdrawal.processedDate && (
+                      {withdrawal.status === "cancelled" && withdrawal.cancelledAt ? (
+                        <span
+                          className={styles.secondaryLine}
+                          title={`Cancelled ${formatDate(withdrawal.cancelledAt)}${withdrawal.cancelledByName ? ` by ${withdrawal.cancelledByName}` : ""}`}
+                        >
+                          {formatDate(withdrawal.cancelledAt)}
+                          {withdrawal.cancelledByName ? ` · by ${withdrawal.cancelledByName}` : ""}
+                        </span>
+                      ) : withdrawal.processedDate && (
                         <span className={styles.secondaryLine} title={`Processed ${formatDate(withdrawal.processedDate)}`}>
                           {formatDate(withdrawal.processedDate)}
                         </span>
@@ -524,6 +532,18 @@ const AdminStudentWithdrawalsPage: React.FC = () => {
                   <dt>Processed</dt>
                   <dd>{formatDate(withdrawal.processedDate)}</dd>
                 </div>
+                {withdrawal.status === "cancelled" && (
+                  <>
+                    <div className={styles.cardStat}>
+                      <dt>Cancelled</dt>
+                      <dd>{formatDate(withdrawal.cancelledAt)}</dd>
+                    </div>
+                    <div className={styles.cardStat}>
+                      <dt>Cancelled by</dt>
+                      <dd>{withdrawal.cancelledByName ?? "Not recorded"}</dd>
+                    </div>
+                  </>
+                )}
                 {withdrawal.transactionId && (
                   <div className={styles.cardStat}>
                     <dt>Transaction ID</dt>

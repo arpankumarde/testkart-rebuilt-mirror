@@ -430,6 +430,7 @@ export default function AdminBundlesPage() {
             publicUrl={panelBundle.isPublished ? getBundleUrl(panelBundle.slug) : null}
             previewUrl={adminPreviewPath("course_bundle", panelBundle.id)}
             editUrl={adminEditPath("course_bundle", panelBundle.id)}
+            priceHistory={{ productType: "course_bundle", productId: panelBundle.id }}
             teacherName={panelBundle.teacherName}
             price={panelBundle.price}
             createdAt={panelBundle.createdAt}

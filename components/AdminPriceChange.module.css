@@ -1,0 +1,87 @@
+.delta {
+  display: inline-flex;
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.stack {
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+
+.inline {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.amount {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.amount svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+}
+
+.up {
+  color: var(--success-text);
+}
+
+.down {
+  color: var(--error-text);
+}
+
+.flat {
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.note {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+/* A solid status chip: tinted fill, themed status ink, the Badge kit's recipe at a table size. */
+.flag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.375rem;
+  border-radius: var(--radius-full);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.125rem;
+  white-space: nowrap;
+}
+
+.flagUp {
+  background-color: color-mix(in srgb, var(--success) 15%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--success) 35%, var(--surface));
+  color: var(--success-text);
+}
+
+.flagDown {
+  background-color: color-mix(in srgb, var(--error) 15%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--error) 35%, var(--surface));
+  color: var(--error-text);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

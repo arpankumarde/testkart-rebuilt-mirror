@@ -1,0 +1,171 @@
+.title {
+  overflow-wrap: anywhere;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+/* The kit sheet scrolls as a whole; the body only spaces its sections. */
+.body {
+  min-width: 0;
+}
+
+.inlineValue {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  min-width: 0;
+}
+
+/* Matches DetailSection's heading in AdminTransactionDetailSheet. */
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding-bottom: var(--spacing-2);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--foreground);
+}
+
+.count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.125rem;
+  padding: 0 0.375rem;
+  border-radius: var(--radius-full);
+  background-color: var(--muted);
+  color: var(--foreground);
+  font-size: 0.6875rem;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+}
+
+.colDate {
+  width: 6.75rem;
+}
+
+.colMoney {
+  width: 5.75rem;
+}
+
+.timeline th,
+.timeline td {
+  padding: var(--spacing-2) 0.5rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.timeline th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  background-color: var(--muted);
+}
+
+.timeline tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.timeline .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+/* The clicked change: a neutral wash and a brand bar, the console's selected-row look. */
+.selected td {
+  background-color: var(--muted);
+}
+
+.selected td:first-child {
+  box-shadow: inset 3px 0 0 var(--tk-brand);
+}
+
+.date {
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground);
+}
+
+.newCell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.newCell > span {
+  font-weight: 400;
+}
+
+.actor {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.source {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  padding: var(--spacing-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.state p {
+  margin: 0;
+  color: var(--foreground);
+}
+
+.skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}

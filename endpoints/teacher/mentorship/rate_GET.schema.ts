@@ -3,15 +3,15 @@ import type { LivePrices } from "../../../helpers/livePricing";
 
 export type OutputType = {
   enabled: boolean;
-  /** The 25-minute class price (kept for older callers; same as prices.class25). */
-  ratePerUnit: number | null;
-  rateUnitMinutes: number;
-  minRatePerUnit: number;
   durations: number[];
-  /** Trial and class prices for 25 and 50 minutes. Null until a class price is set. */
+  /** Class prices for 30 and 60 minutes and the trial prices they give. Null until both are set. */
   prices: LivePrices | null;
-  minClassPrice25: number;
-  minClassPrice50: number;
+  /** Whether the trial is discounted (off: the trial costs the class price). */
+  trialDiscount: boolean;
+  minClassPrice30: number;
+  minClassPrice60: number;
+  trialDiscountPercent30: number;
+  trialDiscountPercent60: number;
 };
 
 export const getTeacherMentorshipRate = async (init?: RequestInit): Promise<OutputType> => {

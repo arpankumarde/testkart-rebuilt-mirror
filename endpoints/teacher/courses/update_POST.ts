@@ -16,6 +16,7 @@ import { ZodError } from "zod";
 import { sanitizeHtml } from "../../../helpers/sanitizeHtml";
 import { courseDiscountError } from "../../../helpers/coursePricing";
 import { languagesSummary, normalizeLanguages } from "../../../helpers/itemLanguages";
+import { priceChangeActor, setPriceChangeActor } from "../../../helpers/productPriceHistoryServer";
 
 async function generateUniqueSlug(baseTitle: string, excludeCourseId: number): Promise<string> {
   const baseSlug = slugify(baseTitle);
@@ -52,7 +53,7 @@ async function generateUniqueSlug(baseTitle: string, excludeCourseId: number): P
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    const { user, effectiveTeacherId } = await getServerUserSession(request);
+    const { user, effectiveTeacherId, teacherRole, impersonatorAdminId, session } = await getServerUserSession(request);
 
     if (user.role !== "teacher" && user.role !== "admin") {
       return new Response(
@@ -142,12 +143,16 @@ export async function handle(request: Request): Promise<Response> {
     if (slug) changes.slug = slug;
     if (exams) Object.assign(changes, primaryExamFields(exams));
 
-    const updatedCourse = await db
-      .updateTable("courses")
-      .set(changes)
-      .where("id", "=", courseId)
-      .returningAll()
-      .executeTakeFirstOrThrow();
+    // One transaction so the price history trigger records who made the change.
+    const updatedCourse = await db.transaction().execute(async (trx) => {
+      await setPriceChangeActor(trx, priceChangeActor({ user, teacherRole, impersonatorAdminId, session }));
+      return trx
+        .updateTable("courses")
+        .set(changes)
+        .where("id", "=", courseId)
+        .returningAll()
+        .executeTakeFirstOrThrow();
+    });
 
     if (exams) await saveContentExams(db, "course", courseId, exams);
 

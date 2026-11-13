@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet";
 import { useQuery } from "@tanstack/react-query";
 
 import { SEOHead } from "./SEOHead";
+import { LiveCourseSection } from "./LiveCourseCard";
 import { Skeleton } from "./Skeleton";
 import { Button } from "./Button";
 import { TeacherProductCard } from "./HomepageContentSection";
@@ -539,6 +540,9 @@ export const ExamProductListingPage: React.FC<ExamProductListingPageProps> = ({ 
       <main className={styles.mainContent}>
         {productType === "mock-tests" && <MockTestsBody examId={examDetail.id} examName={examDetail.examName} />}
         {productType === "study-notes" && <StudyNotesBody examId={examDetail.id} examName={examDetail.examName} />}
+        {productType === "courses" && (
+          <LiveCourseSection title={`Live courses for ${examDetail.examName}`} examId={examDetail.id} />
+        )}
         {productType === "courses" && <CoursesBody examId={examDetail.id} examName={examDetail.examName} />}
         {productType === "bundles" && <BundlesBody examId={examDetail.id} examName={examDetail.examName} />}
       </main>

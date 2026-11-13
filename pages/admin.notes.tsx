@@ -499,6 +499,7 @@ export default function AdminNotesPage() {
             publicUrl={panelProduct.status === 'published' ? getProductUrl(panelProduct.slug) : null}
             previewUrl={adminPreviewPath("digital_product", panelProduct.id)}
             editUrl={adminEditPath("digital_product", panelProduct.id)}
+            priceHistory={{ productType: "digital_product", productId: panelProduct.id }}
             teacherName={panelProduct.teacherName}
             price={panelProduct.price}
             createdAt={panelProduct.createdAt}

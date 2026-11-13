@@ -6,6 +6,7 @@ import { sendAdminNotification } from "../../../helpers/sendAdminNotification";
 import { sendTemplateEmail } from "../../../helpers/sendTemplateEmail";
 import { getStudentAvailableBalance } from "../../../helpers/getStudentAvailableBalance";
 import { lockWallet } from "../../../helpers/walletLock";
+import { setWithdrawalActor, withdrawalUserActor } from "../../../helpers/withdrawalCancelServer";
 import {
   assertNoWithdrawalToday,
   WithdrawalDailyLimitError,
@@ -14,7 +15,7 @@ import {
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    const { user } = await getServerUserSession(request);
+    const { user, impersonatorAdminId } = await getServerUserSession(request);
 
     if (user.role !== "student") {
       return new Response(
@@ -52,6 +53,7 @@ export async function handle(request: Request): Promise<Response> {
     // purchases, so parallel requests cannot all pass against one balance or
     // the one-request-per-day limit.
     const newWithdrawal = await db.transaction().execute(async (trx) => {
+      await setWithdrawalActor(trx, withdrawalUserActor(user.id, impersonatorAdminId));
       await lockWallet(trx, user.id);
       await assertNoWithdrawalToday(trx, { table: "studentWithdrawals", studentId: user.id });
 

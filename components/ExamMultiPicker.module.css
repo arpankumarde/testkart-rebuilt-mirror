@@ -146,6 +146,25 @@
     min-width: 6rem;
   }
 
+  .option {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+
+  /* Shown only when the search matched the full name, so the reason for the result is visible. */
+  .optionFullName {
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+  }
+
+  .match {
+    background: none;
+    color: inherit;
+    font-weight: 700;
+  }
+
   /* The kit input loses its own frame here; the box above draws it. */
   .inputArea :global(input),
   .inputArea :global(input):hover,

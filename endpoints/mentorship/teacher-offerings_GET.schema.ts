@@ -33,7 +33,7 @@ export type OutputType = {
   introVideoUrl: string | null;
   /** Regular class price per allowed length (see MENTORSHIP_SESSION_DURATIONS). */
   durations: MentorshipOfferingDuration[];
-  /** Trial and class prices for both lengths. Null when 1:1 is off. */
+  /** Class and trial prices for both lengths. Null when 1:1 is off. */
   prices: LivePrices | null;
   /** True if the signed-in viewer is a student who can book a trial with this teacher. */
   isTrialEligible: boolean;

@@ -7,6 +7,8 @@ import { useStudentEnrolledCoursesQuery } from "../helpers/useStudentCoursesQuer
 import { useStudentEnrolledLiveTestsQuery } from "../helpers/useStudentEnrolledLiveTestsQuery";
 import { useStudentPurchasesQuery } from "../helpers/useShopQuery";
 import { useStudentTcoins } from "../helpers/useTcoins";
+import { useStudentLiveCoursesQuery } from "../helpers/useLiveCourses";
+import { LiveCourseTimetable } from "../components/LiveCourseTimetable";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
 import { EnrolledTestCard } from "../components/EnrolledTestCard";
@@ -28,6 +30,7 @@ import {
   FileText,
   Radio,
   RotateCw,
+  Video,
   X,
 } from "lucide-react";
 import styles from "./student.dashboard.module.css";
@@ -143,6 +146,7 @@ const StudentDashboardPage: React.FC = () => {
   } = useStudentPurchasesQuery();
   // Hidden while Tcoins are switched off.
   const { data: tcoins } = useStudentTcoins();
+  const { data: liveCoursesData } = useStudentLiveCoursesQuery(authState.type === "authenticated");
 
   const enrolledTests = enrolledData?.enrolledTests ?? [];
   const enrolledCourses = coursesData?.enrolledCourses ?? [];
@@ -341,6 +345,7 @@ const StudentDashboardPage: React.FC = () => {
   };
 
   const firstName = user.displayName?.split(" ")[0] || user.displayName;
+  const liveTimetable = liveCoursesData?.timetable ?? [];
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
@@ -434,6 +439,13 @@ const StudentDashboardPage: React.FC = () => {
           tone="blue"
         />
       </section>
+
+      {liveTimetable.length > 0 && (
+        <section className={styles.panel} data-tone="peach">
+          <SectionHeader title="Live classes" to="/student/live-courses" icon={<Video size={18} />} />
+          <LiveCourseTimetable entries={liveTimetable} limit={3} />
+        </section>
+      )}
 
       {/* A preview only; the full list lives on /student/live via "View all". */}
       {activeLiveTests.length > 0 && (

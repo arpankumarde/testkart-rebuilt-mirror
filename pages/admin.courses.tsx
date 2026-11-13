@@ -496,6 +496,7 @@ const AdminCoursesPage: React.FC = () => {
             publicUrl={panelCourse.status === 'published' ? getCourseUrl(panelCourse.slug) : null}
             previewUrl={adminPreviewPath("course", panelCourse.id)}
             editUrl={adminEditPath("course", panelCourse.id)}
+            priceHistory={{ productType: "course", productId: panelCourse.id }}
             teacherName={panelCourse.teacherName}
             price={panelCourse.price}
             createdAt={panelCourse.createdAt}

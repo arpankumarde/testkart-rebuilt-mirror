@@ -8,6 +8,7 @@ import {
   saveContentExams,
 } from "../../../helpers/contentExams";
 import { buildMockTestUpdateSet } from "../../../helpers/testSeriesEditing";
+import { priceChangeActor, setPriceChangeActor } from "../../../helpers/productPriceHistoryServer";
 import { schema, OutputType } from "./update_POST.schema";
 import superjson from "superjson";
 
@@ -46,7 +47,7 @@ async function generateUniqueSlug(baseTitle: string, excludeTestId: number): Pro
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    const { user, effectiveTeacherId, teacherRole } = await getServerUserSession(request);
+    const { user, effectiveTeacherId, teacherRole, impersonatorAdminId, session } = await getServerUserSession(request);
 
     if (user.role !== "teacher" && user.role !== "admin") {
       return new Response(
@@ -103,12 +104,16 @@ export async function handle(request: Request): Promise<Response> {
       slug = await generateUniqueSlug(fields.title, testId);
     }
 
-    const updatedTest = await db
-      .updateTable("mockTests")
-      .set(buildMockTestUpdateSet(fields, { now: new Date(), slug, exam: exams ? primaryExamFields(exams) : undefined }))
-      .where("id", "=", testId)
-      .returningAll()
-      .executeTakeFirstOrThrow();
+    // One transaction so the price history trigger records who made the change.
+    const updatedTest = await db.transaction().execute(async (trx) => {
+      await setPriceChangeActor(trx, priceChangeActor({ user, teacherRole, impersonatorAdminId, session }));
+      return trx
+        .updateTable("mockTests")
+        .set(buildMockTestUpdateSet(fields, { now: new Date(), slug, exam: exams ? primaryExamFields(exams) : undefined }))
+        .where("id", "=", testId)
+        .returningAll()
+        .executeTakeFirstOrThrow();
+    });
 
     if (exams) await saveContentExams(db, "mock_test", testId, exams);
 

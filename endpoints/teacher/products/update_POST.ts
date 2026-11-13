@@ -24,6 +24,7 @@ import {
   resolveExamSelection,
   saveContentExams,
 } from "../../../helpers/contentExams";
+import { priceChangeActor, setPriceChangeActor } from "../../../helpers/productPriceHistoryServer";
 
 async function generateUniqueSlug(baseTitle: string, currentId: number): Promise<string> {
   // Leaves room for a -N suffix inside the 255-character slug column.
@@ -59,7 +60,7 @@ async function generateUniqueSlug(baseTitle: string, currentId: number): Promise
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    const { user, effectiveTeacherId } = await getServerUserSession(request);
+    const { user, effectiveTeacherId, teacherRole, impersonatorAdminId, session } = await getServerUserSession(request);
 
     if (user.role !== "teacher" && user.role !== "admin") {
       return new Response(
@@ -162,6 +163,7 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     const { updatedProduct, files } = await db.transaction().execute(async (trx) => {
+      await setPriceChangeActor(trx, priceChangeActor({ user, teacherRole, impersonatorAdminId, session }));
       let syncedFiles: DigitalProductFileItem[] | null = null;
 
       if (Array.isArray(input.files)) {

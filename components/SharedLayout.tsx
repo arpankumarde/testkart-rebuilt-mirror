@@ -7,7 +7,7 @@ import { AccountMenu } from "./AccountMenu";
 import { ThemeModeSwitch } from "./ThemeModeSwitch";
 import { Button } from "./Button";
 import { Skeleton } from "./Skeleton";
-import { ShoppingCart, ShoppingBag, Radio, Users, Search, ChevronDown, Menu } from "lucide-react";
+import { ShoppingCart, Radio, Users, Search, ChevronDown, Menu } from "lucide-react";
 import { SiteNavDrawer } from "./SiteNavDrawer";
 import { Footer } from "./Footer";
 import { useCartItemsQuery } from "../helpers/useCartQuery";
@@ -34,16 +34,6 @@ const SearchButton: React.FC = () => {
       aria-label="Search"
     >
       <Search size={20} />
-    </Button>
-  );
-};
-
-const ShopButton: React.FC = () => {
-  return (
-    <Button asChild variant="ghost" className={styles.shopButton}>
-      <Link to="/study-notes" aria-label="Shop">
-        <ShoppingBag size={20} />
-      </Link>
     </Button>
   );
 };
@@ -246,7 +236,7 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
             >
               Test Series
             </NavLink>
-            {/* Hidden from the navbar for now; /expert still works by link.
+            {/* Tutors sits in the More menu (helpers/moreResources) instead of the top bar.
             <NavLink
               to="/expert"
               className={({ isActive }) =>
@@ -278,7 +268,6 @@ export const SharedLayout: React.FC<{ children: React.ReactNode }> = ({
           </nav>
           <div className={styles.headerActions}>
             <SearchButton />
-            <ShopButton />
             <CartButton />
                         <div className={styles.themeSwitch}><ThemeModeSwitch /></div>
             <span className={styles.actionsDivider} aria-hidden="true" />

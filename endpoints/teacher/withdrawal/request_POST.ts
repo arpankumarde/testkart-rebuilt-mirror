@@ -7,6 +7,7 @@ import { withdrawalRequested } from "../../../helpers/emailTemplates";
 import { sendAdminNotification } from "../../../helpers/sendAdminNotification";
 import { getTeacherAvailableBalance } from "../../../helpers/getTeacherAvailableBalance";
 import { lockWallet } from "../../../helpers/walletLock";
+import { setWithdrawalActor, withdrawalUserActor } from "../../../helpers/withdrawalCancelServer";
 import {
   assertNoWithdrawalToday,
   WithdrawalDailyLimitError,
@@ -15,7 +16,7 @@ import {
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    const { user, effectiveTeacherId, teacherRole } = await getServerUserSession(request);
+    const { user, effectiveTeacherId, teacherRole, impersonatorAdminId } = await getServerUserSession(request);
 
     // Block managers from owner-only features
     if (teacherRole === 'manager') {
@@ -53,6 +54,7 @@ export async function handle(request: Request): Promise<Response> {
     // debit, so parallel requests can't all pass against the same balance or
     // the one-request-per-day limit.
     const result = await db.transaction().execute(async (trx) => {
+      await setWithdrawalActor(trx, withdrawalUserActor(user.id, impersonatorAdminId));
       await lockWallet(trx, effectiveTeacherId);
       await assertNoWithdrawalToday(trx, { table: "teacherWithdrawals", teacherId: effectiveTeacherId });
 

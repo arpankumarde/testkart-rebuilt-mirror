@@ -1,23 +1,22 @@
 import { z } from "zod";
 import superjson from "superjson";
-import { MENTORSHIP_MIN_RATE_PER_UNIT } from "../../../helpers/liveLessonConfig";
+import { MENTORSHIP_MIN_CLASS_PRICE } from "../../../helpers/liveLessonConfig";
 
-const price = z.number().int("Use whole rupees").min(0).max(100000);
+const price = (minutes: 30 | 60) =>
+  z
+    .number()
+    .int("Use whole rupees")
+    .min(MENTORSHIP_MIN_CLASS_PRICE[minutes], `A ${minutes}-minute class must cost at least ₹${MENTORSHIP_MIN_CLASS_PRICE[minutes]}`)
+    .max(100000);
 
 export const schema = z.object({
   enabled: z.boolean(),
-  /** Older callers: the 25-minute class price only. */
-  ratePerUnit: z
-    .number()
-    .min(MENTORSHIP_MIN_RATE_PER_UNIT, `Must be at least ₹${MENTORSHIP_MIN_RATE_PER_UNIT} per 25 minutes`)
-    .optional(),
-  /** All four prices. Class prices have floors (see helpers/livePricing); trials may be free. */
+  /** Both class prices and the trial discount switch. Omit to only switch bookings on or off. */
   prices: z
     .object({
-      trial25: price,
-      trial50: price,
-      class25: price,
-      class50: price,
+      class30: price(30),
+      class60: price(60),
+      trialDiscount: z.boolean(),
     })
     .optional(),
 });

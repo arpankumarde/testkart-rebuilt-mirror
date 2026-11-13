@@ -14,19 +14,14 @@ export async function handle(request: Request) {
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);
 
-    // New group classes need an approved live teaching application; classes already scheduled stay editable.
-    if (!input.id && user.role === "teacher") {
-      const row = await db
-        .selectFrom("users")
-        .select("liveTeachingStatus")
-        .where("id", "=", effectiveTeacherId)
-        .executeTakeFirst();
-      if (row?.liveTeachingStatus !== "approved") {
-        return new Response(
-          superjson.stringify({ error: "Group classes open once your live teaching application is approved." }),
-          { status: 403 }
-        );
-      }
+    // Standalone group lessons were retired for live courses on 18-11-2026, and course classes are edited
+    // through teacher/live-courses, so this only edits a standalone lesson that already exists.
+    if (!input.id) {
+      return new Response(superjson.stringify({ error: "Group lessons are replaced by live courses." }), { status: 410 });
+    }
+    const target = await db.selectFrom("groupLessons").select("liveCourseId").where("id", "=", input.id).executeTakeFirst();
+    if (target?.liveCourseId) {
+      return new Response(superjson.stringify({ error: "Edit this class from its live course." }), { status: 400 });
     }
 
     // The same teacher teaches both 1:1 sessions and group lessons, so a new

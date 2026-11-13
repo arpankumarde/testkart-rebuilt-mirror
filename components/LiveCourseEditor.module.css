@@ -1,0 +1,290 @@
+/* Live course editor panels: details form, syllabus, schedule, students and attendance. */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: var(--tc-card, var(--card));
+  border: 1px solid var(--tc-line, var(--border));
+  border-radius: 1.25rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--tc-ink, var(--foreground));
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--tc-text, var(--muted-foreground));
+}
+
+.empty {
+  margin: 0;
+  padding: 1rem;
+  border: 1.5px dashed var(--tc-line-strong, var(--border));
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  text-align: center;
+  color: var(--tc-text, var(--muted-foreground));
+}
+
+.actions,
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.actions {
+  justify-content: flex-end;
+}
+
+.subhead {
+  margin: 0.25rem 0 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--tc-ink, var(--foreground));
+}
+
+.dialogFields {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* syllabus */
+.module {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 0.875rem;
+  border: 1px solid var(--tc-line, var(--border));
+  border-radius: 1rem;
+  background: var(--background);
+}
+
+.moduleHead,
+.topicRow {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.moduleNo {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  background: var(--sp-lavender-tint);
+  color: var(--sp-lavender-ink);
+  font-size: 0.8125rem;
+  font-weight: 800;
+}
+
+.topics {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding-left: 2.125rem;
+}
+
+.topics > button {
+  align-self: flex-start;
+}
+
+.topicList {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.875rem;
+  color: var(--tc-text, var(--muted-foreground));
+}
+
+/* schedule */
+.classList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.classRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.75rem;
+  border: 1px solid var(--tc-line, var(--border));
+  border-radius: 1rem;
+  background: var(--background);
+}
+
+.classMuted .classTitle {
+  color: var(--tc-text, var(--muted-foreground));
+}
+
+.classBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.classTitle {
+  font-size: 0.9375rem;
+  color: var(--tc-ink, var(--foreground));
+  overflow-wrap: anywhere;
+}
+
+.classMeta {
+  font-size: 0.8125rem;
+  color: var(--tc-text, var(--muted-foreground));
+}
+
+.classActions {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.reason {
+  align-self: flex-start;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.5rem;
+  background: var(--fc-peach-tint);
+  color: var(--fc-peach-ink);
+  font-size: 0.8125rem;
+}
+
+.chips {
+  display: flex;
+  gap: 0.375rem;
+}
+
+.chips:empty {
+  display: none;
+}
+
+.chip {
+  display: inline-flex;
+  padding: 0.125rem 0.5625rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.tone_mint {
+  background: var(--fc-mint-tint);
+  color: var(--fc-mint-ink);
+}
+
+.tone_sage {
+  background: var(--fc-sage-tint);
+  color: var(--fc-sage-ink);
+}
+
+.tone_peach {
+  background: var(--fc-peach-tint);
+  color: var(--fc-peach-ink);
+}
+
+.weekdays {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.875rem;
+}
+
+.weekday {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  color: var(--tc-ink, var(--foreground));
+}
+
+/* students */
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.table th {
+  padding: 0.5rem 0.625rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--tc-text, var(--muted-foreground));
+  border-bottom: 1px solid var(--tc-line, var(--border));
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 0.625rem;
+  border-bottom: 1px solid var(--tc-line, var(--border));
+  color: var(--tc-ink, var(--foreground));
+  vertical-align: middle;
+}
+
+.studentName {
+  display: block;
+  font-weight: 600;
+}
+
+.studentSub {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--tc-text, var(--muted-foreground));
+}
+
+.attendanceList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.attendanceRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid var(--tc-line, var(--border));
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--tc-ink, var(--foreground));
+}
+
+@media (max-width: 560px) {
+  .row {
+    flex-direction: column;
+  }
+
+  .classRow {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .classActions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+}

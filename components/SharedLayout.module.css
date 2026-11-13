@@ -386,10 +386,6 @@
   transform: none;
 }
 
-.shopButton {
-  display: none;
-}
-
 .themeSwitch {
   display: flex;
   align-items: center;

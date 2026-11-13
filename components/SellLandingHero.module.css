@@ -1,0 +1,136 @@
+.hero {
+  padding: clamp(2.5rem, 6vw, 5rem) var(--sl-gutter) clamp(3rem, 6vw, 4.5rem);
+  background-color: var(--sl-bg);
+}
+
+.inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(2.5rem, 5vw, 4rem);
+  max-width: var(--sl-max);
+  margin-inline: auto;
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.25rem;
+  max-width: 34rem;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4375rem 0.9375rem;
+  border-radius: 999px;
+  background-color: var(--sl-lavender);
+  color: var(--sl-lavender-ink);
+  border: 1px solid var(--sl-lavender-deep);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.sparkle {
+  width: 0.875rem;
+  height: 0.875rem;
+  fill: currentColor;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: clamp(2.25rem, 1.55rem + 2.6vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: var(--sl-ink);
+  text-wrap: balance;
+}
+
+.mark {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.underline {
+  position: absolute;
+  left: 0;
+  bottom: -0.2em;
+  width: 100%;
+  height: 0.32em;
+  overflow: visible;
+}
+
+.underline path {
+  fill: none;
+  stroke: var(--sl-cta);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.lead {
+  margin: 0;
+  max-width: 31rem;
+  font-size: clamp(1rem, 0.95rem + 0.3vw, 1.125rem);
+  line-height: 1.65;
+  color: var(--sl-muted);
+}
+
+.ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem 1.25rem;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trust li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--sl-text);
+}
+
+.trustIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  background-color: var(--sl-mint);
+  color: var(--sl-mint-ink);
+  border: 1px solid var(--sl-mint-deep);
+}
+
+@media (max-width: 900px) {
+  .inner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .copy {
+    max-width: 40rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .ctas {
+    width: 100%;
+  }
+}

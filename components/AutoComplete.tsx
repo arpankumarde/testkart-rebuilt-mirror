@@ -1,4 +1,4 @@
-import { CommandGroup, CommandItem, CommandList } from "./Command";
+import { CommandEmpty, CommandGroup, CommandItem, CommandList } from "./Command";
 import { Command as CommandPrimitive } from "cmdk";
 import {
   useState,
@@ -42,6 +42,13 @@ type AutoCompleteProps<T = unknown> = {
   placeholder?: string;
   // when this is false, only values in the options will be accepted
   allowFreeForm?: boolean;
+  /*
+   * False when the caller filters `options` itself. cmdk's own filter is fuzzy
+   * and keeps any option sharing the typed letters in order, so a precise list
+   * must turn it off. The caller's list is then shown as given, with
+   * emptyMessage when a search finds nothing, and typing opens the list.
+   */
+  shouldFilter?: boolean;
 };
 
 export const AutoComplete = <T = unknown,>({
@@ -55,8 +62,10 @@ export const AutoComplete = <T = unknown,>({
   disabled,
   isLoading = false,
   allowFreeForm = false,
+  shouldFilter = true,
 }: AutoCompleteProps<T>) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   const [isOpen, setOpen] = useState(false);
   const [selected, setSelected] = useState<Option<T> | undefined>(value);
@@ -67,6 +76,21 @@ export const AutoComplete = <T = unknown,>({
   useEffect(() => {
     if (value) setSelected(value);
   }, [value]);
+
+  // A new search starts at the top of its results, not where the last list was scrolled.
+  useEffect(() => {
+    if (!shouldFilter && listRef.current) listRef.current.scrollTop = 0;
+  }, [inputValue, shouldFilter]);
+
+  const handleInputChange = useCallback(
+    (next: string) => {
+      onInputValueChange(next);
+      if (!shouldFilter && next.trim() !== "") setOpen(true);
+    },
+    [onInputValueChange, shouldFilter],
+  );
+
+  const showEmpty = !shouldFilter && options.length === 0 && inputValue.trim() !== "" && !isLoading;
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent<HTMLDivElement>) => {
@@ -142,6 +166,7 @@ export const AutoComplete = <T = unknown,>({
     <Popover open={isOpen} onOpenChange={setOpen}>
       <CommandPrimitive
         onKeyDown={handleKeyDown}
+        shouldFilter={shouldFilter}
         className={styles.autoComplete}
       >
         <div className={styles.inputWrapper}>
@@ -149,7 +174,7 @@ export const AutoComplete = <T = unknown,>({
             <CommandPrimitive.Input
               ref={inputRef}
               value={inputValue}
-              onValueChange={isLoading ? undefined : onInputValueChange}
+              onValueChange={isLoading ? undefined : handleInputChange}
               onBlur={handleBlur}
               placeholder={placeholder}
               disabled={disabled}
@@ -157,14 +182,15 @@ export const AutoComplete = <T = unknown,>({
             />
           </PopoverTrigger>
         </div>
-        {!!options.length && (
+        {(!!options.length || showEmpty) && (
           <PopoverContent
             removeBackgroundAndPadding
             className={styles.popoverContent}
             align="start"
             onOpenAutoFocus={(e) => e.preventDefault()}
           >
-            <CommandList className={styles.commandList}>
+            <CommandList ref={listRef} className={styles.commandList}>
+              {showEmpty && <CommandEmpty>{emptyMessage}</CommandEmpty>}
               {options.length > 0 && (
                 <CommandGroup>
                   {options.map((option) => {

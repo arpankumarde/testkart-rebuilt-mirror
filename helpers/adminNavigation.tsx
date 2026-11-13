@@ -38,11 +38,13 @@ import {
   BellRing,
   Video,
   Webcam,
+  Presentation,
   Ticket,
   CalendarRange,
   CalendarClock,
   Coins,
   Flag,
+  History,
 } from "lucide-react";
 import { ANY_ADMIN, EXTRA_PAGE_RULES, hasAdminModule, type AdminModule } from "./adminPermissions";
 import { ARTICLE_TABS } from "./adminContentSurfaces";
@@ -183,11 +185,25 @@ const groups: AdminNavGroup[] = [
         keywords: "expiry expired expiring unlisted relist auto unlist end date",
       },
       {
+        href: "/admin/price-history",
+        label: "Price history",
+        icon: History,
+        modules: ["courses", "notes", "test_series", "live_tests", "bundles", "live_courses"],
+        keywords: "price change audit log teacher pricing increase decrease free paid discount",
+      },
+      {
         href: "/admin/live-lessons",
-        label: "Live lessons",
+        label: "1:1 live classes",
         icon: Webcam,
         modules: ["live_lessons"],
-        keywords: "1:1 group video classroom booking mentorship session teacher learner webinar classroom moderation",
+        keywords: "1:1 live lessons video classroom booking mentorship session trial package teacher learner no-show reports",
+      },
+      {
+        href: "/admin/live-courses",
+        label: "Live courses",
+        icon: Presentation,
+        modules: ["live_courses"],
+        keywords: "live batch multi-week group classes timetable enrolments refunds cashfree attendance",
       },
     ],
   },

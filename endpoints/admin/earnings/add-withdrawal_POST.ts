@@ -4,15 +4,17 @@ import { schema, OutputType } from "./add-withdrawal_POST.schema";
 import superjson from "superjson";
 import { getTeacherAvailableBalance } from "../../../helpers/getTeacherAvailableBalance";
 import { lockWallet } from "../../../helpers/walletLock";
+import { setWithdrawalActor } from "../../../helpers/withdrawalCancelServer";
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    await getAdminServerSessionOrThrow(request);
+    const admin = await getAdminServerSessionOrThrow(request);
 
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);
 
     const result = await db.transaction().execute(async (trx) => {
+      await setWithdrawalActor(trx, { userId: null, adminId: admin.id, source: "admin" });
       await lockWallet(trx, input.teacherId);
       const { availableBalance } = await getTeacherAvailableBalance(input.teacherId, trx);
 

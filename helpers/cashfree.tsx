@@ -166,6 +166,39 @@ export async function fetchCashfreePayments(cashfreeOrderId: string): Promise<Ca
   return Array.isArray(payments) ? payments : [];
 }
 
+export type CashfreeRefund = {
+  cf_refund_id?: string | number;
+  refund_id: string;
+  refund_amount: number;
+  refund_status: "SUCCESS" | "PENDING" | "CANCELLED" | "ONHOLD" | string;
+  status_description?: string;
+};
+
+/** Starts a refund on a paid order. refundId is ours and makes a repeat call return the same refund. */
+export async function createCashfreeRefund(args: {
+  cashfreeOrderId: string;
+  refundId: string;
+  amount: number;
+  note: string;
+}): Promise<CashfreeRefund> {
+  const config = getCashfreeConfig();
+  return cashfreeRequest<CashfreeRefund>(config, "POST", `/orders/${encodeURIComponent(args.cashfreeOrderId)}/refunds`, {
+    refund_amount: Number(args.amount.toFixed(2)),
+    refund_id: args.refundId,
+    refund_note: args.note.slice(0, 100),
+    refund_speed: "STANDARD",
+  });
+}
+
+export async function fetchCashfreeRefund(cashfreeOrderId: string, refundId: string): Promise<CashfreeRefund> {
+  const config = getCashfreeConfig();
+  return cashfreeRequest<CashfreeRefund>(
+    config,
+    "GET",
+    `/orders/${encodeURIComponent(cashfreeOrderId)}/refunds/${encodeURIComponent(refundId)}`
+  );
+}
+
 /** Cashfree signs "<timestamp><raw body>" with the secret key, base64 encoded. */
 export function isValidCashfreeWebhookSignature(rawBody: string, timestamp: string | null, signature: string | null): boolean {
   if (!timestamp || !signature) return false;

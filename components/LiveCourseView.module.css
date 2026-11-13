@@ -1,0 +1,323 @@
+/*
+ * Live course page in the /app palette: main column (cover, facts, about, syllabus, timetable,
+ * teacher) and a sticky buy card. Tags use the pastel tints with their own inks.
+ */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20rem;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.cover {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 1.5rem;
+  border: 1px solid var(--sp-line);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.live {
+  background: var(--fc-mint-tint);
+  color: var(--fc-mint-ink);
+}
+
+.exam {
+  background: var(--sp-lavender-tint);
+  color: var(--sp-lavender-ink);
+}
+
+.level {
+  background: var(--fc-butter-tint);
+  color: var(--fc-butter-ink);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: clamp(1.625rem, 1.2rem + 1.8vw, 2.375rem);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  color: var(--sp-ink);
+  text-wrap: balance;
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  font-size: 0.9375rem;
+  color: var(--sp-text);
+}
+
+.facts span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  background: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.25rem;
+}
+
+.h2 {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.1875rem;
+  font-weight: 800;
+  color: var(--sp-ink);
+}
+
+.about {
+  margin: 0;
+  white-space: pre-line;
+  line-height: 1.65;
+  color: var(--sp-ink);
+}
+
+.muted {
+  display: block;
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--sp-text);
+}
+
+.modules {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--sp-ink);
+}
+
+.module ul {
+  margin: 0.375rem 0 0;
+  padding-left: 1.125rem;
+  color: var(--sp-text);
+  font-size: 0.9375rem;
+}
+
+.classes {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.class {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--sp-line);
+}
+
+.class:last-child {
+  border-bottom: none;
+}
+
+.cancelled strong {
+  text-decoration: line-through;
+  color: var(--sp-text);
+}
+
+.classInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+  color: var(--sp-ink);
+}
+
+.classSide {
+  flex-shrink: 0;
+}
+
+.tag {
+  display: inline-flex;
+  padding: 0.125rem 0.625rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.tagMint {
+  background: var(--fc-mint-tint);
+  color: var(--fc-mint-ink);
+}
+
+.tagPeach {
+  background: var(--fc-peach-tint);
+  color: var(--fc-peach-ink);
+}
+
+.tagMuted {
+  background: var(--muted);
+  color: var(--sp-text);
+}
+
+.teacher {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--sp-ink);
+  text-decoration: none;
+}
+
+.avatar,
+.avatarFallback {
+  width: 3rem;
+  height: 3rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatarFallback {
+  display: grid;
+  place-items: center;
+  background: var(--sp-peach-tint);
+  color: var(--fc-peach-ink);
+  font-weight: 800;
+}
+
+.side {
+  position: sticky;
+  top: 5.5rem;
+}
+
+.buyCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  padding: 1.25rem;
+  background: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.25rem;
+  box-shadow: var(--sp-shadow);
+}
+
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.price {
+  font-family: var(--font-family-heading);
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: var(--sp-ink);
+}
+
+.original {
+  font-size: 1rem;
+  color: var(--sp-text);
+}
+
+.off {
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  background: var(--fc-mint-tint);
+  color: var(--fc-mint-ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.seats {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--sp-text);
+}
+
+.buy {
+  width: 100%;
+}
+
+.ok,
+.closed {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.875rem;
+  font-weight: 700;
+  font-size: 0.9375rem;
+}
+
+.ok {
+  background: var(--fc-mint-tint);
+  color: var(--fc-mint-ink);
+}
+
+.closed {
+  background: var(--fc-butter-tint);
+  color: var(--fc-butter-ink);
+}
+
+.guarantee {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--sp-line);
+  border-radius: 0.875rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--sp-ink);
+}
+
+.guarantee svg {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+  color: var(--fc-mint-ink);
+}
+
+@media (max-width: 880px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .side {
+    position: static;
+    order: -1;
+  }
+}

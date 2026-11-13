@@ -5,6 +5,31 @@ import { useExamNameSuggestions } from "../helpers/useExamNameSuggestions";
 import { MAX_ITEM_EXAMS } from "../helpers/itemExams";
 import styles from "./ExamMultiPicker.module.css";
 
+/* Case-insensitive, with surrounding and repeated spaces ignored. */
+const normalize = (text: string) => text.trim().replace(/\s+/g, " ").toLowerCase();
+
+/* The text with the first case-insensitive match of `search` in bold. */
+const Highlight: React.FC<{ text: string; search: string }> = ({ text, search }) => {
+  const at = search ? text.toLowerCase().indexOf(search) : -1;
+  if (at < 0) return <>{text}</>;
+  return (
+    <>
+      {text.slice(0, at)}
+      <mark className={styles.match}>{text.slice(at, at + search.length)}</mark>
+      {text.slice(at + search.length)}
+    </>
+  );
+};
+
+/* Lower ranks first: the name starts with the search, a word in it does, it contains it, only the full name does. */
+const matchRank = (nameKey: string, fullKey: string, search: string): number | null => {
+  if (nameKey.startsWith(search)) return 0;
+  if (nameKey.includes(` ${search}`) || nameKey.includes(`-${search}`) || nameKey.includes(`(${search}`)) return 1;
+  if (nameKey.includes(search)) return 2;
+  if (fullKey.includes(search)) return 3;
+  return null;
+};
+
 interface ExamMultiPickerProps {
   value: string[];
   onChange: (names: string[]) => void;
@@ -32,17 +57,48 @@ export const ExamMultiPicker: React.FC<ExamMultiPickerProps> = ({
     [officialExams]
   );
 
-  const options: Option[] = useMemo(() => {
+  const catalogue = useMemo(() => {
     const seen = new Set<string>();
-    const result: Option[] = [];
+    const result: { name: string; fullName: string; nameKey: string; fullKey: string }[] = [];
     for (const exam of officialExams) {
       const key = exam.name.toLowerCase();
-      if (seen.has(key) || selectedKeys.has(key)) continue;
+      if (seen.has(key)) continue;
       seen.add(key);
-      result.push({ value: exam.name, displayText: exam.name, label: <span>{exam.name}</span> });
+      const fullName = exam.fullName ?? "";
+      result.push({ name: exam.name, fullName, nameKey: normalize(exam.name), fullKey: normalize(fullName) });
     }
     return result;
-  }, [officialExams, selectedKeys]);
+  }, [officialExams]);
+
+  const search = normalize(query);
+
+  // The list is filtered here, not by the AutoComplete: exact substring matches
+  // on the exam name or full name, best matches first, already-picked exams left out.
+  const options: Option[] = useMemo(() => {
+    const available = catalogue.filter((exam) => !selectedKeys.has(exam.name.toLowerCase()));
+    const ranked = search
+      ? available
+          .map((exam) => ({ exam, rank: matchRank(exam.nameKey, exam.fullKey, search) }))
+          .filter((entry): entry is { exam: (typeof available)[number]; rank: number } => entry.rank !== null)
+          .sort((a, b) => a.rank - b.rank)
+      : available.map((exam) => ({ exam, rank: 0 }));
+    return ranked.map(({ exam, rank }) => ({
+      value: exam.name,
+      displayText: exam.name,
+      label: (
+        <span className={styles.option}>
+          <span>
+            <Highlight text={exam.name} search={search} />
+          </span>
+          {rank === 3 && (
+            <span className={styles.optionFullName}>
+              <Highlight text={exam.fullName} search={search} />
+            </span>
+          )}
+        </span>
+      ),
+    }));
+  }, [catalogue, selectedKeys, search]);
 
   const atMax = value.length >= max;
 
@@ -136,10 +192,11 @@ export const ExamMultiPicker: React.FC<ExamMultiPickerProps> = ({
               onInputValueChange={setQuery}
               isLoading={isLoading}
               disabled={atMax}
+              shouldFilter={false}
               placeholder={
                 atMax ? `Up to ${max} exams` : value.length === 0 ? "Search exams (optional)" : "Add another exam"
               }
-              emptyMessage="No matching exam found."
+              emptyMessage="No exams found"
             />
           </div>
         )}

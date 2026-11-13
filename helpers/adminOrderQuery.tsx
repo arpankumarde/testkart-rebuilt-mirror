@@ -85,17 +85,19 @@ const PRODUCT_CONDITIONS: Record<string, RawBuilder<SqlBool>> = {
   notes: sql<SqlBool>`(${hasItem("digital_product_id")} and orders.bundle_id is null)`,
   bundle: sql<SqlBool>`orders.bundle_id is not null`,
   mentorship: sql<SqlBool>`exists (select 1 from order_items oi where oi.order_id = orders.id
-    and (oi.mentorship_teacher_id is not null or oi.mentorship_booking_id is not null))`,
+    and (oi.mentorship_teacher_id is not null or oi.mentorship_booking_id is not null
+      or oi.group_lesson_id is not null or oi.live_course_id is not null))`,
 };
 
 /** The teacher an order is credited to: its first item's teacher, else the bundle's. */
 export const TEACHER_ID_EXPR = sql<number | null>`coalesce(
-  (select coalesce(mt.teacher_id, c.teacher_id, dp.teacher_id)
+  (select coalesce(mt.teacher_id, c.teacher_id, dp.teacher_id, lc.teacher_id)
      from order_items oi
      left join mock_tests mt on mt.id = oi.mock_test_id
      left join courses c on c.id = oi.course_id
      left join digital_products dp on dp.id = oi.digital_product_id
-    where oi.order_id = orders.id and coalesce(mt.teacher_id, c.teacher_id, dp.teacher_id) is not null
+     left join live_courses lc on lc.id = oi.live_course_id
+    where oi.order_id = orders.id and coalesce(mt.teacher_id, c.teacher_id, dp.teacher_id, lc.teacher_id) is not null
     order by oi.id limit 1),
   (select cb.teacher_id from course_bundles cb where cb.id = orders.bundle_id))`;
 

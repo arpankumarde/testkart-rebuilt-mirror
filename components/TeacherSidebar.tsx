@@ -151,10 +151,10 @@ const NAV_GROUPS: TeacherNavGroup[] = [
         isActiveFor: (p) => p.startsWith('/teacher/mentorship/bookings'),
       },
       {
-        href: '/teacher/mentorship/group-lessons',
-        label: 'Group lessons',
+        href: '/teacher/live-courses',
+        label: 'Live courses',
         icon: Megaphone,
-        isActiveFor: (p) => p.startsWith('/teacher/mentorship/group-lessons'),
+        isActiveFor: (p) => p.startsWith('/teacher/live-courses'),
       },
     ],
   },

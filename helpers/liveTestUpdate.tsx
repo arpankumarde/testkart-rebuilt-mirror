@@ -14,6 +14,7 @@ import { jsonbParam } from "./jsonbParam";
 import { sanitizeHtml } from "./sanitizeHtml";
 import { saveContentExams, type ContentExam } from "./contentExams";
 import { languagesSummary, normalizeLanguages } from "./itemLanguages";
+import { setPriceChangeActor, type PriceChangeActor } from "./productPriceHistoryServer";
 
 export class LiveTestUpdateError extends Error {
   constructor(message: string, readonly status: number) {
@@ -31,6 +32,8 @@ export interface LiveTestUpdateDeps {
   countEnrollments: (liveTestId: number) => Promise<number>;
   /** False for team managers: prize money comes out of the owner's earnings. */
   canChangePrizes?: boolean;
+  /** Who is saving, for the price history; omitted, a price change is recorded as "system". */
+  priceActor?: PriceChangeActor;
 }
 
 const toAmount = (value: string | number | null | undefined): number => {
@@ -244,6 +247,7 @@ export async function applyLiveTestUpdate(
       : undefined;
 
   return executor.transaction().execute(async (trx) => {
+    if (deps.priceActor) await setPriceChangeActor(trx, deps.priceActor);
     const updated =
       Object.keys(liveTestSet).length > 0
         ? await trx

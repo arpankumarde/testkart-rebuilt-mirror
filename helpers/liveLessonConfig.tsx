@@ -42,21 +42,30 @@ export const GROUP_LESSON_MIN_CAPACITY = 1;
 export const GROUP_LESSON_MAX_CAPACITY = 1000;
 
 /**
- * Allowed 1:1 session durations (minutes). Deliberately short and few, Preply-style: a teacher
- * sets one rate (per 25 minutes) and every approved teacher can be booked for either length, with
- * no per-teacher "offering" to create first. Keeping only two short lengths also leaves teachers a
- * window to take another booking between sessions, rather than getting locked into long blocks.
+ * Lengths a new 1:1 class can be booked at. Every approved teacher sets a price for each and can
+ * be booked for either, with no per-teacher "offering" to create first.
  */
-export const MENTORSHIP_SESSION_DURATIONS = [25, 50] as const;
+export const MENTORSHIP_SESSION_DURATIONS = [30, 60] as const;
+
+/** Lengths sold before 18-11-2026. Classes already booked at them can still be moved to another slot. */
+export const LEGACY_SESSION_DURATIONS = [25, 50] as const;
+
+/** Any length a slot can be generated for: current ones plus legacy ones for existing classes. */
+export const isSlotDuration = (m: number) =>
+  (MENTORSHIP_SESSION_DURATIONS as readonly number[]).includes(m) || (LEGACY_SESSION_DURATIONS as readonly number[]).includes(m);
 
 /**
- * users.mentorship_rate_per_unit is the teacher's 25-minute class price. The 50-minute class
- * price and both trial prices have their own columns (see helpers/livePricing).
+ * users.mentorship_rate_per_unit is the teacher's 30-minute class price and
+ * users.mentorship_class_price60 the 60-minute one (see helpers/livePricing).
  */
-export const MENTORSHIP_RATE_UNIT_MINUTES = 25;
+export const MENTORSHIP_RATE_UNIT_MINUTES = 30;
 
-/** Floor on a 25-minute class price; a 50-minute class has twice this floor. Trials have no floor. */
-export const MENTORSHIP_MIN_RATE_PER_UNIT = 49;
+/** Floor on each class price. Also enforced by check constraints on users. */
+export const MENTORSHIP_MIN_CLASS_PRICE = { 30: 49, 60: 99 } as const;
+export const MENTORSHIP_MIN_RATE_PER_UNIT = MENTORSHIP_MIN_CLASS_PRICE[30];
+
+/** Percent off the class price for a trial, when the teacher turns the trial discount on. */
+export const MENTORSHIP_TRIAL_DISCOUNT_PERCENT = { 30: 30, 60: 50 } as const;
 
 /**
  * The sweep settles a credit-paid 1:1 class this long after it ends: completed when the teacher

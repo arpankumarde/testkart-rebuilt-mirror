@@ -6,15 +6,17 @@ import { sendEmail } from "../../../helpers/sendEmail";
 import { withdrawalProcessed } from "../../../helpers/emailTemplates";
 import { getTeacherAvailableBalance } from "../../../helpers/getTeacherAvailableBalance";
 import { lockWallet } from "../../../helpers/walletLock";
+import { setWithdrawalActor } from "../../../helpers/withdrawalCancelServer";
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    await getAdminServerSessionOrThrow(request);
+    const admin = await getAdminServerSessionOrThrow(request);
 
     const json = superjson.parse(await request.text());
     const input = schema.parse(json);
 
     const result = await db.transaction().execute(async (trx) => {
+      await setWithdrawalActor(trx, { userId: null, adminId: admin.id, source: "admin" });
       // Row lock so two admins can't process the same request at once
       const withdrawal = await trx
         .selectFrom("teacherWithdrawals")

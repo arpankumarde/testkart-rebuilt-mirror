@@ -62,7 +62,12 @@ export async function handle(request: Request): Promise<Response> {
         studentId: w.studentId,
         transactionType: "withdrawal_debit",
         amount: Number(w.amount),
-        description: `Withdrawal - ${statusLabel}`,
+        description:
+          w.status === "cancelled"
+            ? "Withdrawal cancelled - amount returned to wallet"
+            : w.status === "failed"
+              ? "Withdrawal rejected - amount returned to wallet"
+              : `Withdrawal - ${statusLabel}`,
         referenceId: w.id,
         createdAt: w.requestedDate ?? w.createdAt ?? new Date(),
         withdrawalStatus: w.status,

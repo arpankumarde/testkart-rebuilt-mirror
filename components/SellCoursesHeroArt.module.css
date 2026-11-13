@@ -1,0 +1,442 @@
+/*
+ * One course player window on one backdrop panel. 1em is 16px at a 520px
+ * column, so everything scales with the column. The video frame keeps a fixed
+ * dark fill in both themes, as a real player does.
+ */
+.art {
+  --player-bg: hsl(222 28% 17%);
+  --player-line: hsl(222 18% 32%);
+  --player-text: hsl(40 30% 92%);
+
+  container-type: inline-size;
+  width: 100%;
+  max-width: 560px;
+  margin: 0 0 0 auto;
+}
+
+.stage {
+  position: relative;
+  padding: 1.5em 2em 2em 0;
+  font-size: calc(100cqw / 32.5);
+}
+
+.stage svg {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0 0 0 3em;
+  border-radius: 2em;
+  background-color: var(--sl-peach);
+  border: 1px solid var(--sl-peach-deep);
+}
+
+.window {
+  position: relative;
+  border-radius: 1.1em;
+  background-color: var(--sl-surface);
+  border: 1px solid var(--sl-line-strong);
+  box-shadow: var(--sl-shadow-hover);
+  overflow: hidden;
+  color: var(--sl-ink);
+}
+
+/* Course header */
+.head {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  padding: 0.9em 1em;
+  border-bottom: 1px solid var(--sl-line);
+}
+
+.thumb {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.4em;
+  height: 2.4em;
+  border-radius: 0.65em;
+  background-color: var(--sl-cta);
+  color: var(--sl-cta-ink);
+}
+
+.thumb svg {
+  width: 1.2em;
+  height: 1.2em;
+}
+
+.headText {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  gap: 0.1em;
+}
+
+.courseTitle {
+  font-family: var(--font-family-heading);
+  font-size: 0.95em;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.courseMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  font-size: 0.72em;
+  font-weight: 500;
+  color: var(--sl-muted);
+  white-space: nowrap;
+}
+
+.headTags {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  flex-shrink: 0;
+}
+
+.price,
+.status {
+  padding: 0.3em 0.65em;
+  border-radius: 999px;
+  font-size: 0.72em;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.price {
+  background-color: var(--sl-butter);
+  color: var(--sl-butter-ink);
+}
+
+.status {
+  background-color: var(--sl-mint);
+  color: var(--sl-mint-ink);
+}
+
+/* Body: the lesson beside the course content */
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+}
+
+.lesson {
+  padding: 1em;
+  border-right: 1px solid var(--sl-line);
+}
+
+.player {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  aspect-ratio: 16 / 10.5;
+  border-radius: 0.7em;
+  background-color: var(--player-bg);
+  border: 1px solid var(--player-line);
+  overflow: hidden;
+}
+
+.lessonTag {
+  position: absolute;
+  top: 0.6em;
+  left: 0.6em;
+  padding: 0.2em 0.55em;
+  border-radius: 0.4em;
+  background-color: var(--sl-lavender);
+  color: var(--sl-lavender-ink);
+  font-size: 0.62em;
+  font-weight: 800;
+}
+
+.stage .slide {
+  flex: 1;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  padding: 1.8em 0.9em 0.3em;
+}
+
+.grid {
+  stroke: var(--player-line);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.axis {
+  fill: none;
+  stroke: hsl(222 14% 60%);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.curve {
+  fill: none;
+  stroke: var(--sl-cta);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.point {
+  fill: var(--sl-mint);
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 0.55em;
+  padding: 0.5em 0.7em 0.6em;
+}
+
+.playBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6em;
+  height: 1.6em;
+  border-radius: 50%;
+  background-color: var(--player-text);
+  color: var(--player-bg);
+}
+
+.playBtn svg {
+  width: 0.75em;
+  height: 0.75em;
+  margin-left: 0.08em;
+  fill: currentColor;
+}
+
+.track {
+  flex: 1;
+  height: 0.3em;
+  border-radius: 999px;
+  background-color: var(--player-line);
+  overflow: hidden;
+}
+
+.track span {
+  display: block;
+  width: 59%;
+  height: 100%;
+  border-radius: 999px;
+  background-color: var(--sl-cta);
+}
+
+.time {
+  font-size: 0.6em;
+  font-weight: 600;
+  color: var(--player-text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.lessonTitle {
+  margin: 0.75em 0 0.15em;
+  font-family: var(--font-family-heading);
+  font-size: 0.9em;
+  font-weight: 800;
+}
+
+.lessonMeta {
+  margin: 0;
+  font-size: 0.72em;
+  color: var(--sl-muted);
+}
+
+.content {
+  padding: 1em 0.9em;
+  background-color: var(--sl-bg);
+}
+
+.contentTitle {
+  margin: 0 0 0.5em;
+  font-size: 0.78em;
+  font-weight: 800;
+}
+
+.progressRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  margin-bottom: 0.8em;
+}
+
+.progressTrack {
+  flex: 1;
+  height: 0.35em;
+  border-radius: 999px;
+  background-color: var(--sl-line);
+  overflow: hidden;
+}
+
+.progressTrack span {
+  display: block;
+  width: 62%;
+  height: 100%;
+  border-radius: 999px;
+  background-color: var(--sl-mint-ink);
+}
+
+.progressText {
+  font-size: 0.65em;
+  font-weight: 700;
+  color: var(--sl-muted);
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65em;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4em;
+  font-size: 0.68em;
+  font-weight: 800;
+  color: var(--sl-text);
+}
+
+.sectionDone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.4em;
+  height: 1.4em;
+  border-radius: 50%;
+  background-color: var(--sl-mint);
+  color: var(--sl-mint-ink);
+}
+
+.sectionDone svg {
+  width: 0.8em;
+  height: 0.8em;
+}
+
+.lessons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+  margin: 0.35em 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lessonRow {
+  display: flex;
+  align-items: center;
+  gap: 0.45em;
+  padding: 0.35em 0.4em;
+  border-radius: 0.45em;
+}
+
+.lessonDot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.05em;
+  height: 1.05em;
+  border-radius: 50%;
+  border: 1.5px solid var(--sl-line-strong);
+  color: var(--sl-muted);
+}
+
+.lessonDot svg {
+  width: 0.6em;
+  height: 0.6em;
+}
+
+.lessonName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.66em;
+  font-weight: 600;
+  color: var(--sl-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.done .lessonDot {
+  border-color: var(--sl-mint-ink);
+  background-color: var(--sl-mint-ink);
+  color: var(--sl-mint);
+}
+
+.playing {
+  background-color: var(--sl-lavender);
+}
+
+.playing .lessonDot {
+  border-color: var(--sl-lavender-ink);
+  background-color: var(--sl-lavender-ink);
+  color: var(--sl-lavender);
+}
+
+.playing .lessonDot svg {
+  fill: currentColor;
+}
+
+.playing .lessonName {
+  color: var(--sl-lavender-ink);
+  font-weight: 800;
+}
+
+.locked .lessonName {
+  color: var(--sl-muted);
+}
+
+.previewChip {
+  flex-shrink: 0;
+  padding: 0.15em 0.45em;
+  border-radius: 999px;
+  background-color: var(--sl-butter);
+  color: var(--sl-butter-ink);
+  font-size: 0.56em;
+  font-weight: 800;
+}
+
+@media (max-width: 860px) {
+  .art {
+    margin: 0 auto;
+  }
+}
+
+/* Narrow column: the course header and the lesson only, to keep the hero short. */
+@container (max-width: 420px) {
+  .stage {
+    font-size: calc(100cqw / 23);
+    padding: 1em 1em 1.25em 0;
+  }
+
+  .backdrop {
+    left: 1.5em;
+  }
+
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .lesson {
+    border-right: none;
+  }
+
+  .content,
+  .headTags .price {
+    display: none;
+  }
+}

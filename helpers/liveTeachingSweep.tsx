@@ -16,6 +16,7 @@ import { sendClassRefundedEmail, sendClassReminderEmails, sendCompletionOverdueE
 import { sendClassReminderWhatsApp } from "./liveClassWhatsApp";
 import { recordSessionEvent, sessionStatusOf } from "./liveSessionLifecycle";
 import { SWEEP_TEACHER_ABSENT_REASON } from "./adminLiveLessonsSql";
+import { runLiveCourseSweep } from "./liveCourseSweep";
 
 /**
  * Live 1:1 upkeep, run every 15 minutes from the autopilot job (the project is at Floot's
@@ -221,7 +222,7 @@ async function flagUnresolvedSessions() {
   `.execute(db);
   await sql`
     UPDATE group_lessons SET awaiting_completion_at = now()
-    WHERE status = 'scheduled' AND awaiting_completion_at IS NULL
+    WHERE status = 'scheduled' AND awaiting_completion_at IS NULL AND live_course_id IS NULL
       AND start_time + make_interval(mins => duration_minutes) <= now()
   `.execute(db);
 
@@ -236,7 +237,7 @@ async function flagUnresolvedSessions() {
   `.execute(db);
   const overdueLessons = await sql<{ id: string; recent: boolean }>`
     UPDATE group_lessons SET completion_overdue_at = now()
-    WHERE status = 'scheduled' AND completion_overdue_at IS NULL
+    WHERE status = 'scheduled' AND completion_overdue_at IS NULL AND live_course_id IS NULL
       AND start_time + make_interval(mins => duration_minutes) + make_interval(hours => ${overdueHours}) <= now()
     RETURNING id, start_time + make_interval(mins => duration_minutes) >= now() - make_interval(days => ${maxAgeDays}) AS recent
   `.execute(db);
@@ -283,4 +284,5 @@ export async function runLiveTeachingSweep(): Promise<void> {
   await part("classes", settleFinishedClasses);
   await part("unresolved", flagUnresolvedSessions);
   await part("reminders", sendReminders);
+  await runLiveCourseSweep(part);
 }

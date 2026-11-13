@@ -55,6 +55,7 @@ export async function handle(request: Request) {
     const staticPages: UrlEntry[] = [
       { loc: `${BASE_URL}/`, changefreq: "daily", priority: 1.0 },
       { loc: `${BASE_URL}/teachers`, changefreq: "weekly", priority: 0.9 },
+      { loc: `${BASE_URL}/expert`, changefreq: "weekly", priority: 0.8 },
       { loc: `${BASE_URL}/exams`, changefreq: "weekly", priority: 0.9 },
       { loc: `${BASE_URL}/mock-test`, changefreq: "daily", priority: 0.9 },
       { loc: `${BASE_URL}/live-test`, changefreq: "daily", priority: 0.9 },

@@ -29,6 +29,9 @@ import {
  *   rules, and a free slot (max per type, counting claimed and credited rows).
  *   Claims and credits take the teacher's wallet lock so parallel requests
  *   cannot pass the cap together.
+ * - The per-type caps live on the campaign row (max_mock_tests, max_courses).
+ *   Lowering one never touches existing claims: a teacher already over the new
+ *   cap keeps every credited bonus and simply cannot claim more of that type.
  * - Course videos count only as uploads, once per file, and at least
  *   minMinutesPerVideo long (evaluateCourseVideos).
  * - An Exam Bonus (kind 'exam') is a short campaign for one exam: test series
@@ -336,7 +339,7 @@ export async function checkClaimable(
   if ((await slotsUsed(executor, campaign.id, teacherId, type)) >= limit) {
     return {
       ok: false,
-      reason: `You have used all ${limit} ${noun} bonuses in the ${campaign.title}.`,
+      reason: `You have reached the maximum of ${limit} ${noun} bonuses in the ${campaign.title}.`,
       criteria,
     };
   }

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Sheet,
@@ -10,7 +10,9 @@ import {
 } from "./Sheet";
 import { Badge } from "./Badge";
 import { Button } from "./Button";
-import { ExternalLink, Ban, ScanEye, Pencil } from "lucide-react";
+import { ExternalLink, Ban, ScanEye, Pencil, History } from "lucide-react";
+import { AdminPriceHistorySheet } from "./AdminPriceHistorySheet";
+import type { PriceHistoryProductType } from "../helpers/productPriceHistory";
 import styles from "./AdminProductDetailPanel.module.css";
 
 export interface AdminProductDetailStat {
@@ -34,6 +36,8 @@ interface AdminProductDetailPanelProps {
   previewUrl?: string;
   /** Admin editor for the item's content; opens in this tab */
   editUrl?: string | null;
+  /** Opens the item's price change timeline (admin only, never shown to students) */
+  priceHistory?: { productType: PriceHistoryProductType; productId: number };
   teacherName: string;
   price: number;
   createdAt: Date | string | null;
@@ -64,6 +68,7 @@ export const AdminProductDetailPanel: React.FC<AdminProductDetailPanelProps> = (
   publicUrl,
   previewUrl,
   editUrl,
+  priceHistory,
   teacherName,
   price,
   createdAt,
@@ -73,106 +78,121 @@ export const AdminProductDetailPanel: React.FC<AdminProductDetailPanelProps> = (
   unpublishLabel = "Unpublish",
   unpublishPendingLabel = "Unpublishing...",
 }) => {
-  const hasActions = !!previewUrl || !!editUrl || !!publicUrl || !!onUnpublish;
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const hasActions = !!previewUrl || !!editUrl || !!publicUrl || !!onUnpublish || !!priceHistory;
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className={styles.sheetContent}>
-        <SheetHeader className={styles.header}>
-          <SheetTitle className={styles.title}>{title}</SheetTitle>
-          <SheetDescription asChild>
-            <div className={styles.badgeRow}>
-              {statusBadge}
-              {isLive ? (
-                <Badge variant="success">Live on public site</Badge>
-              ) : (
-                <Badge variant="outline">Not accessible publicly</Badge>
+    <>
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent side="right" className={styles.sheetContent}>
+          <SheetHeader className={styles.header}>
+            <SheetTitle className={styles.title}>{title}</SheetTitle>
+            <SheetDescription asChild>
+              <div className={styles.badgeRow}>
+                {statusBadge}
+                {isLive ? (
+                  <Badge variant="success">Live on public site</Badge>
+                ) : (
+                  <Badge variant="outline">Not accessible publicly</Badge>
+                )}
+              </div>
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className={styles.body}>
+            <dl className={styles.infoGrid}>
+              <div className={styles.infoRow}>
+                <dt className={styles.infoLabel}>Type</dt>
+                <dd className={styles.infoValue}>{productTypeLabel}</dd>
+              </div>
+              <div className={styles.infoRow}>
+                <dt className={styles.infoLabel}>Teacher</dt>
+                <dd className={styles.infoValue}>{teacherName}</dd>
+              </div>
+              <div className={styles.infoRow}>
+                <dt className={styles.infoLabel}>Price</dt>
+                <dd className={`${styles.infoValue} ${styles.figure}`}>{formatCurrency(price)}</dd>
+              </div>
+              <div className={styles.infoRow}>
+                <dt className={styles.infoLabel}>Created</dt>
+                <dd className={`${styles.infoValue} ${styles.figure}`}>{formatDate(createdAt)}</dd>
+              </div>
+            </dl>
+
+            <section className={styles.section}>
+              <div className={styles.sectionHeadings}>
+                <h3 className={styles.sectionHeading}>Content added</h3>
+                <p className={styles.sectionSubtext}>
+                  Use this to judge whether the product has enough content to be worth publishing.
+                </p>
+              </div>
+              <div className={styles.statsGrid}>
+                {stats.map((stat) => (
+                  <div key={stat.label} className={styles.statCard}>
+                    <span className={styles.statLabel}>{stat.label}</span>
+                    <span className={styles.statValue}>
+                      {stat.icon ? (
+                        <span className={styles.statIcon} aria-hidden="true">
+                          {stat.icon}
+                        </span>
+                      ) : null}
+                      {stat.value}
+                    </span>
+                    {stat.helpText && <span className={styles.statHelp}>{stat.helpText}</span>}
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+
+          {hasActions && (
+            <SheetFooter className={styles.footer}>
+              {previewUrl && (
+                <Button variant="primary" asChild>
+                  <a href={previewUrl} target="_blank" rel="noopener noreferrer">
+                    <ScanEye size={14} />
+                    Preview content
+                  </a>
+                </Button>
               )}
-            </div>
-          </SheetDescription>
-        </SheetHeader>
-
-        <div className={styles.body}>
-          <dl className={styles.infoGrid}>
-            <div className={styles.infoRow}>
-              <dt className={styles.infoLabel}>Type</dt>
-              <dd className={styles.infoValue}>{productTypeLabel}</dd>
-            </div>
-            <div className={styles.infoRow}>
-              <dt className={styles.infoLabel}>Teacher</dt>
-              <dd className={styles.infoValue}>{teacherName}</dd>
-            </div>
-            <div className={styles.infoRow}>
-              <dt className={styles.infoLabel}>Price</dt>
-              <dd className={`${styles.infoValue} ${styles.figure}`}>{formatCurrency(price)}</dd>
-            </div>
-            <div className={styles.infoRow}>
-              <dt className={styles.infoLabel}>Created</dt>
-              <dd className={`${styles.infoValue} ${styles.figure}`}>{formatDate(createdAt)}</dd>
-            </div>
-          </dl>
-
-          <section className={styles.section}>
-            <div className={styles.sectionHeadings}>
-              <h3 className={styles.sectionHeading}>Content added</h3>
-              <p className={styles.sectionSubtext}>
-                Use this to judge whether the product has enough content to be worth publishing.
-              </p>
-            </div>
-            <div className={styles.statsGrid}>
-              {stats.map((stat) => (
-                <div key={stat.label} className={styles.statCard}>
-                  <span className={styles.statLabel}>{stat.label}</span>
-                  <span className={styles.statValue}>
-                    {stat.icon ? (
-                      <span className={styles.statIcon} aria-hidden="true">
-                        {stat.icon}
-                      </span>
-                    ) : null}
-                    {stat.value}
-                  </span>
-                  {stat.helpText && <span className={styles.statHelp}>{stat.helpText}</span>}
-                </div>
-              ))}
-            </div>
-          </section>
-        </div>
-
-        {hasActions && (
-          <SheetFooter className={styles.footer}>
-            {previewUrl && (
-              <Button variant="primary" asChild>
-                <a href={previewUrl} target="_blank" rel="noopener noreferrer">
-                  <ScanEye size={14} />
-                  Preview content
-                </a>
-              </Button>
-            )}
-            {editUrl && (
-              <Button variant="outline" asChild>
-                <Link to={editUrl}>
-                  <Pencil size={14} />
-                  Edit
-                </Link>
-              </Button>
-            )}
-            {publicUrl && (
-              <Button variant="outline" asChild>
-                <a href={publicUrl} target="_blank" rel="noopener noreferrer">
-                  <ExternalLink size={14} />
-                  View public page
-                </a>
-              </Button>
-            )}
-            {onUnpublish && (
-              <Button variant="destructive" onClick={onUnpublish} disabled={isUnpublishing}>
-                <Ban size={14} />
-                {isUnpublishing ? unpublishPendingLabel : unpublishLabel}
-              </Button>
-            )}
-          </SheetFooter>
-        )}
-      </SheetContent>
-    </Sheet>
+              {editUrl && (
+                <Button variant="outline" asChild>
+                  <Link to={editUrl}>
+                    <Pencil size={14} />
+                    Edit
+                  </Link>
+                </Button>
+              )}
+              {priceHistory && (
+                <Button variant="outline" onClick={() => setHistoryOpen(true)}>
+                  <History size={14} />
+                  Price history
+                </Button>
+              )}
+              {publicUrl && (
+                <Button variant="outline" asChild>
+                  <a href={publicUrl} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink size={14} />
+                    View public page
+                  </a>
+                </Button>
+              )}
+              {onUnpublish && (
+                <Button variant="destructive" onClick={onUnpublish} disabled={isUnpublishing}>
+                  <Ban size={14} />
+                  {isUnpublishing ? unpublishPendingLabel : unpublishLabel}
+                </Button>
+              )}
+            </SheetFooter>
+          )}
+        </SheetContent>
+      </Sheet>
+      {priceHistory && (
+        <AdminPriceHistorySheet
+          target={historyOpen && open ? { productType: priceHistory.productType, productId: String(priceHistory.productId) } : null}
+          onOpenChange={setHistoryOpen}
+        />
+      )}
+    </>
   );
 };

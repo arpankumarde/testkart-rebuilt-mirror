@@ -30,11 +30,11 @@ export type ExpertListItem = {
   teachingCategories: string[];
   languages: string[];
   mentorshipEnabled: boolean;
-  /** Price in INR for a 25-minute 1:1 session, when the teacher has 1:1 enabled. */
-  pricePer25Min: number | null;
-  /** Price in INR for a 50-minute trial class, when the teacher has 1:1 enabled. */
-  trialPrice50: number | null;
-  /** Cheapest trial class in INR (the lower of the 25- and 50-minute trial prices), when 1:1 is enabled. */
+  /** Price in INR for a 60-minute 1:1 class, when the teacher has 1:1 enabled. */
+  price60: number | null;
+  /** Price in INR for a 60-minute trial class, when the teacher has 1:1 enabled. */
+  trialPrice60: number | null;
+  /** Cheapest trial class in INR (the lower of the 30- and 60-minute trial prices), when 1:1 is enabled. */
   trialFrom: number | null;
   rating: number | null;
   reviewsCount: number;

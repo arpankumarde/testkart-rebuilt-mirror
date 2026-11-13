@@ -37,6 +37,7 @@ import {
   useWithdrawLiveTeachingMutation,
 } from "../helpers/useLiveTeaching";
 import { ConsoleConfirmDialog } from "../components/ConsoleConfirmDialog";
+import { trialPriceFrom } from "../helpers/livePricing";
 import { LIVE_TEACHING_VIDEO_FOLDER, LIVE_TEACHING_VIDEO_MAX_MB, canApplyFromStatus } from "../helpers/liveTeachingRules";
 import { OutputType as LiveTeachingStatusOutput } from "../endpoints/teacher/live-teaching/status_GET.schema";
 import { AvailabilityWindow } from "../endpoints/teacher/mentorship/availability/get_GET.schema";
@@ -192,35 +193,26 @@ const CardHead: React.FC<{ icon: React.ReactNode; title: string; hint?: string; 
   </div>
 );
 
-type PriceKey = "trial25" | "trial50" | "class25" | "class50";
-const PRICE_LABELS: Record<PriceKey, string> = {
-  trial25: "Trial, 25 min",
-  trial50: "Trial, 50 min",
-  class25: "Class, 25 min",
-  class50: "Class, 50 min",
-};
-/* One row per class type, one column per length. */
-const PRICE_ROWS: { label: string; hint: string; keys: [PriceKey, PriceKey] }[] = [
-  { label: "Trial class", hint: "First class with you. Can be ₹0.", keys: ["trial25", "trial50"] },
-  { label: "Package class", hint: "Each class in a weekly package.", keys: ["class25", "class50"] },
-];
+type PriceKey = "class30" | "class60";
+const PRICE_KEYS: PriceKey[] = ["class30", "class60"];
+const KEY_MINUTES: Record<PriceKey, 30 | 60> = { class30: 30, class60: 60 };
 
 /* applying: before approval the prices are saved but 1:1 bookings stay off. */
 const RateCard: React.FC<{ applying?: boolean }> = ({ applying = false }) => {
   const { data, isFetching } = useTeacherMentorshipRateQuery();
   const setRateMutation = useSetTeacherMentorshipRateMutation();
   const [enabled, setEnabled] = useState(false);
-  const [prices, setPrices] = useState<Record<PriceKey, string>>({ trial25: "", trial50: "", class25: "", class50: "" });
+  const [prices, setPrices] = useState<Record<PriceKey, string>>({ class30: "", class60: "" });
+  const [trialDiscount, setTrialDiscount] = useState(false);
 
   useEffect(() => {
     if (!data) return;
     setEnabled(data.enabled);
+    setTrialDiscount(data.trialDiscount);
     const p = data.prices;
     setPrices({
-      trial25: String(p?.trial25 ?? data.minClassPrice25),
-      trial50: String(p?.trial50 ?? data.minClassPrice50),
-      class25: String(p?.class25 ?? data.minClassPrice25),
-      class50: String(p?.class50 ?? data.minClassPrice50),
+      class30: String(p?.class30 ?? data.minClassPrice30),
+      class60: String(p?.class60 ?? data.minClassPrice60),
     });
   }, [data]);
 
@@ -232,21 +224,19 @@ const RateCard: React.FC<{ applying?: boolean }> = ({ applying = false }) => {
     );
   }
 
-  const min25 = data?.minClassPrice25 ?? 49;
-  const min50 = data?.minClassPrice50 ?? 98;
-  const values = {
-    trial25: Number(prices.trial25),
-    trial50: Number(prices.trial50),
-    class25: Number(prices.class25),
-    class50: Number(prices.class50),
+  const mins: Record<PriceKey, number> = { class30: data?.minClassPrice30 ?? 49, class60: data?.minClassPrice60 ?? 99 };
+  const discountPercent: Record<PriceKey, number> = {
+    class30: data?.trialDiscountPercent30 ?? 30,
+    class60: data?.trialDiscountPercent60 ?? 50,
   };
+  const values = { class30: Number(prices.class30), class60: Number(prices.class60) };
   const problem =
-    Object.values(values).some((v) => !Number.isInteger(v) || v < 0)
-      ? "Use whole rupees for every price."
-      : values.class25 < min25
-        ? `A 25-minute class must cost at least ₹${min25}.`
-        : values.class50 < min50
-          ? `A 50-minute class must cost at least ₹${min50}.`
+    Object.values(values).some((v) => !Number.isInteger(v) || v <= 0)
+      ? "Use whole rupees for both prices."
+      : values.class30 < mins.class30
+        ? `A 30-minute class must cost at least ₹${mins.class30}.`
+        : values.class60 < mins.class60
+          ? `A 60-minute class must cost at least ₹${mins.class60}.`
           : null;
   const isLive = !!data?.enabled;
 
@@ -256,7 +246,7 @@ const RateCard: React.FC<{ applying?: boolean }> = ({ applying = false }) => {
       return;
     }
     setRateMutation.mutate(
-      { enabled: applying ? false : enabled, prices: values },
+      { enabled: applying ? false : enabled, prices: { ...values, trialDiscount } },
       {
         onSuccess: () => toast.success(applying ? "Prices saved." : "1:1 prices saved."),
         onError: (err) => toast.error(err instanceof Error ? err.message : "Could not save this."),
@@ -295,52 +285,76 @@ const RateCard: React.FC<{ applying?: boolean }> = ({ applying = false }) => {
           <div className={styles.priceTable} role="group" aria-label="Price per class">
             <div className={styles.priceHead} aria-hidden="true">
               <span />
-              <span>25 min</span>
-              <span>50 min</span>
+              <span>30 min</span>
+              <span>60 min</span>
             </div>
-            {PRICE_ROWS.map((row) => (
-              <div key={row.label} className={styles.priceRow}>
-                <div className={styles.priceRowText}>
-                  <span className={styles.label}>{row.label}</span>
-                  <span className={styles.fieldHint}>{row.hint}</span>
-                </div>
-                {row.keys.map((key) => {
-                  const min = key === "class25" ? min25 : key === "class50" ? min50 : null;
-                  return (
-                    <div key={key} className={styles.priceCell}>
-                      <span className={styles.priceCellMins} aria-hidden="true">
-                        {key.endsWith("25") ? "25 min" : "50 min"}
-                      </span>
-                      <div className={styles.moneyInput}>
-                        <span className={styles.moneyPrefix} aria-hidden="true">
-                          ₹
-                        </span>
-                        <Input
-                          id={`price-${key}`}
-                          type="number"
-                          min={0}
-                          step={1}
-                          value={prices[key]}
-                          onChange={(e) => setPrices((p) => ({ ...p, [key]: e.target.value }))}
-                          className={styles.fieldInput}
-                          aria-label={PRICE_LABELS[key]}
-                        />
-                      </div>
-                      {min !== null && <span className={styles.fieldHint}>Minimum ₹{min}</span>}
-                    </div>
-                  );
-                })}
+            <div className={styles.priceRow}>
+              <div className={styles.priceRowText}>
+                <span className={styles.label}>Class price</span>
+                <span className={styles.fieldHint}>Each class, in a package or on its own.</span>
               </div>
-            ))}
+              {PRICE_KEYS.map((key) => (
+                <div key={key} className={styles.priceCell}>
+                  <span className={styles.priceCellMins} aria-hidden="true">
+                    {KEY_MINUTES[key]} min
+                  </span>
+                  <div className={styles.moneyInput}>
+                    <span className={styles.moneyPrefix} aria-hidden="true">
+                      ₹
+                    </span>
+                    <Input
+                      id={`price-${key}`}
+                      type="number"
+                      min={mins[key]}
+                      step={1}
+                      value={prices[key]}
+                      onChange={(e) => setPrices((p) => ({ ...p, [key]: e.target.value }))}
+                      className={styles.fieldInput}
+                      aria-label={`Class price, ${KEY_MINUTES[key]} min`}
+                    />
+                  </div>
+                  <span className={styles.fieldHint}>Minimum ₹{mins[key]}</span>
+                </div>
+              ))}
+            </div>
+            <div className={styles.priceRow}>
+              <div className={styles.priceRowText}>
+                <span className={styles.label}>Trial class</span>
+                <span className={styles.fieldHint}>A student's first class with you.</span>
+              </div>
+              {PRICE_KEYS.map((key) => (
+                <div key={key} className={styles.priceCell}>
+                  <span className={styles.priceCellMins} aria-hidden="true">
+                    {KEY_MINUTES[key]} min
+                  </span>
+                  <span className={styles.trialPrice}>
+                    {problem ? "-" : `₹${trialPriceFrom(values[key], KEY_MINUTES[key], trialDiscount).toLocaleString("en-IN")}`}
+                  </span>
+                  <span className={styles.fieldHint}>{trialDiscount ? `${discountPercent[key]}% off` : "Same as a class"}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.switchRow}>
+            <div className={styles.switchText}>
+              <span className={styles.switchLabel} id="trial-discount-label">
+                Discount the trial class
+              </span>
+              <span className={styles.switchHint}>
+                {discountPercent.class30}% off a 30-minute trial, {discountPercent.class60}% off a 60-minute trial.
+              </span>
+            </div>
+            <Switch checked={trialDiscount} onCheckedChange={setTrialDiscount} aria-labelledby="trial-discount-label" />
           </div>
 
           <div className={styles.packageStrip}>
-            <span className={styles.packageLabel}>Package price every 4 weeks, 50 min classes</span>
+            <span className={styles.packageLabel}>Package price every 4 weeks, 60 min classes</span>
             <dl className={styles.packageList}>
               {[1, 3, 6].map((perWeek) => (
                 <div key={perWeek} className={styles.packageItem}>
                   <dt>{perWeek} a week</dt>
-                  <dd>{problem ? "-" : `₹${(values.class50 * perWeek * 4).toLocaleString("en-IN")}`}</dd>
+                  <dd>{problem ? "-" : `₹${(values.class60 * perWeek * 4).toLocaleString("en-IN")}`}</dd>
                 </div>
               ))}
             </dl>
@@ -596,13 +610,13 @@ const ShortcutsCard: React.FC = () => (
       </span>
       <ArrowRight size={16} aria-hidden="true" className={styles.shortcutArrow} />
     </Link>
-    <Link to="/teacher/mentorship/group-lessons" className={styles.shortcut}>
+    <Link to="/teacher/live-courses" className={styles.shortcut}>
       <span className={styles.cardIcon} aria-hidden="true">
         <Users size={16} />
       </span>
       <span className={styles.shortcutText}>
-        <span className={styles.shortcutTitle}>Group lessons</span>
-        <span className={styles.shortcutHint}>Classes many can join</span>
+        <span className={styles.shortcutTitle}>Live courses</span>
+        <span className={styles.shortcutHint}>Batches of live classes</span>
       </span>
       <ArrowRight size={16} aria-hidden="true" className={styles.shortcutArrow} />
     </Link>

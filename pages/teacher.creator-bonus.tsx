@@ -46,7 +46,7 @@ const STATE_STICKERS: Record<CampaignItemState, { label: string; tone: string }>
   reversed: { label: "Reversed", tone: "pink" },
   final: { label: "Not selected", tone: "grey" },
   excluded: { label: "Live before the bonus", tone: "grey" },
-  full: { label: "No slots left", tone: "grey" },
+  full: { label: "Limit reached", tone: "grey" },
 };
 
 const TRACKS: Record<CampaignContentType, { title: string; icon: typeof ListChecks; accent: string; createHref: string }> = {
@@ -103,15 +103,20 @@ function nextStep(item: CampaignItem, slots: CampaignSlots): { text: string; act
     case "excluded":
       return { text: "Live before the bonus started." };
     case "full":
-      return { text: `All ${slots.limit} slots used.` };
+      return {
+        text: `Maximum of ${slots.limit} ${item.type === "mock_test" ? "test series" : "course"} bonuses reached.`,
+      };
   }
 }
 
 const CoinSlots = ({ slots, accent }: { slots: CampaignSlots; accent: string }) => {
   const waiting = slots.used - slots.credited;
+  const free = Math.max(0, slots.limit - slots.used);
+  // A teacher who claimed under an earlier, higher cap keeps a coin for every bonus.
+  const coins = Math.max(slots.limit, slots.used);
   return (
-    <ol className={styles.coins} aria-label={`${slots.credited} credited, ${waiting} waiting, ${slots.limit - slots.used} free`}>
-      {Array.from({ length: slots.limit }).map((_, i) => {
+    <ol className={styles.coins} aria-label={`${slots.credited} credited, ${waiting} waiting, ${free} free`}>
+      {Array.from({ length: coins }).map((_, i) => {
         const state = i < slots.credited ? "paid" : i < slots.used ? "waiting" : "free";
         return (
           <li
@@ -253,7 +258,9 @@ const TeacherCreatorBonusPage: React.FC = () => {
   const { campaign, slots, earned, examEarned, examCampaigns } = data;
   const req = campaign.requirements;
   const maxTotal = slots.mock_test.limit * slots.mock_test.amount + slots.course.limit * slots.course.amount;
-  const earnedShare = maxTotal > 0 ? Math.min(100, (earned / maxTotal) * 100) : 0;
+  // Bonuses credited under an earlier, higher cap can exceed today's maximum.
+  const meterMax = Math.max(maxTotal, earned);
+  const earnedShare = meterMax > 0 ? Math.min(100, (earned / meterMax) * 100) : 0;
   const readyCount = items.filter((i) => i.state === "ready").length;
 
   const steps = [
@@ -283,7 +290,7 @@ const TeacherCreatorBonusPage: React.FC = () => {
             <div className={styles.meter}>
               <div className={styles.meterHead}>
                 <span className={styles.meterValue}>{formatRupees(earned)}</span>
-                <span className={styles.meterOf}>earned of {formatRupees(maxTotal)}</span>
+                <span className={styles.meterOf}>earned of {formatRupees(meterMax)}</span>
               </div>
               <span className={styles.meterTrack}>
                 <span className={styles.meterFill} style={{ width: `${earnedShare}%` }} />
@@ -323,6 +330,7 @@ const TeacherCreatorBonusPage: React.FC = () => {
           {(["mock_test", "course"] as const).map((type) => {
             const track = TRACKS[type];
             const s = slots[type];
+            const atLimit = s.used >= s.limit;
             const Icon = track.icon;
             const rule =
               type === "mock_test"
@@ -351,10 +359,13 @@ const TeacherCreatorBonusPage: React.FC = () => {
                   </div>
                   <CoinSlots slots={s} accent={track.accent} />
                   <p className={styles.trackFoot}>
-                    {s.credited} credited · {s.used - s.credited} waiting · {Math.max(0, s.limit - s.used)} left
-                    <Link to={track.createHref} className={styles.trackLink} data-card-primary>
-                      Create one <ArrowRight size={14} aria-hidden="true" />
-                    </Link>
+                    {s.credited} credited · {s.used - s.credited} waiting ·{" "}
+                    {atLimit ? `Maximum of ${s.limit} reached` : `${s.limit - s.used} left`}
+                    {!atLimit && (
+                      <Link to={track.createHref} className={styles.trackLink} data-card-primary>
+                        Create one <ArrowRight size={14} aria-hidden="true" />
+                      </Link>
+                    )}
                   </p>
                 </div>
               </article>

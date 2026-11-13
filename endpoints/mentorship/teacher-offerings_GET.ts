@@ -18,9 +18,8 @@ const TEACHER_COLUMNS = [
   "role",
   "mentorshipEnabled",
   "mentorshipRatePerUnit",
-  "mentorshipClassPrice50",
-  "mentorshipTrialPrice25",
-  "mentorshipTrialPrice50",
+  "mentorshipClassPrice60",
+  "mentorshipTrialDiscount",
   "liveTeachingStatus",
   "introVideoUrl",
 ] as const;

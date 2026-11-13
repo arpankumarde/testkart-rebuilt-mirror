@@ -1,0 +1,26 @@
+/* Student live course page shell inside the student dashboard. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  align-self: flex-start;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--sp-text, var(--muted-foreground));
+  text-decoration: none;
+}
+
+.back:hover {
+  color: var(--sp-ink, var(--foreground));
+}
+
+.error {
+  margin: 0;
+  color: var(--fc-peach-ink);
+}

@@ -1,8 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { CheckCircle, Clock, XCircle } from "lucide-react";
+import { toast } from "sonner";
 import { Skeleton } from "./Skeleton";
+import { WithdrawalCancelDialog } from "./WithdrawalCancelDialog";
 import { type WithdrawalRecord } from "../endpoints/student/withdrawal/list_GET.schema";
 import { WithdrawalStatus } from "../helpers/schema";
+import { useCancelStudentWithdrawal } from "../helpers/useStudentWithdrawals";
 import styles from "./StudentWithdrawalSection.module.css";
 
 const rupees = new Intl.NumberFormat("en-IN", {
@@ -19,7 +22,7 @@ const StatusBadge = ({ status }: { status: WithdrawalStatus }) => {
     case "pending":
       return (
         <span className={`${styles.badge} ${styles.badgePending}`}>
-          <Clock size={12} aria-hidden="true" /> Processing
+          <Clock size={12} aria-hidden="true" /> Pending
         </span>
       );
     case "completed":
@@ -29,10 +32,15 @@ const StatusBadge = ({ status }: { status: WithdrawalStatus }) => {
         </span>
       );
     case "failed":
-    case "cancelled":
       return (
         <span className={`${styles.badge} ${styles.badgeFailed}`}>
-          <XCircle size={12} aria-hidden="true" /> {status === "failed" ? "Failed" : "Cancelled"}
+          <XCircle size={12} aria-hidden="true" /> Rejected
+        </span>
+      );
+    case "cancelled":
+      return (
+        <span className={`${styles.badge} ${styles.badgeCancelled}`}>
+          <XCircle size={12} aria-hidden="true" /> Cancelled
         </span>
       );
     default:
@@ -48,9 +56,30 @@ interface StudentWithdrawalSectionProps {
 /*
  * The student's withdrawal requests. Requesting one happens from the balance
  * block at the top of the wallet, which also reads this list to know whether
- * one is already being processed.
+ * one is already pending. A pending request can be cancelled from its row.
  */
-export const StudentWithdrawalSection: React.FC<StudentWithdrawalSectionProps> = ({ withdrawals, isLoading }) => (
+export const StudentWithdrawalSection: React.FC<StudentWithdrawalSectionProps> = ({ withdrawals, isLoading }) => {
+  const cancelMutation = useCancelStudentWithdrawal();
+  const [cancelTarget, setCancelTarget] = useState<WithdrawalRecord | null>(null);
+
+  const confirmCancel = () => {
+    if (!cancelTarget || cancelMutation.isPending) return;
+    cancelMutation.mutate(
+      { withdrawalId: cancelTarget.id },
+      {
+        onSuccess: (cancelled) => {
+          toast.success(`Withdrawal request cancelled. ${rupees.format(cancelled.amount)} is back in your available balance.`);
+          setCancelTarget(null);
+        },
+        onError: (error) => {
+          toast.error(error.message || "Could not cancel this request.");
+          setCancelTarget(null);
+        },
+      }
+    );
+  };
+
+  return (
   <section className={styles.card} aria-labelledby="withdrawals-title">
     <h2 id="withdrawals-title" className={styles.title}>Withdrawals</h2>
 
@@ -83,7 +112,9 @@ export const StudentWithdrawalSection: React.FC<StudentWithdrawalSectionProps> =
           ) : withdrawals.length > 0 ? (
             withdrawals.map((withdrawal) => {
               const isFailed = withdrawal.status === "failed";
-              const hasDetails = !!withdrawal.notes || !!withdrawal.transactionId || isFailed;
+              const isPending = withdrawal.status === "pending";
+              const isCancelled = withdrawal.status === "cancelled";
+              const hasDetails = !!withdrawal.notes || !!withdrawal.transactionId || isFailed || isPending || isCancelled;
               return (
                 <tr key={withdrawal.id}>
                   <td className={styles.date}>
@@ -104,6 +135,23 @@ export const StudentWithdrawalSection: React.FC<StudentWithdrawalSectionProps> =
                         {isFailed && (
                           <span className={styles.failureReason}>Check your bank details, then request again.</span>
                         )}
+                        {isCancelled && (
+                          <span className={styles.cancelledNote}>
+                            {withdrawal.cancelledAt ? `Cancelled on ${shortDate.format(new Date(withdrawal.cancelledAt))}. ` : ""}
+                            The amount is back in your balance.
+                          </span>
+                        )}
+                        {isPending && (
+                          <button
+                            type="button"
+                            className={styles.cancelButton}
+                            onClick={() => setCancelTarget(withdrawal)}
+                            disabled={cancelMutation.isPending}
+                            aria-label={`Cancel withdrawal request of ${rupees.format(withdrawal.amount)}`}
+                          >
+                            Cancel Request
+                          </button>
+                        )}
                       </>
                     )}
                   </td>
@@ -119,5 +167,13 @@ export const StudentWithdrawalSection: React.FC<StudentWithdrawalSectionProps> =
         </tbody>
       </table>
     </div>
+
+    <WithdrawalCancelDialog
+      open={!!cancelTarget}
+      onOpenChange={(open) => { if (!open && !cancelMutation.isPending) setCancelTarget(null); }}
+      isPending={cancelMutation.isPending}
+      onConfirm={confirmCancel}
+    />
   </section>
-);
+  );
+};

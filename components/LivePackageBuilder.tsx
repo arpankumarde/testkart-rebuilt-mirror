@@ -14,7 +14,7 @@ import {
   packageClassCount,
   packageMandateMax,
 } from "../helpers/livePricing";
-import { PACKAGE_CYCLE_DAYS } from "../helpers/liveLessonConfig";
+import { MENTORSHIP_SESSION_DURATIONS, PACKAGE_CYCLE_DAYS } from "../helpers/liveLessonConfig";
 import styles from "./LivePackageBuilder.module.css";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
@@ -27,7 +27,7 @@ export const LivePackageBuilder: React.FC<{
   balance: number;
 }> = ({ teacherId, teacherName, prices, balance }) => {
   const [perWeek, setPerWeek] = useState(2);
-  const [minutes, setMinutes] = useState<LiveClassMinutes>(50);
+  const [minutes, setMinutes] = useState<LiveClassMinutes>(MENTORSHIP_SESSION_DURATIONS[MENTORSHIP_SESSION_DURATIONS.length - 1]);
   const [repeat, setRepeat] = useState(true);
   const [selected, setSelected] = useState<number[]>([]);
   const range = useLiveSlotRange(PACKAGE_CYCLE_DAYS);
@@ -101,7 +101,7 @@ export const LivePackageBuilder: React.FC<{
         </div>
         <h2 className={styles.cardTitle}>Class length</h2>
         <div className={styles.lengths} role="radiogroup" aria-label="Class length">
-          {([25, 50] as const).map((m) => (
+          {MENTORSHIP_SESSION_DURATIONS.map((m) => (
             <button
               key={m}
               type="button"

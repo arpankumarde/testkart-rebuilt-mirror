@@ -67,6 +67,7 @@ export const StudentTcoinsSummary: React.FC = () => {
         <li>Earn {data.cashbackPercent}% back on what you pay (max {data.maxCashback} coins per order).</li>
         <li>Cashback coins last {data.expiryDays} days. The ones expiring soonest are used first.</li>
         <li>Tcoins can't be withdrawn or used with a coupon.</li>
+        <li>Live classes don't use or earn Tcoins.</li>
       </ul>
     </section>
   );
@@ -142,7 +143,7 @@ export const StudentTcoinsHistory: React.FC = () => {
               })
             ) : (
               <tr className={styles.emptyRow}>
-                <td colSpan={5}>No Tcoins yet. Every paid order earns some.</td>
+                <td colSpan={5}>No Tcoins yet. Paid tests, courses and study material earn some.</td>
               </tr>
             )}
           </tbody>

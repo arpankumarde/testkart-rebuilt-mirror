@@ -40,8 +40,8 @@ const PRODUCTS = [
     art: "/_cdn/static/9d574d8b-0924-4c37-b0a3-5b8a6f8b00ce.png",
     title: "Bundles",
     body: "Put tests, notes and a course together in one pack at one price. Bundles suit students who want everything for one exam in a single purchase.",
-    linkLabel: "Course bundles",
-    href: "/bundles",
+    linkLabel: "Sell course bundles",
+    href: "/sell/bundles",
   },
 ];
 

@@ -4,8 +4,11 @@ import { useLocation } from 'react-router-dom';
 import { BRAND_OG_IMAGE } from '../helpers/brandAssets';
 
 const DEFAULT_IMAGE_URL = BRAND_OG_IMAGE;
+const DEFAULT_IMAGE_ALT = "Testkart - India's marketplace for mock tests, courses and study notes";
 const SITE_NAME = 'Testkart';
 const SITE_ORIGIN = 'https://testkart.in';
+const SITE_LOCALE = 'en_IN';
+const TWITTER_HANDLE = '@testkart_in';
 
 /**
  * Canonical and og:url must always point at the official domain, so we keep
@@ -38,6 +41,8 @@ export interface SEOHeadProps {
    * Testkart share image. Pass null to send no og:image / twitter:image at all.
    */
   image?: string | null;
+  /** Text description of the share image (og:image:alt / twitter:image:alt). Defaults to the brand image's alt when the default image is used. */
+  imageAlt?: string;
   /** Twitter card layout. Use "summary" for square images such as avatars. */
   twitterCard?: 'summary' | 'summary_large_image';
   /**
@@ -64,6 +69,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
   appendSiteName = true,
   description,
   image = DEFAULT_IMAGE_URL,
+  imageAlt,
   twitterCard = 'summary_large_image',
   url,
   type = 'website',
@@ -72,6 +78,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
   const location = useLocation();
 
   const finalImage = image === null ? null : image.startsWith('data:') ? DEFAULT_IMAGE_URL : image;
+  const finalImageAlt = imageAlt ?? (finalImage === DEFAULT_IMAGE_URL ? DEFAULT_IMAGE_ALT : undefined);
 
   // Construct the canonical URL from the current route if not provided. Always
   // re-anchored to the official domain — see toCanonicalUrl.
@@ -91,15 +98,19 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />
       {finalImage && <meta property="og:image" content={finalImage} />}
+      {finalImage && finalImageAlt && <meta property="og:image:alt" content={finalImageAlt} />}
       <meta property="og:url" content={canonicalUrl} />
       <meta property="og:type" content={type} />
       <meta property="og:site_name" content={SITE_NAME} />
+      <meta property="og:locale" content={SITE_LOCALE} />
 
       {/* Twitter Card */}
       <meta name="twitter:card" content={finalImage ? twitterCard : 'summary'} />
+      <meta name="twitter:site" content={TWITTER_HANDLE} />
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={description} />
       {finalImage && <meta name="twitter:image" content={finalImage} />}
+      {finalImage && finalImageAlt && <meta name="twitter:image:alt" content={finalImageAlt} />}
     </Helmet>
   );
 };

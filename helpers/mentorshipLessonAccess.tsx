@@ -15,6 +15,8 @@ export interface LessonAccessContext {
   status: string;
   /** The requesting user's role in this specific lesson. */
   viewerRole: "teacher" | "learner";
+  /** Set when the group lesson is a class of a live course. */
+  liveCourseId?: string | null;
 }
 
 export class LessonAccessError extends Error {
@@ -89,6 +91,7 @@ export async function getLessonAccessContext(
       "groupLessons.startTime",
       "groupLessons.durationMinutes",
       "groupLessons.status",
+      "groupLessons.liveCourseId",
       "teacher.displayName as teacherName",
     ])
     .where("groupLessons.id", "=", id)
@@ -100,18 +103,29 @@ export async function getLessonAccessContext(
   const isAdmin = user.role === "admin";
   let isEnrolledLearner = false;
   if (user.role === "student") {
-    const enrollment = await db
-      .selectFrom("groupLessonEnrollments")
-      .select("id")
-      .where("groupLessonId", "=", lesson.id)
-      .where("studentId", "=", user.id)
-      .where("status", "=", "enrolled")
-      .executeTakeFirst();
+    // A live course class admits the course's enrolled students; a standalone lesson its own learners.
+    const enrollment = lesson.liveCourseId
+      ? await db
+          .selectFrom("liveCourseEnrollments")
+          .select("id")
+          .where("liveCourseId", "=", lesson.liveCourseId)
+          .where("studentId", "=", user.id)
+          .where("status", "=", "enrolled")
+          .executeTakeFirst()
+      : await db
+          .selectFrom("groupLessonEnrollments")
+          .select("id")
+          .where("groupLessonId", "=", lesson.id)
+          .where("studentId", "=", user.id)
+          .where("status", "=", "enrolled")
+          .executeTakeFirst();
     isEnrolledLearner = !!enrollment;
   }
 
   if (!isTeacher && !isEnrolledLearner && !isAdmin) {
-    throw new LessonAccessError("You are not enrolled in this group lesson.");
+    throw new LessonAccessError(
+      lesson.liveCourseId ? "You are not enrolled in this live course." : "You are not enrolled in this group lesson."
+    );
   }
 
   return {
@@ -125,5 +139,6 @@ export async function getLessonAccessContext(
     status: lesson.status,
     // As with bookings, admins viewing for moderation get teacher-level classroom controls.
     viewerRole: isEnrolledLearner ? "learner" : "teacher",
+    liveCourseId: lesson.liveCourseId,
   };
 }

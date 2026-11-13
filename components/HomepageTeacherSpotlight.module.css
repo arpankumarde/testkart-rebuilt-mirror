@@ -185,6 +185,27 @@
   vector-effect: non-scaling-stroke;
 }
 
+.tutorsLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--fc-panel-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.tutorsLink:hover {
+  color: var(--tk-brand-text);
+}
+
+.tutorsLink:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
 .arrows {
   display: flex;
   flex: 0 0 auto;

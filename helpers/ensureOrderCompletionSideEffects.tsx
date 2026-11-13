@@ -8,6 +8,7 @@ import { sendEmail } from "./sendEmail";
 import { emailTemplatesExtra } from "./emailTemplatesExtra";
 import { completeLiveCycle, cycleForOrder } from "./livePackages";
 import { sendRenewalPaidEmail, type CycleSummary } from "./livePackageEmails";
+import { sendEnrolledNotices } from "./liveCourseNotices";
 
 /**
  * Ensures all completion side effects (digital product purchases, course enrollments, live test enrollments) 
@@ -41,6 +42,7 @@ export async function ensureOrderCompletionSideEffects(orderId: number): Promise
     groupLessonId: string;
   } | null = null;
   let pendingLiveCycleSummary: CycleSummary | null = null;
+  let pendingLiveCourseEnrollment: { courseId: string; studentId: number; amount: number } | null = null;
 
   await db.transaction().execute(async (trx) => {
     // Get the order
@@ -689,6 +691,60 @@ export async function ensureOrderCompletionSideEffects(orderId: number): Promise
       }
     }
 
+    // Live course enrolment. A seat race (two students paying for the last seat at once) is let
+    // through rather than refunded; a course cancelled while the student paid needs a manual refund.
+    const liveCourseItem = await trx
+      .selectFrom("orderItems")
+      .select(["id", "liveCourseId"])
+      .where("orderId", "=", orderId)
+      .where("liveCourseId", "is not", null)
+      .executeTakeFirst();
+
+    if (liveCourseItem?.liveCourseId) {
+      const linked = await trx
+        .selectFrom("liveCourseEnrollments")
+        .select("id")
+        .where("orderId", "=", orderId)
+        .executeTakeFirst();
+      if (!linked) {
+        const course = await trx
+          .selectFrom("liveCourses")
+          .select(["id", "status", "teacherId", "enrolledCount", "seatLimit"])
+          .where("id", "=", liveCourseItem.liveCourseId)
+          .forUpdate()
+          .executeTakeFirst();
+        const active = course
+          ? await trx
+              .selectFrom("liveCourseEnrollments")
+              .select("id")
+              .where("liveCourseId", "=", course.id)
+              .where("studentId", "=", beneficiaryUserId)
+              .where("status", "=", "enrolled")
+              .executeTakeFirst()
+          : undefined;
+        if (!course || course.status !== "published") {
+          console.error(`[ensureOrderCompletionSideEffects] Order ${orderId} paid for live course ${liveCourseItem.liveCourseId} but it is not published (${course?.status ?? "missing"}); no enrolment created. Refund by hand.`);
+        } else if (active) {
+          console.error(`[ensureOrderCompletionSideEffects] Order ${orderId}: student ${beneficiaryUserId} was already enrolled in live course ${course.id}; this second payment needs a refund.`);
+        } else {
+          if (course.enrolledCount >= course.seatLimit) {
+            console.warn(`[ensureOrderCompletionSideEffects] Live course ${course.id} goes over its ${course.seatLimit} seats with order ${orderId}.`);
+          }
+          await trx
+            .insertInto("liveCourseEnrollments")
+            .values({ liveCourseId: course.id, studentId: beneficiaryUserId, orderId: order.id, amountPaid: order.totalAmount, status: "enrolled" })
+            .execute();
+          await trx
+            .updateTable("liveCourses")
+            .set({ enrolledCount: course.enrolledCount + 1, updatedAt: new Date() })
+            .where("id", "=", course.id)
+            .execute();
+          await followTeacher(trx, beneficiaryUserId, course.teacherId);
+          pendingLiveCourseEnrollment = { courseId: course.id, studentId: beneficiaryUserId, amount: Number(order.totalAmount) };
+        }
+      }
+    }
+
     // A one-time "Pay now" order for a live package cycle whose autopay debit failed.
     const liveCycle = await cycleForOrder(trx, orderId);
     if (liveCycle && liveCycle.status !== "paid") {
@@ -752,6 +808,11 @@ export async function ensureOrderCompletionSideEffects(orderId: number): Promise
 
   if (pendingLiveCycleSummary) {
     await sendRenewalPaidEmail(pendingLiveCycleSummary);
+  }
+
+  if (pendingLiveCourseEnrollment) {
+    const { courseId, studentId, amount } = pendingLiveCourseEnrollment;
+    await sendEnrolledNotices(courseId, studentId, amount);
   }
 
   if (pendingGroupLessonEnrollmentEmail) {

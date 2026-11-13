@@ -107,6 +107,10 @@ export function HomepageTeacherSpotlight({
                 <path d="M2 6.5C20 2.5 38 8.5 58 5S98 2 118 5.5" />
               </svg>
             </div>
+            <Link to="/expert" className={styles.tutorsLink}>
+              Explore 1:1 tutors
+              <ArrowRight size={16} aria-hidden />
+            </Link>
           </div>
 
           {showArrows && (

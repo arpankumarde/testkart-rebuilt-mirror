@@ -30,6 +30,7 @@ export async function handle(request: Request) {
         "cancellationReason",
       ])
       .where("teacherId", "=", effectiveTeacherId)
+      .where("liveCourseId", "is", null)
       .orderBy("startTime", "desc")
       .limit(200)
       .execute();

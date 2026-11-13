@@ -1,6 +1,7 @@
 import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { schema, OutputType } from "./list_GET.schema";
+import { cancelledByLabel } from "../../../helpers/withdrawalCancelLabel";
 import { getStudentsAvailableBalances } from "../../../helpers/getStudentAvailableBalance";
 import superjson from "superjson";
 import { sql } from "kysely";
@@ -26,6 +27,8 @@ export async function handle(request: Request): Promise<Response> {
       .selectFrom("studentWithdrawals")
       .innerJoin("users", "studentWithdrawals.studentId", "users.id")
       .leftJoin("studentBankDetails", "studentBankDetails.studentId", "users.id")
+      .leftJoin("users as canceller", "canceller.id", "studentWithdrawals.cancelledByUserId")
+      .leftJoin("admins as cancellerAdmin", "cancellerAdmin.id", "studentWithdrawals.cancelledByAdminId")
       .select([
         "studentWithdrawals.id",
         "studentWithdrawals.amount",
@@ -35,6 +38,11 @@ export async function handle(request: Request): Promise<Response> {
         "studentWithdrawals.transactionId",
         "studentWithdrawals.notes",
         "studentWithdrawals.studentId",
+        "studentWithdrawals.cancelledAt",
+        "studentWithdrawals.cancelledByUserId",
+        "studentWithdrawals.cancelledByAdminId",
+        "canceller.displayName as cancellerName",
+        "cancellerAdmin.fullName as cancellerAdminName",
         "users.displayName as studentName",
         "users.email as studentEmail",
         "users.mobileNumber as studentMobile",
@@ -96,8 +104,9 @@ export async function handle(request: Request): Promise<Response> {
     const studentBalanceMap = await getStudentsAvailableBalances(uniqueStudentIds);
 
     const output: OutputType = {
-      withdrawals: withdrawals.map((w) => ({
+      withdrawals: withdrawals.map(({ cancellerName, cancellerAdminName, ...w }) => ({
         ...w,
+        cancelledByName: cancelledByLabel(w.cancelledByUserId, cancellerName, w.cancelledByAdminId, cancellerAdminName),
         amount: Number(w.amount),
         currentWalletBalance: studentBalanceMap.get(w.studentId) ?? 0,
       })),

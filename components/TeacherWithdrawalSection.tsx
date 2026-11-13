@@ -1,9 +1,11 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { format } from "date-fns";
 import { Clock, CheckCircle, XCircle } from "lucide-react";
+import { toast } from "sonner";
 import { Skeleton } from "./Skeleton";
 import { ConsoleFilterNotice } from "./ConsoleFilterNotice";
-import { useTeacherWithdrawals } from "../helpers/useTeacherWithdrawalQuery";
+import { WithdrawalCancelDialog } from "./WithdrawalCancelDialog";
+import { useCancelTeacherWithdrawal, useTeacherWithdrawals } from "../helpers/useTeacherWithdrawalQuery";
 import { useListUrlParams } from "../helpers/useListUrlParams";
 import { useRefetchOnLinkArrival } from "../helpers/useRefetchOnLinkArrival";
 import { WithdrawalStatus } from "../helpers/schema";
@@ -39,10 +41,15 @@ const StatusBadge = ({ status }: { status: WithdrawalStatus }) => {
         </span>
       );
     case "failed":
-    case "cancelled":
       return (
         <span className={`${styles.badge} ${styles.badgeFailed}`}>
-          <XCircle size={12} aria-hidden="true" /> {status === "failed" ? "Failed" : "Cancelled"}
+          <XCircle size={12} aria-hidden="true" /> Rejected
+        </span>
+      );
+    case "cancelled":
+      return (
+        <span className={`${styles.badge} ${styles.badgeCancelled}`}>
+          <XCircle size={12} aria-hidden="true" /> Cancelled
         </span>
       );
     default:
@@ -52,12 +59,15 @@ const StatusBadge = ({ status }: { status: WithdrawalStatus }) => {
 
 /*
  * The teacher's withdrawal requests. Requesting one happens from the balance
- * block at the top of Earnings, next to the figure it draws on.
+ * block at the top of Earnings, next to the figure it draws on. A pending
+ * request can be cancelled from its row.
  */
 export const TeacherWithdrawalSection: React.FC<TeacherWithdrawalSectionProps> = ({
   isLayoutPending = false,
 }) => {
   const { data: withdrawalData, isFetching: isFetchingHistory, refetch: refetchHistory } = useTeacherWithdrawals();
+  const cancelMutation = useCancelTeacherWithdrawal();
+  const [cancelTarget, setCancelTarget] = useState<{ id: number; amount: number } | null>(null);
   const { read, write } = useListUrlParams();
   const pendingOnly = read<ListFilter | "none">("filter", LIST_FILTERS, "none") === "pending-withdrawals";
   useRefetchOnLinkArrival(pendingOnly, isFetchingHistory, refetchHistory);
@@ -78,6 +88,23 @@ export const TeacherWithdrawalSection: React.FC<TeacherWithdrawalSectionProps> =
     hasScrolled.current = true;
     sectionRef.current?.scrollIntoView({ block: "start" });
   }, [pendingOnly, isSettled]);
+
+  const confirmCancel = () => {
+    if (!cancelTarget || cancelMutation.isPending) return;
+    cancelMutation.mutate(
+      { withdrawalId: cancelTarget.id },
+      {
+        onSuccess: (cancelled) => {
+          toast.success(`Withdrawal request cancelled. ${rupees.format(cancelled.amount)} is back in your available balance.`);
+          setCancelTarget(null);
+        },
+        onError: (error) => {
+          toast.error(error instanceof Error ? error.message : "Could not cancel this request.");
+          setCancelTarget(null);
+        },
+      }
+    );
+  };
 
   return (
     <section id="withdrawals" ref={sectionRef} className={styles.card} aria-labelledby="withdrawals-title">
@@ -122,7 +149,9 @@ export const TeacherWithdrawalSection: React.FC<TeacherWithdrawalSectionProps> =
               ))
             ) : withdrawals.length > 0 ? (
               withdrawals.map((withdrawal) => {
-                const hasNotes = !!withdrawal.notes || withdrawal.status === "failed";
+                const isPending = withdrawal.status === "pending";
+                const isCancelled = withdrawal.status === "cancelled";
+                const hasNotes = !!withdrawal.notes || withdrawal.status === "failed" || isPending || isCancelled;
                 return (
                   <tr key={withdrawal.id}>
                     <td className={styles.date}>
@@ -134,9 +163,26 @@ export const TeacherWithdrawalSection: React.FC<TeacherWithdrawalSectionProps> =
                       <StatusBadge status={withdrawal.status as WithdrawalStatus} />
                     </td>
                     <td className={`${styles.notes} ${hasNotes ? "" : styles.notesEmpty}`}>
-                      {withdrawal.notes || (withdrawal.status === "failed" ? "" : "-")}
+                      {withdrawal.notes || (hasNotes ? "" : "-")}
                       {withdrawal.status === "failed" && (
                         <span className={styles.failureReason}>Check your bank account, then request again.</span>
+                      )}
+                      {isCancelled && (
+                        <span className={styles.cancelledNote}>
+                          {withdrawal.cancelledAt ? `Cancelled on ${format(new Date(withdrawal.cancelledAt), "MMM dd, yyyy")}. ` : ""}
+                          The amount is back in your balance.
+                        </span>
+                      )}
+                      {isPending && (
+                        <button
+                          type="button"
+                          className={styles.cancelButton}
+                          onClick={() => setCancelTarget({ id: withdrawal.id, amount: withdrawal.amount })}
+                          disabled={cancelMutation.isPending}
+                          aria-label={`Cancel withdrawal request of ${rupees.format(withdrawal.amount)}`}
+                        >
+                          Cancel Request
+                        </button>
                       )}
                     </td>
                     <td className={`${styles.numeric} ${styles.amount}`}>{rupees.format(withdrawal.amount)}</td>
@@ -155,6 +201,13 @@ export const TeacherWithdrawalSection: React.FC<TeacherWithdrawalSectionProps> =
           </tbody>
         </table>
       </div>
+
+      <WithdrawalCancelDialog
+        open={!!cancelTarget}
+        onOpenChange={(open) => { if (!open && !cancelMutation.isPending) setCancelTarget(null); }}
+        isPending={cancelMutation.isPending}
+        onConfirm={confirmCancel}
+      />
     </section>
   );
 };

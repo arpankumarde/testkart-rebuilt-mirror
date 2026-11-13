@@ -31,6 +31,7 @@ export async function handle(request: Request) {
         "teacher.bio as teacherBio",
       ])
       .where("groupLessons.id", "=", input.id)
+      .where("groupLessons.liveCourseId", "is", null)
       .executeTakeFirst();
 
     if (!row) {

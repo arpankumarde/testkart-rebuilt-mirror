@@ -142,15 +142,15 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
 
   const details = detailsQuery.data;
 
-  // Where Back and the post-session button lead: each role's own lesson list.
+  // Where Back and the post-session button lead: each role's own list. Group rooms are live course classes.
   const exitPath =
     details.viewerRole === "teacher"
       ? kind === "booking"
         ? "/teacher/mentorship/bookings"
-        : "/teacher/mentorship/group-lessons"
+        : "/teacher/live-courses"
       : kind === "booking"
         ? "/student/live-teaching"
-        : "/live-teaching";
+        : "/student/live-courses";
 
   // Opened from a dashboard in its own tab: the dashboard is still open behind it.
   const isOwnTab = typeof window !== "undefined" && window.history.length <= 2;

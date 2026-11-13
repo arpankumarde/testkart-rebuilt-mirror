@@ -51,7 +51,8 @@ export const ADMIN_MODULES = [
   { key: "test_series", label: "Test series", group: "Catalogue", hint: "Mock tests" },
   { key: "live_tests", label: "Live tests", group: "Catalogue", hint: "Competitions and prize distribution" },
   { key: "bundles", label: "Bundles", group: "Catalogue", hint: "Course bundles" },
-  { key: "live_lessons", label: "Live lessons", group: "Catalogue", hint: "1:1 and group video lesson offerings, bookings and moderation" },
+  { key: "live_lessons", label: "1:1 live classes", group: "Catalogue", hint: "1:1 bookings, calendar, reports and packages" },
+  { key: "live_courses", label: "Live courses", group: "Catalogue", hint: "Multi-week live batches: courses, classes, enrolments and refunds" },
   { key: "content", label: "Content dashboard", group: "Content", hint: "Site content overview" },
   { key: "exam_content", label: "Exam content", group: "Content", hint: "Exams, categories, subjects and exam pages" },
   { key: "blog", label: "Blog posts", group: "Content", hint: "Blog and help articles, categories" },
@@ -184,6 +185,9 @@ const API_RULES: Record<string, ApiRule> = {
   "live-tests/distribute-prizes": ["live_tests"],
   "admin/bundles": ["bundles"],
   "admin/live-lessons": ["live_lessons"],
+  "admin/live-courses": ["live_courses"],
+  // Each call is also limited to the product types whose section the admin holds.
+  "admin/price-history": ["courses", "notes", "test_series", "live_tests", "bundles", "live_courses"],
 
   "admin/content/dashboard": ["content"],
   "admin/exam-content": ["exam_content"],

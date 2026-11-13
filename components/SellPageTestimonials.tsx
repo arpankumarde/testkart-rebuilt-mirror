@@ -10,7 +10,7 @@ import {
 import { VerifiedBadge } from "./VerifiedBadge";
 import styles from "./SellPageTestimonials.module.css";
 
-interface Testimonial {
+export interface Testimonial {
   id: string;
   quote: string;
   academyName: string;
@@ -28,9 +28,10 @@ interface Testimonial {
  * the full remarks are in the videos beside them.
  *
  * Names, taglines and slugs come from the teachers' own profile records, so
- * these cards and their /expert pages stay in step.
+ * these cards and their /expert pages stay in step. The /sell landing page
+ * (SellLandingTestimonials) reads this same list.
  */
-const TESTIMONIALS: Testimonial[] = [
+export const TESTIMONIALS: Testimonial[] = [
   {
     id: "nata-ace-tutorial",
     quote:

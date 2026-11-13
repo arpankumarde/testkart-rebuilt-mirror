@@ -44,6 +44,7 @@ export async function getLiveTeachingState(teacherId: number): Promise<LiveTeach
       "teachingCategories",
       "languages",
       "mentorshipRatePerUnit",
+      "mentorshipClassPrice60",
       "introVideoUrl",
       "introVideoFileId",
       "liveTeachingStatus",
@@ -80,7 +81,9 @@ export async function getLiveTeachingState(teacherId: number): Promise<LiveTeach
   const subjects = Array.from(
     new Set([...asStringList(user.expertiseAreas), ...asStringList(user.teachingCategories)])
   );
-  const ratePerUnit = user.mentorshipRatePerUnit !== null ? Number(user.mentorshipRatePerUnit) : null;
+  /* The 30-minute price stands for "prices set"; it counts only once the 60-minute price is set too. */
+  const ratePerUnit =
+    user.mentorshipRatePerUnit !== null && user.mentorshipClassPrice60 !== null ? Number(user.mentorshipRatePerUnit) : null;
 
   return {
     status: toLiveTeachingStatus(user.liveTeachingStatus),

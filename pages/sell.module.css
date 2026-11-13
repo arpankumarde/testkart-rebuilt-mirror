@@ -1,88 +1,205 @@
-.pageWrapper {
+/*
+ * /sell landing page. Every section reads the --sl-* tokens set here: a warm
+ * ivory page, solid pastel fills each paired with a -deep edge and an -ink for
+ * text, and coral only on primary actions (navy label, 6.5:1). Dark mode swaps
+ * the surfaces and points the pastels at the themed --pastel-* tokens in
+ * base.css, so fills go deep and inks go light instead of inverting.
+ */
+.page {
+  --sl-bg: #faf9f6;
+  --sl-alt: #f3f0e9;
+  --sl-surface: #ffffff;
+  --sl-ink: #202a3b;
+  --sl-text: #3d4757;
+  --sl-muted: #697386;
+  --sl-line: #e6e1d7;
+  --sl-line-strong: #d3ccbf;
+
+  --sl-lavender: #eee9fa;
+  --sl-blue: #e7f0fa;
+  --sl-mint: #e5f2ea;
+  --sl-peach: #fce9dd;
+  --sl-butter: #fff3cf;
+  --sl-lavender-deep: #d9cff3;
+  --sl-blue-deep: #cbdcf0;
+  --sl-mint-deep: #c4e2cf;
+  --sl-peach-deep: #f6cfb6;
+  --sl-butter-deep: #f6dd94;
+  --sl-lavender-ink: var(--pastel-lavender-ink);
+  --sl-blue-ink: var(--pastel-powder-ink);
+  --sl-mint-ink: var(--pastel-mint-ink);
+  --sl-peach-ink: var(--pastel-peach-ink);
+  --sl-butter-ink: var(--pastel-butter-ink);
+
+  --sl-cta: #ff936b;
+  --sl-cta-hover: #ff8257;
+  --sl-cta-ink: #202a3b;
+  --sl-cta-edge: #202a3b;
+
+  --sl-shadow: 0 1px 2px hsl(30 25% 20% / 0.06), 0 14px 32px -18px hsl(30 25% 20% / 0.28);
+  --sl-shadow-hover: 0 2px 4px hsl(30 25% 20% / 0.08), 0 24px 44px -20px hsl(30 25% 20% / 0.34);
+  --sl-radius: 1.25rem;
+  --sl-max: 1160px;
+  --sl-gutter: clamp(1rem, 4vw, 2rem);
+
   width: 100%;
-  overflow-x: hidden;
-  background-color: #0a0a0a; /* Dark theme base */
-  color: #ffffff;
+  overflow-x: clip;
+  background-color: var(--sl-bg);
+  color: var(--sl-ink);
   font-family: var(--font-family-base);
 }
 
-.sectionContainer {
-  max-width: 1200px;
-  margin: 0 auto;
+:global(.dark) .page {
+  --sl-bg: var(--background);
+  --sl-alt: hsl(220 20% 13.5%);
+  --sl-surface: hsl(220 18% 16%);
+  --sl-ink: hsl(40 30% 95%);
+  --sl-text: hsl(220 14% 84%);
+  --sl-muted: hsl(220 12% 72%);
+  --sl-line: hsl(220 14% 24%);
+  --sl-line-strong: hsl(220 14% 32%);
+
+  --sl-lavender: var(--pastel-lavender);
+  --sl-blue: var(--pastel-powder);
+  --sl-mint: var(--pastel-mint);
+  --sl-peach: var(--pastel-peach);
+  --sl-butter: var(--pastel-butter);
+  --sl-lavender-deep: hsl(258 22% 36%);
+  --sl-blue-deep: hsl(211 28% 35%);
+  --sl-mint-deep: hsl(158 24% 32%);
+  --sl-peach-deep: hsl(18 28% 35%);
+  --sl-butter-deep: hsl(42 26% 32%);
+
+  --sl-cta-edge: hsl(220 30% 5%);
+
+  --sl-shadow: 0 1px 2px hsl(0 0% 0% / 0.3), 0 14px 32px -18px hsl(0 0% 0% / 0.6);
+  --sl-shadow-hover: 0 2px 4px hsl(0 0% 0% / 0.35), 0 24px 44px -20px hsl(0 0% 0% / 0.7);
 }
 
-.sectionTitle {
-  text-align: center;
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: var(--spacing-12);
-  color: white;
-  line-height: 1.2;
-}
-
-/* 10. FAQ */
+/* FAQ */
 .faqSection {
-  padding: var(--spacing-16) var(--spacing-4);
-  background: #0f0f0f;
+  padding: clamp(3.5rem, 8vw, 6rem) var(--sl-gutter);
+  background-color: var(--sl-alt);
 }
 
-.faqWrapper {
-  max-width: 800px;
-  margin: 0 auto;
-  
-  /* Theme overrides for Accordion to ensure visibility in dark mode */
-  --card: #151515;
-  --card-foreground: #ffffff;
-  --muted-foreground: #a3a3a3;
-  --primary: #ff6f40;
-  --radius: 0.75rem;
-  --shadow: none; /* Prefer flat/bordered look in deep dark mode */
+.faqLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  align-items: start;
+  gap: clamp(2rem, 5vw, 4rem);
+  max-width: 1080px;
+  margin-inline: auto;
 }
 
-/* Specific styling for FAQ items to add borders */
+.faqIntro {
+  position: sticky;
+  top: 6rem;
+}
+
+.helpCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.875rem;
+  padding: 1.25rem;
+  border-radius: var(--sl-radius);
+  background-color: var(--sl-mint);
+  border: 1px solid var(--sl-mint-deep);
+}
+
+.helpIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  background-color: var(--sl-surface);
+  color: var(--sl-mint-ink);
+  border: 1px solid var(--sl-mint-deep);
+}
+
+.helpText {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--sl-ink);
+}
+
+.faqList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
 .faqItem {
-  border: 1px solid #333;
-  margin-bottom: var(--spacing-4);
+  margin-bottom: 0;
+  border-radius: 1rem;
+  background-color: var(--sl-surface);
+  color: var(--sl-ink);
+  border: 1px solid var(--sl-line);
+  box-shadow: none;
+  transition: border-color 0.18s ease;
 }
 
-/* 12. Mobile Sticky Bar */
-.mobileStickyBar {
+.faqItem:hover {
+  border-color: var(--sl-line-strong);
+  box-shadow: none;
+}
+
+.faqItem[data-state="open"] {
+  border-color: var(--sl-lavender-deep);
+  box-shadow: inset 4px 0 0 var(--sl-lavender-ink);
+}
+
+.faqTrigger {
+  padding: 1.125rem 1.25rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--sl-ink);
+  gap: 1rem;
+}
+
+.faqTrigger:hover {
+  opacity: 1;
+  color: var(--sl-lavender-ink);
+}
+
+.faqTrigger:focus-visible {
+  outline: 3px solid var(--sl-lavender-ink);
+  outline-offset: -3px;
+  border-radius: 1rem;
+}
+
+.faqTrigger svg {
+  color: var(--sl-text);
+}
+
+.faqAnswer {
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: var(--sl-text);
+}
+
+.faqAnswer > div {
+  padding: 0 1.25rem 1.25rem;
+}
+
+/* Sticky mobile bar */
+.mobileBar {
   position: fixed;
-  bottom: 0;
   left: 0;
-  width: 100%;
-  background: rgba(15, 15, 15, 0.95);
-  backdrop-filter: blur(10px);
-  border-top: 1px solid #333;
-  padding: var(--spacing-3) var(--spacing-4);
+  right: 0;
+  bottom: 0;
   z-index: 1000;
   display: none;
-}
-
-/* Mobile Optimizations */
-@media (max-width: 768px) {
-  .sectionTitle {
-    font-size: 1.75rem;
-    margin-bottom: var(--spacing-8);
-  }
-
-  .faqSection {
-    padding: var(--spacing-12) var(--spacing-4);
-  }
-  
-  .mobileStickyBar {
-    display: block;
-  }
-  
-  .pageWrapper {
-    padding-bottom: 80px; /* Space for sticky bar */
-  }
-}
-
-.mobileBarContent {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem var(--sl-gutter);
+  background-color: var(--sl-surface);
+  border-top: 1px solid var(--sl-line-strong);
 }
 
 .mobileBarText {
@@ -90,17 +207,56 @@
   flex-direction: column;
 }
 
-.mobileBarText span {
-  color: white;
-  font-weight: 700;
+.mobileBarText strong {
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--sl-ink);
 }
 
 .mobileBarText small {
-  color: #34c759;
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--sl-mint-ink);
 }
 
 .mobileBarBtn {
-  background: #ff6f40;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0 1.25rem;
+  border-radius: 999px;
+  background-color: var(--sl-cta);
+  color: var(--sl-cta-ink);
+  border: 1.5px solid var(--sl-cta-edge);
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
   font-weight: 700;
+  text-decoration: none;
+}
+
+.mobileBarBtn:focus-visible {
+  outline: 3px solid var(--sl-lavender-ink);
+  outline-offset: 3px;
+}
+
+@media (max-width: 860px) {
+  .faqLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .faqIntro {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .mobileBar {
+    display: flex;
+  }
+
+  .page {
+    padding-bottom: 4.5rem;
+  }
 }

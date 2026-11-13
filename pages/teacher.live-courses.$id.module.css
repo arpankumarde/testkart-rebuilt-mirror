@@ -1,0 +1,66 @@
+/* Teacher live course editor shell: back link, header with status and actions, section switcher. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 58rem;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  align-self: flex-start;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--tc-text, var(--muted-foreground));
+  text-decoration: none;
+}
+
+.back:hover {
+  color: var(--tc-ink, var(--foreground));
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.tone_mint {
+  background: var(--fc-mint-tint);
+  color: var(--fc-mint-ink);
+}
+
+.tone_butter {
+  background: var(--fc-butter-tint);
+  color: var(--fc-butter-ink);
+}
+
+.tone_sage {
+  background: var(--fc-sage-tint);
+  color: var(--fc-sage-ink);
+}
+
+.tone_peach {
+  background: var(--fc-peach-tint);
+  color: var(--fc-peach-ink);
+}
+
+.banner {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--fc-peach-edge, var(--border));
+  border-radius: 1rem;
+  background: var(--fc-peach-tint);
+  color: var(--fc-peach-ink);
+  font-size: 0.875rem;
+}
+
+.error {
+  margin: 0;
+  color: var(--fc-peach-ink);
+}

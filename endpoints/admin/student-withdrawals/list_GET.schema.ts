@@ -36,6 +36,11 @@ export type AdminStudentWithdrawalRecord = {
   bankUpiId: string | null;
   /** Student's current available wallet balance at time of this request */
   currentWalletBalance: number;
+  cancelledAt: Date | null;
+  cancelledByUserId: number | null;
+  cancelledByAdminId: number | null;
+  /** Who cancelled it, e.g. "Asha Rao" or "Ravi (admin, signed in as the account)". Null unless cancelled. */
+  cancelledByName: string | null;
 };
 
 export type OutputType = {

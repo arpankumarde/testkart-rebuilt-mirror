@@ -1,6 +1,7 @@
 import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { schema, OutputType } from "./list_GET.schema";
+import { cancelledByLabel } from "../../../helpers/withdrawalCancelLabel";
 import superjson from "superjson";
 import { sql } from "kysely";
 
@@ -25,6 +26,8 @@ export async function handle(request: Request): Promise<Response> {
       .selectFrom("teacherWithdrawals")
       .innerJoin("users", "teacherWithdrawals.teacherId", "users.id")
       .leftJoin("teacherBankDetails", "teacherBankDetails.teacherId", "users.id")
+      .leftJoin("users as canceller", "canceller.id", "teacherWithdrawals.cancelledByUserId")
+      .leftJoin("admins as cancellerAdmin", "cancellerAdmin.id", "teacherWithdrawals.cancelledByAdminId")
       .select([
         "teacherWithdrawals.id",
         "teacherWithdrawals.amount",
@@ -35,6 +38,11 @@ export async function handle(request: Request): Promise<Response> {
         "teacherWithdrawals.notes",
         "teacherWithdrawals.teacherId",
         "teacherWithdrawals.balanceAtRequest",
+        "teacherWithdrawals.cancelledAt",
+        "teacherWithdrawals.cancelledByUserId",
+        "teacherWithdrawals.cancelledByAdminId",
+        "canceller.displayName as cancellerName",
+        "cancellerAdmin.fullName as cancellerAdminName",
         "users.displayName as teacherName",
         "users.email as teacherEmail",
         "teacherBankDetails.verificationStatus as bankVerificationStatus",
@@ -89,8 +97,9 @@ export async function handle(request: Request): Promise<Response> {
       .execute();
 
     const output: OutputType = {
-      withdrawals: withdrawals.map((w) => ({
+      withdrawals: withdrawals.map(({ cancellerName, cancellerAdminName, ...w }) => ({
         ...w,
+        cancelledByName: cancelledByLabel(w.cancelledByUserId, cancellerName, w.cancelledByAdminId, cancellerAdminName),
         amount: Number(w.amount),
         balanceAtRequest: w.balanceAtRequest === null ? null : Number(w.balanceAtRequest),
       })),

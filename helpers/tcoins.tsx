@@ -24,6 +24,8 @@ export { TCOINS_SETTING_KEY, type TcoinsConfig } from "./tcoinsMath";
  * Spending: a student can pay up to redeemPercent of an order's value with coins, capped at maxRedeem.
  * Earning: every paid order earns cashbackPercent of the cash actually paid, capped at maxCashback.
  * Coins never combine with a coupon (Spin & Win included), but a coupon order still earns cashback.
+ * Live teaching orders (1:1 trials, packages and renewals, group classes, live courses) never call
+ * planTcoinsForOrder, so they neither spend nor earn coins. Keep it that way (decided 18-11-2026).
  *
  * There is no full ledger. Grants (admin form, autopilot offers) live in tcoin_grants. Each order
  * stores tcoins_redeemed and tcoins_cashback, and the rest of the balance is derived from order

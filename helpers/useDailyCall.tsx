@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import DailyIframe, { DailyCall, DailyParticipant } from "@daily-co/daily-js";
+import { DAILY_ENGINE_VERSION, dailyEngineBundlePath } from "./dailyEngine";
 
 /*
  * One Daily call object (no Prebuilt iframe) for the live classroom. Daily carries the media;
@@ -81,6 +82,39 @@ const FINAL_ERRORS: Record<string, string> = {
 
 const MAX_REJOINS = 3;
 const TIME_UP_MESSAGE = "The class time is over, so the call has ended.";
+const ENGINE_UNREACHABLE_MESSAGE =
+  "Your browser could not load the video call engine, so the call could not start. Check your internet connection, turn off any VPN or DNS filter, then join again.";
+
+/*
+ * In call object mode daily-js downloads its call engine when a call starts: from our own domain
+ * when the installed version matches helpers/dailyEngine.tsx, otherwise from c.daily.co. If that
+ * download fails no join can ever succeed, so it is not a dropped connection: retrying only loops
+ * on "Reconnecting". Daily reports it as a connection-error whose text names the bundle.
+ */
+const isEngineLoadFailure = (message: string) => /bundle|call-machine|load attempt|failed to load|net::ERR_/i.test(message);
+
+/*
+ * avoidEval: by default daily-js downloads the engine as text and evaluates it, which the live
+ * site's Content-Security-Policy forbids (no 'unsafe-eval'), so every join failed with an
+ * EvalError there while the preview, which sends no CSP, worked. With avoidEval it loads the same
+ * file through a <script> tag, which script-src allows ('self' for our copy, https: for
+ * c.daily.co). Prebuilt never hit this because it runs inside Daily's own iframe and policy.
+ *
+ * bundlePathOverride: our own copy of the engine, used only when it is the version this daily-js
+ * expects (helpers/dailyEngine.tsx); otherwise daily-js loads it from c.daily.co.
+ */
+const engineConfig = () => {
+  const installed = (DailyIframe as unknown as { version?: () => string }).version?.() ?? null;
+  const selfHosted = installed === DAILY_ENGINE_VERSION && typeof window !== "undefined";
+  return {
+    selfHosted,
+    installed,
+    config: {
+      avoidEval: true,
+      ...(selfHosted ? { bundlePathOverride: dailyEngineBundlePath(window.location.origin) } : {}),
+    },
+  };
+};
 /** A join that has neither succeeded nor failed by then is dropped and tried again. */
 const JOIN_TIMEOUT_MS = 20000;
 
@@ -182,6 +216,8 @@ export function useDailyCall(options: UseDailyCallOptions) {
       if (closed) return;
 
       const o = optionsRef.current;
+      const engine = engineConfig();
+      log("engine-source", { source: engine.selfHosted ? "testkart" : "c.daily.co", installed: engine.installed, pinned: DAILY_ENGINE_VERSION, avoidEval: true });
       const instance = DailyIframe.createCallObject({
         url: o.url,
         token: o.token,
@@ -189,6 +225,7 @@ export function useDailyCall(options: UseDailyCallOptions) {
         startAudioOff: o.startAudioOff,
         ...(o.videoSource ? { videoSource: o.videoSource } : {}),
         ...(o.audioSource ? { audioSource: o.audioSource } : {}),
+        dailyConfig: engine.config,
       });
       call = instance;
       callRef.current = instance;
@@ -261,6 +298,10 @@ export function useDailyCall(options: UseDailyCallOptions) {
             end(TIME_UP_MESSAGE, `error:${type}:time-up`);
             return;
           }
+          if (isEngineLoadFailure(message)) {
+            end(ENGINE_UNREACHABLE_MESSAGE, "engine-load-failed");
+            return;
+          }
           // Older Daily builds put the reason only in the message text.
           const expired = /exp|expired|meeting has ended|ended/i.test(message);
           const final = FINAL_ERRORS[type] ?? (expired ? "This call has ended because its access expired." : undefined);
@@ -269,6 +310,10 @@ export function useDailyCall(options: UseDailyCallOptions) {
             return;
           }
           void rejoin(`error:${type}`);
+        })
+        .on("load-attempt-failed", (ev) => {
+          if (!current()) return;
+          log("load-attempt-failed", { message: (ev as { errorMsg?: string } | undefined)?.errorMsg ?? null });
         })
         .on("left-meeting", () => {
           if (!current()) return;
@@ -317,13 +362,23 @@ export function useDailyCall(options: UseDailyCallOptions) {
         await connect();
       } catch (err) {
         rejoining = false;
-        log("rejoin-failed", { message: err instanceof Error ? err.message : String(err) });
+        const message = err instanceof Error ? err.message : String(err);
+        log("rejoin-failed", { message });
+        if (isEngineLoadFailure(message)) {
+          end(ENGINE_UNREACHABLE_MESSAGE, "engine-load-failed");
+          return;
+        }
         void rejoin("rejoin-failed");
       }
     };
 
     connect().catch((err) => {
-      log("join-failed", { message: err instanceof Error ? err.message : String(err) });
+      const message = err instanceof Error ? err.message : String(err);
+      log("join-failed", { message });
+      if (isEngineLoadFailure(message)) {
+        end(ENGINE_UNREACHABLE_MESSAGE, "engine-load-failed");
+        return;
+      }
       void rejoin("join-failed");
     });
 

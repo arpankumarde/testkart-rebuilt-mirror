@@ -8,6 +8,7 @@ import {
   computeBundlePricing,
   loadBundleItemPrices,
 } from "../../../helpers/bundlePricing";
+import { priceChangeActor, setPriceChangeActor } from "../../../helpers/productPriceHistoryServer";
 
 const sameIds = (a: number[], b: number[]): boolean => {
   if (a.length !== b.length) return false;
@@ -18,7 +19,7 @@ const sameIds = (a: number[], b: number[]): boolean => {
 
 export async function handle(request: Request): Promise<Response> {
   try {
-    const { user, effectiveTeacherId } = await getServerUserSession(request);
+    const { user, effectiveTeacherId, teacherRole, impersonatorAdminId, session } = await getServerUserSession(request);
 
     if (user.role !== "teacher" && user.role !== "admin") {
       return new Response(
@@ -31,6 +32,7 @@ export async function handle(request: Request): Promise<Response> {
     const input = schema.parse(json);
 
     const updatedBundle = await db.transaction().execute(async (trx) => {
+      await setPriceChangeActor(trx, priceChangeActor({ user, teacherRole, impersonatorAdminId, session }));
       const bundle = await trx
         .selectFrom("courseBundles")
         .selectAll()

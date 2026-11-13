@@ -324,7 +324,7 @@ export async function sendCompletionOverdueEmail(kind: "booking" | "group", id: 
       `Your group lesson "${g.title}" on ${formatIst(new Date(g.startTime))} ended over a day ago and has not been marked yet.`,
       "Mark it completed so it shows correctly to your learners and in your earnings.",
     ],
-    ctaLabel: "Open my group lessons",
-    ctaUrl: `${SITE_ORIGIN}/teacher/mentorship/group-lessons`,
+    ctaLabel: "Open my live courses",
+    ctaUrl: `${SITE_ORIGIN}/teacher/live-courses`,
   });
 }

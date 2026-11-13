@@ -16,6 +16,8 @@ export const TeacherOverviewCreatorBonus: React.FC = () => {
 
   const { slots, earned, items, examCampaigns } = data;
   const max = slots.mock_test.limit * slots.mock_test.amount + slots.course.limit * slots.course.amount;
+  // Bonuses credited under an earlier, higher cap can exceed today's maximum.
+  const meterMax = Math.max(max, earned);
   // Only items the teacher can still tick at submit, not ones already live or in review.
   const ready = items.filter((i) => i.state === "ready" && !i.live && !i.inReview).length;
   const waiting = slots.mock_test.used - slots.mock_test.credited + slots.course.used - slots.course.credited;
@@ -41,7 +43,7 @@ export const TeacherOverviewCreatorBonus: React.FC = () => {
             {data.campaign.title}: {formatRupees(slots.mock_test.amount)} per test series or course
           </span>
           <span className={styles.line}>
-            {formatRupees(earned)} of {formatRupees(max)} earned
+            {formatRupees(earned)} of {formatRupees(meterMax)} earned
             {status && <span className={styles.status}>{status}</span>}
           </span>
         </span>

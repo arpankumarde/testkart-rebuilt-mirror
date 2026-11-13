@@ -50,9 +50,8 @@ export async function handle(request: Request) {
         "displayName",
         "mentorshipEnabled",
         "mentorshipRatePerUnit",
-        "mentorshipClassPrice50",
-        "mentorshipTrialPrice25",
-        "mentorshipTrialPrice50",
+        "mentorshipClassPrice60",
+        "mentorshipTrialDiscount",
         "liveTeachingStatus",
       ])
       .where("id", "=", teacherId)

@@ -1,8 +1,7 @@
 import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./rate_POST.schema";
-import { MENTORSHIP_MIN_RATE_PER_UNIT } from "../../../helpers/liveLessonConfig";
-import { minClassPrice } from "../../../helpers/livePricing";
+import { minClassPrice, pricesMeetFloors, resolveLivePrices } from "../../../helpers/livePricing";
 import superjson from "superjson";
 
 const fail = (error: string, status = 400) => new Response(superjson.stringify({ error }), { status });
@@ -24,14 +23,18 @@ export async function handle(request: Request) {
 
     if (input.prices) {
       const p = input.prices;
-      if (p.class25 < minClassPrice(25)) return fail(`A 25-minute class must cost at least ₹${minClassPrice(25)}.`);
-      if (p.class50 < minClassPrice(50)) return fail(`A 50-minute class must cost at least ₹${minClassPrice(50)}.`);
+      if (p.class30 < minClassPrice(30)) return fail(`A 30-minute class must cost at least ₹${minClassPrice(30)}.`);
+      if (p.class60 < minClassPrice(60)) return fail(`A 60-minute class must cost at least ₹${minClassPrice(60)}.`);
     }
 
-    const class25 = input.prices?.class25 ?? input.ratePerUnit;
-    if (input.enabled && class25 === undefined) {
-      const current = await db.selectFrom("users").select("mentorshipRatePerUnit").where("id", "=", effectiveTeacherId).executeTakeFirst();
-      if (Number(current?.mentorshipRatePerUnit ?? 0) < MENTORSHIP_MIN_RATE_PER_UNIT) {
+    if (input.enabled && !input.prices) {
+      const current = await db
+        .selectFrom("users")
+        .select(["mentorshipRatePerUnit", "mentorshipClassPrice60", "mentorshipTrialDiscount"])
+        .where("id", "=", effectiveTeacherId)
+        .executeTakeFirst();
+      const resolved = current ? resolveLivePrices(current) : null;
+      if (!resolved || !pricesMeetFloors(resolved)) {
         return fail(`Set your class prices to enable 1:1 sessions.`);
       }
     }
@@ -40,12 +43,11 @@ export async function handle(request: Request) {
       .updateTable("users")
       .set({
         mentorshipEnabled: input.enabled,
-        ...(class25 !== undefined ? { mentorshipRatePerUnit: class25.toFixed(2) } : {}),
         ...(input.prices
           ? {
-              mentorshipClassPrice50: input.prices.class50.toFixed(2),
-              mentorshipTrialPrice25: input.prices.trial25.toFixed(2),
-              mentorshipTrialPrice50: input.prices.trial50.toFixed(2),
+              mentorshipRatePerUnit: input.prices.class30.toFixed(2),
+              mentorshipClassPrice60: input.prices.class60.toFixed(2),
+              mentorshipTrialDiscount: input.prices.trialDiscount,
             }
           : {}),
       })

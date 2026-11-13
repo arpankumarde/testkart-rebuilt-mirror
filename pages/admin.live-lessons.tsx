@@ -1,8 +1,9 @@
 import React, { useRef, useState } from "react";
 import { Helmet } from "react-helmet";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { CalendarDays, Flag, Info, Ticket } from "lucide-react";
 import { ConsolePageHeader } from "../components/ConsolePageHeader";
+import { Button } from "../components/Button";
 import { AdminLiveCalendar } from "../components/AdminLiveCalendar";
 import { AdminLiveBookings } from "../components/AdminLiveBookings";
 import { AdminLiveReports } from "../components/AdminLiveReports";
@@ -57,7 +58,11 @@ const AdminLiveLessonsPage: React.FC = () => {
         <title>Live Lessons - Testkart Admin</title>
       </Helmet>
       <div className={styles.page}>
-        <ConsolePageHeader title="Live Lessons" description="Schedule, bookings and policies for 1:1 sessions and group lessons." />
+        <ConsolePageHeader title="Live Lessons" description="Schedule, bookings and policies for 1:1 sessions and live course classes.">
+          <Button variant="outline" asChild>
+            <Link to="/admin/live-lessons/courses">Live courses</Link>
+          </Button>
+        </ConsolePageHeader>
 
         <nav className={styles.tabs} role="tablist" aria-label="Live lessons sections">
           {TABS.map((t, i) => (

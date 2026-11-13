@@ -514,7 +514,7 @@ export const apiDocsCommerce: ApiEndpoint[] = [
       { name: "totalPurchased", type: "number", description: "Wallet purchases" },
       { name: "breakdown", type: "object", description: "{ credits, withdrawals, purchases }, each { count, amount }" },
     ],
-    notes: ["Returns 403 for non-students and 401 when signed out. Failed withdrawals do not count against the balance."],
+    notes: ["Returns 403 for non-students and 401 when signed out. Failed (rejected) and cancelled withdrawals do not count against the balance."],
   },
   {
     method: "GET",
@@ -535,6 +535,7 @@ export const apiDocsCommerce: ApiEndpoint[] = [
     ],
     notes: [
       "Withdrawals appear as withdrawal_debit entries with withdrawalStatus set. Ids from the two sources can repeat, so do not use id alone as a list key.",
+      "A failed or cancelled withdrawal never left the wallet: show it without a minus sign, whatever its transactionType.",
       "Returns 403 for non-students. Other failures, including a missing session, return 400.",
     ],
   },
@@ -572,12 +573,12 @@ export const apiDocsCommerce: ApiEndpoint[] = [
     category: "Wallet and payouts",
     usedBy: ["web", "mobile"],
     responseFields: [
-      { name: "withdrawals", type: "array", description: "{ id, studentId, amount, status: 'pending' | 'completed' | 'failed' | 'cancelled', requestedDate, processedDate, transactionId, notes, balanceAtRequest, createdAt, updatedAt }" },
+      { name: "withdrawals", type: "array", description: "{ id, studentId, amount, status: 'pending' | 'completed' | 'failed' | 'cancelled', requestedDate, processedDate, transactionId, notes, balanceAtRequest, cancelledAt, cancelledByUserId, cancelledByAdminId, createdAt, updatedAt }" },
       { name: "dailyLimit", type: "object", description: "{ lastRequestedAt, nextAvailableAt }. nextAvailableAt is 12:00 AM IST tomorrow when a request was already made today, else null." },
     ],
     notes: [
       "Not paged and has no total field.",
-      "pending waits for an admin, completed means paid (transactionId set by the admin), failed means rejected and the money is released. Nothing sets cancelled today.",
+      "pending waits for an admin, completed means paid (transactionId set by the admin), failed means rejected and the money is released, cancelled means the student cancelled it while pending (cancelledAt set) and the money is released.",
       "Returns 403 for non-students. A signed-out request returns 500.",
     ],
   },
@@ -601,6 +602,25 @@ export const apiDocsCommerce: ApiEndpoint[] = [
       "One request per IST calendar day, whatever its status. A second one the same day returns 429 with { error, code: 'WITHDRAWAL_DAILY_LIMIT', lastRequestedAt, nextAvailableAt }.",
       "Returns 403 for non-students. Other failures, including a missing session, return 400.",
       "Notifies the admins and emails the student a confirmation.",
+    ],
+  },
+  {
+    method: "POST",
+    route: "/_api/student/withdrawal/cancel",
+    description: "Cancel one of the student's own pending withdrawal requests, returning its amount to the available balance",
+    auth: "student",
+    category: "Wallet and payouts",
+    usedBy: ["web", "mobile"],
+    bodyParams: [{ name: "withdrawalId", type: "number", required: true, description: "Id of a pending request owned by the signed-in student" }],
+    responseFields: [
+      { name: "(withdrawal)", type: "object", description: "The updated withdrawal row with status 'cancelled' and cancelledAt set" },
+    ],
+    notes: [
+      "Only a pending request can be cancelled. Already paid, rejected or cancelled returns 409 with a message saying which; another student's request or an unknown id returns 404.",
+      "Balances are derived, so the amount is back in the balance the moment the status changes, and it can only change once: repeating the call returns 409 and changes nothing.",
+      "If an admin is approving or rejecting the same request at that moment, whichever commits first wins and the other is refused.",
+      "Cancelling does not free the day's request: the one-request-per-IST-day rule still counts it.",
+      "Notifies the admins so a cancelled request is not paid out. Returns 403 for non-students and 401 when signed out.",
     ],
   },
   {

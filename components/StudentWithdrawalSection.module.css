@@ -156,6 +156,53 @@
   color: var(--error-text);
 }
 
+/* Neutral, so a request the student withdrew reads apart from one the team rejected. */
+.badgeCancelled {
+  background-color: var(--muted);
+  color: var(--foreground);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.cancelledNote {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+/* A quiet text action: it undoes a request, so it should not compete with the amount. */
+.cancelButton {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.75rem;
+  margin-top: var(--spacing-1);
+  padding: 0 var(--spacing-1);
+  margin-left: calc(-1 * var(--spacing-1));
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--error-text);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.cancelButton:hover {
+  background-color: var(--muted);
+}
+
+.cancelButton:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.cancelButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 @container student-withdrawals (max-width: 37.99rem) {
   .table {
     min-width: 0;

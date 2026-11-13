@@ -24,7 +24,9 @@ export async function handle(request: Request) {
         .forUpdate()
         .executeTakeFirst();
 
-      if (!lesson) throw new Error("Group lesson not found.");
+      if (!lesson || lesson.liveCourseId) throw new Error("Group lesson not found.");
+      // Standalone group lessons were retired for live courses on 18-11-2026; only a paid order already in hand completes.
+      if (!paymentOrderId) throw new Error("Group lessons are no longer open. Look for a live course instead.");
       if (lesson.status !== "scheduled") throw new Error("This group lesson is no longer open for enrollment.");
       if (lesson.startTime < new Date()) throw new Error("This group lesson has already started.");
 

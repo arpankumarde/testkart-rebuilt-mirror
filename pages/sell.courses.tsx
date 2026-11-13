@@ -2,7 +2,6 @@ import React from "react";
 import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
 import {
-  ArrowRight,
   PlayCircle,
   BookOpen,
   PenTool,
@@ -22,13 +21,15 @@ import {
   LineChart,
   CreditCard,
   TrendingUp,
-  Users
+  Users,
+  IndianRupee,
+  MessageCircleQuestion,
+  Check,
+  type LucideIcon,
 } from "lucide-react";
 
 import { SEOHead } from '../components/SEOHead';
-import { Button } from '../components/Button';
 import { WhatsAppBubble } from '../components/WhatsAppBubble';
-import { BookDemoButton } from '../components/BookDemoButton';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/Tabs';
 import {
   Accordion,
@@ -36,8 +37,190 @@ import {
   AccordionItem,
   AccordionTrigger
 } from '../components/Accordion';
-import { SellPageTestimonials } from "../components/SellPageTestimonials";
+import { SellLandingTestimonials } from "../components/SellLandingTestimonials";
+import { SellLandingTrust, type SellTrustStat } from "../components/SellLandingTrust";
+import { SellLandingHeading } from "../components/SellLandingHeading";
+import { sellLandingThemeClass } from "../components/SellLandingTheme";
+import { SellDemoButton, SellSecondaryAnchor, SellStartLink } from "../components/SellLandingCta";
+import { SellCoursesHeroArt } from "../components/SellCoursesHeroArt";
 import styles from "./sell.courses.module.css";
+
+type Tone = "lavender" | "blue" | "peach" | "mint" | "butter";
+type Feature = { icon: LucideIcon; title: string; text: string };
+
+const TONE_CYCLE: Tone[] = ["lavender", "blue", "mint", "peach", "butter"];
+
+const FEATURE_TABS: { value: string; label: string; tone: Tone; features: Feature[] }[] = [
+  {
+    value: "builder",
+    label: "Course Builder",
+    tone: "lavender",
+    features: [
+      {
+        icon: PlayCircle,
+        title: "Video Upload & Hosting",
+        text: "Unlimited, secure video hosting powered by Cloudflare. Upload your lessons and let us handle encoding and smooth delivery to any device.",
+      },
+      {
+        icon: BookOpen,
+        title: "Structured Curriculum Builder",
+        text: "Organize your knowledge easily. Create sections, add lessons, and rearrange your curriculum with a simple drag-and-drop interface.",
+      },
+      {
+        icon: PenTool,
+        title: "Rich Text & Math Editor",
+        text: "Format your text lessons beautifully. Full LaTeX and math equation support ensures your STEM content is perfectly readable.",
+      },
+      {
+        icon: Bot,
+        title: "AI Content Assistance",
+        text: "Overcome writer's block. Use our integrated AI tools to generate course outlines, lesson summaries, and even quiz questions instantly.",
+      },
+      {
+        icon: ImageIcon,
+        title: "Course Thumbnail & Preview",
+        text: "Make a great first impression. Upload eye-catching course thumbnails and select free preview lessons to hook potential students.",
+      },
+      {
+        icon: FileEdit,
+        title: "Draft & Publish Workflow",
+        text: "Work at your own pace. Save your curriculum as a draft, preview it as a student would see it, and publish only when you're 100% ready.",
+      },
+    ],
+  },
+  {
+    value: "student",
+    label: "Student Experience",
+    tone: "blue",
+    features: [
+      {
+        icon: MonitorPlay,
+        title: "Mobile-Friendly Player",
+        text: "A responsive, distraction-free viewing experience that works flawlessly across desktops, tablets, and smartphones.",
+      },
+      {
+        icon: Activity,
+        title: "Lesson Progress Tracking",
+        text: "Students can visually track their overall course progress with intuitive completion bars and status indicators.",
+      },
+      {
+        icon: CheckCircle2,
+        title: "Mark Complete/Incomplete",
+        text: "Empower students to manage their own learning pace by explicitly marking lessons as finished or revisiting them later.",
+      },
+      {
+        icon: Navigation,
+        title: "Section-Wise Navigation",
+        text: "An easy-to-use sidebar allows students to quickly jump between sections, lessons, and review previously watched materials.",
+      },
+      {
+        icon: FastForward,
+        title: "Optimized Video Streaming",
+        text: "Adaptive bitrate streaming ensures that videos play smoothly without buffering, regardless of the student's internet connection.",
+      },
+      {
+        icon: Award,
+        title: "Completion Celebration",
+        text: "Keep motivation high with rewarding visual celebrations when a student successfully finishes your entire course.",
+      },
+    ],
+  },
+  {
+    value: "monetization",
+    label: "Monetization",
+    tone: "mint",
+    features: [
+      {
+        icon: DollarSign,
+        title: "Flexible Pricing",
+        text: "Offer your courses for free as lead magnets, or set competitive paid tiers to monetize your premium content.",
+      },
+      {
+        icon: Package,
+        title: "Course Bundles",
+        text: "Group related courses together into attractive bundles, increasing your average order value and providing more value.",
+      },
+      {
+        icon: Tag,
+        title: "Promo Codes & Discounts",
+        text: "Run holiday sales, early-bird specials, or reward loyal followers with customizable percentage or flat-rate discount codes.",
+      },
+      {
+        icon: HeartHandshake,
+        title: "Student Sponsorship",
+        text: "Allow organizations or individuals to bulk-purchase your courses to sponsor learning for groups of students.",
+      },
+      {
+        icon: LineChart,
+        title: "Earnings Dashboard",
+        text: "Track your sales, refunds, and net revenue in real-time with a transparent, easy-to-understand financial dashboard.",
+      },
+      {
+        icon: CreditCard,
+        title: "Weekly Payouts",
+        text: "No waiting around for your money. Receive your earnings reliably every week, directly deposited into your bank account.",
+      },
+    ],
+  },
+];
+
+const STEPS = [
+  {
+    title: "Sign Up",
+    text: "Create your teacher account in under 2 minutes. No credit card required. Instantly access your creator dashboard.",
+  },
+  {
+    title: "Build Your Course",
+    text: "Use our intuitive builder to structure sections, upload videos, and write rich-text lessons with our AI tools.",
+  },
+  {
+    title: "Publish & Earn",
+    text: "Set your price, hit publish, and tap into our massive student network. Get paid weekly for every enrollment.",
+  },
+];
+
+const ANALYTICS: (Feature & { tone: Tone })[] = [
+  {
+    icon: TrendingUp,
+    tone: "peach",
+    title: "Course Analytics",
+    text: "See exactly which lessons are most popular, where students drop off, and how engaging your video content truly is.",
+  },
+  {
+    icon: Users,
+    tone: "mint",
+    title: "Enrollment Tracking",
+    text: "Monitor your daily, weekly, and monthly new student enrollments to measure the success of your promotional campaigns.",
+  },
+  {
+    icon: DollarSign,
+    tone: "lavender",
+    title: "Revenue Insights",
+    text: "Break down your earnings by individual courses or bundles to identify your most profitable content and scale accordingly.",
+  },
+  {
+    icon: Activity,
+    tone: "blue",
+    title: "Student Progress Monitoring",
+    text: "Identify which students are flying through the material and who might need extra help, allowing for targeted communication.",
+  },
+];
+
+/*
+ * Counted from the live database on 13-10-2026 and rounded down. Update by hand
+ * as they grow. The 11,000+ Educators figure sits beside the educator marquee
+ * in SellLandingTrust; these are the other three.
+ */
+const COURSE_STATS: SellTrustStat[] = [
+  { icon: BookOpen, tone: "peach", value: "500+", label: "Courses Created" },
+  { icon: IndianRupee, tone: "mint", value: "₹72,000+", label: "Paid to Teachers" },
+  { icon: Users, tone: "blue", value: "6,800+", label: "Students" },
+];
+
+const HERO_BADGES = ["Join 11,000+ educators", "Zero Investment", "Unlimited Hosting"];
+const CTA_HIGHLIGHTS = ["Zero Investment", "Weekly Payouts", "AI-Powered Tools"];
+
+const toneClass = (tone: Tone) => styles[`tone_${tone}`];
 
 const SellCoursesFAQ: React.FC = () => {
   const faqs = [
@@ -74,26 +257,37 @@ const SellCoursesFAQ: React.FC = () => {
   ];
 
   return (
-    <section className={styles.faqSection}>
-      <div className={styles.sectionHeader}>
-        <h2>Frequently Asked Questions</h2>
-        <p>
-          Everything you need to know about creating and selling courses with
-          Testkart.
-        </p>
+    <section className={styles.faqSection} aria-labelledby="courses-faq-title">
+      <div className={styles.faqLayout}>
+        <div className={styles.faqIntro}>
+          <SellLandingHeading
+            id="courses-faq-title"
+            align="start"
+            eyebrow="FAQ"
+            title="Frequently Asked Questions"
+            lead="Everything you need to know about creating and selling courses with Testkart."
+          />
+          <div className={styles.helpCard}>
+            <span className={styles.helpIcon} aria-hidden="true">
+              <MessageCircleQuestion size={20} />
+            </span>
+            <p className={styles.helpText}>
+              Still deciding? Walk through the dashboard with our team.
+            </p>
+            <SellDemoButton />
+          </div>
+        </div>
+        <Accordion type="single" collapsible className={styles.faqList}>
+          {faqs.map((faq, index) => (
+            <AccordionItem value={`item-${index}`} key={index} className={styles.faqItem}>
+              <AccordionTrigger className={styles.faqTrigger}>
+                {faq.question}
+              </AccordionTrigger>
+              <AccordionContent className={styles.faqAnswer}>{faq.answer}</AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
       </div>
-      <Accordion type="single" collapsible className={styles.accordionRoot}>
-        {faqs.map((faq, index) => (
-          <AccordionItem value={`item-${index}`} key={index}>
-            <AccordionTrigger>
-              <div className={styles.faqTriggerContent}>
-                <span>{faq.question}</span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>{faq.answer}</AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
     </section>
   );
 };
@@ -190,288 +384,167 @@ const SellOnlineCoursesPage: React.FC = () => {
         </script>
       </Helmet>
 
-      <div className={styles.pageWrapper}>
-        {/* 1. Hero Section */}
-        <header className={styles.heroSection}>
-          <div className={styles.heroContent}>
-            <h1 className={styles.heroTitle}>
-              Create and Sell Online Video Courses
-            </h1>
-            <p className={styles.heroSubtitle}>
-              Share your expertise, build a thriving education business, and
-              earn a recurring income with Testkart's all-in-one platform tailored for educators.
-            </p>
-            <div className={styles.heroActions}>
-              <Button asChild size="lg" variant="primary">
-                <Link to="/teacher/signup">
-                  Start Creating Free <ArrowRight size={18} />
-                </Link>
-              </Button>
-              <Button asChild size="lg" variant="outline">
-                <a href="#how-it-works">See How It Works</a>
-              </Button>
+      <div className={`${sellLandingThemeClass} ${styles.page}`}>
+        <div className={styles.shell}>
+          <nav aria-label="Breadcrumb" className={styles.breadcrumb}>
+            <ol>
+              <li>
+                <Link to="/">Home</Link>
+              </li>
+              <li aria-current="page">Sell Online Courses</li>
+            </ol>
+          </nav>
+
+          {/* 1. Hero */}
+          <header className={styles.hero}>
+            <div className={styles.heroCopy}>
+              <h1 className={styles.heroTitle}>
+                Create and Sell <span className={styles.heroMark}>Online Video Courses</span>
+              </h1>
+              <p className={styles.heroLead}>
+                Share your expertise, build a thriving education business, and
+                earn a recurring income with Testkart's all-in-one platform tailored for educators.
+              </p>
+              <div className={styles.heroActions}>
+                <SellStartLink>Start Creating Free</SellStartLink>
+                <SellSecondaryAnchor href="#how-it-works">See How It Works</SellSecondaryAnchor>
+              </div>
+              <ul className={styles.heroFacts}>
+                {HERO_BADGES.map((badge) => (
+                  <li key={badge}>
+                    <span className={styles.heroFactIcon} aria-hidden="true">
+                      <Check size={12} strokeWidth={3} />
+                    </span>
+                    {badge}
+                  </li>
+                ))}
+              </ul>
             </div>
-            <div className={styles.heroBadges}>
-              <span>Join 11,000+ educators</span>
-              <span>&middot;</span>
-              <span>Zero Investment</span>
-              <span>&middot;</span>
-              <span>Unlimited Hosting</span>
-            </div>
-          </div>
-        </header>
 
-        {/* 1.5 Teacher Testimonials */}
-        <SellPageTestimonials />
+            <SellCoursesHeroArt />
+          </header>
+        </div>
 
-        {/* 2. Features (Tabbed Interface) */}
-        <section className={styles.contentSection}>
-          <div className={styles.sectionHeader}>
-            <h2>Everything You Need to Succeed</h2>
-            <p>
-              Powerful, intuitive tools designed specifically for educators to bring their curriculum online without technical hurdles.
-            </p>
-          </div>
+        {/* 2. Teacher testimonials, the same section as /sell */}
+        <SellLandingTestimonials />
 
-          <Tabs defaultValue="builder" className={styles.tabsRoot}>
-            <div className={styles.tabsListWrapper}>
-              <TabsList>
-                <TabsTrigger value="builder">Course Builder</TabsTrigger>
-                <TabsTrigger value="student">Student Experience</TabsTrigger>
-                <TabsTrigger value="monetization">Monetization</TabsTrigger>
+        <div className={styles.shell}>
+          {/* 3. Features */}
+          <section className={styles.section} aria-labelledby="courses-features-title">
+            <SellLandingHeading
+              id="courses-features-title"
+              title="Everything You Need to Succeed"
+              lead="Powerful, intuitive tools designed specifically for educators to bring their curriculum online without technical hurdles."
+            />
+
+            <Tabs defaultValue="builder">
+              <TabsList className={styles.tabsList}>
+                {FEATURE_TABS.map(({ value, label }) => (
+                  <TabsTrigger key={value} value={value} className={styles.tabsTrigger}>
+                    {label}
+                  </TabsTrigger>
+                ))}
               </TabsList>
-            </div>
 
-            <TabsContent value="builder">
-              <div className={styles.grid3Col}>
-                <div className={styles.featureCard}>
-                  <div className={styles.iconWrapper}><PlayCircle /></div>
-                  <h3>Video Upload & Hosting</h3>
-                  <p>
-                    Unlimited, secure video hosting powered by Cloudflare. Upload your lessons and let us handle encoding and smooth delivery to any device.
-                  </p>
-                </div>
-                <div className={styles.featureCard}>
-                  <div className={styles.iconWrapper}><BookOpen /></div>
-                  <h3>Structured Curriculum Builder</h3>
-                  <p>
-                    Organize your knowledge easily. Create sections, add lessons, and rearrange your curriculum with a simple drag-and-drop interface.
-                  </p>
-                </div>
-                <div className={styles.featureCard}>
-                  <div className={styles.iconWrapper}><PenTool /></div>
-                  <h3>Rich Text & Math Editor</h3>
-                  <p>
-                    Format your text lessons beautifully. Full LaTeX and math equation support ensures your STEM content is perfectly readable.
-                  </p>
-                </div>
-                <div className={styles.featureCard}>
-                  <div className={styles.iconWrapper}><Bot /></div>
-                  <h3>AI Content Assistance</h3>
-                  <p>
-                    Overcome writer's block. Use our integrated AI tools to generate course outlines, lesson summaries, and even quiz questions instantly.
-                  </p>
-                </div>
-                <div className={styles.featureCard}>
-                  <div className={styles.iconWrapper}><ImageIcon /></div>
-                  <h3>Course Thumbnail & Preview</h3>
-                  <p>
-                    Make a great first impression. Upload eye-catching course thumbnails and select free preview lessons to hook potential students.
-                  </p>
-                </div>
-                <div className={styles.featureCard}>
-                  <div className={styles.iconWrapper}><FileEdit /></div>
-                  <h3>Draft & Publish Workflow</h3>
-                  <p>
-                    Work at your own pace. Save your curriculum as a draft, preview it as a student would see it, and publish only when you're 100% ready.
-                  </p>
-                </div>
-              </div>
-            </TabsContent>
+              {FEATURE_TABS.map(({ value, label, features }) => (
+                <TabsContent key={value} value={value} className={styles.tabsContent}>
+                  <ul className={styles.featureGrid}>
+                    {features.map(({ icon: Icon, title, text }, index) => (
+                      <li
+                        key={title}
+                        className={`${styles.featureCard} ${toneClass(TONE_CYCLE[index % TONE_CYCLE.length])}`}
+                      >
+                        <div className={styles.featureTop}>
+                          <span className={styles.featureIcon}>
+                            <Icon size={22} aria-hidden="true" />
+                          </span>
+                          <span className={styles.featureLabel}>{label}</span>
+                        </div>
+                        <h3>{title}</h3>
+                        <p>{text}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </TabsContent>
+              ))}
+            </Tabs>
+          </section>
 
-            <TabsContent value="student">
-              <div className={styles.grid3Col}>
-                <div className={styles.featureCard}>
-                  <div className={styles.iconWrapper}><MonitorPlay /></div>
-                  <h3>Mobile-Friendly Player</h3>
-                  <p>A responsive, distraction-free viewing experience that works flawlessly across desktops, tablets, and smartphones.</p>
-                </div>
-                <div className={styles.featureCard}>
-                  <div className={styles.iconWrapper}><Activity /></div>
-                  <h3>Lesson Progress Tracking</h3>
-                  <p>Students can visually track their overall course progress with intuitive completion bars and status indicators.</p>
-                </div>
-                <div className={styles.featureCard}>
-                  <div className={styles.iconWrapper}><CheckCircle2 /></div>
-                  <h3>Mark Complete/Incomplete</h3>
-                  <p>Empower students to manage their own learning pace by explicitly marking lessons as finished or revisiting them later.</p>
-                </div>
-                <div className={styles.featureCard}>
-                  <div className={styles.iconWrapper}><Navigation /></div>
-                  <h3>Section-Wise Navigation</h3>
-                  <p>An easy-to-use sidebar allows students to quickly jump between sections, lessons, and review previously watched materials.</p>
-                </div>
-                <div className={styles.featureCard}>
-                  <div className={styles.iconWrapper}><FastForward /></div>
-                  <h3>Optimized Video Streaming</h3>
-                  <p>Adaptive bitrate streaming ensures that videos play smoothly without buffering, regardless of the student's internet connection.</p>
-                </div>
-                <div className={styles.featureCard}>
-                  <div className={styles.iconWrapper}><Award /></div>
-                  <h3>Completion Celebration</h3>
-                  <p>Keep motivation high with rewarding visual celebrations when a student successfully finishes your entire course.</p>
-                </div>
-              </div>
-            </TabsContent>
+          {/* 4. How it works */}
+          <section className={styles.section} id="how-it-works" aria-labelledby="courses-steps-title">
+            <SellLandingHeading
+              id="courses-steps-title"
+              title="Launch Your Course in 3 Simple Steps"
+              lead="Go from idea to passive income faster than you thought possible."
+            />
+            <ol className={styles.stepper}>
+              {STEPS.map((step, index) => (
+                <li key={step.title} className={styles.step}>
+                  <div className={styles.stepMarker}>
+                    <span className={styles.stepNumber}>{index + 1}</span>
+                  </div>
+                  <div className={styles.stepBody}>
+                    <h3>{step.title}</h3>
+                    <p>{step.text}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
 
-            <TabsContent value="monetization">
-              <div className={styles.grid3Col}>
-                <div className={styles.featureCard}>
-                  <div className={styles.iconWrapper}><DollarSign /></div>
-                  <h3>Flexible Pricing</h3>
-                  <p>Offer your courses for free as lead magnets, or set competitive paid tiers to monetize your premium content.</p>
-                </div>
-                <div className={styles.featureCard}>
-                  <div className={styles.iconWrapper}><Package /></div>
-                  <h3>Course Bundles</h3>
-                  <p>Group related courses together into attractive bundles, increasing your average order value and providing more value.</p>
-                </div>
-                <div className={styles.featureCard}>
-                  <div className={styles.iconWrapper}><Tag /></div>
-                  <h3>Promo Codes & Discounts</h3>
-                  <p>Run holiday sales, early-bird specials, or reward loyal followers with customizable percentage or flat-rate discount codes.</p>
-                </div>
-                <div className={styles.featureCard}>
-                  <div className={styles.iconWrapper}><HeartHandshake /></div>
-                  <h3>Student Sponsorship</h3>
-                  <p>Allow organizations or individuals to bulk-purchase your courses to sponsor learning for groups of students.</p>
-                </div>
-                <div className={styles.featureCard}>
-                  <div className={styles.iconWrapper}><LineChart /></div>
-                  <h3>Earnings Dashboard</h3>
-                  <p>Track your sales, refunds, and net revenue in real-time with a transparent, easy-to-understand financial dashboard.</p>
-                </div>
-                <div className={styles.featureCard}>
-                  <div className={styles.iconWrapper}><CreditCard /></div>
-                  <h3>Weekly Payouts</h3>
-                  <p>No waiting around for your money. Receive your earnings reliably every week, directly deposited into your bank account.</p>
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </section>
+          {/* 5. Analytics */}
+          <section className={styles.section} aria-labelledby="courses-analytics-title">
+            <SellLandingHeading
+              id="courses-analytics-title"
+              title="Deep Analytics & Insights"
+              lead="Stop guessing. Make data-driven decisions to improve your courses and boost your marketing efforts."
+            />
+            <ul className={styles.benefitGrid}>
+              {ANALYTICS.map(({ icon: Icon, tone, title, text }) => (
+                <li key={title} className={styles.benefit}>
+                  <span className={`${styles.benefitIcon} ${toneClass(tone)}`}>
+                    <Icon size={20} aria-hidden="true" />
+                  </span>
+                  <div>
+                    <h3>{title}</h3>
+                    <p>{text}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
 
-        {/* 3. How It Works */}
-        <section className={styles.howItWorksSection} id="how-it-works">
-          <div className={styles.sectionHeader}>
-            <h2>Launch Your Course in 3 Simple Steps</h2>
-            <p>Go from idea to passive income faster than you thought possible.</p>
-          </div>
-          <div className={styles.stepsGrid}>
-            <div className={styles.stepCard}>
-              <div className={styles.stepNumber}>1</div>
-              <h3>Sign Up</h3>
-              <p>
-                Create your teacher account in under 2 minutes. No credit card required. Instantly access your creator dashboard.
-              </p>
-            </div>
-            <div className={styles.stepCard}>
-              <div className={styles.stepNumber}>2</div>
-              <h3>Build Your Course</h3>
-              <p>
-                Use our intuitive builder to structure sections, upload videos, and write rich-text lessons with our AI tools.
-              </p>
-            </div>
-            <div className={styles.stepCard}>
-              <div className={styles.stepNumber}>3</div>
-              <h3>Publish & Earn</h3>
-              <p>
-                Set your price, hit publish, and tap into our massive student network. Get paid weekly for every enrollment.
-              </p>
-            </div>
-          </div>
-        </section>
+        {/* 6. Stats, the same card as /sell */}
+        <SellLandingTrust stats={COURSE_STATS} />
 
-        {/* 4. Analytics */}
-        <section className={styles.alternateSection}>
-          <div className={styles.sectionHeader}>
-            <h2>Deep Analytics & Insights</h2>
-            <p>Stop guessing. Make data-driven decisions to improve your courses and boost your marketing efforts.</p>
-          </div>
-          <div className={styles.grid2Col}>
-            <div className={styles.analyticsCard}>
-              <div className={styles.iconWrapper}><TrendingUp /></div>
-              <h3>Course Analytics</h3>
-              <p>See exactly which lessons are most popular, where students drop off, and how engaging your video content truly is.</p>
-            </div>
-            <div className={styles.analyticsCard}>
-              <div className={styles.iconWrapper}><Users /></div>
-              <h3>Enrollment Tracking</h3>
-              <p>Monitor your daily, weekly, and monthly new student enrollments to measure the success of your promotional campaigns.</p>
-            </div>
-            <div className={styles.analyticsCard}>
-              <div className={styles.iconWrapper}><DollarSign /></div>
-              <h3>Revenue Insights</h3>
-              <p>Break down your earnings by individual courses or bundles to identify your most profitable content and scale accordingly.</p>
-            </div>
-            <div className={styles.analyticsCard}>
-              <div className={styles.iconWrapper}><Activity /></div>
-              <h3>Student Progress Monitoring</h3>
-              <p>Identify which students are flying through the material and who might need extra help, allowing for targeted communication.</p>
-            </div>
-          </div>
-        </section>
-
-        {/* 5. Stats Section */}
-        {/* Counted from the live database on 13-10-2026 and rounded down. Update by hand as they grow. */}
-        <section className={styles.statsSection}>
-          <div className={styles.statsContainer}>
-            <div className={styles.statCard}>
-              <h4>500+</h4>
-              <p>Courses Created</p>
-            </div>
-            <div className={styles.statCard}>
-              <h4>₹72,000+</h4>
-              <p>Paid to Teachers</p>
-            </div>
-            <div className={styles.statCard}>
-              <h4>6,800+</h4>
-              <p>Students</p>
-            </div>
-            <div className={styles.statCard}>
-              <h4>11,000+</h4>
-              <p>Educators</p>
-            </div>
-          </div>
-        </section>
-
-        {/* 6. FAQ Section */}
+        {/* 7. FAQ */}
         <SellCoursesFAQ />
 
-        {/* 7. Final CTA Section */}
-        <section className={styles.finalCtaSection}>
-          <div className={styles.finalCtaContent}>
-            <h2>Ready to Share Your Knowledge?</h2>
-            <p>
-              Turn your expertise into a thriving online business with Testkart today. Join 11,000+ educators on Testkart.
-            </p>
-            <div className={styles.finalCtaActions}>
-              <BookDemoButton size="lg" variant="outline" className={styles.ctaButton} />
-              <Button asChild size="lg" variant="primary" className={styles.ctaButton}>
-                <Link to="/teacher/signup">
-                  Start Creating Free &mdash; No Credit Card Required <ArrowRight size={18} />
-                </Link>
-              </Button>
+        {/* 8. Final CTA */}
+        <div className={styles.shell}>
+          <section className={styles.finalCta} aria-labelledby="courses-cta-title">
+            <div className={styles.finalCopy}>
+              <h2 id="courses-cta-title">Ready to Share Your Knowledge?</h2>
+              <p>
+                Turn your expertise into a thriving online business with Testkart today. Join 11,000+ educators on Testkart.
+              </p>
+              <div className={styles.finalActions}>
+                <SellDemoButton>Book a demo</SellDemoButton>
+                <SellStartLink>Start Creating Free - No Credit Card Required</SellStartLink>
+              </div>
             </div>
-            <div className={styles.finalCtaHighlights}>
-              <span>Zero Investment</span>
-              <span>&middot;</span>
-              <span>Weekly Payouts</span>
-              <span>&middot;</span>
-              <span>AI-Powered Tools</span>
-            </div>
-          </div>
-        </section>
+            <ul className={styles.finalHighlights}>
+              {CTA_HIGHLIGHTS.map((item) => (
+                <li key={item}>
+                  <CheckCircle2 size={18} aria-hidden="true" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+
         <WhatsAppBubble />
       </div>
     </>

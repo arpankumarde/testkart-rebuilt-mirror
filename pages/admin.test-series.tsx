@@ -528,6 +528,7 @@ const AdminTestSeriesPage: React.FC = () => {
             publicUrl={viewingTest.isPublished ? getTestUrl(viewingTest) : null}
             previewUrl={adminPreviewPath("mock_test", viewingTest.id)}
             editUrl={adminEditPath("mock_test", viewingTest.id)}
+            priceHistory={{ productType: "mock_test", productId: viewingTest.id }}
             teacherName={viewingTest.teacherName}
             price={viewingTest.isFree ? 0 : viewingTest.price}
             createdAt={viewingTest.createdAt}

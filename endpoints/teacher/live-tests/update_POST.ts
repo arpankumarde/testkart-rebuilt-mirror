@@ -4,12 +4,13 @@ import { loadContentExamList, resolveExamSelection } from "../../../helpers/cont
 import { countLiveTestEnrollments } from "../../../helpers/enrollmentCounters";
 import { applyLiveTestUpdate, LiveTestUpdateError } from "../../../helpers/liveTestUpdate";
 import { parseStoredPrizeTiers } from "../../../helpers/liveTestPrizeTiers";
+import { priceChangeActor } from "../../../helpers/productPriceHistoryServer";
 import { schema, OutputType } from "./update_POST.schema";
 import superjson from "superjson";
 
 export async function handle(request: Request) {
   try {
-    const { user, effectiveTeacherId, teacherRole, session } = await getServerUserSession(request);
+    const { user, effectiveTeacherId, teacherRole, session, impersonatorAdminId } = await getServerUserSession(request);
     if (user.role !== "teacher" && user.role !== "admin") {
       return new Response(
         superjson.stringify({ error: "Unauthorized" }),
@@ -27,6 +28,7 @@ export async function handle(request: Request) {
       // Prize money comes out of the owner's earnings: team managers and admins editing
       // from the admin panel leave it as the owner set it.
       canChangePrizes: teacherRole !== "manager" && !session.adminEditType,
+      priceActor: priceChangeActor({ user, teacherRole, impersonatorAdminId, session }),
     });
 
     const output: OutputType = {

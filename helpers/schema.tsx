@@ -1208,16 +1208,20 @@ export interface GroupLessons {
   id: Generated<string>;
   language: string | null;
   level: string | null;
+  liveCourseId: string | null;
   maxCapacity: number;
   minEnrollment: number | null;
   minEnrollmentPolicy: Generated<GroupLessonMinEnrollmentPolicy>;
   missedAt: Timestamp | null;
   pricePerLearner: Generated<Numeric>;
+  reminder1hSentAt: Timestamp | null;
+  reminder24hSentAt: Timestamp | null;
   startTime: Timestamp;
   status: Generated<GroupLessonStatus>;
   subject: string | null;
   teacherId: number;
   title: string;
+  topicId: string | null;
   updatedAt: Generated<Timestamp>;
 }
 
@@ -1274,6 +1278,79 @@ export interface LiveClassCredits {
   studentId: number;
   teacherId: number;
   updatedAt: Generated<Timestamp>;
+}
+
+export interface LiveCourseAttendance {
+  groupLessonId: string;
+  id: Generated<string>;
+  markedAt: Generated<Timestamp>;
+  markedBy: string | null;
+  present: boolean;
+  source: string;
+  studentId: number;
+}
+
+export interface LiveCourseEnrollments {
+  amountPaid: Generated<Numeric>;
+  createdAt: Generated<Timestamp>;
+  enrolledAt: Generated<Timestamp>;
+  id: Generated<string>;
+  liveCourseId: string;
+  orderId: number | null;
+  refundAmount: Numeric | null;
+  refundedAt: Timestamp | null;
+  refundedBy: string | null;
+  refundId: string | null;
+  refundRequestedAt: Timestamp | null;
+  refundStatus: string | null;
+  status: Generated<string>;
+  studentId: number;
+  updatedAt: Generated<Timestamp>;
+}
+
+export interface LiveCourseModules {
+  createdAt: Generated<Timestamp>;
+  id: Generated<string>;
+  liveCourseId: string;
+  position: Generated<number>;
+  title: string;
+}
+
+export interface LiveCourses {
+  cancellationReason: string | null;
+  cancelledAt: Timestamp | null;
+  cancelledBy: string | null;
+  createdAt: Generated<Timestamp>;
+  defaultClassMinutes: Generated<number>;
+  description: Generated<string>;
+  endsOn: Timestamp | null;
+  enrolledCount: Generated<number>;
+  examId: number | null;
+  examName: string | null;
+  id: Generated<string>;
+  languages: Generated<string[]>;
+  level: Generated<CourseLevel>;
+  originalPrice: Numeric | null;
+  price: Generated<Numeric>;
+  publishedAt: Timestamp | null;
+  registrationDeadline: Timestamp | null;
+  seatLimit: Generated<number>;
+  slug: string;
+  startsOn: Timestamp | null;
+  status: Generated<string>;
+  teacherId: number;
+  thumbnailFileId: string | null;
+  thumbnailUrl: string | null;
+  title: string;
+  updatedAt: Generated<Timestamp>;
+}
+
+export interface LiveCourseTopics {
+  createdAt: Generated<Timestamp>;
+  id: Generated<string>;
+  moduleId: string;
+  position: Generated<number>;
+  title: string;
 }
 
 export interface LiveLessonAttendance {
@@ -1797,6 +1874,7 @@ export interface OrderItems {
   discountAmount: Generated<Numeric>;
   groupLessonId: string | null;
   id: Generated<number>;
+  liveCourseId: string | null;
   mentorshipBookingId: string | null;
   mentorshipDurationMinutes: number | null;
   mentorshipRequestedStartTime: Timestamp | null;
@@ -2016,6 +2094,22 @@ export interface PlatformSettings {
   settingValue: string;
   updatedAt: Generated<Timestamp | null>;
   updatedByAdminId: number | null;
+}
+
+export interface ProductPriceHistory {
+  changedAt: Generated<Timestamp>;
+  changedByAdminId: number | null;
+  changedByUserId: number | null;
+  changeSource: Generated<string>;
+  id: Generated<Int8>;
+  newListPrice: Numeric | null;
+  newPrice: Numeric;
+  previousListPrice: Numeric | null;
+  previousPrice: Numeric;
+  productId: string;
+  productTitle: string;
+  productType: string;
+  teacherId: number | null;
 }
 
 export interface PromoCodes {
@@ -2389,6 +2483,9 @@ export interface StudentWalletTransactions {
 export interface StudentWithdrawals {
   amount: Numeric;
   balanceAtRequest: Numeric | null;
+  cancelledAt: Timestamp | null;
+  cancelledByAdminId: number | null;
+  cancelledByUserId: number | null;
   createdAt: Generated<Timestamp | null>;
   id: Generated<number>;
   notes: string | null;
@@ -2709,6 +2806,9 @@ export interface TeacherUnfollows {
 export interface TeacherWithdrawals {
   amount: Numeric;
   balanceAtRequest: Numeric | null;
+  cancelledAt: Timestamp | null;
+  cancelledByAdminId: number | null;
+  cancelledByUserId: number | null;
   createdAt: Generated<Timestamp | null>;
   id: Generated<number>;
   notes: string | null;
@@ -2882,8 +2982,10 @@ export interface Users {
   liveTeachingStatus: Generated<string>;
   location: string | null;
   mentorshipClassPrice50: Numeric | null;
+  mentorshipClassPrice60: Numeric | null;
   mentorshipEnabled: Generated<boolean>;
   mentorshipRatePerUnit: Numeric | null;
+  mentorshipTrialDiscount: Generated<boolean>;
   mentorshipTrialPrice25: Numeric | null;
   mentorshipTrialPrice50: Numeric | null;
   mobileNumber: string | null;
@@ -2921,6 +3023,20 @@ export interface WellKnownFiles {
   fileKey: string;
   id: Generated<number>;
   updatedAt: Generated<Timestamp>;
+}
+
+export interface WithdrawalStatusHistory {
+  amount: Numeric;
+  changedAt: Generated<Timestamp>;
+  changedByAdminId: number | null;
+  changedByUserId: number | null;
+  changeSource: Generated<string>;
+  id: Generated<Int8>;
+  newStatus: WithdrawalStatus;
+  ownerId: number;
+  previousStatus: WithdrawalStatus | null;
+  withdrawalId: number;
+  withdrawalKind: string;
 }
 
 export interface DB {
@@ -3002,6 +3118,11 @@ export interface DB {
   imageRecoveryJobs: ImageRecoveryJobs;
   invoiceCounters: InvoiceCounters;
   liveClassCredits: LiveClassCredits;
+  liveCourseAttendance: LiveCourseAttendance;
+  liveCourseEnrollments: LiveCourseEnrollments;
+  liveCourseModules: LiveCourseModules;
+  liveCourses: LiveCourses;
+  liveCourseTopics: LiveCourseTopics;
   liveLessonAttendance: LiveLessonAttendance;
   liveLessonChatMessages: LiveLessonChatMessages;
   liveLessonMaterials: LiveLessonMaterials;
@@ -3052,6 +3173,7 @@ export interface DB {
   pdfRecoveryJobs: PdfRecoveryJobs;
   platformScripts: PlatformScripts;
   platformSettings: PlatformSettings;
+  productPriceHistory: ProductPriceHistory;
   promoCodes: PromoCodes;
   promoCodeUsages: PromoCodeUsages;
   pushTokens: PushTokens;
@@ -3111,6 +3233,7 @@ export interface DB {
   userPasswords: UserPasswords;
   users: Users;
   wellKnownFiles: WellKnownFiles;
+  withdrawalStatusHistory: WithdrawalStatusHistory;
 }
 
 

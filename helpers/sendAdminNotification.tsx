@@ -7,7 +7,9 @@ export type AdminNotificationType =
   | "teacher_verification"
   | "student_verification"
   | "teacher_withdrawal"
-  | "student_withdrawal";
+  | "student_withdrawal"
+  | "teacher_withdrawal_cancelled"
+  | "student_withdrawal_cancelled";
 
 export interface AdminNotificationDetails {
   userName: string;
@@ -48,6 +50,16 @@ export const sendAdminNotification = async (
       case "student_withdrawal":
         subject = "New Student Withdrawal Request";
         message = `Student ${details.userName} (ID: ${details.userId}) has requested a withdrawal of ₹${details.amount ?? 0}.`;
+        link = "/admin/students/withdrawals";
+        break;
+      case "teacher_withdrawal_cancelled":
+        subject = "Teacher Withdrawal Request Cancelled";
+        message = `Teacher ${details.userName} (ID: ${details.userId}) cancelled their withdrawal request of ₹${details.amount ?? 0}. Do not pay it out.`;
+        link = "/admin/teachers/withdrawals";
+        break;
+      case "student_withdrawal_cancelled":
+        subject = "Student Withdrawal Request Cancelled";
+        message = `Student ${details.userName} (ID: ${details.userId}) cancelled their withdrawal request of ₹${details.amount ?? 0}. Do not pay it out.`;
         link = "/admin/students/withdrawals";
         break;
     }

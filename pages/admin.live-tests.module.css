@@ -54,7 +54,7 @@
 }
 
 .colActions {
-  width: 5.25rem;
+  width: 7.5rem;
 }
 
 .table th,
@@ -187,13 +187,19 @@
   height: 1rem;
 }
 
-.iconButtonDanger {
+/* Row menu items, as in admin.teachers. */
+.menuItem {
+  gap: var(--spacing-2);
+  font-size: 0.875rem;
+}
+
+.menuItemDanger {
   color: var(--error-text);
 }
 
-.iconButtonDanger:hover {
-  background-color: color-mix(in srgb, var(--error) 12%, transparent);
-  color: var(--error-text);
+.menuItemDanger[data-highlighted] {
+  background-color: var(--error);
+  color: var(--error-foreground);
 }
 
 .srOnly {
@@ -294,9 +300,9 @@
   }
 }
 
-/* The six fixed columns take 40.25rem; 56rem leaves the Live test column 15.75rem.
+/* The six fixed columns take 44.5rem; 57rem leaves the Live test column 12.5rem.
    Narrower than that, the same data reads as cards. */
-@container results (min-width: 56rem) {
+@container results (min-width: 57rem) {
   .tableContainer {
     display: block;
   }

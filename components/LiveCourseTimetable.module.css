@@ -1,0 +1,49 @@
+/* Timetable rows for a student's live course classes. */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.75rem;
+  background: var(--sp-card, var(--card));
+  border: 1px solid var(--sp-line, var(--border));
+  border-radius: 1rem;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.title {
+  font-size: 0.9375rem;
+  color: var(--sp-ink, var(--foreground));
+  overflow-wrap: anywhere;
+}
+
+.course {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--fc-blue-ink);
+  text-decoration: none;
+}
+
+.course:hover {
+  text-decoration: underline;
+}
+
+.meta {
+  font-size: 0.8125rem;
+  color: var(--sp-text, var(--muted-foreground));
+}

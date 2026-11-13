@@ -1,13 +1,13 @@
 import superjson from "superjson";
 import { db } from "../../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../../helpers/getAdminSession";
-import { MENTORSHIP_MIN_RATE_PER_UNIT } from "../../../../helpers/liveLessonConfig";
+import { pricesMeetFloors, resolveLivePrices } from "../../../../helpers/livePricing";
 import { sendIntroVideoDecisionEmail, sendLiveTeachingDecisionEmail } from "../../../../helpers/liveTeachingEmail";
 import { schema, OutputType } from "./decide_POST.schema";
 
 /*
  * approve: a pending application goes live - status approved, the video goes on the profile and
- * 1:1 bookings switch on at the rate they applied with. reject: a pending application is turned
+ * 1:1 bookings switch on at the prices they applied with. reject: a pending application is turned
  * down with a reason. revoke: an approved teacher loses 1:1 and new group classes; classes already
  * scheduled stay. A video change (kind 'video') is only approved or rejected. The teacher is
  * emailed after the change commits.
@@ -31,6 +31,8 @@ export async function handle(request: Request): Promise<Response> {
         "u.displayName",
         "u.email",
         "u.mentorshipRatePerUnit",
+        "u.mentorshipClassPrice60",
+        "u.mentorshipTrialDiscount",
         "u.liveTeachingStatus",
       ])
       .where("a.id", "=", input.applicationId)
@@ -67,7 +69,8 @@ export async function handle(request: Request): Promise<Response> {
 
     const now = new Date();
     const nextStatus = input.action === "approve" ? "approved" : input.action === "reject" ? "rejected" : "revoked";
-    const rateValid = Number(application.mentorshipRatePerUnit ?? 0) >= MENTORSHIP_MIN_RATE_PER_UNIT;
+    const resolvedPrices = resolveLivePrices(application);
+    const rateValid = !!resolvedPrices && pricesMeetFloors(resolvedPrices);
 
     await db.transaction().execute(async (trx) => {
       await trx

@@ -41,6 +41,17 @@ const FAQS: { question: string; text: string; answer?: ReactNode }[] = [
     ),
   },
   {
+    question: "Can I teach live 1:1 classes on Testkart?",
+    text: "Yes. Apply for live teaching from the Live Teaching section of your teacher dashboard. Once the Testkart team approves you and you set your class prices, students can find and book you in the 1:1 tutor directory.",
+    answer: (
+      <>
+        Yes. Apply for live teaching from the Live Teaching section of your teacher dashboard. Once the Testkart
+        team approves you and you set your class prices, students can find and book you in the{" "}
+        <Link to="/expert">1:1 tutor directory</Link>.
+      </>
+    ),
+  },
+  {
     question: "Where can I learn how to use the teacher dashboard?",
     text: "Watch the short video tutorials on the Testkart demo page, or read the written guides in the Help Doc.",
     answer: (

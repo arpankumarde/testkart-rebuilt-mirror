@@ -54,6 +54,15 @@ export async function handle(request: Request) {
       .returning("id")
       .executeTakeFirstOrThrow();
 
+    // Joining a live course class marks the student present; a teacher's own mark is never overwritten.
+    if (ctx.liveCourseId && ctx.viewerRole === "learner") {
+      await db
+        .insertInto("liveCourseAttendance")
+        .values({ groupLessonId: ctx.id, studentId: user.id, present: true, source: "auto", markedBy: "system" })
+        .onConflict((oc) => oc.columns(["groupLessonId", "studentId"]).doNothing())
+        .execute();
+    }
+
     // One room per lesson, one token per person: both people get the same room URL and their own token.
     console.log(
       "[classroom]",

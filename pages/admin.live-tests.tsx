@@ -19,11 +19,20 @@ import {
   Zap,
   AlertTriangle,
   ScanEye,
+  History,
+  MoreHorizontal,
 } from "lucide-react";
 import { toast } from "sonner";
 import { AdminLiveTestListItem } from "../endpoints/admin/live-tests/list_GET.schema";
 import { adminPreviewPath } from "../helpers/useAdminContentPreview";
 import { AdminEditIconButton } from "../components/AdminEditIconButton";
+import { AdminPriceHistorySheet, type PriceHistoryTarget } from "../components/AdminPriceHistorySheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../components/DropdownMenu";
 import styles from "./admin.live-tests.module.css";
 
 const STATUS_VALUES = ["all", "active", "inactive"] as const;
@@ -131,6 +140,7 @@ const LiveTestCardSkeleton = () => (
 const AdminLiveTestsPage: React.FC = () => {
   const { data: liveTests, isFetching, isError, error, refetch } = useAdminLiveTestsQuery();
   const deactivateMutation = useDeactivateLiveTestMutation();
+  const [priceHistoryTarget, setPriceHistoryTarget] = useState<PriceHistoryTarget | null>(null);
 
   const [isDeactivateDialogOpen, setIsDeactivateDialogOpen] = useState(false);
   const [selectedLiveTest, setSelectedLiveTest] = useState<{ id: number; title: string } | null>(null);
@@ -301,23 +311,36 @@ const AdminLiveTestsPage: React.FC = () => {
         <TooltipContent>Preview content</TooltipContent>
       </Tooltip>
       <AdminEditIconButton type="live_test" id={liveTest.id} title={liveTest.title} className={styles.iconButton} />
-      {liveTest.isActive && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon-md"
-              className={`${styles.iconButton} ${styles.iconButtonDanger}`}
-              aria-label={`Deactivate ${liveTest.title}`}
-              onClick={() => handleDeactivateClick(liveTest.id, liveTest.title)}
+      {/* Non-modal so the confirm dialog and sheet it opens do not inherit the menu's pointer lock. */}
+      <DropdownMenu modal={false}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon-md"
+            className={styles.iconButton}
+            aria-label={`More actions for ${liveTest.title}`}
+          >
+            <MoreHorizontal />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem
+            className={styles.menuItem}
+            onSelect={() => setPriceHistoryTarget({ productType: "live_test", productId: String(liveTest.id) })}
+          >
+            <History size={16} /> Price history
+          </DropdownMenuItem>
+          {liveTest.isActive && (
+            <DropdownMenuItem
+              className={`${styles.menuItem} ${styles.menuItemDanger}`}
               disabled={deactivateMutation.isPending && deactivateMutation.variables?.liveTestId === liveTest.id}
+              onSelect={() => handleDeactivateClick(liveTest.id, liveTest.title)}
             >
-              <Ban />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Deactivate</TooltipContent>
-        </Tooltip>
-      )}
+              <Ban size={16} /> Deactivate
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 
@@ -516,6 +539,11 @@ const AdminLiveTestsPage: React.FC = () => {
           pendingLabel="Deactivating..."
           isPending={deactivateMutation.isPending}
           onConfirm={handleDeactivateConfirm}
+        />
+
+        <AdminPriceHistorySheet
+          target={priceHistoryTarget}
+          onOpenChange={(open) => { if (!open) setPriceHistoryTarget(null); }}
         />
       </div>
     </>

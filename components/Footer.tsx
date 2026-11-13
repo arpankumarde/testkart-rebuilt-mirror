@@ -16,30 +16,35 @@ import styles from './Footer.module.css';
 const SOCIAL_LINKS = [
   {
     label: 'Instagram',
+    ariaLabel: 'Testkart on Instagram',
     href: 'https://www.instagram.com/testkart',
     Icon: FaInstagram,
     tone: styles.tonePeach,
   },
   {
     label: 'LinkedIn',
+    ariaLabel: 'Testkart on LinkedIn',
     href: 'https://www.linkedin.com/company/testkart',
     Icon: FaLinkedin,
     tone: styles.toneBlue,
   },
   {
     label: 'Facebook Group',
+    ariaLabel: 'Testkart Facebook group',
     href: 'https://www.facebook.com/groups/testkart/',
     Icon: FaFacebook,
     tone: styles.toneMint,
   },
   {
     label: 'Telegram',
+    ariaLabel: 'Testkart on Telegram',
     href: 'https://t.me/testkart_in',
     Icon: FaTelegram,
     tone: styles.toneBlue,
   },
   {
     label: 'X (Twitter)',
+    ariaLabel: 'Testkart on X (Twitter)',
     href: 'https://x.com/testkart_in',
     Icon: FaXTwitter,
     tone: styles.toneLavender,
@@ -91,7 +96,7 @@ export const Footer: React.FC = () => {
             <h3 className={styles.columnTitle}>Platform Features</h3>
             <ul className={styles.linkList}>
               <li>
-                <Link to="/bundles" className={styles.footerLink}>
+                <Link to="/sell/bundles" className={styles.footerLink}>
                   Course Bundles
                 </Link>
               </li>
@@ -129,6 +134,7 @@ export const Footer: React.FC = () => {
               <li><Link to="/careers" className={styles.footerLink}>Careers</Link></li>
               <li><Link to="/masterclass" className={styles.footerLink}>Masterclass</Link></li>
               <li><Link to="/course/live" className={styles.footerLink}>Live Teaching</Link></li>
+              <li><Link to="/expert" className={styles.footerLink}>Find Online Tutors</Link></li>
               <li><Link to="/exams" className={styles.footerLink}>Exams</Link></li>
               <li><Link to="/glossary" className={styles.footerLink}>Glossary</Link></li>
             </ul>
@@ -147,15 +153,15 @@ export const Footer: React.FC = () => {
           <div className={styles.linksColumn}>
             <h3 className={styles.columnTitle}>Connect With Us</h3>
             <ul className={styles.socialList}>
-              {SOCIAL_LINKS.map(({ label, href, Icon, tone }) => (
+              {SOCIAL_LINKS.map(({ label, ariaLabel, href, Icon, tone }) => (
                 <li key={label}>
                   <a
                     href={href}
                     className={`${styles.socialLink} ${tone}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label={label}
-                    title={label}
+                    aria-label={ariaLabel}
+                    title={ariaLabel}
                   >
                     <Icon size={20} aria-hidden="true" />
                   </a>

@@ -1,7 +1,7 @@
 import { db } from "../../helpers/db";
 import { generateTeacherSlots } from "../../helpers/mentorshipSlots";
 import { schema, OutputType } from "./slots_GET.schema";
-import { MENTORSHIP_SESSION_DURATIONS } from "../../helpers/liveLessonConfig";
+import { isSlotDuration } from "../../helpers/liveLessonConfig";
 import superjson from "superjson";
 
 /** Covers a full 4-week package cycle plus a week of slack. */
@@ -17,7 +17,7 @@ export async function handle(request: Request): Promise<Response> {
       to: url.searchParams.get("to") ?? undefined,
     });
 
-    if (!(MENTORSHIP_SESSION_DURATIONS as readonly number[]).includes(input.durationMinutes)) {
+    if (!isSlotDuration(input.durationMinutes)) {
       return new Response(superjson.stringify({ error: "Unsupported session duration" }), { status: 400 });
     }
 

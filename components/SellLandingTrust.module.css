@@ -1,0 +1,240 @@
+.section {
+  padding: 0 var(--sl-gutter) clamp(3rem, 6vw, 4.5rem);
+  background-color: var(--sl-bg);
+}
+
+.strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem 2rem;
+  max-width: var(--sl-max);
+  margin-inline: auto;
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--sl-radius);
+  background-color: var(--sl-surface);
+  border: 1px solid var(--sl-line);
+  box-shadow: var(--sl-shadow);
+}
+
+.community {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+}
+
+/* Educator marquee, carried over from TeacherAvatarsScroll. */
+.marquee {
+  flex: 1 1 auto;
+  min-width: 8rem;
+  max-width: 24rem;
+  padding: 0.25rem 0;
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+}
+
+.track {
+  display: flex;
+  gap: 0.5rem;
+  width: max-content;
+  animation: educatorScroll 60s linear infinite;
+}
+
+.marquee:hover .track {
+  animation-play-state: paused;
+}
+
+@keyframes educatorScroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.placeholderRow {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.avatar {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--sl-line);
+  background-color: var(--sl-lavender);
+  color: var(--sl-lavender-ink);
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.track .avatar:hover {
+  transform: scale(1.08);
+  border-color: var(--sl-cta);
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarInitials {
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.communityText {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  gap: 0.125rem;
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--sl-muted);
+}
+
+.communityText strong {
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: var(--sl-ink);
+}
+
+.stats {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.25rem 1.5rem;
+}
+
+.stat + .stat {
+  border-left: 1px solid var(--sl-line);
+}
+
+.stat:last-child {
+  padding-right: 0;
+}
+
+.statIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  flex-shrink: 0;
+}
+
+.statText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  font-size: 0.8125rem;
+  color: var(--sl-muted);
+}
+
+.statText strong {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--sl-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.toneLavender {
+  background-color: var(--sl-lavender);
+  color: var(--sl-lavender-ink);
+}
+
+.toneBlue {
+  background-color: var(--sl-blue);
+  color: var(--sl-blue-ink);
+}
+
+.toneMint {
+  background-color: var(--sl-mint);
+  color: var(--sl-mint-ink);
+}
+
+.toneButter {
+  background-color: var(--sl-butter);
+  color: var(--sl-butter-ink);
+}
+
+.tonePeach {
+  background-color: var(--sl-peach);
+  color: var(--sl-peach-ink);
+}
+
+@media (max-width: 1040px) {
+  .strip {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .stats {
+    justify-content: space-between;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--sl-line);
+  }
+
+  .stat:first-child {
+    padding-left: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .community {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .marquee {
+    width: 100%;
+    max-width: none;
+  }
+
+  .stats {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .stat {
+    padding: 0;
+  }
+
+  .stat + .stat {
+    border-left: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track {
+    animation: none;
+  }
+
+  .avatar {
+    transition: none;
+  }
+}

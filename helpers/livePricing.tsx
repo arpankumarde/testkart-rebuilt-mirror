@@ -1,53 +1,63 @@
 import {
-  MENTORSHIP_MIN_RATE_PER_UNIT,
+  MENTORSHIP_MIN_CLASS_PRICE,
   MENTORSHIP_SESSION_DURATIONS,
+  MENTORSHIP_TRIAL_DISCOUNT_PERCENT,
   PACKAGE_MAX_CLASSES_PER_WEEK,
   PACKAGE_WEEKS,
 } from "./liveLessonConfig";
 
-/** Shared by server and browser: a teacher's four 1:1 prices and the package maths. */
+/**
+ * Shared by server and browser: a teacher's 1:1 prices and the package maths. Teachers set a
+ * 30-minute and a 60-minute class price; the trial is that price, or a fixed discount off it when
+ * the teacher turns the trial discount on. There is no separate trial price and no free class.
+ */
 
 export type LiveClassMinutes = (typeof MENTORSHIP_SESSION_DURATIONS)[number];
 
 export type LivePrices = {
-  trial25: number;
-  trial50: number;
-  class25: number;
-  class50: number;
+  class30: number;
+  class60: number;
+  trial30: number;
+  trial60: number;
+  trialDiscount: boolean;
 };
 
 type PriceColumns = {
   mentorshipRatePerUnit: unknown;
-  mentorshipClassPrice50: unknown;
-  mentorshipTrialPrice25: unknown;
-  mentorshipTrialPrice50: unknown;
+  mentorshipClassPrice60: unknown;
+  mentorshipTrialDiscount: unknown;
 };
 
 const toNumber = (v: unknown): number | null => (v === null || v === undefined || v === "" ? null : Number(v));
 
-/** Null when the teacher has never set a class price. Unset 50-minute and trial prices fall back. */
+export const minClassPrice = (minutes: LiveClassMinutes) => MENTORSHIP_MIN_CLASS_PRICE[minutes];
+
+export const trialPriceFrom = (classPrice: number, minutes: LiveClassMinutes, discount: boolean) =>
+  discount ? Math.round((classPrice * (100 - MENTORSHIP_TRIAL_DISCOUNT_PERCENT[minutes])) / 100) : classPrice;
+
+/** Null until the teacher has set both class prices. */
 export function resolveLivePrices(row: PriceColumns): LivePrices | null {
-  const class25 = toNumber(row.mentorshipRatePerUnit);
-  if (class25 === null) return null;
-  const class50 = toNumber(row.mentorshipClassPrice50) ?? class25 * 2;
+  const class30 = toNumber(row.mentorshipRatePerUnit);
+  const class60 = toNumber(row.mentorshipClassPrice60);
+  if (class30 === null || class60 === null) return null;
+  const trialDiscount = row.mentorshipTrialDiscount === true;
   return {
-    class25,
-    class50,
-    trial25: toNumber(row.mentorshipTrialPrice25) ?? class25,
-    trial50: toNumber(row.mentorshipTrialPrice50) ?? class50,
+    class30,
+    class60,
+    trial30: trialPriceFrom(class30, 30, trialDiscount),
+    trial60: trialPriceFrom(class60, 60, trialDiscount),
+    trialDiscount,
   };
 }
 
 export const isLiveClassMinutes = (m: number): m is LiveClassMinutes =>
   (MENTORSHIP_SESSION_DURATIONS as readonly number[]).includes(m);
 
-export const minClassPrice = (minutes: LiveClassMinutes) => MENTORSHIP_MIN_RATE_PER_UNIT * (minutes / 25);
-
-export const classPriceFor = (p: LivePrices, minutes: LiveClassMinutes) => (minutes === 25 ? p.class25 : p.class50);
-export const trialPriceFor = (p: LivePrices, minutes: LiveClassMinutes) => (minutes === 25 ? p.trial25 : p.trial50);
+export const classPriceFor = (p: LivePrices, minutes: LiveClassMinutes) => (minutes === 30 ? p.class30 : p.class60);
+export const trialPriceFor = (p: LivePrices, minutes: LiveClassMinutes) => (minutes === 30 ? p.trial30 : p.trial60);
 
 export const pricesMeetFloors = (p: LivePrices) =>
-  p.class25 >= minClassPrice(25) && p.class50 >= minClassPrice(50) && p.trial25 >= 0 && p.trial50 >= 0;
+  p.class30 >= minClassPrice(30) && p.class60 >= minClassPrice(60) && p.trial30 > 0 && p.trial60 > 0;
 
 export const PACKAGE_CLASSES_PER_WEEK_OPTIONS = Array.from({ length: PACKAGE_MAX_CLASSES_PER_WEEK }, (_, i) => i + 1);
 

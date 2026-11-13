@@ -34,6 +34,10 @@ export async function handle(request: Request) {
     if (!lesson || (lesson.teacherId !== effectiveTeacherId && user.role !== "admin")) {
       return new Response(superjson.stringify({ error: "Group lesson not found" }), { status: 404 });
     }
+    const owner = await db.selectFrom("groupLessons").select("liveCourseId").where("id", "=", lesson.id).executeTakeFirst();
+    if (owner?.liveCourseId) {
+      return new Response(superjson.stringify({ error: "Cancel this class from its live course." }), { status: 400 });
+    }
     if (lesson.status === "cancelled" || lesson.status === "completed") {
       return new Response(superjson.stringify({ error: `This lesson is already ${lesson.status}.` }), { status: 400 });
     }

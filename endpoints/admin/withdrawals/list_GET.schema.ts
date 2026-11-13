@@ -36,6 +36,11 @@ export type AdminWithdrawalRecord = {
   bankUpiId: string | null;
   /** Available balance when the teacher made this request, before its amount came off. Null if never recorded. */
   balanceAtRequest: number | null;
+  cancelledAt: Date | null;
+  cancelledByUserId: number | null;
+  cancelledByAdminId: number | null;
+  /** Who cancelled it, e.g. "Asha Rao" or "Ravi (admin, signed in as the account)". Null unless cancelled. */
+  cancelledByName: string | null;
 };
 
 export type OutputType = {

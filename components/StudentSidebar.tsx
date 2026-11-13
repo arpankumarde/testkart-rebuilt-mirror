@@ -90,7 +90,8 @@ const NAV_GROUPS: StudentNavGroup[] = [
         isActiveFor: (p) => p === '/student/tests' || p.startsWith('/student/tests/'),
       },
       { href: '/student/live', label: 'Live Mock Tests', icon: Radio },
-      { href: '/student/live-teaching', label: 'Live Teaching', icon: Video },
+      { href: '/student/live-teaching', label: 'Live Classes', icon: Video },
+      { href: '/student/live-courses', label: 'Live Courses', icon: Video },
       {
         href: '/student/shop',
         label: 'Study Notes & PDFs',

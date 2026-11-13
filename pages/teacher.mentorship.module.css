@@ -296,6 +296,16 @@
   color: var(--tc-muted, var(--muted-foreground));
 }
 
+.trialPrice {
+  display: flex;
+  align-items: center;
+  min-height: 2.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--tc-ink, var(--foreground));
+}
+
 .moneyInput {
   position: relative;
 }

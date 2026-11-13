@@ -1,0 +1,613 @@
+/*
+ * Screenshot-style copy of the teacher Overview. Colours come from the same
+ * --sp-* / --fc-* tokens TeacherConsoleTheme maps for the real console, so the
+ * preview matches the product in both themes. Everything inside .stage is in em
+ * off a container-relative font size: 1em is 16px at an 860px design width,
+ * and the whole page scales down with the column like an image.
+ */
+.preview {
+  --tc-bg: var(--sp-surface);
+  --tc-card: var(--sp-card);
+  --tc-ink: var(--sp-ink);
+  --tc-text: var(--sp-text);
+  --tc-muted: var(--sp-muted);
+  --tc-line: var(--sp-line);
+  --tc-line-strong: var(--sp-line-strong);
+  --tc-panel: var(--fc-panel);
+  --tc-panel-ink: var(--fc-panel-ink);
+  --tc-panel-text: var(--fc-panel-text);
+  --tc-panel-muted: var(--fc-panel-muted);
+  --tc-money: var(--fc-price);
+
+  container-type: inline-size;
+  width: 100%;
+  margin: 0;
+}
+
+.mock_test {
+  --tone-tint: var(--fc-blue-tint);
+  --tone-line: var(--fc-blue-line);
+  --tone-ink: var(--fc-blue-ink);
+}
+
+.course {
+  --tone-tint: var(--sp-lavender-tint);
+  --tone-line: var(--sp-lavender-line);
+  --tone-ink: var(--sp-lavender-ink);
+}
+
+.digital_product {
+  --tone-tint: var(--fc-butter-tint);
+  --tone-line: var(--fc-butter-line);
+  --tone-ink: var(--fc-butter-ink);
+}
+
+.live_test {
+  --tone-tint: var(--fc-peach-tint);
+  --tone-line: var(--fc-peach-line);
+  --tone-ink: var(--fc-peach-ink);
+}
+
+.bundle {
+  --tone-tint: var(--fc-mint-tint);
+  --tone-line: var(--sp-mint-line);
+  --tone-ink: var(--fc-mint-ink);
+}
+
+.window {
+  font-size: calc(100cqw / 53.75);
+  border-radius: 14px;
+  background-color: var(--tc-bg);
+  border: 1px solid var(--sl-line-strong);
+  box-shadow: var(--sl-shadow);
+  overflow: hidden;
+  color: var(--tc-ink);
+}
+
+.window svg {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+}
+
+/* Browser bar */
+.chrome {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  height: 2.75em;
+  padding: 0 1em;
+  background-color: var(--tc-card);
+  border-bottom: 1px solid var(--tc-line);
+}
+
+.dots,
+.chromeSpacer {
+  display: inline-flex;
+  gap: 0.4em;
+  width: 3.5em;
+}
+
+.dots span {
+  width: 0.7em;
+  height: 0.7em;
+  border-radius: 50%;
+  background-color: var(--tc-line-strong);
+}
+
+.url {
+  flex: 1;
+  max-width: 22em;
+  margin-inline: auto;
+  padding: 0.3em 1em;
+  border-radius: 999px;
+  background-color: var(--tc-bg);
+  border: 1px solid var(--tc-line);
+  font-size: 0.8em;
+  color: var(--tc-muted);
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* App shell */
+.app {
+  display: grid;
+  grid-template-columns: 13.5em minmax(0, 1fr);
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
+  padding: 1em 0.75em;
+  background-color: var(--tc-card);
+  border-right: 1px solid var(--tc-line);
+}
+
+.brandRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5em;
+  padding: 0 0.25em 0.75em;
+  border-bottom: 1px solid var(--tc-line);
+}
+
+.logo {
+  display: block;
+  height: 1.6em;
+  width: auto;
+  max-width: 7em;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.teacherChip {
+  padding: 0.3em 0.5em;
+  border-radius: 999px;
+  background-color: var(--tc-panel);
+  color: var(--tc-panel-ink);
+  font-size: 0.7em;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.createButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  height: 2.6em;
+  border-radius: 1.25em 1.25em 1.25em 0.5em;
+  background-color: var(--sp-cta);
+  border: 1px solid var(--sp-peach-edge);
+  box-shadow: 0 2px 0 var(--sp-peach-edge);
+  color: var(--sp-cta-ink);
+  font-size: 0.875em;
+  font-weight: 700;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+}
+
+.navGroup {
+  margin: 0.75em 0 0.25em;
+  padding: 0 0.75em;
+  font-size: 0.68em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tc-muted);
+}
+
+.navItem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.65em;
+  padding: 0.5em 0.75em;
+  border-radius: 0.6em;
+  font-size: 0.82em;
+  font-weight: 600;
+  color: var(--tc-text);
+  white-space: nowrap;
+}
+
+.navItem > svg {
+  color: var(--tc-muted);
+}
+
+.navActive {
+  background-color: var(--tk-brand-tint);
+  color: var(--tc-ink);
+}
+
+.navActive::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.4em;
+  bottom: 0.4em;
+  width: 3px;
+  border-radius: 3px;
+  background-color: var(--tk-brand);
+}
+
+.navActive > svg {
+  color: var(--tc-ink);
+}
+
+.kindTile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.6em;
+  height: 1.6em;
+  border-radius: 0.45em;
+  background-color: var(--tone-tint);
+  border: 1px solid var(--tone-line);
+  color: var(--tone-ink);
+}
+
+.kindTile svg {
+  width: 0.9em;
+  height: 0.9em;
+}
+
+/* Main column */
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  min-width: 0;
+  padding: 1.4em 1.5em 1.5em;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+}
+
+.greeting {
+  font-family: var(--font-family-heading);
+  font-size: 1.6em;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--tc-ink);
+}
+
+.controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.segmented {
+  display: inline-flex;
+  padding: 0.2em;
+  border-radius: 0.7em;
+  background-color: var(--tc-card);
+  border: 1px solid var(--tc-line);
+}
+
+.segmented span {
+  padding: 0.35em 0.75em;
+  border-radius: 0.5em;
+  font-size: 0.78em;
+  font-weight: 600;
+  color: var(--tc-muted);
+}
+
+.segmented .segmentActive {
+  background-color: var(--tc-panel);
+  color: var(--tc-panel-ink);
+}
+
+.refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2em;
+  height: 2.2em;
+  border-radius: 0.6em;
+  background-color: var(--tc-card);
+  border: 1px solid var(--tc-line);
+  color: var(--tc-text);
+}
+
+.moneyPanel {
+  padding: 1.4em 1.6em;
+  border-radius: 1.2em;
+  background-color: var(--tc-panel);
+  color: var(--tc-panel-ink);
+}
+
+.moneyTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1em;
+}
+
+.moneyLabel {
+  display: block;
+  font-size: 0.8em;
+  font-weight: 600;
+  color: var(--tc-panel-text);
+}
+
+.moneyAmount {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35em;
+  margin-top: 0.15em;
+  font-family: var(--font-family-heading);
+  font-size: 2.3em;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+
+.moneyChange {
+  font-family: var(--font-family-base);
+  font-size: 0.36em;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--tc-panel-text);
+}
+
+.moneyLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  height: 2.3em;
+  padding: 0 0.9em;
+  border: 1.5px solid var(--tc-panel-muted);
+  border-radius: 0.65em;
+  font-size: 0.8em;
+  font-weight: 700;
+}
+
+.moneyStats {
+  display: flex;
+  gap: 2.25em;
+  margin-top: 1.1em;
+}
+
+.moneyStats span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1em;
+  font-size: 0.75em;
+  color: var(--tc-panel-text);
+}
+
+.moneyStats strong {
+  font-family: var(--font-family-heading);
+  font-size: 1.55em;
+  font-weight: 700;
+  color: var(--tc-panel-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 1em;
+}
+
+.card,
+.shelf {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
+  min-width: 0;
+  padding: 1em 1.15em;
+  border-radius: 1em;
+  background-color: var(--tc-card);
+  border: 1px solid var(--tc-line);
+}
+
+.cardHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25em 0.5em;
+}
+
+.cardTitle {
+  font-family: var(--font-family-heading);
+  font-size: 0.92em;
+  font-weight: 700;
+  color: var(--tc-ink);
+  white-space: nowrap;
+}
+
+.cardTitle small {
+  margin-left: 0.4em;
+  font-family: var(--font-family-base);
+  font-size: 0.82em;
+  font-weight: 500;
+  color: var(--tc-muted);
+}
+
+.legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  font-size: 0.7em;
+  color: var(--tc-muted);
+  white-space: nowrap;
+}
+
+.swatchBar {
+  width: 0.7em;
+  height: 0.7em;
+  border-radius: 2px;
+  background-color: var(--tc-panel);
+}
+
+.swatchLine {
+  width: 1em;
+  height: 2px;
+  margin-left: 0.5em;
+  background-color: var(--fc-peach-edge);
+}
+
+.chart {
+  position: relative;
+  height: 8.5em;
+  border-bottom: 1px solid var(--tc-line);
+}
+
+.bars {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.22em;
+}
+
+.bars span {
+  flex: 1;
+  border-radius: 2px 2px 0 0;
+  background-color: var(--tc-panel);
+}
+
+.chart .salesLine {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.salesLine polyline {
+  fill: none;
+  stroke: var(--fc-peach-edge);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  stroke-linejoin: round;
+}
+
+.axis {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.68em;
+  color: var(--tc-muted);
+}
+
+.sellers {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.seller {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 0.7em;
+  padding: 0.55em 0;
+}
+
+.seller + .seller {
+  border-top: 1px solid var(--tc-line);
+}
+
+.thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.6em;
+  height: 1.95em;
+  border-radius: 0.4em;
+  background-color: var(--tone-tint);
+  color: var(--tone-ink);
+}
+
+.sellerBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1em;
+  min-width: 0;
+}
+
+.sellerTitle,
+.sellerMeta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sellerTitle {
+  font-size: 0.75em;
+  font-weight: 600;
+  color: var(--tc-ink);
+}
+
+.sellerMeta {
+  font-size: 0.68em;
+  color: var(--tc-muted);
+}
+
+.sellerEarnings {
+  font-size: 0.75em;
+  font-weight: 700;
+  color: var(--tc-money);
+  font-variant-numeric: tabular-nums;
+}
+
+.shelfGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.6em;
+}
+
+.shelfTile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  padding: 0.7em;
+  border-radius: 0.75em;
+  background-color: var(--tc-card);
+  border: 1px solid var(--tone-line);
+}
+
+.shelfHead {
+  display: flex;
+  align-items: center;
+  gap: 0.45em;
+  font-size: 0.7em;
+  font-weight: 600;
+  color: var(--tc-text);
+  white-space: nowrap;
+}
+
+.shelfCount {
+  font-family: var(--font-family-heading);
+  font-size: 1.3em;
+  font-weight: 800;
+  color: var(--tc-ink);
+}
+
+.caption {
+  margin-top: 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--sl-muted);
+  text-align: center;
+}
+
+/* Narrow column: drop the sidebar, as the real console does on small screens. */
+@container (max-width: 520px) {
+  .window {
+    font-size: calc(100cqw / 37.5);
+  }
+
+  .app {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sidebar,
+  .refresh {
+    display: none;
+  }
+
+  .shelfGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .shelfTile:nth-child(n + 4) {
+    display: none;
+  }
+}
